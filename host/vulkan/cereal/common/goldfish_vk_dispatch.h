@@ -577,6 +577,7 @@ struct VulkanDispatch {
     PFN_vkUpdateDescriptorSetWithTemplateSized2GOOGLE vkUpdateDescriptorSetWithTemplateSized2GOOGLE;
     PFN_vkQueueSubmitAsync2GOOGLE vkQueueSubmitAsync2GOOGLE;
     PFN_vkGetSemaphoreGOOGLE vkGetSemaphoreGOOGLE;
+    PFN_vkTraceAsyncGOOGLE vkTraceAsyncGOOGLE;
 #endif
 #ifdef VK_QNX_external_memory_screen_buffer
     PFN_vkGetScreenBufferPropertiesQNX vkGetScreenBufferPropertiesQNX;

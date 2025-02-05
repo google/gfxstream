@@ -6600,6 +6600,11 @@ class VkDecoderGlobalState::Impl {
             waitSemaphoreCount, pWaitSemaphores, pNativeFenceFd);
     }
 
+    void on_vkTraceAsyncGOOGLE(gfxstream::base::BumpPool*, VkSnapshotApiCallHandle, uint64_t id) {
+        GFXSTREAM_TRACE_EVENT_INSTANT(GFXSTREAM_TRACE_DECODER_CATEGORY, "vkTraceAsyncGOOGLE",
+                                      GFXSTREAM_TRACE_FLOW_GLOBAL(id), "flow id", id);
+    }
+
     VkResult on_vkMapMemoryIntoAddressSpaceGOOGLE(gfxstream::base::BumpPool* pool,
                                                   VkSnapshotApiCallHandle, VkDevice boxed_device,
                                                   VkDeviceMemory memory, uint64_t* pAddress) {
@@ -11574,6 +11579,11 @@ void VkDecoderGlobalState::on_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(
     int fenceFd;
     mImpl->on_vkQueueSignalReleaseImageANDROID(pool, apiCallHandle, queue, waitSemaphoreCount,
                                                pWaitSemaphores, image, &fenceFd);
+}
+
+void VkDecoderGlobalState::on_vkTraceAsyncGOOGLE(gfxstream::base::BumpPool* pool,
+                                                 VkSnapshotApiCallHandle apiCallHandle, uint64_t id) {
+    mImpl->on_vkTraceAsyncGOOGLE(pool, apiCallHandle, id);
 }
 
 VkResult VkDecoderGlobalState::on_vkCreateSamplerYcbcrConversion(

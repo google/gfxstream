@@ -874,6 +874,9 @@ class VkDecoderGlobalState {
                                                         VkQueue queue, uint32_t waitSemaphoreCount,
                                                         const VkSemaphore* pWaitSemaphores,
                                                         VkImage image);
+    void on_vkTraceAsyncGOOGLE(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle,
+                               uint64_t id);
+
     VkResult on_vkQueuePresentKHR(gfxstream::base::BumpPool* pool,
                                   VkSnapshotApiCallHandle apiCallHandle, VkQueue queue,
                                   const VkPresentInfoKHR* pPresentInfo);
