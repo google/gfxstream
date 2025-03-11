@@ -13,18 +13,17 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-#include <GLcommon/ShareGroup.h>
-#include <GLcommon/ObjectNameSpace.h>
 #include <GLcommon/GLEScontext.h>
-
-#include "aemu/base/synchronization/Lock.h"
-#include "aemu/base/containers/Lookup.h"
-#include "GLcommon/FramebufferData.h"
-
-#include "host-common/logging.h"
+#include <GLcommon/ObjectNameSpace.h>
+#include <GLcommon/ShareGroup.h>
 
 #include <array>
 #include <utility>
+
+#include "GLcommon/FramebufferData.h"
+#include "aemu/base/containers/Lookup.h"
+#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/host/logging.h"
 
 static constexpr int toIndex(NamedObjectType type) {
     return static_cast<int>(type);
@@ -57,12 +56,14 @@ ShareGroup::ShareGroup(GlobalNameSpace *globalNameSpace,
         int i = 0;
         (void)i;
         for (auto ns : m_nameSpace) {
-            GL_LOG("ShareGroup::%s: %p: start restore namespace for type %d\n", __func__, this, i);
+            GFXSTREAM_DEBUG("ShareGroup::%s: %p: start restore namespace for type %d\n", __func__,
+                            this, i);
             ns->postLoad(
                     [this](NamedObjectType p_type, ObjectLocalName p_localName) {
                         return this->getObjectDataPtrNoLock(p_type, p_localName);
                 });
-            GL_LOG("ShareGroup::%s: %p: finish restore namespace for type %d\n", __func__, this, i);
+            GFXSTREAM_DEBUG("ShareGroup::%s: %p: finish restore namespace for type %d\n", __func__,
+                            this, i);
             ++i;
         }
     }
@@ -85,9 +86,9 @@ void ShareGroup::onSave(android::base::Stream* stream) {
     int i = 0;
     (void)i;
     for (auto ns : m_nameSpace) {
-        GL_LOG("ShareGroup::%s: %p: start saving type %d\n", __func__, this, i);
+        GFXSTREAM_DEBUG("ShareGroup::%s: %p: start saving type %d\n", __func__, this, i);
         ns->onSave(stream);
-        GL_LOG("ShareGroup::%s: %p: finish saving type %d\n", __func__, this, i);
+        GFXSTREAM_DEBUG("ShareGroup::%s: %p: finish saving type %d\n", __func__, this, i);
         ++i;
     }
 }
@@ -112,12 +113,14 @@ void ShareGroup::postLoadRestore() {
         int i = 0;
         (void)i;
         for (auto ns : m_nameSpace) {
-            GL_LOG("ShareGroup::%s: %p: start post load restore namespace for type %d\n", __func__, this, i);
+            GFXSTREAM_DEBUG("ShareGroup::%s: %p: start post load restore namespace for type %d\n",
+                            __func__, this, i);
             ns->postLoadRestore([this](NamedObjectType p_type,
                                 ObjectLocalName p_localName) {
                                     return getGlobalName(p_type, p_localName);
                             });
-            GL_LOG("ShareGroup::%s: %p: end post load restore namespace for type %d\n", __func__, this, i);
+            GFXSTREAM_DEBUG("ShareGroup::%s: %p: end post load restore namespace for type %d\n",
+                            __func__, this, i);
             ++i;
         }
         m_needLoadRestore = false;

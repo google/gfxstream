@@ -7,7 +7,8 @@ target_link_libraries(
     PUBLIC
     apigen-codec-common
     PRIVATE
-    gfxstream_egl_headers)
+    gfxstream_egl_headers
+    gfxstream_host_logging)
 target_include_directories(
     renderControl_dec
     PRIVATE

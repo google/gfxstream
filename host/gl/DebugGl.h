@@ -17,7 +17,7 @@
 
 #include <string>
 
-#include "host-common/logging.h"
+#include "gfxstream/host/logging.h"
 
 namespace gfxstream {
 namespace gl {

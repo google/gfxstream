@@ -15,13 +15,13 @@
 */
 #include "ReadBuffer.h"
 
-#include "host-common/logging.h"
+#include <assert.h>
+#include <limits.h>
+#include <string.h>
 
 #include <algorithm>
 
-#include <assert.h>
-#include <string.h>
-#include <limits.h>
+#include "gfxstream/host/logging.h"
 
 namespace gfxstream {
 
@@ -70,7 +70,7 @@ int ReadBuffer::getData(IOStream* stream, size_t minSize) {
 
             const auto new_buf = (unsigned char*)malloc(new_size);
             if (!new_buf) {
-                ERR("Failed to alloc %zu bytes for ReadBuffer\n", new_size);
+                GFXSTREAM_ERROR("Failed to alloc %zu bytes for ReadBuffer\n", new_size);
                 return -1;
             }
 

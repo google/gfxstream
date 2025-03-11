@@ -15,6 +15,7 @@
 #include "CompressedImageInfo.h"
 
 #include "aemu/base/ArraySize.h"
+#include "gfxstream/host/logging.h"
 #include "vulkan/VkFormatUtils.h"
 #include "vulkan/emulated_textures/shaders/DecompressionShaders.h"
 #include "vulkan/VkFormatUtils.h"
@@ -23,9 +24,6 @@
 namespace gfxstream {
 namespace vk {
 namespace {
-
-using emugl::ABORT_REASON_OTHER;
-using emugl::FatalError;
 
 // Returns x / y, rounded up. E.g. ceil_div(7, 2) == 4
 // Note the potential integer overflow for large numbers.
@@ -67,7 +65,7 @@ VkImageView createDefaultImageView(VulkanDispatch* vk, VkDevice device, VkImage 
     VkImageView imageView;
     VkResult result = vk->vkCreateImageView(device, &imageViewInfo, nullptr, &imageView);
     if (result != VK_SUCCESS) {
-        WARN("GPU decompression: createDefaultImageView failed: %d", result);
+        GFXSTREAM_WARNING("GPU decompression: createDefaultImageView failed: %d", result);
         return VK_NULL_HANDLE;
     }
     return imageView;
@@ -164,7 +162,7 @@ bool imageWillBecomeReadable(const VkImageMemoryBarrier& barrier) {
     // TODO(gregschlom) This doesn't take into account that the GENERAL layout is both readable and
     //  writable, so this warning could incorrectly trigger some times.
     if (fromReadable && toWritable) {
-        WARN(
+        GFXSTREAM_WARNING(
             "Compressed image is being transitioned from readable (%s) to writable (%s). This may "
             "lead to unexpected results.",
             string_VkImageLayout(barrier.oldLayout), string_VkImageLayout(barrier.newLayout));
@@ -220,7 +218,7 @@ void checkValidAlignment(VkDeviceSize& n) {
     // Check that the alignment is a power of 2
     // http://www.graphics.stanford.edu/~seander/bithacks.html#DetermineIfPowerOf2
     if ((n & (n - 1))) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "vkGetImageMemoryRequirements returned non-power-of-two alignment: " + std::to_string(n);
+        GFXSTREAM_FATAL("vkGetImageMemoryRequirements returned non-power-of-two alignment: %d", n);
     }
 }
 
@@ -464,7 +462,7 @@ bool CompressedImageInfo::decompressIfNeeded(VulkanDispatch* vk, VkCommandBuffer
 
     VkResult result = initializeDecompressionPipeline(vk, mDevice);
     if (result != VK_SUCCESS) {
-        WARN("Failed to initialize pipeline for texture decompression");
+        GFXSTREAM_WARNING("Failed to initialize pipeline for texture decompression");
         return false;
     }
 
@@ -658,7 +656,7 @@ VkResult CompressedImageInfo::initializeDecompressionPipeline(VulkanDispatch* vk
 
     mDecompPipeline = mPipelineManager->get(mCompressedFormat, mImageType);
     if (mDecompPipeline == nullptr) {
-        ERR("Failed to initialize GPU decompression pipeline");
+        GFXSTREAM_ERROR("Failed to initialize GPU decompression pipeline");
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
@@ -676,7 +674,7 @@ VkResult CompressedImageInfo::initializeDecompressionPipeline(VulkanDispatch* vk
     VkResult result =
         vk->vkCreateDescriptorPool(device, &dsPoolInfo, nullptr, &mDecompDescriptorPool);
     if (result != VK_SUCCESS) {
-        ERR("GPU decompression error. vkCreateDescriptorPool failed: %d", result);
+        GFXSTREAM_ERROR("GPU decompression error. vkCreateDescriptorPool failed: %d", result);
         return result;
     }
 
@@ -691,7 +689,7 @@ VkResult CompressedImageInfo::initializeDecompressionPipeline(VulkanDispatch* vk
     mDecompDescriptorSets.resize(mMipLevels);
     result = vk->vkAllocateDescriptorSets(device, &dsInfo, mDecompDescriptorSets.data());
     if (result != VK_SUCCESS) {
-        ERR("GPU decompression error. vkAllocateDescriptorSets failed: %d", result);
+        GFXSTREAM_ERROR("GPU decompression error. vkAllocateDescriptorSets failed: %d", result);
         return result;
     }
 

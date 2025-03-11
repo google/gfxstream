@@ -22,8 +22,8 @@
 #include "OpenGLESDispatch/DispatchTables.h"
 #include "OpenGLESDispatch/EGLDispatch.h"
 #include "OpenGLESDispatch/GLESv2Dispatch.h"
+#include "gfxstream/host/logging.h"
 #include "gl/ColorBufferGl.h"
-#include "host-common/logging.h"
 #include "host-common/misc.h"
 
 namespace gfxstream {
@@ -42,7 +42,7 @@ ReadbackWorkerGl::ReadbackWorkerGl(std::unique_ptr<DisplaySurfaceGl> surface,
 
 void ReadbackWorkerGl::init() {
     if (!mFlushSurface->getContextHelper()->setupContext()) {
-        ERR("Failed to make ReadbackWorkerGl flush surface current.");
+        GFXSTREAM_ERROR("Failed to make ReadbackWorkerGl flush surface current.");
     }
 }
 
@@ -55,7 +55,7 @@ void ReadbackWorkerGl::initReadbackForDisplay(uint32_t displayId, uint32_t w, ui
 
     auto [it, inserted] =  mTrackedDisplays.emplace(displayId, TrackedDisplay(displayId, w, h));
     if (!inserted) {
-        ERR("Double init of TrackeDisplay for display:%d", displayId);
+        GFXSTREAM_ERROR("Double init of TrackeDisplay for display:%d", displayId);
         return;
     }
 
@@ -74,7 +74,7 @@ void ReadbackWorkerGl::deinitReadbackForDisplay(uint32_t displayId) {
 
     auto it = mTrackedDisplays.find(displayId);
     if (it == mTrackedDisplays.end()) {
-        ERR("Double deinit of TrackedDisplay for display:%d", displayId);
+        GFXSTREAM_ERROR("Double deinit of TrackedDisplay for display:%d", displayId);
         return;
     }
 
@@ -181,7 +181,7 @@ ReadbackWorkerGl::FlushResult ReadbackWorkerGl::flushPipeline(uint32_t displayId
 
     auto it = mTrackedDisplays.find(displayId);
     if (it == mTrackedDisplays.end()) {
-        ERR("Failed to find TrackedDisplay for display:%d", displayId);
+        GFXSTREAM_ERROR("Failed to find TrackedDisplay for display:%d", displayId);
         return FlushResult::FAIL;
     }
     TrackedDisplay& display = it->second;
@@ -200,7 +200,7 @@ ReadbackWorkerGl::FlushResult ReadbackWorkerGl::flushPipeline(uint32_t displayId
     {
         RecursiveScopedContextBind contextBind(mSurface->getContextHelper());
         if (!contextBind.isOk()) {
-            ERR("Failed to make ReadbackWorkerGl surface current, skipping flush.");
+            GFXSTREAM_ERROR("Failed to make ReadbackWorkerGl surface current, skipping flush.");
             return FlushResult::FAIL;
         }
 
@@ -220,7 +220,7 @@ void ReadbackWorkerGl::getPixels(uint32_t displayId, void* buf, uint32_t bytes) 
 
     auto it = mTrackedDisplays.find(displayId);
     if (it == mTrackedDisplays.end()) {
-        ERR("Failed to find TrackedDisplay for display:%d", displayId);
+        GFXSTREAM_ERROR("Failed to find TrackedDisplay for display:%d", displayId);
         return;
     }
     TrackedDisplay& display = it->second;

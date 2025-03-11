@@ -15,13 +15,12 @@
  */
 
 #include "EglOsApi.h"
-
-#include "aemu/base/system/System.h"
-#include "aemu/base/SharedLibrary.h"
-#include "host-common/logging.h"
-#include "host-common/opengl/misc.h"
 #include "GLcommon/GLLibrary.h"
 #include "ShaderCache.h"
+#include "aemu/base/SharedLibrary.h"
+#include "aemu/base/system/System.h"
+#include "gfxstream/host/logging.h"
+#include "host-common/opengl/misc.h"
 
 #ifdef ANDROID
 #include <android/native_window.h>
@@ -153,16 +152,16 @@ public:
         mLib = android::base::SharedLibrary::open(kEGLLibName, error, sizeof(error));
         if (!mLib) {
 #ifdef __linux__
-            ERR("%s: Could not open EGL library %s [%s]. Trying again with [%s]", __FUNCTION__,
-                kEGLLibName, error, kEGLLibNameAlt);
+            GFXSTREAM_ERROR("%s: Could not open EGL library %s [%s]. Trying again with [%s]",
+                            __FUNCTION__, kEGLLibName, error, kEGLLibNameAlt);
             mLib = android::base::SharedLibrary::open(kEGLLibNameAlt, error, sizeof(error));
             if (!mLib) {
-                ERR("%s: Could not open EGL library %s [%s]", __FUNCTION__,
-                    kEGLLibNameAlt, error);
+                GFXSTREAM_ERROR("%s: Could not open EGL library %s [%s]", __FUNCTION__,
+                                kEGLLibNameAlt, error);
             }
 #else
-            ERR("%s: Could not open EGL library %s [%s]", __FUNCTION__,
-                kEGLLibName, error);
+            GFXSTREAM_ERROR("%s: Could not open EGL library %s [%s]", __FUNCTION__, kEGLLibName,
+                            error);
 #endif
         }
 
@@ -196,16 +195,16 @@ public:
         mLib = android::base::SharedLibrary::open(kGLES2LibName, error, sizeof(error));
         if (!mLib) {
 #ifdef __linux__
-            ERR("%s: Could not open GL library %s [%s]. Trying again with [%s]", __FUNCTION__,
-                kGLES2LibName, error, kGLES2LibNameAlt);
+            GFXSTREAM_ERROR("%s: Could not open GL library %s [%s]. Trying again with [%s]",
+                            __FUNCTION__, kGLES2LibName, error, kGLES2LibNameAlt);
             mLib = android::base::SharedLibrary::open(kGLES2LibNameAlt, error, sizeof(error));
             if (!mLib) {
-                ERR("%s: Could not open GL library %s [%s]", __FUNCTION__,
-                    kGLES2LibNameAlt, error);
+                GFXSTREAM_ERROR("%s: Could not open GL library %s [%s]", __FUNCTION__,
+                                kGLES2LibNameAlt, error);
             }
 #else
-            ERR("%s: Could not open GL library %s [%s]", __FUNCTION__,
-                kGLES2LibName, error);
+            GFXSTREAM_ERROR("%s: Could not open GL library %s [%s]", __FUNCTION__, kGLES2LibName,
+                            error);
 #endif
         }
     }

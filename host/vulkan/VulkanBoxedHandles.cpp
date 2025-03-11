@@ -419,7 +419,7 @@ VkObjectT unbox_VkType(VkObjectT boxed) {
                           std::is_same_v<VkObjectT, VkInstance> ||
                           std::is_same_v<VkObjectT, VkPhysicalDevice> ||
                           std::is_same_v<VkObjectT, VkQueue>) {
-                ERR("Failed to unbox %s %p", GetTypeStr<VkObjectT>(), boxed);
+                GFXSTREAM_ERROR("Failed to unbox %s %p", GetTypeStr<VkObjectT>(), boxed);
             } else if constexpr (std::is_same_v<VkObjectT, VkFence>) {
                 // TODO: investigate.
             } else {
@@ -457,7 +457,7 @@ VkObjectT try_unbox_VkType(VkObjectT boxed) {
     }
 
     if (unboxed == VK_NULL_HANDLE) {
-        WARN("Failed to try unbox %s %p", GetTypeStr<VkObjectT>(), boxed);
+        GFXSTREAM_WARNING("Failed to try unbox %s %p", GetTypeStr<VkObjectT>(), boxed);
     }
 
     return unboxed;
@@ -513,7 +513,7 @@ template <typename VkObjectT>
 VulkanDispatch* get_dispatch_VkType(VkObjectT boxed) {
     BoxedHandleInfo* info = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);
     if (info == nullptr) {
-        ERR("Failed to unbox %s %p", GetTypeStr<VkObjectT>(), boxed);
+        GFXSTREAM_ERROR("Failed to unbox %s %p", GetTypeStr<VkObjectT>(), boxed);
         return nullptr;
     }
     return info->dispatch;

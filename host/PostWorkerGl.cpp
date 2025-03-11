@@ -16,10 +16,9 @@
 #include "PostWorkerGl.h"
 
 #include "FrameBuffer.h"
+#include "gfxstream/host/logging.h"
 #include "gl/DisplayGl.h"
 #include "gl/DisplaySurfaceGl.h"
-#include "host-common/GfxstreamFatalError.h"
-#include "host-common/logging.h"
 #include "host-common/misc.h"
 
 namespace gfxstream {
@@ -54,7 +53,7 @@ PostWorkerGl::PostWorkerGl(bool mainThreadPostingOnly, FrameBuffer* fb, Composit
       m_displayGl(displayGl),
       mEmulationGl(emulationGl) {
     if (!m_displayGl) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "PostWorker missing DisplayGl.";
+        GFXSTREAM_FATAL("PostWorker missing DisplayGl.");
     }
 }
 
@@ -255,7 +254,7 @@ void PostWorkerGl::viewportImpl(int width, int height) {
     m_viewportHeight = height * dpr;
 
     if (!m_displayGl) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "PostWorker missing DisplayGl.";
+        GFXSTREAM_FATAL("PostWorker missing DisplayGl.");
     }
     m_displayGl->viewport(m_viewportWidth, m_viewportHeight);
 }
@@ -295,7 +294,7 @@ void PostWorkerGl::setupContext() {
             mFakeWindowSurface = mEmulationGl->createFakeWindowSurface();
         }
         if (!mFakeWindowSurface) {
-            ERR("Post worker does not have a window surface.");
+            GFXSTREAM_ERROR("Post worker does not have a window surface.");
             return;
         }
         surfaceGl = static_cast<const DisplaySurfaceGl*>(mFakeWindowSurface->getImpl());
@@ -309,7 +308,7 @@ void PostWorkerGl::setupContext() {
     // (2) they both need to happen in post thread, but the d'tor
     // of PostWorker can happen in a different thread.
     if (!surfaceGl->bindContext()) {
-        ERR("Failed to bind to post worker context.");
+        GFXSTREAM_ERROR("Failed to bind to post worker context.");
         return;
     }
     mContextBound = true;

@@ -16,6 +16,9 @@ cc_library_static {
     header_libs: [
         "libgfxstream_host_vulkan_cereal_common",
     ],
+    static_libs: [
+        "libgfxstream_host_logging",
+    ],
     srcs: [
         "AstcTexture.cpp",
         "CompressedImageInfo.cpp",

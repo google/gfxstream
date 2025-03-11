@@ -14,9 +14,9 @@
 
 #include "VulkanTestHelper.h"
 
+#include "gfxstream/host/logging.h"
 #include "host-common/emugl_vm_operations.h"
 #include "host-common/feature_control.h"
-#include "host-common/logging.h"
 #include "host-common/vm_operations.h"
 
 namespace gfxstream {
@@ -33,7 +33,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL validationCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type,
     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
     if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
-        ERR("Validation Layer: \"%s\"", pCallbackData->pMessage);
+        GFXSTREAM_ERROR("Validation Layer: \"%s\"", pCallbackData->pMessage);
         validationErrorsFound = true;
     }
     return VK_FALSE;

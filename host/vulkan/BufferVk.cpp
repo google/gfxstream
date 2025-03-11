@@ -23,7 +23,7 @@ namespace vk {
 std::unique_ptr<BufferVk> BufferVk::create(VkEmulation& vkEmulation, uint32_t handle, uint64_t size,
                                            bool vulkanOnly) {
     if (!vkEmulation.setupVkBuffer(size, handle, vulkanOnly, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) {
-        ERR("Failed to create BufferVk:%d", handle);
+        GFXSTREAM_ERROR("Failed to create BufferVk:%d", handle);
         return nullptr;
     }
 
@@ -35,7 +35,7 @@ BufferVk::BufferVk(VkEmulation& vkEmulation, uint32_t handle)
 
 BufferVk::~BufferVk() {
     if (!mVkEmulation.teardownVkBuffer(mHandle)) {
-        ERR("Failed to destroy BufferVk:%d", mHandle);
+        GFXSTREAM_ERROR("Failed to destroy BufferVk:%d", mHandle);
     }
 }
 

@@ -30,6 +30,7 @@ target_link_libraries(
     GLcommon PUBLIC
     aemu-base.headers
     aemu-host-common.headers
+    gfxstream_host_logging
     gfxstream_host_snapshot.headers
     gfxstream-compressedTextures
     gfxstream_egl_headers

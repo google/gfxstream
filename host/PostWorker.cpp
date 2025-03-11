@@ -23,7 +23,7 @@
 #include "FrameBuffer.h"
 #include "RenderThreadInfo.h"
 #include "aemu/base/Tracing.h"
-#include "host-common/logging.h"
+#include "gfxstream/host/logging.h"
 #include "host-common/misc.h"
 #include "vulkan/VkCommonOperations.h"
 
@@ -48,14 +48,14 @@ std::shared_future<void> PostWorker::composeImpl(const FlatComposeRequest& compo
     completedFuture.wait();
 
     if (!isComposeTargetReady(composeRequest.targetHandle)) {
-        ERR("The last composition on the target buffer hasn't completed.");
+        GFXSTREAM_ERROR("The last composition on the target buffer hasn't completed.");
     }
 
     Compositor::CompositionRequest compositorRequest = {};
     compositorRequest.target = mFb->borrowColorBufferForComposition(composeRequest.targetHandle,
                                                                     /*colorBufferIsTarget=*/true);
     if (!compositorRequest.target) {
-        ERR("Compose target is null (cb=0x%x).", composeRequest.targetHandle);
+        GFXSTREAM_ERROR("Compose target is null (cb=0x%x).", composeRequest.targetHandle);
         return completedFuture;
     }
 
@@ -142,7 +142,7 @@ void PostWorker::runTask(std::packaged_task<void()> task) {
     auto taskPtr = std::make_unique<Task>(std::move(task));
     if (m_mainThreadPostingOnly) {
         if (!m_runOnUiThread) {
-            ERR("m_runOnUiThread function ptr is NULL, going to crash");
+            GFXSTREAM_ERROR("m_runOnUiThread function ptr is NULL, going to crash");
         }
         m_runOnUiThread(
             [](void* data) {

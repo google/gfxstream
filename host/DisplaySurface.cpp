@@ -15,8 +15,8 @@
 #include "DisplaySurface.h"
 
 #include "Display.h"
+#include "gfxstream/host/logging.h"
 #include "host-common/GfxstreamFatalError.h"
-#include "host-common/logging.h"
 
 namespace gfxstream {
 

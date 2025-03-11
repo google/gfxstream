@@ -13,27 +13,27 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+
+// clang-format off
 #include "EglOsApi.h"
-
-#include "aemu/base/synchronization/Lock.h"
-#include "aemu/base/SharedLibrary.h"
-#include "host-common/logging.h"
-
-#include "CoreProfileConfigs.h"
-#include "GLcommon/GLLibrary.h"
-#include "X11ErrorHandler.h"
-
-#include "X11Support.h"
-
-#include <string.h>
-#include <X11/Xlib.h>
-#include <GL/glx.h>
+// clang-format on
 
 #include <EGL/eglext.h>
+#include <GL/glx.h>
+#include <X11/Xlib.h>
+#include <string.h>
 
 #include <algorithm>
 #include <unordered_map>
 #include <vector>
+
+#include "CoreProfileConfigs.h"
+#include "GLcommon/GLLibrary.h"
+#include "X11ErrorHandler.h"
+#include "X11Support.h"
+#include "aemu/base/SharedLibrary.h"
+#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/host/logging.h"
 
 #define DEBUG_PBUF_POOL 0
 
@@ -63,8 +63,7 @@ public:
         char error[256];
         mLib = android::base::SharedLibrary::open(kLibName, error, sizeof(error));
         if (!mLib) {
-            ERR("%s: Could not open GL library %s [%s]\n",
-                __func__, kLibName, error);
+            GFXSTREAM_ERROR("%s: Could not open GL library %s [%s]\n", __func__, kLibName, error);
             return;
         }
         // NOTE: Don't use glXGetProcAddress here, only glXGetProcAddressARB
@@ -73,8 +72,8 @@ public:
         mResolver = reinterpret_cast<ResolverFunc*>(
                 mLib->findSymbol(kResolverName));
         if (!mResolver) {
-            ERR("%s: Could not find resolver %s in %s\n",
-                __func__, kResolverName, kLibName);
+            GFXSTREAM_ERROR("%s: Could not find resolver %s in %s\n", __func__, kResolverName,
+                            kLibName);
             mLib = NULL;
         }
     }
@@ -368,7 +367,7 @@ public:
                 queryCoreProfileSupport();
             }
         } else {
-            ERR("%s: Could not query GLX version!\n", __func__);
+            GFXSTREAM_ERROR("%s: Could not query GLX version!\n", __func__);
         }
     }
 

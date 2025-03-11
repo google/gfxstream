@@ -17,6 +17,7 @@ cc_library_static {
         "gfxstream_base",
         "libgfxstream_host_apigen_codec_common",
         "libgfxstream_host_glestranslator_glcommon",
+        "libgfxstream_host_logging",
     ],
     cflags: [
         "-fvisibility=hidden",

@@ -9,7 +9,8 @@ target_link_libraries(
     apigen-codec-common
     GLSnapshot
     PRIVATE
-    gfxstream_egl_headers)
+    gfxstream_egl_headers
+    gfxstream_host_logging)
 target_include_directories(
     gles1_dec
     PRIVATE

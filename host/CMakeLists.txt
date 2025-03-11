@@ -1,3 +1,6 @@
+# Logging subdirectory
+add_subdirectory(logging)
+
 add_subdirectory(backend)
 add_subdirectory(features)
 add_subdirectory(tracing)
@@ -88,8 +91,10 @@ target_link_libraries(
         gfxstream_host_tracing
         gfxstream-gl-server
         gfxstream-vulkan-server
+        gfxstream_host_logging
         gfxstream_egl_headers
         gfxstream_host_snapshot
+        gfxstream_utils
         apigen-codec-common
         ${GFXSTREAM_HOST_COMMON_LIB}
         ${GFXSTREAM_BASE_LIB})
@@ -327,6 +332,7 @@ endfunction()
         aemu-host-common-testing-support
         aemu-base-testing-support
         gfxstream_backend_static
+        gfxstream-vulkan-server
         gtest
         gtest_main
         gmock)

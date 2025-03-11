@@ -14,7 +14,7 @@
 
 #include "GpuDecompressionPipeline.h"
 
-#include "host-common/logging.h"
+#include "gfxstream/host/logging.h"
 #include "vulkan/VkFormatUtils.h"
 #include "vulkan/emulated_textures/shaders/DecompressionShaders.h"
 #include "vulkan/vk_enum_string_helper.h"
@@ -178,16 +178,16 @@ GpuDecompressionPipeline::GpuDecompressionPipeline(VulkanDispatch* vk, VkDevice 
       mImageType(imageType),
       mDescriptorSetLayout(descriptorSetLayout),
       mPipelineLayout(pipelineLayout) {
-    INFO("Created GPU decompression pipeline for format %s %s. ASTC decoder: %s",
-         string_VkFormat(mCompressedFormat), string_VkImageType(imageType),
-         string_AstcDecoder(activeAstcDecoder));
+    GFXSTREAM_INFO("Created GPU decompression pipeline for format %s %s. ASTC decoder: %s",
+                   string_VkFormat(mCompressedFormat), string_VkImageType(imageType),
+                   string_AstcDecoder(activeAstcDecoder));
 }
 
 bool GpuDecompressionPipeline::initialize() {
     const ShaderData* shaderData = getDecompressionShader(mCompressedFormat, mImageType);
     if (!shaderData) {
-        WARN("No decompression shader found for format %s and img type %s",
-             string_VkFormat(mCompressedFormat), string_VkImageType(mImageType));
+        GFXSTREAM_WARNING("No decompression shader found for format %s and img type %s",
+                          string_VkFormat(mCompressedFormat), string_VkImageType(mImageType));
         return false;
     }
 
@@ -199,7 +199,7 @@ bool GpuDecompressionPipeline::initialize() {
     VkShaderModule shader;
     VkResult result = mVk->vkCreateShaderModule(mDevice, &shaderInfo, nullptr, &shader);
     if (result != VK_SUCCESS) {
-        WARN("GPU decompression: error calling vkCreateShaderModule: %d", result);
+        GFXSTREAM_WARNING("GPU decompression: error calling vkCreateShaderModule: %d", result);
         return false;
     }
 
@@ -215,7 +215,7 @@ bool GpuDecompressionPipeline::initialize() {
                                            &mPipeline);
     mVk->vkDestroyShaderModule(mDevice, shader, nullptr);
     if (result != VK_SUCCESS) {
-        WARN("GPU decompression: error calling vkCreateComputePipelines: %d", result);
+        GFXSTREAM_WARNING("GPU decompression: error calling vkCreateComputePipelines: %d", result);
         return false;
     }
     return true;
@@ -275,7 +275,8 @@ VkDescriptorSetLayout GpuDecompressionPipelineManager::getDescriptorSetLayout() 
     VkResult result =
         mVk->vkCreateDescriptorSetLayout(mDevice, &dsLayoutInfo, nullptr, &mDescriptorSetLayout);
     if (result != VK_SUCCESS) {
-        WARN("GPU decompression: error calling vkCreateDescriptorSetLayout: %d", result);
+        GFXSTREAM_WARNING("GPU decompression: error calling vkCreateDescriptorSetLayout: %d",
+                          result);
         return VK_NULL_HANDLE;
     }
     return mDescriptorSetLayout;
@@ -303,8 +304,9 @@ VkPipelineLayout GpuDecompressionPipelineManager::getPipelineLayout(VkFormat for
     VkResult result =
         mVk->vkCreatePipelineLayout(mDevice, &pipelineLayoutInfo, nullptr, pipelineLayout);
     if (result != VK_SUCCESS) {
-        WARN("GPU decompression: error calling vkCreatePipelineLayout for format %s: %d",
-             string_VkFormat(format), result);
+        GFXSTREAM_WARNING(
+            "GPU decompression: error calling vkCreatePipelineLayout for format %s: %d",
+            string_VkFormat(format), result);
         return VK_NULL_HANDLE;
     }
     return *pipelineLayout;
@@ -326,7 +328,7 @@ void GpuDecompressionPipelineManager::clear() {
 GpuDecompressionPipelineManager::~GpuDecompressionPipelineManager() {
     if (!mPipelines.empty() || mDescriptorSetLayout != VK_NULL_HANDLE ||
         mAstcPipelineLayout != VK_NULL_HANDLE || mEtc2PipelineLayout != VK_NULL_HANDLE) {
-        WARN(
+        GFXSTREAM_WARNING(
             "Resource leak: GpuDecompressionPipelineManager is being destroyed but clear() wasn't"
             " called first");
     }

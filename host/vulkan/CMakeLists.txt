@@ -47,6 +47,7 @@ target_link_libraries(gfxstream-vulkan-server PUBLIC
         aemu-base.headers
         gfxstream_backend_common
         gfxstream_features
+        gfxstream_host_logging
         gfxstream_host_snapshot.headers
         gfxstream_host_tracing
         gfxstream_utils

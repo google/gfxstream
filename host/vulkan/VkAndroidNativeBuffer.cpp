@@ -37,10 +37,8 @@ namespace vk {
 #define ENABLE_VK_ANB_DEBUG 0
 
 #if ENABLE_VK_ANB_DEBUG
-#define VK_ANB_DEBUG(fmt, ...) \
-    INFO("vk-anb-debug: " fmt, ##__VA_ARGS__);
-#define VK_ANB_DEBUG_OBJ(obj, fmt, ...) \
-    INFO("vk-anb-debug: %p " fmt, obj, ##__VA_ARGS__);
+#define VK_ANB_DEBUG(fmt, ...) GFXSTREAM_INFO("vk-anb-debug: " fmt, ##__VA_ARGS__);
+#define VK_ANB_DEBUG_OBJ(obj, fmt, ...) GFXSTREAM_INFO("vk-anb-debug: %p " fmt, obj, ##__VA_ARGS__);
 #else
 #define VK_ANB_DEBUG(fmt, ...)
 #define VK_ANB_DEBUG_OBJ(obj, fmt, ...)
@@ -590,7 +588,7 @@ VkResult AndroidNativeBufferInfo::on_vkAcquireImageANDROID(VkEmulation* emu,
     }
 
     if (mLastUsedQueueFamilyIndex == INVALID_QUEUE_FAMILY_INDEX) {
-        ERR("AndroidNativeBufferInfo missing last used queue.");
+        GFXSTREAM_ERROR("AndroidNativeBufferInfo missing last used queue.");
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
@@ -859,7 +857,7 @@ VkResult AndroidNativeBufferInfo::on_vkQueueSignalReleaseImageANDROID(
                 VK_ANB_ERR("Timeout when waiting for the Qsri fence.");
                 break;
             default:
-                ERR("Failed to wait for QSRI fence: %s\n", string_VkResult(res));
+                GFXSTREAM_ERROR("Failed to wait for QSRI fence: %s\n", string_VkResult(res));
                 VK_CHECK(res);
         }
         VK_ANB_DEBUG_OBJ(this, "wait callback: wait for fence %p...(done)", qsriFence);
@@ -916,15 +914,16 @@ VkResult AndroidNativeBufferInfo::on_vkQueueSignalReleaseImageANDROID(
 AsyncResult AndroidNativeBufferInfo::registerQsriCallback(VkImage image,
                                                           VkQsriTimeline::Callback callback) {
     if (!mDeviceDispatch) {
-        ERR("Attempted to register QSRI callback on VkImage:%p with uninitialized ANB info.",
+        GFXSTREAM_ERROR(
+            "Attempted to register QSRI callback on VkImage:%p with uninitialized ANB info.",
             image);
         return AsyncResult::FAIL_AND_CALLBACK_NOT_SCHEDULED;
     }
 
     // Could be null or mismatched image, check later
     if (image != mImage) {
-        ERR("Attempted on register QSRI callback on VkImage:%p with wrong image %p.", image,
-            mImage);
+        GFXSTREAM_ERROR("Attempted on register QSRI callback on VkImage:%p with wrong image %p.",
+                        image, mImage);
         return AsyncResult::FAIL_AND_CALLBACK_NOT_SCHEDULED;
     }
 

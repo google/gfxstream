@@ -28,7 +28,7 @@
 #include <vector>
 
 #include "aemu/base/SharedLibrary.h"
-#include "host-common/logging.h"
+#include "gfxstream/host/logging.h"
 #include "vulkan/vulkan.h"
 
 using android::base::SharedLibrary;
@@ -39,20 +39,20 @@ class RenderDoc {
     using RenderDocApi = RENDERDOC_API_1_4_2;
     static std::unique_ptr<RenderDoc> create(const SharedLibrary* renderDocLib) {
         if (!renderDocLib) {
-            ERR("The renderdoc shared library is null.");
+            GFXSTREAM_ERROR("The renderdoc shared library is null.");
             return nullptr;
         }
         pRENDERDOC_GetAPI RENDERDOC_GetAPI =
             reinterpret_cast<pRENDERDOC_GetAPI>(renderDocLib->findSymbol("RENDERDOC_GetAPI"));
         if (!RENDERDOC_GetAPI) {
-            ERR("Failed to find the RENDERDOC_GetAPI symbol.");
+            GFXSTREAM_ERROR("Failed to find the RENDERDOC_GetAPI symbol.");
             return nullptr;
         }
         RenderDocApi* rdocApi = nullptr;
         int ret =
             RENDERDOC_GetAPI(eRENDERDOC_API_Version_1_4_2, reinterpret_cast<void**>(&rdocApi));
         if (ret != 1 || rdocApi == nullptr) {
-            ERR("Failed to load renderdoc API. %d is returned from RENDERDOC_GetAPI.");
+            GFXSTREAM_ERROR("Failed to load renderdoc API. %d is returned from RENDERDOC_GetAPI.");
             return nullptr;
         }
         return std::unique_ptr<RenderDoc>(new RenderDoc(rdocApi));

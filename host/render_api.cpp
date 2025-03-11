@@ -18,7 +18,7 @@
 #include <memory>
 
 #include "RenderLibImpl.h"
-#include "host-common/logging.h"
+#include "gfxstream/host/logging.h"
 
 namespace gfxstream {
 

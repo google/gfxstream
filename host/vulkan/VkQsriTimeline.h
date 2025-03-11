@@ -8,7 +8,7 @@
 #include <sstream>
 
 #include "aemu/base/ThreadAnnotations.h"
-#include "host-common/logging.h"
+#include "gfxstream/host/logging.h"
 
 namespace gfxstream {
 namespace vk {
@@ -45,7 +45,7 @@ class VkQsriTimeline {
             ss << requiredPresentCount << ", ";
         }
         ss << "just call all of callbacks.";
-        ERR("%s", ss.str().c_str());
+        GFXSTREAM_ERROR("%s", ss.str().c_str());
     }
 
    private:

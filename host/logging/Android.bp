@@ -1,0 +1,22 @@
+package {
+    default_team: "trendy_team_android_developer_tools",
+    default_applicable_licenses: ["hardware_google_gfxstream_license"],
+}
+
+cc_library_static {
+    name: "libgfxstream_host_logging",
+    defaults: [
+        "gfxstream_defaults",
+        "gfxstream_host_cc_defaults",
+    ],
+    srcs: [
+        "logging.cpp",
+    ],
+    export_include_dirs: [
+        "include",
+    ],
+    apex_available: [
+        "//apex_available:platform",
+        "com.android.virt",
+    ],
+}

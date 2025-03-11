@@ -14,8 +14,8 @@
 
 #include "DisplaySurfaceVk.h"
 
+#include "gfxstream/host/logging.h"
 #include "host-common/GfxstreamFatalError.h"
-#include "host-common/logging.h"
 #include "vk_util.h"
 
 namespace gfxstream {

@@ -14,27 +14,26 @@
 * limitations under the License.
 */
 
-#include <GLcommon/GLEScontext.h>
-
-#include "aemu/base/synchronization/Lock.h"
-#include "aemu/base/containers/Lookup.h"
-#include "aemu/base/files/StreamSerializing.h"
-#include "host-common/logging.h"
-
-#include <GLcommon/GLconversion_macros.h>
-#include <GLcommon/GLSnapshotSerializers.h>
-#include <GLcommon/GLESmacros.h>
-#include <GLcommon/TextureData.h>
 #include <GLES/gl.h>
 #include <GLES/glext.h>
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 #include <GLES3/gl3.h>
 #include <GLES3/gl31.h>
-#include <GLcommon/GLESvalidate.h>
-#include <GLcommon/TextureUtils.h>
 #include <GLcommon/FramebufferData.h>
+#include <GLcommon/GLEScontext.h>
+#include <GLcommon/GLESmacros.h>
+#include <GLcommon/GLESvalidate.h>
+#include <GLcommon/GLSnapshotSerializers.h>
+#include <GLcommon/GLconversion_macros.h>
 #include <GLcommon/ScopedGLState.h>
+#include <GLcommon/TextureData.h>
+#include <GLcommon/TextureUtils.h>
+
+#include "aemu/base/containers/Lookup.h"
+#include "aemu/base/files/StreamSerializing.h"
+#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/host/logging.h"
 #ifndef _MSC_VER
 #include <strings.h>
 #endif
@@ -296,7 +295,7 @@ static GLuint getIndex(GLenum indices_type, const GLvoid* indices, unsigned int 
         case GL_UNSIGNED_INT:
             return static_cast<const GLuint*>(indices)[i];
         default:
-            ERR("**** ERROR unknown type 0x%x", indices_type);
+            GFXSTREAM_ERROR("**** ERROR unknown type 0x%x", indices_type);
             return 0;
     }
 }
@@ -931,7 +930,7 @@ void GLEScontext::postLoadRestoreCtx() {
         err = dispatcher.glGetError();
 #ifdef _DEBUG
         if (err) {
-            ERR("warning: get GL error %d while restoring a snapshot", err);
+            GFXSTREAM_ERROR("warning: get GL error %d while restoring a snapshot", err);
         }
 #endif
     } while (err != 0);
@@ -977,7 +976,8 @@ const GLvoid* GLEScontext::setPointer(GLenum arrType,GLint size,GLenum type,GLsi
                                         bufferName));
         if(offset >= vbo->getSize() || ((int)(vbo->getSize() - offset) < size)) {
 #ifdef _DEBUG
-            ERR("Warning: Invalid pointer offset %u, arrType %d, type %d", offset, arrType, type);
+            GFXSTREAM_ERROR("Warning: Invalid pointer offset %u, arrType %d, type %d", offset,
+                            arrType, type);
 #endif
             return nullptr;
         }
@@ -1145,7 +1145,8 @@ void GLEScontext::convertDirectVBO(GLESConversionArrays& cArrs,GLint first,GLsiz
 unsigned int GLEScontext::findMaxIndex(GLsizei count,GLenum type,const GLvoid* indices) {
     // finding max index
     if (!indices || !GLESvalidate::drawType(type)) {
-        ERR("%s called with invalid arguments (%d, %u, %p)", __func__, count, type, indices);
+        GFXSTREAM_ERROR("%s called with invalid arguments (%d, %u, %p)", __func__, count, type,
+                        indices);
         return 0;
     }
 
@@ -1865,11 +1866,11 @@ void GLEScontext::initCapsLocked(const GLubyte * extensionString, bool nativeTex
                 hasEtc2Support = true; // Supports ETC2 underneath
             } else {
                 // It is unusual to support only some. Record what happened.
-                ERR("Not supporting etc2: %d vs %d",
-                    numEtc2FormatsSupported, numEtc2Formats);
+                GFXSTREAM_ERROR("Not supporting etc2: %d vs %d", numEtc2FormatsSupported,
+                                numEtc2Formats);
                 for (auto it : found) {
                     if (!it.second) {
-                        ERR("Not found: 0x%x", it.first);
+                        GFXSTREAM_ERROR("Not found: 0x%x", it.first);
                     }
                 }
             }
@@ -1878,11 +1879,11 @@ void GLEScontext::initCapsLocked(const GLubyte * extensionString, bool nativeTex
                 hasAstcSupport = true; // Supports ASTC underneath
             } else {
                 // It is unusual to support only some. Record what happened.
-                ERR("Not supporting astc: %d vs %d",
-                    numAstcFormatsSupported, numAstcFormats);
+                GFXSTREAM_ERROR("Not supporting astc: %d vs %d", numAstcFormatsSupported,
+                                numAstcFormats);
                 for (auto it : found) {
                     if (!it.second) {
-                        ERR("Not found: 0x%x", it.first);
+                        GFXSTREAM_ERROR("Not found: 0x%x", it.first);
                     }
                 }
             }
@@ -2272,7 +2273,7 @@ void GLEScontext::initEmulatedEGLSurface(GLint width, GLint height,
         dispatcher().glRenderbufferStorageMultisample(GL_RENDERBUFFER, multisamples, colorFormat, width, height);
         GLint err = dispatcher().glGetError();
         if (err != GL_NO_ERROR) {
-            ERR("error setting up multisampled RBO! 0x%x", err);
+            GFXSTREAM_ERROR("error setting up multisampled RBO! 0x%x", err);
         }
     } else {
         dispatcher().glRenderbufferStorage(GL_RENDERBUFFER, colorFormat, width, height);
@@ -2283,7 +2284,7 @@ void GLEScontext::initEmulatedEGLSurface(GLint width, GLint height,
         dispatcher().glRenderbufferStorageMultisample(GL_RENDERBUFFER, multisamples, depthstencilFormat, width, height);
         GLint err = dispatcher().glGetError();
         if (err != GL_NO_ERROR) {
-            ERR("error setting up multisampled RBO! 0x%x", err);
+            GFXSTREAM_ERROR("error setting up multisampled RBO! 0x%x", err);
         }
     } else {
         dispatcher().glRenderbufferStorage(GL_RENDERBUFFER, depthstencilFormat, width, height);
@@ -2752,7 +2753,7 @@ GLuint GLEScontext::compileAndValidateCoreShader(GLenum shaderType, const char* 
         gl.glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLogLength);
         std::vector<char> infoLog(infoLogLength + 1, 0);
         gl.glGetShaderInfoLog(shader, infoLogLength, nullptr, &infoLog[0]);
-        ERR("fail to compile. infolog %s", &infoLog[0]);
+        GFXSTREAM_ERROR("fail to compile. infolog %s", &infoLog[0]);
     }
 
     return shader;
@@ -2775,7 +2776,7 @@ GLuint GLEScontext::linkAndValidateProgram(GLuint vshader, GLuint fshader) {
         gl.glGetProgramiv(program, GL_INFO_LOG_LENGTH, &infoLogLength);
         std::vector<char> infoLog(infoLogLength + 1, 0);
         gl.glGetProgramInfoLog(program, infoLogLength, nullptr, &infoLog[0]);
-        ERR("fail to link program. infolog: %s", &infoLog[0]);
+        GFXSTREAM_ERROR("fail to link program. infolog: %s", &infoLog[0]);
     }
 
     gl.glDeleteShader(vshader);

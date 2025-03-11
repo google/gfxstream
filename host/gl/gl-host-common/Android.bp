@@ -22,6 +22,7 @@ cc_library_static {
         "gfxstream_base",
         "gfxstream_host_common",
         "libgfxstream_host_features",
+        "libgfxstream_host_logging",
         "libgfxstream_host_snapshot",
     ],
     export_static_lib_headers: [

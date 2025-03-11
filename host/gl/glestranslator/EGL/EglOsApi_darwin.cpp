@@ -13,21 +13,18 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-#include "EglOsApi.h"
-
-#include "MacNative.h"
-
-#include "aemu/base/containers/Lookup.h"
-#include "aemu/base/SharedLibrary.h"
-
-#include "host-common/logging.h"
-#include "GLcommon/GLLibrary.h"
-
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
 #include <numeric>
 #include <unordered_map>
+
+#include "EglOsApi.h"
+#include "GLcommon/GLLibrary.h"
+#include "MacNative.h"
+#include "aemu/base/SharedLibrary.h"
+#include "aemu/base/containers/Lookup.h"
+#include "gfxstream/host/logging.h"
 
 #define MAX_PBUFFER_MIPMAP_LEVEL 1
 
@@ -373,8 +370,8 @@ public:
         char error[256];
         mLib = android::base::SharedLibrary::open(kLibName, error, sizeof(error));
         if (!mLib) {
-            ERR("%s: Could not open GL library %s [%s]\n",
-                __FUNCTION__, kLibName, error);
+            GFXSTREAM_ERROR("%s: Could not open GL library %s [%s]\n", __FUNCTION__, kLibName,
+                            error);
         }
     }
 

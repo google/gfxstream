@@ -29,8 +29,7 @@
 #include "aemu/base/synchronization/MessageChannel.h"
 #include "aemu/base/system/System.h"
 #include "apigen-codec-common/ChecksumCalculatorThreadInfo.h"
-#include "host-common/GfxstreamFatalError.h"
-#include "host-common/logging.h"
+#include "gfxstream/host/logging.h"
 #include "vulkan/VkCommonOperations.h"
 
 #if GFXSTREAM_ENABLE_HOST_GLES
@@ -248,8 +247,7 @@ void RenderThread::waitForFinished() {
 void RenderThread::sendExitSignal() {
     AutoLock lock(mLock);
     if (!mFinished.load(std::memory_order_relaxed)) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "RenderThread exit signal sent before finished";
+        GFXSTREAM_FATAL("RenderThread exit signal sent before finished");
     }
     mCanExit.store(true, std::memory_order_relaxed);
     mExitSignal.broadcastAndUnlock(&lock);
@@ -273,7 +271,7 @@ void RenderThread::setFinished() {
 
 void RenderThread::waitForExitSignal() {
     AutoLock lock(mLock);
-    GL_LOG("Waiting for exit signal RenderThread @%p", this);
+    GFXSTREAM_DEBUG("Waiting for exit signal RenderThread @%p", this);
     while (!mCanExit.load(std::memory_order_relaxed)) {
         mExitSignal.wait(&lock);
     }
@@ -281,7 +279,7 @@ void RenderThread::waitForExitSignal() {
 
 intptr_t RenderThread::main() {
     if (mFinished.load(std::memory_order_relaxed)) {
-        ERR("Error: fail loading a RenderThread @%p", this);
+        GFXSTREAM_ERROR("Error: fail loading a RenderThread @%p", this);
         return 0;
     }
 
@@ -301,7 +299,7 @@ intptr_t RenderThread::main() {
 #endif
 
     if (!mChannel && !mRingStream) {
-        GL_LOG("Exited a loader RenderThread @%p", this);
+        GFXSTREAM_DEBUG("Exited a loader RenderThread @%p", this);
         mFinished.store(true, std::memory_order_relaxed);
         return 0;
     }
@@ -331,7 +329,7 @@ intptr_t RenderThread::main() {
     // But the context bind / restoration will be delayed after receiving
     // the first GL command.
     if (loadSnapshot(snapshotObjects)) {
-        GL_LOG("Loaded RenderThread @%p from snapshot", this);
+        GFXSTREAM_DEBUG("Loaded RenderThread @%p from snapshot", this);
         needRestoreFromSnapshot = true;
     } else {
         // Not loading from a snapshot: continue regular startup, read
@@ -343,7 +341,7 @@ intptr_t RenderThread::main() {
                 setFinished();
                 tInfo.reset();
                 waitForExitSignal();
-                GL_LOG("Exited a RenderThread @%p early", this);
+                GFXSTREAM_DEBUG("Exited a RenderThread @%p early", this);
                 return 0;
             }
         }
@@ -513,7 +511,8 @@ intptr_t RenderThread::main() {
                                                       processResources, context);
                 if (last > 0) {
                     if (!processResources) {
-                        ERR("Processed some Vulkan packets without process resources created. "
+                        GFXSTREAM_ERROR(
+                            "Processed some Vulkan packets without process resources created. "
                             "That's problematic.");
                     }
                     readBuf.consume(last);
@@ -606,7 +605,7 @@ intptr_t RenderThread::main() {
     tInfo.reset();
     waitForExitSignal();
 
-    GL_LOG("Exited a RenderThread @%p", this);
+    GFXSTREAM_DEBUG("Exited a RenderThread @%p", this);
     return 0;
 }
 

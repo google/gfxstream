@@ -24,9 +24,9 @@
 #include "aemu/base/system/System.h"
 #include "aemu/base/threads/Thread.h"
 #include "gfxstream/host/Tracing.h"
+#include "gfxstream/host/logging.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/crash_reporter.h"
-#include "host-common/logging.h"
 #include "host-common/sync_device.h"
 
 #ifndef _MSC_VER
@@ -55,9 +55,9 @@ static uint64_t curr_ns() {
     return now_ns.time_since_epoch().count();
 }
 
-#define DPRINT(fmt, ...)                                                   \
-    do {                                                                   \
-        INFO("@ time=%llu, %s: " fmt, curr_ns(), __func__, ##__VA_ARGS__); \
+#define DPRINT(fmt, ...)                                                             \
+    do {                                                                             \
+        GFXSTREAM_INFO("@ time=%llu, %s: " fmt, curr_ns(), __func__, ##__VA_ARGS__); \
     } while (0)
 
 #else
@@ -371,7 +371,7 @@ void SyncThread::cleanup() {
     // Wait for the control thread to exit. We can't destroy the SyncThread
     // before we wait the control thread.
     if (!wait(nullptr)) {
-        ERR("Fail to wait the control thread of the SyncThread to exit.");
+        GFXSTREAM_ERROR("Fail to wait the control thread of the SyncThread to exit.");
     }
 }
 

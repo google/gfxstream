@@ -97,7 +97,7 @@ std::unique_ptr<EmulatedEglFenceSync> EmulatedEglFenceSync::create(
         bool destroyWhenSignaled) {
     auto sync = s_egl.eglCreateSyncKHR(display, EGL_SYNC_FENCE_KHR, nullptr);
     if (sync == EGL_NO_SYNC_KHR) {
-        ERR("Failed to create EGL fence sync: %d", s_egl.eglGetError());
+        GFXSTREAM_ERROR("Failed to create EGL fence sync: %d", s_egl.eglGetError());
         return nullptr;
     }
 

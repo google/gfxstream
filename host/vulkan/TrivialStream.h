@@ -36,7 +36,7 @@ class TrivialStream : public IOStream {
                 m_buf = p;
                 m_bufsize = allocSize;
             } else {
-                ERR("realloc (%zu) failed", allocSize);
+                GFXSTREAM_ERROR("realloc (%zu) failed", allocSize);
                 free(m_buf);
                 m_buf = NULL;
                 m_bufsize = 0;

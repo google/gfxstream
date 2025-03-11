@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <cstdarg>
 #include <cstdint>
 
 #include "FrameBuffer.h"
@@ -23,6 +22,7 @@
 #include "gfxstream/Strings.h"
 #include "gfxstream/host/Features.h"
 #include "gfxstream/host/Tracing.h"
+#include "gfxstream/host/logging.h"
 #include "host-common/FeatureControl.h"
 #include "host-common/GraphicsAgentFactory.h"
 #include "host-common/android_pipe_common.h"
@@ -32,9 +32,9 @@
 #include "host-common/opengles.h"
 #include "host-common/refcount-pipe.h"
 #include "host-common/vm_operations.h"
-#include "vulkan/VulkanDispatch.h"
 #include "render-utils/RenderLib.h"
 #include "vk_util.h"
+#include "vulkan/VulkanDispatch.h"
 
 extern "C" {
 #include "gfxstream/virtio-gpu-gfxstream-renderer-unstable.h"
@@ -42,79 +42,9 @@ extern "C" {
 #include "host-common/goldfish_pipe.h"
 }  // extern "C"
 
-#define MAX_DEBUG_BUFFER_SIZE 512
-#define ELLIPSIS "...\0"
-#define ELLIPSIS_LEN 4
-
-// Define the typedef for emulogger
-typedef void (*emulogger)(char severity, const char* file, unsigned int line,
-                          int64_t timestamp_us, const char* message);
-
-// Template to enable the method call if gfxstream_logger_t equals emulogger
-template<typename T>
-typename std::enable_if<std::is_same<T, emulogger>::value, bool>::type
-call_logger_if_valid(T logger, char severity, const char* file, unsigned int line, int64_t timestamp_us, const char* message) {
-    // Call the logger and return true if the type matches
-    if (!logger) { return false; }
-    logger(severity, file, line, timestamp_us, message);
-    return true;
-}
-
-// Template for invalid logger types (returns false if types don't match)
-template<typename T>
-typename std::enable_if<!std::is_same<T, emulogger>::value, bool>::type
-call_logger_if_valid(T, char, const char*, unsigned int, int64_t, const char*) {
-    // Return false if the type doesn't match
-    return false;
-}
-
-void* globalUserData = nullptr;
-stream_renderer_debug_callback globalDebugCallback = nullptr;
-
-static void append_truncation_marker(char* buf, int remaining_size) {
-    // Safely append truncation marker "..." if buffer has enough space
-    if (remaining_size >= ELLIPSIS_LEN) {
-        strncpy(buf + remaining_size - ELLIPSIS_LEN, ELLIPSIS, ELLIPSIS_LEN);
-    } else if (remaining_size >= 1) {
-        buf[remaining_size - 1] = '\0';
-    } else {
-        // Oh oh.. In theory this shouldn't happen.
-        assert(false);
-    }
-}
-
-static void log_with_prefix(char*& buf, int& remaining_size, const char* file, int line,
-                            const char* pretty_function) {
-    // Add logging prefix if necessary
-    int formatted_len = snprintf(buf, remaining_size, "[%s(%d)] %s ", file, line, pretty_function);
-
-    // Handle potential truncation
-    if (formatted_len >= remaining_size) {
-        append_truncation_marker(buf, remaining_size);
-        remaining_size = 0;
-    } else {
-        buf += formatted_len;             // Adjust buf
-        remaining_size -= formatted_len;  // Reduce remaining buffer size
-    }
-}
-
-static char translate_severity(uint32_t type) {
-    switch (type) {
-        case STREAM_RENDERER_DEBUG_ERROR:
-            return 'E';
-        case STREAM_RENDERER_DEBUG_WARN:
-            return 'W';
-        case STREAM_RENDERER_DEBUG_INFO:
-            return 'I';
-        case STREAM_RENDERER_DEBUG_DEBUG:
-            return 'D';
-        default:
-            return 'D';
-    }
-}
-
 using android::AndroidPipe;
 using android::base::MetricsLogger;
+using gfxstream::host::LogLevel;
 using gfxstream::host::VirtioGpuFrontend;
 
 static VirtioGpuFrontend* sFrontend() {
@@ -123,62 +53,6 @@ static VirtioGpuFrontend* sFrontend() {
 }
 
 extern "C" {
-
-void stream_renderer_log(uint32_t type, const char* file, int line, const char* pretty_function,
-                         const char* format, ...) {
-
-    char printbuf[MAX_DEBUG_BUFFER_SIZE];
-    char* buf = printbuf;
-    int remaining_size = MAX_DEBUG_BUFFER_SIZE;
-    static_assert(MAX_DEBUG_BUFFER_SIZE > 4);
-
-    // Add the logging prefix if needed
-#ifdef CONFIG_AEMU
-    static gfxstream_logger_t gfx_logger = get_gfx_stream_logger();
-    if (!gfx_logger) {
-        log_with_prefix(buf, remaining_size, file, line, pretty_function);
-    }
-#else
-    log_with_prefix(buf, remaining_size, file, line, pretty_function);
-#endif
-
-    // Format the message with variable arguments
-    va_list args;
-    va_start(args, format);
-    int formatted_len = vsnprintf(buf, remaining_size, format, args);
-    va_end(args);
-
-    // Handle potential truncation
-    if (formatted_len >= remaining_size) {
-        append_truncation_marker(buf, remaining_size);
-    }
-
-#ifdef CONFIG_AEMU
-    // Forward to emulator?
-    if (call_logger_if_valid(gfx_logger, translate_severity(type), file, line, 0, printbuf)) {
-        return;
-    }
-#endif
-
-    // To a gfxstream debugger?
-    if (globalUserData && globalDebugCallback) {
-        struct stream_renderer_debug debug = {0};
-        debug.debug_type = type;
-        debug.message = &printbuf[0];
-        globalDebugCallback(globalUserData, &debug);
-    } else {
-        // Cannot use logging routines, fallback to stderr
-        const char* logLevel = "error";
-        if (type == STREAM_RENDERER_DEBUG_WARN) {
-            logLevel = "warning";
-        } else if (type == STREAM_RENDERER_DEBUG_INFO) {
-            logLevel = "info";
-        } else if (type == STREAM_RENDERER_DEBUG_DEBUG) {
-            logLevel = "debug";
-        }
-        fprintf(stderr, "stream_renderer_log [%s]: %s\n", logLevel, printbuf);
-    }
-}
 
 VG_EXPORT int stream_renderer_resource_create(struct stream_renderer_resource_create_args* args,
                                               struct iovec* iov, uint32_t num_iovs) {
@@ -413,7 +287,7 @@ VG_EXPORT int stream_renderer_snapshot(const char* dir) {
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
     return sFrontend()->snapshot(dir);
 #else
-    stream_renderer_error("Snapshot save requested without support.");
+    GFXSTREAM_ERROR("Snapshot save requested without support.");
     return -EINVAL;
 #endif
 }
@@ -424,7 +298,7 @@ VG_EXPORT int stream_renderer_restore(const char* dir) {
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
     return sFrontend()->restore(dir);
 #else
-    stream_renderer_error("Snapshot save requested without support.");
+    GFXSTREAM_ERROR("Snapshot save requested without support.");
     return -EINVAL;
 #endif
 }
@@ -544,8 +418,8 @@ static const GoldfishPipeServiceOps goldfish_pipe_service_ops = {
 
 static int stream_renderer_opengles_init(uint32_t display_width, uint32_t display_height,
                                          int renderer_flags, const gfxstream::host::FeatureSet& features) {
-    stream_renderer_debug("start. display dimensions: width %u height %u, renderer flags: 0x%x",
-                          display_width, display_height, renderer_flags);
+    GFXSTREAM_DEBUG("start. display dimensions: width %u height %u, renderer flags: 0x%x",
+                    display_width, display_height, renderer_flags);
 
     // Flags processing
 
@@ -623,12 +497,12 @@ static int stream_renderer_opengles_init(uint32_t display_width, uint32_t displa
 
     android_getOpenglesHardwareStrings(&vendor, &renderer, &version);
 
-    stream_renderer_info("GL strings; [%s] [%s] [%s].", vendor, renderer, version);
+    GFXSTREAM_INFO("GL strings; [%s] [%s] [%s].", vendor, renderer, version);
 
     auto openglesRenderer = android_getOpenglesRenderer();
 
     if (!openglesRenderer) {
-        stream_renderer_error("No renderer started, fatal");
+        GFXSTREAM_ERROR("No renderer started, fatal");
         return -EINVAL;
     }
 
@@ -713,8 +587,7 @@ int parseGfxstreamFeatures(const int renderer_flags,
 
         const std::vector<std::string>& parts = gfxstream::Split(renderer_feature, ":");
         if (parts.size() != 2) {
-            stream_renderer_error("Error: invalid renderer features: %s",
-                                  renderer_features.c_str());
+            GFXSTREAM_ERROR("Error: invalid renderer features: %s", renderer_features.c_str());
             return -EINVAL;
         }
 
@@ -722,14 +595,14 @@ int parseGfxstreamFeatures(const int renderer_flags,
 
         auto feature_it = features.map.find(feature_name);
         if (feature_it == features.map.end()) {
-            stream_renderer_error("Error: invalid renderer feature: '%s'", feature_name.c_str());
+            GFXSTREAM_ERROR("Error: invalid renderer feature: '%s'", feature_name.c_str());
             return -EINVAL;
         }
 
         const std::string& feature_status = parts[1];
         if (feature_status != "enabled" && feature_status != "disabled") {
-            stream_renderer_error("Error: invalid option %s for renderer feature: %s",
-                                  feature_status.c_str(), feature_name.c_str());
+            GFXSTREAM_ERROR("Error: invalid option %s for renderer feature: %s",
+                            feature_status.c_str(), feature_name.c_str());
             return -EINVAL;
         }
 
@@ -737,21 +610,20 @@ int parseGfxstreamFeatures(const int renderer_flags,
         feature_info->enabled = feature_status == "enabled";
         feature_info->reason = "Overridden via STREAM_RENDERER_PARAM_RENDERER_FEATURES";
 
-        stream_renderer_info("Gfxstream feature %s %s", feature_name.c_str(),
-                              feature_status.c_str());
+        GFXSTREAM_INFO("Gfxstream feature %s %s", feature_name.c_str(), feature_status.c_str());
     }
 
     if (features.SystemBlob.enabled) {
         if (!features.ExternalBlob.enabled) {
-            stream_renderer_error("The SystemBlob features requires the ExternalBlob feature.");
+            GFXSTREAM_ERROR("The SystemBlob features requires the ExternalBlob feature.");
             return -EINVAL;
         }
 #ifndef _WIN32
-        stream_renderer_warn("Warning: USE_SYSTEM_BLOB has only been tested on Windows");
+        GFXSTREAM_WARNING("Warning: USE_SYSTEM_BLOB has only been tested on Windows");
 #endif
     }
     if (features.VulkanNativeSwapchain.enabled && !features.Vulkan.enabled) {
-        stream_renderer_error("can't enable vulkan native swapchain, Vulkan is disabled");
+        GFXSTREAM_ERROR("can't enable vulkan native swapchain, Vulkan is disabled");
         return -EINVAL;
     }
 
@@ -813,10 +685,11 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     int renderer_flags = 0;
     std::string renderer_features_str;
     stream_renderer_fence_callback fence_callback = nullptr;
+    stream_renderer_debug_callback log_callback = nullptr;
     bool skip_opengles = false;
 
     // Iterate all parameters that we support.
-    stream_renderer_debug("Reading stream renderer parameters:");
+    GFXSTREAM_DEBUG("Reading stream renderer parameters:");
     for (uint64_t i = 0; i < num_params; ++i) {
         stream_renderer_param& param = stream_renderer_params[i];
 
@@ -824,11 +697,11 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
         // adding new prints.
         if (printed_param_values.find(param.key) != printed_param_values.end() ||
             param.value <= 4096) {
-            stream_renderer_debug("%s - %llu", get_param_string(param.key).c_str(),
-                                  static_cast<unsigned long long>(param.value));
+            GFXSTREAM_DEBUG("%s - %llu", get_param_string(param.key).c_str(),
+                            static_cast<unsigned long long>(param.value));
         } else {
             // If not full value, print that it was passed.
-            stream_renderer_debug("%s", get_param_string(param.key).c_str());
+            GFXSTREAM_DEBUG("%s", get_param_string(param.key).c_str());
         }
 
         // Removing every param we process will leave required_params empty if all provided.
@@ -839,7 +712,6 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
                 break;
             case STREAM_RENDERER_PARAM_USER_DATA: {
                 renderer_cookie = reinterpret_cast<void*>(static_cast<uintptr_t>(param.value));
-                globalUserData = renderer_cookie;
                 break;
             }
             case STREAM_RENDERER_PARAM_RENDERER_FLAGS: {
@@ -860,7 +732,7 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
                 break;
             }
             case STREAM_RENDERER_PARAM_DEBUG_CALLBACK: {
-                globalDebugCallback = reinterpret_cast<stream_renderer_debug_callback>(
+                log_callback = reinterpret_cast<stream_renderer_debug_callback>(
                     static_cast<uintptr_t>(param.value));
                 break;
             }
@@ -911,22 +783,65 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
             }
             default: {
                 // We skip any parameters we don't recognize.
-                stream_renderer_error(
+                GFXSTREAM_ERROR(
                     "Skipping unknown parameter key: %llu. May need to upgrade gfxstream.",
                     static_cast<unsigned long long>(param.key));
                 break;
             }
         }
     }
-    stream_renderer_debug("Finished reading parameters");
+
+    if (log_callback) {
+        gfxstream::host::SetGfxstreamLogCallback([log_callback, log_user_data = renderer_cookie](
+                                                     LogLevel level, const char* file, int line,
+                                                     const char* function, const char* message) {
+            const std::string formatted =
+                GetDefaultFormattedLog(level, file, line, function, message);
+
+            stream_renderer_debug log_info = {
+                .message = formatted.c_str(),
+            };
+
+            switch (level) {
+                case LogLevel::kFatal: {
+                    log_info.debug_type = STREAM_RENDERER_DEBUG_ERROR;
+                    break;
+                }
+                case LogLevel::kError: {
+                    log_info.debug_type = STREAM_RENDERER_DEBUG_ERROR;
+                    break;
+                }
+                case LogLevel::kWarning: {
+                    log_info.debug_type = STREAM_RENDERER_DEBUG_WARN;
+                    break;
+                }
+                case LogLevel::kInfo: {
+                    log_info.debug_type = STREAM_RENDERER_DEBUG_INFO;
+                    break;
+                }
+                case LogLevel::kDebug: {
+                    log_info.debug_type = STREAM_RENDERER_DEBUG_DEBUG;
+                    break;
+                }
+                case LogLevel::kVerbose: {
+                    log_info.debug_type = STREAM_RENDERER_DEBUG_DEBUG;
+                    break;
+                }
+            }
+
+            log_callback(log_user_data, &log_info);
+        });
+    }
+
+    GFXSTREAM_DEBUG("Finished reading parameters");
 
     // Some required params not found.
     if (required_params.size() > 0) {
-        stream_renderer_error("Missing required parameters:");
+        GFXSTREAM_ERROR("Missing required parameters:");
         for (uint64_t param : required_params) {
-            stream_renderer_error("%s", get_param_string(param).c_str());
+            GFXSTREAM_ERROR("%s", get_param_string(param).c_str());
         }
-        stream_renderer_error("Failing initialization intentionally");
+        GFXSTREAM_ERROR("Failing initialization intentionally");
         return -EINVAL;
     }
 
@@ -937,15 +852,15 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     gfxstream::host::FeatureSet features;
     int ret = parseGfxstreamFeatures(renderer_flags, renderer_features_str, features);
     if (ret) {
-        stream_renderer_error("Failed to initialize: failed to parse Gfxstream features.");
+        GFXSTREAM_ERROR("Failed to initialize: failed to parse Gfxstream features.");
         return ret;
     }
 
-    stream_renderer_info("Gfxstream features:");
+    GFXSTREAM_INFO("Gfxstream features:");
     for (const auto& [_, featureInfo] : features.map) {
-        stream_renderer_info("    %s: %s (%s)", featureInfo->name.c_str(),
-                             (featureInfo->enabled ? "enabled" : "disabled"),
-                             featureInfo->reason.c_str());
+        GFXSTREAM_INFO("    %s: %s (%s)", featureInfo->name.c_str(),
+                       (featureInfo->enabled ? "enabled" : "disabled"),
+                       featureInfo->reason.c_str());
     }
 
     gfxstream::host::InitializeTracing();
@@ -958,7 +873,8 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
                     []() {
                         auto fb = gfxstream::FrameBuffer::getFB();
                         if (!fb) {
-                            ERR("FrameBuffer not yet initialized. Dropping device lost event");
+                            GFXSTREAM_ERROR(
+                                "FrameBuffer not yet initialized. Dropping device lost event");
                             return;
                         }
                         fb->logVulkanDeviceLost();
@@ -967,7 +883,7 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
                     [](VkResult result, const char* function, int line) {
                         auto fb = gfxstream::FrameBuffer::getFB();
                         if (!fb) {
-                            stream_renderer_error(
+                            GFXSTREAM_ERROR(
                                 "FrameBuffer not yet initialized. Dropping out of memory event");
                             return;
                         }
@@ -978,7 +894,7 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
                        std::optional<uint64_t> allocationSize) {
                         auto fb = gfxstream::FrameBuffer::getFB();
                         if (!fb) {
-                            stream_renderer_error(
+                            GFXSTREAM_ERROR(
                                 "FrameBuffer not yet initialized. Dropping out of memory event");
                             return;
                         }
@@ -1000,7 +916,7 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     sFrontend()->init(renderer_cookie, features, fence_callback);
     gfxstream::FrameBuffer::waitUntilInitialized();
 
-    stream_renderer_info("Gfxstream initialized successfully!");
+    GFXSTREAM_INFO("Gfxstream initialized successfully!");
     return 0;
 }
 
@@ -1019,7 +935,7 @@ VG_EXPORT void stream_renderer_teardown() {
     android_hideOpenglesWindow();
     android_stopOpenglesRenderer(true);
 
-    stream_renderer_info("Gfxstream shut down completed!");
+    GFXSTREAM_INFO("Gfxstream shut down completed!");
 }
 
 VG_EXPORT void gfxstream_backend_set_screen_mask(int width, int height,

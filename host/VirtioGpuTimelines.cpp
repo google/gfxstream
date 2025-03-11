@@ -17,6 +17,7 @@
 #include <cstdio>
 
 #include "gfxstream/host/Tracing.h"
+#include "gfxstream/host/logging.h"
 #include "host-common/GfxstreamFatalError.h"
 
 using TaskId = VirtioGpuTimelines::TaskId;
@@ -68,22 +69,18 @@ void VirtioGpuTimelines::notifyTaskCompletion(TaskId taskId) {
     std::lock_guard<std::mutex> lock(mTimelinesMutex);
     auto iTask = mTaskIdToTask.find(taskId);
     if (iTask == mTaskIdToTask.end()) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Task(id = " << static_cast<uint64_t>(taskId) << ") can't be found";
+        GFXSTREAM_FATAL("Task(id = " PRIu64 " can't be found", static_cast<uint64_t>(taskId));
     }
     std::shared_ptr<Task> task = iTask->second.lock();
     if (task == nullptr) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Task(id = " << static_cast<uint64_t>(taskId) << ") has been destroyed";
+        GFXSTREAM_FATAL("Task(id = " PRIu64 " has been destroyed", static_cast<uint64_t>(taskId));
     }
     if (task->mId != taskId) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Task id mismatch. Expected " << static_cast<uint64_t>(taskId) << " Actual "
-            << static_cast<uint64_t>(task->mId);
+        GFXSTREAM_FATAL("Task id mismatch. Expected " PRIu64 " actual " PRIu64,
+                        static_cast<uint64_t>(taskId), static_cast<uint64_t>(task->mId));
     }
     if (task->mHasCompleted) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Task(id = " << static_cast<uint64_t>(taskId) << ") has been set to completed.";
+        GFXSTREAM_FATAL("Task(id = " PRIu64 " has been set to completed", static_cast<uint64_t>(taskId));
     }
 
     GFXSTREAM_TRACE_EVENT_INSTANT(GFXSTREAM_TRACE_VIRTIO_GPU_TIMELINE_CATEGORY,
@@ -122,8 +119,8 @@ void VirtioGpuTimelines::poll() {
 void VirtioGpuTimelines::poll_locked(const Ring& ring) {
     auto timelineIt = mTimelineQueues.find(ring);
     if (timelineIt == mTimelineQueues.end()) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Ring(" << to_string(ring) << ") doesn't exist.";
+        const std::string ringString = to_string(ring);
+        GFXSTREAM_FATAL("Ring(%s) doesn't exist.", ringString.c_str());
     }
     Timeline& timeline = timelineIt->second;
 
@@ -214,7 +211,7 @@ VirtioGpuTimelines::SnapshotTimelineItem(const TimelineItem& timelineItem) {
 
         auto ringOpt = SnapshotRing(task->mRing);
         if (!ringOpt) {
-            stream_renderer_error("Failed to snapshot timeline item: failed to snapshot ring.");
+            GFXSTREAM_ERROR("Failed to snapshot timeline item: failed to snapshot ring.");
             return std::nullopt;
         }
 
@@ -224,7 +221,7 @@ VirtioGpuTimelines::SnapshotTimelineItem(const TimelineItem& timelineItem) {
         taskSnapshot->set_trace_id(task->mTraceId);
         taskSnapshot->set_completed(task->mHasCompleted);
     } else {
-        stream_renderer_error("Failed to snapshot timeline item: unhandled.");
+        GFXSTREAM_ERROR("Failed to snapshot timeline item: unhandled.");
         return std::nullopt;
     }
 
@@ -241,7 +238,7 @@ std::optional<VirtioGpuTimelines::TimelineItem> VirtioGpuTimelines::RestoreTimel
 
         auto ringOpt = RestoreRing(taskSnapshot.ring());
         if (!ringOpt) {
-            stream_renderer_error("Failed to restore timeline item: failed to restore ring.");
+            GFXSTREAM_ERROR("Failed to restore timeline item: failed to restore ring.");
             return std::nullopt;
         }
 
@@ -250,7 +247,7 @@ std::optional<VirtioGpuTimelines::TimelineItem> VirtioGpuTimelines::RestoreTimel
         return task;
     }
 
-    stream_renderer_error("Failed to restore timeline item: unhandled.");
+    GFXSTREAM_ERROR("Failed to restore timeline item: unhandled.");
     return std::nullopt;
 }
 
@@ -261,7 +258,7 @@ std::optional<gfxstream::host::snapshot::VirtioGpuTimeline> VirtioGpuTimelines::
     for (const auto& timelineItem : mQueue) {
         auto timelineItemSnapshotOpt = SnapshotTimelineItem(timelineItem);
         if (!timelineItemSnapshotOpt) {
-            stream_renderer_error("Failed to snapshot timeline item.");
+            GFXSTREAM_ERROR("Failed to snapshot timeline item.");
             return std::nullopt;
         }
         timeline.mutable_items()->Add(std::move(*timelineItemSnapshotOpt));
@@ -277,7 +274,7 @@ std::optional<VirtioGpuTimelines::Timeline> VirtioGpuTimelines::Timeline::Restor
     for (const auto& timelineItemSnapshot : snapshot.items()) {
         auto timelineItemOpt = RestoreTimelineItem(timelineItemSnapshot);
         if (!timelineItemOpt) {
-            stream_renderer_error("Failed to snapshot timeline item.");
+            GFXSTREAM_ERROR("Failed to snapshot timeline item.");
             return std::nullopt;
         }
         timeline.mQueue.emplace_back(std::move(*timelineItemOpt));
@@ -295,13 +292,13 @@ std::optional<gfxstream::host::snapshot::VirtioGpuTimelinesSnapshot> VirtioGpuTi
     for (const auto& [ring, timeline] : mTimelineQueues) {
         auto ringSnapshotOpt = SnapshotRing(ring);
         if (!ringSnapshotOpt) {
-            stream_renderer_error("Failed to snapshot timelines: failed to snapshot ring.");
+            GFXSTREAM_ERROR("Failed to snapshot timelines: failed to snapshot ring.");
             return std::nullopt;
         }
 
         auto timelineSnapshotOpt = timeline.Snapshot();
         if (!timelineSnapshotOpt) {
-            stream_renderer_error("Failed to snapshot timelines: failed to snapshot timeline.");
+            GFXSTREAM_ERROR("Failed to snapshot timelines: failed to snapshot timeline.");
             return std::nullopt;
         }
 
@@ -325,22 +322,22 @@ std::unique_ptr<VirtioGpuTimelines> VirtioGpuTimelines::Restore(
 
     for (const auto& timelineSnapshot : snapshot.timelines()) {
         if (!timelineSnapshot.has_ring()) {
-            stream_renderer_error("Failed to restore timelines: missing ring.");
+            GFXSTREAM_ERROR("Failed to restore timelines: missing ring.");
             return nullptr;
         }
         auto ringOpt = RestoreRing(timelineSnapshot.ring());
         if (!ringOpt) {
-            stream_renderer_error("Failed to restore timelines: failed to restore ring.");
+            GFXSTREAM_ERROR("Failed to restore timelines: failed to restore ring.");
             return nullptr;
         }
 
         if (!timelineSnapshot.has_timeline()) {
-            stream_renderer_error("Failed to restore timelines: missing timeline.");
+            GFXSTREAM_ERROR("Failed to restore timelines: missing timeline.");
             return nullptr;
         }
         auto timelineOpt = Timeline::Restore(timelineSnapshot.timeline());
         if (!timelineOpt) {
-            stream_renderer_error("Failed to restore timelines: failed to restore timeline.");
+            GFXSTREAM_ERROR("Failed to restore timelines: failed to restore timeline.");
             return nullptr;
         }
 

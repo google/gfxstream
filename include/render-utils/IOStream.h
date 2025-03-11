@@ -15,13 +15,13 @@
 */
 #pragma once
 
-#include "aemu/base/files/Stream.h"
-#include "host-common/logging.h"
-
 #include <assert.h>
 #include <inttypes.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+
+#include "aemu/base/files/Stream.h"
+#include "gfxstream/host/logging.h"
 
 namespace gfxstream {
 
@@ -50,7 +50,7 @@ public:
     unsigned char* alloc(size_t len) {
         if (m_buf && len > m_free) {
             if (flush() < 0) {
-                ERR("Failed to flush in alloc\n");
+                GFXSTREAM_ERROR("Failed to flush in alloc\n");
                 return NULL; // we failed to flush so something is wrong
             }
         }
@@ -59,7 +59,7 @@ public:
             int allocLen = m_bufsize < len ? len : m_bufsize;
             m_buf = (unsigned char *)allocBuffer(allocLen);
             if (!m_buf) {
-                ERR("Alloc (%u bytes) failed\n", allocLen);
+                GFXSTREAM_ERROR("Alloc (%u bytes) failed\n", allocLen);
                 return NULL;
             }
             m_bufsize = m_free = allocLen;

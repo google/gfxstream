@@ -140,6 +140,7 @@ inc_host_include = include_directories('include')
 
 inc_gl_common = include_directories('gl/glestranslator/GLcommon/include')
 
+subdir('logging')
 subdir('features')
 subdir('tracing')
 
@@ -149,10 +150,10 @@ subdir('backend')
 
 inc_gfxstream_backend = [inc_root, inc_gfxstream_include, inc_include, inc_apigen_codec, inc_utils,
                          inc_gl_host_common, inc_host_include, inc_common_utils, inc_host_backend,
-                         inc_host_features, inc_host_tracing]
+                         inc_host_features, inc_host_logging, inc_host_tracing]
 
 link_gfxstream_backend = [lib_gl_host_common, lib_apigen_codec, lib_common_utils, lib_host_backend,
-                          lib_host_features, lib_host_tracing]
+                          lib_host_features, lib_host_logging, lib_host_tracing, lib_host_logging]
 
 files_lib_gfxstream_backend = files(
   'Buffer.cpp',

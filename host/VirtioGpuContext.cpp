@@ -14,6 +14,7 @@
 
 #include "VirtioGpuContext.h"
 
+#include "gfxstream/host/logging.h"
 #include "host-common/AddressSpaceService.h"
 #include "host-common/opengles.h"
 
@@ -33,10 +34,10 @@ std::optional<VirtioGpuContext> VirtioGpuContext::Create(const GoldfishPipeServi
     auto hostPipe = ops->guest_open_with_flags(reinterpret_cast<GoldfishHwPipe*>(contextId),
                                                0x1 /* is virtio */);
     if (!hostPipe) {
-        stream_renderer_error("failed to create context %u: failed to create pipe.", contextId);
+        GFXSTREAM_ERROR("failed to create context %u: failed to create pipe.", contextId);
         return std::nullopt;
     }
-    stream_renderer_debug("created initial pipe for context %u: %p", contextId, hostPipe);
+    GFXSTREAM_DEBUG("created initial pipe for context %u: %p", contextId, hostPipe);
     context.mHostPipe = hostPipe;
 
     android_onGuestGraphicsProcessCreate(contextId);
@@ -53,7 +54,7 @@ int VirtioGpuContext::Destroy(const GoldfishPipeServiceOps* pipeOps,
     }
 
     if (!mHostPipe) {
-        stream_renderer_error("failed to destroy context %u: missing pipe?", mId);
+        GFXSTREAM_ERROR("failed to destroy context %u: missing pipe?", mId);
         return -EINVAL;
     }
     pipeOps->guest_close(mHostPipe, GOLDFISH_PIPE_CLOSE_GRACEFUL);
@@ -86,15 +87,15 @@ void VirtioGpuContext::SetHostPipe(GoldfishHostPipe* pipe) { mHostPipe = pipe; }
 
 int VirtioGpuContext::AcquireSync(uint64_t syncId) {
     if (mLatestSync) {
-        stream_renderer_error(
-            "failed to acquire sync %" PRIu64 " on context %u: sync already present?", syncId, mId);
+        GFXSTREAM_ERROR("failed to acquire sync %" PRIu64 " on context %u: sync already present?",
+                        syncId, mId);
         return -EINVAL;
     }
 
     auto descriptorOpt = ExternalObjectManager::get()->removeSyncDescriptorInfo(mId, syncId);
     if (!descriptorOpt) {
-        stream_renderer_error("failed to acquire sync %" PRIu64 " on context %u: sync not found.",
-                              syncId, mId);
+        GFXSTREAM_ERROR("failed to acquire sync %" PRIu64 " on context %u: sync not found.", syncId,
+                        mId);
         return -EINVAL;
     }
 
@@ -119,9 +120,8 @@ int VirtioGpuContext::CreateAddressSpaceGraphicsInstance(
     void* resourceHva = nullptr;
     uint64_t resourceHvaSize = 0;
     if (resource.Map(&resourceHva, &resourceHvaSize) != 0) {
-        stream_renderer_error(
-            "failed to create ASG instance on context %d: failed to map resource %u", mId,
-            resourceId);
+        GFXSTREAM_ERROR("failed to create ASG instance on context %d: failed to map resource %u",
+                        mId, resourceId);
         return -EINVAL;
     }
 
@@ -168,9 +168,8 @@ int VirtioGpuContext::PingAddressSpaceGraphicsInstance(
     const struct address_space_device_control_ops* asgOps, VirtioGpuResourceId resourceId) {
     auto asgIt = mAddressSpaceHandles.find(resourceId);
     if (asgIt == mAddressSpaceHandles.end()) {
-        stream_renderer_error(
-            "failed to ping ASG instance on context %u resource %d: ASG not found.", mId,
-            resourceId);
+        GFXSTREAM_ERROR("failed to ping ASG instance on context %u resource %d: ASG not found.",
+                        mId, resourceId);
         return -EINVAL;
     }
     auto asgId = asgIt->second;
@@ -186,8 +185,8 @@ int VirtioGpuContext::AddPendingBlob(uint32_t blobId,
                                      struct stream_renderer_resource_create_args blobArgs) {
     auto [_, inserted] = mPendingBlobs.try_emplace(blobId, blobArgs);
     if (!inserted) {
-        stream_renderer_error(
-            "failed to add pending blob %u to context %u: blob ID already in use?", blobId, mId);
+        GFXSTREAM_ERROR("failed to add pending blob %u to context %u: blob ID already in use?",
+                        blobId, mId);
         return -EINVAL;
     }
     return 0;

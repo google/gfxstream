@@ -19,6 +19,8 @@ extern "C" {
 #include "virgl_hw.h"
 }  // extern "C"
 
+#include "gfxstream/host/logging.h"
+
 namespace gfxstream {
 namespace host {
 
@@ -76,7 +78,7 @@ static inline bool virgl_format_is_yuv(uint32_t format) {
         case VIRGL_FORMAT_YV12:
             return true;
         default:
-            stream_renderer_error("Unknown virgl format 0x%x", format);
+            GFXSTREAM_ERROR("Unknown virgl format 0x%x", format);
             return false;
     }
 }
@@ -189,7 +191,7 @@ static inline uint32_t drm_format_to_virgl_format(uint32_t format) {
         case DRM_FORMAT_DEPTH32_STENCIL8:
             return VIRGL_FORMAT_Z32_FLOAT_S8X24_UINT;
         default:
-            stream_renderer_error("Unknown drm format for virgl conversion 0x%x", format);
+            GFXSTREAM_ERROR("Unknown drm format for virgl conversion 0x%x", format);
             return 0;
     }
 }
@@ -252,7 +254,7 @@ static inline size_t virgl_format_to_linear_base(uint32_t format, uint32_t total
                 bpp = 1;
                 break;
             default:
-                stream_renderer_error("Unknown virgl format: 0x%x", format);
+                GFXSTREAM_ERROR("Unknown virgl format: 0x%x", format);
                 return 0;
         }
 
@@ -282,7 +284,7 @@ static inline size_t virgl_format_to_total_xfer_len(uint32_t format, uint32_t to
         } else if (format == VIRGL_FORMAT_YV12) {
             yStridePixels = align_up_power_of_2(yWidth, 32);
         } else {
-            stream_renderer_error("Unknown virgl format: 0x%x", format);
+            GFXSTREAM_ERROR("Unknown virgl format: 0x%x", format);
             return 0;
         }
         uint32_t yStrideBytes = yStridePixels * bpp;
@@ -300,7 +302,7 @@ static inline size_t virgl_format_to_total_xfer_len(uint32_t format, uint32_t to
             uvStridePixels = yStridePixels / 2;
             uvPlaneCount = 2;
         } else {
-            stream_renderer_error("Unknown virgl yuv format: 0x%x", format);
+            GFXSTREAM_ERROR("Unknown virgl yuv format: 0x%x", format);
             return 0;
         }
         uint32_t uvStrideBytes = uvStridePixels * bpp;
@@ -339,7 +341,7 @@ static inline size_t virgl_format_to_total_xfer_len(uint32_t format, uint32_t to
                 bpp = 1;
                 break;
             default:
-                stream_renderer_error("Unknown virgl format: 0x%x", format);
+                GFXSTREAM_ERROR("Unknown virgl format: 0x%x", format);
                 return 0;
         }
 

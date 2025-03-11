@@ -19,7 +19,7 @@
 #include <cstdarg>
 #include <cstdio>
 
-#include "host-common/logging.h"
+#include "gfxstream/host/logging.h"
 
 namespace gfxstream {
 namespace vk {
@@ -59,7 +59,7 @@ void DebugUtilsHelper::addDebugLabelToHandle(uint64_t object, VkObjectType objec
 
     VkResult result = m_vk->vkSetDebugUtilsObjectNameEXT(m_vkDevice, &objectNameInfo);
     if (result != VK_SUCCESS) {
-        ERR("Failed to add debug label to %" PRIu64, object);
+        GFXSTREAM_ERROR("Failed to add debug label to %" PRIu64, object);
     }
 }
 

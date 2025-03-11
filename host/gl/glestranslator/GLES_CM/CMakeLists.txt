@@ -12,6 +12,7 @@ target_link_libraries(
     apigen-codec-common
     aemu-base.headers
     aemu-host-common.headers
+    gfxstream_host_logging
     gfxstream_host_snapshot.headers
     gfxstream_egl_headers)
 target_include_directories(

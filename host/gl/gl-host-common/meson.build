@@ -46,7 +46,8 @@ lib_gl_host_common = static_library(
   'gl_host_common',
   files_lib_gl_host_common,
   cpp_args: gfxstream_host_args,
-  include_directories: [inc_gfxstream_include, inc_include, inc_gl_host_common, inc_host_features],
+  include_directories: [inc_gfxstream_include, inc_include, inc_gl_host_common, inc_host_features,
+                        inc_host_logging],
   dependencies: [aemu_base_dep, aemu_common_dep, aemu_snapshot_dep],
-  link_with: [lib_host_features]
+  link_with: [lib_host_features, lib_host_logging]
 )

@@ -18,7 +18,7 @@
 #include <iterator>
 #include <set>
 
-#include "host-common/logging.h"
+#include "gfxstream/host/logging.h"
 
 namespace gfxstream {
 namespace vk {
@@ -114,7 +114,7 @@ void DeviceLostHelper::onDeviceLost() {
         return;
     }
 
-    ERR("DeviceLostHelper starting lost device checks...");
+    GFXSTREAM_ERROR("DeviceLostHelper starting lost device checks...");
 
     std::lock_guard<std::mutex> deviceLock(mDevicesMutex);
 
@@ -123,7 +123,8 @@ void DeviceLostHelper::onDeviceLost() {
         if (deviceDispatch->vkDeviceWaitIdle(device) != VK_ERROR_DEVICE_LOST) {
             continue;
         }
-        ERR("VkDevice:%p was lost, checking for unfinished VkCommandBuffers...", device);
+        GFXSTREAM_ERROR("VkDevice:%p was lost, checking for unfinished VkCommandBuffers...",
+                        device);
 
         struct CommandBufferOnQueue {
             VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
@@ -181,17 +182,17 @@ void DeviceLostHelper::onDeviceLost() {
         }
 
         if (unfinishedCommandBuffers.empty()) {
-            ERR("VkDevice:%p has no outstanding VkCommandBuffers.", device);
+            GFXSTREAM_ERROR("VkDevice:%p has no outstanding VkCommandBuffers.", device);
         } else {
-            ERR("VkDevice:%p has outstanding VkCommandBuffers:", device);
+            GFXSTREAM_ERROR("VkDevice:%p has outstanding VkCommandBuffers:", device);
             for (const CommandBufferOnQueue& unfinished : unfinishedCommandBuffers) {
-                ERR("   - VkCommandBuffer:%p on VkQueue:%p", unfinished.commandBuffer,
-                    unfinished.queue);
+                GFXSTREAM_ERROR("   - VkCommandBuffer:%p on VkQueue:%p", unfinished.commandBuffer,
+                                unfinished.queue);
             }
         }
     }
 
-    ERR("DeviceLostHelper finished lost device checks.");
+    GFXSTREAM_ERROR("DeviceLostHelper finished lost device checks.");
 }
 
 }  // namespace vk

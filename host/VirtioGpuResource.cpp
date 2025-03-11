@@ -131,11 +131,11 @@ VirtioGpuResourceType GetResourceType(const struct stream_renderer_resource_crea
 /*static*/
 std::optional<VirtioGpuResource> VirtioGpuResource::Create(
     const struct stream_renderer_resource_create_args* args, struct iovec* iov, uint32_t num_iovs) {
-    stream_renderer_debug("resource id: %u", args->handle);
+    GFXSTREAM_DEBUG("resource id: %u", args->handle);
 
     const auto resourceType = GetResourceType(*args);
     if (resourceType == VirtioGpuResourceType::BLOB) {
-        stream_renderer_error("Failed to create resource: encountered blob.");
+        GFXSTREAM_ERROR("Failed to create resource: encountered blob.");
         return std::nullopt;
     }
 
@@ -152,7 +152,7 @@ std::optional<VirtioGpuResource> VirtioGpuResource::Create(
         FrameBuffer::getFB()->setGuestManagedColorBufferLifetime(true /* guest manages lifetime */);
         FrameBuffer::getFB()->openColorBuffer(args->handle);
     } else {
-        stream_renderer_error("Failed to create resource: unhandled type.");
+        GFXSTREAM_ERROR("Failed to create resource: unhandled type.");
         return std::nullopt;
     }
 
@@ -170,13 +170,13 @@ std::optional<VirtioGpuResource> VirtioGpuResource::Create(
 std::optional<VirtioGpuResource> VirtioGpuResource::Create(
     uint32_t res_handle, const struct stream_renderer_handle* import_handle,
     const struct stream_renderer_import_data* import_data) {
-    stream_renderer_debug("resource id: %u", res_handle);
+    GFXSTREAM_DEBUG("resource id: %u", res_handle);
 
     if (!import_handle || !import_data) {
-        stream_renderer_error("Failed to import resource: import_handle/import_data not provided.");
+        GFXSTREAM_ERROR("Failed to import resource: import_handle/import_data not provided.");
         return std::nullopt;
     } else if (!(import_data->flags & STREAM_RENDERER_IMPORT_FLAG_3D_INFO)) {
-        stream_renderer_error(
+        GFXSTREAM_ERROR(
             "Failed to import resource: stream_renderer_3d_info not provided in import data.");
         return std::nullopt;
     }
@@ -189,8 +189,8 @@ std::optional<VirtioGpuResource> VirtioGpuResource::Create(
     // From info_3d
     auto virglFormat = DrmFourccToVirglFormat(import_data->info_3d.drm_fourcc);
     if (!virglFormat) {
-        stream_renderer_error("No virgl format available for drm_fourcc: %d",
-                              import_data->info_3d.drm_fourcc);
+        GFXSTREAM_ERROR("No virgl format available for drm_fourcc: %d",
+                        import_data->info_3d.drm_fourcc);
         return std::nullopt;
     }
     internal_create_args.format = *virglFormat;
@@ -205,7 +205,7 @@ std::optional<VirtioGpuResource> VirtioGpuResource::Create(
 
     const auto resourceType = GetResourceType(internal_create_args);
     if (resourceType != VirtioGpuResourceType::COLOR_BUFFER) {
-        stream_renderer_error(
+        GFXSTREAM_ERROR(
             "Failed to create resource with import_handle: arguments resulted in unhandled type. "
             "Only ColorBuffer resources are supported for import.");
         return std::nullopt;
@@ -246,7 +246,7 @@ std::optional<VirtioGpuResource> VirtioGpuResource::Create(
         auto resourceType = GetResourceType(*createArgs);
         if (resourceType != VirtioGpuResourceType::BUFFER &&
             resourceType != VirtioGpuResourceType::COLOR_BUFFER) {
-            stream_renderer_error("failed to create blob resource: unhandled type.");
+            GFXSTREAM_ERROR("failed to create blob resource: unhandled type.");
             return std::nullopt;
         }
 
@@ -260,7 +260,7 @@ std::optional<VirtioGpuResource> VirtioGpuResource::Create(
         } else if (resourceType == VirtioGpuResourceType::COLOR_BUFFER) {
             descriptorInfoOpt = FrameBuffer::getFB()->exportColorBuffer(resourceId);
         } else {
-            stream_renderer_error("failed to create blob resource: unhandled type.");
+            GFXSTREAM_ERROR("failed to create blob resource: unhandled type.");
             return std::nullopt;
         }
 
@@ -280,7 +280,7 @@ std::optional<VirtioGpuResource> VirtioGpuResource::Create(
             memory = RingBlob::CreateWithHostMemory(resourceId, createBlobArgs->size, pageSize);
         }
         if (!memory) {
-            stream_renderer_error("Failed to create blob: failed to create ring blob.");
+            GFXSTREAM_ERROR("Failed to create blob: failed to create ring blob.");
             return std::nullopt;
         }
         resource.mBlobMemory.emplace(std::move(memory));
@@ -293,7 +293,7 @@ std::optional<VirtioGpuResource> VirtioGpuResource::Create(
                 contextId, createBlobArgs->blob_id, std::move(managedHandle), handle->handle_type,
                 0, std::nullopt);
 #else
-            stream_renderer_error("Failed to create blob: unimplemented external blob.");
+            GFXSTREAM_ERROR("Failed to create blob: unimplemented external blob.");
             return std::nullopt;
 #endif
         } else {
@@ -302,7 +302,7 @@ std::optional<VirtioGpuResource> VirtioGpuResource::Create(
                     contextId, createBlobArgs->blob_id);
             }
             if (!descriptorInfoOpt) {
-                stream_renderer_error("Failed to create blob: no external blob descriptor.");
+                GFXSTREAM_ERROR("Failed to create blob: no external blob descriptor.");
                 return std::nullopt;
             }
             resource.mBlobMemory.emplace(
@@ -312,7 +312,7 @@ std::optional<VirtioGpuResource> VirtioGpuResource::Create(
         auto memoryMappingOpt =
             ExternalObjectManager::get()->removeMapping(contextId, createBlobArgs->blob_id);
         if (!memoryMappingOpt) {
-            stream_renderer_error("Failed to create blob: no external blob mapping.");
+            GFXSTREAM_ERROR("Failed to create blob: no external blob mapping.");
             return std::nullopt;
         }
         resource.mBlobMemory.emplace(std::move(*memoryMappingOpt));
@@ -333,7 +333,7 @@ int VirtioGpuResource::Destroy() {
 int VirtioGpuResource::ImportHandle(const struct stream_renderer_handle* handle,
                                     const struct stream_renderer_import_data* import_data) {
     if (mResourceType != VirtioGpuResourceType::COLOR_BUFFER) {
-        stream_renderer_error(
+        GFXSTREAM_ERROR(
             "Failed to ImportResource: importing external handles to existing resources is only "
             "supported for ColorBuffer resources.");
         return -EINVAL;
@@ -341,8 +341,8 @@ int VirtioGpuResource::ImportHandle(const struct stream_renderer_handle* handle,
 
     auto colorBufferPtr = FrameBuffer::getFB()->findColorBuffer(mId);
     if (!colorBufferPtr) {
-        stream_renderer_error(
-            "Failed to ImportResource: could not find colorBuffer for res_handle: %d", mId);
+        GFXSTREAM_ERROR("Failed to ImportResource: could not find colorBuffer for res_handle: %d",
+                        mId);
         return -EINVAL;
     }
 
@@ -357,7 +357,8 @@ int VirtioGpuResource::ImportHandle(const struct stream_renderer_handle* handle,
             break;
 #endif
         default:
-            ERR("Unsupported handle_type: 0x%x, specified for importing to resource: %d",
+            GFXSTREAM_ERROR(
+                "Unsupported handle_type: 0x%x, specified for importing to resource: %d",
                 handle->handle_type, mId);
             return -EINVAL;
     }
@@ -405,7 +406,7 @@ void VirtioGpuResource::DetachIov() {
 
 int VirtioGpuResource::Map(void** outAddress, uint64_t* outSize) {
     if (!mBlobMemory) {
-        stream_renderer_error("Failed to map resource %d: no blob memory to map.", mId);
+        GFXSTREAM_ERROR("Failed to map resource %d: no blob memory to map.", mId);
         return -EINVAL;
     }
 
@@ -418,14 +419,14 @@ int VirtioGpuResource::Map(void** outAddress, uint64_t* outSize) {
         hvaSize = memory->size();
     } else if (std::holds_alternative<ExternalMemoryMapping>(*mBlobMemory)) {
         if (!mCreateBlobArgs) {
-            stream_renderer_error("failed to map resource %d: missing args.", mId);
+            GFXSTREAM_ERROR("failed to map resource %d: missing args.", mId);
             return -EINVAL;
         }
         auto& memory = std::get<ExternalMemoryMapping>(*mBlobMemory);
         hva = memory.addr;
         hvaSize = mCreateBlobArgs->size;
     } else {
-        stream_renderer_error("failed to map resource %d: no mappable memory.", mId);
+        GFXSTREAM_ERROR("failed to map resource %d: no mappable memory.", mId);
         return -EINVAL;
     }
 
@@ -440,7 +441,7 @@ int VirtioGpuResource::Map(void** outAddress, uint64_t* outSize) {
 
 int VirtioGpuResource::GetInfo(struct stream_renderer_resource_info* outInfo) const {
     if (!mCreateArgs) {
-        stream_renderer_error("Failed to get info: resource %d missing args.", mId);
+        GFXSTREAM_ERROR("Failed to get info: resource %d missing args.", mId);
         return ENOENT;
     }
 
@@ -484,7 +485,7 @@ int VirtioGpuResource::GetVulkanInfo(struct stream_renderer_vulkan_info* outInfo
 
 int VirtioGpuResource::GetCaching(uint32_t* outCaching) const {
     if (!mBlobMemory) {
-        stream_renderer_error("failed to get caching for resource %d: no blob memory", mId);
+        GFXSTREAM_ERROR("failed to get caching for resource %d: no blob memory", mId);
         return -EINVAL;
     }
 
@@ -502,7 +503,7 @@ int VirtioGpuResource::GetCaching(uint32_t* outCaching) const {
         return 0;
     }
 
-    stream_renderer_error("failed to get caching for resource %d: unhandled type?", mId);
+    GFXSTREAM_ERROR("failed to get caching for resource %d: unhandled type?", mId);
     return -EINVAL;
 }
 
@@ -514,7 +515,7 @@ int VirtioGpuResource::TransferRead(const GoldfishPipeServiceOps* ops, uint64_t 
     // First, copy from the underlying backend resource to this resource's linear buffer:
     int ret = 0;
     if (mResourceType == VirtioGpuResourceType::BLOB) {
-        stream_renderer_error("Failed to transfer: unexpected blob.");
+        GFXSTREAM_ERROR("Failed to transfer: unexpected blob.");
         return -EINVAL;
     } else if (mResourceType == VirtioGpuResourceType::PIPE) {
         ret = ReadFromPipeToLinear(ops, offset, box);
@@ -523,11 +524,11 @@ int VirtioGpuResource::TransferRead(const GoldfishPipeServiceOps* ops, uint64_t 
     } else if (mResourceType == VirtioGpuResourceType::COLOR_BUFFER) {
         ret = ReadFromColorBufferToLinear(offset, box);
     } else {
-        stream_renderer_error("Failed to transfer: unhandled resource type.");
+        GFXSTREAM_ERROR("Failed to transfer: unhandled resource type.");
         return -EINVAL;
     }
     if (ret != 0) {
-        stream_renderer_error("Failed to transfer: failed to sync with backend resource.");
+        GFXSTREAM_ERROR("Failed to transfer: failed to sync with backend resource.");
         return ret;
     }
 
@@ -538,7 +539,7 @@ int VirtioGpuResource::TransferRead(const GoldfishPipeServiceOps* ops, uint64_t 
         ret = TransferToIov(offset, box, mIovs);
     }
     if (ret != 0) {
-        stream_renderer_error("Failed to transfer: failed to copy to iov.");
+        GFXSTREAM_ERROR("Failed to transfer: failed to copy to iov.");
     }
     return ret;
 }
@@ -555,7 +556,7 @@ VirtioGpuResource::TransferWriteResult VirtioGpuResource::TransferWrite(
         ret = TransferFromIov(offset, box, mIovs);
     }
     if (ret != 0) {
-        stream_renderer_error("Failed to transfer: failed to copy from iov.");
+        GFXSTREAM_ERROR("Failed to transfer: failed to copy from iov.");
         return TransferWriteResult{
             .status = ret,
         };
@@ -563,7 +564,7 @@ VirtioGpuResource::TransferWriteResult VirtioGpuResource::TransferWrite(
 
     // Second, copy from this resource's linear buffer to the underlying backend resource:
     if (mResourceType == VirtioGpuResourceType::BLOB) {
-        stream_renderer_error("Failed to transfer: unexpected blob.");
+        GFXSTREAM_ERROR("Failed to transfer: unexpected blob.");
         return TransferWriteResult{
             .status = -EINVAL,
         };
@@ -574,13 +575,13 @@ VirtioGpuResource::TransferWriteResult VirtioGpuResource::TransferWrite(
     } else if (mResourceType == VirtioGpuResourceType::COLOR_BUFFER) {
         ret = WriteToColorBufferFromLinear(offset, box);
     } else {
-        stream_renderer_error("Failed to transfer: unhandled resource type.");
+        GFXSTREAM_ERROR("Failed to transfer: unhandled resource type.");
         return TransferWriteResult{
             .status = -EINVAL,
         };
     }
     if (ret != 0) {
-        stream_renderer_error("Failed to transfer: failed to sync with backend resource.");
+        GFXSTREAM_ERROR("Failed to transfer: failed to sync with backend resource.");
     }
     return TransferWriteResult{
         .status = ret,
@@ -590,14 +591,14 @@ VirtioGpuResource::TransferWriteResult VirtioGpuResource::TransferWrite(
 int VirtioGpuResource::ReadFromPipeToLinear(const GoldfishPipeServiceOps* ops, uint64_t offset,
                                             stream_renderer_box* box) {
     if (mResourceType != VirtioGpuResourceType::PIPE) {
-        stream_renderer_error("Failed to transfer: resource %d is not PIPE.", mId);
+        GFXSTREAM_ERROR("Failed to transfer: resource %d is not PIPE.", mId);
         return -EINVAL;
     }
 
     // Do the pipe service op here, if there is an associated hostpipe.
     auto hostPipe = mHostPipe;
     if (!hostPipe) {
-        stream_renderer_error("Failed to transfer: resource %d missing PIPE.", mId);
+        GFXSTREAM_ERROR("Failed to transfer: resource %d missing PIPE.", mId);
         return -EINVAL;
     }
 
@@ -626,14 +627,14 @@ int VirtioGpuResource::ReadFromPipeToLinear(const GoldfishPipeServiceOps* ops, u
 VirtioGpuResource::TransferWriteResult VirtioGpuResource::WriteToPipeFromLinear(
     const GoldfishPipeServiceOps* ops, uint64_t offset, stream_renderer_box* box) {
     if (mResourceType != VirtioGpuResourceType::PIPE) {
-        stream_renderer_error("Failed to transfer: resource %d is not PIPE.", mId);
+        GFXSTREAM_ERROR("Failed to transfer: resource %d is not PIPE.", mId);
         return TransferWriteResult{
             .status = -EINVAL,
         };
     }
 
     if (!mCreateArgs) {
-        stream_renderer_error("Failed to transfer: resource %d missing args.", mId);
+        GFXSTREAM_ERROR("Failed to transfer: resource %d missing args.", mId);
         return TransferWriteResult{
             .status = -EINVAL,
         };
@@ -642,14 +643,14 @@ VirtioGpuResource::TransferWriteResult VirtioGpuResource::WriteToPipeFromLinear(
     // Do the pipe service op here, if there is an associated hostpipe.
     auto hostPipe = mHostPipe;
     if (!hostPipe) {
-        stream_renderer_error("No hostPipe");
+        GFXSTREAM_ERROR("No hostPipe");
         return TransferWriteResult{
             .status = -EINVAL,
         };
     }
 
-    stream_renderer_debug("resid: %d offset: 0x%llx hostpipe: %p", mCreateArgs->handle,
-                          (unsigned long long)offset, hostPipe);
+    GFXSTREAM_DEBUG("resid: %d offset: 0x%llx hostpipe: %p", mCreateArgs->handle,
+                    (unsigned long long)offset, hostPipe);
 
     size_t writtenBytes = 0;
     size_t wantedBytes = (size_t)box->w;
@@ -693,12 +694,12 @@ VirtioGpuResource::TransferWriteResult VirtioGpuResource::WriteToPipeFromLinear(
 
 int VirtioGpuResource::ReadFromBufferToLinear(uint64_t offset, stream_renderer_box* box) {
     if (mResourceType != VirtioGpuResourceType::BUFFER) {
-        stream_renderer_error("Failed to transfer: resource %d is not BUFFER.", mId);
+        GFXSTREAM_ERROR("Failed to transfer: resource %d is not BUFFER.", mId);
         return -EINVAL;
     }
 
     if (!mCreateArgs) {
-        stream_renderer_error("Failed to transfer: resource %d missing args.", mId);
+        GFXSTREAM_ERROR("Failed to transfer: resource %d missing args.", mId);
         return -EINVAL;
     }
 
@@ -709,12 +710,12 @@ int VirtioGpuResource::ReadFromBufferToLinear(uint64_t offset, stream_renderer_b
 
 int VirtioGpuResource::WriteToBufferFromLinear(uint64_t offset, stream_renderer_box* box) {
     if (mResourceType != VirtioGpuResourceType::BUFFER) {
-        stream_renderer_error("Failed to transfer: resource %d is not BUFFER.", mId);
+        GFXSTREAM_ERROR("Failed to transfer: resource %d is not BUFFER.", mId);
         return -EINVAL;
     }
 
     if (!mCreateArgs) {
-        stream_renderer_error("Failed to transfer: resource %d missing args.", mId);
+        GFXSTREAM_ERROR("Failed to transfer: resource %d missing args.", mId);
         return -EINVAL;
     }
 
@@ -725,12 +726,12 @@ int VirtioGpuResource::WriteToBufferFromLinear(uint64_t offset, stream_renderer_
 
 int VirtioGpuResource::ReadFromColorBufferToLinear(uint64_t offset, stream_renderer_box* box) {
     if (mResourceType != VirtioGpuResourceType::COLOR_BUFFER) {
-        stream_renderer_error("Failed to transfer: resource %d is not COLOR_BUFFER.", mId);
+        GFXSTREAM_ERROR("Failed to transfer: resource %d is not COLOR_BUFFER.", mId);
         return -EINVAL;
     }
 
     if (!mCreateArgs) {
-        stream_renderer_error("Failed to transfer: resource %d missing args.", mId);
+        GFXSTREAM_ERROR("Failed to transfer: resource %d missing args.", mId);
         return -EINVAL;
     }
 
@@ -754,12 +755,12 @@ int VirtioGpuResource::ReadFromColorBufferToLinear(uint64_t offset, stream_rende
 
 int VirtioGpuResource::WriteToColorBufferFromLinear(uint64_t offset, stream_renderer_box* box) {
     if (mResourceType != VirtioGpuResourceType::COLOR_BUFFER) {
-        stream_renderer_error("Failed to transfer: resource %d is not COLOR_BUFFER.", mId);
+        GFXSTREAM_ERROR("Failed to transfer: resource %d is not COLOR_BUFFER.", mId);
         return -EINVAL;
     }
 
     if (!mCreateArgs) {
-        stream_renderer_error("Failed to transfer: resource %d missing args.", mId);
+        GFXSTREAM_ERROR("Failed to transfer: resource %d missing args.", mId);
         return -EINVAL;
     }
 
@@ -795,19 +796,19 @@ int VirtioGpuResource::TransferWithIov(uint64_t offset, const stream_renderer_bo
                                        const std::vector<struct iovec>& iovs,
                                        TransferDirection direction) {
     if (!mCreateArgs) {
-        stream_renderer_error("failed to transfer: missing resource args.");
+        GFXSTREAM_ERROR("failed to transfer: missing resource args.");
         return -EINVAL;
     }
     if (box->x > mCreateArgs->width || box->y > mCreateArgs->height) {
-        stream_renderer_error("failed to transfer: box out of range of resource");
+        GFXSTREAM_ERROR("failed to transfer: box out of range of resource");
         return -EINVAL;
     }
     if (box->w == 0U || box->h == 0U) {
-        stream_renderer_error("failed to transfer: empty transfer");
+        GFXSTREAM_ERROR("failed to transfer: empty transfer");
         return -EINVAL;
     }
     if (box->x + box->w > mCreateArgs->width) {
-        stream_renderer_error("failed to transfer: box overflows resource width");
+        GFXSTREAM_ERROR("failed to transfer: box overflows resource width");
         return -EINVAL;
     }
 
@@ -823,12 +824,12 @@ int VirtioGpuResource::TransferWithIov(uint64_t offset, const stream_renderer_bo
     size_t end = start + length;
 
     if (start == end) {
-        stream_renderer_error("failed to transfer: nothing to transfer");
+        GFXSTREAM_ERROR("failed to transfer: nothing to transfer");
         return -EINVAL;
     }
 
     if (end > mLinear.size()) {
-        stream_renderer_error("failed to transfer: start + length overflows!");
+        GFXSTREAM_ERROR("failed to transfer: start + length overflows!");
         return -EINVAL;
     }
 
@@ -839,7 +840,7 @@ int VirtioGpuResource::TransferWithIov(uint64_t offset, const stream_renderer_bo
 
     while (written < length) {
         if (iovIndex >= iovs.size()) {
-            stream_renderer_error("failed to transfer: write request overflowed iovs");
+            GFXSTREAM_ERROR("failed to transfer: write request overflowed iovs");
             return -EINVAL;
         }
 
@@ -862,7 +863,7 @@ int VirtioGpuResource::TransferWithIov(uint64_t offset, const stream_renderer_bo
                            toWrite);
                     break;
                 default:
-                    stream_renderer_error("failed to transfer: invalid synchronization dir");
+                    GFXSTREAM_ERROR("failed to transfer: invalid synchronization dir");
                     return -EINVAL;
             }
             written += toWrite;
@@ -899,8 +900,8 @@ int VirtioGpuResource::ExportBlob(struct stream_renderer_handle* outHandle) {
 
         auto rawDescriptorOpt = memory->descriptorInfo.descriptor.release();
         if (!rawDescriptorOpt) {
-            stream_renderer_error(
-                "failed to export blob for resource %u: failed to get raw handle.", mId);
+            GFXSTREAM_ERROR("failed to export blob for resource %u: failed to get raw handle.",
+                            mId);
             return -EINVAL;
         }
         auto rawDescriptor = *rawDescriptorOpt;
@@ -963,17 +964,17 @@ std::optional<VirtioGpuResourceSnapshot> VirtioGpuResource::Snapshot() const {
 
             auto snapshotRingBlobOpt = memory->Snapshot();
             if (!snapshotRingBlobOpt) {
-                stream_renderer_error("Failed to snapshot ring blob for resource %d.", mId);
+                GFXSTREAM_ERROR("Failed to snapshot ring blob for resource %d.", mId);
                 return std::nullopt;
             }
             resourceSnapshot.mutable_ring_blob()->Swap(&*snapshotRingBlobOpt);
         } else if (std::holds_alternative<ExternalMemoryInfo>(*mBlobMemory)) {
             if (!mLatestAttachedContext) {
-                stream_renderer_error("Failed to snapshot resource %d: missing blob context?", mId);
+                GFXSTREAM_ERROR("Failed to snapshot resource %d: missing blob context?", mId);
                 return std::nullopt;
             }
             if (!mCreateBlobArgs) {
-                stream_renderer_error("Failed to snapshot resource %d: missing blob args?", mId);
+                GFXSTREAM_ERROR("Failed to snapshot resource %d: missing blob args?", mId);
                 return std::nullopt;
             }
             auto snapshotDescriptorInfo = resourceSnapshot.mutable_external_memory_descriptor();
@@ -981,11 +982,11 @@ std::optional<VirtioGpuResourceSnapshot> VirtioGpuResource::Snapshot() const {
             snapshotDescriptorInfo->set_blob_id(mCreateBlobArgs->blob_id);
         } else if (std::holds_alternative<ExternalMemoryMapping>(*mBlobMemory)) {
             if (!mLatestAttachedContext) {
-                stream_renderer_error("Failed to snapshot resource %d: missing blob context?", mId);
+                GFXSTREAM_ERROR("Failed to snapshot resource %d: missing blob context?", mId);
                 return std::nullopt;
             }
             if (!mCreateBlobArgs) {
-                stream_renderer_error("Failed to snapshot resource %d: missing blob args?", mId);
+                GFXSTREAM_ERROR("Failed to snapshot resource %d: missing blob args?", mId);
                 return std::nullopt;
             }
             auto snapshotDescriptorInfo = resourceSnapshot.mutable_external_memory_mapping();
@@ -1040,7 +1041,7 @@ std::optional<VirtioGpuResourceSnapshot> VirtioGpuResource::Snapshot() const {
     if (resourceSnapshot.has_ring_blob()) {
         auto resourceRingBlobOpt = RingBlob::Restore(resourceSnapshot.ring_blob());
         if (!resourceRingBlobOpt) {
-            stream_renderer_error("Failed to restore ring blob for resource %d", resource.mId);
+            GFXSTREAM_ERROR("Failed to restore ring blob for resource %d", resource.mId);
             return std::nullopt;
         }
         resource.mBlobMemory.emplace(std::move(*resourceRingBlobOpt));
@@ -1050,8 +1051,7 @@ std::optional<VirtioGpuResourceSnapshot> VirtioGpuResource::Snapshot() const {
         auto descriptorInfoOpt = ExternalObjectManager::get()->removeBlobDescriptorInfo(
             snapshotDescriptorInfo.context_id(), snapshotDescriptorInfo.blob_id());
         if (!descriptorInfoOpt) {
-            stream_renderer_error(
-                "Failed to restore resource: failed to find blob descriptor info.");
+            GFXSTREAM_ERROR("Failed to restore resource: failed to find blob descriptor info.");
             return std::nullopt;
         }
 
@@ -1063,7 +1063,7 @@ std::optional<VirtioGpuResourceSnapshot> VirtioGpuResource::Snapshot() const {
         auto memoryMappingOpt = ExternalObjectManager::get()->removeMapping(
             snapshotDescriptorInfo.context_id(), snapshotDescriptorInfo.blob_id());
         if (!memoryMappingOpt) {
-            stream_renderer_error("Failed to restore resource: failed to find mapping info.");
+            GFXSTREAM_ERROR("Failed to restore resource: failed to find mapping info.");
             return std::nullopt;
         }
         resource.mBlobMemory.emplace(std::move(*memoryMappingOpt));

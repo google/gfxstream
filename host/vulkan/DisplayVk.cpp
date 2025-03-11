@@ -4,8 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
 
-#include "host-common/GfxstreamFatalError.h"
-#include "host-common/logging.h"
+#include "gfxstream/host/logging.h"
 #include "vulkan/VkFormatUtils.h"
 #include "vulkan/vk_enum_string_helper.h"
 
@@ -23,7 +22,7 @@ using gfxstream::vk::formatRequiresSamplerYcbcrConversion;
     do {                                             \
         static bool displayVkInternalLogged = false; \
         if (!displayVkInternalLogged) {              \
-            ERR(fmt, ##__VA_ARGS__);                 \
+            GFXSTREAM_ERROR(fmt, ##__VA_ARGS__);     \
             displayVkInternalLogged = true;          \
         }                                            \
     } while (0)
@@ -121,18 +120,16 @@ bool DisplayVk::recreateSwapchain() {
 
     const auto* surface = getBoundSurface();
     if (!surface) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "DisplayVk can't create VkSwapchainKHR without a VkSurfaceKHR";
+        GFXSTREAM_FATAL("DisplayVk can't create VkSwapchainKHR without a VkSurfaceKHR");
     }
     const auto* surfaceVk = static_cast<const DisplaySurfaceVk*>(surface->getImpl());
 
     if (!SwapChainStateVk::validateQueueFamilyProperties(
             m_vk, m_vkPhysicalDevice, surfaceVk->getSurface(), m_swapChainQueueFamilyIndex)) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "DisplayVk can't create VkSwapchainKHR with given VkDevice and VkSurfaceKHR.";
+        GFXSTREAM_FATAL("DisplayVk can't create VkSwapchainKHR with given VkDevice and VkSurfaceKHR.");
     }
-    INFO("Creating swapchain with size %" PRIu32 "x%" PRIu32 ".", surface->getWidth(),
-         surface->getHeight());
+    GFXSTREAM_INFO("Creating swapchain with size %" PRIu32 "x%" PRIu32 ".", surface->getWidth(),
+                   surface->getHeight());
     auto swapChainCi = SwapChainStateVk::createSwapChainCi(
         m_vk, surfaceVk->getSurface(), m_vkPhysicalDevice, surface->getWidth(),
         surface->getHeight(), {m_swapChainQueueFamilyIndex, m_compositorQueueFamilyIndex});
@@ -143,9 +140,9 @@ bool DisplayVk::recreateSwapchain() {
     m_vk.vkGetPhysicalDeviceFormatProperties(m_vkPhysicalDevice,
                                              swapChainCi->mCreateInfo.imageFormat, &formatProps);
     if (!(formatProps.optimalTilingFeatures & VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT)) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "DisplayVk: The image format chosen for present VkImage can't be used as the color "
-               "attachment, and therefore can't be used as the render target of CompositorVk.";
+        GFXSTREAM_FATAL(
+            "DisplayVk: The image format chosen for present VkImage can't be used as the color "
+            "attachment, and therefore can't be used as the render target of CompositorVk.");
     }
     m_swapChainStateVk =
         SwapChainStateVk::createSwapChainVk(m_vk, m_vkDevice, swapChainCi->mCreateInfo);
@@ -168,7 +165,7 @@ DisplayVk::PostResult DisplayVk::post(const BorrowedImageInfo* sourceImageInfo) 
 
     const auto* surface = getBoundSurface();
     if (!surface) {
-        ERR("Trying to present to non-existing surface!");
+        GFXSTREAM_ERROR("Trying to present to non-existing surface!");
         return PostResult{
             .success = true,
             .postCompletedWaitable = completedFuture,
@@ -176,23 +173,22 @@ DisplayVk::PostResult DisplayVk::post(const BorrowedImageInfo* sourceImageInfo) 
     }
 
     if (m_needToRecreateSwapChain) {
-        INFO("Recreating swapchain...");
+        GFXSTREAM_INFO("Recreating swapchain...");
 
         constexpr const int kMaxRecreateSwapchainRetries = 8;
         int retriesRemaining = kMaxRecreateSwapchainRetries;
         while (retriesRemaining >= 0 && !recreateSwapchain()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
             --retriesRemaining;
-            INFO("Swapchain recreation failed, retrying...");
+            GFXSTREAM_INFO("Swapchain recreation failed, retrying...");
         }
 
         if (retriesRemaining < 0) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "Failed to create Swapchain."
-                << " w:" << surface->getWidth() << " h:" << surface->getHeight();
+            GFXSTREAM_FATAL("Failed to create Swapchain. w:%d h:%d",
+                            surface->getWidth(), surface->getHeight());
         }
 
-        INFO("Recreating swapchain completed.");
+        GFXSTREAM_INFO("Recreating swapchain completed.");
     }
 
     auto result = postImpl(sourceImageInfo);
@@ -346,12 +342,12 @@ DisplayVk::PostResult DisplayVk::postImpl(const BorrowedImageInfo* sourceImageIn
 
     const auto* surface = getBoundSurface();
     if (!m_swapChainStateVk || !surface) {
-        ERR("Cannot post ColorBuffer: No surface bound.");
+        GFXSTREAM_ERROR("Cannot post ColorBuffer: No surface bound.");
         return PostResult{true, std::move(completedFuture)};
     }
 
     if (!canPost(sourceImageInfoVk->imageCreateInfo)) {
-        ERR("Can't post ColorBuffer.");
+        GFXSTREAM_ERROR("Can't post ColorBuffer.");
         return PostResult{true, std::move(completedFuture)};
     }
 
@@ -361,8 +357,7 @@ DisplayVk::PostResult DisplayVk::postImpl(const BorrowedImageInfo* sourceImageIn
         }
         auto postResourceFuture = postResourceFutureOpt.value();
         if (!postResourceFuture.valid()) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "Invalid postResourceFuture in m_postResourceFutures.";
+            GFXSTREAM_FATAL("Invalid postResourceFuture in m_postResourceFutures.");
         }
         std::future_status status = postResourceFuture.wait_for(std::chrono::seconds(0));
         if (status == std::future_status::ready) {
@@ -577,7 +572,7 @@ VkFormatFeatureFlags DisplayVk::getFormatFeatures(VkFormat format, VkImageTiling
     } else if (tiling == VK_IMAGE_TILING_OPTIMAL) {
         formatFeatures = formatProperties.optimalTilingFeatures;
     } else {
-        ERR("Unknown tiling %#" PRIx64 ".", static_cast<uint64_t>(tiling));
+        GFXSTREAM_ERROR("Unknown tiling %#" PRIx64 ".", static_cast<uint64_t>(tiling));
     }
     return formatFeatures;
 }
@@ -587,7 +582,7 @@ bool DisplayVk::canPost(const VkImageCreateInfo& postImageCi) {
     // VK_FORMAT_FEATURE_BLIT_SRC_BIT.
     VkFormatFeatureFlags formatFeatures = getFormatFeatures(postImageCi.format, postImageCi.tiling);
     if (!(formatFeatures & VK_FORMAT_FEATURE_BLIT_SRC_BIT)) {
-        ERR(
+        GFXSTREAM_ERROR(
             "VK_FORMAT_FEATURE_BLIT_SRC_BLIT is not supported for VkImage with format %s, tilling "
             "%s. Supported features are %s.",
             string_VkFormat(postImageCi.format), string_VkImageTiling(postImageCi.tiling),
@@ -598,15 +593,15 @@ bool DisplayVk::canPost(const VkImageCreateInfo& postImageCi) {
     // According to VUID-vkCmdBlitImage-srcImage-06421, srcImage must not use a format that requires
     // a sampler Y’CBCR conversion.
     if (formatRequiresSamplerYcbcrConversion(postImageCi.format)) {
-        ERR("Format %s requires a sampler Y'CbCr conversion. Can't be used to post.",
-                         string_VkFormat(postImageCi.format));
+        GFXSTREAM_ERROR("Format %s requires a sampler Y'CbCr conversion. Can't be used to post.",
+                        string_VkFormat(postImageCi.format));
         return false;
     }
 
     if (!(postImageCi.usage & VK_IMAGE_USAGE_TRANSFER_SRC_BIT)) {
         // According to VUID-vkCmdBlitImage-srcImage-00219, srcImage must have been created with
         // VK_IMAGE_USAGE_TRANSFER_SRC_BIT usage flag.
-        ERR(
+        GFXSTREAM_ERROR(
             "The VkImage is not created with the VK_IMAGE_USAGE_TRANSFER_SRC_BIT usage flag. The "
             "usage flags are %s.",
             string_VkImageUsageFlags(postImageCi.usage).c_str());
@@ -619,7 +614,7 @@ bool DisplayVk::canPost(const VkImageCreateInfo& postImageCi) {
         // created with a signed integer VkFormat, the other must also have been created with a
         // signed integer VkFormat.
         if (!(formatIsSInt(postImageCi.format) && formatIsSInt(m_swapChainStateVk->getFormat()))) {
-            ERR(
+            GFXSTREAM_ERROR(
                 "The format(%s) doesn't match with the format of the presentable image(%s): either "
                 "of the formats is a signed integer VkFormat, but the other is not.",
                 string_VkFormat(postImageCi.format), string_VkFormat(swapChainFormat));
@@ -632,7 +627,7 @@ bool DisplayVk::canPost(const VkImageCreateInfo& postImageCi) {
         // created with an unsigned integer VkFormat, the other must also have been created with an
         // unsigned integer VkFormat.
         if (!(formatIsUInt(postImageCi.format) && formatIsUInt(swapChainFormat))) {
-            ERR(
+            GFXSTREAM_ERROR(
                 "The format(%s) doesn't match with the format of the presentable image(%s): either "
                 "of the formats is an unsigned integer VkFormat, but the other is not.",
                 string_VkFormat(postImageCi.format), string_VkFormat(swapChainFormat));
@@ -644,7 +639,7 @@ bool DisplayVk::canPost(const VkImageCreateInfo& postImageCi) {
         // According to VUID-vkCmdBlitImage-srcImage-00231, if either of srcImage or dstImage was
         // created with a depth/stencil format, the other must have exactly the same format.
         if (postImageCi.format != swapChainFormat) {
-            ERR(
+            GFXSTREAM_ERROR(
                 "The format(%s) doesn't match with the format of the presentable image(%s): either "
                 "of the formats is a depth/stencil VkFormat, but the other is not the same format.",
                 string_VkFormat(postImageCi.format), string_VkFormat(swapChainFormat));
@@ -655,7 +650,7 @@ bool DisplayVk::canPost(const VkImageCreateInfo& postImageCi) {
     if (postImageCi.samples != VK_SAMPLE_COUNT_1_BIT) {
         // According to VUID-vkCmdBlitImage-srcImage-00233, srcImage must have been created with a
         // samples value of VK_SAMPLE_COUNT_1_BIT.
-        ERR(
+        GFXSTREAM_ERROR(
             "The VkImage is not created with the VK_SAMPLE_COUNT_1_BIT samples value. The samples "
             "value is %s.",
             string_VkSampleCountFlagBits(postImageCi.samples));
@@ -664,7 +659,7 @@ bool DisplayVk::canPost(const VkImageCreateInfo& postImageCi) {
     if (postImageCi.flags & VK_IMAGE_CREATE_SUBSAMPLED_BIT_EXT) {
         // According to VUID-vkCmdBlitImage-dstImage-02545, dstImage and srcImage must not have been
         // created with flags containing VK_IMAGE_CREATE_SUBSAMPLED_BIT_EXT.
-        ERR(
+        GFXSTREAM_ERROR(
             "The VkImage can't be created with flags containing "
             "VK_IMAGE_CREATE_SUBSAMPLED_BIT_EXT. The flags are %s.",
             string_VkImageCreateFlags(postImageCi.flags).c_str());

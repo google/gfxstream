@@ -7,7 +7,7 @@
 #include <optional>
 
 #include "gfxstream/host/Tracing.h"
-#include "host-common/logging.h"
+#include "gfxstream/host/logging.h"
 #include "vulkan/vk_enum_string_helper.h"
 #include "vulkan/vk_util.h"
 
@@ -819,7 +819,7 @@ std::optional<std::tuple<VkBuffer, VkDeviceMemory>> CompositorVk::createBuffer(
     m_vk.vkGetPhysicalDeviceMemoryProperties(m_vkPhysicalDevice, &physicalMemProperties);
     auto maybeMemoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, memProperty);
     if (!maybeMemoryTypeIndex.has_value()) {
-        ERR("Failed to find memory type for creating buffer.");
+        GFXSTREAM_ERROR("Failed to find memory type for creating buffer.");
         m_vk.vkDestroyBuffer(m_vkDevice, resBuffer, nullptr);
         return std::nullopt;
     }
@@ -873,7 +873,7 @@ VkFormatFeatureFlags CompositorVk::getFormatFeatures(VkFormat format, VkImageTil
     } else if (tiling == VK_IMAGE_TILING_OPTIMAL) {
         formatFeatures = formatProperties.optimalTilingFeatures;
     } else {
-        ERR("Unknown tiling:%#" PRIx64 ".", static_cast<uint64_t>(tiling));
+        GFXSTREAM_ERROR("Unknown tiling:%#" PRIx64 ".", static_cast<uint64_t>(tiling));
     }
     return formatFeatures;
 }
@@ -904,7 +904,8 @@ CompositorVk::RenderTarget* CompositorVk::getOrCreateRenderTargetInfo(
 bool CompositorVk::canCompositeFrom(const VkImageCreateInfo& imageCi) {
     VkFormatFeatureFlags formatFeatures = getFormatFeatures(imageCi.format, imageCi.tiling);
     if (!(formatFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT)) {
-        ERR("The format, %s, with tiling, %s, doesn't support the "
+        GFXSTREAM_ERROR(
+            "The format, %s, with tiling, %s, doesn't support the "
             "VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT feature. All supported features are %s.",
             string_VkFormat(imageCi.format), string_VkImageTiling(imageCi.tiling),
             string_VkFormatFeatureFlags(formatFeatures).c_str());
@@ -916,21 +917,24 @@ bool CompositorVk::canCompositeFrom(const VkImageCreateInfo& imageCi) {
 bool CompositorVk::canCompositeTo(const VkImageCreateInfo& imageCi) {
     VkFormatFeatureFlags formatFeatures = getFormatFeatures(imageCi.format, imageCi.tiling);
     if (!(formatFeatures & VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT)) {
-        ERR("The format, %s, with tiling, %s, doesn't support the "
+        GFXSTREAM_ERROR(
+            "The format, %s, with tiling, %s, doesn't support the "
             "VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT feature. All supported features are %s.",
             string_VkFormat(imageCi.format), string_VkImageTiling(imageCi.tiling),
             string_VkFormatFeatureFlags(formatFeatures).c_str());
         return false;
     }
     if (!(imageCi.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)) {
-        ERR("The VkImage is not created with the VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT usage flag. "
+        GFXSTREAM_ERROR(
+            "The VkImage is not created with the VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT usage flag. "
             "The usage flags are %s.",
             string_VkImageUsageFlags(imageCi.usage).c_str());
         return false;
     }
 
     if (m_formatResources.find(imageCi.format) == m_formatResources.end()) {
-        ERR("The format of the image, %s, is not supported by the CompositorVk as the render "
+        GFXSTREAM_ERROR(
+            "The format of the image, %s, is not supported by the CompositorVk as the render "
             "target.",
             string_VkFormat(imageCi.format));
         return false;
@@ -1034,7 +1038,7 @@ void CompositorVk::buildCompositionVk(const CompositionRequest& compositionReque
                 texCoordScaleY *= -1.0f;
                 break;
             default:
-                ERR("Unknown transform:%d", static_cast<int>(layer.props.transform));
+                GFXSTREAM_ERROR("Unknown transform:%d", static_cast<int>(layer.props.transform));
                 break;
         }
 

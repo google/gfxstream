@@ -18,7 +18,7 @@
 
 namespace gfxstream {
 namespace vk {
-#include "host-common/logging.h"
+#include "gfxstream/host/logging.h"
 #include "vulkan/vk_enum_string_helper.h"
 
 namespace {
@@ -145,7 +145,7 @@ bool getFormatTransferInfo(VkFormat format, uint32_t width, uint32_t height,
                            std::vector<VkBufferImageCopy>* outBufferImageCopies) {
     const FormatPlaneLayouts* formatInfo = getFormatPlaneLayouts(format);
     if (formatInfo == nullptr) {
-        ERR("Unhandled format: %s [%d]", string_VkFormat(format), format);
+        GFXSTREAM_ERROR("Unhandled format: %s [%d]", string_VkFormat(format), format);
         return false;
     }
 

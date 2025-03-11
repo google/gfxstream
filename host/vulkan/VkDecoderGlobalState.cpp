@@ -49,6 +49,7 @@
 #include "common/goldfish_vk_reserved_marshaling.h"
 #include "compressedTextureFormats/AstcCpuDecompressor.h"
 #include "gfxstream/host/Tracing.h"
+#include "gfxstream/host/logging.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/HostmemIdMapping.h"
 #include "host-common/address_space_device_control_ops.h"
@@ -72,17 +73,10 @@
 #include <vulkan/vulkan_beta.h> // for MoltenVK portability extensions
 #endif
 
-#ifndef VERBOSE
-#define VERBOSE(fmt, ...)                    \
-    if (android::base::isVerboseLogging()) { \
-        INFO(fmt, ##__VA_ARGS__);            \
-    }
-#endif
-
 // Verbose logging only when ANDROID_EMU_VK_LOG_CALLS is set
-#define LOG_CALLS_VERBOSE(fmt, ...)  \
-    if (mLogging) {                  \
-        VERBOSE(fmt, ##__VA_ARGS__); \
+#define LOG_CALLS_VERBOSE(fmt, ...)          \
+    if (mLogging) {                          \
+        GFXSTREAM_DEBUG(fmt, ##__VA_ARGS__); \
     }
 
 #include <climits>
@@ -145,7 +139,7 @@ template <typename T, typename K>
 void validateNewHandleInfoEntry(const std::unordered_map<T, K>& vkObjectMap, const T& newEntry,
                                 const char* typeName) {
     if (vkObjectMap.find(newEntry) != vkObjectMap.end()) {
-        ERR("Found duplicate in %s (%p)!", typeName, newEntry);
+        GFXSTREAM_ERROR("Found duplicate in %s (%p)!", typeName, newEntry);
     }
 }
 
@@ -318,7 +312,7 @@ class VkDecoderGlobalState::Impl {
     }
 
     void save(android::base::Stream* stream) {
-        VERBOSE("VulkanSnapshots save (begin)");
+        GFXSTREAM_DEBUG("VulkanSnapshots save (begin)");
         std::lock_guard<std::mutex> lock(mMutex);
 
         mSnapshotState = SnapshotState::Saving;
@@ -329,7 +323,7 @@ class VkDecoderGlobalState::Impl {
         }
 #endif
 
-        VERBOSE("snapshot save: setup internal structures");
+        GFXSTREAM_DEBUG("snapshot save: setup internal structures");
         {
             std::unordered_map<VkDevice, uint32_t> deviceToContextId;
             for (const auto& [device, deviceInfo] : mDeviceInfo) {
@@ -346,7 +340,7 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
-        VERBOSE("snapshot save: replay command stream");
+        GFXSTREAM_DEBUG("snapshot save: replay command stream");
         snapshot()->saveReplayBuffers(stream);
 
         // Save mapped memory
@@ -356,7 +350,7 @@ class VkDecoderGlobalState::Impl {
                 memoryCount++;
             }
         }
-        VERBOSE("snapshot save: mapped memory");
+        GFXSTREAM_DEBUG("snapshot save: mapped memory");
         stream->putBe32(memoryCount);
         for (const auto& it : mMemoryInfo) {
             if (!it.second.ptr) {
@@ -371,7 +365,7 @@ class VkDecoderGlobalState::Impl {
         // Set up VK structs to snapshot other Vulkan objects
         // TODO(b/323064243): group all images from the same device and reuse queue / command pool
 
-        VERBOSE("snapshot save: image content");
+        GFXSTREAM_DEBUG("snapshot save: image content");
         std::vector<VkImage> sortedBoxedImages;
         for (const auto& imageIte : mImageInfo) {
             sortedBoxedImages.push_back(unboxed_to_boxed_non_dispatchable_VkImage(imageIte.first));
@@ -399,7 +393,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         // snapshot buffers
-        VERBOSE("snapshot save: buffers");
+        GFXSTREAM_DEBUG("snapshot save: buffers");
         std::vector<VkBuffer> sortedBoxedBuffers;
         for (const auto& bufferIte : mBufferInfo) {
             sortedBoxedBuffers.push_back(
@@ -425,7 +419,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         // snapshot descriptors
-        VERBOSE("snapshot save: descriptors");
+        GFXSTREAM_DEBUG("snapshot save: descriptors");
         std::vector<VkDescriptorPool> sortedBoxedDescriptorPools;
         for (const auto& descriptorPoolIte : mDescriptorPoolInfo) {
             auto boxed =
@@ -562,7 +556,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         // Fences
-        VERBOSE("snapshot save: fences");
+        GFXSTREAM_DEBUG("snapshot save: fences");
         std::vector<VkFence> unsignaledFencesBoxed;
         for (const auto& fence : mFenceInfo) {
             if (!fence.second.boxed) {
@@ -578,17 +572,17 @@ class VkDecoderGlobalState::Impl {
         stream->putBe64(unsignaledFencesBoxed.size());
         stream->write(unsignaledFencesBoxed.data(), unsignaledFencesBoxed.size() * sizeof(VkFence));
         mSnapshotState = SnapshotState::Normal;
-        VERBOSE("VulkanSnapshots save (end)");
+        GFXSTREAM_DEBUG("VulkanSnapshots save (end)");
     }
 
     void load(android::base::Stream* stream, GfxApiLogger& gfxLogger,
               HealthMonitor<>* healthMonitor) {
         // assume that we already destroyed all instances
         // from FrameBuffer's onLoad method.
-        VERBOSE("VulkanSnapshots load (begin)");
+        GFXSTREAM_DEBUG("VulkanSnapshots load (begin)");
 
         // destroy all current internal data structures
-        VERBOSE("snapshot load: setup internal structures");
+        GFXSTREAM_DEBUG("snapshot load: setup internal structures");
         {
             std::lock_guard<std::mutex> lock(mMutex);
 
@@ -609,7 +603,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         // Replay command stream:
-        VERBOSE("snapshot load: replay command stream");
+        GFXSTREAM_DEBUG("snapshot load: replay command stream");
         {
             std::vector<uint64_t> handleReplayBuffer;
             std::vector<uint8_t> decoderReplayBuffer;
@@ -638,7 +632,7 @@ class VkDecoderGlobalState::Impl {
             std::lock_guard<std::mutex> lock(mMutex);
 
             // load mapped memory
-            VERBOSE("snapshot load: mapped memory");
+            GFXSTREAM_DEBUG("snapshot load: mapped memory");
             uint32_t memoryCount = stream->getBe32();
             for (uint32_t i = 0; i < memoryCount; i++) {
                 VkDeviceMemory boxedMemory = reinterpret_cast<VkDeviceMemory>(stream->getBe64());
@@ -659,7 +653,7 @@ class VkDecoderGlobalState::Impl {
             // TODO(b/323064243): group all images from the same device and reuse queue / command
             // pool
 
-            VERBOSE("snapshot load: image content");
+            GFXSTREAM_DEBUG("snapshot load: image content");
             std::vector<VkImage> sortedBoxedImages;
             for (const auto& imageIte : mImageInfo) {
                 sortedBoxedImages.push_back(
@@ -691,7 +685,7 @@ class VkDecoderGlobalState::Impl {
             }
 
             // snapshot buffers
-            VERBOSE("snapshot load: buffers");
+            GFXSTREAM_DEBUG("snapshot load: buffers");
             std::vector<VkBuffer> sortedBoxedBuffers;
             for (const auto& bufferIte : mBufferInfo) {
                 sortedBoxedBuffers.push_back(
@@ -712,7 +706,7 @@ class VkDecoderGlobalState::Impl {
             }
 
             // snapshot descriptors
-            VERBOSE("snapshot load: descriptors");
+            GFXSTREAM_DEBUG("snapshot load: descriptors");
             android::base::BumpPool bumpPool;
             std::vector<VkDescriptorPool> sortedBoxedDescriptorPools;
             for (const auto& descriptorPoolIte : mDescriptorPoolInfo) {
@@ -816,7 +810,7 @@ class VkDecoderGlobalState::Impl {
             }
 
             // Fences
-            VERBOSE("snapshot load: fences");
+            GFXSTREAM_DEBUG("snapshot load: fences");
             uint64_t fenceCount = stream->getBe64();
             std::vector<VkFence> unsignaledFencesBoxed(fenceCount);
             stream->read(unsignaledFencesBoxed.data(), fenceCount * sizeof(VkFence));
@@ -840,7 +834,7 @@ class VkDecoderGlobalState::Impl {
 
             mSnapshotState = SnapshotState::Normal;
         }
-        VERBOSE("VulkanSnapshots load (end)");
+        GFXSTREAM_DEBUG("VulkanSnapshots load (end)");
     }
 
     std::optional<uint32_t> getContextIdForDeviceLocked(VkDevice device) REQUIRES(mMutex) {
@@ -950,7 +944,7 @@ class VkDecoderGlobalState::Impl {
             res = m_vk->vkCreateInstance(&createInfoFiltered, pAllocator, pInstance);
         }
         if (res != VK_SUCCESS) {
-            WARN("Failed to create Vulkan instance: %s.", string_VkResult(res));
+            GFXSTREAM_WARNING("Failed to create Vulkan instance: %s.", string_VkResult(res));
             return res;
         }
 
@@ -968,8 +962,8 @@ class VkDecoderGlobalState::Impl {
             info.enabledExtensionNames.push_back(createInfoFiltered.ppEnabledExtensionNames[i]);
         }
 
-        INFO("Created VkInstance:%p for application:%s engine:%s.", *pInstance,
-             info.applicationName.c_str(), info.engineName.c_str());
+        GFXSTREAM_INFO("Created VkInstance:%p for application:%s engine:%s.", *pInstance,
+                       info.applicationName.c_str(), info.engineName.c_str());
 
 #ifdef CONFIG_AEMU
         m_vkEmulation->getCallbacks().registerVulkanInstance((uint64_t)*pInstance,
@@ -1111,12 +1105,12 @@ class VkDecoderGlobalState::Impl {
                                    }),
                     toFilterPhysicalDevices.end());
             } else {
-                ERR("Failed to vkGetPhysicalDeviceProperties2KHR().");
+                GFXSTREAM_ERROR("Failed to vkGetPhysicalDeviceProperties2KHR().");
             }
         } else {
             // If we don't support ID properties then just advertise only the
             // first physical device.
-            WARN("Device ID not available, returning first physical device.");
+            GFXSTREAM_WARNING("Device ID not available, returning first physical device.");
         }
         if (!toFilterPhysicalDevices.empty()) {
             toFilterPhysicalDevices.erase(std::next(toFilterPhysicalDevices.begin()),
@@ -1606,7 +1600,7 @@ class VkDecoderGlobalState::Impl {
         const PhysicalDeviceInfo* physicalDeviceInfo =
             android::base::find(mPhysdevInfo, physicalDevice);
         if (!physicalDeviceInfo || !physicalDeviceInfo->queuePropertiesHelper) {
-            ERR("Failed to find physical device info.");
+            GFXSTREAM_ERROR("Failed to find physical device info.");
             return;
         }
 
@@ -1643,7 +1637,7 @@ class VkDecoderGlobalState::Impl {
         const PhysicalDeviceInfo* physicalDeviceInfo =
             android::base::find(mPhysdevInfo, physicalDevice);
         if (!physicalDeviceInfo || !physicalDeviceInfo->queuePropertiesHelper) {
-            ERR("Failed to find physical device info.");
+            GFXSTREAM_ERROR("Failed to find physical device info.");
             return;
         }
 
@@ -1672,7 +1666,7 @@ class VkDecoderGlobalState::Impl {
 
         auto* physicalDeviceInfo = android::base::find(mPhysdevInfo, physicalDevice);
         if (!physicalDeviceInfo) {
-            ERR("Failed to find physical device info.");
+            GFXSTREAM_ERROR("Failed to find physical device info.");
             return;
         }
 
@@ -1836,7 +1830,7 @@ class VkDecoderGlobalState::Impl {
             // We log the behavior, to identify cases as some system apps may still try creating
             // private data devices without checking the feature support.
             if (requestedPrivateData) {
-                WARN("%s: Unsupported private data feature is requested!", __func__);
+                GFXSTREAM_WARNING("%s: Unsupported private data feature is requested!", __func__);
                 return VK_ERROR_FEATURE_NOT_PRESENT;
             }
         }
@@ -1868,7 +1862,7 @@ class VkDecoderGlobalState::Impl {
             (vk_find_struct<VkPhysicalDeviceRobustness2FeaturesEXT>(&createInfoFiltered) == nullptr);
         VkPhysicalDeviceRobustness2FeaturesEXT modifiedRobustness2features;
         if (forceEnableRobustness) {
-            VERBOSE("Force-enabling VK_EXT_robustness2 on device creation.");
+            GFXSTREAM_VERBOSE("Force-enabling VK_EXT_robustness2 on device creation.");
             updatedDeviceExtensions.push_back(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
             modifiedRobustness2features = *r2features;
             modifiedRobustness2features.pNext = const_cast<void*>(createInfoFiltered.pNext);
@@ -1901,7 +1895,7 @@ class VkDecoderGlobalState::Impl {
             // We log the behavior, to identify cases as some system apps may still try creating
             // protected memory devices without checking the feature support.
             if (protectedMemoryFeatureRequested) {
-                INFO("%s: Unsupported protected memory feature is requested!", __func__);
+                GFXSTREAM_INFO("%s: Unsupported protected memory feature is requested!", __func__);
                 return VK_ERROR_FEATURE_NOT_PRESENT;
             }
 
@@ -2060,7 +2054,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         if (result != VK_SUCCESS) {
-            WARN("Failed to create VkDevice: %s.", string_VkResult(result));
+            GFXSTREAM_WARNING("Failed to create VkDevice: %s.", string_VkResult(result));
             return result;
         }
 
@@ -2093,10 +2087,11 @@ class VkDecoderGlobalState::Impl {
         deviceInfo.externalFenceInfo.supportedBinarySemaphoreHandleTypes =
             static_cast<VkExternalSemaphoreHandleTypeFlagBits>(supportedBinarySemaphoreHandleTypes);
 
-        INFO("Created VkDevice:%p for application:%s engine:%s ASTC emulation:%s CPU decoding:%s.",
-             *pDevice, instanceInfo.applicationName.c_str(), instanceInfo.engineName.c_str(),
-             deviceInfo.emulateTextureAstc ? "on" : "off",
-             deviceInfo.useAstcCpuDecompression ? "on" : "off");
+        GFXSTREAM_INFO(
+            "Created VkDevice:%p for application:%s engine:%s ASTC emulation:%s CPU decoding:%s.",
+            *pDevice, instanceInfo.applicationName.c_str(), instanceInfo.engineName.c_str(),
+            deviceInfo.emulateTextureAstc ? "on" : "off",
+            deviceInfo.useAstcCpuDecompression ? "on" : "off");
 
         for (uint32_t i = 0; i < createInfoFiltered.enabledExtensionCount; ++i) {
             deviceInfo.enabledExtensionNames.push_back(
@@ -2107,7 +2102,7 @@ class VkDecoderGlobalState::Impl {
         VkDevice boxedDevice = new_boxed_VkDevice(*pDevice, nullptr, true /* own dispatch */);
 
         if (mLogging) {
-            INFO("%s: init vulkan dispatch from device", __func__);
+            GFXSTREAM_INFO("%s: init vulkan dispatch from device", __func__);
         }
 
         VulkanDispatch* dispatch = dispatch_VkDevice(boxedDevice);
@@ -2122,7 +2117,7 @@ class VkDecoderGlobalState::Impl {
         deviceInfo.deviceOpTracker = std::make_shared<DeviceOpTracker>(*pDevice, dispatch);
 
         if (mLogging) {
-            INFO("%s: init vulkan dispatch from device (end)", __func__);
+            GFXSTREAM_INFO("%s: init vulkan dispatch from device (end)", __func__);
         }
 
         deviceInfo.boxed = boxedDevice;
@@ -2171,14 +2166,14 @@ class VkDecoderGlobalState::Impl {
                 VkQueue physicalQueue;
 
                 if (mLogging) {
-                    INFO("%s: get device queue (begin)", __func__);
+                    GFXSTREAM_INFO("%s: get device queue (begin)", __func__);
                 }
 
                 assert(i == 0 || !addVirtualQueue);
                 vk->vkGetDeviceQueue(*pDevice, index, i, &physicalQueue);
 
                 if (mLogging) {
-                    INFO("%s: get device queue (end)", __func__);
+                    GFXSTREAM_INFO("%s: get device queue (end)", __func__);
                 }
                 auto boxedQueue =
                     new_boxed_VkQueue(physicalQueue, dispatch, false /* does not own dispatch */);
@@ -2198,7 +2193,8 @@ class VkDecoderGlobalState::Impl {
                 });
 
                 if (addVirtualQueue) {
-                    VERBOSE("Creating virtual device queue for physical VkQueue %p", physicalQueue);
+                    GFXSTREAM_DEBUG("Creating virtual device queue for physical VkQueue %p",
+                                    physicalQueue);
                     const uint64_t physicalQueue64 = reinterpret_cast<uint64_t>(physicalQueue);
 
                     if ((physicalQueue64 & QueueInfo::kVirtualQueueBit) != 0) {
@@ -2242,7 +2238,7 @@ class VkDecoderGlobalState::Impl {
         *pDevice = (VkDevice)deviceInfo.boxed;
 
         if (mLogging) {
-            INFO("%s: (end)", __func__);
+            GFXSTREAM_INFO("%s: (end)", __func__);
         }
 
         return VK_SUCCESS;
@@ -2270,7 +2266,7 @@ class VkDecoderGlobalState::Impl {
 
         auto* queueInfo = android::base::find(mQueueInfo, unboxedQueue);
         if (!queueInfo) {
-            ERR("vkGetDeviceQueue failed on queue: %p", unboxedQueue);
+            GFXSTREAM_ERROR("vkGetDeviceQueue failed on queue: %p", unboxedQueue);
             return;
         }
 
@@ -2285,7 +2281,7 @@ class VkDecoderGlobalState::Impl {
         // queue. See b/328436383.
         if (pQueueInfo->flags & VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT) {
             *pQueue = VK_NULL_HANDLE;
-            WARN("%s: Cannot get protected Vulkan device queue", __func__);
+            GFXSTREAM_WARNING("%s: Cannot get protected Vulkan device queue", __func__);
             return;
         }
         uint32_t queueFamilyIndex = pQueueInfo->queueFamilyIndex;
@@ -2344,7 +2340,7 @@ class VkDecoderGlobalState::Impl {
             m_vk->vkDestroyDevice(device, pAllocator);
         }
 
-        INFO("Destroyed VkDevice:%p", device);
+        GFXSTREAM_INFO("Destroyed VkDevice:%p", device);
         delete_VkDevice(deviceInfo.boxed);
     }
 
@@ -2457,7 +2453,7 @@ class VkDecoderGlobalState::Impl {
                                        VkDeviceSize memoryOffset) REQUIRES(mMutex) {
         auto* bufferInfo = android::base::find(mBufferInfo, buffer);
         if (!bufferInfo) {
-            WARN("%s: failed to find buffer info!", __func__);
+            GFXSTREAM_WARNING("%s: failed to find buffer info!", __func__);
             return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
         bufferInfo->memory = memory;
@@ -2555,7 +2551,8 @@ class VkDecoderGlobalState::Impl {
             // format should be valid at this stage. This error indicates usage of an unsupported
             // external format, or an old system image.
             // We handle this here to better report the error and avoid crashes in the driver.
-            ERR("vkCreateImage called with VK_FORMAT_UNDEFINED, external format is not supported.");
+            GFXSTREAM_ERROR(
+                "vkCreateImage called with VK_FORMAT_UNDEFINED, external format is not supported.");
             return VK_ERROR_INITIALIZATION_FAILED;
         }
 
@@ -2567,7 +2564,8 @@ class VkDecoderGlobalState::Impl {
         }
 
         if (deviceInfo->imageFormats.find(pCreateInfo->format) == deviceInfo->imageFormats.end()) {
-            VERBOSE("gfxstream_texture_format_manifest: %s [%d]", string_VkFormat(pCreateInfo->format), pCreateInfo->format);
+            GFXSTREAM_DEBUG("gfxstream_texture_format_manifest: %s [%d]",
+                            string_VkFormat(pCreateInfo->format), pCreateInfo->format);
             deviceInfo->imageFormats.insert(pCreateInfo->format);
         }
 
@@ -2690,7 +2688,7 @@ class VkDecoderGlobalState::Impl {
 
             auto* imageInfo = android::base::find(mImageInfo, original_underlying_image);
             if (!imageInfo) {
-                ERR("Image for deferred AHB bind does not exist.");
+                GFXSTREAM_ERROR("Image for deferred AHB bind does not exist.");
                 return VK_ERROR_OUT_OF_HOST_MEMORY;
             }
 
@@ -2707,7 +2705,7 @@ class VkDecoderGlobalState::Impl {
         VkResult result = on_vkCreateImage(pool, snapshotInfo, boxed_device, &ici, nullptr,
                                            &underlying_replacement_image, false);
         if (result != VK_SUCCESS) {
-            ERR("Failed to create image for deferred AHB bind.");
+            GFXSTREAM_ERROR("Failed to create image for deferred AHB bind.");
             return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
 
@@ -3224,7 +3222,7 @@ class VkDecoderGlobalState::Impl {
             std::lock_guard<std::mutex> lock(mMutex);
             auto* fenceInfo = android::base::find(mFenceInfo, fence);
             if (!fenceInfo) {
-                ERR("%s: Invalid fence %p", fence);
+                GFXSTREAM_ERROR("%s: Invalid fence %p", fence);
                 return VK_SUCCESS;
             }
         }
@@ -3256,7 +3254,7 @@ class VkDecoderGlobalState::Impl {
                 if (pFences[i] == VK_NULL_HANDLE) continue;
 
                 if (mFenceInfo.find(pFences[i]) == mFenceInfo.end()) {
-                    ERR("Invalid fence handle: %p!", pFences[i]);
+                    GFXSTREAM_ERROR("Invalid fence handle: %p!", pFences[i]);
                 } else {
                     if (mFenceInfo[pFences[i]].external) {
                         externalFences.push_back(pFences[i]);
@@ -3418,7 +3416,7 @@ class VkDecoderGlobalState::Impl {
             }
 
             if (!deviceInfo->virtioGpuContextId) {
-                ERR("VkDevice:%p is missing virtio gpu context id.", device);
+                GFXSTREAM_ERROR("VkDevice:%p is missing virtio gpu context id.", device);
                 return VK_ERROR_OUT_OF_HOST_MEMORY;
             }
             virtioGpuContextId = *deviceInfo->virtioGpuContextId;
@@ -3534,14 +3532,15 @@ class VkDecoderGlobalState::Impl {
                             bool allowExternalFenceRecycling) REQUIRES(mMutex) {
         auto fenceInfoIt = mFenceInfo.find(fence);
         if (fenceInfoIt == mFenceInfo.end()) {
-            ERR("Failed to find fence info for VkFence:%p. Leaking fence!", fence);
+            GFXSTREAM_ERROR("Failed to find fence info for VkFence:%p. Leaking fence!", fence);
             return;
         }
         auto& fenceInfo = fenceInfoIt->second;
 
         auto deviceInfoIt = mDeviceInfo.find(device);
         if (deviceInfoIt == mDeviceInfo.end()) {
-            ERR("Failed to find device info for VkDevice:%p for VkFence:%p. Leaking fence!", device,
+            GFXSTREAM_ERROR(
+                "Failed to find device info for VkDevice:%p for VkFence:%p. Leaking fence!", device,
                 fence);
             return;
         }
@@ -3969,7 +3968,8 @@ class VkDecoderGlobalState::Impl {
                     entry.descriptorType = descType;
                     if (snapshotsEnabled()) {
                         // TODO: check alive
-                        ERR("%s: Snapshot for texel buffer view is incomplete.\n", __func__);
+                        GFXSTREAM_ERROR("%s: Snapshot for texel buffer view is incomplete.\n",
+                                        __func__);
                     }
                 }
             } else if (isDescriptorTypeInlineUniformBlock(descType)) {
@@ -4002,7 +4002,8 @@ class VkDecoderGlobalState::Impl {
                 // Look for pNext inline uniform block or acceleration structure.
                 // Append new DescriptorWrite entry that holds the buffer
                 if (snapshotsEnabled()) {
-                    ERR("%s: Ignoring Snapshot for emulated write for descriptor type 0x%x\n",
+                    GFXSTREAM_ERROR(
+                        "%s: Ignoring Snapshot for emulated write for descriptor type 0x%x\n",
                         __func__, descType);
                 }
             }
@@ -4011,7 +4012,7 @@ class VkDecoderGlobalState::Impl {
         // Our primary use case vkQueueCommitDescriptorSetUpdatesGOOGLE does not use
         // pDescriptorCopies. Thus skip its implementation for now.
         if (descriptorCopyCount && snapshotsEnabled()) {
-            ERR("%s: Snapshot does not support descriptor copy yet\n");
+            GFXSTREAM_ERROR("%s: Snapshot does not support descriptor copy yet\n");
         }
         bool needEmulateWriteDescriptor = false;
         // c++ seems to allow for 0-size array allocation
@@ -4598,13 +4599,14 @@ class VkDecoderGlobalState::Impl {
 
         auto* physicalDevice = android::base::find(mDeviceToPhysicalDevice, device);
         if (!physicalDevice) {
-            ERR("Failed to find physical device for device:%p", device);
+            GFXSTREAM_ERROR("Failed to find physical device for device:%p", device);
             return;
         }
 
         auto* physicalDeviceInfo = android::base::find(mPhysdevInfo, *physicalDevice);
         if (!physicalDeviceInfo) {
-            ERR("Failed to find physical device info for physical device:%p", *physicalDevice);
+            GFXSTREAM_ERROR("Failed to find physical device info for physical device:%p",
+                            *physicalDevice);
             return;
         }
 
@@ -4623,13 +4625,14 @@ class VkDecoderGlobalState::Impl {
 
         auto* physicalDevice = android::base::find(mDeviceToPhysicalDevice, device);
         if (!physicalDevice) {
-            ERR("Failed to find physical device for device:%p", device);
+            GFXSTREAM_ERROR("Failed to find physical device for device:%p", device);
             return;
         }
 
         auto* physicalDeviceInfo = android::base::find(mPhysdevInfo, *physicalDevice);
         if (!physicalDeviceInfo) {
-            ERR("Failed to find physical device info for physical device:%p", *physicalDevice);
+            GFXSTREAM_ERROR("Failed to find physical device info for physical device:%p",
+                            *physicalDevice);
             return;
         }
 
@@ -4640,7 +4643,8 @@ class VkDecoderGlobalState::Impl {
             vk->vkGetImageMemoryRequirements2KHR(device, pInfo, pMemoryRequirements);
         } else {
             if (pInfo->pNext) {
-                ERR("Warning: trying to use extension struct in VkMemoryRequirements2 without "
+                GFXSTREAM_ERROR(
+                    "Warning: trying to use extension struct in VkMemoryRequirements2 without "
                     "having enabled the extension!");
             }
 
@@ -4708,7 +4712,8 @@ class VkDecoderGlobalState::Impl {
             vk->vkGetBufferMemoryRequirements2KHR(device, pInfo, pMemoryRequirements);
         } else {
             if (pInfo->pNext) {
-                ERR("Warning: trying to use extension struct in VkMemoryRequirements2 without "
+                GFXSTREAM_ERROR(
+                    "Warning: trying to use extension struct in VkMemoryRequirements2 without "
                     "having enabled the extension!");
             }
 
@@ -4763,11 +4768,11 @@ class VkDecoderGlobalState::Impl {
             // Get a pointer to the compressed image memory
             const MemoryInfo* memoryInfo = android::base::find(mMemoryInfo, bufferInfo->memory);
             if (!memoryInfo) {
-                WARN("ASTC CPU decompression: couldn't find mapped memory info");
+                GFXSTREAM_WARNING("ASTC CPU decompression: couldn't find mapped memory info");
                 return;
             }
             if (!memoryInfo->ptr) {
-                WARN("ASTC CPU decompression: VkBuffer memory isn't host-visible");
+                GFXSTREAM_WARNING("ASTC CPU decompression: VkBuffer memory isn't host-visible");
                 return;
             }
             uint8_t* astcData = (uint8_t*)(memoryInfo->ptr) + bufferInfo->memoryOffset;
@@ -4820,11 +4825,11 @@ class VkDecoderGlobalState::Impl {
             // Get a pointer to the compressed image memory
             const MemoryInfo* memoryInfo = android::base::find(mMemoryInfo, bufferInfo->memory);
             if (!memoryInfo) {
-                WARN("ASTC CPU decompression: couldn't find mapped memory info");
+                GFXSTREAM_WARNING("ASTC CPU decompression: couldn't find mapped memory info");
                 return;
             }
             if (!memoryInfo->ptr) {
-                WARN("ASTC CPU decompression: VkBuffer memory isn't host-visible");
+                GFXSTREAM_WARNING("ASTC CPU decompression: VkBuffer memory isn't host-visible");
                 return;
             }
             uint8_t* astcData = (uint8_t*)(memoryInfo->ptr) + bufferInfo->memoryOffset;
@@ -4877,11 +4882,11 @@ class VkDecoderGlobalState::Impl {
             // Get a pointer to the compressed image memory
             const MemoryInfo* memoryInfo = android::base::find(mMemoryInfo, bufferInfo->memory);
             if (!memoryInfo) {
-                WARN("ASTC CPU decompression: couldn't find mapped memory info");
+                GFXSTREAM_WARNING("ASTC CPU decompression: couldn't find mapped memory info");
                 return;
             }
             if (!memoryInfo->ptr) {
-                WARN("ASTC CPU decompression: VkBuffer memory isn't host-visible");
+                GFXSTREAM_WARNING("ASTC CPU decompression: VkBuffer memory isn't host-visible");
                 return;
             }
             uint8_t* astcData = (uint8_t*)(memoryInfo->ptr) + bufferInfo->memoryOffset;
@@ -5082,7 +5087,7 @@ class VkDecoderGlobalState::Impl {
         REQUIRES(mMutex) {
         if (!m_vkEmulation->getFeatures().GlDirectMem.enabled &&
             !m_vkEmulation->getFeatures().VirtioGpuNext.enabled) {
-            // INFO("%s: Tried to use direct mapping "
+            // GFXSTREAM_INFO("%s: Tried to use direct mapping "
             // "while GlDirectMem is not enabled!");
         }
 
@@ -5102,9 +5107,9 @@ class VkDecoderGlobalState::Impl {
         info->sizeToPage = ((info->size + pageOffset + kPageSize - 1) >> kPageBits) << kPageBits;
 
         if (mLogging) {
-            INFO("%s: map: %p, %p -> [0x%llx 0x%llx]", __func__, info->ptr,
-                    info->pageAlignedHva, (unsigned long long)info->guestPhysAddr,
-                    (unsigned long long)info->guestPhysAddr + info->sizeToPage);
+            GFXSTREAM_INFO("%s: map: %p, %p -> [0x%llx 0x%llx]", __func__, info->ptr,
+                           info->pageAlignedHva, (unsigned long long)info->guestPhysAddr,
+                           (unsigned long long)info->guestPhysAddr + info->sizeToPage);
         }
 
         info->directMapped = true;
@@ -5115,8 +5120,7 @@ class VkDecoderGlobalState::Impl {
         get_emugl_vm_operations().mapUserBackedRam(gpa, hva, sizeToPage);
 
         if (mVerbosePrints) {
-            INFO("VERBOSE:%s: registering gpa 0x%llx", __func__,
-                    (unsigned long long)gpa);
+            GFXSTREAM_INFO("VERBOSE:%s: registering gpa 0x%llx", __func__, (unsigned long long)gpa);
         }
 
         if (!mUseOldMemoryCleanupPath) {
@@ -5138,8 +5142,8 @@ class VkDecoderGlobalState::Impl {
         // DO NOT place any additional locks in here, as it may cause a deadlock due to mismatched
         // lock ordering, as VM operations will typically have its own mutex already.
         if (mVerbosePrints) {
-            INFO("VERBOSE:%s: deallocation callback for gpa 0x%llx", __func__,
-                    (unsigned long long)gpa);
+            GFXSTREAM_INFO("VERBOSE:%s: deallocation callback for gpa 0x%llx", __func__,
+                           (unsigned long long)gpa);
         }
 
         // Just blindly unmap here. Let the VM implementation deal with invalid addresses.
@@ -5322,7 +5326,8 @@ class VkDecoderGlobalState::Impl {
                     auto dupHandleInfo =
                         m_vkEmulation->dupColorBufferExtMemoryHandle(importCbInfoPtr->colorBuffer);
                     if (!dupHandleInfo) {
-                        ERR("Failed to duplicate external memory handle/descriptor for ColorBuffer "
+                        GFXSTREAM_ERROR(
+                            "Failed to duplicate external memory handle/descriptor for ColorBuffer "
                             "object, with internal handle: %d",
                             importCbInfoPtr->colorBuffer);
                         return VK_ERROR_OUT_OF_DEVICE_MEMORY;
@@ -5350,7 +5355,8 @@ class VkDecoderGlobalState::Impl {
                     } else {
                         // TODO(aruby@blackberry.com): Fall through to the importFdInfo sequence
                         // below to support non-screenbuffer external object imports on QNX?
-                        ERR("Stream mem handleType: 0x%x not support for ColorBuffer import",
+                        GFXSTREAM_ERROR(
+                            "Stream mem handleType: 0x%x not support for ColorBuffer import",
                             dupHandleInfo->streamHandleType);
                         return VK_ERROR_OUT_OF_DEVICE_MEMORY;
                     }
@@ -5365,7 +5371,8 @@ class VkDecoderGlobalState::Impl {
             if (!m_vkEmulation->getBufferAllocationInfo(
                     importBufferInfoPtr->buffer, &localAllocInfo.allocationSize,
                     &localAllocInfo.memoryTypeIndex, &bufferMemoryUsesDedicatedAlloc)) {
-                ERR("Failed to get Buffer:%d allocation info.", importBufferInfoPtr->buffer);
+                GFXSTREAM_ERROR("Failed to get Buffer:%d allocation info.",
+                                importBufferInfoPtr->buffer);
                 return VK_ERROR_OUT_OF_DEVICE_MEMORY;
             }
 
@@ -5399,7 +5406,8 @@ class VkDecoderGlobalState::Impl {
                 auto dupHandleInfo =
                     m_vkEmulation->dupBufferExtMemoryHandle(importBufferInfoPtr->buffer);
                 if (!dupHandleInfo) {
-                    ERR("Failed to duplicate external memory handle/descriptor for Buffer object, "
+                    GFXSTREAM_ERROR(
+                        "Failed to duplicate external memory handle/descriptor for Buffer object, "
                         "with internal handle: %d",
                         importBufferInfoPtr->buffer);
                     return VK_ERROR_OUT_OF_DEVICE_MEMORY;
@@ -5427,7 +5435,8 @@ class VkDecoderGlobalState::Impl {
                 } else {
                     // TODO(aruby@blackberry.com): Fall through to the importFdInfo sequence below
                     // to support non-screenbuffer external object imports on QNX?
-                    ERR("Stream mem handleType: 0x%x not support for Buffer object import",
+                    GFXSTREAM_ERROR(
+                        "Stream mem handleType: 0x%x not support for Buffer object import",
                         dupHandleInfo->streamHandleType);
                     return VK_ERROR_OUT_OF_DEVICE_MEMORY;
                 }
@@ -5475,7 +5484,7 @@ class VkDecoderGlobalState::Impl {
 
             auto virtioGpuContextIdOpt = getContextIdForDeviceLocked(device);
             if (!virtioGpuContextIdOpt) {
-                ERR("VkDevice:%p missing context id for vkAllocateMemory().");
+                GFXSTREAM_ERROR("VkDevice:%p missing context id for vkAllocateMemory().");
                 return VK_ERROR_DEVICE_LOST;
             }
             virtioGpuContextId = *virtioGpuContextIdOpt;
@@ -5497,11 +5506,11 @@ class VkDecoderGlobalState::Impl {
                 if (rawDescriptorOpt) {
                     rawDescriptor = *rawDescriptorOpt;
                 } else {
-                    ERR("Failed vkAllocateMemory: missing raw descriptor.");
+                    GFXSTREAM_ERROR("Failed vkAllocateMemory: missing raw descriptor.");
                     return VK_ERROR_OUT_OF_DEVICE_MEMORY;
                 }
             } else {
-                ERR("Failed vkAllocateMemory: missing descriptor info.");
+                GFXSTREAM_ERROR("Failed vkAllocateMemory: missing descriptor info.");
                 return VK_ERROR_OUT_OF_DEVICE_MEMORY;
             }
 
@@ -5531,9 +5540,9 @@ class VkDecoderGlobalState::Impl {
                 // Ensure size is page-aligned.
                 VkDeviceSize alignedSize = __ALIGN(localAllocInfo.allocationSize, kPageSizeforBlob);
                 if (alignedSize != localAllocInfo.allocationSize) {
-                    ERR("Warning: Aligning allocation size from %llu to %llu",
-                        static_cast<unsigned long long>(localAllocInfo.allocationSize),
-                        static_cast<unsigned long long>(alignedSize));
+                    GFXSTREAM_ERROR("Warning: Aligning allocation size from %llu to %llu",
+                                    static_cast<unsigned long long>(localAllocInfo.allocationSize),
+                                    static_cast<unsigned long long>(alignedSize));
                 }
                 localAllocInfo.allocationSize = alignedSize;
 
@@ -5542,13 +5551,15 @@ class VkDecoderGlobalState::Impl {
                                             localAllocInfo.allocationSize);
                 int ret = sharedMemory->create(0600);
                 if (ret) {
-                    ERR("Failed to create system-blob host-visible memory, error: %d", ret);
+                    GFXSTREAM_ERROR("Failed to create system-blob host-visible memory, error: %d",
+                                    ret);
                     return VK_ERROR_OUT_OF_HOST_MEMORY;
                 }
                 mappedPtr = sharedMemory->get();
                 int mappedPtrAlignment = reinterpret_cast<uintptr_t>(mappedPtr) % kPageSizeforBlob;
                 if (mappedPtrAlignment != 0) {
-                    ERR("Warning: Mapped shared memory pointer is not aligned to page size, "
+                    GFXSTREAM_ERROR(
+                        "Warning: Mapped shared memory pointer is not aligned to page size, "
                         "alignment "
                         "is: %d",
                         mappedPtrAlignment);
@@ -5591,7 +5602,8 @@ class VkDecoderGlobalState::Impl {
             } else if (m_vkEmulation->getFeatures().VulkanAllocateHostMemory.enabled &&
                        localAllocInfo.pNext == nullptr) {
                 if (!m_vkEmulation || !m_vkEmulation->supportsExternalMemoryHostProperties()) {
-                    ERR("VK_EXT_EXTERNAL_MEMORY_HOST is not supported, cannot use "
+                    GFXSTREAM_ERROR(
+                        "VK_EXT_EXTERNAL_MEMORY_HOST is not supported, cannot use "
                         "VulkanAllocateHostMemory");
                     return VK_ERROR_INCOMPATIBLE_DRIVER;
                 }
@@ -5620,7 +5632,8 @@ class VkDecoderGlobalState::Impl {
                     &memoryHostPointerProperties);
 
                 if (memoryHostPointerProperties.memoryTypeBits == 0) {
-                    ERR("Cannot find suitable memory type for VulkanAllocateHostMemory");
+                    GFXSTREAM_ERROR(
+                        "Cannot find suitable memory type for VulkanAllocateHostMemory");
                     return VK_ERROR_INCOMPATIBLE_DRIVER;
                 }
 
@@ -5637,7 +5650,7 @@ class VkDecoderGlobalState::Impl {
                         localAllocInfo.memoryTypeIndex = i;
                         break;
                     }
-                    VERBOSE(
+                    GFXSTREAM_DEBUG(
                         "Detected memoryTypeIndex violation on requested host memory import. "
                         "Switching "
                         "to a supported memory index %d",
@@ -5920,7 +5933,7 @@ class VkDecoderGlobalState::Impl {
         std::mutex* defaultQueueMutex;
         if (!getDefaultQueueForDeviceLocked(device, &defaultQueue, &defaultQueueFamilyIndex,
                                             &defaultQueueMutex)) {
-            INFO("%s: can't get the default q", __func__);
+            GFXSTREAM_INFO("%s: can't get the default q", __func__);
             return VK_ERROR_INITIALIZATION_FAILED;
         }
 
@@ -6014,8 +6027,8 @@ class VkDecoderGlobalState::Impl {
         std::lock_guard<std::mutex> lock(mMutex);
 
         if (mLogging) {
-            INFO("%s: deviceMemory: 0x%llx pAddress: 0x%llx", __func__,
-                    (unsigned long long)memory, (unsigned long long)(*pAddress));
+            GFXSTREAM_INFO("%s: deviceMemory: 0x%llx pAddress: 0x%llx", __func__,
+                           (unsigned long long)memory, (unsigned long long)(*pAddress));
         }
 
         if (!mapHostVisibleMemoryToGuestPhysicalAddressLocked(vk, device, memory, *pAddress)) {
@@ -6038,7 +6051,7 @@ class VkDecoderGlobalState::Impl {
 
         auto virtioGpuContextIdOpt = getContextIdForDeviceLocked(device);
         if (!virtioGpuContextIdOpt) {
-            ERR("VkDevice:%p missing context id for vkAllocateMemory().");
+            GFXSTREAM_ERROR("VkDevice:%p missing context id for vkAllocateMemory().");
             return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
         const uint32_t virtioGpuContextId = *virtioGpuContextIdOpt;
@@ -6108,7 +6121,8 @@ class VkDecoderGlobalState::Impl {
             uint64_t alignedHva = hva & kPageMaskForBlob;
 
             if (hva != alignedHva) {
-                ERR("Mapping non page-size (0x%" PRIx64
+                GFXSTREAM_ERROR(
+                    "Mapping non page-size (0x%" PRIx64
                     ") aligned host virtual address:%p "
                     "using the aligned host virtual address:%p. The underlying resources "
                     "using this blob may be corrupted/offset.",
@@ -6164,8 +6178,8 @@ class VkDecoderGlobalState::Impl {
         auto* deviceInfo = android::base::find(mDeviceInfo, device);
         auto* commandPoolInfo = android::base::find(mCommandPoolInfo, pAllocateInfo->commandPool);
         if (!deviceInfo || !commandPoolInfo) {
-            ERR("Cannot allocate command buffers, dependency not found! (%p, %p)", deviceInfo,
-                commandPoolInfo);
+            GFXSTREAM_ERROR("Cannot allocate command buffers, dependency not found! (%p, %p)",
+                            deviceInfo, commandPoolInfo);
             return VK_ERROR_UNKNOWN;
         }
 
@@ -6194,7 +6208,7 @@ class VkDecoderGlobalState::Impl {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
         if (!pCreateInfo) {
-            WARN("%s: Invalid parameter.", __func__);
+            GFXSTREAM_WARNING("%s: Invalid parameter.", __func__);
             return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
 
@@ -6203,7 +6217,8 @@ class VkDecoderGlobalState::Impl {
             // Protected memory is not supported on emulators. Override feature
             // information to mark as unsupported (see b/329845987).
             localCI.flags &= ~VK_COMMAND_POOL_CREATE_PROTECTED_BIT;
-            VERBOSE("Changed VK_COMMAND_POOL_CREATE_PROTECTED_BIT, new flags = %d", localCI.flags);
+            GFXSTREAM_VERBOSE("Changed VK_COMMAND_POOL_CREATE_PROTECTED_BIT, new flags = %d",
+                              localCI.flags);
         }
 
         VkResult result = vk->vkCreateCommandPool(device, &localCI, pAllocator, pCommandPool);
@@ -6232,8 +6247,7 @@ class VkDecoderGlobalState::Impl {
             if (iterInInfos != commandBufferInfos.end()) {
                 commandBufferInfos.erase(iterInInfos);
             } else {
-                ERR("Cannot find command buffer reference (%p).",
-                    commandBuffer);
+                GFXSTREAM_ERROR("Cannot find command buffer reference (%p).", commandBuffer);
             }
         }
 
@@ -6401,7 +6415,7 @@ class VkDecoderGlobalState::Impl {
             std::lock_guard<std::mutex> lock(mMutex);
             auto* queueInfo = android::base::find(mQueueInfo, queue);
             if (!queueInfo) {
-                ERR("vkQueueSubmit cannot find queue info for %p", queue);
+                GFXSTREAM_ERROR("vkQueueSubmit cannot find queue info for %p", queue);
                 return VK_ERROR_INITIALIZATION_FAILED;
             }
             device = queueInfo->device;
@@ -6438,7 +6452,8 @@ class VkDecoderGlobalState::Impl {
         auto result = dispatchVkQueueSubmit(vk, queue, submitCount, pSubmits, usedFence);
 
         if (result != VK_SUCCESS) {
-            WARN("dispatchVkQueueSubmit failed: %s [%d]", string_VkResult(result), result);
+            GFXSTREAM_WARNING("dispatchVkQueueSubmit failed: %s [%d]", string_VkResult(result),
+                              result);
             return result;
         }
         {
@@ -6500,7 +6515,7 @@ class VkDecoderGlobalState::Impl {
         if (!releasedColorBuffers.empty()) {
             result = vk->vkWaitForFences(device, 1, &usedFence, VK_TRUE, /* 1 sec */ 1000000000L);
             if (result != VK_SUCCESS) {
-                ERR("vkWaitForFences failed: %s [%d]", string_VkResult(result), result);
+                GFXSTREAM_ERROR("vkWaitForFences failed: %s [%d]", string_VkResult(result), result);
                 return result;
             }
 
@@ -6567,7 +6582,8 @@ class VkDecoderGlobalState::Impl {
         if (iterInPool != commandPoolInfo.cmdBuffers.end()) {
             commandPoolInfo.cmdBuffers.erase(iterInPool);
         } else {
-            ERR("Cannot find command buffer reference (%p) in the pool.", commandBuffer);
+            GFXSTREAM_ERROR("Cannot find command buffer reference (%p) in the pool.",
+                            commandBuffer);
         }
 
         // Note delete_VkCommandBuffer(cmdBufferInfoIt->second.boxed); currently done in decoder.
@@ -6580,7 +6596,7 @@ class VkDecoderGlobalState::Impl {
         REQUIRES(mMutex) {
         auto commandBufferInfoIt = mCommandBufferInfo.find(commandBuffer);
         if (commandBufferInfoIt == mCommandBufferInfo.end()) {
-            WARN("freeCommandBufferLocked cannot find %p", commandBuffer);
+            GFXSTREAM_WARNING("freeCommandBufferLocked cannot find %p", commandBuffer);
             return;
         }
         auto& commandBufferInfo = commandBufferInfoIt->second;
@@ -7103,22 +7119,22 @@ class VkDecoderGlobalState::Impl {
     bool registerRenderPassBeginInfo(VkCommandBuffer commandBuffer,
                                      const VkRenderPassBeginInfo* pRenderPassBegin) {
         if (!pRenderPassBegin) {
-            ERR("pRenderPassBegin is null");
+            GFXSTREAM_ERROR("pRenderPassBegin is null");
             return false;
         }
 
         std::lock_guard<std::mutex> lock(mMutex);
         CommandBufferInfo* cmdBufferInfo = android::base::find(mCommandBufferInfo, commandBuffer);
         if (!cmdBufferInfo) {
-            ERR("VkCommandBuffer=%p not found in mCommandBufferInfo", commandBuffer);
+            GFXSTREAM_ERROR("VkCommandBuffer=%p not found in mCommandBufferInfo", commandBuffer);
             return false;
         }
 
         FramebufferInfo* fbInfo =
             android::base::find(mFramebufferInfo, pRenderPassBegin->framebuffer);
         if (!fbInfo) {
-            ERR("pRenderPassBegin->framebuffer=%p not found in mFbInfo",
-                pRenderPassBegin->framebuffer);
+            GFXSTREAM_ERROR("pRenderPassBegin->framebuffer=%p not found in mFbInfo",
+                            pRenderPassBegin->framebuffer);
             return false;
         }
 
@@ -7477,9 +7493,9 @@ class VkDecoderGlobalState::Impl {
             VkImageCreateInfo defaultVkImageCreateInfo = linearImageCreateInfo.toDefaultVk();
             VkResult result = vk->vkCreateImage(device, &defaultVkImageCreateInfo, nullptr, &image);
             if (result != VK_SUCCESS) {
-                INFO("vkCreateImage failed. size: (%u x %u) result: %d",
-                        linearImageCreateInfo.extent.width, linearImageCreateInfo.extent.height,
-                        result);
+                GFXSTREAM_INFO("vkCreateImage failed. size: (%u x %u) result: %d",
+                               linearImageCreateInfo.extent.width,
+                               linearImageCreateInfo.extent.height, result);
                 return;
             }
             vk->vkGetImageSubresourceLayout(device, image, &subresource, &subresourceLayout);
@@ -7782,13 +7798,13 @@ class VkDecoderGlobalState::Impl {
                     std::lock_guard<std::mutex> lock(mMutex);
                     auto* fenceInfo = android::base::find(mFenceInfo, fence);
                     if (!fenceInfo) {
-                        ERR("%s: Invalid fence information! (%p)", __func__, fence);
+                        GFXSTREAM_ERROR("%s: Invalid fence information! (%p)", __func__, fence);
                         return VK_ERROR_OUT_OF_DEVICE_MEMORY;
                     }
 
                     if (unboxed_device != fenceInfo->device || vk != fenceInfo->vk) {
-                        ERR("%s: Invalid fence device! (%p, %p, %p)", __func__, fence,
-                            unboxed_device, fenceInfo->device);
+                        GFXSTREAM_ERROR("%s: Invalid fence device! (%p, %p, %p)", __func__, fence,
+                                        unboxed_device, fenceInfo->device);
                         return VK_ERROR_OUT_OF_HOST_MEMORY;
                     }
 
@@ -7869,7 +7885,8 @@ class VkDecoderGlobalState::Impl {
 
         auto* anbInfo = imageInfo.anbInfo.get();
         if (!anbInfo) {
-            ERR("Attempted to register QSRI callback on VkImage:%p without ANB info.", image);
+            GFXSTREAM_ERROR("Attempted to register QSRI callback on VkImage:%p without ANB info.",
+                            image);
             return AsyncResult::FAIL_AND_CALLBACK_NOT_SCHEDULED;
         }
         return anbInfo->registerQsriCallback(image, std::move(callback));
@@ -7968,7 +7985,7 @@ class VkDecoderGlobalState::Impl {
                     colorBufferVkImageCi =
                         std::make_unique<VkImageCreateInfo>(colorBufferInfo.imageCreateInfoShallow);
                 } else {
-                    ERR("Unknown ColorBuffer handle: %" PRIu32 ".", cbHandle);
+                    GFXSTREAM_ERROR("Unknown ColorBuffer handle: %" PRIu32 ".", cbHandle);
                 }
                 importSourceDebug = "NativeBufferANDROID";
             }
@@ -7977,51 +7994,57 @@ class VkDecoderGlobalState::Impl {
             }
             imageCreateInfo.format = resolvedFormat;
             if (imageCreateInfo.flags & (~colorBufferVkImageCi->flags)) {
-                ERR("The VkImageCreateInfo to import %s contains unsupported VkImageCreateFlags. "
+                GFXSTREAM_ERROR(
+                    "The VkImageCreateInfo to import %s contains unsupported VkImageCreateFlags. "
                     "All supported VkImageCreateFlags are %s, the input VkImageCreateInfo requires "
                     "support for %s.",
                     importSourceDebug,
-                    string_VkImageCreateFlags(colorBufferVkImageCi->flags).c_str()?:"",
-                    string_VkImageCreateFlags(imageCreateInfo.flags).c_str()?:"");
+                    string_VkImageCreateFlags(colorBufferVkImageCi->flags).c_str() ?: "",
+                    string_VkImageCreateFlags(imageCreateInfo.flags).c_str() ?: "");
             }
             imageCreateInfo.flags |= colorBufferVkImageCi->flags;
             if (imageCreateInfo.imageType != colorBufferVkImageCi->imageType) {
-                ERR("The VkImageCreateInfo to import %s has an unexpected VkImageType: %s, %s "
+                GFXSTREAM_ERROR(
+                    "The VkImageCreateInfo to import %s has an unexpected VkImageType: %s, %s "
                     "expected.",
                     importSourceDebug, string_VkImageType(imageCreateInfo.imageType),
                     string_VkImageType(colorBufferVkImageCi->imageType));
             }
             if (imageCreateInfo.extent.depth != colorBufferVkImageCi->extent.depth) {
-                ERR("The VkImageCreateInfo to import %s has an unexpected VkExtent::depth: %" PRIu32
+                GFXSTREAM_ERROR(
+                    "The VkImageCreateInfo to import %s has an unexpected VkExtent::depth: %" PRIu32
                     ", %" PRIu32 " expected.",
                     importSourceDebug, imageCreateInfo.extent.depth,
                     colorBufferVkImageCi->extent.depth);
             }
             if (imageCreateInfo.mipLevels != colorBufferVkImageCi->mipLevels) {
-                ERR("The VkImageCreateInfo to import %s has an unexpected mipLevels: %" PRIu32
+                GFXSTREAM_ERROR(
+                    "The VkImageCreateInfo to import %s has an unexpected mipLevels: %" PRIu32
                     ", %" PRIu32 " expected.",
-                    importSourceDebug, imageCreateInfo.mipLevels,
-                    colorBufferVkImageCi->mipLevels);
+                    importSourceDebug, imageCreateInfo.mipLevels, colorBufferVkImageCi->mipLevels);
             }
             if (imageCreateInfo.arrayLayers != colorBufferVkImageCi->arrayLayers) {
-                ERR("The VkImageCreateInfo to import %s has an unexpected arrayLayers: %" PRIu32
+                GFXSTREAM_ERROR(
+                    "The VkImageCreateInfo to import %s has an unexpected arrayLayers: %" PRIu32
                     ", %" PRIu32 " expected.",
                     importSourceDebug, imageCreateInfo.arrayLayers,
                     colorBufferVkImageCi->arrayLayers);
             }
             if (imageCreateInfo.samples != colorBufferVkImageCi->samples) {
-                ERR("The VkImageCreateInfo to import %s has an unexpected VkSampleCountFlagBits: "
+                GFXSTREAM_ERROR(
+                    "The VkImageCreateInfo to import %s has an unexpected VkSampleCountFlagBits: "
                     "%s, %s expected.",
                     importSourceDebug, string_VkSampleCountFlagBits(imageCreateInfo.samples),
                     string_VkSampleCountFlagBits(colorBufferVkImageCi->samples));
             }
             if (imageCreateInfo.usage & (~colorBufferVkImageCi->usage)) {
-                ERR("The VkImageCreateInfo to import %s contains unsupported VkImageUsageFlags. "
+                GFXSTREAM_ERROR(
+                    "The VkImageCreateInfo to import %s contains unsupported VkImageUsageFlags. "
                     "All supported VkImageUsageFlags are %s, the input VkImageCreateInfo requires "
                     "support for %s.",
                     importSourceDebug,
-                    string_VkImageUsageFlags(colorBufferVkImageCi->usage).c_str()?:"",
-                    string_VkImageUsageFlags(imageCreateInfo.usage).c_str()?:"");
+                    string_VkImageUsageFlags(colorBufferVkImageCi->usage).c_str() ?: "",
+                    string_VkImageUsageFlags(imageCreateInfo.usage).c_str() ?: "");
             }
             imageCreateInfo.usage |= colorBufferVkImageCi->usage;
             // For the AndroidHardwareBuffer binding case VkImageCreateInfo::sharingMode isn't
@@ -8031,32 +8054,37 @@ class VkDecoderGlobalState::Impl {
                 continue;
             }
             if (resolvedFormat != colorBufferVkImageCi->format) {
-                ERR("The VkImageCreateInfo to import %s contains unexpected VkFormat:"
+                GFXSTREAM_ERROR(
+                    "The VkImageCreateInfo to import %s contains unexpected VkFormat:"
                     "%s [%d]. %s [%d] expected.",
                     importSourceDebug, string_VkFormat(imageCreateInfo.format),
                     imageCreateInfo.format, string_VkFormat(colorBufferVkImageCi->format),
                     colorBufferVkImageCi->format);
             }
             if (imageCreateInfo.extent.width != colorBufferVkImageCi->extent.width) {
-                ERR("The VkImageCreateInfo to import %s contains unexpected VkExtent::width: "
+                GFXSTREAM_ERROR(
+                    "The VkImageCreateInfo to import %s contains unexpected VkExtent::width: "
                     "%" PRIu32 ". %" PRIu32 " expected.",
                     importSourceDebug, imageCreateInfo.extent.width,
                     colorBufferVkImageCi->extent.width);
             }
             if (imageCreateInfo.extent.height != colorBufferVkImageCi->extent.height) {
-                ERR("The VkImageCreateInfo to import %s contains unexpected VkExtent::height: "
+                GFXSTREAM_ERROR(
+                    "The VkImageCreateInfo to import %s contains unexpected VkExtent::height: "
                     "%" PRIu32 ". %" PRIu32 " expected.",
                     importSourceDebug, imageCreateInfo.extent.height,
                     colorBufferVkImageCi->extent.height);
             }
             if (imageCreateInfo.tiling != colorBufferVkImageCi->tiling) {
-                ERR("The VkImageCreateInfo to import %s contains unexpected VkImageTiling: %s. %s "
+                GFXSTREAM_ERROR(
+                    "The VkImageCreateInfo to import %s contains unexpected VkImageTiling: %s. %s "
                     "expected.",
                     importSourceDebug, string_VkImageTiling(imageCreateInfo.tiling),
                     string_VkImageTiling(colorBufferVkImageCi->tiling));
             }
             if (imageCreateInfo.sharingMode != colorBufferVkImageCi->sharingMode) {
-                ERR("The VkImageCreateInfo to import %s contains unexpected VkSharingMode: %s. %s "
+                GFXSTREAM_ERROR(
+                    "The VkImageCreateInfo to import %s contains unexpected VkSharingMode: %s. %s "
                     "expected.",
                     importSourceDebug, string_VkSharingMode(imageCreateInfo.sharingMode),
                     string_VkSharingMode(colorBufferVkImageCi->sharingMode));
@@ -8627,8 +8655,10 @@ class VkDecoderGlobalState::Impl {
             if (res != VK_SUCCESS) {
                 // Something went wrong.. Skip destroying the vulkan objects of the device
                 // to avoid further issues.
-                ERR("Cannot destroy Vulkan device and objects. "
-                    "vkDeviceWaitIdle failed with %s [%d].", string_VkResult(res), res);
+                GFXSTREAM_ERROR(
+                    "Cannot destroy Vulkan device and objects. "
+                    "vkDeviceWaitIdle failed with %s [%d].",
+                    string_VkResult(res), res);
                 return;
             }
 
@@ -8752,8 +8782,8 @@ class VkDecoderGlobalState::Impl {
         }
 
         m_vk->vkDestroyInstance(instance, nullptr);
-        INFO("Destroyed VkInstance:%p for application:%s engine:%s.", instance,
-             instanceInfo.applicationName.c_str(), instanceInfo.engineName.c_str());
+        GFXSTREAM_INFO("Destroyed VkInstance:%p for application:%s engine:%s.", instance,
+                       instanceInfo.applicationName.c_str(), instanceInfo.engineName.c_str());
 
 #ifdef CONFIG_AEMU
         m_vkEmulation->getCallbacks().unregisterVulkanInstance((uint64_t)instance);
@@ -8762,8 +8792,8 @@ class VkDecoderGlobalState::Impl {
         LOG_CALLS_VERBOSE("destroyInstanceObjects: finished.");
 
         // Log handle count when call logging is enabled to be able to catch any leaks
-        VERBOSE("%s: Global boxed handles count = %llu", __func__,
-                sBoxedHandleManager.getHandlesCount());
+        GFXSTREAM_VERBOSE("%s: Global boxed handles count = %llu", __func__,
+                          sBoxedHandleManager.getHandlesCount());
     }
 
     bool isDescriptorTypeImageInfo(VkDescriptorType descType) {
@@ -10357,8 +10387,8 @@ void VkDecoderGlobalState::on_vkQueueBindSparseAsyncGOOGLE(android::base::BumpPo
         mImpl->on_vkQueueBindSparse(pool, snapshotInfo, queue, bindInfoCount, pBindInfo, fence);
     if (res != VK_SUCCESS) {
         // Report an error here as we don't use the result after this call
-        ERR("vkQueueBindSparse failed with: %s [%d], bindInfoCount=%d, fence=%p",
-            string_VkResult(res), res, bindInfoCount, fence);
+        GFXSTREAM_ERROR("vkQueueBindSparse failed with: %s [%d], bindInfoCount=%d, fence=%p",
+                        string_VkResult(res), res, bindInfoCount, fence);
     }
 }
 

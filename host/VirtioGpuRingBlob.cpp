@@ -16,6 +16,7 @@
 
 #include <string>
 
+#include "gfxstream/host/logging.h"
 #include "gfxstream/virtio-gpu-gfxstream-renderer.h"
 
 namespace gfxstream {
@@ -55,7 +56,7 @@ std::unique_ptr<RingBlob> RingBlob::CreateWithShmem(uint32_t id, uint64_t size) 
     auto shmem = std::make_unique<SharedMemory>(name, size);
     int ret = shmem->create(0600);
     if (ret) {
-        stream_renderer_error("Failed to allocate ring blob shared memory.");
+        GFXSTREAM_ERROR("Failed to allocate ring blob shared memory.");
         return nullptr;
     }
 
@@ -66,7 +67,7 @@ std::unique_ptr<RingBlob> RingBlob::CreateWithShmem(uint32_t id, uint64_t size) 
 std::unique_ptr<RingBlob> RingBlob::CreateWithHostMemory(uint32_t id, uint64_t size, uint64_t alignment) {
     auto memory = std::make_unique<AlignedMemory>(alignment, size);
     if (memory->addr == nullptr) {
-        stream_renderer_error("Failed to allocate ring blob host memory.");
+        GFXSTREAM_ERROR("Failed to allocate ring blob host memory.");
         return nullptr;
     }
 
@@ -91,7 +92,7 @@ std::optional<VirtioGpuRingBlobSnapshot> RingBlob::Snapshot() {
 
     void* mapped = map();
     if (!mapped) {
-        stream_renderer_error("Failed to map ring blob memory for snapshot.");
+        GFXSTREAM_ERROR("Failed to map ring blob memory for snapshot.");
         return std::nullopt;
     }
     snapshot.set_memory(mapped, mSize);
@@ -114,7 +115,7 @@ std::optional<VirtioGpuRingBlobSnapshot> RingBlob::Snapshot() {
 
     void* mapped = resource->map();
     if (!mapped) {
-        stream_renderer_error("Failed to map ring blob memory for restore.");
+        GFXSTREAM_ERROR("Failed to map ring blob memory for restore.");
         return std::nullopt;
     }
 

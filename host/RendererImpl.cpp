@@ -25,7 +25,7 @@
 #include "RenderThread.h"
 #include "aemu/base/system/System.h"
 #include "aemu/base/threads/WorkerThread.h"
-#include "host-common/logging.h"
+#include "gfxstream/host/logging.h"
 #include "snapshot/common.h"
 
 #if GFXSTREAM_ENABLE_HOST_GLES
@@ -143,17 +143,17 @@ bool RendererImpl::initialize(int width, int height, const gfxstream::host::Feat
     std::unique_ptr<RenderWindow> renderWindow(new RenderWindow(
             width, height, features, kUseSubwindowThread, useSubWindow, egl2egl));
     if (!renderWindow) {
-        ERR("Could not create rendering window class\n");
-        GL_LOG("Could not create rendering window class");
+        GFXSTREAM_ERROR("Could not create rendering window class\n");
+        GFXSTREAM_DEBUG("Could not create rendering window class");
         return false;
     }
     if (!renderWindow->isValid()) {
-        ERR("Could not initialize emulated framebuffer\n");
+        GFXSTREAM_ERROR("Could not initialize emulated framebuffer\n");
         return false;
     }
 
     mRenderWindow = std::move(renderWindow);
-    GL_LOG("OpenGL renderer initialized successfully");
+    GFXSTREAM_DEBUG("OpenGL renderer initialized successfully");
 
     // This render thread won't do anything but will only preload resources
     // for the real threads to start faster.
@@ -271,8 +271,8 @@ RenderChannelPtr RendererImpl::createRenderChannel(
             mLoaderRenderThread.reset();
         }
 
-        GL_LOG("Started new RenderThread (total %" PRIu64 ") @%p",
-               static_cast<uint64_t>(mChannels.size()), channel->renderThread());
+        GFXSTREAM_DEBUG("Started new RenderThread (total %" PRIu64 ") @%p",
+                        static_cast<uint64_t>(mChannels.size()), channel->renderThread());
     }
 
     return channel;

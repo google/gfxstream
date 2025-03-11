@@ -35,6 +35,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         "//:gfxstream-gl-host-common-headers",
+        "//host/logging:gfxstream_host_logging",
         "@aemu//base:aemu-base-headers",
         "@aemu//host-common:aemu-host-common",
     ],

@@ -16,8 +16,8 @@
 #include "PostWorkerVk.h"
 
 #include "FrameBuffer.h"
+#include "gfxstream/host/logging.h"
 #include "host-common/GfxstreamFatalError.h"
-#include "host-common/logging.h"
 #include "vulkan/DisplayVk.h"
 
 namespace gfxstream {
@@ -49,7 +49,7 @@ std::shared_future<void> PostWorkerVk::postImpl(ColorBuffer* cb) {
         }
     }
 
-    ERR("Failed to post ColorBuffer after %d retries.", kMaxPostRetries);
+    GFXSTREAM_ERROR("Failed to post ColorBuffer after %d retries.", kMaxPostRetries);
     return completedFuture;
 }
 

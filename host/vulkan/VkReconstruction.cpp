@@ -26,7 +26,7 @@
 
 #if DEBUG_RECONSTRUCTION
 
-#define DEBUG_RECON(fmt, ...) INFO(fmt, ##__VA_ARGS__);
+#define DEBUG_RECON(fmt, ...) GFXSTREAM_INFO(fmt, ##__VA_ARGS__);
 
 #else
 

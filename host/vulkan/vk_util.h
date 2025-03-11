@@ -43,8 +43,8 @@
 #include "VkDecoderContext.h"
 #include "VulkanDispatch.h"
 #include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/host/logging.h"
 #include "host-common/GfxstreamFatalError.h"
-#include "host-common/logging.h"
 #include "vk_fn_info.h"
 #include "vk_struct_id.h"
 #include "vulkan/vk_enum_string_helper.h"
@@ -334,11 +334,12 @@ inline VkResult waitForVkQueueIdleWithRetry(const VulkanDispatch& vk, VkQueue qu
     constexpr std::chrono::duration waitInterval = 4ms;
     VkResult res = vk.vkQueueWaitIdle(queue);
     for (uint32_t retryTimes = 1; retryTimes < retryLimit && res == VK_TIMEOUT; retryTimes++) {
-        INFO("VK_TIMEOUT returned from vkQueueWaitIdle with %" PRIu32 " attempt. Wait for %" PRIu32
-             "ms before another attempt.",
-             retryTimes,
-             static_cast<uint32_t>(
-                 std::chrono::duration_cast<std::chrono::milliseconds>(waitInterval).count()));
+        GFXSTREAM_INFO(
+            "VK_TIMEOUT returned from vkQueueWaitIdle with %" PRIu32 " attempt. Wait for %" PRIu32
+            "ms before another attempt.",
+            retryTimes,
+            static_cast<uint32_t>(
+                std::chrono::duration_cast<std::chrono::milliseconds>(waitInterval).count()));
         std::this_thread::sleep_for(waitInterval);
         res = vk.vkQueueWaitIdle(queue);
     }

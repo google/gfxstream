@@ -19,12 +19,13 @@
 #include <map>      // for map, __ma...
 #include <utility>  // for pair
 
-#include "host-common/HostmemIdMapping.h"             // for android_e...
-#include "host-common/MultiDisplay.h"                 // for MultiDisp...
+#include "gfxstream/host/logging.h"
+#include "host-common/HostmemIdMapping.h"  // for android_e...
+#include "host-common/MultiDisplay.h"      // for MultiDisp...
+#include "host-common/misc.h"
 #include "host-common/multi_display_agent.h"  // for QAndroidM...
 #include "host-common/vm_operations.h"        // for SnapshotC...
 #include "host-common/window_agent.h"         // for WindowMes...
-#include "host-common/misc.h"
 
 #ifdef _DEBUG
 #define DEBUG_LOG(fd, fmt, ...) fprintf(fd, fmt, __VA_ARGS__);
@@ -147,12 +148,12 @@ static const QAndroidMultiDisplayAgent sMultiDisplayAgent = {
         .setGpuMode = [](bool isGuestMode, uint32_t w, uint32_t h) {},
         .createDisplay = [](uint32_t* displayId) -> int {
             if (displayId == nullptr) {
-                ERR("cannot create display, null displayId pointer");
+                GFXSTREAM_ERROR("cannot create display, null displayId pointer");
                 return -1;
             }
             if (mMultiDisplay.size() >= MultiDisplay::s_maxNumMultiDisplay) {
-                ERR("cannot create more displays, exceeding limits %d",
-                        MultiDisplay::s_maxNumMultiDisplay);
+                GFXSTREAM_ERROR("cannot create more displays, exceeding limits %d",
+                                MultiDisplay::s_maxNumMultiDisplay);
                 return -1;
             }
             if (mMultiDisplay.find(*displayId) != mMultiDisplay.end()) {
@@ -168,8 +169,9 @@ static const QAndroidMultiDisplayAgent sMultiDisplayAgent = {
                 }
             }
             if (*displayId == MultiDisplay::s_invalidIdMultiDisplay) {
-                ERR("cannot create more internaldisplays, exceeding limits %d",
-                        MultiDisplay::s_maxNumMultiDisplay - MultiDisplay::s_displayIdInternalBegin);
+                GFXSTREAM_ERROR(
+                    "cannot create more internaldisplays, exceeding limits %d",
+                    MultiDisplay::s_maxNumMultiDisplay - MultiDisplay::s_displayIdInternalBegin);
                 return -1;
             }
 
@@ -187,7 +189,7 @@ static const QAndroidMultiDisplayAgent sMultiDisplayAgent = {
                              uint32_t h,
                              uint32_t dpi) -> int {
             if (mMultiDisplay.find(displayId) == mMultiDisplay.end()) {
-                ERR("cannot find display %d", displayId);
+                GFXSTREAM_ERROR("cannot find display %d", displayId);
                 return -1;
             }
             mMultiDisplay[displayId].pos_x = x;
@@ -203,7 +205,7 @@ static const QAndroidMultiDisplayAgent sMultiDisplayAgent = {
                              uint32_t* w,
                              uint32_t* h) -> int {
             if (mMultiDisplay.find(displayId) == mMultiDisplay.end()) {
-                ERR("cannot find display %d", displayId);
+                GFXSTREAM_ERROR("cannot find display %d", displayId);
                 return -1;
             }
             if (x)
@@ -219,7 +221,7 @@ static const QAndroidMultiDisplayAgent sMultiDisplayAgent = {
         .getDisplayColorBuffer = [](uint32_t displayId,
                                     uint32_t* colorBuffer) -> int {
             if (mMultiDisplay.find(displayId) == mMultiDisplay.end()) {
-                ERR("cannot find display %d", displayId);
+                GFXSTREAM_ERROR("cannot find display %d", displayId);
                 return -1;
             }
             *colorBuffer = mMultiDisplay[displayId].cb;
@@ -238,7 +240,8 @@ static const QAndroidMultiDisplayAgent sMultiDisplayAgent = {
         .setDisplayColorBuffer = [](uint32_t displayId,
                                     uint32_t colorBuffer) -> int {
             if (mMultiDisplay.find(displayId) == mMultiDisplay.end()) {
-                ERR("Unable to set display color buffer for non existing display: %d", displayId);
+                GFXSTREAM_ERROR("Unable to set display color buffer for non existing display: %d",
+                                displayId);
                 return -1;
             }
             mMultiDisplay[displayId].cb = colorBuffer;

@@ -36,6 +36,7 @@ cc_library_static {
         "libgfxstream_host_snapshot",
         "libgfxstream_host_vulkan_cereal",
         "libgfxstream_host_vulkan_emulatedtextures",
+        "libgfxstream_host_logging",
         "libgfxstream_thirdparty_glm",
     ],
     cflags: [
@@ -104,6 +105,7 @@ cc_test_host {
     static_libs: [
         "libgfxstream_thirdparty_glm",
         "gfxstream_host_common",
+        "libgfxstream_host_logging",
         "libgfxstream_host_vulkan_server",
         "libgtest",
         "libgmock",

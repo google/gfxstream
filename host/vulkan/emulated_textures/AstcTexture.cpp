@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "aemu/base/HealthMonitor.h"
-#include "host-common/logging.h"
+#include "gfxstream/host/logging.h"
 #include "vulkan/vk_util.h"
 
 namespace gfxstream {
@@ -47,15 +47,16 @@ bool isRegionValid(const VkBufferImageCopy& region, uint32_t width, uint32_t hei
     // https://stackoverflow.com/questions/46501832/vulkan-vkbufferimagecopy-for-partial-transfer
 
     if (region.bufferRowLength != 0 || region.bufferImageHeight != 0) {
-        WARN("ASTC CPU decompression skipped: non-packed buffer");
+        GFXSTREAM_WARNING("ASTC CPU decompression skipped: non-packed buffer");
         return false;
     }
     if (region.imageOffset.x != 0 || region.imageOffset.y != 0) {
-        WARN("ASTC CPU decompression skipped: imageOffset is non-zero");
+        GFXSTREAM_WARNING("ASTC CPU decompression skipped: imageOffset is non-zero");
         return false;
     }
     if (region.imageExtent.width != width || region.imageExtent.height != height) {
-        WARN("ASTC CPU decompression skipped: imageExtent is less than the entire image");
+        GFXSTREAM_WARNING(
+            "ASTC CPU decompression skipped: imageExtent is less than the entire image");
         return false;
     }
     return true;
@@ -84,7 +85,8 @@ uint8_t* AstcTexture::createVkBufferAndMapMemory(size_t bufferSize) {
     bytes_used += bufferSize;
 
     if (mDecompBuffer || mDecompBufferMemory) {
-        WARN("ASTC CPU decompression failed: tried to decompress same image more than once.");
+        GFXSTREAM_WARNING(
+            "ASTC CPU decompression failed: tried to decompress same image more than once.");
         return nullptr;
     }
 
@@ -96,7 +98,7 @@ uint8_t* AstcTexture::createVkBufferAndMapMemory(size_t bufferSize) {
     };
     res = mVk->vkCreateBuffer(mDevice, &bufferInfo, nullptr, &mDecompBuffer);
     if (res != VK_SUCCESS) {
-        WARN("ASTC CPU decompression: vkCreateBuffer failed: %d", res);
+        GFXSTREAM_WARNING("ASTC CPU decompression: vkCreateBuffer failed: %d", res);
         mDecompBuffer = VK_NULL_HANDLE;
         return nullptr;
     }
@@ -115,7 +117,8 @@ uint8_t* AstcTexture::createVkBufferAndMapMemory(size_t bufferSize) {
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
     }
     if (!memIndex) {
-        WARN("ASTC CPU decompression: no suitable memory type to decompress the image");
+        GFXSTREAM_WARNING(
+            "ASTC CPU decompression: no suitable memory type to decompress the image");
         return nullptr;
     }
 
@@ -126,21 +129,21 @@ uint8_t* AstcTexture::createVkBufferAndMapMemory(size_t bufferSize) {
     };
     res = mVk->vkAllocateMemory(mDevice, &allocInfo, nullptr, &mDecompBufferMemory);
     if (res != VK_SUCCESS) {
-        WARN("ASTC CPU decompression: vkAllocateMemory failed: %d", res);
+        GFXSTREAM_WARNING("ASTC CPU decompression: vkAllocateMemory failed: %d", res);
         mDecompBufferMemory = VK_NULL_HANDLE;
         return nullptr;
     }
 
     res = mVk->vkBindBufferMemory(mDevice, mDecompBuffer, mDecompBufferMemory, 0);
     if (res != VK_SUCCESS) {
-        WARN("ASTC CPU decompression: vkBindBufferMemory failed: %d", res);
+        GFXSTREAM_WARNING("ASTC CPU decompression: vkBindBufferMemory failed: %d", res);
         return nullptr;
     }
 
     uint8_t* decompData;
     res = mVk->vkMapMemory(mDevice, mDecompBufferMemory, 0, bufferSize, 0, (void**)&decompData);
     if (res != VK_SUCCESS) {
-        WARN("ASTC CPU decompression: vkMapMemory failed: %d", res);
+        GFXSTREAM_WARNING("ASTC CPU decompression: vkMapMemory failed: %d", res);
         return nullptr;
     }
 
@@ -205,8 +208,9 @@ void AstcTexture::on_vkCmdCopyBufferToImageImpl(VkCommandBuffer commandBuffer, u
         // Do all the precondition checks
         if (!isRegionValid(decompRegion, width, height)) return;
         if (compressedDataOffset + compressedSize > astcDataSize) {
-            WARN("ASTC CPU decompression: data out of bounds. Offset: %llu, Size: %llu, Total %llu",
-                 compressedDataOffset, compressedSize, astcDataSize);
+            GFXSTREAM_WARNING(
+                "ASTC CPU decompression: data out of bounds. Offset: %llu, Size: %llu, Total %llu",
+                compressedDataOffset, compressedSize, astcDataSize);
             return;
         }
 
@@ -234,7 +238,8 @@ void AstcTexture::on_vkCmdCopyBufferToImageImpl(VkCommandBuffer commandBuffer, u
             decompData + decompRegion.bufferOffset);
 
         if (status != 0) {
-            WARN("ASTC CPU decompression failed: %s.", mDecompressor->getStatusString(status));
+            GFXSTREAM_WARNING("ASTC CPU decompression failed: %s.",
+                              mDecompressor->getStatusString(status));
             mVk->vkUnmapMemory(mDevice, mDecompBufferMemory);
             destroyVkBuffer();
             return;
@@ -260,9 +265,10 @@ void AstcTexture::on_vkCmdCopyBufferToImageImpl(VkCommandBuffer commandBuffer, u
     if (total_pixels >= kProcessedPixelsLogInterval && total_time > 0) {
         pixels_processed.store(0);
         ms_elapsed.store(0);
-        INFO("ASTC CPU decompression: %.2f Mpix in %.2f seconds (%.2f Mpix/s). Total mem: %.2f MB",
-             total_pixels / 1'000'000.0, total_time / 1000.0,
-             (float)total_pixels / total_time / 1000.0, bytes_used / 1000000.0);
+        GFXSTREAM_INFO(
+            "ASTC CPU decompression: %.2f Mpix in %.2f seconds (%.2f Mpix/s). Total mem: %.2f MB",
+            total_pixels / 1'000'000.0, total_time / 1000.0,
+            (float)total_pixels / total_time / 1000.0, bytes_used / 1000000.0);
     }
 }
 

@@ -14,15 +14,15 @@
 
 #include "EmulatedEglConfig.h"
 
-#include "OpenGLESDispatch/EGLDispatch.h"
-#include "gfxstream/host/Features.h"
-#include "host-common/opengl/emugl_config.h"
-#include "host-common/logging.h"
-#include "host-common/misc.h"
-#include "host-common/opengl/misc.h"
-
 #include <stdio.h>
 #include <string.h>
+
+#include "OpenGLESDispatch/EGLDispatch.h"
+#include "gfxstream/host/Features.h"
+#include "gfxstream/host/logging.h"
+#include "host-common/misc.h"
+#include "host-common/opengl/emugl_config.h"
+#include "host-common/opengl/misc.h"
 
 namespace gfxstream {
 namespace gl {
@@ -80,7 +80,8 @@ bool isCompatibleHostConfig(EGLConfig config, EGLDisplay display) {
     s_egl.eglGetConfigAttrib(
             display, config, EGL_SURFACE_TYPE, &surfaceType);
     if (!(surfaceType & EGL_PBUFFER_BIT)) {
-        VERBOSE("%s:%d surfaceType=%d is not compatible", __func__, __LINE__, surfaceType);
+        GFXSTREAM_VERBOSE("%s:%d surfaceType=%d is not compatible", __func__, __LINE__,
+                          surfaceType);
         return false;
     }
 
@@ -93,8 +94,9 @@ bool isCompatibleHostConfig(EGLConfig config, EGLDisplay display) {
     s_egl.eglGetConfigAttrib(
             display, config, EGL_BLUE_SIZE, &blueSize);
     if (!redSize || !greenSize || !blueSize) {
-        VERBOSE("%s:%d surfaceType=%d is not compatible, redSize=%d greenSize=%d blueSize=%d",
-                __func__, __LINE__, surfaceType, redSize, greenSize, blueSize);
+        GFXSTREAM_VERBOSE(
+            "%s:%d surfaceType=%d is not compatible, redSize=%d greenSize=%d blueSize=%d", __func__,
+            __LINE__, surfaceType, redSize, greenSize, blueSize);
         return false;
     }
 
@@ -140,13 +142,13 @@ EmulatedEglConfigList::EmulatedEglConfigList(EGLDisplay display,
           mGlesDispatchMaxVersion(version),
           mGlesDynamicVersion(features.GlesDynamicVersion.enabled) {
     if (display == EGL_NO_DISPLAY) {
-        ERR("Invalid display value %p (EGL_NO_DISPLAY).", (void*)display);
+        GFXSTREAM_ERROR("Invalid display value %p (EGL_NO_DISPLAY).", (void*)display);
         return;
     }
 
     EGLint numHostConfigs = 0;
     if (!s_egl.eglGetConfigs(display, NULL, 0, &numHostConfigs)) {
-        ERR("Failed to get number of host EGL configs.");
+        GFXSTREAM_ERROR("Failed to get number of host EGL configs.");
         return;
     }
     std::vector<EGLConfig> hostConfigs(numHostConfigs);
@@ -163,12 +165,22 @@ EmulatedEglConfigList::EmulatedEglConfigList(EGLDisplay display,
     }
 }
 
+const EmulatedEglConfig* EmulatedEglConfigList::get(int guestId) const {
+    if (guestId >= 0 && guestId < (int)mConfigs.size()) {
+        return &mConfigs[guestId];
+    } else {
+        GFXSTREAM_INFO("Requested invalid EGL config id: %d (list size: %d)", guestId,
+                       (int)mConfigs.size());
+        return NULL;
+    }
+}
+
 int EmulatedEglConfigList::chooseConfig(const EGLint* attribs,
                                         EGLint* configs,
                                         EGLint configsSize) const {
     EGLint numHostConfigs = 0;
     if (!s_egl.eglGetConfigs(mDisplay, NULL, 0, &numHostConfigs)) {
-        ERR("Failed to get number of host EGL configs.");
+        GFXSTREAM_ERROR("Failed to get number of host EGL configs.");
         return 0;
     }
 

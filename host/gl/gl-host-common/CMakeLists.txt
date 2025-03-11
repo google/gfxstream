@@ -52,6 +52,7 @@ if (NOT TARGET gfxstream-gl-host-common)
         target_link_libraries(
             gfxstream-gl-host-common
             PUBLIC
-            gfxstream-gl-host-common.headers)
+            gfxstream-gl-host-common.headers
+            gfxstream_host_logging)
     endif()
 endif()

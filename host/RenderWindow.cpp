@@ -14,14 +14,14 @@
 
 #include "RenderWindow.h"
 
-#include "aemu/base/threads/Thread.h"
-#include "aemu/base/synchronization/MessageChannel.h"
-#include "host-common/logging.h"
-#include "FrameBuffer.h"
-#include "RendererImpl.h"
-
 #include <stdarg.h>
 #include <stdio.h>
+
+#include "FrameBuffer.h"
+#include "RendererImpl.h"
+#include "aemu/base/synchronization/MessageChannel.h"
+#include "aemu/base/threads/Thread.h"
+#include "gfxstream/host/logging.h"
 #ifndef _WIN32
 #include <signal.h>
 #include <pthread.h>
@@ -144,8 +144,8 @@ struct RenderWindowMessage {
         bool result = false;
         switch (msg.cmd) {
             case CMD_INITIALIZE:
-                GL_LOG("RenderWindow: CMD_INITIALIZE w=%d h=%d",
-                       msg.init.width, msg.init.height);
+                GFXSTREAM_DEBUG("RenderWindow: CMD_INITIALIZE w=%d h=%d", msg.init.width,
+                                msg.init.height);
                 result = FrameBuffer::initialize(msg.init.width,
                                                  msg.init.height,
                                                  *msg.init.features,
@@ -154,7 +154,7 @@ struct RenderWindowMessage {
                 break;
 
             case CMD_FINALIZE:
-                GL_LOG("CMD_FINALIZE");
+                GFXSTREAM_DEBUG("CMD_FINALIZE");
                 D("CMD_FINALIZE\n");
                 // this command may be issued even when frame buffer is not
                 // yet created (e.g. if CMD_INITIALIZE failed),
@@ -164,7 +164,7 @@ struct RenderWindowMessage {
                 break;
 
             case CMD_SET_POST_CALLBACK:
-                GL_LOG("CMD_SET_POST_CALLBACK");
+                GFXSTREAM_DEBUG("CMD_SET_POST_CALLBACK");
                 D("CMD_SET_POST_CALLBACK\n");
                 fb = FrameBuffer::getFB();
                 if (fb) {
@@ -177,16 +177,12 @@ struct RenderWindowMessage {
                 break;
 
             case CMD_SETUP_SUBWINDOW:
-                GL_LOG("CMD_SETUP_SUBWINDOW: parent=%p wx=%d wy=%d ww=%d wh=%d fbw=%d fbh=%d dpr=%f rotation=%f",
-                       (void*)(intptr_t)msg.subwindow.parent,
-                       msg.subwindow.wx,
-                       msg.subwindow.wy,
-                       msg.subwindow.ww,
-                       msg.subwindow.wh,
-                       msg.subwindow.fbw,
-                       msg.subwindow.fbh,
-                       msg.subwindow.dpr,
-                       msg.subwindow.rotation);
+                GFXSTREAM_DEBUG(
+                    "CMD_SETUP_SUBWINDOW: parent=%p wx=%d wy=%d ww=%d wh=%d fbw=%d fbh=%d dpr=%f "
+                    "rotation=%f",
+                    (void*)(intptr_t)msg.subwindow.parent, msg.subwindow.wx, msg.subwindow.wy,
+                    msg.subwindow.ww, msg.subwindow.wh, msg.subwindow.fbw, msg.subwindow.fbh,
+                    msg.subwindow.dpr, msg.subwindow.rotation);
                 D("CMD_SETUP_SUBWINDOW: parent=%p wx=%d wy=%d ww=%d wh=%d fbw=%d fbh=%d dpr=%f rotation=%f\n",
                     (void*)(intptr_t)msg.subwindow.parent,
                     msg.subwindow.wx,
@@ -208,7 +204,7 @@ struct RenderWindowMessage {
                 break;
 
             case CMD_REMOVE_SUBWINDOW:
-                GL_LOG("CMD_REMOVE_SUBWINDOW");
+                GFXSTREAM_DEBUG("CMD_REMOVE_SUBWINDOW");
                 D("CMD_REMOVE_SUBWINDOW\n");
                 fb = FrameBuffer::getFB();
                 if (fb) {
@@ -217,7 +213,7 @@ struct RenderWindowMessage {
                 break;
 
             case CMD_SET_ROTATION:
-                GL_LOG("CMD_SET_ROTATION rotation=%f", msg.rotation);
+                GFXSTREAM_DEBUG("CMD_SET_ROTATION rotation=%f", msg.rotation);
                 D("CMD_SET_ROTATION rotation=%f\n", msg.rotation);
                 fb = FrameBuffer::getFB();
                 if (fb) {
@@ -227,7 +223,8 @@ struct RenderWindowMessage {
                 break;
 
             case CMD_SET_TRANSLATION:
-                GL_LOG("CMD_SET_TRANSLATION translation=%f,%f", msg.trans.px, msg.trans.py);
+                GFXSTREAM_DEBUG("CMD_SET_TRANSLATION translation=%f,%f", msg.trans.px,
+                                msg.trans.py);
                 D("CMD_SET_TRANSLATION translation=%f,%f\n", msg.trans.px, msg.trans.py);
                 fb = FrameBuffer::getFB();
                 if (fb) {
@@ -237,54 +234,54 @@ struct RenderWindowMessage {
                 break;
 
             case CMD_REPAINT:
-                GL_LOG("CMD_REPAINT");
+                GFXSTREAM_DEBUG("CMD_REPAINT");
                 D("CMD_REPAINT\n");
                 fb = FrameBuffer::getFB();
                 if (fb) {
                     fb->repost();
                     result = true;
                 } else {
-                    GL_LOG("CMD_REPAINT: no repost, no FrameBuffer");
+                    GFXSTREAM_DEBUG("CMD_REPAINT: no repost, no FrameBuffer");
                 }
                 break;
 
             case CMD_HAS_GUEST_POSTED_A_FRAME:
-                GL_LOG("CMD_HAS_GUEST_POSTED_A_FRAME");
+                GFXSTREAM_DEBUG("CMD_HAS_GUEST_POSTED_A_FRAME");
                 D("CMD_HAS_GUEST_POSTED_A_FRAME\n");
                 fb = FrameBuffer::getFB();
                 if (fb) {
                     result = fb->hasGuestPostedAFrame();
                 } else {
-                    GL_LOG("CMD_HAS_GUEST_POSTED_A_FRAME: no FrameBuffer");
+                    GFXSTREAM_DEBUG("CMD_HAS_GUEST_POSTED_A_FRAME: no FrameBuffer");
                 }
                 break;
 
             case CMD_RESET_GUEST_POSTED_A_FRAME:
-                GL_LOG("CMD_RESET_GUEST_POSTED_A_FRAME");
+                GFXSTREAM_DEBUG("CMD_RESET_GUEST_POSTED_A_FRAME");
                 D("CMD_RESET_GUEST_POSTED_A_FRAME\n");
                 fb = FrameBuffer::getFB();
                 if (fb) {
                     fb->resetGuestPostedAFrame();
                     result = true;
                 } else {
-                    GL_LOG("CMD_RESET_GUEST_POSTED_A_FRAME: no FrameBuffer");
+                    GFXSTREAM_DEBUG("CMD_RESET_GUEST_POSTED_A_FRAME: no FrameBuffer");
                 }
                 break;
 
             case CMD_SET_VSYNC_HZ:
-                GL_LOG("CMD_SET_VSYNC_HZ");
+                GFXSTREAM_DEBUG("CMD_SET_VSYNC_HZ");
                 D("CMD_SET_VSYNC_HZ\n");
                 fb = FrameBuffer::getFB();
                 if (fb) {
                     fb->setVsyncHz(msg.vsyncHz);
                     result = true;
                 } else {
-                    GL_LOG("CMD_RESET_GUEST_POSTED_A_FRAME: no FrameBuffer");
+                    GFXSTREAM_DEBUG("CMD_RESET_GUEST_POSTED_A_FRAME: no FrameBuffer");
                 }
                 break;
 
             case CMD_SET_DISPLAY_CONFIGS:
-                GL_LOG("CMD_SET_DISPLAY_CONFIGS");
+                GFXSTREAM_DEBUG("CMD_SET_DISPLAY_CONFIGS");
                 D("CMD_SET_DISPLAY_CONFIGS");
                 fb = FrameBuffer::getFB();
                 if (fb) {
@@ -295,19 +292,19 @@ struct RenderWindowMessage {
                                           msg.displayConfigs.dpiY);
                     result = true;
                 } else {
-                    GL_LOG("CMD_SET_DISPLAY_CONFIGS: no FrameBuffer");
+                    GFXSTREAM_DEBUG("CMD_SET_DISPLAY_CONFIGS: no FrameBuffer");
                 }
                 break;
 
             case CMD_SET_DISPLAY_ACTIVE_CONFIG:
-                GL_LOG("CMD_SET_DISPLAY_ACTIVE_CONFIG");
+                GFXSTREAM_DEBUG("CMD_SET_DISPLAY_ACTIVE_CONFIG");
                 D("CMD_SET_DISPLAY_ACTIVE_CONFIG");
                 fb = FrameBuffer::getFB();
                 if (fb) {
                     fb->setDisplayActiveConfig(msg.displayActiveConfig);
                     result = true;
                 } else {
-                    GL_LOG("CMD_SET_DISPLAY_ACTIVE_CONFIG: no FrameBuffer");
+                    GFXSTREAM_DEBUG("CMD_SET_DISPLAY_ACTIVE_CONFIG: no FrameBuffer");
                 }
                 break;
 
@@ -436,7 +433,7 @@ RenderWindow::RenderWindow(int width,
                   continue;
               } else if (*cmd == RepostCommand::Repost &&
                          !mPaused) {
-                  GL_LOG("Reposting thread dequeueing a CMD_REPAINT");
+                  GFXSTREAM_DEBUG("Reposting thread dequeueing a CMD_REPAINT");
                   RenderWindowMessage msg = {CMD_REPAINT};
                   (void)msg.process();
               }
@@ -687,11 +684,11 @@ void RenderWindow::setDisplayActiveConfig(int configId) {
 bool RenderWindow::processMessage(const RenderWindowMessage& msg) {
     if (useThread()) {
         if (msg.cmd == CMD_REPAINT) {
-            GL_LOG("Sending CMD_REPAINT to render window channel");
+            GFXSTREAM_DEBUG("Sending CMD_REPAINT to render window channel");
         }
         return mChannel->sendMessageAndGetResult(msg);
     } else if (msg.cmd == CMD_REPAINT) {
-        GL_LOG("Sending CMD_REPAINT to reposting thread");
+        GFXSTREAM_DEBUG("Sending CMD_REPAINT to reposting thread");
         mRepostCommands.send(RepostCommand::Repost);
         return true;
     } else {

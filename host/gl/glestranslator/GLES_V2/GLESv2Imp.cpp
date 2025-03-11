@@ -25,10 +25,13 @@
 #include <GLES2/gl2ext.h>
 #include <GLES3/gl3.h>
 #include <GLES3/gl31.h>
+#include <math.h>
+#include <stdio.h>
 
-#include "aemu/base/system/System.h"
-#include "host-common/logging.h"
+#include <numeric>
+#include <unordered_map>
 
+#include "ANGLEShaderParser.h"
 #include "GLESv2Context.h"
 #include "GLESv2Validate.h"
 #include "GLcommon/FramebufferData.h"
@@ -41,17 +44,9 @@
 #include "SamplerData.h"
 #include "ShaderParser.h"
 #include "TransformFeedbackData.h"
-
+#include "aemu/base/system/System.h"
+#include "gfxstream/host/logging.h"
 #include "host-common/crash_reporter.h"
-
-#include "ANGLEShaderParser.h"
-
-#include <math.h>
-#include <stdio.h>
-
-#include <numeric>
-#include <unordered_map>
-
 
 #ifdef _MSC_VER
 #include "aemu/base/msvc.h"

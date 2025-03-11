@@ -53,13 +53,12 @@
 #include "gl/glestranslator/EGL/EglGlobalInfo.h"
 #endif
 #include "gfxstream/host/Tracing.h"
-#include "host-common/GfxstreamFatalError.h"
+#include "gfxstream/host/logging.h"
 #include "host-common/crash_reporter.h"
+#include "host-common/emugl_vm_operations.h"
 #include "host-common/feature_control.h"
-#include "host-common/logging.h"
 #include "host-common/misc.h"
 #include "host-common/opengl/misc.h"
-#include "host-common/emugl_vm_operations.h"
 #include "host-common/vm_operations.h"
 #include "render-utils/MediaNative.h"
 #include "vulkan/DisplayVk.h"
@@ -73,9 +72,7 @@ using android::base::AutoLock;
 using android::base::MetricEventVulkanOutOfMemory;
 using android::base::Stream;
 using android::base::WorkerProcessingResult;
-using emugl::ABORT_REASON_OTHER;
 using emugl::CreateHealthMonitor;
-using emugl::FatalError;
 using emugl::GfxApiLogger;
 using gfxstream::host::FeatureSet;
 
@@ -218,7 +215,7 @@ void MaybeIncreaseFileDescriptorSoftLimit() {
 
     int ret = getrlimit(RLIMIT_NOFILE, &nofileLimits);
     if (ret) {
-        ERR("Warning: failed to query nofile limits.");
+        GFXSTREAM_ERROR("Warning: failed to query nofile limits.");
         return;
     }
 
@@ -229,12 +226,13 @@ void MaybeIncreaseFileDescriptorSoftLimit() {
 
     if (softLimit < kDesiredNofileSoftLimit) {
         if (softLimit == hardLimit) {
-            ERR("Warning: unable to raise nofile soft limit - already at hard limit.");
+            GFXSTREAM_ERROR("Warning: unable to raise nofile soft limit - already at hard limit.");
             return;
         }
 
         if (kDesiredNofileSoftLimit > hardLimit) {
-            ERR("Warning: unable to raise nofile soft limit to desired %d - hard limit is %d.",
+            GFXSTREAM_ERROR(
+                "Warning: unable to raise nofile soft limit to desired %d - hard limit is %d.",
                 static_cast<int>(kDesiredNofileSoftLimit), static_cast<int>(hardLimit));
         }
 
@@ -247,21 +245,21 @@ void MaybeIncreaseFileDescriptorSoftLimit() {
 
         ret = setrlimit(RLIMIT_NOFILE, &requestedNofileLimits);
         if (ret) {
-            ERR("Warning: failed to raise nofile soft limit to %d: %s (%d)",
-                static_cast<int>(requestedSoftLimit), strerror(errno), errno);
+            GFXSTREAM_ERROR("Warning: failed to raise nofile soft limit to %d: %s (%d)",
+                            static_cast<int>(requestedSoftLimit), strerror(errno), errno);
             return;
         }
 
-        INFO("Raised nofile soft limit to %d.", static_cast<int>(requestedSoftLimit));
+        GFXSTREAM_INFO("Raised nofile soft limit to %d.", static_cast<int>(requestedSoftLimit));
     } else {
-        INFO("Not raising nofile soft limit from %d.", static_cast<int>(softLimit));
+        GFXSTREAM_INFO("Not raising nofile soft limit from %d.", static_cast<int>(softLimit));
     }
 #endif
 }
 
 bool FrameBuffer::initialize(int width, int height, const gfxstream::host::FeatureSet& features,
                              bool useSubWindow, bool egl2egl) {
-    GL_LOG("FrameBuffer::initialize");
+    GFXSTREAM_DEBUG("FrameBuffer::initialize");
 
     if (s_theFrameBuffer != NULL) {
         return true;
@@ -277,8 +275,8 @@ bool FrameBuffer::initialize(int width, int height, const gfxstream::host::Featu
     //
     std::unique_ptr<FrameBuffer> fb(new FrameBuffer(width, height, features, useSubWindow));
     if (!fb) {
-        GL_LOG("Failed to create fb");
-        ERR("Failed to create fb\n");
+        GFXSTREAM_DEBUG("Failed to create fb");
+        GFXSTREAM_ERROR("Failed to create fb\n");
         return false;
     }
 
@@ -294,11 +292,12 @@ bool FrameBuffer::initialize(int width, int height, const gfxstream::host::Featu
 #endif
         fb->m_renderDoc = emugl::RenderDoc::create(renderdocLib);
         if (fb->m_renderDoc) {
-            INFO("RenderDoc integration enabled.");
+            GFXSTREAM_INFO("RenderDoc integration enabled.");
             renderDocMultipleVkInstances =
                 std::make_unique<emugl::RenderDocWithMultipleVkInstances>(*fb->m_renderDoc);
             if (!renderDocMultipleVkInstances) {
-                ERR("Failed to initialize RenderDoc with multiple VkInstances. Can't capture any "
+                GFXSTREAM_ERROR(
+                    "Failed to initialize RenderDoc with multiple VkInstances. Can't capture any "
                     "information from guest VkInstances with RenderDoc.");
             }
         }
@@ -358,7 +357,8 @@ bool FrameBuffer::initialize(int width, int height, const gfxstream::host::Featu
         if (fb->m_emulationVk) {
             vk::VkDecoderGlobalState::initialize(fb->m_emulationVk.get());
         } else {
-            ERR("Failed to initialize global Vulkan emulation. Disable the Vulkan support.");
+            GFXSTREAM_ERROR(
+                "Failed to initialize global Vulkan emulation. Disable the Vulkan support.");
         }
     }
     if (fb->m_emulationVk) {
@@ -371,7 +371,7 @@ bool FrameBuffer::initialize(int width, int height, const gfxstream::host::Featu
         if (vulkanUuidOpt) {
             fb->m_vulkanUUID = *vulkanUuidOpt;
         } else {
-            WARN("Doesn't support id properties, no vulkan device UUID");
+            GFXSTREAM_WARNING("Doesn't support id properties, no vulkan device UUID");
         }
     }
 
@@ -380,7 +380,7 @@ bool FrameBuffer::initialize(int width, int height, const gfxstream::host::Featu
     if (!fb->m_features.GuestVulkanOnly.enabled) {
         fb->m_emulationGl = EmulationGl::create(width, height, fb->m_features, useSubWindow, egl2egl);
         if (!fb->m_emulationGl) {
-            ERR("Failed to initialize GL emulation.");
+            GFXSTREAM_ERROR("Failed to initialize GL emulation.");
             return false;
         }
     }
@@ -467,7 +467,7 @@ bool FrameBuffer::initialize(int width, int height, const gfxstream::host::Featu
     if (android::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD") == "lavapipe"
             || android::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD") == "swiftshader") {
         vulkanInteropSupported = false;
-        GL_LOG("vk icd software rendering, disable interop");
+        GFXSTREAM_DEBUG("vk icd software rendering, disable interop");
     }
 
 #if GFXSTREAM_ENABLE_HOST_GLES
@@ -478,7 +478,7 @@ bool FrameBuffer::initialize(int width, int height, const gfxstream::host::Featu
     }
 #endif
 
-    GL_LOG("glvk interop final: %d", vulkanInteropSupported);
+    GFXSTREAM_DEBUG("glvk interop final: %d", vulkanInteropSupported);
     vkEmulationFeatures.glInteropSupported = vulkanInteropSupported;
     if (fb->m_emulationVk && fb->m_features.Vulkan.enabled) {
         fb->m_emulationVk->initFeatures(std::move(vkEmulationFeatures));
@@ -493,12 +493,12 @@ bool FrameBuffer::initialize(int width, int height, const gfxstream::host::Featu
     if (fb->m_emulationVk && fb->m_useVulkanComposition) {
         fb->m_compositor = fb->m_emulationVk->getCompositor();
         if (!fb->m_compositor) {
-            ERR("Failed to get CompositorVk from VkEmulation.");
+            GFXSTREAM_ERROR("Failed to get CompositorVk from VkEmulation.");
             return false;
         }
-        GL_LOG("Performing composition using CompositorVk.");
+        GFXSTREAM_DEBUG("Performing composition using CompositorVk.");
     } else {
-        GL_LOG("Performing composition using CompositorGl.");
+        GFXSTREAM_DEBUG("Performing composition using CompositorGl.");
 #if GFXSTREAM_ENABLE_HOST_GLES
         auto compositorGl = fb->m_emulationGl->getCompositor();
         fb->m_compositor = compositorGl;
@@ -513,11 +513,11 @@ bool FrameBuffer::initialize(int width, int height, const gfxstream::host::Featu
     }
 #endif
 
-    INFO("Graphics Adapter Vendor %s", fb->m_graphicsAdapterVendor.c_str());
-    INFO("Graphics Adapter %s", fb->m_graphicsAdapterName.c_str());
-    INFO("Graphics API Version %s", fb->m_graphicsApiVersion.c_str());
-    INFO("Graphics API Extensions %s", fb->m_graphicsApiExtensions.c_str());
-    INFO("Graphics Device Extensions %s", fb->m_graphicsDeviceExtensions.c_str());
+    GFXSTREAM_INFO("Graphics Adapter Vendor %s", fb->m_graphicsAdapterVendor.c_str());
+    GFXSTREAM_INFO("Graphics Adapter %s", fb->m_graphicsAdapterName.c_str());
+    GFXSTREAM_INFO("Graphics API Version %s", fb->m_graphicsApiVersion.c_str());
+    GFXSTREAM_INFO("Graphics API Extensions %s", fb->m_graphicsApiExtensions.c_str());
+    GFXSTREAM_INFO("Graphics Device Extensions %s", fb->m_graphicsDeviceExtensions.c_str());
 
     if (fb->m_useVulkanComposition) {
         fb->m_postWorker.reset(new PostWorkerVk(fb.get(), fb->m_compositor, fb->m_displayVk));
@@ -810,11 +810,11 @@ void FrameBuffer::setPostCallback(Renderer::OnPostCallback onPost, void* onPostC
                                                                          nullptr,
                                                                          nullptr,
                                                                          nullptr)) {
-            ERR("display %d not exist, cancelling OnPost callback", displayId);
+            GFXSTREAM_ERROR("display %d not exist, cancelling OnPost callback", displayId);
             return;
         }
         if (m_onPost.find(displayId) != m_onPost.end()) {
-            ERR("display %d already configured for recording", displayId);
+            GFXSTREAM_ERROR("display %d already configured for recording", displayId);
             return;
         }
         m_onPost[displayId].cb = onPost;
@@ -841,7 +841,7 @@ void FrameBuffer::setPostCallback(Renderer::OnPostCallback onPost, void* onPostC
 }
 
 static void subWindowRepaint(void* param) {
-    GL_LOG("call repost from subWindowRepaint callback");
+    GFXSTREAM_DEBUG("call repost from subWindowRepaint callback");
     auto fb = static_cast<FrameBuffer*>(param);
     fb->repost();
 }
@@ -857,10 +857,10 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
                                  float zRot,
                                  bool deleteExisting,
                                  bool hideWindow) {
-    GL_LOG("Begin setupSubWindow");
+    GFXSTREAM_DEBUG("Begin setupSubWindow");
     if (!m_useSubWindow) {
-        ERR("%s: Cannot create native sub-window in this configuration\n",
-            __FUNCTION__);
+        GFXSTREAM_ERROR("%s: Cannot create native sub-window in this configuration\n",
+                        __FUNCTION__);
         return false;
     }
 
@@ -890,7 +890,7 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
         m_windowContentFullWidth != fbw || m_windowContentFullHeight != fbh;
     if (!shouldCreateSubWindow && !shouldMoveSubWindow && !redrawSubwindow) {
         assert(sInitialized.load(std::memory_order_relaxed));
-        GL_LOG("Exit setupSubWindow (nothing to do)");
+        GFXSTREAM_DEBUG("Exit setupSubWindow (nothing to do)");
 #if SNAPSHOT_PROFILE > 1
         // printf("FrameBuffer::%s(): nothing to do at %lld ms\n", __func__,
                // (long long)System::get()->getProcessTimes().wallClockMs);
@@ -978,8 +978,7 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
                                                                       m_subWin);
 #endif
             } else {
-                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                    << "Unhandled window surface creation.";
+                GFXSTREAM_FATAL("Unhandled window surface creation.");
             }
 
             if (m_displaySurface) {
@@ -1011,8 +1010,7 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
                     destroySubWindow(m_subWin);
                     m_subWin = (EGLNativeWindowType)0;
                 } else {
-                    GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                        << "Failed to create DisplaySurface.";
+                    GFXSTREAM_FATAL("Failed to create DisplaySurface.");
                 }
             }
         }
@@ -1062,7 +1060,7 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
                 sendPostWorkerCmd(std::move(postCmd));
 
                 if (m_lastPostedColorBuffer) {
-                    GL_LOG("setupSubwindow: draw last posted cb");
+                    GFXSTREAM_DEBUG("setupSubwindow: draw last posted cb");
                     postImpl(m_lastPostedColorBuffer,
                         [](std::shared_future<void> waitForGpu) {}, false);
                 } else {
@@ -1091,13 +1089,13 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
     //        (long long)System::get()->getProcessTimes().wallClockMs);
 #endif
 
-    GL_LOG("Exit setupSubWindow (successful setup)");
+    GFXSTREAM_DEBUG("Exit setupSubWindow (successful setup)");
     return success;
 }
 
 bool FrameBuffer::removeSubWindow() {
     if (!m_useSubWindow) {
-        ERR("Cannot remove native sub-window in this configuration");
+        GFXSTREAM_ERROR("Cannot remove native sub-window in this configuration");
         return false;
     }
     AutoLock lock(sGlobals()->lock);
@@ -1110,7 +1108,7 @@ bool FrameBuffer::removeSubWindow() {
 
 bool FrameBuffer::removeSubWindow_locked() {
     if (!m_useSubWindow) {
-        ERR("Cannot remove native sub-window in this configuration");
+        GFXSTREAM_ERROR("Cannot remove native sub-window in this configuration");
         return false;
     }
     bool removed = false;
@@ -1181,7 +1179,7 @@ void FrameBuffer::createColorBufferWithResourceHandle(int p_width, int p_height,
             // emugl::emugl_crash_reporter(
             //     "FATAL: color buffer with handle %u already exists",
             //     handle);
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER));
+            GFXSTREAM_FATAL("");
         }
 
         createColorBufferWithResourceHandleLocked(p_width, p_height, p_internalFormat,
@@ -1197,10 +1195,8 @@ HandleType FrameBuffer::createColorBufferWithResourceHandleLocked(int p_width, i
         ColorBuffer::create(m_emulationGl.get(), m_emulationVk.get(), p_width, p_height,
                             p_internalFormat, p_frameworkFormat, handle, nullptr /*stream*/);
     if (cb.get() == nullptr) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Failed to create ColorBuffer:" << handle << " format:" << p_internalFormat
-            << " framework-format:" << p_frameworkFormat << " width:" << p_width
-            << " height:" << p_height;
+        GFXSTREAM_FATAL("Failed to create ColorBuffer:%d format:%d framework-format:%d with:%d height:%d",
+                        handle, p_internalFormat, p_frameworkFormat, p_width, p_height);
     }
 
     assert(m_colorbuffers.count(handle) == 0);
@@ -1244,8 +1240,7 @@ void FrameBuffer::createBufferWithResourceHandle(uint64_t size, HandleType handl
     AutoLock colorBufferMapLock(m_colorBufferMapLock);
 
     if (m_buffers.count(handle) != 0) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Buffer already exists with handle " << handle;
+        GFXSTREAM_FATAL("Buffer already exists with handle %d", handle);
     }
 
     createBufferWithResourceHandleLocked(size, handle, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
@@ -1254,13 +1249,12 @@ void FrameBuffer::createBufferWithResourceHandle(uint64_t size, HandleType handl
 HandleType FrameBuffer::createBufferWithResourceHandleLocked(int p_size, HandleType handle,
                                                              uint32_t memoryProperty) {
     if (m_buffers.count(handle) != 0) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Buffer already exists with handle " << handle;
+        GFXSTREAM_FATAL("Buffer already exists with handle %d", handle);
     }
 
     BufferPtr buffer(Buffer::create(m_emulationGl.get(), m_emulationVk.get(), p_size, handle));
     if (!buffer) {
-        ERR("Create buffer failed.\n");
+        GFXSTREAM_ERROR("Create buffer failed.");
         return 0;
     }
 
@@ -1284,7 +1278,7 @@ int FrameBuffer::openColorBuffer(HandleType p_colorbuffer) {
         c = m_colorbuffers.find(p_colorbuffer);
         if (c == m_colorbuffers.end()) {
             // bad colorbuffer handle
-            ERR("FB: openColorBuffer cb handle %d not found", p_colorbuffer);
+            GFXSTREAM_ERROR("FB: openColorBuffer cb handle %d not found", p_colorbuffer);
             return -1;
         }
         c->second.refcount++;
@@ -1334,7 +1328,7 @@ void FrameBuffer::closeBuffer(HandleType p_buffer) {
 
     auto it = m_buffers.find(p_buffer);
     if (it == m_buffers.end()) {
-        ERR("Failed to find Buffer:%d", p_buffer);
+        GFXSTREAM_ERROR("Failed to find Buffer:%d", p_buffer);
         return;
     }
 
@@ -1452,7 +1446,7 @@ void FrameBuffer::createGraphicsProcessResources(uint64_t puid) {
         inserted = m_procOwnedResources.try_emplace(puid, ProcessResources::create()).second;
     }
     if (!inserted) {
-        WARN("Failed to create process resource for puid %" PRIu64 ".", puid);
+        GFXSTREAM_WARNING("Failed to create process resource for puid %" PRIu64 ".", puid);
     }
 }
 
@@ -1463,7 +1457,7 @@ std::unique_ptr<ProcessResources> FrameBuffer::removeGraphicsProcessResources(ui
         node = m_procOwnedResources.extract(puid);
     }
     if (node.empty()) {
-        WARN("Failed to find process resource for puid %" PRIu64 ".", puid);
+        GFXSTREAM_WARNING("Failed to find process resource for puid %" PRIu64 ".", puid);
         return nullptr;
     }
     std::unique_ptr<ProcessResources> res = std::move(node.mapped());
@@ -1606,7 +1600,7 @@ void FrameBuffer::readBuffer(HandleType handle, uint64_t offset, uint64_t size, 
 
     BufferPtr buffer = findBuffer(handle);
     if (!buffer) {
-        ERR("Failed to read buffer: buffer %d not found.", handle);
+        GFXSTREAM_ERROR("Failed to read buffer: buffer %d not found.", handle);
         return;
     }
 
@@ -1647,7 +1641,7 @@ bool FrameBuffer::updateBuffer(HandleType p_buffer, uint64_t offset, uint64_t si
 
     BufferPtr buffer = findBuffer(p_buffer);
     if (!buffer) {
-        ERR("Failed to update buffer: buffer %d not found.", p_buffer);
+        GFXSTREAM_ERROR("Failed to update buffer: buffer %d not found.", p_buffer);
         return false;
     }
 
@@ -1862,13 +1856,15 @@ AsyncResult FrameBuffer::postImpl(HandleType p_colorbuffer, Post::CompletionCall
             } else {
                 uint32_t displayColorBufferHandle = 0;
                 if (getDisplayColorBuffer(iter.first, &displayColorBufferHandle) < 0) {
-                    ERR("Failed to get color buffer for display %d, skip onPost", iter.first);
+                    GFXSTREAM_ERROR("Failed to get color buffer for display %d, skip onPost",
+                                    iter.first);
                     continue;
                 }
 
                 cb = findColorBuffer(displayColorBufferHandle);
                 if (!cb) {
-                    ERR("Failed to find ColorBuffer %d, skip onPost", displayColorBufferHandle);
+                    GFXSTREAM_ERROR("Failed to find ColorBuffer %d, skip onPost",
+                                    displayColorBufferHandle);
                     continue;
                 }
             }
@@ -1899,7 +1895,7 @@ AsyncResult FrameBuffer::postImpl(HandleType p_colorbuffer, Post::CompletionCall
 void FrameBuffer::doPostCallback(void* pixels, uint32_t displayId) {
     const auto& iter = m_onPost.find(displayId);
     if (iter == m_onPost.end()) {
-        ERR("Cannot find post callback function for display %d", displayId);
+        GFXSTREAM_ERROR("Cannot find post callback function for display %d", displayId);
         return;
     }
     iter->second.cb(iter->second.context, displayId, iter->second.width, iter->second.height, -1,
@@ -1909,7 +1905,7 @@ void FrameBuffer::doPostCallback(void* pixels, uint32_t displayId) {
 void FrameBuffer::getPixels(void* pixels, uint32_t bytes, uint32_t displayId) {
     const auto& iter = m_onPost.find(displayId);
     if (iter == m_onPost.end()) {
-        ERR("Display %d not configured for recording yet", displayId);
+        GFXSTREAM_ERROR("Display %d not configured for recording yet", displayId);
         return;
     }
     std::future<void> completeFuture =
@@ -1920,7 +1916,7 @@ void FrameBuffer::getPixels(void* pixels, uint32_t bytes, uint32_t displayId) {
 void FrameBuffer::flushReadPipeline(int displayId) {
     const auto& iter = m_onPost.find(displayId);
     if (iter == m_onPost.end()) {
-        ERR("Cannot find onPost pixels for display %d", displayId);
+        GFXSTREAM_ERROR("Cannot find onPost pixels for display %d", displayId);
         return;
     }
 
@@ -1936,7 +1932,7 @@ void FrameBuffer::ensureReadbackWorker() {
 #if GFXSTREAM_ENABLE_HOST_GLES
     if (!m_readbackWorker) {
         if (!m_emulationGl) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "GL/EGL emulation not enabled.";
+            GFXSTREAM_FATAL("GL/EGL emulation not enabled.");
         }
         m_readbackWorker = m_emulationGl->getReadbackWorker();
     }
@@ -1968,20 +1964,20 @@ Renderer::FlushReadPixelPipeline FrameBuffer::getFlushReadPixelPipeline() {
 }
 
 bool FrameBuffer::repost(bool needLockAndBind) {
-    GL_LOG("Reposting framebuffer.");
+    GFXSTREAM_DEBUG("Reposting framebuffer.");
     if (m_displayVk) {
         setGuestPostedAFrame();
         return true;
     }
     if (m_lastPostedColorBuffer && sInitialized.load(std::memory_order_relaxed)) {
-        GL_LOG("Has last posted colorbuffer and is initialized; post.");
+        GFXSTREAM_DEBUG("Has last posted colorbuffer and is initialized; post.");
         auto res = postImplSync(m_lastPostedColorBuffer, needLockAndBind, true);
         if (res) setGuestPostedAFrame();
         return res;
     } else {
-        GL_LOG("No repost: no last posted color buffer");
+        GFXSTREAM_DEBUG("No repost: no last posted color buffer");
         if (!sInitialized.load(std::memory_order_relaxed)) {
-            GL_LOG("No repost: initialization is not finished.");
+            GFXSTREAM_DEBUG("No repost: initialization is not finished.");
         }
     }
     return false;
@@ -2033,14 +2029,14 @@ int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width, unsi
     uint32_t w, h, cb, screenWidth, screenHeight;
     if (!emugl::get_emugl_multi_display_operations().getMultiDisplay(
             displayId, nullptr, nullptr, &w, &h, nullptr, nullptr, nullptr)) {
-        ERR("Screenshot of invalid display %d", displayId);
+        GFXSTREAM_ERROR("Screenshot of invalid display %d", displayId);
         *width = 0;
         *height = 0;
         *cPixels = 0;
         return -1;
     }
     if (nChannels != 3 && nChannels != 4) {
-        ERR("Screenshot only support 3(RGB) or 4(RGBA) channels");
+        GFXSTREAM_ERROR("Screenshot only support 3(RGB) or 4(RGBA) channels");
         *width = 0;
         *height = 0;
         *cPixels = 0;
@@ -2064,7 +2060,8 @@ int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width, unsi
     bool useSnipping = (rect.size.w != 0 && rect.size.h != 0);
     if (useSnipping) {
         if (desiredWidth == 0 || desiredHeight == 0) {
-            ERR("Must provide non-zero desiredWidth and desireRectanlge "
+            GFXSTREAM_ERROR(
+                "Must provide non-zero desiredWidth and desireRectanlge "
                 "when using rectangle snipping");
             *width = 0;
             *height = 0;
@@ -2145,7 +2142,8 @@ int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width, unsi
 
 void FrameBuffer::onLastColorBufferRef(uint32_t handle) {
     if (!mOutstandingColorBufferDestroys.trySend((HandleType)handle)) {
-        ERR("warning: too many outstanding "
+        GFXSTREAM_ERROR(
+            "warning: too many outstanding "
             "color buffer destroys. leaking handle 0x%x",
             handle);
     }
@@ -2245,7 +2243,7 @@ AsyncResult FrameBuffer::composeWithCallback(uint32_t bufferSize, void* buffer,
         }
 
         default:
-            ERR("yet to handle composition device version: %d", p->version);
+            GFXSTREAM_ERROR("yet to handle composition device version: %d", p->version);
             return AsyncResult::FAIL_AND_CALLBACK_NOT_SCHEDULED;
     }
 }
@@ -2267,7 +2265,7 @@ void FrameBuffer::onSave(Stream* stream, const android::snapshot::ITextureSaverP
         // Some snapshot commands try using GL.
         bind = std::make_unique<RecursiveScopedContextBind>(getPbufferSurfaceContextHelper());
         if (!bind->isOk()) {
-            ERR("Failed to make context current for saving snapshot.");
+            GFXSTREAM_ERROR("Failed to make context current for saving snapshot.");
         }
 
         // eglPreSaveContext labels all guest context textures to be saved
@@ -2396,7 +2394,7 @@ bool FrameBuffer::onLoad(Stream* stream,
             // Some snapshot commands try using GL.
             bind = std::make_unique<RecursiveScopedContextBind>(getPbufferSurfaceContextHelper());
             if (!bind->isOk()) {
-                ERR("Failed to make context current for loading snapshot.");
+                GFXSTREAM_ERROR("Failed to make context current for loading snapshot.");
             }
         }
 #endif
@@ -2492,7 +2490,7 @@ bool FrameBuffer::onLoad(Stream* stream,
         {
             AutoLock colorBufferMapLock(m_colorBufferMapLock);
             if (!m_colorbuffers.empty()) {
-                ERR("warning: on load, stale colorbuffers: %zu", m_colorbuffers.size());
+                GFXSTREAM_ERROR("warning: on load, stale colorbuffers: %zu", m_colorbuffers.size());
                 m_colorbuffers.clear();
             }
             assert(m_colorbuffers.empty());
@@ -2540,7 +2538,7 @@ bool FrameBuffer::onLoad(Stream* stream,
     loadCollection(
         stream, &m_contexts, [this](Stream* stream) -> EmulatedEglContextMap::value_type {
             if (!m_emulationGl) {
-                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "GL/EGL emulation not enabled.";
+                GFXSTREAM_FATAL("GL/EGL emulation not enabled.");
             }
 
             auto context = m_emulationGl->loadEmulatedEglContext(stream);
@@ -2569,7 +2567,7 @@ bool FrameBuffer::onLoad(Stream* stream,
             });
     }
     m_lastPostedColorBuffer = static_cast<HandleType>(stream->getBe32());
-    GL_LOG("Got lasted posted color buffer from snapshot");
+    GFXSTREAM_DEBUG("Got lasted posted color buffer from snapshot");
 
     {
         AutoLock colorBufferMapLock(m_colorBufferMapLock);
@@ -2577,8 +2575,7 @@ bool FrameBuffer::onLoad(Stream* stream,
         loadCollection(
             stream, &m_windows, [this](Stream* stream) -> EmulatedEglWindowSurfaceMap::value_type {
                 if (!m_emulationGl) {
-                    GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                        << "GL/EGL emulation not enabled.";
+                    GFXSTREAM_FATAL("GL/EGL emulation not enabled.");
                 }
 
                 auto window =
@@ -2631,7 +2628,7 @@ bool FrameBuffer::onLoad(Stream* stream,
             // Some snapshot commands try using GL.
             bind = std::make_unique<RecursiveScopedContextBind>(getPbufferSurfaceContextHelper());
             if (!bind->isOk()) {
-                ERR("Failed to make context current for loading snapshot.");
+                GFXSTREAM_ERROR("Failed to make context current for loading snapshot.");
             }
         }
 #endif
@@ -2695,7 +2692,7 @@ void FrameBuffer::registerProcessCleanupCallback(void* key, std::function<void()
 
     auto& callbackMap = m_procOwnedCleanupCallbacks[tInfo->m_puid];
     if (!callbackMap.insert({key, std::move(cb)}).second) {
-        ERR("%s: tried to override existing key %p ", __func__, key);
+        GFXSTREAM_ERROR("%s: tried to override existing key %p ", __func__, key);
     }
 }
 
@@ -2707,7 +2704,8 @@ void FrameBuffer::unregisterProcessCleanupCallback(void* key) {
     auto& callbackMap = m_procOwnedCleanupCallbacks[tInfo->m_puid];
     auto erasedCount = callbackMap.erase(key);
     if (erasedCount == 0) {
-        ERR("%s: tried to erase nonexistent key %p "
+        GFXSTREAM_ERROR(
+            "%s: tried to erase nonexistent key %p "
             "associated with process %llu",
             __func__, key, (unsigned long long)(tInfo->m_puid));
     }
@@ -2721,7 +2719,7 @@ const ProcessResources* FrameBuffer::getProcessResources(uint64_t puid) {
             return i->second.get();
         }
     }
-    ERR("Failed to find process owned resources for puid %" PRIu64 ".", puid);
+    GFXSTREAM_ERROR("Failed to find process owned resources for puid %" PRIu64 ".", puid);
     return nullptr;
 }
 
@@ -2833,7 +2831,7 @@ std::unique_ptr<BorrowedImageInfo> FrameBuffer::borrowColorBufferForComposition(
     uint32_t colorBufferHandle, bool colorBufferIsTarget) {
     ColorBufferPtr colorBufferPtr = findColorBuffer(colorBufferHandle);
     if (!colorBufferPtr) {
-        ERR("Failed to get borrowed image info for ColorBuffer:%d", colorBufferHandle);
+        GFXSTREAM_ERROR("Failed to get borrowed image info for ColorBuffer:%d", colorBufferHandle);
         return nullptr;
     }
 
@@ -2853,7 +2851,7 @@ std::unique_ptr<BorrowedImageInfo> FrameBuffer::borrowColorBufferForDisplay(
     uint32_t colorBufferHandle) {
     ColorBufferPtr colorBufferPtr = findColorBuffer(colorBufferHandle);
     if (!colorBufferPtr) {
-        ERR("Failed to get borrowed image info for ColorBuffer:%d", colorBufferHandle);
+        GFXSTREAM_ERROR("Failed to get borrowed image info for ColorBuffer:%d", colorBufferHandle);
         return nullptr;
     }
 
@@ -2863,7 +2861,7 @@ std::unique_ptr<BorrowedImageInfo> FrameBuffer::borrowColorBufferForDisplay(
 #if GFXSTREAM_ENABLE_HOST_GLES
         invalidateColorBufferForGl(colorBufferHandle);
 #else
-        ERR("Failed to invalidate ColorBuffer:%d", colorBufferHandle);
+        GFXSTREAM_ERROR("Failed to invalidate ColorBuffer:%d", colorBufferHandle);
 #endif
     }
 
@@ -2873,7 +2871,7 @@ std::unique_ptr<BorrowedImageInfo> FrameBuffer::borrowColorBufferForDisplay(
 
 void FrameBuffer::logVulkanDeviceLost() {
     if (!m_emulationVk) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Device lost without VkEmulation?";
+        GFXSTREAM_FATAL("Device lost without VkEmulation?");
     }
     m_emulationVk->onVkDeviceLost();
 }
@@ -2898,7 +2896,7 @@ void FrameBuffer::setVsyncHz(int vsyncHz) {
 
 void FrameBuffer::scheduleVsyncTask(VsyncThread::VsyncTask task) {
     if (!m_vsyncThread) {
-        ERR("%s: warning: no vsync thread exists", __func__);
+        GFXSTREAM_ERROR("%s: warning: no vsync thread exists", __func__);
         task(0);
         return;
     }
@@ -2909,21 +2907,21 @@ void FrameBuffer::scheduleVsyncTask(VsyncThread::VsyncTask task) {
 void FrameBuffer::setDisplayConfigs(int configId, int w, int h, int dpiX, int dpiY) {
     AutoLock mutex(m_lock);
     mDisplayConfigs[configId] = {w, h, dpiX, dpiY};
-    INFO("Setting display: %d configuration to: %dx%d, dpi: %dx%d ", configId,
-           w, h, dpiX, dpiY);
+    GFXSTREAM_INFO("Setting display: %d configuration to: %dx%d, dpi: %dx%d ", configId, w, h, dpiX,
+                   dpiY);
 }
 
 void FrameBuffer::setDisplayActiveConfig(int configId) {
     AutoLock mutex(m_lock);
     if (mDisplayConfigs.find(configId) == mDisplayConfigs.end()) {
-        ERR("config %d not set", configId);
+        GFXSTREAM_ERROR("config %d not set", configId);
         return;
     }
     mDisplayActiveConfigId = configId;
     m_framebufferWidth = mDisplayConfigs[configId].w;
     m_framebufferHeight = mDisplayConfigs[configId].h;
     setDisplayPose(0, 0, 0, getWidth(), getHeight(), 0);
-    INFO("setDisplayActiveConfig %d", configId);
+    GFXSTREAM_INFO("setDisplayActiveConfig %d", configId);
 }
 
 int FrameBuffer::getDisplayConfigsCount() {
@@ -2965,7 +2963,7 @@ bool FrameBuffer::flushColorBufferFromVk(HandleType colorBufferHandle) {
     AutoLock mutex(m_lock);
     auto colorBuffer = findColorBuffer(colorBufferHandle);
     if (!colorBuffer) {
-        ERR("%s: Failed to find ColorBuffer:%d", __func__, colorBufferHandle);
+        GFXSTREAM_ERROR("%s: Failed to find ColorBuffer:%d", __func__, colorBufferHandle);
         return false;
     }
     return colorBuffer->flushFromVk();
@@ -2977,7 +2975,7 @@ bool FrameBuffer::flushColorBufferFromVkBytes(HandleType colorBufferHandle, cons
 
     auto colorBuffer = findColorBuffer(colorBufferHandle);
     if (!colorBuffer) {
-        ERR("%s: Failed to find ColorBuffer:%d", __func__, colorBufferHandle);
+        GFXSTREAM_ERROR("%s: Failed to find ColorBuffer:%d", __func__, colorBufferHandle);
         return false;
     }
     return colorBuffer->flushFromVkBytes(bytes, bytesSize);
@@ -2992,7 +2990,7 @@ bool FrameBuffer::invalidateColorBufferForVk(HandleType colorBufferHandle) {
     AutoLock mutex(m_lock);
     auto colorBuffer = findColorBuffer(colorBufferHandle);
     if (!colorBuffer) {
-        VERBOSE("%s: Failed to find ColorBuffer:%d", __func__, colorBufferHandle);
+        GFXSTREAM_DEBUG("Failed to find ColorBuffer: %d", colorBufferHandle);
         return false;
     }
     return colorBuffer->invalidateForVk();
@@ -3096,7 +3094,7 @@ void FrameBuffer::destroySharedTrivialContext(EGLContext context, EGLSurface sur
 
 const EmulatedEglConfigList* FrameBuffer::getConfigs() const {
     if (!m_emulationGl) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "EGL emulation not enabled.";
+        GFXSTREAM_FATAL("GL/EGL emulation not enabled.");
     }
 
     return &m_emulationGl->getEmulationEglConfigs();
@@ -3109,7 +3107,7 @@ bool FrameBuffer::setEmulatedEglWindowSurfaceColorBuffer(HandleType p_surface,
     EmulatedEglWindowSurfaceMap::iterator w(m_windows.find(p_surface));
     if (w == m_windows.end()) {
         // bad surface handle
-        ERR("bad window surface handle %#x", p_surface);
+        GFXSTREAM_ERROR("bad window surface handle %#x", p_surface);
         return false;
     }
 
@@ -3117,7 +3115,7 @@ bool FrameBuffer::setEmulatedEglWindowSurfaceColorBuffer(HandleType p_surface,
         AutoLock colorBufferMapLock(m_colorBufferMapLock);
         ColorBufferMap::iterator c(m_colorbuffers.find(p_colorbuffer));
         if (c == m_colorbuffers.end()) {
-            ERR("bad color buffer handle %d", p_colorbuffer);
+            GFXSTREAM_ERROR("bad color buffer handle %d", p_colorbuffer);
             // bad colorbuffer handle
             return false;
         }
@@ -3148,7 +3146,7 @@ bool FrameBuffer::setEmulatedEglWindowSurfaceColorBuffer(HandleType p_surface,
 HandleType FrameBuffer::createEmulatedEglContext(int config, HandleType shareContextHandle,
                                                  GLESApi version) {
     if (!m_emulationGl) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "EGL emulation unavailable.";
+        GFXSTREAM_FATAL("GL/EGL emulation not enabled.");
     }
 
     AutoLock mutex(m_lock);
@@ -3160,7 +3158,7 @@ HandleType FrameBuffer::createEmulatedEglContext(int config, HandleType shareCon
     if (shareContextHandle != 0) {
         auto shareContextIt = m_contexts.find(shareContextHandle);
         if (shareContextIt == m_contexts.end()) {
-            ERR("Failed to find share EmulatedEglContext:%d", shareContextHandle);
+            GFXSTREAM_ERROR("Failed to find share EmulatedEglContext:%d", shareContextHandle);
             return 0;
         }
         shareContext = shareContextIt->second;
@@ -3170,7 +3168,7 @@ HandleType FrameBuffer::createEmulatedEglContext(int config, HandleType shareCon
     auto context =
         m_emulationGl->createEmulatedEglContext(config, shareContext.get(), version, contextHandle);
     if (!context) {
-        ERR("Failed to create EmulatedEglContext.");
+        GFXSTREAM_ERROR("Failed to create EmulatedEglContext.");
         return 0;
     }
 
@@ -3185,7 +3183,7 @@ HandleType FrameBuffer::createEmulatedEglContext(int config, HandleType shareCon
         m_procOwnedEmulatedEglContexts[puid].insert(contextHandle);
     } else {  // legacy path to manage context lifetime by threads
         if (!tinfo->m_glInfo) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Render thread GL not available.";
+            GFXSTREAM_FATAL("RenderThreadGL not available.");
         }
         tinfo->m_glInfo->m_contextSet.insert(contextHandle);
     }
@@ -3211,7 +3209,7 @@ void FrameBuffer::destroyEmulatedEglContext(HandleType contextHandle) {
         }
     } else {
         if (!tinfo->m_glInfo) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Render thread GL not available.";
+            GFXSTREAM_FATAL("RenderThreadGL not available.");
         }
         tinfo->m_glInfo->m_contextSet.erase(contextHandle);
     }
@@ -3219,7 +3217,7 @@ void FrameBuffer::destroyEmulatedEglContext(HandleType contextHandle) {
 
 HandleType FrameBuffer::createEmulatedEglWindowSurface(int p_config, int p_width, int p_height) {
     if (!m_emulationGl) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "EGL emulation unavailable.";
+        GFXSTREAM_FATAL("GL/EGL emulation not enabled.");
     }
 
     AutoLock mutex(m_lock);
@@ -3231,7 +3229,7 @@ HandleType FrameBuffer::createEmulatedEglWindowSurface(int p_config, int p_width
     auto window =
         m_emulationGl->createEmulatedEglWindowSurface(p_config, p_width, p_height, handle);
     if (!window) {
-        ERR("Failed to create EmulatedEglWindowSurface.");
+        GFXSTREAM_ERROR("Failed to create EmulatedEglWindowSurface.");
         return 0;
     }
 
@@ -3239,7 +3237,7 @@ HandleType FrameBuffer::createEmulatedEglWindowSurface(int p_config, int p_width
 
     RenderThreadInfo* info = RenderThreadInfo::get();
     if (!info->m_glInfo) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "RRenderThreadInfoGl not available.";
+        GFXSTREAM_FATAL("RRenderThreadInfoGl not available.");
     }
 
     uint64_t puid = info->m_puid;
@@ -3286,8 +3284,7 @@ std::vector<HandleType> FrameBuffer::destroyEmulatedEglWindowSurfaceLocked(Handl
             }
         } else {
             if (!tinfo->m_glInfo) {
-                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                    << "Render thread GL not available.";
+                GFXSTREAM_FATAL("RenderThreadGL not available.");
             }
             tinfo->m_glInfo->m_windowSet.erase(p_surface);
         }
@@ -3298,13 +3295,13 @@ std::vector<HandleType> FrameBuffer::destroyEmulatedEglWindowSurfaceLocked(Handl
 void FrameBuffer::createEmulatedEglFenceSync(EGLenum type, int destroyWhenSignaled,
                                              uint64_t* outSync, uint64_t* outSyncThread) {
     if (!m_emulationGl) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "GL/EGL emulation not available.";
+        GFXSTREAM_FATAL("GL/EGL emulation not enabled.");
     }
 
     // TODO(b/233939967): move RenderThreadInfoGl usage to EmulationGl.
     RenderThreadInfoGl* const info = RenderThreadInfoGl::get();
     if (!info) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "RenderThreadInfoGl not available.";
+        GFXSTREAM_FATAL("RenderThreadGL not available.");
     }
     if (!info->currContext) {
         uint32_t syncContext;
@@ -3342,7 +3339,7 @@ void FrameBuffer::drainGlRenderThreadResources() {
     drainGlRenderThreadContexts();
 
     if (!s_egl.eglReleaseThread()) {
-        ERR("Error: RenderThread @%p failed to eglReleaseThread()", this);
+        GFXSTREAM_ERROR("Error: RenderThread @%p failed to eglReleaseThread()", this);
     }
 }
 
@@ -3353,7 +3350,7 @@ void FrameBuffer::drainGlRenderThreadContexts() {
 
     RenderThreadInfoGl* const tinfo = RenderThreadInfoGl::get();
     if (!tinfo) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Render thread GL not available.";
+        GFXSTREAM_FATAL("RenderThreadGL not available.");
     }
 
     if (tinfo->m_contextSet.empty()) {
@@ -3375,7 +3372,7 @@ void FrameBuffer::drainGlRenderThreadSurfaces() {
 
     RenderThreadInfoGl* const tinfo = RenderThreadInfoGl::get();
     if (!tinfo) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Render thread GL not available.";
+        GFXSTREAM_FATAL("RenderThreadGL not available.");
     }
 
     if (tinfo->m_windowSet.empty()) {
@@ -3410,28 +3407,28 @@ void FrameBuffer::drainGlRenderThreadSurfaces() {
 
 EmulationGl& FrameBuffer::getEmulationGl() {
     if (!m_emulationGl) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "GL/EGL emulation not enabled.";
+        GFXSTREAM_FATAL("GL/EGL emulation not enabled.");
     }
     return *m_emulationGl;
 }
 
 VkEmulation& FrameBuffer::getEmulationVk() {
     if (!m_emulationVk) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "GL/EGL emulation not enabled.";
+        GFXSTREAM_FATAL("GL/EGL emulation not enabled.");
     }
     return *m_emulationVk;
 }
 
 EGLDisplay FrameBuffer::getDisplay() const {
     if (!m_emulationGl) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "EGL emulation not enabled.";
+        GFXSTREAM_FATAL("GL/EGL emulation not enabled.");
     }
     return m_emulationGl->mEglDisplay;
 }
 
 EGLSurface FrameBuffer::getWindowSurface() const {
     if (!m_emulationGl) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "EGL emulation not enabled.";
+        GFXSTREAM_FATAL("GL/EGL emulation not enabled.");
     }
 
     if (!m_emulationGl->mWindowSurface) {
@@ -3446,26 +3443,25 @@ EGLSurface FrameBuffer::getWindowSurface() const {
 
 EGLContext FrameBuffer::getContext() const {
     if (!m_emulationGl) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "EGL emulation not enabled.";
+        GFXSTREAM_FATAL("GL/EGL emulation not enabled.");
     }
     return m_emulationGl->mEglContext;
 }
 
 EGLContext FrameBuffer::getConfig() const {
     if (!m_emulationGl) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "EGL emulation not enabled.";
+        GFXSTREAM_FATAL("GL/EGL emulation not enabled.");
     }
     return m_emulationGl->mEglConfig;
 }
 
 EGLContext FrameBuffer::getGlobalEGLContext() const {
     if (!m_emulationGl) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "EGL emulation not enabled.";
+        GFXSTREAM_FATAL("GL/EGL emulation not enabled.");
     }
 
     if (!m_emulationGl->mPbufferSurface) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "FrameBuffer pbuffer surface not available.";
+        GFXSTREAM_FATAL("FrameBuffer pbuffer surface not available.");
     }
 
     const auto* displaySurfaceGl =
@@ -3484,7 +3480,7 @@ EmulatedEglWindowSurfacePtr FrameBuffer::getWindowSurface_locked(HandleType p_wi
 
 TextureDraw* FrameBuffer::getTextureDraw() const {
     if (!m_emulationGl) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "EGL emulation not enabled.";
+        GFXSTREAM_FATAL("GL/EGL emulation not enabled.");
     }
 
     return m_emulationGl->mTextureDraw.get();
@@ -3492,7 +3488,7 @@ TextureDraw* FrameBuffer::getTextureDraw() const {
 
 bool FrameBuffer::isFastBlitSupported() const {
     if (!m_emulationGl) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "EGL emulation not enabled.";
+        GFXSTREAM_FATAL("GL/EGL emulation not enabled.");
     }
 
     return m_emulationGl->isFastBlitSupported();
@@ -3500,7 +3496,7 @@ bool FrameBuffer::isFastBlitSupported() const {
 
 void FrameBuffer::disableFastBlitForTesting() {
     if (!m_emulationGl) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "EGL emulation not enabled.";
+        GFXSTREAM_FATAL("GL/EGL emulation not enabled.");
     }
 
     m_emulationGl->disableFastBlitForTesting();
@@ -3509,7 +3505,7 @@ void FrameBuffer::disableFastBlitForTesting() {
 HandleType FrameBuffer::createEmulatedEglImage(HandleType contextHandle, EGLenum target,
                                                GLuint buffer) {
     if (!m_emulationGl) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "GL/EGL emulation not enabled.";
+        GFXSTREAM_FATAL("GL/EGL emulation not enabled.");
     }
 
     AutoLock mutex(m_lock);
@@ -3520,7 +3516,7 @@ HandleType FrameBuffer::createEmulatedEglImage(HandleType contextHandle, EGLenum
 
         auto it = m_contexts.find(contextHandle);
         if (it == m_contexts.end()) {
-            ERR("Failed to find EmulatedEglContext:%d", contextHandle);
+            GFXSTREAM_ERROR("Failed to find EmulatedEglContext:%d", contextHandle);
             return false;
         }
 
@@ -3530,7 +3526,7 @@ HandleType FrameBuffer::createEmulatedEglImage(HandleType contextHandle, EGLenum
     auto image = m_emulationGl->createEmulatedEglImage(context, target,
                                                        reinterpret_cast<EGLClientBuffer>(buffer));
     if (!image) {
-        ERR("Failed to create EmulatedEglImage");
+        GFXSTREAM_ERROR("Failed to create EmulatedEglImage");
         return false;
     }
 
@@ -3548,14 +3544,14 @@ HandleType FrameBuffer::createEmulatedEglImage(HandleType contextHandle, EGLenum
 
 EGLBoolean FrameBuffer::destroyEmulatedEglImage(HandleType imageHandle) {
     if (!m_emulationGl) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "GL/EGL emulation not enabled.";
+        GFXSTREAM_FATAL("GL/EGL emulation not enabled.");
     }
 
     AutoLock mutex(m_lock);
 
     auto imageIt = m_images.find(imageHandle);
     if (imageIt == m_images.end()) {
-        ERR("Failed to find EmulatedEglImage:%d", imageHandle);
+        GFXSTREAM_ERROR("Failed to find EmulatedEglImage:%d", imageHandle);
         return false;
     }
     auto& image = imageIt->second;
@@ -3580,7 +3576,8 @@ bool FrameBuffer::flushEmulatedEglWindowSurfaceColorBuffer(HandleType p_surface)
 
     auto it = m_windows.find(p_surface);
     if (it == m_windows.end()) {
-        ERR("FB::flushEmulatedEglWindowSurfaceColorBuffer: window handle %#x not found", p_surface);
+        GFXSTREAM_ERROR("FB::flushEmulatedEglWindowSurfaceColorBuffer: window handle %#x not found",
+                        p_surface);
         // bad surface handle
         return false;
     }
@@ -3613,7 +3610,7 @@ void* FrameBuffer::platformCreateSharedEglContext(void) {
 
     void* underlyingContext = s_egl.eglGetNativeContextANDROID(getDisplay(), context);
     if (!underlyingContext) {
-        ERR("Error: Underlying egl backend could not produce a native EGL context.");
+        GFXSTREAM_ERROR("Error: Underlying egl backend could not produce a native EGL context.");
         return nullptr;
     }
 
@@ -3638,7 +3635,8 @@ bool FrameBuffer::platformDestroySharedEglContext(void* underlyingContext) {
 
     auto it = m_platformEglContexts.find(underlyingContext);
     if (it == m_platformEglContexts.end()) {
-        ERR("Error: Could not find underlying egl context %p (perhaps already destroyed?)",
+        GFXSTREAM_ERROR(
+            "Error: Could not find underlying egl context %p (perhaps already destroyed?)",
             underlyingContext);
         return false;
     }
@@ -3653,7 +3651,7 @@ bool FrameBuffer::platformDestroySharedEglContext(void* underlyingContext) {
 bool FrameBuffer::flushColorBufferFromGl(HandleType colorBufferHandle) {
     auto colorBuffer = findColorBuffer(colorBufferHandle);
     if (!colorBuffer) {
-        ERR("%s: Failed to find ColorBuffer:%d", __func__, colorBufferHandle);
+        GFXSTREAM_ERROR("%s: Failed to find ColorBuffer:%d", __func__, colorBufferHandle);
         return false;
     }
     return colorBuffer->flushFromGl();
@@ -3662,7 +3660,7 @@ bool FrameBuffer::flushColorBufferFromGl(HandleType colorBufferHandle) {
 bool FrameBuffer::invalidateColorBufferForGl(HandleType colorBufferHandle) {
     auto colorBuffer = findColorBuffer(colorBufferHandle);
     if (!colorBuffer) {
-        VERBOSE("%s: Failed to find ColorBuffer:%d", __func__, colorBufferHandle);
+        GFXSTREAM_DEBUG("Failed to find ColorBuffer: %d", colorBufferHandle);
         return false;
     }
     return colorBuffer->invalidateForGl();
@@ -3670,11 +3668,10 @@ bool FrameBuffer::invalidateColorBufferForGl(HandleType colorBufferHandle) {
 
 ContextHelper* FrameBuffer::getPbufferSurfaceContextHelper() const {
     if (!m_emulationGl) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "EGL emulation not enabled.";
+        GFXSTREAM_FATAL("GL/EGL emulation not enabled.");
     }
     if (!m_emulationGl->mPbufferSurface) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "EGL emulation pbuffer surface not available.";
+        GFXSTREAM_FATAL("EGL emulation pbuffer surface not available.");
     }
     const auto* displaySurfaceGl =
         reinterpret_cast<const DisplaySurfaceGl*>(m_emulationGl->mPbufferSurface->getImpl());
@@ -3765,7 +3762,7 @@ bool FrameBuffer::bindContext(HandleType p_context, HandleType p_drawSurface,
     if (!s_egl.eglMakeCurrent(getDisplay(), draw ? draw->getEGLSurface() : EGL_NO_SURFACE,
                               read ? read->getEGLSurface() : EGL_NO_SURFACE,
                               ctx ? ctx->getEGLContext() : EGL_NO_CONTEXT)) {
-        ERR("eglMakeCurrent failed");
+        GFXSTREAM_ERROR("eglMakeCurrent failed");
         return false;
     }
 
@@ -3774,7 +3771,7 @@ bool FrameBuffer::bindContext(HandleType p_context, HandleType p_drawSurface,
     //
     RenderThreadInfoGl* const tinfo = RenderThreadInfoGl::get();
     if (!tinfo) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Render thread GL not available.";
+        GFXSTREAM_FATAL("RenderThreadGl not available.");
     }
 
     EmulatedEglWindowSurfacePtr bindDraw, bindRead;
@@ -3909,7 +3906,7 @@ void FrameBuffer::asyncWaitForGpuWithCb(uint64_t eglsync, FenceCompletionCallbac
     EmulatedEglFenceSync* fenceSync = EmulatedEglFenceSync::getFromHandle(eglsync);
 
     if (!fenceSync) {
-        ERR("err: fence sync 0x%llx not found", (unsigned long long)eglsync);
+        GFXSTREAM_ERROR("err: fence sync 0x%llx not found", (unsigned long long)eglsync);
         return;
     }
 
@@ -3918,7 +3915,7 @@ void FrameBuffer::asyncWaitForGpuWithCb(uint64_t eglsync, FenceCompletionCallbac
 
 const gl::GLESv2Dispatch* FrameBuffer::getGles2Dispatch() {
     if (!m_emulationGl) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "EGL emulation not enabled.";
+        GFXSTREAM_FATAL("GL/EGL emulation not enabled.");
     }
 
     return m_emulationGl->getGles2Dispatch();
@@ -3926,7 +3923,7 @@ const gl::GLESv2Dispatch* FrameBuffer::getGles2Dispatch() {
 
 const gl::EGLDispatch* FrameBuffer::getEglDispatch() {
     if (!m_emulationGl) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "EGL emulation not enabled.";
+        GFXSTREAM_FATAL("GL/EGL emulation not enabled.");
     }
 
     return m_emulationGl->getEglDispatch();

@@ -15,16 +15,16 @@
 #ifdef USE_ANGLE_SHADER_PARSER
 
 #include "ANGLEShaderParser.h"
-#include "ShaderTranslator.h"
 
-#include "aemu/base/SharedLibrary.h"
-#include "aemu/base/synchronization/Lock.h"
-#include "host-common/logging.h"
+#include <string.h>
 
 #include <map>
 #include <string>
 
-#include <string.h>
+#include "ShaderTranslator.h"
+#include "aemu/base/SharedLibrary.h"
+#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/host/logging.h"
 
 #define GL_COMPUTE_SHADER 0x91B9
 
@@ -49,8 +49,8 @@ public:
         char error[256];
         mLib = android::base::SharedLibrary::open(kLibName, error, sizeof(error));
         if (!mLib) {
-            ERR("%s: Could not open shader translator library %s [%s]\n",
-                __func__, kLibName, error);
+            GFXSTREAM_ERROR("%s: Could not open shader translator library %s [%s]\n", __func__,
+                            kLibName, error);
             return;
         }
 
@@ -76,7 +76,7 @@ public:
         mValid = dispatchValid();
 
         if (!mValid) {
-            ERR("%s: error, shader translator dispatch not valid\n", __func__);
+            GFXSTREAM_ERROR("%s: error, shader translator dispatch not valid\n", __func__);
         }
     }
 

@@ -21,8 +21,8 @@
 #include "OpenGLESDispatch/EGLDispatch.h"
 #include "OpenGLESDispatch/GLESv1Dispatch.h"
 #include "aemu/base/containers/SmallVector.h"
+#include "gfxstream/host/logging.h"
 #include "host-common/feature_control.h"
-#include "host-common/logging.h"
 #include "host-common/misc.h"
 
 namespace gfxstream {
@@ -76,7 +76,7 @@ std::unique_ptr<EmulatedEglContext> EmulatedEglContext::createImpl(
             display, config, sharedContext, &contextAttribs[0]);
     }
     if (context == EGL_NO_CONTEXT) {
-        ERR("Failed to create context (EGL_NO_CONTEXT result)");
+        GFXSTREAM_ERROR("Failed to create context (EGL_NO_CONTEXT result)");
         return nullptr;
     }
 

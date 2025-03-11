@@ -109,54 +109,6 @@ struct stream_renderer_debug {
     const char* message;
 };
 
-// Log level of gfxstream
-#ifndef STREAM_RENDERER_LOG_LEVEL
-#define STREAM_RENDERER_LOG_LEVEL STREAM_RENDERER_DEBUG_INFO
-#endif
-
-void stream_renderer_log(uint32_t type, const char* file, int line, const char* pretty_function,
-                         const char* format, ...);
-
-#if STREAM_RENDERER_LOG_LEVEL >= STREAM_RENDERER_DEBUG_ERROR
-#define stream_renderer_error(format, ...)                                                        \
-    do {                                                                                          \
-        stream_renderer_log(STREAM_RENDERER_DEBUG_ERROR, __FILE__, __LINE__, __PRETTY_FUNCTION__, \
-                            format, ##__VA_ARGS__);                                               \
-    } while (0)
-#else
-#define stream_renderer_error(format, ...)
-#endif
-
-#if STREAM_RENDERER_LOG_LEVEL >= STREAM_RENDERER_DEBUG_WARN
-#define stream_renderer_warn(format, ...)                                                        \
-    do {                                                                                         \
-        stream_renderer_log(STREAM_RENDERER_DEBUG_WARN, __FILE__, __LINE__, __PRETTY_FUNCTION__, \
-                            format, ##__VA_ARGS__);                                              \
-    } while (0)
-#else
-#define stream_renderer_warn(format, ...)
-#endif
-
-#if STREAM_RENDERER_LOG_LEVEL >= STREAM_RENDERER_DEBUG_INFO
-#define stream_renderer_info(format, ...)                                                         \
-    do {                                                                                          \
-        stream_renderer_log(STREAM_RENDERER_DEBUG_INFO, __FILE__, __LINE__, __FUNCTION__, format, \
-                            ##__VA_ARGS__);                                                       \
-    } while (0)
-#else
-#define stream_renderer_info(format, ...)
-#endif
-
-#if STREAM_RENDERER_LOG_LEVEL >= STREAM_RENDERER_DEBUG_DEBUG
-#define stream_renderer_debug(format, ...)                                                        \
-    do {                                                                                          \
-        stream_renderer_log(STREAM_RENDERER_DEBUG_DEBUG, __FILE__, __LINE__, __PRETTY_FUNCTION__, \
-                            format, ##__VA_ARGS__);                                               \
-    } while (0)
-#else
-#define stream_renderer_debug(format, ...)
-#endif
-
 // Callback for writing a fence.
 typedef void (*stream_renderer_fence_callback)(void* user_data,
                                                struct stream_renderer_fence* fence_data);

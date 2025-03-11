@@ -18,7 +18,7 @@
 
 #include "OpenGLESDispatch/DispatchTables.h"
 #include "OpenGLESDispatch/EGLDispatch.h"
-#include "host-common/logging.h"
+#include "gfxstream/host/logging.h"
 
 namespace gfxstream {
 namespace gl {
@@ -30,7 +30,7 @@ std::unique_ptr<EmulatedEglImage> EmulatedEglImage::create(EGLDisplay display,
                                                            EGLClientBuffer buffer) {
     EGLImageKHR image = s_egl.eglCreateImageKHR(display, context, target, buffer, nullptr);
     if (image == EGL_NO_IMAGE_KHR) {
-        ERR("Failed to create EGL image.");
+        GFXSTREAM_ERROR("Failed to create EGL image.");
         return nullptr;
     }
 
@@ -58,7 +58,7 @@ EGLBoolean EmulatedEglImage::destroy() {
     if (mEglImage) {
         EGLBoolean ret = s_egl.eglDestroyImageKHR(mEglDisplay, mEglImage);
         if (!ret) {
-            ERR("Failed to destroy EGL image.");
+            GFXSTREAM_ERROR("Failed to destroy EGL image.");
         }
         mEglImage = EGL_NO_IMAGE_KHR;
         return ret;

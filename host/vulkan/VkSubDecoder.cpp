@@ -51,7 +51,7 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
         // packetLen should be at least 8 (op code and packet length) and should not be excessively
         // large
         if (packetLen < 8 || packetLen > MAX_PACKET_LENGTH) {
-            WARN("Bad packet length %d detected, subdecode may fail", packetLen);
+            GFXSTREAM_WARNING("Bad packet length %d detected, subdecode may fail", packetLen);
             metricsLogger.logMetricEvent(MetricEventBadPacketLength{.len = packetLen});
         }
 

@@ -16,19 +16,17 @@
 
 #include "GLcommon/SaveableTexture.h"
 
-#include "aemu/base/ArraySize.h"
-#include "aemu/base/containers/SmallVector.h"
-#include "aemu/base/files/StreamSerializing.h"
-#include "aemu/base/system/System.h"
+#include <algorithm>
 
 #include "GLcommon/GLEScontext.h"
 #include "GLcommon/GLutils.h"
 #include "GLcommon/TextureUtils.h"
-
+#include "aemu/base/ArraySize.h"
+#include "aemu/base/containers/SmallVector.h"
+#include "aemu/base/files/StreamSerializing.h"
+#include "aemu/base/system/System.h"
+#include "gfxstream/host/logging.h"
 #include "host-common/crash_reporter.h"
-#include "host-common/logging.h"
-
-#include <algorithm>
 
 #define SAVEABLE_TEXTURE_DEBUG 0
 
@@ -574,9 +572,10 @@ void SaveableTexture::loadFromStream(android::base::Stream* stream) {
                     return std::make_pair(pname, value);
                 });
     } else if (m_target != 0) {
-        GL_LOG("SaveableTexture::%s: warning: texture target 0x%x not "
-               "supported\n",
-               __func__, m_target);
+        GFXSTREAM_DEBUG(
+            "SaveableTexture::%s: warning: texture target 0x%x not "
+            "supported\n",
+            __func__, m_target);
         fprintf(stderr, "Warning: texture target %d not supported\n", m_target);
     }
     m_loadedFromStream.store(true);
@@ -680,7 +679,7 @@ void SaveableTexture::onSave(
 
                     //     double megabyte = 1024.0 * 1024.0;
 
-                    //     GL_LOG("%s %s: %f mb current. change: %f mb. texture:"
+                    //     GFXSTREAM_DEBUG("%s %s: %f mb current. change: %f mb. texture:"
                     //            "format 0x%x type 0x%x level 0x%x dims (%u, %u, %u)\n",
                     //            c_str(tag).get(),
                     //            c_str(stage).get(),
@@ -831,7 +830,8 @@ void SaveableTexture::onSave(
     } else if (m_target != 0) {
         // SaveableTexture is uninitialized iff a texture hasn't been bound,
         // which will give m_target==0
-        GL_LOG("SaveableTexture::onSave: warning: texture target 0x%x not supported\n", m_target);
+        GFXSTREAM_DEBUG("SaveableTexture::onSave: warning: texture target 0x%x not supported\n",
+                        m_target);
         fprintf(stderr, "Warning: texture target 0x%x not supported\n", m_target);
     }
 }
@@ -847,7 +847,8 @@ void SaveableTexture::restore() {
     m_globalTexObj.reset(new NamedObject(
             GenNameInfo(NamedObjectType::TEXTURE), m_globalNamespace));
     if (!m_globalTexObj) {
-        GL_LOG("SaveableTexture::%s: %p: could not allocate NamedObject for texture\n", __func__, this);
+        GFXSTREAM_DEBUG("SaveableTexture::%s: %p: could not allocate NamedObject for texture\n",
+                        __func__, this);
         emugl::emugl_crash_reporter(
                 "Fatal: could not allocate SaveableTexture m_globalTexObj\n");
     }
@@ -1057,8 +1058,7 @@ void SaveableTexture::fillEglImage(EglImage* eglImage) {
     eglImage->texStorageLevels = m_texStorageLevels;
     eglImage->sync = nullptr;
     if (!eglImage->globalTexObj) {
-        GL_LOG("%s: EGL image %p has no global texture object!\n",
-               __func__, eglImage);
+        GFXSTREAM_DEBUG("%s: EGL image %p has no global texture object!\n", __func__, eglImage);
     }
 }
 

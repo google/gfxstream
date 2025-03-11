@@ -27,9 +27,9 @@
 #include "OpenGLESDispatch/OpenGLDispatchLoader.h"
 #include "RenderThreadInfoGl.h"
 #include "aemu/base/misc/StringUtils.h"
+#include "gfxstream/host/logging.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/feature_control.h"
-#include "host-common/logging.h"
 #include "host-common/opengl/misc.h"
 
 namespace gfxstream {
@@ -42,7 +42,7 @@ static void EGLAPIENTRY EglDebugCallback(EGLenum error,
                                          EGLLabelKHR threadLabel,
                                          EGLLabelKHR objectLabel,
                                          const char *message) {
-    GL_LOG("command:%s message:%s", command, message);
+    GFXSTREAM_DEBUG("command:%s message:%s", command, message);
 }
 
 static void GL_APIENTRY GlDebugCallback(GLenum source,
@@ -52,7 +52,7 @@ static void GL_APIENTRY GlDebugCallback(GLenum source,
                                         GLsizei length,
                                         const GLchar *message,
                                         const void *userParam) {
-    GL_LOG("message:%s", message);
+    GFXSTREAM_DEBUG("message:%s", message);
 }
 
 static const GLint kGles2ContextAttribsESOrGLCompat[] = {
@@ -87,11 +87,11 @@ static bool validateGles2Context(EGLDisplay display) {
     EGLint numConfigs = 0;
     EGLConfig config;
     if (!s_egl.eglChooseConfig(display, configAttribs, &config, 1, &numConfigs)) {
-        ERR("Failed to find GLES 2.x config.");
+        GFXSTREAM_ERROR("Failed to find GLES 2.x config.");
         return false;
     }
     if (numConfigs != 1) {
-        ERR("Failed to find exactly 1 GLES 2.x config: found %d.", numConfigs);
+        GFXSTREAM_ERROR("Failed to find exactly 1 GLES 2.x config: found %d.", numConfigs);
         return false;
     }
 
@@ -103,20 +103,20 @@ static bool validateGles2Context(EGLDisplay display) {
 
     EGLSurface surface = s_egl.eglCreatePbufferSurface(display, config, surfaceAttribs);
     if (surface == EGL_NO_SURFACE) {
-        ERR("Failed to create GLES 2.x pbuffer surface.");
+        GFXSTREAM_ERROR("Failed to create GLES 2.x pbuffer surface.");
         return false;
     }
 
     const GLint* contextAttribs = EmulationGl::getGlesMaxContextAttribs();
     EGLContext context = s_egl.eglCreateContext(display, config, EGL_NO_CONTEXT, contextAttribs);
     if (context == EGL_NO_CONTEXT) {
-        ERR("Failed to create GLES 2.x context.");
+        GFXSTREAM_ERROR("Failed to create GLES 2.x context.");
         s_egl.eglDestroySurface(display, surface);
         return false;
     }
 
     if (!s_egl.eglMakeCurrent(display, surface, surface, context)) {
-        ERR("Failed to make GLES 2.x context current.");
+        GFXSTREAM_ERROR("Failed to make GLES 2.x context current.");
         s_egl.eglDestroySurface(display, surface);
         s_egl.eglDestroyContext(display, context);
         return false;
@@ -124,7 +124,7 @@ static bool validateGles2Context(EGLDisplay display) {
 
     const char* extensions = (const char*)s_gles2.glGetString(GL_EXTENSIONS);
     if (extensions == nullptr) {
-        ERR("Failed to query GLES 2.x context extensions.");
+        GFXSTREAM_ERROR("Failed to query GLES 2.x context extensions.");
         s_egl.eglDestroySurface(display, surface);
         s_egl.eglDestroyContext(display, context);
         return false;
@@ -132,7 +132,7 @@ static bool validateGles2Context(EGLDisplay display) {
 
     // It is rare but some drivers actually fail this...
     if (!s_egl.eglMakeCurrent(display, EGL_NO_CONTEXT, EGL_NO_SURFACE, EGL_NO_SURFACE)) {
-        ERR("Failed to unbind GLES 2.x context.");
+        GFXSTREAM_ERROR("Failed to unbind GLES 2.x context.");
         s_egl.eglDestroySurface(display, surface);
         s_egl.eglDestroyContext(display, context);
         return false;
@@ -208,15 +208,15 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
                                                  bool allowWindowSurface, bool egl2egl) {
     // Loads the glestranslator function pointers.
     if (!LazyLoadedEGLDispatch::get()) {
-        ERR("Failed to load EGL dispatch.");
+        GFXSTREAM_ERROR("Failed to load EGL dispatch.");
         return nullptr;
     }
     if (!LazyLoadedGLESv1Dispatch::get()) {
-        ERR("Failed to load GLESv1 dispatch.");
+        GFXSTREAM_ERROR("Failed to load GLESv1 dispatch.");
         return nullptr;
     }
     if (!LazyLoadedGLESv2Dispatch::get()) {
-        ERR("Failed to load GLESv2 dispatch.");
+        GFXSTREAM_ERROR("Failed to load GLESv2 dispatch.");
         return nullptr;
     }
 
@@ -233,15 +233,15 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
 
     emulationGl->mEglDisplay = s_egl.eglGetDisplay(EGL_DEFAULT_DISPLAY);
     if (emulationGl->mEglDisplay == EGL_NO_DISPLAY) {
-        ERR("Failed to get EGL display.");
+        GFXSTREAM_ERROR("Failed to get EGL display.");
         return nullptr;
     }
 
-    GL_LOG("call eglInitialize");
+    GFXSTREAM_DEBUG("call eglInitialize");
     if (!s_egl.eglInitialize(emulationGl->mEglDisplay,
                              &emulationGl->mEglVersionMajor,
                              &emulationGl->mEglVersionMinor)) {
-        ERR("Failed to eglInitialize.");
+        GFXSTREAM_ERROR("Failed to eglInitialize.");
         return nullptr;
     }
 
@@ -259,7 +259,7 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
 
     s_egl.eglBindAPI(EGL_OPENGL_ES_API);
 
-#ifdef ENABLE_GL_LOG
+#ifdef ENABLE_GFXSTREAM_DEBUG
     if (s_egl.eglDebugMessageControlKHR) {
         const EGLAttrib controls[] = {
             EGL_DEBUG_MSG_CRITICAL_KHR,
@@ -275,12 +275,12 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
         };
 
         if (s_egl.eglDebugMessageControlKHR(&EglDebugCallback, controls) == EGL_SUCCESS) {
-            GL_LOG("Successfully set eglDebugMessageControlKHR");
+            GFXSTREAM_DEBUG("Successfully set eglDebugMessageControlKHR");
         } else {
-            GL_LOG("Failed to eglDebugMessageControlKHR");
+            GFXSTREAM_DEBUG("Failed to eglDebugMessageControlKHR");
         }
     } else {
-        GL_LOG("eglDebugMessageControlKHR not available");
+        GFXSTREAM_DEBUG("eglDebugMessageControlKHR not available");
     }
 #endif
 
@@ -293,7 +293,7 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
                                       });
 
     if (!emulationGl->hasEglExtension("EGL_KHR_gl_texture_2D_image")) {
-        ERR("Failed to find required EGL_KHR_gl_texture_2D_image extension.");
+        GFXSTREAM_ERROR("Failed to find required EGL_KHR_gl_texture_2D_image extension.");
         return nullptr;
     }
 
@@ -312,7 +312,7 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
     emulationGl->mGlesVersionMinor = glesVersionMinor;
 
     if (!validateGles2Context(emulationGl->mEglDisplay)) {
-        ERR("Failed to validate creating GLES 2.x context.");
+        GFXSTREAM_ERROR("Failed to validate creating GLES 2.x context.");
         return nullptr;
     }
 
@@ -329,7 +329,7 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
 
     auto eglConfigOpt = getEmulationEglConfig(emulationGl->mEglDisplay, allowWindowSurface);
     if (!eglConfigOpt) {
-        ERR("Failed to find config for emulation GL.");
+        GFXSTREAM_ERROR("Failed to find config for emulation GL.");
         return nullptr;
     }
     emulationGl->mEglConfig = *eglConfigOpt;
@@ -341,7 +341,7 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
                                                       EGL_NO_CONTEXT,
                                                       maxContextAttribs);
     if (emulationGl->mEglContext == EGL_NO_CONTEXT) {
-        ERR("Failed to create context, error 0x%x.", s_egl.eglGetError());
+        GFXSTREAM_ERROR("Failed to create context, error 0x%x.", s_egl.eglGetError());
         return nullptr;
     }
 
@@ -358,7 +358,7 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
                                                                    /*width=*/1,
                                                                    /*height=*/1);
     if (!pbufferSurfaceGl) {
-        ERR("Failed to create pbuffer display surface.");
+        GFXSTREAM_ERROR("Failed to create pbuffer display surface.");
         return nullptr;
     }
     auto* pbufferSurfaceGlPtr = pbufferSurfaceGl.get();
@@ -373,7 +373,7 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
                                                 emulationGl->mGlesDispatchMaxVersion,
                                                 emulationGl->mFeatures);
     if (emulationGl->mEmulatedEglConfigs->empty()) {
-        ERR("Failed to initialize emulated configs.");
+        GFXSTREAM_ERROR("Failed to initialize emulated configs.");
         return nullptr;
     }
 
@@ -385,17 +385,17 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
                         return renderableType & (EGL_OPENGL_ES_BIT | EGL_OPENGL_ES2_BIT);
                     });
     if (!hasEsOrEs2Context) {
-        ERR("Failed to find any usable guest EGL configs.");
+        GFXSTREAM_ERROR("Failed to find any usable guest EGL configs.");
         return nullptr;
     }
 
     RecursiveScopedContextBind contextBind(pbufferSurfaceGlPtr->getContextHelper());
     if (!contextBind.isOk()) {
-        ERR("Failed to make pbuffer context and surface current");
+        GFXSTREAM_ERROR("Failed to make pbuffer context and surface current");
         return nullptr;
     }
 
-#ifdef ENABLE_GL_LOG
+#ifdef ENABLE_GFXSTREAM_DEBUG
     bool debugSetup = false;
     if (s_gles2.glDebugMessageCallback) {
         s_gles2.glEnable(GL_DEBUG_OUTPUT);
@@ -412,9 +412,9 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
         s_gles2.glDebugMessageCallback(&GlDebugCallback, nullptr);
         debugSetup = s_gles2.glGetError() == GL_NO_ERROR;
         if (!debugSetup) {
-            ERR("Failed to set up glDebugMessageCallback");
+            GFXSTREAM_ERROR("Failed to set up glDebugMessageCallback");
         } else {
-            GL_LOG("Successfully set up glDebugMessageCallback");
+            GFXSTREAM_DEBUG("Successfully set up glDebugMessageCallback");
         }
     }
     if (s_gles2.glDebugMessageCallbackKHR && !debugSetup) {
@@ -433,13 +433,13 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
         s_gles2.glDebugMessageCallbackKHR(&GlDebugCallback, nullptr);
         debugSetup = s_gles2.glGetError() == GL_NO_ERROR;
         if (!debugSetup) {
-            ERR("Failed to set up glDebugMessageCallbackKHR");
+            GFXSTREAM_ERROR("Failed to set up glDebugMessageCallbackKHR");
         } else {
-            GL_LOG("Successfully set up glDebugMessageCallbackKHR");
+            GFXSTREAM_DEBUG("Successfully set up glDebugMessageCallbackKHR");
         }
     }
     if (!debugSetup) {
-        GL_LOG("glDebugMessageCallback and glDebugMessageCallbackKHR not available");
+        GFXSTREAM_DEBUG("glDebugMessageCallback and glDebugMessageCallbackKHR not available");
     }
 #endif
 
@@ -479,7 +479,7 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
 
     emulationGl->mTextureDraw = std::make_unique<TextureDraw>();
     if (!emulationGl->mTextureDraw) {
-        ERR("Failed to initialize TextureDraw.");
+        GFXSTREAM_ERROR("Failed to initialize TextureDraw.");
         return nullptr;
     }
 
@@ -495,7 +495,7 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
                                                                /*width=*/1,
                                                                /*height=*/1);
         if (!surface1) {
-            ERR("Failed to create pbuffer surface for ReadbackWorkerGl.");
+            GFXSTREAM_ERROR("Failed to create pbuffer surface for ReadbackWorkerGl.");
             return nullptr;
         }
 
@@ -506,7 +506,7 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
                                                                /*width=*/1,
                                                                /*height=*/1);
         if (!surface2) {
-            ERR("Failed to create pbuffer surface for ReadbackWorkerGl.");
+            GFXSTREAM_ERROR("Failed to create pbuffer surface for ReadbackWorkerGl.");
             return nullptr;
         }
 
@@ -526,7 +526,7 @@ EmulationGl::~EmulationGl() {
         if (contextBind.isOk()) {
             mTextureDraw.reset();
         } else {
-            ERR("Failed to bind context for destroying TextureDraw.");
+            GFXSTREAM_ERROR("Failed to bind context for destroying TextureDraw.");
         }
     }
 
@@ -622,7 +622,7 @@ std::unique_ptr<DisplaySurface> EmulationGl::createWindowSurface(
                                                            getGlesMaxContextAttribs(),
                                                            window);
     if (!surfaceGl) {
-        ERR("Failed to create DisplaySurfaceGl.");
+        GFXSTREAM_ERROR("Failed to create DisplaySurfaceGl.");
         return nullptr;
     }
 
@@ -682,13 +682,13 @@ std::unique_ptr<EmulatedEglContext> EmulationGl::createEmulatedEglContext(
         GLESApi api,
         HandleType handle) {
     if (!mEmulatedEglConfigs) {
-        ERR("EmulatedEglConfigs unavailable.");
+        GFXSTREAM_ERROR("EmulatedEglConfigs unavailable.");
         return nullptr;
     }
 
     const EmulatedEglConfig* emulatedEglConfig = mEmulatedEglConfigs->get(emulatedEglConfigIndex);
     if (!emulatedEglConfig) {
-        ERR("Failed to find emulated EGL config %d", emulatedEglConfigIndex);
+        GFXSTREAM_ERROR("Failed to find emulated EGL config %d", emulatedEglConfigIndex);
         return nullptr;
     }
 
@@ -727,13 +727,13 @@ std::unique_ptr<EmulatedEglWindowSurface> EmulationGl::createEmulatedEglWindowSu
         uint32_t height,
         HandleType handle) {
     if (!mEmulatedEglConfigs) {
-        ERR("EmulatedEglConfigs unavailable.");
+        GFXSTREAM_ERROR("EmulatedEglConfigs unavailable.");
         return nullptr;
     }
 
     const EmulatedEglConfig* emulatedEglConfig = mEmulatedEglConfigs->get(emulatedConfigIndex);
     if (!emulatedEglConfig) {
-        ERR("Failed to find emulated EGL config %d", emulatedConfigIndex);
+        GFXSTREAM_ERROR("Failed to find emulated EGL config %d", emulatedConfigIndex);
         return nullptr;
     }
 

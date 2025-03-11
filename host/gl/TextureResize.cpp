@@ -16,18 +16,18 @@
 
 #include "TextureResize.h"
 
+#include <GLES2/gl2ext.h>
 #include <stdio.h>
 #include <string.h>
+
 #include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
 
-#include <GLES2/gl2ext.h>
-
 #include "OpenGLESDispatch/DispatchTables.h"
 #include "aemu/base/synchronization/Lock.h"
-#include "host-common/logging.h"
+#include "gfxstream/host/logging.h"
 #include "host-common/misc.h"
 #include "host-common/opengl/misc.h"
 
@@ -171,9 +171,8 @@ static GLuint createShader(GLenum type, std::initializer_list<const char*> sourc
             s_gles2.glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLength);
             std::string infoLog(infoLength + 1, '\0');
             s_gles2.glGetShaderInfoLog(shader, infoLength, nullptr, &infoLog[0]);
-            ERR("%s shader compile failed:\n%s\n",
-                    (type == GL_VERTEX_SHADER) ? "Vertex" : "Fragment",
-                    infoLog.c_str());
+            GFXSTREAM_ERROR("%s shader compile failed:\n%s\n",
+                            (type == GL_VERTEX_SHADER) ? "Vertex" : "Fragment", infoLog.c_str());
             s_gles2.glDeleteShader(shader);
             shader = 0;
         }
@@ -321,7 +320,7 @@ GLuint TextureResize::update(GLuint texture) {
     // If there was an error while resizing, just use the unscaled texture.
     GLenum error = s_gles2.glGetError();
     if (error != GL_NO_ERROR) {
-        VERBOSE("GL error while resizing: 0x%x (ignored)\n", error);
+        GFXSTREAM_VERBOSE("GL error while resizing: 0x%x (ignored)\n", error);
         return texture;
     }
 
@@ -466,7 +465,7 @@ TextureResize::GenericResizer::GenericResizer() :
     if (success == GL_FALSE) {
         GLchar infolog[256];
         s_gles2.glGetProgramInfoLog(mProgram, sizeof(infolog), 0, infolog);
-        ERR("Could not create/link program: %s\n", infolog);
+        GFXSTREAM_ERROR("Could not create/link program: %s\n", infolog);
         return;
     }
 

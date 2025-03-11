@@ -64,7 +64,8 @@ class ExternalFencePool {
         android::base::AutoLock lock(mLock);
         mPool.push_back(fence);
         if (mPool.size() > mMaxSize) {
-            INFO("External fence pool for %p has increased to size %d", mDevice, mPool.size());
+            GFXSTREAM_INFO("External fence pool for %p has increased to size %d", mDevice,
+                           mPool.size());
             mMaxSize = mPool.size();
         }
     }

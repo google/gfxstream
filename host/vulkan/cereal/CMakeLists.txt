@@ -14,6 +14,7 @@ target_link_libraries(
     PUBLIC
     aemu-base.headers
     gfxstream_features
+    gfxstream_host_logging
     gfxstream_vulkan_headers
     PRIVATE
     gfxstream_utils.headers)

@@ -19,39 +19,37 @@
 #define EGLAPIENTRY
 #endif
 
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
 #include <GLcommon/GLESmacros.h>
+#include <stdio.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
+#include "ClientAPIExts.h"
+#include "EglConfig.h"
+#include "EglContext.h"
+#include "EglDisplay.h"
+#include "EglGlobalInfo.h"
+#include "EglOsApi.h"
+#include "EglPbufferSurface.h"
+#include "EglThreadInfo.h"
+#include "EglValidate.h"
+#include "EglWindowSurface.h"
 #include "GLcommon/GLEScontext.h"
 #include "GLcommon/GLutils.h"
 #include "GLcommon/TextureData.h"
 #include "GLcommon/TextureUtils.h"
 #include "GLcommon/TranslatorIfaces.h"
+#include "GraphicsDriverLock.h"
 #include "ThreadInfo.h"
-#include "aemu/base/synchronization/Lock.h"
-#include "aemu/base/files/Stream.h"
-#include "aemu/base/system/System.h"
 #include "aemu/base/SharedLibrary.h"
+#include "aemu/base/files/Stream.h"
+#include "aemu/base/synchronization/Lock.h"
+#include "aemu/base/system/System.h"
+#include "gfxstream/host/logging.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/emugl_vm_operations.h"
-#include "host-common/logging.h"
-
-#include "EglWindowSurface.h"
-#include "EglPbufferSurface.h"
-#include "EglGlobalInfo.h"
-#include "EglThreadInfo.h"
-#include "EglValidate.h"
-#include "EglDisplay.h"
-#include "EglContext.h"
-#include "EglConfig.h"
-#include "EglOsApi.h"
-#include "GraphicsDriverLock.h"
-#include "ClientAPIExts.h"
-
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
-
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 
 #define MAJOR          1
 #define MINOR          4
@@ -107,7 +105,7 @@ static const EGLiface s_eglIface = {
 static void initGLESx(GLESVersion version) {
     const GLESiface* iface = g_eglInfo->getIface(version);
     if (!iface) {
-        ERR("EGL failed to initialize GLESv%d; incompatible interface", version);
+        GFXSTREAM_ERROR("EGL failed to initialize GLESv%d; incompatible interface", version);
         return;
     }
     iface->initGLESx(EglGlobalInfo::isEgl2Egl());

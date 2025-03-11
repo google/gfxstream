@@ -13,31 +13,30 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+
+// clang-format off
 #include "EglOsApi.h"
-
-#include "aemu/base/synchronization/Lock.h"
-#include "aemu/base/SharedLibrary.h"
-
-#include "CoreProfileConfigs.h"
-#include "host-common/logging.h"
-#include "GLcommon/GLLibrary.h"
-
-#include <windows.h>
-#include <wingdi.h>
-
-#include <GLES/glplatform.h>
-#include <GL/gl.h>
-#include <GL/wglext.h>
+// clang-format on
 
 #include <EGL/eglext.h>
+#include <GL/gl.h>
+#include <GL/wglext.h>
+#include <GLES/glplatform.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <windows.h>
+#include <wingdi.h>
 
 #include <algorithm>
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
 
-#include <stdio.h>
-#include <stdlib.h>
+#include "CoreProfileConfigs.h"
+#include "GLcommon/GLLibrary.h"
+#include "aemu/base/SharedLibrary.h"
+#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/host/logging.h"
 
 #define IS_TRUE(a) \
         do { if (!(a)) return NULL; } while (0)
@@ -54,7 +53,7 @@
 
 #define WGL_ERR(...)  do { \
     fprintf(stderr, __VA_ARGS__); \
-    GL_LOG(__VA_ARGS__); \
+    GFXSTREAM_ERROR(__VA_ARGS__); \
 } while(0) \
 
 // TODO: Replace with latency tracker.
@@ -187,34 +186,31 @@ struct WglBaseDispatch {
         mLib = glLib;
         mIsSystemLib = systemLib;
 
-#define LOAD_WGL_POINTER(return_type, function_name, signature) \
-    this->function_name = reinterpret_cast< \
-            return_type (GL_APIENTRY*) signature>( \
-                    glLib->findSymbol(#function_name)); \
-    if (!this->function_name) { \
-        WGL_ERR("%s: Could not find %s in GL library\n", __FUNCTION__, \
-                #function_name); \
-        result = false; \
+#define LOAD_WGL_POINTER(return_type, function_name, signature)                                   \
+    this->function_name =                                                                         \
+        reinterpret_cast<return_type(GL_APIENTRY*) signature>(glLib->findSymbol(#function_name)); \
+    if (!this->function_name) {                                                                   \
+        WGL_ERR("%s: Could not find %s in GL library\n", __FUNCTION__,                            \
+                #function_name);                                                                  \
+        result = false;                                                                           \
     }
 
-#define LOAD_WGL_GDI32_POINTER(return_type, function_name, signature) \
-    this->function_name = reinterpret_cast< \
-            return_type (GL_APIENTRY*) signature>( \
-                    GetProcAddress(gdi32, #function_name)); \
-    if (!this->function_name) { \
-        WGL_ERR("%s: Could not find %s in GDI32 library\n", __FUNCTION__, \
-                #function_name); \
-        result = false; \
+#define LOAD_WGL_GDI32_POINTER(return_type, function_name, signature)                 \
+    this->function_name = reinterpret_cast<return_type(GL_APIENTRY*) signature>(      \
+        GetProcAddress(gdi32, #function_name));                                       \
+    if (!this->function_name) {                                                       \
+        WGL_ERR("%s: Could not find %s in GDI32 library\n", __FUNCTION__,             \
+                #function_name);                                                      \
+        result = false;                                                               \
     }
 
-#define LOAD_WGL_INNER_POINTER(return_type, function_name, signature) \
-    this->function_name = reinterpret_cast< \
-            return_type (GL_APIENTRY*) signature>( \
-                    glLib->findSymbol("wgl" #function_name)); \
-    if (!this->function_name) { \
-        WGL_ERR("%s: Could not find %s in GL library\n", __FUNCTION__, \
-                "wgl" #function_name); \
-        result = false; \
+#define LOAD_WGL_INNER_POINTER(return_type, function_name, signature)              \
+    this->function_name = reinterpret_cast<return_type(GL_APIENTRY*) signature>(   \
+        glLib->findSymbol("wgl" #function_name));                                  \
+    if (!this->function_name) {                                                    \
+        WGL_ERR("%s: Could not find %s in GL library\n", __FUNCTION__,             \
+                "wgl" #function_name);                                             \
+        result = false;                                                            \
     }
 
         LIST_WGL_FUNCTIONS(LOAD_WGL_POINTER)
@@ -398,27 +394,25 @@ public:
         }
 
         // Load each extension individually.
-#define LOAD_WGL_EXTENSION_FUNCTION(return_type, function_name, signature) \
-    this->function_name = reinterpret_cast< \
-            return_type (GL_APIENTRY*) signature>( \
-                    this->findFunction(#function_name "ARB")); \
-    if (!this->function_name) { \
-        this->function_name = reinterpret_cast< \
-                return_type (GL_APIENTRY*) signature>( \
-                        this->findFunction(#function_name "EXT")); \
-    } \
-    if (!this->function_name) { \
-        WGL_ERR("ERROR: %s: Missing extension function %s\n", __FUNCTION__, \
-            #function_name); \
-        result = false; \
+#define LOAD_WGL_EXTENSION_FUNCTION(return_type, function_name, signature)              \
+    this->function_name = reinterpret_cast<return_type(GL_APIENTRY*) signature>(        \
+        this->findFunction(#function_name "ARB"));                                      \
+    if (!this->function_name) {                                                         \
+        this->function_name = reinterpret_cast<return_type(GL_APIENTRY*) signature>(    \
+            this->findFunction(#function_name "EXT"));                                  \
+    }                                                                                   \
+    if (!this->function_name) {                                                         \
+        WGL_ERR("ERROR: %s: Missing extension function %s\n", __FUNCTION__,             \
+                #function_name);                                                        \
+        result = false;                                                                 \
     }
 
-#define LOAD_WGL_EXTENSION(extension) \
-    if (supportsExtension("WGL_ARB_" #extension, extensionList) || \
-        supportsExtension("WGL_EXT_" #extension, extensionList)) { \
-        LIST_##extension##_FUNCTIONS(LOAD_WGL_EXTENSION_FUNCTION) \
-    } else { \
-        WGL_ERR("WARNING: %s: Missing WGL extension %s\n", __FUNCTION__, #extension); \
+#define LOAD_WGL_EXTENSION(extension)                                                             \
+    if (supportsExtension("WGL_ARB_" #extension, extensionList) ||                                \
+        supportsExtension("WGL_EXT_" #extension, extensionList)) {                                \
+        LIST_##extension##_FUNCTIONS(LOAD_WGL_EXTENSION_FUNCTION)                                 \
+    } else {                                                                                      \
+        WGL_ERR("WARNING: %s: Missing WGL extension %s\n", __FUNCTION__, #extension);             \
     }
 
         LOAD_WGL_EXTENSION(pixel_format)
@@ -962,8 +956,10 @@ public:
                 dpy, 1, sizeof(PIXELFORMATDESCRIPTOR), &pfd);
 
         if (0 == maxFormat) {
-            WGL_ERR("No pixel formats found from wglDescribePixelFormat! "
-                    "error: 0x%x\n", static_cast<unsigned int>(GetLastError()));
+            WGL_ERR(
+                "No pixel formats found from wglDescribePixelFormat! "
+                "error: 0x%x\n",
+                static_cast<unsigned int>(GetLastError()));
         }
 
         // Inserting rest of formats. Try to map each one to an EGL Config.
@@ -1315,18 +1311,17 @@ WinEngine::WinEngine() :
         isSystemLib = false;
     }
     char error[256];
-    GL_LOG("%s: Trying to load %s\n", __FUNCTION__, kLibName);
+    GFXSTREAM_DEBUG("%s: Trying to load %s\n", __FUNCTION__, kLibName);
     mLib = SharedLibrary::open(kLibName, error, sizeof(error));
     if (!mLib) {
-        WGL_ERR("ERROR: %s: Could not open %s: %s\n", __FUNCTION__,
-                kLibName, error);
+        WGL_ERR("ERROR: %s: Could not open %s: %s\n", __FUNCTION__, kLibName, error);
         exit(1);
     }
 
-    GL_LOG("%s: Library loaded at %p\n", __FUNCTION__, mLib);
+    GFXSTREAM_DEBUG("%s: Library loaded at %p\n", __FUNCTION__, mLib);
     mBaseDispatch.init(mLib, isSystemLib);
     mDispatch = initExtensionsDispatch(&mBaseDispatch);
-    GL_LOG("%s: Dispatch initialized\n", __FUNCTION__);
+    GFXSTREAM_DEBUG("%s: Dispatch initialized\n", __FUNCTION__);
 }
 
 static WinEngine* sHostEngine() {

@@ -21,24 +21,22 @@
 #endif
 
 #define GL_GLEXT_PROTOTYPES
-#include "GLEScmContext.h"
-#include "GLEScmValidate.h"
-#include "GLEScmUtils.h"
-#include <GLcommon/TextureUtils.h>
-
+#include <GLcommon/FramebufferData.h>
 #include <GLcommon/GLDispatch.h>
 #include <GLcommon/GLconversion_macros.h>
 #include <GLcommon/TextureData.h>
+#include <GLcommon/TextureUtils.h>
 #include <GLcommon/TranslatorIfaces.h>
-#include <GLcommon/FramebufferData.h>
-
-#include "host-common/crash_reporter.h"
-#include "host-common/logging.h"
+#include <stdio.h>
 
 #include <cmath>
 #include <unordered_map>
 
-#include <stdio.h>
+#include "GLEScmContext.h"
+#include "GLEScmUtils.h"
+#include "GLEScmValidate.h"
+#include "gfxstream/host/logging.h"
+#include "host-common/crash_reporter.h"
 
 #define DEBUG 0
 

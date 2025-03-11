@@ -18,7 +18,7 @@
 #include "OpenGLESDispatch/DispatchTables.h"
 #include "OpenGLESDispatch/EGLDispatch.h"
 #include "TextureDraw.h"
-#include "host-common/logging.h"
+#include "gfxstream/host/logging.h"
 
 namespace gfxstream {
 namespace gl {
@@ -55,7 +55,7 @@ std::shared_future<void> DisplayGl::post(const Post& post) {
                                              post.frameHeight);
         } else if (layer.overlayOptions) {
             if (hasDrawLayer) {
-                ERR("Cannot mix colorBuffer.postLayer with postWithOverlay!");
+                GFXSTREAM_ERROR("Cannot mix colorBuffer.postLayer with postWithOverlay!");
             }
             layer.colorBuffer->glOpPostViewportScaledWithOverlay(
                 layer.overlayOptions->rotation, layer.overlayOptions->dx, layer.overlayOptions->dy);

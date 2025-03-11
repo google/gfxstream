@@ -15,18 +15,18 @@
 */
 #include "EmulatedEglWindowSurface.h"
 
+#include <GLES/glext.h>
 #include <assert.h>
-#include <ios>
 #include <stdio.h>
 #include <string.h>
 
-#include <GLES/glext.h>
+#include <ios>
 
 #include "OpenGLESDispatch/DispatchTables.h"
 #include "OpenGLESDispatch/EGLDispatch.h"
 #include "aemu/base/containers/Lookup.h"
+#include "gfxstream/host/logging.h"
 #include "host-common/GfxstreamFatalError.h"
-#include "host-common/logging.h"
 
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
@@ -103,12 +103,12 @@ bool EmulatedEglWindowSurface::flushColorBuffer() {
     if (mAttachedColorBuffer->getWidth() != mWidth ||
         mAttachedColorBuffer->getHeight() != mHeight) {
         // XXX: should never happen - how this needs to be handled?
-        ERR("Dimensions do not match");
+        GFXSTREAM_ERROR("Dimensions do not match");
         return false;
     }
 
     if (!mDrawContext.get()) {
-        ERR("%p: Draw context is NULL", this);
+        GFXSTREAM_ERROR("%p: Draw context is NULL", this);
         return false;
     }
 
@@ -131,7 +131,7 @@ bool EmulatedEglWindowSurface::flushColorBuffer() {
                                   mSurface,
                                   mSurface,
                                   mDrawContext->getEGLContext())) {
-            ERR("Error making draw context current");
+            GFXSTREAM_ERROR("Error making draw context current");
             return false;
         }
     }
@@ -185,7 +185,7 @@ bool EmulatedEglWindowSurface::resize(unsigned int p_width, unsigned int p_heigh
                                              mConfig,
                                              pbufAttribs);
     if (mSurface == EGL_NO_SURFACE) {
-        ERR("Renderer error: failed to create/resize pbuffer!!");
+        GFXSTREAM_ERROR("Renderer error: failed to create/resize pbuffer!!");
         return false;
     }
 

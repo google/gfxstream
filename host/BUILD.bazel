@@ -152,6 +152,7 @@ cc_library(
         "//host/gl:gles1_dec",
         "//host/gl:gles2_dec",
         "//host/gl/glestranslator/GLES_CM:GLES_CM_translator_static",
+        "//host/logging:gfxstream_host_logging",
         "//host/renderControl_dec",
         "//host/snapshot:aemu-snapshot",
         "//host/tracing:gfxstream_host_tracing",

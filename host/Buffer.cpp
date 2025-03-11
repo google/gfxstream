@@ -37,7 +37,7 @@ std::shared_ptr<Buffer> Buffer::create(gl::EmulationGl* emulationGl, vk::VkEmula
     if (emulationGl) {
         buffer->mBufferGl = emulationGl->createBuffer(size, handle);
         if (!buffer->mBufferGl) {
-            ERR("Failed to initialize BufferGl.");
+            GFXSTREAM_ERROR("Failed to initialize BufferGl.");
             return nullptr;
         }
     }
@@ -48,7 +48,7 @@ std::shared_ptr<Buffer> Buffer::create(gl::EmulationGl* emulationGl, vk::VkEmula
 
         buffer->mBufferVk = vk::BufferVk::create(*emulationVk, handle, size, vulkanOnly);
         if (!buffer->mBufferVk) {
-            ERR("Failed to initialize BufferVk.");
+            GFXSTREAM_ERROR("Failed to initialize BufferVk.");
             return nullptr;
         }
 
@@ -77,7 +77,7 @@ std::shared_ptr<Buffer> Buffer::onLoad(gl::EmulationGl* emulationGl, vk::VkEmula
     if (emulationGl) {
         buffer->mBufferGl = emulationGl->loadBuffer(stream);
         if (!buffer->mBufferGl) {
-            ERR("Failed to load BufferGl.");
+            GFXSTREAM_ERROR("Failed to load BufferGl.");
             return nullptr;
         }
     }

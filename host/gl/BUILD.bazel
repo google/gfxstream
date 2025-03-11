@@ -14,6 +14,7 @@ cc_library(
         ":GLSnapshot",
         "//common/opengl:gfxstream_opengl_headers",
         "//host/apigen-codec-common",
+        "//host/logging:gfxstream_host_logging",
     ],
 )
 
@@ -30,6 +31,7 @@ objc_library(
     ],
     deps = [
         "//:gfxstream-gl-host-common-headers",
+        "//host/logging:gfxstream_host_logging",
     ],
 )
 
@@ -98,8 +100,7 @@ cc_library(
         ],
         "//conditions:default": [],
     }),
-    hdrs =
-        ["glestranslator/EGL/ClientAPIExts.in"],
+    hdrs = ["glestranslator/EGL/ClientAPIExts.in"],
     copts = [
         "-fno-exceptions",
         "-Wno-extern-c-compat",
@@ -119,6 +120,7 @@ cc_library(
             "//host/gl:gfxstream-gl-host-common",
             "//host/gl/glestranslator/GLES_CM:GLES_CM_translator_static",
             "//host/gl/glestranslator/GLES_V2:GLES_V2_translator_static",
+            "//host/logging:gfxstream_host_logging",
             "//host/snapshot:aemu-snapshot",
             "@aemu//host-common:aemu-host-common-headers",
         ] + select({
@@ -162,11 +164,11 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":gl-common-headers",
-        # "//external/angle:angle-headers",
-        "//common/opengl:gfxstream_opengl_headers",
-        "//host/snapshot:aemu-snapshot",
         "//common/etc:gfxstream_etc",
+        "//common/opengl:gfxstream_opengl_headers",
         "//host:gfxstream-compressedTextures",
+        "//host/logging:gfxstream_host_logging",
+        "//host/snapshot:aemu-snapshot",
     ],
 )
 
@@ -208,6 +210,7 @@ cc_library(
         "//common/opengl:gfxstream_opengl_headers",
         "//host/apigen-codec-common",
         "//host/features:gfxstream_features",
+        "//host/logging:gfxstream_host_logging",
         "//host/snapshot:aemu-snapshot",
     ] + select({
         "@platforms//os:macos": ["gfxstream-gl-host-common-darwin"],
@@ -230,6 +233,7 @@ cc_library(
         "//:gfxstream-gl-host-common-headers",
         "//common/opengl:gfxstream_opengl_headers",
         "//host/apigen-codec-common",
+        "//host/logging:gfxstream_host_logging",
     ],
 )
 
@@ -316,6 +320,7 @@ cc_library(
         "//host:gfxstream_host_headers",
         "//host/apigen-codec-common",
         "//host/gl:GLSnapshot",
+        "//host/logging:gfxstream_host_logging",
     ],
 )
 

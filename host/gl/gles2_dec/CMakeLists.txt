@@ -10,7 +10,8 @@ target_link_libraries(
     GLSnapshot
     ${GFXSTREAM_BASE_LIB}
     PRIVATE
-    gfxstream_egl_headers)
+    gfxstream_egl_headers
+    gfxstream_host_logging)
 target_include_directories(
     gles2_dec
     PRIVATE

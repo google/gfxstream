@@ -18,19 +18,16 @@
 
 #include <assert.h>
 #include <stdio.h>
+
 #include <string>
 
 #include "OpenGLESDispatch/DispatchTables.h"
+#include "gfxstream/host/logging.h"
 #include "host-common/feature_control.h"
 #include "host-common/opengl/misc.h"
 
 namespace gfxstream {
 namespace gl {
-
-#define FATAL(fmt,...) do { \
-    fprintf(stderr, "%s: FATAL: " fmt "\n", __func__, ##__VA_ARGS__); \
-    assert(false); \
-} while(0)
 
 #define YUV_CONVERTER_DEBUG 0
 
@@ -52,7 +49,7 @@ bool isInterleaved(FrameworkFormat format, bool yuv420888ToNv21) {
     case FRAMEWORK_FORMAT_YV12:
         return false;
     default:
-        FATAL("Invalid for format:%d", format);
+        GFXSTREAM_FATAL("Invalid for format:%d", format);
         return false;
     }
 }
@@ -64,7 +61,7 @@ enum class YUVInterleaveDirection {
 
 YUVInterleaveDirection getInterleaveDirection(FrameworkFormat format, bool yuv420888ToNv21) {
     if (!isInterleaved(format, yuv420888ToNv21)) {
-        FATAL("Format:%d not interleaved", format);
+        GFXSTREAM_FATAL("Format:%d not interleaved", format);
     }
 
     switch (format) {
@@ -75,11 +72,11 @@ YUVInterleaveDirection getInterleaveDirection(FrameworkFormat format, bool yuv42
         if (yuv420888ToNv21) {
             return YUVInterleaveDirection::VU;
         }
-        FATAL("Format:%d not interleaved", format);
+        GFXSTREAM_FATAL("Format:%d not interleaved", format);
         return YUVInterleaveDirection::UV;
     case FRAMEWORK_FORMAT_YV12:
     default:
-        FATAL("Format:%d not interleaved", format);
+        GFXSTREAM_FATAL("Format:%d not interleaved", format);
         return YUVInterleaveDirection::UV;
     }
 }
@@ -93,7 +90,7 @@ GLint getGlTextureFormat(FrameworkFormat format, bool yuv420888ToNv21, YUVPlane 
         case YUVPlane::V:
             return GL_R8;
         case YUVPlane::UV:
-            FATAL("Invalid plane for format:%d", format);
+            GFXSTREAM_FATAL("Invalid plane for format:%d", format);
             return 0;
         }
     case FRAMEWORK_FORMAT_YUV_420_888:
@@ -105,7 +102,7 @@ GLint getGlTextureFormat(FrameworkFormat format, bool yuv420888ToNv21, YUVPlane 
                 return GL_RG8;
             case YUVPlane::U:
             case YUVPlane::V:
-                FATAL("Invalid plane for format:%d", format);
+                GFXSTREAM_FATAL("Invalid plane for format:%d", format);
                 return 0;
             }
         } else {
@@ -115,7 +112,7 @@ GLint getGlTextureFormat(FrameworkFormat format, bool yuv420888ToNv21, YUVPlane 
             case YUVPlane::V:
                 return GL_R8;
             case YUVPlane::UV:
-                FATAL("Invalid plane for format:%d", format);
+                GFXSTREAM_FATAL("Invalid plane for format:%d", format);
                 return 0;
             }
         }
@@ -127,7 +124,7 @@ GLint getGlTextureFormat(FrameworkFormat format, bool yuv420888ToNv21, YUVPlane 
             return GL_RG8;
         case YUVPlane::U:
         case YUVPlane::V:
-            FATAL("Invalid plane for format:%d", format);
+            GFXSTREAM_FATAL("Invalid plane for format:%d", format);
             return 0;
         }
     case FRAMEWORK_FORMAT_P010:
@@ -138,11 +135,11 @@ GLint getGlTextureFormat(FrameworkFormat format, bool yuv420888ToNv21, YUVPlane 
             return GL_RG16UI;
         case YUVPlane::U:
         case YUVPlane::V:
-            FATAL("Invalid plane for format:%d", format);
+            GFXSTREAM_FATAL("Invalid plane for format:%d", format);
             return 0;
         }
     default:
-        FATAL("Invalid format:%d", format);
+        GFXSTREAM_FATAL("Invalid format:%d", format);
         return 0;
     }
 }
@@ -156,7 +153,7 @@ GLenum getGlPixelFormat(FrameworkFormat format, bool yuv420888ToNv21, YUVPlane p
         case YUVPlane::V:
             return GL_RED;
         case YUVPlane::UV:
-            FATAL("Invalid plane for format:%d", format);
+            GFXSTREAM_FATAL("Invalid plane for format:%d", format);
             return 0;
         }
     case FRAMEWORK_FORMAT_YUV_420_888:
@@ -168,7 +165,7 @@ GLenum getGlPixelFormat(FrameworkFormat format, bool yuv420888ToNv21, YUVPlane p
                 return GL_RG;
             case YUVPlane::U:
             case YUVPlane::V:
-                FATAL("Invalid plane for format:%d", format);
+                GFXSTREAM_FATAL("Invalid plane for format:%d", format);
                 return 0;
             }
         } else {
@@ -178,7 +175,7 @@ GLenum getGlPixelFormat(FrameworkFormat format, bool yuv420888ToNv21, YUVPlane p
             case YUVPlane::V:
                 return GL_RED;
             case YUVPlane::UV:
-                FATAL("Invalid plane for format:%d", format);
+                GFXSTREAM_FATAL("Invalid plane for format:%d", format);
                 return 0;
             }
         }
@@ -190,7 +187,7 @@ GLenum getGlPixelFormat(FrameworkFormat format, bool yuv420888ToNv21, YUVPlane p
             return GL_RG;
         case YUVPlane::U:
         case YUVPlane::V:
-            FATAL("Invalid plane for format:%d", format);
+            GFXSTREAM_FATAL("Invalid plane for format:%d", format);
             return 0;
         }
     case FRAMEWORK_FORMAT_P010:
@@ -201,11 +198,11 @@ GLenum getGlPixelFormat(FrameworkFormat format, bool yuv420888ToNv21, YUVPlane p
             return GL_RG_INTEGER;
         case YUVPlane::U:
         case YUVPlane::V:
-            FATAL("Invalid plane for format:%d", format);
+            GFXSTREAM_FATAL("Invalid plane for format:%d", format);
             return 0;
         }
     default:
-        FATAL("Invalid format:%d", format);
+        GFXSTREAM_FATAL("Invalid format:%d", format);
         return 0;
     }
 }
@@ -219,7 +216,7 @@ GLsizei getGlPixelType(FrameworkFormat format, bool yuv420888ToNv21, YUVPlane pl
         case YUVPlane::V:
             return GL_UNSIGNED_BYTE;
         case YUVPlane::UV:
-            FATAL("Invalid plane for format:%d", format);
+            GFXSTREAM_FATAL("Invalid plane for format:%d", format);
             return 0;
         }
     case FRAMEWORK_FORMAT_YUV_420_888:
@@ -230,7 +227,7 @@ GLsizei getGlPixelType(FrameworkFormat format, bool yuv420888ToNv21, YUVPlane pl
                 return GL_UNSIGNED_BYTE;
             case YUVPlane::U:
             case YUVPlane::V:
-                FATAL("Invalid plane for format:%d", format);
+                GFXSTREAM_FATAL("Invalid plane for format:%d", format);
                 return 0;
             }
         } else {
@@ -240,7 +237,7 @@ GLsizei getGlPixelType(FrameworkFormat format, bool yuv420888ToNv21, YUVPlane pl
             case YUVPlane::V:
                 return GL_UNSIGNED_BYTE;
             case YUVPlane::UV:
-                FATAL("Invalid plane for format:%d", format);
+                GFXSTREAM_FATAL("Invalid plane for format:%d", format);
                 return 0;
             }
         }
@@ -251,7 +248,7 @@ GLsizei getGlPixelType(FrameworkFormat format, bool yuv420888ToNv21, YUVPlane pl
             return GL_UNSIGNED_BYTE;
         case YUVPlane::U:
         case YUVPlane::V:
-            FATAL("Invalid plane for format:%d", format);
+            GFXSTREAM_FATAL("Invalid plane for format:%d", format);
             return 0;
         }
     case FRAMEWORK_FORMAT_P010:
@@ -261,11 +258,11 @@ GLsizei getGlPixelType(FrameworkFormat format, bool yuv420888ToNv21, YUVPlane pl
             return GL_UNSIGNED_SHORT;
         case YUVPlane::U:
         case YUVPlane::V:
-            FATAL("Invalid plane for format:%d", format);
+            GFXSTREAM_FATAL("Invalid plane for format:%d", format);
             return 0;
         }
     default:
-        FATAL("Invalid format:%d", format);
+        GFXSTREAM_FATAL("Invalid format:%d", format);
         return 0;
     }
 }
@@ -431,11 +428,11 @@ static void getYUVOffsets(int width,
             break;
         }
         case FRAMEWORK_FORMAT_GL_COMPATIBLE: {
-            FATAL("Input not a YUV format! (FRAMEWORK_FORMAT_GL_COMPATIBLE)");
+            GFXSTREAM_FATAL("Input not a YUV format! (FRAMEWORK_FORMAT_GL_COMPATIBLE)");
             break;
         }
         default: {
-            FATAL("Unknown format: 0x%x", format);
+            GFXSTREAM_FATAL("Unknown format: 0x%x", format);
             break;
         }
     }
@@ -726,7 +723,7 @@ void main(void) {
         fragShaderSource += kSampleP010;
         break;
     default:
-        FATAL("%s: invalid format:%d", __FUNCTION__, mFormat);
+        GFXSTREAM_FATAL("%s: invalid format:%d", __FUNCTION__, mFormat);
         return;
     }
 
@@ -764,7 +761,7 @@ void main(void) {
         if (status == GL_FALSE) {
             GLchar error[1024];
             s_gles2.glGetShaderInfoLog(shader, sizeof(error), nullptr, &error[0]);
-            FATAL("Failed to compile YUV conversion shader: %s", error);
+            GFXSTREAM_FATAL("Failed to compile YUV conversion shader: %s", error);
             s_gles2.glDeleteShader(shader);
             return;
         }
@@ -780,7 +777,7 @@ void main(void) {
     if (status == GL_FALSE) {
         GLchar error[1024];
         s_gles2.glGetProgramInfoLog(mProgram, sizeof(error), 0, &error[0]);
-        FATAL("Failed to link YUV conversion program: %s", error);
+        GFXSTREAM_FATAL("Failed to link YUV conversion program: %s", error);
         s_gles2.glDeleteProgram(mProgram);
         mProgram = 0;
         return;
@@ -1099,7 +1096,7 @@ void YUVConverter::updateCutoffs(float yWidth, float yStridePixels,
         mUVWidthCutoff = 1.0f;
         break;
     case FRAMEWORK_FORMAT_GL_COMPATIBLE:
-        FATAL("Input not a YUV format!");
+        GFXSTREAM_FATAL("Input not a YUV format!");
     }
 }
 

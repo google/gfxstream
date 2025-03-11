@@ -15,10 +15,10 @@
 */
 #include "glUtils.h"
 
-#include <string.h>
 #include <GLES3/gl31.h>
+#include <string.h>
 
-#include "host-common/logging.h"
+#include "gfxstream/host/logging.h"
 
 size_t glSizeof(GLenum type)
 {
@@ -120,7 +120,7 @@ size_t glSizeof(GLenum type)
         retval = 4 + 4;
         break;
     default:
-        ERR("**** ERROR unknown type 0x%x", type);
+        GFXSTREAM_ERROR("**** ERROR unknown type 0x%x", type);
         retval = 4;
     }
     return retval;
@@ -374,7 +374,7 @@ size_t glUtilsParamSize(GLenum param)
         s = 16;
     break;
     default:
-        ERR("glUtilsParamSize: unknown param 0x%08x", param);
+        GFXSTREAM_ERROR("glUtilsParamSize: unknown param 0x%08x", param);
         s = 1; // assume 1
     }
     return s;
@@ -426,7 +426,7 @@ int glUtilsPixelBitSize(GLenum format, GLenum type)
         pixelsize = 32;
         break;
     default:
-        ERR("glUtilsPixelBitSize: unknown pixel type - assuming pixel data 0");
+        GFXSTREAM_ERROR("glUtilsPixelBitSize: unknown pixel type - assuming pixel data 0");
         componentsize = 0;
     }
 
@@ -457,7 +457,7 @@ int glUtilsPixelBitSize(GLenum format, GLenum type)
             components = 4;
             break;
         default:
-            ERR("glUtilsPixelBitSize: unknown pixel format...");
+            GFXSTREAM_ERROR("glUtilsPixelBitSize: unknown pixel format...");
             components = 0;
         }
         pixelsize = components * componentsize;

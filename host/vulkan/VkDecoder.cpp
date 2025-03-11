@@ -50,10 +50,10 @@
 #include "common/goldfish_vk_reserved_marshaling.h"
 #include "common/goldfish_vk_transform.h"
 #include "gfxstream/host/Tracing.h"
+#include "gfxstream/host/logging.h"
 #include "goldfish_vk_private_defs.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/feature_control.h"
-#include "host-common/logging.h"
 #include "render-utils/IOStream.h"
 #define MAX_PACKET_LENGTH (400 * 1024 * 1024)  // 400MB
 #define CC_LIKELY(exp) (__builtin_expect(!!(exp), true))
@@ -136,7 +136,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
         // packetLen should be at least 8 (op code and packet length) and should not be excessively
         // large
         if (packetLen < 8 || packetLen > MAX_PACKET_LENGTH) {
-            WARN("Bad packet length %d detected, decode may fail", packetLen);
+            GFXSTREAM_WARNING("Bad packet length %d detected, decode may fail", packetLen);
             metricsLogger.logMetricEvent(MetricEventBadPacketLength{.len = packetLen});
         }
 

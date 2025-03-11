@@ -16,12 +16,12 @@
 #include "FrameBuffer.h"
 #include "RendererImpl.h"
 #include "aemu/base/files/Stream.h"
+#include "gfxstream/host/logging.h"
 #include "host-common/address_space_device_control_ops.h"
 #include "host-common/crash_reporter.h"
 #include "host-common/dma_device.h"
 #include "host-common/emugl_vm_operations.h"
 #include "host-common/feature_control.h"
-#include "host-common/logging.h"
 #include "host-common/opengl/misc.h"
 #include "host-common/sync_device.h"
 
@@ -47,6 +47,33 @@ void RenderLibImpl::getGlesVersion(int* maj, int* min) {
 void RenderLibImpl::setLogger(emugl_logger_struct logger) {
 #ifdef CONFIG_AEMU
     set_gfxstream_logger(logger);
+
+    // TODO: move this into emu init.
+    gfxstream::host::SetGfxstreamLogCallback(
+        [](gfxstream::host::LogLevel level, const char* file, int line, const char* function, const char* message) {
+            char severity;
+            switch (level) {
+                case gfxstream::host::LogLevel::kFatal:
+                    severity = 'F';
+                    break;
+                case gfxstream::host::LogLevel::kError:
+                    severity = 'E';
+                    break;
+                case gfxstream::host::LogLevel::kWarning:
+                    severity = 'W';
+                    break;
+                case gfxstream::host::LogLevel::kInfo:
+                    severity = 'I';
+                    break;
+                case gfxstream::host::LogLevel::kDebug:
+                    severity = 'D';
+                    break;
+                case gfxstream::host::LogLevel::kVerbose:
+                    severity = 'V';
+                    break;
+            }
+            OutputLog(stderr, severity, file, line, /*timestamp_us=*/0, "%s", message);
+        });
 #endif
 }
 

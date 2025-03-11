@@ -10,6 +10,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         "//common/vulkan:gfxstream_vulkan_headers",
+        "//host/logging:gfxstream_host_logging",
         "//third-party/renderdoc",
         "@aemu//base:aemu-base-headers",
         "@aemu//host-common:aemu-host-common-headers",
