@@ -2025,6 +2025,8 @@ int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width, unsi
         *cPixels = 0;
         return -1;
     }
+#else
+    return 0;
 #endif
 
     AutoLock mutex(m_lock);
@@ -2178,6 +2180,7 @@ bool FrameBuffer::compose(uint32_t bufferSize, void* buffer, bool needPost) {
         completeFuture.wait();
     }
 
+#ifdef CONFIG_AEMU
     const auto& multiDisplay = emugl::get_emugl_multi_display_operations();
     const bool is_pixel_fold = multiDisplay.isPixelFold();
     if (needPost) {
@@ -2201,6 +2204,8 @@ bool FrameBuffer::compose(uint32_t bufferSize, void* buffer, bool needPost) {
             }
         }
     }
+#endif
+
     return true;
 }
 
@@ -2721,40 +2726,72 @@ const ProcessResources* FrameBuffer::getProcessResources(uint64_t puid) {
 }
 
 int FrameBuffer::createDisplay(uint32_t* displayId) {
+#ifdef CONFIG_AEMU
     return emugl::get_emugl_multi_display_operations().createDisplay(displayId);
+#else
+    return 0;
+#endif
 }
 
 int FrameBuffer::createDisplay(uint32_t displayId) {
+#ifdef CONFIG_AEMU
     return emugl::get_emugl_multi_display_operations().createDisplay(&displayId);
+#else
+    return 0;
+#endif
 }
 
 int FrameBuffer::destroyDisplay(uint32_t displayId) {
+#ifdef CONFIG_AEMU
     return emugl::get_emugl_multi_display_operations().destroyDisplay(displayId);
+#else
+    return 0;
+#endif
 }
 
 int FrameBuffer::setDisplayColorBuffer(uint32_t displayId, uint32_t colorBuffer) {
+#ifdef CONFIG_AEMU
     return emugl::get_emugl_multi_display_operations().setDisplayColorBuffer(displayId,
                                                                              colorBuffer);
+#else
+    return 0;
+#endif
 }
 
 int FrameBuffer::getDisplayColorBuffer(uint32_t displayId, uint32_t* colorBuffer) {
+#ifdef CONFIG_AEMU
     return emugl::get_emugl_multi_display_operations().getDisplayColorBuffer(displayId,
                                                                              colorBuffer);
+#else
+    return 0;
+#endif
 }
 
 int FrameBuffer::getColorBufferDisplay(uint32_t colorBuffer, uint32_t* displayId) {
+#ifdef CONFIG_AEMU
     return emugl::get_emugl_multi_display_operations().getColorBufferDisplay(colorBuffer,
                                                                              displayId);
+#else
+    return 0;
+#endif
 }
 
 int FrameBuffer::getDisplayPose(uint32_t displayId, int32_t* x, int32_t* y, uint32_t* w,
                                 uint32_t* h) {
+#ifdef CONFIG_AEMU
     return emugl::get_emugl_multi_display_operations().getDisplayPose(displayId, x, y, w, h);
+#else
+    return 0;
+#endif
 }
 
 int FrameBuffer::setDisplayPose(uint32_t displayId, int32_t x, int32_t y, uint32_t w, uint32_t h,
                                 uint32_t dpi) {
+#ifdef CONFIG_AEMU
     return emugl::get_emugl_multi_display_operations().setDisplayPose(displayId, x, y, w, h, dpi);
+#else
+    return 0;
+#endif
 }
 
 void FrameBuffer::sweepColorBuffersLocked() {

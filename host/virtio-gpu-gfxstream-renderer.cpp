@@ -608,9 +608,14 @@ static int stream_renderer_opengles_init(uint32_t display_width, uint32_t displa
 
     int maj;
     int min;
+#ifdef CONFIG_AEMU
     android_startOpenglesRenderer(display_width, display_height, 1, 28, getGraphicsAgents()->vm,
                                   getGraphicsAgents()->emu, getGraphicsAgents()->multi_display,
                                   &features, &maj, &min);
+#else
+    android_startOpenglesRenderer(display_width, display_height, 1, 28, nullptr, nullptr, nullptr,
+                                  &features, &maj, &min);
+#endif
 
     char* vendor = nullptr;
     char* renderer = nullptr;
@@ -627,7 +632,10 @@ static int stream_renderer_opengles_init(uint32_t display_width, uint32_t displa
         return -EINVAL;
     }
 
+#ifdef CONFIG_AEMU
     address_space_set_vm_operations(getGraphicsAgents()->vm);
+#endif
+
     android_init_opengles_pipe();
     android_opengles_pipe_set_recv_mode(2 /* virtio-gpu */);
     android_init_refcount_pipe();

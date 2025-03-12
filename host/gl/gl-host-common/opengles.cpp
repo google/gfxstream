@@ -121,9 +121,15 @@ android_startOpenglesRenderer(int width, int height,
     dma_ops.get_host_addr = android_goldfish_dma_ops.get_host_addr;
     dma_ops.unlock = android_goldfish_dma_ops.unlock;
     sRenderLib->setDmaOps(dma_ops);
-    sRenderLib->setVmOps(*vm_operations);
+
+    if (vm_operations) {
+        sRenderLib->setVmOps(*vm_operations);
+    }
+
     sRenderLib->setAddressSpaceDeviceControlOps(get_address_space_device_control_ops());
-    sRenderLib->setWindowOps(*window_agent, *multi_display_agent);
+    if (window_agent && multi_display_agent) {
+        sRenderLib->setWindowOps(*window_agent, *multi_display_agent);
+    }
 
     const auto* features = reinterpret_cast<const gfxstream::host::FeatureSet*>(gfxstreamFeatures);
     sRenderer = sRenderLib->initRenderer(width, height, *features, sRendererUsesSubWindow, sEgl2egl);
