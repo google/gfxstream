@@ -131,14 +131,6 @@ struct vulkanCapset {
     uint32_t vulkanBatchedDescriptorSetUpdate;
 };
 
-struct magmaCapset {
-    uint32_t protocolVersion;
-    // ASG Ring Parameters
-    uint32_t ringSize;
-    uint32_t bufferSize;
-    uint32_t blobAlignment;
-};
-
 struct glesCapset {
     uint32_t protocolVersion;
     // ASG Ring Parameters

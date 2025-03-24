@@ -29,10 +29,6 @@
 
 #include "RenderThreadInfoVk.h"
 
-#if GFXSTREAM_ENABLE_HOST_MAGMA
-#include "RenderThreadInfoMagma.h"
-#endif
-
 namespace gfxstream {
 
 // A class used to model the state of each RenderThread related
@@ -65,10 +61,6 @@ struct RenderThreadInfo {
 #endif
 
     std::optional<vk::RenderThreadInfoVk> m_vkInfo;
-
-#if GFXSTREAM_ENABLE_HOST_MAGMA
-    std::optional<RenderThreadInfoMagma> m_magmaInfo;
-#endif
 
     // Whether this thread was used to perform composition.
     bool m_isCompositionThread = false;

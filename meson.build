@@ -33,7 +33,6 @@ decoders = get_option('decoders')
 use_auto = decoders.contains('auto') and with_host
 use_gles = decoders.contains('gles') and with_host
 use_vulkan = decoders.contains('vulkan') and with_host
-use_magma = decoders.contains('magma') and with_host
 use_composer = decoders.contains('composer') and with_host
 
 if with_guest or with_guest_test
@@ -57,6 +56,5 @@ summary({'c_args': (' ').join(get_option('c_args')),
          'log-level': log_level,
          'gles': use_gles,
          'vulkan': use_vulkan,
-         'magma': use_magma,
          'composer': use_composer,
         }, section: 'Configuration')

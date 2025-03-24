@@ -72,11 +72,6 @@ gfxstream_backend_snapshot_static_deps = [
     "libz",
 ]
 
-gfxstream_backend_magma_static_deps = [
-    "libgfxstream_host_magma_dec",
-    "libgfxstream_host_magma_server",
-]
-
 cc_defaults {
     name: "libgfxstream_backend_defaults",
     defaults: [
@@ -170,18 +165,6 @@ cc_defaults {
 cc_library {
     name: "libgfxstream_backend",
     defaults: ["libgfxstream_backend_defaults"],
-}
-
-cc_library {
-    name: "libgfxstream_backend_magma",
-    defaults: ["libgfxstream_backend_defaults"],
-    static: {
-        whole_static_libs: gfxstream_backend_magma_static_deps,
-    },
-    shared: {
-        static_libs: gfxstream_backend_magma_static_deps,
-    },
-    export_static_lib_headers: gfxstream_backend_magma_static_deps,
 }
 
 cc_test_library {
@@ -308,21 +291,6 @@ cc_test_host {
         // Disabled by default as requires Vulkan.
         unit_test: false,
     },
-    test_suites: [
-        "general-tests",
-    ],
-}
-
-cc_test_host {
-    name: "gfxstream_magma_tests",
-    defaults: ["gfxstream_defaults"],
-    srcs: [
-        "tests/Magma_unittest.cpp",
-    ],
-    shared_libs: [
-        "libbase",
-        "libgfxstream_backend_magma",
-    ],
     test_suites: [
         "general-tests",
     ],

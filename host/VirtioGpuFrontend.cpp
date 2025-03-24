@@ -585,9 +585,6 @@ void VirtioGpuFrontend::getCapset(uint32_t set, uint32_t* max_size) {
         case VIRTGPU_CAPSET_GFXSTREAM_VULKAN:
             *max_size = sizeof(struct gfxstream::vulkanCapset);
             break;
-        case VIRTGPU_CAPSET_GFXSTREAM_MAGMA:
-            *max_size = sizeof(struct gfxstream::magmaCapset);
-            break;
         case VIRTGPU_CAPSET_GFXSTREAM_GLES:
             *max_size = sizeof(struct gfxstream::glesCapset);
             break;
@@ -678,16 +675,6 @@ void VirtioGpuFrontend::fillCaps(uint32_t set, void* caps) {
                 set_virgl_format_supported(capset->virglSupportedFormats, possibleFormat.format,
                                            supported);
             }
-            break;
-        }
-        case VIRTGPU_CAPSET_GFXSTREAM_MAGMA: {
-            struct gfxstream::magmaCapset* capset =
-                reinterpret_cast<struct gfxstream::magmaCapset*>(caps);
-
-            capset->protocolVersion = 1;
-            capset->ringSize = 12288;
-            capset->bufferSize = 1048576;
-            capset->blobAlignment = mPageSize;
             break;
         }
         case VIRTGPU_CAPSET_GFXSTREAM_GLES: {

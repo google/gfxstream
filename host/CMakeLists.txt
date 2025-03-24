@@ -16,9 +16,6 @@ add_subdirectory(vulkan)
 # RenderControl decoder
 add_subdirectory(renderControl_dec)
 
-# Magma decoder
-add_subdirectory(magma)
-
 if(CONFIG_AEMU)
     add_compile_definitions(GFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT)
     add_compile_definitions(CONFIG_AEMU)
@@ -46,7 +43,6 @@ set(stream-server-core-sources
     RenderChannelImpl.cpp
     RenderThreadInfo.cpp
     RenderThreadInfoGl.cpp
-    RenderThreadInfoMagma.cpp
     RingStream.cpp
     SyncThread.cpp
     RenderThread.cpp
@@ -91,7 +87,6 @@ target_link_libraries(
         gfxstream_features
         gfxstream_host_tracing
         gfxstream-gl-server
-        gfxstream-magma-server
         gfxstream-vulkan-server
         gfxstream_egl_headers
         gfxstream_host_snapshot
@@ -109,11 +104,8 @@ target_include_directories(
         ${GFXSTREAM_REPO_ROOT}/host/apigen-codec-common
         ${GFXSTREAM_REPO_ROOT}/host/gl
         ${GFXSTREAM_REPO_ROOT}/host/gl/glestranslator/include
-        ${GFXSTREAM_REPO_ROOT}/host/magma
-        ${GFXSTREAM_REPO_ROOT}/host/magma/magma_dec
         ${GFXSTREAM_REPO_ROOT}/host/vulkan
         ${GFXSTREAM_REPO_ROOT}/host/vulkan/cereal/common
-        ${GFXSTREAM_REPO_ROOT}/third-party/fuchsia/magma/include
         ${GFXSTREAM_REPO_ROOT}/third-party/glm/include)
 
 if (APPLE)

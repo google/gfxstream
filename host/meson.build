@@ -88,7 +88,7 @@ elif log_level == 'info'
   gfxstream_host_args += '-DSTREAM_RENDERER_LOG_LEVEL=3'
 endif
 
-if use_auto and (use_gles or use_vulkan or use_magma)
+if use_auto and (use_gles or use_vulkan)
   error('Can not specify auto and custom options are same time')
 endif
 
@@ -96,18 +96,10 @@ if use_auto
   use_gles = true
   use_vulkan = true
   use_composer = true
-  use_magma = host_machine.system() == 'linux'
 endif
 
 gfxstream_host_args += '-DGFXSTREAM_MESON_BUILD=1'
 gfxstream_host_args += '-DGFXSTREAM_ENABLE_HOST_GLES=@0@'.format(use_gles ? '1' : '0')
-
-if use_magma
-  gfxstream_host_args += '-DGFXSTREAM_ENABLE_HOST_MAGMA=1'
-  drm_dep = dependency('libdrm', fallback: ['libdrm', 'libdrm_dep'])
-else
-  gfxstream_host_args += '-DGFXSTREAM_ENABLE_HOST_MAGMA=0'
-endif
 
 #===============#
 # Includes      #
@@ -135,11 +127,6 @@ if use_vulkan
   else
     inc_renderdoc_external = include_directories('../third-party/renderdoc/include')
   endif
-endif
-
-if use_magma
-  inc_magma_external = include_directories('../third-party/fuchsia/magma/include')
-  inc_magma_external_lib = include_directories('../third-party/fuchsia/magma/include/lib')
 endif
 
 if cc.has_header('glm/glm.hpp')
@@ -223,13 +210,6 @@ endif
 if use_composer
   subdir('renderControl_dec')
   link_gfxstream_backend += lib_composer
-endif
-
-if use_magma
-  subdir('magma')
-  files_lib_gfxstream_backend += files('RenderThreadInfoMagma.cpp')
-  inc_gfxstream_backend += [inc_magma_dec, inc_magma_external]
-  link_gfxstream_backend += lib_magma_server
 endif
 
 if not use_gles
