@@ -243,7 +243,6 @@ elif host_machine.system() == 'linux' and use_gles
 elif host_machine.system() == 'qnx'
   files_lib_gfxstream_backend += files(
     'NativeSubWindow_qnx.cpp',
-    '../qnx/host/platform_qnx.cpp',
   )
 endif
 
