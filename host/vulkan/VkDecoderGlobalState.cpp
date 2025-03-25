@@ -1822,10 +1822,12 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
-        VkPhysicalDeviceRobustness2FeaturesEXT modifiedRobustness2features;
         const auto r2features = m_vkEmulation->getRobustness2Features();
-        if (r2features && vk_find_struct<VkPhysicalDeviceRobustness2FeaturesEXT>(
-                                       &createInfoFiltered) == nullptr) {
+        const bool forceEnableRobustness =
+            r2features &&
+            (vk_find_struct<VkPhysicalDeviceRobustness2FeaturesEXT>(&createInfoFiltered) == nullptr);
+        VkPhysicalDeviceRobustness2FeaturesEXT modifiedRobustness2features;
+        if (forceEnableRobustness) {
             VERBOSE("Force-enabling VK_EXT_robustness2 on device creation.");
             updatedDeviceExtensions.push_back(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
             modifiedRobustness2features = *r2features;
@@ -1874,6 +1876,12 @@ class VkDecoderGlobalState::Impl {
             }
             if (emulateTextureAstc) {
                 feature->textureCompressionASTC_LDR = VK_FALSE;
+            }
+
+            // vkCreateDevice() - VUID-04000: If robustBufferAccess2 is enabled then
+            // robustBufferAccess must be enabled.
+            if (forceEnableRobustness && modifiedRobustness2features.robustBufferAccess2) {
+                feature->robustBufferAccess = VK_TRUE;
             }
         }
 

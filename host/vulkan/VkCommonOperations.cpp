@@ -1455,6 +1455,12 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
         INFO("Enabling VK_EXT_robustness2 (%d %d %d).", r2features.robustBufferAccess2,
              r2features.robustImageAccess2, r2features.nullDescriptor);
         vk_append_struct(&deviceCiChain, &r2features);
+
+        // vkCreateDevice() - VUID-04000: If robustBufferAccess2 is enabled then robustBufferAccess
+        // must be enabled.
+        if (r2features.robustBufferAccess2) {
+            physicalDeviceFeatures.features.robustBufferAccess = VK_TRUE;
+        }
     }
 
     ivk->vkCreateDevice(emulation->mPhysicalDevice, &dCi, nullptr, &emulation->mDevice);
