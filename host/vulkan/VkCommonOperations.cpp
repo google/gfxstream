@@ -3089,13 +3089,13 @@ bool VkEmulation::readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint3
     mDebugUtilsHelper.cmdBeginDebugLabel(mCommandBuffer, "readColorBufferToBytes(ColorBuffer:%d)",
                                          colorBufferHandle);
 
-    VkImageLayout currentLayout = colorBufferInfo->currentLayout;
-    VkImageLayout transferSrcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+    const VkImageLayout currentLayout = colorBufferInfo->currentLayout;
+    const VkImageLayout transferSrcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 
     const VkImageMemoryBarrier toTransferSrcImageBarrier = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
         .pNext = nullptr,
-        .srcAccessMask = 0,
+        .srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
         .dstAccessMask = VK_ACCESS_HOST_READ_BIT,
         .oldLayout = currentLayout,
         .newLayout = transferSrcLayout,
@@ -3117,7 +3117,7 @@ bool VkEmulation::readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint3
                              &toTransferSrcImageBarrier);
 
     vk->vkCmdCopyImageToBuffer(mCommandBuffer, colorBufferInfo->image,
-                               VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, mStaging.buffer,
+                               transferSrcLayout, mStaging.buffer,
                                bufferImageCopies.size(), bufferImageCopies.data());
 
     // Change back to original layout
@@ -3126,7 +3126,7 @@ bool VkEmulation::readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint3
         const VkImageMemoryBarrier toCurrentLayoutImageBarrier = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .pNext = nullptr,
-            .srcAccessMask = VK_ACCESS_HOST_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
+            .srcAccessMask = VK_ACCESS_HOST_READ_BIT,
             .dstAccessMask = VK_ACCESS_NONE_KHR,
             .oldLayout = transferSrcLayout,
             .newLayout = colorBufferInfo->currentLayout,
