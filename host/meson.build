@@ -6,7 +6,6 @@
 #===============#
 gfxstream_host_args = [
   '-D_FILE_OFFSET_BITS=64',
-  '-DGFXSTREAM_ENABLE_GUEST_VIRTIO_RESOURCE_TILING_CONTROL=1',
   '-Wno-unused-parameter',
   '-Wno-unused-function',
   '-Wno-unused-variable',

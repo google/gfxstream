@@ -1172,7 +1172,7 @@ HandleType FrameBuffer::createColorBuffer(int p_width,
 void FrameBuffer::createColorBufferWithResourceHandle(int p_width, int p_height,
                                                       GLenum p_internalFormat,
                                                       FrameworkFormat p_frameworkFormat,
-                                                      HandleType handle, bool p_linear) {
+                                                      HandleType handle) {
     {
         AutoLock mutex(m_lock);
         sweepColorBuffersLocked();
@@ -1188,18 +1188,17 @@ void FrameBuffer::createColorBufferWithResourceHandle(int p_width, int p_height,
         }
 
         createColorBufferWithResourceHandleLocked(p_width, p_height, p_internalFormat,
-                                                  p_frameworkFormat, handle, p_linear);
+                                                  p_frameworkFormat, handle);
     }
 }
 
 HandleType FrameBuffer::createColorBufferWithResourceHandleLocked(int p_width, int p_height,
                                                                   GLenum p_internalFormat,
                                                                   FrameworkFormat p_frameworkFormat,
-                                                                  HandleType handle,
-                                                                  bool p_linear) {
-    ColorBufferPtr cb = ColorBuffer::create(m_emulationGl.get(), m_emulationVk.get(), p_width,
-                                            p_height, p_internalFormat, p_frameworkFormat, handle,
-                                            nullptr /*stream*/, p_linear);
+                                                                  HandleType handle) {
+    ColorBufferPtr cb =
+        ColorBuffer::create(m_emulationGl.get(), m_emulationVk.get(), p_width, p_height,
+                            p_internalFormat, p_frameworkFormat, handle, nullptr /*stream*/);
     if (cb.get() == nullptr) {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
             << "Failed to create ColorBuffer:" << handle << " format:" << p_internalFormat

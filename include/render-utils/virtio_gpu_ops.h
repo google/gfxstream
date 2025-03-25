@@ -25,7 +25,7 @@ typedef void (*create_buffer_with_handle_t)(uint64_t size, uint32_t handle);
 /* virtio-gpu interface for color buffers
  * (triggered by minigbm/egl calling virtio-gpu ioctls) */
 typedef void (*create_color_buffer_with_handle_t)(uint32_t width, uint32_t height, uint32_t format,
-                                                  uint32_t fwkFormat, uint32_t handle, bool linear);
+                                                  uint32_t fwkFormat, uint32_t handle);
 
 /* create YUV textures with given width and height
    type: FRAMEWORK_FORMAT_NV12 or FRAMEWORK_FORMAT_YUV_420_888

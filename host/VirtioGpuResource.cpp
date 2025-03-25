@@ -147,14 +147,8 @@ std::optional<VirtioGpuResource> VirtioGpuResource::Create(
     } else if (resourceType == VirtioGpuResourceType::COLOR_BUFFER) {
         const uint32_t glformat = virgl_format_to_gl(args->format);
         const auto fwkformat = (gfxstream::FrameworkFormat)virgl_format_to_fwk_format(args->format);
-        const bool linear =
-#ifdef GFXSTREAM_ENABLE_GUEST_VIRTIO_RESOURCE_TILING_CONTROL
-            !!(args->bind & VIRGL_BIND_LINEAR);
-#else
-            false;
-#endif
         FrameBuffer::getFB()->createColorBufferWithResourceHandle(
-            args->width, args->height, glformat, fwkformat, args->handle, linear);
+            args->width, args->height, glformat, fwkformat, args->handle);
         FrameBuffer::getFB()->setGuestManagedColorBufferLifetime(true /* guest manages lifetime */);
         FrameBuffer::getFB()->openColorBuffer(args->handle);
     } else {
@@ -225,15 +219,9 @@ std::optional<VirtioGpuResource> VirtioGpuResource::Create(
     const uint32_t glformat = virgl_format_to_gl(internal_create_args.format);
     const auto fwkformat =
         (gfxstream::FrameworkFormat)virgl_format_to_fwk_format(internal_create_args.format);
-    const bool linear =
-#ifdef GFXSTREAM_ENABLE_GUEST_VIRTIO_RESOURCE_TILING_CONTROL
-        !!(internal_create_args.bind & VIRGL_BIND_LINEAR);
-#else
-        false;
-#endif
     FrameBuffer::getFB()->createColorBufferWithResourceHandle(
         internal_create_args.width, internal_create_args.height, glformat, fwkformat,
-        internal_create_args.handle, linear);
+        internal_create_args.handle);
     FrameBuffer::getFB()->setGuestManagedColorBufferLifetime(true /* guest manages lifetime */);
     FrameBuffer::getFB()->openColorBuffer(internal_create_args.handle);
 
