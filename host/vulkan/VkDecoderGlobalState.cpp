@@ -2126,6 +2126,22 @@ class VkDecoderGlobalState::Impl {
         deviceInfo.externalFenceInfo.supportedBinarySemaphoreHandleTypes =
             static_cast<VkExternalSemaphoreHandleTypeFlagBits>(supportedBinarySemaphoreHandleTypes);
 
+#ifdef _WIN32
+        // Use vkGetMemoryWin32HandleKHR
+        deviceInfo.getMemoryHandleFunc = reinterpret_cast<PFN_vkGetMemoryWin32HandleKHR>(
+            vk->vkGetDeviceProcAddr(*pDevice, "vkGetMemoryWin32HandleKHR"));
+        if (!deviceInfo.getMemoryHandleFunc) {
+            return VK_ERROR_INITIALIZATION_FAILED;
+        }
+#elif __linux__
+        // Use vkGetMemoryFdKHR
+        deviceInfo.getMemoryHandleFunc = reinterpret_cast<PFN_vkGetMemoryFdKHR>(
+            vk->vkGetDeviceProcAddr(*pDevice, "vkGetMemoryFdKHR"));
+        if (!deviceInfo.getMemoryHandleFunc) {
+            return VK_ERROR_INITIALIZATION_FAILED;
+        }
+#endif
+
         GFXSTREAM_INFO(
             "Created VkDevice:%p for application:%s engine:%s ASTC emulation:%s CPU decoding:%s.",
             *pDevice, instanceInfo.applicationName.c_str(), instanceInfo.engineName.c_str(),
@@ -6350,6 +6366,9 @@ class VkDecoderGlobalState::Impl {
         auto* info = gfxstream::base::find(mMemoryInfo, memory);
         if (!info) return VK_ERROR_OUT_OF_HOST_MEMORY;
 
+        auto* deviceInfo = gfxstream::base::find(mDeviceInfo, device);
+        if (!info) return VK_ERROR_OUT_OF_HOST_MEMORY;
+
         hostBlobId = (info->blobId && !hostBlobId) ? info->blobId : hostBlobId;
 
         if (m_vkEmulation->getFeatures().SystemBlob.enabled && info->sharedMemory.has_value()) {
@@ -6388,7 +6407,7 @@ class VkDecoderGlobalState::Impl {
                 info->needUnmap = true;
             }
 
-            auto exportedMemoryOpt = m_vkEmulation->exportMemoryHandle(device, memory);
+            auto exportedMemoryOpt = exportMemoryHandle(deviceInfo, vk, device, memory);
             if (!exportedMemoryOpt) {
                 return VK_ERROR_OUT_OF_HOST_MEMORY;
             }
@@ -8908,6 +8927,57 @@ class VkDecoderGlobalState::Impl {
 
             *supportedFenceHandleTypes |= handleType;
         }
+    }
+
+    std::optional<GenericDescriptorInfo> exportMemoryHandle(struct DeviceInfo* deviceInfo,
+                                                            VulkanDispatch* vk, VkDevice device,
+                                                            VkDeviceMemory memory) {
+        GenericDescriptorInfo ret;
+
+#if defined(__unix__)
+        VkMemoryGetFdInfoKHR memoryGetFdInfo = {
+            .sType = VK_STRUCTURE_TYPE_MEMORY_GET_FD_INFO_KHR,
+            .pNext = nullptr,
+            .memory = memory,
+            .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
+        };
+        ret.streamHandleType = STREAM_HANDLE_TYPE_MEM_OPAQUE_FD;
+
+#if defined(__linux__)
+        if (m_vkEmulation->supportsDmaBuf()) {
+            memoryGetFdInfo.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
+            ret.streamHandleType = STREAM_HANDLE_TYPE_MEM_DMABUF;
+        }
+#endif
+
+        int fd = -1;
+        if (deviceInfo->getMemoryHandleFunc(device, &memoryGetFdInfo, &fd) != VK_SUCCESS) {
+            return std::nullopt;
+        };
+
+        ret.descriptor = ManagedDescriptor(fd);
+
+#elif defined(_WIN32)
+        VkMemoryGetWin32HandleInfoKHR memoryGetHandleInfo = {
+            .sType = VK_STRUCTURE_TYPE_MEMORY_GET_WIN32_HANDLE_INFO_KHR,
+            .pNext = nullptr,
+            .memory = memory,
+            .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT,
+        };
+        ret.streamHandleType = STREAM_HANDLE_TYPE_MEM_OPAQUE_WIN32;
+
+        HANDLE handle;
+        if (deviceInfo->getMemoryHandleFunc(device, &memoryGetHandleInfo, &handle) != VK_SUCCESS) {
+            return std::nullopt;
+        }
+
+        ret.descriptor = ManagedDescriptor(handle);
+#else
+        GFXSTREAM_ERROR("Unsupported external memory handle type.");
+        return std::nullopt;
+#endif
+
+        return std::move(ret);
     }
 
     void getSupportedSemaphoreHandleTypes(VulkanDispatch* vk, VkPhysicalDevice physicalDevice,
