@@ -411,7 +411,6 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     void registerVulkanInstance(uint64_t id, const char* appName) const;
     void unregisterVulkanInstance(uint64_t id) const;
 
-    bool isVulkanInteropSupported() const { return m_vulkanInteropSupported; }
     bool isVulkanEnabled() const { return m_vulkanEnabled; }
 
     // Saves a screenshot of the previous frame.
@@ -860,7 +859,6 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     android::base::WorkerProcessingResult postWorkerFunc(Post& post);
     std::future<void> sendPostWorkerCmd(Post post);
 
-    bool m_vulkanInteropSupported = false;
     bool m_vulkanEnabled = false;
     // Whether the guest manages ColorBuffer lifetime
     // so we don't need refcounting on the host side.

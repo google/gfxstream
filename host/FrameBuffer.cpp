@@ -463,15 +463,12 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
         }
 #endif
     }
-    // TODO: 0-copy gl interop on swiftshader vk
+
     if (android::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD") == "lavapipe"
             || android::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD") == "swiftshader") {
         vulkanInteropSupported = false;
         GL_LOG("vk icd software rendering, disable interop");
     }
-
-    fb->m_vulkanInteropSupported = vulkanInteropSupported;
-    GL_LOG("interop? %d", fb->m_vulkanInteropSupported);
 
 #if GFXSTREAM_ENABLE_HOST_GLES
     if (vulkanInteropSupported && fb->m_emulationGl && fb->m_emulationGl->isMesa()) {
@@ -481,8 +478,8 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
     }
 #endif
 
-    GL_LOG("glvk interop final: %d", fb->m_vulkanInteropSupported);
-    vkEmulationFeatures.glInteropSupported = fb->m_vulkanInteropSupported;
+    GL_LOG("glvk interop final: %d", vulkanInteropSupported);
+    vkEmulationFeatures.glInteropSupported = vulkanInteropSupported;
     if (fb->m_emulationVk && fb->m_features.Vulkan.enabled) {
         fb->m_emulationVk->initFeatures(std::move(vkEmulationFeatures));
 
