@@ -2260,6 +2260,7 @@ class VkDecoderGlobalState::Impl {
             if (fenceInfo.device == device) {
                 destroyFenceWithExclusiveInfo(device, deviceDispatch, deviceInfo, fence, fenceInfo,
                                               nullptr, /*allowExternalFenceRecycling=*/false);
+                delete_VkFence(fenceInfo.boxed);
                 fenceInfoIt = fenceInfos.erase(fenceInfoIt);
             } else {
                 ++fenceInfoIt;
@@ -2577,6 +2578,7 @@ class VkDecoderGlobalState::Impl {
 
         if (boxImage) {
             *pImage = new_boxed_non_dispatchable_VkImage(*pImage);
+            imageInfo.boxed = *pImage;
         }
         return createRes;
     }
@@ -2863,6 +2865,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         *pView = new_boxed_non_dispatchable_VkImageView(*pView);
+        imageViewInfo.boxed = *pView;
         return result;
     }
 
@@ -2922,6 +2925,7 @@ class VkDecoderGlobalState::Impl {
              pCreateInfo->borderColor == VK_BORDER_COLOR_INT_CUSTOM_EXT);
 
         *pSampler = new_boxed_non_dispatchable_VkSampler(*pSampler);
+        samplerInfo.boxed = *pSampler;
 
         return result;
     }
@@ -3078,6 +3082,7 @@ class VkDecoderGlobalState::Impl {
         semaphoreInfo.device = device;
 
         *pSemaphore = new_boxed_non_dispatchable_VkSemaphore(*pSemaphore);
+        semaphoreInfo.boxed = *pSemaphore;
 
         return res;
     }
@@ -8544,7 +8549,10 @@ class VkDecoderGlobalState::Impl {
             auto& physicalDeviceInstance = current->second;
             if (physicalDeviceInstance != instance) continue;
             mPhysicalDeviceToInstance.erase(current);
-            mPhysdevInfo.erase(physicalDevice);
+            if (mPhysdevInfo.find(physicalDevice) != mPhysdevInfo.end()) {
+                delete_VkPhysicalDevice(mPhysdevInfo[physicalDevice].boxed);
+                mPhysdevInfo.erase(physicalDevice);
+            }
         }
     }
 
@@ -8569,12 +8577,14 @@ class VkDecoderGlobalState::Impl {
                 destroySemaphoreWithExclusiveInfo(device, deviceDispatch, semaphore,
                                                   deviceObjects.device.mapped(), semaphoreInfo,
                                                   nullptr);
+                delete_VkSemaphore(semaphoreInfo.boxed);
             }
 
             LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu samplers.", deviceObjects.samplers.size());
             for (auto& [sampler, samplerInfo] : deviceObjects.samplers) {
                 destroySamplerWithExclusiveInfo(device, deviceDispatch, sampler, samplerInfo,
                                                 nullptr);
+                delete_VkSampler(samplerInfo.boxed);
             }
 
             LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu buffers.", deviceObjects.buffers.size());
@@ -8586,11 +8596,13 @@ class VkDecoderGlobalState::Impl {
             for (auto& [imageView, imageViewInfo] : deviceObjects.imageViews) {
                 destroyImageViewWithExclusiveInfo(device, deviceDispatch, imageView, imageViewInfo,
                                                   nullptr);
+                delete_VkImageView(imageViewInfo.boxed);
             }
 
             LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu images.", deviceObjects.images.size());
             for (auto& [image, imageInfo] : deviceObjects.images) {
                 destroyImageWithExclusiveInfo(device, deviceDispatch, image, imageInfo, nullptr);
+                delete_VkImage(imageInfo.boxed);
             }
 
             LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu memories.", deviceObjects.memories.size());
@@ -8624,6 +8636,7 @@ class VkDecoderGlobalState::Impl {
                  deviceObjects.descriptorSetLayouts) {
                 destroyDescriptorSetLayoutWithExclusiveInfo(
                     device, deviceDispatch, descriptorSetLayout, descriptorSetLayoutInfo, nullptr);
+                delete_VkDescriptorSetLayout(descriptorSetLayoutInfo.boxed);
             }
 
             LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu shaderModules.", deviceObjects.shaderModules.size());

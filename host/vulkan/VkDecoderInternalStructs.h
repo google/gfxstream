@@ -258,6 +258,7 @@ struct BufferInfo {
 
 struct ImageInfo {
     VkDevice device;
+    VkImage boxed = VK_NULL_HANDLE;
     VkImageCreateInfo imageCreateInfoShallow;
     std::unique_ptr<AndroidNativeBufferInfo> anbInfo;
     CompressedImageInfo cmpInfo;
@@ -271,6 +272,7 @@ struct ImageInfo {
 struct ImageViewInfo {
     VkDevice device;
     bool needEmulatedAlpha = false;
+    VkImageView boxed = VK_NULL_HANDLE;
 
     // Color buffer, provided via vkAllocateMemory().
     std::optional<HandleType> boundColorBuffer;
@@ -280,6 +282,7 @@ struct ImageViewInfo {
 struct SamplerInfo {
     VkDevice device;
     bool needEmulatedAlpha = false;
+    VkSampler boxed = VK_NULL_HANDLE;
     VkSamplerCreateInfo createInfo = {};
     VkSampler emulatedborderSampler = VK_NULL_HANDLE;
     android::base::BumpPool pool = android::base::BumpPool(256);
@@ -323,6 +326,7 @@ struct FenceInfo {
 
 struct SemaphoreInfo {
     VkDevice device;
+    VkSemaphore boxed = VK_NULL_HANDLE;
     int externalHandleId = 0;
     VK_EXT_SYNC_HANDLE externalHandle = VK_EXT_SYNC_HANDLE_INVALID;
     // If this fence was used in an additional host operation that must be waited
