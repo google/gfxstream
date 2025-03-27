@@ -57,7 +57,7 @@ namespace gl {
 class EmulationGl {
    public:
     static std::unique_ptr<EmulationGl> create(uint32_t width, uint32_t height,
-                                               gfxstream::host::FeatureSet features,
+                                               const gfxstream::host::FeatureSet& features,
                                                bool allowWindowSurface, bool egl2egl);
 
     ~EmulationGl();

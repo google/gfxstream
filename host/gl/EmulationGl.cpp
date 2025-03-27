@@ -204,7 +204,7 @@ static std::optional<EGLConfig> getEmulationEglConfig(EGLDisplay display, bool a
 }  // namespace
 
 std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height,
-                                                 gfxstream::host::FeatureSet features,
+                                                 const gfxstream::host::FeatureSet& features,
                                                  bool allowWindowSurface, bool egl2egl) {
     // Loads the glestranslator function pointers.
     if (!LazyLoadedEGLDispatch::get()) {

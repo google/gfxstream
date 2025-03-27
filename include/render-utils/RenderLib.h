@@ -101,13 +101,15 @@ public:
     // |width| and |height| are the framebuffer dimensions that will be reported
     // to the guest display driver.
     //
+    // |features| host side feature flags.
+    //
     // |useSubWindow| is true to indicate that renderer has to support an
     // OpenGL subwindow. If false, it only supports setPostCallback().
     // See Renderer.h for more info.
     //
     // There might be only one renderer.
     virtual RendererPtr initRenderer(int width, int height,
-                                     gfxstream::host::FeatureSet features,
+                                     const gfxstream::host::FeatureSet& features,
                                      bool useSubWindow, bool egl2egl) = 0;
 
     virtual OnLastColorBufferRef getOnLastColorBufferRef() = 0;

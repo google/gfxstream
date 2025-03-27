@@ -777,7 +777,7 @@ int VkEmulation::getSelectedGpuIndex(
 /*static*/
 std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
                                                  gfxstream::host::BackendCallbacks callbacks,
-                                                 gfxstream::host::FeatureSet features) {
+                                                 const gfxstream::host::FeatureSet& features) {
 // Downstream branches can provide abort logic or otherwise use result without a new macro
 #define VK_EMU_INIT_RETURN_OR_ABORT_ON_ERROR(res, ...) \
     do {                                               \

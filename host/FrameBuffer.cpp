@@ -259,7 +259,7 @@ void MaybeIncreaseFileDescriptorSoftLimit() {
 #endif
 }
 
-bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet features,
+bool FrameBuffer::initialize(int width, int height, const gfxstream::host::FeatureSet& features,
                              bool useSubWindow, bool egl2egl) {
     GL_LOG("FrameBuffer::initialize");
 
@@ -565,7 +565,7 @@ void FrameBuffer::finalize() {
     }
 }
 
-FrameBuffer::FrameBuffer(int p_width, int p_height, gfxstream::host::FeatureSet features, bool useSubWindow)
+FrameBuffer::FrameBuffer(int p_width, int p_height, const gfxstream::host::FeatureSet& features, bool useSubWindow)
     : m_features(features),
       m_framebufferWidth(p_width),
       m_framebufferHeight(p_height),

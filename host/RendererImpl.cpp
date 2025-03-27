@@ -125,7 +125,7 @@ RendererImpl::~RendererImpl() {
     mRenderWindow.reset();
 }
 
-bool RendererImpl::initialize(int width, int height, gfxstream::host::FeatureSet features,
+bool RendererImpl::initialize(int width, int height, const gfxstream::host::FeatureSet& features,
                               bool useSubWindow, bool egl2egl) {
 #ifdef CONFIG_AEMU
     if (android::base::getEnvironmentVariable("ANDROID_EMUGL_VERBOSE") == "1") {

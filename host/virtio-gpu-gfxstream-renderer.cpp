@@ -543,7 +543,7 @@ static const GoldfishPipeServiceOps goldfish_pipe_service_ops = {
 };
 
 static int stream_renderer_opengles_init(uint32_t display_width, uint32_t display_height,
-                                         int renderer_flags, gfxstream::host::FeatureSet features) {
+                                         int renderer_flags, const gfxstream::host::FeatureSet& features) {
     stream_renderer_debug("start. display dimensions: width %u height %u, renderer flags: 0x%x",
                           display_width, display_height, renderer_flags);
 

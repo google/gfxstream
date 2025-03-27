@@ -81,7 +81,7 @@ class VkEmulation {
 
     static std::unique_ptr<VkEmulation> create(VulkanDispatch* vk,
                                                gfxstream::host::BackendCallbacks callbacks,
-                                               gfxstream::host::FeatureSet features);
+                                               const gfxstream::host::FeatureSet& features);
 
     struct Features {
         bool glInteropSupported = false;

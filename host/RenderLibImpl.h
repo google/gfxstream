@@ -58,7 +58,7 @@ public:
 
     virtual RendererPtr initRenderer(int width,
                                      int height,
-                                     gfxstream::host::FeatureSet features,
+                                     const gfxstream::host::FeatureSet& features,
                                      bool useSubWindow,
                                      bool egl2egl) override;
 

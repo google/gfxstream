@@ -81,7 +81,7 @@ struct RenderWindowMessage {
         struct {
             int width;
             int height;
-            gfxstream::host::FeatureSet* features;
+            const gfxstream::host::FeatureSet* features;
             bool useSubWindow;
             bool egl2egl;
         } init;
@@ -426,7 +426,7 @@ private:
 
 RenderWindow::RenderWindow(int width,
                            int height,
-                           gfxstream::host::FeatureSet features,
+                           const gfxstream::host::FeatureSet& features,
                            bool use_thread,
                            bool use_sub_window,
                            bool egl2egl)

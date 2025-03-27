@@ -39,7 +39,7 @@ public:
     RendererImpl();
     ~RendererImpl();
 
-    bool initialize(int width, int height, gfxstream::host::FeatureSet features, bool useSubWindow,
+    bool initialize(int width, int height, const gfxstream::host::FeatureSet& features, bool useSubWindow,
                     bool egl2egl);
     void stop(bool wait) override;
     void finish() override;

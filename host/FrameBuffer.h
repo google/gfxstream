@@ -136,7 +136,7 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     // own sub-windows. If false, this means the caller will use
     // setPostCallback() instead to retrieve the content.
     // Returns true on success, false otherwise.
-    static bool initialize(int width, int height, gfxstream::host::FeatureSet features,
+    static bool initialize(int width, int height, const gfxstream::host::FeatureSet& features,
                            bool useSubWindow, bool egl2egl);
 
     // Finalize the instance.
@@ -687,7 +687,7 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     const gfxstream::host::FeatureSet& getFeatures() const { return m_features; }
 
    private:
-    FrameBuffer(int p_width, int p_height, gfxstream::host::FeatureSet features, bool useSubWindow);
+    FrameBuffer(int p_width, int p_height, const gfxstream::host::FeatureSet& features, bool useSubWindow);
     // Requires the caller to hold the m_colorBufferMapLock until the new handle is inserted into of
     // the object handle maps.
     HandleType genHandle_locked();

@@ -45,7 +45,7 @@ class VirtioGpuFrontend {
    public:
     VirtioGpuFrontend();
 
-    int init(void* cookie, gfxstream::host::FeatureSet features,
+    int init(void* cookie, const gfxstream::host::FeatureSet& features,
              stream_renderer_fence_callback fence_callback);
 
     void teardown();
