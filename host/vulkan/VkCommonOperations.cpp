@@ -173,7 +173,7 @@ static std::optional<ExternalHandleInfo> dupExternalMemory(std::optional<Externa
 #else
     // TODO(aruby@blackberry.com): Check handleType?
     return ExternalHandleInfo{
-        .handle = static_cast<ExternalHandleType>(dup(handleInfo->handle)),
+        .handle = handleInfo->dupFd(),
         .streamHandleType = handleInfo->streamHandleType,
     };
 #endif

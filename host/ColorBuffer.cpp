@@ -106,12 +106,7 @@ std::shared_ptr<ColorBuffer> ColorBuffer::create(gl::EmulationGl* emulationGl,
         auto memoryExport = emulationVk->exportColorBufferMemory(handle);
         if (memoryExport) {
             if (colorBuffer->mColorBufferGl->importMemory(
-#ifdef _WIN32
-                    ManagedDescriptor(static_cast<DescriptorType>(
-                        reinterpret_cast<void*>(memoryExport->handleInfo.handle))),
-#else
-                    ManagedDescriptor(static_cast<DescriptorType>(memoryExport->handleInfo.handle)),
-#endif
+                    memoryExport->handleInfo.toManagedDescriptor(),
                     memoryExport->size, memoryExport->dedicatedAllocation,
                     memoryExport->linearTiling)) {
                 colorBuffer->mGlAndVkAreSharingExternalMemory = true;
