@@ -197,8 +197,6 @@ bool getStagingMemoryTypeIndex(VulkanDispatch* vk, VkDevice device,
         // To be a staging buffer, it must support being
         // both a transfer src and dst.
         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-        // TODO: See if buffers over shared queues need to be
-        // considered separately
         VK_SHARING_MODE_EXCLUSIVE,
         0,
         nullptr,
@@ -275,6 +273,8 @@ bool getStagingMemoryTypeIndex(VulkanDispatch* vk, VkDevice device,
 
     sKnownStagingTypeIndices.set(device, stagingMemoryTypeIndex);
     *typeIndex = stagingMemoryTypeIndex;
+
+    VERBOSE("%s: selected type index = %d", __func__, stagingMemoryTypeIndex);
 
     return true;
 }
@@ -3221,15 +3221,19 @@ bool VkEmulation::readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint3
 
     VK_CHECK(vk->vkResetFences(mDevice, 1, &mCommandBufferFence));
 
-    const VkMappedMemoryRange toInvalidate = {
-        .sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
-        .pNext = nullptr,
-        .memory = mStaging.mMemory,
-        .offset = 0,
-        .size = VK_WHOLE_SIZE,
-    };
+    if (!mStaging.mIsHostCoherent) {
+        // Invalidate host cache lines to ensure the subsequent readback
+        // will see the latest writes made by the GPU.
+        const VkMappedMemoryRange toInvalidate = {
+            .sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
+            .pNext = nullptr,
+            .memory = mStaging.mMemory,
+            .offset = 0,
+            .size = VK_WHOLE_SIZE,
+        };
 
-    VK_CHECK(vk->vkInvalidateMappedMemoryRanges(mDevice, 1, &toInvalidate));
+        VK_CHECK(vk->vkInvalidateMappedMemoryRanges(mDevice, 1, &toInvalidate));
+    }
 
     if (bufferCopySize > outPixelsSize) {
         ERR("Invalid buffer size for readColorBufferToBytes operation."
@@ -3342,6 +3346,8 @@ bool VkEmulation::updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, u
         return false;
     }
 
+    // Copy the data into the staging memory first, then use vkCmdCopyBufferToImage
+    // to update the color buffer image.
     auto* stagingBufferPtr = mStaging.mMappedPtr;
     if (isThreeByteRgb) {
         // Convert RGB to RGBA, since only for these types glFormat2VkFormat() makes
@@ -3352,6 +3358,15 @@ bool VkEmulation::updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, u
         convertRgba4ToBGRA4Pixels(stagingBufferPtr, pixels, w, h);
     } else {
         std::memcpy(stagingBufferPtr, pixels, dstBufferSize);
+    }
+
+    if (!mStaging.mIsHostCoherent) {
+        // Flush writes manually now if the memory is not coherent
+        const VkMappedMemoryRange flushRange = {
+            VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE, 0,
+            mStaging.mMemory, 0, VK_WHOLE_SIZE
+        };
+        VK_CHECK(vk->vkFlushMappedMemoryRanges(mDevice, 1, &flushRange));
     }
 
     // NOTE: Host vulkan state might not know the correct layout of the
@@ -3461,15 +3476,6 @@ bool VkEmulation::updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, u
     VK_CHECK(vk->vkWaitForFences(mDevice, 1, &mCommandBufferFence, VK_TRUE, ANB_MAX_WAIT_NS));
 
     VK_CHECK(vk->vkResetFences(mDevice, 1, &mCommandBufferFence));
-
-    const VkMappedMemoryRange toInvalidate = {
-        .sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
-        .pNext = nullptr,
-        .memory = mStaging.mMemory,
-        .offset = 0,
-        .size = VK_WHOLE_SIZE,
-    };
-    VK_CHECK(vk->vkInvalidateMappedMemoryRanges(mDevice, 1, &toInvalidate));
 
     return true;
 }
@@ -3864,15 +3870,19 @@ bool VkEmulation::readBufferToBytes(uint32_t bufferHandle, uint64_t offset, uint
 
     VK_CHECK(vk->vkResetFences(mDevice, 1, &mCommandBufferFence));
 
-    const VkMappedMemoryRange toInvalidate = {
-        .sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
-        .pNext = nullptr,
-        .memory = stagingBufferInfo.mMemory,
-        .offset = 0,
-        .size = size,
-    };
+    if (!stagingBufferInfo.mIsHostCoherent) {
+        // Invalidate host cache lines to ensure the subsequent readback
+        // will see the latest writes made by the GPU.
+        const VkMappedMemoryRange toInvalidate = {
+            .sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
+            .pNext = nullptr,
+            .memory = stagingBufferInfo.mMemory,
+            .offset = 0,
+            .size = size,
+        };
 
-    VK_CHECK(vk->vkInvalidateMappedMemoryRanges(mDevice, 1, &toInvalidate));
+        VK_CHECK(vk->vkInvalidateMappedMemoryRanges(mDevice, 1, &toInvalidate));
+    }
 
     const void* srcPtr = reinterpret_cast<const void*>(
         reinterpret_cast<const char*>(stagingBufferInfo.mMappedPtr));
