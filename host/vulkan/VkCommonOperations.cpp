@@ -279,6 +279,96 @@ bool getStagingMemoryTypeIndex(VulkanDispatch* vk, VkDevice device,
     return true;
 }
 
+bool VkEmulation::StagingBuffer::create(VulkanDispatch* vk, VkDevice device,
+                                            const VkPhysicalDeviceMemoryProperties* memProps,
+                                            const DebugUtilsHelper& debugUtilsHelper,
+                                            const VkDeviceSize size) {
+    VkBufferCreateInfo bufCi = {
+        VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+        0,
+        0,
+        size,
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VK_SHARING_MODE_EXCLUSIVE,
+        0,
+        nullptr,
+    };
+
+    VkResult bufCreateRes = vk->vkCreateBuffer(device, &bufCi, nullptr, &mBuffer);
+    if (bufCreateRes != VK_SUCCESS) {
+        ERR("Failed to create staging buffer. Error: %s [%d].", string_VkResult(bufCreateRes),
+            bufCreateRes);
+        return false;
+    }
+
+    VkMemoryRequirements memReqs;
+    vk->vkGetBufferMemoryRequirements(device, mBuffer, &memReqs);
+
+    mAllocationSize = memReqs.size;
+
+    uint32_t typeIndex = 0;
+    if (!getStagingMemoryTypeIndex(vk, device, memProps, &typeIndex)) {
+        ERR("Failed to determine staging memory type index.");
+        return false;
+    }
+
+    if (!((1 << typeIndex) & memReqs.memoryTypeBits)) {
+        ERR("Failed: Inconsistent determination of memory type index for staging buffer");
+        return false;
+    }
+
+    const VkMemoryType& memType = memProps->memoryTypes[typeIndex];
+    if ((memType.propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == 0) {
+        ERR("Failed: Could not select host visible memory for staging buffer");
+        return false;
+    }
+
+    // Non-host coherent memory would require manual flush/invalidate
+    mIsHostCoherent = (memType.propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+
+    VkMemoryAllocateInfo allocInfo = {
+        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+        .pNext = nullptr,
+        .allocationSize = mAllocationSize,
+        .memoryTypeIndex = typeIndex,
+    };
+
+    VkResult allocRes = vk->vkAllocateMemory(device, &allocInfo, nullptr, &mMemory);
+    if (allocRes != VK_SUCCESS) {
+        ERR("%s: failed in vkAllocateMemory: %s [%d]", __func__, string_VkResult(allocRes),
+            allocRes);
+        return false;
+    }
+
+    VkResult mapRes = vk->vkMapMemory(device, mMemory, 0, VK_WHOLE_SIZE, 0, &mMappedPtr);
+    if (mapRes != VK_SUCCESS) {
+        ERR("%s: failed in vkMapMemory: %s", __func__, string_VkResult(mapRes));
+        return false;
+    }
+
+    VkResult stagingBufferBindRes = vk->vkBindBufferMemory(device, mBuffer, mMemory, 0);
+
+    if (stagingBufferBindRes != VK_SUCCESS) {
+        ERR("Failed to bind memory for staging buffer. Error %s.",
+            string_VkResult(stagingBufferBindRes));
+        return false;
+    }
+
+    debugUtilsHelper.addDebugLabel(mMemory, "AEMU_StagingBufferMemory");
+    debugUtilsHelper.addDebugLabel(mBuffer, "AEMU_StagingBuffer");
+
+    return true;
+}
+
+void VkEmulation::StagingBuffer::destroy(VulkanDispatch* vk, VkDevice device) {
+    vk->vkUnmapMemory(device, mMemory);
+    vk->vkDestroyBuffer(device, mBuffer, nullptr);
+    vk->vkFreeMemory(device, mMemory, nullptr);
+
+    mMemory = VK_NULL_HANDLE;
+    mBuffer = VK_NULL_HANDLE;
+}
+
 VkExternalMemoryHandleTypeFlagBits VkEmulation::getDefaultExternalMemoryHandleType() {
 #if defined(_WIN32)
     return VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT;
@@ -1594,67 +1684,6 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
             string_VkResult(fenceCreateRes));
     }
 
-    // At this point, the global emulation state's logical device can alloc
-    // memory and send commands. However, it can't really do much yet to
-    // communicate the results without the staging buffer. Set that up here.
-    // Note that the staging buffer is meant to use external memory, with a
-    // non-external-memory fallback.
-
-    VkBufferCreateInfo bufCi = {
-        VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-        0,
-        0,
-        emulation->mStaging.size,
-        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-        VK_SHARING_MODE_EXCLUSIVE,
-        0,
-        nullptr,
-    };
-
-    VkResult bufCreateRes =
-        dvk->vkCreateBuffer(emulation->mDevice, &bufCi, nullptr, &emulation->mStaging.buffer);
-
-    if (bufCreateRes != VK_SUCCESS) {
-        VK_EMU_INIT_RETURN_OR_ABORT_ON_ERROR(bufCreateRes,
-                                             "Failed to create staging buffer index. Error: %s.",
-                                             string_VkResult(bufCreateRes));
-    }
-
-    VkMemoryRequirements memReqs;
-    dvk->vkGetBufferMemoryRequirements(emulation->mDevice, emulation->mStaging.buffer, &memReqs);
-
-    emulation->mStaging.memory.size = memReqs.size;
-
-    bool gotStagingTypeIndex =
-        getStagingMemoryTypeIndex(dvk, emulation->mDevice, &emulation->mDeviceInfo.memProps,
-                                  &emulation->mStaging.memory.typeIndex);
-
-    if (!gotStagingTypeIndex) {
-        VK_EMU_INIT_RETURN_OR_ABORT_ON_ERROR(ABORT_REASON_OTHER,
-                                             "Failed to determine staging memory type index.");
-    }
-
-    if (!((1 << emulation->mStaging.memory.typeIndex) & memReqs.memoryTypeBits)) {
-        VK_EMU_INIT_RETURN_OR_ABORT_ON_ERROR(
-            ABORT_REASON_OTHER,
-            "Failed: Inconsistent determination of memory type index for staging buffer");
-    }
-
-    if (!emulation->allocExternalMemory(dvk, &emulation->mStaging.memory, false /* not external */,
-                                        kNullopt /* deviceAlignment */)) {
-        VK_EMU_INIT_RETURN_OR_ABORT_ON_ERROR(ABORT_REASON_OTHER,
-                                             "Failed to allocate memory for staging buffer.");
-    }
-
-    VkResult stagingBufferBindRes = dvk->vkBindBufferMemory(
-        emulation->mDevice, emulation->mStaging.buffer, emulation->mStaging.memory.memory, 0);
-
-    if (stagingBufferBindRes != VK_SUCCESS) {
-        VK_EMU_INIT_RETURN_OR_ABORT_ON_ERROR(stagingBufferBindRes,
-                                             "Failed to bind memory for staging buffer. Error %s.",
-                                             string_VkResult(stagingBufferBindRes));
-    }
-
     if (debugUtilsAvailableAndRequested) {
         emulation->mDebugUtilsAvailableAndRequested = true;
         emulation->mDebugUtilsHelper =
@@ -1662,14 +1691,21 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
 
         emulation->mDebugUtilsHelper.addDebugLabel(emulation->mInstance, "AEMU_Instance");
         emulation->mDebugUtilsHelper.addDebugLabel(emulation->mDevice, "AEMU_Device");
-        emulation->mDebugUtilsHelper.addDebugLabel(emulation->mStaging.buffer,
-                                                   "AEMU_StagingBuffer");
         emulation->mDebugUtilsHelper.addDebugLabel(emulation->mCommandBuffer, "AEMU_CommandBuffer");
     }
 
     if (commandBufferCheckpointsSupportedAndRequested) {
         emulation->mCommandBufferCheckpointsSupportedAndRequested = true;
         emulation->mDeviceLostHelper.enableWithNvidiaDeviceDiagnosticCheckpoints();
+    }
+
+    // Create a staging buffer for color buffer copy/update operations
+    if (!emulation->mStaging.create(dvk, emulation->mDevice,
+                                    &emulation->mDeviceInfo.memProps,
+                                    emulation->mDebugUtilsHelper,
+                                    kDefaultStagingBufferSize)) {
+        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+            << "Failed: Could not allocate staging buffer for Vulkan emulation";
     }
 
     VERBOSE("Vulkan global emulation state successfully initialized.");
@@ -1740,9 +1776,8 @@ VkEmulation::~VkEmulation() {
     mCompositorVk.reset();
     mDisplayVk.reset();
 
-    freeExternalMemoryLocked(mDvk, &mStaging.memory);
+    mStaging.destroy(mDvk, mDevice);
 
-    mDvk->vkDestroyBuffer(mDevice, mStaging.buffer, nullptr);
     mDvk->vkDestroyFence(mDevice, mCommandBufferFence, nullptr);
     mDvk->vkFreeCommandBuffers(mDevice, mCommandPool, 1, &mCommandBuffer);
     mDvk->vkDestroyCommandPool(mDevice, mCommandPool, nullptr);
@@ -3117,7 +3152,7 @@ bool VkEmulation::readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint3
                              &toTransferSrcImageBarrier);
 
     vk->vkCmdCopyImageToBuffer(mCommandBuffer, colorBufferInfo->image,
-                               transferSrcLayout, mStaging.buffer,
+                               transferSrcLayout, mStaging.mBuffer,
                                bufferImageCopies.size(), bufferImageCopies.data());
 
     // Change back to original layout
@@ -3189,21 +3224,20 @@ bool VkEmulation::readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint3
     const VkMappedMemoryRange toInvalidate = {
         .sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
         .pNext = nullptr,
-        .memory = mStaging.memory.memory,
+        .memory = mStaging.mMemory,
         .offset = 0,
         .size = VK_WHOLE_SIZE,
     };
 
     VK_CHECK(vk->vkInvalidateMappedMemoryRanges(mDevice, 1, &toInvalidate));
 
-    const auto* stagingBufferPtr = mStaging.memory.mappedPtr;
     if (bufferCopySize > outPixelsSize) {
         ERR("Invalid buffer size for readColorBufferToBytes operation."
             "Required: %llu, Actual: %llu",
             bufferCopySize, outPixelsSize);
         bufferCopySize = outPixelsSize;
     }
-    std::memcpy(outPixels, stagingBufferPtr, bufferCopySize);
+    std::memcpy(outPixels, mStaging.mMappedPtr, bufferCopySize);
 
     return true;
 }
@@ -3288,7 +3322,7 @@ bool VkEmulation::updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, u
         return false;
     }
 
-    const VkDeviceSize stagingBufferSize = mStaging.size;
+    const VkDeviceSize stagingBufferSize = mStaging.mAllocationSize;
     if (dstBufferSize > stagingBufferSize) {
         ERR("Failed to update ColorBuffer:%d, transfer size %" PRIu64
             " too large for staging buffer size:%" PRIu64 ".",
@@ -3308,8 +3342,7 @@ bool VkEmulation::updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, u
         return false;
     }
 
-    auto* stagingBufferPtr = mStaging.memory.mappedPtr;
-
+    auto* stagingBufferPtr = mStaging.mMappedPtr;
     if (isThreeByteRgb) {
         // Convert RGB to RGBA, since only for these types glFormat2VkFormat() makes
         // an incompatible choice of 4-byte backing VK_FORMAT_R8G8B8A8_UNORM.
@@ -3372,7 +3405,7 @@ bool VkEmulation::updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, u
                              &toTransferDstImageBarrier);
 
     // Copy from staging buffer to color buffer image
-    vk->vkCmdCopyBufferToImage(mCommandBuffer, mStaging.buffer, colorBufferInfo->image,
+    vk->vkCmdCopyBufferToImage(mCommandBuffer, mStaging.mBuffer, colorBufferInfo->image,
                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, bufferImageCopies.size(),
                                bufferImageCopies.data());
 
@@ -3432,7 +3465,7 @@ bool VkEmulation::updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, u
     const VkMappedMemoryRange toInvalidate = {
         .sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
         .pNext = nullptr,
-        .memory = mStaging.memory.memory,
+        .memory = mStaging.mMemory,
         .offset = 0,
         .size = VK_WHOLE_SIZE,
     };
@@ -3782,7 +3815,7 @@ bool VkEmulation::readBufferToBytes(uint32_t bufferHandle, uint64_t offset, uint
     }
 
     const auto& stagingBufferInfo = mStaging;
-    if (size > stagingBufferInfo.size) {
+    if (size > stagingBufferInfo.mAllocationSize) {
         ERR("Failed to read from Buffer:%d, staging buffer too small.", bufferHandle);
         return false;
     }
@@ -3802,7 +3835,7 @@ bool VkEmulation::readBufferToBytes(uint32_t bufferHandle, uint64_t offset, uint
         .dstOffset = 0,
         .size = size,
     };
-    vk->vkCmdCopyBuffer(mCommandBuffer, bufferInfo->buffer, stagingBufferInfo.buffer, 1,
+    vk->vkCmdCopyBuffer(mCommandBuffer, bufferInfo->buffer, stagingBufferInfo.mBuffer, 1,
                         &bufferCopy);
 
     mDebugUtilsHelper.cmdEndDebugLabel(mCommandBuffer);
@@ -3835,7 +3868,7 @@ bool VkEmulation::readBufferToBytes(uint32_t bufferHandle, uint64_t offset, uint
     const VkMappedMemoryRange toInvalidate = {
         .sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
         .pNext = nullptr,
-        .memory = stagingBufferInfo.memory.memory,
+        .memory = stagingBufferInfo.mMemory,
         .offset = 0,
         .size = size,
     };
@@ -3843,7 +3876,7 @@ bool VkEmulation::readBufferToBytes(uint32_t bufferHandle, uint64_t offset, uint
     VK_CHECK(vk->vkInvalidateMappedMemoryRanges(mDevice, 1, &toInvalidate));
 
     const void* srcPtr = reinterpret_cast<const void*>(
-        reinterpret_cast<const char*>(stagingBufferInfo.memory.mappedPtr));
+        reinterpret_cast<const char*>(stagingBufferInfo.mMappedPtr));
     void* dstPtr = outBytes;
     void* dstPtrOffset = reinterpret_cast<void*>(reinterpret_cast<char*>(dstPtr) + offset);
     std::memcpy(dstPtrOffset, srcPtr, size);
@@ -3864,7 +3897,7 @@ bool VkEmulation::updateBufferFromBytes(uint32_t bufferHandle, uint64_t offset, 
     }
 
     const auto& stagingBufferInfo = mStaging;
-    if (size > stagingBufferInfo.size) {
+    if (size > stagingBufferInfo.mAllocationSize) {
         ERR("Failed to update Buffer:%d, staging buffer too small.", bufferHandle);
         return false;
     }
@@ -3872,13 +3905,13 @@ bool VkEmulation::updateBufferFromBytes(uint32_t bufferHandle, uint64_t offset, 
     const void* srcPtr = bytes;
     const void* srcPtrOffset =
         reinterpret_cast<const void*>(reinterpret_cast<const char*>(srcPtr) + offset);
-    void* dstPtr = stagingBufferInfo.memory.mappedPtr;
+    void* dstPtr = stagingBufferInfo.mMappedPtr;
     std::memcpy(dstPtr, srcPtrOffset, size);
 
     const VkMappedMemoryRange toFlush = {
         .sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
         .pNext = nullptr,
-        .memory = stagingBufferInfo.memory.memory,
+        .memory = stagingBufferInfo.mMemory,
         .offset = 0,
         .size = size,
     };
@@ -3899,7 +3932,7 @@ bool VkEmulation::updateBufferFromBytes(uint32_t bufferHandle, uint64_t offset, 
         .dstOffset = offset,
         .size = size,
     };
-    vk->vkCmdCopyBuffer(mCommandBuffer, stagingBufferInfo.buffer, bufferInfo->buffer, 1,
+    vk->vkCmdCopyBuffer(mCommandBuffer, stagingBufferInfo.mBuffer, bufferInfo->buffer, 1,
                         &bufferCopy);
 
     mDebugUtilsHelper.cmdEndDebugLabel(mCommandBuffer);
