@@ -84,9 +84,9 @@ class AndroidNativeBufferInfo {
 
     VulkanDispatch* mDeviceDispatch = nullptr;
     VkDevice mDevice = VK_NULL_HANDLE;
-    VkFormat mVkFormat;
-    VkExtent3D mExtent;
-    VkImageUsageFlags mUsage;
+    VkFormat mVkFormat = VK_FORMAT_UNDEFINED;
+    VkExtent3D mExtent = {};
+    VkImageUsageFlags mUsage = 0;
     std::vector<uint32_t> mQueueFamilyIndices;
 
     int mAhbFormat = 0;
@@ -110,7 +110,7 @@ class AndroidNativeBufferInfo {
 
     // To be populated later as we go.
     VkImage mImage = VK_NULL_HANDLE;
-    VkMemoryRequirements mImageMemoryRequirements;
+    VkMemoryRequirements mImageMemoryRequirements = {};
 
     // The queue over which we send the buffer/image copy commands depends on
     // the queue over which vkQueueSignalReleaseImageANDROID happens.

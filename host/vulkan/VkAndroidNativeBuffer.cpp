@@ -411,6 +411,11 @@ std::unique_ptr<AndroidNativeBufferInfo> AndroidNativeBufferInfo::create(
         }
     }
 
+    emu->getDebugUtilsHelper().addDebugLabel(out->mStagingBuffer, "ANB_StagingBuffer:%d",
+                                             out->mColorBufferHandle);
+    emu->getDebugUtilsHelper().addDebugLabel(out->mStagingBufferMemory, "ANB_StagingMemory:%d",
+                                             out->mColorBufferHandle);
+
     out->mQsriWaitFencePool = std::make_unique<AndroidNativeBufferInfo::QsriWaitFencePool>(
         out->mDeviceDispatch, out->mDevice);
     out->mQsriTimeline = std::make_unique<VkQsriTimeline>();
