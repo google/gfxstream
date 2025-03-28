@@ -34,8 +34,6 @@
 namespace gfxstream {
 namespace gl {
 
-// #define V(...)  VERBOSE_PRINT(gles,__VA_ARGS__)
-#define V(...)
 #define MAX_FACTOR_POWER 4
 
 static const char kCommonShaderSource[] =
@@ -323,7 +321,7 @@ GLuint TextureResize::update(GLuint texture) {
     // If there was an error while resizing, just use the unscaled texture.
     GLenum error = s_gles2.glGetError();
     if (error != GL_NO_ERROR) {
-        V("GL error while resizing: 0x%x (ignored)\n", error);
+        VERBOSE("GL error while resizing: 0x%x (ignored)\n", error);
         return texture;
     }
 
@@ -468,7 +466,7 @@ TextureResize::GenericResizer::GenericResizer() :
     if (success == GL_FALSE) {
         GLchar infolog[256];
         s_gles2.glGetProgramInfoLog(mProgram, sizeof(infolog), 0, infolog);
-        fprintf(stderr, "Could not create/link program: %s\n", infolog);
+        ERR("Could not create/link program: %s\n", infolog);
         return;
     }
 

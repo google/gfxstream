@@ -80,6 +80,7 @@ bool isCompatibleHostConfig(EGLConfig config, EGLDisplay display) {
     s_egl.eglGetConfigAttrib(
             display, config, EGL_SURFACE_TYPE, &surfaceType);
     if (!(surfaceType & EGL_PBUFFER_BIT)) {
+        VERBOSE("%s:%d surfaceType=%d is not compatible", __func__, __LINE__, surfaceType);
         return false;
     }
 
@@ -92,6 +93,8 @@ bool isCompatibleHostConfig(EGLConfig config, EGLDisplay display) {
     s_egl.eglGetConfigAttrib(
             display, config, EGL_BLUE_SIZE, &blueSize);
     if (!redSize || !greenSize || !blueSize) {
+        VERBOSE("%s:%d surfaceType=%d is not compatible, redSize=%d greenSize=%d blueSize=%d",
+                __func__, __LINE__, surfaceType, redSize, greenSize, blueSize);
         return false;
     }
 
