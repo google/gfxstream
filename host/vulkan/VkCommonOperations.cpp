@@ -1978,7 +1978,7 @@ MTLResource_id VkEmulation::getMtlResourceFromVkDeviceMemory(VulkanDispatch* vk,
 
 // Precondition: sVkEmulation has valid device support info
 bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalMemoryInfo* info,
-                                      bool actuallyExternal, Optional<uint64_t> deviceAlignment,
+                                      Optional<uint64_t> deviceAlignment,
                                       Optional<VkBuffer> bufferForDedicatedAllocation,
                                       Optional<VkImage> imageForDedicatedAllocation) {
     VkExportMemoryAllocateInfo exportAi = {
@@ -2004,7 +2004,7 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
 
     auto allocInfoChain = vk_make_chain_iterator(&allocInfo);
 
-    if (mDeviceInfo.supportsExternalMemoryExport && actuallyExternal) {
+    if (mDeviceInfo.supportsExternalMemoryExport) {
 #ifdef __APPLE__
         if (mInstanceSupportsMoltenVK) {
             // Change handle type for metal resources
@@ -2093,7 +2093,7 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
         return false;
     }
 
-    if (!mDeviceInfo.supportsExternalMemoryExport || !actuallyExternal) {
+    if (!mDeviceInfo.supportsExternalMemoryExport) {
         return true;
     }
 
@@ -2776,7 +2776,7 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height, GLe
 
         infoPtr->externalMemoryCompatible = true;
     } else {
-        bool allocRes = allocExternalMemory(vk, &infoPtr->memory, true /*actuallyExternal*/,
+        bool allocRes = allocExternalMemory(vk, &infoPtr->memory,
                                             deviceAlignment, kNullopt, dedicatedImage);
         if (!allocRes) {
             ERR("Failed to allocate ColorBuffer with Vulkan backing.");
@@ -3712,8 +3712,7 @@ bool VkEmulation::setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulka
     Optional<uint64_t> deviceAlignment =
         isHostVisible ? Optional<uint64_t>(memReqs.alignment) : kNullopt;
     Optional<VkBuffer> dedicated_buffer = useDedicated ? Optional<VkBuffer>(res.buffer) : kNullopt;
-    bool allocRes = allocExternalMemory(vk, &res.memory, true /* actuallyExternal */,
-                                        deviceAlignment, dedicated_buffer);
+    bool allocRes = allocExternalMemory(vk, &res.memory, deviceAlignment, dedicated_buffer);
 
     if (!allocRes) {
         WARN("Failed to allocate ColorBuffer with Vulkan backing.");

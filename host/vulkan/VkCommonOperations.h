@@ -239,7 +239,7 @@ class VkEmulation {
     };
 
     bool allocExternalMemory(
-        VulkanDispatch* vk, ExternalMemoryInfo* info, bool actuallyExternal = true,
+        VulkanDispatch* vk, ExternalMemoryInfo* info,
         android::base::Optional<uint64_t> deviceAlignment = android::base::kNullopt,
         android::base::Optional<VkBuffer> bufferForDedicatedAllocation = android::base::kNullopt,
         android::base::Optional<VkImage> imageForDedicatedAllocation = android::base::kNullopt);
