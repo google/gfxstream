@@ -424,7 +424,25 @@ TEST_F(VulkanTest, StagingMemoryQuery) {
 
     mVk.vkGetPhysicalDeviceMemoryProperties(mPhysicalDevice, &memProps);
 
-    EXPECT_TRUE(getStagingMemoryTypeIndex(&mVk, mDevice, &memProps, &typeIndex));
+    VkBufferCreateInfo bufCi = {
+        VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+        0,
+        0,
+        4096,
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VK_SHARING_MODE_EXCLUSIVE,
+        0,
+        nullptr,
+    };
+
+    VkBuffer buffer = VK_NULL_HANDLE;
+    VkResult bufCreateRes = mVk.vkCreateBuffer(mDevice, &bufCi, nullptr, &buffer);
+    EXPECT_EQ(VK_SUCCESS, bufCreateRes);
+
+    VkMemoryRequirements memReqs;
+    mVk.vkGetBufferMemoryRequirements(mDevice, buffer, &memReqs);
+
+    EXPECT_TRUE(getStagingMemoryTypeIndex(&mVk, mDevice, &memProps, memReqs, &typeIndex));
 }
 
 #ifndef _WIN32 // TODO: Get this working w/ Swiftshader vk on Windows

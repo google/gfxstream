@@ -371,7 +371,7 @@ std::unique_ptr<AndroidNativeBufferInfo> AndroidNativeBufferInfo::create(
 
         uint32_t stagingMemoryTypeIndex = -1;
         bool stagingIndexRes =
-            getStagingMemoryTypeIndex(vk, device, memProps, &stagingMemoryTypeIndex);
+            getStagingMemoryTypeIndex(vk, device, memProps, stagingMemoryRequirements, &stagingMemoryTypeIndex);
         if (!stagingIndexRes) {
             VK_ANB_ERR(
                 "VK_ANDROID_native_buffer: could not obtain "

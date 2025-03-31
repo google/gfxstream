@@ -61,6 +61,7 @@ struct VulkanDispatch;
 // associated with it.
 bool getStagingMemoryTypeIndex(VulkanDispatch* vk, VkDevice device,
                                const VkPhysicalDeviceMemoryProperties* memProps,
+                               const VkMemoryRequirements& memReqs,
                                uint32_t* typeIndex);
 
 enum class AstcEmulationMode {
@@ -239,7 +240,7 @@ class VkEmulation {
     };
 
     bool allocExternalMemory(
-        VulkanDispatch* vk, ExternalMemoryInfo* info, bool actuallyExternal = true,
+        VulkanDispatch* vk, ExternalMemoryInfo* info,
         android::base::Optional<uint64_t> deviceAlignment = android::base::kNullopt,
         android::base::Optional<VkBuffer> bufferForDedicatedAllocation = android::base::kNullopt,
         android::base::Optional<VkImage> imageForDedicatedAllocation = android::base::kNullopt);
@@ -603,22 +604,25 @@ class VkEmulation {
     // ought to be big enough for anybody!
     static constexpr VkDeviceSize kDefaultStagingBufferSize = 128ULL * 1048576ULL;
 
-    struct StagingBufferInfo {
-        // TODO: Don't actually use this as external memory until host visible
-        // external is supported on all platforms
-        ExternalMemoryInfo memory;
-        VkBuffer buffer = VK_NULL_HANDLE;
-        VkDeviceSize size = kDefaultStagingBufferSize;
+    struct StagingBuffer {
+        VkDeviceMemory mMemory = VK_NULL_HANDLE;
+        VkBuffer mBuffer = VK_NULL_HANDLE;
+        VkDeviceSize mAllocationSize;
+        void* mMappedPtr = nullptr;
+        bool mIsHostCoherent = false;
+
+        bool create(VulkanDispatch* vk, VkDevice device,
+            const VkPhysicalDeviceMemoryProperties* memProps,
+            const DebugUtilsHelper& debugUtilsHelper,
+            const VkDeviceSize size);
+        void destroy(VulkanDispatch* dvk, VkDevice device);
     };
 
     // Track what is supported on whatever device was selected.
     DeviceSupportInfo mDeviceInfo;
 
-    // A single staging buffer to perform most transfers to/from OpenGL on the
-    // host. It is shareable across instances. The memory is shareable but the
-    // buffer is not; other users need to create buffers that
-    // bind to imported versions of the memory.
-    StagingBufferInfo mStaging GUARDED_BY(mMutex);
+    // Staging buffer to perform reads and updates on color buffers.
+    StagingBuffer mStaging GUARDED_BY(mMutex);
 
     // ColorBuffers are intended to back the guest's shareable images.
     // For example:
