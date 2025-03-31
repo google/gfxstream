@@ -63,6 +63,11 @@ void BoxedHandleManager::clear() {
     mStore.clear();
 }
 
+uint64_t BoxedHandleManager::getHandlesCount() const {
+    std::lock_guard<std::mutex> lock(mMutex);
+    return mReverseMap.size();
+}
+
 BoxedHandle BoxedHandleManager::add(const BoxedHandleInfo& item, BoxedHandleTypeTag tag) {
     BoxedHandle handle;
 
