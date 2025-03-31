@@ -67,6 +67,18 @@ typedef int64_t ExternalHandleType;
 struct ExternalHandleInfo {
     ExternalHandleType handle;
     uint32_t streamHandleType;
+
+#ifdef _WIN32
+    ManagedDescriptor toManagedDescriptor() const {
+        return ManagedDescriptor(static_cast<DescriptorType>(reinterpret_cast<void*>(handle)));
+    }
+#else
+    ManagedDescriptor toManagedDescriptor() const {
+        return ManagedDescriptor(static_cast<DescriptorType>(handle));
+    }
+    int getFd() const { return static_cast<int>(handle); }
+    ExternalHandleType dupFd() const { return static_cast<ExternalHandleType>(dup(getFd())); }
+#endif
 };
 
 // A struct describing the information about host memory associated

@@ -55,12 +55,7 @@ std::optional<BlobDescriptorInfo> BufferVk::exportBlob() {
     return BlobDescriptorInfo{
         .descriptorInfo =
             {
-#ifdef _WIN32
-                .descriptor = ManagedDescriptor(
-                    static_cast<DescriptorType>(reinterpret_cast<void*>(dupHandleInfo->handle))),
-#else
-                .descriptor = ManagedDescriptor(static_cast<DescriptorType>(dupHandleInfo->handle)),
-#endif
+                .descriptor = dupHandleInfo->toManagedDescriptor(),
                 .streamHandleType = dupHandleInfo->streamHandleType,
             },
         .caching = 0,

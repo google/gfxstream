@@ -85,13 +85,7 @@ std::optional<BlobDescriptorInfo> ColorBufferVk::exportBlob() {
         return BlobDescriptorInfo{
             .descriptorInfo =
                 {
-#ifdef _WIN32
-                    .descriptor = ManagedDescriptor(static_cast<DescriptorType>(
-                        reinterpret_cast<void*>(info->handleInfo.handle))),
-#else
-                    .descriptor =
-                        ManagedDescriptor(static_cast<DescriptorType>(info->handleInfo.handle)),
-#endif
+                    .descriptor = info->handleInfo.toManagedDescriptor(),
                     .streamHandleType = info->handleInfo.streamHandleType,
                 },
             .caching = 0,

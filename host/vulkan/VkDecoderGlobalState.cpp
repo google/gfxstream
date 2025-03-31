@@ -5319,7 +5319,7 @@ class VkDecoderGlobalState::Impl {
                         return VK_ERROR_OUT_OF_DEVICE_MEMORY;
                     }
 #else
-                    importFdInfo.fd = static_cast<int>(dupHandleInfo->handle);
+                    importFdInfo.fd = dupHandleInfo->getFd();
                     vk_append_struct(&structChainIter, &importFdInfo);
 #endif
                 }
@@ -5396,7 +5396,7 @@ class VkDecoderGlobalState::Impl {
                     return VK_ERROR_OUT_OF_DEVICE_MEMORY;
                 }
 #else
-                importFdInfo.fd = static_cast<int>(dupHandleInfo->handle);
+                importFdInfo.fd = dupHandleInfo->getFd();
                 vk_append_struct(&structChainIter, &importFdInfo);
 #endif
             }
