@@ -1818,7 +1818,7 @@ class VkDecoderGlobalState::Impl {
 
             // This may be hit by the CTS in create_device_unsupported_features.vulkan13_features
             // We log the behavior, to identify cases as some system apps may still try creating
-            // protected memory devices without checking the feature support.
+            // private data devices without checking the feature support.
             if (requestedPrivateData) {
                 WARN("%s: Unsupported private data feature is requested!", __func__);
                 return VK_ERROR_FEATURE_NOT_PRESENT;
