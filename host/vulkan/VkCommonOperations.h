@@ -61,6 +61,7 @@ struct VulkanDispatch;
 // associated with it.
 bool getStagingMemoryTypeIndex(VulkanDispatch* vk, VkDevice device,
                                const VkPhysicalDeviceMemoryProperties* memProps,
+                               const VkMemoryRequirements& memReqs,
                                uint32_t* typeIndex);
 
 enum class AstcEmulationMode {

@@ -90,8 +90,6 @@ const char* string_AstcEmulationMode(AstcEmulationMode mode) {
 
 }  // namespace
 
-static StaticMap<VkDevice, uint32_t> sKnownStagingTypeIndices;
-
 std::optional<GenericDescriptorInfo> VkEmulation::exportMemoryHandle(VkDevice device,
                                                                      VkDeviceMemory memory) {
     GenericDescriptorInfo ret;
@@ -181,41 +179,8 @@ static std::optional<ExternalHandleInfo> dupExternalMemory(std::optional<Externa
 
 bool getStagingMemoryTypeIndex(VulkanDispatch* vk, VkDevice device,
                                const VkPhysicalDeviceMemoryProperties* memProps,
+                               const VkMemoryRequirements& memReqs,
                                uint32_t* typeIndex) {
-    auto res = sKnownStagingTypeIndices.get(device);
-
-    if (res) {
-        *typeIndex = *res;
-        return true;
-    }
-
-    VkBufferCreateInfo testCreateInfo = {
-        VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-        0,
-        0,
-        4096,
-        // To be a staging buffer, it must support being
-        // both a transfer src and dst.
-        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-        VK_SHARING_MODE_EXCLUSIVE,
-        0,
-        nullptr,
-    };
-
-    VkBuffer testBuffer;
-    VkResult testBufferCreateRes =
-        vk->vkCreateBuffer(device, &testCreateInfo, nullptr, &testBuffer);
-
-    if (testBufferCreateRes != VK_SUCCESS) {
-        ERR("Could not create test buffer "
-            "for staging buffer query. VkResult: %s",
-            string_VkResult(testBufferCreateRes));
-        return false;
-    }
-
-    VkMemoryRequirements memReqs;
-    vk->vkGetBufferMemoryRequirements(device, testBuffer, &memReqs);
-
     // To be a staging buffer, we need to allow CPU read/write access.
     // Thus, we need the memory type index both to be host visible
     // and to be supported in the memory requirements of the buffer.
@@ -249,8 +214,6 @@ bool getStagingMemoryTypeIndex(VulkanDispatch* vk, VkDevice device,
         }
     }
 
-    vk->vkDestroyBuffer(device, testBuffer, nullptr);
-
     if (!foundSuitableStagingMemoryType) {
         std::stringstream ss;
         ss << "Could not find suitable memory type index "
@@ -271,10 +234,7 @@ bool getStagingMemoryTypeIndex(VulkanDispatch* vk, VkDevice device,
         return false;
     }
 
-    sKnownStagingTypeIndices.set(device, stagingMemoryTypeIndex);
     *typeIndex = stagingMemoryTypeIndex;
-
-    VERBOSE("%s: selected type index = %d", __func__, stagingMemoryTypeIndex);
 
     return true;
 }
@@ -307,10 +267,14 @@ bool VkEmulation::StagingBuffer::create(VulkanDispatch* vk, VkDevice device,
     mAllocationSize = memReqs.size;
 
     uint32_t typeIndex = 0;
-    if (!getStagingMemoryTypeIndex(vk, device, memProps, &typeIndex)) {
+    if (!getStagingMemoryTypeIndex(vk, device, memProps, memReqs, &typeIndex)) {
         ERR("Failed to determine staging memory type index.");
         return false;
     }
+
+    VERBOSE("%s: selected memory type index = %d, propertyFlags = %d, heapIndex = %d", __func__,
+            typeIndex, memProps->memoryTypes[typeIndex].propertyFlags,
+            memProps->memoryTypes[typeIndex].heapIndex);
 
     if (!((1 << typeIndex) & memReqs.memoryTypeBits)) {
         ERR("Failed: Inconsistent determination of memory type index for staging buffer");
