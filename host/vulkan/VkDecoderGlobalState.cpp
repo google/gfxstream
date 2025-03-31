@@ -1801,6 +1801,30 @@ class VkDecoderGlobalState::Impl {
             featuresToFilter.emplace_back(&featuresFiltered);
         }
 
+        // Check for private data usage before force enabling. The api is unsupported so return error.
+        {
+            bool requestedPrivateData = false;
+            VkPhysicalDevicePrivateDataFeatures* privateDataFeatures =
+                vk_find_struct<VkPhysicalDevicePrivateDataFeatures>(&createInfoFiltered);
+            if (privateDataFeatures != nullptr && privateDataFeatures->privateData) {
+                requestedPrivateData = true;
+            }
+
+            VkPhysicalDeviceVulkan13Features* vulkan13Features =
+                vk_find_struct<VkPhysicalDeviceVulkan13Features>(&createInfoFiltered);
+            if (vulkan13Features != nullptr && vulkan13Features->privateData) {
+                requestedPrivateData = true;
+            }
+
+            // This may be hit by the CTS in create_device_unsupported_features.vulkan13_features
+            // We log the behavior, to identify cases as some system apps may still try creating
+            // protected memory devices without checking the feature support.
+            if (requestedPrivateData) {
+                WARN("%s: Unsupported private data feature is requested!", __func__);
+                return VK_ERROR_FEATURE_NOT_PRESENT;
+            }
+        }
+
         // TODO(b/378686769): Force enable private data feature when available to
         //  mitigate the issues with duplicated vulkan handles. This should be
         //  removed once the issue is properly fixed.
