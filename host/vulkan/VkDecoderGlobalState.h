@@ -103,13 +103,6 @@ class VkDecoderGlobalState {
                                                        uint32_t* pPropertyCount,
                                                        VkExtensionProperties* pProperties);
 
-    // Fast way to get dispatch tables associated with a Vulkan object.
-    // VkInstance
-    // VkPhysicalDevice
-    // VkDevice
-    // VkQueue
-    // VkCommandBuffer
-
     VkResult on_vkCreateInstance(android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
                                  const VkInstanceCreateInfo* pCreateInfo,
                                  const VkAllocationCallbacks* pAllocator, VkInstance* pInstance);

@@ -55,12 +55,9 @@ GLuint createShader(GLint shaderType, const char* shaderText) {
         GLint infoLogLength;
         s_gles2.glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLogLength);
         std::string infoLog(infoLogLength + 1, '\0');
-        fprintf(stderr, "%s: TextureDraw shader compile failed.\n", __func__);
         s_gles2.glGetShaderInfoLog(shader, infoLogLength, 0, &infoLog[0]);
-        fprintf(stderr, "%s: Info log:\n%s\n", __func__,
-                infoLog.c_str());
-        fprintf(stderr, "%s: Source:\n%s\n", __func__,
-                shaderText);
+        ERR("%s: TextureDraw shader compile failed: \n%s", __func__, shaderText);
+        ERR("%s: Info log: %s", __func__, infoLog.c_str());
         s_gles2.glDeleteShader(shader);
 
         // No point in continuing as it's going to be a black screen.

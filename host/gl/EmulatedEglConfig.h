@@ -24,6 +24,8 @@
 #include "OpenGLESDispatch/GLESv2Dispatch.h"
 #include "gfxstream/host/Features.h"
 
+#include "host-common/logging.h"
+
 namespace gfxstream {
 namespace gl {
 
@@ -127,6 +129,8 @@ class EmulatedEglConfigList {
         if (guestId >= 0 && guestId < (int)mConfigs.size()) {
             return &mConfigs[guestId];
         } else {
+            INFO("Requested invalid EGL config id: %d (list size: %d)", guestId,
+                 (int)mConfigs.size());
             return NULL;
         }
     }
