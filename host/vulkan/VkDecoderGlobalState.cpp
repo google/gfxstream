@@ -1865,18 +1865,28 @@ class VkDecoderGlobalState::Impl {
         }
 
         {
-            // Protected memory is not supported on emulators. Override feature
-            // information to mark as unsupported (see b/329845987).
+            // b/329845987, protected memory is not supported on emulators.
+            // We override feature information to mark as unsupported and need to return correct
+            // error code here even if the feature is supported by the underlying driver.
+            bool protectedMemoryFeatureRequested = false;
             VkPhysicalDeviceProtectedMemoryFeatures* protectedMemoryFeatures =
                 vk_find_struct<VkPhysicalDeviceProtectedMemoryFeatures>(&createInfoFiltered);
-            if (protectedMemoryFeatures != nullptr) {
-                protectedMemoryFeatures->protectedMemory = VK_FALSE;
+            if (protectedMemoryFeatures != nullptr && protectedMemoryFeatures->protectedMemory) {
+                protectedMemoryFeatureRequested = true;
             }
 
             VkPhysicalDeviceVulkan11Features* vk11Features =
                 vk_find_struct<VkPhysicalDeviceVulkan11Features>(&createInfoFiltered);
-            if (vk11Features != nullptr) {
-                vk11Features->protectedMemory = VK_FALSE;
+            if (vk11Features != nullptr && vk11Features->protectedMemory) {
+                protectedMemoryFeatureRequested = true;
+            }
+
+            // This may be hit by the CTS in create_device_unsupported_features.vulkan11_features
+            // We log the behavior, to identify cases as some system apps may still try creating
+            // protected memory devices without checking the feature support.
+            if (protectedMemoryFeatureRequested) {
+                INFO("%s: Unsupported protected memory feature is requested!", __func__);
+                return VK_ERROR_FEATURE_NOT_PRESENT;
             }
 
             for (uint32_t i = 0; i < createInfoFiltered.queueCreateInfoCount; i++) {
