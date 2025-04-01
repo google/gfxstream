@@ -463,7 +463,11 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
     }
     if (emulationGl->mGlesVulkanInteropSupported) {
         // Intel: b/271028352 workaround
-        const std::vector<const char*> disallowList = {"Intel"};
+        const std::vector<const char*> disallowList = {"Intel",
+#ifdef _WIN32
+                                                       "AMD Radeon Pro WX 3200"
+#endif
+        };
         const std::string& glesRenderer = emulationGl->getGlesRenderer();
         for (const auto& disallowed : disallowList) {
             if (strstr(glesRenderer.c_str(), disallowed)) {
