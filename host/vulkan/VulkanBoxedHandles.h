@@ -104,10 +104,12 @@ class BoxedHandleManager {
 
     void clear();
 
-   private:
-    mutable Store mStore;
+    uint64_t getHandlesCount() const;
 
-    std::mutex mMutex;
+   private:
+    Store mStore;
+
+    mutable std::mutex mMutex;
     std::unordered_map<UnboxedHandle, BoxedHandle> mReverseMap GUARDED_BY(mMutex);
 
     struct DelayedRemove {
