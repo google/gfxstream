@@ -1,0 +1,36 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+# Interface library
+cc_library(
+    name = "gfxstream-snapshot-headers",
+    hdrs = [
+        "include/snapshot/LazySnapshotObj.h",
+        "include/snapshot/TextureLoader.h",
+        "include/snapshot/TextureSaver.h",
+        "include/snapshot/common.h",
+        "include/snapshot/interface.h",
+    ],
+    includes = ["include"],
+    visibility = ["//visibility:public"],
+)
+
+# Main library
+cc_library(
+    name = "aemu-snapshot",
+    srcs = [
+        "TextureLoader.cpp",
+        "TextureSaver.cpp",
+    ],
+    hdrs = [":gfxstream-snapshot-headers"],
+    copts = [
+        "-D_FILE_OFFSET_BITS=64",
+        "-Wno-extern-c-compat",
+        "-Wno-return-type-c-linkage",
+    ],
+    defines = ["dfatal=\"(void*)\""],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gfxstream-snapshot-headers",
+        "//base:aemu-base-headers",
+    ],
+)
