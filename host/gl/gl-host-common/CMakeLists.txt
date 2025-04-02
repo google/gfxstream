@@ -12,7 +12,7 @@ if (NOT TARGET gfxstream-gl-host-common)
         aemu-host-common.headers
         aemu-base.headers
         gfxstream_features.headers
-        gfxstream-snapshot.headers
+        gfxstream_host_snapshot.headers
         gfxstream_egl_headers)
 
     if (APPLE)

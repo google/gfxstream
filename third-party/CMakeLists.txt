@@ -86,9 +86,9 @@ if(NOT TARGET aemu_common)
         target_include_directories(aemu-host-common.headers INTERFACE ${aemu_host_common_INCLUDE_DIRS})
         target_link_libraries(aemu-host-common.headers INTERFACE renderdoc gfxstream_vulkan_headers)
 
-        add_library(gfxstream-snapshot.headers INTERFACE)
-        target_include_directories(gfxstream-snapshot.headers INTERFACE ${aemu_snapshot_INCLUDE_DIRS})
-        add_library(gfxstream-snapshot ALIAS PkgConfig::aemu_snapshot)
+        add_library(gfxstream_host_snapshot.headers INTERFACE)
+        target_include_directories(gfxstream_host_snapshot.headers INTERFACE ${aemu_snapshot_INCLUDE_DIRS})
+        add_library(gfxstream_host_snapshot ALIAS PkgConfig::aemu_snapshot)
 
         add_library(logging-base INTERFACE)
         target_link_libraries(logging-base INTERFACE PkgConfig::aemu_logging)

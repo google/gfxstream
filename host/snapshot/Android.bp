@@ -1,15 +1,11 @@
 package {
     // See: http://go/android-license-faq
-    // A large-scale-change added 'default_applicable_licenses' to import
-    // all of the 'license_kinds' from "hardware_google_aemu_license"
-    // to get the below license kinds:
-    //   SPDX-license-identifier-Apache-2.0
-    default_applicable_licenses: ["hardware_google_aemu_license"],
+    default_applicable_licenses: ["hardware_google_gfxstream_license"],
 }
 
 cc_library_static {
-    name: "gfxstream_snapshot",
-    defaults: [ "gfxstream_defaults" ],
+    name: "libgfxstream_host_snapshot",
+    defaults: ["gfxstream_defaults"],
     srcs: [
         "TextureLoader.cpp",
         "TextureSaver.cpp",
@@ -17,5 +13,5 @@ cc_library_static {
     static_libs: [
         "gfxstream_base",
     ],
-    export_include_dirs: [ "include" ],
+    export_include_dirs: ["include"],
 }

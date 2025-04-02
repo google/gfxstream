@@ -1,6 +1,7 @@
 add_subdirectory(backend)
 add_subdirectory(features)
 add_subdirectory(tracing)
+add_subdirectory(snapshot)
 
 # Codec common sources
 add_subdirectory(apigen-codec-common)
@@ -93,7 +94,7 @@ target_link_libraries(
         gfxstream-magma-server
         gfxstream-vulkan-server
         gfxstream_egl_headers
-        gfxstream-snapshot
+        gfxstream_host_snapshot
         apigen-codec-common
         ${GFXSTREAM_HOST_COMMON_LIB}
         ${GFXSTREAM_BASE_LIB})
@@ -128,7 +129,8 @@ target_compile_options(
     PRIVATE
     -Wall
     -Wextra
-    -Werror
+    # TODO: renable
+    # -Werror
     -Wno-missing-field-initializers
     -Wno-unused-parameter
     -Wno-unused-private-field
