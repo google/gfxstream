@@ -17,7 +17,7 @@ cc_library(
         "//:gfxstream-gl-host-common-headers",
         "//host/apigen-codec-common",
         "//host/gl:gl_common",
+        "//host/snapshot:aemu-snapshot",
         "//third-party/glm",
-        "@aemu//snapshot:aemu-snapshot",
     ],
 )

@@ -31,6 +31,6 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":gfxstream-snapshot-headers",
-        "//base:aemu-base-headers",
+        "@aemu//base:aemu-base-headers",
     ],
 )

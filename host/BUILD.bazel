@@ -156,13 +156,13 @@ cc_library(
         "//host/magma:gfxstream-magma-server",
         "//host/magma:magma-headers",
         "//host/renderControl_dec",
+        "//host/snapshot:aemu-snapshot",
         "//host/tracing:gfxstream_host_tracing",
         "//host/vulkan:gfxstream-vulkan-server",
         "@aemu//base:aemu-base",
         "@aemu//base:aemu-base-metrics",
         "@aemu//host-common:aemu-host-common",
         "@aemu//host-common:logging",
-        "@aemu//snapshot:aemu-snapshot",
     ] + select({
         "@platforms//os:macos": [
             ":gfxstream_backend_static-darwin",

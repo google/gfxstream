@@ -119,8 +119,8 @@ cc_library(
             "//host/gl:gfxstream-gl-host-common",
             "//host/gl/glestranslator/GLES_CM:GLES_CM_translator_static",
             "//host/gl/glestranslator/GLES_V2:GLES_V2_translator_static",
+            "//host/snapshot:aemu-snapshot",
             "@aemu//host-common:aemu-host-common-headers",
-            "@aemu//snapshot:aemu-snapshot",
         ] + select({
             "@platforms//os:macos": [":egl_translator-darwin"],
             "//conditions:default": [],
@@ -164,7 +164,7 @@ cc_library(
         ":gl-common-headers",
         # "//external/angle:angle-headers",
         "//common/opengl:gfxstream_opengl_headers",
-        "@aemu//snapshot:aemu-snapshot",
+        "//host/snapshot:aemu-snapshot",
         "//common/etc:gfxstream_etc",
         "//host:gfxstream-compressedTextures",
     ],
@@ -208,7 +208,7 @@ cc_library(
         "//common/opengl:gfxstream_opengl_headers",
         "//host/apigen-codec-common",
         "//host/features:gfxstream_features",
-        "@aemu//snapshot:aemu-snapshot",
+        "//host/snapshot:aemu-snapshot",
     ] + select({
         "@platforms//os:macos": ["gfxstream-gl-host-common-darwin"],
         "//conditions:default": [],
