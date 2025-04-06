@@ -188,8 +188,6 @@ VKAPI_ATTR void VKAPI_CALL vkExportMetalObjectsEXT(
     VkExportMetalObjectsInfoEXT*                pMetalObjectsInfo);
 #endif
 
-// TODO(b/417176273): this didn't made it into the spec, start using void*?
-typedef void* MTLResource_id;
 
 // VK_EXT_external_memory_metal is a preprocessor guard. Do not pass it to API calls.
 #define VK_EXT_external_memory_metal 1
@@ -199,7 +197,7 @@ typedef struct VkImportMemoryMetalHandleInfoEXT {
     VkStructureType                       sType;
     const void*                           pNext;
     VkExternalMemoryHandleTypeFlagBits    handleType;
-    MTLResource_id                        handle;
+    void*                                 handle;
 } VkImportMemoryMetalHandleInfoEXT;
 
 typedef struct VkMemoryMetalHandlePropertiesEXT {
@@ -215,8 +213,8 @@ typedef struct VkMemoryGetMetalHandleInfoEXT {
     VkExternalMemoryHandleTypeFlagBits    handleType;
 } VkMemoryGetMetalHandleInfoEXT;
 
-typedef VkResult (VKAPI_PTR *PFN_vkGetMemoryMetalHandleEXT)(VkDevice device, const VkMemoryGetMetalHandleInfoEXT* pGetMetalHandleInfo, MTLResource_id* pHandle);
-typedef VkResult (VKAPI_PTR *PFN_vkGetMemoryMetalHandlePropertiesEXT)(VkDevice device, VkExternalMemoryHandleTypeFlagBits handleType, const MTLResource_id pHandle, VkMemoryMetalHandlePropertiesEXT* pMemoryMetalHandleProperties);
+typedef VkResult (VKAPI_PTR *PFN_vkGetMemoryMetalHandleEXT)(VkDevice device, const VkMemoryGetMetalHandleInfoEXT* pGetMetalHandleInfo, void** pHandle);
+typedef VkResult (VKAPI_PTR *PFN_vkGetMemoryMetalHandlePropertiesEXT)(VkDevice device, VkExternalMemoryHandleTypeFlagBits handleType, const void* pHandle, VkMemoryMetalHandlePropertiesEXT* pMemoryMetalHandleProperties);
 
 #ifndef VK_NO_PROTOTYPES
 VKAPI_ATTR VkResult VKAPI_CALL vkGetMemoryMetalHandleEXT(

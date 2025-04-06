@@ -45,7 +45,7 @@ import VULKAN_HPP_STD_MODULE;
 #  elif defined( _WIN32 ) && !defined( VULKAN_HPP_NO_WIN32_PROTOTYPES )
 using HINSTANCE = struct HINSTANCE__ *;
 #    if defined( _WIN64 )
-using FARPROC = int64_t( __stdcall * )();
+using FARPROC   = int64_t( __stdcall * )();
 #    else
 using FARPROC = int( __stdcall * )();
 #    endif
@@ -55,7 +55,7 @@ extern "C" __declspec( dllimport ) FARPROC __stdcall GetProcAddress( HINSTANCE h
 #  endif
 #endif
 
-static_assert( VK_HEADER_VERSION == 313, "Wrong VK_HEADER_VERSION!" );
+static_assert( VK_HEADER_VERSION == 315, "Wrong VK_HEADER_VERSION!" );
 
 // <tuple> includes <sys/sysmacros.h> through some other header
 // this results in major(x) being resolved to gnu_dev_major(x)
@@ -6495,7 +6495,7 @@ namespace VULKAN_HPP_NAMESPACE
       Dispatch const * m_dispatch = nullptr;
     };
 
-  }  // namespace detail
+  }     // namespace detail
 #endif  // !VULKAN_HPP_NO_SMART_HANDLE
 
   //==================
@@ -6931,44 +6931,44 @@ namespace VULKAN_HPP_NAMESPACE
     {
       switch ( result )
       {
-        case Result::eErrorOutOfHostMemory                       : throw OutOfHostMemoryError( message );
-        case Result::eErrorOutOfDeviceMemory                     : throw OutOfDeviceMemoryError( message );
-        case Result::eErrorInitializationFailed                  : throw InitializationFailedError( message );
-        case Result::eErrorDeviceLost                            : throw DeviceLostError( message );
-        case Result::eErrorMemoryMapFailed                       : throw MemoryMapFailedError( message );
-        case Result::eErrorLayerNotPresent                       : throw LayerNotPresentError( message );
-        case Result::eErrorExtensionNotPresent                   : throw ExtensionNotPresentError( message );
-        case Result::eErrorFeatureNotPresent                     : throw FeatureNotPresentError( message );
-        case Result::eErrorIncompatibleDriver                    : throw IncompatibleDriverError( message );
-        case Result::eErrorTooManyObjects                        : throw TooManyObjectsError( message );
-        case Result::eErrorFormatNotSupported                    : throw FormatNotSupportedError( message );
-        case Result::eErrorFragmentedPool                        : throw FragmentedPoolError( message );
-        case Result::eErrorUnknown                               : throw UnknownError( message );
-        case Result::eErrorOutOfPoolMemory                       : throw OutOfPoolMemoryError( message );
-        case Result::eErrorInvalidExternalHandle                 : throw InvalidExternalHandleError( message );
-        case Result::eErrorFragmentation                         : throw FragmentationError( message );
-        case Result::eErrorInvalidOpaqueCaptureAddress           : throw InvalidOpaqueCaptureAddressError( message );
-        case Result::eErrorNotPermitted                          : throw NotPermittedError( message );
-        case Result::eErrorSurfaceLostKHR                        : throw SurfaceLostKHRError( message );
-        case Result::eErrorNativeWindowInUseKHR                  : throw NativeWindowInUseKHRError( message );
-        case Result::eErrorOutOfDateKHR                          : throw OutOfDateKHRError( message );
-        case Result::eErrorIncompatibleDisplayKHR                : throw IncompatibleDisplayKHRError( message );
-        case Result::eErrorValidationFailedEXT                   : throw ValidationFailedEXTError( message );
-        case Result::eErrorInvalidShaderNV                       : throw InvalidShaderNVError( message );
-        case Result::eErrorImageUsageNotSupportedKHR             : throw ImageUsageNotSupportedKHRError( message );
-        case Result::eErrorVideoPictureLayoutNotSupportedKHR     : throw VideoPictureLayoutNotSupportedKHRError( message );
-        case Result::eErrorVideoProfileOperationNotSupportedKHR  : throw VideoProfileOperationNotSupportedKHRError( message );
-        case Result::eErrorVideoProfileFormatNotSupportedKHR     : throw VideoProfileFormatNotSupportedKHRError( message );
-        case Result::eErrorVideoProfileCodecNotSupportedKHR      : throw VideoProfileCodecNotSupportedKHRError( message );
-        case Result::eErrorVideoStdVersionNotSupportedKHR        : throw VideoStdVersionNotSupportedKHRError( message );
+        case Result::eErrorOutOfHostMemory: throw OutOfHostMemoryError( message );
+        case Result::eErrorOutOfDeviceMemory: throw OutOfDeviceMemoryError( message );
+        case Result::eErrorInitializationFailed: throw InitializationFailedError( message );
+        case Result::eErrorDeviceLost: throw DeviceLostError( message );
+        case Result::eErrorMemoryMapFailed: throw MemoryMapFailedError( message );
+        case Result::eErrorLayerNotPresent: throw LayerNotPresentError( message );
+        case Result::eErrorExtensionNotPresent: throw ExtensionNotPresentError( message );
+        case Result::eErrorFeatureNotPresent: throw FeatureNotPresentError( message );
+        case Result::eErrorIncompatibleDriver: throw IncompatibleDriverError( message );
+        case Result::eErrorTooManyObjects: throw TooManyObjectsError( message );
+        case Result::eErrorFormatNotSupported: throw FormatNotSupportedError( message );
+        case Result::eErrorFragmentedPool: throw FragmentedPoolError( message );
+        case Result::eErrorUnknown: throw UnknownError( message );
+        case Result::eErrorOutOfPoolMemory: throw OutOfPoolMemoryError( message );
+        case Result::eErrorInvalidExternalHandle: throw InvalidExternalHandleError( message );
+        case Result::eErrorFragmentation: throw FragmentationError( message );
+        case Result::eErrorInvalidOpaqueCaptureAddress: throw InvalidOpaqueCaptureAddressError( message );
+        case Result::eErrorNotPermitted: throw NotPermittedError( message );
+        case Result::eErrorSurfaceLostKHR: throw SurfaceLostKHRError( message );
+        case Result::eErrorNativeWindowInUseKHR: throw NativeWindowInUseKHRError( message );
+        case Result::eErrorOutOfDateKHR: throw OutOfDateKHRError( message );
+        case Result::eErrorIncompatibleDisplayKHR: throw IncompatibleDisplayKHRError( message );
+        case Result::eErrorValidationFailedEXT: throw ValidationFailedEXTError( message );
+        case Result::eErrorInvalidShaderNV: throw InvalidShaderNVError( message );
+        case Result::eErrorImageUsageNotSupportedKHR: throw ImageUsageNotSupportedKHRError( message );
+        case Result::eErrorVideoPictureLayoutNotSupportedKHR: throw VideoPictureLayoutNotSupportedKHRError( message );
+        case Result::eErrorVideoProfileOperationNotSupportedKHR: throw VideoProfileOperationNotSupportedKHRError( message );
+        case Result::eErrorVideoProfileFormatNotSupportedKHR: throw VideoProfileFormatNotSupportedKHRError( message );
+        case Result::eErrorVideoProfileCodecNotSupportedKHR: throw VideoProfileCodecNotSupportedKHRError( message );
+        case Result::eErrorVideoStdVersionNotSupportedKHR: throw VideoStdVersionNotSupportedKHRError( message );
         case Result::eErrorInvalidDrmFormatModifierPlaneLayoutEXT: throw InvalidDrmFormatModifierPlaneLayoutEXTError( message );
 #  if defined( VK_USE_PLATFORM_WIN32_KHR )
         case Result::eErrorFullScreenExclusiveModeLostEXT: throw FullScreenExclusiveModeLostEXTError( message );
 #  endif /*VK_USE_PLATFORM_WIN32_KHR*/
         case Result::eErrorInvalidVideoStdParametersKHR: throw InvalidVideoStdParametersKHRError( message );
-        case Result::eErrorCompressionExhaustedEXT     : throw CompressionExhaustedEXTError( message );
-        case Result::eErrorNotEnoughSpaceKHR           : throw NotEnoughSpaceKHRError( message );
-        default                                        : throw SystemError( make_error_code( result ), message );
+        case Result::eErrorCompressionExhaustedEXT: throw CompressionExhaustedEXTError( message );
+        case Result::eErrorNotEnoughSpaceKHR: throw NotEnoughSpaceKHRError( message );
+        default: throw SystemError( make_error_code( result ), message );
       }
     }
   }  // namespace detail
@@ -7262,7 +7262,7 @@ namespace VULKAN_HPP_NAMESPACE
   template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
   VULKAN_HPP_CONSTEXPR uint32_t apiVersionPatch( T const version )
   {
-    return ( (uint32_t)( version ) & 0xFFFU );
+    return ( (uint32_t)(version)&0xFFFU );
   }
 
   template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
@@ -7302,7 +7302,7 @@ namespace VULKAN_HPP_NAMESPACE
   VULKAN_HPP_DEPRECATED( "This define is deprecated. VK_API_VERSION_PATCH should be used instead." )
   VULKAN_HPP_CONSTEXPR uint32_t versionPatch( T const version )
   {
-    return ( (uint32_t)( version ) & 0xFFFU );
+    return ( (uint32_t)(version)&0xFFFU );
   }
 
   //=========================
@@ -9032,6 +9032,10 @@ namespace VULKAN_HPP_NAMESPACE
   VULKAN_HPP_CONSTEXPR_INLINE auto EXTVertexAttributeRobustnessExtensionName = VK_EXT_VERTEX_ATTRIBUTE_ROBUSTNESS_EXTENSION_NAME;
   VULKAN_HPP_CONSTEXPR_INLINE auto EXTVertexAttributeRobustnessSpecVersion   = VK_EXT_VERTEX_ATTRIBUTE_ROBUSTNESS_SPEC_VERSION;
 
+  //=== VK_KHR_robustness2 ===
+  VULKAN_HPP_CONSTEXPR_INLINE auto KHRRobustness2ExtensionName = VK_KHR_ROBUSTNESS_2_EXTENSION_NAME;
+  VULKAN_HPP_CONSTEXPR_INLINE auto KHRRobustness2SpecVersion   = VK_KHR_ROBUSTNESS_2_SPEC_VERSION;
+
 #if defined( VK_ENABLE_BETA_EXTENSIONS )
   //=== VK_NV_present_metering ===
   VULKAN_HPP_CONSTEXPR_INLINE auto NVPresentMeteringExtensionName = VK_NV_PRESENT_METERING_EXTENSION_NAME;
@@ -9042,12 +9046,17 @@ namespace VULKAN_HPP_NAMESPACE
   VULKAN_HPP_CONSTEXPR_INLINE auto EXTFragmentDensityMapOffsetExtensionName = VK_EXT_FRAGMENT_DENSITY_MAP_OFFSET_EXTENSION_NAME;
   VULKAN_HPP_CONSTEXPR_INLINE auto EXTFragmentDensityMapOffsetSpecVersion   = VK_EXT_FRAGMENT_DENSITY_MAP_OFFSET_SPEC_VERSION;
 
+  //=== VK_EXT_zero_initialize_device_memory ===
+  VULKAN_HPP_CONSTEXPR_INLINE auto EXTZeroInitializeDeviceMemoryExtensionName = VK_EXT_ZERO_INITIALIZE_DEVICE_MEMORY_EXTENSION_NAME;
+  VULKAN_HPP_CONSTEXPR_INLINE auto EXTZeroInitializeDeviceMemorySpecVersion   = VK_EXT_ZERO_INITIALIZE_DEVICE_MEMORY_SPEC_VERSION;
+
 }  // namespace VULKAN_HPP_NAMESPACE
 
 // clang-format off
 #include <vulkan/vulkan_handles.hpp>
 #include <vulkan/vulkan_structs.hpp>
 #include <vulkan/vulkan_funcs.hpp>
+
 // clang-format on
 
 namespace VULKAN_HPP_NAMESPACE
@@ -13889,34 +13898,6 @@ namespace VULKAN_HPP_NAMESPACE
     };
   };
 
-  //=== VK_EXT_robustness2 ===
-  template <>
-  struct StructExtends<PhysicalDeviceRobustness2FeaturesEXT, PhysicalDeviceFeatures2>
-  {
-    enum
-    {
-      value = true
-    };
-  };
-
-  template <>
-  struct StructExtends<PhysicalDeviceRobustness2FeaturesEXT, DeviceCreateInfo>
-  {
-    enum
-    {
-      value = true
-    };
-  };
-
-  template <>
-  struct StructExtends<PhysicalDeviceRobustness2PropertiesEXT, PhysicalDeviceProperties2>
-  {
-    enum
-    {
-      value = true
-    };
-  };
-
   //=== VK_EXT_custom_border_color ===
   template <>
   struct StructExtends<SamplerCustomBorderColorCreateInfoEXT, SamplerCreateInfo>
@@ -18180,6 +18161,34 @@ namespace VULKAN_HPP_NAMESPACE
     };
   };
 
+  //=== VK_KHR_robustness2 ===
+  template <>
+  struct StructExtends<PhysicalDeviceRobustness2FeaturesKHR, PhysicalDeviceFeatures2>
+  {
+    enum
+    {
+      value = true
+    };
+  };
+
+  template <>
+  struct StructExtends<PhysicalDeviceRobustness2FeaturesKHR, DeviceCreateInfo>
+  {
+    enum
+    {
+      value = true
+    };
+  };
+
+  template <>
+  struct StructExtends<PhysicalDeviceRobustness2PropertiesKHR, PhysicalDeviceProperties2>
+  {
+    enum
+    {
+      value = true
+    };
+  };
+
 #  if defined( VK_ENABLE_BETA_EXTENSIONS )
   //=== VK_NV_present_metering ===
   template <>
@@ -18249,6 +18258,25 @@ namespace VULKAN_HPP_NAMESPACE
 
   template <>
   struct StructExtends<RenderPassFragmentDensityMapOffsetEndInfoEXT, RenderingEndInfoEXT>
+  {
+    enum
+    {
+      value = true
+    };
+  };
+
+  //=== VK_EXT_zero_initialize_device_memory ===
+  template <>
+  struct StructExtends<PhysicalDeviceZeroInitializeDeviceMemoryFeaturesEXT, PhysicalDeviceFeatures2>
+  {
+    enum
+    {
+      value = true
+    };
+  };
+
+  template <>
+  struct StructExtends<PhysicalDeviceZeroInitializeDeviceMemoryFeaturesEXT, DeviceCreateInfo>
   {
     enum
     {
@@ -18671,8 +18699,8 @@ namespace VULKAN_HPP_NAMESPACE
       PFN_vkCreateXlibSurfaceKHR                        vkCreateXlibSurfaceKHR                        = 0;
       PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR vkGetPhysicalDeviceXlibPresentationSupportKHR = 0;
 #else
-      PFN_dummy vkCreateXlibSurfaceKHR_placeholder                        = 0;
-      PFN_dummy vkGetPhysicalDeviceXlibPresentationSupportKHR_placeholder = 0;
+      PFN_dummy vkCreateXlibSurfaceKHR_placeholder                            = 0;
+      PFN_dummy vkGetPhysicalDeviceXlibPresentationSupportKHR_placeholder     = 0;
 #endif /*VK_USE_PLATFORM_XLIB_KHR*/
 
 #if defined( VK_USE_PLATFORM_XCB_KHR )
@@ -18680,8 +18708,8 @@ namespace VULKAN_HPP_NAMESPACE
       PFN_vkCreateXcbSurfaceKHR                        vkCreateXcbSurfaceKHR                        = 0;
       PFN_vkGetPhysicalDeviceXcbPresentationSupportKHR vkGetPhysicalDeviceXcbPresentationSupportKHR = 0;
 #else
-      PFN_dummy vkCreateXcbSurfaceKHR_placeholder                        = 0;
-      PFN_dummy vkGetPhysicalDeviceXcbPresentationSupportKHR_placeholder = 0;
+      PFN_dummy vkCreateXcbSurfaceKHR_placeholder                             = 0;
+      PFN_dummy vkGetPhysicalDeviceXcbPresentationSupportKHR_placeholder      = 0;
 #endif /*VK_USE_PLATFORM_XCB_KHR*/
 
 #if defined( VK_USE_PLATFORM_WAYLAND_KHR )
@@ -18689,15 +18717,15 @@ namespace VULKAN_HPP_NAMESPACE
       PFN_vkCreateWaylandSurfaceKHR                        vkCreateWaylandSurfaceKHR                        = 0;
       PFN_vkGetPhysicalDeviceWaylandPresentationSupportKHR vkGetPhysicalDeviceWaylandPresentationSupportKHR = 0;
 #else
-      PFN_dummy vkCreateWaylandSurfaceKHR_placeholder                        = 0;
-      PFN_dummy vkGetPhysicalDeviceWaylandPresentationSupportKHR_placeholder = 0;
+      PFN_dummy vkCreateWaylandSurfaceKHR_placeholder                         = 0;
+      PFN_dummy vkGetPhysicalDeviceWaylandPresentationSupportKHR_placeholder  = 0;
 #endif /*VK_USE_PLATFORM_WAYLAND_KHR*/
 
 #if defined( VK_USE_PLATFORM_ANDROID_KHR )
       //=== VK_KHR_android_surface ===
       PFN_vkCreateAndroidSurfaceKHR vkCreateAndroidSurfaceKHR = 0;
 #else
-      PFN_dummy vkCreateAndroidSurfaceKHR_placeholder = 0;
+      PFN_dummy vkCreateAndroidSurfaceKHR_placeholder                         = 0;
 #endif /*VK_USE_PLATFORM_ANDROID_KHR*/
 
 #if defined( VK_USE_PLATFORM_WIN32_KHR )
@@ -18705,8 +18733,8 @@ namespace VULKAN_HPP_NAMESPACE
       PFN_vkCreateWin32SurfaceKHR                        vkCreateWin32SurfaceKHR                        = 0;
       PFN_vkGetPhysicalDeviceWin32PresentationSupportKHR vkGetPhysicalDeviceWin32PresentationSupportKHR = 0;
 #else
-      PFN_dummy vkCreateWin32SurfaceKHR_placeholder                        = 0;
-      PFN_dummy vkGetPhysicalDeviceWin32PresentationSupportKHR_placeholder = 0;
+      PFN_dummy vkCreateWin32SurfaceKHR_placeholder                           = 0;
+      PFN_dummy vkGetPhysicalDeviceWin32PresentationSupportKHR_placeholder    = 0;
 #endif /*VK_USE_PLATFORM_WIN32_KHR*/
 
       //=== VK_EXT_debug_report ===
@@ -18773,7 +18801,7 @@ namespace VULKAN_HPP_NAMESPACE
       //=== VK_GGP_stream_descriptor_surface ===
       PFN_vkCreateStreamDescriptorSurfaceGGP vkCreateStreamDescriptorSurfaceGGP = 0;
 #else
-      PFN_dummy vkCreateStreamDescriptorSurfaceGGP_placeholder = 0;
+      PFN_dummy vkCreateStreamDescriptorSurfaceGGP_placeholder                = 0;
 #endif /*VK_USE_PLATFORM_GGP*/
 
       //=== VK_NV_external_memory_capabilities ===
@@ -18783,7 +18811,7 @@ namespace VULKAN_HPP_NAMESPACE
       //=== VK_NV_external_memory_win32 ===
       PFN_vkGetMemoryWin32HandleNV vkGetMemoryWin32HandleNV = 0;
 #else
-      PFN_dummy vkGetMemoryWin32HandleNV_placeholder = 0;
+      PFN_dummy vkGetMemoryWin32HandleNV_placeholder                          = 0;
 #endif /*VK_USE_PLATFORM_WIN32_KHR*/
 
       //=== VK_KHR_get_physical_device_properties2 ===
@@ -18804,7 +18832,7 @@ namespace VULKAN_HPP_NAMESPACE
       //=== VK_NN_vi_surface ===
       PFN_vkCreateViSurfaceNN vkCreateViSurfaceNN = 0;
 #else
-      PFN_dummy vkCreateViSurfaceNN_placeholder = 0;
+      PFN_dummy vkCreateViSurfaceNN_placeholder                               = 0;
 #endif /*VK_USE_PLATFORM_VI_NN*/
 
       //=== VK_KHR_maintenance1 ===
@@ -18821,8 +18849,8 @@ namespace VULKAN_HPP_NAMESPACE
       PFN_vkGetMemoryWin32HandleKHR           vkGetMemoryWin32HandleKHR           = 0;
       PFN_vkGetMemoryWin32HandlePropertiesKHR vkGetMemoryWin32HandlePropertiesKHR = 0;
 #else
-      PFN_dummy vkGetMemoryWin32HandleKHR_placeholder           = 0;
-      PFN_dummy vkGetMemoryWin32HandlePropertiesKHR_placeholder = 0;
+      PFN_dummy vkGetMemoryWin32HandleKHR_placeholder                         = 0;
+      PFN_dummy vkGetMemoryWin32HandlePropertiesKHR_placeholder               = 0;
 #endif /*VK_USE_PLATFORM_WIN32_KHR*/
 
       //=== VK_KHR_external_memory_fd ===
@@ -18837,8 +18865,8 @@ namespace VULKAN_HPP_NAMESPACE
       PFN_vkImportSemaphoreWin32HandleKHR vkImportSemaphoreWin32HandleKHR = 0;
       PFN_vkGetSemaphoreWin32HandleKHR    vkGetSemaphoreWin32HandleKHR    = 0;
 #else
-      PFN_dummy vkImportSemaphoreWin32HandleKHR_placeholder = 0;
-      PFN_dummy vkGetSemaphoreWin32HandleKHR_placeholder    = 0;
+      PFN_dummy vkImportSemaphoreWin32HandleKHR_placeholder                   = 0;
+      PFN_dummy vkGetSemaphoreWin32HandleKHR_placeholder                      = 0;
 #endif /*VK_USE_PLATFORM_WIN32_KHR*/
 
       //=== VK_KHR_external_semaphore_fd ===
@@ -18869,8 +18897,8 @@ namespace VULKAN_HPP_NAMESPACE
       PFN_vkAcquireXlibDisplayEXT    vkAcquireXlibDisplayEXT    = 0;
       PFN_vkGetRandROutputDisplayEXT vkGetRandROutputDisplayEXT = 0;
 #else
-      PFN_dummy vkAcquireXlibDisplayEXT_placeholder    = 0;
-      PFN_dummy vkGetRandROutputDisplayEXT_placeholder = 0;
+      PFN_dummy vkAcquireXlibDisplayEXT_placeholder                           = 0;
+      PFN_dummy vkGetRandROutputDisplayEXT_placeholder                        = 0;
 #endif /*VK_USE_PLATFORM_XLIB_XRANDR_EXT*/
 
       //=== VK_EXT_display_surface_counter ===
@@ -18911,8 +18939,8 @@ namespace VULKAN_HPP_NAMESPACE
       PFN_vkImportFenceWin32HandleKHR vkImportFenceWin32HandleKHR = 0;
       PFN_vkGetFenceWin32HandleKHR    vkGetFenceWin32HandleKHR    = 0;
 #else
-      PFN_dummy vkImportFenceWin32HandleKHR_placeholder = 0;
-      PFN_dummy vkGetFenceWin32HandleKHR_placeholder    = 0;
+      PFN_dummy vkImportFenceWin32HandleKHR_placeholder                       = 0;
+      PFN_dummy vkGetFenceWin32HandleKHR_placeholder                          = 0;
 #endif /*VK_USE_PLATFORM_WIN32_KHR*/
 
       //=== VK_KHR_external_fence_fd ===
@@ -18939,14 +18967,14 @@ namespace VULKAN_HPP_NAMESPACE
       //=== VK_MVK_ios_surface ===
       PFN_vkCreateIOSSurfaceMVK vkCreateIOSSurfaceMVK = 0;
 #else
-      PFN_dummy vkCreateIOSSurfaceMVK_placeholder = 0;
+      PFN_dummy vkCreateIOSSurfaceMVK_placeholder                             = 0;
 #endif /*VK_USE_PLATFORM_IOS_MVK*/
 
 #if defined( VK_USE_PLATFORM_MACOS_MVK )
       //=== VK_MVK_macos_surface ===
       PFN_vkCreateMacOSSurfaceMVK vkCreateMacOSSurfaceMVK = 0;
 #else
-      PFN_dummy vkCreateMacOSSurfaceMVK_placeholder = 0;
+      PFN_dummy vkCreateMacOSSurfaceMVK_placeholder                           = 0;
 #endif /*VK_USE_PLATFORM_MACOS_MVK*/
 
       //=== VK_EXT_debug_utils ===
@@ -18967,8 +18995,8 @@ namespace VULKAN_HPP_NAMESPACE
       PFN_vkGetAndroidHardwareBufferPropertiesANDROID vkGetAndroidHardwareBufferPropertiesANDROID = 0;
       PFN_vkGetMemoryAndroidHardwareBufferANDROID     vkGetMemoryAndroidHardwareBufferANDROID     = 0;
 #else
-      PFN_dummy vkGetAndroidHardwareBufferPropertiesANDROID_placeholder = 0;
-      PFN_dummy vkGetMemoryAndroidHardwareBufferANDROID_placeholder     = 0;
+      PFN_dummy vkGetAndroidHardwareBufferPropertiesANDROID_placeholder       = 0;
+      PFN_dummy vkGetMemoryAndroidHardwareBufferANDROID_placeholder           = 0;
 #endif /*VK_USE_PLATFORM_ANDROID_KHR*/
 
 #if defined( VK_ENABLE_BETA_EXTENSIONS )
@@ -18981,13 +19009,13 @@ namespace VULKAN_HPP_NAMESPACE
       PFN_vkCmdDispatchGraphIndirectAMDX             vkCmdDispatchGraphIndirectAMDX             = 0;
       PFN_vkCmdDispatchGraphIndirectCountAMDX        vkCmdDispatchGraphIndirectCountAMDX        = 0;
 #else
-      PFN_dummy vkCreateExecutionGraphPipelinesAMDX_placeholder        = 0;
-      PFN_dummy vkGetExecutionGraphPipelineScratchSizeAMDX_placeholder = 0;
-      PFN_dummy vkGetExecutionGraphPipelineNodeIndexAMDX_placeholder   = 0;
-      PFN_dummy vkCmdInitializeGraphScratchMemoryAMDX_placeholder      = 0;
-      PFN_dummy vkCmdDispatchGraphAMDX_placeholder                     = 0;
-      PFN_dummy vkCmdDispatchGraphIndirectAMDX_placeholder             = 0;
-      PFN_dummy vkCmdDispatchGraphIndirectCountAMDX_placeholder        = 0;
+      PFN_dummy vkCreateExecutionGraphPipelinesAMDX_placeholder               = 0;
+      PFN_dummy vkGetExecutionGraphPipelineScratchSizeAMDX_placeholder        = 0;
+      PFN_dummy vkGetExecutionGraphPipelineNodeIndexAMDX_placeholder          = 0;
+      PFN_dummy vkCmdInitializeGraphScratchMemoryAMDX_placeholder             = 0;
+      PFN_dummy vkCmdDispatchGraphAMDX_placeholder                            = 0;
+      PFN_dummy vkCmdDispatchGraphIndirectAMDX_placeholder                    = 0;
+      PFN_dummy vkCmdDispatchGraphIndirectCountAMDX_placeholder               = 0;
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
 
       //=== VK_EXT_sample_locations ===
@@ -19117,14 +19145,14 @@ namespace VULKAN_HPP_NAMESPACE
       //=== VK_FUCHSIA_imagepipe_surface ===
       PFN_vkCreateImagePipeSurfaceFUCHSIA vkCreateImagePipeSurfaceFUCHSIA = 0;
 #else
-      PFN_dummy vkCreateImagePipeSurfaceFUCHSIA_placeholder = 0;
+      PFN_dummy vkCreateImagePipeSurfaceFUCHSIA_placeholder                   = 0;
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
 
 #if defined( VK_USE_PLATFORM_METAL_EXT )
       //=== VK_EXT_metal_surface ===
       PFN_vkCreateMetalSurfaceEXT vkCreateMetalSurfaceEXT = 0;
 #else
-      PFN_dummy vkCreateMetalSurfaceEXT_placeholder = 0;
+      PFN_dummy vkCreateMetalSurfaceEXT_placeholder                           = 0;
 #endif /*VK_USE_PLATFORM_METAL_EXT*/
 
       //=== VK_KHR_fragment_shading_rate ===
@@ -19157,10 +19185,10 @@ namespace VULKAN_HPP_NAMESPACE
       PFN_vkReleaseFullScreenExclusiveModeEXT        vkReleaseFullScreenExclusiveModeEXT        = 0;
       PFN_vkGetDeviceGroupSurfacePresentModes2EXT    vkGetDeviceGroupSurfacePresentModes2EXT    = 0;
 #else
-      PFN_dummy vkGetPhysicalDeviceSurfacePresentModes2EXT_placeholder = 0;
-      PFN_dummy vkAcquireFullScreenExclusiveModeEXT_placeholder        = 0;
-      PFN_dummy vkReleaseFullScreenExclusiveModeEXT_placeholder        = 0;
-      PFN_dummy vkGetDeviceGroupSurfacePresentModes2EXT_placeholder    = 0;
+      PFN_dummy vkGetPhysicalDeviceSurfacePresentModes2EXT_placeholder        = 0;
+      PFN_dummy vkAcquireFullScreenExclusiveModeEXT_placeholder               = 0;
+      PFN_dummy vkReleaseFullScreenExclusiveModeEXT_placeholder               = 0;
+      PFN_dummy vkGetDeviceGroupSurfacePresentModes2EXT_placeholder           = 0;
 #endif /*VK_USE_PLATFORM_WIN32_KHR*/
 
       //=== VK_EXT_headless_surface ===
@@ -19252,12 +19280,12 @@ namespace VULKAN_HPP_NAMESPACE
       PFN_vkDestroyCudaFunctionNV vkDestroyCudaFunctionNV = 0;
       PFN_vkCmdCudaLaunchKernelNV vkCmdCudaLaunchKernelNV = 0;
 #else
-      PFN_dummy vkCreateCudaModuleNV_placeholder    = 0;
-      PFN_dummy vkGetCudaModuleCacheNV_placeholder  = 0;
-      PFN_dummy vkCreateCudaFunctionNV_placeholder  = 0;
-      PFN_dummy vkDestroyCudaModuleNV_placeholder   = 0;
-      PFN_dummy vkDestroyCudaFunctionNV_placeholder = 0;
-      PFN_dummy vkCmdCudaLaunchKernelNV_placeholder = 0;
+      PFN_dummy vkCreateCudaModuleNV_placeholder                              = 0;
+      PFN_dummy vkGetCudaModuleCacheNV_placeholder                            = 0;
+      PFN_dummy vkCreateCudaFunctionNV_placeholder                            = 0;
+      PFN_dummy vkDestroyCudaModuleNV_placeholder                             = 0;
+      PFN_dummy vkDestroyCudaFunctionNV_placeholder                           = 0;
+      PFN_dummy vkCmdCudaLaunchKernelNV_placeholder                           = 0;
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
 
       //=== VK_QCOM_tile_shading ===
@@ -19269,7 +19297,7 @@ namespace VULKAN_HPP_NAMESPACE
       //=== VK_EXT_metal_objects ===
       PFN_vkExportMetalObjectsEXT vkExportMetalObjectsEXT = 0;
 #else
-      PFN_dummy vkExportMetalObjectsEXT_placeholder = 0;
+      PFN_dummy vkExportMetalObjectsEXT_placeholder                           = 0;
 #endif /*VK_USE_PLATFORM_METAL_EXT*/
 
       //=== VK_KHR_synchronization2 ===
@@ -19317,8 +19345,8 @@ namespace VULKAN_HPP_NAMESPACE
       PFN_vkAcquireWinrtDisplayNV vkAcquireWinrtDisplayNV = 0;
       PFN_vkGetWinrtDisplayNV     vkGetWinrtDisplayNV     = 0;
 #else
-      PFN_dummy vkAcquireWinrtDisplayNV_placeholder = 0;
-      PFN_dummy vkGetWinrtDisplayNV_placeholder     = 0;
+      PFN_dummy vkAcquireWinrtDisplayNV_placeholder                           = 0;
+      PFN_dummy vkGetWinrtDisplayNV_placeholder                               = 0;
 #endif /*VK_USE_PLATFORM_WIN32_KHR*/
 
 #if defined( VK_USE_PLATFORM_DIRECTFB_EXT )
@@ -19338,8 +19366,8 @@ namespace VULKAN_HPP_NAMESPACE
       PFN_vkGetMemoryZirconHandleFUCHSIA           vkGetMemoryZirconHandleFUCHSIA           = 0;
       PFN_vkGetMemoryZirconHandlePropertiesFUCHSIA vkGetMemoryZirconHandlePropertiesFUCHSIA = 0;
 #else
-      PFN_dummy vkGetMemoryZirconHandleFUCHSIA_placeholder           = 0;
-      PFN_dummy vkGetMemoryZirconHandlePropertiesFUCHSIA_placeholder = 0;
+      PFN_dummy vkGetMemoryZirconHandleFUCHSIA_placeholder                    = 0;
+      PFN_dummy vkGetMemoryZirconHandlePropertiesFUCHSIA_placeholder          = 0;
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
 
 #if defined( VK_USE_PLATFORM_FUCHSIA )
@@ -19347,8 +19375,8 @@ namespace VULKAN_HPP_NAMESPACE
       PFN_vkImportSemaphoreZirconHandleFUCHSIA vkImportSemaphoreZirconHandleFUCHSIA = 0;
       PFN_vkGetSemaphoreZirconHandleFUCHSIA    vkGetSemaphoreZirconHandleFUCHSIA    = 0;
 #else
-      PFN_dummy vkImportSemaphoreZirconHandleFUCHSIA_placeholder = 0;
-      PFN_dummy vkGetSemaphoreZirconHandleFUCHSIA_placeholder    = 0;
+      PFN_dummy vkImportSemaphoreZirconHandleFUCHSIA_placeholder              = 0;
+      PFN_dummy vkGetSemaphoreZirconHandleFUCHSIA_placeholder                 = 0;
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
 
 #if defined( VK_USE_PLATFORM_FUCHSIA )
@@ -19359,11 +19387,11 @@ namespace VULKAN_HPP_NAMESPACE
       PFN_vkDestroyBufferCollectionFUCHSIA              vkDestroyBufferCollectionFUCHSIA              = 0;
       PFN_vkGetBufferCollectionPropertiesFUCHSIA        vkGetBufferCollectionPropertiesFUCHSIA        = 0;
 #else
-      PFN_dummy vkCreateBufferCollectionFUCHSIA_placeholder               = 0;
-      PFN_dummy vkSetBufferCollectionImageConstraintsFUCHSIA_placeholder  = 0;
-      PFN_dummy vkSetBufferCollectionBufferConstraintsFUCHSIA_placeholder = 0;
-      PFN_dummy vkDestroyBufferCollectionFUCHSIA_placeholder              = 0;
-      PFN_dummy vkGetBufferCollectionPropertiesFUCHSIA_placeholder        = 0;
+      PFN_dummy vkCreateBufferCollectionFUCHSIA_placeholder                   = 0;
+      PFN_dummy vkSetBufferCollectionImageConstraintsFUCHSIA_placeholder      = 0;
+      PFN_dummy vkSetBufferCollectionBufferConstraintsFUCHSIA_placeholder     = 0;
+      PFN_dummy vkDestroyBufferCollectionFUCHSIA_placeholder                  = 0;
+      PFN_dummy vkGetBufferCollectionPropertiesFUCHSIA_placeholder            = 0;
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
 
       //=== VK_HUAWEI_subpass_shading ===
@@ -19391,8 +19419,8 @@ namespace VULKAN_HPP_NAMESPACE
       PFN_vkCreateScreenSurfaceQNX                        vkCreateScreenSurfaceQNX                        = 0;
       PFN_vkGetPhysicalDeviceScreenPresentationSupportQNX vkGetPhysicalDeviceScreenPresentationSupportQNX = 0;
 #else
-      PFN_dummy vkCreateScreenSurfaceQNX_placeholder                        = 0;
-      PFN_dummy vkGetPhysicalDeviceScreenPresentationSupportQNX_placeholder = 0;
+      PFN_dummy vkCreateScreenSurfaceQNX_placeholder                          = 0;
+      PFN_dummy vkGetPhysicalDeviceScreenPresentationSupportQNX_placeholder   = 0;
 #endif /*VK_USE_PLATFORM_SCREEN_QNX*/
 
       //=== VK_EXT_color_write_enable ===
@@ -19543,7 +19571,7 @@ namespace VULKAN_HPP_NAMESPACE
       //=== VK_QNX_external_memory_screen_buffer ===
       PFN_vkGetScreenBufferPropertiesQNX vkGetScreenBufferPropertiesQNX = 0;
 #else
-      PFN_dummy vkGetScreenBufferPropertiesQNX_placeholder = 0;
+      PFN_dummy vkGetScreenBufferPropertiesQNX_placeholder                    = 0;
 #endif /*VK_USE_PLATFORM_SCREEN_QNX*/
 
       //=== VK_KHR_line_rasterization ===
@@ -19596,8 +19624,8 @@ namespace VULKAN_HPP_NAMESPACE
       PFN_vkGetMemoryMetalHandleEXT           vkGetMemoryMetalHandleEXT           = 0;
       PFN_vkGetMemoryMetalHandlePropertiesEXT vkGetMemoryMetalHandlePropertiesEXT = 0;
 #else
-      PFN_dummy vkGetMemoryMetalHandleEXT_placeholder           = 0;
-      PFN_dummy vkGetMemoryMetalHandlePropertiesEXT_placeholder = 0;
+      PFN_dummy vkGetMemoryMetalHandleEXT_placeholder                         = 0;
+      PFN_dummy vkGetMemoryMetalHandlePropertiesEXT_placeholder               = 0;
 #endif /*VK_USE_PLATFORM_METAL_EXT*/
 
       //=== VK_EXT_fragment_density_map_offset ===

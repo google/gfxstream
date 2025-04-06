@@ -42,6 +42,11 @@ export namespace VULKAN_HPP_NAMESPACE
   {
     using VULKAN_HPP_NAMESPACE::detail::DispatchLoaderBase;
     using VULKAN_HPP_NAMESPACE::detail::DispatchLoaderDynamic;
+#if !defined( VULKAN_HPP_DEFAULT_DISPATCHER )
+#  if VULKAN_HPP_DISPATCH_LOADER_DYNAMIC == 1
+    using VULKAN_HPP_NAMESPACE::detail::defaultDispatchLoaderDynamic;
+#  endif
+#endif
 #if !defined( VK_NO_PROTOTYPES )
     using VULKAN_HPP_NAMESPACE::detail::DispatchLoaderStatic;
     using VULKAN_HPP_NAMESPACE::detail::getDispatchLoaderStatic;
@@ -5245,6 +5250,11 @@ export namespace VULKAN_HPP_NAMESPACE
   using VULKAN_HPP_NAMESPACE::componentPlaneIndex;
   using VULKAN_HPP_NAMESPACE::componentsAreCompressed;
   using VULKAN_HPP_NAMESPACE::compressionScheme;
+  using VULKAN_HPP_NAMESPACE::getDepthFormats;
+  using VULKAN_HPP_NAMESPACE::getDepthStencilFormats;
+  using VULKAN_HPP_NAMESPACE::getStencilFormats;
+  using VULKAN_HPP_NAMESPACE::hasDepthComponent;
+  using VULKAN_HPP_NAMESPACE::hasStencilComponent;
   using VULKAN_HPP_NAMESPACE::isCompressed;
   using VULKAN_HPP_NAMESPACE::packed;
   using VULKAN_HPP_NAMESPACE::planeCompatibleFormat;
