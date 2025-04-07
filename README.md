@@ -8,12 +8,96 @@ to another:
 -   From one process to another for IPC graphics
 -   From one computer to another via network sockets
 
-# Build: Linux
+## Building
 
-The latest directions for the standalone Linux build are provided
-[here](https://crosvm.dev/book/appendix/rutabaga_gfx.html).
+### Linux
 
-# Build: Windows
+#### Bazel
+
+The Bazel build used for building the host backend for virtual device host
+tooling.
+
+The Bazel build currently requires an Android repo but a standalone build is
+a WIP.
+
+```
+cd <aosp/emu-dev>
+
+prebuilts/bazel/linux-x86_64/bazel test \
+    --platforms=@//build/bazel/platforms:linux_x64 \
+    @gfxstream//...
+```
+
+#### CMake
+
+The CMake build has historically been used for building the host backend for
+Goldfish.
+
+The CMake build can be used from either a standalone Gfxstream checkout or from
+inside an Android repo.
+
+Then,
+
+```
+mkdir build && cd build
+cmake .. -G Ninja
+ninja
+```
+
+For validating a Goldfish build,
+
+```
+cd <aosp/emu-master-dev repo>
+
+cd external/qemu
+
+python android/build/python/cmake.py --gfxstream
+```
+
+#### Meson
+
+The Meson build has historically been used for building the backend for
+Linux guest on Linux host use cases.
+
+```
+cd <aosp/main repo>
+
+meson setup \
+    -Ddefault_library=static \
+    -Dgfxstream-build=host \
+    build
+
+meson compile -C build
+```
+
+#### Soong
+
+The Android Soong build is used for building the guest components for virtual
+device (Cuttlefish, Goldfish, etc) images and was previously used for building
+the host backend for virtual device host tools.
+
+Please follow the instructions
+[here](https://source.android.com/docs/setup/start) for getting started with
+Android development and setting up a repo.
+
+Then,
+
+```
+m libgfxstream_backend
+```
+
+and `libgfxstream_backend.so` can be found in `out/host`.
+
+For validating changes, consider running
+
+```
+cd hardware/google/gfxstream
+mma
+```
+
+to build everything inside of the Gfxstream directory.
+
+### Windows
 
 Make sure the latest CMake is installed. Make sure Visual Studio 2019 is
 installed on your system along with all the Clang C++ toolchain components.
@@ -28,31 +112,9 @@ cmake . ../ -A x64 -T ClangCL
 A solution file should be generated. Then open the solution file in Visual
 studio and build the `gfxstream_backend` target.
 
-# Build: Android for host
+## Codegen
 
-Be in the Android build system. Then:
-
-```
-m libgfxstream_backend
-```
-
-It then ends up in `out/host`
-
-This also builds for Android on-device.
-
-# Output artifacts
-
-```
-libgfxstream_backend.(dll|so|dylib)
-```
-
-# Regenerating Vulkan code
-
-To re-generate both guest and Vulkan code, please run:
-
-scripts/generate-gfxstream-vulkan.sh
-
-# Regenerating GLES/RenderControl code
+### Regenerating GLES/RenderControl code
 
 First, build `build/gfxstream-generic-apigen`. Then run:
 
@@ -60,7 +122,22 @@ First, build `build/gfxstream-generic-apigen`. Then run:
 scripts/generate-apigen-source.sh
 ```
 
-# Tests
+### Regenerating Vulkan code
+
+To re-generate both guest and Vulkan code, please run:
+
+scripts/generate-gfxstream-vulkan.sh
+
+## Testing
+
+## Android Host Tests
+
+There are Android mock tests available, runnable on Linux. To build these tests,
+run:
+
+```
+m GfxstreamEnd2EndTests
+```
 
 ## Windows Tests
 
@@ -68,18 +145,11 @@ There are a bunch of test executables generated. They require `libEGL.dll` and
 `libGLESv2.dll` and `vulkan-1.dll` to be available, possibly from your GPU
 vendor or ANGLE, in the `%PATH%`.
 
-## Android Host Tests
 
-There are Android mock testa available, runnable on Linux. To build these tests,
-run:
 
-```
-m GfxstreamEnd2EndTests
-```
+## Features
 
-# Features
-
-## Tracing
+### Tracing
 
 The host renderer has optional support for Perfetto tracing which can be enabled
 by defining `GFXSTREAM_BUILD_WITH_TRACING` (enabled by default on Android
@@ -138,9 +208,9 @@ Next, end the trace capture with Ctrl + C.
 Finally, open https://ui.perfetto.dev/ in your webbrowser and use "Open trace
 file" to view the trace.
 
-# Design Notes
+## Design Notes
 
-## Guest Vulkan
+### Guest Vulkan
 
 gfxstream vulkan is the most actively developed component. Some key commponents
 of the current design include:
@@ -162,8 +232,9 @@ of the current design include:
     object (for example, `gfxstream_vk_device::internal_object`). Eventually,
     gfxstream objects will be phased out and Mesa objects used exclusively.
 
-# Project Ideas
-gfxstream is a first class open source project, and welcomes new contributors.
+## Future Project Ideas
+
+Gfxstream is a first class open source project, and welcomes new contributors.
 There are many interesting projects available, for new and experienced software
 enthusiasts.  Some ideas include:
 
