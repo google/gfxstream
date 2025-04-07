@@ -759,7 +759,7 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     android::base::Lock m_lock;
     android::base::ReadWriteLock m_contextStructureLock;
     android::base::Lock m_colorBufferMapLock;
-    uint64_t mFrameNumber;
+    uint64_t mFrameNumber = 0;
     FBNativeWindowType m_nativeWindow = 0;
 
     ColorBufferMap m_colorbuffers;
