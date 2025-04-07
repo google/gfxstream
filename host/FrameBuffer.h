@@ -880,7 +880,7 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
 
     // TODO(b/233939967): Refactor to create DisplayGl and DisplaySurfaceGl
     // and remove usage of non-generic DisplayVk.
-    Display* m_display;
+    Display* m_display = nullptr;
     std::unique_ptr<DisplaySurface> m_displaySurface;
 
     // CompositorGl.
