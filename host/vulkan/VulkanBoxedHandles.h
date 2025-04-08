@@ -36,8 +36,12 @@ enum BoxedHandleTypeTag {
 
     GOLDFISH_VK_LIST_HANDLE_TYPES_BY_STAGE(DEFINE_BOXED_HANDLE_TYPE_TAG)
 
+    // extra command for snapshot purpose
+    Tag_VkBindMemory,
+    Tag_VkMapMemory,
+    Tag_VkUpdateDescriptorSets,
     // additional generic tag
-    Tag_VkGeneric = 1001,
+    Tag_VkGeneric = 0xFF,
 };
 
 using BoxedHandle = uint64_t;
@@ -67,7 +71,7 @@ inline void releaseOrderMaintInfo(OrderMaintenanceInfo* ord) {
 
 class BoxedHandleInfo {
    public:
-    UnboxedHandle underlying;
+    UnboxedHandle underlying{0};
     VulkanDispatch* dispatch = nullptr;
     bool ownDispatch = false;
     OrderMaintenanceInfo* ordMaintInfo = nullptr;

@@ -24,6 +24,7 @@
 #include "VkDecoderContext.h"
 #include "VkQsriTimeline.h"
 #include "VkSnapshotApiCall.h"
+#include "VulkanBoxedHandles.h"
 #include "VulkanDispatch.h"
 #include "VulkanHandleMapping.h"
 #include "aemu/base/AsyncResult.h"
@@ -907,7 +908,7 @@ class VkDecoderGlobalState {
     // near the end of snapshot save and loading; the reason
     // to deprecate the modifying api approach is that it
     // cannot handle dependencies properly.
-    uint64_t newGlobalVkGenericHandle();
+    uint64_t newGlobalVkGenericHandle(BoxedHandleTypeTag typeTag = Tag_VkGeneric);
 
 #define DEFINE_TRANSFORMED_TYPE_PROTOTYPE(type)                \
     void transformImpl_##type##_tohost(const type*, uint32_t); \
