@@ -143,6 +143,7 @@ cc_defaults {
         "virtio-gpu-gfxstream-renderer-goldfish.cpp",
         "VirtioGpuContext.cpp",
         "VirtioGpuFrontend.cpp",
+        "VirtioGpuPipe.cpp",
         "VirtioGpuResource.cpp",
         "VirtioGpuRingBlob.cpp",
         "VirtioGpuTimelines.cpp",

@@ -27,34 +27,35 @@ endif()
 # Stream server core
 set(stream-server-core-sources
     Buffer.cpp
-    ExternalObjectManager.cpp
-    ColorBuffer.cpp
-    GfxStreamAgents.cpp
-    VirtioGpuContext.cpp
-    VirtioGpuFrontend.cpp
-    VirtioGpuResource.cpp
-    VirtioGpuRingBlob.cpp
-    VirtioGpuTimelines.cpp
-    VsyncThread.cpp
     ChannelStream.cpp
+    ColorBuffer.cpp
     DisplaySurface.cpp
     DisplaySurfaceUser.cpp
+    ExternalObjectManager.cpp
+    FrameBuffer.cpp
+    GfxStreamAgents.cpp
+    GraphicsDriverLock.cpp
     Hwc2.cpp
     PostWorker.cpp
     PostWorkerGl.cpp
     ReadBuffer.cpp
     RenderChannelImpl.cpp
+    RenderControl.cpp
+    RendererImpl.cpp
+    RenderLibImpl.cpp
+    RenderThread.cpp
     RenderThreadInfo.cpp
     RenderThreadInfoGl.cpp
+    RenderWindow.cpp
     RingStream.cpp
     SyncThread.cpp
-    RenderThread.cpp
-    RenderControl.cpp
-    RenderWindow.cpp
-    RenderLibImpl.cpp
-    RendererImpl.cpp
-    FrameBuffer.cpp
-    GraphicsDriverLock.cpp)
+    VirtioGpuContext.cpp
+    VirtioGpuFrontend.cpp
+    VirtioGpuPipe.cpp
+    VirtioGpuResource.cpp
+    VirtioGpuRingBlob.cpp
+    VirtioGpuTimelines.cpp
+    VsyncThread.cpp)
 if (APPLE)
     set(stream-server-core-platform-sources NativeSubWindow_cocoa.mm)
 elseif (WIN32)

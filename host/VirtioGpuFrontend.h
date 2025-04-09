@@ -116,10 +116,6 @@ class VirtioGpuFrontend {
     int restore(const char* directory);
 #endif  // GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
 
-#ifdef CONFIG_AEMU
-    void setServiceOps(const GoldfishPipeServiceOps* ops);
-#endif  // CONFIG_AEMU
-
    private:
     VirtioGpuTimelines::FenceCompletionCallback getFenceCompletionCallback();
 
@@ -135,17 +131,11 @@ class VirtioGpuFrontend {
     int restoreAsg(const char* directory);
 #endif  // GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
 
-    int resetPipe(VirtioGpuContextId contextId, GoldfishHostPipe* hostPipe);
-
-    const GoldfishPipeServiceOps* ensureAndGetServiceOps();
-
     void* mCookie = nullptr;
     gfxstream::host::FeatureSet mFeatures;
     stream_renderer_fence_callback mFenceCallback;
     uint32_t mPageSize = 4096;
     struct ::address_space_device_control_ops* mAddressSpaceDeviceControlOps = nullptr;
-
-    const GoldfishPipeServiceOps* mServiceOps = nullptr;
 
     // State that is preserved across snapshots:
     //

@@ -22,42 +22,26 @@ namespace gfxstream {
 namespace host {
 
 /*static*/
-std::optional<VirtioGpuContext> VirtioGpuContext::Create(const GoldfishPipeServiceOps* ops,
-                                                         VirtioGpuContextId contextId,
+std::optional<VirtioGpuContext> VirtioGpuContext::Create(VirtioGpuContextId contextId,
                                                          const std::string& contextName,
                                                          uint32_t capsetId) {
     VirtioGpuContext context = {};
     context.mId = contextId;
     context.mName = contextName;
     context.mCapsetId = capsetId;
-
-    auto hostPipe = ops->guest_open_with_flags(reinterpret_cast<GoldfishHwPipe*>(contextId),
-                                               0x1 /* is virtio */);
-    if (!hostPipe) {
-        GFXSTREAM_ERROR("failed to create context %u: failed to create pipe.", contextId);
-        return std::nullopt;
-    }
-    GFXSTREAM_DEBUG("created initial pipe for context %u: %p", contextId, hostPipe);
-    context.mHostPipe = hostPipe;
+    context.mHostPipe = std::make_shared<VirtioGpuPipe>(contextId);
 
     android_onGuestGraphicsProcessCreate(contextId);
 
     return context;
 }
 
-int VirtioGpuContext::Destroy(const GoldfishPipeServiceOps* pipeOps,
-                              const struct address_space_device_control_ops* asgOps) {
+int VirtioGpuContext::Destroy(const struct address_space_device_control_ops* asgOps) {
     for (const auto& [_, handle] : mAddressSpaceHandles) {
         // Note: this can hang as is but this has only been observed to
         // happen during shutdown. See b/329287602#comment8.
         asgOps->destroy_handle(handle);
     }
-
-    if (!mHostPipe) {
-        GFXSTREAM_ERROR("failed to destroy context %u: missing pipe?", mId);
-        return -EINVAL;
-    }
-    pipeOps->guest_close(mHostPipe, GOLDFISH_PIPE_CLOSE_GRACEFUL);
 
     android_cleanupProcGLObjects(mId);
 
@@ -83,7 +67,7 @@ const std::unordered_set<VirtioGpuResourceId>& VirtioGpuContext::GetAttachedReso
     return mAttachedResources;
 }
 
-void VirtioGpuContext::SetHostPipe(GoldfishHostPipe* pipe) { mHostPipe = pipe; }
+void VirtioGpuContext::SetHostPipe(std::shared_ptr<VirtioGpuPipe> pipe) { mHostPipe = pipe; }
 
 int VirtioGpuContext::AcquireSync(uint64_t syncId) {
     if (mLatestSync) {
@@ -217,6 +201,7 @@ std::optional<VirtioGpuContextSnapshot> VirtioGpuContext::Snapshot() const {
                                                       mAttachedResources.end());
     contextSnapshot.mutable_resource_asgs()->insert(mAddressSpaceHandles.begin(),
                                                     mAddressSpaceHandles.end());
+    // TODO(b/369615058): Handle mHostPipe.
     return contextSnapshot;
 }
 
@@ -231,6 +216,7 @@ std::optional<VirtioGpuContext> VirtioGpuContext::Restore(
                                       contextSnapshot.attached_resources().end());
     context.mAddressSpaceHandles.insert(contextSnapshot.resource_asgs().begin(),
                                         contextSnapshot.resource_asgs().end());
+    // TODO(b/369615058): Handle mHostPipe.
     return context;
 }
 

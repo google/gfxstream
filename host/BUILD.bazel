@@ -104,6 +104,7 @@ cc_library(
         "SyncThread.cpp",
         "VirtioGpuContext.cpp",
         "VirtioGpuFrontend.cpp",
+        "VirtioGpuPipe.cpp",
         "VirtioGpuResource.cpp",
         "VirtioGpuRingBlob.cpp",
         "VirtioGpuTimelines.cpp",
