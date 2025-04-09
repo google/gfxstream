@@ -9172,9 +9172,9 @@ void VkDecoderGlobalState::reset() {
 bool VkDecoderGlobalState::snapshotsEnabled() const { return mImpl->snapshotsEnabled(); }
 bool VkDecoderGlobalState::batchedDescriptorSetUpdateEnabled() const { return mImpl->batchedDescriptorSetUpdateEnabled(); }
 
-uint64_t VkDecoderGlobalState::newGlobalVkGenericHandle() {
-    BoxedHandleInfo item;                                                    \
-    return mImpl->newGlobalHandle(item, Tag_VkGeneric);
+uint64_t VkDecoderGlobalState::newGlobalVkGenericHandle(BoxedHandleTypeTag typeTag) {
+    BoxedHandleInfo item;
+    return mImpl->newGlobalHandle(item, typeTag);
 }
 
 bool VkDecoderGlobalState::isSnapshotCurrentlyLoading() const {

@@ -13,6 +13,13 @@
 // limitations under the License.
 #pragma once
 
+#include <atomic>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <set>
+
+#include "DependencyGraph.h"
 #include "VkSnapshotApiCall.h"
 #include "VulkanHandleMapping.h"
 #include "VulkanHandles.h"
@@ -24,8 +31,6 @@
 namespace gfxstream {
 namespace vk {
 
-// A class that captures all important data structures for
-// reconstructing a Vulkan system state via trimmed API record and replay.
 class VkReconstruction {
    public:
     VkReconstruction();
@@ -37,39 +42,7 @@ class VkReconstruction {
                                   std::vector<uint64_t>* outHandleBuffer,
                                   std::vector<uint8_t>* outDecoderBuffer);
 
-    enum HandleState { BEGIN = 0, CREATED = 0, BOUND_MEMORY = 1, HANDLE_STATE_COUNT };
-
-    typedef std::pair<uint64_t, HandleState> HandleWithState;
-    struct HandleWithStateHash {
-        inline size_t operator()(const HandleWithState& v) const {
-            std::hash<uint64_t> int_hasher;
-            return int_hasher(v.first) ^ int_hasher(v.second);
-        }
-    };
-
-    struct HandleReconstruction {
-        std::vector<VkSnapshotApiCallHandle> apiRefs;
-        std::unordered_set<HandleWithState, HandleWithStateHash> childHandles;
-        std::vector<HandleWithState> parentHandles;
-    };
-
-    struct HandleWithStateReconstruction {
-        std::vector<HandleReconstruction> states =
-            std::vector<HandleReconstruction>(HANDLE_STATE_COUNT);
-        bool delayed_destroy = false;
-        bool destroying = false;
-    };
-
-    using HandleWithStateReconstructions =
-        android::base::UnpackedComponentManager<32, 16, 16, HandleWithStateReconstruction>;
-
-    struct HandleModification {
-        std::vector<VkSnapshotApiCallHandle> apiRefs;
-        uint32_t order = 0;
-    };
-
-    using HandleModifications =
-        android::base::UnpackedComponentManager<32, 16, 16, HandleModification>;
+    enum HandleState { CREATED = 0 };
 
     VkSnapshotApiCallInfo* createApiCallInfo();
     void destroyApiCallInfo(VkSnapshotApiCallHandle handle);
@@ -88,7 +61,6 @@ class VkReconstruction {
 
     void forEachHandleAddApi(const uint64_t* toProcess, uint32_t count,
                              uint64_t VkSnapshotApiCallHandle, HandleState state = CREATED);
-    void forEachHandleDeleteApi(const uint64_t* toProcess, uint32_t count);
 
     void addHandleDependency(const uint64_t* handles, uint32_t count, uint64_t parentHandle,
                              HandleState childState = CREATED, HandleState parentState = CREATED);
@@ -96,13 +68,8 @@ class VkReconstruction {
     void setCreatedHandlesForApi(VkSnapshotApiCallHandle handle , const uint64_t* created,
                                  uint32_t count);
 
-    void forEachHandleAddModifyApi(const uint64_t* toProcess, uint32_t count,
-                                   VkSnapshotApiCallHandle handle);
-
-    void forEachHandleClearModifyApi(const uint64_t* toProcess, uint32_t count);
-
-    void setModifiedHandlesForApi(VkSnapshotApiCallHandle handle, const uint64_t* modified,
-                                  uint32_t count);
+    void forEachHandleClearModifyApi(const uint64_t* toProcess, uint32_t count) {}
+    void forEachHandleAddModifyApi(const uint64_t* toProcess, uint32_t count, uint64_t api) {}
 
     // Used by on_vkCreateDescriptorPool.
     //
@@ -129,10 +96,9 @@ class VkReconstruction {
 
     VkSnapshotApiCallManager mApiCallManager;
 
-    HandleWithStateReconstructions mHandleReconstructions;
-    HandleModifications mHandleModifications;
-
     std::vector<uint8_t> mLoadedTrace;
+
+    DependencyGraph mGraph;
 };
 
 }  // namespace vk
