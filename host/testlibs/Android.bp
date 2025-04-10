@@ -23,7 +23,7 @@ cc_test_library {
     ],
     static_libs: [
         "gfxstream_base",
-        "gfxstream_host_common",
+        "libgfxstream_host_logging",
     ],
     srcs: [
         "OSWindow.cpp",
