@@ -93,7 +93,8 @@ void VkReconstruction::saveReplayBuffers(android::base::Stream* stream) {
     for (auto apiHandle : uniqApiRefsByTopoOrder) {
         auto item = mApiCallManager.get(apiHandle);
         // 4 bytes for opcode, and 4 bytes for saveBufferRaw's size field
-        DEBUG_RECON("saving api handle 0x%lx op code %d", apiHandle, GetOpcode(*item));
+        DEBUG_RECON("saving api handle 0x%lx op code %d name %s", apiHandle, GetOpcode(*item),
+                api_opcode_to_string(GetOpcode(*item)));
         memcpy(apiTracePtr, item->packet.data(), item->packet.size());
         apiTracePtr += item->packet.size();
     }
