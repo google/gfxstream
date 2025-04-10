@@ -23,7 +23,6 @@ target_link_libraries(
     PUBLIC
     gfxstream-gl-host-common.headers
     gfxstream_host_logging
-    aemu-host-common.headers
     aemu-base.headers)
 target_include_directories(
     apigen-codec-common

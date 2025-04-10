@@ -16,13 +16,13 @@
 
 #include "ChecksumCalculatorThreadInfo.h"
 
-#include "host-common/crash_reporter.h"
-
 #include <atomic>
 #include <string>
 
 #include <assert.h>
 #include <stdio.h>
+
+#include "gfxstream/host/logging.h"
 
 namespace {
 
@@ -79,6 +79,6 @@ void ChecksumCalculatorThreadInfo::validOrDie(ChecksumCalculator* calc,
                                               size_t checksumLen,
                                               const char* message) {
     if (!validate(calc, buf, bufLen, checksum, checksumLen)) {
-        emugl::emugl_crash_reporter(message);
+        GFXSTREAM_FATAL("Invalid checksum encountered: %s", message);
     }
 }
