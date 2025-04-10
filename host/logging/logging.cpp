@@ -78,7 +78,6 @@ void GfxstreamLog(LogLevel level, const char* file, int line, const char* functi
 
     std::vector<char> buffer;
     buffer.resize(requestedLength, 0);
-    const int writtenLength = vsnprintf(buffer.data(), requestedLength, format, args);
     va_end(args);
 
     sLogCallback(level, file, line, function, buffer.data());

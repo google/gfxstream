@@ -153,10 +153,8 @@ void pixelFormatToConfig(EGLNativeDisplayType dpy,
                          GLXFBConfig frmt,
                          EglOS::AddConfigCallback* addConfigFunc,
                          void* addConfigOpaque) {
-    EglOS::ConfigInfo info;
+    EglOS::ConfigInfo info = {};
     int  tmp;
-
-    memset(&info, 0, sizeof(info));
 
     auto glx = getGlxApi();
 
