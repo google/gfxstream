@@ -177,21 +177,8 @@ cc_library(
     name = "gfxstream-gl-host-common",
     srcs = [
         "gl-host-common/opengl/EmuglBackendList.cpp",
-        "gl-host-common/opengl/GLProcessPipe.cpp",
-        "gl-host-common/opengl/OpenglEsPipe.cpp",
-        "gl-host-common/opengl/emugl_config.cpp",
-        "gl-host-common/opengl/gpuinfo.cpp",
-        "gl-host-common/opengl/logger.cpp",
         "gl-host-common/opengl/misc.cpp",
-        "gl-host-common/opengles.cpp",
-    ] + select({
-        "@platforms//os:macos": [
-            "gl-host-common/opengl/NativeGpuInfo_darwin.cpp",
-        ],
-        "@platforms//os:windows": ["gl-host-common/opengl/NativeGpuInfo_windows.cpp"],
-        "@platforms//os:linux": ["gl-host-common/opengl/NativeGpuInfo_linux.cpp"],
-        "//conditions:default": [],
-    }) + glob(["gl-host-common/include/**/*.h"]),
+    ] + glob(["gl-host-common/include/**/*.h"]),
     copts = [
         "-Wno-return-type-c-linkage",
         "-fno-exceptions",

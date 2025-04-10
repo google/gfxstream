@@ -16,22 +16,23 @@
 
 #include "gfxstream/host/logging.h"
 #include "host-common/AddressSpaceService.h"
-#include "host-common/opengles.h"
 
 namespace gfxstream {
 namespace host {
 
 /*static*/
-std::optional<VirtioGpuContext> VirtioGpuContext::Create(VirtioGpuContextId contextId,
+std::optional<VirtioGpuContext> VirtioGpuContext::Create(RendererPtr renderer,
+                                                         VirtioGpuContextId contextId,
                                                          const std::string& contextName,
                                                          uint32_t capsetId) {
     VirtioGpuContext context = {};
+    context.mRenderer = renderer;
     context.mId = contextId;
     context.mName = contextName;
     context.mCapsetId = capsetId;
-    context.mHostPipe = std::make_shared<VirtioGpuPipe>(contextId);
+    context.mHostPipe = std::make_shared<VirtioGpuPipe>(renderer, contextId);
 
-    android_onGuestGraphicsProcessCreate(contextId);
+    renderer->onGuestGraphicsProcessCreate(contextId);
 
     return context;
 }
@@ -43,7 +44,7 @@ int VirtioGpuContext::Destroy(const struct address_space_device_control_ops* asg
         asgOps->destroy_handle(handle);
     }
 
-    android_cleanupProcGLObjects(mId);
+    mRenderer->cleanupProcGLObjects(mId);
 
     return 0;
 }
@@ -207,8 +208,10 @@ std::optional<VirtioGpuContextSnapshot> VirtioGpuContext::Snapshot() const {
 
 /*static*/
 std::optional<VirtioGpuContext> VirtioGpuContext::Restore(
+    RendererPtr renderer,
     const VirtioGpuContextSnapshot& contextSnapshot) {
     VirtioGpuContext context = {};
+    context.mRenderer = renderer;
     context.mId = contextSnapshot.id();
     context.mName = contextSnapshot.name();
     context.mCapsetId = contextSnapshot.capset();

@@ -21,7 +21,7 @@
 #include "gfxstream/host/Features.h"
 #include "gfxstream/host/logging.h"
 #include "host-common/misc.h"
-#include "host-common/opengl/emugl_config.h"
+#include "host-common/opengl/renderer_enums.h"
 #include "host-common/opengl/misc.h"
 
 namespace gfxstream {

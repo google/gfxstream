@@ -17,7 +17,6 @@
 #include <cstring>
 
 #include "gfxstream/host/logging.h"
-#include "host-common/opengles.h"
 
 namespace gfxstream {
 namespace host {
@@ -30,9 +29,9 @@ std::unique_ptr<VirtioGpuPipeImpl> VirtioGpuProcessPipe::Create(VirtioGpuContext
 
     // NOTE: historically, the process pipe would have done a
     //
-    //   android_onGuestGraphicsProcessCreate(uniqueId);
+    //   renderer->onGuestGraphicsProcessCreate(uniqueId);
     //
-    // but virtio-gpu uses VirtioGpuContext to manage process resources
+    // but virtio-gpu uses VirtioGpuContext to manage process resources.
 
     return std::unique_ptr<VirtioGpuPipeImpl>(new VirtioGpuProcessPipe(uniqueId));
 }
@@ -44,9 +43,9 @@ VirtioGpuProcessPipe::~VirtioGpuProcessPipe() {
 
     // NOTE: historically, the process pipe would have done a
     //
-    //   android_cleanupProcGLObjects(mUniqueId);
+    //   renderer->cleanupProcGLObjects(uniqueId);
     //
-    // but virtio-gpu uses VirtioGpuContext to manage process resources
+    // but virtio-gpu uses VirtioGpuContext to manage process resources.
 }
 
 int VirtioGpuProcessPipe::TransferToHost(const char* data, size_t dataSize) {
@@ -94,10 +93,13 @@ int VirtioGpuProcessPipe::TransferFromHost(char* outRequestedData, size_t reques
 }
 
 /*static*/
-std::unique_ptr<VirtioGpuPipeImpl> VirtioGpuRenderThreadPipe::Create(VirtioGpuContextId id) {
-    auto renderer = android_getOpenglesRenderer();
-
+std::unique_ptr<VirtioGpuPipeImpl> VirtioGpuRenderThreadPipe::Create(Renderer* renderer, VirtioGpuContextId id) {
     GFXSTREAM_DEBUG("Creating RenderChannel for context:%" PRIu32, id);
+
+    if (!renderer) {
+        GFXSTREAM_ERROR("Failed to create VirtioGpuRenderThreadPipe: no renderer.");
+        return nullptr;
+    }
 
     auto channel = renderer->createRenderChannel(nullptr, id);
     if (channel == nullptr) {
@@ -183,7 +185,8 @@ int VirtioGpuRenderThreadPipe::TransferFromHost(char* outRequestedData, size_t r
     return 0;
 }
 
-VirtioGpuPipe::VirtioGpuPipe(VirtioGpuContextId id) : mContextId(id) {}
+VirtioGpuPipe::VirtioGpuPipe(RendererPtr renderer, VirtioGpuContextId id)
+    : mRenderer(renderer), mContextId(id) {}
 
 int VirtioGpuPipe::TransferToHost(const char* data, size_t dataSize) {
     // The first data sent to the host is a string declaring the type of pipe requested.
@@ -215,9 +218,13 @@ void VirtioGpuPipe::CreateUnderlyingPipe(const char* data, size_t dataSize) {
     if (pipeType == "pipe:GLProcessPipe") {
         mUnderlyingPipe = VirtioGpuProcessPipe::Create(mContextId);
     } else if (pipeType == "pipe:opengles") {
-        mUnderlyingPipe = VirtioGpuRenderThreadPipe::Create(mContextId);
+        mUnderlyingPipe = VirtioGpuRenderThreadPipe::Create(mRenderer.get(), mContextId);
     } else {
         GFXSTREAM_FATAL("Unhandled pipe type: '%s'.", pipeType.c_str());
+    }
+
+    if (!mUnderlyingPipe) {
+        GFXSTREAM_ERROR("Failed to create underlying pipe!");
     }
 }
 

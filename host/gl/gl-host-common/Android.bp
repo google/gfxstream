@@ -20,7 +20,6 @@ cc_library_static {
     defaults: ["gfxstream_defaults"],
     static_libs: [
         "gfxstream_base",
-        "gfxstream_host_common",
         "libgfxstream_host_features",
         "libgfxstream_host_logging",
         "libgfxstream_host_snapshot",
@@ -36,14 +35,7 @@ cc_library_static {
         "gfxstream_gl_host_common_headers",
     ],
     srcs: [
-        "opengles.cpp",
         "opengl/EmuglBackendList.cpp",
-        "opengl/emugl_config.cpp",
-        "opengl/GLProcessPipe.cpp",
-        "opengl/gpuinfo.cpp",
-        "opengl/logger.cpp",
         "opengl/misc.cpp",
-        "opengl/OpenglEsPipe.cpp",
-        "opengl/NativeGpuInfo_linux.cpp",
     ],
 }
