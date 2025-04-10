@@ -28,14 +28,11 @@
 #include "TextureDraw.h"
 #include "TextureResize.h"
 #include "gl/YUVConverter.h"
-#include "host-common/GfxstreamFatalError.h"
 #include "host-common/opengl/misc.h"
 
 #define DEBUG_CB_FBO 0
 
 using android::base::ManagedDescriptor;
-using emugl::ABORT_REASON_OTHER;
-using emugl::FatalError;
 
 namespace gfxstream {
 namespace gl {
@@ -730,8 +727,7 @@ bool ColorBufferGl::readContents(size_t* numBytes, void* pixels) {
 bool ColorBufferGl::blitFromCurrentReadBuffer() {
     RenderThreadInfoGl* const tInfo = RenderThreadInfoGl::get();
     if (!tInfo) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Render thread GL not available.";
+        GFXSTREAM_FATAL("Render thread GL not available.");
     }
 
     if (!tInfo->currContext.get()) {
@@ -896,8 +892,7 @@ bool ColorBufferGl::bindToTexture() {
 
     RenderThreadInfoGl* const tInfo = RenderThreadInfoGl::get();
     if (!tInfo) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Render thread GL not available.";
+        GFXSTREAM_FATAL("Render thread GL not available.");
     }
 
     if (!tInfo->currContext.get()) {
@@ -928,8 +923,7 @@ bool ColorBufferGl::bindToRenderbuffer() {
 
     RenderThreadInfoGl* const tInfo = RenderThreadInfoGl::get();
     if (!tInfo) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Render thread GL not available.";
+        GFXSTREAM_FATAL("Render thread GL not available.");
     }
 
     if (!tInfo->currContext.get()) {
@@ -1110,7 +1104,7 @@ bool ColorBufferGl::importMemory(ManagedDescriptor externalDescriptor, uint64_t 
     }
     std::optional<ManagedDescriptor::DescriptorType> maybeRawDescriptor = externalDescriptor.get();
     if (!maybeRawDescriptor.has_value()) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Uninitialized external descriptor.";
+        GFXSTREAM_FATAL("Uninitialized external descriptor.");
     }
     ManagedDescriptor::DescriptorType rawDescriptor = *maybeRawDescriptor;
 

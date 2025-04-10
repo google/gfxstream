@@ -23,7 +23,6 @@
 #include "aemu/base/synchronization/Lock.h"
 #include "aemu/base/containers/Lookup.h"
 #include "aemu/base/files/StreamSerializing.h"
-#include "host-common/GfxstreamFatalError.h"
 
 namespace gfxstream {
 namespace gl {
@@ -31,8 +30,6 @@ namespace gl {
 using android::base::AutoLock;
 using android::base::Lock;
 using android::base::Stream;
-using emugl::ABORT_REASON_OTHER;
-using emugl::FatalError;
 
 static thread_local RenderThreadInfoGl* tlThreadInfo = nullptr;
 
@@ -41,8 +38,7 @@ RenderThreadInfoGl::RenderThreadInfoGl() {
     m_gl2Dec.initGL(gles2_dispatch_get_proc_func, nullptr);
 
     if (tlThreadInfo != nullptr) {
-      GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-        << "Attempted to set thread local GL render thread info twice.";
+      GFXSTREAM_FATAL("Attempted to set thread local GL render thread info twice.");
     }
     tlThreadInfo = this;
 }

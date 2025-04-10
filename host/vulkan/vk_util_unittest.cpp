@@ -26,6 +26,9 @@ namespace vk {
 namespace vk_util {
 namespace vk_fn_info {
 
+using gfxstream::host::LogLevel;
+using gfxstream::host::SetGfxstreamLogCallback;
+
 // Register a fake Vulkan function for testing.
 using PFN_vkGfxstreamTestFunc = PFN_vkCreateDevice;
 REGISTER_VK_FN_INFO(GfxstreamTestFunc, ("vkGfxstreamTestFunc", "vkGfxstreamTestFuncGOOGLE",
@@ -147,7 +150,15 @@ TEST(VkCheckCallbacksDeathTest, deviceLostCallbackShouldBeCalled) {
 
 TEST(VkCheckCallbacksDeathTest, deviceLostCallbackShouldNotBeCalled) {
     // Default death function uses exit code 42
-    emugl::setDieFunction([] { exit(42); });
+    SetGfxstreamLogCallback([](LogLevel level,
+                               const char* /*file*/,
+                               int /*line*/,
+                               const char* /*function*/,
+                               const char* /*message*/) {
+        if (level == LogLevel::kFatal) {
+            exit(42);
+        }
+    });
 
     // Device lost death function uses exit code 43
     setVkCheckCallbacks(std::make_unique<VkCheckCallbacks>(VkCheckCallbacks{
@@ -158,13 +169,31 @@ TEST(VkCheckCallbacksDeathTest, deviceLostCallbackShouldNotBeCalled) {
 }
 
 TEST(VkCheckCallbacksDeathTest, nullCallbacksShouldntCrash) {
-    emugl::setDieFunction([] { exit(42); });
+    SetGfxstreamLogCallback([](LogLevel level,
+                               const char* /*file*/,
+                               int /*line*/,
+                               const char* /*function*/,
+                               const char* /*message*/) {
+        if (level == LogLevel::kFatal) {
+            exit(42);
+        }
+    });
+
     setVkCheckCallbacks(nullptr);
     EXPECT_EXIT(VK_CHECK(VK_ERROR_DEVICE_LOST), testing::ExitedWithCode(42), "");
 }
 
 TEST(VkCheckCallbacksDeathTest, nullVkDeviceLostErrorCallbackShouldntCrash) {
-    emugl::setDieFunction([] { exit(42); });
+    SetGfxstreamLogCallback([](LogLevel level,
+                               const char* /*file*/,
+                               int /*line*/,
+                               const char* /*function*/,
+                               const char* /*message*/) {
+        if (level == LogLevel::kFatal) {
+            exit(42);
+        }
+    });
+
     setVkCheckCallbacks(
         std::make_unique<VkCheckCallbacks>(VkCheckCallbacks{.onVkErrorDeviceLost = nullptr}));
     EXPECT_EXIT(VK_CHECK(VK_ERROR_DEVICE_LOST), testing::ExitedWithCode(42), "");

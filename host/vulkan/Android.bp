@@ -89,6 +89,9 @@ cc_library_static {
         "VkDecoderGlobalState.cpp", // took more than 400 seconds
         "VkDecoder.cpp",
     ],
+    export_include_dirs: [
+        ".",
+    ],
 }
 
 // Run with `atest --host gfxstream_vkformatutils_tests`
@@ -130,7 +133,36 @@ cc_test_host {
         "gfxstream_base",
         "gfxstream_host_common",
         "libgfxstream_host_features",
+        "libgfxstream_host_logging",
         "libgfxstream_host_vulkan_server",
+        "libgtest",
+        "libgmock",
+    ],
+    test_options: {
+        unit_test: true,
+    },
+    test_suites: [
+        "general-tests",
+    ],
+}
+
+// Run with `atest --host gfxstream_vkutil_tests`
+cc_test_host {
+    name: "gfxstream_vkutil_tests",
+    defaults: ["gfxstream_defaults"],
+    srcs: [
+        "vk_util_unittest.cpp",
+    ],
+    shared_libs: [
+        "libbase",
+        "liblog",
+    ],
+    header_libs: [
+        "libgfxstream_host_vulkan_cereal_common",
+    ],
+    static_libs: [
+        "libgfxstream_host_vulkan_server",
+        "libgfxstream_host_logging",
         "libgtest",
         "libgmock",
     ],

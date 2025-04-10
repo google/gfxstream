@@ -18,14 +18,10 @@
 #include <type_traits>
 
 #include "gfxstream/host/logging.h"
-#include "host-common/GfxstreamFatalError.h"
 
 namespace gfxstream {
 namespace vk {
 namespace {
-
-using emugl::ABORT_REASON_OTHER;
-using emugl::FatalError;
 
 constexpr const size_t kSizeLoggingThreshold = 200;
 constexpr const auto kSizeLoggingTimeThreshold = std::chrono::seconds(1);
@@ -177,8 +173,7 @@ DeviceOpBuilder::DeviceOpBuilder(DeviceOpTracker& tracker) : mTracker(tracker) {
 
 DeviceOpBuilder::~DeviceOpBuilder() {
     if (!mSubmittedFence) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Invalid usage: failed to call OnQueueSubmittedWithFence().";
+        GFXSTREAM_FATAL("Invalid usage: failed to call OnQueueSubmittedWithFence().");
     }
 }
 
@@ -202,9 +197,9 @@ VkFence DeviceOpBuilder::CreateFenceForOp() {
 
 DeviceOpWaitable DeviceOpBuilder::OnQueueSubmittedWithFence(VkFence fence) {
     if (mCreatedFence.has_value() && fence != mCreatedFence) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Invalid usage: failed to call OnQueueSubmittedWithFence() with the fence "
-            << "requested from CreateFenceForOp.";
+        GFXSTREAM_FATAL(
+            "Invalid usage: failed to call OnQueueSubmittedWithFence() with the fence "
+            "requested from CreateFenceForOp.");
     }
     mSubmittedFence = fence;
 

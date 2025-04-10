@@ -17,26 +17,21 @@
 #include "Display.h"
 #include "DisplaySurface.h"
 #include "gfxstream/host/logging.h"
-#include "host-common/GfxstreamFatalError.h"
 
 namespace gfxstream {
 
 using android::base::AutoLock;
-using emugl::ABORT_REASON_OTHER;
-using emugl::FatalError;
 
 DisplaySurfaceUser::~DisplaySurfaceUser() {
     if (mBoundSurface != nullptr) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Failed to unbind a DisplaySurface before DisplaySurfaceUser destruction.";
+        GFXSTREAM_FATAL("Failed to unbind a DisplaySurface before DisplaySurfaceUser destruction.");
     }
 }
 
 void DisplaySurfaceUser::bindToSurface(DisplaySurface* surface) {
     AutoLock lock(mMutex);
     if (mBoundSurface != nullptr) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Attempting to bind a DisplaySurface while another is already bound.";
+        GFXSTREAM_FATAL("Attempting to bind a DisplaySurface while another is already bound.");
     }
 
     this->bindToSurfaceImpl(surface);

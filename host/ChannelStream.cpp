@@ -13,21 +13,16 @@
 // limitations under the License.
 #include "ChannelStream.h"
 
-#include "render-utils/RenderChannel.h"
-
-#define EMUGL_DEBUG_LEVEL  0
-#include "host-common/debug.h"
-#include "host-common/dma_device.h"
-#include "host-common/GfxstreamFatalError.h"
-
 #include <assert.h>
 #include <memory.h>
+
+#include "gfxstream/host/logging.h"
+#include "host-common/dma_device.h"
+#include "render-utils/RenderChannel.h"
 
 namespace gfxstream {
 
 using IoResult = RenderChannel::IoResult;
-using emugl::ABORT_REASON_OTHER;
-using emugl::FatalError;
 
 ChannelStream::ChannelStream(RenderChannelImpl* channel, size_t bufSize)
     : IOStream(bufSize), mChannel(channel) {
@@ -57,7 +52,6 @@ const unsigned char* ChannelStream::readRaw(void* buf, size_t* inout_len) {
     size_t wanted = *inout_len;
     size_t count = 0U;
     auto dst = static_cast<uint8_t*>(buf);
-    D("wanted %d bytes", (int)wanted);
     while (count < wanted) {
         if (mReadBufferLeft > 0) {
             size_t avail = std::min<size_t>(wanted - count, mReadBufferLeft);
@@ -70,7 +64,6 @@ const unsigned char* ChannelStream::readRaw(void* buf, size_t* inout_len) {
         }
         bool blocking = (count == 0);
         auto result = mChannel->readFromGuest(&mReadBuffer, blocking);
-        D("readFromGuest() returned %d, size %d", (int)result, (int)mReadBuffer.size());
         if (result == IoResult::Ok) {
             mReadBufferLeft = mReadBuffer.size();
             continue;
@@ -81,11 +74,9 @@ const unsigned char* ChannelStream::readRaw(void* buf, size_t* inout_len) {
         // Result can only be IoResult::Error if |count| == 0
         // since |blocking| was true, it cannot be IoResult::TryAgain.
         assert(result == IoResult::Error);
-        D("error while trying to read");
         return nullptr;
     }
     *inout_len = count;
-    D("read %d bytes", (int)count);
     return (const unsigned char*)buf;
 }
 
@@ -106,9 +97,9 @@ int ChannelStream::writeFully(const void* buf, size_t len) {
     return 0;
 }
 
-const unsigned char *ChannelStream::readFully( void *buf, size_t len) {
-    GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-        << "not intended for use with ChannelStream";
+const unsigned char* ChannelStream::readFully(void *buf, size_t len) {
+    GFXSTREAM_FATAL("Not intended for use with ChannelStream");
+    return nullptr;
 }
 
 void ChannelStream::onSave(android::base::Stream* stream) {

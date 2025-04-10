@@ -15,17 +15,13 @@
 */
 #include "EglGlobalInfo.h"
 
+#include <string.h>
+
 #include "ClientAPIExts.h"
 #include "EglDisplay.h"
 #include "EglOsApi.h"
-
-#include "host-common/GfxstreamFatalError.h"
 #include "GLcommon/GLutils.h"
-
-#include <string.h>
-
-using emugl::ABORT_REASON_OTHER;
-using emugl::FatalError;
+#include "gfxstream/host/logging.h"
 
 namespace {
 
@@ -43,7 +39,7 @@ static bool sEgl2EglSyncSafeToUse = false;
 void EglGlobalInfo::setEgl2Egl(EGLBoolean enable, bool nullEgl) {
     if (nullEgl && enable == EGL_FALSE) {
         // No point in nullEgl backend for non egl2egl cases.
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER));
+        GFXSTREAM_FATAL("Enabling non-egl2egl on null egl backend.");
     }
     sEgl2Egl = enable;
     setGles2Gles(enable);

@@ -40,7 +40,6 @@
 #include "aemu/base/system/System.h"
 #include "common/goldfish_vk_dispatch.h"
 #include "gfxstream/host/logging.h"
-#include "host-common/GfxstreamFatalError.h"
 #include "host-common/emugl_vm_operations.h"
 #include "host-common/vm_operations.h"
 
@@ -923,8 +922,7 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
     const bool moltenVKSupported = extensionsSupported(instanceExts, moltenVkInstanceExtNames);
     if (moltenVKEnabled && !moltenVKSupported) {
         // This might happen if the user manually changes moltenvk ICD library
-        GFXSTREAM_ERROR("MoltenVK requested, but the required extensions are not supported.");
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "MoltenVK requested, but the required extensions are not supported.";
+        GFXSTREAM_FATAL("MoltenVK requested, but the required extensions are not supported.");
     }
     const bool useMoltenVK = moltenVKEnabled && moltenVKSupported;
 #endif
@@ -1672,8 +1670,7 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
                                     &emulation->mDeviceInfo.memProps,
                                     emulation->mDebugUtilsHelper,
                                     kDefaultStagingBufferSize)) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Failed: Could not allocate staging buffer for Vulkan emulation";
+        GFXSTREAM_FATAL("Failed: Could not allocate staging buffer for Vulkan emulation");
     }
 
     GFXSTREAM_VERBOSE("Vulkan global emulation state successfully initialized.");
@@ -1733,8 +1730,7 @@ void VkEmulation::initFeatures(Features features) {
 
     auto representativeInfo = findRepresentativeColorBufferMemoryTypeIndexLocked();
     if (!representativeInfo) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Failed to find memory type for ColorBuffers.";
+        GFXSTREAM_FATAL("Failed to find memory type for ColorBuffers.");
     }
     mRepresentativeColorBufferMemoryTypeInfo = *representativeInfo;
     GFXSTREAM_DEBUG(
@@ -2449,10 +2445,10 @@ uint32_t VkEmulation::getValidMemoryTypeIndex(uint32_t requiredMemoryTypeBits,
     }
 
     if (!found) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Could not find a valid memory index with memoryProperty: "
-            << string_VkMemoryPropertyFlags(memoryProperty)
-            << ", and requiredMemoryTypeBits: " << requiredMemoryTypeBits;
+        const std::string memoryPropertyString = string_VkMemoryPropertyFlags(memoryProperty);
+        GFXSTREAM_FATAL("Could not find a valid memory index with memoryProperty:%s "
+                        ", and requiredMemoryTypeBits:%" PRIu32,
+                        memoryPropertyString.c_str(), requiredMemoryTypeBits);
     }
     return secondBest;
 }

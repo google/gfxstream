@@ -14,7 +14,7 @@
 
 #include "RenderThreadInfoVk.h"
 
-#include "host-common/GfxstreamFatalError.h"
+#include "gfxstream/host/logging.h"
 
 namespace gfxstream {
 namespace vk {
@@ -23,8 +23,7 @@ static thread_local RenderThreadInfoVk* tlThreadInfo = nullptr;
 
 RenderThreadInfoVk::RenderThreadInfoVk() {
     if (tlThreadInfo != nullptr) {
-        GFXSTREAM_ABORT(emugl::FatalError(emugl::ABORT_REASON_OTHER))
-            << "Attempted to set thread local Vk render thread info twice.";
+        GFXSTREAM_FATAL("Attempted to thread local RenderThreadInfoVk twice.");
     }
     tlThreadInfo = this;
 }

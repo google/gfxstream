@@ -19,14 +19,9 @@
 
 #include "render-utils/IOStream.h"
 #include "aemu/base/BumpPool.h"
-#include "host-common/GfxstreamFatalError.h"
-#include "host-common/feature_control.h"
 
 namespace gfxstream {
 namespace vk {
-
-using emugl::ABORT_REASON_OTHER;
-using emugl::FatalError;
 
 VulkanStream::VulkanStream(IOStream* stream, const gfxstream::host::FeatureSet& features) : mStream(stream) {
     unsetHandleMapping();
@@ -57,7 +52,7 @@ void VulkanStream::alloc(void** ptrAddr, size_t bytes) {
     *ptrAddr = mPool.alloc(bytes);
 
     if (!*ptrAddr) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "alloc failed. Wanted size: " << bytes;
+        GFXSTREAM_FATAL("Alloc failed. Wanted size: %zu", bytes);
     }
 }
 
@@ -95,8 +90,7 @@ void VulkanStream::loadStringInPlaceWithStreamPtr(char** forOutput, uint8_t** st
     android::base::Stream::fromBe32((uint8_t*)&len);
 
     if (len == UINT32_MAX) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "VulkanStream can't allocate UINT32_MAX bytes";
+        GFXSTREAM_FATAL("VulkanStream can't allocate UINT32_MAX bytes");
     }
 
     alloc((void**)forOutput, len + 1);
@@ -131,8 +125,7 @@ void VulkanStream::loadStringArrayInPlaceWithStreamPtr(char*** forOutput, uint8_
 ssize_t VulkanStream::read(void* buffer, size_t size) {
     commitWrite();
     if (!mStream->readFully(buffer, size)) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Could not read back " << size << " bytes";
+        GFXSTREAM_FATAL("Could not read back %zu bytes", size);
     }
     return size;
 }
@@ -152,15 +145,12 @@ ssize_t VulkanStream::write(const void* buffer, size_t size) { return bufferedWr
 
 void VulkanStream::commitWrite() {
     if (!valid()) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Tried to commit write to vulkan pipe with invalid pipe!";
+        GFXSTREAM_FATAL("Tried to commit write to vulkan pipe with invalid pipe!");
     }
 
     int written = mStream->writeFully(mWriteBuffer.data(), mWritePos);
-
     if (written) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Did not write exactly " << mWritePos << " bytes!";
+        GFXSTREAM_FATAL("Did not write exactly %zu bytes!", mWritePos);
     }
     mWritePos = 0;
 }
@@ -200,8 +190,8 @@ ssize_t VulkanMemReadingStream::read(void* buffer, size_t size) {
 }
 
 ssize_t VulkanMemReadingStream::write(const void* buffer, size_t size) {
-    GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-        << "VulkanMemReadingStream does not support writing";
+    GFXSTREAM_FATAL("VulkanMemReadingStream does not support writing");
+    return -1;
 }
 
 }  // namespace vk

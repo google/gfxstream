@@ -26,10 +26,6 @@
 #include "OpenGLESDispatch/EGLDispatch.h"
 #include "aemu/base/containers/Lookup.h"
 #include "gfxstream/host/logging.h"
-#include "host-common/GfxstreamFatalError.h"
-
-using emugl::ABORT_REASON_OTHER;
-using emugl::FatalError;
 
 namespace gfxstream {
 namespace gl {
@@ -114,9 +110,7 @@ bool EmulatedEglWindowSurface::flushColorBuffer() {
 
     GLenum resetStatus = s_gles2.glGetGraphicsResetStatusEXT();
     if (resetStatus != GL_NO_ERROR) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) <<
-                "Stream server aborting due to graphics reset. ResetStatus: " <<
-                std::hex << resetStatus;
+        GFXSTREAM_FATAL("Stream server aborting due to graphics reset: %x", resetStatus);
     }
 
     // Make the surface current

@@ -33,7 +33,6 @@
 #include "cereal/common/goldfish_vk_transform.h"
 #include "gfxstream/host/Features.h"
 #include "goldfish_vk_private_defs.h"
-#include "host-common/GfxstreamFatalError.h"
 #include "utils/GfxApiLogger.h"
 #include "vk_util.h"
 
