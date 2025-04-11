@@ -1205,6 +1205,25 @@ class VkDecoderGlobalState::Impl {
 
         pFeatures->textureCompressionETC2 |= enableEmulatedEtc2Locked(physicalDevice, vk);
         pFeatures->textureCompressionASTC_LDR |= enableEmulatedAstcLocked(physicalDevice, vk);
+
+#ifdef CONFIG_AEMU
+        if (!m_vkEmulation->getFeatures().BypassVulkanDeviceFeatureOverrides.enabled) {
+            // TODO(b/407982047) Disable sparse binding features on Android
+            // These are not supported widely on real devices and causes crashes
+            if(pFeatures->sparseBinding) {
+                GFXSTREAM_INFO("Disabling sparse binding feature support");
+                pFeatures->sparseBinding = VK_FALSE;
+                pFeatures->sparseResidencyBuffer = VK_FALSE;
+                pFeatures->sparseResidencyImage2D = VK_FALSE;
+                pFeatures->sparseResidencyImage3D = VK_FALSE;
+                pFeatures->sparseResidency2Samples = VK_FALSE;
+                pFeatures->sparseResidency4Samples = VK_FALSE;
+                pFeatures->sparseResidency8Samples = VK_FALSE;
+                pFeatures->sparseResidency16Samples = VK_FALSE;
+                pFeatures->sparseResidencyAliased = VK_FALSE;
+            }
+        }
+#endif
     }
 
     void on_vkGetPhysicalDeviceFeatures2(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
@@ -1295,6 +1314,23 @@ class VkDecoderGlobalState::Impl {
                     vulkan13Features->inlineUniformBlock = VK_FALSE;
                 }
             }
+
+#ifdef CONFIG_AEMU
+            // TODO(b/407982047) Disable sparse binding features on Android
+            // These are not supported widely on real devices and causes crashes
+            if (pFeatures->features.sparseBinding) {
+                GFXSTREAM_INFO("Disabling sparse binding feature support");
+                pFeatures->features.sparseBinding = VK_FALSE;
+                pFeatures->features.sparseResidencyBuffer = VK_FALSE;
+                pFeatures->features.sparseResidencyImage2D = VK_FALSE;
+                pFeatures->features.sparseResidencyImage3D = VK_FALSE;
+                pFeatures->features.sparseResidency2Samples = VK_FALSE;
+                pFeatures->features.sparseResidency4Samples = VK_FALSE;
+                pFeatures->features.sparseResidency8Samples = VK_FALSE;
+                pFeatures->features.sparseResidency16Samples = VK_FALSE;
+                pFeatures->features.sparseResidencyAliased = VK_FALSE;
+            }
+#endif
         }
     }
 
@@ -1911,6 +1947,17 @@ class VkDecoderGlobalState::Impl {
             if (forceEnableRobustness && modifiedRobustness2features.robustBufferAccess2) {
                 feature->robustBufferAccess = VK_TRUE;
             }
+
+#ifdef CONFIG_AEMU
+            // TODO(b/407982047) Disable sparse binding features on Android
+            // These are not supported widely on real devices and causes crashes
+            const bool sparseBindingDisabled =
+                !m_vkEmulation->getFeatures().BypassVulkanDeviceFeatureOverrides.enabled;
+            if (feature->sparseBinding && sparseBindingDisabled) {
+                GFXSTREAM_WARNING("Unsupported sparse binding feature is requested.");
+                return VK_ERROR_FEATURE_NOT_PRESENT;
+            }
+#endif
         }
 
         if (auto* ycbcrFeatures = vk_find_struct<VkPhysicalDeviceSamplerYcbcrConversionFeatures>(
