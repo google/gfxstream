@@ -2420,15 +2420,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkImageTiling tiling;
                 uint32_t* pPropertyCount;
                 VkSparseImageFormatProperties* pProperties;
-                // Begin non wrapped dispatchable handle unboxing for physicalDevice;
+                // Begin global wrapped dispatchable handle unboxing for physicalDevice;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkPhysicalDevice*)&physicalDevice =
                     (VkPhysicalDevice)(VkPhysicalDevice)((VkPhysicalDevice)(*&cgen_var_0));
-                auto unboxed_physicalDevice = unbox_VkPhysicalDevice(physicalDevice);
                 auto vk = dispatch_VkPhysicalDevice(physicalDevice);
-                // End manual dispatchable handle unboxing for physicalDevice;
                 memcpy((VkFormat*)&format, *readStreamPtrPtr, sizeof(VkFormat));
                 *readStreamPtrPtr += sizeof(VkFormat);
                 memcpy((VkImageType*)&type, *readStreamPtrPtr, sizeof(VkImageType));
@@ -2486,9 +2484,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             (unsigned long long)pProperties);
                 }
                 if (CC_LIKELY(vk)) {
-                    vk->vkGetPhysicalDeviceSparseImageFormatProperties(
-                        unboxed_physicalDevice, format, type, samples, usage, tiling,
-                        pPropertyCount, pProperties);
+                    m_state->on_vkGetPhysicalDeviceSparseImageFormatProperties(
+                        &m_pool, snapshotApiCallInfo, physicalDevice, format, type, samples, usage,
+                        tiling, pPropertyCount, pProperties);
                 }
                 vkStream->unsetHandleMapping();
                 // WARNING PTR CHECK
@@ -9759,15 +9757,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo;
                 uint32_t* pPropertyCount;
                 VkSparseImageFormatProperties2* pProperties;
-                // Begin non wrapped dispatchable handle unboxing for physicalDevice;
+                // Begin global wrapped dispatchable handle unboxing for physicalDevice;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkPhysicalDevice*)&physicalDevice =
                     (VkPhysicalDevice)(VkPhysicalDevice)((VkPhysicalDevice)(*&cgen_var_0));
-                auto unboxed_physicalDevice = unbox_VkPhysicalDevice(physicalDevice);
                 auto vk = dispatch_VkPhysicalDevice(physicalDevice);
-                // End manual dispatchable handle unboxing for physicalDevice;
                 vkReadStream->alloc((void**)&pFormatInfo,
                                     sizeof(const VkPhysicalDeviceSparseImageFormatInfo2));
                 reservedunmarshal_VkPhysicalDeviceSparseImageFormatInfo2(
@@ -9821,8 +9817,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             (unsigned long long)pProperties);
                 }
                 if (CC_LIKELY(vk)) {
-                    vk->vkGetPhysicalDeviceSparseImageFormatProperties2(
-                        unboxed_physicalDevice, pFormatInfo, pPropertyCount, pProperties);
+                    m_state->on_vkGetPhysicalDeviceSparseImageFormatProperties2(
+                        &m_pool, snapshotApiCallInfo, physicalDevice, pFormatInfo, pPropertyCount,
+                        pProperties);
                 }
                 vkStream->unsetHandleMapping();
                 // WARNING PTR CHECK
@@ -14212,15 +14209,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo;
                 uint32_t* pPropertyCount;
                 VkSparseImageFormatProperties2* pProperties;
-                // Begin non wrapped dispatchable handle unboxing for physicalDevice;
+                // Begin global wrapped dispatchable handle unboxing for physicalDevice;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkPhysicalDevice*)&physicalDevice =
                     (VkPhysicalDevice)(VkPhysicalDevice)((VkPhysicalDevice)(*&cgen_var_0));
-                auto unboxed_physicalDevice = unbox_VkPhysicalDevice(physicalDevice);
                 auto vk = dispatch_VkPhysicalDevice(physicalDevice);
-                // End manual dispatchable handle unboxing for physicalDevice;
                 vkReadStream->alloc((void**)&pFormatInfo,
                                     sizeof(const VkPhysicalDeviceSparseImageFormatInfo2));
                 reservedunmarshal_VkPhysicalDeviceSparseImageFormatInfo2(
@@ -14274,8 +14269,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             (unsigned long long)pProperties);
                 }
                 if (CC_LIKELY(vk)) {
-                    vk->vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
-                        unboxed_physicalDevice, pFormatInfo, pPropertyCount, pProperties);
+                    m_state->on_vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
+                        &m_pool, snapshotApiCallInfo, physicalDevice, pFormatInfo, pPropertyCount,
+                        pProperties);
                 }
                 vkStream->unsetHandleMapping();
                 // WARNING PTR CHECK

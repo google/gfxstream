@@ -216,6 +216,20 @@ class VkDecoderGlobalState {
                               VkDevice device, const VkDeviceQueueInfo2* pQueueInfo,
                               VkQueue* pQueue);
 
+    void on_vkGetPhysicalDeviceSparseImageFormatProperties(
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+        VkPhysicalDevice physicalDevice, VkFormat format, VkImageType type,
+        VkSampleCountFlagBits samples, VkImageUsageFlags usage, VkImageTiling tiling,
+        uint32_t* pPropertyCount, VkSparseImageFormatProperties* pProperties);
+    void on_vkGetPhysicalDeviceSparseImageFormatProperties2(
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+        VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo,
+        uint32_t* pPropertyCount, VkSparseImageFormatProperties2* pProperties);
+    void on_vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+        VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo,
+        uint32_t* pPropertyCount, VkSparseImageFormatProperties2* pProperties);
+
     void on_vkDestroyDevice(android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
                             VkDevice device, const VkAllocationCallbacks* pAllocator);
 

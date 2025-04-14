@@ -203,6 +203,14 @@ class VkDecoderGlobalState::Impl {
         mSnapshotsEnabled = m_vkEmulation->getFeatures().VulkanSnapshots.enabled;
         mBatchedDescriptorSetUpdateEnabled =
             m_vkEmulation->getFeatures().VulkanBatchedDescriptorSetUpdate.enabled;
+        mDisableSparseBindingSupport = false;
+#ifdef CONFIG_AEMU
+        if (!m_vkEmulation->getFeatures().BypassVulkanDeviceFeatureOverrides.enabled) {
+            // TODO(b/407982047) Disable sparse binding features on Android
+            // These are not supported widely on real devices and causes crashes
+            mDisableSparseBindingSupport = true;
+        }
+#endif
         mVkCleanupEnabled =
             android::base::getEnvironmentVariable("ANDROID_EMU_VK_NO_CLEANUP") != "1";
         mLogging = android::base::getEnvironmentVariable("ANDROID_EMU_VK_LOG_CALLS") == "1";
@@ -1199,24 +1207,18 @@ class VkDecoderGlobalState::Impl {
         pFeatures->textureCompressionETC2 |= enableEmulatedEtc2Locked(physicalDevice, vk);
         pFeatures->textureCompressionASTC_LDR |= enableEmulatedAstcLocked(physicalDevice, vk);
 
-#ifdef CONFIG_AEMU
-        if (!m_vkEmulation->getFeatures().BypassVulkanDeviceFeatureOverrides.enabled) {
-            // TODO(b/407982047) Disable sparse binding features on Android
-            // These are not supported widely on real devices and causes crashes
-            if(pFeatures->sparseBinding) {
-                GFXSTREAM_INFO("Disabling sparse binding feature support");
-                pFeatures->sparseBinding = VK_FALSE;
-                pFeatures->sparseResidencyBuffer = VK_FALSE;
-                pFeatures->sparseResidencyImage2D = VK_FALSE;
-                pFeatures->sparseResidencyImage3D = VK_FALSE;
-                pFeatures->sparseResidency2Samples = VK_FALSE;
-                pFeatures->sparseResidency4Samples = VK_FALSE;
-                pFeatures->sparseResidency8Samples = VK_FALSE;
-                pFeatures->sparseResidency16Samples = VK_FALSE;
-                pFeatures->sparseResidencyAliased = VK_FALSE;
-            }
+        if (mDisableSparseBindingSupport && pFeatures->sparseBinding) {
+            GFXSTREAM_INFO("Disabling sparse binding feature support");
+            pFeatures->sparseBinding = VK_FALSE;
+            pFeatures->sparseResidencyBuffer = VK_FALSE;
+            pFeatures->sparseResidencyImage2D = VK_FALSE;
+            pFeatures->sparseResidencyImage3D = VK_FALSE;
+            pFeatures->sparseResidency2Samples = VK_FALSE;
+            pFeatures->sparseResidency4Samples = VK_FALSE;
+            pFeatures->sparseResidency8Samples = VK_FALSE;
+            pFeatures->sparseResidency16Samples = VK_FALSE;
+            pFeatures->sparseResidencyAliased = VK_FALSE;
         }
-#endif
     }
 
     void on_vkGetPhysicalDeviceFeatures2(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
@@ -1307,23 +1309,19 @@ class VkDecoderGlobalState::Impl {
                     vulkan13Features->inlineUniformBlock = VK_FALSE;
                 }
             }
+        }
 
-#ifdef CONFIG_AEMU
-            // TODO(b/407982047) Disable sparse binding features on Android
-            // These are not supported widely on real devices and causes crashes
-            if (pFeatures->features.sparseBinding) {
-                GFXSTREAM_INFO("Disabling sparse binding feature support");
-                pFeatures->features.sparseBinding = VK_FALSE;
-                pFeatures->features.sparseResidencyBuffer = VK_FALSE;
-                pFeatures->features.sparseResidencyImage2D = VK_FALSE;
-                pFeatures->features.sparseResidencyImage3D = VK_FALSE;
-                pFeatures->features.sparseResidency2Samples = VK_FALSE;
-                pFeatures->features.sparseResidency4Samples = VK_FALSE;
-                pFeatures->features.sparseResidency8Samples = VK_FALSE;
-                pFeatures->features.sparseResidency16Samples = VK_FALSE;
-                pFeatures->features.sparseResidencyAliased = VK_FALSE;
-            }
-#endif
+        if (mDisableSparseBindingSupport && pFeatures->features.sparseBinding) {
+            GFXSTREAM_INFO("Disabling sparse binding feature support");
+            pFeatures->features.sparseBinding = VK_FALSE;
+            pFeatures->features.sparseResidencyBuffer = VK_FALSE;
+            pFeatures->features.sparseResidencyImage2D = VK_FALSE;
+            pFeatures->features.sparseResidencyImage3D = VK_FALSE;
+            pFeatures->features.sparseResidency2Samples = VK_FALSE;
+            pFeatures->features.sparseResidency4Samples = VK_FALSE;
+            pFeatures->features.sparseResidency8Samples = VK_FALSE;
+            pFeatures->features.sparseResidency16Samples = VK_FALSE;
+            pFeatures->features.sparseResidencyAliased = VK_FALSE;
         }
     }
 
@@ -1941,16 +1939,10 @@ class VkDecoderGlobalState::Impl {
                 feature->robustBufferAccess = VK_TRUE;
             }
 
-#ifdef CONFIG_AEMU
-            // TODO(b/407982047) Disable sparse binding features on Android
-            // These are not supported widely on real devices and causes crashes
-            const bool sparseBindingDisabled =
-                !m_vkEmulation->getFeatures().BypassVulkanDeviceFeatureOverrides.enabled;
-            if (feature->sparseBinding && sparseBindingDisabled) {
+            if (mDisableSparseBindingSupport && feature->sparseBinding) {
                 GFXSTREAM_WARNING("Unsupported sparse binding feature is requested.");
                 return VK_ERROR_FEATURE_NOT_PRESENT;
             }
-#endif
         }
 
         if (auto* ycbcrFeatures = vk_find_struct<VkPhysicalDeviceSamplerYcbcrConversionFeatures>(
@@ -2298,6 +2290,52 @@ class VkDecoderGlobalState::Impl {
         uint32_t queueFamilyIndex = pQueueInfo->queueFamilyIndex;
         uint32_t queueIndex = pQueueInfo->queueIndex;
         on_vkGetDeviceQueue(pool, snapshotInfo, boxed_device, queueFamilyIndex, queueIndex, pQueue);
+    }
+
+    void on_vkGetPhysicalDeviceSparseImageFormatProperties(
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+        VkPhysicalDevice boxed_physicalDevice, VkFormat format, VkImageType type,
+        VkSampleCountFlagBits samples, VkImageUsageFlags usage, VkImageTiling tiling,
+        uint32_t* pPropertyCount, VkSparseImageFormatProperties* pProperties) {
+        if (mDisableSparseBindingSupport) {
+            *pPropertyCount = 0;
+            return;
+        }
+
+        auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
+        auto vk = dispatch_VkPhysicalDevice(boxed_physicalDevice);
+        return vk->vkGetPhysicalDeviceSparseImageFormatProperties(
+            physicalDevice, format, type, samples, usage, tiling, pPropertyCount, pProperties);
+    }
+    void on_vkGetPhysicalDeviceSparseImageFormatProperties2(
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+        VkPhysicalDevice boxed_physicalDevice,
+        const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo, uint32_t* pPropertyCount,
+        VkSparseImageFormatProperties2* pProperties) {
+        if (mDisableSparseBindingSupport) {
+            *pPropertyCount = 0;
+            return;
+        }
+
+        auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
+        auto vk = dispatch_VkPhysicalDevice(boxed_physicalDevice);
+        return vk->vkGetPhysicalDeviceSparseImageFormatProperties2(
+            physicalDevice, pFormatInfo, pPropertyCount, pProperties);
+    }
+    void on_vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+        VkPhysicalDevice boxed_physicalDevice,
+        const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo, uint32_t* pPropertyCount,
+        VkSparseImageFormatProperties2* pProperties) {
+        if (mDisableSparseBindingSupport) {
+            *pPropertyCount = 0;
+            return;
+        }
+
+        auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
+        auto vk = dispatch_VkPhysicalDevice(boxed_physicalDevice);
+        return vk->vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
+            physicalDevice, pFormatInfo, pPropertyCount, pProperties);
     }
 
     void destroyDeviceWithExclusiveInfo(VkDevice device, DeviceInfo& deviceInfo,
@@ -8969,6 +9007,7 @@ class VkDecoderGlobalState::Impl {
     emugl::RenderDocWithMultipleVkInstances* mRenderDocWithMultipleVkInstances = nullptr;
     bool mSnapshotsEnabled = false;
     bool mBatchedDescriptorSetUpdateEnabled = false;
+    bool mDisableSparseBindingSupport = false;
     bool mVkCleanupEnabled = true;
     bool mLogging = false;
     bool mVerbosePrints = false;
@@ -9439,6 +9478,30 @@ void VkDecoderGlobalState::on_vkGetDeviceQueue2(android::base::BumpPool* pool,
                                                 const VkDeviceQueueInfo2* pQueueInfo,
                                                 VkQueue* pQueue) {
     mImpl->on_vkGetDeviceQueue2(pool, snapshotInfo, device, pQueueInfo, pQueue);
+}
+
+void VkDecoderGlobalState::on_vkGetPhysicalDeviceSparseImageFormatProperties(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+    VkPhysicalDevice physicalDevice, VkFormat format, VkImageType type,
+    VkSampleCountFlagBits samples, VkImageUsageFlags usage, VkImageTiling tiling,
+    uint32_t* pPropertyCount, VkSparseImageFormatProperties* pProperties) {
+    mImpl->on_vkGetPhysicalDeviceSparseImageFormatProperties(pool, snapshotInfo, physicalDevice,
+                                                             format, type, samples, usage, tiling,
+                                                             pPropertyCount, pProperties);
+}
+
+void VkDecoderGlobalState::on_vkGetPhysicalDeviceSparseImageFormatProperties2(android::base::BumpPool* pool,
+        VkSnapshotApiCallInfo* snapshotInfo,
+        VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo,
+        uint32_t* pPropertyCount, VkSparseImageFormatProperties2* pProperties) {
+    mImpl->on_vkGetPhysicalDeviceSparseImageFormatProperties2(pool, snapshotInfo, physicalDevice, pFormatInfo, pPropertyCount, pProperties);
+}
+
+void VkDecoderGlobalState::on_vkGetPhysicalDeviceSparseImageFormatProperties2KHR(android::base::BumpPool* pool,
+                                                VkSnapshotApiCallInfo* snapshotInfo,
+        VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo,
+        uint32_t* pPropertyCount, VkSparseImageFormatProperties2* pProperties) {
+    mImpl->on_vkGetPhysicalDeviceSparseImageFormatProperties2KHR(pool, snapshotInfo, physicalDevice, pFormatInfo, pPropertyCount, pProperties);
 }
 
 void VkDecoderGlobalState::on_vkDestroyDevice(android::base::BumpPool* pool,
