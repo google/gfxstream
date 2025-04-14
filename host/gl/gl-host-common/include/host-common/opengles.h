@@ -21,7 +21,6 @@
 #include "host-common/multi_display_agent.h"
 #include "host-common/vm_operations.h"
 #include "host-common/window_agent.h"
-#include "render-utils/virtio_gpu_ops.h"
 
 #ifdef __cplusplus
 #include "host-common/opengl/misc.h"

@@ -11,6 +11,7 @@ if (NOT TARGET gfxstream-gl-host-common)
         INTERFACE
         aemu-host-common.headers
         aemu-base.headers
+        gfxstream_backend_headers
         gfxstream_features.headers
         gfxstream_host_snapshot.headers
         gfxstream_egl_headers)
