@@ -4,7 +4,7 @@
 #ifndef GUARD_renderControl_decoder_context_t
 #define GUARD_renderControl_decoder_context_t
 
-#include "render-utils/IOStream.h"
+#include "gfxstream/host/iostream.h"
 #include "ChecksumCalculator.h"
 #include "renderControl_server_context.h"
 

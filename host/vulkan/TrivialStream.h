@@ -16,7 +16,7 @@
 
 #include <cstdlib>
 
-#include "render-utils/IOStream.h"
+#include "gfxstream/host/iostream.h"
 
 namespace gfxstream {
 namespace vk {

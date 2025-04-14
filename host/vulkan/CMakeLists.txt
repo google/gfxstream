@@ -40,20 +40,22 @@ set_source_files_properties(VkSubDecoder.cpp PROPERTIES COMPILE_FLAGS -Wno-unuse
 set_source_files_properties(VkDecoderSnapshot.cpp PROPERTIES COMPILE_FLAGS -Wno-unused-variable)
 
 target_link_libraries(gfxstream-vulkan-server PUBLIC
-        OpenglRender_vulkan_cereal
-        gfxstream-compressedTextures
-        emulated_textures
-        apigen-codec-common
         aemu-base.headers
+        apigen-codec-common
+        emulated_textures
         gfxstream_backend_common
         gfxstream_features
+        gfxstream_host_iostream
         gfxstream_host_logging
         gfxstream_host_snapshot.headers
         gfxstream_host_tracing
         gfxstream_utils
         gfxstream_vulkan_headers
+        gfxstream-compressedTextures
+        OpenglRender_vulkan_cereal
         PRIVATE
-        gfxstream_egl_headers)
+        gfxstream_egl_headers
+        )
 
 if (WIN32)
 target_compile_definitions(gfxstream-vulkan-server PRIVATE -DVK_USE_PLATFORM_WIN32_KHR)

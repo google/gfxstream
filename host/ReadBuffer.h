@@ -15,7 +15,7 @@
 */
 #pragma once
 #include "aemu/base/files/Stream.h"
-#include "render-utils/IOStream.h"
+#include "gfxstream/host/iostream.h"
 
 namespace gfxstream {
 

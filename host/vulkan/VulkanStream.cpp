@@ -17,7 +17,7 @@
 
 #include <vector>
 
-#include "render-utils/IOStream.h"
+#include "gfxstream/host/iostream.h"
 #include "aemu/base/BumpPool.h"
 
 namespace gfxstream {

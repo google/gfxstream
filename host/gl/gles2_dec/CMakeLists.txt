@@ -7,11 +7,13 @@ target_link_libraries(
     gles2_dec
     PUBLIC
     apigen-codec-common
+    gfxstream_host_iostream
     GLSnapshot
     ${GFXSTREAM_BASE_LIB}
     PRIVATE
     gfxstream_egl_headers
-    gfxstream_host_logging)
+    gfxstream_host_logging
+    )
 target_include_directories(
     gles2_dec
     PRIVATE

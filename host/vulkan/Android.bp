@@ -33,6 +33,7 @@ cc_library_static {
         "libgfxstream_host_backend",
         "libgfxstream_host_compressedtextures",
         "libgfxstream_host_features",
+        "libgfxstream_host_iostream",
         "libgfxstream_host_snapshot",
         "libgfxstream_host_vulkan_cereal",
         "libgfxstream_host_vulkan_emulatedtextures",

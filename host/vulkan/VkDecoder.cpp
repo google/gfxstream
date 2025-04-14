@@ -51,8 +51,8 @@
 #include "common/goldfish_vk_transform.h"
 #include "gfxstream/host/Tracing.h"
 #include "gfxstream/host/logging.h"
+#include "gfxstream/host/iostream.h"
 #include "goldfish_vk_private_defs.h"
-#include "render-utils/IOStream.h"
 #define MAX_PACKET_LENGTH (400 * 1024 * 1024)  // 400MB
 #define CC_LIKELY(exp) (__builtin_expect(!!(exp), true))
 #define CC_UNLIKELY(exp) (__builtin_expect(!!(exp), false))
