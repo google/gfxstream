@@ -29,8 +29,6 @@ using gfxstream::host::snapshot::VirtioGpuResourceSnapshot;
 
 namespace {
 
-static constexpr int kPipeTryAgain = -2;
-
 enum pipe_texture_target {
     PIPE_BUFFER,
     PIPE_TEXTURE_1D,
@@ -509,8 +507,7 @@ int VirtioGpuResource::GetCaching(uint32_t* outCaching) const {
 
 // Corresponds to Virtio GPU "TransferFromHost" commands and VMM requests to
 // copy into display buffers.
-int VirtioGpuResource::TransferRead(const GoldfishPipeServiceOps* ops, uint64_t offset,
-                                    stream_renderer_box* box,
+int VirtioGpuResource::TransferRead(uint64_t offset, stream_renderer_box* box,
                                     std::optional<std::vector<struct iovec>> iovs) {
     // First, copy from the underlying backend resource to this resource's linear buffer:
     int ret = 0;
@@ -518,7 +515,7 @@ int VirtioGpuResource::TransferRead(const GoldfishPipeServiceOps* ops, uint64_t 
         GFXSTREAM_ERROR("Failed to transfer: unexpected blob.");
         return -EINVAL;
     } else if (mResourceType == VirtioGpuResourceType::PIPE) {
-        ret = ReadFromPipeToLinear(ops, offset, box);
+        ret = ReadFromPipeToLinear(offset, box);
     } else if (mResourceType == VirtioGpuResourceType::BUFFER) {
         ret = ReadFromBufferToLinear(offset, box);
     } else if (mResourceType == VirtioGpuResourceType::COLOR_BUFFER) {
@@ -545,9 +542,8 @@ int VirtioGpuResource::TransferRead(const GoldfishPipeServiceOps* ops, uint64_t 
 }
 
 // Corresponds to Virtio GPU "TransferToHost" commands.
-VirtioGpuResource::TransferWriteResult VirtioGpuResource::TransferWrite(
-    const GoldfishPipeServiceOps* ops, uint64_t offset, stream_renderer_box* box,
-    std::optional<std::vector<struct iovec>> iovs) {
+int VirtioGpuResource::TransferWrite(uint64_t offset, stream_renderer_box* box,
+                                     std::optional<std::vector<struct iovec>> iovs) {
     // First, copy from the desired iov to this resource's linear buffer:
     int ret = 0;
     if (iovs) {
@@ -557,139 +553,57 @@ VirtioGpuResource::TransferWriteResult VirtioGpuResource::TransferWrite(
     }
     if (ret != 0) {
         GFXSTREAM_ERROR("Failed to transfer: failed to copy from iov.");
-        return TransferWriteResult{
-            .status = ret,
-        };
+        return ret;
     }
 
     // Second, copy from this resource's linear buffer to the underlying backend resource:
     if (mResourceType == VirtioGpuResourceType::BLOB) {
         GFXSTREAM_ERROR("Failed to transfer: unexpected blob.");
-        return TransferWriteResult{
-            .status = -EINVAL,
-        };
+        return -EINVAL;
     } else if (mResourceType == VirtioGpuResourceType::PIPE) {
-        return WriteToPipeFromLinear(ops, offset, box);
+        return WriteToPipeFromLinear(offset, box);
     } else if (mResourceType == VirtioGpuResourceType::BUFFER) {
-        ret = WriteToBufferFromLinear(offset, box);
+        return WriteToBufferFromLinear(offset, box);
     } else if (mResourceType == VirtioGpuResourceType::COLOR_BUFFER) {
-        ret = WriteToColorBufferFromLinear(offset, box);
+        return WriteToColorBufferFromLinear(offset, box);
     } else {
         GFXSTREAM_ERROR("Failed to transfer: unhandled resource type.");
-        return TransferWriteResult{
-            .status = -EINVAL,
-        };
+        return -EINVAL;
     }
-    if (ret != 0) {
-        GFXSTREAM_ERROR("Failed to transfer: failed to sync with backend resource.");
-    }
-    return TransferWriteResult{
-        .status = ret,
-    };
 }
 
-int VirtioGpuResource::ReadFromPipeToLinear(const GoldfishPipeServiceOps* ops, uint64_t offset,
-                                            stream_renderer_box* box) {
+int VirtioGpuResource::ReadFromPipeToLinear(uint64_t offset, stream_renderer_box* box) {
     if (mResourceType != VirtioGpuResourceType::PIPE) {
         GFXSTREAM_ERROR("Failed to transfer: resource %d is not PIPE.", mId);
         return -EINVAL;
     }
 
-    // Do the pipe service op here, if there is an associated hostpipe.
-    auto hostPipe = mHostPipe;
-    if (!hostPipe) {
+    if (!mHostPipe) {
         GFXSTREAM_ERROR("Failed to transfer: resource %d missing PIPE.", mId);
         return -EINVAL;
     }
 
-    size_t readBytes = 0;
-    size_t wantedBytes = readBytes + (size_t)box->w;
-
-    while (readBytes < wantedBytes) {
-        GoldfishPipeBuffer buf = {
-            ((char*)mLinear.data()) + box->x + readBytes,
-            wantedBytes - readBytes,
-        };
-        auto status = ops->guest_recv(hostPipe, &buf, 1);
-
-        if (status > 0) {
-            readBytes += status;
-        } else if (status == kPipeTryAgain) {
-            ops->wait_guest_recv(hostPipe);
-        } else {
-            return EIO;
-        }
-    }
-
-    return 0;
+    return mHostPipe->TransferFromHost(mLinear.data() + box->x, box->w);
 }
 
-VirtioGpuResource::TransferWriteResult VirtioGpuResource::WriteToPipeFromLinear(
-    const GoldfishPipeServiceOps* ops, uint64_t offset, stream_renderer_box* box) {
+int VirtioGpuResource::WriteToPipeFromLinear(uint64_t offset, stream_renderer_box* box) {
     if (mResourceType != VirtioGpuResourceType::PIPE) {
         GFXSTREAM_ERROR("Failed to transfer: resource %d is not PIPE.", mId);
-        return TransferWriteResult{
-            .status = -EINVAL,
-        };
+        return -EINVAL;
     }
 
     if (!mCreateArgs) {
         GFXSTREAM_ERROR("Failed to transfer: resource %d missing args.", mId);
-        return TransferWriteResult{
-            .status = -EINVAL,
-        };
+        return -EINVAL;
     }
 
-    // Do the pipe service op here, if there is an associated hostpipe.
     auto hostPipe = mHostPipe;
-    if (!hostPipe) {
+    if (!mHostPipe) {
         GFXSTREAM_ERROR("No hostPipe");
-        return TransferWriteResult{
-            .status = -EINVAL,
-        };
+        return -EINVAL;
     }
 
-    GFXSTREAM_DEBUG("resid: %d offset: 0x%llx hostpipe: %p", mCreateArgs->handle,
-                    (unsigned long long)offset, hostPipe);
-
-    size_t writtenBytes = 0;
-    size_t wantedBytes = (size_t)box->w;
-
-    GoldfishHostPipe* updatedHostPipe = nullptr;
-
-    while (writtenBytes < wantedBytes) {
-        GoldfishPipeBuffer buf = {
-            ((char*)mLinear.data()) + box->x + writtenBytes,
-            wantedBytes - writtenBytes,
-        };
-
-        // guest_send can now reallocate the pipe.
-        void* hostPipeBefore = hostPipe;
-        auto status = ops->guest_send(&hostPipe, &buf, 1);
-
-        if (hostPipe != hostPipeBefore) {
-            updatedHostPipe = hostPipe;
-        }
-
-        if (status > 0) {
-            writtenBytes += status;
-        } else if (status == kPipeTryAgain) {
-            ops->wait_guest_send(hostPipe);
-        } else {
-            return TransferWriteResult{
-                .status = EIO,
-            };
-        }
-    }
-
-    TransferWriteResult result = {
-        .status = 0,
-    };
-    if (updatedHostPipe != nullptr) {
-        result.contextId = mLatestAttachedContext.value_or(-1);
-        result.contextPipe = updatedHostPipe;
-    }
-    return result;
+    return mHostPipe->TransferToHost(mLinear.data() + box->x, box->w);
 }
 
 int VirtioGpuResource::ReadFromBufferToLinear(uint64_t offset, stream_renderer_box* box) {

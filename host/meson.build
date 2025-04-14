@@ -180,6 +180,7 @@ files_lib_gfxstream_backend = files(
   'virtio-gpu-gfxstream-renderer.cpp',
   'VirtioGpuContext.cpp',
   'VirtioGpuFrontend.cpp',
+  'VirtioGpuPipe.cpp',
   'VirtioGpuResource.cpp',
   'VirtioGpuRingBlob.cpp',
   'VirtioGpuTimelines.cpp',

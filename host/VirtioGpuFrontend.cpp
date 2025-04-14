@@ -142,39 +142,13 @@ void VirtioGpuFrontend::teardown() {
     mCleanupThread.reset();
 }
 
-int VirtioGpuFrontend::resetPipe(VirtioGpuContextId contextId, GoldfishHostPipe* hostPipe) {
-    GFXSTREAM_DEBUG("reset pipe for context %u to hostpipe %p", contextId, hostPipe);
-
-    auto contextIt = mContexts.find(contextId);
-    if (contextIt == mContexts.end()) {
-        GFXSTREAM_ERROR("failed to reset pipe: context %u not found.", contextId);
-        return -EINVAL;
-    }
-    auto& context = contextIt->second;
-    context.SetHostPipe(hostPipe);
-
-    // Also update any resources associated with it
-    for (auto resourceId : context.GetAttachedResources()) {
-        auto resourceIt = mResources.find(resourceId);
-        if (resourceIt == mResources.end()) {
-            GFXSTREAM_ERROR("failed to reset pipe: resource %d not found.", resourceId);
-            return -EINVAL;
-        }
-        auto& resource = resourceIt->second;
-        resource.SetHostPipe(hostPipe);
-    }
-
-    return 0;
-}
-
 int VirtioGpuFrontend::createContext(VirtioGpuCtxId contextId, uint32_t nlen, const char* name,
                                      uint32_t contextInit) {
     std::string contextName(name, nlen);
 
     GFXSTREAM_DEBUG("ctxid: %u len: %u name: %s", contextId, nlen, contextName.c_str());
-    auto ops = ensureAndGetServiceOps();
 
-    auto contextOpt = VirtioGpuContext::Create(ops, contextId, contextName, contextInit);
+    auto contextOpt = VirtioGpuContext::Create(contextId, contextName, contextInit);
     if (!contextOpt) {
         GFXSTREAM_ERROR("Failed to create context %u.", contextId);
         return -EINVAL;
@@ -208,7 +182,7 @@ int VirtioGpuFrontend::destroyContext(VirtioGpuCtxId contextId) {
     }
     auto& context = contextIt->second;
 
-    context.Destroy(ensureAndGetServiceOps(), mAddressSpaceDeviceControlOps);
+    context.Destroy(mAddressSpaceDeviceControlOps);
 
     mContexts.erase(contextIt);
     return 0;
@@ -555,9 +529,7 @@ int VirtioGpuFrontend::transferReadIov(int resId, uint64_t offset, stream_render
         return EINVAL;
     }
     auto& resource = it->second;
-
-    auto ops = ensureAndGetServiceOps();
-    return resource.TransferRead(ops, offset, box, AsVecOption(iov, iovec_cnt));
+    return resource.TransferRead(offset, box, AsVecOption(iov, iovec_cnt));
 }
 
 int VirtioGpuFrontend::transferWriteIov(int resId, uint64_t offset, stream_renderer_box* box,
@@ -568,15 +540,7 @@ int VirtioGpuFrontend::transferWriteIov(int resId, uint64_t offset, stream_rende
         return EINVAL;
     }
     auto& resource = it->second;
-
-    auto ops = ensureAndGetServiceOps();
-    auto result = resource.TransferWrite(ops, offset, box, AsVecOption(iov, iovec_cnt));
-    if (result.status != 0) return result.status;
-
-    if (result.contextPipe) {
-        resetPipe(result.contextId, result.contextPipe);
-    }
-    return 0;
+    return resource.TransferWrite(offset, box, AsVecOption(iov, iovec_cnt));
 }
 
 void VirtioGpuFrontend::getCapset(uint32_t set, uint32_t* max_size) {
@@ -952,16 +916,6 @@ int VirtioGpuFrontend::destroyVirtioGpuObjects() {
     }
 
     return 0;
-}
-
-#ifdef CONFIG_AEMU
-void VirtioGpuFrontend::setServiceOps(const GoldfishPipeServiceOps* ops) { mServiceOps = ops; }
-#endif  // CONFIG_AEMU
-
-inline const GoldfishPipeServiceOps* VirtioGpuFrontend::ensureAndGetServiceOps() {
-    if (mServiceOps) return mServiceOps;
-    mServiceOps = goldfish_pipe_get_service_ops();
-    return mServiceOps;
 }
 
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
