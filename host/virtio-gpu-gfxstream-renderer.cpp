@@ -745,10 +745,14 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
 #endif
 
     gfxstream::host::FeatureSet features;
-    int ret = parseGfxstreamFeatures(renderer_flags, renderer_features_str, features);
-    if (ret) {
-        GFXSTREAM_ERROR("Failed to initialize: failed to parse Gfxstream features.");
-        return ret;
+    if (skip_opengles) {
+        features = gfxstream::FrameBuffer::getFB()->getFeatures();
+    } else {
+        int ret = parseGfxstreamFeatures(renderer_flags, renderer_features_str, features);
+        if (ret) {
+            GFXSTREAM_ERROR("Failed to initialize: failed to parse Gfxstream features.");
+            return ret;
+        }
     }
 
     GFXSTREAM_INFO("Gfxstream features:");
@@ -799,7 +803,7 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     if (!skip_opengles) {
         // aemu currently does its own opengles initialization in
         // qemu/android/android-emu/android/opengles.cpp.
-        ret =
+        auto ret =
             stream_renderer_opengles_init(display_width, display_height, renderer_flags, features);
         if (ret) {
             return ret;
