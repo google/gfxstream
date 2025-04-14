@@ -30,8 +30,6 @@ set(stream-server-core-sources
     Buffer.cpp
     ChannelStream.cpp
     ColorBuffer.cpp
-    DisplaySurface.cpp
-    DisplaySurfaceUser.cpp
     ExternalObjectManager.cpp
     FrameBuffer.cpp
     GfxStreamAgents.cpp
@@ -88,9 +86,9 @@ target_link_libraries(
         ${GFXSTREAM_BASE_LIB}
         ${GFXSTREAM_HOST_COMMON_LIB}
         apigen-codec-common
-        gfxstream_backend_common
         gfxstream_egl_headers
         gfxstream_features
+        gfxstream_host_backend
         gfxstream_host_iostream
         gfxstream_host_logging
         gfxstream_host_snapshot
@@ -151,8 +149,8 @@ target_link_libraries(
     gfxstream_backend
     PUBLIC
     gfxstream_common_utils
-    gfxstream_backend_common
     gfxstream_features
+    gfxstream_host_backend
     gfxstream_host_tracing
     gfxstream_backend_static
     PRIVATE

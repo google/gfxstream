@@ -17,7 +17,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "BorrowedImage.h"
+#include "gfxstream/host/borrowed_image.h"
 #include "goldfish_vk_dispatch.h"
 
 namespace gfxstream {

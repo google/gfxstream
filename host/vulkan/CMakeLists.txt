@@ -43,8 +43,8 @@ target_link_libraries(gfxstream-vulkan-server PUBLIC
         aemu-base.headers
         apigen-codec-common
         emulated_textures
-        gfxstream_backend_common
         gfxstream_features
+        gfxstream_host_backend
         gfxstream_host_iostream
         gfxstream_host_logging
         gfxstream_host_snapshot.headers

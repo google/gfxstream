@@ -6,13 +6,19 @@ package {
 cc_library_static {
     name: "libgfxstream_host_backend",
     defaults: ["gfxstream_defaults"],
+    srcs: [
+        "display_surface.cpp",
+        "display_surface_user.cpp",
+    ],
     export_include_dirs: [
         "include",
     ],
     static_libs: [
         "libgfxstream_common_utils",
+        "libgfxstream_host_logging",
     ],
     export_static_lib_headers: [
         "libgfxstream_common_utils",
     ],
+
 }

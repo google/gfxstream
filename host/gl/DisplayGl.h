@@ -23,7 +23,7 @@
 #include <future>
 
 #include "ColorBuffer.h"
-#include "Display.h"
+#include "gfxstream/host/display.h"
 #include "Hwc2.h"
 
 namespace gfxstream {

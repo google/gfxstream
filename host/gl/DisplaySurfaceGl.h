@@ -23,7 +23,7 @@
 #include <GLES2/gl2ext.h>
 
 #include "ContextHelper.h"
-#include "DisplaySurface.h"
+#include "gfxstream/host/display_surface.h"
 #include "render-utils/render_api_platform_types.h"
 
 namespace gfxstream {

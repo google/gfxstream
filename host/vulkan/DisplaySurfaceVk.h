@@ -17,7 +17,7 @@
 #include <cstdint>
 #include <memory>
 
-#include "DisplaySurface.h"
+#include "gfxstream/host/display_surface.h"
 #include "render-utils/render_api_platform_types.h"
 #include "goldfish_vk_dispatch.h"
 

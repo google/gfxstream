@@ -21,7 +21,7 @@
 
 #include <functional>
 
-#include "BorrowedImage.h"
+#include "gfxstream/host/borrowed_image.h"
 
 namespace gfxstream {
 namespace gl {

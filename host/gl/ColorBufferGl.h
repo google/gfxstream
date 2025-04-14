@@ -25,7 +25,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "BorrowedImage.h"
+#include "gfxstream/host/borrowed_image.h"
 #include "ContextHelper.h"
 #include "FrameworkFormats.h"
 #include "Handle.h"

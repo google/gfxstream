@@ -38,6 +38,7 @@ target_link_libraries(
         gfxstream-gl-host-common.headers
         gfxstream_vulkan_headers
         gfxstream_egl_headers
+        gfxstream_host_backend
         gfxstream_host_logging
         gles1_dec
         gles2_dec

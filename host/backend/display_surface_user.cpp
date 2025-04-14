@@ -14,13 +14,11 @@
 
 #include <memory>
 
-#include "Display.h"
-#include "DisplaySurface.h"
+#include "gfxstream/host/display.h"
+#include "gfxstream/host/display_surface.h"
 #include "gfxstream/host/logging.h"
 
 namespace gfxstream {
-
-using android::base::AutoLock;
 
 DisplaySurfaceUser::~DisplaySurfaceUser() {
     if (mBoundSurface != nullptr) {
@@ -29,7 +27,7 @@ DisplaySurfaceUser::~DisplaySurfaceUser() {
 }
 
 void DisplaySurfaceUser::bindToSurface(DisplaySurface* surface) {
-    AutoLock lock(mMutex);
+    std::lock_guard<std::mutex> lock(mMutex);
     if (mBoundSurface != nullptr) {
         GFXSTREAM_FATAL("Attempting to bind a DisplaySurface while another is already bound.");
     }
@@ -40,7 +38,7 @@ void DisplaySurfaceUser::bindToSurface(DisplaySurface* surface) {
 }
 
 void DisplaySurfaceUser::unbindFromSurface() {
-    AutoLock lock(mMutex);
+    std::lock_guard<std::mutex> lock(mMutex);
     this->unbindFromSurfaceImpl();
     if (mBoundSurface != nullptr) {
         mBoundSurface->unregisterUser(this);

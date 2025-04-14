@@ -16,7 +16,7 @@
 
 #include <memory>
 
-#include "BorrowedImage.h"
+#include "gfxstream/host/borrowed_image.h"
 #include "ExternalObjectManager.h"
 #include "FrameworkFormats.h"
 #include "Handle.h"

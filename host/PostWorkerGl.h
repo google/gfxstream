@@ -18,7 +18,7 @@
 #include <future>
 #include <optional>
 
-#include "DisplaySurfaceUser.h"
+#include "gfxstream/host/display_surface_user.h"
 #include "PostWorker.h"
 #include "gl/DisplayGl.h"
 #include "gl/EmulationGl.h"

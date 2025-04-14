@@ -101,6 +101,7 @@ cc_defaults {
     },
     export_static_lib_headers: [
         "gfxstream_base",
+        "libgfxstream_host_backend",
         "libgfxstream_host_features",
         "libgfxstream_host_snapshot",
         "libgfxstream_host_tracing",
@@ -120,8 +121,6 @@ cc_defaults {
         "ExternalObjectManager.cpp",
         "ChannelStream.cpp",
         "ColorBuffer.cpp",
-        "DisplaySurface.cpp",
-        "DisplaySurfaceUser.cpp",
         "Hwc2.cpp",
         "PostWorker.cpp",
         "PostWorkerGl.cpp",
