@@ -52,8 +52,6 @@
 #include "gfxstream/host/Tracing.h"
 #include "gfxstream/host/logging.h"
 #include "goldfish_vk_private_defs.h"
-#include "host-common/GfxstreamFatalError.h"
-#include "host-common/feature_control.h"
 #include "render-utils/IOStream.h"
 #define MAX_PACKET_LENGTH (400 * 1024 * 1024)  // 400MB
 #define CC_LIKELY(exp) (__builtin_expect(!!(exp), true))
@@ -174,7 +172,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
             *readStreamPtrPtr += sizeof(uint32_t);
             if (healthMonitor) executionData->insert({{"seqno", std::to_string(seqno)}});
             if (m_prevSeqno && seqno == m_prevSeqno.value()) {
-                WARN(
+                GFXSTREAM_WARNING(
                     "Seqno %d is the same as previously processed on thread %d. It might be a "
                     "duplicate command.",
                     seqno, getCurrentThreadId());
@@ -1920,8 +1918,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         *readStreamPtrPtr += sizeof(uint64_t);
                         sizeLeft -= sizeof(uint64_t);
                         auto hostPtr = m_state->getMappedHostPointer(memory);
-                        if (!hostPtr && readStream > 0)
-                            GFXSTREAM_ABORT(::emugl::FatalError(::emugl::ABORT_REASON_OTHER));
+                        if (!hostPtr && readStream > 0) GFXSTREAM_FATAL("Unexpected");
                         if (!hostPtr) continue;
                         if (sizeLeft < readStream) {
                             if (m_prevSeqno) {

@@ -33,8 +33,8 @@
 #pragma once
 #include <vulkan/vulkan.h>
 
+#include "gfxstream/host/logging.h"
 #include "goldfish_vk_private_defs.h"
-#include "host-common/GfxstreamFatalError.h"
 #include "vk_android_native_buffer_gfxstream.h"
 #include "vulkan/vk_enum_string_helper.h"
 #include "vulkan_gfxstream.h"

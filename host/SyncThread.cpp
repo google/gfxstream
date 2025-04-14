@@ -25,7 +25,6 @@
 #include "aemu/base/threads/Thread.h"
 #include "gfxstream/host/Tracing.h"
 #include "gfxstream/host/logging.h"
-#include "host-common/GfxstreamFatalError.h"
 #include "host-common/crash_reporter.h"
 #include "host-common/sync_device.h"
 
@@ -37,8 +36,6 @@
 namespace gfxstream {
 
 using android::base::EventHangMetadata;
-using emugl::ABORT_REASON_OTHER;
-using emugl::FatalError;
 
 #if GFXSTREAM_ENABLE_HOST_GLES
 using gl::EGLDispatch;
@@ -69,8 +66,7 @@ static uint64_t curr_ns() {
 #define SYNC_THREAD_CHECK(condition)                                        \
     do {                                                                    \
         if (!(condition)) {                                                 \
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) <<              \
-                #condition << " is false";                                  \
+            GFXSTREAM_FATAL(#condition " was false.");                      \
         }                                                                   \
     } while (0)
 

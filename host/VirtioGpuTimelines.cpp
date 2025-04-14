@@ -18,13 +18,10 @@
 
 #include "gfxstream/host/Tracing.h"
 #include "gfxstream/host/logging.h"
-#include "host-common/GfxstreamFatalError.h"
 
 using TaskId = VirtioGpuTimelines::TaskId;
 using Ring = VirtioGpuTimelines::Ring;
 using FenceId = VirtioGpuTimelines::FenceId;
-using emugl::ABORT_REASON_OTHER;
-using emugl::FatalError;
 
 std::unique_ptr<VirtioGpuTimelines> VirtioGpuTimelines::create(FenceCompletionCallback callback) {
     return std::unique_ptr<VirtioGpuTimelines>(new VirtioGpuTimelines(std::move(callback)));

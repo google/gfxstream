@@ -26,7 +26,6 @@
 #include "gfxstream/host/BackendCallbacks.h"
 #include "gfxstream/host/Tracing.h"
 #include "goldfish_vk_private_defs.h"
-#include "host-common/GfxstreamFatalError.h"
 #include "vulkan/vk_enum_string_helper.h"
 
 namespace gfxstream {
@@ -67,8 +66,8 @@ VkFence AndroidNativeBufferInfo::QsriWaitFencePool::getFenceFromPool() {
         mAvailableFences.pop_back();
         VkResult res = mVk->vkResetFences(mDevice, 1, &fence);
         if (res != VK_SUCCESS) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "Fail to reset Qsri VkFence: " << res << "(" << string_VkResult(res) << ").";
+            const std::string resString = string_VkResult(res);
+            GFXSTREAM_FATAL("Failed to reset QSRI VkFence: %s", resString.c_str());
         }
         VK_ANB_DEBUG("existing fence in pool: %p. also reset the fence", fence);
     }
@@ -94,8 +93,7 @@ AndroidNativeBufferInfo::QsriWaitFencePool::~QsriWaitFencePool() {
 void AndroidNativeBufferInfo::QsriWaitFencePool::returnFence(VkFence fence) {
     std::lock_guard<std::mutex> lock(mMutex);
     if (!mUsedFences.erase(fence)) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Return an unmanaged Qsri VkFence back to the pool.";
+        GFXSTREAM_FATAL("Return an unmanaged Qsri VkFence back to the pool.");
         return;
     }
     mAvailableFences.push_back(fence);
@@ -159,9 +157,9 @@ std::unique_ptr<AndroidNativeBufferInfo> AndroidNativeBufferInfo::create(
 
         auto* nativeBufferAndroid = vk_find_struct<VkNativeBufferANDROID>(&createImageCi);
         if (!nativeBufferAndroid) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "VkNativeBufferANDROID is required to be included in the pNext chain of the "
-                   "VkImageCreateInfo when importing a gralloc buffer.";
+            GFXSTREAM_FATAL(
+                "VkNativeBufferANDROID is required to be included in the pNext chain of the "
+                "VkImageCreateInfo when importing a gralloc buffer.");
         }
         vk_struct_chain_remove(nativeBufferAndroid, &createImageCi);
 
@@ -211,8 +209,7 @@ std::unique_ptr<AndroidNativeBufferInfo> AndroidNativeBufferInfo::create(
         vk_struct_chain_remove(bindSwapchainInfo, &createImageCi);
 
         if (vk_find_struct<VkExternalMemoryImageCreateInfo>(&createImageCi)) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "Unhandled VkExternalMemoryImageCreateInfo in the pNext chain.";
+            GFXSTREAM_FATAL("Unhandled VkExternalMemoryImageCreateInfo in the pNext chain.");
         }
 
         // Create the image with extension structure about external backing.

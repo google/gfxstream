@@ -44,7 +44,6 @@
 #include "VulkanDispatch.h"
 #include "aemu/base/synchronization/Lock.h"
 #include "gfxstream/host/logging.h"
-#include "host-common/GfxstreamFatalError.h"
 #include "vk_fn_info.h"
 #include "vk_struct_id.h"
 #include "vulkan/vk_enum_string_helper.h"
@@ -304,9 +303,8 @@ void vk_struct_chain_filter(H* head) {
                 vk_util::getVkCheckCallbacks().callIfExists(                                    \
                     &vk_util::VkCheckCallbacks::onVkErrorOutOfMemory, err, __func__, __LINE__); \
             }                                                                                   \
-            GFXSTREAM_ABORT(::emugl::FatalError(err))                                           \
-                << " VK_CHECK(" << #x << ") failed with " << string_VkResult(err) << " at "     \
-                << __FILE__ << ":" << __LINE__;                                                 \
+            const std::string errString = string_VkResult(err);                                 \
+            GFXSTREAM_FATAL("VK_CHECK(" #x ") failed with %s", errString.c_str());              \
         }                                                                                       \
     } while (0)
 
@@ -319,7 +317,8 @@ void vk_struct_chain_filter(H* head) {
                     &vk_util::VkCheckCallbacks::onVkErrorOutOfMemoryOnAllocation, err, __func__, \
                     __LINE__, allocateInfo.allocationSize);                                      \
             }                                                                                    \
-            GFXSTREAM_ABORT(::emugl::FatalError(err));                                           \
+            const std::string errString = string_VkResult(err);                                  \
+            GFXSTREAM_FATAL("VK_CHECK_MEMALLOC(" #x ") failed with %s", errString.c_str());      \
         }                                                                                        \
     } while (0)
 

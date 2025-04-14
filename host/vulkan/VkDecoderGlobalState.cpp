@@ -50,7 +50,6 @@
 #include "compressedTextureFormats/AstcCpuDecompressor.h"
 #include "gfxstream/host/Tracing.h"
 #include "gfxstream/host/logging.h"
-#include "host-common/GfxstreamFatalError.h"
 #include "host-common/HostmemIdMapping.h"
 #include "host-common/address_space_device_control_ops.h"
 #include "host-common/emugl_vm_operations.h"
@@ -128,7 +127,7 @@ using gfxstream::VulkanInfo;
 template <typename T>
 void validateRequiredHandle(const char* api_name, const char* parameter_name, T value) {
     if (value == VK_NULL_HANDLE) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << api_name << ":" << parameter_name;
+        GFXSTREAM_FATAL("Invalid required handle for %s param %s", api_name, parameter_name);
     }
 }
 
@@ -328,8 +327,7 @@ class VkDecoderGlobalState::Impl {
             std::unordered_map<VkDevice, uint32_t> deviceToContextId;
             for (const auto& [device, deviceInfo] : mDeviceInfo) {
                 if (!deviceInfo.virtioGpuContextId) {
-                    GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                        << "VkDevice" << device << " missing context id.";
+                    GFXSTREAM_FATAL("VkDevice:%p missing context id.", device);
                 }
                 deviceToContextId[deviceInfo.boxed] = *deviceInfo.virtioGpuContextId;
             }
@@ -544,10 +542,9 @@ class VkDecoderGlobalState::Impl {
                         case DescriptorSetInfo::DescriptorWriteType::InlineUniformBlock:
                         case DescriptorSetInfo::DescriptorWriteType::AccelerationStructure:
                             // TODO
-                            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                                << "Encountered pending inline uniform block or acceleration "
-                                   "structure "
-                                   "desc write, abort (NYI)";
+                            GFXSTREAM_FATAL("Encountered pending inline uniform block or acceleration "
+                                            "structure desc write, abort (NYI)");
+                            break;
                         default:
                             break;
                     }
@@ -639,13 +636,11 @@ class VkDecoderGlobalState::Impl {
                 VkDeviceMemory unboxedMemory = unbox_VkDeviceMemory(boxedMemory);
                 auto it = mMemoryInfo.find(unboxedMemory);
                 if (it == mMemoryInfo.end()) {
-                    GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                        << "Snapshot load failure: cannot find memory handle for " << boxedMemory;
+                    GFXSTREAM_FATAL("Snapshot load failure: cannot find memory handle for VkDeviceMemory:%p", boxedMemory);
                 }
                 VkDeviceSize size = stream->getBe64();
                 if (size != it->second.size || !it->second.ptr) {
-                    GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                        << "Snapshot load failure: memory size does not match for " << boxedMemory;
+                    GFXSTREAM_FATAL("Snapshot load failure: memory size does not match for VkDeviceMemory:%p", boxedMemory);
                 }
                 stream->read(it->second.ptr, size);
             }
@@ -786,10 +781,9 @@ class VkDecoderGlobalState::Impl {
                             case DescriptorSetInfo::DescriptorWriteType::InlineUniformBlock:
                             case DescriptorSetInfo::DescriptorWriteType::AccelerationStructure:
                                 // TODO
-                                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                                    << "Encountered pending inline uniform block or acceleration "
-                                       "structure "
-                                       "desc write, abort (NYI)";
+                                GFXSTREAM_FATAL("Encountered pending inline uniform block or acceleration "
+                                                "structure desc write, abort (NYI)");
+                                break;
                             default:
                                 break;
                         }
@@ -818,8 +812,7 @@ class VkDecoderGlobalState::Impl {
                 VkFence unboxedFence = unbox_VkFence(boxedFence);
                 auto it = mFenceInfo.find(unboxedFence);
                 if (it == mFenceInfo.end()) {
-                    GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                        << "Snapshot load failure: unrecognized VkFence";
+                    GFXSTREAM_FATAL("Snapshot load failure: unrecognized VkFence");
                 }
                 const auto& device = it->second.device;
                 const auto& deviceInfo = android::base::find(mDeviceInfo, device);
@@ -2103,13 +2096,11 @@ class VkDecoderGlobalState::Impl {
 
         if (mSnapshotState == SnapshotState::Loading) {
             if (!mSnapshotLoadVkDeviceToVirtioCpuContextId) {
-                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                    << "Missing device to context id map during snapshot load.";
+                GFXSTREAM_FATAL("Missing device to context id map during snapshot load.");
             }
             auto contextIdIt = mSnapshotLoadVkDeviceToVirtioCpuContextId->find(boxedDevice);
             if (contextIdIt == mSnapshotLoadVkDeviceToVirtioCpuContextId->end()) {
-                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                    << "Missing context id for VkDevice:" << boxedDevice;
+                GFXSTREAM_FATAL("Missing context id for VkDevice:%p", boxedDevice);
             }
             deviceInfo.virtioGpuContextId = contextIdIt->second;
         } else {
@@ -2178,9 +2169,8 @@ class VkDecoderGlobalState::Impl {
                         // to use a similar logic to use the last bit for other purposes.
                         // In this case, we ask users to disable the virtual queue support as
                         // handling the error dynamically is not feasible.
-                        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                            << "Cannot use `VulkanVirtualQueue` feature: Unexpected physical queue "
-                               "handle value.";
+                        GFXSTREAM_FATAL( "Cannot use `VulkanVirtualQueue` feature: Unexpected physical queue "
+                               "handle value.");
                     } else {
                         uint64_t virtualQueue64 = (physicalQueue64 | QueueInfo::kVirtualQueueBit);
                         VkQueue virtualQueue = reinterpret_cast<VkQueue>(virtualQueue64);
@@ -2671,8 +2661,7 @@ class VkDecoderGlobalState::Impl {
 
         ici.pNext = vk_find_struct<VkNativeBufferANDROID>(bimi);
         if (!ici.pNext) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "Missing VkNativeBufferANDROID for deferred AHB bind.";
+            GFXSTREAM_FATAL("Missing VkNativeBufferANDROID for deferred AHB bind.");
         }
 
         VkImage underlying_replacement_image = VK_NULL_HANDLE;
@@ -3740,12 +3729,12 @@ class VkDecoderGlobalState::Impl {
                                      VkDescriptorSet descriptorSet) REQUIRES(mMutex) {
         auto* poolInfo = android::base::find(mDescriptorPoolInfo, pool);
         if (!poolInfo) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Cannot find poolInfo";
+            GFXSTREAM_FATAL("Cannot find info for VkDescriptorPool:%p", pool);
         }
 
         auto* setLayoutInfo = android::base::find(mDescriptorSetLayoutInfo, setLayout);
         if (!setLayoutInfo) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Cannot find setLayout";
+            GFXSTREAM_FATAL("Cannot find info for VkDescriptorSetLayout:%p", setLayout);
         }
 
         VALIDATE_NEW_HANDLE_INFO_ENTRY(mDescriptorSetInfo, descriptorSet);
@@ -3958,8 +3947,7 @@ class VkDecoderGlobalState::Impl {
                             descInlineUniformBlock->pNext);
                 }
                 if (!descInlineUniformBlock) {
-                    GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                        << __func__ << ": did not find inline uniform block";
+                    GFXSTREAM_FATAL("Did not find inline uniform block");
                     return;
                 }
                 auto& entry = table[dstBinding][0];
@@ -4644,14 +4632,12 @@ class VkDecoderGlobalState::Impl {
 
         auto* physicalDevice = android::base::find(mDeviceToPhysicalDevice, device);
         if (!physicalDevice) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "No physical device available for " << device;
+            GFXSTREAM_FATAL("No physical device available for VkDevice:%p", device);
         }
 
         auto* physicalDeviceInfo = android::base::find(mPhysdevInfo, *physicalDevice);
         if (!physicalDeviceInfo) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "No physical device info available for " << *physicalDevice;
+            GFXSTREAM_FATAL("No physical device info available for VkPhysicalDevice:%p", *physicalDevice);
         }
 
         auto& physicalDeviceMemHelper = physicalDeviceInfo->memoryPropertiesHelper;
@@ -4669,14 +4655,12 @@ class VkDecoderGlobalState::Impl {
 
         auto* physicalDevice = android::base::find(mDeviceToPhysicalDevice, device);
         if (!physicalDevice) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "No physical device available for " << device;
+            GFXSTREAM_FATAL("No physical device available for VkDevice:%p", device);
         }
 
         auto* physicalDeviceInfo = android::base::find(mPhysdevInfo, *physicalDevice);
         if (!physicalDeviceInfo) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "No physical device info available for " << *physicalDevice;
+            GFXSTREAM_FATAL("No available for VkPhysicalDevice:%p", *physicalDevice);
         }
 
         if ((physicalDeviceInfo->props.apiVersion >= VK_MAKE_VERSION(1, 1, 0)) &&
@@ -5240,9 +5224,7 @@ class VkDecoderGlobalState::Impl {
                     &localAllocInfo.memoryTypeIndex, &colorBufferMemoryUsesDedicatedAlloc,
                     &mappedPtr)) {
                 if (mSnapshotState != SnapshotState::Loading) {
-                    GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                        << "Failed to get allocation info for ColorBuffer:"
-                        << importCbInfoPtr->colorBuffer;
+                    GFXSTREAM_FATAL("Failed to get allocation info for ColorBuffer:%d", importCbInfoPtr->colorBuffer);
                 }
                 // During snapshot load there could be invalidated references to
                 // color buffers.
@@ -5438,8 +5420,7 @@ class VkDecoderGlobalState::Impl {
             }
             auto* physicalDeviceInfo = android::base::find(mPhysdevInfo, *physicalDevice);
             if (!physicalDeviceInfo) {
-                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                    << "No physical device info available for " << *physicalDevice;
+                GFXSTREAM_FATAL("No info available for VkPhysicalDevice:%p", *physicalDevice);
             }
 
             deviceHasDmabufExt =
@@ -6045,8 +6026,7 @@ class VkDecoderGlobalState::Impl {
         } else if (m_vkEmulation->getFeatures().ExternalBlob.enabled) {
 #ifdef __APPLE__
             if (m_vkEmulation->supportsMoltenVk()) {
-                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                    << "ExternalBlob feature is not supported with MoltenVK";
+                GFXSTREAM_FATAL("ExternalBlob feature is not supported with MoltenVK");
             }
 #endif
 
@@ -7522,8 +7502,7 @@ class VkDecoderGlobalState::Impl {
         uint64_t poolId, uint32_t pendingAlloc, bool* didAlloc) REQUIRES(mMutex) {
         auto* poolInfo = android::base::find(mDescriptorPoolInfo, pool);
         if (!poolInfo) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "descriptor pool " << pool << " not found ";
+            GFXSTREAM_FATAL("VkDescriptorPool:%p not found.", pool);
         }
 
         BoxedHandleInfo* setHandleInfo = sBoxedHandleManager.get(poolId);
@@ -7557,9 +7536,7 @@ class VkDecoderGlobalState::Impl {
                 *didAlloc = true;
                 return allocedSet;
             } else {
-                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                    << "descriptor pool " << pool << " wanted to get set with id 0x" << std::hex
-                    << poolId;
+                GFXSTREAM_FATAL("VkDescriptorPool:%p wanted to get set with id 0x%" PRIx64, pool, poolId);
                 return nullptr;
             }
         }
@@ -7584,8 +7561,8 @@ class VkDecoderGlobalState::Impl {
         if (queueInfo) {
             device = queueInfo->device;
         } else {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "queue " << queue << "(boxed: " << boxed_queue << ") with no device registered";
+            GFXSTREAM_FATAL("VkQueue:%p (boxed-VkQueue:%p) with no device registered.",
+                            queue, boxed_queue);
         }
         on_vkQueueCommitDescriptorSetUpdatesGOOGLELocked(
             pool, snapshotInfo, vk, device, descriptorPoolCount, pDescriptorPools,
@@ -7742,7 +7719,7 @@ class VkDecoderGlobalState::Impl {
 
     void on_DeviceLost() {
         m_vkEmulation->getDeviceLostHelper().onDeviceLost();
-        GFXSTREAM_ABORT(FatalError(VK_ERROR_DEVICE_LOST));
+        GFXSTREAM_FATAL("Encountered device lost.");
     }
 
     void on_CheckOutOfMemory(VkResult result, uint32_t opCode, const VkDecoderContext& context,
@@ -7804,8 +7781,7 @@ class VkDecoderGlobalState::Impl {
                         std::lock_guard<std::mutex> lock(mMutex);
                         auto* fenceInfo = android::base::find(mFenceInfo, fence);
                         if (!fenceInfo) {
-                            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                                << "Fence was destroyed while waiting.";
+                            GFXSTREAM_FATAL("Fence was destroyed while waiting.");
                         }
 
                         // Block vkWaitForFences calls until the fence is waitable
@@ -8067,7 +8043,7 @@ class VkDecoderGlobalState::Impl {
     }
 
     void transformImpl_VkImageCreateInfo_fromhost(const VkImageCreateInfo*, uint32_t) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Not yet implemented.";
+        GFXSTREAM_FATAL("Not yet implemented.");
     }
 
 #define DEFINE_EXTERNAL_HANDLE_TYPE_TRANSFORM(type, field)                                      \
@@ -8864,8 +8840,8 @@ class VkDecoderGlobalState::Impl {
             } else if (type == VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT) {
                 numInlineUniformBlocks += count;
             } else {
-                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                    << "unknown descriptor type 0x" << std::hex << type;
+                const std::string typeString = string_VkDescriptorType(type);
+                GFXSTREAM_FATAL("Unhandled descriptor type %s.", typeString.c_str());
             }
         }
 
@@ -8911,8 +8887,8 @@ class VkDecoderGlobalState::Impl {
                 entryForHost.stride = 0;
                 inlineUniformBlockCount += entryForHost.descriptorCount;
             } else {
-                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                    << "unknown descriptor type 0x" << std::hex << type;
+                const std::string typeString = string_VkDescriptorType(type);
+                GFXSTREAM_FATAL("Unhandled descriptor type %s.", typeString.c_str());
             }
 
             res.linearizedTemplateEntries.push_back(entryForHost);
@@ -9178,8 +9154,7 @@ static VkDecoderGlobalState* sGlobalDecoderState = nullptr;
 // static
 void VkDecoderGlobalState::initialize(VkEmulation* emulation) {
     if (sGlobalDecoderState) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Attempted to re-initialize VkDecoderGlobalState.";
+        GFXSTREAM_FATAL("Attempted to re-initialize VkDecoderGlobalState.");
     }
     sGlobalDecoderState = new VkDecoderGlobalState(emulation);
 }
@@ -9187,7 +9162,7 @@ void VkDecoderGlobalState::initialize(VkEmulation* emulation) {
 // static
 VkDecoderGlobalState* VkDecoderGlobalState::get() {
     if (!sGlobalDecoderState) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "VkDecoderGlobalState not initialized.";
+        GFXSTREAM_FATAL("VkDecoderGlobalState not initialized.");
     }
     return sGlobalDecoderState;
 }

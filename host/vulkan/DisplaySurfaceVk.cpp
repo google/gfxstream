@@ -15,14 +15,10 @@
 #include "DisplaySurfaceVk.h"
 
 #include "gfxstream/host/logging.h"
-#include "host-common/GfxstreamFatalError.h"
 #include "vk_util.h"
 
 namespace gfxstream {
 namespace vk {
-
-using emugl::ABORT_REASON_OTHER;
-using emugl::FatalError;
 
 std::unique_ptr<DisplaySurfaceVk> DisplaySurfaceVk::create(const VulkanDispatch& vk,
                                                            VkInstance instance,
@@ -38,12 +34,10 @@ std::unique_ptr<DisplaySurfaceVk> DisplaySurfaceVk::create(const VulkanDispatch&
     };
     VK_CHECK(vk.vkCreateWin32SurfaceKHR(instance, &surfaceCi, nullptr, &surface));
 #else
-    GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-        << "Unimplemented.";
+    GFXSTREAM_FATAL("Unimplemented.");
 #endif
     if (surface == VK_NULL_HANDLE) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "No VkSurfaceKHR created?";
+        GFXSTREAM_FATAL("No VkSurfaceKHR created?");
     }
 
     return std::unique_ptr<DisplaySurfaceVk>(new DisplaySurfaceVk(vk, instance, surface));

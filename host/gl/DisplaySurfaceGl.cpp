@@ -21,14 +21,10 @@
 #include "OpenGLESDispatch/DispatchTables.h"
 #include "OpenGLESDispatch/EGLDispatch.h"
 #include "gfxstream/host/logging.h"
-#include "host-common/GfxstreamFatalError.h"
 
 namespace gfxstream {
 namespace gl {
 namespace {
-
-using emugl::ABORT_REASON_OTHER;
-using emugl::FatalError;
 
 struct PreviousContextInfo {
     EGLContext context = EGL_NO_CONTEXT;
@@ -51,16 +47,13 @@ class DisplaySurfaceGlContextHelper : public ContextHelper {
           mSurface(surface),
           mContext(context) {
         if (mDisplay == EGL_NO_DISPLAY) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "DisplaySurfaceGlContextHelper created with no display?";
+            GFXSTREAM_FATAL("DisplaySurfaceGlContextHelper created with no display?");
         }
         if (mSurface == EGL_NO_SURFACE) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "DisplaySurfaceGlContextHelper created with no surface?";
+            GFXSTREAM_FATAL("DisplaySurfaceGlContextHelper created with no surface?");
         }
         if (mContext == EGL_NO_CONTEXT) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "DisplaySurfaceGlContextHelper created with no context?";
+            GFXSTREAM_FATAL("DisplaySurfaceGlContextHelper created with no context?");
         }
     }
 

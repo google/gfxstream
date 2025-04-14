@@ -17,7 +17,7 @@
 #include <algorithm>
 #include <limits>
 
-#include "host-common/GfxstreamFatalError.h"
+#include "gfxstream/host/logging.h"
 
 namespace gfxstream {
 namespace vk {
@@ -76,9 +76,8 @@ EmulatedPhysicalDeviceMemoryProperties::EmulatedPhysicalDeviceMemoryProperties(
     // memory.
     if (features.VulkanUseDedicatedAhbMemoryType.enabled) {
         if (mGuestMemoryProperties.memoryTypeCount == VK_MAX_MEMORY_TYPES) {
-            GFXSTREAM_ABORT(emugl::FatalError(emugl::ABORT_REASON_OTHER))
-                << "Unable to create emulated AHB memory type because VK_MAX_MEMORY_TYPES "
-                   "already in use.";
+            GFXSTREAM_FATAL("Unable to create emulated AHB memory type because VK_MAX_MEMORY_TYPES "
+                            "already in use.");
         }
 
         uint32_t ahbMemoryTypeIndex = mGuestMemoryProperties.memoryTypeCount;

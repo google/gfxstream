@@ -48,14 +48,11 @@
 #include "aemu/base/synchronization/Lock.h"
 #include "aemu/base/system/System.h"
 #include "gfxstream/host/logging.h"
-#include "host-common/GfxstreamFatalError.h"
 #include "host-common/emugl_vm_operations.h"
 
 #define MAJOR          1
 #define MINOR          4
 
-using emugl::ABORT_REASON_OTHER;
-using emugl::FatalError;
 using gfxstream::graphicsDriverLock;
 
 //declarations
@@ -1091,8 +1088,7 @@ static void sGetPbufferSurfaceGLProperties(
     } else if (r == 5 && g == 5 && b == 5 && a == 1) {
         *colorFormat = GL_RGB5_A1;
     } else {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "invalid color format R" << r << "G" << g << "B" << b << "A" << a;
+        GFXSTREAM_FATAL("Invalid color format r:%d g:%d b:%d a:%d", r, g, b, a);
     }
 
     // Blanket provide 24/8 depth/stencil format for now.

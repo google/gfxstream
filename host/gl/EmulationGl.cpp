@@ -28,8 +28,6 @@
 #include "RenderThreadInfoGl.h"
 #include "aemu/base/misc/StringUtils.h"
 #include "gfxstream/host/logging.h"
-#include "host-common/GfxstreamFatalError.h"
-#include "host-common/feature_control.h"
 #include "host-common/opengl/misc.h"
 
 namespace gfxstream {
