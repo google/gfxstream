@@ -13,13 +13,10 @@
 // limitations under the License.
 
 #include "OSWindow.h"
-#include "host-common/GfxstreamFatalError.h"
 
-using emugl::ABORT_REASON_OTHER;
-using emugl::FatalError;
+#include "gfxstream/host/logging.h"
 
 OSWindow* CreateOSWindow() {
-    GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-        << "Attempting to create OSWindow without an Impl.";
+    GFXSTREAM_FATAL("Attempting to create OSWindow without an Impl.");
     return nullptr;
 }
