@@ -11,5 +11,6 @@ cc_library(
     deps = [
         "//common/opengl:gfxstream_opengl_headers",
         "//host/apigen-codec-common",
+        "//host/iostream:gfxstream_host_iostream",
     ],
 )

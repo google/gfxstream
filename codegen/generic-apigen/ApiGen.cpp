@@ -923,7 +923,7 @@ int ApiGen::genDecoderHeader(const std::string &filename)
     fprintf(fp, "\n#ifndef GUARD_%s\n", classname.c_str());
     fprintf(fp, "#define GUARD_%s\n\n", classname.c_str());
 
-    fprintf(fp, "#include \"render-utils/IOStream.h\"\n");
+    fprintf(fp, "#include \"gfxstream/host/iostream.h\"\n");
     fprintf(fp, "#include \"ChecksumCalculator.h\"\n");
     fprintf(fp, "#include \"%s_%s_context.h\"\n\n\n", m_basename.c_str(), sideString(SERVER_SIDE));
 #if INSTRUMENT_TIMING_HOST

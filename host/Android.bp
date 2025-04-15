@@ -52,6 +52,7 @@ gfxstream_backend_static_deps = [
     "libgfxstream_host_apigen_codec_common",
     "libgfxstream_host_backend",
     "libgfxstream_host_logging",
+    "libgfxstream_host_iostream",
     "libgfxstream_host_compressedtextures",
     "libgfxstream_host_dispatch",
     "libgfxstream_host_gl_host_common",
@@ -190,6 +191,7 @@ cc_test_library {
         "libgfxstream_backend",
     ],
     export_static_lib_headers: [
+        "libgfxstream_host_iostream",
         "libgfxstream_oswindow_test_support",
     ],
     static_libs: [
@@ -198,6 +200,7 @@ cc_test_library {
         "gfxstream_host_common_test_support",
         "libgfxstream_host_apigen_codec_common",
         "libgfxstream_host_logging",
+        "libgfxstream_host_iostream",
         "libgfxstream_host_snapshot",
         "libgfxstream_oswindow_test_support",
         "libgmock",

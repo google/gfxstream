@@ -3,6 +3,7 @@ add_subdirectory(logging)
 
 add_subdirectory(backend)
 add_subdirectory(features)
+add_subdirectory(iostream)
 add_subdirectory(tracing)
 add_subdirectory(snapshot)
 
@@ -84,21 +85,23 @@ add_library(
 target_link_libraries(
         gfxstream_backend_static
         PUBLIC
+        ${GFXSTREAM_BASE_LIB}
+        ${GFXSTREAM_HOST_COMMON_LIB}
+        apigen-codec-common
+        gfxstream_backend_common
+        gfxstream_egl_headers
+        gfxstream_features
+        gfxstream_host_iostream
+        gfxstream_host_logging
+        gfxstream_host_snapshot
+        gfxstream_host_tracing
+        gfxstream_utils
+        gfxstream-gl-server
+        gfxstream-vulkan-server
         GLES_CM_translator_static
         OpenGLESDispatch
         renderControl_dec
-        gfxstream_backend_common
-        gfxstream_features
-        gfxstream_host_tracing
-        gfxstream-gl-server
-        gfxstream-vulkan-server
-        gfxstream_host_logging
-        gfxstream_egl_headers
-        gfxstream_host_snapshot
-        gfxstream_utils
-        apigen-codec-common
-        ${GFXSTREAM_HOST_COMMON_LIB}
-        ${GFXSTREAM_BASE_LIB})
+        )
 
 target_include_directories(
         gfxstream_backend_static

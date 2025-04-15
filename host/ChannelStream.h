@@ -13,7 +13,7 @@
 // limitations under the License.
 #pragma once
 
-#include "render-utils/IOStream.h"
+#include "gfxstream/host/iostream.h"
 #include "RenderChannelImpl.h"
 
 #include <memory>

@@ -19,6 +19,7 @@ cc_library_static {
     static_libs: [
         "libgfxstream_host_apigen_codec_common",
         "libgfxstream_host_logging",
+        "libgfxstream_host_iostream",
     ],
     srcs: [
         "renderControl_dec.cpp",

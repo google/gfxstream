@@ -70,6 +70,7 @@ cc_library(
         "//host/apigen-codec-common",
         "//host/gl:gfxstream-gl-host-common",
         "//host/gl:gl_headers",
+        "//host/iostream:gfxstream_host_iostream",
         "//host/logging:gfxstream_host_logging",
         "//host/snapshot:aemu-snapshot",
         "//host/vulkan:OpenglRender_vulkan_cereal",
