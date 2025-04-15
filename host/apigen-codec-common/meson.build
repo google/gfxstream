@@ -19,5 +19,5 @@ lib_apigen_codec = static_library(
   cpp_args: gfxstream_host_args,
   include_directories: [inc_gfxstream_include, inc_include, inc_host_logging],
   link_with: [lib_host_logging],
-  dependencies: [aemu_base_dep, aemu_common_dep]
+  dependencies: [aemu_base_dep]
 )
