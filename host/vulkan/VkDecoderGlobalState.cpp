@@ -7970,7 +7970,7 @@ class VkDecoderGlobalState::Impl {
         const VkWriteDescriptorSet* pPendingDescriptorWrites) {
         std::lock_guard<std::mutex> lock(mMutex);
 
-        VkDevice device;
+        VkDevice device = VK_NULL_HANDLE;
 
         auto queue = unbox_VkQueue(boxed_queue);
         auto vk = dispatch_VkQueue(boxed_queue);
