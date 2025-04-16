@@ -14,8 +14,8 @@
 
 #pragma once
 
-#include "aemu/base/c_header.h"
-#include "aemu/base/msvc.h"
+#include "gfxstream/c_header.h"
+#include "gfxstream/msvc.h"
 
 #include <inttypes.h>
 #include <sys/types.h>
@@ -23,7 +23,7 @@
 ANDROID_BEGIN_HEADER
 
 // Opaque declaration for an object modelling a stream of bytes.
-// This really is backed by an android::base::Stream implementation.
+// This really is backed by an gfxstream::base::Stream implementation.
 typedef struct Stream Stream;
 
 ssize_t stream_read(Stream* stream, void* buffer, size_t size);

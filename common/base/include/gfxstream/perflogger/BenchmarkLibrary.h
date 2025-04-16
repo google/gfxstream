@@ -15,7 +15,7 @@
 
 #include <string_view>
 
-namespace android {
+namespace gfxstream {
 namespace perflogger {
 
 // OpenGL benchmarks
@@ -33,4 +33,4 @@ void logDrawCallOverheadTest(
         long threadCpuTimeUs);
 
 } // namespace perflogger
-} // namespace android
+} // namespace gfxstream

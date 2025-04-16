@@ -17,7 +17,7 @@
 // Include this for the definition of enums missing on different platforms.
 #include "android/utils/fd.h"
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Make a file descriptor "close-on-exec" to make sure it won't get inherided

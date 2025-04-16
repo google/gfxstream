@@ -14,7 +14,7 @@
 #pragma once
 
 #ifdef _MSC_VER
-  #include "aemu/base/msvc.h"
+  #include "gfxstream/msvc.h"
 #endif
 
 #include <stdio.h>

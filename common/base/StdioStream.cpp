@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/files/StdioStream.h"
+#include "gfxstream/files/StdioStream.h"
 
 #include <assert.h>
 #include <errno.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 StdioStream::StdioStream(FILE* file, Ownership ownership) :

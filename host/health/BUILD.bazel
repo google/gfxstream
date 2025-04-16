@@ -1,0 +1,15 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+cc_library(
+    name = "gfxstream_host_health",
+    srcs = ["HealthMonitor.cpp"],
+    hdrs = glob(["include/**/*.h"]),
+    copts = ["-fno-exceptions"],
+    includes = ["include"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//common/base:gfxstream_common_base",
+        "//host/logging:gfxstream_host_logging",
+        "//host/metrics:gfxstream_host_metrics",
+    ],
+)

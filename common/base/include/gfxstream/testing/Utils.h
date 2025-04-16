@@ -14,8 +14,8 @@
 
 #pragma once
 
-#include "aemu/base/memory/ScopedPtr.h"
-#include "aemu/base/system/System.h"
+#include "gfxstream/memory/ScopedPtr.h"
+#include "gfxstream/system/System.h"
 
 #include <gtest/gtest.h>
 
@@ -29,7 +29,7 @@
     } while (0)
 
 inline auto setScopedCommaLocale() ->
-    android::base::ScopedCustomPtr<char, void(*)(const char*)> {
+    gfxstream::base::ScopedCustomPtr<char, void(*)(const char*)> {
 #ifdef _WIN32
     static constexpr char commaLocaleName[] = "French";
 #else
@@ -43,7 +43,7 @@ inline auto setScopedCommaLocale() ->
         return {};
     }
     // setlocale() will overwrite the |oldLocale| pointer's data, so copy it.
-    auto oldLocaleCopy = android::base::ScopedCPtr<char>(strdup(oldLocale));
+    auto oldLocaleCopy = gfxstream::base::ScopedCPtr<char>(strdup(oldLocale));
     auto newLocale = setlocale(LC_ALL, commaLocaleName);
     EXPECT_NE(nullptr, newLocale);
     if (!newLocale) {
@@ -53,9 +53,9 @@ inline auto setScopedCommaLocale() ->
     EXPECT_STREQ(",", localeconv()->decimal_point);
 
     // Restore the locale after the test.
-    return android::base::makeCustomScopedPtr(
+    return gfxstream::base::makeCustomScopedPtr(
             oldLocaleCopy.release(), [](const char* name) {
-                auto nameDeleter = android::base::ScopedCPtr<const char>(name);
+                auto nameDeleter = gfxstream::base::ScopedCPtr<const char>(name);
                 EXPECT_NE(nullptr, setlocale(LC_ALL, name));
             });
 }

@@ -14,11 +14,11 @@
 
 #pragma once
 
-#include "aemu/base/Optional.h"
+#include "gfxstream/Optional.h"
 
 #include <string>
 
-namespace android {
+namespace gfxstream {
 
 // Reads from |fd| into |file_contents|
 // Returns false if something went wrong

@@ -11,16 +11,16 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include "aemu/base/memory/SharedMemory.h"
+#include "gfxstream/memory/SharedMemory.h"
 
 #include <shlwapi.h>
 #include <cassert>
 #include <string>
 
-#include "aemu/base/files/PathUtils.h"
-#include "aemu/base/system/Win32UnicodeString.h"
+#include "gfxstream/files/PathUtils.h"
+#include "gfxstream/system/Win32UnicodeString.h"
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 SharedMemory::SharedMemory(const std::string& name, size_t size) : mSize(size) {

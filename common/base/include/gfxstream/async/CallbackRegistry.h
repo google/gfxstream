@@ -16,11 +16,11 @@
 #include <atomic>         // for atomic_int
 #include <unordered_map>  // for unordere...
 
-#include "aemu/base/synchronization/ConditionVariable.h"  // for Conditio...
-#include "aemu/base/synchronization/Lock.h"               // for Lock
-#include "aemu/base/synchronization/MessageChannel.h"     // for MessageC...
+#include "gfxstream/synchronization/ConditionVariable.h"  // for Conditio...
+#include "gfxstream/synchronization/Lock.h"               // for Lock
+#include "gfxstream/synchronization/MessageChannel.h"     // for MessageC...
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 typedef void (*MessageAvailableCallback)(void* opaque);
@@ -96,10 +96,10 @@ private:
     void updateForwarders();
 
     static const size_t MAX_QUEUE_SIZE = 64;
-    android::base::MessageChannel<ForwarderMessage, MAX_QUEUE_SIZE> mMessages;
-    android::base::Lock mLock;            // protects mStoredForwarders
-    android::base::Lock mProcessingLock;  // protects processing.
-    android::base::ConditionVariable mCvRemoval;
+    gfxstream::base::MessageChannel<ForwarderMessage, MAX_QUEUE_SIZE> mMessages;
+    gfxstream::base::Lock mLock;            // protects mStoredForwarders
+    gfxstream::base::Lock mProcessingLock;  // protects processing.
+    gfxstream::base::ConditionVariable mCvRemoval;
     std::unordered_map<void*, MessageAvailableCallback> mStoredForwarders;
     bool mProcessing{false};
 };

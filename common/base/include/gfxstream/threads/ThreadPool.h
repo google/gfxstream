@@ -22,10 +22,10 @@
 #include <utility>
 #include <vector>
 
-#include "aemu/base/Compiler.h"
-#include "aemu/base/Optional.h"
-#include "aemu/base/system/System.h"
-#include "aemu/base/threads/WorkerThread.h"
+#include "gfxstream/Compiler.h"
+#include "gfxstream/Optional.h"
+#include "gfxstream/system/System.h"
+#include "gfxstream/threads/WorkerThread.h"
 
 //
 // ThreadPool<Item> - a simple collection of worker threads to process enqueued
@@ -57,7 +57,7 @@
 // resulting in a hanging application.
 //
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 using ThreadPoolWorkerId = uint32_t;
@@ -95,7 +95,7 @@ public:
             mProcessor = std::bind(std::move(processor), _1);
         }
         if (threads < 1) {
-            threads = android::base::getCpuCoreCount();
+            threads = gfxstream::base::getCpuCoreCount();
         }
         mWorkers = std::vector<Optional<Worker>>(threads);
         for (auto& workerPtr : mWorkers) {

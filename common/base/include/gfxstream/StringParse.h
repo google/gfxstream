@@ -45,7 +45,7 @@ ANDROID_END_HEADER
 
 #include <utility>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 template <class... Args>

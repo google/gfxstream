@@ -20,10 +20,10 @@
 #include <utility>
 #include <vector>
 
-#include "aemu/base/Compiler.h"
-#include "aemu/base/synchronization/ConditionVariable.h"
-#include "aemu/base/threads/FunctorThread.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/Compiler.h"
+#include "gfxstream/synchronization/ConditionVariable.h"
+#include "gfxstream/threads/FunctorThread.h"
+#include "gfxstream/synchronization/Lock.h"
 
 //
 // WorkerThread<Item> encapsulates an asynchronous processing queue for objects
@@ -57,7 +57,7 @@
 // end-of-work marker before trying to destroy a worker thread.
 //
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Return values for a worker thread's processing function.

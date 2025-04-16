@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/AlignedBuf.h"
-#include "aemu/base/ArraySize.h"
+#include "gfxstream/AlignedBuf.h"
+#include "gfxstream/ArraySize.h"
 
 #include <gtest/gtest.h>
 
 #include <vector>
 #include <array>
 
-using android::AlignedBuf;
-using android::base::arraySize;
-using android::aligned_buf_alloc;
-using android::aligned_buf_free;
+using gfxstream::AlignedBuf;
+using gfxstream::aligned_buf_alloc;
+using gfxstream::aligned_buf_free;
+using gfxstream::base::arraySize;
 
 static void checkAligned(size_t align, void* ptr) {
     uintptr_t ptrVal = reinterpret_cast<uintptr_t>(ptr);

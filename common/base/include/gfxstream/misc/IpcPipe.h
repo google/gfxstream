@@ -15,12 +15,12 @@
 #pragma once
 
 #ifdef _MSC_VER
-#include "aemu/base/msvc.h"
+#include "gfxstream/msvc.h"
 #endif
 
 #include <sys/types.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Create a unidirectional pipe with the read-end connected to |readPipe| and

@@ -20,7 +20,7 @@
 #include <string>         // for std::string
 #include <unordered_set>  // for unordered_set
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Listens to the file system change notifications and raises events when a

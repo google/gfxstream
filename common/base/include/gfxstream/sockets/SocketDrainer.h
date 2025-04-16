@@ -14,8 +14,8 @@
 
 #pragma once
 
-#include "aemu/base/Compiler.h"
-#include "aemu/base/async/Looper.h"
+#include "gfxstream/Compiler.h"
+#include "gfxstream/async/Looper.h"
 
 // The following functions are used to manage graceful close of sockets
 // as described by "The ultimate SO_LINGER page" [1], which requires
@@ -36,7 +36,7 @@
 //
 // [1] http://blog.netherlabs.nl/articles/2009/01/18/the-ultimate-so_linger-page-or-why-is-my-tcp-not-reliable
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 class SocketDrainerImpl;
@@ -56,4 +56,4 @@ private:
 };
 
 } // namespace base
-} // namespace android
+} // namespace gfxstream

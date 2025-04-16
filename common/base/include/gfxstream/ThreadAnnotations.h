@@ -81,7 +81,7 @@
       THREAD_ANNOTATION_ATTRIBUTE__(lock_returned(x))
 #define NO_THREAD_SAFETY_ANALYSIS \
       THREAD_ANNOTATION_ATTRIBUTE__(no_thread_safety_analysis)
-namespace android {
+namespace gfxstream {
 namespace base {
 // A class to help thread safety analysis deal with std::unique_lock and condition_variable.
 //

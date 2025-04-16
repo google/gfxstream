@@ -14,14 +14,14 @@
 
 #pragma once
 
-#include "aemu/base/Compiler.h"
-#include "aemu/base/async/Looper.h"
-#include "aemu/base/threads/Thread.h"
-#include "aemu/base/threads/Types.h"
+#include "gfxstream/Compiler.h"
+#include "gfxstream/async/Looper.h"
+#include "gfxstream/threads/Thread.h"
+#include "gfxstream/threads/Types.h"
 
 #include <memory>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 namespace internal {
 
@@ -34,8 +34,8 @@ public:
     virtual ~ParallelTaskBase() = default;
 
 protected:
-    ParallelTaskBase(android::base::Looper* looper,
-                     android::base::Looper::Duration checkTimeoutMs,
+    ParallelTaskBase(gfxstream::base::Looper* looper,
+                     gfxstream::base::Looper::Duration checkTimeoutMs,
                      ThreadFlags flags);
 
     // API functions.
@@ -47,7 +47,7 @@ protected:
     virtual void taskDoneImpl() = 0;
 
 private:
-    class ManagedThread : public ::android::base::Thread {
+    class ManagedThread : public ::gfxstream::base::Thread {
     public:
         ManagedThread(ParallelTaskBase* manager, ThreadFlags flags)
             : Thread(flags), mManager(manager) {}
@@ -64,16 +64,16 @@ private:
 
     // Called prediodically to |tryJoin| the launched thread.
     static void tryWaitTillJoinedStatic(void* opaqueThis,
-                                        android::base::Looper::Timer* timer);
+                                        gfxstream::base::Looper::Timer* timer);
 
-    void tryWaitTillJoined(android::base::Looper::Timer* timer);
+    void tryWaitTillJoined(gfxstream::base::Looper::Timer* timer);
 
-    android::base::Looper* mLooper;
-    android::base::Looper::Duration mCheckTimeoutMs;
+    gfxstream::base::Looper* mLooper;
+    gfxstream::base::Looper::Duration mCheckTimeoutMs;
     ManagedThread mManagedThread;
 
     bool isRunning = false;
-    std::unique_ptr<android::base::Looper::Timer> mTimer;
+    std::unique_ptr<gfxstream::base::Looper::Timer> mTimer;
 
     DISALLOW_COPY_AND_ASSIGN(ParallelTaskBase);
 };

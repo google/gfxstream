@@ -14,8 +14,8 @@
 
 #pragma once
 
-#include "aemu/base/Compiler.h"
-#include "aemu/base/TypeTraits.h"
+#include "gfxstream/Compiler.h"
+#include "gfxstream/TypeTraits.h"
 
 #include <memory>
 
@@ -80,7 +80,7 @@ private:
 
 template <typename T,
           typename U,
-          typename = android::base::enable_if<
+          typename = gfxstream::base::enable_if<
                   std::is_constructible<T, U>>>
 MockReplacementHandle<T> replaceMock(T* location, U newValue) {
     T original = std::move(*location);

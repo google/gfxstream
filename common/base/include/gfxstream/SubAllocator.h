@@ -17,7 +17,7 @@
 #include <stddef.h>
 #include <string.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 class Stream;
@@ -92,4 +92,4 @@ private:
 };
 
 } // namespace base
-} // namespace android
+} // namespace gfxstream

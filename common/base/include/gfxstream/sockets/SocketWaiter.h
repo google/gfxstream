@@ -14,11 +14,11 @@
 
 #pragma once
 
-#include "aemu/base/Compiler.h"
+#include "gfxstream/Compiler.h"
 
 #include <stdint.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // A SocketWaiter is an abstraction that allows one to wait for i/o

@@ -14,16 +14,16 @@
 
 #pragma once
 
-#include "aemu/base/files/Stream.h"
+#include "gfxstream/files/Stream.h"
 
 #include <errno.h>
 #include <string_view>
 #include <vector>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
-// A convenience android::base::Stream implementation that collects
+// A convenience gfxstream::base::Stream implementation that collects
 // all written data into a memory buffer, that can be retrieved with
 // its view() method, and cleared with its reset() method.
 // read() operations on the stream are forbidden.

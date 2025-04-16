@@ -25,7 +25,7 @@
 
 using std::chrono::milliseconds;
 
-namespace android {
+namespace gfxstream {
 namespace base {
 namespace streams {
 

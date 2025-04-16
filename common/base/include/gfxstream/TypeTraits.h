@@ -17,7 +17,7 @@
 #include <iterator>
 #include <type_traits>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 namespace details {

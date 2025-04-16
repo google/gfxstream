@@ -14,16 +14,16 @@
 
 #pragma once
 
-#include "aemu/base/Compiler.h"
+#include "gfxstream/Compiler.h"
 
 #include <errno.h>
 #ifdef _MSC_VER
-#include "aemu/base/msvc.h"
+#include "gfxstream/msvc.h"
 #else
 #include <unistd.h>
 #endif
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Helper class to hold an integer file descriptor, and have the 'close'

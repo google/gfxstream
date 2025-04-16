@@ -11,16 +11,16 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include "aemu/base/SubAllocator.h"
+#include "gfxstream/SubAllocator.h"
 
-#include "aemu/base/address_space.h"
-#include "aemu/base/files/Stream.h"
+#include "gfxstream/address_space.h"
+#include "gfxstream/files/Stream.h"
 
 #include <iomanip>
 #include <sstream>
 #include <string>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 class SubAllocator::Impl {
@@ -251,4 +251,4 @@ bool SubAllocator::empty() const {
 }
 
 } // namespace base
-} // namespace android
+} // namespace gfxstream

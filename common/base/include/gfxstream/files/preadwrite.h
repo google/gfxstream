@@ -20,7 +20,7 @@
 #include <stdint.h>
 #endif
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // This is a cross-platform version of pread(2)/pwrite(2) syscalls, with the
@@ -33,7 +33,7 @@ namespace base {
 // - Windows version doesn't return most of the |errno| error codes, using
 //   EINVAL for most of the issues and EAGAIN if it's a nonblocking FD.
 //
-// That's why the best way of using android::base::pread() and pwrite() is to
+// That's why the best way of using gfxstream::base::pread() and pwrite() is to
 // never use it together with regular read()/write() calls, especially in
 // multi-threaded code. Nobody can predict the active read position when using
 // them on different platforms.

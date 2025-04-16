@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/utils/stream.h"
+#include "gfxstream/utils/stream.h"
 
-#include "aemu/base/files/Stream.h"
+#include "gfxstream/files/Stream.h"
 
 #include <stdlib.h>
 #include <string.h>
 
-typedef android::base::Stream BaseStream;
+typedef gfxstream::base::Stream BaseStream;
 
 static BaseStream* asBaseStream(Stream* stream) {
     return reinterpret_cast<BaseStream*>(stream);

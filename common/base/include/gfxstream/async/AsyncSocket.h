@@ -18,15 +18,15 @@
 #include <mutex>
 #include <thread>
 
-#include "aemu/base/async/AsyncSocketAdapter.h"
-#include "aemu/base/async/AsyncWriter.h"
-#include "aemu/base/async/Looper.h"
-#include "aemu/base/containers/BufferQueue.h"
-#include "aemu/base/sockets/ScopedSocket.h"
-#include "aemu/base/sockets/SocketUtils.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/async/AsyncSocketAdapter.h"
+#include "gfxstream/async/AsyncWriter.h"
+#include "gfxstream/async/Looper.h"
+#include "gfxstream/containers/BufferQueue.h"
+#include "gfxstream/sockets/ScopedSocket.h"
+#include "gfxstream/sockets/SocketUtils.h"
+#include "gfxstream/synchronization/Lock.h"
 
-namespace android {
+namespace gfxstream {
 namespace base {
 using MessageQueue = BufferQueue<std::string>;
 
@@ -154,7 +154,7 @@ class AsyncSocket : public AsyncSocketAdapter {
     bool mConnecting = false;
     std::unique_ptr<Looper::FdWatch> mFdWatch;
 
-    android::base::AsyncWriter mAsyncWriter;
+    gfxstream::base::AsyncWriter mAsyncWriter;
 
     // Thread for handling connection attempts.
     std::unique_ptr<std::thread> mConnectThread;

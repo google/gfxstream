@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "aemu/base/TypeTraits.h"
+#include "gfxstream/TypeTraits.h"
 
 #include <memory>
 #include <type_traits>
@@ -22,7 +22,7 @@
 
 #include <stdlib.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 struct FreeDelete {

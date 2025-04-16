@@ -180,7 +180,7 @@
 #include "google/protobuf/util/field_comparator.h"
 #include "google/protobuf/util/message_differencer.h"
 
-namespace android {
+namespace gfxstream {
 
 namespace internal {
 

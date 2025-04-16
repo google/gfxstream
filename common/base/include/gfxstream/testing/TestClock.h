@@ -15,7 +15,7 @@
 
 #include <chrono>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // TestClock class for testing. Provides basic functions for advancing and resetting time.

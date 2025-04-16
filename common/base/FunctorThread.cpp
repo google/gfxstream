@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/threads/FunctorThread.h"
+#include "gfxstream/threads/FunctorThread.h"
 
 #include <assert.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 FunctorThread::FunctorThread(Functor&& func, ThreadFlags flags)

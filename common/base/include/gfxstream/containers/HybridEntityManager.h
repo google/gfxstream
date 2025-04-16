@@ -13,13 +13,13 @@
 // limitations under the License.
 #pragma once
 
-#include "aemu/base/containers/Lookup.h"
-#include "aemu/base/containers/EntityManager.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/containers/Lookup.h"
+#include "gfxstream/containers/EntityManager.h"
+#include "gfxstream/synchronization/Lock.h"
 
 #include <unordered_map>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 template <size_t maxIndex,
@@ -116,7 +116,7 @@ public:
             return mEntityManager.get(index);
         } else {
             AutoLock lock(mMapLock);
-            auto res = android::base::find(mMap, index_u64);
+            auto res = gfxstream::base::find(mMap, index_u64);
             return res;
         }
     }
@@ -130,7 +130,7 @@ public:
             return res;
         } else {
             AutoLock lock(mMapLock);
-            auto res = android::base::find(mMap, index_u64);
+            auto res = gfxstream::base::find(mMap, index_u64);
             return res;
         }
     }
@@ -201,5 +201,5 @@ private:
     mutable Lock mMapLock;
 };
 
-} // namespace android
+} // namespace gfxstream
 } // namespace base

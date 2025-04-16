@@ -17,7 +17,7 @@
 #include <unordered_map>
 #include <utility>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 struct AutomotiveDisplay {
     enum {

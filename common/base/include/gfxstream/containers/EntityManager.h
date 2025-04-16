@@ -24,7 +24,7 @@
 #define INVALID_ENTITY_HANDLE 0
 #define INVALID_COMPONENT_HANDLE 0
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // EntityManager: A way to represent an abstrat space of objects with handles.
@@ -594,5 +594,5 @@ private:
     std::vector<InternalItem> mItems;
 };
 
-} // namespace android
+} // namespace gfxstream
 } // namespace base

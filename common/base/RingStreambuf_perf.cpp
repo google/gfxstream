@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// A small benchmark used to compare the performance of android::base::Lock
+// A small benchmark used to compare the performance of gfxstream::base::Lock
 // with other mutex implementations.
 
 #include <iostream>  // for operator<<
 #include <string>    // for string
 #include <utility>   // for pair
 
-#include "aemu/base/streams/RingStreambuf.h"  // for RingStre...
+#include "gfxstream/streams/RingStreambuf.h"  // for RingStre...
 #include "benchmark/benchmark.h"              // for State
 
-using android::base::streams::RingStreambuf;
+using gfxstream::base::streams::RingStreambuf;
 using namespace std::chrono_literals;
 #define BASIC_BENCHMARK_TEST(x) \
     BENCHMARK(x)->RangeMultiplier(2)->Range(1 << 10, 1 << 14)

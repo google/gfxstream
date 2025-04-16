@@ -32,7 +32,7 @@ extern "C" const void* memmem(const void* haystack, size_t haystack_len,
                               const void* needle, size_t needlelen);
 #endif  // _WIN32
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Copy the content of |view| into a new heap-allocated zero-terminated

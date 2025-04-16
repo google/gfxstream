@@ -15,22 +15,22 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "aemu/base/HealthMonitor.h"
+#include "gfxstream/HealthMonitor.h"
 
 #include <chrono>
 #include <limits>
 #include <vector>
 
-#include "aemu/base/testing/TestClock.h"
-#include "aemu/base/Metrics.h"
+#include "gfxstream/testing/TestClock.h"
+#include "gfxstream/Metrics.h"
 
 namespace emugl {
 
-using android::base::MetricEventHang;
-using android::base::MetricEventType;
-using android::base::MetricEventUnHang;
-using android::base::MetricsLogger;
-using android::base::TestClock;
+using gfxstream::base::MetricEventHang;
+using gfxstream::base::MetricEventType;
+using gfxstream::base::MetricEventUnHang;
+using gfxstream::base::MetricsLogger;
+using gfxstream::base::TestClock;
 using emugl::kDefaultIntervalMs;
 using emugl::kDefaultTimeoutMs;
 using ::testing::_;
@@ -514,7 +514,7 @@ TEST(HealthMonitorWatchdogBuilderTest, SimpleBuildTest) {
         Pointee(Field(&EventHangMetadata::function, StrEq(__func__))),
         Pointee(Field(&EventHangMetadata::msg, StrEq(message))),
         Pointee(Field(&EventHangMetadata::line, AllOf(Ge(lineLowerBound), Le(lineUpperBound)))),
-        Pointee(Field(&EventHangMetadata::threadId, android::base::getCurrentThreadId())),
+        Pointee(Field(&EventHangMetadata::threadId, gfxstream::base::getCurrentThreadId())),
         Pointee(Field(&EventHangMetadata::data, IsNull())),
         Pointee(Field(&EventHangMetadata::hangType, EventHangMetadata::HangType::kOther)));
     EXPECT_CALL(monitor,

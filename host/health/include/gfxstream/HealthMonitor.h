@@ -18,6 +18,7 @@
 #include <chrono>
 #include <functional>
 #include <future>
+#include <inttypes.h>
 #include <optional>
 #include <queue>
 #include <stack>
@@ -28,15 +29,14 @@
 #include <utility>
 #include <variant>
 
-#include "aemu/base/synchronization/ConditionVariable.h"
-#include "aemu/base/synchronization/Lock.h"
-#include "aemu/base/Metrics.h"
-#include "aemu/base/threads/Thread.h"
-#include "host-common/GfxstreamFatalError.h"
-#include "host-common/logging.h"
+#include "gfxstream/synchronization/ConditionVariable.h"
+#include "gfxstream/synchronization/Lock.h"
+#include "gfxstream/Metrics.h"
+#include "gfxstream/threads/Thread.h"
+#include "gfxstream/host/logging.h"
 
-using android::base::EventHangMetadata;
-using android::base::getCurrentThreadId;
+using gfxstream::base::EventHangMetadata;
+using gfxstream::base::getCurrentThreadId;
 
 #define WATCHDOG_BUILDER(healthMonitorPtr, msg)                                  \
     ::emugl::HealthWatchdogBuilder<std::decay_t<decltype(*(healthMonitorPtr))>>( \
@@ -44,9 +44,9 @@ using android::base::getCurrentThreadId;
 
 namespace emugl {
 
-using android::base::ConditionVariable;
-using android::base::Lock;
-using android::base::MetricsLogger;
+using gfxstream::base::ConditionVariable;
+using gfxstream::base::Lock;
+using gfxstream::base::MetricsLogger;
 using std::chrono::duration;
 using std::chrono::steady_clock;
 using std::chrono::time_point;
@@ -62,7 +62,7 @@ static std::chrono::nanoseconds kTimeEpsilon(1);
 // MetricsLogger, it will log hang and unhang events when it detects tasks hanging/resuming.
 // Design doc: http://go/gfxstream-health-monitor
 template <class Clock = steady_clock>
-class HealthMonitor : public android::base::Thread {
+class HealthMonitor : public gfxstream::base::Thread {
    public:
     // Alias for task id.
     using Id = uint64_t;
@@ -165,7 +165,7 @@ class HealthMonitor : public android::base::Thread {
     std::unordered_map<Id, MonitoredTask> mMonitoredTasks;
 
     // Lock and cv control access to queue and id counter
-    android::base::ConditionVariable mCv;
+    gfxstream::base::ConditionVariable mCv;
     Lock mLock;
     Id mNextId = 0;
     std::queue<std::unique_ptr<MonitoredEvent>> mEventQueue;
@@ -241,17 +241,14 @@ class HealthWatchdog {
         auto& threadTasks = getMonitoredThreadTasks();
         auto& stack = threadTasks[mHealthMonitor];
         if (getCurrentThreadId() != mThreadId) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "HealthWatchdog destructor thread does not match origin. Destructor must be "
-                   "called on the same thread.";
+            GFXSTREAM_FATAL("HealthWatchdog destructor thread does not match origin. Destructor must be "
+                            "called on the same thread.");
         }
         if (stack.empty()) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "HealthWatchdog thread local stack is empty!";
+            GFXSTREAM_FATAL("HealthWatchdog thread local stack is empty!");
         }
         if (stack.top() != id) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "HealthWatchdog id " << id << " does not match top of stack: " << stack.top();
+            GFXSTREAM_FATAL("HealthWatchdog id %" PRIu64 " does not match top of stack: %" PRIu64, id, stack.top());
         }
         stack.pop();
     }

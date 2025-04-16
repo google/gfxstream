@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/files/PathUtils.h"
+#include "gfxstream/files/PathUtils.h"
 
 #include <string.h>                      // for size_t, strncmp
 #include <iterator>                      // for reverse_iterator, operator!=
@@ -24,14 +24,14 @@
 #endif
 
 #ifdef _WIN32
-#include "aemu/base/system/Win32UnicodeString.h"
+#include "gfxstream/system/Win32UnicodeString.h"
 #endif
 
 static inline bool sIsEmpty(const char* str) {
     return !str || str[0] == '\0';
 }
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 const char* const PathUtils::kExeNameSuffixes[kHostTypeCount] = {"", ".exe"};

@@ -16,7 +16,7 @@
 
 #include <stdint.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // A few convenience network-related functions. These are mostly provided

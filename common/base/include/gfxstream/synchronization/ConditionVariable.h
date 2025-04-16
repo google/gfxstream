@@ -14,9 +14,9 @@
 
 #pragma once
 
-#include "aemu/base/Compiler.h"
-#include "aemu/base/synchronization/Lock.h"
-#include "aemu/base/system/System.h"
+#include "gfxstream/Compiler.h"
+#include "gfxstream/synchronization/Lock.h"
+#include "gfxstream/system/System.h"
 
 #include <algorithm>
 #include <inttypes.h>
@@ -29,7 +29,7 @@
 
 #include <assert.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // A class that implements a condition variable, which can be used in
@@ -109,7 +109,7 @@ public:
     }
 
     bool timedWait(StaticLock *userLock, uint64_t waitUntilUs) {
-        const auto now = android::base::getUnixTimeUs();
+        const auto now = gfxstream::base::getUnixTimeUs();
         const auto timeout = waitUntilUs > now ?
                 std::max<uint32_t>(0, waitUntilUs  - now) / 1000 : 0;
         return ::SleepConditionVariableSRW(

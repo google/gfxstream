@@ -11,14 +11,14 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include "aemu/base/GraphicsObjectCounter.h"
+#include "gfxstream/GraphicsObjectCounter.h"
 
 #include <array>
 #include <atomic>
 #include <iostream>
 #include <sstream>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 class GraphicsObjectCounter::Impl {

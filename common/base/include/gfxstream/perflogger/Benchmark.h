@@ -13,12 +13,12 @@
 // limitations under the License.
 #pragma once
 
-#include "aemu/base/Optional.h"
+#include "gfxstream/Optional.h"
 
 #include <string>
 #include <map>
 
-namespace android {
+namespace gfxstream {
 namespace perflogger {
 
 class Analyzer;
@@ -63,4 +63,4 @@ private:
 };
 
 } // namespace perflogger
-} // namespace android
+} // namespace gfxstream

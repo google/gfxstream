@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/Optional.h"
+#include "gfxstream/Optional.h"
 
 
 #include <gtest/gtest.h>
@@ -20,7 +20,7 @@
 #include <memory>
 #include <vector>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 TEST(Optional, TypeProperties) {

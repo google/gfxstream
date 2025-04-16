@@ -14,9 +14,9 @@
 
 #pragma once
 
-#include "aemu/base/TypeTraits.h"
-#include "aemu/base/threads/Thread.h"
-#include "aemu/base/threads/Types.h"
+#include "gfxstream/TypeTraits.h"
+#include "gfxstream/threads/Thread.h"
+#include "gfxstream/threads/Types.h"
 
 #include <utility>
 
@@ -25,12 +25,12 @@
 // convenience class so one doesn't need to create a separate class if the only
 // needed thing is to run a specific existing function in a thread.
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
-class FunctorThread : public android::base::Thread {
+class FunctorThread : public gfxstream::base::Thread {
 public:
-    using Functor = android::base::ThreadFunctor;
+    using Functor = gfxstream::base::ThreadFunctor;
 
     explicit FunctorThread(const Functor& func,
                            ThreadFlags flags = ThreadFlags::MaskSignals)

@@ -3,12 +3,12 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include "aemu/base/files/Stream.h"
+#include "gfxstream/files/Stream.h"
 
 #include <assert.h>
 #include <string.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 void Stream::putByte(uint8_t value) {

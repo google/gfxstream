@@ -14,12 +14,12 @@
 
 #pragma once
 
-#include "aemu/base/async/AsyncStatus.h"
-#include "aemu/base/async/Looper.h"
+#include "gfxstream/async/AsyncStatus.h"
+#include "gfxstream/async/Looper.h"
 
 #include <stdint.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Helper class to help read data from a socket asynchronously.

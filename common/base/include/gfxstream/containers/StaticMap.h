@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/Optional.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/Optional.h"
+#include "gfxstream/synchronization/Lock.h"
 
 #include <functional>
 #include <unordered_map>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Static map class for use with LazyInstance or in global structures
@@ -44,11 +44,11 @@ public:
         return it != mItems.end();
     }
 
-    android::base::Optional<V> get(const K& key) const {
+    gfxstream::base::Optional<V> get(const K& key) const {
         AutoLock lock(mLock);
         auto it = mItems.find(key);
         if (it == mItems.end()) {
-            return android::base::kNullopt;
+            return gfxstream::base::kNullopt;
         }
         return it->second;
     }
@@ -72,12 +72,12 @@ public:
         mItems.clear();
     }
 private:
-    using AutoLock = android::base::AutoLock;
-    using Lock = android::base::Lock;
+    using AutoLock = gfxstream::base::AutoLock;
+    using Lock = gfxstream::base::Lock;
 
-    mutable android::base::Lock mLock;
+    mutable gfxstream::base::Lock mLock;
     std::unordered_map<K, V> mItems;
 };
 
 } // namespace base
-} // namespace android
+} // namespace gfxstream

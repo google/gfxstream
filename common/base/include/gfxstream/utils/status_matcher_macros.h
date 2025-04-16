@@ -22,7 +22,7 @@
 #include "absl/status/status_matchers.h"
 #include "absl/strings/str_cat.h"
 
-#include "aemu/base/utils/status_macros.h"
+#include "gfxstream/utils/status_macros.h"
 
 #define EXPECT_OK(expression) EXPECT_THAT(expression, ::absl_testing::IsOk())
 #define ASSERT_OK(expression) ASSERT_THAT(expression, ::absl_testing::IsOk())

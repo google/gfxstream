@@ -14,7 +14,7 @@
 
 #pragma once
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // A list of values indicating the state of ongoing asynchronous operations.

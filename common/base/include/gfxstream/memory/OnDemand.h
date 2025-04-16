@@ -14,9 +14,9 @@
 
 #pragma once
 
-#include "aemu/base/Compiler.h"
-#include "aemu/base/TypeTraits.h"
-#include "aemu/base/memory/LazyInstance.h"
+#include "gfxstream/Compiler.h"
+#include "gfxstream/TypeTraits.h"
+#include "gfxstream/memory/LazyInstance.h"
 
 #include <functional>
 #include <tuple>
@@ -83,7 +83,7 @@
 //  };
 //
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 namespace internal {

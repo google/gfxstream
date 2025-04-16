@@ -20,7 +20,7 @@
 
 #include <stdarg.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Create a new string instance that contains the printf-style formatted

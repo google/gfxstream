@@ -14,14 +14,14 @@
 
 #pragma once
 
-#include "aemu/base/TypeTraits.h"
+#include "gfxstream/TypeTraits.h"
 #include <gtest/gtest.h>
 #include <iterator>
 
 // Miscellenaous helper declarations for unit-tests using the GoogleTest
 // framework.
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // RangesMatch is a useful template used to compare the content of two

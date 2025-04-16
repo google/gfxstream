@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 class JsonWriter {
@@ -82,4 +82,4 @@ private:
 };
 
 } // namespace base
-} // namespace android
+} // namespace gfxstream

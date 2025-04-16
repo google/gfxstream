@@ -16,14 +16,14 @@
 // these functions take const references to std::string_view to avoid
 // unnecessary copies.
 
-#include "aemu/base/StringFormat.h"
+#include "gfxstream/StringFormat.h"
 
 #include <string>
 #include <string_view>
 #include <type_traits>
 #include <utility>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 class Uri {
@@ -68,7 +68,7 @@ public:
     template <class... Args>
     static std::string FormatEncodeArguments(const char* format,
                                              Args&&... args) {
-        return android::base::StringFormat(
+        return gfxstream::base::StringFormat(
                     format,
                     FormatHelper::encodeArg(std::forward<Args>(args))...);
     }

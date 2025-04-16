@@ -27,13 +27,13 @@
 #include <utility>
 #include <vector>
 
-#include "aemu/base/streams/RingStreambuf.h"
-#include "aemu/base/process/Process.h"
+#include "gfxstream/streams/RingStreambuf.h"
+#include "gfxstream/process/Process.h"
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
-using android::base::streams::RingStreambuf;
+using gfxstream::base::streams::RingStreambuf;
 using BufferDefinition = std::pair<size_t, std::chrono::milliseconds>;
 using CommandArguments = std::vector<std::string>;
 

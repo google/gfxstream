@@ -23,10 +23,10 @@
 #include <unordered_map>
 #include <variant>
 
-#include "aemu/base/threads/Thread.h"
+#include "gfxstream/threads/Thread.h"
 
 // Library to log metrics.
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Struct for hanging events

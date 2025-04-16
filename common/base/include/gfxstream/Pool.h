@@ -13,7 +13,7 @@
 // limitations under the License.
 #pragma once
 
-#include "aemu/base/Allocator.h"
+#include "gfxstream/Allocator.h"
 
 #include <unordered_set>
 
@@ -21,7 +21,7 @@
 #include <stddef.h>
 #include <string.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Class to make it easier to set up memory regions where it is fast
@@ -61,4 +61,4 @@ private:
 };
 
 } // namespace base
-} // namespace android
+} // namespace gfxstream

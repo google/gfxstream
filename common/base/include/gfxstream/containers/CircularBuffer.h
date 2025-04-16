@@ -19,7 +19,7 @@
 #include <type_traits>
 #include <cassert>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // A CircularBuffer<T> is a wrapper over std::vector<T> of fixed size

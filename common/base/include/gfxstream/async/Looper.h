@@ -14,9 +14,6 @@
 
 #pragma once
 
-#include <aemu/base/Compiler.h>
-#include <aemu/base/files/Stream.h>
-
 #include <functional>
 #include <memory>
 #include <string_view>
@@ -26,7 +23,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
-namespace android {
+#include "gfxstream/Compiler.h"
+#include "gfxstream/files/Stream.h"
+
+namespace gfxstream {
 namespace base {
 
 // A Looper is an abstraction for an event loop that can wait for either
@@ -127,8 +127,8 @@ public:
         virtual bool isActive() const = 0;
 
         // Serialization to/from streams
-        virtual void save(android::base::Stream* stream) const = 0;
-        virtual void load(android::base::Stream* stream) = 0;
+        virtual void save(gfxstream::base::Stream* stream) const = 0;
+        virtual void load(gfxstream::base::Stream* stream) = 0;
 
     protected:
         Timer(Looper* looper, Callback callback, void* opaque,

@@ -13,12 +13,12 @@
 // limitations under the License.
 #pragma once
 
-#include "aemu/base/containers/Lookup.h"
-#include "aemu/base/containers/EntityManager.h"
+#include "gfxstream/containers/Lookup.h"
+#include "gfxstream/containers/EntityManager.h"
 
 #include <unordered_map>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 template <size_t maxIndex,
@@ -64,7 +64,7 @@ public:
             auto internal_handle = index2Handle(index_u64);
             return mComponentManager.get(internal_handle);
         } else {
-            return android::base::find(mMap, index);
+            return gfxstream::base::find(mMap, index);
         }
     }
 
@@ -74,7 +74,7 @@ public:
             auto internal_handle = index2Handle(index_u64);
             return mComponentManager.get_const(internal_handle);
         } else {
-            return android::base::find(mMap, index);
+            return gfxstream::base::find(mMap, index);
         }
     }
 
@@ -128,5 +128,5 @@ private:
     std::unordered_map<IndexType, Data> mMap;
 };
 
-} // namespace android
+} // namespace gfxstream
 } // namespace base

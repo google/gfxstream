@@ -17,7 +17,7 @@
 #include <memory>
 #include <stdio.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 struct FileCloser {

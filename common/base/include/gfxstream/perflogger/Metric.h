@@ -13,13 +13,13 @@
 // limitations under the License.
 #pragma once
 
-#include "aemu/base/perflogger/Analyzer.h"
+#include "gfxstream/perflogger/Analyzer.h"
 
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-namespace android {
+namespace gfxstream {
 namespace perflogger {
 
 class Benchmark;
@@ -55,4 +55,4 @@ private:
 };
 
 } // namespace perflogger
-} // namespace android
+} // namespace gfxstream

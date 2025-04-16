@@ -17,11 +17,11 @@
 
 #include <sstream>
 
-#include "aemu/base/threads/Thread.h"
-#include "aemu/base/system/Win32UnicodeString.h"
+#include "gfxstream/threads/Thread.h"
+#include "gfxstream/system/Win32UnicodeString.h"
 #include "host-common/logging.h"
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 Thread::Thread(ThreadFlags flags, int stackSize, std::optional<std::string> nameOpt)

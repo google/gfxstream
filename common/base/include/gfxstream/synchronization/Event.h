@@ -13,7 +13,7 @@
 // limitations under the License.
 #pragma once
 
-#include "aemu/base/synchronization/MessageChannel.h"
+#include "gfxstream/synchronization/MessageChannel.h"
 
 // super minimal wrapper around MessageChannel to make it less verbose to
 // specify simple events and waiting on them
@@ -25,7 +25,7 @@
 // Once you need broadcasting or anything more complicated than a single waiter
 // and single signaler, please use a different method (such as plain condition
 // variables with mutexes)
-namespace android {
+namespace gfxstream {
 namespace base {
 
 class Event {

@@ -14,14 +14,14 @@
 
 #pragma once
 
-#include "aemu/base/Compiler.h"
+#include "gfxstream/Compiler.h"
 
 #include <cstddef>
 #include <numeric>
 #include <vector>
 
 #if defined(_WIN32)
-/*Because android::base::IOVector has its own definition of
+/*Because gfxstream::base::IOVector has its own definition of
  struct iovec on Windows, we need to avoid the re-definition of iovec
  from qemu/osdep.h by declaring CONFIG_IOVEC beforehand. */
 #ifndef CONFIG_IOVEC
@@ -35,7 +35,7 @@ struct iovec {
 #else
 #include <sys/uio.h>
 #endif
-namespace android {
+namespace gfxstream {
 namespace base {
 // A thin wrapper over a vector of struct iovec.
 // The client of this class is responsible for freeing up

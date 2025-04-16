@@ -21,7 +21,7 @@
 
 #include <stdint.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // This class incapsulates a Uuid - universally unique identifier, AKA Guid

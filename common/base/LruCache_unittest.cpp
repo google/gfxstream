@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/LruCache.h"
+#include "gfxstream/LruCache.h"
 
 #include <cstdint>
 #include <string>
@@ -20,7 +20,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 namespace {
 

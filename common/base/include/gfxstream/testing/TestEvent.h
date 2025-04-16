@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "aemu/base/Compiler.h"
+#include "gfxstream/Compiler.h"
 
 #include <condition_variable>
 #include <chrono>

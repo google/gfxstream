@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/files/StreamSerializing.h"
+#include "gfxstream/files/StreamSerializing.h"
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 void saveStream(Stream* stream, const MemStream& memStream) {

@@ -76,7 +76,7 @@ std::string normalizePath(const std::filesystem::path& path) {
  * #include <gtest/gtest.h>
  * #include <gmock/gmock.h>
  * #include <filesystem>
- * #include "aemu/base/testing/FileMatchers.h"
+ * #include "gfxstream/testing/FileMatchers.h"
  *
  * TEST(PathMatcherTest, PathEquality) {
  *   std::filesystem::path path1 = "C:\\MyFolder\\file.txt"; // Windows path

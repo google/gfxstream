@@ -11,9 +11,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include "aemu/base/CpuTime.h"
+#include "gfxstream/CpuTime.h"
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 CpuTime operator-(const CpuTime& a, const CpuTime& other) {
@@ -48,5 +48,5 @@ float CpuTime::usageSystem() const {
     return (float)(system_time_us) / (float)(wall_time_us);
 }
 
-} // namespace android
+} // namespace gfxstream
 } // namespace base

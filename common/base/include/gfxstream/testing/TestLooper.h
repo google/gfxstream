@@ -14,9 +14,9 @@
 
 #pragma once
 
-#include "aemu/base/async/DefaultLooper.h"
+#include "gfxstream/async/DefaultLooper.h"
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // A TestLooper is a Looper implementation that allows its user to inspect all

@@ -18,7 +18,7 @@
 #include <string_view>
 #include <tuple>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Class |Version| is a class for software version manipulations

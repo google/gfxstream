@@ -18,13 +18,13 @@
 // this file is just empty on non-Win32
 #else  // _WIN32
 
-#include "aemu/base/Compiler.h"
+#include "gfxstream/Compiler.h"
 
 #include <string>
 
 #include <wchar.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Helper class used to model a Windows Unicode string, which stores

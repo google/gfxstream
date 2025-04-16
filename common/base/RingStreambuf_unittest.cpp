@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include "aemu/base/streams/RingStreambuf.h"
+#include "gfxstream/streams/RingStreambuf.h"
 
 #include <chrono>
 #include <istream>
@@ -21,7 +21,7 @@
 
 #include <gtest/gtest.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 namespace streams {
 

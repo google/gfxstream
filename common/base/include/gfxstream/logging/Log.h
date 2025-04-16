@@ -23,7 +23,7 @@
 #include <vector>  // for vector
 
 #include "absl/strings/str_format.h"
-#include "aemu/base/logging/LogSeverity.h"  // for LogSeverity, EMULATOR_...
+#include "gfxstream/logging/LogSeverity.h"  // for LogSeverity, EMULATOR_...
 
 #ifndef LOGGING_API
 #ifdef _MSC_VER
@@ -77,7 +77,7 @@ void __emu_log_print_cplusplus(LogSeverity prio, const char* file, int line,
 #define dfatal(fmt, ...) EMULOGCPLUSPLUS(EMULATOR_LOG_FATAL, fmt, ##__VA_ARGS__)
 #endif
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 class LogFormatter;
@@ -133,7 +133,7 @@ LOGGING_API void setLogFormatter(LogFormatter* fmt);
 //   error: second operand to the conditional operator is of type 'void',
 //   but the third operand is neither a throw-expression nor of type 'void'
 #define LOG_LAZY_EVAL(condition, expr) \
-    !(condition) ? (void)0 : ::android::base::LogStreamVoidify() & (expr)
+    !(condition) ? (void)0 : ::gfxstream::base::LogStreamVoidify() & (expr)
 
 // Send a message to the log if |severity| is higher or equal to the current
 // logging severity level. This macro expands to an expression that acts as
@@ -251,7 +251,7 @@ LOGGING_API void setLogFormatter(LogFormatter* fmt);
 // not compiled in the final binary.
 #define DCHECK_IS_ON() false
 #elif ENABLE_DCHECK == 1
-#define DCHECK_IS_ON() ::android::base::dcheckIsEnabled()
+#define DCHECK_IS_ON() ::gfxstream::base::dcheckIsEnabled()
 #else
 #define DCHECK_IS_ON() true
 #endif
@@ -370,7 +370,7 @@ class LOGGING_API LogStream {
 };
 
 // Add your own types when needed:
-LOGGING_API std::ostream& operator<<(std::ostream& stream, const android::base::LogString& str);
+LOGGING_API std::ostream& operator<<(std::ostream& stream, const gfxstream::base::LogString& str);
 LOGGING_API std::ostream& operator<<(std::ostream& stream, const std::string_view& str);
 
 // Helper class used to avoid compiler errors, see LOG_LAZY_EVAL for
@@ -405,10 +405,10 @@ class LOGGING_API LogMessage {
 };
 
 #define LOG_MESSAGE_STREAM_COMPACT_IMPL(severity) \
-    ::android::base::LogMessage(__FILE__, __LINE__, severity).stream()
+    ::gfxstream::base::LogMessage(__FILE__, __LINE__, severity).stream()
 
 #define QLOG_MESSAGE_STREAM_COMPACT_IMPL(severity) \
-    ::android::base::LogMessage(__FILE__, __LINE__, severity, true).stream()
+    ::gfxstream::base::LogMessage(__FILE__, __LINE__, severity, true).stream()
 
 // A variant of LogMessage that saves the errno value on creation,
 // then restores it on destruction, as well as append a strerror()
@@ -431,7 +431,7 @@ class LOGGING_API ErrnoLogMessage {
 };
 
 #define PLOG_MESSAGE_STREAM_COMPACT_IMPL(severity) \
-    ::android::base::ErrnoLogMessage(__FILE__, __LINE__, severity, errno).stream()
+    ::gfxstream::base::ErrnoLogMessage(__FILE__, __LINE__, severity, errno).stream()
 
 namespace testing {
 

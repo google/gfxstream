@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/memory/MemoryTracker.h"
+#include "gfxstream/memory/MemoryTracker.h"
 
 #define AEMU_TCMALLOC_ENABLED 0
 
@@ -34,7 +34,7 @@
 
 #define E(fmt, ...) fprintf(stderr, "%s: " fmt "\n", __func__, ##__VA_ARGS__);
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 struct FuncRange {
@@ -66,7 +66,7 @@ public:
          * is invoked by MEM_TRACE_IF using std::call_once().
          * This approach to reduce unnecessary checks and potential
          * race conditions. The typical backtrace looks like:
-         * 10c121b2c (android::base::MemoryTracker::addToGroup()
+         * 10c121b2c (gfxstream::base::MemoryTracker::addToGroup()
          * 10c0cebb6 (void
          * std::__1::__call_once_proxy<std::__1::tuple<>>(void*)) 7fff4e9f336e
          * (std::__1::__call_once(unsigned long volatile&, void*, void

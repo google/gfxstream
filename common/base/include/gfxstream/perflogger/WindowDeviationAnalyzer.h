@@ -13,19 +13,19 @@
 // limitations under the License.
 #pragma once
 
-#include "aemu/base/perflogger/Analyzer.h"
+#include "gfxstream/perflogger/Analyzer.h"
 
 #include <vector>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 class JsonWriter;
 
 } // namespace base
-} // namespace android
+} // namespace gfxstream
 
-namespace android {
+namespace gfxstream {
 namespace perflogger {
 
 class WindowDeviationAnalyzer : public Analyzer {
@@ -63,4 +63,4 @@ private:
 };
 
 } // namespace perflogger
-} // namespace android
+} // namespace gfxstream

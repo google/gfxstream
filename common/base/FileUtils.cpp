@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/misc/FileUtils.h"
-#include "aemu/base/EintrWrapper.h"
+#include "gfxstream/misc/FileUtils.h"
+#include "gfxstream/EintrWrapper.h"
 
 #include <assert.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include "aemu/base/msvc.h"
+#include "gfxstream/msvc.h"
 #ifdef _MSC_VER
-//#include "aemu/base/msvc.h"
+//#include "gfxstream/msvc.h"
 #else
 #include <unistd.h>
 #endif
@@ -35,7 +35,7 @@
 #include <string>
 #include <utility>
 
-namespace android {
+namespace gfxstream {
 
 bool readFileIntoString(int fd, std::string* file_contents) {
 #ifdef _MSC_VER

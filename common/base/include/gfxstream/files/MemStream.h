@@ -14,12 +14,12 @@
 
 #pragma once
 
-#include "aemu/base/CppMacros.h"
-#include "aemu/base/files/Stream.h"
+#include "gfxstream/CppMacros.h"
+#include "gfxstream/files/Stream.h"
 
 #include <vector>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // An implementation of the Stream interface on top of a vector.
@@ -62,4 +62,4 @@ private:
 };
 
 }  // namespace base
-}  // namespace android
+}  // namespace gfxstream

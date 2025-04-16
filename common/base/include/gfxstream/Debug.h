@@ -33,7 +33,7 @@
 #define ANDROID_IF_DEBUG(x) x
 #endif  // !NDEBUG
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Checks if the current process has a debugger attached.

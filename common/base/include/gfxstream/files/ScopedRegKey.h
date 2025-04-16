@@ -18,13 +18,13 @@
 #error "Only compile this file when targetting Windows!"
 #endif
 
-#include "aemu/base/Compiler.h"
+#include "gfxstream/Compiler.h"
 #include <algorithm>
 
 #define WIN32_LEAN_AND_MEAN 1
 #include <windows.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Helper class used to wrap a Win32 HKEY that will be closed when

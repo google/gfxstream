@@ -18,7 +18,7 @@
 #include <utility>     // for move
 #include <vector>      // for vector
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // An EventNotificationSupport class can be used to add simple notification

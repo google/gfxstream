@@ -15,7 +15,7 @@
 
 #include <cstdint>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Get memory statistics
@@ -37,4 +37,4 @@ enum class DiskKind {
 };
 
 } // namespace base
-} // namespace android
+} // namespace gfxstream

@@ -23,12 +23,12 @@
 
 #include <stdint.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Very basic platform thread wrapper that only uses a tiny stack.
 // This shall only be used during unit testing, and allows test code
-// to not depend on the implementation of android::base::Thread.
+// to not depend on the implementation of gfxstream::base::Thread.
 class TestThread {
 public:
     // Main thread function type.

@@ -1,3 +1,4 @@
+add_subdirectory(base)
 add_subdirectory(detector)
 add_subdirectory(etc)
 add_subdirectory(image)

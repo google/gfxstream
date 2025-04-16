@@ -16,14 +16,14 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 
-#include "aemu/base/EintrWrapper.h"
-#include "aemu/base/memory/SharedMemory.h"
-#include "aemu/base/files/PathUtils.h"
+#include "gfxstream/EintrWrapper.h"
+#include "gfxstream/memory/SharedMemory.h"
+#include "gfxstream/files/PathUtils.h"
 #ifndef _MSC_VER
 #include <unistd.h>
 #endif
 
-namespace android {
+namespace gfxstream {
 namespace base {
 namespace {
 

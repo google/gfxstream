@@ -13,15 +13,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/Metrics.h"
+#include "gfxstream/Metrics.h"
 
 #include <memory>
 #include <sstream>
 #include <variant>
 
-#include "host-common/logging.h"
+#include "gfxstream/host/logging.h"
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // These correspond to events defined in
@@ -54,22 +54,24 @@ void (*MetricsLogger::add_vulkan_out_of_memory_event)(int64_t result_code, uint3
 void (*MetricsLogger::set_crash_annotation_callback)(const char* key, const char* value) = nullptr;
 
 void logEventHangMetadata(const EventHangMetadata* metadata) {
-    ERR("Metadata:");
-    ERR("\t file: %s", metadata->file);
-    ERR("\t function: %s", metadata->function);
-    ERR("\t line: %d", metadata->line);
-    ERR("\t msg: %s", metadata->msg);
-    ERR("\t thread: %d (0x%08x)", metadata->threadId, metadata->threadId);
+    GFXSTREAM_ERROR("Metadata:");
+    GFXSTREAM_ERROR("\t file: %s", metadata->file);
+    GFXSTREAM_ERROR("\t function: %s", metadata->function);
+    GFXSTREAM_ERROR("\t line: %d", metadata->line);
+    GFXSTREAM_ERROR("\t msg: %s", metadata->msg);
+    GFXSTREAM_ERROR("\t thread: %d (0x%08x)", metadata->threadId, metadata->threadId);
     if (metadata->data) {
-        ERR("\t Additional information:");
+        GFXSTREAM_ERROR("\t Additional information:");
         for (auto& [key, value] : *metadata->data) {
-            ERR("\t \t %s: %s", key.c_str(), value.c_str());
+            GFXSTREAM_ERROR("\t \t %s: %s", key.c_str(), value.c_str());
         }
     }
 }
 
 struct MetricTypeVisitor {
-    void operator()(const std::monostate /*_*/) const { ERR("MetricEventType not initialized"); }
+    void operator()(const std::monostate /*_*/) const {
+        GFXSTREAM_ERROR("MetricEventType not initialized");
+    }
 
     void operator()(const MetricEventFreeze freezeEvent) const {
         if (MetricsLogger::add_instant_event_callback) {
@@ -110,7 +112,7 @@ struct MetricTypeVisitor {
             }
         }
 
-        ERR("Logging hang event. Number of tasks already hung: %d", hangEvent.otherHungTasks);
+        GFXSTREAM_ERROR("Logging hang event. Number of tasks already hung: %d", hangEvent.otherHungTasks);
         logEventHangMetadata(hangEvent.metadata);
         if (MetricsLogger::add_instant_event_with_metric_callback &&
             hangEvent.otherHungTasks <= kHangDepthMetricLimit) {
@@ -150,7 +152,7 @@ struct MetricTypeVisitor {
     }
 
     void operator()(const MetricEventUnHang unHangEvent) const {
-        ERR("Logging unhang event. Hang time: %d ms", unHangEvent.hung_ms);
+        GFXSTREAM_ERROR("Logging unhang event. Hang time: %d ms", unHangEvent.hung_ms);
         logEventHangMetadata(unHangEvent.metadata);
         if (MetricsLogger::add_instant_event_with_metric_callback &&
             unHangEvent.otherHungTasks <= kHangDepthMetricLimit) {

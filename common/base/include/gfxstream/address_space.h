@@ -13,7 +13,7 @@
 // limitations under the License.
 #pragma once
 
-#include "aemu/base/c_header.h"
+#include "gfxstream/c_header.h"
 #include <assert.h>
 #include <errno.h>
 #include <inttypes.h>

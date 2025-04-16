@@ -26,9 +26,9 @@
 #include <limits>
 #include <string>
 
-using android::base::ScopedFd;
+using gfxstream::base::ScopedFd;
 
-namespace android {
+namespace gfxstream {
 
 TEST(FileUtils, stringToFile) {
     const char test_pattern[] = "test pattern";

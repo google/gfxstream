@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "aemu/base/Compiler.h"
+#include "gfxstream/Compiler.h"
 
 #include <functional>
 
@@ -23,7 +23,7 @@
 // Convenience class ContiguousRangeMapper which makes it easier to collect
 // contiguous ranges and run some function over the coalesced range.
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 class ContiguousRangeMapper {

@@ -17,7 +17,7 @@
 #ifdef _MSC_VER
 #include <windows.h>
 
-#include "aemu/base/msvc.h"
+#include "gfxstream/msvc.h"
 #else
 #include <windows.h>
 #endif  // _MSC_VER
@@ -28,7 +28,7 @@
 #include <string>
 #include <utility>
 
-namespace android {
+namespace gfxstream {
 
 namespace base {
 

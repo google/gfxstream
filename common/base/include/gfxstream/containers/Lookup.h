@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "aemu/base/TypeTraits.h"
+#include "gfxstream/TypeTraits.h"
 
 #include <initializer_list>
 #include <set>
@@ -35,7 +35,7 @@
 // Note: these don't work for multimaps, as there's no single value
 //  to return (and, more importantly, as those are completely useless).
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Helper predicates that check if the template argument is a map / set /

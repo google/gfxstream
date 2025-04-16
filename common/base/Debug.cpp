@@ -9,13 +9,13 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
-#include "aemu/base/Debug.h"
+#include "gfxstream/Debug.h"
 
 #include <chrono>
 #include <thread>
 
-#include "aemu/base/ArraySize.h"
-#include "aemu/base/files/PathUtils.h"
+#include "gfxstream/ArraySize.h"
+#include "gfxstream/files/PathUtils.h"
 #ifdef _WIN32
 #include <windows.h>
 #elif defined(__linux__)
@@ -31,7 +31,7 @@
 #endif
 #endif
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 #ifdef __linux__

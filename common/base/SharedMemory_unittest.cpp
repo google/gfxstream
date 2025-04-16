@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/memory/SharedMemory.h"
+#include "gfxstream/memory/SharedMemory.h"
 
 #include <gtest/gtest.h>
 
 #include <type_traits>
 #include <utility>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 TEST(SharedMemory, ShareVisibileWithinSameProc) {
@@ -52,9 +52,9 @@ TEST(SharedMemory, ShareVisibileWithinSameProc) {
 
 // TODO: Provide support for TestSystem.
 // TEST(SharedMemory, ShareFileBackedVisibileWithinSameProc) {
-//     android::base::TestSystem ts("/home", 64);
+//     gfxstream::base::TestSystem ts("/home", 64);
 //     // Note the unicode character in the filename below!!
-//     std::string unique_name = android::base::PathUtils::join(
+//     std::string unique_name = gfxstream::base::PathUtils::join(
 //             ts.getTempRoot()->path(), "shāred.mem");
 //     const mode_t user_read_only = 0600;
 //     std::string message = "Hello World!";
@@ -86,9 +86,9 @@ TEST(SharedMemory, ShareVisibileWithinSameProc) {
 // TEST(SharedMemory, ShareFileCanReadAfterDelete) {
 //     // Make sure you can still read the memory, even if the server has marked
 //     // the file for deletion.
-//     android::base::TestSystem ts("/home", 64);
+//     gfxstream::base::TestSystem ts("/home", 64);
 //     // Note the unicode character in the filename below!!
-//     std::string unique_name = android::base::PathUtils::join(
+//     std::string unique_name = gfxstream::base::PathUtils::join(
 //             ts.getTempRoot()->path(), "shāred.mem");
 //     const mode_t user_read_only = 0600;
 //     std::string message = "Hello World!";
@@ -112,8 +112,8 @@ TEST(SharedMemory, ShareVisibileWithinSameProc) {
 
 // TEST(SharedMemory, ShareFileDoesCleanedUp) {
 //     // Make sure that the file gets removed after the server closes down.
-//     android::base::TestSystem ts("/home", 64);
-//     std::string unique_name = android::base::PathUtils::join(
+//     gfxstream::base::TestSystem ts("/home", 64);
+//     std::string unique_name = gfxstream::base::PathUtils::join(
 //             ts.getTempRoot()->path(), "shared.mem");
 //     const mode_t user_read_only = 0600;
 //     std::string message = "Hello World!";
@@ -142,8 +142,8 @@ TEST(SharedMemory, ShareVisibileWithinSameProc) {
 //     // kern.sysv.shmall: 1024
 // 
 //     const int FourK = 3840 * 2160 * 4; // 4k resolution with 4 bytes per pixel.
-//     android::base::TestSystem ts("/home", FourK);
-//     std::string unique_name = android::base::PathUtils::join(
+//     gfxstream::base::TestSystem ts("/home", FourK);
+//     std::string unique_name = gfxstream::base::PathUtils::join(
 //             ts.getTempRoot()->path(), "shared.mem");
 //     const mode_t user_read_only = 0600;
 //     std::string message = "Hello World!";

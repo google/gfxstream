@@ -14,11 +14,11 @@
 
 #include <gtest/gtest.h>
 
-#include "aemu/base/threads/WorkerThread.h"
+#include "gfxstream/threads/WorkerThread.h"
 
 #include <chrono>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 namespace {
 TEST(WorkerThread, TheReturnedFutureFromEnqueueShouldBeReadyWhenTheWorkerStops) {

@@ -17,7 +17,7 @@
 #include <istream>   // for streambuf, istream, ostream, basic_streambuf<>::...
 #include <memory>    // for unique_ptr
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // An input stream buffer that inflates/decompresses a gzip stream.

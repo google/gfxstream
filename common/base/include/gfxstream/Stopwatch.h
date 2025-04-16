@@ -14,11 +14,11 @@
 
 #pragma once
 
-#include "aemu/base/Compiler.h"
+#include "gfxstream/Compiler.h"
 #include "android/utils/debug.h"
 #include <stdio.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 class Stopwatch final {

@@ -19,10 +19,10 @@
 #include <vector>
 #include <iostream>
 
-#include "aemu/base/Compiler.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/Compiler.h"
+#include "gfxstream/synchronization/Lock.h"
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 enum class GraphicsObjectType : int {

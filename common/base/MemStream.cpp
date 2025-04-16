@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/files/MemStream.h"
+#include "gfxstream/files/MemStream.h"
 
-#include "aemu/base/files/StreamSerializing.h"
+#include "gfxstream/files/StreamSerializing.h"
 
 #include <algorithm>
 #include <utility>
 
 #include <string.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 MemStream::MemStream(int reserveSize) {

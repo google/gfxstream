@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/Log.h"
-#include "aemu/base/sockets/ScopedSocket.h"
-#include "aemu/base/sockets/SocketUtils.h"
+#include "gfxstream/Log.h"
+#include "gfxstream/sockets/ScopedSocket.h"
+#include "gfxstream/sockets/SocketUtils.h"
 
-#include "aemu/base/threads/Thread.h"
+#include "gfxstream/threads/Thread.h"
 
 #include <string>
 #include <string_view>
@@ -27,7 +27,7 @@
 #undef ERROR
 #endif
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Simple server thread that receives data and stores it in a buffer.
@@ -47,19 +47,19 @@ namespace base {
 //
 // 4) Use view() to retrieve a view of the content.
 //
-class TestInputBufferSocketServerThread : public android::base::Thread {
+class TestInputBufferSocketServerThread : public gfxstream::base::Thread {
 public:
     // Create new thread instance, try to bound to specific TCP |port|,
     // a value of 0 let the system choose a free IPv4 port, which can
     // later be retrieved with port().
     TestInputBufferSocketServerThread(int port = 0)
-        : Thread(), mSocket(android::base::socketTcp4LoopbackServer(port)) {}
+        : Thread(), mSocket(gfxstream::base::socketTcp4LoopbackServer(port)) {}
 
     // Returns true if port could be bound.
     bool valid() const { return mSocket.valid(); }
 
     // Return bound server port.
-    int port() const { return android::base::socketGetPort(mSocket.get()); }
+    int port() const { return gfxstream::base::socketGetPort(mSocket.get()); }
 
     // Return buffer content as a std::string_view.
     std::string_view view() const { return mString; }
@@ -67,7 +67,7 @@ public:
     // Main function simply receives everything and stores it in a string.
     virtual intptr_t main() override {
         // Wait for a single connection.
-        int fd = android::base::socketAcceptAny(mSocket.get());
+        int fd = gfxstream::base::socketAcceptAny(mSocket.get());
         if (fd < 0) {
             LOG(ERROR) << "Could not accept one connection!";
             return -1;
@@ -82,13 +82,13 @@ public:
                 capacity = mString.size();
             }
             size_t avail = capacity - size;
-            ssize_t len = android::base::socketRecv(fd, &mString[size], avail);
+            ssize_t len = gfxstream::base::socketRecv(fd, &mString[size], avail);
             if (len <= 0) {
                 break;
             }
             size += len;
         }
-        android::base::socketClose(fd);
+        gfxstream::base::socketClose(fd);
 
         mString.resize(size);
         return static_cast<intptr_t>(size);

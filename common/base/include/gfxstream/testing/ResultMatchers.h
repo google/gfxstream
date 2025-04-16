@@ -13,12 +13,12 @@
 // limitations under the License.
 #pragma once
 
-#include "aemu/base/Result.h"
+#include "gfxstream/Result.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 template <typename T,

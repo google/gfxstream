@@ -29,7 +29,7 @@
 #include <array>
 #include <stddef.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 template <class T, size_t N>
@@ -51,7 +51,7 @@ static constexpr size_t stringLiteralLength(const char (&str)[N]) {
 }  // namespace android
 
 // for those who like macros, define it to be a simple function call
-#define ARRAY_SIZE(arr) (::android::base::arraySize(arr))
-#define STRING_LITERAL_LENGTH(str) (::android::base::stringLiteralLength(str))
+#define ARRAY_SIZE(arr) (::gfxstream::base::arraySize(arr))
+#define STRING_LITERAL_LENGTH(str) (::gfxstream::base::stringLiteralLength(str))
 
 #endif  // __cplusplus

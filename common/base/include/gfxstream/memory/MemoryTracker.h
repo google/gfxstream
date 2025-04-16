@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "aemu/base/Compiler.h"
+#include "gfxstream/Compiler.h"
 
 #include <atomic>
 #include <memory>
@@ -35,7 +35,7 @@ function is used in this malloc/free operation. Once hit, it will record
 stats for total allocation and live memory for each individual function.
 
 */
-namespace android {
+namespace gfxstream {
 namespace base {
 
 class MemoryTracker {

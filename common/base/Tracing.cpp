@@ -12,7 +12,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include "aemu/base/Tracing.h"
+#include "gfxstream/Tracing.h"
 
 #ifdef USE_PERFETTO_TRACING
 #include "perfetto-tracing-only.h"
@@ -23,7 +23,7 @@
 
 #include <fcntl.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 const bool* tracingDisabledPtr = nullptr;
@@ -108,4 +108,4 @@ void setGuestTime(uint64_t t) {
 }
 
 } // namespace base
-} // namespace android
+} // namespace gfxstream

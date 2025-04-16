@@ -14,14 +14,14 @@
 
 #pragma once
 
-#include "aemu/base/Compiler.h"
+#include "gfxstream/Compiler.h"
 
-#include "aemu/base/network/IpAddress.h"
+#include "gfxstream/network/IpAddress.h"
 
 #include <string_view>
 #include <vector>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // A convenience class to wrap the system's DNS resolver.

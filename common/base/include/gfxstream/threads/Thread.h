@@ -14,9 +14,9 @@
 
 #pragma once
 
-#include "aemu/base/Compiler.h"
-#include "aemu/base/threads/Types.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/Compiler.h"
+#include "gfxstream/threads/Types.h"
+#include "gfxstream/synchronization/Lock.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -28,7 +28,7 @@
 #include <optional>
 #include <string>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Wrapper class for platform-specific threads.

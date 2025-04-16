@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/LayoutResolver.h"
+#include "gfxstream/LayoutResolver.h"
 
 #include <gtest/gtest.h>
 
-#include "aemu/base/ArraySize.h"
+#include "gfxstream/ArraySize.h"
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 typedef struct testDisplayInput {

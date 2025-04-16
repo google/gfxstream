@@ -14,14 +14,14 @@
 
 #pragma once
 
-#include "aemu/base/Optional.h"
-#include "aemu/base/synchronization/ConditionVariable.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/Optional.h"
+#include "gfxstream/synchronization/ConditionVariable.h"
+#include "gfxstream/synchronization/Lock.h"
 
 #include <utility>
 #include <stddef.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Base non-templated class used to reduce the amount of template

@@ -4,15 +4,15 @@
  */
 #pragma once
 
-#include "aemu/base/AlignedBuf.h"
-#include "aemu/base/Allocator.h"
+#include "gfxstream/AlignedBuf.h"
+#include "gfxstream/Allocator.h"
 
 #include <vector>
 #include <unordered_set>
 
 #include <inttypes.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Class to make it easier to set up memory regions where it is fast
@@ -67,4 +67,4 @@ private:
 };
 
 } // namespace base
-} // namespace android
+} // namespace gfxstream

@@ -8,7 +8,7 @@
 #include <stddef.h>
 #include <string.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // A generic memory allocator interface which could be used to allocate

@@ -14,11 +14,11 @@
 
 #pragma once
 
-#include "aemu/base/async/Looper.h"
+#include "gfxstream/async/Looper.h"
 
 #include <memory>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // ScopedSocketWatch is a convenience class that implements a scoped
@@ -27,7 +27,7 @@ namespace base {
 
 // Custom deleter from std::unique_ptr
 struct SocketWatchDeleter {
-    void operator()(android::base::Looper::FdWatch* watch) const;
+    void operator()(gfxstream::base::Looper::FdWatch* watch) const;
 };
 
 using ScopedSocketWatch = std::unique_ptr<Looper::FdWatch, SocketWatchDeleter>;

@@ -22,9 +22,9 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "aemu/base/async/Looper.h"
+#include "gfxstream/async/Looper.h"
 
-namespace android {
+namespace gfxstream {
 namespace base {
 class SocketWaiter;
 class Stream;

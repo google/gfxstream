@@ -21,9 +21,9 @@
 #include <string_view>
 #include <vector>                     // for vector
 
-#include "aemu/base/FunctionView.h"  // for FunctionView
+#include "gfxstream/FunctionView.h"  // for FunctionView
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 struct ProcessLaunchParameters {
@@ -63,4 +63,4 @@ void registerEmulatorQuitCallback(FunctionView<void()> func);
 void restartEmulator();
 
 } // namespace base
-} // namespace android
+} // namespace gfxstream

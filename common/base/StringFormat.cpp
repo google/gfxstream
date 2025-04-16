@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/StringFormat.h"
+#include "gfxstream/StringFormat.h"
 
 #include <stdio.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 std::string StringFormatRaw(const char* format, ...) {

@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/LayoutResolver.h"
+#include "gfxstream/LayoutResolver.h"
 
 #include <algorithm>
 #include <cmath>
 #include <stdint.h>
 #include <vector>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 /*

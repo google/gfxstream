@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "aemu/base/TypeTraits.h"
+#include "gfxstream/TypeTraits.h"
 
 #if __has_include("host-common/logging.h")
 #include "host-common/logging.h"
@@ -104,7 +104,7 @@
 //  - Comparison operators are provided. Beware: an empty Optional<Foo>
 //    is always smaller than any Foo value.
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 namespace details {

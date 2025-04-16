@@ -13,17 +13,17 @@
 // limitations under the License.
 #pragma once
 
-#include "aemu/base/Compiler.h"
+#include "gfxstream/Compiler.h"
 
-#include "aemu/base/files/PathUtils.h"
-#include "aemu/base/system/Memory.h"
+#include "gfxstream/files/PathUtils.h"
+#include "gfxstream/system/Memory.h"
 #include "android/utils/debug.h"
 
 #include <functional>
 #include <string>
 #include <string_view>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 class MemoryProfiler {

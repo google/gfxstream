@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/threads/internal/ParallelTaskBase.h"
+#include "gfxstream/threads/internal/ParallelTaskBase.h"
 
-namespace android {
+namespace gfxstream {
 namespace base {
 namespace internal {
 

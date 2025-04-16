@@ -14,9 +14,9 @@
 
 #pragma once
 
-#include "aemu/base/Compiler.h"
-#include "aemu/base/StringFormat.h"
-#include "aemu/base/files/PathUtils.h"
+#include "gfxstream/Compiler.h"
+#include "gfxstream/StringFormat.h"
+#include "gfxstream/files/PathUtils.h"
 
 #include "file_io.h"
 
@@ -43,7 +43,7 @@
 #include <rpc.h>
 #endif
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // A class used to model a temporary directory used during testing.

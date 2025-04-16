@@ -18,9 +18,9 @@
 
 #include <vector>
 
-using android::base::ContiguousRangeMapper;
+using gfxstream::base::ContiguousRangeMapper;
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 TEST(ContiguousRangeMapper, Basic) {

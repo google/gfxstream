@@ -20,7 +20,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "aemu/base/logging/LogSeverity.h"
+#include "gfxstream/logging/LogSeverity.h"
 
 #ifdef _MSC_VER
 #ifdef LOGGING_API_SHARED

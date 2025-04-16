@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "aemu/base/Compiler.h"
+#include "gfxstream/Compiler.h"
 
 #include <functional>
 #include <list>
@@ -22,7 +22,7 @@
 
 #include <assert.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Any object that intends to notify certain subscribers on the event loop can

@@ -1,8 +1,8 @@
-#include "aemu/base/CpuTime.h"
+#include "gfxstream/CpuTime.h"
 
 #include <string>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 std::string getEnvironmentVariable(const std::string& key);
@@ -30,4 +30,4 @@ bool queryFileVersionInfo(const char* filename, int* major, int* minor, int* bui
 int getCpuCoreCount();
 
 } // namespace base
-} // namespace android
+} // namespace gfxstream

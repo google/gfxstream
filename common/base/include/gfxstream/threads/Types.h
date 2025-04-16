@@ -14,12 +14,12 @@
 
 #pragma once
 
-#include "aemu/base/EnumFlags.h"
+#include "gfxstream/EnumFlags.h"
 
 #include <functional>
 #include <stdint.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // a functor which can run in a separate thread

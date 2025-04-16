@@ -17,7 +17,7 @@
 #include <list>
 #include <unordered_map>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 template <typename Key, typename Value>

@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "aemu/base/TypeTraits.h"
+#include "gfxstream/TypeTraits.h"
 
 #include <algorithm>
 #include <initializer_list>
@@ -48,7 +48,7 @@
 // but fill free to add the ones you need.
 //
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 //

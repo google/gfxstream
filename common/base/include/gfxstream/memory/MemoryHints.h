@@ -16,9 +16,9 @@
 
 #include <inttypes.h>  // for uint64_t
 
-#include "aemu/base/Compiler.h"
+#include "gfxstream/Compiler.h"
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // cross-platform interface for madvise
@@ -42,4 +42,4 @@ bool memoryHint(void* start, uint64_t length, MemoryHint hint);
 bool zeroOutMemory(void* start, uint64_t length);
 
 } // namespace base
-} // namespace android
+} // namespace gfxstream

@@ -14,12 +14,12 @@
 
 #pragma once
 
-#include "aemu/base/Optional.h"
+#include "gfxstream/Optional.h"
 
 #ifdef ABSL_LOG_CHECK_H_
 #define CHECK DCHECK
 #else
-#include "aemu/base/logging/Log.h"
+#include "gfxstream/logging/Log.h"
 #endif
 
 // Result<T, E> - a template class to store either a result or error, inspired
@@ -56,11 +56,11 @@
     do {                                                       \
         auto&& __result = __VA_ARGS__;                         \
         if (__result.err()) {                                  \
-            return ::android::base::Err(__result.unwrapErr()); \
+            return ::gfxstream::base::Err(__result.unwrapErr()); \
         }                                                      \
     } while (false)
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 namespace detail {

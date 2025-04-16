@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/logging/CLog.h"
+#include "gfxstream/logging/CLog.h"
 
 
 #include <stdio.h>                              // for size_t, fflush, vsnpr...

@@ -14,11 +14,11 @@
 
 #pragma once
 
-#include "aemu/base/sockets/SocketUtils.h"
+#include "gfxstream/sockets/SocketUtils.h"
 
 #include <utility>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 class ScopedSocket {

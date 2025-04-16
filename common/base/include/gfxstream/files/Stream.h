@@ -5,14 +5,14 @@
 
 #pragma once
 
-#include "aemu/base/msvc.h"
+#include "gfxstream/msvc.h"
 
 #include <string>
 
 #include <inttypes.h>
 #include <sys/types.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Abstract interface to byte streams of all kind.
@@ -110,4 +110,4 @@ public:
 };
 
 }  // namespace base
-}  // namespace android
+}  // namespace gfxstream

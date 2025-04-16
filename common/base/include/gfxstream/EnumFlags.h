@@ -26,9 +26,9 @@
 // namespace other than android, android::base or global. In that case you also
 // need to add the following using to bring in the operators:
 //
-// using namespace ::android::base::EnumFlags;
+// using namespace ::gfxstream::base::EnumFlags;
 
-namespace android {
+namespace gfxstream {
 namespace base {
 namespace EnumFlags {
 
@@ -108,13 +108,13 @@ enable_if_scoped_enum<E, bool> nonzero(E e) {
 
 // For the ADL to kick in let's make sure we bring all the operators into our
 // main AndroidEmu namespaces...
-using namespace ::android::base::EnumFlags;
+using namespace ::gfxstream::base::EnumFlags;
 
 }  // namespace base
 
-using namespace ::android::base::EnumFlags;
+using namespace ::gfxstream::base::EnumFlags;
 
 }  // namespace android
 
 // ... and into the global one, where most of the client functions are
-using namespace ::android::base::EnumFlags;
+using namespace ::gfxstream::base::EnumFlags;

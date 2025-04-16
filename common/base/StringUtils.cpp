@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/misc/StringUtils.h"
+#include "gfxstream/misc/StringUtils.h"
 
 #include <stdlib.h>
 #include <string.h>
 
 #ifdef _MSC_VER
-#include "aemu/base/msvc.h"
+#include "gfxstream/msvc.h"
 #endif
 
 #include <algorithm>
@@ -45,7 +45,7 @@ const void* memmem(const void* haystack, size_t haystackLen,
 }
 #endif  // _WIN32
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 char* strDup(std::string_view view) {

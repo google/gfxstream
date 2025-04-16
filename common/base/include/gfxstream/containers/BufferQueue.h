@@ -13,11 +13,11 @@
 // limitations under the License.
 #pragma once
 
-#include "aemu/base/Compiler.h"
-#include "aemu/base/files/Stream.h"
-#include "aemu/base/files/StreamSerializing.h"
-#include "aemu/base/synchronization/ConditionVariable.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/Compiler.h"
+#include "gfxstream/files/Stream.h"
+#include "gfxstream/files/StreamSerializing.h"
+#include "gfxstream/synchronization/ConditionVariable.h"
+#include "gfxstream/synchronization/Lock.h"
 
 #include <iterator>
 #include <vector>
@@ -26,7 +26,7 @@
 #include <assert.h>
 #include <stddef.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Values corresponding to the result of BufferQueue operations.
@@ -51,9 +51,9 @@ enum class BufferQueueResult {
 // are protected by a single lock.
 template <class T>
 class BufferQueue {
-    using ConditionVariable = android::base::ConditionVariable;
-    using Lock = android::base::Lock;
-    using AutoLock = android::base::AutoLock;
+    using ConditionVariable = gfxstream::base::ConditionVariable;
+    using Lock = gfxstream::base::Lock;
+    using AutoLock = gfxstream::base::AutoLock;
 
 public:
     using value_type = T;
@@ -61,7 +61,7 @@ public:
     // Constructor. |capacity| is the maximum number of T instances in
     // the queue, and |lock| is a reference to an external lock provided by
     // the caller.
-    BufferQueue(int capacity, android::base::Lock& lock)
+    BufferQueue(int capacity, gfxstream::base::Lock& lock)
         : mBuffers(capacity), mLock(lock) {}
 
     // Return true iff one can send a buffer to the queue, i.e. if it
@@ -205,18 +205,18 @@ public:
     }
 
     // Save to a snapshot file
-    void onSaveLocked(android::base::Stream* stream) {
+    void onSaveLocked(gfxstream::base::Stream* stream) {
         stream->putByte(mClosed);
         if (!mClosed) {
             stream->putBe32(mCount);
             for (int i = 0; i < mCount; i++) {
-                android::base::saveBuffer(
+                gfxstream::base::saveBuffer(
                         stream, mBuffers[(i + mPos) % mBuffers.size()]);
             }
         }
     }
 
-    bool onLoadLocked(android::base::Stream* stream) {
+    bool onLoadLocked(gfxstream::base::Stream* stream) {
         mClosed = stream->getByte();
         if (!mClosed) {
             mCount = stream->getBe32();
@@ -225,7 +225,7 @@ public:
             }
             mPos = 0;
             for (int i = 0; i < mCount; i++) {
-                if (!android::base::loadBuffer(stream, &mBuffers[i])) {
+                if (!gfxstream::base::loadBuffer(stream, &mBuffers[i])) {
                     return false;
                 }
             }

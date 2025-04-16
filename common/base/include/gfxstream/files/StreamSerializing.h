@@ -14,15 +14,15 @@
 
 #pragma once
 
-#include "aemu/base/files/MemStream.h"
-#include "aemu/base/containers/SmallVector.h"
-#include "aemu/base/files/Stream.h"
-#include "aemu/base/TypeTraits.h"
+#include "gfxstream/files/MemStream.h"
+#include "gfxstream/containers/SmallVector.h"
+#include "gfxstream/files/Stream.h"
+#include "gfxstream/TypeTraits.h"
 
 #include <string>
 #include <vector>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 //

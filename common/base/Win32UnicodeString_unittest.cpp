@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/system/Win32UnicodeString.h"
+#include "gfxstream/system/Win32UnicodeString.h"
 
 #include <gtest/gtest.h>
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 TEST(Win32UnicodeString, DefaultConstructor) {

@@ -18,7 +18,7 @@
 // nothing's here for Posix
 #else  // _WIN32
 
-#include "aemu/base/Optional.h"
+#include "gfxstream/Optional.h"
 
 #include <memory>
 #include <windows.h>
@@ -40,7 +40,7 @@ typedef enum {
     SVC_PAUSED = SERVICE_PAUSED,
 } ServiceStatus;
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // This class holds various utility functions for Windows host systems.

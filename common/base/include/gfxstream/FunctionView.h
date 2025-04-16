@@ -18,10 +18,10 @@
 #include <string_view>
 #include <utility>
 
-#include "aemu/base/TypeTraits.h"
+#include "gfxstream/TypeTraits.h"
 
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 //
@@ -90,7 +90,7 @@ public:
     FunctionView() : mTypeErasedFunction() {}
 
     template <class Callable,
-              class = android::base::enable_if_c<
+              class = gfxstream::base::enable_if_c<
                       is_callable_as<Callable, Ret(Args...)>::value &&
                       !std::is_same<FunctionView,
                                     typename std::remove_reference<

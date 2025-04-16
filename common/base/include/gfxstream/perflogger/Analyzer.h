@@ -13,15 +13,15 @@
 // limitations under the License.
 #pragma once
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 class JsonWriter;
 
 } // namespace base
-} // namespace android
+} // namespace gfxstream
 
-namespace android {
+namespace gfxstream {
 namespace perflogger {
 
 class Analyzer {
@@ -43,4 +43,4 @@ public:
 };
 
 } // namespace perflogger
-} // namespace android
+} // namespace gfxstream

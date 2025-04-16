@@ -14,9 +14,9 @@
 
 #pragma once
 
-#include "aemu/base/async/Looper.h"
+#include "gfxstream/async/Looper.h"
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Convenience class used to implement per-thread Looper instances.

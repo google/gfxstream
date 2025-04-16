@@ -14,7 +14,7 @@
 
 #include <io.h>
 
-#include "aemu/base/msvc.h"
+#include "gfxstream/msvc.h"
 
 #include <stdarg.h>
 #include <stdio.h>

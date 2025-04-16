@@ -15,10 +15,10 @@
 #include "android/base/StringParse.h"
 
 #include "android/base/threads/FunctorThread.h"
-#include "aemu/base/testing/Utils.h"
+#include "gfxstream/testing/Utils.h"
 #include <gtest/gtest.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 static void testScanf() {

@@ -26,15 +26,15 @@
 #include <string>
 #include <vector>
 
-#include "aemu/base/streams/RingStreambuf.h"
-#include "aemu/base/ThreadAnnotations.h"
+#include "gfxstream/streams/RingStreambuf.h"
+#include "gfxstream/ThreadAnnotations.h"
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 class Command;
 
-using android::base::streams::RingStreambuf;
+using gfxstream::base::streams::RingStreambuf;
 using CommandArguments = std::vector<std::string>;
 using Pid = int;
 using ProcessExitCode = int;

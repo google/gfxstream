@@ -17,7 +17,7 @@
 #include <memory>
 #include <functional>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 class Looper;

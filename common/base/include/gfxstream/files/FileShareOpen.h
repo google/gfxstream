@@ -16,7 +16,7 @@
 
 #include <cstdio>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 enum class FileShare {

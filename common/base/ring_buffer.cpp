@@ -2,12 +2,12 @@
  * Copyright 2018 Google
  * SPDX-License-Identifier: MIT
  */
-#include "aemu/base/ring_buffer.h"
+#include "gfxstream/ring_buffer.h"
 
 #include <errno.h>
 #include <string.h>
 #ifdef _MSC_VER
-#include "aemu/base/msvc.h"
+#include "gfxstream/msvc.h"
 #else
 #include <sys/time.h>
 #endif
@@ -26,6 +26,9 @@
 #define RING_BUFFER_MASK (RING_BUFFER_SIZE - 1)
 
 #define RING_BUFFER_VERSION 1
+
+namespace gfxstream {
+namespace base {
 
 void ring_buffer_init(struct ring_buffer* r) {
     r->host_version = 1;
@@ -669,3 +672,6 @@ void ring_buffer_consumer_wait_producer_idle(struct ring_buffer* r) {
 void ring_buffer_consumer_hung_up(struct ring_buffer* r) {
     __atomic_store_n(&r->state, RING_BUFFER_SYNC_CONSUMER_HUNG_UP, __ATOMIC_SEQ_CST);
 }
+
+}  // namespace base
+}  // namespace gfxstream

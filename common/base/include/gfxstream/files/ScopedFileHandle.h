@@ -18,12 +18,12 @@
 // nothing here
 #else  // _WIN32
 
-#include "aemu/base/Compiler.h"
+#include "gfxstream/Compiler.h"
 
 #define WIN32_LEAN_AND_MEAN 1
 #include <windows.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Helper class used to wrap a Win32  file HANDLE that will be closed when

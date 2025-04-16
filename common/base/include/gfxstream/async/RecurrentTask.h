@@ -17,9 +17,9 @@
 #include <memory>
 #include <mutex>
 
-#include "aemu/base/async/Looper.h"
+#include "gfxstream/async/Looper.h"
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 /**

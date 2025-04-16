@@ -16,10 +16,10 @@
 
 #include <errno.h>
 #ifndef dfatal
-#include "aemu/base/logging/CLog.h"
+#include "gfxstream/logging/CLog.h"
 #endif
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Set EINTR_WRAPPER_DEBUG to 1 to force the debug version of HANDLE_EINTR

@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "aemu/base/Compiler.h"
+#include "gfxstream/Compiler.h"
 
 #ifdef _WIN32
 #  define WIN32_LEAN_AND_MEAN 1
@@ -23,7 +23,7 @@
 #  include <pthread.h>
 #endif
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // A class to model storage of thread-specific values, that can be
@@ -116,7 +116,7 @@ private:
 
 // ThreadStore is a template class used to implement a thread-local store
 // of objects of type |T|. Note that the store owns the objects, and these
-// are destroyed when an android::base::Thread exits.
+// are destroyed when an gfxstream::base::Thread exits.
 template <typename T>
 class ThreadStore : public ThreadStoreBase {
 public:

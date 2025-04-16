@@ -37,7 +37,7 @@
 #endif
 // Library to perform tracing. Talks to platform-specific
 // tracing libraries.
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // New tracing API that talks to an underlying tracing library, possibly perfetto.
@@ -81,13 +81,13 @@ bool shouldEnableTracing();
 void traceCounter(const char* name, int64_t value);
 
 } // namespace base
-} // namespace android
+} // namespace gfxstream
 
 #define __AEMU_GENSYM2(x,y) x##y
 #define __AEMU_GENSYM1(x,y) __AEMU_GENSYM2(x,y)
 #define AEMU_GENSYM(x) __AEMU_GENSYM1(x,__COUNTER__)
 
-#define AEMU_SCOPED_TRACE(tag) __attribute__ ((unused)) android::base::ScopedTrace AEMU_GENSYM(aemuScopedTrace_)(tag)
+#define AEMU_SCOPED_TRACE(tag) __attribute__ ((unused)) gfxstream::base::ScopedTrace AEMU_GENSYM(aemuScopedTrace_)(tag)
 #define AEMU_SCOPED_TRACE_CALL() AEMU_SCOPED_TRACE(__func__)
 #define AEMU_SCOPED_THRESHOLD_TRACE_CALL()
 #define AEMU_SCOPED_THRESHOLD_TRACE(...)

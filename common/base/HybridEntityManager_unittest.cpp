@@ -11,11 +11,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include "aemu/base/containers/HybridEntityManager.h"
+#include "gfxstream/containers/HybridEntityManager.h"
 
 #include <gtest/gtest.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 static constexpr uint32_t kTestMaxIndex = 16;

@@ -20,12 +20,12 @@
 #include <string_view>
 
 #ifdef _MSC_VER
-#include "aemu/base/msvc.h"
+#include "gfxstream/msvc.h"
 #else
 #include <unistd.h>
 #endif
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 class AsyncSocketAdapter;

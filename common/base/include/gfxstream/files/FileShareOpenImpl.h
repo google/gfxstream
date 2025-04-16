@@ -16,7 +16,7 @@
 
 #include <cstdio>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 namespace internal {
     // Functions for testing purpose

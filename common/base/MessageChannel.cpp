@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/synchronization/MessageChannel.h"
+#include "gfxstream/synchronization/MessageChannel.h"
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 MessageChannelBase::MessageChannelBase(size_t capacity) : mCapacity(capacity) {}
@@ -25,7 +25,7 @@ size_t MessageChannelBase::size() const {
 }
 
 void MessageChannelBase::stop() {
-    android::base::AutoLock lock(mLock);
+    gfxstream::base::AutoLock lock(mLock);
     mStopped = true;
     mCount = 0;
     mCanRead.broadcast();

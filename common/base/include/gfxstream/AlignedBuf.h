@@ -19,7 +19,7 @@
 #include <malloc.h>
 #endif
 
-namespace android {
+namespace gfxstream {
 
 /**
  * Do not abuse this by using any complicated T. Use it for POD or primitives

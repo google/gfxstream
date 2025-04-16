@@ -19,7 +19,7 @@
 
 #include <stdint.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // A simple structure used to encapsulate an IPv4 or IPv6 address.
@@ -172,8 +172,8 @@ private:
 namespace std {
 
 template <>
-struct hash<android::base::IpAddress> {
-    typedef android::base::IpAddress argument_type;
+struct hash<gfxstream::base::IpAddress> {
+    typedef gfxstream::base::IpAddress argument_type;
     typedef size_t result_type;
     inline result_type operator()(const argument_type& a) const {
         return a.hash();

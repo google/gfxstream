@@ -14,16 +14,16 @@
 
 #pragma once
 
-#include "aemu/base/Compiler.h"
-#include "aemu/base/files/Stream.h"
+#include "gfxstream/Compiler.h"
+#include "gfxstream/files/Stream.h"
 
 
 #include <stdio.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
-// An implementation of android::base::Stream interface on top of an
+// An implementation of gfxstream::base::Stream interface on top of an
 // stdio FILE* instance.
 class StdioStream : public Stream {
 public:
@@ -49,4 +49,4 @@ private:
 };
 
 }  // namespace base
-}  // namespace android
+}  // namespace gfxstream

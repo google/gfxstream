@@ -18,7 +18,7 @@
 #include <new>
 #include <type_traits>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 namespace internal {
 
@@ -97,7 +97,7 @@ using is_trivially_default_constructible =
 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! DEPRECATED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // Please don't use this macro. Use a function-local static of type
-// android::base::NoDestructor<T> instead:
+// gfxstream::base::NoDestructor<T> instead:
 //
 // Factory& Factory::GetInstance() {
 //   static base::NoDestructor<Factory> instance;

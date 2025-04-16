@@ -11,10 +11,10 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include "aemu/base/ring_buffer.h"
+#include "gfxstream/ring_buffer.h"
 
-#include "aemu/base/system/System.h"
-#include "aemu/base/threads/FunctorThread.h"
+#include "gfxstream/system/System.h"
+#include "gfxstream/threads/FunctorThread.h"
 
 #include <gtest/gtest.h>
 
@@ -22,12 +22,12 @@
 
 #include <errno.h>
 #ifdef _MSC_VER
-#include "aemu/base/msvc.h"
+#include "gfxstream/msvc.h"
 #else
 #include <sys/time.h>
 #endif
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 TEST(ring_buffer, Init) {
@@ -530,7 +530,7 @@ TEST(ring_buffer, SpeedTest) {
 
         ring_buffer_view_init(&r, &v, buf.data(), buf.size());
 
-        uint64_t start_us = android::base::getHighResTimeUs();
+        uint64_t start_us = gfxstream::base::getHighResTimeUs();
 
         FunctorThread producer([&r, &v, &elements]() {
             ring_buffer_write_fully(&r, &v, elements.data(), elements.size());
@@ -544,7 +544,7 @@ TEST(ring_buffer, SpeedTest) {
         consumer.start();
         consumer.wait();
 
-        uint64_t end_us = android::base::getHighResTimeUs();
+        uint64_t end_us = gfxstream::base::getHighResTimeUs();
 
         if (i % 10 == 0) {
             fprintf(stderr, "%s: ring stats: live yield sleep %lu %lu %lu\n", __func__,
@@ -624,5 +624,5 @@ TEST(ring_buffer, CopyContents) {
     EXPECT_TRUE(ring_buffer_view_can_write(&r, &v, 3));
 }
 
-} // namespace android
+} // namespace gfxstream
 } // namespace base

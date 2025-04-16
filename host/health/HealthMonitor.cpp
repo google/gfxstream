@@ -13,24 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "aemu/base/HealthMonitor.h"
+#include "gfxstream/HealthMonitor.h"
 
 #include <map>
 
-#include "aemu/base/system/System.h"
-#include "aemu/base/testing/TestClock.h"
-#include "host-common/logging.h"
-#include "host-common/GfxstreamFatalError.h"
+#include "gfxstream/system/System.h"
+#include "gfxstream/testing/TestClock.h"
+#include "gfxstream/host/logging.h"
+
 
 namespace emugl {
 
-using android::base::AutoLock;
-using android::base::MetricEventHang;
-using android::base::MetricEventUnHang;
-using android::base::TestClock;
+using gfxstream::base::AutoLock;
+using gfxstream::base::MetricEventHang;
+using gfxstream::base::MetricEventUnHang;
+using gfxstream::base::TestClock;
 using std::chrono::duration_cast;
-using emugl::ABORT_REASON_OTHER;
-using emugl::FatalError;
 
 template <class... Ts>
 struct MonitoredEventVisitor : Ts... {
@@ -61,9 +59,9 @@ typename HealthMonitor<Clock>::Id HealthMonitor<Clock>::startMonitoringTask(
     std::unique_ptr<EventHangMetadata> metadata,
     std::optional<std::function<std::unique_ptr<HangAnnotations>()>> onHangAnnotationsCallback,
     uint64_t timeout, std::optional<Id> parentId) {
-    auto intervalMs = duration_cast<std::chrono::milliseconds>(mInterval).count();
+    uint64_t intervalMs = duration_cast<std::chrono::milliseconds>(mInterval).count();
     if (timeout < intervalMs) {
-        WARN("Timeout value %d is too low (heartbeat is every %d). Increasing to %d", timeout,
+        GFXSTREAM_WARNING("Timeout value %d is too low (heartbeat is every %d). Increasing to %d", timeout,
              intervalMs, intervalMs * 2);
         timeout = intervalMs * 2;
     }
@@ -124,7 +122,7 @@ intptr_t HealthMonitor<Clock>::main() {
             if (mEventQueue.empty()) {
                 mCv.timedWait(
                     &mLock,
-                    android::base::getUnixTimeUs() +
+                    gfxstream::base::getUnixTimeUs() +
                         std::chrono::duration_cast<std::chrono::microseconds>(mInterval).count());
             }
             mEventQueue.swap(events);
@@ -137,19 +135,17 @@ intptr_t HealthMonitor<Clock>::main() {
 
             std::visit(MonitoredEventVisitor{
                            [](std::monostate& event) {
-                               ERR("MonitoredEvent type not found");
-                               GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) <<
-                                   "MonitoredEvent type not found";
+                               GFXSTREAM_FATAL("MonitoredEvent type not found");
                            },
                            [this, &events](typename MonitoredEventType::Start& event) {
                                auto it = mMonitoredTasks.find(event.id);
                                if (it != mMonitoredTasks.end()) {
-                                   ERR("Registered multiple start events for task %d", event.id);
+                                   GFXSTREAM_ERROR("Registered multiple start events for task %d", event.id);
                                    return;
                                }
                                if (event.parentId && mMonitoredTasks.find(event.parentId.value()) ==
                                                          mMonitoredTasks.end()) {
-                                   WARN("Requested parent task %d does not exist.",
+                                   GFXSTREAM_WARNING("Requested parent task %d does not exist.",
                                         event.parentId.value());
                                    event.parentId = std::nullopt;
                                }
@@ -171,7 +167,7 @@ intptr_t HealthMonitor<Clock>::main() {
                            [this, &events](typename MonitoredEventType::Touch& event) {
                                auto it = mMonitoredTasks.find(event.id);
                                if (it == mMonitoredTasks.end()) {
-                                   ERR("HealthMonitor has no task in progress for id %d", event.id);
+                                   GFXSTREAM_ERROR("HealthMonitor has no task in progress for id %d", event.id);
                                    return;
                                }
 
@@ -183,7 +179,7 @@ intptr_t HealthMonitor<Clock>::main() {
                             &events](typename MonitoredEventType::Stop& event) {
                                auto it = mMonitoredTasks.find(event.id);
                                if (it == mMonitoredTasks.end()) {
-                                   ERR("HealthMonitor has no task in progress for id %d", event.id);
+                                   GFXSTREAM_ERROR("HealthMonitor has no task in progress for id %d", event.id);
                                    return;
                                }
 
@@ -247,7 +243,7 @@ intptr_t HealthMonitor<Clock>::main() {
         }
 
         if (mHungTasks != newHungTasks) {
-            ERR("HealthMonitor: Number of unresponsive tasks %s: %d -> %d",
+            GFXSTREAM_ERROR("HealthMonitor: Number of unresponsive tasks %s: %d -> %d",
                 mHungTasks < newHungTasks ? "increased" : "decreaased", mHungTasks, newHungTasks);
             mHungTasks = newHungTasks;
         }
@@ -274,10 +270,10 @@ void HealthMonitor<Clock>::updateTaskParent(std::queue<std::unique_ptr<Monitored
 std::unique_ptr<HealthMonitor<>> CreateHealthMonitor(MetricsLogger& metricsLogger,
                                                      uint64_t heartbeatInterval) {
 #if ENABLE_HEALTH_MONITOR
-    INFO("HealthMonitor enabled.");
+    GFXSTREAM_INFO("HealthMonitor enabled.");
     return std::make_unique<HealthMonitor<>>(metricsLogger, heartbeatInterval);
 #else
-    INFO("HealthMonitor disabled.");
+    GFXSTREAM_INFO("HealthMonitor disabled.");
     return nullptr;
 #endif
 }

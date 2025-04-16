@@ -21,7 +21,7 @@
 #include <utility>                    // for move, forward
 #include <vector>                     // for vector
 
-#include "aemu/base/Optional.h"    // for Optional
+#include "gfxstream/Optional.h"    // for Optional
 
 #ifdef __APPLE__
 
@@ -30,7 +30,7 @@
 #else
 
 #ifdef _WIN32
-#include "aemu/base/system/Win32UnicodeString.h"
+#include "gfxstream/system/Win32UnicodeString.h"
 #define LIBSUFFIX ".dll"
 
 #else
@@ -41,7 +41,7 @@
 
 #endif // !__APPLE__
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Helper to get a null-terminated const char* from a string_view.

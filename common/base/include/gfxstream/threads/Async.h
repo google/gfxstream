@@ -14,12 +14,12 @@
 
 #pragma once
 
-#include "aemu/base/threads/Types.h"
-#include "aemu/base/TypeTraits.h"
+#include "gfxstream/threads/Types.h"
+#include "gfxstream/TypeTraits.h"
 
 #include <memory>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Run a specified functor in a separate thread,

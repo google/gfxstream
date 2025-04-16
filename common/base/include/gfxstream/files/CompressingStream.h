@@ -13,11 +13,11 @@
 // limitations under the License.
 #pragma once
 
-#include "aemu/base/Compiler.h"
-#include "aemu/base/containers/SmallVector.h"
-#include "aemu/base/files/Stream.h"
+#include "gfxstream/Compiler.h"
+#include "gfxstream/containers/SmallVector.h"
+#include "gfxstream/files/Stream.h"
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 class CompressingStream : public Stream {
@@ -37,4 +37,4 @@ private:
 };
 
 }  // namespace base
-}  // namespace android
+}  // namespace gfxstream

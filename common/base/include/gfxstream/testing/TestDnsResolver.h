@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/network/Dns.h"
+#include "gfxstream/network/Dns.h"
 
-#include "aemu/base/network/IpAddress.h"
+#include "gfxstream/network/IpAddress.h"
 
 #include <string>
 #include <string_view>
@@ -23,7 +23,7 @@
 
 #include <errno.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Convenience class used to mock the system DNS resolver during unit-testing.

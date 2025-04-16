@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/EintrWrapper.h"
-#include "aemu/base/StringFormat.h"
-#include "aemu/base/system/System.h"
-#include "aemu/base/threads/Thread.h"
+#include "gfxstream/EintrWrapper.h"
+#include "gfxstream/StringFormat.h"
+#include "gfxstream/system/System.h"
+#include "gfxstream/threads/Thread.h"
 
 #ifdef _WIN32
 #include <windows.h>
 
-#include "aemu/base/system/Win32UnicodeString.h"
-#include "aemu/base/msvc.h"
+#include "gfxstream/system/Win32UnicodeString.h"
+#include "gfxstream/msvc.h"
 #endif
 
 #include <vector>
@@ -39,7 +39,7 @@
 #endif  // __APPLE__
 
 #ifdef _MSC_VER
-// #include "aemu/base/msvc.h"
+// #include "gfxstream/msvc.h"
 // #include <dirent.h>
 #else
 #include <time.h>
@@ -56,7 +56,7 @@ using FileSize = uint64_t;
 
 #ifdef _WIN32
 
-using android::base::Win32UnicodeString;
+using gfxstream::base::Win32UnicodeString;
 
 // Return |path| as a Unicode string, while discarding trailing separators.
 Win32UnicodeString win32Path(const char* path) {
@@ -142,7 +142,7 @@ static const TickCountImpl kTickCount;
 
 }  // namespace
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 std::string getEnvironmentVariable(const std::string& key) {
@@ -593,4 +593,4 @@ int getCpuCoreCount() {
 }
 
 } // namespace base
-} // namespace android
+} // namespace gfxstream

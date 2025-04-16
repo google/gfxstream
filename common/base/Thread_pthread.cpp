@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/threads/Thread.h"
+#include "gfxstream/threads/Thread.h"
 
 #include <cerrno>
 
@@ -23,7 +23,7 @@
 #include <unistd.h>
 #endif
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 Thread::Thread(ThreadFlags flags, int stackSize, std::optional<std::string> nameOpt)

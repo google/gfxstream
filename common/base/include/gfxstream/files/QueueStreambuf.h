@@ -16,10 +16,10 @@
 #include <streambuf>
 #include <vector>  // for vector
 
-#include "aemu/base/synchronization/ConditionVariable.h"  // for Conditio...
-#include "aemu/base/synchronization/Lock.h"               // for Lock
+#include "gfxstream/synchronization/ConditionVariable.h"  // for Conditio...
+#include "gfxstream/synchronization/Lock.h"               // for Lock
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Reclaim strategy for cleaning up the vector, used as:

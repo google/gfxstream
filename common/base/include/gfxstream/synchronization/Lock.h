@@ -14,9 +14,9 @@
 
 #pragma once
 
-#include "aemu/base/Compiler.h"
+#include "gfxstream/Compiler.h"
 
-#include "aemu/base/ThreadAnnotations.h"
+#include "gfxstream/ThreadAnnotations.h"
 
 #include <atomic>
 
@@ -29,7 +29,7 @@
 
 #include <assert.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 class AutoLock;
@@ -41,7 +41,7 @@ class AutoReadLock;
 // member locks.
 class CAPABILITY("mutex") StaticLock {
 public:
-    using AutoLock = android::base::AutoLock;
+    using AutoLock = gfxstream::base::AutoLock;
 
     constexpr StaticLock() = default;
 
@@ -103,8 +103,8 @@ public:
 
 class ReadWriteLock {
 public:
-    using AutoWriteLock = android::base::AutoWriteLock;
-    using AutoReadLock = android::base::AutoReadLock;
+    using AutoWriteLock = gfxstream::base::AutoWriteLock;
+    using AutoReadLock = gfxstream::base::AutoReadLock;
 
 #ifdef _WIN32
     constexpr ReadWriteLock() = default;

@@ -34,7 +34,7 @@
 # define EMUGL_COMMON_API
 #endif
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // A class used to open a platform-specific shared library, and probe

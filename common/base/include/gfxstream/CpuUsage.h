@@ -13,8 +13,8 @@
 // limitations under the License.
 #pragma once
 
-#include "aemu/base/Compiler.h"
-#include "aemu/base/CpuTime.h"
+#include "gfxstream/Compiler.h"
+#include "gfxstream/CpuTime.h"
 
 #include <functional>
 #include <memory>
@@ -22,7 +22,7 @@
 
 #include <inttypes.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 class Looper;
@@ -63,4 +63,4 @@ private:
 };
 
 } // namespace base
-} // namespace android
+} // namespace gfxstream

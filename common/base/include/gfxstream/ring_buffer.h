@@ -4,10 +4,8 @@
  */
 #pragma once
 
-#include "aemu/base/c_header.h"
-#include "aemu/base/export.h"
-
-ANDROID_BEGIN_HEADER
+#include "gfxstream/c_header.h"
+#include "gfxstream/export.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -15,6 +13,9 @@ ANDROID_BEGIN_HEADER
 #define RING_BUFFER_SHIFT 11
 #define RING_BUFFER_SIZE (1 << RING_BUFFER_SHIFT)
 #define NUM_CONFIG_FIELDS 32
+
+namespace gfxstream {
+namespace base {
 
 // Single producer/consumer ring buffer struct that can be shared
 // between host and guest as-is.
@@ -223,4 +224,6 @@ void ring_buffer_consumer_hung_up(struct ring_buffer* r);
 
 // Convenient function to reschedule thread
 void ring_buffer_yield();
-ANDROID_END_HEADER
+
+}  // namespace base
+}  // namespace gfxstream

@@ -21,7 +21,7 @@
 #include <unistd.h>
 #endif
 
-namespace android {
+namespace gfxstream {
 namespace base {
 namespace internal {
 #ifdef _WIN32

@@ -19,9 +19,9 @@
 #include <mutex>   // for mutex
 #include <string>  // for string
 
-#include "aemu/base/logging/Log.h"  // for LogParams
+#include "gfxstream/logging/Log.h"  // for LogParams
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // A LogFormatter formats a log line.

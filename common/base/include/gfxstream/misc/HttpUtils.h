@@ -16,7 +16,7 @@
 
 #include <stddef.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Return true iff the content of |line|, or |lineLen| characters,

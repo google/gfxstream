@@ -11,13 +11,13 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include "aemu/base/GLObjectCounter.h"
+#include "gfxstream/GLObjectCounter.h"
 
 #include <array>
 #include <atomic>
 #include <sstream>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 enum class NamedObjectType : int {

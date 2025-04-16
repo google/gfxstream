@@ -21,7 +21,7 @@
 
 #include <gtest/gtest.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 namespace {

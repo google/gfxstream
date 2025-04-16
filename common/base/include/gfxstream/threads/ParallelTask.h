@@ -14,16 +14,16 @@
 
 #pragma once
 
-#include "aemu/base/Compiler.h"
-#include "aemu/base/async/Looper.h"
-#include "aemu/base/threads/internal/ParallelTaskBase.h"
-#include "aemu/base/threads/Types.h"
+#include "gfxstream/Compiler.h"
+#include "gfxstream/async/Looper.h"
+#include "gfxstream/threads/internal/ParallelTaskBase.h"
+#include "gfxstream/threads/Types.h"
 
 #include <functional>
 #include <memory>
 #include <utility>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // A ParallelTask<Result> is an object that allows you to run a task in a
@@ -63,7 +63,7 @@ namespace base {
 //   int main() {
 //     LifeUniverseAndEverythingInParallel whatsTheAnswer;
 //     whatsTheAnswer.startOfTime();
-//     android::base::ThreadLooper::get()->runWithDeadline(
+//     gfxstream::base::ThreadLooper::get()->runWithDeadline(
 //             // 10 million years);
 //     // ... Do other stuff while the mice run inside contraptions ...
 //   }
@@ -81,7 +81,7 @@ namespace base {
 //   }
 //
 //   runParallelTask<int>(
-//           android::base::ThreadLooper::get(),
+//           gfxstream::base::ThreadLooper::get(),
 //           &computeStandalone,
 //           &printAnswer);
 //
@@ -101,11 +101,11 @@ public:
     //             for thread termination. A bigger value possibly delayes the
     //             call to |taskDoneFunction|, but leads to fewer checks.
     //             Default: 1 second.
-    //     flags: See android::base::Thread.
-    ParallelTask(android::base::Looper* looper,
+    //     flags: See gfxstream::base::Thread.
+    ParallelTask(gfxstream::base::Looper* looper,
                  TaskFunction taskFunction,
                  TaskDoneFunction taskDoneFunction,
-                 android::base::Looper::Duration checkTimeoutMs = 1 * 1000,
+                 gfxstream::base::Looper::Duration checkTimeoutMs = 1 * 1000,
                  ThreadFlags flags = ThreadFlags::MaskSignals)
         : ParallelTaskBase(looper, checkTimeoutMs, flags),
         mTaskFunction(taskFunction), mTaskDoneFunction(taskDoneFunction) {}
@@ -141,10 +141,10 @@ public:
     using TaskDoneFunction =
             typename ParallelTask<ResultType>::TaskDoneFunction;
 
-    SelfDeletingParallelTask(android::base::Looper* looper,
+    SelfDeletingParallelTask(gfxstream::base::Looper* looper,
                              TaskFunction taskFunction,
                              TaskDoneFunction taskDoneFunction,
-                             android::base::Looper::Duration checkTimeoutMs)
+                             gfxstream::base::Looper::Duration checkTimeoutMs)
         : mTaskDoneFunction(taskDoneFunction),
           mParallelTask(looper,
                         taskFunction,
@@ -170,10 +170,10 @@ private:
 }  // namespace internal
 
 template<class ResultType>
-bool runParallelTask(android::base::Looper* looper,
+bool runParallelTask(gfxstream::base::Looper* looper,
                      std::function<void(ResultType*)> taskFunction,
                      std::function<void(const ResultType&)> taskDoneFunction,
-                     android::base::Looper::Duration checkTimeoutMs = 1 * 1000) {
+                     gfxstream::base::Looper::Duration checkTimeoutMs = 1 * 1000) {
     auto flyaway = new internal::SelfDeletingParallelTask<ResultType>(
             looper, taskFunction, taskDoneFunction, checkTimeoutMs);
     return flyaway->start();

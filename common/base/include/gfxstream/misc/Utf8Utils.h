@@ -17,7 +17,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Return true iff |text| corresponds to |textLen| bytes of valid UTF-8

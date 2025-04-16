@@ -15,7 +15,7 @@
 
 #include <inttypes.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // CPU usage tracking
@@ -37,4 +37,4 @@ struct CpuTime {
 CpuTime operator-(const CpuTime& a, const CpuTime& b);
 
 } // namespace base
-} // namespace android
+} // namespace gfxstream

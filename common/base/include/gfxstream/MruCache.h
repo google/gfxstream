@@ -21,7 +21,7 @@
 #include <list>
 #include <map>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // A trivial MRU cache. Not thread-safe.

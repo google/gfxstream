@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/files/DecompressingStream.h"
+#include "gfxstream/files/DecompressingStream.h"
 
-#include "aemu/base/files/StreamSerializing.h"
+#include "gfxstream/files/StreamSerializing.h"
 
 #include "lz4.h"
 
 #include <errno.h>
 #include <cassert>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 DecompressingStream::DecompressingStream(Stream& input) {

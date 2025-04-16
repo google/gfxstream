@@ -15,13 +15,13 @@
 
 #include <string>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // Returns backtrace of current thread, if supported by platform.
 // Otherwise, returns empty string.
 std::string bt();
 
-} // namespace android
+} // namespace gfxstream
 } // namespace base
 

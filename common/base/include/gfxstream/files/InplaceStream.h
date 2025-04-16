@@ -14,10 +14,10 @@
 
 #pragma once
 
-#include "aemu/base/Compiler.h"
-#include "aemu/base/files/Stream.h"
+#include "gfxstream/Compiler.h"
+#include "gfxstream/files/Stream.h"
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // An implementation of the Stream interface for a given char*.
@@ -64,4 +64,4 @@ private:
 };
 
 }  // namespace base
-}  // namespace android
+}  // namespace gfxstream

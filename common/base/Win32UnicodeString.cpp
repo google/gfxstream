@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/system/Win32UnicodeString.h"
+#include "gfxstream/system/Win32UnicodeString.h"
 
 #include <algorithm>
 
@@ -20,7 +20,7 @@
 
 #include <string.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 Win32UnicodeString::Win32UnicodeString() : mStr(nullptr), mSize(0u) {}

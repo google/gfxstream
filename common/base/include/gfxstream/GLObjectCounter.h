@@ -14,13 +14,13 @@
 
 #pragma once
 
-#include "aemu/base/Compiler.h"
+#include "gfxstream/Compiler.h"
 
 #include <memory>
 #include <string>
 #include <vector>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 class GLObjectCounter {
     DISALLOW_COPY_ASSIGN_AND_MOVE(GLObjectCounter);

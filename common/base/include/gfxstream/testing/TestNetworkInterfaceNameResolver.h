@@ -14,11 +14,11 @@
 
 #pragma once
 
-#include "aemu/base/network/NetworkUtils.h"
+#include "gfxstream/network/NetworkUtils.h"
 
 #include <vector>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // A custom name resolver used for unit-testing.

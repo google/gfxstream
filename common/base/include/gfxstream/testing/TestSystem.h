@@ -14,13 +14,13 @@
 
 #pragma once
 
-#include "aemu/base/files/PathUtils.h"
-#include "aemu/base/system/System.h"
-#include "aemu/base/threads/Thread.h"
+#include "gfxstream/files/PathUtils.h"
+#include "gfxstream/system/System.h"
+#include "gfxstream/threads/Thread.h"
 
 #include "TestTempDir.h"
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 class TestSystem {
