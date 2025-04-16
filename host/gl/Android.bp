@@ -26,6 +26,7 @@ cc_library_static {
         "EmulationGl.cpp",
         "GLESVersionDetector.cpp",
         "ReadbackWorkerGl.cpp",
+        "RenderThreadInfoGl.cpp",
         "TextureDraw.cpp",
         "TextureResize.cpp",
         "YUVConverter.cpp",
@@ -42,5 +43,6 @@ cc_library_static {
         "libgfxstream_host_glestranslator_glcommon",
         "libgfxstream_host_glsnapshot",
         "libgfxstream_host_logging",
+        "libgfxstream_utils_renderdoc",
     ],
 }

@@ -66,6 +66,7 @@ gfxstream_backend_static_deps = [
     "libgfxstream_host_vulkan_emulatedtextures",
     "libgfxstream_host_vulkan_server",
     "libgfxstream_thirdparty_glm",
+    "libgfxstream_utils_renderdoc",
 ]
 
 gfxstream_backend_snapshot_static_deps = [
@@ -129,7 +130,6 @@ cc_defaults {
         "RenderChannelImpl.cpp",
         "RenderThread.cpp",
         "RenderThreadInfo.cpp",
-        "RenderThreadInfoGl.cpp",
         "RingStream.cpp",
         "SyncThread.cpp",
         "RenderControl.cpp",

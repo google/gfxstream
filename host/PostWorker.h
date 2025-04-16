@@ -22,7 +22,6 @@
 #include <vector>
 
 #include "Compositor.h"
-#include "ContextHelper.h"
 #include "Hwc2.h"
 #include "PostCommands.h"
 #include "aemu/base/Compiler.h"

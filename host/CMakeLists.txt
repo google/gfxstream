@@ -44,7 +44,6 @@ set(stream-server-core-sources
     RenderLibImpl.cpp
     RenderThread.cpp
     RenderThreadInfo.cpp
-    RenderThreadInfoGl.cpp
     RenderWindow.cpp
     RingStream.cpp
     SyncThread.cpp

@@ -85,7 +85,6 @@
 #include "render-utils/render_api.h"
 #include "snapshot/common.h"
 #include "utils/RenderDoc.h"
-#include "vulkan/vk_util.h"
 
 namespace gfxstream {
 namespace vk {

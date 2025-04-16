@@ -298,6 +298,7 @@ cc_library(
         "EmulationGl.cpp",
         "GLESVersionDetector.cpp",
         "ReadbackWorkerGl.cpp",
+        "RenderThreadInfoGl.cpp",
         "TextureDraw.cpp",
         "TextureResize.cpp",
         "YUVConverter.cpp",
@@ -325,6 +326,7 @@ cc_library(
         "//host/backend:gfxstream_host_backend",
         "//host/gl:GLSnapshot",
         "//host/logging:gfxstream_host_logging",
+        "//utils:gfxstream_utils_headers",
     ],
 )
 

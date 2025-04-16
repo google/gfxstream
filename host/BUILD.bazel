@@ -95,7 +95,6 @@ cc_library(
         "RenderLibImpl.cpp",
         "RenderThread.cpp",
         "RenderThreadInfo.cpp",
-        "RenderThreadInfoGl.cpp",
         "RenderWindow.cpp",
         "RendererImpl.cpp",
         "RingStream.cpp",

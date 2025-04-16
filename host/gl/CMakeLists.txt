@@ -26,6 +26,7 @@ add_library(gfxstream-gl-server
             EmulationGl.cpp
             GLESVersionDetector.cpp
             ReadbackWorkerGl.cpp
+            RenderThreadInfoGl.cpp
             TextureDraw.cpp
             TextureResize.cpp
             YUVConverter.cpp)
@@ -40,6 +41,7 @@ target_link_libraries(
         gfxstream_egl_headers
         gfxstream_host_backend
         gfxstream_host_logging
+        gfxstream_utils
         gles1_dec
         gles2_dec
         GLcommon
