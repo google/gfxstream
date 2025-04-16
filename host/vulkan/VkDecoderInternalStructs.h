@@ -232,11 +232,105 @@ struct DeviceInfo {
     }
 };
 
+struct PhysicalQueuePendingOps {
+    // Wrapper structure to defer queue submission calls, e.g. VkSubmitInfo2
+    // Pending operations will be checked and executed when the conditions are
+    // met, e.g. the valid timeline semaphore point is signalled.
+    // Normally, application should make safe submissions that'd avoid deadlock
+    // conditions, but when the virtual queue is active, we have to manually block
+    // the submissions until they can be executed safely, without blocking the
+    // signalling submissions.
+
+    struct QueueSubmit2 {
+        bool convertFrom(const VkSubmitInfo2& submit) {
+            // TODO(b/379862480): Use deepcopy_VkSubmitInfo2 to support pNext values
+            bool foundAnyPNext = false;
+            if (submit.pNext) {
+                foundAnyPNext = true;
+                return false;
+            }
+
+            mWaitSemaphoreInfos.resize(submit.commandBufferInfoCount);
+            for (uint32_t i = 0; i < submit.commandBufferInfoCount; i++) {
+                if (submit.pWaitSemaphoreInfos[i].pNext) {
+                    foundAnyPNext = true;
+                }
+                mWaitSemaphoreInfos[i] = submit.pWaitSemaphoreInfos[i];
+            }
+
+            mCommandBufferInfos.resize(submit.commandBufferInfoCount);
+            for (uint32_t i = 0; i < submit.commandBufferInfoCount; i++) {
+                if (submit.pCommandBufferInfos[i].pNext) {
+                    foundAnyPNext = true;
+                }
+                mCommandBufferInfos[i] = submit.pCommandBufferInfos[i];
+            }
+
+            mSignalSemaphoreInfos.resize(submit.commandBufferInfoCount);
+            for (uint32_t i = 0; i < submit.commandBufferInfoCount; i++) {
+                if (submit.pSignalSemaphoreInfos[i].pNext) {
+                    foundAnyPNext = true;
+                }
+                mSignalSemaphoreInfos[i] = submit.pSignalSemaphoreInfos[i];
+            }
+
+            if (foundAnyPNext) {
+                return false;
+            }
+
+            mSubmitInfoCopy = submit;
+            mSubmitInfoCopy.pWaitSemaphoreInfos = mWaitSemaphoreInfos.data();
+            mSubmitInfoCopy.pCommandBufferInfos = mCommandBufferInfos.data();
+            mSubmitInfoCopy.pSignalSemaphoreInfos = mSignalSemaphoreInfos.data();
+
+            return true;
+        }
+
+        VkSubmitInfo2 mSubmitInfoCopy;
+
+        std::vector<VkSemaphoreSubmitInfo> mWaitSemaphoreInfos;
+        std::vector<VkCommandBufferSubmitInfo> mCommandBufferInfos;
+        std::vector<VkSemaphoreSubmitInfo> mSignalSemaphoreInfos;
+    };
+
+    struct DeferredSubmitCall {
+        std::vector<QueueSubmit2> mSubmits;
+        VkFence mFence;
+    };
+
+    std::vector<DeferredSubmitCall> mSubmitCalls;
+
+    VkResult queuePendingSubmission(uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence) {
+        // TODO(b/379862480): VkSubmitInfo is not supported for deferred submissions, this
+        // should not be called until we support VkTimelineSemaphoreSubmitInfo on pNext
+        GFXSTREAM_ERROR("PhysicalQueuePendingOps: Cannot defer queue submissions with 'VkSubmitInfo'");
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
+    }
+
+    VkResult queuePendingSubmission(uint32_t submitCount, const VkSubmitInfo2* pSubmits,
+                                VkFence fence) {
+        PhysicalQueuePendingOps::DeferredSubmitCall deferredCall;
+        for (uint32_t i = 0; i < submitCount; i++) {
+            PhysicalQueuePendingOps::QueueSubmit2 deferredSubmit;
+            if (!deferredSubmit.convertFrom(pSubmits[i])) {
+                GFXSTREAM_ERROR("Unsupported submission type detected on virtual queue!");
+                return VK_ERROR_OUT_OF_HOST_MEMORY;
+            }
+            deferredCall.mSubmits.push_back(deferredSubmit);
+        }
+        deferredCall.mFence = fence;
+        mSubmitCalls.emplace_back(deferredCall);
+        return VK_SUCCESS;
+    }
+};
+
 struct QueueInfo {
     std::shared_ptr<std::mutex> queueMutex;
+    std::shared_ptr<PhysicalQueuePendingOps> pendingOps;  // Only used if virtually shared
     VkDevice device;
     uint32_t queueFamilyIndex;
     VkQueue boxed = nullptr;
+    bool usingSharedPhysicalQueue = false;
 
     // In order to create a virtual queue handle, we use an offset to the physical
     // queue handle value. This assumes the new generated virtual handle value will
@@ -334,7 +428,11 @@ struct SemaphoreInfo {
     // upon before destruction (e.g. as part of a vkAcquireImageANDROID() call),
     // the waitable that tracking that host operation.
     std::optional<DeviceOpWaitable> latestUse;
+
+    uint64_t lastSignalValue = 0;  // Only valid when the virtual queue feature is enabled
+    bool isTimelineSemaphore = false;
 };
+
 struct DescriptorSetLayoutInfo {
     VkDevice device = 0;
     VkDescriptorSetLayout boxed = 0;
