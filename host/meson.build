@@ -109,6 +109,8 @@ gfxstream_headers = files(
   'include/gfxstream/virtio-gpu-gfxstream-renderer.h',
   'include/gfxstream/virtio-gpu-gfxstream-renderer-unstable.h')
 
+inc_gfxstream_server = include_directories('include')
+
 inc_root = include_directories('../')
 inc_gfxstream_include = include_directories('../include')
 # Included by all host component builds. Leave empty for future build updates.
