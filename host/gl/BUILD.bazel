@@ -209,6 +209,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         "//common/opengl:gfxstream_opengl_headers",
+        "//host:gfxstream_backend_headers",
         "//host/apigen-codec-common",
         "//host/features:gfxstream_features",
         "//host/logging:gfxstream_host_logging",
@@ -319,7 +320,7 @@ cc_library(
         ":gles1_dec",
         ":gles2_dec",
         "//:gfxstream-gl-host-common-headers",
-        "//host:gfxstream_host_headers",
+        "//host:gfxstream_backend_headers",
         "//host/apigen-codec-common",
         "//host/gl:GLSnapshot",
         "//host/logging:gfxstream_host_logging",
