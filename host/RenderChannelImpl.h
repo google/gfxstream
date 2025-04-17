@@ -108,7 +108,7 @@ private:
     void updateStateLocked();
     void notifyStateChangeLocked();
 
-    EventCallback mEventCallback;
+    EventCallback mEventCallback = [](State state) {};
     std::unique_ptr<RenderThread> mRenderThread;
 
     // A single lock to protect the state and the two buffer queues at the
