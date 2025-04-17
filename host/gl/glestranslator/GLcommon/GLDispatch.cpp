@@ -76,7 +76,7 @@ static const std::unordered_map<std::string, std::string> sAliasExtra = {
             if (address) {                                                                \
                 func_name = (__typeof__(func_name))(address);                             \
             } else {                                                                      \
-                GFXSTREAM_WARNING("%s not found", #func_name);                            \
+                GFXSTREAM_VERBOSE("%s not found", #func_name);                            \
                 func_name = nullptr;                                                      \
             }                                                                             \
         }                                                                                 \
