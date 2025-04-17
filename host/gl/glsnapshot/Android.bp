@@ -15,4 +15,10 @@ cc_library_static {
     defaults: ["gfxstream_defaults"],
     srcs: ["GLSnapshot.cpp"],
     export_include_dirs: ["."],
+    static_libs: [
+        "libgfxstream_host_openglesdispatch",
+    ],
+    export_static_lib_headers: [
+        "libgfxstream_host_openglesdispatch",
+    ],
 }

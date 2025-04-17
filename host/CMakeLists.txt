@@ -92,11 +92,11 @@ target_link_libraries(
         gfxstream_host_logging
         gfxstream_host_snapshot
         gfxstream_host_tracing
+        gfxstream_openglesdispatch
         gfxstream_utils
         gfxstream-gl-server
         gfxstream-vulkan-server
         GLES_CM_translator_static
-        OpenGLESDispatch
         renderControl_dec
         )
 

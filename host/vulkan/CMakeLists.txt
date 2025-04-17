@@ -49,6 +49,7 @@ target_link_libraries(gfxstream-vulkan-server PUBLIC
         gfxstream_host_logging
         gfxstream_host_snapshot.headers
         gfxstream_host_tracing
+        gfxstream_openglesdispatch.headers
         gfxstream_utils
         gfxstream_vulkan_headers
         gfxstream-compressedTextures

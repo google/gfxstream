@@ -19,6 +19,7 @@ cc_test_host {
         "virtgpu_kumquat_ffi_headers",
         "gfxstream_headers",
         "libgfxstream_guest_rendercontrol_headers",
+        "libgfxstream_host_openglesdispatch_headers",
     ],
     data: [
         "//external/crosvm:kumquat",

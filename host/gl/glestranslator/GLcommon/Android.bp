@@ -18,6 +18,10 @@ cc_library_static {
     ],
     header_libs: [
         "gfxstream_opengl_headers",
+        "libgfxstream_host_openglesdispatch_headers",
+    ],
+    export_header_lib_headers: [
+        "libgfxstream_host_openglesdispatch_headers",
     ],
     static_libs: [
         "gfxstream_base",
