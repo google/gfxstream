@@ -8983,9 +8983,6 @@ class VkDecoderGlobalState::Impl {
             auto physicalDeviceInstance = physicalDeviceInstanceIt->second;
 
             if (physicalDeviceInstance != instance) continue;
-            mPhysicalDeviceToInstance.erase(physicalDeviceInstanceIt);
-
-            mPhysdevInfo.erase(physicalDevice);
 
             auto deviceInfoIt = mDeviceInfo.find(device);
             if (deviceInfoIt == mDeviceInfo.end()) continue;
