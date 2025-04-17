@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "DisplaySurface.h"
+#include "gfxstream/host/display_surface.h"
 
-#include "Display.h"
+#include "gfxstream/host/display.h"
 #include "gfxstream/host/logging.h"
 
 namespace gfxstream {

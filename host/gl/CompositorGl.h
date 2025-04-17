@@ -22,7 +22,7 @@
 #include <GLES3/gl3.h>
 
 #include "Compositor.h"
-#include "DisplaySurfaceUser.h"
+#include "gfxstream/host/display_surface_user.h"
 #include "TextureDraw.h"
 
 namespace gfxstream {

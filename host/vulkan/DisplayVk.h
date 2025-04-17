@@ -10,9 +10,9 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "BorrowedImage.h"
+#include "gfxstream/host/borrowed_image.h"
 #include "CompositorVk.h"
-#include "Display.h"
+#include "gfxstream/host/display.h"
 #include "DisplaySurfaceVk.h"
 #include "Hwc2.h"
 #include "SwapChainStateVk.h"

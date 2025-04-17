@@ -17,7 +17,7 @@
 
 #include <future>
 
-#include "DisplaySurfaceUser.h"
+#include "gfxstream/host/display_surface_user.h"
 #include "PostWorker.h"
 
 namespace gfxstream {

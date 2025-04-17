@@ -17,7 +17,7 @@
 #include <memory>
 #include <vector>
 
-#include "BorrowedImage.h"
+#include "gfxstream/host/borrowed_image.h"
 #include "ExternalObjectManager.h"
 #include "FrameworkFormats.h"
 #include "aemu/base/files/Stream.h"

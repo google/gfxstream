@@ -163,8 +163,6 @@ files_lib_gfxstream_backend = files(
   'ExternalObjectManager.cpp',
   'ChannelStream.cpp',
   'ColorBuffer.cpp',
-  'DisplaySurface.cpp',
-  'DisplaySurfaceUser.cpp',
   'Hwc2.cpp',
   'PostWorker.cpp',
   'ReadBuffer.cpp',

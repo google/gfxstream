@@ -12,7 +12,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "BorrowedImage.h"
+#include "gfxstream/host/borrowed_image.h"
 #include "BorrowedImageVk.h"
 #include "Compositor.h"
 #include "DebugUtilsHelper.h"

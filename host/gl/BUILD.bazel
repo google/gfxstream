@@ -322,6 +322,7 @@ cc_library(
         "//:gfxstream-gl-host-common-headers",
         "//host:gfxstream_backend_headers",
         "//host/apigen-codec-common",
+        "//host/backend:gfxstream_host_backend",
         "//host/gl:GLSnapshot",
         "//host/logging:gfxstream_host_logging",
     ],

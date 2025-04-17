@@ -25,8 +25,6 @@ namespace gfxstream {
 
 namespace {
 
-using emugl::ABORT_REASON_OTHER;
-using emugl::FatalError;
 using gl::DisplayGl;
 using gl::DisplaySurfaceGl;
 using gl::EmulationGl;
@@ -94,8 +92,7 @@ std::shared_future<void> PostWorkerGl::postImpl(ColorBuffer* cb) {
             post.layers.push_back(postWithOverlay(cb));
         }
 #endif
-    }
-    else if (multiDisplay.isMultiDisplayEnabled()) {
+    } else if (multiDisplay.isMultiDisplayEnabled()) {
         if (multiDisplay.isMultiDisplayWindow()) {
             int32_t previousDisplayId = -1;
             uint32_t currentDisplayId;
@@ -280,7 +277,7 @@ std::shared_future<void> PostWorkerGl::composeImpl(const FlatComposeRequest& com
 }
 
 void PostWorkerGl::setupContext() {
-    android::base::AutoLock lock(mMutex);
+    std::lock_guard<std::mutex> lock(mMutex);
     const auto* surface = getBoundSurface();
     const DisplaySurfaceGl* surfaceGl = nullptr;
     if (surface) {

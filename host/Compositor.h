@@ -18,7 +18,7 @@
 #include <optional>
 #include <vector>
 
-#include "BorrowedImage.h"
+#include "gfxstream/host/borrowed_image.h"
 #include "Hwc2.h"
 
 namespace gfxstream {

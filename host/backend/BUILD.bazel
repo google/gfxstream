@@ -1,11 +1,16 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_library(
-    name = "gfxstream_backend",
-    srcs = glob(["include/**/*.h"]),
+    name = "gfxstream_host_backend",
+    srcs = [
+        "display_surface.cpp",
+        "display_surface_user.cpp",
+    ],
+    hdrs = glob(["include/**/*.h"]),
     includes = ["include"],
     visibility = ["//visibility:public"],
     deps = [
         "//common/utils:gfxstream_common_utils",
+        "//host/logging:gfxstream_host_logging",
     ],
 )

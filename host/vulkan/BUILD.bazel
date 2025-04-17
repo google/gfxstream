@@ -116,7 +116,7 @@ cc_library(
         "//:gfxstream-gl-host-common-headers",
         "//common/vulkan:gfxstream_vulkan_headers",
         "//host:gfxstream_host_headers",
-        "//host/backend:gfxstream_backend",
+        "//host/backend:gfxstream_host_backend",
         "//host/features:gfxstream_features",
         "//host/logging:gfxstream_host_logging",
         "//host/tracing:gfxstream_host_tracing",
