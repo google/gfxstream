@@ -13,13 +13,13 @@
 // limitations under the License.
 #pragma once
 
+#include <functional>
 #include <memory>
 
 #include "aemu/base/files/Stream.h"
 #include "gfxstream/host/Features.h"
 #include "host-common/dma_device.h"
 #include "host-common/multi_display_agent.h"
-#include "host-common/RefcountPipe.h"
 #include "host-common/sync_device.h"
 #include "host-common/vm_operations.h"
 #include "host-common/window_agent.h"
@@ -42,7 +42,7 @@ struct RenderOpt {
     void* config;
 };
 
-using android::emulation::OnLastColorBufferRef;
+using OnLastColorBufferRef = std::function<void(uint32_t)>;
 
 // RenderLib - root interface for the GPU emulation library
 //  Use it to set the library-wide parameters (logging, crash reporting) and
