@@ -26,7 +26,6 @@
 #include "aemu/base/files/StreamSerializing.h"
 #include "aemu/base/system/System.h"
 #include "gfxstream/host/logging.h"
-#include "host-common/crash_reporter.h"
 
 #define SAVEABLE_TEXTURE_DEBUG 0
 
@@ -849,8 +848,7 @@ void SaveableTexture::restore() {
     if (!m_globalTexObj) {
         GFXSTREAM_DEBUG("SaveableTexture::%s: %p: could not allocate NamedObject for texture\n",
                         __func__, this);
-        emugl::emugl_crash_reporter(
-                "Fatal: could not allocate SaveableTexture m_globalTexObj\n");
+        GFXSTREAM_FATAL("Could not allocate SaveableTexture m_globalTexObj");
     }
 
     m_globalName = m_globalTexObj->getGlobalName();

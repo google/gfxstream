@@ -77,10 +77,6 @@ void RenderLibImpl::setLogger(emugl_logger_struct logger) {
 #endif
 }
 
-void RenderLibImpl::setCrashReporter(emugl_crash_reporter_t reporter) {
-    // set_emugl_crash_reporter(reporter);
-}
-
 void RenderLibImpl::setFeatureController(emugl_feature_is_enabled_t featureController) {
     android::featurecontrol::setFeatureEnabledCallback(featureController);
 }

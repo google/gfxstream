@@ -22,8 +22,7 @@
 #include "TransformFeedbackData.h"
 #include "aemu/base/synchronization/Lock.h"
 #include "aemu/base/files/StreamSerializing.h"
-
-#include "host-common/crash_reporter.h"
+#include "gfxstream/host/logging.h"
 
 #include <string.h>
 
@@ -609,8 +608,8 @@ void GLESv2Context::drawWithEmulations(
             s_glDispatch.glDrawArraysInstanced(mode, first, count, primcount);
             break;
         default:
-            emugl::emugl_crash_reporter(
-                "drawWithEmulations has corrupt call parameters!");
+            GFXSTREAM_FATAL("drawWithEmulations has corrupt call parameters!");
+            break;
     }
 
     if (needClientIBOSetup) {

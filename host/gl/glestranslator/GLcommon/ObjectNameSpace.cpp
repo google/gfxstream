@@ -25,7 +25,6 @@
 #include "aemu/base/files/StreamSerializing.h"
 #include "aemu/base/synchronization/Lock.h"
 #include "gfxstream/host/logging.h"
-#include "host-common/crash_reporter.h"
 #include "snapshot/TextureLoader.h"
 #include "snapshot/TextureSaver.h"
 
@@ -76,8 +75,7 @@ void NameSpace::postLoad(const ObjectData::getObjDataPtr_t& getObjDataPtr) {
         GFXSTREAM_DEBUG("%p: try to load object %llu", this, objData.first);
         if (!objData.second) {
             // bug: 130631787
-            // emugl::emugl_crash_reporter(
-            //         "Fatal: null object data ptr on restore\n");
+            // GFXSTREAM_FATAL("Fatal: null object data ptr on restore\n");
             continue;
         }
         objData.second->postLoad(getObjDataPtr);
@@ -101,9 +99,7 @@ void NameSpace::touchTextures() {
         NamedObjectPtr texNamedObj = saveableTexture->getGlobalObject();
         if (!texNamedObj) {
             GFXSTREAM_DEBUG("%p: fatal: global object null for texture data %p", this, texData);
-            emugl::emugl_crash_reporter(
-                    "fatal: null global texture object in "
-                    "NameSpace::touchTextures");
+            GFXSTREAM_FATAL("Null global texture object in NameSpace::touchTextures");
         }
         setGlobalObject(obj.first, texNamedObj);
         texData->setGlobalName(texNamedObj->getGlobalName());
@@ -299,8 +295,7 @@ void NameSpace::setObjectData(ObjectLocalName p_localName,
 void GlobalNameSpace::preSaveAddEglImage(EglImage* eglImage) {
     if (!eglImage->globalTexObj) {
         GFXSTREAM_DEBUG("%p: egl image %p with null texture object", this, eglImage);
-        emugl::emugl_crash_reporter(
-                "Fatal: egl image with null texture object\n");
+        GFXSTREAM_FATAL("Fatal: egl image with null texture object\n");
     }
     unsigned int globalName = eglImage->globalTexObj->getGlobalName();
     android::base::AutoLock lock(m_lock);
@@ -384,10 +379,7 @@ void GlobalNameSpace::onLoad(android::base::Stream* stream,
     const ITextureLoaderPtr textureLoader = textureLoaderWPtr.lock();
     assert(m_textureMap.size() == 0);
     if (!textureLoader->start()) {
-        fprintf(stderr,
-                "Error: texture file unsupported version or corrupted.\n");
-        emugl::emugl_crash_reporter(
-                "Error: texture file unsupported version or corrupted.\n");
+        GFXSTREAM_FATAL("Texture file unsupported version or corrupted.\n");
         return;
     }
     loadCollection(
