@@ -11,7 +11,8 @@ lib_gles1_dec = static_library(
   'gles1_dec',
   files_lib_gles1_dec,
   cpp_args: gfxstream_host_args,
-  include_directories: [inc_gfxstream_include, inc_include, inc_apigen_codec, inc_host_logging, inc_host_iostream],
+  include_directories: [inc_gfxstream_include, inc_include, inc_apigen_codec, inc_host_logging,
+                        inc_host_iostream, inc_gl_openglesdispatch],
   link_with: [lib_host_logging, lib_host_iostream],
   dependencies: [aemu_base_dep, aemu_logging_dep]
 )

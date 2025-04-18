@@ -42,7 +42,10 @@ cc_library(
     copts = ["-fno-exceptions"],
     includes = ["glestranslator/GLcommon/include"],
     visibility = ["//visibility:public"],
-    deps = ["//host/apigen-codec-common"],
+    deps = [
+        "//host/apigen-codec-common",
+        "//host/gl/OpenGLESDispatch:gfxstream_host_openglesdispatch_headers",
+    ],
 )
 
 objc_library(
@@ -238,33 +241,9 @@ cc_library(
     defines = ["EMUGL_BUILD"],
     includes = ["glsnapshot"],
     visibility = ["//visibility:public"],
-    deps = ["//host/apigen-codec-common"],
-)
-
-cc_library(
-    name = "OpenGLESDispatch",
-    srcs = [
-        "OpenGLESDispatch/EGLDispatch.cpp",
-        "OpenGLESDispatch/GLESv1Dispatch.cpp",
-        "OpenGLESDispatch/GLESv2Dispatch.cpp",
-        "OpenGLESDispatch/OpenGLDispatchLoader.cpp",
-        "OpenGLESDispatch/StaticDispatch.cpp",
-        "OpenGLESDispatch/gles1_stubbed_in_translator_namespace.cpp",
-        "OpenGLESDispatch/gles2_stubbed_in_translator_namespace.cpp",
-    ],
-    copts = [
-        "-fno-exceptions",
-        "-Wno-extern-c-compat",
-    ],
-    defines = ["EMUGL_BUILD"],
-    visibility = ["//visibility:public"],
     deps = [
-        ":EGL_translator_static",
-        ":gles1_dec",
-        ":gles2_dec",
-        "//:gfxstream-gl-host-common-headers",
-        "//common/opengl:gfxstream_opengl_headers",
         "//host/apigen-codec-common",
+        "//host/gl/OpenGLESDispatch:gfxstream_host_openglesdispatch",
     ],
 )
 
@@ -303,7 +282,6 @@ cc_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
-        ":OpenGLESDispatch",
         ":gfxstream-gl-host-common",
         ":gles1_dec",
         ":gles2_dec",
@@ -312,6 +290,7 @@ cc_library(
         "//host/apigen-codec-common",
         "//host/backend:gfxstream_host_backend",
         "//host/gl:GLSnapshot",
+        "//host/gl/OpenGLESDispatch:gfxstream_host_openglesdispatch",
         "//host/logging:gfxstream_host_logging",
         "//utils:gfxstream_utils_headers",
     ],

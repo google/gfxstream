@@ -198,7 +198,7 @@ if use_gles
   files_lib_gfxstream_backend += files('PostWorkerGl.cpp')
   files_lib_gfxstream_backend += files('RenderControl.cpp')
 
-  inc_gfxstream_backend += [inc_gl_server, inc_gl_snapshot, inc_gl_common]
+  inc_gfxstream_backend += [inc_gl_server, inc_gl_snapshot, inc_gl_common, inc_gl_openglesdispatch]
   link_gfxstream_backend += lib_gl_server
 endif
 

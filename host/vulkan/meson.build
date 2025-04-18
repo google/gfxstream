@@ -67,7 +67,7 @@ lib_vulkan_server = static_library(
                         inc_vulkan_server, inc_renderdoc_external,
                         inc_gl_host_common, inc_vulkan_headers, inc_glm, inc_host_backend,
                         inc_host_features, inc_host_logging, inc_host_iostream, inc_host_tracing,
-                        inc_common_utils, inc_host_include],
+                        inc_common_utils, inc_host_include, inc_gl_openglesdispatch],
   link_with: [lib_vulkan_cereal, lib_emulated_textures, lib_host_backend, lib_host_logging, lib_host_features,
               lib_host_tracing, lib_host_logging, lib_host_iostream],
   dependencies: [aemu_base_dep, aemu_common_dep, aemu_snapshot_dep]

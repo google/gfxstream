@@ -7,17 +7,27 @@ package {
     default_applicable_licenses: ["hardware_google_gfxstream_license"],
 }
 
+cc_library_headers {
+    name: "libgfxstream_host_openglesdispatch_headers",
+    defaults: ["gfxstream_defaults"],
+    export_include_dirs: [
+        "include",
+    ],
+}
+
 cc_library_static {
-    name: "libgfxstream_host_dispatch",
+    name: "libgfxstream_host_openglesdispatch",
     defaults: ["gfxstream_defaults"],
     header_libs: [
         "gfxstream_opengl_headers",
+        "libgfxstream_host_openglesdispatch_headers",
+    ],
+    export_header_lib_headers: [
+        "libgfxstream_host_openglesdispatch_headers",
     ],
     static_libs: [
         "gfxstream_base",
         "libgfxstream_thirdparty_glm",
-        "libgfxstream_host_gles1_dec",
-        "libgfxstream_host_gles2_dec",
         "libgfxstream_host_apigen_codec_common",
         "libgfxstream_glestranslator_egl",
     ],

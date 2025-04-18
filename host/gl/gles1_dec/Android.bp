@@ -18,6 +18,7 @@ cc_library_static {
         "libgfxstream_host_logging",
         "libgfxstream_host_glsnapshot",
         "libgfxstream_host_iostream",
+        "libgfxstream_host_openglesdispatch",
     ],
     export_static_lib_headers: [
         "libgfxstream_host_iostream",
