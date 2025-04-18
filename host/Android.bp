@@ -17,6 +17,17 @@ package {
     default_applicable_licenses: ["hardware_google_gfxstream_license"],
 }
 
+cc_library_headers {
+    name: "libgfxstream_backend_headers",
+    defaults: [
+        "gfxstream_defaults",
+        "gfxstream_host_cc_defaults",
+    ],
+    export_include_dirs: [
+        "include",
+    ],
+}
+
 cc_library_host_static {
     name: "libgfxstream_backend_proto",
     defaults: [

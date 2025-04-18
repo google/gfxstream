@@ -26,7 +26,7 @@
 #include "gfxstream/host/Tracing.h"
 #include "gfxstream/host/logging.h"
 #include "host-common/crash_reporter.h"
-#include "host-common/sync_device.h"
+#include "gfxstream/host/sync_device.h"
 
 #ifndef _MSC_VER
 #include <sys/time.h>
@@ -136,7 +136,7 @@ void SyncThread::triggerWait(EmulatedEglFenceSync* fenceSync,
         [fenceSync, timeline, this](WorkerId) {
             doSyncWait(fenceSync, [timeline] {
                 DPRINT("wait done (with fence), use goldfish sync timeline inc");
-                emugl::emugl_sync_timeline_inc(timeline, kTimelineInterval);
+                gfxstream_sync_timeline_inc(timeline, kTimelineInterval);
             });
         },
         ss.str());
@@ -285,7 +285,7 @@ void SyncThread::triggerWaitVk(VkFence vkFence, uint64_t timeline) {
         [vkFence, timeline](WorkerId) {
             doSyncWaitVk(vkFence, [timeline] {
                 DPRINT("vk wait done, use goldfish sync timeline inc");
-                emugl::emugl_sync_timeline_inc(timeline, kTimelineInterval);
+                gfxstream_sync_timeline_inc(timeline, kTimelineInterval);
             });
         },
         ss.str());
@@ -324,12 +324,12 @@ void SyncThread::triggerWaitVkQsri(VkImage vkImage, uint64_t timeline) {
         [vkImage, timeline](WorkerId) {
             auto decoder = vk::VkDecoderGlobalState::get();
             auto res = decoder->registerQsriCallback(vkImage, [timeline](){
-                 emugl::emugl_sync_timeline_inc(timeline, kTimelineInterval);
+                 gfxstream_sync_timeline_inc(timeline, kTimelineInterval);
             });
             // If registerQsriCallback does not schedule the callback, we still need to complete
             // the task, otherwise we may hit deadlocks on tasks on the same ring.
             if (!res.CallbackScheduledOrFired()) {
-                emugl::emugl_sync_timeline_inc(timeline, kTimelineInterval);
+                gfxstream_sync_timeline_inc(timeline, kTimelineInterval);
             }
         },
         ss.str());
