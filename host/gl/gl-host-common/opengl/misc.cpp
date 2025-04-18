@@ -14,16 +14,11 @@
 
 #include "host-common/opengl/misc.h"
 
-#include "aemu/base/GLObjectCounter.h"
-
 #include <cstring>
 
 static int s_glesMajorVersion = 2;
 static int s_glesMinorVersion = 0;
 
-android::base::GLObjectCounter* s_default_gl_object_counter = nullptr;
-
-android::base::GLObjectCounter* s_gl_object_counter = nullptr;
 static GrallocImplementation s_gralloc_implementation = MINIGBM;
 
 static SelectedRenderer s_renderer =
@@ -59,20 +54,6 @@ bool emugl::hasExtension(const char* extensionsStr, const char* wantedExtension)
         return true;
     }
     return false;
-}
-
-void emugl::setGLObjectCounter(android::base::GLObjectCounter* counter) {
-    s_gl_object_counter = counter;
-}
-
-android::base::GLObjectCounter* emugl::getGLObjectCounter() {
-    if (!s_gl_object_counter) {
-        if (!s_default_gl_object_counter) {
-            s_default_gl_object_counter = new android::base::GLObjectCounter;
-        }
-        return s_default_gl_object_counter;
-    }
-    return s_gl_object_counter;
 }
 
 void emugl::setGrallocImplementation(GrallocImplementation gralloc) {

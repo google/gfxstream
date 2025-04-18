@@ -14,7 +14,6 @@
 
 #include "SampleApplication.h"
 
-#include "aemu/base/GLObjectCounter.h"
 #include "aemu/base/synchronization/ConditionVariable.h"
 #include "aemu/base/synchronization/Lock.h"
 #include "aemu/base/system/System.h"
@@ -241,7 +240,6 @@ SampleApplication::SampleApplication(int windowWidth, int windowHeight, int refr
     mWidth(windowWidth), mHeight(windowHeight), mRefreshRate(refreshRate), mIsCompose(compose) {
 
     // setupStandaloneLibrarySearchPaths();
-    emugl::setGLObjectCounter(android::base::GLObjectCounter::get());
     emugl::set_emugl_window_operations(*getGraphicsAgents()->emu);;
     emugl::set_emugl_multi_display_operations(*getGraphicsAgents()->multi_display);
     gl::LazyLoadedEGLDispatch::get();

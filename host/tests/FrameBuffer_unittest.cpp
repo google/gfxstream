@@ -14,7 +14,6 @@
 
 #include "aemu/base/files/PathUtils.h"
 #include "aemu/base/files/StdioStream.h"
-#include "aemu/base/GLObjectCounter.h"
 #include "aemu/base/system/System.h"
 #include "aemu/base/testing/TestSystem.h"
 #include "host-common/GraphicsAgentFactory.h"
@@ -70,7 +69,6 @@ protected:
 
     virtual void SetUp() override {
         // setupStandaloneLibrarySearchPaths();
-        emugl::setGLObjectCounter(android::base::GLObjectCounter::get());
         emugl::set_emugl_window_operations(*getGraphicsAgents()->emu);
         emugl::set_emugl_multi_display_operations(*getGraphicsAgents()->multi_display);
         const EGLDispatch* egl = LazyLoadedEGLDispatch::get();

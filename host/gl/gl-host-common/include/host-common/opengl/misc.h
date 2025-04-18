@@ -14,7 +14,6 @@
 
 #pragma once
 
-#include "aemu/base/GLObjectCounter.h"
 #include "render-utils/gralloc_enums.h"
 #include "render-utils/renderer_enums.h"
 
@@ -28,35 +27,23 @@
 # define EMUGL_COMMON_API
 #endif
 
-namespace android {
-
-namespace base {
-
-class GLObjectCounter;
-
-} // namespace base
-} // namespace android
-
 namespace emugl {
-    // Set/get GLES major/minor version.
-    EMUGL_COMMON_API void setGlesVersion(int maj, int min);
-    EMUGL_COMMON_API void getGlesVersion(int* maj, int* min);
 
-    // Set/get renderer
-    EMUGL_COMMON_API void setRenderer(SelectedRenderer renderer);
-    EMUGL_COMMON_API SelectedRenderer getRenderer();
+// Set/get GLES major/minor version.
+EMUGL_COMMON_API void setGlesVersion(int maj, int min);
+EMUGL_COMMON_API void getGlesVersion(int* maj, int* min);
 
-    // Extension string query
-    EMUGL_COMMON_API bool hasExtension(const char* extensionsStr,
-                      const char* wantedExtension);
+// Set/get renderer
+EMUGL_COMMON_API void setRenderer(SelectedRenderer renderer);
+EMUGL_COMMON_API SelectedRenderer getRenderer();
 
-    // GL object counter get/set
-    EMUGL_COMMON_API void setGLObjectCounter(
-            android::base::GLObjectCounter* counter);
-    EMUGL_COMMON_API android::base::GLObjectCounter* getGLObjectCounter();
+// Extension string query
+EMUGL_COMMON_API bool hasExtension(const char* extensionsStr,
+                const char* wantedExtension);
 
-    // Gralloc implementation get/set
-    EMUGL_COMMON_API void setGrallocImplementation(
-            GrallocImplementation gralloc);
-    EMUGL_COMMON_API GrallocImplementation getGrallocImplementation();
+// Gralloc implementation get/set
+EMUGL_COMMON_API void setGrallocImplementation(
+        GrallocImplementation gralloc);
+EMUGL_COMMON_API GrallocImplementation getGrallocImplementation();
+
 }
