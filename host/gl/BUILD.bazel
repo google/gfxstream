@@ -19,23 +19,6 @@ cc_library(
     ],
 )
 
-objc_library(
-    name = "gfxstream-gl-host-common-darwin",
-    srcs = [
-        "gl-host-common/opengl/macTouchOpenGL.m",
-    ],
-    hdrs = ["gl-host-common/include/host-common/opengl/macTouchOpenGL.h"],
-    defines = ["EMUGL_BUILD"],
-    includes = ["gl-host-common/include"],
-    target_compatible_with = [
-        "@platforms//os:macos",
-    ],
-    deps = [
-        "//:gfxstream-gl-host-common-headers",
-        "//host/logging:gfxstream_host_logging",
-    ],
-)
-
 cc_library(
     name = "gl-common-headers",
     hdrs = glob(["glestranslator/GLcommon/include/**/*.h"]),
@@ -204,10 +187,7 @@ cc_library(
         "//host/features:gfxstream_features",
         "//host/logging:gfxstream_host_logging",
         "//host/snapshot:aemu-snapshot",
-    ] + select({
-        "@platforms//os:macos": ["gfxstream-gl-host-common-darwin"],
-        "//conditions:default": [],
-    }),
+    ],
 )
 
 cc_library(
