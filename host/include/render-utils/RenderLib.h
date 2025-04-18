@@ -34,15 +34,6 @@ struct address_space_device_control_ops;
 
 } // extern "C"
 
-namespace android {
-namespace base {
-
-class CpuUsage;
-class MemoryTracker;
-
-} // namespace base
-} // namespace android
-
 namespace gfxstream {
 
 struct RenderOpt {
@@ -83,9 +74,6 @@ public:
 
     virtual void setWindowOps(const QAndroidEmulatorWindowAgent &window_operations,
                               const QAndroidMultiDisplayAgent &multi_display_operations) = 0;
-
-    virtual void setUsageTracker(android::base::CpuUsage* cpuUsage,
-                                 android::base::MemoryTracker* memUsage) = 0;
 
     virtual void setGrallocImplementation(GrallocImplementation gralloc) = 0;
 

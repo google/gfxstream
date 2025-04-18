@@ -47,8 +47,6 @@ public:
     virtual void setWindowOps(const QAndroidEmulatorWindowAgent &window_operations,
                               const QAndroidMultiDisplayAgent &multi_display_operations) override;
 
-    virtual void setUsageTracker(android::base::CpuUsage* cpuUsage,
-                                 android::base::MemoryTracker* memUsage) override;
     virtual void setGrallocImplementation(GrallocImplementation gralloc) override;
 
     virtual bool getOpt(RenderOpt* opt) override;

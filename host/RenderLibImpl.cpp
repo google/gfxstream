@@ -112,12 +112,6 @@ void RenderLibImpl::setWindowOps(const QAndroidEmulatorWindowAgent &window_opera
     emugl::set_emugl_multi_display_operations(multi_display_operations);
 }
 
-void RenderLibImpl::setUsageTracker(android::base::CpuUsage* cpuUsage,
-                                    android::base::MemoryTracker* memUsage) {
-    emugl::setCpuUsage(cpuUsage);
-    emugl::setMemoryTracker(memUsage);
-}
-
 void RenderLibImpl::setGrallocImplementation(GrallocImplementation gralloc) {
     emugl::setGrallocImplementation(gralloc);
 }
