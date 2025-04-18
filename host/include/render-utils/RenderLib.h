@@ -24,9 +24,10 @@
 #include "host-common/sync_device.h"
 #include "host-common/vm_operations.h"
 #include "host-common/window_agent.h"
-#include "host-common/opengl/renderer_enums.h"
 #include "render-utils/Renderer.h"
+#include "render-utils/gralloc_enums.h"
 #include "render-utils/render_api_types.h"
+#include "render-utils/renderer_enums.h"
 
 extern "C" {
 

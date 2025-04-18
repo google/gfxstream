@@ -14,7 +14,9 @@
 
 #pragma once
 
-#include "host-common/opengl/renderer_enums.h"
+#include "aemu/base/GLObjectCounter.h"
+#include "render-utils/gralloc_enums.h"
+#include "render-utils/renderer_enums.h"
 
 #ifdef _MSC_VER
 # ifdef BUILDING_EMUGL_COMMON_SHARED

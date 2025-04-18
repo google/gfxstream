@@ -1,4 +1,4 @@
-// Copyright 2020 The Android Open Source Project
+// Copyright 2025 The Android Open Source Project
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,16 +14,10 @@
 
 #pragma once
 
-#include <stdbool.h>
-#include <stdint.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include "aemu/base/c_header.h"
-#include "aemu/base/export.h"
-
-ANDROID_BEGIN_HEADER
-
-// Enum tracking all current available renderer backends
-// for the emulator.
 typedef enum SelectedRenderer {
     SELECTED_RENDERER_UNKNOWN = 0,
     SELECTED_RENDERER_HOST = 1,
@@ -39,6 +33,6 @@ typedef enum SelectedRenderer {
     SELECTED_RENDERER_ERROR = 255,
 } SelectedRenderer;
 
-enum GrallocImplementation { MINIGBM, GOLDFISH_GRALLOC };
-
-ANDROID_END_HEADER
+#ifdef __cplusplus
+}
+#endif
