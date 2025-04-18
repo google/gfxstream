@@ -19,7 +19,6 @@
 #include "aemu/base/synchronization/Lock.h"
 #include "aemu/base/system/System.h"
 #include "gfxstream/host/logging.h"
-#include "host-common/misc.h"
 
 using android::base::AutoLock;
 using android::base::Lock;

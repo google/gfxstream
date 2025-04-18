@@ -34,6 +34,7 @@
 #include "VirtioGpuResource.h"
 #include "gfxstream/virtio-gpu-gfxstream-renderer.h"
 #include "host-common/address_space_device_control_ops.h"
+#include "render-utils/Renderer.h"
 
 namespace gfxstream {
 namespace host {
@@ -42,7 +43,8 @@ class VirtioGpuContext {
    public:
     VirtioGpuContext() = default;
 
-    static std::optional<VirtioGpuContext> Create(VirtioGpuContextId contextId,
+    static std::optional<VirtioGpuContext> Create(RendererPtr renderer,
+                                                  VirtioGpuContextId contextId,
                                                   const std::string& contextName,
                                                   uint32_t capsetId);
 
@@ -73,11 +75,13 @@ class VirtioGpuContext {
     std::optional<gfxstream::host::snapshot::VirtioGpuContextSnapshot> Snapshot() const;
 
     static std::optional<VirtioGpuContext> Restore(
+        RendererPtr renderer,
         const gfxstream::host::snapshot::VirtioGpuContextSnapshot& snapshot);
 #endif
 
    private:
     // LINT.IfChange(virtio_gpu_context)
+    RendererPtr mRenderer;
     VirtioGpuContextId mId;
     std::string mName;
     uint32_t mCapsetId;

@@ -22,7 +22,6 @@
 extern "C" {
 #include "gfxstream/virtio-gpu-gfxstream-renderer-unstable.h"
 #include "gfxstream/virtio-gpu-gfxstream-renderer.h"
-#include "host-common/goldfish_pipe.h"
 }  // extern "C"
 
 #include "VirtioGpu.h"
@@ -35,6 +34,7 @@ extern "C" {
 #include "VirtioGpuTimelines.h"
 #include "gfxstream/host/Features.h"
 #include "host-common/address_space_device.h"
+#include "render-utils/Renderer.h"
 
 namespace gfxstream {
 namespace host {
@@ -45,7 +45,8 @@ class VirtioGpuFrontend {
    public:
     VirtioGpuFrontend();
 
-    int init(void* cookie, const gfxstream::host::FeatureSet& features,
+    int init(RendererPtr renderer, void* cookie,
+             const gfxstream::host::FeatureSet& features,
              stream_renderer_fence_callback fence_callback);
 
     void teardown();
@@ -111,6 +112,18 @@ class VirtioGpuFrontend {
     int exportFence(uint64_t fenceId, struct stream_renderer_handle* handle);
     int vulkanInfo(uint32_t res_handle, struct stream_renderer_vulkan_info* vulkan_info);
 
+    void setupWindow(void* nativeWindowHandle,
+                     int32_t windowX,
+                     int32_t windowY,
+                     int32_t windowWidth,
+                     int32_t windowHeight,
+                     int32_t framebufferWidth,
+                     int32_t framebufferHeight);
+
+    void setScreenMask(int width,
+                       int height,
+                       const unsigned char* rgbaData);
+
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
     int snapshot(const char* directory);
     int restore(const char* directory);
@@ -131,6 +144,7 @@ class VirtioGpuFrontend {
     int restoreAsg(const char* directory);
 #endif  // GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
 
+    RendererPtr mRenderer;
     void* mCookie = nullptr;
     gfxstream::host::FeatureSet mFeatures;
     stream_renderer_fence_callback mFenceCallback;

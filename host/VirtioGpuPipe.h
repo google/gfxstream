@@ -20,6 +20,7 @@
 
 #include "VirtioGpu.h"
 #include "render-utils/RenderChannel.h"
+#include "render-utils/Renderer.h"
 
 namespace gfxstream {
 namespace host {
@@ -49,7 +50,7 @@ class VirtioGpuProcessPipe : public VirtioGpuPipeImpl {
 
 class VirtioGpuRenderThreadPipe : public VirtioGpuPipeImpl {
    public:
-    static std::unique_ptr<VirtioGpuPipeImpl> Create(VirtioGpuContextId id);
+    static std::unique_ptr<VirtioGpuPipeImpl> Create(Renderer* renderer, VirtioGpuContextId id);
     ~VirtioGpuRenderThreadPipe();
 
     int TransferToHost(const char* data, size_t dataSize) override;
@@ -65,7 +66,7 @@ class VirtioGpuRenderThreadPipe : public VirtioGpuPipeImpl {
 
 class VirtioGpuPipe {
    public:
-    VirtioGpuPipe(VirtioGpuContextId id);
+    VirtioGpuPipe(RendererPtr renderer, VirtioGpuContextId id);
 
     int TransferToHost(const char* data, size_t dataSize);
     int TransferFromHost(char* outRequestedData, size_t outRequestedDataSize);
@@ -73,6 +74,7 @@ class VirtioGpuPipe {
    private:
     void CreateUnderlyingPipe(const char* data, size_t dataSize);
 
+    RendererPtr mRenderer;
     const VirtioGpuContextId mContextId;
     std::unique_ptr<VirtioGpuPipeImpl> mUnderlyingPipe;
 };

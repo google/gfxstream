@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "host-common/opengl/emugl_config.h"
+#include "host-common/opengl/renderer_enums.h"
 
 #ifdef _MSC_VER
 # ifdef BUILDING_EMUGL_COMMON_SHARED
