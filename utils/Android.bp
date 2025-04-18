@@ -1,0 +1,18 @@
+package {
+    // See: http://go/android-license-faq
+    default_applicable_licenses: ["hardware_google_gfxstream_license"],
+}
+
+cc_library_static {
+    name: "libgfxstream_utils_renderdoc",
+    defaults: ["gfxstream_defaults"],
+    export_include_dirs: [
+        "include",
+    ],
+    header_libs: [
+        "libgfxstream_thirdparty_renderdoc_headers",
+    ],
+    export_header_lib_headers: [
+        "libgfxstream_thirdparty_renderdoc_headers",
+    ],
+}

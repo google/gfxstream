@@ -196,7 +196,6 @@ if use_gles
   subdir('gl')
 
   files_lib_gfxstream_backend += files('PostWorkerGl.cpp')
-  files_lib_gfxstream_backend += files('RenderThreadInfoGl.cpp')
   files_lib_gfxstream_backend += files('RenderControl.cpp')
 
   inc_gfxstream_backend += [inc_gl_server, inc_gl_snapshot, inc_gl_common]
