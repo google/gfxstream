@@ -32,7 +32,6 @@ public:
     virtual void getGlesVersion(int* maj, int* min) override;
     virtual void setLogger(emugl_logger_struct logger) override;
 
-    virtual void setFeatureController(emugl_feature_is_enabled_t featureController) override;
     virtual void setSyncDevice(emugl_sync_create_timeline_t,
                                emugl_sync_create_fence_t,
                                emugl_sync_timeline_inc_t,

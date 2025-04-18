@@ -204,8 +204,6 @@ RendererPtr InitRenderer(uint32_t displayWidth,
         android::base::setEnvironmentVariable("ANDROID_EGL_ON_EGL", "1");
     }
 
-    android::featurecontrol::productFeatureOverride();
-
     auto androidHw = aemu_get_android_hw();
 
     androidHw->hw_gltransport_asg_writeBufferSize = 1048576;

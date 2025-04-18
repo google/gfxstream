@@ -77,10 +77,6 @@ void RenderLibImpl::setLogger(emugl_logger_struct logger) {
 #endif
 }
 
-void RenderLibImpl::setFeatureController(emugl_feature_is_enabled_t featureController) {
-    android::featurecontrol::setFeatureEnabledCallback(featureController);
-}
-
 void RenderLibImpl::setSyncDevice
     (emugl_sync_create_timeline_t create_timeline,
      emugl_sync_create_fence_t create_fence,
