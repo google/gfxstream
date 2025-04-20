@@ -18,11 +18,11 @@
 
 #include "aemu/base/files/Stream.h"
 #include "gfxstream/host/Features.h"
-#include "host-common/dma_device.h"
 #include "host-common/multi_display_agent.h"
 #include "host-common/vm_operations.h"
 #include "host-common/window_agent.h"
 #include "render-utils/Renderer.h"
+#include "render-utils/dma_device.h"
 #include "render-utils/gralloc_enums.h"
 #include "render-utils/render_api_types.h"
 #include "render-utils/renderer_enums.h"
@@ -69,7 +69,7 @@ public:
 
     // Sets the function use to read from the guest
     // physically contiguous DMA region at particular offsets.
-    virtual void setDmaOps(emugl_dma_ops) = 0;
+    virtual void setDmaOps(gfxstream_dma_ops) = 0;
 
     virtual void setVmOps(const QAndroidVmOperations &vm_operations) = 0;
     virtual void setAddressSpaceDeviceControlOps(struct address_space_device_control_ops* ops) = 0;

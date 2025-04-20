@@ -16,8 +16,8 @@
 #include <assert.h>
 #include <memory.h>
 
+#include "gfxstream/host/dma_device.h"
 #include "gfxstream/host/logging.h"
-#include "host-common/dma_device.h"
 #include "render-utils/RenderChannel.h"
 
 namespace gfxstream {
@@ -81,10 +81,10 @@ const unsigned char* ChannelStream::readRaw(void* buf, size_t* inout_len) {
 }
 
 void* ChannelStream::getDmaForReading(uint64_t guest_paddr) {
-    return emugl::g_emugl_dma_get_host_addr(guest_paddr);
+    return gfxstream::g_gfxstream_dma_get_host_addr(guest_paddr);
 }
 
-void ChannelStream::unlockDma(uint64_t guest_paddr) { emugl::g_emugl_dma_unlock(guest_paddr); }
+void ChannelStream::unlockDma(uint64_t guest_paddr) { gfxstream::g_gfxstream_dma_unlock(guest_paddr); }
 
 void ChannelStream::forceStop() {
     mChannel->stopFromHost();

@@ -5,6 +5,7 @@ cc_library(
     srcs = [
         "display_surface.cpp",
         "display_surface_user.cpp",
+        "dma_device.cpp",
         "sync_device.cpp",
     ],
     hdrs = glob(["include/**/*.h"]),

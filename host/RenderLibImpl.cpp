@@ -16,13 +16,13 @@
 #include "FrameBuffer.h"
 #include "RendererImpl.h"
 #include "aemu/base/files/Stream.h"
-#include "gfxstream/host/logging.h"
 #include "host-common/address_space_device_control_ops.h"
 #include "host-common/crash_reporter.h"
-#include "host-common/dma_device.h"
 #include "host-common/emugl_vm_operations.h"
 #include "host-common/feature_control.h"
 #include "host-common/opengl/misc.h"
+#include "gfxstream/host/dma_device.h"
+#include "gfxstream/host/logging.h"
 #include "gfxstream/host/sync_device.h"
 
 #if GFXSTREAM_ENABLE_HOST_GLES
@@ -92,9 +92,9 @@ void RenderLibImpl::setSyncDevice
     set_gfxstream_sync_device_exists(device_exists);
 }
 
-void RenderLibImpl::setDmaOps(emugl_dma_ops ops) {
-    emugl::set_emugl_dma_get_host_addr(ops.get_host_addr);
-    emugl::set_emugl_dma_unlock(ops.unlock);
+void RenderLibImpl::setDmaOps(gfxstream_dma_ops ops) {
+    set_gfxstream_dma_get_host_addr(ops.get_host_addr);
+    set_gfxstream_dma_unlock(ops.unlock);
 }
 
 void RenderLibImpl::setVmOps(const QAndroidVmOperations &vm_operations) {

@@ -205,6 +205,7 @@ cc_library(
         "//:gfxstream-gl-host-common-headers",
         "//common/opengl:gfxstream_opengl_headers",
         "//host/apigen-codec-common",
+        "//host/backend:gfxstream_host_backend",
         "//host/iostream:gfxstream_host_iostream",
         "//host/logging:gfxstream_host_logging",
     ],

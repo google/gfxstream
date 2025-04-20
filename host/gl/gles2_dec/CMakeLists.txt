@@ -12,6 +12,7 @@ target_link_libraries(
     ${GFXSTREAM_BASE_LIB}
     PRIVATE
     gfxstream_egl_headers
+    gfxstream_host_backend
     gfxstream_host_logging
     )
 target_include_directories(

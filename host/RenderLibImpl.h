@@ -39,7 +39,7 @@ public:
                                gfxstream_sync_register_trigger_wait_t,
                                gfxstream_sync_device_exists_t) override;
 
-    virtual void setDmaOps(emugl_dma_ops) override;
+    virtual void setDmaOps(gfxstream_dma_ops) override;
 
     virtual void setVmOps(const QAndroidVmOperations &vm_operations) override;
     virtual void setAddressSpaceDeviceControlOps(struct address_space_device_control_ops* ops) override;

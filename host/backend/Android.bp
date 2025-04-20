@@ -9,6 +9,7 @@ cc_library_static {
     srcs: [
         "display_surface.cpp",
         "display_surface_user.cpp",
+        "dma_device.cpp",
         "sync_device.cpp",
     ],
     export_include_dirs: [

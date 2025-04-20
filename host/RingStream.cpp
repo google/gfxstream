@@ -13,17 +13,12 @@
 // limitations under the License.
 #include "RingStream.h"
 
-#include "aemu/base/system/System.h"
-
-#define EMUGL_DEBUG_LEVEL  0
-
-#include "host-common/crash_reporter.h"
-#include "host-common/debug.h"
-#include "host-common/dma_device.h"
-#include "gfxstream/host/logging.h"
-
 #include <assert.h>
 #include <memory.h>
+
+#include "aemu/base/system/System.h"
+#include "gfxstream/host/dma_device.h"
+#include "gfxstream/host/logging.h"
 
 namespace gfxstream {
 
@@ -224,7 +219,6 @@ const unsigned char* RingStream::readRaw(void* buf, size_t* inout_len) {
     *inout_len = count;
     ++mXmits;
     mTotalRecv += count;
-    D("read %d bytes", (int)count);
 
     *(mContext.host_state) = ASG_HOST_STATE_RENDERING;
     return (const unsigned char*)buf;
@@ -339,10 +333,10 @@ void RingStream::type3Read(
 }
 
 void* RingStream::getDmaForReading(uint64_t guest_paddr) {
-    return emugl::g_emugl_dma_get_host_addr(guest_paddr);
+    return gfxstream::g_gfxstream_dma_get_host_addr(guest_paddr);
 }
 
-void RingStream::unlockDma(uint64_t guest_paddr) { emugl::g_emugl_dma_unlock(guest_paddr); }
+void RingStream::unlockDma(uint64_t guest_paddr) { gfxstream::g_gfxstream_dma_unlock(guest_paddr); }
 
 int RingStream::writeFully(const void* buf, size_t len) {
     void* dstBuf = alloc(len);
