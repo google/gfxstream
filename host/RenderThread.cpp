@@ -506,6 +506,7 @@ intptr_t RenderThread::main() {
                     .gfxApiLogger = &gfxLogger,
                     .healthMonitor = FrameBuffer::getFB()->getHealthMonitor(),
                     .metricsLogger = &metricsLogger,
+                    .shouldExit = &(tInfo->m_shouldExit),
                 };
                 last = tInfo->m_vkInfo->m_vkDec.decode(readBuf.buf(), readBuf.validData(), ioStream,
                                                       processResources, context);
