@@ -7,6 +7,7 @@ cc_library_static {
     name: "libgfxstream_host_backend",
     defaults: ["gfxstream_defaults"],
     srcs: [
+        "display_operations.cpp",
         "display_surface.cpp",
         "display_surface_user.cpp",
         "dma_device.cpp",

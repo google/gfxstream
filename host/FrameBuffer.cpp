@@ -53,6 +53,7 @@
 #include "gl/glestranslator/EGL/EglGlobalInfo.h"
 #endif
 #include "gfxstream/host/Tracing.h"
+#include "gfxstream/host/display_operations.h"
 #include "gfxstream/host/logging.h"
 #include "gfxstream/host/vm_operations.h"
 #include "gfxstream/host/window_operations.h"
@@ -740,13 +741,8 @@ void FrameBuffer::setPostCallback(Renderer::OnPostCallback onPost, void* onPostC
     AutoLock lock(m_lock);
     if (onPost) {
         uint32_t w, h;
-        if (!emugl::get_emugl_multi_display_operations().getMultiDisplay(displayId,
-                                                                         nullptr,
-                                                                         nullptr,
-                                                                         &w, &h,
-                                                                         nullptr,
-                                                                         nullptr,
-                                                                         nullptr)) {
+        if (!get_gfxstream_multi_display_operations().get_display_info(
+                displayId, nullptr, nullptr, &w, &h, nullptr, nullptr, nullptr)) {
             GFXSTREAM_ERROR("display %d not exist, cancelling OnPost callback", displayId);
             return;
         }
@@ -1962,8 +1958,8 @@ int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width, unsi
 
     AutoLock mutex(m_lock);
     uint32_t w, h, cb, screenWidth, screenHeight;
-    if (!emugl::get_emugl_multi_display_operations().getMultiDisplay(
-            displayId, nullptr, nullptr, &w, &h, nullptr, nullptr, nullptr)) {
+    if (!get_gfxstream_multi_display_operations().get_display_info(displayId, nullptr, nullptr, &w,
+                                                                   &h, nullptr, nullptr, nullptr)) {
         GFXSTREAM_ERROR("Screenshot of invalid display %d", displayId);
         *width = 0;
         *height = 0;
@@ -1977,7 +1973,7 @@ int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width, unsi
         *cPixels = 0;
         return -1;
     }
-    emugl::get_emugl_multi_display_operations().getDisplayColorBuffer(displayId, &cb);
+    get_gfxstream_multi_display_operations().get_display_color_buffer(displayId, &cb);
     if (displayId == 0) {
         cb = m_lastPostedColorBuffer;
     }
@@ -2114,8 +2110,8 @@ bool FrameBuffer::compose(uint32_t bufferSize, void* buffer, bool needPost) {
     }
 
 #ifdef CONFIG_AEMU
-    const auto& multiDisplay = emugl::get_emugl_multi_display_operations();
-    const bool is_pixel_fold = multiDisplay.isPixelFold();
+    const auto& multiDisplay = get_gfxstream_multi_display_operations();
+    const bool is_pixel_fold = multiDisplay.is_pixel_fold();
     if (needPost) {
         // AEMU with -no-window mode uses this code path.
         ComposeDevice* composeDevice = (ComposeDevice*)buffer;
@@ -2659,72 +2655,40 @@ const ProcessResources* FrameBuffer::getProcessResources(uint64_t puid) {
 }
 
 int FrameBuffer::createDisplay(uint32_t* displayId) {
-#ifdef CONFIG_AEMU
-    return emugl::get_emugl_multi_display_operations().createDisplay(displayId);
-#else
-    return 0;
-#endif
+    return get_gfxstream_multi_display_operations().create_display(displayId);
 }
 
 int FrameBuffer::createDisplay(uint32_t displayId) {
-#ifdef CONFIG_AEMU
-    return emugl::get_emugl_multi_display_operations().createDisplay(&displayId);
-#else
-    return 0;
-#endif
+    return get_gfxstream_multi_display_operations().create_display(&displayId);
 }
 
 int FrameBuffer::destroyDisplay(uint32_t displayId) {
-#ifdef CONFIG_AEMU
-    return emugl::get_emugl_multi_display_operations().destroyDisplay(displayId);
-#else
-    return 0;
-#endif
+    return get_gfxstream_multi_display_operations().destroy_display(displayId);
 }
 
 int FrameBuffer::setDisplayColorBuffer(uint32_t displayId, uint32_t colorBuffer) {
-#ifdef CONFIG_AEMU
-    return emugl::get_emugl_multi_display_operations().setDisplayColorBuffer(displayId,
+    return get_gfxstream_multi_display_operations().set_display_color_buffer(displayId,
                                                                              colorBuffer);
-#else
-    return 0;
-#endif
 }
 
 int FrameBuffer::getDisplayColorBuffer(uint32_t displayId, uint32_t* colorBuffer) {
-#ifdef CONFIG_AEMU
-    return emugl::get_emugl_multi_display_operations().getDisplayColorBuffer(displayId,
+    return get_gfxstream_multi_display_operations().get_display_color_buffer(displayId,
                                                                              colorBuffer);
-#else
-    return 0;
-#endif
 }
 
 int FrameBuffer::getColorBufferDisplay(uint32_t colorBuffer, uint32_t* displayId) {
-#ifdef CONFIG_AEMU
-    return emugl::get_emugl_multi_display_operations().getColorBufferDisplay(colorBuffer,
+    return get_gfxstream_multi_display_operations().get_color_buffer_display(colorBuffer,
                                                                              displayId);
-#else
-    return 0;
-#endif
 }
 
 int FrameBuffer::getDisplayPose(uint32_t displayId, int32_t* x, int32_t* y, uint32_t* w,
                                 uint32_t* h) {
-#ifdef CONFIG_AEMU
-    return emugl::get_emugl_multi_display_operations().getDisplayPose(displayId, x, y, w, h);
-#else
-    return 0;
-#endif
+    return get_gfxstream_multi_display_operations().get_display_pose(displayId, x, y, w, h);
 }
 
 int FrameBuffer::setDisplayPose(uint32_t displayId, int32_t x, int32_t y, uint32_t w, uint32_t h,
                                 uint32_t dpi) {
-#ifdef CONFIG_AEMU
-    return emugl::get_emugl_multi_display_operations().setDisplayPose(displayId, x, y, w, h, dpi);
-#else
-    return 0;
-#endif
+    return get_gfxstream_multi_display_operations().set_display_pose(displayId, x, y, w, h, dpi);
 }
 
 void FrameBuffer::sweepColorBuffersLocked() {

@@ -148,7 +148,6 @@ cc_defaults {
         "RenderLibImpl.cpp",
         "RendererImpl.cpp",
         "FrameBuffer.cpp",
-        "GfxStreamAgents.cpp",
         "GraphicsDriverLock.cpp",
         "virtio-gpu-gfxstream-renderer.cpp",
         "virtio-gpu-gfxstream-renderer-goldfish.cpp",
@@ -285,7 +284,7 @@ cc_test_host {
         "libgfxstream_host_vulkan_cereal_common",
     ],
     srcs: [
-        "tests/FrameBuffer_unittest.cpp",
+        "FrameBuffer_unittest.cpp",
     ],
     shared_libs: [
         "libbase",

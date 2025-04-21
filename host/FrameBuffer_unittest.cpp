@@ -12,34 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <memory>
+
+#include <gtest/gtest.h>
+
 #include "aemu/base/files/PathUtils.h"
 #include "aemu/base/files/StdioStream.h"
 #include "aemu/base/system/System.h"
 #include "aemu/base/testing/TestSystem.h"
-#include "host-common/GraphicsAgentFactory.h"
-#include "host-common/multi_display_agent.h"
-#include "host-common/testing/MockGraphicsAgentFactory.h"
-#include "host-common/window_agent.h"
-#include "host-common/MultiDisplay.h"
-#include "host-common/opengl/misc.h"
+#include "gfxstream/host/display_operations.h"
+#include "gfxstream/host/window_operations.h"
 #include "snapshot/TextureLoader.h"
 #include "snapshot/TextureSaver.h"
-
-#include "GLSnapshotTesting.h"
-#include "GLTestUtils.h"
-#include "Standalone.h"
-
-#include <gtest/gtest.h>
-#include <memory>
+#include "tests/GLSnapshotTesting.h"
+#include "tests/GLTestUtils.h"
+#include "tests/Standalone.h"
+#ifdef __linux__
+#include "tests/X11TestingSupport.h"
+#endif
 
 #ifdef _MSC_VER
 #include "aemu/base/msvc.h"
 #else
 #include <sys/time.h>
-#endif
-
-#ifdef __linux__
-#include "X11TestingSupport.h"
 #endif
 
 namespace gfxstream {
@@ -55,22 +50,12 @@ using gl::LazyLoadedEGLDispatch;
 using gl::LazyLoadedGLESv2Dispatch;
 
 class FrameBufferTest : public ::testing::Test {
-public:
+  public:
     FrameBufferTest() = default;
 
-protected:
-
-    static void SetUpTestSuite() {
-        android::emulation::injectGraphicsAgents(
-                android::emulation::MockGraphicsAgentFactory());
-    }
-
-    static void TearDownTestSuite() { }
-
-    virtual void SetUp() override {
+  protected:
+    void SetUp() override {
         // setupStandaloneLibrarySearchPaths();
-        emugl::set_emugl_window_operations(*getGraphicsAgents()->emu);
-        emugl::set_emugl_multi_display_operations(*getGraphicsAgents()->multi_display);
         const EGLDispatch* egl = LazyLoadedEGLDispatch::get();
         ASSERT_NE(nullptr, egl);
         ASSERT_NE(nullptr, LazyLoadedGLESv2Dispatch::get());
@@ -800,7 +785,7 @@ TEST_F(FrameBufferTest, BindMultiDisplayColorBuffer) {
     uint32_t handle =
         mFb->createColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE);
     EXPECT_NE((HandleType)0, handle);
-    EXPECT_EQ(0, mFb->setDisplayColorBuffer(id, handle));
+    EXPECT_EQ(0, mFb->setDisplayColorBuffer(2, handle));
     uint32_t getHandle = 0;
     mFb->getDisplayColorBuffer(id, &getHandle);
     EXPECT_EQ(handle, getHandle);
@@ -864,8 +849,11 @@ TEST_F(FrameBufferTest, ComposeMultiDisplay) {
     uint32_t ids[] = {1, 2, 3};
     for (uint32_t i = 0; i < 3 ; i++) {
         EXPECT_EQ(0, mFb->createDisplay(&ids[i]));
-        EXPECT_EQ(0, mFb->setDisplayPose(ids[i], info[i].pos_x, info[i].pos_y,
-                                         info[i].width, info[i].height));
+        EXPECT_EQ(0, mFb->setDisplayPose(ids[i],
+                                         info[i].pos_x,
+                                         info[i].pos_y,
+                                         info[i].width,
+                                         info[i].height));
         EXPECT_EQ(0, mFb->setDisplayColorBuffer(ids[i], info[i].cb));
     }
 

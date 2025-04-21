@@ -24,7 +24,6 @@
 #include "aemu/base/testing/TestSystem.h"
 #include "host-common/GraphicsAgentFactory.h"
 #include "host-common/opengl/misc.h"
-#include "host-common/testing/MockGraphicsAgentFactory.h"
 #include "tests/VkTestUtils.h"
 
 #include "Standalone.h"
@@ -386,14 +385,7 @@ static void teardownVulkanTest(const VulkanDispatch* vk,
 }
 
 class VulkanTest : public ::testing::Test {
-protected:
-    static void SetUpTestSuite() {
-        android::emulation::injectGraphicsAgents(
-                android::emulation::MockGraphicsAgentFactory());
-    }
-
-    static void TearDownTestSuite() { }
-
+  protected:
     void SetUp() override {
         auto dispatch = vkDispatch(false);
         ASSERT_NE(dispatch, nullptr);
@@ -460,8 +452,6 @@ protected:
 
         VulkanTest::SetUp();
 
-        emugl::set_emugl_window_operations(*getGraphicsAgents()->emu);
-        emugl::set_emugl_multi_display_operations(*getGraphicsAgents()->multi_display);
         ASSERT_NE(nullptr, gl::LazyLoadedEGLDispatch::get());
         ASSERT_NE(nullptr, gl::LazyLoadedGLESv2Dispatch::get());
 

@@ -16,6 +16,7 @@
 #include "PostWorkerGl.h"
 
 #include "FrameBuffer.h"
+#include "gfxstream/host/display_operations.h"
 #include "gfxstream/host/logging.h"
 #include "gfxstream/host/window_operations.h"
 #include "gl/DisplayGl.h"
@@ -83,8 +84,8 @@ std::shared_future<void> PostWorkerGl::postImpl(ColorBuffer* cb) {
         .transform = HWC_TRANSFORM_NONE,
     };
 
-    const auto& multiDisplay = emugl::get_emugl_multi_display_operations();
-    const bool pixel_fold = multiDisplay.isPixelFold();
+    const auto& multiDisplay = get_gfxstream_multi_display_operations();
+    const bool pixel_fold = multiDisplay.is_pixel_fold();
     if (pixel_fold) {
 #ifdef CONFIG_AEMU
         if (emugl::shouldSkipDraw()) {
@@ -93,19 +94,19 @@ std::shared_future<void> PostWorkerGl::postImpl(ColorBuffer* cb) {
             post.layers.push_back(postWithOverlay(cb));
         }
 #endif
-    } else if (multiDisplay.isMultiDisplayEnabled()) {
-        if (multiDisplay.isMultiDisplayWindow()) {
+    } else if (multiDisplay.is_multi_display_enabled()) {
+        if (multiDisplay.is_multi_window()) {
             int32_t previousDisplayId = -1;
             uint32_t currentDisplayId;
             uint32_t currentDisplayColorBufferHandle;
-            while (multiDisplay.getNextMultiDisplay(previousDisplayId, &currentDisplayId,
-                                                    /*x=*/nullptr,
-                                                    /*y=*/nullptr,
-                                                    /*w=*/nullptr,
-                                                    /*h=*/nullptr,
-                                                    /*dpi=*/nullptr,
-                                                    /*flags=*/nullptr,
-                                                    &currentDisplayColorBufferHandle)) {
+            while (multiDisplay.get_next_display_info(previousDisplayId, &currentDisplayId,
+                                                      /*x=*/nullptr,
+                                                      /*y=*/nullptr,
+                                                      /*w=*/nullptr,
+                                                      /*h=*/nullptr,
+                                                      /*dpi=*/nullptr,
+                                                      /*flags=*/nullptr,
+                                                      &currentDisplayColorBufferHandle)) {
                 previousDisplayId = currentDisplayId;
 
                 if (currentDisplayColorBufferHandle == 0) {
@@ -118,7 +119,7 @@ std::shared_future<void> PostWorkerGl::postImpl(ColorBuffer* cb) {
         } else {
             uint32_t combinedDisplayW = 0;
             uint32_t combinedDisplayH = 0;
-            multiDisplay.getCombinedDisplaySize(&combinedDisplayW, &combinedDisplayH);
+            multiDisplay.get_combined_size(&combinedDisplayW, &combinedDisplayH);
 
             post.frameWidth = combinedDisplayW;
             post.frameHeight = combinedDisplayH;
@@ -130,7 +131,7 @@ std::shared_future<void> PostWorkerGl::postImpl(ColorBuffer* cb) {
             uint32_t currentDisplayW;
             uint32_t currentDisplayH;
             uint32_t currentDisplayColorBufferHandle;
-            while (multiDisplay.getNextMultiDisplay(
+            while (multiDisplay.get_next_display_info(
                 previousDisplayId, &currentDisplayId, &currentDisplayOffsetX,
                 &currentDisplayOffsetY, &currentDisplayW, &currentDisplayH,
                 /*dpi=*/nullptr,

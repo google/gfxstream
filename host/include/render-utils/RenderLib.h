@@ -18,8 +18,8 @@
 
 #include "aemu/base/files/Stream.h"
 #include "gfxstream/host/Features.h"
-#include "host-common/multi_display_agent.h"
 #include "render-utils/Renderer.h"
+#include "render-utils/display_operations.h"
 #include "render-utils/dma_device.h"
 #include "render-utils/gralloc_enums.h"
 #include "render-utils/render_api_types.h"
@@ -75,7 +75,8 @@ public:
     virtual void setAddressSpaceDeviceControlOps(struct address_space_device_control_ops* ops) = 0;
 
     virtual void setWindowOps(const gfxstream_window_ops& window_operations) = 0;
-    virtual void setMultiDisplayOps(const QAndroidMultiDisplayAgent& multi_display_operations) = 0;
+
+    virtual void setDisplayOps(const gfxstream_multi_display_ops& display_ops) = 0;
 
     virtual void setGrallocImplementation(GrallocImplementation gralloc) = 0;
 

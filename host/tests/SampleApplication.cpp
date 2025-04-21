@@ -19,9 +19,6 @@
 #include "aemu/base/system/System.h"
 #include "aemu/base/threads/FunctorThread.h"
 #include "aemu/base/testing/TestSystem.h"
-#include "host-common/GraphicsAgentFactory.h"
-#include "host-common/multi_display_agent.h"
-#include "host-common/MultiDisplay.h"
 #include "host-common/opengl/misc.h"
 #include "Standalone.h"
 
@@ -233,15 +230,11 @@ private:
     ComposeDevice* mComposeDevice;
 };
 
-extern "C" const QAndroidMultiDisplayAgent* const gMockQAndroidMultiDisplayAgent;
-
 // SampleApplication implementation/////////////////////////////////////////////
 SampleApplication::SampleApplication(int windowWidth, int windowHeight, int refreshRate, GLESApi glVersion, bool compose) :
     mWidth(windowWidth), mHeight(windowHeight), mRefreshRate(refreshRate), mIsCompose(compose) {
 
     // setupStandaloneLibrarySearchPaths();
-    emugl::set_emugl_window_operations(*getGraphicsAgents()->emu);;
-    emugl::set_emugl_multi_display_operations(*getGraphicsAgents()->multi_display);
     gl::LazyLoadedEGLDispatch::get();
     if (glVersion == GLESApi_CM) gl::LazyLoadedGLESv1Dispatch::get();
     gl::LazyLoadedGLESv2Dispatch::get();

@@ -43,8 +43,7 @@ void destroySurface(EGLDisplay dpy, EGLSurface surface);
 void destroyDisplay(EGLDisplay dpy);
 
 class GLTest : public ::testing::Test {
-protected:
-    static void SetUpTestSuite();
+  protected:
     virtual void SetUp();
     virtual void TearDown();
 

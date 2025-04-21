@@ -3,6 +3,7 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 cc_library(
     name = "gfxstream_host_backend",
     srcs = [
+        "display_operations.cpp",
         "display_surface.cpp",
         "display_surface_user.cpp",
         "dma_device.cpp",

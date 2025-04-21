@@ -16,14 +16,15 @@
 #include "FrameBuffer.h"
 #include "RendererImpl.h"
 #include "aemu/base/files/Stream.h"
-#include "host-common/address_space_device_control_ops.h"
-#include "host-common/opengl/misc.h"
-#include "host-common/misc.h"
+#include "gfxstream/host/display_operations.h"
 #include "gfxstream/host/dma_device.h"
 #include "gfxstream/host/logging.h"
 #include "gfxstream/host/sync_device.h"
 #include "gfxstream/host/vm_operations.h"
 #include "gfxstream/host/window_operations.h"
+#include "host-common/address_space_device_control_ops.h"
+#include "host-common/misc.h"
+#include "host-common/opengl/misc.h"
 
 #if GFXSTREAM_ENABLE_HOST_GLES
 #include "OpenGLESDispatch/DispatchTables.h"
@@ -117,8 +118,8 @@ void RenderLibImpl::setWindowOps(const gfxstream_window_ops& window_operations) 
     set_gfxstream_window_operations(window_operations);
 }
 
-void RenderLibImpl::setMultiDisplayOps(const QAndroidMultiDisplayAgent& multi_display_operations) {
-    emugl::set_emugl_multi_display_operations(multi_display_operations);
+void RenderLibImpl::setDisplayOps(const gfxstream_multi_display_ops& display_operations) {
+    set_gfxstream_multi_display_operations(display_operations);
 }
 
 void RenderLibImpl::setGrallocImplementation(GrallocImplementation gralloc) {

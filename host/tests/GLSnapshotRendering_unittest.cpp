@@ -16,8 +16,6 @@
 #include "GLSnapshotTesting.h"
 #include "Standalone.h"
 #include "HelloTriangle.h"
-#include "host-common/GraphicsAgentFactory.h"
-#include "host-common/testing/MockGraphicsAgentFactory.h"
 
 #include <gtest/gtest.h>
 
@@ -59,17 +57,9 @@ protected:
 
 template <typename T>
 class SnapshotGlRenderingSampleTest : public ::testing::Test {
-protected:
-    static void SetUpTestSuite() {
-        android::emulation::injectGraphicsAgents(
-                android::emulation::MockGraphicsAgentFactory());
-    }
-
-    static void TearDownTestSuite() { }
-
+  protected:
     virtual void SetUp() override {
         // setupStandaloneLibrarySearchPaths();
-        emugl::set_emugl_window_operations(*getGraphicsAgents()->emu);
         //const EGLDispatch* egl = LazyLoadedEGLDispatch::get();
 
         gl::LazyLoadedGLESv2Dispatch::get();

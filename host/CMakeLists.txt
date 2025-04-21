@@ -40,7 +40,6 @@ set(stream-server-core-sources
     ColorBuffer.cpp
     ExternalObjectManager.cpp
     FrameBuffer.cpp
-    GfxStreamAgents.cpp
     GraphicsDriverLock.cpp
     Hwc2.cpp
     PostWorker.cpp
@@ -263,7 +262,7 @@ endfunction()
     # Basic opengl rendering tests##################################################
     add_executable(
         OpenglRender_unittests
-        tests/FrameBuffer_unittest.cpp
+        FrameBuffer_unittest.cpp
         tests/GLES1Dispatch_unittest.cpp
         tests/DefaultFramebufferBlit_unittest.cpp
         tests/TextureDraw_unittest.cpp
@@ -276,6 +275,7 @@ endfunction()
         aemu-host-common-testing-support
         aemu-base-testing-support
         gfxstream_backend_static
+        gmock
         gtest_main)
     if (LINUX)
         target_compile_definitions(

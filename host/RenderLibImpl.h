@@ -44,7 +44,8 @@ public:
     virtual void setAddressSpaceDeviceControlOps(struct address_space_device_control_ops* ops) override;
 
     virtual void setWindowOps(const gfxstream_window_ops& window_operations) override;
-    virtual void setMultiDisplayOps(const QAndroidMultiDisplayAgent& multi_display_operations) override;
+
+    virtual void setDisplayOps(const gfxstream_multi_display_ops& display_operations) override;
 
     virtual void setGrallocImplementation(GrallocImplementation gralloc) override;
 
