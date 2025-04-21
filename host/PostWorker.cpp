@@ -24,23 +24,16 @@
 #include "RenderThreadInfo.h"
 #include "aemu/base/Tracing.h"
 #include "gfxstream/host/logging.h"
+#include "gfxstream/host/window_operations.h"
 #include "host-common/misc.h"
 #include "vulkan/VkCommonOperations.h"
-
-static void sDefaultRunOnUiThread(UiUpdateFunc f, void* data, bool wait) {
-    (void)f;
-    (void)data;
-    (void)wait;
-}
 
 namespace gfxstream {
 
 PostWorker::PostWorker(bool mainThreadPostingOnly, FrameBuffer* fb, Compositor* compositor)
     : mFb(fb),
       m_compositor(compositor),
-      m_mainThreadPostingOnly(mainThreadPostingOnly),
-      m_runOnUiThread(m_mainThreadPostingOnly ? emugl::get_emugl_window_operations().runOnUiThread
-                                              : sDefaultRunOnUiThread) {}
+      m_mainThreadPostingOnly(mainThreadPostingOnly) {}
 
 std::shared_future<void> PostWorker::composeImpl(const FlatComposeRequest& composeRequest) {
     std::shared_future<void> completedFuture =
@@ -137,19 +130,25 @@ void PostWorker::clear() {
     runTask(std::packaged_task<void()>([this] { clearImpl(); }));
 }
 
+namespace {
+
+using Task = std::packaged_task<void()>;
+
+void RunOnUiThreadTrampoline(void* data) {
+    std::unique_ptr<Task> taskPtr(reinterpret_cast<Task*>(data));
+    (*taskPtr)();
+}
+
+}  // namespace
+
 void PostWorker::runTask(std::packaged_task<void()> task) {
-    using Task = std::packaged_task<void()>;
     auto taskPtr = std::make_unique<Task>(std::move(task));
     if (m_mainThreadPostingOnly) {
-        if (!m_runOnUiThread) {
+        if (!get_gfxstream_window_operations().run_on_ui_thread) {
             GFXSTREAM_ERROR("m_runOnUiThread function ptr is NULL, going to crash");
         }
-        m_runOnUiThread(
-            [](void* data) {
-                std::unique_ptr<Task> taskPtr(reinterpret_cast<Task*>(data));
-                (*taskPtr)();
-            },
-            taskPtr.release(), false);
+        get_gfxstream_window_operations()
+            .run_on_ui_thread(RunOnUiThreadTrampoline, taskPtr.release(), false);
     } else {
         (*taskPtr)();
     }

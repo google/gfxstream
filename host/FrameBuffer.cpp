@@ -55,6 +55,7 @@
 #include "gfxstream/host/Tracing.h"
 #include "gfxstream/host/logging.h"
 #include "gfxstream/host/vm_operations.h"
+#include "gfxstream/host/window_operations.h"
 #include "host-common/misc.h"
 #include "host-common/opengl/misc.h"
 #include "render-utils/MediaNative.h"
@@ -717,7 +718,7 @@ std::future<void> FrameBuffer::sendPostWorkerCmd(Post post) {
     std::future<void> res = std::async(std::launch::deferred, [] {});
     res.wait();
     if (shouldPostOnlyOnMainThread && (PostCmd::Screenshot == post.cmd) &&
-        emugl::get_emugl_window_operations().isRunningInUiThread()) {
+        get_gfxstream_window_operations().is_current_thread_ui_thread()) {
         post.cb->readToBytesScaled(post.screenshot.screenwidth, post.screenshot.screenheight,
                                    post.screenshot.format, post.screenshot.type,
                                    post.screenshot.rotation, post.screenshot.rect,
@@ -727,7 +728,7 @@ std::future<void> FrameBuffer::sendPostWorkerCmd(Post post) {
             m_postThread.enqueue(Post(std::move(post)));
         if (!shouldPostOnlyOnMainThread ||
             (PostCmd::Screenshot == post.cmd &&
-             !emugl::get_emugl_window_operations().isRunningInUiThread())) {
+             !get_gfxstream_window_operations().is_current_thread_ui_thread())) {
             res = std::move(completeFuture);
         }
     }

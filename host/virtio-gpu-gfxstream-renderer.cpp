@@ -220,9 +220,7 @@ RendererPtr InitRenderer(uint32_t displayWidth,
 
     static gfxstream::RenderLibPtr sRendererLibrary = gfxstream::initLibrary();
 
-    sRendererLibrary->setWindowOps(*getGraphicsAgents()->emu, *getGraphicsAgents()->multi_display);
-
-    address_space_set_vm_operations(getGraphicsAgents()->vm);
+    sRendererLibrary->setMultiDisplayOps(*getGraphicsAgents()->multi_display);
 
     RendererPtr renderer = sRendererLibrary->initRenderer(displayWidth, displayHeight, features, true, enableEgl2egl);
     if (!renderer) {

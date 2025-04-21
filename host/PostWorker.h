@@ -27,7 +27,6 @@
 #include "aemu/base/Compiler.h"
 #include "aemu/base/synchronization/Lock.h"
 #include "aemu/base/synchronization/MessageChannel.h"
-#include "host-common/window_agent.h"
 
 namespace gfxstream {
 class ColorBuffer;
@@ -88,10 +87,6 @@ class PostWorker {
     bool m_mainThreadPostingOnly = false;
 
    private:
-    using UiThreadRunner = std::function<void(UiUpdateFunc, void*, bool)>;
-
-    UiThreadRunner m_runOnUiThread = 0;
-
     std::unordered_map<uint32_t, std::shared_future<void>> m_composeTargetToComposeFuture;
 
     bool isComposeTargetReady(uint32_t targetHandle);

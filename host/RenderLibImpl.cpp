@@ -18,10 +18,12 @@
 #include "aemu/base/files/Stream.h"
 #include "host-common/address_space_device_control_ops.h"
 #include "host-common/opengl/misc.h"
+#include "host-common/misc.h"
 #include "gfxstream/host/dma_device.h"
 #include "gfxstream/host/logging.h"
 #include "gfxstream/host/sync_device.h"
 #include "gfxstream/host/vm_operations.h"
+#include "gfxstream/host/window_operations.h"
 
 #if GFXSTREAM_ENABLE_HOST_GLES
 #include "OpenGLESDispatch/DispatchTables.h"
@@ -111,9 +113,11 @@ void RenderLibImpl::setAddressSpaceDeviceControlOps(struct address_space_device_
     set_emugl_address_space_device_control_ops(ops);
 }
 
-void RenderLibImpl::setWindowOps(const QAndroidEmulatorWindowAgent &window_operations,
-                                 const QAndroidMultiDisplayAgent &multi_display_operations) {
-    emugl::set_emugl_window_operations(window_operations);
+void RenderLibImpl::setWindowOps(const gfxstream_window_ops& window_operations) {
+    set_gfxstream_window_operations(window_operations);
+}
+
+void RenderLibImpl::setMultiDisplayOps(const QAndroidMultiDisplayAgent& multi_display_operations) {
     emugl::set_emugl_multi_display_operations(multi_display_operations);
 }
 

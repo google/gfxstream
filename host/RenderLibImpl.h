@@ -16,8 +16,6 @@
 #include "render-utils/RenderLib.h"
 
 #include "aemu/base/Compiler.h"
-#include "host-common/vm_operations.h"
-#include "host-common/misc.h"
 
 #include <memory>
 
@@ -45,8 +43,8 @@ public:
 
     virtual void setAddressSpaceDeviceControlOps(struct address_space_device_control_ops* ops) override;
 
-    virtual void setWindowOps(const QAndroidEmulatorWindowAgent &window_operations,
-                              const QAndroidMultiDisplayAgent &multi_display_operations) override;
+    virtual void setWindowOps(const gfxstream_window_ops& window_operations) override;
+    virtual void setMultiDisplayOps(const QAndroidMultiDisplayAgent& multi_display_operations) override;
 
     virtual void setGrallocImplementation(GrallocImplementation gralloc) override;
 

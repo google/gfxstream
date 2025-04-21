@@ -18,6 +18,7 @@ if (NOT TARGET gfxstream_host_backend)
         dma_device.cpp
         sync_device.cpp
         vm_operations.cpp
+        window_operations.cpp
         )
     target_link_libraries(
         gfxstream_host_backend

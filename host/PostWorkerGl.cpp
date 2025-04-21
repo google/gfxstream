@@ -17,6 +17,7 @@
 
 #include "FrameBuffer.h"
 #include "gfxstream/host/logging.h"
+#include "gfxstream/host/window_operations.h"
 #include "gl/DisplayGl.h"
 #include "gl/DisplaySurfaceGl.h"
 #include "host-common/misc.h"
@@ -110,7 +111,7 @@ std::shared_future<void> PostWorkerGl::postImpl(ColorBuffer* cb) {
                 if (currentDisplayColorBufferHandle == 0) {
                     continue;
                 }
-                emugl::get_emugl_window_operations().paintMultiDisplayWindow(
+                get_gfxstream_window_operations().paint_multi_display_window(
                     currentDisplayId, currentDisplayColorBufferHandle);
             }
             post.layers.push_back(postWithOverlay(cb));
@@ -173,7 +174,7 @@ std::shared_future<void> PostWorkerGl::postImpl(ColorBuffer* cb) {
                 });
             }
         }
-    } else if (emugl::get_emugl_window_operations().isFolded()) {
+    } else if (get_gfxstream_window_operations().is_folded()) {
         const float dpr = mFb->getDpr();
 
         post.frameWidth = m_viewportWidth / dpr;
@@ -183,8 +184,8 @@ std::shared_future<void> PostWorkerGl::postImpl(ColorBuffer* cb) {
         int displayOffsetY;
         int displayW;
         int displayH;
-        emugl::get_emugl_window_operations().getFoldedArea(&displayOffsetX, &displayOffsetY,
-                                                           &displayW, &displayH);
+        get_gfxstream_window_operations().get_folded_area(&displayOffsetX, &displayOffsetY,
+                                                          &displayW, &displayH);
 
         postLayerOptions.displayFrame = {
             .left = 0,

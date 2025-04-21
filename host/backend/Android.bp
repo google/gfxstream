@@ -12,6 +12,7 @@ cc_library_static {
         "dma_device.cpp",
         "sync_device.cpp",
         "vm_operations.cpp",
+        "window_operations.cpp",
     ],
     export_include_dirs: [
         "include",

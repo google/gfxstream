@@ -8,6 +8,7 @@ cc_library(
         "dma_device.cpp",
         "sync_device.cpp",
         "vm_operations.cpp",
+        "window_operations.cpp",
     ],
     hdrs = glob(["include/**/*.h"]),
     includes = ["include"],
