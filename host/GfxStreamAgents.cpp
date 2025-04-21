@@ -456,7 +456,7 @@ static const QAndroidVmOperations sQAndroidVmOperations =
                           "skipped\n");
             },
         .setSkipSnapshotSaveReason =
-            [](SnapshotSkipReason reason) {
+            [](uint32_t reason) {
                 DEBUG_LOG(stderr,
                         "goldfish-opengl vm ops: set skip snapshot save reason"
                         "skipped\n");

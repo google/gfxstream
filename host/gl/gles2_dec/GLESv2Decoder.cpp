@@ -17,11 +17,9 @@
 #include "GLESv2Decoder.h"
 #include "OpenGLESDispatch/GLESv2Dispatch.h"
 
-#include "aemu/base/synchronization/Lock.h"
-
-#include "host-common/emugl_vm_operations.h"
-#include "host-common/vm_operations.h"
-#include "gfxstream/host/dma_device.h"
+#include <string>
+#include <string.h>
+#include <vector>
 
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
@@ -29,10 +27,9 @@
 #include <GLES3/gl3.h>
 #include <GLES3/gl31.h>
 
-#include <string>
-#include <vector>
-
-#include <string.h>
+#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/host/dma_device.h"
+#include "gfxstream/host/vm_operations.h"
 
 namespace gfxstream {
 namespace gl {
@@ -473,7 +470,7 @@ uint64_t GLESv2Decoder::s_glMapBufferRangeDirect(void* self, GLenum target, GLin
 
         if (gpu_ptr) {
             std::pair<void*, GLsizeiptr> aligned = align_pointer_size(gpu_ptr, length);
-            get_emugl_vm_operations().mapUserBackedRam(paddr, aligned.first, aligned.second);
+            get_gfxstream_vm_operations().map_user_memory(paddr, aligned.first, aligned.second);
             return reinterpret_cast<uint64_t>(gpu_ptr);
         } else {
             fprintf(stderr, "%s: error: could not map host gpu buffer\n", __func__);
@@ -492,7 +489,7 @@ void GLESv2Decoder::s_glUnmapBufferDirect(void* self, GLenum target, GLintptr of
     GLboolean res = GL_TRUE;
 
     if (access & (GL_MAP_READ_BIT | GL_MAP_WRITE_BIT)) {
-        get_emugl_vm_operations().unmapUserBackedRam(paddr, align_pointer_size(reinterpret_cast<void*>(gpu_ptr), length).second);
+        get_gfxstream_vm_operations().unmap_user_memory(paddr, align_pointer_size(reinterpret_cast<void*>(gpu_ptr), length).second);
         res = ctx->glUnmapBuffer(target);
     }
 

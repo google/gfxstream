@@ -19,7 +19,6 @@
 #include "aemu/base/files/Stream.h"
 #include "gfxstream/host/Features.h"
 #include "host-common/multi_display_agent.h"
-#include "host-common/vm_operations.h"
 #include "host-common/window_agent.h"
 #include "render-utils/Renderer.h"
 #include "render-utils/dma_device.h"
@@ -27,6 +26,7 @@
 #include "render-utils/render_api_types.h"
 #include "render-utils/renderer_enums.h"
 #include "render-utils/sync_device.h"
+#include "render-utils/vm_operations.h"
 
 extern "C" {
 
@@ -71,7 +71,7 @@ public:
     // physically contiguous DMA region at particular offsets.
     virtual void setDmaOps(gfxstream_dma_ops) = 0;
 
-    virtual void setVmOps(const QAndroidVmOperations &vm_operations) = 0;
+    virtual void setVmOps(const gfxstream_vm_ops& vm_operations) = 0;
     virtual void setAddressSpaceDeviceControlOps(struct address_space_device_control_ops* ops) = 0;
 
     virtual void setWindowOps(const QAndroidEmulatorWindowAgent &window_operations,

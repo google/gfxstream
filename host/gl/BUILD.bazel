@@ -104,6 +104,7 @@ cc_library(
             "//common/opengl:gfxstream_opengl_headers",
             "//host:gfxstream_host_headers",
             "//host/apigen-codec-common",
+            "//host/backend:gfxstream_host_backend",
             "//host/gl:gfxstream-gl-host-common",
             "//host/gl/glestranslator/GLES_CM:GLES_CM_translator_static",
             "//host/gl/glestranslator/GLES_V2:GLES_V2_translator_static",

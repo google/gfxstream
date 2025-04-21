@@ -41,7 +41,8 @@ public:
 
     virtual void setDmaOps(gfxstream_dma_ops) override;
 
-    virtual void setVmOps(const QAndroidVmOperations &vm_operations) override;
+    virtual void setVmOps(const gfxstream_vm_ops& vm_operations) override;
+
     virtual void setAddressSpaceDeviceControlOps(struct address_space_device_control_ops* ops) override;
 
     virtual void setWindowOps(const QAndroidEmulatorWindowAgent &window_operations,

@@ -40,8 +40,7 @@
 #include "aemu/base/system/System.h"
 #include "common/goldfish_vk_dispatch.h"
 #include "gfxstream/host/logging.h"
-#include "host-common/emugl_vm_operations.h"
-#include "host-common/vm_operations.h"
+#include "gfxstream/host/vm_operations.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -2149,10 +2148,10 @@ void VkEmulation::freeExternalMemoryLocked(VulkanDispatch* vk,
 #ifdef CONFIG_AEMU
             android::base::ThreadLooper::runOnMainLooper(
                 [gpa = info->gpa, size = info->sizeToPage] {
-                    get_emugl_vm_operations().unmapUserBackedRam(gpa, size);
+                    get_gfxstream_vm_operations().unmap_user_memory(gpa, size);
                 });
 #else
-            get_emugl_vm_operations().unmapUserBackedRam(info->gpa, info->sizeToPage);
+            get_gfxstream_vm_operations().unmap_user_memory(info->gpa, info->sizeToPage);
 #endif
             info->gpa = 0u;
         }
@@ -3585,7 +3584,7 @@ int32_t VkEmulation::mapGpaToBufferHandle(uint32_t bufferHandle, uint64_t gpa, u
         return VK_ERROR_MEMORY_MAP_FAILED;
     }
 
-    get_emugl_vm_operations().mapUserBackedRam(gpa, memoryInfoPtr->pageAlignedHva,
+    get_gfxstream_vm_operations().map_user_memory(gpa, memoryInfoPtr->pageAlignedHva,
                                                memoryInfoPtr->sizeToPage);
 
     mOccupiedGpas.insert(gpa);

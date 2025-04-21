@@ -17,6 +17,7 @@ cc_library_static {
     static_libs: [
         "gfxstream_base",
         "libgfxstream_host_apigen_codec_common",
+        "libgfxstream_host_backend",
         "libgfxstream_host_glestranslator_glcommon",
         "libgfxstream_host_logging",
         "libgfxstream_glestranslator_glescm",

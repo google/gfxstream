@@ -54,12 +54,9 @@
 #endif
 #include "gfxstream/host/Tracing.h"
 #include "gfxstream/host/logging.h"
-#include "host-common/crash_reporter.h"
-#include "host-common/emugl_vm_operations.h"
-#include "host-common/feature_control.h"
+#include "gfxstream/host/vm_operations.h"
 #include "host-common/misc.h"
 #include "host-common/opengl/misc.h"
-#include "host-common/vm_operations.h"
 #include "render-utils/MediaNative.h"
 #include "vulkan/DisplayVk.h"
 #include "vulkan/PostWorkerVk.h"
@@ -3035,7 +3032,7 @@ HandleType FrameBuffer::getEmulatedEglWindowSurfaceColorBufferHandle(HandleType 
 
 #ifdef CONFIG_AEMU
 void FrameBuffer::unregisterVulkanInstance(uint64_t id) const {
-    get_emugl_vm_operations().vulkanInstanceUnregister(id);
+    get_gfxstream_vm_operations().unregister_vulkan_instance(id);
 }
 
 void FrameBuffer::registerVulkanInstance(uint64_t id, const char* appName) const {
@@ -3052,7 +3049,7 @@ void FrameBuffer::registerVulkanInstance(uint64_t id, const char* appName) const
     } else if(appName) {
         process_name = std::string(appName);
     }
-    get_emugl_vm_operations().vulkanInstanceRegister(id, process_name.c_str());
+    get_gfxstream_vm_operations().register_vulkan_instance(id, process_name.c_str());
 }
 #endif
 

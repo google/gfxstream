@@ -48,7 +48,7 @@
 #include "aemu/base/synchronization/Lock.h"
 #include "aemu/base/system/System.h"
 #include "gfxstream/host/logging.h"
-#include "host-common/emugl_vm_operations.h"
+#include "gfxstream/host/vm_operations.h"
 
 #define MAJOR          1
 #define MINOR          4
@@ -1428,7 +1428,7 @@ EGLAPI EGLImageKHR EGLAPIENTRY eglCreateImageKHR(EGLDisplay display, EGLContext 
                 current += 2;
             }
         }
-        get_emugl_vm_operations().setSkipSnapshotSave(true);
+        gfxstream::get_gfxstream_vm_operations().set_skip_snapshot_save(true);
         return dpy->addImageKHR(img);
     }
 

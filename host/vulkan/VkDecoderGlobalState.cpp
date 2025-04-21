@@ -51,10 +51,8 @@
 #include "compressedTextureFormats/AstcCpuDecompressor.h"
 #include "gfxstream/host/Tracing.h"
 #include "gfxstream/host/logging.h"
-#include "host-common/HostmemIdMapping.h"
+#include "gfxstream/host/vm_operations.h"
 #include "host-common/address_space_device_control_ops.h"
-#include "host-common/emugl_vm_operations.h"
-#include "host-common/vm_operations.h"
 #include "utils/RenderDoc.h"
 #include "vk_util.h"
 #include "vulkan/VkFormatUtils.h"
@@ -327,7 +325,7 @@ class VkDecoderGlobalState::Impl {
 
 #ifdef CONFIG_AEMU
         if (!mInstanceInfo.empty()) {
-            get_emugl_vm_operations().setStatSnapshotUseVulkan();
+            get_gfxstream_vm_operations().set_snapshot_uses_vulkan();
         }
 #endif
 
@@ -830,7 +828,7 @@ class VkDecoderGlobalState::Impl {
             }
 #ifdef CONFIG_AEMU
             if (!mInstanceInfo.empty()) {
-                get_emugl_vm_operations().setStatSnapshotUseVulkan();
+                get_gfxstream_vm_operations().set_snapshot_uses_vulkan();
             }
 #endif
 
@@ -2851,8 +2849,9 @@ class VkDecoderGlobalState::Impl {
                 fprintf(stderr,
                     "vkBindImageMemory2 with more than 1 bindInfoCount not supporting snapshot");
             }
-            get_emugl_vm_operations().setSkipSnapshotSave(true);
-            get_emugl_vm_operations().setSkipSnapshotSaveReason(SNAPSHOT_SKIP_UNSUPPORTED_VK_API);
+            get_gfxstream_vm_operations().set_skip_snapshot_save(true);
+            get_gfxstream_vm_operations().set_skip_snapshot_save_reason(
+                GFXSTREAM_SNAPSHOT_SKIP_REASON_UNSUPPORTED_VK_API);
         }
 #endif
 
@@ -5302,7 +5301,7 @@ class VkDecoderGlobalState::Impl {
         void* hva = info->pageAlignedHva;
         size_t sizeToPage = info->sizeToPage;
 
-        get_emugl_vm_operations().mapUserBackedRam(gpa, hva, sizeToPage);
+        get_gfxstream_vm_operations().map_user_memory(gpa, hva, sizeToPage);
 
         if (mVerbosePrints) {
             GFXSTREAM_INFO("VERBOSE:%s: registering gpa 0x%llx", __func__, (unsigned long long)gpa);
@@ -5312,7 +5311,7 @@ class VkDecoderGlobalState::Impl {
             get_emugl_address_space_device_control_ops().register_deallocation_callback(
                 (void*)(new uint64_t(sizeToPage)), gpa, [](void* thisPtr, uint64_t gpa) {
                     uint64_t* sizePtr = (uint64_t*)thisPtr;
-                    get_emugl_vm_operations().unmapUserBackedRam(gpa, *sizePtr);
+                    get_gfxstream_vm_operations().unmap_user_memory(gpa, *sizePtr);
                     delete sizePtr;
                 });
         }
@@ -5332,7 +5331,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         // Just blindly unmap here. Let the VM implementation deal with invalid addresses.
-        get_emugl_vm_operations().unmapUserBackedRam(gpa, size);
+        get_gfxstream_vm_operations().unmap_user_memory(gpa, size);
     }
 
     VkResult on_vkAllocateMemory(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
