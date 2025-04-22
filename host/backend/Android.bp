@@ -9,9 +9,16 @@ cc_library_static {
     srcs: [
         "display_surface.cpp",
         "display_surface_user.cpp",
+        "sync_device.cpp",
     ],
     export_include_dirs: [
         "include",
+    ],
+    header_libs: [
+        "libgfxstream_backend_headers",
+    ],
+    export_header_lib_headers: [
+        "libgfxstream_backend_headers",
     ],
     static_libs: [
         "libgfxstream_common_utils",

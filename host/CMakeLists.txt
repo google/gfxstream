@@ -1,6 +1,14 @@
 # Logging subdirectory
 add_subdirectory(logging)
 
+add_library(
+        gfxstream_backend_headers
+        INTERFACE)
+target_include_directories(
+        gfxstream_backend_headers
+        INTERFACE
+        include)
+
 add_subdirectory(backend)
 add_subdirectory(features)
 add_subdirectory(iostream)
@@ -64,13 +72,7 @@ else()
     set(stream-server-core-platform-sources NativeSubWindow_x11.cpp)
 endif()
 
-add_library(
-        gfxstream_backend_headers
-        INTERFACE)
-target_include_directories(
-        gfxstream_backend_headers
-        INTERFACE
-        include)
+
 
 # Compile everything as a static library first so that unit tests can call non-exported functions
 add_library(

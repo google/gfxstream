@@ -37,7 +37,7 @@
 #include "gfxstream/host/logging.h"
 #include "host-common/misc.h"
 #include "host-common/opengl/misc.h"
-#include "host-common/sync_device.h"
+#include "gfxstream/host/sync_device.h"
 #include "vulkan/VkCommonOperations.h"
 #include "vulkan/VkDecoderGlobalState.h"
 
@@ -45,8 +45,6 @@ namespace gfxstream {
 
 using android::base::AutoLock;
 using android::base::Lock;
-using emugl::emugl_sync_device_exists;
-using emugl::emugl_sync_register_trigger_wait;
 using gl::EmulatedEglFenceSync;
 using gl::GLES_DISPATCH_MAX_VERSION_2;
 using gl::GLES_DISPATCH_MAX_VERSION_3_0;
@@ -263,7 +261,7 @@ static void rcTriggerWait(uint64_t glsync_ptr,
                           uint64_t timeline);
 
 void registerTriggerWait() {
-    emugl_sync_register_trigger_wait(rcTriggerWait);
+    gfxstream_sync_register_trigger_wait(rcTriggerWait);
 }
 
 static GLint rcGetRendererVersion()
@@ -318,7 +316,7 @@ static bool shouldEnableAsyncSwap(const gfxstream::host::FeatureSet& features) {
     bool isPhone = true;
     bool playStoreImage = features.PlayStoreImage.enabled;
     return features.GlAsyncSwap.enabled &&
-           emugl_sync_device_exists() && (isPhone || playStoreImage) &&
+           gfxstream_sync_device_exists() && (isPhone || playStoreImage) &&
            sizeof(void*) == 8;
 }
 
@@ -1136,7 +1134,7 @@ static void rcCreateSyncKHR(EGLenum type,
     // But if we are loading from snapshot, that's not
     // guaranteed, and we need to make sure
     // rcTriggerWait is registered.
-    emugl_sync_register_trigger_wait(rcTriggerWait);
+    gfxstream_sync_register_trigger_wait(rcTriggerWait);
 
     FrameBuffer* fb = FrameBuffer::getFB();
 

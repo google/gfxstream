@@ -5,12 +5,14 @@ cc_library(
     srcs = [
         "display_surface.cpp",
         "display_surface_user.cpp",
+        "sync_device.cpp",
     ],
     hdrs = glob(["include/**/*.h"]),
     includes = ["include"],
     visibility = ["//visibility:public"],
     deps = [
         "//common/utils:gfxstream_common_utils",
+        "//host:gfxstream_backend_headers",
         "//host/logging:gfxstream_host_logging",
     ],
 )

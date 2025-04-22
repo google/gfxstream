@@ -23,7 +23,7 @@
 #include "host-common/emugl_vm_operations.h"
 #include "host-common/feature_control.h"
 #include "host-common/opengl/misc.h"
-#include "host-common/sync_device.h"
+#include "gfxstream/host/sync_device.h"
 
 #if GFXSTREAM_ENABLE_HOST_GLES
 #include "OpenGLESDispatch/DispatchTables.h"
@@ -78,18 +78,18 @@ void RenderLibImpl::setLogger(emugl_logger_struct logger) {
 }
 
 void RenderLibImpl::setSyncDevice
-    (emugl_sync_create_timeline_t create_timeline,
-     emugl_sync_create_fence_t create_fence,
-     emugl_sync_timeline_inc_t timeline_inc,
-     emugl_sync_destroy_timeline_t destroy_timeline,
-     emugl_sync_register_trigger_wait_t register_trigger_wait,
-     emugl_sync_device_exists_t device_exists) {
-    emugl::set_emugl_sync_create_timeline(create_timeline);
-    emugl::set_emugl_sync_create_fence(create_fence);
-    emugl::set_emugl_sync_timeline_inc(timeline_inc);
-    emugl::set_emugl_sync_destroy_timeline(destroy_timeline);
-    emugl::set_emugl_sync_register_trigger_wait(register_trigger_wait);
-    emugl::set_emugl_sync_device_exists(device_exists);
+    (gfxstream_sync_create_timeline_t create_timeline,
+     gfxstream_sync_create_fence_t create_fence,
+     gfxstream_sync_timeline_inc_t timeline_inc,
+     gfxstream_sync_destroy_timeline_t destroy_timeline,
+     gfxstream_sync_register_trigger_wait_t register_trigger_wait,
+     gfxstream_sync_device_exists_t device_exists) {
+    set_gfxstream_sync_create_timeline(create_timeline);
+    set_gfxstream_sync_create_fence(create_fence);
+    set_gfxstream_sync_timeline_inc(timeline_inc);
+    set_gfxstream_sync_destroy_timeline(destroy_timeline);
+    set_gfxstream_sync_register_trigger_wait(register_trigger_wait);
+    set_gfxstream_sync_device_exists(device_exists);
 }
 
 void RenderLibImpl::setDmaOps(emugl_dma_ops ops) {

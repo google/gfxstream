@@ -20,13 +20,13 @@
 #include "gfxstream/host/Features.h"
 #include "host-common/dma_device.h"
 #include "host-common/multi_display_agent.h"
-#include "host-common/sync_device.h"
 #include "host-common/vm_operations.h"
 #include "host-common/window_agent.h"
 #include "render-utils/Renderer.h"
 #include "render-utils/gralloc_enums.h"
 #include "render-utils/render_api_types.h"
 #include "render-utils/renderer_enums.h"
+#include "render-utils/sync_device.h"
 
 extern "C" {
 
@@ -58,12 +58,14 @@ public:
     // Get the GLES major/minor version determined by libOpenglRender.
     virtual void getGlesVersion(int* maj, int* min) = 0;
     virtual void setLogger(emugl_logger_struct logger) = 0;
-    virtual void setSyncDevice(emugl_sync_create_timeline_t,
-                               emugl_sync_create_fence_t,
-                               emugl_sync_timeline_inc_t,
-                               emugl_sync_destroy_timeline_t,
-                               emugl_sync_register_trigger_wait_t,
-                               emugl_sync_device_exists_t) = 0;
+
+    // TODO: delete after goldfish fully migrates to virtio gpu.
+    virtual void setSyncDevice(gfxstream_sync_create_timeline_t,
+                               gfxstream_sync_create_fence_t,
+                               gfxstream_sync_timeline_inc_t,
+                               gfxstream_sync_destroy_timeline_t,
+                               gfxstream_sync_register_trigger_wait_t,
+                               gfxstream_sync_device_exists_t) = 0;
 
     // Sets the function use to read from the guest
     // physically contiguous DMA region at particular offsets.
