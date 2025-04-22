@@ -754,7 +754,6 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     int m_statsNumFrames = 0;
     long long m_statsStartTime = 0;
 
-    android::base::Thread* m_perfThread;
     android::base::Lock m_lock;
     android::base::ReadWriteLock m_contextStructureLock;
     android::base::Lock m_colorBufferMapLock;

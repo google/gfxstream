@@ -101,59 +101,6 @@ using gl::YUVPlane;
 using vk::AstcEmulationMode;
 using vk::VkEmulation;
 
-// static std::string getTimeStampString() {
-//     const time_t timestamp = android::base::getUnixTimeUs();
-//     const struct tm *timeinfo = localtime(&timestamp);
-//     // Target format: 07-31 4:44:33
-//     char b[64];
-//     snprintf(
-//         b,
-//         sizeof(b) - 1,
-//         "%02u-%02u %02u:%02u:%02u",
-//         timeinfo->tm_mon + 1,
-//         timeinfo->tm_mday,
-//         timeinfo->tm_hour,
-//         timeinfo->tm_min,
-//         timeinfo->tm_sec);
-//     return std::string(b);
-// }
-
-// static unsigned int getUptimeMs() {
-//     return android::base::getUptimeMs();
-// }
-
-static void dumpPerfStats() {
-    // auto usage = System::get()->getMemUsage();
-    // std::string memoryStats =
-    //     emugl::getMemoryTracker()
-    //             ? emugl::getMemoryTracker()->printUsage()
-    //             : "";
-    // auto cpuUsage = emugl::getCpuUsage();
-    // std::string lastStats =
-    //     cpuUsage ? cpuUsage->printUsage() : "";
-    // printf("%s Uptime: %u ms Resident memory: %f mb %s \n%s\n",
-    //     getTimeStampString().c_str(), getUptimeMs(),
-    //     (float)usage.resident / 1048576.0f, lastStats.c_str(),
-    //     memoryStats.c_str());
-}
-
-class PerfStatThread : public android::base::Thread {
-public:
-    PerfStatThread(bool* perfStatActive) :
-      Thread(), m_perfStatActive(perfStatActive) {}
-
-    virtual intptr_t main() {
-      while (*m_perfStatActive) {
-        sleepMs(1000);
-        dumpPerfStats();
-      }
-      return 0;
-    }
-
-private:
-    bool* m_perfStatActive;
-};
-
 FrameBuffer* FrameBuffer::s_theFrameBuffer = NULL;
 HandleType FrameBuffer::s_nextHandle = 0;
 
@@ -570,8 +517,6 @@ FrameBuffer::FrameBuffer(int p_width, int p_height, const gfxstream::host::Featu
       m_windowHeight(p_height),
       m_useSubWindow(useSubWindow),
       m_fpsStats(getenv("SHOW_FPS_STATS") != nullptr),
-      m_perfStats(!android::base::getEnvironmentVariable("SHOW_PERF_STATS").empty()),
-      m_perfThread(new PerfStatThread(&m_perfStats)),
       m_readbackThread(
           [this](FrameBuffer::Readback&& readback) { return sendReadbackWorkerCmd(readback); }),
       m_refCountPipeEnabled(features.RefCountPipe.enabled),
@@ -588,14 +533,10 @@ FrameBuffer::FrameBuffer(int p_width, int p_height, const gfxstream::host::Featu
     }
 
     setDisplayPose(displayId, 0, 0, getWidth(), getHeight(), 0);
-    m_perfThread->start();
 }
 
 FrameBuffer::~FrameBuffer() {
     AutoLock fbLock(m_lock);
-
-    m_perfStats = false;
-    m_perfThread->wait(NULL);
 
     m_postThread.enqueue({PostCmd::Exit});
     m_postThread.join();
@@ -628,8 +569,6 @@ FrameBuffer::~FrameBuffer() {
     m_readbackThread.join();
 
     m_vsyncThread.reset();
-
-    delete m_perfThread;
 
     SyncThread::destroy();
 
@@ -938,11 +877,6 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
     if (lockWatchdogId.has_value()) {
         m_healthMonitor->stopMonitoringTask(lockWatchdogId.value());
     }
-
-#if SNAPSHOT_PROFILE > 1
-    // printf("FrameBuffer::%s(): got lock at %lld ms\n", __func__,
-    //        (long long)System::get()->getProcessTimes().wallClockMs);
-#endif
 
     if (deleteExisting) {
         removeSubWindow_locked();
