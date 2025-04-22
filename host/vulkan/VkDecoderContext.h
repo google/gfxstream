@@ -29,6 +29,7 @@ struct VkDecoderContext {
     emugl::GfxApiLogger* gfxApiLogger = nullptr;
     emugl::HealthMonitor<>* healthMonitor = nullptr;
     emugl::MetricsLogger* metricsLogger = nullptr;
+    std::atomic_bool* shouldExit = nullptr;
 };
 
 }  // namespace vk

@@ -50,8 +50,8 @@
 #include "common/goldfish_vk_reserved_marshaling.h"
 #include "common/goldfish_vk_transform.h"
 #include "gfxstream/host/Tracing.h"
-#include "gfxstream/host/logging.h"
 #include "gfxstream/host/iostream.h"
+#include "gfxstream/host/logging.h"
 #include "goldfish_vk_private_defs.h"
 #define MAX_PACKET_LENGTH (400 * 1024 * 1024)  // 400MB
 #define CC_LIKELY(exp) (__builtin_expect(!!(exp), true))
@@ -123,6 +123,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
     auto& gfx_logger = *context.gfxApiLogger;
     auto* healthMonitor = context.healthMonitor;
     auto& metricsLogger = *context.metricsLogger;
+    auto& shouldExit = *context.shouldExit;
     if (len < 8) return 0;
     unsigned char* ptr = (unsigned char*)buf;
     const unsigned char* const end = (const unsigned char*)buf + len;
@@ -196,6 +197,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             })
                             .build();
                     while ((seqno - seqnoPtr->load(std::memory_order_seq_cst) != 1)) {
+                        if (shouldExit.load(std::memory_order_relaxed)) {
+                            GFXSTREAM_WARNING(
+                                "Process=%s is exitting. Skip processing seqno=%d on thread=0x%x.",
+                                processName ? processName : "null", seqno, getCurrentThreadId());
+                            return 0;
+                        }
 #if (defined(_MSC_VER) && (defined(_M_IX86) || defined(_M_X64)))
                         _mm_pause();
 #elif (defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__)))
