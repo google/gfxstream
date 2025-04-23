@@ -5088,16 +5088,25 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    inline void convertQueueFamilyForeignToExternal_VkBufferMemoryBarrier(
-        VkBufferMemoryBarrier* barrier) {
-        convertQueueFamilyForeignToExternal(&barrier->srcQueueFamilyIndex);
-        convertQueueFamilyForeignToExternal(&barrier->dstQueueFamilyIndex);
+    void convertQueueFamilyForeignToExternal_VkBufferMemoryBarrier(
+        VkBufferMemoryBarrier& barrier) {
+        convertQueueFamilyForeignToExternal(&barrier.srcQueueFamilyIndex);
+        convertQueueFamilyForeignToExternal(&barrier.dstQueueFamilyIndex);
     }
-
-    inline void convertQueueFamilyForeignToExternal_VkImageMemoryBarrier(
-        VkImageMemoryBarrier* barrier) {
-        convertQueueFamilyForeignToExternal(&barrier->srcQueueFamilyIndex);
-        convertQueueFamilyForeignToExternal(&barrier->dstQueueFamilyIndex);
+    void convertQueueFamilyForeignToExternal_VkImageMemoryBarrier(
+        VkImageMemoryBarrier& barrier) {
+        convertQueueFamilyForeignToExternal(&barrier.srcQueueFamilyIndex);
+        convertQueueFamilyForeignToExternal(&barrier.dstQueueFamilyIndex);
+    }
+    void convertQueueFamilyForeignToExternal_VkBufferMemoryBarrier2(
+        VkBufferMemoryBarrier2& barrier) {
+        convertQueueFamilyForeignToExternal(&barrier.srcQueueFamilyIndex);
+        convertQueueFamilyForeignToExternal(&barrier.dstQueueFamilyIndex);
+    }
+    void convertQueueFamilyForeignToExternal_VkImageMemoryBarrier2(
+        VkImageMemoryBarrier2& barrier) {
+        convertQueueFamilyForeignToExternal(&barrier.srcQueueFamilyIndex);
+        convertQueueFamilyForeignToExternal(&barrier.dstQueueFamilyIndex);
     }
 
     inline VkImage getIMBImage(const VkImageMemoryBarrier& imb) { return imb.image; }
@@ -5160,13 +5169,11 @@ class VkDecoderGlobalState::Impl {
         auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
 
         for (uint32_t i = 0; i < bufferMemoryBarrierCount; ++i) {
-            convertQueueFamilyForeignToExternal_VkBufferMemoryBarrier(
-                ((VkBufferMemoryBarrier*)pBufferMemoryBarriers) + i);
+            convertQueueFamilyForeignToExternal_VkBufferMemoryBarrier(const_cast<VkBufferMemoryBarrier&>(pBufferMemoryBarriers[i]));
         }
 
         for (uint32_t i = 0; i < imageMemoryBarrierCount; ++i) {
-            convertQueueFamilyForeignToExternal_VkImageMemoryBarrier(
-                ((VkImageMemoryBarrier*)pImageMemoryBarriers) + i);
+            convertQueueFamilyForeignToExternal_VkImageMemoryBarrier(const_cast<VkImageMemoryBarrier&>(pImageMemoryBarriers[i]));
         }
 
         if (imageMemoryBarrierCount == 0) {
@@ -5245,13 +5252,11 @@ class VkDecoderGlobalState::Impl {
         auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
 
         for (uint32_t i = 0; i < pDependencyInfo->bufferMemoryBarrierCount; ++i) {
-            convertQueueFamilyForeignToExternal_VkBufferMemoryBarrier(
-                ((VkBufferMemoryBarrier*)pDependencyInfo->pBufferMemoryBarriers) + i);
+            convertQueueFamilyForeignToExternal_VkBufferMemoryBarrier2(const_cast<VkBufferMemoryBarrier2&>(pDependencyInfo->pBufferMemoryBarriers[i]));
         }
 
         for (uint32_t i = 0; i < pDependencyInfo->imageMemoryBarrierCount; ++i) {
-            convertQueueFamilyForeignToExternal_VkImageMemoryBarrier(
-                ((VkImageMemoryBarrier*)pDependencyInfo->pImageMemoryBarriers) + i);
+            convertQueueFamilyForeignToExternal_VkImageMemoryBarrier2(const_cast<VkImageMemoryBarrier2&>(pDependencyInfo->pImageMemoryBarriers[i]));
         }
 
         std::lock_guard<std::mutex> lock(mMutex);
