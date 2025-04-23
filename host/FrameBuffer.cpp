@@ -54,6 +54,7 @@
 #endif
 #include "gfxstream/host/Tracing.h"
 #include "gfxstream/host/display_operations.h"
+#include "gfxstream/host/guest_operations.h"
 #include "gfxstream/host/logging.h"
 #include "gfxstream/host/vm_operations.h"
 #include "gfxstream/host/window_operations.h"
@@ -1135,9 +1136,7 @@ HandleType FrameBuffer::createColorBufferWithResourceHandleLocked(int p_width, i
     if (m_refCountPipeEnabled) {
         m_colorbuffers.try_emplace(handle, ColorBufferRef{std::move(cb), 1, false, 0});
     } else {
-        // Android master default api level is 1000
-        int apiLevel = 1000;
-        emugl::getAvdInfo(nullptr, &apiLevel);
+        const int apiLevel = get_gfxstream_guest_android_api_level();
         // pre-O and post-O use different color buffer memory management
         // logic
         if (apiLevel > 0 && apiLevel < 26) {

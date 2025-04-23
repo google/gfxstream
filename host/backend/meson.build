@@ -8,6 +8,7 @@ files_lib_host_backend = files(
   'display_surface.cpp',
   'display_surface_user.cpp',
   'dma_device.cpp',
+  'guest_operations.cpp',
   'sync_device.cpp',
   'vm_operations.cpp',
   'window_operations.cpp',

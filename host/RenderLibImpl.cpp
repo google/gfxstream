@@ -18,6 +18,7 @@
 #include "aemu/base/files/Stream.h"
 #include "gfxstream/host/display_operations.h"
 #include "gfxstream/host/dma_device.h"
+#include "gfxstream/host/guest_operations.h"
 #include "gfxstream/host/logging.h"
 #include "gfxstream/host/sync_device.h"
 #include "gfxstream/host/vm_operations.h"
@@ -37,8 +38,8 @@ void RenderLibImpl::setRenderer(SelectedRenderer renderer) {
     emugl::setRenderer(renderer);
 }
 
-void RenderLibImpl::setAvdInfo(bool phone, int api) {
-    emugl::setAvdInfo(phone, api);
+void RenderLibImpl::setGuestAndroidApiLevel(int api) {
+    set_gfxstream_guest_android_api_level(api);
 }
 
 void RenderLibImpl::getGlesVersion(int* maj, int* min) {

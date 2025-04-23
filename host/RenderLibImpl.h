@@ -26,7 +26,7 @@ public:
     RenderLibImpl() = default;
 
     virtual void setRenderer(SelectedRenderer renderer) override;
-    virtual void setAvdInfo(bool phone, int api) override;
+    virtual void setGuestAndroidApiLevel(int api) override;
     virtual void getGlesVersion(int* maj, int* min) override;
     virtual void setLogger(gfxstream_log_callback_t callback) override;
 

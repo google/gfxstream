@@ -54,8 +54,9 @@ public:
 
     // Get the selected renderer
     virtual void setRenderer(SelectedRenderer renderer) = 0;
-    // Tell emugl the API version of the system image
-    virtual void setAvdInfo(bool phone, int api) = 0;
+
+    virtual void setGuestAndroidApiLevel(int api) = 0;
+
     // Get the GLES major/minor version determined by libOpenglRender.
     virtual void getGlesVersion(int* maj, int* min) = 0;
 
