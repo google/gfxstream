@@ -45,37 +45,11 @@ void RenderLibImpl::getGlesVersion(int* maj, int* min) {
     emugl::getGlesVersion(maj, min);
 }
 
-void RenderLibImpl::setLogger(emugl_logger_struct logger) {
-#ifdef CONFIG_AEMU
-    set_gfxstream_logger(logger);
-
-    // TODO: move this into emu init.
+void RenderLibImpl::setLogger(gfxstream_log_callback_t callback) {
     gfxstream::host::SetGfxstreamLogCallback(
-        [](gfxstream::host::LogLevel level, const char* file, int line, const char* function, const char* message) {
-            char severity;
-            switch (level) {
-                case gfxstream::host::LogLevel::kFatal:
-                    severity = 'F';
-                    break;
-                case gfxstream::host::LogLevel::kError:
-                    severity = 'E';
-                    break;
-                case gfxstream::host::LogLevel::kWarning:
-                    severity = 'W';
-                    break;
-                case gfxstream::host::LogLevel::kInfo:
-                    severity = 'I';
-                    break;
-                case gfxstream::host::LogLevel::kDebug:
-                    severity = 'D';
-                    break;
-                case gfxstream::host::LogLevel::kVerbose:
-                    severity = 'V';
-                    break;
-            }
-            OutputLog(stderr, severity, file, line, /*timestamp_us=*/0, "%s", message);
+        [callback](gfxstream::host::LogLevel level, const char* file, int line, const char* function, const char* message) {
+            callback(static_cast<gfxstream_logging_level>(level), file, line, function, message);
         });
-#endif
 }
 
 void RenderLibImpl::setSyncDevice
