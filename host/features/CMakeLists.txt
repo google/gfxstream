@@ -1,4 +1,4 @@
-if (NOT TARGET gfxstream-gl-host-common)
+if (NOT TARGET gfxstream_features)
     add_library(
         gfxstream_features.headers
         INTERFACE)

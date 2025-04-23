@@ -18,7 +18,6 @@ target_link_libraries(
 target_include_directories(
     GLES_CM_translator_static PRIVATE
     ${GFXSTREAM_REPO_ROOT}
-    ${GFXSTREAM_REPO_ROOT}/include
     ${GFXSTREAM_REPO_ROOT}/host/
     ${GFXSTREAM_REPO_ROOT}/host/gl/glestranslator/include
     ${GFXSTREAM_REPO_ROOT}/third-party/glm/include)

@@ -17,16 +17,17 @@
 #include "GLESVersionDetector.h"
 
 #include "OpenGLESDispatch/EGLDispatch.h"
-
 #include "aemu/base/system/System.h"
 #include "aemu/base/misc/StringUtils.h"
-#include "host-common/feature_control.h"
-#include "host-common/opengl/misc.h"
+#include "gfxstream/Strings.h"
+#include "gfxstream/host/renderer_operations.h"
 
 #include <algorithm>
 
 namespace gfxstream {
 namespace gl {
+
+using gfxstream::HasExtension;
 
 // Config + context attributes to query the underlying OpenGL if it is
 // a OpenGL ES backend. Only try for OpenGL ES 3, and assume OpenGL ES 2
@@ -100,10 +101,10 @@ GLESDispatchMaxVersion calcMaxVersionFromDispatch(const gfxstream::host::Feature
     GLESDispatchMaxVersion maxVersion =
        GLES_DISPATCH_MAX_VERSION_3_1;
 
-    if (emugl::getRenderer() == SELECTED_RENDERER_HOST
-        || emugl::getRenderer() == SELECTED_RENDERER_SWIFTSHADER_INDIRECT
-        || emugl::getRenderer() == SELECTED_RENDERER_ANGLE_INDIRECT
-        || emugl::getRenderer() == SELECTED_RENDERER_ANGLE9_INDIRECT) {
+    if (get_gfxstream_renderer() == SELECTED_RENDERER_HOST
+        || get_gfxstream_renderer() == SELECTED_RENDERER_SWIFTSHADER_INDIRECT
+        || get_gfxstream_renderer() == SELECTED_RENDERER_ANGLE_INDIRECT
+        || get_gfxstream_renderer() == SELECTED_RENDERER_ANGLE9_INDIRECT) {
         if (s_egl.eglGetMaxGLESVersion) {
             maxVersion =
                 (GLESDispatchMaxVersion)s_egl.eglGetMaxGLESVersion(dpy);
@@ -131,7 +132,7 @@ GLESDispatchMaxVersion calcMaxVersionFromDispatch(const gfxstream::host::Feature
             break;
     }
 
-    emugl::setGlesVersion(maj, min);
+    set_gfxstream_gles_version(maj, min);
     return maxVersion;
 }
 
@@ -141,8 +142,8 @@ GLESDispatchMaxVersion calcMaxVersionFromDispatch(const gfxstream::host::Feature
 bool shouldEnableCoreProfile() {
     int dispatchMaj, dispatchMin;
 
-    emugl::getGlesVersion(&dispatchMaj, &dispatchMin);
-    return emugl::getRenderer() == SELECTED_RENDERER_HOST &&
+    get_gfxstream_gles_version(&dispatchMaj, &dispatchMin);
+    return get_gfxstream_renderer() == SELECTED_RENDERER_HOST &&
            dispatchMaj > 2;
 }
 
@@ -154,7 +155,7 @@ void sAddExtensionIfSupported(GLESDispatchMaxVersion currVersion,
     // If we chose a GLES version less than or equal to
     // the |extVersion| the extension |ext| is tagged with,
     // filter it according to the whitelist.
-    if (emugl::hasExtension(from.c_str(), ext.c_str()) &&
+    if (HasExtension(from.c_str(), ext.c_str()) &&
         currVersion > extVersion) {
         to += ext;
         to += " ";

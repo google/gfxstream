@@ -1,5 +1,3 @@
-add_subdirectory(gl-host-common)
-
 # GLES decoder
 add_subdirectory(gles1_dec)
 add_subdirectory(gles2_dec)
@@ -36,7 +34,6 @@ target_link_libraries(
         PUBLIC
         aemu-base.headers
         gfxstream_features
-        gfxstream-gl-host-common.headers
         gfxstream_openglesdispatch
         gfxstream_vulkan_headers
         gfxstream_egl_headers
@@ -48,18 +45,10 @@ target_link_libraries(
         GLcommon
         GLSnapshot)
 
-if(BUILD_STANDALONE)
-    target_link_libraries(
-        gfxstream-gl-server
-        PRIVATE
-        gfxstream-gl-host-common)
-endif()
-
 target_include_directories(gfxstream-gl-server
                            PRIVATE
                            ${GFXSTREAM_REPO_ROOT}
                            ${GFXSTREAM_REPO_ROOT}/gldispatch/include
-                           ${GFXSTREAM_REPO_ROOT}/include
                            ${GFXSTREAM_REPO_ROOT}/host
                            ${GFXSTREAM_REPO_ROOT}/host/gl
                            ${GFXSTREAM_REPO_ROOT}/third-party/glm/include)

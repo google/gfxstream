@@ -27,7 +27,6 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":gfxstream_host_openglesdispatch_headers",
-        "//:gfxstream-gl-host-common-headers",
         "//common/opengl:gfxstream_opengl_headers",
         "//host/apigen-codec-common",
         "//host/gl:EGL_translator_static",

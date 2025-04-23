@@ -19,6 +19,5 @@ target_include_directories(
     gles2_dec
     PRIVATE
     ${GFXSTREAM_REPO_ROOT}
-    ${GFXSTREAM_REPO_ROOT}/include
     ${GFXSTREAM_REPO_ROOT}/host
     ${GFXSTREAM_REPO_ROOT}/host/apigen-codec-common)

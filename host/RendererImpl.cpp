@@ -26,6 +26,7 @@
 #include "aemu/base/system/System.h"
 #include "aemu/base/threads/WorkerThread.h"
 #include "gfxstream/host/logging.h"
+#include "gfxstream/host/renderer_operations.h"
 #include "snapshot/common.h"
 
 #if GFXSTREAM_ENABLE_HOST_GLES
@@ -736,6 +737,14 @@ const void* RendererImpl::getGles2Dispatch() {
 #else
     return nullptr;
 #endif
+}
+
+void RendererImpl::setShouldSkipDraw(bool skip) {
+    set_gfxstream_should_skip_draw(skip);
+}
+
+bool RendererImpl::getShouldSkipDraw() const {
+    return get_gfxstream_should_skip_draw();
 }
 
 }  // namespace gfxstream

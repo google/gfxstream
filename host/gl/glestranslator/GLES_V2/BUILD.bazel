@@ -29,7 +29,6 @@ cc_library(
     includes = ["."],
     visibility = ["//visibility:public"],
     deps = [
-        "//:gfxstream-gl-host-common-headers",
         "//host/apigen-codec-common",
         "//host/gl:gl_common",
     ],

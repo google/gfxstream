@@ -34,7 +34,7 @@ cc_library(
     includes = ["."],
     visibility = ["//visibility:public"],
     deps = [
-        "//:gfxstream-gl-host-common-headers",
+        "//common/opengl:gfxstream_opengl_headers",
         "//host/logging:gfxstream_host_logging",
         "@aemu//base:aemu-base-headers",
     ],

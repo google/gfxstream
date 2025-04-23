@@ -21,9 +21,7 @@
 #include "gfxstream/host/Features.h"
 #include "gfxstream/host/guest_operations.h"
 #include "gfxstream/host/logging.h"
-#include "host-common/misc.h"
-#include "render-utils/renderer_enums.h"
-#include "host-common/opengl/misc.h"
+#include "gfxstream/host/renderer_operations.h"
 
 namespace gfxstream {
 namespace gl {
@@ -226,10 +224,10 @@ int EmulatedEglConfigList::chooseConfig(const EGLint* attribs,
     } else if (wantSwapPreserved && apiLevel <= 19) {
         newAttribs[surfaceTypeIdx + 1] &= ~(EGLint)EGL_SWAP_BEHAVIOR_PRESERVED_BIT;
     }
-    if (emugl::getRenderer() == SELECTED_RENDERER_SWIFTSHADER ||
-        emugl::getRenderer() == SELECTED_RENDERER_SWIFTSHADER_INDIRECT ||
-        emugl::getRenderer() == SELECTED_RENDERER_ANGLE ||
-        emugl::getRenderer() == SELECTED_RENDERER_ANGLE_INDIRECT) {
+    if (get_gfxstream_renderer() == SELECTED_RENDERER_SWIFTSHADER ||
+        get_gfxstream_renderer() == SELECTED_RENDERER_SWIFTSHADER_INDIRECT ||
+        get_gfxstream_renderer() == SELECTED_RENDERER_ANGLE ||
+        get_gfxstream_renderer() == SELECTED_RENDERER_ANGLE_INDIRECT) {
         newAttribs.push_back(EGL_CONFIG_CAVEAT);
         newAttribs.push_back(EGL_DONT_CARE);
     }

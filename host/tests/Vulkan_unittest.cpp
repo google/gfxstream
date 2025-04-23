@@ -23,7 +23,6 @@
 #include "aemu/base/system/System.h"
 #include "aemu/base/testing/TestSystem.h"
 #include "host-common/GraphicsAgentFactory.h"
-#include "host-common/opengl/misc.h"
 #include "tests/VkTestUtils.h"
 
 #include "Standalone.h"

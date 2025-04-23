@@ -1,6 +1,10 @@
 add_library(
     gfxstream_openglesdispatch.headers
     INTERFACE)
+target_link_libraries(
+    gfxstream_openglesdispatch.headers
+    INTERFACE
+    gfxstream_opengl_headers)
 target_include_directories(
     gfxstream_openglesdispatch.headers
     INTERFACE

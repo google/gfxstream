@@ -15,7 +15,6 @@ target_link_libraries(emulated_textures PUBLIC
 target_include_directories(emulated_textures
         PRIVATE
         ${GFXSTREAM_REPO_ROOT}
-        ${GFXSTREAM_REPO_ROOT}/include
         ${GFXSTREAM_REPO_ROOT}/host
         ${GFXSTREAM_REPO_ROOT}/host/include
         ${GFXSTREAM_REPO_ROOT}/host/vulkan

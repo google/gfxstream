@@ -27,9 +27,10 @@
 
 #include "OpenGLESDispatch/DispatchTables.h"
 #include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/Strings.h"
 #include "gfxstream/host/logging.h"
+#include "gfxstream/host/renderer_operations.h"
 #include "host-common/misc.h"
-#include "host-common/opengl/misc.h"
 
 namespace gfxstream {
 namespace gl {
@@ -226,16 +227,16 @@ TextureResize::TextureResize(GLuint width, GLuint height) :
     const char* exts = (const char*)s_gles2.glGetString(GL_EXTENSIONS);
 
     bool hasColorBufferFloat =
-        emugl::getRenderer() == SELECTED_RENDERER_HOST ||
-        emugl::hasExtension(exts, "GL_EXT_color_buffer_float");
+        get_gfxstream_renderer() == SELECTED_RENDERER_HOST ||
+        HasExtension(exts, "GL_EXT_color_buffer_float");
     bool hasColorBufferHalfFloat =
-        emugl::hasExtension(exts, "GL_EXT_color_buffer_half_float");
+        HasExtension(exts, "GL_EXT_color_buffer_half_float");
     bool hasTextureFloat =
-        emugl::hasExtension(exts, "GL_OES_texture_float");
+        HasExtension(exts, "GL_OES_texture_float");
     bool hasTextureHalfFloat =
-        emugl::hasExtension(exts, "GL_OES_texture_half_float");
+        HasExtension(exts, "GL_OES_texture_half_float");
     bool hasTextureFloatLinear =
-        emugl::hasExtension(exts, "GL_OES_texture_float_linear");
+        HasExtension(exts, "GL_OES_texture_float_linear");
 
     if (hasColorBufferFloat && hasTextureFloat) {
         mTextureDataType = GL_FLOAT;

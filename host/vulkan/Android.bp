@@ -16,7 +16,6 @@ cc_library_static {
         "gfxstream_host_cc_defaults",
     ],
     header_libs: [
-        "gfxstream_gl_host_common_headers",
         "gfxstream_opengl_headers",
         "libgfxstream_host_vulkan_cereal_common",
     ],

@@ -20,12 +20,11 @@
 #include "gfxstream/host/dma_device.h"
 #include "gfxstream/host/guest_operations.h"
 #include "gfxstream/host/logging.h"
+#include "gfxstream/host/renderer_operations.h"
 #include "gfxstream/host/sync_device.h"
 #include "gfxstream/host/vm_operations.h"
 #include "gfxstream/host/window_operations.h"
 #include "host-common/address_space_device_control_ops.h"
-#include "host-common/misc.h"
-#include "host-common/opengl/misc.h"
 
 #if GFXSTREAM_ENABLE_HOST_GLES
 #include "OpenGLESDispatch/DispatchTables.h"
@@ -35,7 +34,7 @@
 namespace gfxstream {
 
 void RenderLibImpl::setRenderer(SelectedRenderer renderer) {
-    emugl::setRenderer(renderer);
+    set_gfxstream_renderer(renderer);
 }
 
 void RenderLibImpl::setGuestAndroidApiLevel(int api) {
@@ -43,7 +42,7 @@ void RenderLibImpl::setGuestAndroidApiLevel(int api) {
 }
 
 void RenderLibImpl::getGlesVersion(int* maj, int* min) {
-    emugl::getGlesVersion(maj, min);
+    get_gfxstream_gles_version(maj, min);
 }
 
 void RenderLibImpl::setLogger(gfxstream_log_callback_t callback) {
@@ -98,7 +97,7 @@ void RenderLibImpl::setDisplayOps(const gfxstream_multi_display_ops& display_ope
 }
 
 void RenderLibImpl::setGrallocImplementation(GrallocImplementation gralloc) {
-    emugl::setGrallocImplementation(gralloc);
+    set_gfxstream_guest_android_gralloc(gralloc);
 }
 
 bool RenderLibImpl::getOpt(RenderOpt* opt) {

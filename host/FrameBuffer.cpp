@@ -56,10 +56,9 @@
 #include "gfxstream/host/display_operations.h"
 #include "gfxstream/host/guest_operations.h"
 #include "gfxstream/host/logging.h"
+#include "gfxstream/host/renderer_operations.h"
 #include "gfxstream/host/vm_operations.h"
 #include "gfxstream/host/window_operations.h"
-#include "host-common/misc.h"
-#include "host-common/opengl/misc.h"
 #include "render-utils/MediaNative.h"
 #include "vulkan/DisplayVk.h"
 #include "vulkan/PostWorkerVk.h"
@@ -1945,7 +1944,7 @@ int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width, unsi
                                uint8_t* pixels, size_t* cPixels, int displayId, int desiredWidth,
                                int desiredHeight, int desiredRotation, Rect rect) {
 #ifdef CONFIG_AEMU
-   if (emugl::shouldSkipDraw()) {
+   if (get_gfxstream_should_skip_draw()) {
         *width = 0;
         *height = 0;
         *cPixels = 0;
@@ -2020,7 +2019,7 @@ int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width, unsi
         return -2;
     }
     *cPixels = needed;
-    if (desiredRotation == SKIN_ROTATION_90 || desiredRotation == SKIN_ROTATION_270) {
+    if (desiredRotation == GFXSTREAM_ROTATION_90 || desiredRotation == GFXSTREAM_ROTATION_270) {
         std::swap(*width, *height);
         std::swap(screenWidth, screenHeight);
         std::swap(rect.size.w, rect.size.h);
@@ -2030,19 +2029,19 @@ int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width, unsi
     if (useSnipping) {
         int x = 0, y = 0;
         switch (desiredRotation) {
-            case SKIN_ROTATION_0:
+            case GFXSTREAM_ROTATION_0:
                 x = rect.pos.x;
                 y = rect.pos.y;
                 break;
-            case SKIN_ROTATION_90:
+            case GFXSTREAM_ROTATION_90:
                 x = rect.pos.y;
                 y = rect.pos.x;
                 break;
-            case SKIN_ROTATION_180:
+            case GFXSTREAM_ROTATION_180:
                 x = screenWidth - rect.pos.x - rect.size.w;
                 y = rect.pos.y;
                 break;
-            case SKIN_ROTATION_270:
+            case GFXSTREAM_ROTATION_270:
                 x = rect.pos.y;
                 y = screenHeight - rect.pos.x - rect.size.h;
                 break;
@@ -2970,7 +2969,7 @@ void FrameBuffer::createSharedTrivialContext(EGLContext* contextOut, EGLSurface*
     if (!config) return;
 
     int maj, min;
-    emugl::getGlesVersion(&maj, &min);
+    get_gfxstream_gles_version(&maj, &min);
 
     const EGLint contextAttribs[] = {EGL_CONTEXT_MAJOR_VERSION_KHR, maj,
                                      EGL_CONTEXT_MINOR_VERSION_KHR, min, EGL_NONE};

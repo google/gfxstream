@@ -35,4 +35,14 @@ std::vector<std::string> Split(const std::string& s, const std::string& delimite
     return result;
 }
 
+bool HasExtension(const std::string& haystack, const std::string& needle) {
+    const std::vector<std::string> extensions = Split(haystack, " ");
+    for (const std::string& extension : extensions) {
+        if (extension == needle) {
+            return true;
+        }
+    }
+    return false;
+}
+
 }  // namespace gfxstream
