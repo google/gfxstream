@@ -196,9 +196,12 @@ static std::atomic<uint64_t> sNextHostBlobId{1};
 class VkDecoderGlobalState::Impl {
    public:
     Impl(VkEmulation* emulation)
-        : m_vk(vkDispatch()),
-          m_vkEmulation(emulation),
-          mRenderDocWithMultipleVkInstances(m_vkEmulation->getRenderDoc()) {
+        : m_vk(vkDispatch()) {
+        if (!emulation || !m_vk) {
+            GFXSTREAM_FATAL("Cannot initialize VkDecoderGlobalState!");
+        }
+        m_vkEmulation = emulation;
+        mRenderDocWithMultipleVkInstances = m_vkEmulation->getRenderDoc();
         mSnapshotsEnabled = m_vkEmulation->getFeatures().VulkanSnapshots.enabled;
         mBatchedDescriptorSetUpdateEnabled =
             m_vkEmulation->getFeatures().VulkanBatchedDescriptorSetUpdate.enabled;
