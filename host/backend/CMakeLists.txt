@@ -13,6 +13,7 @@ if (NOT TARGET gfxstream_host_backend)
 
     add_library(
         gfxstream_host_backend
+        address_space_operations.cpp
         display_operations.cpp
         display_surface.cpp
         display_surface_user.cpp
@@ -28,6 +29,8 @@ if (NOT TARGET gfxstream_host_backend)
         PUBLIC
         gfxstream_common_utils
         gfxstream_host_backend.headers
+        PRIVATE
+        gfxstream_host_address_space
         gfxstream_host_logging
         )
 endif()

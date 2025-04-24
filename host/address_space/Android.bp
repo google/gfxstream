@@ -1,0 +1,25 @@
+package {
+    // See: http://go/android-license-faq
+    default_applicable_licenses: ["hardware_google_gfxstream_license"],
+}
+
+cc_library_static {
+    name: "libgfxstream_host_address_space",
+    defaults: ["gfxstream_defaults"],
+    header_libs: [
+        "libgfxstream_backend_headers",
+    ],
+    export_header_lib_headers: [
+        "libgfxstream_backend_headers",
+    ],
+    export_include_dirs: [
+        "include",
+    ],
+    srcs: [
+        "address_space_device.cpp",
+        "address_space_graphics.cpp",
+    ],
+    static_libs: [
+        "libgfxstream_host_logging",
+    ],
+}

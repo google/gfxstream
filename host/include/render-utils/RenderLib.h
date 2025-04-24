@@ -19,6 +19,7 @@
 #include "aemu/base/files/Stream.h"
 #include "gfxstream/host/Features.h"
 #include "render-utils/Renderer.h"
+#include "render-utils/address_space_operations.h"
 #include "render-utils/display_operations.h"
 #include "render-utils/dma_device.h"
 #include "render-utils/gralloc_enums.h"
@@ -28,12 +29,6 @@
 #include "render-utils/sync_device.h"
 #include "render-utils/vm_operations.h"
 #include "render-utils/window_operations.h"
-
-extern "C" {
-
-struct address_space_device_control_ops;
-
-} // extern "C"
 
 namespace gfxstream {
 

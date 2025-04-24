@@ -51,8 +51,8 @@
 #include "compressedTextureFormats/AstcCpuDecompressor.h"
 #include "gfxstream/host/Tracing.h"
 #include "gfxstream/host/logging.h"
+#include "gfxstream/host/address_space_operations.h"
 #include "gfxstream/host/vm_operations.h"
-#include "host-common/address_space_device_control_ops.h"
 #include "utils/RenderDoc.h"
 #include "vk_util.h"
 #include "vulkan/VkFormatUtils.h"
@@ -218,9 +218,9 @@ class VkDecoderGlobalState::Impl {
         mLogging = android::base::getEnvironmentVariable("ANDROID_EMU_VK_LOG_CALLS") == "1";
         mVerbosePrints = android::base::getEnvironmentVariable("ANDROID_EMUGL_VERBOSE") == "1";
 
-        if (get_emugl_address_space_device_control_ops().control_get_hw_funcs &&
-            get_emugl_address_space_device_control_ops().control_get_hw_funcs()) {
-            mUseOldMemoryCleanupPath = 0 == get_emugl_address_space_device_control_ops()
+        if (get_gfxstream_address_space_ops().control_get_hw_funcs &&
+            get_gfxstream_address_space_ops().control_get_hw_funcs()) {
+            mUseOldMemoryCleanupPath = 0 == get_gfxstream_address_space_ops()
                                                 .control_get_hw_funcs()
                                                 ->getPhysAddrStartLocked();
         }
@@ -5311,7 +5311,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         if (!mUseOldMemoryCleanupPath) {
-            get_emugl_address_space_device_control_ops().register_deallocation_callback(
+            get_gfxstream_address_space_ops().register_deallocation_callback(
                 (void*)(new uint64_t(sizeToPage)), gpa, [](void* thisPtr, uint64_t gpa) {
                     uint64_t* sizePtr = (uint64_t*)thisPtr;
                     get_gfxstream_vm_operations().unmap_user_memory(gpa, *sizePtr);

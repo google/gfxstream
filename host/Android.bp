@@ -57,6 +57,7 @@ gfxstream_backend_static_deps = [
     "libgfxstream_glestranslator_egl",
     "libgfxstream_glestranslator_glescm",
     "libgfxstream_glestranslator_glesv2",
+    "libgfxstream_host_address_space",
     "libgfxstream_host_apigen_codec_common",
     "libgfxstream_host_backend",
     "libgfxstream_host_compressedtextures",
@@ -204,7 +205,6 @@ cc_test_library {
     static_libs: [
         "gfxstream_base_test_support",
         "gfxstream_base",
-        "gfxstream_host_common_test_support",
         "libgfxstream_host_apigen_codec_common",
         "libgfxstream_host_logging",
         "libgfxstream_host_iostream",
@@ -292,7 +292,6 @@ cc_test_host {
         "gfxstream_backend_test_support",
         "gfxstream_base_test_support",
         "gfxstream_base",
-        "gfxstream_host_common_test_support",
         "libgfxstream_common_image",
         "libgfxstream_host_logging",
         "libgfxstream_host_vulkan_server",

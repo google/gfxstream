@@ -31,11 +31,10 @@
 #include "aemu/base/files/StdioStream.h"
 #include "aemu/base/memory/SharedMemory.h"
 #include "aemu/base/threads/WorkerThread.h"
+#include "gfxstream/host/address_space_operations.h"
+// TODO: remove after moving save/load interface to ops.
+#include "gfxstream/host/address_space_graphics.h"
 #include "gfxstream/host/Tracing.h"
-#include "host-common/AddressSpaceService.h"
-#include "host-common/address_space_device.h"
-#include "host-common/address_space_device.hpp"
-#include "host-common/address_space_device_control_ops.h"
 #include "virtgpu_gfxstream_protocol.h"
 
 namespace gfxstream {
@@ -121,11 +120,6 @@ int VirtioGpuFrontend::init(RendererPtr renderer,
     mCookie = cookie;
     mFeatures = features;
     mFenceCallback = fence_callback;
-    mAddressSpaceDeviceControlOps = get_address_space_device_control_ops();
-    if (!mAddressSpaceDeviceControlOps) {
-        GFXSTREAM_ERROR("Could not get address space device control ops!");
-        return -EINVAL;
-    }
     mVirtioGpuTimelines = VirtioGpuTimelines::create(getFenceCompletionCallback());
 
 #if !defined(_WIN32)
@@ -195,7 +189,7 @@ int VirtioGpuFrontend::destroyContext(VirtioGpuCtxId contextId) {
     }
     auto& context = contextIt->second;
 
-    context.Destroy(mAddressSpaceDeviceControlOps);
+    context.Destroy(get_gfxstream_address_space_ops());
 
     mContexts.erase(contextIt);
     return 0;
@@ -226,13 +220,13 @@ int VirtioGpuFrontend::addressSpaceProcessCmd(VirtioGpuCtxId ctxId, uint32_t* dw
             }
             auto& resource = resourceIt->second;
 
-            return context.CreateAddressSpaceGraphicsInstance(mAddressSpaceDeviceControlOps,
+            return context.CreateAddressSpaceGraphicsInstance(get_gfxstream_address_space_ops(),
                                                               resource);
         }
         case GFXSTREAM_CONTEXT_PING: {
             DECODE(contextPing, gfxstream::gfxstreamContextPing, dwords)
 
-            return context.PingAddressSpaceGraphicsInstance(mAddressSpaceDeviceControlOps,
+            return context.PingAddressSpaceGraphicsInstance(get_gfxstream_address_space_ops(),
                                                             contextPing.resourceId);
         }
         default:
@@ -722,8 +716,8 @@ void VirtioGpuFrontend::detachResource(uint32_t contextId, uint32_t resourceId) 
     auto resourceAsgOpt = context.TakeAddressSpaceGraphicsHandle(resourceId);
     if (resourceAsgOpt) {
         mCleanupThread->enqueueCleanup(
-            [this, asgBlob = resource.ShareRingBlob(), asgHandle = *resourceAsgOpt]() {
-                mAddressSpaceDeviceControlOps->destroy_handle(asgHandle);
+            [asgBlob = resource.ShareRingBlob(), asgHandle = *resourceAsgOpt]() {
+                get_gfxstream_address_space_ops().destroy_handle(asgHandle);
             });
     }
 
@@ -1051,7 +1045,7 @@ int VirtioGpuFrontend::snapshotAsg(const char* directory) {
         .stream = &stream,
     };
 
-    int ret = android::emulation::goldfish_address_space_memory_state_save(saveStream.stream);
+    int ret = gfxstream_address_space_save_memory_state(saveStream.stream);
     if (ret) {
         GFXSTREAM_ERROR("Failed to save snapshot: failed to save ASG state.");
         return ret;
@@ -1169,7 +1163,7 @@ int VirtioGpuFrontend::restoreAsg(const char* directory) {
     };
 
     // Gather external memory info that the ASG device needs to reload.
-    android::emulation::AddressSpaceDeviceLoadResources asgLoadResources;
+    AddressSpaceDeviceLoadResources asgLoadResources;
     for (const auto& [contextId, context] : mContexts) {
         for (const auto [resourceId, asgId] : context.AsgInstances()) {
             auto resourceIt = mResources.find(resourceId);
@@ -1199,13 +1193,13 @@ int VirtioGpuFrontend::restoreAsg(const char* directory) {
         }
     }
 
-    int ret = android::emulation::goldfish_address_space_memory_state_set_load_resources(asgLoadResources);
+    int ret = gfxstream_address_space_set_load_resources(asgLoadResources);
     if (ret) {
         GFXSTREAM_ERROR("Failed to restore ASG device: failed to set ASG load resources.");
         return ret;
     }
 
-    ret = android::emulation::goldfish_address_space_memory_state_load(loadStream.stream);
+    ret = gfxstream_address_space_load_memory_state(loadStream.stream);
     if (ret) {
         GFXSTREAM_ERROR("Failed to restore ASG device: failed to restore ASG state.");
         return ret;

@@ -149,7 +149,6 @@ class VirtioGpuFrontend {
     gfxstream::host::FeatureSet mFeatures;
     stream_renderer_fence_callback mFenceCallback;
     uint32_t mPageSize = 4096;
-    struct ::address_space_device_control_ops* mAddressSpaceDeviceControlOps = nullptr;
 
     // State that is preserved across snapshots:
     //

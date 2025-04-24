@@ -16,6 +16,7 @@
 #include "FrameBuffer.h"
 #include "RendererImpl.h"
 #include "aemu/base/files/Stream.h"
+#include "gfxstream/host/address_space_operations.h"
 #include "gfxstream/host/display_operations.h"
 #include "gfxstream/host/dma_device.h"
 #include "gfxstream/host/guest_operations.h"
@@ -74,18 +75,10 @@ void RenderLibImpl::setDmaOps(gfxstream_dma_ops ops) {
 
 void RenderLibImpl::setVmOps(const gfxstream_vm_ops& ops) {
     set_gfxstream_vm_operations(ops);
-
-    // TODO: remove in next change:
-    static const QAndroidVmOperations sAndroidOps = {
-        .mapUserBackedRam = ops.map_user_memory,
-        .unmapUserBackedRam = ops.unmap_user_memory,
-        .physicalMemoryGetAddr = ops.lookup_user_memory,
-    };
-    address_space_set_vm_operations(&sAndroidOps);
 }
 
 void RenderLibImpl::setAddressSpaceDeviceControlOps(struct address_space_device_control_ops* ops) {
-    set_emugl_address_space_device_control_ops(ops);
+    set_gfxstream_address_space_ops(*ops);
 }
 
 void RenderLibImpl::setWindowOps(const gfxstream_window_ops& window_operations) {
