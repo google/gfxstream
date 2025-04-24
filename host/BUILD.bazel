@@ -84,7 +84,6 @@ cc_library(
         "ColorBuffer.cpp",
         "ExternalObjectManager.cpp",
         "FrameBuffer.cpp",
-        "GfxStreamAgents.cpp",
         "GraphicsDriverLock.cpp",
         "Hwc2.cpp",
         "PostWorker.cpp",
