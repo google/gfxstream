@@ -15,10 +15,7 @@
 
 // Interface between android-emu non-base libraries and emugl
 
-#include "host-common/GoldfishDma.h"
-#include "host-common/goldfish_sync.h"
 #include "host-common/logging.h"
-
 
 typedef void (*gfxstream_logger_internal_t)(char severity, const char* file, unsigned int line,
               int64_t timestamp_us, const char* message);
