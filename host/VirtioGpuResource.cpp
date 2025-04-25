@@ -487,17 +487,16 @@ int VirtioGpuResource::GetCaching(uint32_t* outCaching) const {
         return -EINVAL;
     }
 
-    if (!std::holds_alternative<ExternalMemoryMapping>(*mBlobMemory) ||
-        !std::holds_alternative<ExternalMemoryInfo>(*mBlobMemory)) {
-        *outCaching = STREAM_RENDERER_MAP_CACHE_CACHED;
-        return 0;
-    } else if (std::holds_alternative<ExternalMemoryMapping>(*mBlobMemory)) {
+    if (std::holds_alternative<ExternalMemoryMapping>(*mBlobMemory)) {
         auto& memory = std::get<ExternalMemoryMapping>(*mBlobMemory);
         *outCaching = memory.caching;
         return 0;
     } else if (std::holds_alternative<ExternalMemoryInfo>(*mBlobMemory)) {
         auto& memory = std::get<ExternalMemoryInfo>(*mBlobMemory);
         *outCaching = memory->caching;
+        return 0;
+    } else if (std::holds_alternative<RingBlobMemory>(*mBlobMemory)) {
+        *outCaching = STREAM_RENDERER_MAP_CACHE_CACHED;
         return 0;
     }
 
