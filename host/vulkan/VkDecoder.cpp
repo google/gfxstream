@@ -265,9 +265,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCreateInstance 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pAllocator, (unsigned long long)pInstance);
+                    GFXSTREAM_INFO("stream %p: call vkCreateInstance 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)pCreateInfo,
+                                   (unsigned long long)pAllocator, (unsigned long long)pInstance);
                 }
                 VkResult vkCreateInstance_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 vkCreateInstance_VkResult_return = m_state->on_vkCreateInstance(
@@ -319,8 +319,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkDestroyInstance 0x%llx 0x%llx \n", ioStream,
-                            (unsigned long long)instance, (unsigned long long)pAllocator);
+                    GFXSTREAM_INFO("stream %p: call vkDestroyInstance 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)instance, (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkDestroyInstance(&m_pool, snapshotApiCallInfo, instance,
@@ -384,11 +384,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkEnumeratePhysicalDevices 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)instance,
-                            (unsigned long long)pPhysicalDeviceCount,
-                            (unsigned long long)pPhysicalDevices);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkEnumeratePhysicalDevices 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)instance,
+                        (unsigned long long)pPhysicalDeviceCount,
+                        (unsigned long long)pPhysicalDevices);
                 }
                 VkResult vkEnumeratePhysicalDevices_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -460,9 +460,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkPhysicalDeviceFeatures*)(pFeatures));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkGetPhysicalDeviceFeatures 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)pFeatures);
+                    GFXSTREAM_INFO("stream %p: call vkGetPhysicalDeviceFeatures 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)physicalDevice,
+                                   (unsigned long long)pFeatures);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceFeatures(&m_pool, snapshotApiCallInfo,
@@ -511,11 +511,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                         (VkFormatProperties*)(pFormatProperties));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPhysicalDeviceFormatProperties 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)format, (unsigned long long)pFormatProperties);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPhysicalDeviceFormatProperties 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)physicalDevice, (unsigned long long)format,
+                        (unsigned long long)pFormatProperties);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceFormatProperties(
@@ -578,13 +577,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkImageFormatProperties*)(pImageFormatProperties));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPhysicalDeviceImageFormatProperties 0x%llx "
-                            "0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)format, (unsigned long long)type,
-                            (unsigned long long)tiling, (unsigned long long)usage,
-                            (unsigned long long)flags, (unsigned long long)pImageFormatProperties);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPhysicalDeviceImageFormatProperties 0x%llx 0x%llx "
+                        "0x%llx 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)physicalDevice, (unsigned long long)format,
+                        (unsigned long long)type, (unsigned long long)tiling,
+                        (unsigned long long)usage, (unsigned long long)flags,
+                        (unsigned long long)pImageFormatProperties);
                 }
                 VkResult vkGetPhysicalDeviceImageFormatProperties_VkResult_return =
                     VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -643,10 +642,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkPhysicalDeviceProperties*)(pProperties));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPhysicalDeviceProperties 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)pProperties);
+                    GFXSTREAM_INFO("stream %p: call vkGetPhysicalDeviceProperties 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)physicalDevice,
+                                   (unsigned long long)pProperties);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceProperties(&m_pool, snapshotApiCallInfo,
@@ -721,12 +719,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPhysicalDeviceQueueFamilyProperties 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)pQueueFamilyPropertyCount,
-                            (unsigned long long)pQueueFamilyProperties);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPhysicalDeviceQueueFamilyProperties 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)physicalDevice,
+                        (unsigned long long)pQueueFamilyPropertyCount,
+                        (unsigned long long)pQueueFamilyProperties);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceQueueFamilyProperties(
@@ -795,10 +793,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkPhysicalDeviceMemoryProperties*)(pMemoryProperties));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPhysicalDeviceMemoryProperties 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)pMemoryProperties);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPhysicalDeviceMemoryProperties 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)physicalDevice,
+                        (unsigned long long)pMemoryProperties);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceMemoryProperties(
@@ -838,8 +836,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 // End manual dispatchable handle unboxing for instance;
                 vkReadStream->loadStringInPlaceWithStreamPtr((char**)&pName, readStreamPtrPtr);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkGetInstanceProcAddr 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)instance, (unsigned long long)pName);
+                    GFXSTREAM_INFO("stream %p: call vkGetInstanceProcAddr 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)instance, (unsigned long long)pName);
                 }
                 PFN_vkVoidFunction vkGetInstanceProcAddr_PFN_vkVoidFunction_return =
                     (PFN_vkVoidFunction)0;
@@ -876,8 +874,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 // End manual dispatchable handle unboxing for device;
                 vkReadStream->loadStringInPlaceWithStreamPtr((char**)&pName, readStreamPtrPtr);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkGetDeviceProcAddr 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pName);
+                    GFXSTREAM_INFO("stream %p: call vkGetDeviceProcAddr 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)device, (unsigned long long)pName);
                 }
                 PFN_vkVoidFunction vkGetDeviceProcAddr_PFN_vkVoidFunction_return =
                     (PFN_vkVoidFunction)0;
@@ -942,10 +940,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCreateDevice 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)pCreateInfo, (unsigned long long)pAllocator,
-                            (unsigned long long)pDevice);
+                    GFXSTREAM_INFO("stream %p: call vkCreateDevice 0x%llx 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)physicalDevice,
+                                   (unsigned long long)pCreateInfo, (unsigned long long)pAllocator,
+                                   (unsigned long long)pDevice);
                 }
                 VkResult vkCreateDevice_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -1001,8 +999,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkDestroyDevice 0x%llx 0x%llx \n", ioStream,
-                            (unsigned long long)device, (unsigned long long)pAllocator);
+                    GFXSTREAM_INFO("stream %p: call vkDestroyDevice 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)device, (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkDestroyDevice(&m_pool, snapshotApiCallInfo, device, pAllocator);
@@ -1072,11 +1070,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkEnumerateInstanceExtensionProperties 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)pLayerName,
-                            (unsigned long long)pPropertyCount, (unsigned long long)pProperties);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkEnumerateInstanceExtensionProperties 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)pLayerName,
+                        (unsigned long long)pPropertyCount, (unsigned long long)pProperties);
                 }
                 VkResult vkEnumerateInstanceExtensionProperties_VkResult_return =
                     VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -1192,12 +1190,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkEnumerateDeviceExtensionProperties 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)pLayerName, (unsigned long long)pPropertyCount,
-                            (unsigned long long)pProperties);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkEnumerateDeviceExtensionProperties 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)physicalDevice,
+                        (unsigned long long)pLayerName, (unsigned long long)pPropertyCount,
+                        (unsigned long long)pProperties);
                 }
                 VkResult vkEnumerateDeviceExtensionProperties_VkResult_return =
                     VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -1292,10 +1290,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkEnumerateInstanceLayerProperties 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)pPropertyCount,
-                            (unsigned long long)pProperties);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkEnumerateInstanceLayerProperties 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)pPropertyCount,
+                        (unsigned long long)pProperties);
                 }
                 VkResult vkEnumerateInstanceLayerProperties_VkResult_return =
                     VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -1395,9 +1393,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkEnumerateDeviceLayerProperties 0x%llx 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkEnumerateDeviceLayerProperties 0x%llx 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)physicalDevice,
                         (unsigned long long)pPropertyCount, (unsigned long long)pProperties);
                 }
@@ -1477,10 +1474,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 *(VkQueue*)pQueue = (VkQueue)(VkQueue)((VkQueue)(*&cgen_var_1));
                 if (m_logCalls) {
-                    fprintf(
-                        stderr, "stream %p: call vkGetDeviceQueue 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                        ioStream, (unsigned long long)device, (unsigned long long)queueFamilyIndex,
-                        (unsigned long long)queueIndex, (unsigned long long)pQueue);
+                    GFXSTREAM_INFO("stream %p: call vkGetDeviceQueue 0x%llx 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)queueFamilyIndex,
+                                   (unsigned long long)queueIndex, (unsigned long long)pQueue);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetDeviceQueue(&m_pool, snapshotApiCallInfo, device,
@@ -1533,9 +1530,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkQueueSubmit 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)queue, (unsigned long long)submitCount,
-                            (unsigned long long)pSubmits, (unsigned long long)fence);
+                    GFXSTREAM_INFO("stream %p: call vkQueueSubmit 0x%llx 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)queue,
+                                   (unsigned long long)submitCount, (unsigned long long)pSubmits,
+                                   (unsigned long long)fence);
                 }
                 VkResult vkQueueSubmit_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -1569,8 +1567,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *(VkQueue*)&queue = (VkQueue)(VkQueue)((VkQueue)(*&cgen_var_0));
                 auto vk = dispatch_VkQueue(queue);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkQueueWaitIdle 0x%llx \n", ioStream,
-                            (unsigned long long)queue);
+                    GFXSTREAM_INFO("stream %p: call vkQueueWaitIdle 0x%llx ", ioStream,
+                                   (unsigned long long)queue);
                 }
                 if (m_queueSubmitWithCommandsEnabled)
                     seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
@@ -1606,8 +1604,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto vk = dispatch_VkDevice(device);
                 // End manual dispatchable handle unboxing for device;
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkDeviceWaitIdle 0x%llx \n", ioStream,
-                            (unsigned long long)device);
+                    GFXSTREAM_INFO("stream %p: call vkDeviceWaitIdle 0x%llx ", ioStream,
+                                   (unsigned long long)device);
                 }
                 if (m_queueSubmitWithCommandsEnabled)
                     seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
@@ -1673,10 +1671,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkAllocateMemory 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pAllocateInfo,
-                            (unsigned long long)pAllocator, (unsigned long long)pMemory);
+                    GFXSTREAM_INFO("stream %p: call vkAllocateMemory 0x%llx 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)pAllocateInfo,
+                                   (unsigned long long)pAllocator, (unsigned long long)pMemory);
                 }
                 VkResult vkAllocateMemory_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -1746,9 +1744,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkFreeMemory 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)memory,
-                            (unsigned long long)pAllocator);
+                    GFXSTREAM_INFO("stream %p: call vkFreeMemory 0x%llx 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)device, (unsigned long long)memory,
+                                   (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkFreeMemory(&m_pool, snapshotApiCallInfo, device, memory,
@@ -1803,9 +1801,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     *readStreamPtrPtr += sizeof(void*);
                 }
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkMapMemory 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkMapMemory 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)device, (unsigned long long)memory,
                         (unsigned long long)offset, (unsigned long long)size,
                         (unsigned long long)flags, (unsigned long long)ppData);
@@ -1852,8 +1849,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *(VkDeviceMemory*)&memory =
                     (VkDeviceMemory)unbox_VkDeviceMemory((VkDeviceMemory)(*&cgen_var_1));
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkUnmapMemory 0x%llx 0x%llx \n", ioStream,
-                            (unsigned long long)device, (unsigned long long)memory);
+                    GFXSTREAM_INFO("stream %p: call vkUnmapMemory 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)device, (unsigned long long)memory);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkUnmapMemory(&m_pool, snapshotApiCallInfo, device, memory);
@@ -1898,9 +1895,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(
-                        stderr, "stream %p: call vkFlushMappedMemoryRanges 0x%llx 0x%llx 0x%llx \n",
-                        ioStream, (unsigned long long)device, (unsigned long long)memoryRangeCount,
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkFlushMappedMemoryRanges 0x%llx 0x%llx 0x%llx ", ioStream,
+                        (unsigned long long)device, (unsigned long long)memoryRangeCount,
                         (unsigned long long)pMemoryRanges);
                 }
                 if (!m_state->usingDirectMapping()) {
@@ -1994,9 +1991,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkInvalidateMappedMemoryRanges 0x%llx 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkInvalidateMappedMemoryRanges 0x%llx 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)device, (unsigned long long)memoryRangeCount,
                         (unsigned long long)pMemoryRanges);
                 }
@@ -2071,10 +2067,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                        sizeof(VkDeviceSize));
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetDeviceMemoryCommitment 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)memory,
-                            (unsigned long long)pCommittedMemoryInBytes);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetDeviceMemoryCommitment 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)memory,
+                        (unsigned long long)pCommittedMemoryInBytes);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkGetDeviceMemoryCommitment(unboxed_device, memory,
@@ -2118,10 +2114,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkDeviceSize*)&memoryOffset, *readStreamPtrPtr, sizeof(VkDeviceSize));
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkBindBufferMemory 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)buffer,
-                            (unsigned long long)memory, (unsigned long long)memoryOffset);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkBindBufferMemory 0x%llx 0x%llx 0x%llx 0x%llx ", ioStream,
+                        (unsigned long long)device, (unsigned long long)buffer,
+                        (unsigned long long)memory, (unsigned long long)memoryOffset);
                 }
                 VkResult vkBindBufferMemory_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -2169,10 +2165,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkDeviceSize*)&memoryOffset, *readStreamPtrPtr, sizeof(VkDeviceSize));
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkBindImageMemory 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)image,
-                            (unsigned long long)memory, (unsigned long long)memoryOffset);
+                    GFXSTREAM_INFO("stream %p: call vkBindImageMemory 0x%llx 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device, (unsigned long long)image,
+                                   (unsigned long long)memory, (unsigned long long)memoryOffset);
                 }
                 VkResult vkBindImageMemory_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -2222,10 +2217,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkMemoryRequirements*)(pMemoryRequirements));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetBufferMemoryRequirements 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)buffer,
-                            (unsigned long long)pMemoryRequirements);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetBufferMemoryRequirements 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)buffer,
+                        (unsigned long long)pMemoryRequirements);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetBufferMemoryRequirements(&m_pool, snapshotApiCallInfo, device,
@@ -2276,10 +2271,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkMemoryRequirements*)(pMemoryRequirements));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetImageMemoryRequirements 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)image,
-                            (unsigned long long)pMemoryRequirements);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetImageMemoryRequirements 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)image,
+                        (unsigned long long)pMemoryRequirements);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetImageMemoryRequirements(&m_pool, snapshotApiCallInfo, device,
@@ -2363,12 +2358,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetImageSparseMemoryRequirements 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)image,
-                            (unsigned long long)pSparseMemoryRequirementCount,
-                            (unsigned long long)pSparseMemoryRequirements);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetImageSparseMemoryRequirements 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)image,
+                        (unsigned long long)pSparseMemoryRequirementCount,
+                        (unsigned long long)pSparseMemoryRequirements);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkGetImageSparseMemoryRequirements(unboxed_device, image,
@@ -2481,14 +2476,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPhysicalDeviceSparseImageFormatProperties 0x%llx "
-                            "0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)format, (unsigned long long)type,
-                            (unsigned long long)samples, (unsigned long long)usage,
-                            (unsigned long long)tiling, (unsigned long long)pPropertyCount,
-                            (unsigned long long)pProperties);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPhysicalDeviceSparseImageFormatProperties 0x%llx "
+                        "0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)physicalDevice, (unsigned long long)format,
+                        (unsigned long long)type, (unsigned long long)samples,
+                        (unsigned long long)usage, (unsigned long long)tiling,
+                        (unsigned long long)pPropertyCount, (unsigned long long)pProperties);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceSparseImageFormatProperties(
@@ -2566,10 +2560,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkQueueBindSparse 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)queue, (unsigned long long)bindInfoCount,
-                            (unsigned long long)pBindInfo, (unsigned long long)fence);
+                    GFXSTREAM_INFO("stream %p: call vkQueueBindSparse 0x%llx 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)queue,
+                                   (unsigned long long)bindInfoCount, (unsigned long long)pBindInfo,
+                                   (unsigned long long)fence);
                 }
                 VkResult vkQueueBindSparse_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -2633,9 +2627,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCreateFence 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pAllocator, (unsigned long long)pFence);
+                    GFXSTREAM_INFO("stream %p: call vkCreateFence 0x%llx 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)pCreateInfo, (unsigned long long)pAllocator,
+                                   (unsigned long long)pFence);
                 }
                 VkResult vkCreateFence_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -2701,9 +2696,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkDestroyFence 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)fence,
-                            (unsigned long long)pAllocator);
+                    GFXSTREAM_INFO("stream %p: call vkDestroyFence 0x%llx 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)device, (unsigned long long)fence,
+                                   (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkDestroyFence(&m_pool, snapshotApiCallInfo, device, fence,
@@ -2746,9 +2741,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkResetFences 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)fenceCount,
-                            (unsigned long long)pFences);
+                    GFXSTREAM_INFO("stream %p: call vkResetFences 0x%llx 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)device, (unsigned long long)fenceCount,
+                                   (unsigned long long)pFences);
                 }
                 VkResult vkResetFences_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -2787,8 +2782,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 1 * 8;
                 *(VkFence*)&fence = (VkFence)unbox_VkFence((VkFence)(*&cgen_var_1));
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkGetFenceStatus 0x%llx 0x%llx \n", ioStream,
-                            (unsigned long long)device, (unsigned long long)fence);
+                    GFXSTREAM_INFO("stream %p: call vkGetFenceStatus 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)device, (unsigned long long)fence);
                 }
                 VkResult vkGetFenceStatus_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -2843,11 +2838,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint64_t*)&timeout, *readStreamPtrPtr, sizeof(uint64_t));
                 *readStreamPtrPtr += sizeof(uint64_t);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkWaitForFences 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)fenceCount,
-                            (unsigned long long)pFences, (unsigned long long)waitAll,
-                            (unsigned long long)timeout);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkWaitForFences 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)fenceCount,
+                        (unsigned long long)pFences, (unsigned long long)waitAll,
+                        (unsigned long long)timeout);
                 }
                 if (m_queueSubmitWithCommandsEnabled)
                     seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
@@ -2915,10 +2910,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCreateSemaphore 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pAllocator, (unsigned long long)pSemaphore);
+                    GFXSTREAM_INFO("stream %p: call vkCreateSemaphore 0x%llx 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)pCreateInfo, (unsigned long long)pAllocator,
+                                   (unsigned long long)pSemaphore);
                 }
                 VkResult vkCreateSemaphore_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -2986,9 +2981,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkDestroySemaphore 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)semaphore,
-                            (unsigned long long)pAllocator);
+                    GFXSTREAM_INFO("stream %p: call vkDestroySemaphore 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)semaphore, (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkDestroySemaphore(&m_pool, snapshotApiCallInfo, device, semaphore,
@@ -3049,9 +3044,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCreateEvent 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pAllocator, (unsigned long long)pEvent);
+                    GFXSTREAM_INFO("stream %p: call vkCreateEvent 0x%llx 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)pCreateInfo, (unsigned long long)pAllocator,
+                                   (unsigned long long)pEvent);
                 }
                 VkResult vkCreateEvent_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -3120,9 +3116,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkDestroyEvent 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)event,
-                            (unsigned long long)pAllocator);
+                    GFXSTREAM_INFO("stream %p: call vkDestroyEvent 0x%llx 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)device, (unsigned long long)event,
+                                   (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkDestroyEvent(unboxed_device, event, pAllocator);
@@ -3157,8 +3153,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 1 * 8;
                 *(VkEvent*)&event = (VkEvent)unbox_VkEvent((VkEvent)(*&cgen_var_1));
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkGetEventStatus 0x%llx 0x%llx \n", ioStream,
-                            (unsigned long long)device, (unsigned long long)event);
+                    GFXSTREAM_INFO("stream %p: call vkGetEventStatus 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)device, (unsigned long long)event);
                 }
                 VkResult vkGetEventStatus_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -3197,8 +3193,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 1 * 8;
                 *(VkEvent*)&event = (VkEvent)unbox_VkEvent((VkEvent)(*&cgen_var_1));
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkSetEvent 0x%llx 0x%llx \n", ioStream,
-                            (unsigned long long)device, (unsigned long long)event);
+                    GFXSTREAM_INFO("stream %p: call vkSetEvent 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)device, (unsigned long long)event);
                 }
                 VkResult vkSetEvent_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -3235,8 +3231,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 1 * 8;
                 *(VkEvent*)&event = (VkEvent)unbox_VkEvent((VkEvent)(*&cgen_var_1));
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkResetEvent 0x%llx 0x%llx \n", ioStream,
-                            (unsigned long long)device, (unsigned long long)event);
+                    GFXSTREAM_INFO("stream %p: call vkResetEvent 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)device, (unsigned long long)event);
                 }
                 VkResult vkResetEvent_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -3303,10 +3299,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCreateQueryPool 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pAllocator, (unsigned long long)pQueryPool);
+                    GFXSTREAM_INFO("stream %p: call vkCreateQueryPool 0x%llx 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)pCreateInfo, (unsigned long long)pAllocator,
+                                   (unsigned long long)pQueryPool);
                 }
                 VkResult vkCreateQueryPool_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -3377,9 +3373,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkDestroyQueryPool 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)queryPool,
-                            (unsigned long long)pAllocator);
+                    GFXSTREAM_INFO("stream %p: call vkDestroyQueryPool 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)queryPool, (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkDestroyQueryPool(unboxed_device, queryPool, pAllocator);
@@ -3437,13 +3433,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkQueryResultFlags*)&flags, *readStreamPtrPtr, sizeof(VkQueryResultFlags));
                 *readStreamPtrPtr += sizeof(VkQueryResultFlags);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetQueryPoolResults 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)queryPool,
-                            (unsigned long long)firstQuery, (unsigned long long)queryCount,
-                            (unsigned long long)dataSize, (unsigned long long)pData,
-                            (unsigned long long)stride, (unsigned long long)flags);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetQueryPoolResults 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)queryPool,
+                        (unsigned long long)firstQuery, (unsigned long long)queryCount,
+                        (unsigned long long)dataSize, (unsigned long long)pData,
+                        (unsigned long long)stride, (unsigned long long)flags);
                 }
                 VkResult vkGetQueryPoolResults_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -3512,9 +3508,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCreateBuffer 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pAllocator, (unsigned long long)pBuffer);
+                    GFXSTREAM_INFO("stream %p: call vkCreateBuffer 0x%llx 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)pCreateInfo, (unsigned long long)pAllocator,
+                                   (unsigned long long)pBuffer);
                 }
                 VkResult vkCreateBuffer_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -3581,9 +3578,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkDestroyBuffer 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)buffer,
-                            (unsigned long long)pAllocator);
+                    GFXSTREAM_INFO("stream %p: call vkDestroyBuffer 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device, (unsigned long long)buffer,
+                                   (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkDestroyBuffer(&m_pool, snapshotApiCallInfo, device, buffer,
@@ -3646,10 +3643,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCreateBufferView 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pAllocator, (unsigned long long)pView);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCreateBufferView 0x%llx 0x%llx 0x%llx 0x%llx ", ioStream,
+                        (unsigned long long)device, (unsigned long long)pCreateInfo,
+                        (unsigned long long)pAllocator, (unsigned long long)pView);
                 }
                 VkResult vkCreateBufferView_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -3720,9 +3717,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkDestroyBufferView 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)bufferView,
-                            (unsigned long long)pAllocator);
+                    GFXSTREAM_INFO("stream %p: call vkDestroyBufferView 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)bufferView, (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkDestroyBufferView(unboxed_device, bufferView, pAllocator);
@@ -3781,9 +3778,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCreateImage 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pAllocator, (unsigned long long)pImage);
+                    GFXSTREAM_INFO("stream %p: call vkCreateImage 0x%llx 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)pCreateInfo, (unsigned long long)pAllocator,
+                                   (unsigned long long)pImage);
                 }
                 VkResult vkCreateImage_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -3849,9 +3847,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkDestroyImage 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)image,
-                            (unsigned long long)pAllocator);
+                    GFXSTREAM_INFO("stream %p: call vkDestroyImage 0x%llx 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)device, (unsigned long long)image,
+                                   (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkDestroyImage(&m_pool, snapshotApiCallInfo, device, image,
@@ -3906,11 +3904,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     transform_tohost_VkSubresourceLayout(m_state, (VkSubresourceLayout*)(pLayout));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetImageSubresourceLayout 0x%llx 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)image,
-                            (unsigned long long)pSubresource, (unsigned long long)pLayout);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetImageSubresourceLayout 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)image,
+                        (unsigned long long)pSubresource, (unsigned long long)pLayout);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkGetImageSubresourceLayout(unboxed_device, image, pSubresource, pLayout);
@@ -3976,10 +3973,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCreateImageView 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pAllocator, (unsigned long long)pView);
+                    GFXSTREAM_INFO("stream %p: call vkCreateImageView 0x%llx 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)pCreateInfo, (unsigned long long)pAllocator,
+                                   (unsigned long long)pView);
                 }
                 VkResult vkCreateImageView_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -4046,9 +4043,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkDestroyImageView 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)imageView,
-                            (unsigned long long)pAllocator);
+                    GFXSTREAM_INFO("stream %p: call vkDestroyImageView 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)imageView, (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkDestroyImageView(&m_pool, snapshotApiCallInfo, device, imageView,
@@ -4110,10 +4107,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCreateShaderModule 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pAllocator, (unsigned long long)pShaderModule);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCreateShaderModule 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
+                        (unsigned long long)pAllocator, (unsigned long long)pShaderModule);
                 }
                 VkResult vkCreateShaderModule_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -4186,9 +4183,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkDestroyShaderModule 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)shaderModule,
-                            (unsigned long long)pAllocator);
+                    GFXSTREAM_INFO("stream %p: call vkDestroyShaderModule 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)shaderModule,
+                                   (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkDestroyShaderModule(&m_pool, snapshotApiCallInfo, device,
@@ -4250,10 +4248,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCreatePipelineCache 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pAllocator, (unsigned long long)pPipelineCache);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCreatePipelineCache 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
+                        (unsigned long long)pAllocator, (unsigned long long)pPipelineCache);
                 }
                 VkResult vkCreatePipelineCache_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -4325,10 +4323,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkDestroyPipelineCache 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pipelineCache,
-                            (unsigned long long)pAllocator);
+                    GFXSTREAM_INFO("stream %p: call vkDestroyPipelineCache 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)pipelineCache,
+                                   (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkDestroyPipelineCache(&m_pool, snapshotApiCallInfo, device,
@@ -4390,10 +4388,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     *readStreamPtrPtr += (*(pDataSize)) * sizeof(uint8_t);
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPipelineCacheData 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pipelineCache,
-                            (unsigned long long)pDataSize, (unsigned long long)pData);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPipelineCacheData 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pipelineCache,
+                        (unsigned long long)pDataSize, (unsigned long long)pData);
                 }
                 VkResult vkGetPipelineCacheData_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -4467,10 +4465,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkMergePipelineCaches 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)dstCache,
-                            (unsigned long long)srcCacheCount, (unsigned long long)pSrcCaches);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkMergePipelineCaches 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)dstCache,
+                        (unsigned long long)srcCacheCount, (unsigned long long)pSrcCaches);
                 }
                 VkResult vkMergePipelineCaches_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -4559,12 +4557,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCreateGraphicsPipelines 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pipelineCache,
-                            (unsigned long long)createInfoCount, (unsigned long long)pCreateInfos,
-                            (unsigned long long)pAllocator, (unsigned long long)pPipelines);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCreateGraphicsPipelines 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pipelineCache,
+                        (unsigned long long)createInfoCount, (unsigned long long)pCreateInfos,
+                        (unsigned long long)pAllocator, (unsigned long long)pPipelines);
                 }
                 VkResult vkCreateGraphicsPipelines_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -4668,12 +4666,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCreateComputePipelines 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pipelineCache,
-                            (unsigned long long)createInfoCount, (unsigned long long)pCreateInfos,
-                            (unsigned long long)pAllocator, (unsigned long long)pPipelines);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCreateComputePipelines 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pipelineCache,
+                        (unsigned long long)createInfoCount, (unsigned long long)pCreateInfos,
+                        (unsigned long long)pAllocator, (unsigned long long)pPipelines);
                 }
                 VkResult vkCreateComputePipelines_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -4747,9 +4745,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkDestroyPipeline 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pipeline,
-                            (unsigned long long)pAllocator);
+                    GFXSTREAM_INFO("stream %p: call vkDestroyPipeline 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)pipeline, (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkDestroyPipeline(&m_pool, snapshotApiCallInfo, device, pipeline,
@@ -4811,10 +4809,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCreatePipelineLayout 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pAllocator, (unsigned long long)pPipelineLayout);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCreatePipelineLayout 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
+                        (unsigned long long)pAllocator, (unsigned long long)pPipelineLayout);
                 }
                 VkResult vkCreatePipelineLayout_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -4888,10 +4886,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkDestroyPipelineLayout 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device,
-                            (unsigned long long)pipelineLayout, (unsigned long long)pAllocator);
+                    GFXSTREAM_INFO("stream %p: call vkDestroyPipelineLayout 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)pipelineLayout,
+                                   (unsigned long long)pAllocator);
                 }
                 std::function<void()> delayed_remove_callback = [vk, device, pipelineLayout,
                                                                  pAllocator]() {
@@ -4957,10 +4955,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCreateSampler 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pAllocator, (unsigned long long)pSampler);
+                    GFXSTREAM_INFO("stream %p: call vkCreateSampler 0x%llx 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)pCreateInfo, (unsigned long long)pAllocator,
+                                   (unsigned long long)pSampler);
                 }
                 VkResult vkCreateSampler_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -5027,9 +5025,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkDestroySampler 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)sampler,
-                            (unsigned long long)pAllocator);
+                    GFXSTREAM_INFO("stream %p: call vkDestroySampler 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)sampler, (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkDestroySampler(&m_pool, snapshotApiCallInfo, device, sampler,
@@ -5093,11 +5091,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCreateDescriptorSetLayout 0x%llx 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pAllocator, (unsigned long long)pSetLayout);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCreateDescriptorSetLayout 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
+                        (unsigned long long)pAllocator, (unsigned long long)pSetLayout);
                 }
                 VkResult vkCreateDescriptorSetLayout_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -5172,11 +5169,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkDestroyDescriptorSetLayout 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device,
-                            (unsigned long long)descriptorSetLayout,
-                            (unsigned long long)pAllocator);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkDestroyDescriptorSetLayout 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device,
+                        (unsigned long long)descriptorSetLayout, (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkDestroyDescriptorSetLayout(&m_pool, snapshotApiCallInfo, device,
@@ -5238,10 +5234,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCreateDescriptorPool 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pAllocator, (unsigned long long)pDescriptorPool);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCreateDescriptorPool 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
+                        (unsigned long long)pAllocator, (unsigned long long)pDescriptorPool);
                 }
                 VkResult vkCreateDescriptorPool_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -5313,10 +5309,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkDestroyDescriptorPool 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device,
-                            (unsigned long long)descriptorPool, (unsigned long long)pAllocator);
+                    GFXSTREAM_INFO("stream %p: call vkDestroyDescriptorPool 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)descriptorPool,
+                                   (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkDestroyDescriptorPool(&m_pool, snapshotApiCallInfo, device,
@@ -5355,9 +5351,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                        sizeof(VkDescriptorPoolResetFlags));
                 *readStreamPtrPtr += sizeof(VkDescriptorPoolResetFlags);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkResetDescriptorPool 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device,
-                            (unsigned long long)descriptorPool, (unsigned long long)flags);
+                    GFXSTREAM_INFO("stream %p: call vkResetDescriptorPool 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)descriptorPool, (unsigned long long)flags);
                 }
                 VkResult vkResetDescriptorPool_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -5418,10 +5414,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkDescriptorSetAllocateInfo*)(pAllocateInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkAllocateDescriptorSets 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pAllocateInfo,
-                            (unsigned long long)pDescriptorSets);
+                    GFXSTREAM_INFO("stream %p: call vkAllocateDescriptorSets 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)pAllocateInfo,
+                                   (unsigned long long)pDescriptorSets);
                 }
                 VkResult vkAllocateDescriptorSets_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -5510,12 +5506,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         try_unbox_VkDescriptorSet(pDescriptorSets[i]);
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkFreeDescriptorSets 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device,
-                            (unsigned long long)descriptorPool,
-                            (unsigned long long)descriptorSetCount,
-                            (unsigned long long)pDescriptorSets);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkFreeDescriptorSets 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)descriptorPool,
+                        (unsigned long long)descriptorSetCount,
+                        (unsigned long long)pDescriptorSets);
                 }
                 VkResult vkFreeDescriptorSets_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -5586,14 +5581,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkUpdateDescriptorSets 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)device,
-                            (unsigned long long)descriptorWriteCount,
-                            (unsigned long long)pDescriptorWrites,
-                            (unsigned long long)descriptorCopyCount,
-                            (unsigned long long)pDescriptorCopies);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkUpdateDescriptorSets 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)device,
+                        (unsigned long long)descriptorWriteCount,
+                        (unsigned long long)pDescriptorWrites,
+                        (unsigned long long)descriptorCopyCount,
+                        (unsigned long long)pDescriptorCopies);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkUpdateDescriptorSets(&m_pool, snapshotApiCallInfo, device,
@@ -5656,10 +5651,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCreateFramebuffer 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pAllocator, (unsigned long long)pFramebuffer);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCreateFramebuffer 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
+                        (unsigned long long)pAllocator, (unsigned long long)pFramebuffer);
                 }
                 VkResult vkCreateFramebuffer_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -5730,9 +5725,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkDestroyFramebuffer 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)framebuffer,
-                            (unsigned long long)pAllocator);
+                    GFXSTREAM_INFO("stream %p: call vkDestroyFramebuffer 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)framebuffer, (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkDestroyFramebuffer(&m_pool, snapshotApiCallInfo, device,
@@ -5794,10 +5789,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCreateRenderPass 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pAllocator, (unsigned long long)pRenderPass);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCreateRenderPass 0x%llx 0x%llx 0x%llx 0x%llx ", ioStream,
+                        (unsigned long long)device, (unsigned long long)pCreateInfo,
+                        (unsigned long long)pAllocator, (unsigned long long)pRenderPass);
                 }
                 VkResult vkCreateRenderPass_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -5866,9 +5861,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkDestroyRenderPass 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)renderPass,
-                            (unsigned long long)pAllocator);
+                    GFXSTREAM_INFO("stream %p: call vkDestroyRenderPass 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)renderPass, (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkDestroyRenderPass(&m_pool, snapshotApiCallInfo, device,
@@ -5914,10 +5909,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     transform_tohost_VkExtent2D(m_state, (VkExtent2D*)(pGranularity));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetRenderAreaGranularity 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)renderPass,
-                            (unsigned long long)pGranularity);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetRenderAreaGranularity 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)renderPass,
+                        (unsigned long long)pGranularity);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkGetRenderAreaGranularity(unboxed_device, renderPass, pGranularity);
@@ -5983,10 +5978,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCreateCommandPool 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pAllocator, (unsigned long long)pCommandPool);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCreateCommandPool 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
+                        (unsigned long long)pAllocator, (unsigned long long)pCommandPool);
                 }
                 VkResult vkCreateCommandPool_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -6057,9 +6052,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkDestroyCommandPool 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)commandPool,
-                            (unsigned long long)pAllocator);
+                    GFXSTREAM_INFO("stream %p: call vkDestroyCommandPool 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)commandPool, (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkDestroyCommandPool(&m_pool, snapshotApiCallInfo, device,
@@ -6098,9 +6093,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                        sizeof(VkCommandPoolResetFlags));
                 *readStreamPtrPtr += sizeof(VkCommandPoolResetFlags);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkResetCommandPool 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)commandPool,
-                            (unsigned long long)flags);
+                    GFXSTREAM_INFO("stream %p: call vkResetCommandPool 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)commandPool, (unsigned long long)flags);
                 }
                 VkResult vkResetCommandPool_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -6160,10 +6155,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkCommandBufferAllocateInfo*)(pAllocateInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkAllocateCommandBuffers 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pAllocateInfo,
-                            (unsigned long long)pCommandBuffers);
+                    GFXSTREAM_INFO("stream %p: call vkAllocateCommandBuffers 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)pAllocateInfo,
+                                   (unsigned long long)pCommandBuffers);
                 }
                 VkResult vkAllocateCommandBuffers_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -6248,11 +6243,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         try_unbox_VkCommandBuffer(pCommandBuffers[i]);
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkFreeCommandBuffers 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)commandPool,
-                            (unsigned long long)commandBufferCount,
-                            (unsigned long long)pCommandBuffers);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkFreeCommandBuffers 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)commandPool,
+                        (unsigned long long)commandBufferCount,
+                        (unsigned long long)pCommandBuffers);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkFreeCommandBuffers(&m_pool, snapshotApiCallInfo, device,
@@ -6296,9 +6291,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkCommandBufferBeginInfo*)(pBeginInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkBeginCommandBuffer 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)pBeginInfo);
+                    GFXSTREAM_INFO("stream %p: call vkBeginCommandBuffer 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer,
+                                   (unsigned long long)pBeginInfo);
                 }
                 VkResult vkBeginCommandBuffer_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -6333,8 +6328,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
                 auto vk = dispatch_VkCommandBuffer(commandBuffer);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkEndCommandBuffer 0x%llx \n", ioStream,
-                            (unsigned long long)commandBuffer);
+                    GFXSTREAM_INFO("stream %p: call vkEndCommandBuffer 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer);
                 }
                 VkResult vkEndCommandBuffer_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -6373,8 +6368,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                        sizeof(VkCommandBufferResetFlags));
                 *readStreamPtrPtr += sizeof(VkCommandBufferResetFlags);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkResetCommandBuffer 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer, (unsigned long long)flags);
+                    GFXSTREAM_INFO("stream %p: call vkResetCommandBuffer 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer, (unsigned long long)flags);
                 }
                 VkResult vkResetCommandBuffer_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -6418,9 +6413,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 1 * 8;
                 *(VkPipeline*)&pipeline = (VkPipeline)unbox_VkPipeline((VkPipeline)(*&cgen_var_1));
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdBindPipeline 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)pipelineBindPoint, (unsigned long long)pipeline);
+                    GFXSTREAM_INFO("stream %p: call vkCmdBindPipeline 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)pipelineBindPoint,
+                                   (unsigned long long)pipeline);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkCmdBindPipeline(&m_pool, snapshotApiCallInfo, commandBuffer,
@@ -6469,11 +6465,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdSetViewport 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)firstViewport, (unsigned long long)viewportCount,
-                            (unsigned long long)pViewports);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdSetViewport 0x%llx 0x%llx 0x%llx 0x%llx ", ioStream,
+                        (unsigned long long)commandBuffer, (unsigned long long)firstViewport,
+                        (unsigned long long)viewportCount, (unsigned long long)pViewports);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetViewport(unboxed_commandBuffer, firstViewport, viewportCount,
@@ -6521,11 +6516,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdSetScissor 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)firstScissor, (unsigned long long)scissorCount,
-                            (unsigned long long)pScissors);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetScissor 0x%llx 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)firstScissor,
+                                   (unsigned long long)scissorCount, (unsigned long long)pScissors);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetScissor(unboxed_commandBuffer, firstScissor, scissorCount,
@@ -6559,8 +6553,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((float*)&lineWidth, *readStreamPtrPtr, sizeof(float));
                 *readStreamPtrPtr += sizeof(float);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdSetLineWidth 0x%llx 0x%llx \n", ioStream,
-                            (unsigned long long)commandBuffer, (unsigned long long)lineWidth);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetLineWidth 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer,
+                                   (unsigned long long)lineWidth);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetLineWidth(unboxed_commandBuffer, lineWidth);
@@ -6598,12 +6593,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((float*)&depthBiasSlopeFactor, *readStreamPtrPtr, sizeof(float));
                 *readStreamPtrPtr += sizeof(float);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdSetDepthBias 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)depthBiasConstantFactor,
-                            (unsigned long long)depthBiasClamp,
-                            (unsigned long long)depthBiasSlopeFactor);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetDepthBias 0x%llx 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)depthBiasConstantFactor,
+                                   (unsigned long long)depthBiasClamp,
+                                   (unsigned long long)depthBiasSlopeFactor);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetDepthBias(unboxed_commandBuffer, depthBiasConstantFactor,
@@ -6637,9 +6631,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((float*)blendConstants, *readStreamPtrPtr, 4 * sizeof(const float));
                 *readStreamPtrPtr += 4 * sizeof(const float);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdSetBlendConstants 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)blendConstants);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetBlendConstants 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)blendConstants);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetBlendConstants(unboxed_commandBuffer, blendConstants);
@@ -6675,9 +6669,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((float*)&maxDepthBounds, *readStreamPtrPtr, sizeof(float));
                 *readStreamPtrPtr += sizeof(float);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdSetDepthBounds 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)minDepthBounds, (unsigned long long)maxDepthBounds);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetDepthBounds 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)minDepthBounds,
+                                   (unsigned long long)maxDepthBounds);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetDepthBounds(unboxed_commandBuffer, minDepthBounds, maxDepthBounds);
@@ -6714,10 +6709,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&compareMask, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdSetStencilCompareMask 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)faceMask, (unsigned long long)compareMask);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdSetStencilCompareMask 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)faceMask,
+                        (unsigned long long)compareMask);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetStencilCompareMask(unboxed_commandBuffer, faceMask, compareMask);
@@ -6754,10 +6749,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&writeMask, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdSetStencilWriteMask 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)faceMask, (unsigned long long)writeMask);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetStencilWriteMask 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)faceMask, (unsigned long long)writeMask);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetStencilWriteMask(unboxed_commandBuffer, faceMask, writeMask);
@@ -6794,10 +6788,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&reference, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdSetStencilReference 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)faceMask, (unsigned long long)reference);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetStencilReference 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)faceMask, (unsigned long long)reference);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetStencilReference(unboxed_commandBuffer, faceMask, reference);
@@ -6864,15 +6857,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                        ((dynamicOffsetCount)) * sizeof(const uint32_t));
                 *readStreamPtrPtr += ((dynamicOffsetCount)) * sizeof(const uint32_t);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdBindDescriptorSets 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)pipelineBindPoint, (unsigned long long)layout,
-                            (unsigned long long)firstSet, (unsigned long long)descriptorSetCount,
-                            (unsigned long long)pDescriptorSets,
-                            (unsigned long long)dynamicOffsetCount,
-                            (unsigned long long)pDynamicOffsets);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdBindDescriptorSets 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)pipelineBindPoint, (unsigned long long)layout,
+                        (unsigned long long)firstSet, (unsigned long long)descriptorSetCount,
+                        (unsigned long long)pDescriptorSets, (unsigned long long)dynamicOffsetCount,
+                        (unsigned long long)pDynamicOffsets);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkCmdBindDescriptorSets(&m_pool, snapshotApiCallInfo, commandBuffer,
@@ -6917,10 +6909,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkIndexType*)&indexType, *readStreamPtrPtr, sizeof(VkIndexType));
                 *readStreamPtrPtr += sizeof(VkIndexType);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdBindIndexBuffer 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer, (unsigned long long)buffer,
-                            (unsigned long long)offset, (unsigned long long)indexType);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdBindIndexBuffer 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)buffer,
+                        (unsigned long long)offset, (unsigned long long)indexType);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdBindIndexBuffer(unboxed_commandBuffer, buffer, offset, indexType);
@@ -6974,12 +6966,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                        ((bindingCount)) * sizeof(const VkDeviceSize));
                 *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdBindVertexBuffers 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)firstBinding, (unsigned long long)bindingCount,
-                            (unsigned long long)pBuffers, (unsigned long long)pOffsets);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdBindVertexBuffers 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)firstBinding, (unsigned long long)bindingCount,
+                        (unsigned long long)pBuffers, (unsigned long long)pOffsets);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdBindVertexBuffers(unboxed_commandBuffer, firstBinding, bindingCount,
@@ -7021,11 +7013,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&firstInstance, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdDraw 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)vertexCount, (unsigned long long)instanceCount,
-                            (unsigned long long)firstVertex, (unsigned long long)firstInstance);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdDraw 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx ", ioStream,
+                        (unsigned long long)commandBuffer, (unsigned long long)vertexCount,
+                        (unsigned long long)instanceCount, (unsigned long long)firstVertex,
+                        (unsigned long long)firstInstance);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdDraw(unboxed_commandBuffer, vertexCount, instanceCount, firstVertex,
@@ -7071,13 +7063,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&firstInstance, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdDrawIndexed 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)indexCount, (unsigned long long)instanceCount,
-                            (unsigned long long)firstIndex, (unsigned long long)vertexOffset,
-                            (unsigned long long)firstInstance);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdDrawIndexed 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)indexCount,
+                        (unsigned long long)instanceCount, (unsigned long long)firstIndex,
+                        (unsigned long long)vertexOffset, (unsigned long long)firstInstance);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdDrawIndexed(unboxed_commandBuffer, indexCount, instanceCount,
@@ -7122,9 +7113,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&stride, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkCmdDrawIndirect 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdDrawIndirect 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)commandBuffer, (unsigned long long)buffer,
                         (unsigned long long)offset, (unsigned long long)drawCount,
                         (unsigned long long)stride);
@@ -7171,12 +7161,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&stride, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdDrawIndexedIndirect 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer, (unsigned long long)buffer,
-                            (unsigned long long)offset, (unsigned long long)drawCount,
-                            (unsigned long long)stride);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdDrawIndexedIndirect 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)buffer,
+                        (unsigned long long)offset, (unsigned long long)drawCount,
+                        (unsigned long long)stride);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdDrawIndexedIndirect(unboxed_commandBuffer, buffer, offset, drawCount,
@@ -7215,10 +7205,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&groupCountZ, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdDispatch 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)groupCountX, (unsigned long long)groupCountY,
-                            (unsigned long long)groupCountZ);
+                    GFXSTREAM_INFO("stream %p: call vkCmdDispatch 0x%llx 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)groupCountX, (unsigned long long)groupCountY,
+                                   (unsigned long long)groupCountZ);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdDispatch(unboxed_commandBuffer, groupCountX, groupCountY, groupCountZ);
@@ -7256,9 +7246,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkDeviceSize*)&offset, *readStreamPtrPtr, sizeof(VkDeviceSize));
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdDispatchIndirect 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer, (unsigned long long)buffer,
-                            (unsigned long long)offset);
+                    GFXSTREAM_INFO("stream %p: call vkCmdDispatchIndirect 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)buffer, (unsigned long long)offset);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdDispatchIndirect(unboxed_commandBuffer, buffer, offset);
@@ -7313,11 +7303,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdCopyBuffer 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)srcBuffer, (unsigned long long)dstBuffer,
-                            (unsigned long long)regionCount, (unsigned long long)pRegions);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdCopyBuffer 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)srcBuffer,
+                        (unsigned long long)dstBuffer, (unsigned long long)regionCount,
+                        (unsigned long long)pRegions);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdCopyBuffer(unboxed_commandBuffer, srcBuffer, dstBuffer, regionCount,
@@ -7375,13 +7365,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdCopyImage 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)srcImage, (unsigned long long)srcImageLayout,
-                            (unsigned long long)dstImage, (unsigned long long)dstImageLayout,
-                            (unsigned long long)regionCount, (unsigned long long)pRegions);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdCopyImage 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)srcImage,
+                        (unsigned long long)srcImageLayout, (unsigned long long)dstImage,
+                        (unsigned long long)dstImageLayout, (unsigned long long)regionCount,
+                        (unsigned long long)pRegions);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkCmdCopyImage(&m_pool, snapshotApiCallInfo, commandBuffer,
@@ -7445,14 +7435,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdBlitImage 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)srcImage, (unsigned long long)srcImageLayout,
-                            (unsigned long long)dstImage, (unsigned long long)dstImageLayout,
-                            (unsigned long long)regionCount, (unsigned long long)pRegions,
-                            (unsigned long long)filter);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdBlitImage 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)srcImage,
+                        (unsigned long long)srcImageLayout, (unsigned long long)dstImage,
+                        (unsigned long long)dstImageLayout, (unsigned long long)regionCount,
+                        (unsigned long long)pRegions, (unsigned long long)filter);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdBlitImage(unboxed_commandBuffer, srcImage, srcImageLayout, dstImage,
@@ -7511,13 +7500,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdCopyBufferToImage 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)srcBuffer, (unsigned long long)dstImage,
-                            (unsigned long long)dstImageLayout, (unsigned long long)regionCount,
-                            (unsigned long long)pRegions);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdCopyBufferToImage 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)srcBuffer,
+                        (unsigned long long)dstImage, (unsigned long long)dstImageLayout,
+                        (unsigned long long)regionCount, (unsigned long long)pRegions);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkCmdCopyBufferToImage(&m_pool, snapshotApiCallInfo, commandBuffer,
@@ -7577,13 +7565,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdCopyImageToBuffer 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)srcImage, (unsigned long long)srcImageLayout,
-                            (unsigned long long)dstBuffer, (unsigned long long)regionCount,
-                            (unsigned long long)pRegions);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdCopyImageToBuffer 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)srcImage,
+                        (unsigned long long)srcImageLayout, (unsigned long long)dstBuffer,
+                        (unsigned long long)regionCount, (unsigned long long)pRegions);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkCmdCopyImageToBuffer(&m_pool, snapshotApiCallInfo, commandBuffer,
@@ -7630,9 +7617,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((void*)pData, *readStreamPtrPtr, ((dataSize)) * sizeof(const uint8_t));
                 *readStreamPtrPtr += ((dataSize)) * sizeof(const uint8_t);
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkCmdUpdateBuffer 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdUpdateBuffer 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)commandBuffer, (unsigned long long)dstBuffer,
                         (unsigned long long)dstOffset, (unsigned long long)dataSize,
                         (unsigned long long)pData);
@@ -7680,11 +7666,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&data, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdFillBuffer 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)dstBuffer, (unsigned long long)dstOffset,
-                            (unsigned long long)size, (unsigned long long)data);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdFillBuffer 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)dstBuffer,
+                        (unsigned long long)dstOffset, (unsigned long long)size,
+                        (unsigned long long)data);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdFillBuffer(unboxed_commandBuffer, dstBuffer, dstOffset, size, data);
@@ -7746,12 +7732,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdClearColorImage 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer, (unsigned long long)image,
-                            (unsigned long long)imageLayout, (unsigned long long)pColor,
-                            (unsigned long long)rangeCount, (unsigned long long)pRanges);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdClearColorImage 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)image,
+                        (unsigned long long)imageLayout, (unsigned long long)pColor,
+                        (unsigned long long)rangeCount, (unsigned long long)pRanges);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdClearColorImage(unboxed_commandBuffer, image, imageLayout, pColor,
@@ -7816,12 +7802,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdClearDepthStencilImage 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer, (unsigned long long)image,
-                            (unsigned long long)imageLayout, (unsigned long long)pDepthStencil,
-                            (unsigned long long)rangeCount, (unsigned long long)pRanges);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdClearDepthStencilImage 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)image,
+                        (unsigned long long)imageLayout, (unsigned long long)pDepthStencil,
+                        (unsigned long long)rangeCount, (unsigned long long)pRanges);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdClearDepthStencilImage(unboxed_commandBuffer, image, imageLayout,
@@ -7883,12 +7869,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdClearAttachments 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)attachmentCount, (unsigned long long)pAttachments,
-                            (unsigned long long)rectCount, (unsigned long long)pRects);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdClearAttachments 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)attachmentCount, (unsigned long long)pAttachments,
+                        (unsigned long long)rectCount, (unsigned long long)pRects);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdClearAttachments(unboxed_commandBuffer, attachmentCount, pAttachments,
@@ -7951,13 +7936,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdResolveImage 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)srcImage, (unsigned long long)srcImageLayout,
-                            (unsigned long long)dstImage, (unsigned long long)dstImageLayout,
-                            (unsigned long long)regionCount, (unsigned long long)pRegions);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdResolveImage 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)srcImage,
+                        (unsigned long long)srcImageLayout, (unsigned long long)dstImage,
+                        (unsigned long long)dstImageLayout, (unsigned long long)regionCount,
+                        (unsigned long long)pRegions);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdResolveImage(unboxed_commandBuffer, srcImage, srcImageLayout, dstImage,
@@ -7996,9 +7981,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                        sizeof(VkPipelineStageFlags));
                 *readStreamPtrPtr += sizeof(VkPipelineStageFlags);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdSetEvent 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer, (unsigned long long)event,
-                            (unsigned long long)stageMask);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetEvent 0x%llx 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer, (unsigned long long)event,
+                                   (unsigned long long)stageMask);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetEvent(unboxed_commandBuffer, event, stageMask);
@@ -8036,9 +8021,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                        sizeof(VkPipelineStageFlags));
                 *readStreamPtrPtr += sizeof(VkPipelineStageFlags);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdResetEvent 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer, (unsigned long long)event,
-                            (unsigned long long)stageMask);
+                    GFXSTREAM_INFO("stream %p: call vkCmdResetEvent 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)event, (unsigned long long)stageMask);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdResetEvent(unboxed_commandBuffer, event, stageMask);
@@ -8144,18 +8129,17 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdWaitEvents 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)eventCount, (unsigned long long)pEvents,
-                            (unsigned long long)srcStageMask, (unsigned long long)dstStageMask,
-                            (unsigned long long)memoryBarrierCount,
-                            (unsigned long long)pMemoryBarriers,
-                            (unsigned long long)bufferMemoryBarrierCount,
-                            (unsigned long long)pBufferMemoryBarriers,
-                            (unsigned long long)imageMemoryBarrierCount,
-                            (unsigned long long)pImageMemoryBarriers);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdWaitEvents 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)eventCount,
+                        (unsigned long long)pEvents, (unsigned long long)srcStageMask,
+                        (unsigned long long)dstStageMask, (unsigned long long)memoryBarrierCount,
+                        (unsigned long long)pMemoryBarriers,
+                        (unsigned long long)bufferMemoryBarrierCount,
+                        (unsigned long long)pBufferMemoryBarriers,
+                        (unsigned long long)imageMemoryBarrierCount,
+                        (unsigned long long)pImageMemoryBarriers);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdWaitEvents(unboxed_commandBuffer, eventCount, pEvents, srcStageMask,
@@ -8253,18 +8237,17 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdPipelineBarrier 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)srcStageMask, (unsigned long long)dstStageMask,
-                            (unsigned long long)dependencyFlags,
-                            (unsigned long long)memoryBarrierCount,
-                            (unsigned long long)pMemoryBarriers,
-                            (unsigned long long)bufferMemoryBarrierCount,
-                            (unsigned long long)pBufferMemoryBarriers,
-                            (unsigned long long)imageMemoryBarrierCount,
-                            (unsigned long long)pImageMemoryBarriers);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdPipelineBarrier 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)srcStageMask, (unsigned long long)dstStageMask,
+                        (unsigned long long)dependencyFlags, (unsigned long long)memoryBarrierCount,
+                        (unsigned long long)pMemoryBarriers,
+                        (unsigned long long)bufferMemoryBarrierCount,
+                        (unsigned long long)pBufferMemoryBarriers,
+                        (unsigned long long)imageMemoryBarrierCount,
+                        (unsigned long long)pImageMemoryBarriers);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkCmdPipelineBarrier(
@@ -8313,10 +8296,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                        sizeof(VkQueryControlFlags));
                 *readStreamPtrPtr += sizeof(VkQueryControlFlags);
                 if (m_logCalls) {
-                    fprintf(
-                        stderr, "stream %p: call vkCmdBeginQuery 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)queryPool,
-                        (unsigned long long)query, (unsigned long long)flags);
+                    GFXSTREAM_INFO("stream %p: call vkCmdBeginQuery 0x%llx 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)queryPool, (unsigned long long)query,
+                                   (unsigned long long)flags);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdBeginQuery(unboxed_commandBuffer, queryPool, query, flags);
@@ -8354,9 +8337,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&query, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdEndQuery 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)queryPool, (unsigned long long)query);
+                    GFXSTREAM_INFO("stream %p: call vkCmdEndQuery 0x%llx 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer, (unsigned long long)queryPool,
+                                   (unsigned long long)query);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdEndQuery(unboxed_commandBuffer, queryPool, query);
@@ -8397,11 +8380,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&queryCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdResetQueryPool 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)queryPool, (unsigned long long)firstQuery,
-                            (unsigned long long)queryCount);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdResetQueryPool 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)queryPool,
+                        (unsigned long long)firstQuery, (unsigned long long)queryCount);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdResetQueryPool(unboxed_commandBuffer, queryPool, firstQuery,
@@ -8445,11 +8427,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&query, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdWriteTimestamp 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)pipelineStage, (unsigned long long)queryPool,
-                            (unsigned long long)query);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdWriteTimestamp 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)pipelineStage, (unsigned long long)queryPool,
+                        (unsigned long long)query);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdWriteTimestamp(unboxed_commandBuffer, pipelineStage, queryPool, query);
@@ -8505,14 +8487,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkQueryResultFlags*)&flags, *readStreamPtrPtr, sizeof(VkQueryResultFlags));
                 *readStreamPtrPtr += sizeof(VkQueryResultFlags);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdCopyQueryPoolResults 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)queryPool, (unsigned long long)firstQuery,
-                            (unsigned long long)queryCount, (unsigned long long)dstBuffer,
-                            (unsigned long long)dstOffset, (unsigned long long)stride,
-                            (unsigned long long)flags);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdCopyQueryPoolResults 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)queryPool,
+                        (unsigned long long)firstQuery, (unsigned long long)queryCount,
+                        (unsigned long long)dstBuffer, (unsigned long long)dstOffset,
+                        (unsigned long long)stride, (unsigned long long)flags);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdCopyQueryPoolResults(unboxed_commandBuffer, queryPool, firstQuery,
@@ -8563,12 +8544,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((void*)pValues, *readStreamPtrPtr, ((size)) * sizeof(const uint8_t));
                 *readStreamPtrPtr += ((size)) * sizeof(const uint8_t);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdPushConstants 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer, (unsigned long long)layout,
-                            (unsigned long long)stageFlags, (unsigned long long)offset,
-                            (unsigned long long)size, (unsigned long long)pValues);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdPushConstants 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)layout,
+                        (unsigned long long)stageFlags, (unsigned long long)offset,
+                        (unsigned long long)size, (unsigned long long)pValues);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdPushConstants(unboxed_commandBuffer, layout, stageFlags, offset, size,
@@ -8609,9 +8590,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkRenderPassBeginInfo*)(pRenderPassBegin));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdBeginRenderPass 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)pRenderPassBegin, (unsigned long long)contents);
+                    GFXSTREAM_INFO("stream %p: call vkCmdBeginRenderPass 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)pRenderPassBegin,
+                                   (unsigned long long)contents);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkCmdBeginRenderPass(&m_pool, snapshotApiCallInfo, commandBuffer,
@@ -8645,8 +8627,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkSubpassContents*)&contents, *readStreamPtrPtr, sizeof(VkSubpassContents));
                 *readStreamPtrPtr += sizeof(VkSubpassContents);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdNextSubpass 0x%llx 0x%llx \n", ioStream,
-                            (unsigned long long)commandBuffer, (unsigned long long)contents);
+                    GFXSTREAM_INFO("stream %p: call vkCmdNextSubpass 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer, (unsigned long long)contents);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdNextSubpass(unboxed_commandBuffer, contents);
@@ -8675,8 +8657,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto vk = dispatch_VkCommandBuffer(commandBuffer);
                 // End manual dispatchable handle unboxing for commandBuffer;
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdEndRenderPass 0x%llx \n", ioStream,
-                            (unsigned long long)commandBuffer);
+                    GFXSTREAM_INFO("stream %p: call vkCmdEndRenderPass 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdEndRenderPass(unboxed_commandBuffer);
@@ -8720,10 +8702,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdExecuteCommands 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)commandBufferCount,
-                            (unsigned long long)pCommandBuffers);
+                    GFXSTREAM_INFO("stream %p: call vkCmdExecuteCommands 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)commandBufferCount,
+                                   (unsigned long long)pCommandBuffers);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkCmdExecuteCommands(&m_pool, snapshotApiCallInfo, commandBuffer,
@@ -8752,8 +8734,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)pApiVersion, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkEnumerateInstanceVersion 0x%llx \n",
-                            ioStream, (unsigned long long)pApiVersion);
+                    GFXSTREAM_INFO("stream %p: call vkEnumerateInstanceVersion 0x%llx ", ioStream,
+                                   (unsigned long long)pApiVersion);
                 }
                 VkResult vkEnumerateInstanceVersion_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 vkEnumerateInstanceVersion_VkResult_return = m_state->on_vkEnumerateInstanceVersion(
@@ -8804,9 +8786,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkBindBufferMemory2 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)bindInfoCount,
-                            (unsigned long long)pBindInfos);
+                    GFXSTREAM_INFO("stream %p: call vkBindBufferMemory2 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)bindInfoCount,
+                                   (unsigned long long)pBindInfos);
                 }
                 VkResult vkBindBufferMemory2_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -8857,9 +8840,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkBindImageMemory2 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)bindInfoCount,
-                            (unsigned long long)pBindInfos);
+                    GFXSTREAM_INFO("stream %p: call vkBindImageMemory2 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)bindInfoCount,
+                                   (unsigned long long)pBindInfos);
                 }
                 VkResult vkBindImageMemory2_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -8911,13 +8895,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                        sizeof(VkPeerMemoryFeatureFlags));
                 *readStreamPtrPtr += sizeof(VkPeerMemoryFeatureFlags);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetDeviceGroupPeerMemoryFeatures 0x%llx 0x%llx "
-                            "0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)heapIndex,
-                            (unsigned long long)localDeviceIndex,
-                            (unsigned long long)remoteDeviceIndex,
-                            (unsigned long long)pPeerMemoryFeatures);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetDeviceGroupPeerMemoryFeatures 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)heapIndex,
+                        (unsigned long long)localDeviceIndex, (unsigned long long)remoteDeviceIndex,
+                        (unsigned long long)pPeerMemoryFeatures);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkGetDeviceGroupPeerMemoryFeatures(unboxed_device, heapIndex,
@@ -8955,8 +8938,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&deviceMask, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdSetDeviceMask 0x%llx 0x%llx \n", ioStream,
-                            (unsigned long long)commandBuffer, (unsigned long long)deviceMask);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetDeviceMask 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer,
+                                   (unsigned long long)deviceMask);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetDeviceMask(unboxed_commandBuffer, deviceMask);
@@ -9003,13 +8987,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&groupCountZ, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdDispatchBase 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)baseGroupX, (unsigned long long)baseGroupY,
-                            (unsigned long long)baseGroupZ, (unsigned long long)groupCountX,
-                            (unsigned long long)groupCountY, (unsigned long long)groupCountZ);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdDispatchBase 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)baseGroupX,
+                        (unsigned long long)baseGroupY, (unsigned long long)baseGroupZ,
+                        (unsigned long long)groupCountX, (unsigned long long)groupCountY,
+                        (unsigned long long)groupCountZ);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdDispatchBase(unboxed_commandBuffer, baseGroupX, baseGroupY, baseGroupZ,
@@ -9079,9 +9063,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkEnumeratePhysicalDeviceGroups 0x%llx 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkEnumeratePhysicalDeviceGroups 0x%llx 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)instance,
                         (unsigned long long)pPhysicalDeviceGroupCount,
                         (unsigned long long)pPhysicalDeviceGroupProperties);
@@ -9172,10 +9155,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkMemoryRequirements2*)(pMemoryRequirements));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetImageMemoryRequirements2 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pInfo,
-                            (unsigned long long)pMemoryRequirements);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetImageMemoryRequirements2 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pInfo,
+                        (unsigned long long)pMemoryRequirements);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetImageMemoryRequirements2(&m_pool, snapshotApiCallInfo, device,
@@ -9230,9 +9213,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkMemoryRequirements2*)(pMemoryRequirements));
                 }
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkGetBufferMemoryRequirements2 0x%llx 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetBufferMemoryRequirements2 0x%llx 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)device, (unsigned long long)pInfo,
                         (unsigned long long)pMemoryRequirements);
                 }
@@ -9323,12 +9305,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetImageSparseMemoryRequirements2 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pInfo,
-                            (unsigned long long)pSparseMemoryRequirementCount,
-                            (unsigned long long)pSparseMemoryRequirements);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetImageSparseMemoryRequirements2 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pInfo,
+                        (unsigned long long)pSparseMemoryRequirementCount,
+                        (unsigned long long)pSparseMemoryRequirements);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkGetImageSparseMemoryRequirements2(unboxed_device, pInfo,
@@ -9399,9 +9381,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkPhysicalDeviceFeatures2*)(pFeatures));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkGetPhysicalDeviceFeatures2 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)pFeatures);
+                    GFXSTREAM_INFO("stream %p: call vkGetPhysicalDeviceFeatures2 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)physicalDevice,
+                                   (unsigned long long)pFeatures);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceFeatures2(&m_pool, snapshotApiCallInfo,
@@ -9447,10 +9429,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkPhysicalDeviceProperties2*)(pProperties));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPhysicalDeviceProperties2 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)pProperties);
+                    GFXSTREAM_INFO("stream %p: call vkGetPhysicalDeviceProperties2 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)physicalDevice,
+                                   (unsigned long long)pProperties);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceProperties2(&m_pool, snapshotApiCallInfo,
@@ -9500,11 +9481,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                          (VkFormatProperties2*)(pFormatProperties));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPhysicalDeviceFormatProperties2 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)format, (unsigned long long)pFormatProperties);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPhysicalDeviceFormatProperties2 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)physicalDevice, (unsigned long long)format,
+                        (unsigned long long)pFormatProperties);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceFormatProperties2(
@@ -9562,12 +9543,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkImageFormatProperties2*)(pImageFormatProperties));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPhysicalDeviceImageFormatProperties2 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)pImageFormatInfo,
-                            (unsigned long long)pImageFormatProperties);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPhysicalDeviceImageFormatProperties2 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)physicalDevice,
+                        (unsigned long long)pImageFormatInfo,
+                        (unsigned long long)pImageFormatProperties);
                 }
                 VkResult vkGetPhysicalDeviceImageFormatProperties2_VkResult_return =
                     VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -9655,12 +9636,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPhysicalDeviceQueueFamilyProperties2 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)pQueueFamilyPropertyCount,
-                            (unsigned long long)pQueueFamilyProperties);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPhysicalDeviceQueueFamilyProperties2 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)physicalDevice,
+                        (unsigned long long)pQueueFamilyPropertyCount,
+                        (unsigned long long)pQueueFamilyProperties);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceQueueFamilyProperties2(
@@ -9729,10 +9710,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPhysicalDeviceMemoryProperties2 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)pMemoryProperties);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPhysicalDeviceMemoryProperties2 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)physicalDevice,
+                        (unsigned long long)pMemoryProperties);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceMemoryProperties2(
@@ -9816,12 +9797,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPhysicalDeviceSparseImageFormatProperties2 "
-                            "0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)pFormatInfo, (unsigned long long)pPropertyCount,
-                            (unsigned long long)pProperties);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPhysicalDeviceSparseImageFormatProperties2 0x%llx "
+                        "0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)physicalDevice,
+                        (unsigned long long)pFormatInfo, (unsigned long long)pPropertyCount,
+                        (unsigned long long)pProperties);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceSparseImageFormatProperties2(
@@ -9889,9 +9870,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                        sizeof(VkCommandPoolTrimFlags));
                 *readStreamPtrPtr += sizeof(VkCommandPoolTrimFlags);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkTrimCommandPool 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)commandPool,
-                            (unsigned long long)flags);
+                    GFXSTREAM_INFO("stream %p: call vkTrimCommandPool 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)commandPool, (unsigned long long)flags);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkTrimCommandPool(unboxed_device, commandPool, flags);
@@ -9933,9 +9914,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     transform_tohost_VkDeviceQueueInfo2(m_state, (VkDeviceQueueInfo2*)(pQueueInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkGetDeviceQueue2 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pQueueInfo,
-                            (unsigned long long)pQueue);
+                    GFXSTREAM_INFO("stream %p: call vkGetDeviceQueue2 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)pQueueInfo, (unsigned long long)pQueue);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetDeviceQueue2(&m_pool, snapshotApiCallInfo, device, pQueueInfo,
@@ -10003,11 +9984,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCreateSamplerYcbcrConversion 0x%llx 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pAllocator, (unsigned long long)pYcbcrConversion);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCreateSamplerYcbcrConversion 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
+                        (unsigned long long)pAllocator, (unsigned long long)pYcbcrConversion);
                 }
                 VkResult vkCreateSamplerYcbcrConversion_VkResult_return =
                     VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -10083,9 +10064,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkDestroySamplerYcbcrConversion 0x%llx 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkDestroySamplerYcbcrConversion 0x%llx 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)device, (unsigned long long)ycbcrConversion,
                         (unsigned long long)pAllocator);
                 }
@@ -10152,12 +10132,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCreateDescriptorUpdateTemplate 0x%llx 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pAllocator,
-                            (unsigned long long)pDescriptorUpdateTemplate);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCreateDescriptorUpdateTemplate 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
+                        (unsigned long long)pAllocator,
+                        (unsigned long long)pDescriptorUpdateTemplate);
                 }
                 VkResult vkCreateDescriptorUpdateTemplate_VkResult_return =
                     VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -10236,9 +10216,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkDestroyDescriptorUpdateTemplate 0x%llx 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkDestroyDescriptorUpdateTemplate 0x%llx 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)device,
                         (unsigned long long)descriptorUpdateTemplate,
                         (unsigned long long)pAllocator);
@@ -10295,12 +10274,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     *readStreamPtrPtr += sizeof(const uint8_t);
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkUpdateDescriptorSetWithTemplate 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)descriptorSet,
-                            (unsigned long long)descriptorUpdateTemplate,
-                            (unsigned long long)pData);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkUpdateDescriptorSetWithTemplate 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)descriptorSet,
+                        (unsigned long long)descriptorUpdateTemplate, (unsigned long long)pData);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkUpdateDescriptorSetWithTemplate(unboxed_device, descriptorSet,
@@ -10357,12 +10335,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkExternalBufferProperties*)(pExternalBufferProperties));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPhysicalDeviceExternalBufferProperties 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)pExternalBufferInfo,
-                            (unsigned long long)pExternalBufferProperties);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPhysicalDeviceExternalBufferProperties 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)physicalDevice,
+                        (unsigned long long)pExternalBufferInfo,
+                        (unsigned long long)pExternalBufferProperties);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkGetPhysicalDeviceExternalBufferProperties(
@@ -10425,12 +10403,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkExternalFenceProperties*)(pExternalFenceProperties));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPhysicalDeviceExternalFenceProperties 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)pExternalFenceInfo,
-                            (unsigned long long)pExternalFenceProperties);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPhysicalDeviceExternalFenceProperties 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)physicalDevice,
+                        (unsigned long long)pExternalFenceInfo,
+                        (unsigned long long)pExternalFenceProperties);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkGetPhysicalDeviceExternalFenceProperties(
@@ -10491,12 +10469,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPhysicalDeviceExternalSemaphoreProperties 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)pExternalSemaphoreInfo,
-                            (unsigned long long)pExternalSemaphoreProperties);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPhysicalDeviceExternalSemaphoreProperties 0x%llx "
+                        "0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)physicalDevice,
+                        (unsigned long long)pExternalSemaphoreInfo,
+                        (unsigned long long)pExternalSemaphoreProperties);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceExternalSemaphoreProperties(
@@ -10556,9 +10534,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkDescriptorSetLayoutSupport*)(pSupport));
                 }
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkGetDescriptorSetLayoutSupport 0x%llx 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetDescriptorSetLayoutSupport 0x%llx 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
                         (unsigned long long)pSupport);
                 }
@@ -10621,13 +10598,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&stride, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdDrawIndirectCount 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer, (unsigned long long)buffer,
-                            (unsigned long long)offset, (unsigned long long)countBuffer,
-                            (unsigned long long)countBufferOffset, (unsigned long long)maxDrawCount,
-                            (unsigned long long)stride);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdDrawIndirectCount 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)buffer,
+                        (unsigned long long)offset, (unsigned long long)countBuffer,
+                        (unsigned long long)countBufferOffset, (unsigned long long)maxDrawCount,
+                        (unsigned long long)stride);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdDrawIndirectCount(unboxed_commandBuffer, buffer, offset, countBuffer,
@@ -10680,13 +10657,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&stride, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdDrawIndexedIndirectCount 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer, (unsigned long long)buffer,
-                            (unsigned long long)offset, (unsigned long long)countBuffer,
-                            (unsigned long long)countBufferOffset, (unsigned long long)maxDrawCount,
-                            (unsigned long long)stride);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdDrawIndexedIndirectCount 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)buffer,
+                        (unsigned long long)offset, (unsigned long long)countBuffer,
+                        (unsigned long long)countBufferOffset, (unsigned long long)maxDrawCount,
+                        (unsigned long long)stride);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdDrawIndexedIndirectCount(unboxed_commandBuffer, buffer, offset,
@@ -10748,10 +10725,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCreateRenderPass2 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pAllocator, (unsigned long long)pRenderPass);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCreateRenderPass2 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
+                        (unsigned long long)pAllocator, (unsigned long long)pRenderPass);
                 }
                 VkResult vkCreateRenderPass2_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -10814,10 +10791,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                         (VkSubpassBeginInfo*)(pSubpassBeginInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdBeginRenderPass2 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)pRenderPassBegin,
-                            (unsigned long long)pSubpassBeginInfo);
+                    GFXSTREAM_INFO("stream %p: call vkCmdBeginRenderPass2 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)pRenderPassBegin,
+                                   (unsigned long long)pSubpassBeginInfo);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkCmdBeginRenderPass2(&m_pool, snapshotApiCallInfo, commandBuffer,
@@ -10866,10 +10843,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                       (VkSubpassEndInfo*)(pSubpassEndInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdNextSubpass2 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)pSubpassBeginInfo,
-                            (unsigned long long)pSubpassEndInfo);
+                    GFXSTREAM_INFO("stream %p: call vkCmdNextSubpass2 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)pSubpassBeginInfo,
+                                   (unsigned long long)pSubpassEndInfo);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdNextSubpass2(unboxed_commandBuffer, pSubpassBeginInfo,
@@ -10909,9 +10886,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                       (VkSubpassEndInfo*)(pSubpassEndInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdEndRenderPass2 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)pSubpassEndInfo);
+                    GFXSTREAM_INFO("stream %p: call vkCmdEndRenderPass2 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer,
+                                   (unsigned long long)pSubpassEndInfo);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdEndRenderPass2(unboxed_commandBuffer, pSubpassEndInfo);
@@ -10952,10 +10929,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&queryCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkResetQueryPool 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)queryPool,
-                            (unsigned long long)firstQuery, (unsigned long long)queryCount);
+                    GFXSTREAM_INFO("stream %p: call vkResetQueryPool 0x%llx 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)queryPool, (unsigned long long)firstQuery,
+                                   (unsigned long long)queryCount);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkResetQueryPool(unboxed_device, queryPool, firstQuery, queryCount);
@@ -10996,10 +10973,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint64_t*)pValue, *readStreamPtrPtr, sizeof(uint64_t));
                 *readStreamPtrPtr += sizeof(uint64_t);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetSemaphoreCounterValue 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)semaphore,
-                            (unsigned long long)pValue);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetSemaphoreCounterValue 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)semaphore,
+                        (unsigned long long)pValue);
                 }
                 VkResult vkGetSemaphoreCounterValue_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -11047,9 +11024,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                          (VkSemaphoreWaitInfo*)(pWaitInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkWaitSemaphores 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pWaitInfo,
-                            (unsigned long long)timeout);
+                    GFXSTREAM_INFO("stream %p: call vkWaitSemaphores 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)pWaitInfo, (unsigned long long)timeout);
                 }
                 if (m_queueSubmitWithCommandsEnabled)
                     seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
@@ -11092,8 +11069,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkSemaphoreSignalInfo*)(pSignalInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkSignalSemaphore 0x%llx 0x%llx \n", ioStream,
-                            (unsigned long long)device, (unsigned long long)pSignalInfo);
+                    GFXSTREAM_INFO("stream %p: call vkSignalSemaphore 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)device, (unsigned long long)pSignalInfo);
                 }
                 VkResult vkSignalSemaphore_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -11138,8 +11115,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                                (VkBufferDeviceAddressInfo*)(pInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkGetBufferDeviceAddress 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pInfo);
+                    GFXSTREAM_INFO("stream %p: call vkGetBufferDeviceAddress 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device, (unsigned long long)pInfo);
                 }
                 VkDeviceAddress vkGetBufferDeviceAddress_VkDeviceAddress_return =
                     (VkDeviceAddress)0;
@@ -11183,9 +11160,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                                (VkBufferDeviceAddressInfo*)(pInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetBufferOpaqueCaptureAddress 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pInfo);
+                    GFXSTREAM_INFO("stream %p: call vkGetBufferOpaqueCaptureAddress 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device, (unsigned long long)pInfo);
                 }
                 uint64_t vkGetBufferOpaqueCaptureAddress_uint64_t_return = (uint64_t)0;
                 if (CC_LIKELY(vk)) {
@@ -11228,9 +11204,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkDeviceMemoryOpaqueCaptureAddressInfo*)(pInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkGetDeviceMemoryOpaqueCaptureAddress 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetDeviceMemoryOpaqueCaptureAddress 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)device, (unsigned long long)pInfo);
                 }
                 uint64_t vkGetDeviceMemoryOpaqueCaptureAddress_uint64_t_return = (uint64_t)0;
@@ -11305,9 +11280,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkGetPhysicalDeviceToolProperties 0x%llx 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPhysicalDeviceToolProperties 0x%llx 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)physicalDevice,
                         (unsigned long long)pToolCount, (unsigned long long)pToolProperties);
                 }
@@ -11410,9 +11384,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkCreatePrivateDataSlot 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCreatePrivateDataSlot 0x%llx 0x%llx 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
                         (unsigned long long)pAllocator, (unsigned long long)pPrivateDataSlot);
                 }
@@ -11488,10 +11461,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkDestroyPrivateDataSlot 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device,
-                            (unsigned long long)privateDataSlot, (unsigned long long)pAllocator);
+                    GFXSTREAM_INFO("stream %p: call vkDestroyPrivateDataSlot 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)privateDataSlot,
+                                   (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkDestroyPrivateDataSlot(unboxed_device, privateDataSlot, pAllocator);
@@ -11536,9 +11509,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint64_t*)&data, *readStreamPtrPtr, sizeof(uint64_t));
                 *readStreamPtrPtr += sizeof(uint64_t);
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkSetPrivateData 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkSetPrivateData 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)device, (unsigned long long)objectType,
                         (unsigned long long)objectHandle, (unsigned long long)privateDataSlot,
                         (unsigned long long)data);
@@ -11596,9 +11568,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint64_t*)pData, *readStreamPtrPtr, sizeof(uint64_t));
                 *readStreamPtrPtr += sizeof(uint64_t);
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkGetPrivateData 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPrivateData 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)device, (unsigned long long)objectType,
                         (unsigned long long)objectHandle, (unsigned long long)privateDataSlot,
                         (unsigned long long)pData);
@@ -11647,9 +11618,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                       (VkDependencyInfo*)(pDependencyInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdSetEvent2 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer, (unsigned long long)event,
-                            (unsigned long long)pDependencyInfo);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetEvent2 0x%llx 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer, (unsigned long long)event,
+                                   (unsigned long long)pDependencyInfo);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetEvent2(unboxed_commandBuffer, event, pDependencyInfo);
@@ -11688,9 +11659,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                        sizeof(VkPipelineStageFlags2));
                 *readStreamPtrPtr += sizeof(VkPipelineStageFlags2);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdResetEvent2 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer, (unsigned long long)event,
-                            (unsigned long long)stageMask);
+                    GFXSTREAM_INFO("stream %p: call vkCmdResetEvent2 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)event, (unsigned long long)stageMask);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdResetEvent2(unboxed_commandBuffer, event, stageMask);
@@ -11749,10 +11720,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(
-                        stderr, "stream %p: call vkCmdWaitEvents2 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)eventCount,
-                        (unsigned long long)pEvents, (unsigned long long)pDependencyInfos);
+                    GFXSTREAM_INFO("stream %p: call vkCmdWaitEvents2 0x%llx 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)eventCount, (unsigned long long)pEvents,
+                                   (unsigned long long)pDependencyInfos);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdWaitEvents2(unboxed_commandBuffer, eventCount, pEvents,
@@ -11790,9 +11761,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                       (VkDependencyInfo*)(pDependencyInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdPipelineBarrier2 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)pDependencyInfo);
+                    GFXSTREAM_INFO("stream %p: call vkCmdPipelineBarrier2 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer,
+                                   (unsigned long long)pDependencyInfo);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkCmdPipelineBarrier2(&m_pool, snapshotApiCallInfo, commandBuffer,
@@ -11836,10 +11807,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&query, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdWriteTimestamp2 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer, (unsigned long long)stage,
-                            (unsigned long long)queryPool, (unsigned long long)query);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdWriteTimestamp2 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)stage,
+                        (unsigned long long)queryPool, (unsigned long long)query);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdWriteTimestamp2(unboxed_commandBuffer, stage, queryPool, query);
@@ -11886,9 +11857,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkQueueSubmit2 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)queue, (unsigned long long)submitCount,
-                            (unsigned long long)pSubmits, (unsigned long long)fence);
+                    GFXSTREAM_INFO("stream %p: call vkQueueSubmit2 0x%llx 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)queue,
+                                   (unsigned long long)submitCount, (unsigned long long)pSubmits,
+                                   (unsigned long long)fence);
                 }
                 VkResult vkQueueSubmit2_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -11934,8 +11906,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                        (VkCopyBufferInfo2*)(pCopyBufferInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdCopyBuffer2 0x%llx 0x%llx \n", ioStream,
-                            (unsigned long long)commandBuffer, (unsigned long long)pCopyBufferInfo);
+                    GFXSTREAM_INFO("stream %p: call vkCmdCopyBuffer2 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer,
+                                   (unsigned long long)pCopyBufferInfo);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdCopyBuffer2(unboxed_commandBuffer, pCopyBufferInfo);
@@ -11971,8 +11944,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     transform_tohost_VkCopyImageInfo2(m_state, (VkCopyImageInfo2*)(pCopyImageInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdCopyImage2 0x%llx 0x%llx \n", ioStream,
-                            (unsigned long long)commandBuffer, (unsigned long long)pCopyImageInfo);
+                    GFXSTREAM_INFO("stream %p: call vkCmdCopyImage2 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer,
+                                   (unsigned long long)pCopyImageInfo);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkCmdCopyImage2(&m_pool, snapshotApiCallInfo, commandBuffer,
@@ -12010,9 +11984,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkCopyBufferToImageInfo2*)(pCopyBufferToImageInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdCopyBufferToImage2 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)pCopyBufferToImageInfo);
+                    GFXSTREAM_INFO("stream %p: call vkCmdCopyBufferToImage2 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)pCopyBufferToImageInfo);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkCmdCopyBufferToImage2(&m_pool, snapshotApiCallInfo, commandBuffer,
@@ -12051,9 +12025,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkCopyImageToBufferInfo2*)(pCopyImageToBufferInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdCopyImageToBuffer2 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)pCopyImageToBufferInfo);
+                    GFXSTREAM_INFO("stream %p: call vkCmdCopyImageToBuffer2 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)pCopyImageToBufferInfo);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkCmdCopyImageToBuffer2(&m_pool, snapshotApiCallInfo, commandBuffer,
@@ -12092,8 +12066,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     transform_tohost_VkBlitImageInfo2(m_state, (VkBlitImageInfo2*)(pBlitImageInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdBlitImage2 0x%llx 0x%llx \n", ioStream,
-                            (unsigned long long)commandBuffer, (unsigned long long)pBlitImageInfo);
+                    GFXSTREAM_INFO("stream %p: call vkCmdBlitImage2 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer,
+                                   (unsigned long long)pBlitImageInfo);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdBlitImage2(unboxed_commandBuffer, pBlitImageInfo);
@@ -12131,9 +12106,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                          (VkResolveImageInfo2*)(pResolveImageInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdResolveImage2 0x%llx 0x%llx \n", ioStream,
-                            (unsigned long long)commandBuffer,
-                            (unsigned long long)pResolveImageInfo);
+                    GFXSTREAM_INFO("stream %p: call vkCmdResolveImage2 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer,
+                                   (unsigned long long)pResolveImageInfo);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdResolveImage2(unboxed_commandBuffer, pResolveImageInfo);
@@ -12171,9 +12146,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     transform_tohost_VkRenderingInfo(m_state, (VkRenderingInfo*)(pRenderingInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdBeginRendering 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)pRenderingInfo);
+                    GFXSTREAM_INFO("stream %p: call vkCmdBeginRendering 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer,
+                                   (unsigned long long)pRenderingInfo);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdBeginRendering(unboxed_commandBuffer, pRenderingInfo);
@@ -12203,8 +12178,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto vk = dispatch_VkCommandBuffer(commandBuffer);
                 // End manual dispatchable handle unboxing for commandBuffer;
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdEndRendering 0x%llx \n", ioStream,
-                            (unsigned long long)commandBuffer);
+                    GFXSTREAM_INFO("stream %p: call vkCmdEndRendering 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdEndRendering(unboxed_commandBuffer);
@@ -12236,8 +12211,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkCullModeFlags*)&cullMode, *readStreamPtrPtr, sizeof(VkCullModeFlags));
                 *readStreamPtrPtr += sizeof(VkCullModeFlags);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdSetCullMode 0x%llx 0x%llx \n", ioStream,
-                            (unsigned long long)commandBuffer, (unsigned long long)cullMode);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetCullMode 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer, (unsigned long long)cullMode);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetCullMode(unboxed_commandBuffer, cullMode);
@@ -12269,8 +12244,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkFrontFace*)&frontFace, *readStreamPtrPtr, sizeof(VkFrontFace));
                 *readStreamPtrPtr += sizeof(VkFrontFace);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdSetFrontFace 0x%llx 0x%llx \n", ioStream,
-                            (unsigned long long)commandBuffer, (unsigned long long)frontFace);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetFrontFace 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer,
+                                   (unsigned long long)frontFace);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetFrontFace(unboxed_commandBuffer, frontFace);
@@ -12303,9 +12279,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                        sizeof(VkPrimitiveTopology));
                 *readStreamPtrPtr += sizeof(VkPrimitiveTopology);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdSetPrimitiveTopology 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)primitiveTopology);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetPrimitiveTopology 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)primitiveTopology);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetPrimitiveTopology(unboxed_commandBuffer, primitiveTopology);
@@ -12350,10 +12326,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdSetViewportWithCount 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)viewportCount, (unsigned long long)pViewports);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdSetViewportWithCount 0x%llx 0x%llx 0x%llx ", ioStream,
+                        (unsigned long long)commandBuffer, (unsigned long long)viewportCount,
+                        (unsigned long long)pViewports);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetViewportWithCount(unboxed_commandBuffer, viewportCount, pViewports);
@@ -12397,10 +12373,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdSetScissorWithCount 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)scissorCount, (unsigned long long)pScissors);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetScissorWithCount 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)scissorCount, (unsigned long long)pScissors);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetScissorWithCount(unboxed_commandBuffer, scissorCount, pScissors);
@@ -12486,13 +12461,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdBindVertexBuffers2 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)firstBinding, (unsigned long long)bindingCount,
-                            (unsigned long long)pBuffers, (unsigned long long)pOffsets,
-                            (unsigned long long)pSizes, (unsigned long long)pStrides);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdBindVertexBuffers2 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)firstBinding, (unsigned long long)bindingCount,
+                        (unsigned long long)pBuffers, (unsigned long long)pOffsets,
+                        (unsigned long long)pSizes, (unsigned long long)pStrides);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdBindVertexBuffers2(unboxed_commandBuffer, firstBinding, bindingCount,
@@ -12526,9 +12501,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkBool32*)&depthTestEnable, *readStreamPtrPtr, sizeof(VkBool32));
                 *readStreamPtrPtr += sizeof(VkBool32);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdSetDepthTestEnable 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)depthTestEnable);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetDepthTestEnable 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)depthTestEnable);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetDepthTestEnable(unboxed_commandBuffer, depthTestEnable);
@@ -12561,9 +12536,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkBool32*)&depthWriteEnable, *readStreamPtrPtr, sizeof(VkBool32));
                 *readStreamPtrPtr += sizeof(VkBool32);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdSetDepthWriteEnable 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)depthWriteEnable);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetDepthWriteEnable 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)depthWriteEnable);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetDepthWriteEnable(unboxed_commandBuffer, depthWriteEnable);
@@ -12596,9 +12571,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkCompareOp*)&depthCompareOp, *readStreamPtrPtr, sizeof(VkCompareOp));
                 *readStreamPtrPtr += sizeof(VkCompareOp);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdSetDepthCompareOp 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)depthCompareOp);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetDepthCompareOp 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)depthCompareOp);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetDepthCompareOp(unboxed_commandBuffer, depthCompareOp);
@@ -12631,10 +12606,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkBool32*)&depthBoundsTestEnable, *readStreamPtrPtr, sizeof(VkBool32));
                 *readStreamPtrPtr += sizeof(VkBool32);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdSetDepthBoundsTestEnable 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)depthBoundsTestEnable);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetDepthBoundsTestEnable 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)depthBoundsTestEnable);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetDepthBoundsTestEnable(unboxed_commandBuffer, depthBoundsTestEnable);
@@ -12667,9 +12641,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkBool32*)&stencilTestEnable, *readStreamPtrPtr, sizeof(VkBool32));
                 *readStreamPtrPtr += sizeof(VkBool32);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdSetStencilTestEnable 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)stencilTestEnable);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetStencilTestEnable 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)stencilTestEnable);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetStencilTestEnable(unboxed_commandBuffer, stencilTestEnable);
@@ -12715,13 +12689,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkCompareOp*)&compareOp, *readStreamPtrPtr, sizeof(VkCompareOp));
                 *readStreamPtrPtr += sizeof(VkCompareOp);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdSetStencilOp 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)faceMask, (unsigned long long)failOp,
-                            (unsigned long long)passOp, (unsigned long long)depthFailOp,
-                            (unsigned long long)compareOp);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdSetStencilOp 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)faceMask,
+                        (unsigned long long)failOp, (unsigned long long)passOp,
+                        (unsigned long long)depthFailOp, (unsigned long long)compareOp);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetStencilOp(unboxed_commandBuffer, faceMask, failOp, passOp,
@@ -12755,10 +12728,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkBool32*)&rasterizerDiscardEnable, *readStreamPtrPtr, sizeof(VkBool32));
                 *readStreamPtrPtr += sizeof(VkBool32);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdSetRasterizerDiscardEnable 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)rasterizerDiscardEnable);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetRasterizerDiscardEnable 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)rasterizerDiscardEnable);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetRasterizerDiscardEnable(unboxed_commandBuffer,
@@ -12792,9 +12764,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkBool32*)&depthBiasEnable, *readStreamPtrPtr, sizeof(VkBool32));
                 *readStreamPtrPtr += sizeof(VkBool32);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdSetDepthBiasEnable 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)depthBiasEnable);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetDepthBiasEnable 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)depthBiasEnable);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetDepthBiasEnable(unboxed_commandBuffer, depthBiasEnable);
@@ -12827,10 +12799,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkBool32*)&primitiveRestartEnable, *readStreamPtrPtr, sizeof(VkBool32));
                 *readStreamPtrPtr += sizeof(VkBool32);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdSetPrimitiveRestartEnable 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)primitiveRestartEnable);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetPrimitiveRestartEnable 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)primitiveRestartEnable);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetPrimitiveRestartEnable(unboxed_commandBuffer,
@@ -12880,11 +12851,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkMemoryRequirements2*)(pMemoryRequirements));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetDeviceBufferMemoryRequirements 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pInfo,
-                            (unsigned long long)pMemoryRequirements);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetDeviceBufferMemoryRequirements 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pInfo,
+                        (unsigned long long)pMemoryRequirements);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkGetDeviceBufferMemoryRequirements(unboxed_device, pInfo,
@@ -12941,11 +12911,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkMemoryRequirements2*)(pMemoryRequirements));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetDeviceImageMemoryRequirements 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pInfo,
-                            (unsigned long long)pMemoryRequirements);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetDeviceImageMemoryRequirements 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pInfo,
+                        (unsigned long long)pMemoryRequirements);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkGetDeviceImageMemoryRequirements(unboxed_device, pInfo,
@@ -13033,12 +13002,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetDeviceImageSparseMemoryRequirements 0x%llx "
-                            "0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pInfo,
-                            (unsigned long long)pSparseMemoryRequirementCount,
-                            (unsigned long long)pSparseMemoryRequirements);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetDeviceImageSparseMemoryRequirements 0x%llx 0x%llx "
+                        "0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pInfo,
+                        (unsigned long long)pSparseMemoryRequirementCount,
+                        (unsigned long long)pSparseMemoryRequirements);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkGetDeviceImageSparseMemoryRequirements(unboxed_device, pInfo,
@@ -13134,10 +13103,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCreateSwapchainKHR 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pAllocator, (unsigned long long)pSwapchain);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCreateSwapchainKHR 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
+                        (unsigned long long)pAllocator, (unsigned long long)pSwapchain);
                 }
                 VkResult vkCreateSwapchainKHR_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -13210,9 +13179,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkDestroySwapchainKHR 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)swapchain,
-                            (unsigned long long)pAllocator);
+                    GFXSTREAM_INFO("stream %p: call vkDestroySwapchainKHR 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)swapchain, (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkDestroySwapchainKHR(unboxed_device, swapchain, pAllocator);
@@ -13283,9 +13252,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkGetSwapchainImagesKHR 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetSwapchainImagesKHR 0x%llx 0x%llx 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)device, (unsigned long long)swapchain,
                         (unsigned long long)pSwapchainImageCount,
                         (unsigned long long)pSwapchainImages);
@@ -13370,12 +13338,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)pImageIndex, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkAcquireNextImageKHR 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)swapchain,
-                            (unsigned long long)timeout, (unsigned long long)semaphore,
-                            (unsigned long long)fence, (unsigned long long)pImageIndex);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkAcquireNextImageKHR 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)swapchain,
+                        (unsigned long long)timeout, (unsigned long long)semaphore,
+                        (unsigned long long)fence, (unsigned long long)pImageIndex);
                 }
                 VkResult vkAcquireNextImageKHR_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -13420,8 +13388,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     transform_tohost_VkPresentInfoKHR(m_state, (VkPresentInfoKHR*)(pPresentInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkQueuePresentKHR 0x%llx 0x%llx \n", ioStream,
-                            (unsigned long long)queue, (unsigned long long)pPresentInfo);
+                    GFXSTREAM_INFO("stream %p: call vkQueuePresentKHR 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)queue, (unsigned long long)pPresentInfo);
                 }
                 VkResult vkQueuePresentKHR_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -13471,9 +13439,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (VkDeviceGroupPresentCapabilitiesKHR*)(pDeviceGroupPresentCapabilities));
                 }
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkGetDeviceGroupPresentCapabilitiesKHR 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetDeviceGroupPresentCapabilitiesKHR 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)device,
                         (unsigned long long)pDeviceGroupPresentCapabilities);
                 }
@@ -13544,11 +13511,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     *readStreamPtrPtr += sizeof(VkDeviceGroupPresentModeFlagsKHR);
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetDeviceGroupSurfacePresentModesKHR 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)surface,
-                            (unsigned long long)pModes);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetDeviceGroupSurfacePresentModesKHR 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)surface,
+                        (unsigned long long)pModes);
                 }
                 VkResult vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return =
                     VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -13636,12 +13603,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPhysicalDevicePresentRectanglesKHR 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)surface, (unsigned long long)pRectCount,
-                            (unsigned long long)pRects);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPhysicalDevicePresentRectanglesKHR 0x%llx 0x%llx "
+                        "0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)physicalDevice, (unsigned long long)surface,
+                        (unsigned long long)pRectCount, (unsigned long long)pRects);
                 }
                 VkResult vkGetPhysicalDevicePresentRectanglesKHR_VkResult_return =
                     VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -13722,10 +13688,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkAcquireNextImageInfoKHR*)(pAcquireInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkAcquireNextImage2KHR 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pAcquireInfo,
-                            (unsigned long long)pImageIndex);
+                    GFXSTREAM_INFO("stream %p: call vkAcquireNextImage2KHR 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)pAcquireInfo,
+                                   (unsigned long long)pImageIndex);
                 }
                 VkResult vkAcquireNextImage2KHR_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -13774,9 +13740,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     transform_tohost_VkRenderingInfo(m_state, (VkRenderingInfo*)(pRenderingInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdBeginRenderingKHR 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)pRenderingInfo);
+                    GFXSTREAM_INFO("stream %p: call vkCmdBeginRenderingKHR 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)pRenderingInfo);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdBeginRenderingKHR(unboxed_commandBuffer, pRenderingInfo);
@@ -13806,8 +13772,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto vk = dispatch_VkCommandBuffer(commandBuffer);
                 // End manual dispatchable handle unboxing for commandBuffer;
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdEndRenderingKHR 0x%llx \n", ioStream,
-                            (unsigned long long)commandBuffer);
+                    GFXSTREAM_INFO("stream %p: call vkCmdEndRenderingKHR 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdEndRenderingKHR(unboxed_commandBuffer);
@@ -13847,10 +13813,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkPhysicalDeviceFeatures2*)(pFeatures));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPhysicalDeviceFeatures2KHR 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)pFeatures);
+                    GFXSTREAM_INFO("stream %p: call vkGetPhysicalDeviceFeatures2KHR 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)physicalDevice,
+                                   (unsigned long long)pFeatures);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceFeatures2KHR(&m_pool, snapshotApiCallInfo,
@@ -13896,10 +13861,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkPhysicalDeviceProperties2*)(pProperties));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPhysicalDeviceProperties2KHR 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)pProperties);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPhysicalDeviceProperties2KHR 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)physicalDevice,
+                        (unsigned long long)pProperties);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceProperties2KHR(&m_pool, snapshotApiCallInfo,
@@ -13949,11 +13914,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                          (VkFormatProperties2*)(pFormatProperties));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPhysicalDeviceFormatProperties2KHR 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)format, (unsigned long long)pFormatProperties);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPhysicalDeviceFormatProperties2KHR 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)physicalDevice, (unsigned long long)format,
+                        (unsigned long long)pFormatProperties);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceFormatProperties2KHR(
@@ -14011,12 +13976,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkImageFormatProperties2*)(pImageFormatProperties));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPhysicalDeviceImageFormatProperties2KHR 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)pImageFormatInfo,
-                            (unsigned long long)pImageFormatProperties);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPhysicalDeviceImageFormatProperties2KHR 0x%llx "
+                        "0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)physicalDevice,
+                        (unsigned long long)pImageFormatInfo,
+                        (unsigned long long)pImageFormatProperties);
                 }
                 VkResult vkGetPhysicalDeviceImageFormatProperties2KHR_VkResult_return =
                     VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -14106,12 +14071,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPhysicalDeviceQueueFamilyProperties2KHR 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)pQueueFamilyPropertyCount,
-                            (unsigned long long)pQueueFamilyProperties);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPhysicalDeviceQueueFamilyProperties2KHR 0x%llx "
+                        "0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)physicalDevice,
+                        (unsigned long long)pQueueFamilyPropertyCount,
+                        (unsigned long long)pQueueFamilyProperties);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkGetPhysicalDeviceQueueFamilyProperties2KHR(
@@ -14179,9 +14144,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
                 }
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkGetPhysicalDeviceMemoryProperties2KHR 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPhysicalDeviceMemoryProperties2KHR 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)physicalDevice,
                         (unsigned long long)pMemoryProperties);
                 }
@@ -14268,12 +14232,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPhysicalDeviceSparseImageFormatProperties2KHR "
-                            "0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)pFormatInfo, (unsigned long long)pPropertyCount,
-                            (unsigned long long)pProperties);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPhysicalDeviceSparseImageFormatProperties2KHR 0x%llx "
+                        "0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)physicalDevice,
+                        (unsigned long long)pFormatInfo, (unsigned long long)pPropertyCount,
+                        (unsigned long long)pProperties);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
@@ -14343,9 +14307,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                        sizeof(VkCommandPoolTrimFlags));
                 *readStreamPtrPtr += sizeof(VkCommandPoolTrimFlags);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkTrimCommandPoolKHR 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)commandPool,
-                            (unsigned long long)flags);
+                    GFXSTREAM_INFO("stream %p: call vkTrimCommandPoolKHR 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)commandPool, (unsigned long long)flags);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkTrimCommandPoolKHR(unboxed_device, commandPool, flags);
@@ -14403,12 +14367,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkExternalBufferProperties*)(pExternalBufferProperties));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPhysicalDeviceExternalBufferPropertiesKHR 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)pExternalBufferInfo,
-                            (unsigned long long)pExternalBufferProperties);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPhysicalDeviceExternalBufferPropertiesKHR 0x%llx "
+                        "0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)physicalDevice,
+                        (unsigned long long)pExternalBufferInfo,
+                        (unsigned long long)pExternalBufferProperties);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkGetPhysicalDeviceExternalBufferPropertiesKHR(
@@ -14474,12 +14438,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPhysicalDeviceExternalSemaphorePropertiesKHR "
-                            "0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)pExternalSemaphoreInfo,
-                            (unsigned long long)pExternalSemaphoreProperties);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPhysicalDeviceExternalSemaphorePropertiesKHR 0x%llx "
+                        "0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)physicalDevice,
+                        (unsigned long long)pExternalSemaphoreInfo,
+                        (unsigned long long)pExternalSemaphoreProperties);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
@@ -14528,9 +14492,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkImportSemaphoreFdInfoKHR*)(pImportSemaphoreFdInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkImportSemaphoreFdKHR 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device,
-                            (unsigned long long)pImportSemaphoreFdInfo);
+                    GFXSTREAM_INFO("stream %p: call vkImportSemaphoreFdKHR 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)pImportSemaphoreFdInfo);
                 }
                 VkResult vkImportSemaphoreFdKHR_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -14580,9 +14544,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkSemaphoreGetFdInfoKHR*)(pGetFdInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkGetSemaphoreFdKHR 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pGetFdInfo,
-                            (unsigned long long)pFd);
+                    GFXSTREAM_INFO("stream %p: call vkGetSemaphoreFdKHR 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)pGetFdInfo, (unsigned long long)pFd);
                 }
                 VkResult vkGetSemaphoreFdKHR_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -14655,12 +14619,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCreateDescriptorUpdateTemplateKHR 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pAllocator,
-                            (unsigned long long)pDescriptorUpdateTemplate);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCreateDescriptorUpdateTemplateKHR 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
+                        (unsigned long long)pAllocator,
+                        (unsigned long long)pDescriptorUpdateTemplate);
                 }
                 VkResult vkCreateDescriptorUpdateTemplateKHR_VkResult_return =
                     VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -14739,12 +14703,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkDestroyDescriptorUpdateTemplateKHR 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)device,
-                            (unsigned long long)descriptorUpdateTemplate,
-                            (unsigned long long)pAllocator);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkDestroyDescriptorUpdateTemplateKHR 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)device,
+                        (unsigned long long)descriptorUpdateTemplate,
+                        (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkDestroyDescriptorUpdateTemplateKHR(
@@ -14798,12 +14762,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     *readStreamPtrPtr += sizeof(const uint8_t);
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkUpdateDescriptorSetWithTemplateKHR 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)descriptorSet,
-                            (unsigned long long)descriptorUpdateTemplate,
-                            (unsigned long long)pData);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkUpdateDescriptorSetWithTemplateKHR 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)descriptorSet,
+                        (unsigned long long)descriptorUpdateTemplate, (unsigned long long)pData);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkUpdateDescriptorSetWithTemplateKHR(unboxed_device, descriptorSet,
@@ -14866,10 +14829,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCreateRenderPass2KHR 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pAllocator, (unsigned long long)pRenderPass);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCreateRenderPass2KHR 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
+                        (unsigned long long)pAllocator, (unsigned long long)pRenderPass);
                 }
                 VkResult vkCreateRenderPass2KHR_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -14933,11 +14896,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                         (VkSubpassBeginInfo*)(pSubpassBeginInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdBeginRenderPass2KHR 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)pRenderPassBegin,
-                            (unsigned long long)pSubpassBeginInfo);
+                    GFXSTREAM_INFO("stream %p: call vkCmdBeginRenderPass2KHR 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)pRenderPassBegin,
+                                   (unsigned long long)pSubpassBeginInfo);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkCmdBeginRenderPass2KHR(&m_pool, snapshotApiCallInfo,
@@ -14987,10 +14949,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                       (VkSubpassEndInfo*)(pSubpassEndInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdNextSubpass2KHR 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)pSubpassBeginInfo,
-                            (unsigned long long)pSubpassEndInfo);
+                    GFXSTREAM_INFO("stream %p: call vkCmdNextSubpass2KHR 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)pSubpassBeginInfo,
+                                   (unsigned long long)pSubpassEndInfo);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdNextSubpass2KHR(unboxed_commandBuffer, pSubpassBeginInfo,
@@ -15030,9 +14992,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                       (VkSubpassEndInfo*)(pSubpassEndInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdEndRenderPass2KHR 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)pSubpassEndInfo);
+                    GFXSTREAM_INFO("stream %p: call vkCmdEndRenderPass2KHR 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)pSubpassEndInfo);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdEndRenderPass2KHR(unboxed_commandBuffer, pSubpassEndInfo);
@@ -15086,12 +15048,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkExternalFenceProperties*)(pExternalFenceProperties));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPhysicalDeviceExternalFencePropertiesKHR 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)pExternalFenceInfo,
-                            (unsigned long long)pExternalFenceProperties);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPhysicalDeviceExternalFencePropertiesKHR 0x%llx "
+                        "0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)physicalDevice,
+                        (unsigned long long)pExternalFenceInfo,
+                        (unsigned long long)pExternalFenceProperties);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkGetPhysicalDeviceExternalFencePropertiesKHR(
@@ -15141,8 +15103,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkImportFenceFdInfoKHR*)(pImportFenceFdInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkImportFenceFdKHR 0x%llx 0x%llx \n", ioStream,
-                            (unsigned long long)device, (unsigned long long)pImportFenceFdInfo);
+                    GFXSTREAM_INFO("stream %p: call vkImportFenceFdKHR 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)device,
+                                   (unsigned long long)pImportFenceFdInfo);
                 }
                 VkResult vkImportFenceFdKHR_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -15193,9 +15156,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                          (VkFenceGetFdInfoKHR*)(pGetFdInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkGetFenceFdKHR 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pGetFdInfo,
-                            (unsigned long long)pFd);
+                    GFXSTREAM_INFO("stream %p: call vkGetFenceFdKHR 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)pGetFdInfo, (unsigned long long)pFd);
                 }
                 VkResult vkGetFenceFdKHR_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -15252,9 +15215,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkMemoryRequirements2*)(pMemoryRequirements));
                 }
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkGetImageMemoryRequirements2KHR 0x%llx 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetImageMemoryRequirements2KHR 0x%llx 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)device, (unsigned long long)pInfo,
                         (unsigned long long)pMemoryRequirements);
                 }
@@ -15311,9 +15273,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkMemoryRequirements2*)(pMemoryRequirements));
                 }
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkGetBufferMemoryRequirements2KHR 0x%llx 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetBufferMemoryRequirements2KHR 0x%llx 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)device, (unsigned long long)pInfo,
                         (unsigned long long)pMemoryRequirements);
                 }
@@ -15404,12 +15365,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetImageSparseMemoryRequirements2KHR 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pInfo,
-                            (unsigned long long)pSparseMemoryRequirementCount,
-                            (unsigned long long)pSparseMemoryRequirements);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetImageSparseMemoryRequirements2KHR 0x%llx 0x%llx "
+                        "0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pInfo,
+                        (unsigned long long)pSparseMemoryRequirementCount,
+                        (unsigned long long)pSparseMemoryRequirements);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkGetImageSparseMemoryRequirements2KHR(unboxed_device, pInfo,
@@ -15505,11 +15466,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCreateSamplerYcbcrConversionKHR 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pAllocator, (unsigned long long)pYcbcrConversion);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCreateSamplerYcbcrConversionKHR 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
+                        (unsigned long long)pAllocator, (unsigned long long)pYcbcrConversion);
                 }
                 VkResult vkCreateSamplerYcbcrConversionKHR_VkResult_return =
                     VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -15586,11 +15547,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkDestroySamplerYcbcrConversionKHR 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)device,
-                            (unsigned long long)ycbcrConversion, (unsigned long long)pAllocator);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkDestroySamplerYcbcrConversionKHR 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)ycbcrConversion,
+                        (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkDestroySamplerYcbcrConversionKHR(
@@ -15638,10 +15598,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkBindBufferMemory2KHR 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)bindInfoCount,
-                            (unsigned long long)pBindInfos);
+                    GFXSTREAM_INFO("stream %p: call vkBindBufferMemory2KHR 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)bindInfoCount,
+                                   (unsigned long long)pBindInfos);
                 }
                 VkResult vkBindBufferMemory2KHR_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -15693,9 +15653,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkBindImageMemory2KHR 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)bindInfoCount,
-                            (unsigned long long)pBindInfos);
+                    GFXSTREAM_INFO("stream %p: call vkBindImageMemory2KHR 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)bindInfoCount,
+                                   (unsigned long long)pBindInfos);
                 }
                 VkResult vkBindImageMemory2KHR_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -15755,11 +15716,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkDescriptorSetLayoutSupport*)(pSupport));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetDescriptorSetLayoutSupportKHR 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pSupport);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetDescriptorSetLayoutSupportKHR 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
+                        (unsigned long long)pSupport);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkGetDescriptorSetLayoutSupportKHR(unboxed_device, pCreateInfo, pSupport);
@@ -15806,8 +15766,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                                (VkBufferDeviceAddressInfo*)(pInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkGetBufferDeviceAddressKHR 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pInfo);
+                    GFXSTREAM_INFO("stream %p: call vkGetBufferDeviceAddressKHR 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device, (unsigned long long)pInfo);
                 }
                 VkDeviceAddress vkGetBufferDeviceAddressKHR_VkDeviceAddress_return =
                     (VkDeviceAddress)0;
@@ -15851,9 +15811,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                                (VkBufferDeviceAddressInfo*)(pInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetBufferOpaqueCaptureAddressKHR 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pInfo);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetBufferOpaqueCaptureAddressKHR 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pInfo);
                 }
                 uint64_t vkGetBufferOpaqueCaptureAddressKHR_uint64_t_return = (uint64_t)0;
                 if (CC_LIKELY(vk)) {
@@ -15897,9 +15857,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkDeviceMemoryOpaqueCaptureAddressInfo*)(pInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkGetDeviceMemoryOpaqueCaptureAddressKHR 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetDeviceMemoryOpaqueCaptureAddressKHR 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)device, (unsigned long long)pInfo);
                 }
                 uint64_t vkGetDeviceMemoryOpaqueCaptureAddressKHR_uint64_t_return = (uint64_t)0;
@@ -15983,11 +15942,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPipelineExecutablePropertiesKHR 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pPipelineInfo,
-                            (unsigned long long)pExecutableCount, (unsigned long long)pProperties);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPipelineExecutablePropertiesKHR 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pPipelineInfo,
+                        (unsigned long long)pExecutableCount, (unsigned long long)pProperties);
                 }
                 VkResult vkGetPipelineExecutablePropertiesKHR_VkResult_return =
                     VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -16101,12 +16060,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPipelineExecutableStatisticsKHR 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device,
-                            (unsigned long long)pExecutableInfo,
-                            (unsigned long long)pStatisticCount, (unsigned long long)pStatistics);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPipelineExecutableStatisticsKHR 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pExecutableInfo,
+                        (unsigned long long)pStatisticCount, (unsigned long long)pStatistics);
                 }
                 VkResult vkGetPipelineExecutableStatisticsKHR_VkResult_return =
                     VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -16227,13 +16185,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPipelineExecutableInternalRepresentationsKHR "
-                            "0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device,
-                            (unsigned long long)pExecutableInfo,
-                            (unsigned long long)pInternalRepresentationCount,
-                            (unsigned long long)pInternalRepresentations);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPipelineExecutableInternalRepresentationsKHR 0x%llx "
+                        "0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pExecutableInfo,
+                        (unsigned long long)pInternalRepresentationCount,
+                        (unsigned long long)pInternalRepresentations);
                 }
                 VkResult vkGetPipelineExecutableInternalRepresentationsKHR_VkResult_return =
                     VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -16323,9 +16280,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                       (VkDependencyInfo*)(pDependencyInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdSetEvent2KHR 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer, (unsigned long long)event,
-                            (unsigned long long)pDependencyInfo);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetEvent2KHR 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)event, (unsigned long long)pDependencyInfo);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetEvent2KHR(unboxed_commandBuffer, event, pDependencyInfo);
@@ -16364,9 +16321,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                        sizeof(VkPipelineStageFlags2));
                 *readStreamPtrPtr += sizeof(VkPipelineStageFlags2);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdResetEvent2KHR 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer, (unsigned long long)event,
-                            (unsigned long long)stageMask);
+                    GFXSTREAM_INFO("stream %p: call vkCmdResetEvent2KHR 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)event, (unsigned long long)stageMask);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdResetEvent2KHR(unboxed_commandBuffer, event, stageMask);
@@ -16425,11 +16382,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdWaitEvents2KHR 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)eventCount, (unsigned long long)pEvents,
-                            (unsigned long long)pDependencyInfos);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdWaitEvents2KHR 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)eventCount,
+                        (unsigned long long)pEvents, (unsigned long long)pDependencyInfos);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdWaitEvents2KHR(unboxed_commandBuffer, eventCount, pEvents,
@@ -16469,9 +16425,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                       (VkDependencyInfo*)(pDependencyInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdPipelineBarrier2KHR 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)pDependencyInfo);
+                    GFXSTREAM_INFO("stream %p: call vkCmdPipelineBarrier2KHR 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)pDependencyInfo);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdPipelineBarrier2KHR(unboxed_commandBuffer, pDependencyInfo);
@@ -16514,9 +16470,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&query, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkCmdWriteTimestamp2KHR 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdWriteTimestamp2KHR 0x%llx 0x%llx 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)commandBuffer, (unsigned long long)stage,
                         (unsigned long long)queryPool, (unsigned long long)query);
                 }
@@ -16568,10 +16523,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkQueueSubmit2KHR 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)queue, (unsigned long long)submitCount,
-                            (unsigned long long)pSubmits, (unsigned long long)fence);
+                    GFXSTREAM_INFO("stream %p: call vkQueueSubmit2KHR 0x%llx 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)queue,
+                                   (unsigned long long)submitCount, (unsigned long long)pSubmits,
+                                   (unsigned long long)fence);
                 }
                 VkResult vkQueueSubmit2KHR_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -16623,12 +16578,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&marker, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdWriteBufferMarker2AMD 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer, (unsigned long long)stage,
-                            (unsigned long long)dstBuffer, (unsigned long long)dstOffset,
-                            (unsigned long long)marker);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdWriteBufferMarker2AMD 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)stage,
+                        (unsigned long long)dstBuffer, (unsigned long long)dstOffset,
+                        (unsigned long long)marker);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdWriteBufferMarker2AMD(unboxed_commandBuffer, stage, dstBuffer,
@@ -16694,11 +16649,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetQueueCheckpointData2NV 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)queue,
-                            (unsigned long long)pCheckpointDataCount,
-                            (unsigned long long)pCheckpointData);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetQueueCheckpointData2NV 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)queue,
+                        (unsigned long long)pCheckpointDataCount,
+                        (unsigned long long)pCheckpointData);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkGetQueueCheckpointData2NV(unboxed_queue, pCheckpointDataCount,
@@ -16767,9 +16722,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                        (VkCopyBufferInfo2*)(pCopyBufferInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdCopyBuffer2KHR 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)pCopyBufferInfo);
+                    GFXSTREAM_INFO("stream %p: call vkCmdCopyBuffer2KHR 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer,
+                                   (unsigned long long)pCopyBufferInfo);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdCopyBuffer2KHR(unboxed_commandBuffer, pCopyBufferInfo);
@@ -16805,8 +16760,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     transform_tohost_VkCopyImageInfo2(m_state, (VkCopyImageInfo2*)(pCopyImageInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdCopyImage2KHR 0x%llx 0x%llx \n", ioStream,
-                            (unsigned long long)commandBuffer, (unsigned long long)pCopyImageInfo);
+                    GFXSTREAM_INFO("stream %p: call vkCmdCopyImage2KHR 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer,
+                                   (unsigned long long)pCopyImageInfo);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkCmdCopyImage2KHR(&m_pool, snapshotApiCallInfo, commandBuffer,
@@ -16845,9 +16801,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkCopyBufferToImageInfo2*)(pCopyBufferToImageInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdCopyBufferToImage2KHR 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)pCopyBufferToImageInfo);
+                    GFXSTREAM_INFO("stream %p: call vkCmdCopyBufferToImage2KHR 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)pCopyBufferToImageInfo);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkCmdCopyBufferToImage2KHR(&m_pool, snapshotApiCallInfo,
@@ -16887,9 +16843,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkCopyImageToBufferInfo2*)(pCopyImageToBufferInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdCopyImageToBuffer2KHR 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)pCopyImageToBufferInfo);
+                    GFXSTREAM_INFO("stream %p: call vkCmdCopyImageToBuffer2KHR 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)pCopyImageToBufferInfo);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkCmdCopyImageToBuffer2KHR(&m_pool, snapshotApiCallInfo,
@@ -16928,8 +16884,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     transform_tohost_VkBlitImageInfo2(m_state, (VkBlitImageInfo2*)(pBlitImageInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdBlitImage2KHR 0x%llx 0x%llx \n", ioStream,
-                            (unsigned long long)commandBuffer, (unsigned long long)pBlitImageInfo);
+                    GFXSTREAM_INFO("stream %p: call vkCmdBlitImage2KHR 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer,
+                                   (unsigned long long)pBlitImageInfo);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdBlitImage2KHR(unboxed_commandBuffer, pBlitImageInfo);
@@ -16968,9 +16925,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                          (VkResolveImageInfo2*)(pResolveImageInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdResolveImage2KHR 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)pResolveImageInfo);
+                    GFXSTREAM_INFO("stream %p: call vkCmdResolveImage2KHR 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer,
+                                   (unsigned long long)pResolveImageInfo);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdResolveImage2KHR(unboxed_commandBuffer, pResolveImageInfo);
@@ -17021,11 +16978,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkMemoryRequirements2*)(pMemoryRequirements));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetDeviceBufferMemoryRequirementsKHR 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pInfo,
-                            (unsigned long long)pMemoryRequirements);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetDeviceBufferMemoryRequirementsKHR 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pInfo,
+                        (unsigned long long)pMemoryRequirements);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkGetDeviceBufferMemoryRequirementsKHR(unboxed_device, pInfo,
@@ -17082,11 +17039,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkMemoryRequirements2*)(pMemoryRequirements));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetDeviceImageMemoryRequirementsKHR 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pInfo,
-                            (unsigned long long)pMemoryRequirements);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetDeviceImageMemoryRequirementsKHR 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pInfo,
+                        (unsigned long long)pMemoryRequirements);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkGetDeviceImageMemoryRequirementsKHR(unboxed_device, pInfo,
@@ -17174,12 +17131,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetDeviceImageSparseMemoryRequirementsKHR 0x%llx "
-                            "0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pInfo,
-                            (unsigned long long)pSparseMemoryRequirementCount,
-                            (unsigned long long)pSparseMemoryRequirements);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetDeviceImageSparseMemoryRequirementsKHR 0x%llx 0x%llx "
+                        "0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pInfo,
+                        (unsigned long long)pSparseMemoryRequirementCount,
+                        (unsigned long long)pSparseMemoryRequirements);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkGetDeviceImageSparseMemoryRequirementsKHR(unboxed_device, pInfo,
@@ -17257,12 +17214,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkIndexType*)&indexType, *readStreamPtrPtr, sizeof(VkIndexType));
                 *readStreamPtrPtr += sizeof(VkIndexType);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdBindIndexBuffer2KHR 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer, (unsigned long long)buffer,
-                            (unsigned long long)offset, (unsigned long long)size,
-                            (unsigned long long)indexType);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdBindIndexBuffer2KHR 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)buffer,
+                        (unsigned long long)offset, (unsigned long long)size,
+                        (unsigned long long)indexType);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdBindIndexBuffer2KHR(unboxed_commandBuffer, buffer, offset, size,
@@ -17311,9 +17268,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     transform_tohost_VkExtent2D(m_state, (VkExtent2D*)(pGranularity));
                 }
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkGetRenderingAreaGranularityKHR 0x%llx 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetRenderingAreaGranularityKHR 0x%llx 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)device,
                         (unsigned long long)pRenderingAreaInfo, (unsigned long long)pGranularity);
                 }
@@ -17371,11 +17327,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                              (VkSubresourceLayout2KHR*)(pLayout));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetDeviceImageSubresourceLayoutKHR 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pInfo,
-                            (unsigned long long)pLayout);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetDeviceImageSubresourceLayoutKHR 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pInfo,
+                        (unsigned long long)pLayout);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkGetDeviceImageSubresourceLayoutKHR(unboxed_device, pInfo, pLayout);
@@ -17435,11 +17391,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                              (VkSubresourceLayout2KHR*)(pLayout));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetImageSubresourceLayout2KHR 0x%llx 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)image,
-                            (unsigned long long)pSubresource, (unsigned long long)pLayout);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetImageSubresourceLayout2KHR 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)image,
+                        (unsigned long long)pSubresource, (unsigned long long)pLayout);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkGetImageSubresourceLayout2KHR(unboxed_device, image, pSubresource,
@@ -17485,11 +17441,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint16_t*)&lineStipplePattern, *readStreamPtrPtr, sizeof(uint16_t));
                 *readStreamPtrPtr += sizeof(uint16_t);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdSetLineStippleKHR 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)lineStippleFactor,
-                            (unsigned long long)lineStipplePattern);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetLineStippleKHR 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)lineStippleFactor,
+                                   (unsigned long long)lineStipplePattern);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetLineStippleKHR(unboxed_commandBuffer, lineStippleFactor,
@@ -17532,11 +17487,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((int*)grallocUsage, *readStreamPtrPtr, sizeof(int));
                 *readStreamPtrPtr += sizeof(int);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetSwapchainGrallocUsageANDROID 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)format,
-                            (unsigned long long)imageUsage, (unsigned long long)grallocUsage);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetSwapchainGrallocUsageANDROID 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)format,
+                        (unsigned long long)imageUsage, (unsigned long long)grallocUsage);
                 }
                 VkResult vkGetSwapchainGrallocUsageANDROID_VkResult_return =
                     VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -17595,12 +17550,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 1 * 8;
                 *(VkFence*)&fence = (VkFence)unbox_VkFence((VkFence)(*&cgen_var_3));
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkAcquireImageANDROID 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)image,
-                            (unsigned long long)nativeFenceFd, (unsigned long long)semaphore,
-                            (unsigned long long)fence);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkAcquireImageANDROID 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)image,
+                        (unsigned long long)nativeFenceFd, (unsigned long long)semaphore,
+                        (unsigned long long)fence);
                 }
                 VkResult vkAcquireImageANDROID_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -17671,13 +17625,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((int*)pNativeFenceFd, *readStreamPtrPtr, sizeof(int));
                 *readStreamPtrPtr += sizeof(int);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkQueueSignalReleaseImageANDROID 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)queue,
-                            (unsigned long long)waitSemaphoreCount,
-                            (unsigned long long)pWaitSemaphores, (unsigned long long)image,
-                            (unsigned long long)pNativeFenceFd);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkQueueSignalReleaseImageANDROID 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)queue, (unsigned long long)waitSemaphoreCount,
+                        (unsigned long long)pWaitSemaphores, (unsigned long long)image,
+                        (unsigned long long)pNativeFenceFd);
                 }
                 VkResult vkQueueSignalReleaseImageANDROID_VkResult_return =
                     VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -17741,13 +17694,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint64_t*)grallocProducerUsage, *readStreamPtrPtr, sizeof(uint64_t));
                 *readStreamPtrPtr += sizeof(uint64_t);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetSwapchainGrallocUsage2ANDROID 0x%llx 0x%llx "
-                            "0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)format,
-                            (unsigned long long)imageUsage, (unsigned long long)swapchainImageUsage,
-                            (unsigned long long)grallocConsumerUsage,
-                            (unsigned long long)grallocProducerUsage);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetSwapchainGrallocUsage2ANDROID 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)format,
+                        (unsigned long long)imageUsage, (unsigned long long)swapchainImageUsage,
+                        (unsigned long long)grallocConsumerUsage,
+                        (unsigned long long)grallocProducerUsage);
                 }
                 VkResult vkGetSwapchainGrallocUsage2ANDROID_VkResult_return =
                     VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -17829,11 +17782,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCreateDebugReportCallbackEXT 0x%llx 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)instance, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pAllocator, (unsigned long long)pCallback);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCreateDebugReportCallbackEXT 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)instance, (unsigned long long)pCreateInfo,
+                        (unsigned long long)pAllocator, (unsigned long long)pCallback);
                 }
                 VkResult vkCreateDebugReportCallbackEXT_VkResult_return =
                     VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -17911,9 +17864,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkDestroyDebugReportCallbackEXT 0x%llx 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkDestroyDebugReportCallbackEXT 0x%llx 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)instance, (unsigned long long)callback,
                         (unsigned long long)pAllocator);
                 }
@@ -17968,13 +17920,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                              readStreamPtrPtr);
                 vkReadStream->loadStringInPlaceWithStreamPtr((char**)&pMessage, readStreamPtrPtr);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkDebugReportMessageEXT 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)instance, (unsigned long long)flags,
-                            (unsigned long long)objectType, (unsigned long long)object,
-                            (unsigned long long)location, (unsigned long long)messageCode,
-                            (unsigned long long)pLayerPrefix, (unsigned long long)pMessage);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkDebugReportMessageEXT 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)instance, (unsigned long long)flags,
+                        (unsigned long long)objectType, (unsigned long long)object,
+                        (unsigned long long)location, (unsigned long long)messageCode,
+                        (unsigned long long)pLayerPrefix, (unsigned long long)pMessage);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkDebugReportMessageEXT(unboxed_instance, flags, objectType, object,
@@ -18043,13 +17995,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdBindTransformFeedbackBuffersEXT 0x%llx 0x%llx "
-                            "0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)firstBinding, (unsigned long long)bindingCount,
-                            (unsigned long long)pBuffers, (unsigned long long)pOffsets,
-                            (unsigned long long)pSizes);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdBindTransformFeedbackBuffersEXT 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)firstBinding, (unsigned long long)bindingCount,
+                        (unsigned long long)pBuffers, (unsigned long long)pOffsets,
+                        (unsigned long long)pSizes);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdBindTransformFeedbackBuffersEXT(unboxed_commandBuffer, firstBinding,
@@ -18119,14 +18071,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     *readStreamPtrPtr += ((counterBufferCount)) * sizeof(const VkDeviceSize);
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdBeginTransformFeedbackEXT 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)firstCounterBuffer,
-                            (unsigned long long)counterBufferCount,
-                            (unsigned long long)pCounterBuffers,
-                            (unsigned long long)pCounterBufferOffsets);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdBeginTransformFeedbackEXT 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)firstCounterBuffer,
+                        (unsigned long long)counterBufferCount, (unsigned long long)pCounterBuffers,
+                        (unsigned long long)pCounterBufferOffsets);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdBeginTransformFeedbackEXT(unboxed_commandBuffer, firstCounterBuffer,
@@ -18197,14 +18148,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     *readStreamPtrPtr += ((counterBufferCount)) * sizeof(const VkDeviceSize);
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdEndTransformFeedbackEXT 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)firstCounterBuffer,
-                            (unsigned long long)counterBufferCount,
-                            (unsigned long long)pCounterBuffers,
-                            (unsigned long long)pCounterBufferOffsets);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdEndTransformFeedbackEXT 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)firstCounterBuffer,
+                        (unsigned long long)counterBufferCount, (unsigned long long)pCounterBuffers,
+                        (unsigned long long)pCounterBufferOffsets);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdEndTransformFeedbackEXT(unboxed_commandBuffer, firstCounterBuffer,
@@ -18253,12 +18203,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&index, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdBeginQueryIndexedEXT 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)queryPool, (unsigned long long)query,
-                            (unsigned long long)flags, (unsigned long long)index);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdBeginQueryIndexedEXT 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)queryPool,
+                        (unsigned long long)query, (unsigned long long)flags,
+                        (unsigned long long)index);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdBeginQueryIndexedEXT(unboxed_commandBuffer, queryPool, query, flags,
@@ -18301,9 +18251,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&index, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkCmdEndQueryIndexedEXT 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdEndQueryIndexedEXT 0x%llx 0x%llx 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)commandBuffer, (unsigned long long)queryPool,
                         (unsigned long long)query, (unsigned long long)index);
                 }
@@ -18356,14 +18305,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&vertexStride, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdDrawIndirectByteCountEXT 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)instanceCount, (unsigned long long)firstInstance,
-                            (unsigned long long)counterBuffer,
-                            (unsigned long long)counterBufferOffset,
-                            (unsigned long long)counterOffset, (unsigned long long)vertexStride);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdDrawIndirectByteCountEXT 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)instanceCount, (unsigned long long)firstInstance,
+                        (unsigned long long)counterBuffer, (unsigned long long)counterBufferOffset,
+                        (unsigned long long)counterOffset, (unsigned long long)vertexStride);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdDrawIndirectByteCountEXT(
@@ -18407,8 +18355,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkDebugUtilsObjectNameInfoEXT*)(pNameInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkSetDebugUtilsObjectNameEXT 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pNameInfo);
+                    GFXSTREAM_INFO("stream %p: call vkSetDebugUtilsObjectNameEXT 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)pNameInfo);
                 }
                 VkResult vkSetDebugUtilsObjectNameEXT_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -18454,8 +18403,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkDebugUtilsObjectTagInfoEXT*)(pTagInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkSetDebugUtilsObjectTagEXT 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pTagInfo);
+                    GFXSTREAM_INFO("stream %p: call vkSetDebugUtilsObjectTagEXT 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)pTagInfo);
                 }
                 VkResult vkSetDebugUtilsObjectTagEXT_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -18501,9 +18451,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                           (VkDebugUtilsLabelEXT*)(pLabelInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkQueueBeginDebugUtilsLabelEXT 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)queue, (unsigned long long)pLabelInfo);
+                    GFXSTREAM_INFO("stream %p: call vkQueueBeginDebugUtilsLabelEXT 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)queue,
+                                   (unsigned long long)pLabelInfo);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkQueueBeginDebugUtilsLabelEXT(unboxed_queue, pLabelInfo);
@@ -18531,8 +18481,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto vk = dispatch_VkQueue(queue);
                 // End manual dispatchable handle unboxing for queue;
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkQueueEndDebugUtilsLabelEXT 0x%llx \n",
-                            ioStream, (unsigned long long)queue);
+                    GFXSTREAM_INFO("stream %p: call vkQueueEndDebugUtilsLabelEXT 0x%llx ", ioStream,
+                                   (unsigned long long)queue);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkQueueEndDebugUtilsLabelEXT(unboxed_queue);
@@ -18569,9 +18519,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                           (VkDebugUtilsLabelEXT*)(pLabelInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkQueueInsertDebugUtilsLabelEXT 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)queue, (unsigned long long)pLabelInfo);
+                    GFXSTREAM_INFO("stream %p: call vkQueueInsertDebugUtilsLabelEXT 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)queue,
+                                   (unsigned long long)pLabelInfo);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkQueueInsertDebugUtilsLabelEXT(unboxed_queue, pLabelInfo);
@@ -18609,9 +18559,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                           (VkDebugUtilsLabelEXT*)(pLabelInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdBeginDebugUtilsLabelEXT 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)pLabelInfo);
+                    GFXSTREAM_INFO("stream %p: call vkCmdBeginDebugUtilsLabelEXT 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)pLabelInfo);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdBeginDebugUtilsLabelEXT(unboxed_commandBuffer, pLabelInfo);
@@ -18640,8 +18590,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto vk = dispatch_VkCommandBuffer(commandBuffer);
                 // End manual dispatchable handle unboxing for commandBuffer;
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdEndDebugUtilsLabelEXT 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer);
+                    GFXSTREAM_INFO("stream %p: call vkCmdEndDebugUtilsLabelEXT 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdEndDebugUtilsLabelEXT(unboxed_commandBuffer);
@@ -18679,10 +18629,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                           (VkDebugUtilsLabelEXT*)(pLabelInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdInsertDebugUtilsLabelEXT 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)pLabelInfo);
+                    GFXSTREAM_INFO("stream %p: call vkCmdInsertDebugUtilsLabelEXT 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)pLabelInfo);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdInsertDebugUtilsLabelEXT(unboxed_commandBuffer, pLabelInfo);
@@ -18745,11 +18694,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCreateDebugUtilsMessengerEXT 0x%llx 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)instance, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pAllocator, (unsigned long long)pMessenger);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCreateDebugUtilsMessengerEXT 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)instance, (unsigned long long)pCreateInfo,
+                        (unsigned long long)pAllocator, (unsigned long long)pMessenger);
                 }
                 VkResult vkCreateDebugUtilsMessengerEXT_VkResult_return =
                     VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -18827,9 +18776,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkDestroyDebugUtilsMessengerEXT 0x%llx 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkDestroyDebugUtilsMessengerEXT 0x%llx 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)instance, (unsigned long long)messenger,
                         (unsigned long long)pAllocator);
                 }
@@ -18879,12 +18827,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkDebugUtilsMessengerCallbackDataEXT*)(pCallbackData));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkSubmitDebugUtilsMessageEXT 0x%llx 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)instance,
-                            (unsigned long long)messageSeverity, (unsigned long long)messageTypes,
-                            (unsigned long long)pCallbackData);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkSubmitDebugUtilsMessageEXT 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)instance, (unsigned long long)messageSeverity,
+                        (unsigned long long)messageTypes, (unsigned long long)pCallbackData);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkSubmitDebugUtilsMessageEXT(unboxed_instance, messageSeverity,
@@ -18933,11 +18879,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkImageDrmFormatModifierPropertiesEXT*)(pProperties));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetImageDrmFormatModifierPropertiesEXT 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)image,
-                            (unsigned long long)pProperties);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetImageDrmFormatModifierPropertiesEXT 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)image,
+                        (unsigned long long)pProperties);
                 }
                 VkResult vkGetImageDrmFormatModifierPropertiesEXT_VkResult_return =
                     VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -19009,12 +18955,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkMemoryHostPointerPropertiesEXT*)(pMemoryHostPointerProperties));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetMemoryHostPointerPropertiesEXT 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)handleType,
-                            (unsigned long long)pHostPointer,
-                            (unsigned long long)pMemoryHostPointerProperties);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetMemoryHostPointerPropertiesEXT 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)handleType,
+                        (unsigned long long)pHostPointer,
+                        (unsigned long long)pMemoryHostPointerProperties);
                 }
                 VkResult vkGetMemoryHostPointerPropertiesEXT_VkResult_return =
                     VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -19102,11 +19048,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetPhysicalDeviceToolPropertiesEXT 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)physicalDevice,
-                            (unsigned long long)pToolCount, (unsigned long long)pToolProperties);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPhysicalDeviceToolPropertiesEXT 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)physicalDevice,
+                        (unsigned long long)pToolCount, (unsigned long long)pToolProperties);
                 }
                 VkResult vkGetPhysicalDeviceToolPropertiesEXT_VkResult_return =
                     VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -19182,11 +19128,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint16_t*)&lineStipplePattern, *readStreamPtrPtr, sizeof(uint16_t));
                 *readStreamPtrPtr += sizeof(uint16_t);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdSetLineStippleEXT 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)lineStippleFactor,
-                            (unsigned long long)lineStipplePattern);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetLineStippleEXT 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)lineStippleFactor,
+                                   (unsigned long long)lineStipplePattern);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetLineStippleEXT(unboxed_commandBuffer, lineStippleFactor,
@@ -19222,9 +19167,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkCullModeFlags*)&cullMode, *readStreamPtrPtr, sizeof(VkCullModeFlags));
                 *readStreamPtrPtr += sizeof(VkCullModeFlags);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdSetCullModeEXT 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)cullMode);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetCullModeEXT 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer, (unsigned long long)cullMode);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetCullModeEXT(unboxed_commandBuffer, cullMode);
@@ -19256,9 +19200,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkFrontFace*)&frontFace, *readStreamPtrPtr, sizeof(VkFrontFace));
                 *readStreamPtrPtr += sizeof(VkFrontFace);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdSetFrontFaceEXT 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)frontFace);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetFrontFaceEXT 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer,
+                                   (unsigned long long)frontFace);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetFrontFaceEXT(unboxed_commandBuffer, frontFace);
@@ -19291,9 +19235,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                        sizeof(VkPrimitiveTopology));
                 *readStreamPtrPtr += sizeof(VkPrimitiveTopology);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdSetPrimitiveTopologyEXT 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)primitiveTopology);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetPrimitiveTopologyEXT 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)primitiveTopology);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetPrimitiveTopologyEXT(unboxed_commandBuffer, primitiveTopology);
@@ -19338,10 +19282,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdSetViewportWithCountEXT 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)viewportCount, (unsigned long long)pViewports);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdSetViewportWithCountEXT 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)viewportCount, (unsigned long long)pViewports);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetViewportWithCountEXT(unboxed_commandBuffer, viewportCount,
@@ -19386,10 +19330,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdSetScissorWithCountEXT 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)scissorCount, (unsigned long long)pScissors);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdSetScissorWithCountEXT 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)scissorCount, (unsigned long long)pScissors);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetScissorWithCountEXT(unboxed_commandBuffer, scissorCount, pScissors);
@@ -19475,13 +19419,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdBindVertexBuffers2EXT 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)firstBinding, (unsigned long long)bindingCount,
-                            (unsigned long long)pBuffers, (unsigned long long)pOffsets,
-                            (unsigned long long)pSizes, (unsigned long long)pStrides);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdBindVertexBuffers2EXT 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)firstBinding, (unsigned long long)bindingCount,
+                        (unsigned long long)pBuffers, (unsigned long long)pOffsets,
+                        (unsigned long long)pSizes, (unsigned long long)pStrides);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdBindVertexBuffers2EXT(unboxed_commandBuffer, firstBinding,
@@ -19516,9 +19460,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkBool32*)&depthTestEnable, *readStreamPtrPtr, sizeof(VkBool32));
                 *readStreamPtrPtr += sizeof(VkBool32);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdSetDepthTestEnableEXT 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)depthTestEnable);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetDepthTestEnableEXT 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)depthTestEnable);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetDepthTestEnableEXT(unboxed_commandBuffer, depthTestEnable);
@@ -19551,9 +19495,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkBool32*)&depthWriteEnable, *readStreamPtrPtr, sizeof(VkBool32));
                 *readStreamPtrPtr += sizeof(VkBool32);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdSetDepthWriteEnableEXT 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)depthWriteEnable);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetDepthWriteEnableEXT 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)depthWriteEnable);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetDepthWriteEnableEXT(unboxed_commandBuffer, depthWriteEnable);
@@ -19586,9 +19530,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkCompareOp*)&depthCompareOp, *readStreamPtrPtr, sizeof(VkCompareOp));
                 *readStreamPtrPtr += sizeof(VkCompareOp);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdSetDepthCompareOpEXT 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)depthCompareOp);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetDepthCompareOpEXT 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)depthCompareOp);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetDepthCompareOpEXT(unboxed_commandBuffer, depthCompareOp);
@@ -19621,10 +19565,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkBool32*)&depthBoundsTestEnable, *readStreamPtrPtr, sizeof(VkBool32));
                 *readStreamPtrPtr += sizeof(VkBool32);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdSetDepthBoundsTestEnableEXT 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)depthBoundsTestEnable);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdSetDepthBoundsTestEnableEXT 0x%llx 0x%llx ", ioStream,
+                        (unsigned long long)commandBuffer,
+                        (unsigned long long)depthBoundsTestEnable);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetDepthBoundsTestEnableEXT(unboxed_commandBuffer,
@@ -19658,9 +19602,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkBool32*)&stencilTestEnable, *readStreamPtrPtr, sizeof(VkBool32));
                 *readStreamPtrPtr += sizeof(VkBool32);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdSetStencilTestEnableEXT 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)stencilTestEnable);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetStencilTestEnableEXT 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)stencilTestEnable);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetStencilTestEnableEXT(unboxed_commandBuffer, stencilTestEnable);
@@ -19706,13 +19650,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkCompareOp*)&compareOp, *readStreamPtrPtr, sizeof(VkCompareOp));
                 *readStreamPtrPtr += sizeof(VkCompareOp);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdSetStencilOpEXT 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)faceMask, (unsigned long long)failOp,
-                            (unsigned long long)passOp, (unsigned long long)depthFailOp,
-                            (unsigned long long)compareOp);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdSetStencilOpEXT 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)faceMask,
+                        (unsigned long long)failOp, (unsigned long long)passOp,
+                        (unsigned long long)depthFailOp, (unsigned long long)compareOp);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetStencilOpEXT(unboxed_commandBuffer, faceMask, failOp, passOp,
@@ -19754,9 +19697,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkCopyMemoryToImageInfoEXT*)(pCopyMemoryToImageInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCopyMemoryToImageEXT 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device,
-                            (unsigned long long)pCopyMemoryToImageInfo);
+                    GFXSTREAM_INFO("stream %p: call vkCopyMemoryToImageEXT 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)pCopyMemoryToImageInfo);
                 }
                 VkResult vkCopyMemoryToImageEXT_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -19803,9 +19746,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkCopyImageToMemoryInfoEXT*)(pCopyImageToMemoryInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCopyImageToMemoryEXT 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device,
-                            (unsigned long long)pCopyImageToMemoryInfo);
+                    GFXSTREAM_INFO("stream %p: call vkCopyImageToMemoryEXT 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)pCopyImageToMemoryInfo);
                 }
                 VkResult vkCopyImageToMemoryEXT_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -19852,9 +19795,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkCopyImageToImageInfoEXT*)(pCopyImageToImageInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCopyImageToImageEXT 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device,
-                            (unsigned long long)pCopyImageToImageInfo);
+                    GFXSTREAM_INFO("stream %p: call vkCopyImageToImageEXT 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)device,
+                                   (unsigned long long)pCopyImageToImageInfo);
                 }
                 VkResult vkCopyImageToImageEXT_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -19909,10 +19852,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkTransitionImageLayoutEXT 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device,
-                            (unsigned long long)transitionCount, (unsigned long long)pTransitions);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkTransitionImageLayoutEXT 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)transitionCount,
+                        (unsigned long long)pTransitions);
                 }
                 VkResult vkTransitionImageLayoutEXT_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -19975,11 +19918,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                              (VkSubresourceLayout2KHR*)(pLayout));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetImageSubresourceLayout2EXT 0x%llx 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)image,
-                            (unsigned long long)pSubresource, (unsigned long long)pLayout);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetImageSubresourceLayout2EXT 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)image,
+                        (unsigned long long)pSubresource, (unsigned long long)pLayout);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkGetImageSubresourceLayout2EXT(unboxed_device, image, pSubresource,
@@ -20028,8 +19971,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkReleaseSwapchainImagesInfoEXT*)(pReleaseInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkReleaseSwapchainImagesEXT 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pReleaseInfo);
+                    GFXSTREAM_INFO("stream %p: call vkReleaseSwapchainImagesEXT 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)pReleaseInfo);
                 }
                 VkResult vkReleaseSwapchainImagesEXT_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -20102,9 +20046,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkCreatePrivateDataSlotEXT 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCreatePrivateDataSlotEXT 0x%llx 0x%llx 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
                         (unsigned long long)pAllocator, (unsigned long long)pPrivateDataSlot);
                 }
@@ -20169,10 +20112,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkDestroyPrivateDataSlotEXT 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device,
-                            (unsigned long long)privateDataSlot, (unsigned long long)pAllocator);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkDestroyPrivateDataSlotEXT 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)privateDataSlot,
+                        (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkDestroyPrivateDataSlotEXT(unboxed_device, privateDataSlot, pAllocator);
@@ -20216,9 +20159,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint64_t*)&data, *readStreamPtrPtr, sizeof(uint64_t));
                 *readStreamPtrPtr += sizeof(uint64_t);
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkSetPrivateDataEXT 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkSetPrivateDataEXT 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)device, (unsigned long long)objectType,
                         (unsigned long long)objectHandle, (unsigned long long)privateDataSlot,
                         (unsigned long long)data);
@@ -20276,9 +20218,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint64_t*)pData, *readStreamPtrPtr, sizeof(uint64_t));
                 *readStreamPtrPtr += sizeof(uint64_t);
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkGetPrivateDataEXT 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetPrivateDataEXT 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)device, (unsigned long long)objectType,
                         (unsigned long long)objectHandle, (unsigned long long)privateDataSlot,
                         (unsigned long long)pData);
@@ -20319,10 +20260,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&patchControlPoints, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdSetPatchControlPointsEXT 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)patchControlPoints);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetPatchControlPointsEXT 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)patchControlPoints);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetPatchControlPointsEXT(unboxed_commandBuffer, patchControlPoints);
@@ -20355,10 +20295,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkBool32*)&rasterizerDiscardEnable, *readStreamPtrPtr, sizeof(VkBool32));
                 *readStreamPtrPtr += sizeof(VkBool32);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdSetRasterizerDiscardEnableEXT 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)rasterizerDiscardEnable);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdSetRasterizerDiscardEnableEXT 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)rasterizerDiscardEnable);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetRasterizerDiscardEnableEXT(unboxed_commandBuffer,
@@ -20392,9 +20332,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkBool32*)&depthBiasEnable, *readStreamPtrPtr, sizeof(VkBool32));
                 *readStreamPtrPtr += sizeof(VkBool32);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdSetDepthBiasEnableEXT 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)depthBiasEnable);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetDepthBiasEnableEXT 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)depthBiasEnable);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetDepthBiasEnableEXT(unboxed_commandBuffer, depthBiasEnable);
@@ -20427,8 +20367,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkLogicOp*)&logicOp, *readStreamPtrPtr, sizeof(VkLogicOp));
                 *readStreamPtrPtr += sizeof(VkLogicOp);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkCmdSetLogicOpEXT 0x%llx 0x%llx \n", ioStream,
-                            (unsigned long long)commandBuffer, (unsigned long long)logicOp);
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetLogicOpEXT 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer, (unsigned long long)logicOp);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetLogicOpEXT(unboxed_commandBuffer, logicOp);
@@ -20460,10 +20400,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkBool32*)&primitiveRestartEnable, *readStreamPtrPtr, sizeof(VkBool32));
                 *readStreamPtrPtr += sizeof(VkBool32);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdSetPrimitiveRestartEnableEXT 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)primitiveRestartEnable);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdSetPrimitiveRestartEnableEXT 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)primitiveRestartEnable);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetPrimitiveRestartEnableEXT(unboxed_commandBuffer,
@@ -20505,11 +20445,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                        ((attachmentCount)) * sizeof(const VkBool32));
                 *readStreamPtrPtr += ((attachmentCount)) * sizeof(const VkBool32);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdSetColorWriteEnableEXT 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)attachmentCount,
-                            (unsigned long long)pColorWriteEnables);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdSetColorWriteEnableEXT 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)attachmentCount,
+                        (unsigned long long)pColorWriteEnables);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetColorWriteEnableEXT(unboxed_commandBuffer, attachmentCount,
@@ -20557,9 +20497,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     *readStreamPtrPtr += sizeof(uint64_t);
                 }
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkMapMemoryIntoAddressSpaceGOOGLE 0x%llx 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkMapMemoryIntoAddressSpaceGOOGLE 0x%llx 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)device, (unsigned long long)memory,
                         (unsigned long long)pAddress);
                 }
@@ -20724,19 +20663,19 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkUpdateDescriptorSetWithTemplateSizedGOOGLE 0x%llx "
-                            "0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)descriptorSet,
-                            (unsigned long long)descriptorUpdateTemplate,
-                            (unsigned long long)imageInfoCount, (unsigned long long)bufferInfoCount,
-                            (unsigned long long)bufferViewCount,
-                            (unsigned long long)pImageInfoEntryIndices,
-                            (unsigned long long)pBufferInfoEntryIndices,
-                            (unsigned long long)pBufferViewEntryIndices,
-                            (unsigned long long)pImageInfos, (unsigned long long)pBufferInfos,
-                            (unsigned long long)pBufferViews);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkUpdateDescriptorSetWithTemplateSizedGOOGLE 0x%llx "
+                        "0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)descriptorSet,
+                        (unsigned long long)descriptorUpdateTemplate,
+                        (unsigned long long)imageInfoCount, (unsigned long long)bufferInfoCount,
+                        (unsigned long long)bufferViewCount,
+                        (unsigned long long)pImageInfoEntryIndices,
+                        (unsigned long long)pBufferInfoEntryIndices,
+                        (unsigned long long)pBufferViewEntryIndices,
+                        (unsigned long long)pImageInfos, (unsigned long long)pBufferInfos,
+                        (unsigned long long)pBufferViews);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
@@ -20779,10 +20718,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkCommandBufferBeginInfo*)(pBeginInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkBeginCommandBufferAsyncGOOGLE 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)pBeginInfo);
+                    GFXSTREAM_INFO("stream %p: call vkBeginCommandBufferAsyncGOOGLE 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)pBeginInfo);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkBeginCommandBufferAsyncGOOGLE(&m_pool, snapshotApiCallInfo,
@@ -20810,8 +20748,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
                 auto vk = dispatch_VkCommandBuffer(commandBuffer);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkEndCommandBufferAsyncGOOGLE 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer);
+                    GFXSTREAM_INFO("stream %p: call vkEndCommandBufferAsyncGOOGLE 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkEndCommandBufferAsyncGOOGLE(&m_pool, snapshotApiCallInfo,
@@ -20843,9 +20781,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                        sizeof(VkCommandBufferResetFlags));
                 *readStreamPtrPtr += sizeof(VkCommandBufferResetFlags);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkResetCommandBufferAsyncGOOGLE 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer, (unsigned long long)flags);
+                    GFXSTREAM_INFO("stream %p: call vkResetCommandBufferAsyncGOOGLE 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)flags);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkResetCommandBufferAsyncGOOGLE(&m_pool, snapshotApiCallInfo,
@@ -20879,10 +20817,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&sequenceNumber, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCommandBufferHostSyncGOOGLE 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)needHostSync, (unsigned long long)sequenceNumber);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCommandBufferHostSyncGOOGLE 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)needHostSync, (unsigned long long)sequenceNumber);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkCommandBufferHostSyncGOOGLE(
@@ -20953,12 +20891,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkMemoryRequirements*)(pMemoryRequirements));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCreateImageWithRequirementsGOOGLE 0x%llx 0x%llx "
-                            "0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pAllocator, (unsigned long long)pImage,
-                            (unsigned long long)pMemoryRequirements);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCreateImageWithRequirementsGOOGLE 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
+                        (unsigned long long)pAllocator, (unsigned long long)pImage,
+                        (unsigned long long)pMemoryRequirements);
                 }
                 VkResult vkCreateImageWithRequirementsGOOGLE_VkResult_return =
                     VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -21056,12 +20994,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkMemoryRequirements*)(pMemoryRequirements));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCreateBufferWithRequirementsGOOGLE 0x%llx 0x%llx "
-                            "0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pAllocator, (unsigned long long)pBuffer,
-                            (unsigned long long)pMemoryRequirements);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCreateBufferWithRequirementsGOOGLE 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
+                        (unsigned long long)pAllocator, (unsigned long long)pBuffer,
+                        (unsigned long long)pMemoryRequirements);
                 }
                 VkResult vkCreateBufferWithRequirementsGOOGLE_VkResult_return =
                     VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -21158,12 +21096,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     *readStreamPtrPtr += sizeof(uint64_t);
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetMemoryHostAddressInfoGOOGLE 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)memory,
-                            (unsigned long long)pAddress, (unsigned long long)pSize,
-                            (unsigned long long)pHostmemId);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetMemoryHostAddressInfoGOOGLE 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)memory,
+                        (unsigned long long)pAddress, (unsigned long long)pSize,
+                        (unsigned long long)pHostmemId);
                 }
                 VkResult vkGetMemoryHostAddressInfoGOOGLE_VkResult_return =
                     VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -21246,10 +21184,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkFreeMemorySyncGOOGLE 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)memory,
-                            (unsigned long long)pAllocator);
+                    GFXSTREAM_INFO("stream %p: call vkFreeMemorySyncGOOGLE 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device, (unsigned long long)memory,
+                                   (unsigned long long)pAllocator);
                 }
                 VkResult vkFreeMemorySyncGOOGLE_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -21292,9 +21229,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&sequenceNumber, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkQueueHostSyncGOOGLE 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)queue, (unsigned long long)needHostSync,
-                            (unsigned long long)sequenceNumber);
+                    GFXSTREAM_INFO("stream %p: call vkQueueHostSyncGOOGLE 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)queue,
+                                   (unsigned long long)needHostSync,
+                                   (unsigned long long)sequenceNumber);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkQueueHostSyncGOOGLE(&m_pool, snapshotApiCallInfo, queue,
@@ -21342,9 +21280,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkQueueSubmitAsyncGOOGLE 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkQueueSubmitAsyncGOOGLE 0x%llx 0x%llx 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)queue, (unsigned long long)submitCount,
                         (unsigned long long)pSubmits, (unsigned long long)fence);
                 }
@@ -21374,8 +21311,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *(VkQueue*)&queue = (VkQueue)(VkQueue)((VkQueue)(*&cgen_var_0));
                 auto vk = dispatch_VkQueue(queue);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkQueueWaitIdleAsyncGOOGLE 0x%llx \n",
-                            ioStream, (unsigned long long)queue);
+                    GFXSTREAM_INFO("stream %p: call vkQueueWaitIdleAsyncGOOGLE 0x%llx ", ioStream,
+                                   (unsigned long long)queue);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkQueueWaitIdleAsyncGOOGLE(&m_pool, snapshotApiCallInfo, queue);
@@ -21423,11 +21360,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkQueueBindSparseAsyncGOOGLE 0x%llx 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)queue, (unsigned long long)bindInfoCount,
-                            (unsigned long long)pBindInfo, (unsigned long long)fence);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkQueueBindSparseAsyncGOOGLE 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)queue, (unsigned long long)bindInfoCount,
+                        (unsigned long long)pBindInfo, (unsigned long long)fence);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkQueueBindSparseAsyncGOOGLE(&m_pool, snapshotApiCallInfo, queue,
@@ -21470,11 +21406,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkDeviceSize*)pRowPitchAlignment, *readStreamPtrPtr, sizeof(VkDeviceSize));
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetLinearImageLayoutGOOGLE 0x%llx 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)format,
-                            (unsigned long long)pOffset, (unsigned long long)pRowPitchAlignment);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetLinearImageLayoutGOOGLE 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)format,
+                        (unsigned long long)pOffset, (unsigned long long)pRowPitchAlignment);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetLinearImageLayoutGOOGLE(&m_pool, snapshotApiCallInfo, device,
@@ -21526,11 +21461,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     transform_tohost_VkImageCreateInfo(m_state, (VkImageCreateInfo*)(pCreateInfo));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetLinearImageLayout2GOOGLE 0x%llx 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
-                            (unsigned long long)pOffset, (unsigned long long)pRowPitchAlignment);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetLinearImageLayout2GOOGLE 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pCreateInfo,
+                        (unsigned long long)pOffset, (unsigned long long)pRowPitchAlignment);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetLinearImageLayout2GOOGLE(&m_pool, snapshotApiCallInfo, device,
@@ -21576,9 +21511,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((void*)pData, *readStreamPtrPtr, ((dataSize)) * sizeof(const uint8_t));
                 *readStreamPtrPtr += ((dataSize)) * sizeof(const uint8_t);
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkQueueFlushCommandsGOOGLE 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkQueueFlushCommandsGOOGLE 0x%llx 0x%llx 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)queue, (unsigned long long)commandBuffer,
                         (unsigned long long)dataSize, (unsigned long long)pData);
                 }
@@ -21687,19 +21621,19 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkQueueCommitDescriptorSetUpdatesGOOGLE 0x%llx 0x%llx "
-                            "0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)queue,
-                            (unsigned long long)descriptorPoolCount,
-                            (unsigned long long)pDescriptorPools,
-                            (unsigned long long)descriptorSetCount, (unsigned long long)pSetLayouts,
-                            (unsigned long long)pDescriptorSetPoolIds,
-                            (unsigned long long)pDescriptorSetWhichPool,
-                            (unsigned long long)pDescriptorSetPendingAllocation,
-                            (unsigned long long)pDescriptorWriteStartingIndices,
-                            (unsigned long long)pendingDescriptorWriteCount,
-                            (unsigned long long)pPendingDescriptorWrites);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkQueueCommitDescriptorSetUpdatesGOOGLE 0x%llx 0x%llx "
+                        "0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)queue,
+                        (unsigned long long)descriptorPoolCount,
+                        (unsigned long long)pDescriptorPools,
+                        (unsigned long long)descriptorSetCount, (unsigned long long)pSetLayouts,
+                        (unsigned long long)pDescriptorSetPoolIds,
+                        (unsigned long long)pDescriptorSetWhichPool,
+                        (unsigned long long)pDescriptorSetPendingAllocation,
+                        (unsigned long long)pDescriptorWriteStartingIndices,
+                        (unsigned long long)pendingDescriptorWriteCount,
+                        (unsigned long long)pPendingDescriptorWrites);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkQueueCommitDescriptorSetUpdatesGOOGLE(
@@ -21759,12 +21693,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     *readStreamPtrPtr += (*(pPoolIdCount)) * sizeof(uint64_t);
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCollectDescriptorPoolIdsGOOGLE 0x%llx 0x%llx 0x%llx "
-                            "0x%llx \n",
-                            ioStream, (unsigned long long)device,
-                            (unsigned long long)descriptorPool, (unsigned long long)pPoolIdCount,
-                            (unsigned long long)pPoolIds);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCollectDescriptorPoolIdsGOOGLE 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)descriptorPool,
+                        (unsigned long long)pPoolIdCount, (unsigned long long)pPoolIds);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkCollectDescriptorPoolIdsGOOGLE(&m_pool, snapshotApiCallInfo,
@@ -21829,12 +21762,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 1 * 8;
                 *(VkImage*)&image = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_2));
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkQueueSignalReleaseImageANDROIDAsyncGOOGLE 0x%llx "
-                            "0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)queue,
-                            (unsigned long long)waitSemaphoreCount,
-                            (unsigned long long)pWaitSemaphores, (unsigned long long)image);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkQueueSignalReleaseImageANDROIDAsyncGOOGLE 0x%llx 0x%llx "
+                        "0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)queue, (unsigned long long)waitSemaphoreCount,
+                        (unsigned long long)pWaitSemaphores, (unsigned long long)image);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(
@@ -21882,12 +21814,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((VkDeviceSize*)&dataSize, *readStreamPtrPtr, sizeof(VkDeviceSize));
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkQueueFlushCommandsFromAuxMemoryGOOGLE 0x%llx 0x%llx "
-                            "0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)queue, (unsigned long long)commandBuffer,
-                            (unsigned long long)deviceMemory, (unsigned long long)dataOffset,
-                            (unsigned long long)dataSize);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkQueueFlushCommandsFromAuxMemoryGOOGLE 0x%llx 0x%llx "
+                        "0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)queue, (unsigned long long)commandBuffer,
+                        (unsigned long long)deviceMemory, (unsigned long long)dataOffset,
+                        (unsigned long long)dataSize);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkQueueFlushCommandsFromAuxMemoryGOOGLE(
@@ -21922,8 +21854,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *(VkDeviceMemory*)&memory =
                     (VkDeviceMemory)unbox_VkDeviceMemory((VkDeviceMemory)(*&cgen_var_1));
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkGetBlobGOOGLE 0x%llx 0x%llx \n", ioStream,
-                            (unsigned long long)device, (unsigned long long)memory);
+                    GFXSTREAM_INFO("stream %p: call vkGetBlobGOOGLE 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)device, (unsigned long long)memory);
                 }
                 VkResult vkGetBlobGOOGLE_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -22090,21 +22022,21 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkUpdateDescriptorSetWithTemplateSized2GOOGLE 0x%llx "
-                            "0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)descriptorSet,
-                            (unsigned long long)descriptorUpdateTemplate,
-                            (unsigned long long)imageInfoCount, (unsigned long long)bufferInfoCount,
-                            (unsigned long long)bufferViewCount,
-                            (unsigned long long)inlineUniformBlockCount,
-                            (unsigned long long)pImageInfoEntryIndices,
-                            (unsigned long long)pBufferInfoEntryIndices,
-                            (unsigned long long)pBufferViewEntryIndices,
-                            (unsigned long long)pImageInfos, (unsigned long long)pBufferInfos,
-                            (unsigned long long)pBufferViews,
-                            (unsigned long long)pInlineUniformBlockData);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkUpdateDescriptorSetWithTemplateSized2GOOGLE 0x%llx "
+                        "0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)descriptorSet,
+                        (unsigned long long)descriptorUpdateTemplate,
+                        (unsigned long long)imageInfoCount, (unsigned long long)bufferInfoCount,
+                        (unsigned long long)bufferViewCount,
+                        (unsigned long long)inlineUniformBlockCount,
+                        (unsigned long long)pImageInfoEntryIndices,
+                        (unsigned long long)pBufferInfoEntryIndices,
+                        (unsigned long long)pBufferViewEntryIndices,
+                        (unsigned long long)pImageInfos, (unsigned long long)pBufferInfos,
+                        (unsigned long long)pBufferViews,
+                        (unsigned long long)pInlineUniformBlockData);
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
@@ -22160,9 +22092,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkQueueSubmitAsync2GOOGLE 0x%llx 0x%llx 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkQueueSubmitAsync2GOOGLE 0x%llx 0x%llx 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)queue, (unsigned long long)submitCount,
                         (unsigned long long)pSubmits, (unsigned long long)fence);
                 }
@@ -22201,9 +22132,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint64_t*)&syncId, *readStreamPtrPtr, sizeof(uint64_t));
                 *readStreamPtrPtr += sizeof(uint64_t);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkGetSemaphoreGOOGLE 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)semaphore,
-                            (unsigned long long)syncId);
+                    GFXSTREAM_INFO("stream %p: call vkGetSemaphoreGOOGLE 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)semaphore, (unsigned long long)syncId);
                 }
                 VkResult vkGetSemaphoreGOOGLE_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
@@ -22293,16 +22224,15 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkStridedDeviceAddressRegionKHR*)(pCallableShaderBindingTable));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdTraceRaysKHR 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)pRaygenShaderBindingTable,
-                            (unsigned long long)pMissShaderBindingTable,
-                            (unsigned long long)pHitShaderBindingTable,
-                            (unsigned long long)pCallableShaderBindingTable,
-                            (unsigned long long)width, (unsigned long long)height,
-                            (unsigned long long)depth);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdTraceRaysKHR 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)pRaygenShaderBindingTable,
+                        (unsigned long long)pMissShaderBindingTable,
+                        (unsigned long long)pHitShaderBindingTable,
+                        (unsigned long long)pCallableShaderBindingTable, (unsigned long long)width,
+                        (unsigned long long)height, (unsigned long long)depth);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdTraceRaysKHR(unboxed_commandBuffer, pRaygenShaderBindingTable,
@@ -22391,14 +22321,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            (VkAllocationCallbacks*)(pAllocator));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCreateRayTracingPipelinesKHR 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device,
-                            (unsigned long long)deferredOperation,
-                            (unsigned long long)pipelineCache, (unsigned long long)createInfoCount,
-                            (unsigned long long)pCreateInfos, (unsigned long long)pAllocator,
-                            (unsigned long long)pPipelines);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCreateRayTracingPipelinesKHR 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)deferredOperation,
+                        (unsigned long long)pipelineCache, (unsigned long long)createInfoCount,
+                        (unsigned long long)pCreateInfos, (unsigned long long)pAllocator,
+                        (unsigned long long)pPipelines);
                 }
                 VkResult vkCreateRayTracingPipelinesKHR_VkResult_return =
                     VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -22468,12 +22397,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((void*)pData, *readStreamPtrPtr, ((dataSize)) * sizeof(uint8_t));
                 *readStreamPtrPtr += ((dataSize)) * sizeof(uint8_t);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetRayTracingCaptureReplayShaderGroupHandlesKHR "
-                            "0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pipeline,
-                            (unsigned long long)firstGroup, (unsigned long long)groupCount,
-                            (unsigned long long)dataSize, (unsigned long long)pData);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetRayTracingCaptureReplayShaderGroupHandlesKHR 0x%llx "
+                        "0x%llx 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pipeline,
+                        (unsigned long long)firstGroup, (unsigned long long)groupCount,
+                        (unsigned long long)dataSize, (unsigned long long)pData);
                 }
                 VkResult vkGetRayTracingCaptureReplayShaderGroupHandlesKHR_VkResult_return =
                     VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -22564,15 +22493,15 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkStridedDeviceAddressRegionKHR*)(pCallableShaderBindingTable));
                 }
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkCmdTraceRaysIndirectKHR 0x%llx 0x%llx 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)commandBuffer,
-                            (unsigned long long)pRaygenShaderBindingTable,
-                            (unsigned long long)pMissShaderBindingTable,
-                            (unsigned long long)pHitShaderBindingTable,
-                            (unsigned long long)pCallableShaderBindingTable,
-                            (unsigned long long)indirectDeviceAddress);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdTraceRaysIndirectKHR 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)pRaygenShaderBindingTable,
+                        (unsigned long long)pMissShaderBindingTable,
+                        (unsigned long long)pHitShaderBindingTable,
+                        (unsigned long long)pCallableShaderBindingTable,
+                        (unsigned long long)indirectDeviceAddress);
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdTraceRaysIndirectKHR(
@@ -22616,11 +22545,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                        sizeof(VkShaderGroupShaderKHR));
                 *readStreamPtrPtr += sizeof(VkShaderGroupShaderKHR);
                 if (m_logCalls) {
-                    fprintf(stderr,
-                            "stream %p: call vkGetRayTracingShaderGroupStackSizeKHR 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
-                            ioStream, (unsigned long long)device, (unsigned long long)pipeline,
-                            (unsigned long long)group, (unsigned long long)groupShader);
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetRayTracingShaderGroupStackSizeKHR 0x%llx 0x%llx "
+                        "0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pipeline,
+                        (unsigned long long)group, (unsigned long long)groupShader);
                 }
                 VkDeviceSize vkGetRayTracingShaderGroupStackSizeKHR_VkDeviceSize_return =
                     (VkDeviceSize)0;
@@ -22661,9 +22590,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&pipelineStackSize, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (m_logCalls) {
-                    fprintf(
-                        stderr,
-                        "stream %p: call vkCmdSetRayTracingPipelineStackSizeKHR 0x%llx 0x%llx \n",
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdSetRayTracingPipelineStackSizeKHR 0x%llx 0x%llx ",
                         ioStream, (unsigned long long)commandBuffer,
                         (unsigned long long)pipelineStackSize);
                 }
