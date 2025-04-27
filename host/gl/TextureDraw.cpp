@@ -23,7 +23,6 @@
 
 #include "OpenGLESDispatch/DispatchTables.h"
 #include "gfxstream/host/logging.h"
-#include "host-common/crash_reporter.h"
 
 #ifndef NDEBUG
 #define DEBUG_TEXTURE_DRAW

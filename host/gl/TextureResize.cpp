@@ -30,7 +30,7 @@
 #include "gfxstream/Strings.h"
 #include "gfxstream/host/logging.h"
 #include "gfxstream/host/renderer_operations.h"
-#include "host-common/misc.h"
+#include "render-utils/Renderer.h"
 
 namespace gfxstream {
 namespace gl {
@@ -582,20 +582,20 @@ GLuint TextureResize::GenericResizer::draw(GLuint texture, int width, int height
     s_gles2.glUniform1i(mInputUniformLocation, 0);
     intptr_t indexShift;
     switch(rotation) {
-    case SKIN_ROTATION_0:
-        indexShift = 0;
-        break;
-    case SKIN_ROTATION_90:
-        indexShift = 6;
-        break;
-    case SKIN_ROTATION_180:
-        indexShift = 12;
-        break;
-    case SKIN_ROTATION_270:
-        indexShift = 18;
-        break;
-    default:
-        indexShift = 0;
+        case GFXSTREAM_ROTATION_0:
+            indexShift = 0;
+            break;
+        case GFXSTREAM_ROTATION_90:
+            indexShift = 6;
+            break;
+        case GFXSTREAM_ROTATION_180:
+            indexShift = 12;
+            break;
+        case GFXSTREAM_ROTATION_270:
+            indexShift = 18;
+            break;
+        default:
+            indexShift = 0;
     }
     s_gles2.glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, (const GLvoid*)indexShift);
 

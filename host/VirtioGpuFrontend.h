@@ -33,7 +33,6 @@ extern "C" {
 #include "VirtioGpuResource.h"
 #include "VirtioGpuTimelines.h"
 #include "gfxstream/host/Features.h"
-#include "host-common/address_space_device.h"
 #include "render-utils/Renderer.h"
 
 namespace gfxstream {

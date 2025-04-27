@@ -14,10 +14,8 @@
 #pragma once
 
 #include "FrameBuffer.h"
+#include "OpenGLESDispatch/OpenGLDispatchLoader.h"
 #include "OSWindow.h"
 #include "RenderThreadInfo.h"
-#include "ShaderUtils.h"
 #include "SampleApplication.h"
-
-#include "OpenGLESDispatch/OpenGLDispatchLoader.h"
-#include "host-common/misc.h"
+#include "ShaderUtils.h"

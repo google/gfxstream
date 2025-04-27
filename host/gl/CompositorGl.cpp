@@ -20,7 +20,6 @@
 #include "OpenGLESDispatch/DispatchTables.h"
 #include "TextureDraw.h"
 #include "gfxstream/host/logging.h"
-#include "host-common/misc.h"
 
 namespace gfxstream {
 namespace gl {

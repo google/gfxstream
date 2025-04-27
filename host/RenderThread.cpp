@@ -15,10 +15,20 @@
 */
 #include "RenderThread.h"
 
+#include <assert.h>
+#include <string.h>
+#ifndef _WIN32
+#include <unistd.h>
+#endif
+#include <unordered_map>
+
 #include "ChannelStream.h"
 #include "FrameBuffer.h"
 #include "ReadBuffer.h"
 #include "RenderChannelImpl.h"
+#if GFXSTREAM_ENABLE_HOST_GLES
+#include "RenderControl.h"
+#endif
 #include "RenderThreadInfo.h"
 #include "RingStream.h"
 #include "VkDecoderContext.h"
@@ -31,22 +41,6 @@
 #include "apigen-codec-common/ChecksumCalculatorThreadInfo.h"
 #include "gfxstream/host/logging.h"
 #include "vulkan/VkCommonOperations.h"
-
-#if GFXSTREAM_ENABLE_HOST_GLES
-#include "RenderControl.h"
-#endif
-
-#define EMUGL_DEBUG_LEVEL 0
-#include "host-common/debug.h"
-
-#ifndef _WIN32
-#include <unistd.h>
-#endif
-
-#include <assert.h>
-#include <string.h>
-
-#include <unordered_map>
 
 namespace gfxstream {
 
@@ -406,7 +400,6 @@ intptr_t RenderThread::main() {
                 if (saveSnapshot(snapshotObjects)) {
                     continue;
                 } else {
-                    D("Warning: render thread could not read data from stream");
                     break;
                 }
             } else if (needRestoreFromSnapshot) {
@@ -421,10 +414,6 @@ intptr_t RenderThread::main() {
                 mNeedReloadProcessResources = false;
             }
         }
-
-        DD("render thread read %i bytes, op %i, packet size %i",
-           readBuf.validData(), *(uint32_t*)readBuf.buf(),
-           *(uint32_t*)(readBuf.buf() + 4));
 
         //
         // log received bandwidth statistics

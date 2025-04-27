@@ -25,7 +25,6 @@
 
 #include "aemu/base/synchronization/Lock.h"
 #include "aemu/base/files/StreamSerializing.h"
-#include "host-common/crash_reporter.h"
 #include "GLEScmValidate.h"
 
 #include <glm/vec3.hpp>

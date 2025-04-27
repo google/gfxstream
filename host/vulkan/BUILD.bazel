@@ -121,7 +121,6 @@ cc_library(
         "//host/tracing:gfxstream_host_tracing",
         "//utils:gfxstream_utils",
         "@aemu//base:aemu-base-headers",
-        "@aemu//host-common:aemu-host-common-headers",
     ],
 )
 
@@ -158,6 +157,5 @@ cc_library(
         "//host:gfxstream_host_headers",
         "//host/logging:gfxstream_host_logging",
         "//utils:gfxstream_utils",
-        "@aemu//host-common:aemu-host-common-headers",
     ],
 )

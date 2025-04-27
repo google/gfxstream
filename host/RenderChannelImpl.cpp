@@ -13,18 +13,14 @@
 // limitations under the License.
 #include "RenderChannelImpl.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <string.h>
+#include <utility>
+
 #include "GraphicsDriverLock.h"
 #include "RenderThread.h"
 #include "aemu/base/synchronization/Lock.h"
-
-#include <algorithm>
-#include <utility>
-
-#include <assert.h>
-#include <string.h>
-
-#define EMUGL_DEBUG_LEVEL 0
-#include "host-common/debug.h"
 
 namespace gfxstream {
 
@@ -73,7 +69,6 @@ void RenderChannelImpl::setEventCallback(EventCallback&& callback) {
 }
 
 void RenderChannelImpl::setWantedEvents(State state) {
-    D("state=%d", (int)state);
     AutoLock lock(mLock);
     mWantedEvents |= state;
     notifyStateChangeLocked();
@@ -85,12 +80,9 @@ RenderChannel::State RenderChannelImpl::state() const {
 }
 
 IoResult RenderChannelImpl::tryWrite(Buffer&& buffer) {
-    D("buffer size=%d", (int)buffer.size());
     AutoLock lock(mLock);
     auto result = mFromGuest.tryPushLocked(std::move(buffer));
     updateStateLocked();
-    DD("mFromGuest.tryPushLocked() returned %d, state %d", (int)result,
-       (int)mState);
     return result;
 }
 
@@ -100,22 +92,16 @@ void RenderChannelImpl::waitUntilWritable() {
 }
 
 IoResult RenderChannelImpl::tryRead(Buffer* buffer) {
-    D("enter");
     AutoLock lock(mLock);
     auto result = mToGuest.tryPopLocked(buffer);
     updateStateLocked();
-    DD("mToGuest.tryPopLocked() returned %d, buffer size %d, state %d",
-       (int)result, (int)buffer->size(), (int)mState);
     return result;
 }
 
 IoResult RenderChannelImpl::readBefore(Buffer* buffer, Duration waitUntilUs) {
-    D("enter");
     AutoLock lock(mLock);
     auto result = mToGuest.popLockedBefore(buffer, waitUntilUs);
     updateStateLocked();
-    DD("mToGuest.popLockedBefore() returned %d, buffer size %d, state %d",
-       (int)result, (int)buffer->size(), (int)mState);
     return result;
 }
 
@@ -125,7 +111,6 @@ void RenderChannelImpl::waitUntilReadable() {
 }
 
 void RenderChannelImpl::stop() {
-    D("enter");
     AutoLock lock(mLock);
     mFromGuest.closeLocked();
     mToGuest.closeLocked();
@@ -133,17 +118,14 @@ void RenderChannelImpl::stop() {
 }
 
 bool RenderChannelImpl::writeToGuest(Buffer&& buffer) {
-    D("buffer size=%d", (int)buffer.size());
     AutoLock lock(mLock);
     IoResult result = mToGuest.pushLocked(std::move(buffer));
     updateStateLocked();
-    D("mToGuest.pushLocked() returned %d, state %d", (int)result, (int)mState);
     notifyStateChangeLocked();
     return result == IoResult::Ok;
 }
 
 IoResult RenderChannelImpl::readFromGuest(Buffer* buffer, bool blocking) {
-    D("enter");
     AutoLock lock(mLock);
     IoResult result;
     if (blocking) {
@@ -152,16 +134,11 @@ IoResult RenderChannelImpl::readFromGuest(Buffer* buffer, bool blocking) {
         result = mFromGuest.tryPopLocked(buffer);
     }
     updateStateLocked();
-    DD("mFromGuest.%s() return %d, buffer size %d, state %d",
-       blocking ? "popLocked" : "tryPopLocked", (int)result,
-       (int)buffer->size(), (int)mState);
     notifyStateChangeLocked();
     return result;
 }
 
 void RenderChannelImpl::stopFromHost() {
-    D("enter");
-
     AutoLock lock(mLock);
     mFromGuest.closeLocked();
     mToGuest.closeLocked();
@@ -220,14 +197,12 @@ void RenderChannelImpl::notifyStateChangeLocked() {
     // Always report stop events, event if not explicitly asked for.
     State available = mState & (mWantedEvents | State::Stopped);
     if (available != 0) {
-        D("callback with %d", (int)available);
         mWantedEvents &= ~mState;
         mEventCallback(available);
     }
 }
 
 void RenderChannelImpl::onSave(android::base::Stream* stream) {
-    D("enter");
     AutoLock lock(mLock);
     mFromGuest.onSaveLocked(stream);
     mToGuest.onSaveLocked(stream);

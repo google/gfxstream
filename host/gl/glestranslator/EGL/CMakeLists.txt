@@ -50,7 +50,6 @@ target_link_libraries(
     apigen-codec-common
     PRIVATE
     aemu-base.headers
-    aemu-host-common.headers
     gfxstream_common_utils
     gfxstream_host_backend
     )

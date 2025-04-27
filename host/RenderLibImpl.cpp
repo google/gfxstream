@@ -25,12 +25,6 @@
 #include "gfxstream/host/sync_device.h"
 #include "gfxstream/host/vm_operations.h"
 #include "gfxstream/host/window_operations.h"
-#include "host-common/address_space_device_control_ops.h"
-
-#if GFXSTREAM_ENABLE_HOST_GLES
-#include "OpenGLESDispatch/DispatchTables.h"
-#include "OpenGLESDispatch/EGLDispatch.h"
-#endif
 
 namespace gfxstream {
 

@@ -106,7 +106,6 @@ cc_library(
             "//host/gl/glestranslator/GLES_V2:GLES_V2_translator_static",
             "//host/logging:gfxstream_host_logging",
             "//host/snapshot:aemu-snapshot",
-            "@aemu//host-common:aemu-host-common-headers",
         ] + select({
             "@platforms//os:macos": [":egl_translator-darwin"],
             "//conditions:default": [],

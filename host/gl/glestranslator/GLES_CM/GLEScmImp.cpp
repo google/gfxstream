@@ -36,7 +36,6 @@
 #include "GLEScmUtils.h"
 #include "GLEScmValidate.h"
 #include "gfxstream/host/logging.h"
-#include "host-common/crash_reporter.h"
 
 #define DEBUG 0
 
