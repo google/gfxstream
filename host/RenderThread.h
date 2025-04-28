@@ -17,10 +17,10 @@
 
 #include "aemu/base/files/MemStream.h"
 #include "aemu/base/Optional.h"
-#include "host-common/address_space_graphics_types.h"
 #include "aemu/base/synchronization/ConditionVariable.h"
 #include "aemu/base/synchronization/Lock.h"
 #include "aemu/base/threads/Thread.h"
+#include "render-utils/address_space_graphics_types.h"
 
 #include <atomic>
 #include <memory>

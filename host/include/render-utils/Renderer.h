@@ -15,8 +15,8 @@
 
 #include "aemu/base/files/Stream.h"
 #include "aemu/base/ring_buffer.h"
-#include "host-common/address_space_graphics_types.h"
 #include "render-utils/RenderChannel.h"
+#include "render-utils/address_space_graphics_types.h"
 #include "render-utils/render_api_platform_types.h"
 #include "render-utils/virtio_gpu_ops.h"
 #include "snapshot/common.h"

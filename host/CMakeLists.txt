@@ -9,6 +9,7 @@ target_include_directories(
         INTERFACE
         include)
 
+add_subdirectory(address_space)
 add_subdirectory(backend)
 add_subdirectory(features)
 add_subdirectory(iostream)
@@ -104,6 +105,7 @@ target_link_libraries(
         apigen-codec-common
         gfxstream_egl_headers
         gfxstream_features
+        gfxstream_host_address_space
         gfxstream_host_backend
         gfxstream_host_iostream
         gfxstream_host_logging
@@ -219,7 +221,6 @@ endfunction()
         PRIVATE
         OSWindow
         gfxstream_backend
-        aemu-host-common-testing-support
         ${GFXSTREAM_BASE_LIB}
         gtest_main)
         discover_tests(gfxstream_backend_unittests)
@@ -250,7 +251,6 @@ endfunction()
     target_link_libraries(
         stream-server-testing-support
         PUBLIC
-        aemu-host-common-testing-support
         aemu-base-testing-support
         gfxstream_common_image
         gfxstream_backend_static
@@ -280,7 +280,6 @@ endfunction()
         OpenglRender_unittests
         PRIVATE
         stream-server-testing-support
-        aemu-host-common-testing-support
         aemu-base-testing-support
         gfxstream_backend_static
         gmock
@@ -317,7 +316,6 @@ endfunction()
         OpenglRender_snapshot_unittests
         PRIVATE
         stream-server-testing-support
-        aemu-host-common-testing-support
         aemu-base-testing-support
         gfxstream_backend_static
         gtest_main)
@@ -340,7 +338,6 @@ endfunction()
         Vulkan_unittests
         PRIVATE
         stream-server-testing-support
-        aemu-host-common-testing-support
         aemu-base-testing-support
         gfxstream_backend_static
         gfxstream-vulkan-server

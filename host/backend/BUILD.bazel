@@ -3,6 +3,7 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 cc_library(
     name = "gfxstream_host_backend",
     srcs = [
+        "address_space_operations.cpp",
         "display_operations.cpp",
         "display_surface.cpp",
         "display_surface_user.cpp",
@@ -19,6 +20,7 @@ cc_library(
     deps = [
         "//common/utils:gfxstream_common_utils",
         "//host:gfxstream_backend_headers",
+        "//host/address_space:gfxstream_host_address_space",
         "//host/logging:gfxstream_host_logging",
     ],
 )

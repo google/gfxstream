@@ -18,7 +18,6 @@
 
 #include "OSWindow.h"
 #include "aemu/base/system/System.h"
-#include "host-common/testing/MockGraphicsAgentFactory.h"
 #include "virgl_hw.h"
 #include "gfxstream/virtio-gpu-gfxstream-renderer-unstable.h"
 #include "gfxstream/virtio-gpu-gfxstream-renderer.h"
@@ -59,7 +58,6 @@ protected:
                                 {STREAM_RENDERER_PARAM_RENDERER_FLAGS, surfacelessFlags}} {}
 
     static void SetUpTestSuite() {
-        android::emulation::injectGraphicsAgents(android::emulation::MockGraphicsAgentFactory());
         if (useWindow) {
             window.reset(CreateOSWindow());
         }

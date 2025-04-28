@@ -27,14 +27,11 @@ extern "C" {
 #include "gfxstream/Strings.h"
 #include "gfxstream/host/Features.h"
 #include "gfxstream/host/Tracing.h"
+#include "gfxstream/host/address_space_graphics.h"
 #include "gfxstream/host/logging.h"
-#include "host-common/address_space_device.h"
-#include "host-common/address_space_graphics.h"
-#include "host-common/globals.h"
 #ifdef CONFIG_AEMU
 #include "host-common/opengles.h"
 #endif
-#include "host-common/vm_operations.h"
 #include "render-utils/Renderer.h"
 #include "render-utils/RenderLib.h"
 #include "vk_util.h"
@@ -202,13 +199,6 @@ RendererPtr InitRenderer(uint32_t displayWidth,
         android::base::setEnvironmentVariable("ANDROID_EGL_ON_EGL", "1");
     }
 
-    auto androidHw = aemu_get_android_hw();
-
-    androidHw->hw_gltransport_asg_writeBufferSize = 1048576;
-    androidHw->hw_gltransport_asg_writeStepSize = 262144;
-    androidHw->hw_gltransport_asg_dataRingSize = 524288;
-    androidHw->hw_gltransport_drawFlushInterval = 10000;
-
     gfxstream::vk::vkDispatch(false /* don't use test ICD */);
 
     static gfxstream::RenderLibPtr sRendererLibrary = gfxstream::initLibrary();
@@ -219,7 +209,8 @@ RendererPtr InitRenderer(uint32_t displayWidth,
         return nullptr;
     }
 
-    android::emulation::asg::AddressSpaceGraphicsContext::setConsumer(
+    // TODO: move this into a proper function in address_space_device_control_ops.
+    gfxstream::host::AddressSpaceGraphicsContext::setConsumer(
         android::emulation::asg::ConsumerInterface{
             .create = [renderer](struct asg_context context,
                                  android::base::Stream* loadStream,

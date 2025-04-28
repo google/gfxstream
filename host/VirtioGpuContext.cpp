@@ -15,7 +15,6 @@
 #include "VirtioGpuContext.h"
 
 #include "gfxstream/host/logging.h"
-#include "host-common/AddressSpaceService.h"
 
 namespace gfxstream {
 namespace host {
@@ -37,11 +36,11 @@ std::optional<VirtioGpuContext> VirtioGpuContext::Create(RendererPtr renderer,
     return context;
 }
 
-int VirtioGpuContext::Destroy(const struct address_space_device_control_ops* asgOps) {
+int VirtioGpuContext::Destroy(const address_space_device_control_ops& asgOps) {
     for (const auto& [_, handle] : mAddressSpaceHandles) {
         // Note: this can hang as is but this has only been observed to
         // happen during shutdown. See b/329287602#comment8.
-        asgOps->destroy_handle(handle);
+        asgOps.destroy_handle(handle);
     }
 
     mRenderer->cleanupProcGLObjects(mId);
@@ -99,7 +98,7 @@ std::optional<SyncDescriptorInfo> VirtioGpuContext::TakeSync() {
 }
 
 int VirtioGpuContext::CreateAddressSpaceGraphicsInstance(
-    const struct address_space_device_control_ops* asgOps, VirtioGpuResource& resource) {
+    const address_space_device_control_ops& asgOps, VirtioGpuResource& resource) {
     const VirtioGpuResourceId resourceId = resource.GetId();
 
     void* resourceHva = nullptr;
@@ -114,11 +113,11 @@ int VirtioGpuContext::CreateAddressSpaceGraphicsInstance(
 
     // Note: resource ids can not be used as ASG handles because ASGs may outlive the
     // containing resource due asynchronous ASG destruction.
-    const uint32_t asgId = asgOps->gen_handle();
+    const uint32_t asgId = asgOps.gen_handle();
 
     struct AddressSpaceCreateInfo createInfo = {
         .handle = asgId,
-        .type = android::emulation::VirtioGpuGraphics,
+        .type = ADDRESS_SPACE_CONTEXT_TYPE_VIRTIO_GPU_GRAPHICS,
         .createRenderThread = true,
         .externalAddr = resourceHva,
         .externalAddrSize = resourceHvaSize,
@@ -127,7 +126,7 @@ int VirtioGpuContext::CreateAddressSpaceGraphicsInstance(
         .contextName = asgName.c_str(),
         .contextNameSize = static_cast<uint32_t>(asgName.size()),
     };
-    asgOps->create_instance(createInfo);
+    asgOps.create_instance(createInfo);
 
     mAddressSpaceHandles[resourceId] = asgId;
     return 0;
@@ -150,7 +149,7 @@ std::optional<uint32_t> VirtioGpuContext::TakeAddressSpaceGraphicsHandle(
 }
 
 int VirtioGpuContext::PingAddressSpaceGraphicsInstance(
-    const struct address_space_device_control_ops* asgOps, VirtioGpuResourceId resourceId) {
+    const address_space_device_control_ops& asgOps, VirtioGpuResourceId resourceId) {
     auto asgIt = mAddressSpaceHandles.find(resourceId);
     if (asgIt == mAddressSpaceHandles.end()) {
         GFXSTREAM_ERROR("failed to ping ASG instance on context %u resource %d: ASG not found.",
@@ -159,9 +158,10 @@ int VirtioGpuContext::PingAddressSpaceGraphicsInstance(
     }
     auto asgId = asgIt->second;
 
-    struct android::emulation::AddressSpaceDevicePingInfo ping = {0};
-    ping.metadata = ASG_NOTIFY_AVAILABLE;
-    asgOps->ping_at_hva(asgId, &ping);
+    AddressSpaceDevicePingInfo ping = {
+        .metadata = ASG_NOTIFY_AVAILABLE,
+    };
+    asgOps.ping_at_hva(asgId, &ping);
 
     return 0;
 }

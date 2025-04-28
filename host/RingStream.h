@@ -11,16 +11,16 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #pragma once
-
-#include "gfxstream/host/iostream.h"
-#include "render-utils/RenderChannel.h"
-
-#include "aemu/base/ring_buffer.h"
-#include "host-common/address_space_graphics_types.h"
 
 #include <functional>
 #include <vector>
+
+#include "aemu/base/ring_buffer.h"
+#include "gfxstream/host/iostream.h"
+#include "render-utils/RenderChannel.h"
+#include "render-utils/address_space_graphics_types.h"
 
 namespace gfxstream {
 

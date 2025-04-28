@@ -33,8 +33,8 @@
 #include "VirtioGpuPipe.h"
 #include "VirtioGpuResource.h"
 #include "gfxstream/virtio-gpu-gfxstream-renderer.h"
-#include "host-common/address_space_device_control_ops.h"
 #include "render-utils/Renderer.h"
+#include "render-utils/address_space_operations.h"
 
 namespace gfxstream {
 namespace host {
@@ -48,7 +48,7 @@ class VirtioGpuContext {
                                                   const std::string& contextName,
                                                   uint32_t capsetId);
 
-    int Destroy(const struct address_space_device_control_ops* asgOps);
+    int Destroy(const address_space_device_control_ops& asgOps);
 
     void AttachResource(VirtioGpuResource& resource);
     void DetachResource(VirtioGpuResource& resource);
@@ -60,12 +60,12 @@ class VirtioGpuContext {
     int AcquireSync(uint64_t syncId);
     std::optional<SyncDescriptorInfo> TakeSync();
 
-    int CreateAddressSpaceGraphicsInstance(const struct address_space_device_control_ops* asgOps,
+    int CreateAddressSpaceGraphicsInstance(const address_space_device_control_ops& asgOps,
                                            VirtioGpuResource& resource);
     const std::unordered_map<VirtioGpuResourceId, uint32_t>& AsgInstances() const;
     std::optional<uint32_t> TakeAddressSpaceGraphicsHandle(VirtioGpuResourceId resourceId);
 
-    int PingAddressSpaceGraphicsInstance(const struct address_space_device_control_ops* asgOps,
+    int PingAddressSpaceGraphicsInstance(const address_space_device_control_ops& asgOps,
                                          VirtioGpuResourceId resourceId);
 
     int AddPendingBlob(uint32_t blobId, struct stream_renderer_resource_create_args args);
