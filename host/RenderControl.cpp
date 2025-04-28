@@ -30,6 +30,7 @@
 #include "OpenGLESDispatch/EGLDispatch.h"
 #include "RenderThreadInfo.h"
 #include "RenderThreadInfoGl.h"
+#include "RenderThreadInfoVk.h"
 #include "SyncThread.h"
 #include "aemu/base/Tracing.h"
 #include "compressedTextureFormats/AstcCpuDecompressor.h"
@@ -1241,6 +1242,10 @@ static void rcSetPuid(uint64_t puid) {
 
     RenderThreadInfo *tInfo = RenderThreadInfo::get();
     tInfo->m_puid = puid;
+    auto* renderThreadInfoVk = vk::RenderThreadInfoVk::get();
+    if (renderThreadInfoVk) {
+        renderThreadInfoVk->ctx_id = puid;
+    }
 }
 
 static int rcCompose(uint32_t bufferSize, void* buffer) {

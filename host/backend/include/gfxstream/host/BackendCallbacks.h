@@ -23,7 +23,7 @@ namespace host {
 
 struct BackendCallbacks {
     using RegisterProcessCleanupCallbackFunc =
-        std::function<void(void* key, std::function<void()> callback)>;
+        std::function<void(void* key, uint64_t contextId, std::function<void()> callback)>;
     RegisterProcessCleanupCallbackFunc registerProcessCleanupCallback;
 
     using UnregisterProcessCleanupCallbackFunc = std::function<void(void* key)>;

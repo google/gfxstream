@@ -184,6 +184,7 @@ struct InstanceInfo {
     bool isAngle = false;
     std::string applicationName;
     std::string engineName;
+    uint32_t contextId = 0;
 };
 
 struct PhysicalDeviceInfo {
