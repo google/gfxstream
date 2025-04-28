@@ -565,6 +565,10 @@ bool ColorBufferGl::readPixelsYUVCached(int x, int y, int width, int height, voi
 
     waitSync();
 
+    if (!m_yuv_converter) {
+        return false;
+    }
+
 #if DEBUG_CB_FBO
     fprintf(stderr, "%s %d request width %d height %d\n", __func__, __LINE__,
             width, height);
