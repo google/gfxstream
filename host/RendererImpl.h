@@ -128,6 +128,9 @@ public:
     const void* getEglDispatch() override;
     const void* getGles2Dispatch() override;
 
+    void setShouldSkipDraw(bool skip) override;
+    bool getShouldSkipDraw() const override;
+
 private:
     DISALLOW_COPY_ASSIGN_AND_MOVE(RendererImpl);
 

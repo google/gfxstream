@@ -57,7 +57,7 @@ public:
 
     virtual void setGuestAndroidApiLevel(int api) = 0;
 
-    // Get the GLES major/minor version determined by libOpenglRender.
+    // Get the GLES major/minor version determined.
     virtual void getGlesVersion(int* maj, int* min) = 0;
 
     virtual void setLogger(gfxstream_log_callback_t callback) = 0;

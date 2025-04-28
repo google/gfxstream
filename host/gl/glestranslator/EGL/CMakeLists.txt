@@ -45,12 +45,13 @@ endif()
 
 target_link_libraries(
     EGL_translator_static
-    PUBLIC 
-    GLcommon 
+    PUBLIC
+    GLcommon
     apigen-codec-common
     PRIVATE
     aemu-base.headers
     aemu-host-common.headers
+    gfxstream_common_utils
     gfxstream_host_backend
     )
 target_link_libraries(EGL_translator_static PUBLIC GLES_CM_translator_static GLES_V2_translator_static)

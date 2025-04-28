@@ -49,9 +49,6 @@ objc_library(
         "@platforms//os:macos",
     ],
     visibility = ["//visibility:public"],
-    deps = [
-        "//:gfxstream-gl-host-common-headers",
-    ],
     alwayslink = True,
 )
 
@@ -99,13 +96,12 @@ cc_library(
     deps =
         [
             ":gl-common-headers",
-            "//:gfxstream-gl-host-common-headers",
             "//common/etc:gfxstream_etc",
             "//common/opengl:gfxstream_opengl_headers",
+            "//common/utils:gfxstream_common_utils",
             "//host:gfxstream_host_headers",
             "//host/apigen-codec-common",
             "//host/backend:gfxstream_host_backend",
-            "//host/gl:gfxstream-gl-host-common",
             "//host/gl/glestranslator/GLES_CM:GLES_CM_translator_static",
             "//host/gl/glestranslator/GLES_V2:GLES_V2_translator_static",
             "//host/logging:gfxstream_host_logging",
@@ -161,37 +157,6 @@ cc_library(
 )
 
 cc_library(
-    name = "gfxstream-gl-host-common",
-    srcs = [
-        "gl-host-common/opengl/EmuglBackendList.cpp",
-        "gl-host-common/opengl/misc.cpp",
-    ] + glob(["gl-host-common/include/**/*.h"]),
-    copts = [
-        "-Wno-return-type-c-linkage",
-        "-fno-exceptions",
-        "-Wno-extern-c-compat",
-    ],
-    defines = ["EMUGL_BUILD"],
-    includes = ["gl-host-common/include"],
-    linkopts = select({
-        "@platforms//os:windows": [
-            "-DEFAULTLIB:D3d9.lib",
-            "-DEFAULTLIB:Advapi32.lib",
-        ],
-        "//conditions:default": [],
-    }),
-    visibility = ["//visibility:public"],
-    deps = [
-        "//common/opengl:gfxstream_opengl_headers",
-        "//host:gfxstream_backend_headers",
-        "//host/apigen-codec-common",
-        "//host/features:gfxstream_features",
-        "//host/logging:gfxstream_host_logging",
-        "//host/snapshot:aemu-snapshot",
-    ],
-)
-
-cc_library(
     name = "gles2_dec",
     srcs = [
         "gles2_dec/GLESv2Decoder.cpp",
@@ -203,7 +168,6 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":GLSnapshot",
-        "//:gfxstream-gl-host-common-headers",
         "//common/opengl:gfxstream_opengl_headers",
         "//host/apigen-codec-common",
         "//host/backend:gfxstream_host_backend",
@@ -264,13 +228,12 @@ cc_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
-        ":gfxstream-gl-host-common",
         ":gles1_dec",
         ":gles2_dec",
-        "//:gfxstream-gl-host-common-headers",
         "//host:gfxstream_backend_headers",
         "//host/apigen-codec-common",
         "//host/backend:gfxstream_host_backend",
+        "//host/features:gfxstream_features",
         "//host/gl:GLSnapshot",
         "//host/gl/OpenGLESDispatch:gfxstream_host_openglesdispatch",
         "//host/logging:gfxstream_host_logging",

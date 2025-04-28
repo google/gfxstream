@@ -18,6 +18,7 @@ namespace gfxstream {
 namespace {
 
 static int sGuestAndroidApiLevel = -1;
+static GrallocImplementation sGuestAndroidGralloc = MINIGBM;
 
 }  // namespace
 
@@ -27,6 +28,14 @@ void set_gfxstream_guest_android_api_level(int level) {
 
 int get_gfxstream_guest_android_api_level() {
     return sGuestAndroidApiLevel;
+}
+
+void set_gfxstream_guest_android_gralloc(GrallocImplementation gralloc) {
+    sGuestAndroidGralloc = gralloc;
+}
+
+GrallocImplementation get_gfxstream_guest_android_gralloc() {
+    return sGuestAndroidGralloc;
 }
 
 }  // namespace gfxstream

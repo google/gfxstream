@@ -18,6 +18,7 @@ if (NOT TARGET gfxstream_host_backend)
         display_surface_user.cpp
         dma_device.cpp
         guest_operations.cpp
+        renderer_operations.cpp
         sync_device.cpp
         vm_operations.cpp
         window_operations.cpp

@@ -21,13 +21,12 @@ endif()
 target_link_libraries(
     apigen-codec-common
     PUBLIC
-    gfxstream-gl-host-common.headers
     gfxstream_host_logging
+    gfxstream_opengl_headers
     aemu-base.headers)
 target_include_directories(
     apigen-codec-common
     PUBLIC
     ${GFXSTREAM_REPO_ROOT}/host/apigen-codec-common
     PRIVATE
-    ${GFXSTREAM_REPO_ROOT}/host
-    ${GFXSTREAM_REPO_ROOT}/include)
+    ${GFXSTREAM_REPO_ROOT}/host)

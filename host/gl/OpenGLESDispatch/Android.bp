@@ -13,6 +13,12 @@ cc_library_headers {
     export_include_dirs: [
         "include",
     ],
+    header_libs: [
+        "gfxstream_opengl_headers",
+    ],
+    export_header_lib_headers: [
+        "gfxstream_opengl_headers",
+    ],
 }
 
 cc_library_static {

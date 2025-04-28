@@ -27,11 +27,6 @@ if (ENABLE_VKCEREAL_TESTS)
         gfxstream-compressedTextures_unittests
         AstcCpuDecompressor_unittest.cpp)
 
-    target_include_directories(
-        gfxstream-compressedTextures_unittests
-        PRIVATE
-        ${GFXSTREAM_REPO_ROOT}/include)
-
     target_link_libraries(
         gfxstream-compressedTextures_unittests
         PRIVATE

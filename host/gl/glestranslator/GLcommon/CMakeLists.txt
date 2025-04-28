@@ -22,7 +22,6 @@ add_library(
 target_include_directories(
     GLcommon PUBLIC
     ${GFXSTREAM_REPO_ROOT}
-    ${GFXSTREAM_REPO_ROOT}/include
     ${GFXSTREAM_REPO_ROOT}/host
     ${GFXSTREAM_REPO_ROOT}/host/apigen-codec-common
     ${GFXSTREAM_REPO_ROOT}/host/gl/glestranslator/GLcommon/include)

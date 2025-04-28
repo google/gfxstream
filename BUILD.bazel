@@ -1,4 +1,3 @@
-load("@rules_cc//cc:defs.bzl", "cc_library")
 load("@rules_license//rules:license.bzl", "license")
 load("@rules_license//rules:license_kind.bzl", "license_kind")
 
@@ -63,17 +62,4 @@ license_kind(
     name = "SPDX-license-identifier-BSD",
     conditions = ["notice"],
     url = "https://spdx.org/licenses/BSD-3-Clause.html",
-)
-
-cc_library(
-    name = "gfxstream-gl-host-common-headers",
-    hdrs = glob([
-        "include/**/*.h",
-    ]),
-    includes = ["include"],
-    visibility = ["//visibility:public"],
-    deps = [
-        "@aemu//base:aemu-base-headers",
-        "@aemu//host-common:aemu-host-common-headers",
-    ],
 )

@@ -36,4 +36,6 @@ std::string Join(const ContainerT& things, SeparatorT separator) {
     return result.str();
 }
 
+bool HasExtension(const std::string& haystack, const std::string& needle);
+
 }  // namespace gfxstream

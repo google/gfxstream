@@ -60,7 +60,6 @@ if(BUILD_GRAPHICS_DETECTOR)
         gfxstream_graphics_detector
         PRIVATE
         libgfxstream_graphics_detector_proto
-        gfxstream-gl-host-common.headers
         gfxstream_vulkan_headers
         Threads::Threads
         ${CMAKE_DL_LIBS}

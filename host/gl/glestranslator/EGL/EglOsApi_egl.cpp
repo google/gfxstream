@@ -19,8 +19,8 @@
 #include "ShaderCache.h"
 #include "aemu/base/SharedLibrary.h"
 #include "aemu/base/system/System.h"
+#include "gfxstream/Strings.h"
 #include "gfxstream/host/logging.h"
-#include "host-common/opengl/misc.h"
 
 #ifdef ANDROID
 #include <android/native_window.h>
@@ -138,6 +138,8 @@ static const char* kGLES2LibName = "libGLESv2.dylib";
       (EGLDEBUGPROCKHR callback, const EGLAttrib * attrib_list))               \
 
 namespace {
+
+using gfxstream::HasExtension;
 using namespace EglOS;
 
 class EglOsEglDispatcher {
@@ -409,7 +411,7 @@ EglOsEglDisplay::EglOsEglDisplay(bool nullEgl) {
     else mGlxDisplay = getX11Api()->XOpenDisplay(0);
 #endif // __linux__
 
-    if (clientExts != nullptr && emugl::hasExtension(clientExts, "EGL_ANDROID_blob_cache")) {
+    if (clientExts != nullptr && HasExtension(clientExts, "EGL_ANDROID_blob_cache")) {
         mDispatcher.eglSetBlobCacheFuncsANDROID(mDisplay, SetBlob, GetBlob);
     }
 
@@ -627,12 +629,12 @@ EglOsEglDisplay::createContext(EGLint profileMask,
     bool disable_robustness = vendor && (strcmp(vendor, "Imagination Technologies") == 0);
 
     bool disableValidation = android::base::getEnvironmentVariable("ANDROID_EMUGL_EGL_VALIDATION") == "0";
-    if (exts != nullptr && emugl::hasExtension(exts, "EGL_KHR_create_context_no_error") && disableValidation) {
+    if (exts != nullptr && HasExtension(exts, "EGL_KHR_create_context_no_error") && disableValidation) {
         attributes.push_back(EGL_CONTEXT_OPENGL_NO_ERROR_KHR);
         attributes.push_back(EGL_TRUE);
     }
 
-    if (exts != nullptr && emugl::hasExtension(exts, "EGL_EXT_create_context_robustness") && !disable_robustness) {
+    if (exts != nullptr && HasExtension(exts, "EGL_EXT_create_context_robustness") && !disable_robustness) {
         attributes.push_back(EGL_CONTEXT_OPENGL_RESET_NOTIFICATION_STRATEGY_EXT);
         attributes.push_back(EGL_LOSE_CONTEXT_ON_RESET_EXT);
     }
@@ -685,7 +687,7 @@ Surface* EglOsEglDisplay::createWindowSurface(PixelFormat* pf,
     D("%s\n", __FUNCTION__);
     std::vector<EGLint> surface_attribs;
     auto exts = mDispatcher.eglQueryString(mDisplay, EGL_EXTENSIONS);
-    if (exts != nullptr && emugl::hasExtension(exts, "EGL_ANGLE_direct_composition")) {
+    if (exts != nullptr && HasExtension(exts, "EGL_ANGLE_direct_composition")) {
 #ifdef EGL_ANGLE_direct_composition
         surface_attribs.push_back(EGL_DIRECT_COMPOSITION_ANGLE);
         surface_attribs.push_back(EGL_TRUE);

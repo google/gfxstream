@@ -19,7 +19,7 @@
 #include "aemu/base/system/System.h"
 #include "aemu/base/threads/FunctorThread.h"
 #include "aemu/base/testing/TestSystem.h"
-#include "host-common/opengl/misc.h"
+#include "gfxstream/host/renderer_operations.h"
 #include "Standalone.h"
 
 #include <EGL/egl.h>
@@ -97,9 +97,9 @@ bool shouldUseHostGpu() {
 
     // Also set the global emugl renderer accordingly.
     if (useHost) {
-        emugl::setRenderer(SELECTED_RENDERER_HOST);
+        set_gfxstream_renderer(SELECTED_RENDERER_HOST);
     } else {
-        emugl::setRenderer(SELECTED_RENDERER_SWIFTSHADER_INDIRECT);
+        set_gfxstream_renderer(SELECTED_RENDERER_SWIFTSHADER_INDIRECT);
     }
 
     return useHost;

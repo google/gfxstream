@@ -12,14 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "render-utils/gralloc_enums.h"
+#include "render-utils/renderer_enums.h"
 
 namespace gfxstream {
 
-void set_gfxstream_guest_android_api_level(int level);
-int get_gfxstream_guest_android_api_level();
+void set_gfxstream_renderer(SelectedRenderer renderer);
+SelectedRenderer get_gfxstream_renderer();
 
-void set_gfxstream_guest_android_gralloc(GrallocImplementation gralloc);
-GrallocImplementation get_gfxstream_guest_android_gralloc();
+void set_gfxstream_gles_version(int maj, int min);
+void get_gfxstream_gles_version(int* maj, int* min);
+
+void set_gfxstream_should_skip_draw(bool skip);
+bool get_gfxstream_should_skip_draw();
+
 
 }  // namespace gfxstream

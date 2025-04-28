@@ -6,6 +6,9 @@ package {
 cc_library_static {
     name: "libgfxstream_host_apigen_codec_common",
     defaults: ["gfxstream_defaults"],
+    header_libs: [
+        "gfxstream_opengl_headers",
+    ],
     static_libs: [
         "gfxstream_base",
         "libgfxstream_host_logging",

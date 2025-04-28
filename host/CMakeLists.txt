@@ -71,6 +71,21 @@ else()
     set(stream-server-core-platform-sources NativeSubWindow_x11.cpp)
 endif()
 
+add_library(
+    gfxstream_backend.headers
+    INTERFACE
+    )
+target_link_libraries(
+    gfxstream_backend.headers
+    INTERFACE
+    gfxstream_features.headers
+    gfxstream_host_snapshot.headers
+    )
+target_include_directories(
+    gfxstream_backend.headers
+    INTERFACE
+    include
+    )
 
 
 # Compile everything as a static library first so that unit tests can call non-exported functions
@@ -83,6 +98,7 @@ add_library(
 target_link_libraries(
         gfxstream_backend_static
         PUBLIC
+        gfxstream_backend.headers
         ${GFXSTREAM_BASE_LIB}
         ${GFXSTREAM_HOST_COMMON_LIB}
         apigen-codec-common
@@ -105,7 +121,6 @@ target_include_directories(
         gfxstream_backend_static
         PUBLIC
         ${GFXSTREAM_REPO_ROOT}
-        ${GFXSTREAM_REPO_ROOT}/include
         ${GFXSTREAM_REPO_ROOT}/host
         ${GFXSTREAM_REPO_ROOT}/host/include
         ${GFXSTREAM_REPO_ROOT}/host/apigen-codec-common
@@ -155,12 +170,6 @@ target_link_libraries(
     gfxstream_backend_static
     PRIVATE
     )
-
-if(BUILD_STANDALONE)
-    target_link_libraries(gfxstream_backend
-        PRIVATE
-        gfxstream-gl-host-common)
-endif()
 
 if (APPLE)
     set_target_properties(gfxstream_backend
@@ -233,7 +242,6 @@ endfunction()
         stream-server-testing-support
         PUBLIC
         ${GFXSTREAM_REPO_ROOT}
-        ${GFXSTREAM_REPO_ROOT}/include
         ${GFXSTREAM_REPO_ROOT}/host
         ${GFXSTREAM_REPO_ROOT}/host/gl/glestranslator/GLES_CM
         ${GFXSTREAM_REPO_ROOT}/host/gl/glestranslator/include

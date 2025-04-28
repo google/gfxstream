@@ -18,10 +18,10 @@
 #include "FrameBuffer.h"
 #include "gfxstream/host/display_operations.h"
 #include "gfxstream/host/logging.h"
+#include "gfxstream/host/renderer_operations.h"
 #include "gfxstream/host/window_operations.h"
 #include "gl/DisplayGl.h"
 #include "gl/DisplaySurfaceGl.h"
-#include "host-common/misc.h"
 
 namespace gfxstream {
 
@@ -88,7 +88,7 @@ std::shared_future<void> PostWorkerGl::postImpl(ColorBuffer* cb) {
     const bool pixel_fold = multiDisplay.is_pixel_fold();
     if (pixel_fold) {
 #ifdef CONFIG_AEMU
-        if (emugl::shouldSkipDraw()) {
+        if (get_gfxstream_should_skip_draw()) {
             post.layers.clear();
         } else {
             post.layers.push_back(postWithOverlay(cb));

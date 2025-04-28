@@ -22,9 +22,9 @@
 #include <string>
 
 #include "OpenGLESDispatch/DispatchTables.h"
+#include "gfxstream/host/guest_operations.h"
 #include "gfxstream/host/logging.h"
-#include "host-common/feature_control.h"
-#include "host-common/opengl/misc.h"
+#include "gfxstream/host/renderer_operations.h"
 
 namespace gfxstream {
 namespace gl {
@@ -329,7 +329,7 @@ static void getYUVOffsets(int width,
             *yOffsetBytes = 0;
             // Luma stride is 32 bytes aligned in minigbm, 16 in goldfish
             // gralloc.
-            *yStridePixels = alignToPower2(width, emugl::getGrallocImplementation() == MINIGBM
+            *yStridePixels = alignToPower2(width, get_gfxstream_guest_android_gralloc() == MINIGBM
                     ? 32 : 16);
             *yStrideBytes = *yStridePixels;
 
@@ -897,7 +897,7 @@ void YUVConverter::init(int width, int height, FrameworkFormat format) {
 
     int glesMajor;
     int glesMinor;
-    emugl::getGlesVersion(&glesMajor, &glesMinor);
+    get_gfxstream_gles_version(&glesMajor, &glesMinor);
     mHasGlsl3Support = glesMajor >= 3;
     YUV_DEBUG_LOG("YUVConverter has GLSL ES 3 support:%s (major:%d minor:%d", (mHasGlsl3Support ? "yes" : "no"), glesMajor, glesMinor);
 

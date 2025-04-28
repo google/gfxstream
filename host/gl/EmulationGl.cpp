@@ -28,7 +28,7 @@
 #include "RenderThreadInfoGl.h"
 #include "aemu/base/misc/StringUtils.h"
 #include "gfxstream/host/logging.h"
-#include "host-common/opengl/misc.h"
+#include "gfxstream/host/renderer_operations.h"
 
 namespace gfxstream {
 namespace gl {
@@ -305,7 +305,7 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
 
     int glesVersionMajor;
     int glesVersionMinor;
-    emugl::getGlesVersion(&glesVersionMajor, &glesVersionMinor);
+    get_gfxstream_gles_version(&glesVersionMajor, &glesVersionMinor);
     emulationGl->mGlesVersionMajor = glesVersionMajor;
     emulationGl->mGlesVersionMinor = glesVersionMinor;
 
@@ -321,9 +321,9 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
     emulationGl->mFastBlitSupported =
         (emulationGl->mGlesDispatchMaxVersion > GLES_DISPATCH_MAX_VERSION_2) &&
         !disableFastBlit &&
-        (emugl::getRenderer() == SELECTED_RENDERER_HOST ||
-         emugl::getRenderer() == SELECTED_RENDERER_SWIFTSHADER_INDIRECT ||
-         emugl::getRenderer() == SELECTED_RENDERER_ANGLE_INDIRECT);
+        (get_gfxstream_renderer() == SELECTED_RENDERER_HOST ||
+         get_gfxstream_renderer() == SELECTED_RENDERER_SWIFTSHADER_INDIRECT ||
+         get_gfxstream_renderer() == SELECTED_RENDERER_ANGLE_INDIRECT);
 
     auto eglConfigOpt = getEmulationEglConfig(emulationGl->mEglDisplay, allowWindowSurface);
     if (!eglConfigOpt) {
@@ -547,7 +547,7 @@ std::unique_ptr<gfxstream::DisplaySurface> EmulationGl::createFakeWindowSurface(
 
 /*static*/ const GLint* EmulationGl::getGlesMaxContextAttribs() {
     int glesMaj, glesMin;
-    emugl::getGlesVersion(&glesMaj, &glesMin);
+    get_gfxstream_gles_version(&glesMaj, &glesMin);
     if (shouldEnableCoreProfile()) {
         if (glesMaj == 2) {
             return kGles2ContextAttribsCoreGL;
