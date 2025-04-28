@@ -1016,7 +1016,7 @@ int ApiGen::genDecoderImpl(const std::string &filename)
     fprintf(fp, "#include \"%s_dec.h\"\n\n\n", m_basename.c_str());
     fprintf(fp, "#include \"ProtocolUtils.h\"\n\n");
     fprintf(fp, "#include \"ChecksumCalculatorThreadInfo.h\"\n\n");
-    fprintf(fp, "#include \"host-common/logging.h\"\n\n");
+    fprintf(fp, "#include \"gfxstream/host/logging.h\"\n\n");
     fprintf(fp, "#include <stdio.h>\n\n");
 
     fprintf(fp, "namespace gfxstream {\n\n");

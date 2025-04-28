@@ -41,7 +41,6 @@ cc_test(
     deps = [
         ":gfxstream-compressedTextures",
         "@aemu//base:aemu-base",
-        "@aemu//host-common:logging",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -153,8 +152,6 @@ cc_library(
         "//host/vulkan:gfxstream-vulkan-server",
         "@aemu//base:aemu-base",
         "@aemu//base:aemu-base-metrics",
-        "@aemu//host-common:aemu-host-common",
-        "@aemu//host-common:logging",
     ] + select({
         "@platforms//os:macos": [
             ":gfxstream_backend_static-darwin",
@@ -186,7 +183,6 @@ cc_library(
         "//common/utils:gfxstream_common_utils",
         "@aemu//base:aemu-base",
         "@aemu//base:aemu-base-metrics",
-        "@aemu//host-common:aemu-host-common-product-feature-override",
     ],
 )
 
@@ -204,7 +200,6 @@ cc_binary(
         "//common/utils:gfxstream_common_utils",
         "@aemu//base:aemu-base",
         "@aemu//base:aemu-base-metrics",
-        "@aemu//host-common:aemu-host-common-product-feature-override",
     ],
 )
 

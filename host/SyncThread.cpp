@@ -25,7 +25,6 @@
 #include "aemu/base/threads/Thread.h"
 #include "gfxstream/host/Tracing.h"
 #include "gfxstream/host/logging.h"
-#include "host-common/crash_reporter.h"
 #include "gfxstream/host/sync_device.h"
 
 #ifndef _MSC_VER

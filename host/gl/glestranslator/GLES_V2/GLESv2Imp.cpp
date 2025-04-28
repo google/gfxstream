@@ -46,7 +46,6 @@
 #include "TransformFeedbackData.h"
 #include "aemu/base/system/System.h"
 #include "gfxstream/host/logging.h"
-#include "host-common/crash_reporter.h"
 
 #ifdef _MSC_VER
 #include "aemu/base/msvc.h"
@@ -403,12 +402,7 @@ static void blitFromCurrentReadBufferANDROID(EGLImage image) {
     GET_CTX()
     unsigned int imagehndl = SafeUIntFromPointer(image);
     ImagePtr img = s_eglIface->getEGLImage(imagehndl);
-    if (!img ||
-        !ctx->shareGroup().get()) {
-        // emugl_crash_reporter(
-        //         "FATAL: blitFromCurrentReadBufferANDROID: "
-        //         "image (%p) or share group (%p) not found",
-        //         img.get(), ctx->shareGroup().get());
+    if (!img || !ctx->shareGroup().get()) {
         return;
     }
 

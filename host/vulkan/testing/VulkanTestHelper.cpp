@@ -15,9 +15,6 @@
 #include "VulkanTestHelper.h"
 
 #include "gfxstream/host/logging.h"
-#include "host-common/emugl_vm_operations.h"
-#include "host-common/feature_control.h"
-#include "host-common/vm_operations.h"
 
 namespace gfxstream {
 namespace vk {
@@ -63,11 +60,6 @@ VulkanTestHelper::VulkanTestHelper()
                                        .healthMonitor = &mHealthMonitor,
                                        .metricsLogger = mMetricsLogger.get()}),
       mTestDispatch(mVk, mBp.get(), &mDecoderContext) {
-    // This is used by VkDecoderGlobalState::on_vkCreateInstance()
-    QAndroidVmOperations vmOps;
-    vmOps.setSkipSnapshotSave = [](bool) {};
-    set_emugl_vm_operations(vmOps);
-
     validationErrorsFound = false;
 }
 

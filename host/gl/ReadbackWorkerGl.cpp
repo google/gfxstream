@@ -24,7 +24,6 @@
 #include "OpenGLESDispatch/GLESv2Dispatch.h"
 #include "gfxstream/host/logging.h"
 #include "gl/ColorBufferGl.h"
-#include "host-common/misc.h"
 
 namespace gfxstream {
 namespace gl {

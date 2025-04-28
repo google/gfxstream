@@ -11,7 +11,6 @@ target_link_libraries(
     GLcommon
     apigen-codec-common
     aemu-base.headers
-    aemu-host-common.headers
     gfxstream_host_logging
     gfxstream_host_snapshot.headers
     gfxstream_egl_headers)

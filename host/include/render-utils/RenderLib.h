@@ -24,7 +24,6 @@
 #include "render-utils/dma_device.h"
 #include "render-utils/gralloc_enums.h"
 #include "render-utils/logging_operations.h"
-#include "render-utils/render_api_types.h"
 #include "render-utils/renderer_enums.h"
 #include "render-utils/sync_device.h"
 #include "render-utils/vm_operations.h"

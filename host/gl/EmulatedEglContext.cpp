@@ -22,8 +22,6 @@
 #include "OpenGLESDispatch/GLESv1Dispatch.h"
 #include "aemu/base/containers/SmallVector.h"
 #include "gfxstream/host/logging.h"
-#include "host-common/feature_control.h"
-#include "host-common/misc.h"
 
 namespace gfxstream {
 namespace gl {
