@@ -261,8 +261,8 @@ bool FrameBuffer::initialize(int width, int height, const gfxstream::host::Featu
 
         gfxstream::host::BackendCallbacks callbacks{
             .registerProcessCleanupCallback =
-                [fb = fb.get()](void* key, std::function<void()> callback) {
-                    fb->registerProcessCleanupCallback(key, callback);
+                [fb = fb.get()](void* key, uint64_t contextId, std::function<void()> callback) {
+                    fb->registerProcessCleanupCallback(key, contextId, callback);
                 },
             .unregisterProcessCleanupCallback =
                 [fb = fb.get()](void* key) { fb->unregisterProcessCleanupCallback(key); },
@@ -2614,12 +2614,11 @@ BufferPtr FrameBuffer::findBuffer(HandleType p_buffer) {
     }
 }
 
-void FrameBuffer::registerProcessCleanupCallback(void* key, std::function<void()> cb) {
+void FrameBuffer::registerProcessCleanupCallback(void* key, uint64_t contextId,
+                                                 std::function<void()> cb) {
     AutoLock mutex(m_lock);
-    RenderThreadInfo* tInfo = RenderThreadInfo::get();
-    if (!tInfo) return;
 
-    auto& callbackMap = m_procOwnedCleanupCallbacks[tInfo->m_puid];
+    auto& callbackMap = m_procOwnedCleanupCallbacks[contextId];
     if (!callbackMap.insert({key, std::move(cb)}).second) {
         GFXSTREAM_ERROR("%s: tried to override existing key %p ", __func__, key);
     }

@@ -489,7 +489,9 @@ intptr_t RenderThread::main() {
             // Note: It's risky to limit Vulkan decoding to one thread,
             // so we do it outside the limiter
             if (tInfo->m_vkInfo) {
-                tInfo->m_vkInfo->ctx_id = mContextId;
+                if (tInfo->m_vkInfo->ctx_id == 0) {
+                    tInfo->m_vkInfo->ctx_id = mContextId;
+                }
                 VkDecoderContext context = {
                     .processName = contextName,
                     .gfxApiLogger = &gfxLogger,

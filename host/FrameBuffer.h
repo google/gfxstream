@@ -439,7 +439,7 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     ColorBufferPtr findColorBuffer(HandleType p_colorbuffer);
     BufferPtr findBuffer(HandleType p_buffer);
 
-    void registerProcessCleanupCallback(void* key,
+    void registerProcessCleanupCallback(void* key, uint64_t contextId,
                                         std::function<void()> callback);
     void unregisterProcessCleanupCallback(void* key);
 

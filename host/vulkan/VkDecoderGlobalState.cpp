@@ -349,7 +349,15 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
-        GFXSTREAM_DEBUG("snapshot save: replay command stream");
+        GFXSTREAM_DEBUG("snapshot save: save boxed instance and context id");
+        {
+            stream->putBe64(static_cast<uint64_t>(mInstanceInfo.size()));
+            for (const auto& [instance, instanceInfo] : mInstanceInfo) {
+                stream->putBe64(reinterpret_cast<uint64_t>(instanceInfo.boxed));
+                stream->putBe32(reinterpret_cast<uint32_t>(instanceInfo.contextId));
+            }
+        }
+
         snapshot()->saveReplayBuffers(stream);
 
         // Save mapped memory
@@ -610,6 +618,18 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
+        {
+            std::lock_guard<std::mutex> lock(mMutex);
+            mSnapshotLoadBoxedInstance2ContextId.clear();
+            const uint64_t count = stream->getBe64();
+            for (uint64_t i = 0; i < count; i++) {
+                const uint64_t boxed_instance = stream->getBe64();
+                const uint64_t contextId = stream->getBe32();
+                mSnapshotLoadBoxedInstance2ContextId[reinterpret_cast<VkInstance>(boxed_instance)] =
+                    contextId;
+            }
+        }
+
         // Replay command stream:
         GFXSTREAM_DEBUG("snapshot load: replay command stream");
         {
@@ -836,6 +856,7 @@ class VkDecoderGlobalState::Impl {
             }
 #endif
 
+            mSnapshotLoadBoxedInstance2ContextId.clear();
             mSnapshotState = SnapshotState::Normal;
         }
         GFXSTREAM_DEBUG("VulkanSnapshots load (end)");
@@ -981,6 +1002,13 @@ class VkDecoderGlobalState::Impl {
         std::string_view engineName = appInfo.pEngineName ? appInfo.pEngineName : "";
         info.isAngle = (engineName == "ANGLE");
 
+        if (mSnapshotState == SnapshotState::Loading) {
+            info.contextId = mSnapshotLoadBoxedInstance2ContextId[boxed];
+        } else {
+            auto* renderThreadInfo = RenderThreadInfoVk::get();
+            info.contextId = renderThreadInfo->ctx_id;
+        }
+
         VALIDATE_NEW_HANDLE_INFO_ENTRY(mInstanceInfo, *pInstance);
         mInstanceInfo[*pInstance] = info;
 
@@ -988,7 +1016,7 @@ class VkDecoderGlobalState::Impl {
 
         if (vkCleanupEnabled()) {
             m_vkEmulation->getCallbacks().registerProcessCleanupCallback(
-                unbox_VkInstance(boxed), [this, boxed] {
+                unbox_VkInstance(boxed), info.contextId, [this, boxed] {
                     if (snapshotsEnabled()) {
                         snapshot()->vkDestroyInstance(nullptr, nullptr, nullptr, 0, boxed, nullptr);
                     }
@@ -9501,6 +9529,8 @@ class VkDecoderGlobalState::Impl {
     // replayed on the "same" RenderThread which originally made the API call so
     // RenderThreadInfoVk::ctx_id is not available.
     std::optional<std::unordered_map<VkDevice, uint32_t>> mSnapshotLoadVkDeviceToVirtioCpuContextId
+        GUARDED_BY(mMutex);
+    std::unordered_map<VkInstance, uint32_t> mSnapshotLoadBoxedInstance2ContextId
         GUARDED_BY(mMutex);
 
     struct LinearImageCreateInfo {
