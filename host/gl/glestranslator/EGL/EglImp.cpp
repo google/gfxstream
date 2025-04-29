@@ -1741,7 +1741,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglSaveAllImages(EGLDisplay display,
     iface->preSaveTexture();
     dpy->onSaveAllImages(
             stm,
-            *static_cast<const android::snapshot::ITextureSaverPtr*>(textureSaver),
+            *static_cast<const gfxstream::ITextureSaverPtr*>(textureSaver),
             iface->saveTexture,
             iface->restoreTexture);
     iface->postSaveTexture();
@@ -1759,7 +1759,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglLoadAllImages(EGLDisplay display,
     android::base::Stream* stm = static_cast<android::base::Stream*>(stream);
     dpy->onLoadAllImages(
             stm,
-            *static_cast<const android::snapshot::ITextureLoaderPtr*>(textureLoader),
+            *static_cast<const gfxstream::ITextureLoaderPtr*>(textureLoader),
             iface->createTexture);
     return EGL_TRUE;
 }

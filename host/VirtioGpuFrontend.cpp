@@ -976,15 +976,12 @@ int VirtioGpuFrontend::snapshotRenderer(const char* directory) {
 
     android::base::StdioStream stream(fopen(snapshotPath.c_str(), "wb"),
                                       android::base::StdioStream::kOwner);
-    android::snapshot::SnapshotSaveStream saveStream{
-        .stream = &stream,
-    };
 
     if (!mRenderer) {
         GFXSTREAM_ERROR("Failed to snapshot renderer: renderer not available.");
         return -EINVAL;
     }
-    mRenderer->save(saveStream.stream, saveStream.textureSaver);
+    mRenderer->save(&stream, nullptr);
 
     return 0;
 }
@@ -1041,11 +1038,8 @@ int VirtioGpuFrontend::snapshotAsg(const char* directory) {
 
     android::base::StdioStream stream(fopen(snapshotPath.c_str(), "wb"),
                                       android::base::StdioStream::kOwner);
-    android::snapshot::SnapshotLoadStream saveStream{
-        .stream = &stream,
-    };
 
-    int ret = gfxstream_address_space_save_memory_state(saveStream.stream);
+    int ret = gfxstream_address_space_save_memory_state(&stream);
     if (ret) {
         GFXSTREAM_ERROR("Failed to save snapshot: failed to save ASG state.");
         return ret;
@@ -1090,15 +1084,12 @@ int VirtioGpuFrontend::restoreRenderer(const char* directory) {
 
     android::base::StdioStream stream(fopen(snapshotPath.c_str(), "rb"),
                                       android::base::StdioStream::kOwner);
-    android::snapshot::SnapshotLoadStream loadStream{
-        .stream = &stream,
-    };
 
     if (!mRenderer) {
         GFXSTREAM_ERROR("Failed to restore renderer: renderer not available.");
         return -EINVAL;
     }
-    mRenderer->load(loadStream.stream, loadStream.textureLoader);
+    mRenderer->load(&stream, nullptr);
 
     return 0;
 }
@@ -1158,9 +1149,6 @@ int VirtioGpuFrontend::restoreAsg(const char* directory) {
 
     android::base::StdioStream stream(fopen(snapshotPath.c_str(), "rb"),
                                       android::base::StdioStream::kOwner);
-    android::snapshot::SnapshotLoadStream loadStream{
-        .stream = &stream,
-    };
 
     // Gather external memory info that the ASG device needs to reload.
     AddressSpaceDeviceLoadResources asgLoadResources;
@@ -1199,7 +1187,7 @@ int VirtioGpuFrontend::restoreAsg(const char* directory) {
         return ret;
     }
 
-    ret = gfxstream_address_space_load_memory_state(loadStream.stream);
+    ret = gfxstream_address_space_load_memory_state(&stream);
     if (ret) {
         GFXSTREAM_ERROR("Failed to restore ASG device: failed to restore ASG state.");
         return ret;

@@ -16,14 +16,9 @@
 
 #pragma once
 
-#include "aemu/base/Compiler.h"
-#include "aemu/base/synchronization/Lock.h"
+#include <mutex>
 
-namespace android {
-
-namespace base { class Stream; }
-
-namespace snapshot {
+namespace gfxstream {
 
 // LazySnapshotObj is a base class for objects that use lazy strategy for
 // snapshot loading. It separates heavy-weight loading / restoring operations
@@ -35,16 +30,22 @@ namespace snapshot {
 // disk but does not load them into GPU. On restore it performs the heavy-weight
 // GPU data loading.
 
+#include "aemu/base/files/Stream.h"
+
 template <class Derived>
 class LazySnapshotObj {
-    DISALLOW_COPY_AND_ASSIGN(LazySnapshotObj);
-public:
+  public:
     LazySnapshotObj() = default;
+    ~LazySnapshotObj() = default;
+
+    LazySnapshotObj(const LazySnapshotObj&) = delete;
+    LazySnapshotObj& operator=(const LazySnapshotObj&) = delete;
+
     // Snapshot loader
-    LazySnapshotObj(base::Stream*) : mNeedRestore(true) {}
+    LazySnapshotObj(android::base::Stream*) : mNeedRestore(true) {}
 
     void touch() {
-        base::AutoLock lock(mMutex);
+        std::lock_guard<std::mutex> lock(mMutex);
         if (!mNeedRestore) {
             return;
         }
@@ -53,17 +54,15 @@ public:
     }
 
     bool needRestore() const {
-        base::AutoLock lock(mMutex);
+        std::lock_guard<std::mutex> lock(mMutex);
         return mNeedRestore;
     }
 
-protected:
-    ~LazySnapshotObj() = default;
+  protected:
     bool mNeedRestore = false;
 
-private:
-    mutable base::Lock mMutex;
+  private:
+    mutable std::mutex mMutex;
 };
 
-} // namespace snapshot
-} // namespace android
+} // namespace gfxstream

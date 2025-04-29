@@ -14,8 +14,11 @@
 
 #pragma once
 
-#include "OpenGLESDispatch/OpenGLDispatchLoader.h"
+#include <memory>
 
+#include "InMemoryTextureSaverLoader.h"
+#include "OpenGLESDispatch/OpenGLDispatchLoader.h"
+#include "aemu/base/files/MemStream.h"
 #include "aemu/base/testing/TestSystem.h"
 
 namespace gfxstream {
@@ -64,9 +67,9 @@ protected:
     int mLoadCount = 0;
 
     android::base::TestSystem mTestSystem;
-    std::string mSnapshotPath = {};
-    std::string mSnapshotFile = {};
-    std::string mTextureFile = {};
+
+    std::unique_ptr<android::base::MemStream> mStream;
+    std::shared_ptr<InMemoryTextureSaverLoader> mTextureSaverLoader;
 };
 
 }  // namespace gl

@@ -5,18 +5,7 @@ target_include_directories(
     gfxstream_host_snapshot.headers
     INTERFACE
     include)
-
-add_library(
-    gfxstream_host_snapshot
-    TextureLoader.cpp
-    TextureSaver.cpp)
 target_link_libraries(
-    gfxstream_host_snapshot
-    PRIVATE
-    aemu-base.headers
-    aemu-host-common.headers
-    gfxstream_host_snapshot.headers)
-target_include_directories(
-    gfxstream_host_snapshot
-    PUBLIC
-    ${AEMU_COMMON_REPO_ROOT}/include)
+    gfxstream_host_snapshot.headers
+    INTERFACE
+    aemu-base.headers)

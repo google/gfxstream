@@ -29,6 +29,7 @@ target_link_libraries(
     GLcommon
     PUBLIC
     aemu-base.headers
+    gfxstream_backend_headers
     gfxstream_host_logging
     gfxstream_host_snapshot.headers
     gfxstream-compressedTextures

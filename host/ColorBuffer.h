@@ -46,7 +46,7 @@ class VkEmulation;
 
 namespace gfxstream {
 
-class ColorBuffer : public android::snapshot::LazySnapshotObj<ColorBuffer> {
+class ColorBuffer : public LazySnapshotObj<ColorBuffer> {
    public:
     static std::shared_ptr<ColorBuffer> create(gl::EmulationGl* emulationGl,
                                                vk::VkEmulation* emulationVk, uint32_t width,

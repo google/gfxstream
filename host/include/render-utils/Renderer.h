@@ -13,18 +13,20 @@
 // limitations under the License.
 #pragma once
 
-#include "aemu/base/files/Stream.h"
-#include "aemu/base/ring_buffer.h"
-#include "render-utils/RenderChannel.h"
-#include "render-utils/address_space_graphics_types.h"
-#include "render-utils/render_api_platform_types.h"
-#include "render-utils/virtio_gpu_ops.h"
-#include "snapshot/common.h"
 
 #include <functional>
 #include <memory>
 #include <optional>
 #include <string>
+
+#include "aemu/base/files/Stream.h"
+#include "aemu/base/ring_buffer.h"
+#include "render-utils/RenderChannel.h"
+#include "render-utils/address_space_graphics_types.h"
+#include "render-utils/render_api_platform_types.h"
+#include "render-utils/snapshot_operations.h"
+#include "render-utils/virtio_gpu_ops.h"
+
 
 namespace android_studio {
 class EmulatorGLESUsages;
@@ -285,10 +287,10 @@ public:
 
     virtual void save(
             android::base::Stream* stream,
-            const android::snapshot::ITextureSaverPtr& textureSaver) = 0;
+            const ITextureSaverPtr& textureSaver) = 0;
     virtual bool load(
             android::base::Stream* stream,
-            const android::snapshot::ITextureLoaderPtr& textureLoader) = 0;
+            const ITextureLoaderPtr& textureLoader) = 0;
 
     // Fill GLES usage protobuf
     virtual void fillGLESUsages(android_studio::EmulatorGLESUsages*) = 0;
@@ -315,9 +317,10 @@ public:
                               uint8_t* pixels, size_t* cPixels, int displayId = 0,
                               int desiredWidth = 0, int desiredHeight = 0, int desiredRotation = 0,
                               Rect rect = {{0, 0}, {0, 0}}) = 0;
-    virtual void snapshotOperationCallback(
-            int snapshotterOp,
-            int snapshotterStage) = 0;
+
+
+    virtual void preLoad() = 0;
+    virtual void postLoad() = 0;
 
     virtual void setVsyncHz(int vsyncHz) = 0;
     virtual void setDisplayConfigs(int configId, int w, int h, int dpiX, int dpiY) = 0;

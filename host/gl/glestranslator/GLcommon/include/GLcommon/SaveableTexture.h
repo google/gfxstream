@@ -47,7 +47,7 @@ class TextureData;
 // destroyed.
 
 class SaveableTexture :
-        public android::snapshot::LazySnapshotObj<SaveableTexture> {
+        public gfxstream::LazySnapshotObj<SaveableTexture> {
 public:
     using Buffer = android::base::SmallVector<unsigned char>;
     using saver_t = void (*)(SaveableTexture*,

@@ -13,20 +13,22 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+
 #pragma once
-
-#include "aemu/base/threads/Thread.h"
-#include "snapshot/TextureLoader.h"
-#include "GLcommon/TranslatorIfaces.h"
-
-#include <EGL/egl.h>
 
 #include <atomic>
 #include <memory>
 
+#include <EGL/egl.h>
+
+#include "GLcommon/TranslatorIfaces.h"
+#include "aemu/base/threads/Thread.h"
+#include "render-utils/snapshot_operations.h"
+
+
 class GLBackgroundLoader : public android::base::InterruptibleThread {
 public:
-    GLBackgroundLoader(const android::snapshot::ITextureLoaderWPtr& textureLoaderWeak,
+    GLBackgroundLoader(const gfxstream::ITextureLoaderWPtr& textureLoaderWeak,
                        const EGLiface& eglIface,
                        const GLESiface& glesIface,
                        SaveableTextureMap& textureMap) :
@@ -47,7 +49,7 @@ private:
     std::atomic<int> m_loadDelayMs { 10 };
     std::atomic<bool> m_interrupted { false };
 
-    const android::snapshot::ITextureLoaderWPtr m_textureLoaderWPtr;
+    const gfxstream::ITextureLoaderWPtr m_textureLoaderWPtr;
     const EGLiface& m_eglIface;
     const GLESiface& m_glesIface;
 

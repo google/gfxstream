@@ -2177,7 +2177,7 @@ AsyncResult FrameBuffer::composeWithCallback(uint32_t bufferSize, void* buffer,
     }
 }
 
-void FrameBuffer::onSave(Stream* stream, const android::snapshot::ITextureSaverPtr& textureSaver) {
+void FrameBuffer::onSave(Stream* stream, const ITextureSaverPtr& textureSaver) {
     // Things we do not need to snapshot:
     //     m_eglSurface
     //     m_eglContext
@@ -2311,7 +2311,7 @@ void FrameBuffer::onSave(Stream* stream, const android::snapshot::ITextureSaverP
 }
 
 bool FrameBuffer::onLoad(Stream* stream,
-                         const android::snapshot::ITextureLoaderPtr& textureLoader) {
+                         const ITextureLoaderPtr& textureLoader) {
     AutoLock lock(m_lock);
     // cleanups
     {

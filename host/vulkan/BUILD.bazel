@@ -72,7 +72,6 @@ cc_library(
         "//host/gl/OpenGLESDispatch:gfxstream_host_openglesdispatch_headers",
         "//host/iostream:gfxstream_host_iostream",
         "//host/logging:gfxstream_host_logging",
-        "//host/snapshot:aemu-snapshot",
         "//host/vulkan:OpenglRender_vulkan_cereal",
         "//host/vulkan:emulated_textures",
         "//third-party/glm",

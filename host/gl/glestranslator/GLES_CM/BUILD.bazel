@@ -14,9 +14,9 @@ cc_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
+        "//host:gfxstream_backend_headers",
         "//host/apigen-codec-common",
         "//host/gl:gl_common",
-        "//host/snapshot:aemu-snapshot",
         "//third-party/glm",
     ],
 )

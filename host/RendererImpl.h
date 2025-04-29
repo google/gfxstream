@@ -26,7 +26,6 @@
 #include "aemu/base/threads/FunctorThread.h"
 #include "gfxstream/host/Features.h"
 #include "render-utils/Renderer.h"
-#include "snapshot/common.h"
 
 namespace android_studio {
     class EmulatorGLESUsages;
@@ -106,17 +105,16 @@ public:
     void resumeAll() final;
 
     void save(android::base::Stream* stream,
-              const android::snapshot::ITextureSaverPtr& textureSaver) final;
+              const ITextureSaverPtr& textureSaver) final;
     bool load(android::base::Stream* stream,
-              const android::snapshot::ITextureLoaderPtr& textureLoader) final;
+              const ITextureLoaderPtr& textureLoader) final;
     void fillGLESUsages(android_studio::EmulatorGLESUsages*) final;
     int getScreenshot(unsigned int nChannels, unsigned int* width, unsigned int* height,
                       uint8_t* pixels, size_t* cPixels, int displayId, int desiredWidth,
                       int desiredHeight, int desiredRotation, Rect rect) final;
 
-    void snapshotOperationCallback(
-            int snapshotterOp,
-            int snapshotterStage) final;
+    void preLoad() override;
+    void postLoad() override;
 
     void addListener(FrameBufferChangeEventListener* listener) override;
     void removeListener(FrameBufferChangeEventListener* listener) override;

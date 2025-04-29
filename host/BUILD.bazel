@@ -18,6 +18,9 @@ cc_library(
     copts = ["-fno-exceptions"],
     includes = ["."],
     visibility = [":__subpackages__"],
+    deps = [
+        "//host/snapshot:gfxstream_host_snapshot",
+    ],
 )
 
 cc_library(
@@ -147,7 +150,7 @@ cc_library(
         "//host/gl/glestranslator/GLES_CM:GLES_CM_translator_static",
         "//host/logging:gfxstream_host_logging",
         "//host/renderControl_dec",
-        "//host/snapshot:aemu-snapshot",
+        "//host/snapshot:gfxstream_host_snapshot",
         "//host/tracing:gfxstream_host_tracing",
         "//host/vulkan:gfxstream-vulkan-server",
         "@aemu//base:aemu-base",

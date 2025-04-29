@@ -3,21 +3,17 @@
 #include "FrameBuffer.h"
 #include "GLSnapshotTesting.h"
 #include "GLTestUtils.h"
-#include "apigen-codec-common/glUtils.h"
 #include "RenderThreadInfo.h"
-
+#include "apigen-codec-common/glUtils.h"
 #include "aemu/base/files/PathUtils.h"
 #include "aemu/base/files/StdioStream.h"
 #include "aemu/base/system/System.h"
-#include "snapshot/TextureLoader.h"
-#include "snapshot/TextureSaver.h"
+#include "render-utils/snapshot_operations.h"
 
 namespace gfxstream {
 namespace gl {
 
 using android::base::StdioStream;
-using android::snapshot::TextureLoader;
-using android::snapshot::TextureSaver;
 
 static SnapshotTestDispatch* sSnapshotTestDispatch() {
     static SnapshotTestDispatch* s = new SnapshotTestDispatch;
@@ -30,9 +26,6 @@ const GLESv2Dispatch* getSnapshotTestDispatch() {
 }
 
 SnapshotTestDispatch::SnapshotTestDispatch() {
-    mTestSystem.getTempRoot()->makeSubDir("SampleSnapshots");
-    mSnapshotPath = mTestSystem.getTempRoot()->makeSubPath("SampleSnapshots");
-
     mValid = gles2_dispatch_init(this);
     if (mValid) {
         overrideFunctions();
@@ -53,28 +46,18 @@ void SnapshotTestDispatch::saveSnapshot() {
         FAIL() << "Could not get FrameBuffer during snapshot test.";
     }
 
-    std::string timeStamp =
-            std::to_string(android::base::getUnixTimeUs()) + "-" +
-            std::to_string(mLoadCount);
-    mSnapshotFile = android::base::pj({mSnapshotPath, std::string("snapshot_") + timeStamp + ".snap"});
-    mTextureFile = android::base::pj({mSnapshotPath, std::string("textures_") + timeStamp + ".stex"});
-    std::unique_ptr<StdioStream> m_stream(new StdioStream(
-            android_fopen(mSnapshotFile.c_str(), "wb"), StdioStream::kOwner));
-    auto a_stream = static_cast<android::base::Stream*>(m_stream.get());
-    std::shared_ptr<TextureSaver> m_texture_saver(new TextureSaver(StdioStream(
-            android_fopen(mTextureFile.c_str(), "wb"), StdioStream::kOwner)));
 
-    fb->onSave(a_stream, m_texture_saver);
+    mStream = std::make_unique<android::base::MemStream>();
+    mTextureSaverLoader = std::make_shared<InMemoryTextureSaverLoader>();
+
+    fb->onSave(mStream.get(), mTextureSaverLoader);
 
     // Save thread's context and surface handles so we can restore the bind
     // after load is complete.
     RenderThreadInfo* threadInfo = RenderThreadInfo::get();
     if (threadInfo) {
-        threadInfo->onSave(a_stream);
+        threadInfo->onSave(mStream.get());
     }
-
-    m_stream->close();
-    m_texture_saver->done();
 }
 
 void SnapshotTestDispatch::loadSnapshot() {
@@ -83,20 +66,17 @@ void SnapshotTestDispatch::loadSnapshot() {
         FAIL() << "Could not get FrameBuffer during snapshot test.";
     }
 
+
     // unbind so load will destroy previous objects
     fb->bindContext(0, 0, 0);
 
-    std::unique_ptr<StdioStream> m_stream(new StdioStream(
-            android_fopen(mSnapshotFile.c_str(), "rb"), StdioStream::kOwner));
-    std::shared_ptr<TextureLoader> m_texture_loader(
-            new TextureLoader(StdioStream(android_fopen(mTextureFile.c_str(), "rb"),
-                                          StdioStream::kOwner)));
+    android::base::MemStream loadStream(android::base::MemStream::Buffer(mStream->buffer()));
 
-    fb->onLoad(m_stream.get(), m_texture_loader);
+    fb->onLoad(&loadStream, mTextureSaverLoader);
 
     RenderThreadInfo* threadInfo = RenderThreadInfo::get();
     if (threadInfo) {
-        threadInfo->onLoad(m_stream.get());
+        threadInfo->onLoad(&loadStream);
         // rebind to context
         fb->bindContext(
                 threadInfo->m_glInfo->currContext ? threadInfo->m_glInfo->currContext->getHndl()
@@ -107,8 +87,7 @@ void SnapshotTestDispatch::loadSnapshot() {
                                          : 0);
     }
 
-    m_stream->close();
-    m_texture_loader->join();
+    mTextureSaverLoader->join();
 
     mLoadCount++;
 }

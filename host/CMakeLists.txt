@@ -101,7 +101,6 @@ target_link_libraries(
         PUBLIC
         gfxstream_backend.headers
         ${GFXSTREAM_BASE_LIB}
-        ${GFXSTREAM_HOST_COMMON_LIB}
         apigen-codec-common
         gfxstream_egl_headers
         gfxstream_features
@@ -109,7 +108,7 @@ target_link_libraries(
         gfxstream_host_backend
         gfxstream_host_iostream
         gfxstream_host_logging
-        gfxstream_host_snapshot
+        gfxstream_host_snapshot.headers
         gfxstream_host_tracing
         gfxstream_openglesdispatch
         gfxstream_utils

@@ -82,17 +82,6 @@ if(NOT TARGET aemu_common)
         add_library(aemu-base.headers INTERFACE)
         target_include_directories(aemu-base.headers INTERFACE ${aemu_base_INCLUDE_DIRS})
 
-        add_library(aemu-host-common.headers INTERFACE)
-        target_include_directories(aemu-host-common.headers INTERFACE ${aemu_host_common_INCLUDE_DIRS})
-        target_link_libraries(aemu-host-common.headers INTERFACE renderdoc gfxstream_vulkan_headers)
-
-        add_library(gfxstream_host_snapshot.headers INTERFACE)
-        target_include_directories(gfxstream_host_snapshot.headers INTERFACE ${aemu_snapshot_INCLUDE_DIRS})
-        add_library(gfxstream_host_snapshot ALIAS PkgConfig::aemu_snapshot)
-
-        add_library(logging-base INTERFACE)
-        target_link_libraries(logging-base INTERFACE PkgConfig::aemu_logging)
-
         if (WIN32)
             set(aemu-base-platform-deps Shlwapi)
         else()
@@ -111,8 +100,6 @@ if(NOT TARGET aemu_common)
         if(TARGET perfetto-tracing-only)
             target_link_libraries(aemu-base INTERFACE perfetto-tracing-only)
         endif()
-        add_library(aemu-host-common INTERFACE)
-        target_link_libraries(aemu-host-common INTERFACE PkgConfig::aemu_host_common aemu-base)
 
         add_library(aemu-base-testing-support INTERFACE)
         target_link_libraries(
@@ -122,27 +109,6 @@ if(NOT TARGET aemu_common)
             aemu-base
             gmock
             gtest)
-
-        add_library(aemu-host-common-testing-support INTERFACE)
-        target_link_libraries(
-            aemu-host-common-testing-support
-            INTERFACE
-            PkgConfig::aemu_host_common_testing_support
-            PkgConfig::aemu_host_common
-            PkgConfig::aemu_base
-            PkgConfig::aemu_logging
-            gmock
-            gtest)
-        if(TARGET lz4_static)
-            target_link_libraries(aemu-host-common-testing-support INTERFACE lz4_static)
-        endif()
-
-        if(TARGET perfetto-tracing-only)
-            target_link_libraries(aemu-host-common-testing-support INTERFACE perfetto-tracing-only)
-        endif()
-        add_library(aemu_common INTERFACE)
-        target_link_libraries(aemu_common INTERFACE aemu-base aemu-host-common)
-        target_include_directories(aemu_common INTERFACE aemu-base.headers aemu-host-common.headers)
     endif()
 endif()
 

@@ -40,7 +40,7 @@ class VkEmulation;
 
 namespace gfxstream {
 
-class Buffer : public android::snapshot::LazySnapshotObj<Buffer> {
+class Buffer : public LazySnapshotObj<Buffer> {
    public:
     static std::shared_ptr<Buffer> create(gl::EmulationGl* emulationGl,
                                           vk::VkEmulation* emulationVk, uint64_t size,
