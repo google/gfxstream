@@ -14,7 +14,7 @@
 
 #include "ShaderCache.h"
 
-#include "aemu/base/MruCache.h"
+#include "gfxstream/MruCache.h"
 #include <string.h>
 #include <cstdio>
 
@@ -25,10 +25,10 @@ namespace {
     using BlobCacheType = std::vector<uint8_t>;
 
     template <class K, class V>
-    class CacheObserver : android::base::MruCache<K, V>::MruCacheObserver {
+    class CacheObserver : gfxstream::base::MruCache<K, V>::MruCacheObserver {
     public:
         int count = 0;
-        CacheObserver(android::base::MruCache<K, V>* cacheReference) {
+        CacheObserver(gfxstream::base::MruCache<K, V>* cacheReference) {
             mCacheRef = cacheReference;
             cacheReference->setObserver(this);
         }
@@ -38,13 +38,13 @@ namespace {
         }
 
     private:
-        android::base::MruCache<K, V>* mCacheRef;
+        gfxstream::base::MruCache<K, V>* mCacheRef;
     };
 
     template <class K, class V>
-    class CacheFlattener : public android::base::MruCache<K, V>::CacheFlattener {
-        using MruCache = std::map<typename android::base::MruCache<K, V>::template EntryWithSize<K>,
-            typename android::base::MruCache<K, V>::template EntryWithSize<V>>;
+    class CacheFlattener : public gfxstream::base::MruCache<K, V>::CacheFlattener {
+        using MruCache = std::map<typename gfxstream::base::MruCache<K, V>::template EntryWithSize<K>,
+            typename gfxstream::base::MruCache<K, V>::template EntryWithSize<V>>;
 
     public:
         void handleFlatten(MruCache &mCache, void* buf, size_t bufSize) {
@@ -54,7 +54,7 @@ namespace {
 
     CacheFlattener<BlobCacheType, BlobCacheType> testFlattener;
     // 3200 is ~32MB of shaders, very rough estimate.
-    android::base::MruCache<BlobCacheType, BlobCacheType> mruCache(3200, &testFlattener);
+    gfxstream::base::MruCache<BlobCacheType, BlobCacheType> mruCache(3200, &testFlattener);
     CacheObserver<BlobCacheType, BlobCacheType> sss(&mruCache);
 }
 

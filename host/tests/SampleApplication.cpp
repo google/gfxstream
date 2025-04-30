@@ -14,13 +14,13 @@
 
 #include "SampleApplication.h"
 
-#include "aemu/base/synchronization/ConditionVariable.h"
-#include "aemu/base/synchronization/Lock.h"
-#include "aemu/base/system/System.h"
-#include "aemu/base/threads/FunctorThread.h"
-#include "aemu/base/testing/TestSystem.h"
-#include "gfxstream/host/renderer_operations.h"
 #include "Standalone.h"
+#include "gfxstream/host/renderer_operations.h"
+#include "gfxstream/synchronization/ConditionVariable.h"
+#include "gfxstream/synchronization/Lock.h"
+#include "gfxstream/system/System.h"
+#include "gfxstream/testing/TestSystem.h"
+#include "gfxstream/threads/FunctorThread.h"
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
@@ -28,12 +28,12 @@
 
 namespace gfxstream {
 
-using android::base::AutoLock;
-using android::base::ConditionVariable;
-using android::base::FunctorThread;
-using android::base::Lock;
-using android::base::MessageChannel;
-using android::base::TestSystem;
+using gfxstream::base::AutoLock;
+using gfxstream::base::ConditionVariable;
+using gfxstream::base::FunctorThread;
+using gfxstream::base::Lock;
+using gfxstream::base::MessageChannel;
+using gfxstream::base::TestSystem;
 using gl::EmulatedEglFenceSync;
 using gl::GLESApi;
 using gl::GLESApi_3_0;
@@ -93,7 +93,7 @@ static TestWindow* sTestWindow() {
 }
 
 bool shouldUseHostGpu() {
-    bool useHost = android::base::getEnvironmentVariable("ANDROID_EMU_TEST_WITH_HOST_GPU") == "1";
+    bool useHost = gfxstream::base::getEnvironmentVariable("ANDROID_EMU_TEST_WITH_HOST_GPU") == "1";
 
     // Also set the global emugl renderer accordingly.
     if (useHost) {
@@ -106,7 +106,7 @@ bool shouldUseHostGpu() {
 }
 
 bool shouldUseWindow() {
-    bool useWindow = android::base::getEnvironmentVariable("ANDROID_EMU_TEST_WITH_WINDOW") == "1";
+    bool useWindow = gfxstream::base::getEnvironmentVariable("ANDROID_EMU_TEST_WITH_WINDOW") == "1";
     return useWindow;
 }
 
@@ -125,7 +125,7 @@ public:
         mThread([this] {
             while (true) {
                 if (mShouldStop) return 0;
-                android::base::sleepUs(mRefreshIntervalUs);
+                gfxstream::base::sleepUs(mRefreshIntervalUs);
                 AutoLock lock(mLock);
                 mSync = 1;
                 mCv.signal();

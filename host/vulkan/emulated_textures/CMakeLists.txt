@@ -6,9 +6,9 @@ add_library(emulated_textures
 
 target_link_libraries(emulated_textures PUBLIC
         OpenglRender_vulkan_cereal
-        aemu-base.headers
         gfxstream_vulkan_headers
         gfxstream_host_logging
+        gfxstream_host_health
         PRIVATE
         gfxstream_utils.headers)
 

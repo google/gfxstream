@@ -11,16 +11,20 @@ cc_library_static {
     name: "libgfxstream_host_gles1_dec",
     defaults: ["gfxstream_defaults"],
     header_libs: [
+        "gfxstream_headers",
         "gfxstream_opengl_headers",
     ],
     static_libs: [
+        "libgfxstream_common_base",
         "libgfxstream_host_apigen_codec_common",
+        "libgfxstream_host_library",
         "libgfxstream_host_logging",
         "libgfxstream_host_glsnapshot",
         "libgfxstream_host_iostream",
         "libgfxstream_host_openglesdispatch",
     ],
     export_static_lib_headers: [
+        "libgfxstream_host_library",
         "libgfxstream_host_iostream",
     ],
     srcs: [

@@ -14,9 +14,9 @@
 
 #include "ShaderUtils.h"
 
-#include "aemu/base/files/PathUtils.h"
-#include "aemu/base/Optional.h"
-#include "aemu/base/system/System.h"
+#include "gfxstream/files/PathUtils.h"
+#include "gfxstream/Optional.h"
+#include "gfxstream/system/System.h"
 
 #include "OpenGLESDispatch/OpenGLDispatchLoader.h"
 
@@ -26,8 +26,8 @@
 #include <fcntl.h>
 #include <stdio.h>
 
-using android::base::Optional;
-using android::base::pj;
+using gfxstream::base::Optional;
+using gfxstream::base::pj;
 
 #define DEBUG 0
 
@@ -98,7 +98,7 @@ GLint compileAndLinkShaderProgram(const char* vshaderSrc, const char* fshaderSrc
 // #endif
 //
 //     auto programDirRelativePath =
-//         pj(android::base::getProgramDirectory(),
+//         pj(gfxstream::base::getProgramDirectory(),
 //            "lib64", "vulkan", "tools", programName);
 //
 //     if (path_exists(programDirRelativePath.c_str())) {
@@ -106,7 +106,7 @@ GLint compileAndLinkShaderProgram(const char* vshaderSrc, const char* fshaderSrc
 //     }
 //
 //     auto launcherDirRelativePath =
-//         pj(android::base::getLauncherDirectory(),
+//         pj(gfxstream::base::getLauncherDirectory(),
 //            "lib64", "vulkan", programName);
 //
 //     if (path_exists(launcherDirRelativePath.c_str())) {
@@ -123,16 +123,16 @@ GLint compileAndLinkShaderProgram(const char* vshaderSrc, const char* fshaderSrc
 //
 //     if (!spvCompilerPath) return {};
 //
-//     const auto glslFile = android::base::makeCustomScopedPtr(
+//     const auto glslFile = gfxstream::base::makeCustomScopedPtr(
 //             tempfile_create(), tempfile_unref_and_close_file);
 //
-//     const auto spvFile = android::base::makeCustomScopedPtr(
+//     const auto spvFile = gfxstream::base::makeCustomScopedPtr(
 //             tempfile_create(), tempfile_unref_and_close_file);
 //
 //     auto glslPath = tempfile_path(glslFile.get());
 //     auto spvPath = tempfile_path(spvFile.get());
 //
-//     auto glslFd = android::base::ScopedFd(open(glslPath, O_RDWR));
+//     auto glslFd = gfxstream::base::ScopedFd(open(glslPath, O_RDWR));
 //     if (!glslFd.valid()) { return {}; }
 //
 //     android::writeStringToFile(glslFd.get(), src);

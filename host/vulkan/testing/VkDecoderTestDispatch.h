@@ -26,7 +26,7 @@ namespace testing {
 // TODO(gregschlom): This class should be auto-generated
 class VkDecoderTestDispatch {
    public:
-    VkDecoderTestDispatch(VulkanDispatch* vk, android::base::BumpPool* bp,
+    VkDecoderTestDispatch(VulkanDispatch* vk, gfxstream::base::BumpPool* bp,
                           VkDecoderContext* decoderContext)
         : mVk(vk), mDgs(VkDecoderGlobalState::get()), mBp(bp), mDecoderContext(decoderContext) {}
 
@@ -301,7 +301,7 @@ class VkDecoderTestDispatch {
    private:
     VulkanDispatch* mVk;
     VkDecoderGlobalState* mDgs;
-    android::base::BumpPool* mBp;
+    gfxstream::base::BumpPool* mBp;
     VkDecoderContext* mDecoderContext;
 };
 

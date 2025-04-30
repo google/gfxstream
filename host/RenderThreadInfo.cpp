@@ -16,7 +16,7 @@
 
 #include "RenderThreadInfo.h"
 
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/synchronization/Lock.h"
 #include "FrameBuffer.h"
 
 #include <unordered_map>
@@ -24,9 +24,9 @@
 
 namespace gfxstream {
 
-using android::base::AutoLock;
+using gfxstream::base::AutoLock;
 using android::base::Stream;
-using android::base::Lock;
+using gfxstream::base::Lock;
 
 static thread_local RenderThreadInfo* s_threadInfoPtr;
 

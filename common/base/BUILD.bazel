@@ -1,4 +1,46 @@
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test", "objc_library")
+
+cc_library(
+    name = "gfxstream_common_base_headers",
+    hdrs = glob([
+        "include/**/*.h",
+        "include/**/*.hpp",
+    ]),
+    defines = select({
+        "@platforms//os:windows": [
+            "WIN32_LEAN_AND_MEAN",
+        ],
+        "//conditions:default": [],
+    }),
+    strip_include_prefix = "include",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_google_absl//absl/strings:str_format",
+    ] + select({
+        "@platforms//os:windows": [
+            "//common/base/windows:gfxstream_common_base_windows_compat_hdrs",
+        ],
+        "//conditions:default": [],
+    }),
+)
+
+objc_library(
+    name = "gfxstream_common_base_mac",
+    srcs = [
+        "system-native-mac.mm",
+    ],
+    sdk_frameworks = [
+        "IOkit",
+        "AppKit",
+    ],
+    target_compatible_with = [
+        "@platforms//os:macos",
+    ],
+    deps = [
+        ":gfxstream_common_base_headers",
+    ],
+    alwayslink = True,
+)
 
 cc_library(
     name = "gfxstream_common_base",
@@ -39,22 +81,12 @@ cc_library(
             "Thread_pthread.cpp",
         ],
     }),
-    hdrs = glob([
-        "include/**/*.hpp",
-        "include/**/*.h",
-    ]),
-    defines = [
-        "BUILDING_EMUGL_COMMON_SHARED",
-        "dfatal=\"(void*)\"",
-    ] + select({
+    defines = select({
         "@platforms//os:windows": [
             "WIN32_LEAN_AND_MEAN",
         ],
         "//conditions:default": [],
     }),
-    includes = [
-        "include",
-    ],
     linkopts = select({
         "@platforms//os:linux": [
             "-ldl",
@@ -71,12 +103,14 @@ cc_library(
         "//conditions:default": [],
     }),
     visibility = ["//visibility:public"],
-    deps = select({
+    deps = [
+        ":gfxstream_common_base_headers",
+    ] + select({
         "@platforms//os:macos": [
-            ":aemu-base-darwin",
+            ":gfxstream_common_base_mac",
         ],
         "@platforms//os:windows": [
-            "@aemu//windows:compat",
+            "//common/base/windows:gfxstream_common_base_windows_compat",
         ],
         "//conditions:default": [],
     }),

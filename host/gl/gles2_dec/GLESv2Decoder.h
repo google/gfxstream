@@ -19,7 +19,7 @@
 
 #include "gles2_dec.h"
 #include "GLDecoderContextData.h"
-#include "aemu/base/SharedLibrary.h"
+#include "gfxstream/SharedLibrary.h"
 
 #include "GLSnapshot.h"
 
@@ -52,7 +52,7 @@ protected:
 
 private:
     GLDecoderContextData *m_contextData;
-    android::base::SharedLibrary* m_GL2library;
+    gfxstream::base::SharedLibrary* m_GL2library;
 
     static void *s_getProc(const char *name, void *userData);
     static void gles2_APIENTRY s_glGetCompressedTextureFormats(void *self, int count, GLint *formats);

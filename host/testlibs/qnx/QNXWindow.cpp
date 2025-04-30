@@ -14,7 +14,7 @@
 #include <pthread.h>
 #include <sys/keycodes.h>
 
-#include "aemu/base/system/System.h"
+#include "gfxstream/system/System.h"
 
 namespace {
 static pthread_once_t once_control = PTHREAD_ONCE_INIT;

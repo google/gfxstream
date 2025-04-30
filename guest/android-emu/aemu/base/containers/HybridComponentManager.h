@@ -128,5 +128,5 @@ private:
     std::unordered_map<IndexType, Data> mMap;
 };
 
-} // namespace android
+} // namespace gfxstream
 } // namespace base

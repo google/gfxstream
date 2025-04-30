@@ -13,12 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef _AEMU_FCNTL_H_
-#define _AEMU_FCNTL_H_
-
-
 // fcntl with added missing defines.
 #include_next <fcntl.h>
+
+#ifndef _AEMU_FCNTL_H_
+#define _AEMU_FCNTL_H_
 
 #define O_ACCMODE (O_RDONLY | O_WRONLY | O_RDWR)
 

@@ -15,11 +15,11 @@
 */
 #pragma once
 
-#include "aemu/base/containers/Lookup.h"
+#include "gfxstream/containers/Lookup.h"
 #include "aemu/base/files/Stream.h"
 #include "aemu/base/files/StreamSerializing.h"
-#include "aemu/base/synchronization/Lock.h"
-#include "aemu/base/Compiler.h"
+#include "gfxstream/synchronization/Lock.h"
+#include "gfxstream/Compiler.h"
 
 #include <algorithm>
 #include <cstdint>
@@ -35,37 +35,37 @@ public:
     StalePtrRegistry() = default;
 
     void addPtr(T* ptr) {
-        android::base::AutoWriteLock lock(mLock);
+        gfxstream::base::AutoWriteLock lock(mLock);
         mPtrs[asHandle(ptr)] = { ptr, Staleness::Live };
     }
 
     void removePtr(T* ptr) {
-        android::base::AutoWriteLock lock(mLock);
+        gfxstream::base::AutoWriteLock lock(mLock);
         uint64_t handle = asHandle(ptr);
         mPtrs.erase(handle);
     }
 
     void remapStalePtr(uint64_t handle, T* newptr) {
-        android::base::AutoWriteLock lock(mLock);
+        gfxstream::base::AutoWriteLock lock(mLock);
         mPtrs[handle] = { newptr, Staleness::PrevSnapshot };
     }
 
     T* getPtr(uint64_t handle, T* defaultPtr = nullptr,
               bool removeFromStaleOnGet = false) {
-        android::base::AutoReadLock lock(mLock);
+        gfxstream::base::AutoReadLock lock(mLock);
 
         // return |defaultPtr| if not found.
         T* res = defaultPtr;
 
         Entry* it = nullptr;
 
-        if ((it = android::base::find(mPtrs, handle)))
+        if ((it = gfxstream::base::find(mPtrs, handle)))
             res = it->ptr;
 
         if (removeFromStaleOnGet &&
             it && it->staleness == Staleness::PrevSnapshot) {
             lock.unlockRead();
-            android::base::AutoWriteLock wrlock(mLock);
+            gfxstream::base::AutoWriteLock wrlock(mLock);
             mPtrs.erase(handle);
         }
 
@@ -73,7 +73,7 @@ public:
     }
 
     void makeCurrentPtrsStale() {
-        android::base::AutoWriteLock lock(mLock);
+        gfxstream::base::AutoWriteLock lock(mLock);
         for (auto& it : mPtrs) {
             it.second.staleness =
                 Staleness::PrevSnapshot;
@@ -89,7 +89,7 @@ public:
     }
 
     void onSave(android::base::Stream* stream) {
-        android::base::AutoReadLock lock(mLock);
+        gfxstream::base::AutoReadLock lock(mLock);
         saveCollection(
                 stream, mPtrs,
                 [](android::base::Stream* stream,
@@ -99,7 +99,7 @@ public:
     }
 
     void onLoad(android::base::Stream* stream) {
-        android::base::AutoWriteLock lock(mLock);
+        gfxstream::base::AutoWriteLock lock(mLock);
         loadCollection(
                 stream, &mPtrs,
                 [](android::base::Stream* stream) {
@@ -130,14 +130,14 @@ private:
     using PtrMap = std::unordered_map<uint64_t, Entry>;
 
     size_t countWithStaleness(Staleness check) const {
-        android::base::AutoReadLock lock(mLock);
+        gfxstream::base::AutoReadLock lock(mLock);
         return std::count_if(mPtrs.begin(), mPtrs.end(),
                    [check](const typename PtrMap::value_type& entry) {
                        return entry.second.staleness == check;
                    });
     }
 
-    mutable android::base::ReadWriteLock mLock;
+    mutable gfxstream::base::ReadWriteLock mLock;
     PtrMap mPtrs;
 
     DISALLOW_COPY_AND_ASSIGN(StalePtrRegistry);

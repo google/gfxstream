@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "aemu/base/system/System.h"
+#include "gfxstream/system/System.h"
 
 #include "Standalone.h"
 

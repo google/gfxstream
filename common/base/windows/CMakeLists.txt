@@ -1,36 +1,48 @@
-if(TARGET msvc-posix-compat)
+if(TARGET gfxstream_common_base_windows_compat)
   return()
 endif()
 
 if(INCLUDE_ANDROID_CMAKE)
   # This is a posix wrapper for windows-msvc build.
-  android_nasm_compile(TARGET setjmp_asm_lib LICENSE Apache-2.0 SRC
+  android_nasm_compile(TARGET
+                       setjmp_asm_li
+                       LICENSE
+                       Apache-2.0
+                       SRC
                        src/setjmp.asm)
-  android_add_library(TARGET msvc-posix-compat LICENSE Apache-2.0 SRC "")
-  target_link_libraries(msvc-posix-compat PRIVATE setjmp_asm_lib)
+
+  android_add_library(TARGET
+                      gfxstream_common_base_windows_compat
+                      LICENSE
+                      Apache-2.0
+                      SRC
+                      "")
+  target_link_libraries(gfxstream_common_base_windows_compat
+                        PRIVATE
+                        setjmp_asm_lib)
 else()
-  add_library(msvc-posix-compat)
+  add_library(gfxstream_common_base_windows_compat)
 endif()
 
 target_sources(
-  msvc-posix-compat
-  PRIVATE src/asprintf.c
-          src/files.cpp
-          src/getopt.c
-          src/msvc-posix.c
-          src/pread.cpp
-          src/time.cpp)
-target_link_libraries(msvc-posix-compat PUBLIC aemu-base.headers)
+    gfxstream_common_base_windows_compat
+    PRIVATE
+    src/asprintf.c
+    src/files.cpp
+    src/getopt.c
+    src/msvc-posix.c
+    src/pread.cpp
+    src/time.cpp)
 
 # Msvc redefines macro's to inject compatibility.
 target_compile_options(
-  msvc-posix-compat
-  PUBLIC "-Wno-macro-redefined" "-Wno-deprecated-declarations" # A lot of the
-                                                               # POSIX names are
-                                                               # deprecated..
-)
-target_include_directories(msvc-posix-compat PUBLIC includes)
+    gfxstream_common_base_windows_compat
+    PUBLIC
+    "-Wno-macro-redefined"
+    "-Wno-deprecated-declarations" # A lot of the POSIX names are deprecated...
+    )
 
-if (ANDROID_EMULATOR_BUILD)
-  add_subdirectory(tests)
-endif()
+target_include_directories(
+    gfxstream_common_base_windows_compat
+    PUBLIC
+    includes)

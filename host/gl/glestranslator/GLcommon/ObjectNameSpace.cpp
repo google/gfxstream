@@ -20,10 +20,10 @@
 
 #include "GLcommon/GLEScontext.h"
 #include "GLcommon/TranslatorIfaces.h"
-#include "aemu/base/containers/Lookup.h"
-#include "aemu/base/files/PathUtils.h"
+#include "gfxstream/containers/Lookup.h"
+#include "gfxstream/files/PathUtils.h"
 #include "aemu/base/files/StreamSerializing.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/host/logging.h"
 
 NameSpace::NameSpace(NamedObjectType p_type, GlobalNameSpace *globalNameSpace,
@@ -290,7 +290,7 @@ void GlobalNameSpace::preSaveAddEglImage(EglImage* eglImage) {
         GFXSTREAM_FATAL("Fatal: egl image with null texture object\n");
     }
     unsigned int globalName = eglImage->globalTexObj->getGlobalName();
-    android::base::AutoLock lock(m_lock);
+    gfxstream::base::AutoLock lock(m_lock);
 
     if (!globalName) {
         GFXSTREAM_DEBUG("%p: egl image %p has 0 texture object", this, eglImage);
@@ -307,7 +307,7 @@ void GlobalNameSpace::preSaveAddEglImage(EglImage* eglImage) {
 }
 
 void GlobalNameSpace::preSaveAddTex(TextureData* texture) {
-    android::base::AutoLock lock(m_lock);
+    gfxstream::base::AutoLock lock(m_lock);
     const auto& saveableTexIt = m_textureMap.find(texture->getGlobalName());
 
     if (!texture->getGlobalName()) {

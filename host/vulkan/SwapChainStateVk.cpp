@@ -9,10 +9,6 @@
 
 namespace gfxstream {
 namespace vk {
-
-using emugl::ABORT_REASON_OTHER;
-using emugl::FatalError;
-
 namespace {
 
 void swap(SwapchainCreateInfoWrapper& a, SwapchainCreateInfoWrapper& b) {

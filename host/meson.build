@@ -47,17 +47,12 @@ if host_machine.system() == 'qnx'
     rel_path_prefix + '/aemu/install/include/aemu/snapshot',
   ])
 
-  aemu_base_lib = cc.find_library('aemu-base', dirs: aemu_libs_path)
-  aemu_base_dep = declare_dependency(include_directories : incl_aemu_headers, dependencies : [aemu_base_lib])
 
   aemu_common_lib = cc.find_library('aemu-host-common', dirs: aemu_libs_path)
   aemu_common_dep = declare_dependency(include_directories : incl_aemu_headers, dependencies : [aemu_common_lib])
 
   aemu_logging_lib = cc.find_library('aemu-logging', dirs: aemu_libs_path)
   aemu_logging_dep = declare_dependency(include_directories : incl_aemu_headers, dependencies : [aemu_logging_lib])
-
-  aemu_snapshot_lib = cc.find_library('aemu-snapshot', dirs: aemu_libs_path)
-  aemu_snapshot_dep = declare_dependency(include_directories : incl_aemu_headers, dependencies : [aemu_snapshot_lib])
 
   inc_qnx_headers = include_directories(join_paths(qnx_target, 'usr/include'))
   qnx_screen_lib = cc.find_library('screen', required : true)
@@ -70,10 +65,8 @@ if host_machine.system() == 'qnx'
   qnx_gles2_dep = declare_dependency(include_directories: inc_qnx_headers, dependencies: [qnx_gles2_lib])
 
 else
-  aemu_base_dep = dependency('aemu_base')
   aemu_common_dep = dependency('aemu_host_common')
   aemu_logging_dep = dependency('aemu_logging')
-  aemu_snapshot_dep = dependency('aemu_snapshot')
   dl_dep = dependency('dl')
   thread_dep = dependency('threads')
   gfxstream_host_args += '-DGFXSTREAM_UNSTABLE_VULKAN_EXTERNAL_SYNC=1'
@@ -143,19 +136,26 @@ inc_host_include = include_directories('include')
 inc_gl_common = include_directories('gl/glestranslator/GLcommon/include')
 
 subdir('logging')
+subdir('metrics')
 subdir('features')
 subdir('iostream')
+subdir('health')
+subdir('library')
 subdir('tracing')
-
+subdir('snapshot')
 subdir('apigen-codec-common')
 subdir('backend')
 
 inc_gfxstream_backend = [inc_root, inc_gfxstream_include, inc_include, inc_apigen_codec, inc_utils,
                          inc_gl_host_common, inc_host_include, inc_common_utils, inc_host_backend,
-                         inc_host_features, inc_host_logging, inc_host_iostream, inc_host_tracing]
+                         inc_host_features, inc_host_logging, inc_host_iostream, inc_host_tracing,
+                         inc_common_base, inc_host_library, inc_host_health, inc_host_metrics,
+                         inc_host_snapshot]
 
 link_gfxstream_backend = [lib_gl_host_common, lib_apigen_codec, lib_common_utils, lib_host_backend,
-                          lib_host_features, lib_host_logging, lib_host_iostream, lib_host_tracing]
+                          lib_host_features, lib_host_logging, lib_host_iostream, lib_host_tracing,
+                          lib_common_base, lib_host_library, lib_host_health, lib_host_metrics,
+                          lib_host_snapshot]
 
 files_lib_gfxstream_backend = files(
   'Buffer.cpp',
@@ -235,9 +235,7 @@ gfxstream_backend_cpp_args = [
 
 deps_gfxstream_backend = [
   aemu_common_dep,
-  aemu_base_dep,
   aemu_logging_dep,
-  aemu_snapshot_dep,
 ]
 
 link_args_gfxstream_backend = ''

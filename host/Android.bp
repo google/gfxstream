@@ -26,6 +26,12 @@ cc_library_headers {
     export_include_dirs: [
         "include",
     ],
+    static_libs: [
+        "libgfxstream_host_health",
+    ],
+    export_static_lib_headers: [
+        "libgfxstream_host_health",
+    ],
 }
 
 cc_library_host_static {
@@ -51,7 +57,7 @@ cc_library_host_static {
 
 gfxstream_backend_static_deps = [
     "gfxstream_base",
-    "gfxstream_host_common",
+    "libgfxstream_common_base",
     "libgfxstream_common_utils",
     "libgfxstream_etc",
     "libgfxstream_glestranslator_egl",
@@ -67,8 +73,11 @@ gfxstream_backend_static_deps = [
     "libgfxstream_host_gles2_dec",
     "libgfxstream_host_glestranslator_glcommon",
     "libgfxstream_host_glsnapshot",
+    "libgfxstream_host_health",
     "libgfxstream_host_iostream",
+    "libgfxstream_host_library",
     "libgfxstream_host_logging",
+    "libgfxstream_host_metrics",
     "libgfxstream_host_openglesdispatch",
     "libgfxstream_host_rendercontrol_dec",
     "libgfxstream_host_snapshot",
@@ -101,6 +110,10 @@ cc_defaults {
     header_libs: [
         "gfxstream_opengl_headers",
         "libgfxstream_host_vulkan_cereal_common",
+        "libgfxstream_thirdparty_renderdoc_headers",
+    ],
+    export_header_lib_headers: [
+        "libgfxstream_thirdparty_renderdoc_headers",
     ],
     // When this lib is build as a static lib, these static dependencies have
     // to be included as a whole, because otherwise they are dropped from the
@@ -112,9 +125,10 @@ cc_defaults {
         static_libs: gfxstream_backend_static_deps,
     },
     export_static_lib_headers: [
-        "gfxstream_base",
+        "libgfxstream_common_base",
         "libgfxstream_host_backend",
         "libgfxstream_host_features",
+        "libgfxstream_host_health",
         "libgfxstream_host_snapshot",
         "libgfxstream_host_tracing",
         "libgfxstream_host_gles2_dec",
@@ -203,7 +217,7 @@ cc_test_library {
     ],
     static_libs: [
         "gfxstream_base_test_support",
-        "gfxstream_base",
+        "libgfxstream_common_base",
         "libgfxstream_host_apigen_codec_common",
         "libgfxstream_host_logging",
         "libgfxstream_host_iostream",
@@ -290,7 +304,7 @@ cc_test_host {
     static_libs: [
         "gfxstream_backend_test_support",
         "gfxstream_base_test_support",
-        "gfxstream_base",
+        "libgfxstream_common_base",
         "libgfxstream_common_image",
         "libgfxstream_host_logging",
         "libgfxstream_host_vulkan_server",

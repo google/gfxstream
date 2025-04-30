@@ -35,7 +35,7 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 		if (end - ptr < packetLen) return ptr - (unsigned char*)buf;
 		switch(opcode) {
 		case OP_glActiveTexture: {
-			android::base::beginTrace("glActiveTexture decode");
+			gfxstream::base::beginTrace("glActiveTexture decode");
 			GLenum var_texture = Unpack<GLenum,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -48,11 +48,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glActiveTexture(texture:0x%08x )", stream, var_texture);
 			this->glActiveTexture(var_texture);
 			SET_LASTCALL("glActiveTexture");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glAttachShader: {
-			android::base::beginTrace("glAttachShader decode");
+			gfxstream::base::beginTrace("glAttachShader decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLuint var_shader = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -66,11 +66,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glAttachShader(program:%u shader:%u )", stream, var_program, var_shader);
 			this->glAttachShader_dec(this, var_program, var_shader);
 			SET_LASTCALL("glAttachShader");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBindAttribLocation: {
-			android::base::beginTrace("glBindAttribLocation decode");
+			gfxstream::base::beginTrace("glBindAttribLocation decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			uint32_t size_name __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -86,11 +86,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glBindAttribLocation(program:%u index:%u name:%p(%u) )", stream, var_program, var_index, (const GLchar*)(inptr_name.get()), size_name);
 			this->glBindAttribLocation_dec(this, var_program, var_index, (const GLchar*)(inptr_name.get()));
 			SET_LASTCALL("glBindAttribLocation");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBindBuffer: {
-			android::base::beginTrace("glBindBuffer decode");
+			gfxstream::base::beginTrace("glBindBuffer decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLuint var_buffer = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -104,11 +104,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glBindBuffer(target:0x%08x buffer:%u )", stream, var_target, var_buffer);
 			this->glBindBuffer(var_target, var_buffer);
 			SET_LASTCALL("glBindBuffer");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBindFramebuffer: {
-			android::base::beginTrace("glBindFramebuffer decode");
+			gfxstream::base::beginTrace("glBindFramebuffer decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLuint var_framebuffer = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -122,11 +122,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glBindFramebuffer(target:0x%08x framebuffer:%u )", stream, var_target, var_framebuffer);
 			this->glBindFramebuffer(var_target, var_framebuffer);
 			SET_LASTCALL("glBindFramebuffer");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBindRenderbuffer: {
-			android::base::beginTrace("glBindRenderbuffer decode");
+			gfxstream::base::beginTrace("glBindRenderbuffer decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLuint var_renderbuffer = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -140,11 +140,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glBindRenderbuffer(target:0x%08x renderbuffer:%u )", stream, var_target, var_renderbuffer);
 			this->glBindRenderbuffer(var_target, var_renderbuffer);
 			SET_LASTCALL("glBindRenderbuffer");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBindTexture: {
-			android::base::beginTrace("glBindTexture decode");
+			gfxstream::base::beginTrace("glBindTexture decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLuint var_texture = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -158,11 +158,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glBindTexture(target:0x%08x texture:%u )", stream, var_target, var_texture);
 			this->glBindTexture(var_target, var_texture);
 			SET_LASTCALL("glBindTexture");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBlendColor: {
-			android::base::beginTrace("glBlendColor decode");
+			gfxstream::base::beginTrace("glBlendColor decode");
 			GLclampf var_red = Unpack<GLclampf,uint32_t>(ptr + 8);
 			GLclampf var_green = Unpack<GLclampf,uint32_t>(ptr + 8 + 4);
 			GLclampf var_blue = Unpack<GLclampf,uint32_t>(ptr + 8 + 4 + 4);
@@ -178,11 +178,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glBlendColor(red:%f green:%f blue:%f alpha:%f )", stream, var_red, var_green, var_blue, var_alpha);
 			this->glBlendColor(var_red, var_green, var_blue, var_alpha);
 			SET_LASTCALL("glBlendColor");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBlendEquation: {
-			android::base::beginTrace("glBlendEquation decode");
+			gfxstream::base::beginTrace("glBlendEquation decode");
 			GLenum var_mode = Unpack<GLenum,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -195,11 +195,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glBlendEquation(mode:0x%08x )", stream, var_mode);
 			this->glBlendEquation(var_mode);
 			SET_LASTCALL("glBlendEquation");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBlendEquationSeparate: {
-			android::base::beginTrace("glBlendEquationSeparate decode");
+			gfxstream::base::beginTrace("glBlendEquationSeparate decode");
 			GLenum var_modeRGB = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_modeAlpha = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -213,11 +213,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glBlendEquationSeparate(modeRGB:0x%08x modeAlpha:0x%08x )", stream, var_modeRGB, var_modeAlpha);
 			this->glBlendEquationSeparate(var_modeRGB, var_modeAlpha);
 			SET_LASTCALL("glBlendEquationSeparate");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBlendFunc: {
-			android::base::beginTrace("glBlendFunc decode");
+			gfxstream::base::beginTrace("glBlendFunc decode");
 			GLenum var_sfactor = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_dfactor = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -231,11 +231,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glBlendFunc(sfactor:0x%08x dfactor:0x%08x )", stream, var_sfactor, var_dfactor);
 			this->glBlendFunc(var_sfactor, var_dfactor);
 			SET_LASTCALL("glBlendFunc");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBlendFuncSeparate: {
-			android::base::beginTrace("glBlendFuncSeparate decode");
+			gfxstream::base::beginTrace("glBlendFuncSeparate decode");
 			GLenum var_srcRGB = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_dstRGB = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLenum var_srcAlpha = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -251,11 +251,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glBlendFuncSeparate(srcRGB:0x%08x dstRGB:0x%08x srcAlpha:0x%08x dstAlpha:0x%08x )", stream, var_srcRGB, var_dstRGB, var_srcAlpha, var_dstAlpha);
 			this->glBlendFuncSeparate(var_srcRGB, var_dstRGB, var_srcAlpha, var_dstAlpha);
 			SET_LASTCALL("glBlendFuncSeparate");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBufferData: {
-			android::base::beginTrace("glBufferData decode");
+			gfxstream::base::beginTrace("glBufferData decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLsizeiptr var_size = Unpack<GLsizeiptr,uint32_t>(ptr + 8 + 4);
 			uint32_t size_data __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -272,11 +272,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glBufferData(target:0x%08x size:0x%08lx data:%p(%u) usage:0x%08x )", stream, var_target, var_size, (const GLvoid*)(inptr_data.get()), size_data, var_usage);
 			this->glBufferData(var_target, var_size, size_data == 0 ? nullptr : (const GLvoid*)(inptr_data.get()), var_usage);
 			SET_LASTCALL("glBufferData");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBufferSubData: {
-			android::base::beginTrace("glBufferSubData decode");
+			gfxstream::base::beginTrace("glBufferSubData decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLintptr var_offset = Unpack<GLintptr,uint32_t>(ptr + 8 + 4);
 			GLsizeiptr var_size = Unpack<GLsizeiptr,uint32_t>(ptr + 8 + 4 + 4);
@@ -293,11 +293,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glBufferSubData(target:0x%08x offset:0x%08lx size:0x%08lx data:%p(%u) )", stream, var_target, var_offset, var_size, (const GLvoid*)(inptr_data.get()), size_data);
 			this->glBufferSubData(var_target, var_offset, var_size, size_data == 0 ? nullptr : (const GLvoid*)(inptr_data.get()));
 			SET_LASTCALL("glBufferSubData");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glCheckFramebufferStatus: {
-			android::base::beginTrace("glCheckFramebufferStatus decode");
+			gfxstream::base::beginTrace("glCheckFramebufferStatus decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -317,11 +317,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glCheckFramebufferStatus");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glClear: {
-			android::base::beginTrace("glClear decode");
+			gfxstream::base::beginTrace("glClear decode");
 			GLbitfield var_mask = Unpack<GLbitfield,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -334,11 +334,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glClear(mask:0x%08x )", stream, var_mask);
 			this->glClear(var_mask);
 			SET_LASTCALL("glClear");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glClearColor: {
-			android::base::beginTrace("glClearColor decode");
+			gfxstream::base::beginTrace("glClearColor decode");
 			GLclampf var_red = Unpack<GLclampf,uint32_t>(ptr + 8);
 			GLclampf var_green = Unpack<GLclampf,uint32_t>(ptr + 8 + 4);
 			GLclampf var_blue = Unpack<GLclampf,uint32_t>(ptr + 8 + 4 + 4);
@@ -354,11 +354,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glClearColor(red:%f green:%f blue:%f alpha:%f )", stream, var_red, var_green, var_blue, var_alpha);
 			this->glClearColor(var_red, var_green, var_blue, var_alpha);
 			SET_LASTCALL("glClearColor");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glClearDepthf: {
-			android::base::beginTrace("glClearDepthf decode");
+			gfxstream::base::beginTrace("glClearDepthf decode");
 			GLclampf var_depth = Unpack<GLclampf,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -371,11 +371,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glClearDepthf(depth:%f )", stream, var_depth);
 			this->glClearDepthf(var_depth);
 			SET_LASTCALL("glClearDepthf");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glClearStencil: {
-			android::base::beginTrace("glClearStencil decode");
+			gfxstream::base::beginTrace("glClearStencil decode");
 			GLint var_s = Unpack<GLint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -388,11 +388,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glClearStencil(s:%d )", stream, var_s);
 			this->glClearStencil(var_s);
 			SET_LASTCALL("glClearStencil");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glColorMask: {
-			android::base::beginTrace("glColorMask decode");
+			gfxstream::base::beginTrace("glColorMask decode");
 			GLboolean var_red = Unpack<GLboolean,uint8_t>(ptr + 8);
 			GLboolean var_green = Unpack<GLboolean,uint8_t>(ptr + 8 + 1);
 			GLboolean var_blue = Unpack<GLboolean,uint8_t>(ptr + 8 + 1 + 1);
@@ -408,11 +408,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glColorMask(red:%d green:%d blue:%d alpha:%d )", stream, var_red, var_green, var_blue, var_alpha);
 			this->glColorMask(var_red, var_green, var_blue, var_alpha);
 			SET_LASTCALL("glColorMask");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glCompileShader: {
-			android::base::beginTrace("glCompileShader decode");
+			gfxstream::base::beginTrace("glCompileShader decode");
 			GLuint var_shader = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -425,11 +425,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glCompileShader(shader:%u )", stream, var_shader);
 			this->glCompileShader_dec(this, var_shader);
 			SET_LASTCALL("glCompileShader");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glCompressedTexImage2D: {
-			android::base::beginTrace("glCompressedTexImage2D decode");
+			gfxstream::base::beginTrace("glCompressedTexImage2D decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_level = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLenum var_internalformat = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -450,11 +450,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glCompressedTexImage2D(target:0x%08x level:%d internalformat:0x%08x width:%d height:%d border:%d imageSize:%d data:%p(%u) )", stream, var_target, var_level, var_internalformat, var_width, var_height, var_border, var_imageSize, (const GLvoid*)(inptr_data.get()), size_data);
 			this->glCompressedTexImage2D(var_target, var_level, var_internalformat, var_width, var_height, var_border, var_imageSize, size_data == 0 ? nullptr : (const GLvoid*)(inptr_data.get()));
 			SET_LASTCALL("glCompressedTexImage2D");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glCompressedTexSubImage2D: {
-			android::base::beginTrace("glCompressedTexSubImage2D decode");
+			gfxstream::base::beginTrace("glCompressedTexSubImage2D decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_level = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_xoffset = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -476,11 +476,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glCompressedTexSubImage2D(target:0x%08x level:%d xoffset:%d yoffset:%d width:%d height:%d format:0x%08x imageSize:%d data:%p(%u) )", stream, var_target, var_level, var_xoffset, var_yoffset, var_width, var_height, var_format, var_imageSize, (const GLvoid*)(inptr_data.get()), size_data);
 			this->glCompressedTexSubImage2D(var_target, var_level, var_xoffset, var_yoffset, var_width, var_height, var_format, var_imageSize, size_data == 0 ? nullptr : (const GLvoid*)(inptr_data.get()));
 			SET_LASTCALL("glCompressedTexSubImage2D");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glCopyTexImage2D: {
-			android::base::beginTrace("glCopyTexImage2D decode");
+			gfxstream::base::beginTrace("glCopyTexImage2D decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_level = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLenum var_internalformat = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -500,11 +500,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glCopyTexImage2D(target:0x%08x level:%d internalformat:0x%08x x:%d y:%d width:%d height:%d border:%d )", stream, var_target, var_level, var_internalformat, var_x, var_y, var_width, var_height, var_border);
 			this->glCopyTexImage2D(var_target, var_level, var_internalformat, var_x, var_y, var_width, var_height, var_border);
 			SET_LASTCALL("glCopyTexImage2D");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glCopyTexSubImage2D: {
-			android::base::beginTrace("glCopyTexSubImage2D decode");
+			gfxstream::base::beginTrace("glCopyTexSubImage2D decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_level = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_xoffset = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -524,11 +524,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glCopyTexSubImage2D(target:0x%08x level:%d xoffset:%d yoffset:%d x:%d y:%d width:%d height:%d )", stream, var_target, var_level, var_xoffset, var_yoffset, var_x, var_y, var_width, var_height);
 			this->glCopyTexSubImage2D(var_target, var_level, var_xoffset, var_yoffset, var_x, var_y, var_width, var_height);
 			SET_LASTCALL("glCopyTexSubImage2D");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glCreateProgram: {
-			android::base::beginTrace("glCreateProgram decode");
+			gfxstream::base::beginTrace("glCreateProgram decode");
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8, ptr + 8, checksumSize,
 					"gles2_decoder_context_t::decode, OP_glCreateProgram: GL checksumCalculator failure\n");
@@ -547,11 +547,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glCreateProgram");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glCreateShader: {
-			android::base::beginTrace("glCreateShader decode");
+			gfxstream::base::beginTrace("glCreateShader decode");
 			GLenum var_type = Unpack<GLenum,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -571,11 +571,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glCreateShader");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glCullFace: {
-			android::base::beginTrace("glCullFace decode");
+			gfxstream::base::beginTrace("glCullFace decode");
 			GLenum var_mode = Unpack<GLenum,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -588,11 +588,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glCullFace(mode:0x%08x )", stream, var_mode);
 			this->glCullFace(var_mode);
 			SET_LASTCALL("glCullFace");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDeleteBuffers: {
-			android::base::beginTrace("glDeleteBuffers decode");
+			gfxstream::base::beginTrace("glDeleteBuffers decode");
 			GLsizei var_n = Unpack<GLsizei,uint32_t>(ptr + 8);
 			uint32_t size_buffers __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_buffers(ptr + 8 + 4 + 4, size_buffers);
@@ -607,11 +607,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDeleteBuffers(n:%d buffers:%p(%u) )", stream, var_n, (const GLuint*)(inptr_buffers.get()), size_buffers);
 			this->glDeleteBuffers_dec(this, var_n, (const GLuint*)(inptr_buffers.get()));
 			SET_LASTCALL("glDeleteBuffers");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDeleteFramebuffers: {
-			android::base::beginTrace("glDeleteFramebuffers decode");
+			gfxstream::base::beginTrace("glDeleteFramebuffers decode");
 			GLsizei var_n = Unpack<GLsizei,uint32_t>(ptr + 8);
 			uint32_t size_framebuffers __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_framebuffers(ptr + 8 + 4 + 4, size_framebuffers);
@@ -626,11 +626,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDeleteFramebuffers(n:%d framebuffers:%p(%u) )", stream, var_n, (const GLuint*)(inptr_framebuffers.get()), size_framebuffers);
 			this->glDeleteFramebuffers_dec(this, var_n, (const GLuint*)(inptr_framebuffers.get()));
 			SET_LASTCALL("glDeleteFramebuffers");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDeleteProgram: {
-			android::base::beginTrace("glDeleteProgram decode");
+			gfxstream::base::beginTrace("glDeleteProgram decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -643,11 +643,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDeleteProgram(program:%u )", stream, var_program);
 			this->glDeleteProgram_dec(this, var_program);
 			SET_LASTCALL("glDeleteProgram");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDeleteRenderbuffers: {
-			android::base::beginTrace("glDeleteRenderbuffers decode");
+			gfxstream::base::beginTrace("glDeleteRenderbuffers decode");
 			GLsizei var_n = Unpack<GLsizei,uint32_t>(ptr + 8);
 			uint32_t size_renderbuffers __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_renderbuffers(ptr + 8 + 4 + 4, size_renderbuffers);
@@ -662,11 +662,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDeleteRenderbuffers(n:%d renderbuffers:%p(%u) )", stream, var_n, (const GLuint*)(inptr_renderbuffers.get()), size_renderbuffers);
 			this->glDeleteRenderbuffers_dec(this, var_n, (const GLuint*)(inptr_renderbuffers.get()));
 			SET_LASTCALL("glDeleteRenderbuffers");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDeleteShader: {
-			android::base::beginTrace("glDeleteShader decode");
+			gfxstream::base::beginTrace("glDeleteShader decode");
 			GLuint var_shader = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -679,11 +679,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDeleteShader(shader:%u )", stream, var_shader);
 			this->glDeleteShader_dec(this, var_shader);
 			SET_LASTCALL("glDeleteShader");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDeleteTextures: {
-			android::base::beginTrace("glDeleteTextures decode");
+			gfxstream::base::beginTrace("glDeleteTextures decode");
 			GLsizei var_n = Unpack<GLsizei,uint32_t>(ptr + 8);
 			uint32_t size_textures __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_textures(ptr + 8 + 4 + 4, size_textures);
@@ -698,11 +698,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDeleteTextures(n:%d textures:%p(%u) )", stream, var_n, (const GLuint*)(inptr_textures.get()), size_textures);
 			this->glDeleteTextures_dec(this, var_n, (const GLuint*)(inptr_textures.get()));
 			SET_LASTCALL("glDeleteTextures");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDepthFunc: {
-			android::base::beginTrace("glDepthFunc decode");
+			gfxstream::base::beginTrace("glDepthFunc decode");
 			GLenum var_func = Unpack<GLenum,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -715,11 +715,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDepthFunc(func:0x%08x )", stream, var_func);
 			this->glDepthFunc(var_func);
 			SET_LASTCALL("glDepthFunc");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDepthMask: {
-			android::base::beginTrace("glDepthMask decode");
+			gfxstream::base::beginTrace("glDepthMask decode");
 			GLboolean var_flag = Unpack<GLboolean,uint8_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 1, ptr + 8 + 1, checksumSize,
@@ -732,11 +732,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDepthMask(flag:%d )", stream, var_flag);
 			this->glDepthMask(var_flag);
 			SET_LASTCALL("glDepthMask");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDepthRangef: {
-			android::base::beginTrace("glDepthRangef decode");
+			gfxstream::base::beginTrace("glDepthRangef decode");
 			GLclampf var_zNear = Unpack<GLclampf,uint32_t>(ptr + 8);
 			GLclampf var_zFar = Unpack<GLclampf,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -750,11 +750,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDepthRangef(zNear:%f zFar:%f )", stream, var_zNear, var_zFar);
 			this->glDepthRangef(var_zNear, var_zFar);
 			SET_LASTCALL("glDepthRangef");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDetachShader: {
-			android::base::beginTrace("glDetachShader decode");
+			gfxstream::base::beginTrace("glDetachShader decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLuint var_shader = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -768,11 +768,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDetachShader(program:%u shader:%u )", stream, var_program, var_shader);
 			this->glDetachShader_dec(this, var_program, var_shader);
 			SET_LASTCALL("glDetachShader");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDisable: {
-			android::base::beginTrace("glDisable decode");
+			gfxstream::base::beginTrace("glDisable decode");
 			GLenum var_cap = Unpack<GLenum,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -785,11 +785,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDisable(cap:0x%08x )", stream, var_cap);
 			this->glDisable(var_cap);
 			SET_LASTCALL("glDisable");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDisableVertexAttribArray: {
-			android::base::beginTrace("glDisableVertexAttribArray decode");
+			gfxstream::base::beginTrace("glDisableVertexAttribArray decode");
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -802,11 +802,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDisableVertexAttribArray(index:%u )", stream, var_index);
 			this->glDisableVertexAttribArray(var_index);
 			SET_LASTCALL("glDisableVertexAttribArray");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDrawArrays: {
-			android::base::beginTrace("glDrawArrays decode");
+			gfxstream::base::beginTrace("glDrawArrays decode");
 			GLenum var_mode = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_first = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -821,11 +821,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDrawArrays(mode:0x%08x first:%d count:%d )", stream, var_mode, var_first, var_count);
 			this->glDrawArrays(var_mode, var_first, var_count);
 			SET_LASTCALL("glDrawArrays");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDrawElements: {
-			android::base::beginTrace("glDrawElements decode");
+			gfxstream::base::beginTrace("glDrawElements decode");
 			GLenum var_mode = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			GLenum var_type = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -842,11 +842,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDrawElements(mode:0x%08x count:%d type:0x%08x indices:%p(%u) )", stream, var_mode, var_count, var_type, (const GLvoid*)(inptr_indices.get()), size_indices);
 			this->glDrawElements(var_mode, var_count, var_type, (const GLvoid*)(inptr_indices.get()));
 			SET_LASTCALL("glDrawElements");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glEnable: {
-			android::base::beginTrace("glEnable decode");
+			gfxstream::base::beginTrace("glEnable decode");
 			GLenum var_cap = Unpack<GLenum,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -859,11 +859,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glEnable(cap:0x%08x )", stream, var_cap);
 			this->glEnable(var_cap);
 			SET_LASTCALL("glEnable");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glEnableVertexAttribArray: {
-			android::base::beginTrace("glEnableVertexAttribArray decode");
+			gfxstream::base::beginTrace("glEnableVertexAttribArray decode");
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -876,11 +876,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glEnableVertexAttribArray(index:%u )", stream, var_index);
 			this->glEnableVertexAttribArray(var_index);
 			SET_LASTCALL("glEnableVertexAttribArray");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glFinish: {
-			android::base::beginTrace("glFinish decode");
+			gfxstream::base::beginTrace("glFinish decode");
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8, ptr + 8, checksumSize,
 					"gles2_decoder_context_t::decode, OP_glFinish: GL checksumCalculator failure\n");
@@ -892,11 +892,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glFinish()", stream);
 			this->glFinish();
 			SET_LASTCALL("glFinish");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glFlush: {
-			android::base::beginTrace("glFlush decode");
+			gfxstream::base::beginTrace("glFlush decode");
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8, ptr + 8, checksumSize,
 					"gles2_decoder_context_t::decode, OP_glFlush: GL checksumCalculator failure\n");
@@ -908,11 +908,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glFlush()", stream);
 			this->glFlush();
 			SET_LASTCALL("glFlush");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glFramebufferRenderbuffer: {
-			android::base::beginTrace("glFramebufferRenderbuffer decode");
+			gfxstream::base::beginTrace("glFramebufferRenderbuffer decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_attachment = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLenum var_renderbuffertarget = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -928,11 +928,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glFramebufferRenderbuffer(target:0x%08x attachment:0x%08x renderbuffertarget:0x%08x renderbuffer:%u )", stream, var_target, var_attachment, var_renderbuffertarget, var_renderbuffer);
 			this->glFramebufferRenderbuffer(var_target, var_attachment, var_renderbuffertarget, var_renderbuffer);
 			SET_LASTCALL("glFramebufferRenderbuffer");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glFramebufferTexture2D: {
-			android::base::beginTrace("glFramebufferTexture2D decode");
+			gfxstream::base::beginTrace("glFramebufferTexture2D decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_attachment = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLenum var_textarget = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -949,11 +949,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glFramebufferTexture2D(target:0x%08x attachment:0x%08x textarget:0x%08x texture:%u level:%d )", stream, var_target, var_attachment, var_textarget, var_texture, var_level);
 			this->glFramebufferTexture2D(var_target, var_attachment, var_textarget, var_texture, var_level);
 			SET_LASTCALL("glFramebufferTexture2D");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glFrontFace: {
-			android::base::beginTrace("glFrontFace decode");
+			gfxstream::base::beginTrace("glFrontFace decode");
 			GLenum var_mode = Unpack<GLenum,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -966,11 +966,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glFrontFace(mode:0x%08x )", stream, var_mode);
 			this->glFrontFace(var_mode);
 			SET_LASTCALL("glFrontFace");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGenBuffers: {
-			android::base::beginTrace("glGenBuffers decode");
+			gfxstream::base::beginTrace("glGenBuffers decode");
 			GLsizei var_n = Unpack<GLsizei,uint32_t>(ptr + 8);
 			uint32_t size_buffers __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -993,11 +993,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGenBuffers");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGenerateMipmap: {
-			android::base::beginTrace("glGenerateMipmap decode");
+			gfxstream::base::beginTrace("glGenerateMipmap decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -1010,11 +1010,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glGenerateMipmap(target:0x%08x )", stream, var_target);
 			this->glGenerateMipmap(var_target);
 			SET_LASTCALL("glGenerateMipmap");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGenFramebuffers: {
-			android::base::beginTrace("glGenFramebuffers decode");
+			gfxstream::base::beginTrace("glGenFramebuffers decode");
 			GLsizei var_n = Unpack<GLsizei,uint32_t>(ptr + 8);
 			uint32_t size_framebuffers __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -1037,11 +1037,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGenFramebuffers");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGenRenderbuffers: {
-			android::base::beginTrace("glGenRenderbuffers decode");
+			gfxstream::base::beginTrace("glGenRenderbuffers decode");
 			GLsizei var_n = Unpack<GLsizei,uint32_t>(ptr + 8);
 			uint32_t size_renderbuffers __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -1064,11 +1064,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGenRenderbuffers");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGenTextures: {
-			android::base::beginTrace("glGenTextures decode");
+			gfxstream::base::beginTrace("glGenTextures decode");
 			GLsizei var_n = Unpack<GLsizei,uint32_t>(ptr + 8);
 			uint32_t size_textures __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -1091,11 +1091,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGenTextures");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetActiveAttrib: {
-			android::base::beginTrace("glGetActiveAttrib decode");
+			gfxstream::base::beginTrace("glGetActiveAttrib decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_bufsize = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -1132,11 +1132,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetActiveAttrib");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetActiveUniform: {
-			android::base::beginTrace("glGetActiveUniform decode");
+			gfxstream::base::beginTrace("glGetActiveUniform decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_bufsize = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -1173,11 +1173,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetActiveUniform");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetAttachedShaders: {
-			android::base::beginTrace("glGetAttachedShaders decode");
+			gfxstream::base::beginTrace("glGetAttachedShaders decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLsizei var_maxcount = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_count __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -1205,11 +1205,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetAttachedShaders");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetAttribLocation: {
-			android::base::beginTrace("glGetAttribLocation decode");
+			gfxstream::base::beginTrace("glGetAttribLocation decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			uint32_t size_name __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_name(ptr + 8 + 4 + 4, size_name);
@@ -1231,11 +1231,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetAttribLocation");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetBooleanv: {
-			android::base::beginTrace("glGetBooleanv decode");
+			gfxstream::base::beginTrace("glGetBooleanv decode");
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8);
 			uint32_t size_params __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -1258,11 +1258,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetBooleanv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetBufferParameteriv: {
-			android::base::beginTrace("glGetBufferParameteriv decode");
+			gfxstream::base::beginTrace("glGetBufferParameteriv decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_params __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -1286,11 +1286,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetBufferParameteriv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetError: {
-			android::base::beginTrace("glGetError decode");
+			gfxstream::base::beginTrace("glGetError decode");
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8, ptr + 8, checksumSize,
 					"gles2_decoder_context_t::decode, OP_glGetError: GL checksumCalculator failure\n");
@@ -1309,11 +1309,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetError");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetFloatv: {
-			android::base::beginTrace("glGetFloatv decode");
+			gfxstream::base::beginTrace("glGetFloatv decode");
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8);
 			uint32_t size_params __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -1336,11 +1336,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetFloatv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetFramebufferAttachmentParameteriv: {
-			android::base::beginTrace("glGetFramebufferAttachmentParameteriv decode");
+			gfxstream::base::beginTrace("glGetFramebufferAttachmentParameteriv decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_attachment = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -1365,11 +1365,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetFramebufferAttachmentParameteriv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetIntegerv: {
-			android::base::beginTrace("glGetIntegerv decode");
+			gfxstream::base::beginTrace("glGetIntegerv decode");
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8);
 			uint32_t size_params __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -1392,11 +1392,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetIntegerv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetProgramiv: {
-			android::base::beginTrace("glGetProgramiv decode");
+			gfxstream::base::beginTrace("glGetProgramiv decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_params __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -1420,11 +1420,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetProgramiv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetProgramInfoLog: {
-			android::base::beginTrace("glGetProgramInfoLog decode");
+			gfxstream::base::beginTrace("glGetProgramInfoLog decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLsizei var_bufsize = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_length __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -1452,11 +1452,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetProgramInfoLog");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetRenderbufferParameteriv: {
-			android::base::beginTrace("glGetRenderbufferParameteriv decode");
+			gfxstream::base::beginTrace("glGetRenderbufferParameteriv decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_params __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -1480,11 +1480,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetRenderbufferParameteriv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetShaderiv: {
-			android::base::beginTrace("glGetShaderiv decode");
+			gfxstream::base::beginTrace("glGetShaderiv decode");
 			GLuint var_shader = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_params __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -1508,11 +1508,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetShaderiv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetShaderInfoLog: {
-			android::base::beginTrace("glGetShaderInfoLog decode");
+			gfxstream::base::beginTrace("glGetShaderInfoLog decode");
 			GLuint var_shader = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLsizei var_bufsize = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_length __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -1540,11 +1540,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetShaderInfoLog");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetShaderPrecisionFormat: {
-			android::base::beginTrace("glGetShaderPrecisionFormat decode");
+			gfxstream::base::beginTrace("glGetShaderPrecisionFormat decode");
 			GLenum var_shadertype = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_precisiontype = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_range __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -1572,11 +1572,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetShaderPrecisionFormat");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetShaderSource: {
-			android::base::beginTrace("glGetShaderSource decode");
+			gfxstream::base::beginTrace("glGetShaderSource decode");
 			GLuint var_shader = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLsizei var_bufsize = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_length __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -1604,11 +1604,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetShaderSource");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetString: {
-			android::base::beginTrace("glGetString decode");
+			gfxstream::base::beginTrace("glGetString decode");
 			GLenum var_name = Unpack<GLenum,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -1621,11 +1621,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glGetString(name:0x%08x )", stream, var_name);
 			this->glGetString(var_name);
 			SET_LASTCALL("glGetString");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetTexParameterfv: {
-			android::base::beginTrace("glGetTexParameterfv decode");
+			gfxstream::base::beginTrace("glGetTexParameterfv decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_params __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -1649,11 +1649,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetTexParameterfv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetTexParameteriv: {
-			android::base::beginTrace("glGetTexParameteriv decode");
+			gfxstream::base::beginTrace("glGetTexParameteriv decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_params __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -1677,11 +1677,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetTexParameteriv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetUniformfv: {
-			android::base::beginTrace("glGetUniformfv decode");
+			gfxstream::base::beginTrace("glGetUniformfv decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			uint32_t size_params __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -1705,11 +1705,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetUniformfv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetUniformiv: {
-			android::base::beginTrace("glGetUniformiv decode");
+			gfxstream::base::beginTrace("glGetUniformiv decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			uint32_t size_params __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -1733,11 +1733,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetUniformiv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetUniformLocation: {
-			android::base::beginTrace("glGetUniformLocation decode");
+			gfxstream::base::beginTrace("glGetUniformLocation decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			uint32_t size_name __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_name(ptr + 8 + 4 + 4, size_name);
@@ -1759,11 +1759,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetUniformLocation");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetVertexAttribfv: {
-			android::base::beginTrace("glGetVertexAttribfv decode");
+			gfxstream::base::beginTrace("glGetVertexAttribfv decode");
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_params __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -1787,11 +1787,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetVertexAttribfv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetVertexAttribiv: {
-			android::base::beginTrace("glGetVertexAttribiv decode");
+			gfxstream::base::beginTrace("glGetVertexAttribiv decode");
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_params __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -1815,11 +1815,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetVertexAttribiv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetVertexAttribPointerv: {
-			android::base::beginTrace("glGetVertexAttribPointerv decode");
+			gfxstream::base::beginTrace("glGetVertexAttribPointerv decode");
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_pointer __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -1835,11 +1835,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glGetVertexAttribPointerv(index:%u pname:0x%08x pointer:%p(%u) )", stream, var_index, var_pname, (GLvoid**)(inptr_pointer.get()), size_pointer);
 			this->glGetVertexAttribPointerv(var_index, var_pname, (GLvoid**)(inptr_pointer.get()));
 			SET_LASTCALL("glGetVertexAttribPointerv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glHint: {
-			android::base::beginTrace("glHint decode");
+			gfxstream::base::beginTrace("glHint decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_mode = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -1853,11 +1853,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glHint(target:0x%08x mode:0x%08x )", stream, var_target, var_mode);
 			this->glHint(var_target, var_mode);
 			SET_LASTCALL("glHint");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glIsBuffer: {
-			android::base::beginTrace("glIsBuffer decode");
+			gfxstream::base::beginTrace("glIsBuffer decode");
 			GLuint var_buffer = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -1877,11 +1877,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glIsBuffer");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glIsEnabled: {
-			android::base::beginTrace("glIsEnabled decode");
+			gfxstream::base::beginTrace("glIsEnabled decode");
 			GLenum var_cap = Unpack<GLenum,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -1901,11 +1901,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glIsEnabled");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glIsFramebuffer: {
-			android::base::beginTrace("glIsFramebuffer decode");
+			gfxstream::base::beginTrace("glIsFramebuffer decode");
 			GLuint var_framebuffer = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -1925,11 +1925,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glIsFramebuffer");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glIsProgram: {
-			android::base::beginTrace("glIsProgram decode");
+			gfxstream::base::beginTrace("glIsProgram decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -1949,11 +1949,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glIsProgram");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glIsRenderbuffer: {
-			android::base::beginTrace("glIsRenderbuffer decode");
+			gfxstream::base::beginTrace("glIsRenderbuffer decode");
 			GLuint var_renderbuffer = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -1973,11 +1973,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glIsRenderbuffer");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glIsShader: {
-			android::base::beginTrace("glIsShader decode");
+			gfxstream::base::beginTrace("glIsShader decode");
 			GLuint var_shader = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -1997,11 +1997,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glIsShader");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glIsTexture: {
-			android::base::beginTrace("glIsTexture decode");
+			gfxstream::base::beginTrace("glIsTexture decode");
 			GLuint var_texture = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -2021,11 +2021,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glIsTexture");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glLineWidth: {
-			android::base::beginTrace("glLineWidth decode");
+			gfxstream::base::beginTrace("glLineWidth decode");
 			GLfloat var_width = Unpack<GLfloat,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -2038,11 +2038,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glLineWidth(width:%f )", stream, var_width);
 			this->glLineWidth(var_width);
 			SET_LASTCALL("glLineWidth");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glLinkProgram: {
-			android::base::beginTrace("glLinkProgram decode");
+			gfxstream::base::beginTrace("glLinkProgram decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -2055,11 +2055,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glLinkProgram(program:%u )", stream, var_program);
 			this->glLinkProgram_dec(this, var_program);
 			SET_LASTCALL("glLinkProgram");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glPixelStorei: {
-			android::base::beginTrace("glPixelStorei decode");
+			gfxstream::base::beginTrace("glPixelStorei decode");
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_param = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -2073,11 +2073,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glPixelStorei(pname:0x%08x param:%d )", stream, var_pname, var_param);
 			this->glPixelStorei(var_pname, var_param);
 			SET_LASTCALL("glPixelStorei");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glPolygonOffset: {
-			android::base::beginTrace("glPolygonOffset decode");
+			gfxstream::base::beginTrace("glPolygonOffset decode");
 			GLfloat var_factor = Unpack<GLfloat,uint32_t>(ptr + 8);
 			GLfloat var_units = Unpack<GLfloat,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -2091,11 +2091,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glPolygonOffset(factor:%f units:%f )", stream, var_factor, var_units);
 			this->glPolygonOffset(var_factor, var_units);
 			SET_LASTCALL("glPolygonOffset");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glReadPixels: {
-			android::base::beginTrace("glReadPixels decode");
+			gfxstream::base::beginTrace("glReadPixels decode");
 			GLint var_x = Unpack<GLint,uint32_t>(ptr + 8);
 			GLint var_y = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_width = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -2123,11 +2123,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glReadPixels");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glReleaseShaderCompiler: {
-			android::base::beginTrace("glReleaseShaderCompiler decode");
+			gfxstream::base::beginTrace("glReleaseShaderCompiler decode");
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8, ptr + 8, checksumSize,
 					"gles2_decoder_context_t::decode, OP_glReleaseShaderCompiler: GL checksumCalculator failure\n");
@@ -2139,11 +2139,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glReleaseShaderCompiler()", stream);
 			this->glReleaseShaderCompiler();
 			SET_LASTCALL("glReleaseShaderCompiler");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glRenderbufferStorage: {
-			android::base::beginTrace("glRenderbufferStorage decode");
+			gfxstream::base::beginTrace("glRenderbufferStorage decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_internalformat = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLsizei var_width = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -2159,11 +2159,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glRenderbufferStorage(target:0x%08x internalformat:0x%08x width:%d height:%d )", stream, var_target, var_internalformat, var_width, var_height);
 			this->glRenderbufferStorage(var_target, var_internalformat, var_width, var_height);
 			SET_LASTCALL("glRenderbufferStorage");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glSampleCoverage: {
-			android::base::beginTrace("glSampleCoverage decode");
+			gfxstream::base::beginTrace("glSampleCoverage decode");
 			GLclampf var_value = Unpack<GLclampf,uint32_t>(ptr + 8);
 			GLboolean var_invert = Unpack<GLboolean,uint8_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -2177,11 +2177,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glSampleCoverage(value:%f invert:%d )", stream, var_value, var_invert);
 			this->glSampleCoverage(var_value, var_invert);
 			SET_LASTCALL("glSampleCoverage");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glScissor: {
-			android::base::beginTrace("glScissor decode");
+			gfxstream::base::beginTrace("glScissor decode");
 			GLint var_x = Unpack<GLint,uint32_t>(ptr + 8);
 			GLint var_y = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_width = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -2197,11 +2197,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glScissor(x:%d y:%d width:%d height:%d )", stream, var_x, var_y, var_width, var_height);
 			this->glScissor(var_x, var_y, var_width, var_height);
 			SET_LASTCALL("glScissor");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glShaderBinary: {
-			android::base::beginTrace("glShaderBinary decode");
+			gfxstream::base::beginTrace("glShaderBinary decode");
 			GLsizei var_n = Unpack<GLsizei,uint32_t>(ptr + 8);
 			uint32_t size_shaders __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_shaders(ptr + 8 + 4 + 4, size_shaders);
@@ -2220,11 +2220,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glShaderBinary(n:%d shaders:%p(%u) binaryformat:0x%08x binary:%p(%u) length:%d )", stream, var_n, (const GLuint*)(inptr_shaders.get()), size_shaders, var_binaryformat, (const GLvoid*)(inptr_binary.get()), size_binary, var_length);
 			this->glShaderBinary(var_n, (const GLuint*)(inptr_shaders.get()), var_binaryformat, (const GLvoid*)(inptr_binary.get()), var_length);
 			SET_LASTCALL("glShaderBinary");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glShaderSource: {
-			android::base::beginTrace("glShaderSource decode");
+			gfxstream::base::beginTrace("glShaderSource decode");
 			GLuint var_shader = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_string __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -2242,11 +2242,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glShaderSource(shader:%u count:%d string:%p(%u) length:%p(%u) )", stream, var_shader, var_count, (const GLchar* const*)(inptr_string.get()), size_string, (const GLint*)(inptr_length.get()), size_length);
 			this->glShaderSource(var_shader, var_count, (const GLchar* const*)(inptr_string.get()), (const GLint*)(inptr_length.get()));
 			SET_LASTCALL("glShaderSource");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glStencilFunc: {
-			android::base::beginTrace("glStencilFunc decode");
+			gfxstream::base::beginTrace("glStencilFunc decode");
 			GLenum var_func = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_ref = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLuint var_mask = Unpack<GLuint,uint32_t>(ptr + 8 + 4 + 4);
@@ -2261,11 +2261,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glStencilFunc(func:0x%08x ref:%d mask:%u )", stream, var_func, var_ref, var_mask);
 			this->glStencilFunc(var_func, var_ref, var_mask);
 			SET_LASTCALL("glStencilFunc");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glStencilFuncSeparate: {
-			android::base::beginTrace("glStencilFuncSeparate decode");
+			gfxstream::base::beginTrace("glStencilFuncSeparate decode");
 			GLenum var_face = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_func = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLint var_ref = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -2281,11 +2281,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glStencilFuncSeparate(face:0x%08x func:0x%08x ref:%d mask:%u )", stream, var_face, var_func, var_ref, var_mask);
 			this->glStencilFuncSeparate(var_face, var_func, var_ref, var_mask);
 			SET_LASTCALL("glStencilFuncSeparate");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glStencilMask: {
-			android::base::beginTrace("glStencilMask decode");
+			gfxstream::base::beginTrace("glStencilMask decode");
 			GLuint var_mask = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -2298,11 +2298,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glStencilMask(mask:%u )", stream, var_mask);
 			this->glStencilMask(var_mask);
 			SET_LASTCALL("glStencilMask");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glStencilMaskSeparate: {
-			android::base::beginTrace("glStencilMaskSeparate decode");
+			gfxstream::base::beginTrace("glStencilMaskSeparate decode");
 			GLenum var_face = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLuint var_mask = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -2316,11 +2316,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glStencilMaskSeparate(face:0x%08x mask:%u )", stream, var_face, var_mask);
 			this->glStencilMaskSeparate(var_face, var_mask);
 			SET_LASTCALL("glStencilMaskSeparate");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glStencilOp: {
-			android::base::beginTrace("glStencilOp decode");
+			gfxstream::base::beginTrace("glStencilOp decode");
 			GLenum var_fail = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_zfail = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLenum var_zpass = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -2335,11 +2335,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glStencilOp(fail:0x%08x zfail:0x%08x zpass:0x%08x )", stream, var_fail, var_zfail, var_zpass);
 			this->glStencilOp(var_fail, var_zfail, var_zpass);
 			SET_LASTCALL("glStencilOp");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glStencilOpSeparate: {
-			android::base::beginTrace("glStencilOpSeparate decode");
+			gfxstream::base::beginTrace("glStencilOpSeparate decode");
 			GLenum var_face = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_fail = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLenum var_zfail = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -2355,11 +2355,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glStencilOpSeparate(face:0x%08x fail:0x%08x zfail:0x%08x zpass:0x%08x )", stream, var_face, var_fail, var_zfail, var_zpass);
 			this->glStencilOpSeparate(var_face, var_fail, var_zfail, var_zpass);
 			SET_LASTCALL("glStencilOpSeparate");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glTexImage2D: {
-			android::base::beginTrace("glTexImage2D decode");
+			gfxstream::base::beginTrace("glTexImage2D decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_level = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_internalformat = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -2381,11 +2381,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glTexImage2D(target:0x%08x level:%d internalformat:%d width:%d height:%d border:%d format:0x%08x type:0x%08x pixels:%p(%u) )", stream, var_target, var_level, var_internalformat, var_width, var_height, var_border, var_format, var_type, (const GLvoid*)(inptr_pixels.get()), size_pixels);
 			this->glTexImage2D(var_target, var_level, var_internalformat, var_width, var_height, var_border, var_format, var_type, size_pixels == 0 ? nullptr : (const GLvoid*)(inptr_pixels.get()));
 			SET_LASTCALL("glTexImage2D");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glTexParameterf: {
-			android::base::beginTrace("glTexParameterf decode");
+			gfxstream::base::beginTrace("glTexParameterf decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLfloat var_param = Unpack<GLfloat,uint32_t>(ptr + 8 + 4 + 4);
@@ -2400,11 +2400,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glTexParameterf(target:0x%08x pname:0x%08x param:%f )", stream, var_target, var_pname, var_param);
 			this->glTexParameterf(var_target, var_pname, var_param);
 			SET_LASTCALL("glTexParameterf");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glTexParameterfv: {
-			android::base::beginTrace("glTexParameterfv decode");
+			gfxstream::base::beginTrace("glTexParameterfv decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_params __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -2420,11 +2420,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glTexParameterfv(target:0x%08x pname:0x%08x params:%p(%u) )", stream, var_target, var_pname, (const GLfloat*)(inptr_params.get()), size_params);
 			this->glTexParameterfv(var_target, var_pname, (const GLfloat*)(inptr_params.get()));
 			SET_LASTCALL("glTexParameterfv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glTexParameteri: {
-			android::base::beginTrace("glTexParameteri decode");
+			gfxstream::base::beginTrace("glTexParameteri decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLint var_param = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -2439,11 +2439,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glTexParameteri(target:0x%08x pname:0x%08x param:%d )", stream, var_target, var_pname, var_param);
 			this->glTexParameteri(var_target, var_pname, var_param);
 			SET_LASTCALL("glTexParameteri");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glTexParameteriv: {
-			android::base::beginTrace("glTexParameteriv decode");
+			gfxstream::base::beginTrace("glTexParameteriv decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_params __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -2459,11 +2459,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glTexParameteriv(target:0x%08x pname:0x%08x params:%p(%u) )", stream, var_target, var_pname, (const GLint*)(inptr_params.get()), size_params);
 			this->glTexParameteriv(var_target, var_pname, (const GLint*)(inptr_params.get()));
 			SET_LASTCALL("glTexParameteriv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glTexSubImage2D: {
-			android::base::beginTrace("glTexSubImage2D decode");
+			gfxstream::base::beginTrace("glTexSubImage2D decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_level = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_xoffset = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -2485,11 +2485,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glTexSubImage2D(target:0x%08x level:%d xoffset:%d yoffset:%d width:%d height:%d format:0x%08x type:0x%08x pixels:%p(%u) )", stream, var_target, var_level, var_xoffset, var_yoffset, var_width, var_height, var_format, var_type, (const GLvoid*)(inptr_pixels.get()), size_pixels);
 			this->glTexSubImage2D(var_target, var_level, var_xoffset, var_yoffset, var_width, var_height, var_format, var_type, size_pixels == 0 ? nullptr : (const GLvoid*)(inptr_pixels.get()));
 			SET_LASTCALL("glTexSubImage2D");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniform1f: {
-			android::base::beginTrace("glUniform1f decode");
+			gfxstream::base::beginTrace("glUniform1f decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLfloat var_x = Unpack<GLfloat,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -2503,11 +2503,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniform1f(location:%d x:%f )", stream, var_location, var_x);
 			this->glUniform1f(var_location, var_x);
 			SET_LASTCALL("glUniform1f");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniform1fv: {
-			android::base::beginTrace("glUniform1fv decode");
+			gfxstream::base::beginTrace("glUniform1fv decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_v __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -2523,11 +2523,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniform1fv(location:%d count:%d v:%p(%u) )", stream, var_location, var_count, (const GLfloat*)(inptr_v.get()), size_v);
 			this->glUniform1fv(var_location, var_count, (const GLfloat*)(inptr_v.get()));
 			SET_LASTCALL("glUniform1fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniform1i: {
-			android::base::beginTrace("glUniform1i decode");
+			gfxstream::base::beginTrace("glUniform1i decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLint var_x = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -2541,11 +2541,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniform1i(location:%d x:%d )", stream, var_location, var_x);
 			this->glUniform1i(var_location, var_x);
 			SET_LASTCALL("glUniform1i");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniform1iv: {
-			android::base::beginTrace("glUniform1iv decode");
+			gfxstream::base::beginTrace("glUniform1iv decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_v __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -2561,11 +2561,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniform1iv(location:%d count:%d v:%p(%u) )", stream, var_location, var_count, (const GLint*)(inptr_v.get()), size_v);
 			this->glUniform1iv(var_location, var_count, (const GLint*)(inptr_v.get()));
 			SET_LASTCALL("glUniform1iv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniform2f: {
-			android::base::beginTrace("glUniform2f decode");
+			gfxstream::base::beginTrace("glUniform2f decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLfloat var_x = Unpack<GLfloat,uint32_t>(ptr + 8 + 4);
 			GLfloat var_y = Unpack<GLfloat,uint32_t>(ptr + 8 + 4 + 4);
@@ -2580,11 +2580,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniform2f(location:%d x:%f y:%f )", stream, var_location, var_x, var_y);
 			this->glUniform2f(var_location, var_x, var_y);
 			SET_LASTCALL("glUniform2f");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniform2fv: {
-			android::base::beginTrace("glUniform2fv decode");
+			gfxstream::base::beginTrace("glUniform2fv decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_v __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -2600,11 +2600,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniform2fv(location:%d count:%d v:%p(%u) )", stream, var_location, var_count, (const GLfloat*)(inptr_v.get()), size_v);
 			this->glUniform2fv(var_location, var_count, (const GLfloat*)(inptr_v.get()));
 			SET_LASTCALL("glUniform2fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniform2i: {
-			android::base::beginTrace("glUniform2i decode");
+			gfxstream::base::beginTrace("glUniform2i decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLint var_x = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_y = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -2619,11 +2619,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniform2i(location:%d x:%d y:%d )", stream, var_location, var_x, var_y);
 			this->glUniform2i(var_location, var_x, var_y);
 			SET_LASTCALL("glUniform2i");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniform2iv: {
-			android::base::beginTrace("glUniform2iv decode");
+			gfxstream::base::beginTrace("glUniform2iv decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_v __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -2639,11 +2639,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniform2iv(location:%d count:%d v:%p(%u) )", stream, var_location, var_count, (const GLint*)(inptr_v.get()), size_v);
 			this->glUniform2iv(var_location, var_count, (const GLint*)(inptr_v.get()));
 			SET_LASTCALL("glUniform2iv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniform3f: {
-			android::base::beginTrace("glUniform3f decode");
+			gfxstream::base::beginTrace("glUniform3f decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLfloat var_x = Unpack<GLfloat,uint32_t>(ptr + 8 + 4);
 			GLfloat var_y = Unpack<GLfloat,uint32_t>(ptr + 8 + 4 + 4);
@@ -2659,11 +2659,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniform3f(location:%d x:%f y:%f z:%f )", stream, var_location, var_x, var_y, var_z);
 			this->glUniform3f(var_location, var_x, var_y, var_z);
 			SET_LASTCALL("glUniform3f");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniform3fv: {
-			android::base::beginTrace("glUniform3fv decode");
+			gfxstream::base::beginTrace("glUniform3fv decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_v __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -2679,11 +2679,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniform3fv(location:%d count:%d v:%p(%u) )", stream, var_location, var_count, (const GLfloat*)(inptr_v.get()), size_v);
 			this->glUniform3fv(var_location, var_count, (const GLfloat*)(inptr_v.get()));
 			SET_LASTCALL("glUniform3fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniform3i: {
-			android::base::beginTrace("glUniform3i decode");
+			gfxstream::base::beginTrace("glUniform3i decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLint var_x = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_y = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -2699,11 +2699,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniform3i(location:%d x:%d y:%d z:%d )", stream, var_location, var_x, var_y, var_z);
 			this->glUniform3i(var_location, var_x, var_y, var_z);
 			SET_LASTCALL("glUniform3i");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniform3iv: {
-			android::base::beginTrace("glUniform3iv decode");
+			gfxstream::base::beginTrace("glUniform3iv decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_v __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -2719,11 +2719,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniform3iv(location:%d count:%d v:%p(%u) )", stream, var_location, var_count, (const GLint*)(inptr_v.get()), size_v);
 			this->glUniform3iv(var_location, var_count, (const GLint*)(inptr_v.get()));
 			SET_LASTCALL("glUniform3iv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniform4f: {
-			android::base::beginTrace("glUniform4f decode");
+			gfxstream::base::beginTrace("glUniform4f decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLfloat var_x = Unpack<GLfloat,uint32_t>(ptr + 8 + 4);
 			GLfloat var_y = Unpack<GLfloat,uint32_t>(ptr + 8 + 4 + 4);
@@ -2740,11 +2740,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniform4f(location:%d x:%f y:%f z:%f w:%f )", stream, var_location, var_x, var_y, var_z, var_w);
 			this->glUniform4f(var_location, var_x, var_y, var_z, var_w);
 			SET_LASTCALL("glUniform4f");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniform4fv: {
-			android::base::beginTrace("glUniform4fv decode");
+			gfxstream::base::beginTrace("glUniform4fv decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_v __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -2760,11 +2760,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniform4fv(location:%d count:%d v:%p(%u) )", stream, var_location, var_count, (const GLfloat*)(inptr_v.get()), size_v);
 			this->glUniform4fv(var_location, var_count, (const GLfloat*)(inptr_v.get()));
 			SET_LASTCALL("glUniform4fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniform4i: {
-			android::base::beginTrace("glUniform4i decode");
+			gfxstream::base::beginTrace("glUniform4i decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLint var_x = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_y = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -2781,11 +2781,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniform4i(location:%d x:%d y:%d z:%d w:%d )", stream, var_location, var_x, var_y, var_z, var_w);
 			this->glUniform4i(var_location, var_x, var_y, var_z, var_w);
 			SET_LASTCALL("glUniform4i");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniform4iv: {
-			android::base::beginTrace("glUniform4iv decode");
+			gfxstream::base::beginTrace("glUniform4iv decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_v __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -2801,11 +2801,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniform4iv(location:%d count:%d v:%p(%u) )", stream, var_location, var_count, (const GLint*)(inptr_v.get()), size_v);
 			this->glUniform4iv(var_location, var_count, (const GLint*)(inptr_v.get()));
 			SET_LASTCALL("glUniform4iv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniformMatrix2fv: {
-			android::base::beginTrace("glUniformMatrix2fv decode");
+			gfxstream::base::beginTrace("glUniformMatrix2fv decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			GLboolean var_transpose = Unpack<GLboolean,uint8_t>(ptr + 8 + 4 + 4);
@@ -2822,11 +2822,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniformMatrix2fv(location:%d count:%d transpose:%d value:%p(%u) )", stream, var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()), size_value);
 			this->glUniformMatrix2fv(var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()));
 			SET_LASTCALL("glUniformMatrix2fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniformMatrix3fv: {
-			android::base::beginTrace("glUniformMatrix3fv decode");
+			gfxstream::base::beginTrace("glUniformMatrix3fv decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			GLboolean var_transpose = Unpack<GLboolean,uint8_t>(ptr + 8 + 4 + 4);
@@ -2843,11 +2843,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniformMatrix3fv(location:%d count:%d transpose:%d value:%p(%u) )", stream, var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()), size_value);
 			this->glUniformMatrix3fv(var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()));
 			SET_LASTCALL("glUniformMatrix3fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniformMatrix4fv: {
-			android::base::beginTrace("glUniformMatrix4fv decode");
+			gfxstream::base::beginTrace("glUniformMatrix4fv decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			GLboolean var_transpose = Unpack<GLboolean,uint8_t>(ptr + 8 + 4 + 4);
@@ -2864,11 +2864,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniformMatrix4fv(location:%d count:%d transpose:%d value:%p(%u) )", stream, var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()), size_value);
 			this->glUniformMatrix4fv(var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()));
 			SET_LASTCALL("glUniformMatrix4fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUseProgram: {
-			android::base::beginTrace("glUseProgram decode");
+			gfxstream::base::beginTrace("glUseProgram decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -2881,11 +2881,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUseProgram(program:%u )", stream, var_program);
 			this->glUseProgram_dec(this, var_program);
 			SET_LASTCALL("glUseProgram");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glValidateProgram: {
-			android::base::beginTrace("glValidateProgram decode");
+			gfxstream::base::beginTrace("glValidateProgram decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -2898,11 +2898,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glValidateProgram(program:%u )", stream, var_program);
 			this->glValidateProgram_dec(this, var_program);
 			SET_LASTCALL("glValidateProgram");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glVertexAttrib1f: {
-			android::base::beginTrace("glVertexAttrib1f decode");
+			gfxstream::base::beginTrace("glVertexAttrib1f decode");
 			GLuint var_indx = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLfloat var_x = Unpack<GLfloat,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -2916,11 +2916,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glVertexAttrib1f(indx:%u x:%f )", stream, var_indx, var_x);
 			this->glVertexAttrib1f(var_indx, var_x);
 			SET_LASTCALL("glVertexAttrib1f");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glVertexAttrib1fv: {
-			android::base::beginTrace("glVertexAttrib1fv decode");
+			gfxstream::base::beginTrace("glVertexAttrib1fv decode");
 			GLuint var_indx = Unpack<GLuint,uint32_t>(ptr + 8);
 			uint32_t size_values __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_values(ptr + 8 + 4 + 4, size_values);
@@ -2935,11 +2935,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glVertexAttrib1fv(indx:%u values:%p(%u) )", stream, var_indx, (const GLfloat*)(inptr_values.get()), size_values);
 			this->glVertexAttrib1fv(var_indx, (const GLfloat*)(inptr_values.get()));
 			SET_LASTCALL("glVertexAttrib1fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glVertexAttrib2f: {
-			android::base::beginTrace("glVertexAttrib2f decode");
+			gfxstream::base::beginTrace("glVertexAttrib2f decode");
 			GLuint var_indx = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLfloat var_x = Unpack<GLfloat,uint32_t>(ptr + 8 + 4);
 			GLfloat var_y = Unpack<GLfloat,uint32_t>(ptr + 8 + 4 + 4);
@@ -2954,11 +2954,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glVertexAttrib2f(indx:%u x:%f y:%f )", stream, var_indx, var_x, var_y);
 			this->glVertexAttrib2f(var_indx, var_x, var_y);
 			SET_LASTCALL("glVertexAttrib2f");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glVertexAttrib2fv: {
-			android::base::beginTrace("glVertexAttrib2fv decode");
+			gfxstream::base::beginTrace("glVertexAttrib2fv decode");
 			GLuint var_indx = Unpack<GLuint,uint32_t>(ptr + 8);
 			uint32_t size_values __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_values(ptr + 8 + 4 + 4, size_values);
@@ -2973,11 +2973,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glVertexAttrib2fv(indx:%u values:%p(%u) )", stream, var_indx, (const GLfloat*)(inptr_values.get()), size_values);
 			this->glVertexAttrib2fv(var_indx, (const GLfloat*)(inptr_values.get()));
 			SET_LASTCALL("glVertexAttrib2fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glVertexAttrib3f: {
-			android::base::beginTrace("glVertexAttrib3f decode");
+			gfxstream::base::beginTrace("glVertexAttrib3f decode");
 			GLuint var_indx = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLfloat var_x = Unpack<GLfloat,uint32_t>(ptr + 8 + 4);
 			GLfloat var_y = Unpack<GLfloat,uint32_t>(ptr + 8 + 4 + 4);
@@ -2993,11 +2993,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glVertexAttrib3f(indx:%u x:%f y:%f z:%f )", stream, var_indx, var_x, var_y, var_z);
 			this->glVertexAttrib3f(var_indx, var_x, var_y, var_z);
 			SET_LASTCALL("glVertexAttrib3f");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glVertexAttrib3fv: {
-			android::base::beginTrace("glVertexAttrib3fv decode");
+			gfxstream::base::beginTrace("glVertexAttrib3fv decode");
 			GLuint var_indx = Unpack<GLuint,uint32_t>(ptr + 8);
 			uint32_t size_values __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_values(ptr + 8 + 4 + 4, size_values);
@@ -3012,11 +3012,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glVertexAttrib3fv(indx:%u values:%p(%u) )", stream, var_indx, (const GLfloat*)(inptr_values.get()), size_values);
 			this->glVertexAttrib3fv(var_indx, (const GLfloat*)(inptr_values.get()));
 			SET_LASTCALL("glVertexAttrib3fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glVertexAttrib4f: {
-			android::base::beginTrace("glVertexAttrib4f decode");
+			gfxstream::base::beginTrace("glVertexAttrib4f decode");
 			GLuint var_indx = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLfloat var_x = Unpack<GLfloat,uint32_t>(ptr + 8 + 4);
 			GLfloat var_y = Unpack<GLfloat,uint32_t>(ptr + 8 + 4 + 4);
@@ -3033,11 +3033,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glVertexAttrib4f(indx:%u x:%f y:%f z:%f w:%f )", stream, var_indx, var_x, var_y, var_z, var_w);
 			this->glVertexAttrib4f(var_indx, var_x, var_y, var_z, var_w);
 			SET_LASTCALL("glVertexAttrib4f");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glVertexAttrib4fv: {
-			android::base::beginTrace("glVertexAttrib4fv decode");
+			gfxstream::base::beginTrace("glVertexAttrib4fv decode");
 			GLuint var_indx = Unpack<GLuint,uint32_t>(ptr + 8);
 			uint32_t size_values __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_values(ptr + 8 + 4 + 4, size_values);
@@ -3052,11 +3052,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glVertexAttrib4fv(indx:%u values:%p(%u) )", stream, var_indx, (const GLfloat*)(inptr_values.get()), size_values);
 			this->glVertexAttrib4fv(var_indx, (const GLfloat*)(inptr_values.get()));
 			SET_LASTCALL("glVertexAttrib4fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glVertexAttribPointer: {
-			android::base::beginTrace("glVertexAttribPointer decode");
+			gfxstream::base::beginTrace("glVertexAttribPointer decode");
 			GLuint var_indx = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_size = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLenum var_type = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -3075,11 +3075,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glVertexAttribPointer(indx:%u size:%d type:0x%08x normalized:%d stride:%d ptr:%p(%u) )", stream, var_indx, var_size, var_type, var_normalized, var_stride, (const GLvoid*)(inptr_ptr.get()), size_ptr);
 			this->glVertexAttribPointer(var_indx, var_size, var_type, var_normalized, var_stride, (const GLvoid*)(inptr_ptr.get()));
 			SET_LASTCALL("glVertexAttribPointer");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glViewport: {
-			android::base::beginTrace("glViewport decode");
+			gfxstream::base::beginTrace("glViewport decode");
 			GLint var_x = Unpack<GLint,uint32_t>(ptr + 8);
 			GLint var_y = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_width = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -3095,11 +3095,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glViewport(x:%d y:%d width:%d height:%d )", stream, var_x, var_y, var_width, var_height);
 			this->glViewport(var_x, var_y, var_width, var_height);
 			SET_LASTCALL("glViewport");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glEGLImageTargetTexture2DOES: {
-			android::base::beginTrace("glEGLImageTargetTexture2DOES decode");
+			gfxstream::base::beginTrace("glEGLImageTargetTexture2DOES decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLeglImageOES var_image = Unpack<GLeglImageOES,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -3113,11 +3113,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glEGLImageTargetTexture2DOES(target:0x%08x image:%p )", stream, var_target, var_image);
 			this->glEGLImageTargetTexture2DOES(var_target, var_image);
 			SET_LASTCALL("glEGLImageTargetTexture2DOES");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glEGLImageTargetRenderbufferStorageOES: {
-			android::base::beginTrace("glEGLImageTargetRenderbufferStorageOES decode");
+			gfxstream::base::beginTrace("glEGLImageTargetRenderbufferStorageOES decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLeglImageOES var_image = Unpack<GLeglImageOES,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -3131,11 +3131,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glEGLImageTargetRenderbufferStorageOES(target:0x%08x image:%p )", stream, var_target, var_image);
 			this->glEGLImageTargetRenderbufferStorageOES(var_target, var_image);
 			SET_LASTCALL("glEGLImageTargetRenderbufferStorageOES");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetProgramBinaryOES: {
-			android::base::beginTrace("glGetProgramBinaryOES decode");
+			gfxstream::base::beginTrace("glGetProgramBinaryOES decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLsizei var_bufSize = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_length __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -3155,11 +3155,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glGetProgramBinaryOES(program:%u bufSize:%d length:%p(%u) binaryFormat:%p(%u) binary:%p(%u) )", stream, var_program, var_bufSize, (GLsizei*)(inptr_length.get()), size_length, (GLenum*)(inptr_binaryFormat.get()), size_binaryFormat, (GLvoid*)(inptr_binary.get()), size_binary);
 			this->glGetProgramBinaryOES_dec(this, var_program, var_bufSize, (GLsizei*)(inptr_length.get()), (GLenum*)(inptr_binaryFormat.get()), (GLvoid*)(inptr_binary.get()));
 			SET_LASTCALL("glGetProgramBinaryOES");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramBinaryOES: {
-			android::base::beginTrace("glProgramBinaryOES decode");
+			gfxstream::base::beginTrace("glProgramBinaryOES decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_binaryFormat = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_binary __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -3176,11 +3176,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramBinaryOES(program:%u binaryFormat:0x%08x binary:%p(%u) length:%d )", stream, var_program, var_binaryFormat, (const GLvoid*)(inptr_binary.get()), size_binary, var_length);
 			this->glProgramBinaryOES_dec(this, var_program, var_binaryFormat, (const GLvoid*)(inptr_binary.get()), var_length);
 			SET_LASTCALL("glProgramBinaryOES");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glMapBufferOES: {
-			android::base::beginTrace("glMapBufferOES decode");
+			gfxstream::base::beginTrace("glMapBufferOES decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_access = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -3194,11 +3194,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glMapBufferOES(target:0x%08x access:0x%08x )", stream, var_target, var_access);
 			this->glMapBufferOES(var_target, var_access);
 			SET_LASTCALL("glMapBufferOES");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUnmapBufferOES: {
-			android::base::beginTrace("glUnmapBufferOES decode");
+			gfxstream::base::beginTrace("glUnmapBufferOES decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -3218,11 +3218,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glUnmapBufferOES");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glTexImage3DOES: {
-			android::base::beginTrace("glTexImage3DOES decode");
+			gfxstream::base::beginTrace("glTexImage3DOES decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_level = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLenum var_internalformat = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -3245,11 +3245,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glTexImage3DOES(target:0x%08x level:%d internalformat:0x%08x width:%d height:%d depth:%d border:%d format:0x%08x type:0x%08x pixels:%p(%u) )", stream, var_target, var_level, var_internalformat, var_width, var_height, var_depth, var_border, var_format, var_type, (const GLvoid*)(inptr_pixels.get()), size_pixels);
 			this->glTexImage3DOES(var_target, var_level, var_internalformat, var_width, var_height, var_depth, var_border, var_format, var_type, size_pixels == 0 ? nullptr : (const GLvoid*)(inptr_pixels.get()));
 			SET_LASTCALL("glTexImage3DOES");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glTexSubImage3DOES: {
-			android::base::beginTrace("glTexSubImage3DOES decode");
+			gfxstream::base::beginTrace("glTexSubImage3DOES decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_level = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_xoffset = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -3273,11 +3273,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glTexSubImage3DOES(target:0x%08x level:%d xoffset:%d yoffset:%d zoffset:%d width:%d height:%d depth:%d format:0x%08x type:0x%08x pixels:%p(%u) )", stream, var_target, var_level, var_xoffset, var_yoffset, var_zoffset, var_width, var_height, var_depth, var_format, var_type, (const GLvoid*)(inptr_pixels.get()), size_pixels);
 			this->glTexSubImage3DOES(var_target, var_level, var_xoffset, var_yoffset, var_zoffset, var_width, var_height, var_depth, var_format, var_type, size_pixels == 0 ? nullptr : (const GLvoid*)(inptr_pixels.get()));
 			SET_LASTCALL("glTexSubImage3DOES");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glCopyTexSubImage3DOES: {
-			android::base::beginTrace("glCopyTexSubImage3DOES decode");
+			gfxstream::base::beginTrace("glCopyTexSubImage3DOES decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_level = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_xoffset = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -3298,11 +3298,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glCopyTexSubImage3DOES(target:0x%08x level:%d xoffset:%d yoffset:%d zoffset:%d x:%d y:%d width:%d height:%d )", stream, var_target, var_level, var_xoffset, var_yoffset, var_zoffset, var_x, var_y, var_width, var_height);
 			this->glCopyTexSubImage3DOES(var_target, var_level, var_xoffset, var_yoffset, var_zoffset, var_x, var_y, var_width, var_height);
 			SET_LASTCALL("glCopyTexSubImage3DOES");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glCompressedTexImage3DOES: {
-			android::base::beginTrace("glCompressedTexImage3DOES decode");
+			gfxstream::base::beginTrace("glCompressedTexImage3DOES decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_level = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLenum var_internalformat = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -3324,11 +3324,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glCompressedTexImage3DOES(target:0x%08x level:%d internalformat:0x%08x width:%d height:%d depth:%d border:%d imageSize:%d data:%p(%u) )", stream, var_target, var_level, var_internalformat, var_width, var_height, var_depth, var_border, var_imageSize, (const GLvoid*)(inptr_data.get()), size_data);
 			this->glCompressedTexImage3DOES(var_target, var_level, var_internalformat, var_width, var_height, var_depth, var_border, var_imageSize, size_data == 0 ? nullptr : (const GLvoid*)(inptr_data.get()));
 			SET_LASTCALL("glCompressedTexImage3DOES");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glCompressedTexSubImage3DOES: {
-			android::base::beginTrace("glCompressedTexSubImage3DOES decode");
+			gfxstream::base::beginTrace("glCompressedTexSubImage3DOES decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_level = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_xoffset = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -3352,11 +3352,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glCompressedTexSubImage3DOES(target:0x%08x level:%d xoffset:%d yoffset:%d zoffset:%d width:%d height:%d depth:%d format:0x%08x imageSize:%d data:%p(%u) )", stream, var_target, var_level, var_xoffset, var_yoffset, var_zoffset, var_width, var_height, var_depth, var_format, var_imageSize, (const GLvoid*)(inptr_data.get()), size_data);
 			this->glCompressedTexSubImage3DOES(var_target, var_level, var_xoffset, var_yoffset, var_zoffset, var_width, var_height, var_depth, var_format, var_imageSize, size_data == 0 ? nullptr : (const GLvoid*)(inptr_data.get()));
 			SET_LASTCALL("glCompressedTexSubImage3DOES");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glFramebufferTexture3DOES: {
-			android::base::beginTrace("glFramebufferTexture3DOES decode");
+			gfxstream::base::beginTrace("glFramebufferTexture3DOES decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_attachment = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLenum var_textarget = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -3374,11 +3374,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glFramebufferTexture3DOES(target:0x%08x attachment:0x%08x textarget:0x%08x texture:%u level:%d zoffset:%d )", stream, var_target, var_attachment, var_textarget, var_texture, var_level, var_zoffset);
 			this->glFramebufferTexture3DOES(var_target, var_attachment, var_textarget, var_texture, var_level, var_zoffset);
 			SET_LASTCALL("glFramebufferTexture3DOES");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBindVertexArrayOES: {
-			android::base::beginTrace("glBindVertexArrayOES decode");
+			gfxstream::base::beginTrace("glBindVertexArrayOES decode");
 			GLuint var_array = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -3391,11 +3391,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glBindVertexArrayOES(array:%u )", stream, var_array);
 			this->glBindVertexArrayOES(var_array);
 			SET_LASTCALL("glBindVertexArrayOES");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDeleteVertexArraysOES: {
-			android::base::beginTrace("glDeleteVertexArraysOES decode");
+			gfxstream::base::beginTrace("glDeleteVertexArraysOES decode");
 			GLsizei var_n = Unpack<GLsizei,uint32_t>(ptr + 8);
 			uint32_t size_arrays __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_arrays(ptr + 8 + 4 + 4, size_arrays);
@@ -3410,11 +3410,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDeleteVertexArraysOES(n:%d arrays:%p(%u) )", stream, var_n, (const GLuint*)(inptr_arrays.get()), size_arrays);
 			this->glDeleteVertexArraysOES_dec(this, var_n, (const GLuint*)(inptr_arrays.get()));
 			SET_LASTCALL("glDeleteVertexArraysOES");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGenVertexArraysOES: {
-			android::base::beginTrace("glGenVertexArraysOES decode");
+			gfxstream::base::beginTrace("glGenVertexArraysOES decode");
 			GLsizei var_n = Unpack<GLsizei,uint32_t>(ptr + 8);
 			uint32_t size_arrays __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -3437,11 +3437,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGenVertexArraysOES");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glIsVertexArrayOES: {
-			android::base::beginTrace("glIsVertexArrayOES decode");
+			gfxstream::base::beginTrace("glIsVertexArrayOES decode");
 			GLuint var_array = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -3461,11 +3461,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glIsVertexArrayOES");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDiscardFramebufferEXT: {
-			android::base::beginTrace("glDiscardFramebufferEXT decode");
+			gfxstream::base::beginTrace("glDiscardFramebufferEXT decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLsizei var_numAttachments = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_attachments __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -3481,11 +3481,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDiscardFramebufferEXT(target:0x%08x numAttachments:%d attachments:%p(%u) )", stream, var_target, var_numAttachments, (const GLenum*)(inptr_attachments.get()), size_attachments);
 			this->glDiscardFramebufferEXT(var_target, var_numAttachments, (const GLenum*)(inptr_attachments.get()));
 			SET_LASTCALL("glDiscardFramebufferEXT");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glMultiDrawArraysEXT: {
-			android::base::beginTrace("glMultiDrawArraysEXT decode");
+			gfxstream::base::beginTrace("glMultiDrawArraysEXT decode");
 			GLenum var_mode = Unpack<GLenum,uint32_t>(ptr + 8);
 			uint32_t size_first __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_first(ptr + 8 + 4 + 4, size_first);
@@ -3503,11 +3503,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glMultiDrawArraysEXT(mode:0x%08x first:%p(%u) count:%p(%u) primcount:%d )", stream, var_mode, (const GLint*)(inptr_first.get()), size_first, (const GLsizei*)(inptr_count.get()), size_count, var_primcount);
 			this->glMultiDrawArraysEXT(var_mode, (const GLint*)(inptr_first.get()), (const GLsizei*)(inptr_count.get()), var_primcount);
 			SET_LASTCALL("glMultiDrawArraysEXT");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glMultiDrawElementsEXT: {
-			android::base::beginTrace("glMultiDrawElementsEXT decode");
+			gfxstream::base::beginTrace("glMultiDrawElementsEXT decode");
 			GLenum var_mode = Unpack<GLenum,uint32_t>(ptr + 8);
 			uint32_t size_count __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_count(ptr + 8 + 4 + 4, size_count);
@@ -3526,11 +3526,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glMultiDrawElementsEXT(mode:0x%08x count:%p(%u) type:0x%08x indices:%p(%u) primcount:%d )", stream, var_mode, (const GLsizei*)(inptr_count.get()), size_count, var_type, (const GLvoid* const*)(inptr_indices.get()), size_indices, var_primcount);
 			this->glMultiDrawElementsEXT(var_mode, (const GLsizei*)(inptr_count.get()), var_type, (const GLvoid* const*)(inptr_indices.get()), var_primcount);
 			SET_LASTCALL("glMultiDrawElementsEXT");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetPerfMonitorGroupsAMD: {
-			android::base::beginTrace("glGetPerfMonitorGroupsAMD decode");
+			gfxstream::base::beginTrace("glGetPerfMonitorGroupsAMD decode");
 			uint32_t size_numGroups __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8);
 			InputBuffer inptr_numGroups(ptr + 8 + 4, size_numGroups);
 			GLsizei var_groupsSize = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + size_numGroups);
@@ -3547,11 +3547,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glGetPerfMonitorGroupsAMD(numGroups:%p(%u) groupsSize:%d groups:%p(%u) )", stream, (GLint*)(inptr_numGroups.get()), size_numGroups, var_groupsSize, (GLuint*)(inptr_groups.get()), size_groups);
 			this->glGetPerfMonitorGroupsAMD((GLint*)(inptr_numGroups.get()), var_groupsSize, (GLuint*)(inptr_groups.get()));
 			SET_LASTCALL("glGetPerfMonitorGroupsAMD");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetPerfMonitorCountersAMD: {
-			android::base::beginTrace("glGetPerfMonitorCountersAMD decode");
+			gfxstream::base::beginTrace("glGetPerfMonitorCountersAMD decode");
 			GLuint var_group = Unpack<GLuint,uint32_t>(ptr + 8);
 			uint32_t size_numCounters __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_numCounters(ptr + 8 + 4 + 4, size_numCounters);
@@ -3571,11 +3571,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glGetPerfMonitorCountersAMD(group:%u numCounters:%p(%u) maxActiveCounters:%p(%u) counterSize:%d counters:%p(%u) )", stream, var_group, (GLint*)(inptr_numCounters.get()), size_numCounters, (GLint*)(inptr_maxActiveCounters.get()), size_maxActiveCounters, var_counterSize, (GLuint*)(inptr_counters.get()), size_counters);
 			this->glGetPerfMonitorCountersAMD(var_group, (GLint*)(inptr_numCounters.get()), (GLint*)(inptr_maxActiveCounters.get()), var_counterSize, (GLuint*)(inptr_counters.get()));
 			SET_LASTCALL("glGetPerfMonitorCountersAMD");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetPerfMonitorGroupStringAMD: {
-			android::base::beginTrace("glGetPerfMonitorGroupStringAMD decode");
+			gfxstream::base::beginTrace("glGetPerfMonitorGroupStringAMD decode");
 			GLuint var_group = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLsizei var_bufSize = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_length __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -3593,11 +3593,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glGetPerfMonitorGroupStringAMD(group:%u bufSize:%d length:%p(%u) groupString:%p(%u) )", stream, var_group, var_bufSize, (GLsizei*)(inptr_length.get()), size_length, (GLchar*)(inptr_groupString.get()), size_groupString);
 			this->glGetPerfMonitorGroupStringAMD(var_group, var_bufSize, (GLsizei*)(inptr_length.get()), (GLchar*)(inptr_groupString.get()));
 			SET_LASTCALL("glGetPerfMonitorGroupStringAMD");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetPerfMonitorCounterStringAMD: {
-			android::base::beginTrace("glGetPerfMonitorCounterStringAMD decode");
+			gfxstream::base::beginTrace("glGetPerfMonitorCounterStringAMD decode");
 			GLuint var_group = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLuint var_counter = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_bufSize = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -3616,11 +3616,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glGetPerfMonitorCounterStringAMD(group:%u counter:%u bufSize:%d length:%p(%u) counterString:%p(%u) )", stream, var_group, var_counter, var_bufSize, (GLsizei*)(inptr_length.get()), size_length, (GLchar*)(inptr_counterString.get()), size_counterString);
 			this->glGetPerfMonitorCounterStringAMD(var_group, var_counter, var_bufSize, (GLsizei*)(inptr_length.get()), (GLchar*)(inptr_counterString.get()));
 			SET_LASTCALL("glGetPerfMonitorCounterStringAMD");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetPerfMonitorCounterInfoAMD: {
-			android::base::beginTrace("glGetPerfMonitorCounterInfoAMD decode");
+			gfxstream::base::beginTrace("glGetPerfMonitorCounterInfoAMD decode");
 			GLuint var_group = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLuint var_counter = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -3637,11 +3637,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glGetPerfMonitorCounterInfoAMD(group:%u counter:%u pname:0x%08x data:%p(%u) )", stream, var_group, var_counter, var_pname, (GLvoid*)(inptr_data.get()), size_data);
 			this->glGetPerfMonitorCounterInfoAMD(var_group, var_counter, var_pname, (GLvoid*)(inptr_data.get()));
 			SET_LASTCALL("glGetPerfMonitorCounterInfoAMD");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGenPerfMonitorsAMD: {
-			android::base::beginTrace("glGenPerfMonitorsAMD decode");
+			gfxstream::base::beginTrace("glGenPerfMonitorsAMD decode");
 			GLsizei var_n = Unpack<GLsizei,uint32_t>(ptr + 8);
 			uint32_t size_monitors __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_monitors(ptr + 8 + 4 + 4, size_monitors);
@@ -3656,11 +3656,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glGenPerfMonitorsAMD(n:%d monitors:%p(%u) )", stream, var_n, (GLuint*)(inptr_monitors.get()), size_monitors);
 			this->glGenPerfMonitorsAMD(var_n, (GLuint*)(inptr_monitors.get()));
 			SET_LASTCALL("glGenPerfMonitorsAMD");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDeletePerfMonitorsAMD: {
-			android::base::beginTrace("glDeletePerfMonitorsAMD decode");
+			gfxstream::base::beginTrace("glDeletePerfMonitorsAMD decode");
 			GLsizei var_n = Unpack<GLsizei,uint32_t>(ptr + 8);
 			uint32_t size_monitors __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_monitors(ptr + 8 + 4 + 4, size_monitors);
@@ -3675,11 +3675,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDeletePerfMonitorsAMD(n:%d monitors:%p(%u) )", stream, var_n, (GLuint*)(inptr_monitors.get()), size_monitors);
 			this->glDeletePerfMonitorsAMD(var_n, (GLuint*)(inptr_monitors.get()));
 			SET_LASTCALL("glDeletePerfMonitorsAMD");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glSelectPerfMonitorCountersAMD: {
-			android::base::beginTrace("glSelectPerfMonitorCountersAMD decode");
+			gfxstream::base::beginTrace("glSelectPerfMonitorCountersAMD decode");
 			GLuint var_monitor = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLboolean var_enable = Unpack<GLboolean,uint8_t>(ptr + 8 + 4);
 			GLuint var_group = Unpack<GLuint,uint32_t>(ptr + 8 + 4 + 1);
@@ -3697,11 +3697,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glSelectPerfMonitorCountersAMD(monitor:%u enable:%d group:%u numCounters:%d countersList:%p(%u) )", stream, var_monitor, var_enable, var_group, var_numCounters, (GLuint*)(inptr_countersList.get()), size_countersList);
 			this->glSelectPerfMonitorCountersAMD(var_monitor, var_enable, var_group, var_numCounters, (GLuint*)(inptr_countersList.get()));
 			SET_LASTCALL("glSelectPerfMonitorCountersAMD");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBeginPerfMonitorAMD: {
-			android::base::beginTrace("glBeginPerfMonitorAMD decode");
+			gfxstream::base::beginTrace("glBeginPerfMonitorAMD decode");
 			GLuint var_monitor = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -3714,11 +3714,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glBeginPerfMonitorAMD(monitor:%u )", stream, var_monitor);
 			this->glBeginPerfMonitorAMD(var_monitor);
 			SET_LASTCALL("glBeginPerfMonitorAMD");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glEndPerfMonitorAMD: {
-			android::base::beginTrace("glEndPerfMonitorAMD decode");
+			gfxstream::base::beginTrace("glEndPerfMonitorAMD decode");
 			GLuint var_monitor = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -3731,11 +3731,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glEndPerfMonitorAMD(monitor:%u )", stream, var_monitor);
 			this->glEndPerfMonitorAMD(var_monitor);
 			SET_LASTCALL("glEndPerfMonitorAMD");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetPerfMonitorCounterDataAMD: {
-			android::base::beginTrace("glGetPerfMonitorCounterDataAMD decode");
+			gfxstream::base::beginTrace("glGetPerfMonitorCounterDataAMD decode");
 			GLuint var_monitor = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLsizei var_dataSize = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -3754,11 +3754,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glGetPerfMonitorCounterDataAMD(monitor:%u pname:0x%08x dataSize:%d data:%p(%u) bytesWritten:%p(%u) )", stream, var_monitor, var_pname, var_dataSize, (GLuint*)(inptr_data.get()), size_data, (GLint*)(inptr_bytesWritten.get()), size_bytesWritten);
 			this->glGetPerfMonitorCounterDataAMD(var_monitor, var_pname, var_dataSize, (GLuint*)(inptr_data.get()), (GLint*)(inptr_bytesWritten.get()));
 			SET_LASTCALL("glGetPerfMonitorCounterDataAMD");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glRenderbufferStorageMultisampleIMG: {
-			android::base::beginTrace("glRenderbufferStorageMultisampleIMG decode");
+			gfxstream::base::beginTrace("glRenderbufferStorageMultisampleIMG decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLsizei var_samples = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			GLenum var_internalformat = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -3775,11 +3775,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glRenderbufferStorageMultisampleIMG(target:0x%08x samples:%d internalformat:0x%08x width:%d height:%d )", stream, var_target, var_samples, var_internalformat, var_width, var_height);
 			this->glRenderbufferStorageMultisampleIMG(var_target, var_samples, var_internalformat, var_width, var_height);
 			SET_LASTCALL("glRenderbufferStorageMultisampleIMG");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glFramebufferTexture2DMultisampleIMG: {
-			android::base::beginTrace("glFramebufferTexture2DMultisampleIMG decode");
+			gfxstream::base::beginTrace("glFramebufferTexture2DMultisampleIMG decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_attachment = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLenum var_textarget = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -3797,11 +3797,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glFramebufferTexture2DMultisampleIMG(target:0x%08x attachment:0x%08x textarget:0x%08x texture:%u level:%d samples:%d )", stream, var_target, var_attachment, var_textarget, var_texture, var_level, var_samples);
 			this->glFramebufferTexture2DMultisampleIMG(var_target, var_attachment, var_textarget, var_texture, var_level, var_samples);
 			SET_LASTCALL("glFramebufferTexture2DMultisampleIMG");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDeleteFencesNV: {
-			android::base::beginTrace("glDeleteFencesNV decode");
+			gfxstream::base::beginTrace("glDeleteFencesNV decode");
 			GLsizei var_n = Unpack<GLsizei,uint32_t>(ptr + 8);
 			uint32_t size_fences __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_fences(ptr + 8 + 4 + 4, size_fences);
@@ -3816,11 +3816,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDeleteFencesNV(n:%d fences:%p(%u) )", stream, var_n, (const GLuint*)(inptr_fences.get()), size_fences);
 			this->glDeleteFencesNV(var_n, (const GLuint*)(inptr_fences.get()));
 			SET_LASTCALL("glDeleteFencesNV");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGenFencesNV: {
-			android::base::beginTrace("glGenFencesNV decode");
+			gfxstream::base::beginTrace("glGenFencesNV decode");
 			GLsizei var_n = Unpack<GLsizei,uint32_t>(ptr + 8);
 			uint32_t size_fences __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_fences(ptr + 8 + 4 + 4, size_fences);
@@ -3835,11 +3835,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glGenFencesNV(n:%d fences:%p(%u) )", stream, var_n, (GLuint*)(inptr_fences.get()), size_fences);
 			this->glGenFencesNV(var_n, (GLuint*)(inptr_fences.get()));
 			SET_LASTCALL("glGenFencesNV");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glIsFenceNV: {
-			android::base::beginTrace("glIsFenceNV decode");
+			gfxstream::base::beginTrace("glIsFenceNV decode");
 			GLuint var_fence = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -3859,11 +3859,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glIsFenceNV");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glTestFenceNV: {
-			android::base::beginTrace("glTestFenceNV decode");
+			gfxstream::base::beginTrace("glTestFenceNV decode");
 			GLuint var_fence = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -3883,11 +3883,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glTestFenceNV");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetFenceivNV: {
-			android::base::beginTrace("glGetFenceivNV decode");
+			gfxstream::base::beginTrace("glGetFenceivNV decode");
 			GLuint var_fence = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_params __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -3903,11 +3903,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glGetFenceivNV(fence:%u pname:0x%08x params:%p(%u) )", stream, var_fence, var_pname, (GLint*)(inptr_params.get()), size_params);
 			this->glGetFenceivNV(var_fence, var_pname, (GLint*)(inptr_params.get()));
 			SET_LASTCALL("glGetFenceivNV");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glFinishFenceNV: {
-			android::base::beginTrace("glFinishFenceNV decode");
+			gfxstream::base::beginTrace("glFinishFenceNV decode");
 			GLuint var_fence = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -3920,11 +3920,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glFinishFenceNV(fence:%u )", stream, var_fence);
 			this->glFinishFenceNV(var_fence);
 			SET_LASTCALL("glFinishFenceNV");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glSetFenceNV: {
-			android::base::beginTrace("glSetFenceNV decode");
+			gfxstream::base::beginTrace("glSetFenceNV decode");
 			GLuint var_fence = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_condition = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -3938,11 +3938,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glSetFenceNV(fence:%u condition:0x%08x )", stream, var_fence, var_condition);
 			this->glSetFenceNV(var_fence, var_condition);
 			SET_LASTCALL("glSetFenceNV");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glCoverageMaskNV: {
-			android::base::beginTrace("glCoverageMaskNV decode");
+			gfxstream::base::beginTrace("glCoverageMaskNV decode");
 			GLboolean var_mask = Unpack<GLboolean,uint8_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 1, ptr + 8 + 1, checksumSize,
@@ -3955,11 +3955,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glCoverageMaskNV(mask:%d )", stream, var_mask);
 			this->glCoverageMaskNV(var_mask);
 			SET_LASTCALL("glCoverageMaskNV");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glCoverageOperationNV: {
-			android::base::beginTrace("glCoverageOperationNV decode");
+			gfxstream::base::beginTrace("glCoverageOperationNV decode");
 			GLenum var_operation = Unpack<GLenum,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -3972,11 +3972,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glCoverageOperationNV(operation:0x%08x )", stream, var_operation);
 			this->glCoverageOperationNV(var_operation);
 			SET_LASTCALL("glCoverageOperationNV");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetDriverControlsQCOM: {
-			android::base::beginTrace("glGetDriverControlsQCOM decode");
+			gfxstream::base::beginTrace("glGetDriverControlsQCOM decode");
 			uint32_t size_num __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8);
 			InputBuffer inptr_num(ptr + 8 + 4, size_num);
 			GLsizei var_size = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + size_num);
@@ -3993,11 +3993,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glGetDriverControlsQCOM(num:%p(%u) size:%d driverControls:%p(%u) )", stream, (GLint*)(inptr_num.get()), size_num, var_size, (GLuint*)(inptr_driverControls.get()), size_driverControls);
 			this->glGetDriverControlsQCOM((GLint*)(inptr_num.get()), var_size, (GLuint*)(inptr_driverControls.get()));
 			SET_LASTCALL("glGetDriverControlsQCOM");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetDriverControlStringQCOM: {
-			android::base::beginTrace("glGetDriverControlStringQCOM decode");
+			gfxstream::base::beginTrace("glGetDriverControlStringQCOM decode");
 			GLuint var_driverControl = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLsizei var_bufSize = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_length __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -4015,11 +4015,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glGetDriverControlStringQCOM(driverControl:%u bufSize:%d length:%p(%u) driverControlString:%p(%u) )", stream, var_driverControl, var_bufSize, (GLsizei*)(inptr_length.get()), size_length, (GLchar*)(inptr_driverControlString.get()), size_driverControlString);
 			this->glGetDriverControlStringQCOM(var_driverControl, var_bufSize, (GLsizei*)(inptr_length.get()), (GLchar*)(inptr_driverControlString.get()));
 			SET_LASTCALL("glGetDriverControlStringQCOM");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glEnableDriverControlQCOM: {
-			android::base::beginTrace("glEnableDriverControlQCOM decode");
+			gfxstream::base::beginTrace("glEnableDriverControlQCOM decode");
 			GLuint var_driverControl = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -4032,11 +4032,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glEnableDriverControlQCOM(driverControl:%u )", stream, var_driverControl);
 			this->glEnableDriverControlQCOM(var_driverControl);
 			SET_LASTCALL("glEnableDriverControlQCOM");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDisableDriverControlQCOM: {
-			android::base::beginTrace("glDisableDriverControlQCOM decode");
+			gfxstream::base::beginTrace("glDisableDriverControlQCOM decode");
 			GLuint var_driverControl = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -4049,11 +4049,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDisableDriverControlQCOM(driverControl:%u )", stream, var_driverControl);
 			this->glDisableDriverControlQCOM(var_driverControl);
 			SET_LASTCALL("glDisableDriverControlQCOM");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glExtGetTexturesQCOM: {
-			android::base::beginTrace("glExtGetTexturesQCOM decode");
+			gfxstream::base::beginTrace("glExtGetTexturesQCOM decode");
 			uint32_t size_textures __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8);
 			InputBuffer inptr_textures(ptr + 8 + 4, size_textures);
 			GLint var_maxTextures = Unpack<GLint,uint32_t>(ptr + 8 + 4 + size_textures);
@@ -4070,11 +4070,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glExtGetTexturesQCOM(textures:%p(%u) maxTextures:%d numTextures:%p(%u) )", stream, (GLuint*)(inptr_textures.get()), size_textures, var_maxTextures, (GLint*)(inptr_numTextures.get()), size_numTextures);
 			this->glExtGetTexturesQCOM((GLuint*)(inptr_textures.get()), var_maxTextures, (GLint*)(inptr_numTextures.get()));
 			SET_LASTCALL("glExtGetTexturesQCOM");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glExtGetBuffersQCOM: {
-			android::base::beginTrace("glExtGetBuffersQCOM decode");
+			gfxstream::base::beginTrace("glExtGetBuffersQCOM decode");
 			uint32_t size_buffers __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8);
 			InputBuffer inptr_buffers(ptr + 8 + 4, size_buffers);
 			GLint var_maxBuffers = Unpack<GLint,uint32_t>(ptr + 8 + 4 + size_buffers);
@@ -4091,11 +4091,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glExtGetBuffersQCOM(buffers:%p(%u) maxBuffers:%d numBuffers:%p(%u) )", stream, (GLuint*)(inptr_buffers.get()), size_buffers, var_maxBuffers, (GLint*)(inptr_numBuffers.get()), size_numBuffers);
 			this->glExtGetBuffersQCOM((GLuint*)(inptr_buffers.get()), var_maxBuffers, (GLint*)(inptr_numBuffers.get()));
 			SET_LASTCALL("glExtGetBuffersQCOM");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glExtGetRenderbuffersQCOM: {
-			android::base::beginTrace("glExtGetRenderbuffersQCOM decode");
+			gfxstream::base::beginTrace("glExtGetRenderbuffersQCOM decode");
 			uint32_t size_renderbuffers __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8);
 			InputBuffer inptr_renderbuffers(ptr + 8 + 4, size_renderbuffers);
 			GLint var_maxRenderbuffers = Unpack<GLint,uint32_t>(ptr + 8 + 4 + size_renderbuffers);
@@ -4112,11 +4112,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glExtGetRenderbuffersQCOM(renderbuffers:%p(%u) maxRenderbuffers:%d numRenderbuffers:%p(%u) )", stream, (GLuint*)(inptr_renderbuffers.get()), size_renderbuffers, var_maxRenderbuffers, (GLint*)(inptr_numRenderbuffers.get()), size_numRenderbuffers);
 			this->glExtGetRenderbuffersQCOM((GLuint*)(inptr_renderbuffers.get()), var_maxRenderbuffers, (GLint*)(inptr_numRenderbuffers.get()));
 			SET_LASTCALL("glExtGetRenderbuffersQCOM");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glExtGetFramebuffersQCOM: {
-			android::base::beginTrace("glExtGetFramebuffersQCOM decode");
+			gfxstream::base::beginTrace("glExtGetFramebuffersQCOM decode");
 			uint32_t size_framebuffers __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8);
 			InputBuffer inptr_framebuffers(ptr + 8 + 4, size_framebuffers);
 			GLint var_maxFramebuffers = Unpack<GLint,uint32_t>(ptr + 8 + 4 + size_framebuffers);
@@ -4133,11 +4133,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glExtGetFramebuffersQCOM(framebuffers:%p(%u) maxFramebuffers:%d numFramebuffers:%p(%u) )", stream, (GLuint*)(inptr_framebuffers.get()), size_framebuffers, var_maxFramebuffers, (GLint*)(inptr_numFramebuffers.get()), size_numFramebuffers);
 			this->glExtGetFramebuffersQCOM((GLuint*)(inptr_framebuffers.get()), var_maxFramebuffers, (GLint*)(inptr_numFramebuffers.get()));
 			SET_LASTCALL("glExtGetFramebuffersQCOM");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glExtGetTexLevelParameterivQCOM: {
-			android::base::beginTrace("glExtGetTexLevelParameterivQCOM decode");
+			gfxstream::base::beginTrace("glExtGetTexLevelParameterivQCOM decode");
 			GLuint var_texture = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_face = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLint var_level = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -4155,11 +4155,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glExtGetTexLevelParameterivQCOM(texture:%u face:0x%08x level:%d pname:0x%08x params:%p(%u) )", stream, var_texture, var_face, var_level, var_pname, (GLint*)(inptr_params.get()), size_params);
 			this->glExtGetTexLevelParameterivQCOM(var_texture, var_face, var_level, var_pname, (GLint*)(inptr_params.get()));
 			SET_LASTCALL("glExtGetTexLevelParameterivQCOM");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glExtTexObjectStateOverrideiQCOM: {
-			android::base::beginTrace("glExtTexObjectStateOverrideiQCOM decode");
+			gfxstream::base::beginTrace("glExtTexObjectStateOverrideiQCOM decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLint var_param = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -4174,11 +4174,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glExtTexObjectStateOverrideiQCOM(target:0x%08x pname:0x%08x param:%d )", stream, var_target, var_pname, var_param);
 			this->glExtTexObjectStateOverrideiQCOM(var_target, var_pname, var_param);
 			SET_LASTCALL("glExtTexObjectStateOverrideiQCOM");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glExtGetTexSubImageQCOM: {
-			android::base::beginTrace("glExtGetTexSubImageQCOM decode");
+			gfxstream::base::beginTrace("glExtGetTexSubImageQCOM decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_level = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_xoffset = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -4202,11 +4202,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glExtGetTexSubImageQCOM(target:0x%08x level:%d xoffset:%d yoffset:%d zoffset:%d width:%d height:%d depth:%d format:0x%08x type:0x%08x texels:%p(%u) )", stream, var_target, var_level, var_xoffset, var_yoffset, var_zoffset, var_width, var_height, var_depth, var_format, var_type, (GLvoid*)(inptr_texels.get()), size_texels);
 			this->glExtGetTexSubImageQCOM(var_target, var_level, var_xoffset, var_yoffset, var_zoffset, var_width, var_height, var_depth, var_format, var_type, (GLvoid*)(inptr_texels.get()));
 			SET_LASTCALL("glExtGetTexSubImageQCOM");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glExtGetBufferPointervQCOM: {
-			android::base::beginTrace("glExtGetBufferPointervQCOM decode");
+			gfxstream::base::beginTrace("glExtGetBufferPointervQCOM decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			uint32_t size_params __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_params(ptr + 8 + 4 + 4, size_params);
@@ -4221,11 +4221,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glExtGetBufferPointervQCOM(target:0x%08x params:%p(%u) )", stream, var_target, (GLvoidptr*)(inptr_params.get()), size_params);
 			this->glExtGetBufferPointervQCOM(var_target, (GLvoidptr*)(inptr_params.get()));
 			SET_LASTCALL("glExtGetBufferPointervQCOM");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glExtGetShadersQCOM: {
-			android::base::beginTrace("glExtGetShadersQCOM decode");
+			gfxstream::base::beginTrace("glExtGetShadersQCOM decode");
 			uint32_t size_shaders __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8);
 			InputBuffer inptr_shaders(ptr + 8 + 4, size_shaders);
 			GLint var_maxShaders = Unpack<GLint,uint32_t>(ptr + 8 + 4 + size_shaders);
@@ -4242,11 +4242,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glExtGetShadersQCOM(shaders:%p(%u) maxShaders:%d numShaders:%p(%u) )", stream, (GLuint*)(inptr_shaders.get()), size_shaders, var_maxShaders, (GLint*)(inptr_numShaders.get()), size_numShaders);
 			this->glExtGetShadersQCOM((GLuint*)(inptr_shaders.get()), var_maxShaders, (GLint*)(inptr_numShaders.get()));
 			SET_LASTCALL("glExtGetShadersQCOM");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glExtGetProgramsQCOM: {
-			android::base::beginTrace("glExtGetProgramsQCOM decode");
+			gfxstream::base::beginTrace("glExtGetProgramsQCOM decode");
 			uint32_t size_programs __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8);
 			InputBuffer inptr_programs(ptr + 8 + 4, size_programs);
 			GLint var_maxPrograms = Unpack<GLint,uint32_t>(ptr + 8 + 4 + size_programs);
@@ -4263,11 +4263,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glExtGetProgramsQCOM(programs:%p(%u) maxPrograms:%d numPrograms:%p(%u) )", stream, (GLuint*)(inptr_programs.get()), size_programs, var_maxPrograms, (GLint*)(inptr_numPrograms.get()), size_numPrograms);
 			this->glExtGetProgramsQCOM((GLuint*)(inptr_programs.get()), var_maxPrograms, (GLint*)(inptr_numPrograms.get()));
 			SET_LASTCALL("glExtGetProgramsQCOM");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glExtIsProgramBinaryQCOM: {
-			android::base::beginTrace("glExtIsProgramBinaryQCOM decode");
+			gfxstream::base::beginTrace("glExtIsProgramBinaryQCOM decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -4287,11 +4287,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glExtIsProgramBinaryQCOM");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glExtGetProgramBinarySourceQCOM: {
-			android::base::beginTrace("glExtGetProgramBinarySourceQCOM decode");
+			gfxstream::base::beginTrace("glExtGetProgramBinarySourceQCOM decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_shadertype = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_source __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -4309,11 +4309,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glExtGetProgramBinarySourceQCOM(program:%u shadertype:0x%08x source:%p(%u) length:%p(%u) )", stream, var_program, var_shadertype, (GLchar*)(inptr_source.get()), size_source, (GLint*)(inptr_length.get()), size_length);
 			this->glExtGetProgramBinarySourceQCOM(var_program, var_shadertype, (GLchar*)(inptr_source.get()), (GLint*)(inptr_length.get()));
 			SET_LASTCALL("glExtGetProgramBinarySourceQCOM");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glStartTilingQCOM: {
-			android::base::beginTrace("glStartTilingQCOM decode");
+			gfxstream::base::beginTrace("glStartTilingQCOM decode");
 			GLuint var_x = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLuint var_y = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			GLuint var_width = Unpack<GLuint,uint32_t>(ptr + 8 + 4 + 4);
@@ -4330,11 +4330,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glStartTilingQCOM(x:%u y:%u width:%u height:%u preserveMask:0x%08x )", stream, var_x, var_y, var_width, var_height, var_preserveMask);
 			this->glStartTilingQCOM(var_x, var_y, var_width, var_height, var_preserveMask);
 			SET_LASTCALL("glStartTilingQCOM");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glEndTilingQCOM: {
-			android::base::beginTrace("glEndTilingQCOM decode");
+			gfxstream::base::beginTrace("glEndTilingQCOM decode");
 			GLbitfield var_preserveMask = Unpack<GLbitfield,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -4347,11 +4347,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glEndTilingQCOM(preserveMask:0x%08x )", stream, var_preserveMask);
 			this->glEndTilingQCOM(var_preserveMask);
 			SET_LASTCALL("glEndTilingQCOM");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glVertexAttribPointerData: {
-			android::base::beginTrace("glVertexAttribPointerData decode");
+			gfxstream::base::beginTrace("glVertexAttribPointerData decode");
 			GLuint var_indx = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_size = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLenum var_type = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -4371,11 +4371,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glVertexAttribPointerData(indx:%u size:%d type:0x%08x normalized:%d stride:%d data:%p(%u) datalen:%u )", stream, var_indx, var_size, var_type, var_normalized, var_stride, (void*)(inptr_data.get()), size_data, var_datalen);
 			this->glVertexAttribPointerData(this, var_indx, var_size, var_type, var_normalized, var_stride, (void*)(inptr_data.get()), var_datalen);
 			SET_LASTCALL("glVertexAttribPointerData");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glVertexAttribPointerOffset: {
-			android::base::beginTrace("glVertexAttribPointerOffset decode");
+			gfxstream::base::beginTrace("glVertexAttribPointerOffset decode");
 			GLuint var_indx = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_size = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLenum var_type = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -4393,11 +4393,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glVertexAttribPointerOffset(indx:%u size:%d type:0x%08x normalized:%d stride:%d offset:%u )", stream, var_indx, var_size, var_type, var_normalized, var_stride, var_offset);
 			this->glVertexAttribPointerOffset(this, var_indx, var_size, var_type, var_normalized, var_stride, var_offset);
 			SET_LASTCALL("glVertexAttribPointerOffset");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDrawElementsOffset: {
-			android::base::beginTrace("glDrawElementsOffset decode");
+			gfxstream::base::beginTrace("glDrawElementsOffset decode");
 			GLenum var_mode = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			GLenum var_type = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -4413,11 +4413,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDrawElementsOffset(mode:0x%08x count:%d type:0x%08x offset:%u )", stream, var_mode, var_count, var_type, var_offset);
 			this->glDrawElementsOffset(this, var_mode, var_count, var_type, var_offset);
 			SET_LASTCALL("glDrawElementsOffset");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDrawElementsData: {
-			android::base::beginTrace("glDrawElementsData decode");
+			gfxstream::base::beginTrace("glDrawElementsData decode");
 			GLenum var_mode = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			GLenum var_type = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -4435,11 +4435,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDrawElementsData(mode:0x%08x count:%d type:0x%08x data:%p(%u) datalen:%u )", stream, var_mode, var_count, var_type, (void*)(inptr_data.get()), size_data, var_datalen);
 			this->glDrawElementsData(this, var_mode, var_count, var_type, (void*)(inptr_data.get()), var_datalen);
 			SET_LASTCALL("glDrawElementsData");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetCompressedTextureFormats: {
-			android::base::beginTrace("glGetCompressedTextureFormats decode");
+			gfxstream::base::beginTrace("glGetCompressedTextureFormats decode");
 			int var_count = Unpack<int,uint32_t>(ptr + 8);
 			uint32_t size_formats __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -4462,11 +4462,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetCompressedTextureFormats");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glShaderString: {
-			android::base::beginTrace("glShaderString decode");
+			gfxstream::base::beginTrace("glShaderString decode");
 			GLuint var_shader = Unpack<GLuint,uint32_t>(ptr + 8);
 			uint32_t size_string __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_string(ptr + 8 + 4 + 4, size_string);
@@ -4482,11 +4482,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glShaderString(shader:%u string:%p(%u) len:%d )", stream, var_shader, (const GLchar*)(inptr_string.get()), size_string, var_len);
 			this->glShaderString(this, var_shader, (const GLchar*)(inptr_string.get()), var_len);
 			SET_LASTCALL("glShaderString");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glFinishRoundTrip: {
-			android::base::beginTrace("glFinishRoundTrip decode");
+			gfxstream::base::beginTrace("glFinishRoundTrip decode");
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8, ptr + 8, checksumSize,
 					"gles2_decoder_context_t::decode, OP_glFinishRoundTrip: GL checksumCalculator failure\n");
@@ -4505,11 +4505,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glFinishRoundTrip");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGenVertexArrays: {
-			android::base::beginTrace("glGenVertexArrays decode");
+			gfxstream::base::beginTrace("glGenVertexArrays decode");
 			GLsizei var_n = Unpack<GLsizei,uint32_t>(ptr + 8);
 			uint32_t size_arrays __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -4532,11 +4532,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGenVertexArrays");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBindVertexArray: {
-			android::base::beginTrace("glBindVertexArray decode");
+			gfxstream::base::beginTrace("glBindVertexArray decode");
 			GLuint var_array = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -4549,11 +4549,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glBindVertexArray(array:%u )", stream, var_array);
 			this->glBindVertexArray(var_array);
 			SET_LASTCALL("glBindVertexArray");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDeleteVertexArrays: {
-			android::base::beginTrace("glDeleteVertexArrays decode");
+			gfxstream::base::beginTrace("glDeleteVertexArrays decode");
 			GLsizei var_n = Unpack<GLsizei,uint32_t>(ptr + 8);
 			uint32_t size_arrays __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_arrays(ptr + 8 + 4 + 4, size_arrays);
@@ -4568,11 +4568,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDeleteVertexArrays(n:%d arrays:%p(%u) )", stream, var_n, (const GLuint*)(inptr_arrays.get()), size_arrays);
 			this->glDeleteVertexArrays_dec(this, var_n, (const GLuint*)(inptr_arrays.get()));
 			SET_LASTCALL("glDeleteVertexArrays");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glIsVertexArray: {
-			android::base::beginTrace("glIsVertexArray decode");
+			gfxstream::base::beginTrace("glIsVertexArray decode");
 			GLuint var_array = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -4592,11 +4592,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glIsVertexArray");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glMapBufferRange: {
-			android::base::beginTrace("glMapBufferRange decode");
+			gfxstream::base::beginTrace("glMapBufferRange decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLintptr var_offset = Unpack<GLintptr,uint32_t>(ptr + 8 + 4);
 			GLsizeiptr var_length = Unpack<GLsizeiptr,uint32_t>(ptr + 8 + 4 + 4);
@@ -4612,11 +4612,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glMapBufferRange(target:0x%08x offset:0x%08lx length:0x%08lx access:0x%08x )", stream, var_target, var_offset, var_length, var_access);
 			this->glMapBufferRange(var_target, var_offset, var_length, var_access);
 			SET_LASTCALL("glMapBufferRange");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUnmapBuffer: {
-			android::base::beginTrace("glUnmapBuffer decode");
+			gfxstream::base::beginTrace("glUnmapBuffer decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -4636,11 +4636,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glUnmapBuffer");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glFlushMappedBufferRange: {
-			android::base::beginTrace("glFlushMappedBufferRange decode");
+			gfxstream::base::beginTrace("glFlushMappedBufferRange decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLintptr var_offset = Unpack<GLintptr,uint32_t>(ptr + 8 + 4);
 			GLsizeiptr var_length = Unpack<GLsizeiptr,uint32_t>(ptr + 8 + 4 + 4);
@@ -4655,11 +4655,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glFlushMappedBufferRange(target:0x%08x offset:0x%08lx length:0x%08lx )", stream, var_target, var_offset, var_length);
 			this->glFlushMappedBufferRange(var_target, var_offset, var_length);
 			SET_LASTCALL("glFlushMappedBufferRange");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glMapBufferRangeAEMU: {
-			android::base::beginTrace("glMapBufferRangeAEMU decode");
+			gfxstream::base::beginTrace("glMapBufferRangeAEMU decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLintptr var_offset = Unpack<GLintptr,uint32_t>(ptr + 8 + 4);
 			GLsizeiptr var_length = Unpack<GLsizeiptr,uint32_t>(ptr + 8 + 4 + 4);
@@ -4685,11 +4685,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glMapBufferRangeAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUnmapBufferAEMU: {
-			android::base::beginTrace("glUnmapBufferAEMU decode");
+			gfxstream::base::beginTrace("glUnmapBufferAEMU decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLintptr var_offset = Unpack<GLintptr,uint32_t>(ptr + 8 + 4);
 			GLsizeiptr var_length = Unpack<GLsizeiptr,uint32_t>(ptr + 8 + 4 + 4);
@@ -4717,11 +4717,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glUnmapBufferAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glFlushMappedBufferRangeAEMU: {
-			android::base::beginTrace("glFlushMappedBufferRangeAEMU decode");
+			gfxstream::base::beginTrace("glFlushMappedBufferRangeAEMU decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLintptr var_offset = Unpack<GLintptr,uint32_t>(ptr + 8 + 4);
 			GLsizeiptr var_length = Unpack<GLsizeiptr,uint32_t>(ptr + 8 + 4 + 4);
@@ -4739,11 +4739,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glFlushMappedBufferRangeAEMU(target:0x%08x offset:0x%08lx length:0x%08lx access:0x%08x guest_buffer:%p(%u) )", stream, var_target, var_offset, var_length, var_access, (void*)(inptr_guest_buffer.get()), size_guest_buffer);
 			this->glFlushMappedBufferRangeAEMU(this, var_target, var_offset, var_length, var_access, size_guest_buffer == 0 ? nullptr : (void*)(inptr_guest_buffer.get()));
 			SET_LASTCALL("glFlushMappedBufferRangeAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glReadPixelsOffsetAEMU: {
-			android::base::beginTrace("glReadPixelsOffsetAEMU decode");
+			gfxstream::base::beginTrace("glReadPixelsOffsetAEMU decode");
 			GLint var_x = Unpack<GLint,uint32_t>(ptr + 8);
 			GLint var_y = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_width = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -4762,11 +4762,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glReadPixelsOffsetAEMU(x:%d y:%d width:%d height:%d format:0x%08x type:0x%08x offset:%u )", stream, var_x, var_y, var_width, var_height, var_format, var_type, var_offset);
 			this->glReadPixelsOffsetAEMU(this, var_x, var_y, var_width, var_height, var_format, var_type, var_offset);
 			SET_LASTCALL("glReadPixelsOffsetAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glCompressedTexImage2DOffsetAEMU: {
-			android::base::beginTrace("glCompressedTexImage2DOffsetAEMU decode");
+			gfxstream::base::beginTrace("glCompressedTexImage2DOffsetAEMU decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_level = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLenum var_internalformat = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -4786,11 +4786,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glCompressedTexImage2DOffsetAEMU(target:0x%08x level:%d internalformat:0x%08x width:%d height:%d border:%d imageSize:%d offset:%u )", stream, var_target, var_level, var_internalformat, var_width, var_height, var_border, var_imageSize, var_offset);
 			this->glCompressedTexImage2DOffsetAEMU(this, var_target, var_level, var_internalformat, var_width, var_height, var_border, var_imageSize, var_offset);
 			SET_LASTCALL("glCompressedTexImage2DOffsetAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glCompressedTexSubImage2DOffsetAEMU: {
-			android::base::beginTrace("glCompressedTexSubImage2DOffsetAEMU decode");
+			gfxstream::base::beginTrace("glCompressedTexSubImage2DOffsetAEMU decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_level = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_xoffset = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -4811,11 +4811,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glCompressedTexSubImage2DOffsetAEMU(target:0x%08x level:%d xoffset:%d yoffset:%d width:%d height:%d format:0x%08x imageSize:%d offset:%u )", stream, var_target, var_level, var_xoffset, var_yoffset, var_width, var_height, var_format, var_imageSize, var_offset);
 			this->glCompressedTexSubImage2DOffsetAEMU(this, var_target, var_level, var_xoffset, var_yoffset, var_width, var_height, var_format, var_imageSize, var_offset);
 			SET_LASTCALL("glCompressedTexSubImage2DOffsetAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glTexImage2DOffsetAEMU: {
-			android::base::beginTrace("glTexImage2DOffsetAEMU decode");
+			gfxstream::base::beginTrace("glTexImage2DOffsetAEMU decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_level = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_internalformat = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -4836,11 +4836,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glTexImage2DOffsetAEMU(target:0x%08x level:%d internalformat:%d width:%d height:%d border:%d format:0x%08x type:0x%08x offset:%u )", stream, var_target, var_level, var_internalformat, var_width, var_height, var_border, var_format, var_type, var_offset);
 			this->glTexImage2DOffsetAEMU(this, var_target, var_level, var_internalformat, var_width, var_height, var_border, var_format, var_type, var_offset);
 			SET_LASTCALL("glTexImage2DOffsetAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glTexSubImage2DOffsetAEMU: {
-			android::base::beginTrace("glTexSubImage2DOffsetAEMU decode");
+			gfxstream::base::beginTrace("glTexSubImage2DOffsetAEMU decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_level = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_xoffset = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -4861,11 +4861,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glTexSubImage2DOffsetAEMU(target:0x%08x level:%d xoffset:%d yoffset:%d width:%d height:%d format:0x%08x type:0x%08x offset:%u )", stream, var_target, var_level, var_xoffset, var_yoffset, var_width, var_height, var_format, var_type, var_offset);
 			this->glTexSubImage2DOffsetAEMU(this, var_target, var_level, var_xoffset, var_yoffset, var_width, var_height, var_format, var_type, var_offset);
 			SET_LASTCALL("glTexSubImage2DOffsetAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBindBufferRange: {
-			android::base::beginTrace("glBindBufferRange decode");
+			gfxstream::base::beginTrace("glBindBufferRange decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			GLuint var_buffer = Unpack<GLuint,uint32_t>(ptr + 8 + 4 + 4);
@@ -4882,11 +4882,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glBindBufferRange(target:0x%08x index:%u buffer:%u offset:0x%08lx size:0x%08lx )", stream, var_target, var_index, var_buffer, var_offset, var_size);
 			this->glBindBufferRange(var_target, var_index, var_buffer, var_offset, var_size);
 			SET_LASTCALL("glBindBufferRange");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBindBufferBase: {
-			android::base::beginTrace("glBindBufferBase decode");
+			gfxstream::base::beginTrace("glBindBufferBase decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			GLuint var_buffer = Unpack<GLuint,uint32_t>(ptr + 8 + 4 + 4);
@@ -4901,11 +4901,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glBindBufferBase(target:0x%08x index:%u buffer:%u )", stream, var_target, var_index, var_buffer);
 			this->glBindBufferBase(var_target, var_index, var_buffer);
 			SET_LASTCALL("glBindBufferBase");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glCopyBufferSubData: {
-			android::base::beginTrace("glCopyBufferSubData decode");
+			gfxstream::base::beginTrace("glCopyBufferSubData decode");
 			GLenum var_readtarget = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_writetarget = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLintptr var_readoffset = Unpack<GLintptr,uint32_t>(ptr + 8 + 4 + 4);
@@ -4922,11 +4922,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glCopyBufferSubData(readtarget:0x%08x writetarget:0x%08x readoffset:0x%08lx writeoffset:0x%08lx size:0x%08lx )", stream, var_readtarget, var_writetarget, var_readoffset, var_writeoffset, var_size);
 			this->glCopyBufferSubData(var_readtarget, var_writetarget, var_readoffset, var_writeoffset, var_size);
 			SET_LASTCALL("glCopyBufferSubData");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glClearBufferiv: {
-			android::base::beginTrace("glClearBufferiv decode");
+			gfxstream::base::beginTrace("glClearBufferiv decode");
 			GLenum var_buffer = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_drawBuffer = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			uint32_t size_value __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -4942,11 +4942,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glClearBufferiv(buffer:0x%08x drawBuffer:%d value:%p(%u) )", stream, var_buffer, var_drawBuffer, (const GLint*)(inptr_value.get()), size_value);
 			this->glClearBufferiv(var_buffer, var_drawBuffer, (const GLint*)(inptr_value.get()));
 			SET_LASTCALL("glClearBufferiv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glClearBufferuiv: {
-			android::base::beginTrace("glClearBufferuiv decode");
+			gfxstream::base::beginTrace("glClearBufferuiv decode");
 			GLenum var_buffer = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_drawBuffer = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			uint32_t size_value __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -4962,11 +4962,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glClearBufferuiv(buffer:0x%08x drawBuffer:%d value:%p(%u) )", stream, var_buffer, var_drawBuffer, (const GLuint*)(inptr_value.get()), size_value);
 			this->glClearBufferuiv(var_buffer, var_drawBuffer, (const GLuint*)(inptr_value.get()));
 			SET_LASTCALL("glClearBufferuiv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glClearBufferfv: {
-			android::base::beginTrace("glClearBufferfv decode");
+			gfxstream::base::beginTrace("glClearBufferfv decode");
 			GLenum var_buffer = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_drawBuffer = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			uint32_t size_value __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -4982,11 +4982,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glClearBufferfv(buffer:0x%08x drawBuffer:%d value:%p(%u) )", stream, var_buffer, var_drawBuffer, (const GLfloat*)(inptr_value.get()), size_value);
 			this->glClearBufferfv(var_buffer, var_drawBuffer, (const GLfloat*)(inptr_value.get()));
 			SET_LASTCALL("glClearBufferfv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glClearBufferfi: {
-			android::base::beginTrace("glClearBufferfi decode");
+			gfxstream::base::beginTrace("glClearBufferfi decode");
 			GLenum var_buffer = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_drawBuffer = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLfloat var_depth = Unpack<GLfloat,uint32_t>(ptr + 8 + 4 + 4);
@@ -5002,11 +5002,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glClearBufferfi(buffer:0x%08x drawBuffer:%d depth:%f stencil:%d )", stream, var_buffer, var_drawBuffer, var_depth, var_stencil);
 			this->glClearBufferfi(var_buffer, var_drawBuffer, var_depth, var_stencil);
 			SET_LASTCALL("glClearBufferfi");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetBufferParameteri64v: {
-			android::base::beginTrace("glGetBufferParameteri64v decode");
+			gfxstream::base::beginTrace("glGetBufferParameteri64v decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_value = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_data __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -5022,11 +5022,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glGetBufferParameteri64v(target:0x%08x value:0x%08x data:%p(%u) )", stream, var_target, var_value, (GLint64*)(inptr_data.get()), size_data);
 			this->glGetBufferParameteri64v(var_target, var_value, (GLint64*)(inptr_data.get()));
 			SET_LASTCALL("glGetBufferParameteri64v");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetBufferPointerv: {
-			android::base::beginTrace("glGetBufferPointerv decode");
+			gfxstream::base::beginTrace("glGetBufferPointerv decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_params __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -5042,11 +5042,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glGetBufferPointerv(target:0x%08x pname:0x%08x params:%p(%u) )", stream, var_target, var_pname, (GLvoid**)(inptr_params.get()), size_params);
 			this->glGetBufferPointerv(var_target, var_pname, (GLvoid**)(inptr_params.get()));
 			SET_LASTCALL("glGetBufferPointerv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniformBlockBinding: {
-			android::base::beginTrace("glUniformBlockBinding decode");
+			gfxstream::base::beginTrace("glUniformBlockBinding decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLuint var_uniformBlockIndex = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			GLuint var_uniformBlockBinding = Unpack<GLuint,uint32_t>(ptr + 8 + 4 + 4);
@@ -5061,11 +5061,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniformBlockBinding(program:%u uniformBlockIndex:%u uniformBlockBinding:%u )", stream, var_program, var_uniformBlockIndex, var_uniformBlockBinding);
 			this->glUniformBlockBinding_dec(this, var_program, var_uniformBlockIndex, var_uniformBlockBinding);
 			SET_LASTCALL("glUniformBlockBinding");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetUniformBlockIndex: {
-			android::base::beginTrace("glGetUniformBlockIndex decode");
+			gfxstream::base::beginTrace("glGetUniformBlockIndex decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			uint32_t size_uniformBlockName __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_uniformBlockName(ptr + 8 + 4 + 4, size_uniformBlockName);
@@ -5087,11 +5087,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetUniformBlockIndex");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetUniformIndices: {
-			android::base::beginTrace("glGetUniformIndices decode");
+			gfxstream::base::beginTrace("glGetUniformIndices decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLsizei var_uniformCount = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_uniformNames __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -5109,11 +5109,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glGetUniformIndices(program:%u uniformCount:%d uniformNames:%p(%u) uniformIndices:%p(%u) )", stream, var_program, var_uniformCount, (const GLchar**)(inptr_uniformNames.get()), size_uniformNames, (GLuint*)(inptr_uniformIndices.get()), size_uniformIndices);
 			this->glGetUniformIndices(var_program, var_uniformCount, (const GLchar**)(inptr_uniformNames.get()), (GLuint*)(inptr_uniformIndices.get()));
 			SET_LASTCALL("glGetUniformIndices");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetUniformIndicesAEMU: {
-			android::base::beginTrace("glGetUniformIndicesAEMU decode");
+			gfxstream::base::beginTrace("glGetUniformIndicesAEMU decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLsizei var_uniformCount = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_packedUniformNames __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -5140,11 +5140,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetUniformIndicesAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetActiveUniformBlockiv: {
-			android::base::beginTrace("glGetActiveUniformBlockiv decode");
+			gfxstream::base::beginTrace("glGetActiveUniformBlockiv decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLuint var_uniformBlockIndex = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -5169,11 +5169,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetActiveUniformBlockiv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetActiveUniformBlockName: {
-			android::base::beginTrace("glGetActiveUniformBlockName decode");
+			gfxstream::base::beginTrace("glGetActiveUniformBlockName decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLuint var_uniformBlockIndex = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_bufSize = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -5202,11 +5202,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetActiveUniformBlockName");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniform1ui: {
-			android::base::beginTrace("glUniform1ui decode");
+			gfxstream::base::beginTrace("glUniform1ui decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLuint var_v0 = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -5220,11 +5220,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniform1ui(location:%d v0:%u )", stream, var_location, var_v0);
 			this->glUniform1ui(var_location, var_v0);
 			SET_LASTCALL("glUniform1ui");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniform2ui: {
-			android::base::beginTrace("glUniform2ui decode");
+			gfxstream::base::beginTrace("glUniform2ui decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLuint var_v0 = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			GLuint var_v1 = Unpack<GLuint,uint32_t>(ptr + 8 + 4 + 4);
@@ -5239,11 +5239,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniform2ui(location:%d v0:%u v1:%u )", stream, var_location, var_v0, var_v1);
 			this->glUniform2ui(var_location, var_v0, var_v1);
 			SET_LASTCALL("glUniform2ui");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniform3ui: {
-			android::base::beginTrace("glUniform3ui decode");
+			gfxstream::base::beginTrace("glUniform3ui decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLuint var_v0 = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			GLuint var_v1 = Unpack<GLuint,uint32_t>(ptr + 8 + 4 + 4);
@@ -5259,11 +5259,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniform3ui(location:%d v0:%u v1:%u v2:%u )", stream, var_location, var_v0, var_v1, var_v2);
 			this->glUniform3ui(var_location, var_v0, var_v1, var_v2);
 			SET_LASTCALL("glUniform3ui");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniform4ui: {
-			android::base::beginTrace("glUniform4ui decode");
+			gfxstream::base::beginTrace("glUniform4ui decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLint var_v0 = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLuint var_v1 = Unpack<GLuint,uint32_t>(ptr + 8 + 4 + 4);
@@ -5280,11 +5280,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniform4ui(location:%d v0:%d v1:%u v2:%u v3:%u )", stream, var_location, var_v0, var_v1, var_v2, var_v3);
 			this->glUniform4ui(var_location, var_v0, var_v1, var_v2, var_v3);
 			SET_LASTCALL("glUniform4ui");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniform1uiv: {
-			android::base::beginTrace("glUniform1uiv decode");
+			gfxstream::base::beginTrace("glUniform1uiv decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_value __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -5300,11 +5300,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniform1uiv(location:%d count:%d value:%p(%u) )", stream, var_location, var_count, (const GLuint*)(inptr_value.get()), size_value);
 			this->glUniform1uiv(var_location, var_count, (const GLuint*)(inptr_value.get()));
 			SET_LASTCALL("glUniform1uiv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniform2uiv: {
-			android::base::beginTrace("glUniform2uiv decode");
+			gfxstream::base::beginTrace("glUniform2uiv decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_value __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -5320,11 +5320,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniform2uiv(location:%d count:%d value:%p(%u) )", stream, var_location, var_count, (const GLuint*)(inptr_value.get()), size_value);
 			this->glUniform2uiv(var_location, var_count, (const GLuint*)(inptr_value.get()));
 			SET_LASTCALL("glUniform2uiv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniform3uiv: {
-			android::base::beginTrace("glUniform3uiv decode");
+			gfxstream::base::beginTrace("glUniform3uiv decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_value __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -5340,11 +5340,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniform3uiv(location:%d count:%d value:%p(%u) )", stream, var_location, var_count, (const GLuint*)(inptr_value.get()), size_value);
 			this->glUniform3uiv(var_location, var_count, (const GLuint*)(inptr_value.get()));
 			SET_LASTCALL("glUniform3uiv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniform4uiv: {
-			android::base::beginTrace("glUniform4uiv decode");
+			gfxstream::base::beginTrace("glUniform4uiv decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_value __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -5360,11 +5360,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniform4uiv(location:%d count:%d value:%p(%u) )", stream, var_location, var_count, (const GLuint*)(inptr_value.get()), size_value);
 			this->glUniform4uiv(var_location, var_count, (const GLuint*)(inptr_value.get()));
 			SET_LASTCALL("glUniform4uiv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniformMatrix2x3fv: {
-			android::base::beginTrace("glUniformMatrix2x3fv decode");
+			gfxstream::base::beginTrace("glUniformMatrix2x3fv decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			GLboolean var_transpose = Unpack<GLboolean,uint8_t>(ptr + 8 + 4 + 4);
@@ -5381,11 +5381,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniformMatrix2x3fv(location:%d count:%d transpose:%d value:%p(%u) )", stream, var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()), size_value);
 			this->glUniformMatrix2x3fv(var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()));
 			SET_LASTCALL("glUniformMatrix2x3fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniformMatrix3x2fv: {
-			android::base::beginTrace("glUniformMatrix3x2fv decode");
+			gfxstream::base::beginTrace("glUniformMatrix3x2fv decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			GLboolean var_transpose = Unpack<GLboolean,uint8_t>(ptr + 8 + 4 + 4);
@@ -5402,11 +5402,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniformMatrix3x2fv(location:%d count:%d transpose:%d value:%p(%u) )", stream, var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()), size_value);
 			this->glUniformMatrix3x2fv(var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()));
 			SET_LASTCALL("glUniformMatrix3x2fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniformMatrix2x4fv: {
-			android::base::beginTrace("glUniformMatrix2x4fv decode");
+			gfxstream::base::beginTrace("glUniformMatrix2x4fv decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			GLboolean var_transpose = Unpack<GLboolean,uint8_t>(ptr + 8 + 4 + 4);
@@ -5423,11 +5423,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniformMatrix2x4fv(location:%d count:%d transpose:%d value:%p(%u) )", stream, var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()), size_value);
 			this->glUniformMatrix2x4fv(var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()));
 			SET_LASTCALL("glUniformMatrix2x4fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniformMatrix4x2fv: {
-			android::base::beginTrace("glUniformMatrix4x2fv decode");
+			gfxstream::base::beginTrace("glUniformMatrix4x2fv decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			GLboolean var_transpose = Unpack<GLboolean,uint8_t>(ptr + 8 + 4 + 4);
@@ -5444,11 +5444,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniformMatrix4x2fv(location:%d count:%d transpose:%d value:%p(%u) )", stream, var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()), size_value);
 			this->glUniformMatrix4x2fv(var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()));
 			SET_LASTCALL("glUniformMatrix4x2fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniformMatrix3x4fv: {
-			android::base::beginTrace("glUniformMatrix3x4fv decode");
+			gfxstream::base::beginTrace("glUniformMatrix3x4fv decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			GLboolean var_transpose = Unpack<GLboolean,uint8_t>(ptr + 8 + 4 + 4);
@@ -5465,11 +5465,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniformMatrix3x4fv(location:%d count:%d transpose:%d value:%p(%u) )", stream, var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()), size_value);
 			this->glUniformMatrix3x4fv(var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()));
 			SET_LASTCALL("glUniformMatrix3x4fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUniformMatrix4x3fv: {
-			android::base::beginTrace("glUniformMatrix4x3fv decode");
+			gfxstream::base::beginTrace("glUniformMatrix4x3fv decode");
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			GLboolean var_transpose = Unpack<GLboolean,uint8_t>(ptr + 8 + 4 + 4);
@@ -5486,11 +5486,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUniformMatrix4x3fv(location:%d count:%d transpose:%d value:%p(%u) )", stream, var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()), size_value);
 			this->glUniformMatrix4x3fv(var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()));
 			SET_LASTCALL("glUniformMatrix4x3fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetUniformuiv: {
-			android::base::beginTrace("glGetUniformuiv decode");
+			gfxstream::base::beginTrace("glGetUniformuiv decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			uint32_t size_params __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -5514,11 +5514,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetUniformuiv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetActiveUniformsiv: {
-			android::base::beginTrace("glGetActiveUniformsiv decode");
+			gfxstream::base::beginTrace("glGetActiveUniformsiv decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLsizei var_uniformCount = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_uniformIndices __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -5545,11 +5545,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetActiveUniformsiv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glVertexAttribI4i: {
-			android::base::beginTrace("glVertexAttribI4i decode");
+			gfxstream::base::beginTrace("glVertexAttribI4i decode");
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_v0 = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_v1 = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -5566,11 +5566,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glVertexAttribI4i(index:%u v0:%d v1:%d v2:%d v3:%d )", stream, var_index, var_v0, var_v1, var_v2, var_v3);
 			this->glVertexAttribI4i(var_index, var_v0, var_v1, var_v2, var_v3);
 			SET_LASTCALL("glVertexAttribI4i");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glVertexAttribI4ui: {
-			android::base::beginTrace("glVertexAttribI4ui decode");
+			gfxstream::base::beginTrace("glVertexAttribI4ui decode");
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLuint var_v0 = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			GLuint var_v1 = Unpack<GLuint,uint32_t>(ptr + 8 + 4 + 4);
@@ -5587,11 +5587,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glVertexAttribI4ui(index:%u v0:%u v1:%u v2:%u v3:%u )", stream, var_index, var_v0, var_v1, var_v2, var_v3);
 			this->glVertexAttribI4ui(var_index, var_v0, var_v1, var_v2, var_v3);
 			SET_LASTCALL("glVertexAttribI4ui");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glVertexAttribI4iv: {
-			android::base::beginTrace("glVertexAttribI4iv decode");
+			gfxstream::base::beginTrace("glVertexAttribI4iv decode");
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8);
 			uint32_t size_v __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_v(ptr + 8 + 4 + 4, size_v);
@@ -5606,11 +5606,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glVertexAttribI4iv(index:%u v:%p(%u) )", stream, var_index, (const GLint*)(inptr_v.get()), size_v);
 			this->glVertexAttribI4iv(var_index, (const GLint*)(inptr_v.get()));
 			SET_LASTCALL("glVertexAttribI4iv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glVertexAttribI4uiv: {
-			android::base::beginTrace("glVertexAttribI4uiv decode");
+			gfxstream::base::beginTrace("glVertexAttribI4uiv decode");
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8);
 			uint32_t size_v __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_v(ptr + 8 + 4 + 4, size_v);
@@ -5625,11 +5625,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glVertexAttribI4uiv(index:%u v:%p(%u) )", stream, var_index, (const GLuint*)(inptr_v.get()), size_v);
 			this->glVertexAttribI4uiv(var_index, (const GLuint*)(inptr_v.get()));
 			SET_LASTCALL("glVertexAttribI4uiv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glVertexAttribIPointer: {
-			android::base::beginTrace("glVertexAttribIPointer decode");
+			gfxstream::base::beginTrace("glVertexAttribIPointer decode");
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_size = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLenum var_type = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -5647,11 +5647,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glVertexAttribIPointer(index:%u size:%d type:0x%08x stride:%d pointer:%p(%u) )", stream, var_index, var_size, var_type, var_stride, (const GLvoid*)(inptr_pointer.get()), size_pointer);
 			this->glVertexAttribIPointer(var_index, var_size, var_type, var_stride, (const GLvoid*)(inptr_pointer.get()));
 			SET_LASTCALL("glVertexAttribIPointer");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glVertexAttribIPointerOffsetAEMU: {
-			android::base::beginTrace("glVertexAttribIPointerOffsetAEMU decode");
+			gfxstream::base::beginTrace("glVertexAttribIPointerOffsetAEMU decode");
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_size = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLenum var_type = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -5668,11 +5668,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glVertexAttribIPointerOffsetAEMU(index:%u size:%d type:0x%08x stride:%d offset:%u )", stream, var_index, var_size, var_type, var_stride, var_offset);
 			this->glVertexAttribIPointerOffsetAEMU(this, var_index, var_size, var_type, var_stride, var_offset);
 			SET_LASTCALL("glVertexAttribIPointerOffsetAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glVertexAttribIPointerDataAEMU: {
-			android::base::beginTrace("glVertexAttribIPointerDataAEMU decode");
+			gfxstream::base::beginTrace("glVertexAttribIPointerDataAEMU decode");
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_size = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLenum var_type = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -5691,11 +5691,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glVertexAttribIPointerDataAEMU(index:%u size:%d type:0x%08x stride:%d data:%p(%u) datalen:%u )", stream, var_index, var_size, var_type, var_stride, (void*)(inptr_data.get()), size_data, var_datalen);
 			this->glVertexAttribIPointerDataAEMU(this, var_index, var_size, var_type, var_stride, (void*)(inptr_data.get()), var_datalen);
 			SET_LASTCALL("glVertexAttribIPointerDataAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetVertexAttribIiv: {
-			android::base::beginTrace("glGetVertexAttribIiv decode");
+			gfxstream::base::beginTrace("glGetVertexAttribIiv decode");
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_params __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -5719,11 +5719,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetVertexAttribIiv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetVertexAttribIuiv: {
-			android::base::beginTrace("glGetVertexAttribIuiv decode");
+			gfxstream::base::beginTrace("glGetVertexAttribIuiv decode");
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_params __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -5747,11 +5747,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetVertexAttribIuiv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glVertexAttribDivisor: {
-			android::base::beginTrace("glVertexAttribDivisor decode");
+			gfxstream::base::beginTrace("glVertexAttribDivisor decode");
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLuint var_divisor = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -5765,11 +5765,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glVertexAttribDivisor(index:%u divisor:%u )", stream, var_index, var_divisor);
 			this->glVertexAttribDivisor(var_index, var_divisor);
 			SET_LASTCALL("glVertexAttribDivisor");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDrawArraysInstanced: {
-			android::base::beginTrace("glDrawArraysInstanced decode");
+			gfxstream::base::beginTrace("glDrawArraysInstanced decode");
 			GLenum var_mode = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_first = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -5785,11 +5785,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDrawArraysInstanced(mode:0x%08x first:%d count:%d primcount:%d )", stream, var_mode, var_first, var_count, var_primcount);
 			this->glDrawArraysInstanced(var_mode, var_first, var_count, var_primcount);
 			SET_LASTCALL("glDrawArraysInstanced");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDrawElementsInstanced: {
-			android::base::beginTrace("glDrawElementsInstanced decode");
+			gfxstream::base::beginTrace("glDrawElementsInstanced decode");
 			GLenum var_mode = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			GLenum var_type = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -5807,11 +5807,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDrawElementsInstanced(mode:0x%08x count:%d type:0x%08x indices:%p(%u) primcount:%d )", stream, var_mode, var_count, var_type, (const void*)(inptr_indices.get()), size_indices, var_primcount);
 			this->glDrawElementsInstanced(var_mode, var_count, var_type, (const void*)(inptr_indices.get()), var_primcount);
 			SET_LASTCALL("glDrawElementsInstanced");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDrawElementsInstancedDataAEMU: {
-			android::base::beginTrace("glDrawElementsInstancedDataAEMU decode");
+			gfxstream::base::beginTrace("glDrawElementsInstancedDataAEMU decode");
 			GLenum var_mode = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			GLenum var_type = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -5830,11 +5830,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDrawElementsInstancedDataAEMU(mode:0x%08x count:%d type:0x%08x indices:%p(%u) primcount:%d datalen:%d )", stream, var_mode, var_count, var_type, (const void*)(inptr_indices.get()), size_indices, var_primcount, var_datalen);
 			this->glDrawElementsInstancedDataAEMU(this, var_mode, var_count, var_type, (const void*)(inptr_indices.get()), var_primcount, var_datalen);
 			SET_LASTCALL("glDrawElementsInstancedDataAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDrawElementsInstancedOffsetAEMU: {
-			android::base::beginTrace("glDrawElementsInstancedOffsetAEMU decode");
+			gfxstream::base::beginTrace("glDrawElementsInstancedOffsetAEMU decode");
 			GLenum var_mode = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			GLenum var_type = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -5851,11 +5851,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDrawElementsInstancedOffsetAEMU(mode:0x%08x count:%d type:0x%08x offset:%u primcount:%d )", stream, var_mode, var_count, var_type, var_offset, var_primcount);
 			this->glDrawElementsInstancedOffsetAEMU(this, var_mode, var_count, var_type, var_offset, var_primcount);
 			SET_LASTCALL("glDrawElementsInstancedOffsetAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDrawRangeElements: {
-			android::base::beginTrace("glDrawRangeElements decode");
+			gfxstream::base::beginTrace("glDrawRangeElements decode");
 			GLenum var_mode = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLuint var_start = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			GLuint var_end = Unpack<GLuint,uint32_t>(ptr + 8 + 4 + 4);
@@ -5874,11 +5874,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDrawRangeElements(mode:0x%08x start:%u end:%u count:%d type:0x%08x indices:%p(%u) )", stream, var_mode, var_start, var_end, var_count, var_type, (const GLvoid*)(inptr_indices.get()), size_indices);
 			this->glDrawRangeElements(var_mode, var_start, var_end, var_count, var_type, (const GLvoid*)(inptr_indices.get()));
 			SET_LASTCALL("glDrawRangeElements");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDrawRangeElementsDataAEMU: {
-			android::base::beginTrace("glDrawRangeElementsDataAEMU decode");
+			gfxstream::base::beginTrace("glDrawRangeElementsDataAEMU decode");
 			GLenum var_mode = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLuint var_start = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			GLuint var_end = Unpack<GLuint,uint32_t>(ptr + 8 + 4 + 4);
@@ -5898,11 +5898,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDrawRangeElementsDataAEMU(mode:0x%08x start:%u end:%u count:%d type:0x%08x indices:%p(%u) datalen:%d )", stream, var_mode, var_start, var_end, var_count, var_type, (const GLvoid*)(inptr_indices.get()), size_indices, var_datalen);
 			this->glDrawRangeElementsDataAEMU(this, var_mode, var_start, var_end, var_count, var_type, (const GLvoid*)(inptr_indices.get()), var_datalen);
 			SET_LASTCALL("glDrawRangeElementsDataAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDrawRangeElementsOffsetAEMU: {
-			android::base::beginTrace("glDrawRangeElementsOffsetAEMU decode");
+			gfxstream::base::beginTrace("glDrawRangeElementsOffsetAEMU decode");
 			GLenum var_mode = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLuint var_start = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			GLuint var_end = Unpack<GLuint,uint32_t>(ptr + 8 + 4 + 4);
@@ -5920,11 +5920,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDrawRangeElementsOffsetAEMU(mode:0x%08x start:%u end:%u count:%d type:0x%08x offset:%u )", stream, var_mode, var_start, var_end, var_count, var_type, var_offset);
 			this->glDrawRangeElementsOffsetAEMU(this, var_mode, var_start, var_end, var_count, var_type, var_offset);
 			SET_LASTCALL("glDrawRangeElementsOffsetAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glFenceSync: {
-			android::base::beginTrace("glFenceSync decode");
+			gfxstream::base::beginTrace("glFenceSync decode");
 			GLenum var_condition = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLbitfield var_flags = Unpack<GLbitfield,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -5945,11 +5945,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glFenceSync");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glClientWaitSync: {
-			android::base::beginTrace("glClientWaitSync decode");
+			gfxstream::base::beginTrace("glClientWaitSync decode");
 			GLsync var_wait_on = Unpack<GLsync,uint64_t>(ptr + 8);
 			GLbitfield var_flags = Unpack<GLbitfield,uint32_t>(ptr + 8 + 8);
 			GLuint64 var_timeout = Unpack<GLuint64,uint64_t>(ptr + 8 + 8 + 4);
@@ -5971,11 +5971,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glClientWaitSync");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glWaitSync: {
-			android::base::beginTrace("glWaitSync decode");
+			gfxstream::base::beginTrace("glWaitSync decode");
 			GLsync var_wait_on = Unpack<GLsync,uint64_t>(ptr + 8);
 			GLbitfield var_flags = Unpack<GLbitfield,uint32_t>(ptr + 8 + 8);
 			GLuint64 var_timeout = Unpack<GLuint64,uint64_t>(ptr + 8 + 8 + 4);
@@ -5990,11 +5990,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glWaitSync(wait_on:%p flags:0x%08x timeout:0x%016lx )", stream, var_wait_on, var_flags, var_timeout);
 			this->glWaitSync(var_wait_on, var_flags, var_timeout);
 			SET_LASTCALL("glWaitSync");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDeleteSync: {
-			android::base::beginTrace("glDeleteSync decode");
+			gfxstream::base::beginTrace("glDeleteSync decode");
 			GLsync var_to_delete = Unpack<GLsync,uint64_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 8, ptr + 8 + 8, checksumSize,
@@ -6007,11 +6007,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDeleteSync(to_delete:%p )", stream, var_to_delete);
 			this->glDeleteSync(var_to_delete);
 			SET_LASTCALL("glDeleteSync");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glIsSync: {
-			android::base::beginTrace("glIsSync decode");
+			gfxstream::base::beginTrace("glIsSync decode");
 			GLsync var_sync = Unpack<GLsync,uint64_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 8, ptr + 8 + 8, checksumSize,
@@ -6031,11 +6031,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glIsSync");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetSynciv: {
-			android::base::beginTrace("glGetSynciv decode");
+			gfxstream::base::beginTrace("glGetSynciv decode");
 			GLsync var_sync = Unpack<GLsync,uint64_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 8);
 			GLsizei var_bufSize = Unpack<GLsizei,uint32_t>(ptr + 8 + 8 + 4);
@@ -6054,11 +6054,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glGetSynciv(sync:%p pname:0x%08x bufSize:%d length:%p(%u) values:%p(%u) )", stream, var_sync, var_pname, var_bufSize, (GLsizei*)(inptr_length.get()), size_length, (GLint*)(inptr_values.get()), size_values);
 			this->glGetSynciv(var_sync, var_pname, var_bufSize, (GLsizei*)(inptr_length.get()), (GLint*)(inptr_values.get()));
 			SET_LASTCALL("glGetSynciv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glFenceSyncAEMU: {
-			android::base::beginTrace("glFenceSyncAEMU decode");
+			gfxstream::base::beginTrace("glFenceSyncAEMU decode");
 			GLenum var_condition = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLbitfield var_flags = Unpack<GLbitfield,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -6079,11 +6079,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glFenceSyncAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glClientWaitSyncAEMU: {
-			android::base::beginTrace("glClientWaitSyncAEMU decode");
+			gfxstream::base::beginTrace("glClientWaitSyncAEMU decode");
 			uint64_t var_wait_on = Unpack<uint64_t,uint64_t>(ptr + 8);
 			GLbitfield var_flags = Unpack<GLbitfield,uint32_t>(ptr + 8 + 8);
 			GLuint64 var_timeout = Unpack<GLuint64,uint64_t>(ptr + 8 + 8 + 4);
@@ -6105,11 +6105,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glClientWaitSyncAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glWaitSyncAEMU: {
-			android::base::beginTrace("glWaitSyncAEMU decode");
+			gfxstream::base::beginTrace("glWaitSyncAEMU decode");
 			uint64_t var_wait_on = Unpack<uint64_t,uint64_t>(ptr + 8);
 			GLbitfield var_flags = Unpack<GLbitfield,uint32_t>(ptr + 8 + 8);
 			GLuint64 var_timeout = Unpack<GLuint64,uint64_t>(ptr + 8 + 8 + 4);
@@ -6124,11 +6124,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glWaitSyncAEMU(wait_on:0x%016lx flags:0x%08x timeout:0x%016lx )", stream, var_wait_on, var_flags, var_timeout);
 			this->glWaitSyncAEMU(this, var_wait_on, var_flags, var_timeout);
 			SET_LASTCALL("glWaitSyncAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDeleteSyncAEMU: {
-			android::base::beginTrace("glDeleteSyncAEMU decode");
+			gfxstream::base::beginTrace("glDeleteSyncAEMU decode");
 			uint64_t var_to_delete = Unpack<uint64_t,uint64_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 8, ptr + 8 + 8, checksumSize,
@@ -6141,11 +6141,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDeleteSyncAEMU(to_delete:0x%016lx )", stream, var_to_delete);
 			this->glDeleteSyncAEMU(this, var_to_delete);
 			SET_LASTCALL("glDeleteSyncAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glIsSyncAEMU: {
-			android::base::beginTrace("glIsSyncAEMU decode");
+			gfxstream::base::beginTrace("glIsSyncAEMU decode");
 			uint64_t var_sync = Unpack<uint64_t,uint64_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 8, ptr + 8 + 8, checksumSize,
@@ -6165,11 +6165,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glIsSyncAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetSyncivAEMU: {
-			android::base::beginTrace("glGetSyncivAEMU decode");
+			gfxstream::base::beginTrace("glGetSyncivAEMU decode");
 			uint64_t var_sync = Unpack<uint64_t,uint64_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 8);
 			GLsizei var_bufSize = Unpack<GLsizei,uint32_t>(ptr + 8 + 8 + 4);
@@ -6198,11 +6198,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetSyncivAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDrawBuffers: {
-			android::base::beginTrace("glDrawBuffers decode");
+			gfxstream::base::beginTrace("glDrawBuffers decode");
 			GLsizei var_n = Unpack<GLsizei,uint32_t>(ptr + 8);
 			uint32_t size_bufs __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_bufs(ptr + 8 + 4 + 4, size_bufs);
@@ -6217,11 +6217,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDrawBuffers(n:%d bufs:%p(%u) )", stream, var_n, (const GLenum*)(inptr_bufs.get()), size_bufs);
 			this->glDrawBuffers(var_n, (const GLenum*)(inptr_bufs.get()));
 			SET_LASTCALL("glDrawBuffers");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glReadBuffer: {
-			android::base::beginTrace("glReadBuffer decode");
+			gfxstream::base::beginTrace("glReadBuffer decode");
 			GLenum var_src = Unpack<GLenum,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -6234,11 +6234,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glReadBuffer(src:0x%08x )", stream, var_src);
 			this->glReadBuffer(var_src);
 			SET_LASTCALL("glReadBuffer");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBlitFramebuffer: {
-			android::base::beginTrace("glBlitFramebuffer decode");
+			gfxstream::base::beginTrace("glBlitFramebuffer decode");
 			GLint var_srcX0 = Unpack<GLint,uint32_t>(ptr + 8);
 			GLint var_srcY0 = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_srcX1 = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -6260,11 +6260,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glBlitFramebuffer(srcX0:%d srcY0:%d srcX1:%d srcY1:%d dstX0:%d dstY0:%d dstX1:%d dstY1:%d mask:0x%08x filter:0x%08x )", stream, var_srcX0, var_srcY0, var_srcX1, var_srcY1, var_dstX0, var_dstY0, var_dstX1, var_dstY1, var_mask, var_filter);
 			this->glBlitFramebuffer(var_srcX0, var_srcY0, var_srcX1, var_srcY1, var_dstX0, var_dstY0, var_dstX1, var_dstY1, var_mask, var_filter);
 			SET_LASTCALL("glBlitFramebuffer");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glInvalidateFramebuffer: {
-			android::base::beginTrace("glInvalidateFramebuffer decode");
+			gfxstream::base::beginTrace("glInvalidateFramebuffer decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLsizei var_numAttachments = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_attachments __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -6280,11 +6280,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glInvalidateFramebuffer(target:0x%08x numAttachments:%d attachments:%p(%u) )", stream, var_target, var_numAttachments, (const GLenum*)(inptr_attachments.get()), size_attachments);
 			this->glInvalidateFramebuffer(var_target, var_numAttachments, (const GLenum*)(inptr_attachments.get()));
 			SET_LASTCALL("glInvalidateFramebuffer");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glInvalidateSubFramebuffer: {
-			android::base::beginTrace("glInvalidateSubFramebuffer decode");
+			gfxstream::base::beginTrace("glInvalidateSubFramebuffer decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLsizei var_numAttachments = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_attachments __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -6304,11 +6304,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glInvalidateSubFramebuffer(target:0x%08x numAttachments:%d attachments:%p(%u) x:%d y:%d width:%d height:%d )", stream, var_target, var_numAttachments, (const GLenum*)(inptr_attachments.get()), size_attachments, var_x, var_y, var_width, var_height);
 			this->glInvalidateSubFramebuffer(var_target, var_numAttachments, (const GLenum*)(inptr_attachments.get()), var_x, var_y, var_width, var_height);
 			SET_LASTCALL("glInvalidateSubFramebuffer");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glFramebufferTextureLayer: {
-			android::base::beginTrace("glFramebufferTextureLayer decode");
+			gfxstream::base::beginTrace("glFramebufferTextureLayer decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_attachment = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLuint var_texture = Unpack<GLuint,uint32_t>(ptr + 8 + 4 + 4);
@@ -6325,11 +6325,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glFramebufferTextureLayer(target:0x%08x attachment:0x%08x texture:%u level:%d layer:%d )", stream, var_target, var_attachment, var_texture, var_level, var_layer);
 			this->glFramebufferTextureLayer(var_target, var_attachment, var_texture, var_level, var_layer);
 			SET_LASTCALL("glFramebufferTextureLayer");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glRenderbufferStorageMultisample: {
-			android::base::beginTrace("glRenderbufferStorageMultisample decode");
+			gfxstream::base::beginTrace("glRenderbufferStorageMultisample decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLsizei var_samples = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			GLenum var_internalformat = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -6346,11 +6346,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glRenderbufferStorageMultisample(target:0x%08x samples:%d internalformat:0x%08x width:%d height:%d )", stream, var_target, var_samples, var_internalformat, var_width, var_height);
 			this->glRenderbufferStorageMultisample(var_target, var_samples, var_internalformat, var_width, var_height);
 			SET_LASTCALL("glRenderbufferStorageMultisample");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glTexStorage2D: {
-			android::base::beginTrace("glTexStorage2D decode");
+			gfxstream::base::beginTrace("glTexStorage2D decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLsizei var_levels = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			GLenum var_internalformat = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -6367,11 +6367,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glTexStorage2D(target:0x%08x levels:%d internalformat:0x%08x width:%d height:%d )", stream, var_target, var_levels, var_internalformat, var_width, var_height);
 			this->glTexStorage2D(var_target, var_levels, var_internalformat, var_width, var_height);
 			SET_LASTCALL("glTexStorage2D");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetInternalformativ: {
-			android::base::beginTrace("glGetInternalformativ decode");
+			gfxstream::base::beginTrace("glGetInternalformativ decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_internalformat = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -6397,11 +6397,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetInternalformativ");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBeginTransformFeedback: {
-			android::base::beginTrace("glBeginTransformFeedback decode");
+			gfxstream::base::beginTrace("glBeginTransformFeedback decode");
 			GLenum var_primitiveMode = Unpack<GLenum,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -6414,11 +6414,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glBeginTransformFeedback(primitiveMode:0x%08x )", stream, var_primitiveMode);
 			this->glBeginTransformFeedback(var_primitiveMode);
 			SET_LASTCALL("glBeginTransformFeedback");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glEndTransformFeedback: {
-			android::base::beginTrace("glEndTransformFeedback decode");
+			gfxstream::base::beginTrace("glEndTransformFeedback decode");
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8, ptr + 8, checksumSize,
 					"gles2_decoder_context_t::decode, OP_glEndTransformFeedback: GL checksumCalculator failure\n");
@@ -6430,11 +6430,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glEndTransformFeedback()", stream);
 			this->glEndTransformFeedback();
 			SET_LASTCALL("glEndTransformFeedback");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGenTransformFeedbacks: {
-			android::base::beginTrace("glGenTransformFeedbacks decode");
+			gfxstream::base::beginTrace("glGenTransformFeedbacks decode");
 			GLsizei var_n = Unpack<GLsizei,uint32_t>(ptr + 8);
 			uint32_t size_ids __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -6457,11 +6457,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGenTransformFeedbacks");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDeleteTransformFeedbacks: {
-			android::base::beginTrace("glDeleteTransformFeedbacks decode");
+			gfxstream::base::beginTrace("glDeleteTransformFeedbacks decode");
 			GLsizei var_n = Unpack<GLsizei,uint32_t>(ptr + 8);
 			uint32_t size_ids __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_ids(ptr + 8 + 4 + 4, size_ids);
@@ -6476,11 +6476,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDeleteTransformFeedbacks(n:%d ids:%p(%u) )", stream, var_n, (const GLuint*)(inptr_ids.get()), size_ids);
 			this->glDeleteTransformFeedbacks_dec(this, var_n, (const GLuint*)(inptr_ids.get()));
 			SET_LASTCALL("glDeleteTransformFeedbacks");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBindTransformFeedback: {
-			android::base::beginTrace("glBindTransformFeedback decode");
+			gfxstream::base::beginTrace("glBindTransformFeedback decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLuint var_id = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -6494,11 +6494,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glBindTransformFeedback(target:0x%08x id:%u )", stream, var_target, var_id);
 			this->glBindTransformFeedback(var_target, var_id);
 			SET_LASTCALL("glBindTransformFeedback");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glPauseTransformFeedback: {
-			android::base::beginTrace("glPauseTransformFeedback decode");
+			gfxstream::base::beginTrace("glPauseTransformFeedback decode");
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8, ptr + 8, checksumSize,
 					"gles2_decoder_context_t::decode, OP_glPauseTransformFeedback: GL checksumCalculator failure\n");
@@ -6510,11 +6510,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glPauseTransformFeedback()", stream);
 			this->glPauseTransformFeedback();
 			SET_LASTCALL("glPauseTransformFeedback");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glResumeTransformFeedback: {
-			android::base::beginTrace("glResumeTransformFeedback decode");
+			gfxstream::base::beginTrace("glResumeTransformFeedback decode");
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8, ptr + 8, checksumSize,
 					"gles2_decoder_context_t::decode, OP_glResumeTransformFeedback: GL checksumCalculator failure\n");
@@ -6526,11 +6526,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glResumeTransformFeedback()", stream);
 			this->glResumeTransformFeedback();
 			SET_LASTCALL("glResumeTransformFeedback");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glIsTransformFeedback: {
-			android::base::beginTrace("glIsTransformFeedback decode");
+			gfxstream::base::beginTrace("glIsTransformFeedback decode");
 			GLuint var_id = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -6550,11 +6550,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glIsTransformFeedback");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glTransformFeedbackVaryings: {
-			android::base::beginTrace("glTransformFeedbackVaryings decode");
+			gfxstream::base::beginTrace("glTransformFeedbackVaryings decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_varyings __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -6571,11 +6571,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glTransformFeedbackVaryings(program:%u count:%d varyings:%p(%u) bufferMode:0x%08x )", stream, var_program, var_count, (const char**)(inptr_varyings.get()), size_varyings, var_bufferMode);
 			this->glTransformFeedbackVaryings_dec(this, var_program, var_count, (const char**)(inptr_varyings.get()), var_bufferMode);
 			SET_LASTCALL("glTransformFeedbackVaryings");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glTransformFeedbackVaryingsAEMU: {
-			android::base::beginTrace("glTransformFeedbackVaryingsAEMU decode");
+			gfxstream::base::beginTrace("glTransformFeedbackVaryingsAEMU decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_packedVaryings __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -6593,11 +6593,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glTransformFeedbackVaryingsAEMU(program:%u count:%d packedVaryings:%p(%u) packedVaryingsLen:%u bufferMode:0x%08x )", stream, var_program, var_count, (const char*)(inptr_packedVaryings.get()), size_packedVaryings, var_packedVaryingsLen, var_bufferMode);
 			this->glTransformFeedbackVaryingsAEMU(this, var_program, var_count, (const char*)(inptr_packedVaryings.get()), var_packedVaryingsLen, var_bufferMode);
 			SET_LASTCALL("glTransformFeedbackVaryingsAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetTransformFeedbackVarying: {
-			android::base::beginTrace("glGetTransformFeedbackVarying decode");
+			gfxstream::base::beginTrace("glGetTransformFeedbackVarying decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_bufSize = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -6634,11 +6634,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetTransformFeedbackVarying");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGenSamplers: {
-			android::base::beginTrace("glGenSamplers decode");
+			gfxstream::base::beginTrace("glGenSamplers decode");
 			GLsizei var_n = Unpack<GLsizei,uint32_t>(ptr + 8);
 			uint32_t size_samplers __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -6661,11 +6661,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGenSamplers");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDeleteSamplers: {
-			android::base::beginTrace("glDeleteSamplers decode");
+			gfxstream::base::beginTrace("glDeleteSamplers decode");
 			GLsizei var_n = Unpack<GLsizei,uint32_t>(ptr + 8);
 			uint32_t size_samplers __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_samplers(ptr + 8 + 4 + 4, size_samplers);
@@ -6680,11 +6680,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDeleteSamplers(n:%d samplers:%p(%u) )", stream, var_n, (const GLuint*)(inptr_samplers.get()), size_samplers);
 			this->glDeleteSamplers_dec(this, var_n, (const GLuint*)(inptr_samplers.get()));
 			SET_LASTCALL("glDeleteSamplers");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBindSampler: {
-			android::base::beginTrace("glBindSampler decode");
+			gfxstream::base::beginTrace("glBindSampler decode");
 			GLuint var_unit = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLuint var_sampler = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -6698,11 +6698,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glBindSampler(unit:%u sampler:%u )", stream, var_unit, var_sampler);
 			this->glBindSampler(var_unit, var_sampler);
 			SET_LASTCALL("glBindSampler");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glSamplerParameterf: {
-			android::base::beginTrace("glSamplerParameterf decode");
+			gfxstream::base::beginTrace("glSamplerParameterf decode");
 			GLuint var_sampler = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLfloat var_param = Unpack<GLfloat,uint32_t>(ptr + 8 + 4 + 4);
@@ -6717,11 +6717,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glSamplerParameterf(sampler:%u pname:0x%08x param:%f )", stream, var_sampler, var_pname, var_param);
 			this->glSamplerParameterf(var_sampler, var_pname, var_param);
 			SET_LASTCALL("glSamplerParameterf");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glSamplerParameteri: {
-			android::base::beginTrace("glSamplerParameteri decode");
+			gfxstream::base::beginTrace("glSamplerParameteri decode");
 			GLuint var_sampler = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLint var_param = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -6736,11 +6736,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glSamplerParameteri(sampler:%u pname:0x%08x param:%d )", stream, var_sampler, var_pname, var_param);
 			this->glSamplerParameteri(var_sampler, var_pname, var_param);
 			SET_LASTCALL("glSamplerParameteri");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glSamplerParameterfv: {
-			android::base::beginTrace("glSamplerParameterfv decode");
+			gfxstream::base::beginTrace("glSamplerParameterfv decode");
 			GLuint var_sampler = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_params __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -6756,11 +6756,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glSamplerParameterfv(sampler:%u pname:0x%08x params:%p(%u) )", stream, var_sampler, var_pname, (const GLfloat*)(inptr_params.get()), size_params);
 			this->glSamplerParameterfv(var_sampler, var_pname, (const GLfloat*)(inptr_params.get()));
 			SET_LASTCALL("glSamplerParameterfv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glSamplerParameteriv: {
-			android::base::beginTrace("glSamplerParameteriv decode");
+			gfxstream::base::beginTrace("glSamplerParameteriv decode");
 			GLuint var_sampler = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_params __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -6776,11 +6776,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glSamplerParameteriv(sampler:%u pname:0x%08x params:%p(%u) )", stream, var_sampler, var_pname, (const GLint*)(inptr_params.get()), size_params);
 			this->glSamplerParameteriv(var_sampler, var_pname, (const GLint*)(inptr_params.get()));
 			SET_LASTCALL("glSamplerParameteriv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetSamplerParameterfv: {
-			android::base::beginTrace("glGetSamplerParameterfv decode");
+			gfxstream::base::beginTrace("glGetSamplerParameterfv decode");
 			GLuint var_sampler = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_params __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -6804,11 +6804,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetSamplerParameterfv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetSamplerParameteriv: {
-			android::base::beginTrace("glGetSamplerParameteriv decode");
+			gfxstream::base::beginTrace("glGetSamplerParameteriv decode");
 			GLuint var_sampler = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_params __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -6832,11 +6832,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetSamplerParameteriv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glIsSampler: {
-			android::base::beginTrace("glIsSampler decode");
+			gfxstream::base::beginTrace("glIsSampler decode");
 			GLuint var_sampler = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -6856,11 +6856,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glIsSampler");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGenQueries: {
-			android::base::beginTrace("glGenQueries decode");
+			gfxstream::base::beginTrace("glGenQueries decode");
 			GLsizei var_n = Unpack<GLsizei,uint32_t>(ptr + 8);
 			uint32_t size_queries __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -6883,11 +6883,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGenQueries");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDeleteQueries: {
-			android::base::beginTrace("glDeleteQueries decode");
+			gfxstream::base::beginTrace("glDeleteQueries decode");
 			GLsizei var_n = Unpack<GLsizei,uint32_t>(ptr + 8);
 			uint32_t size_queries __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_queries(ptr + 8 + 4 + 4, size_queries);
@@ -6902,11 +6902,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDeleteQueries(n:%d queries:%p(%u) )", stream, var_n, (const GLuint*)(inptr_queries.get()), size_queries);
 			this->glDeleteQueries_dec(this, var_n, (const GLuint*)(inptr_queries.get()));
 			SET_LASTCALL("glDeleteQueries");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBeginQuery: {
-			android::base::beginTrace("glBeginQuery decode");
+			gfxstream::base::beginTrace("glBeginQuery decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLuint var_query = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -6920,11 +6920,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glBeginQuery(target:0x%08x query:%u )", stream, var_target, var_query);
 			this->glBeginQuery(var_target, var_query);
 			SET_LASTCALL("glBeginQuery");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glEndQuery: {
-			android::base::beginTrace("glEndQuery decode");
+			gfxstream::base::beginTrace("glEndQuery decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -6937,11 +6937,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glEndQuery(target:0x%08x )", stream, var_target);
 			this->glEndQuery(var_target);
 			SET_LASTCALL("glEndQuery");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetQueryiv: {
-			android::base::beginTrace("glGetQueryiv decode");
+			gfxstream::base::beginTrace("glGetQueryiv decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_params __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -6965,11 +6965,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetQueryiv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetQueryObjectuiv: {
-			android::base::beginTrace("glGetQueryObjectuiv decode");
+			gfxstream::base::beginTrace("glGetQueryObjectuiv decode");
 			GLuint var_query = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_params __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -6993,11 +6993,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetQueryObjectuiv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glIsQuery: {
-			android::base::beginTrace("glIsQuery decode");
+			gfxstream::base::beginTrace("glIsQuery decode");
 			GLuint var_query = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -7017,11 +7017,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glIsQuery");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramParameteri: {
-			android::base::beginTrace("glProgramParameteri decode");
+			gfxstream::base::beginTrace("glProgramParameteri decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLint var_value = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -7036,11 +7036,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramParameteri(program:%u pname:0x%08x value:%d )", stream, var_program, var_pname, var_value);
 			this->glProgramParameteri_dec(this, var_program, var_pname, var_value);
 			SET_LASTCALL("glProgramParameteri");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramBinary: {
-			android::base::beginTrace("glProgramBinary decode");
+			gfxstream::base::beginTrace("glProgramBinary decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_binaryFormat = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_binary __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -7057,11 +7057,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramBinary(program:%u binaryFormat:0x%08x binary:%p(%u) length:%d )", stream, var_program, var_binaryFormat, (const void*)(inptr_binary.get()), size_binary, var_length);
 			this->glProgramBinary_dec(this, var_program, var_binaryFormat, (const void*)(inptr_binary.get()), var_length);
 			SET_LASTCALL("glProgramBinary");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetProgramBinary: {
-			android::base::beginTrace("glGetProgramBinary decode");
+			gfxstream::base::beginTrace("glGetProgramBinary decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLsizei var_bufSize = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_length __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -7093,11 +7093,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetProgramBinary");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetFragDataLocation: {
-			android::base::beginTrace("glGetFragDataLocation decode");
+			gfxstream::base::beginTrace("glGetFragDataLocation decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			uint32_t size_name __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_name(ptr + 8 + 4 + 4, size_name);
@@ -7119,11 +7119,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetFragDataLocation");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetInteger64v: {
-			android::base::beginTrace("glGetInteger64v decode");
+			gfxstream::base::beginTrace("glGetInteger64v decode");
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8);
 			uint32_t size_data __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -7146,11 +7146,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetInteger64v");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetIntegeri_v: {
-			android::base::beginTrace("glGetIntegeri_v decode");
+			gfxstream::base::beginTrace("glGetIntegeri_v decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			uint32_t size_data __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -7174,11 +7174,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetIntegeri_v");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetInteger64i_v: {
-			android::base::beginTrace("glGetInteger64i_v decode");
+			gfxstream::base::beginTrace("glGetInteger64i_v decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			uint32_t size_data __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -7202,11 +7202,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetInteger64i_v");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glTexImage3D: {
-			android::base::beginTrace("glTexImage3D decode");
+			gfxstream::base::beginTrace("glTexImage3D decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_level = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_internalFormat = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -7229,11 +7229,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glTexImage3D(target:0x%08x level:%d internalFormat:%d width:%d height:%d depth:%d border:%d format:0x%08x type:0x%08x data:%p(%u) )", stream, var_target, var_level, var_internalFormat, var_width, var_height, var_depth, var_border, var_format, var_type, (const GLvoid*)(inptr_data.get()), size_data);
 			this->glTexImage3D(var_target, var_level, var_internalFormat, var_width, var_height, var_depth, var_border, var_format, var_type, size_data == 0 ? nullptr : (const GLvoid*)(inptr_data.get()));
 			SET_LASTCALL("glTexImage3D");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glTexImage3DOffsetAEMU: {
-			android::base::beginTrace("glTexImage3DOffsetAEMU decode");
+			gfxstream::base::beginTrace("glTexImage3DOffsetAEMU decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_level = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_internalFormat = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -7255,11 +7255,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glTexImage3DOffsetAEMU(target:0x%08x level:%d internalFormat:%d width:%d height:%d depth:%d border:%d format:0x%08x type:0x%08x offset:%u )", stream, var_target, var_level, var_internalFormat, var_width, var_height, var_depth, var_border, var_format, var_type, var_offset);
 			this->glTexImage3DOffsetAEMU(this, var_target, var_level, var_internalFormat, var_width, var_height, var_depth, var_border, var_format, var_type, var_offset);
 			SET_LASTCALL("glTexImage3DOffsetAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glTexStorage3D: {
-			android::base::beginTrace("glTexStorage3D decode");
+			gfxstream::base::beginTrace("glTexStorage3D decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLsizei var_levels = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			GLenum var_internalformat = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -7277,11 +7277,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glTexStorage3D(target:0x%08x levels:%d internalformat:0x%08x width:%d height:%d depth:%d )", stream, var_target, var_levels, var_internalformat, var_width, var_height, var_depth);
 			this->glTexStorage3D(var_target, var_levels, var_internalformat, var_width, var_height, var_depth);
 			SET_LASTCALL("glTexStorage3D");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glTexSubImage3D: {
-			android::base::beginTrace("glTexSubImage3D decode");
+			gfxstream::base::beginTrace("glTexSubImage3D decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_level = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_xoffset = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -7305,11 +7305,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glTexSubImage3D(target:0x%08x level:%d xoffset:%d yoffset:%d zoffset:%d width:%d height:%d depth:%d format:0x%08x type:0x%08x data:%p(%u) )", stream, var_target, var_level, var_xoffset, var_yoffset, var_zoffset, var_width, var_height, var_depth, var_format, var_type, (const GLvoid*)(inptr_data.get()), size_data);
 			this->glTexSubImage3D(var_target, var_level, var_xoffset, var_yoffset, var_zoffset, var_width, var_height, var_depth, var_format, var_type, size_data == 0 ? nullptr : (const GLvoid*)(inptr_data.get()));
 			SET_LASTCALL("glTexSubImage3D");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glTexSubImage3DOffsetAEMU: {
-			android::base::beginTrace("glTexSubImage3DOffsetAEMU decode");
+			gfxstream::base::beginTrace("glTexSubImage3DOffsetAEMU decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_level = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_xoffset = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -7332,11 +7332,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glTexSubImage3DOffsetAEMU(target:0x%08x level:%d xoffset:%d yoffset:%d zoffset:%d width:%d height:%d depth:%d format:0x%08x type:0x%08x offset:%u )", stream, var_target, var_level, var_xoffset, var_yoffset, var_zoffset, var_width, var_height, var_depth, var_format, var_type, var_offset);
 			this->glTexSubImage3DOffsetAEMU(this, var_target, var_level, var_xoffset, var_yoffset, var_zoffset, var_width, var_height, var_depth, var_format, var_type, var_offset);
 			SET_LASTCALL("glTexSubImage3DOffsetAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glCompressedTexImage3D: {
-			android::base::beginTrace("glCompressedTexImage3D decode");
+			gfxstream::base::beginTrace("glCompressedTexImage3D decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_level = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLenum var_internalformat = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -7358,11 +7358,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glCompressedTexImage3D(target:0x%08x level:%d internalformat:0x%08x width:%d height:%d depth:%d border:%d imageSize:%d data:%p(%u) )", stream, var_target, var_level, var_internalformat, var_width, var_height, var_depth, var_border, var_imageSize, (const GLvoid*)(inptr_data.get()), size_data);
 			this->glCompressedTexImage3D(var_target, var_level, var_internalformat, var_width, var_height, var_depth, var_border, var_imageSize, size_data == 0 ? nullptr : (const GLvoid*)(inptr_data.get()));
 			SET_LASTCALL("glCompressedTexImage3D");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glCompressedTexImage3DOffsetAEMU: {
-			android::base::beginTrace("glCompressedTexImage3DOffsetAEMU decode");
+			gfxstream::base::beginTrace("glCompressedTexImage3DOffsetAEMU decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_level = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLenum var_internalformat = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -7383,11 +7383,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glCompressedTexImage3DOffsetAEMU(target:0x%08x level:%d internalformat:0x%08x width:%d height:%d depth:%d border:%d imageSize:%d offset:%u )", stream, var_target, var_level, var_internalformat, var_width, var_height, var_depth, var_border, var_imageSize, var_offset);
 			this->glCompressedTexImage3DOffsetAEMU(this, var_target, var_level, var_internalformat, var_width, var_height, var_depth, var_border, var_imageSize, var_offset);
 			SET_LASTCALL("glCompressedTexImage3DOffsetAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glCompressedTexSubImage3D: {
-			android::base::beginTrace("glCompressedTexSubImage3D decode");
+			gfxstream::base::beginTrace("glCompressedTexSubImage3D decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_level = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_xoffset = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -7411,11 +7411,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glCompressedTexSubImage3D(target:0x%08x level:%d xoffset:%d yoffset:%d zoffset:%d width:%d height:%d depth:%d format:0x%08x imageSize:%d data:%p(%u) )", stream, var_target, var_level, var_xoffset, var_yoffset, var_zoffset, var_width, var_height, var_depth, var_format, var_imageSize, (const GLvoid*)(inptr_data.get()), size_data);
 			this->glCompressedTexSubImage3D(var_target, var_level, var_xoffset, var_yoffset, var_zoffset, var_width, var_height, var_depth, var_format, var_imageSize, size_data == 0 ? nullptr : (const GLvoid*)(inptr_data.get()));
 			SET_LASTCALL("glCompressedTexSubImage3D");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glCompressedTexSubImage3DOffsetAEMU: {
-			android::base::beginTrace("glCompressedTexSubImage3DOffsetAEMU decode");
+			gfxstream::base::beginTrace("glCompressedTexSubImage3DOffsetAEMU decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_level = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_xoffset = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -7438,11 +7438,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glCompressedTexSubImage3DOffsetAEMU(target:0x%08x level:%d xoffset:%d yoffset:%d zoffset:%d width:%d height:%d depth:%d format:0x%08x imageSize:%d data:%u )", stream, var_target, var_level, var_xoffset, var_yoffset, var_zoffset, var_width, var_height, var_depth, var_format, var_imageSize, var_data);
 			this->glCompressedTexSubImage3DOffsetAEMU(this, var_target, var_level, var_xoffset, var_yoffset, var_zoffset, var_width, var_height, var_depth, var_format, var_imageSize, var_data);
 			SET_LASTCALL("glCompressedTexSubImage3DOffsetAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glCopyTexSubImage3D: {
-			android::base::beginTrace("glCopyTexSubImage3D decode");
+			gfxstream::base::beginTrace("glCopyTexSubImage3D decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_level = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_xoffset = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -7463,11 +7463,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glCopyTexSubImage3D(target:0x%08x level:%d xoffset:%d yoffset:%d zoffset:%d x:%d y:%d width:%d height:%d )", stream, var_target, var_level, var_xoffset, var_yoffset, var_zoffset, var_x, var_y, var_width, var_height);
 			this->glCopyTexSubImage3D(var_target, var_level, var_xoffset, var_yoffset, var_zoffset, var_x, var_y, var_width, var_height);
 			SET_LASTCALL("glCopyTexSubImage3D");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetStringi: {
-			android::base::beginTrace("glGetStringi decode");
+			gfxstream::base::beginTrace("glGetStringi decode");
 			GLenum var_name = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -7481,11 +7481,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glGetStringi(name:0x%08x index:%u )", stream, var_name, var_index);
 			this->glGetStringi(var_name, var_index);
 			SET_LASTCALL("glGetStringi");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetBooleani_v: {
-			android::base::beginTrace("glGetBooleani_v decode");
+			gfxstream::base::beginTrace("glGetBooleani_v decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			uint32_t size_data __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -7509,11 +7509,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetBooleani_v");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glMemoryBarrier: {
-			android::base::beginTrace("glMemoryBarrier decode");
+			gfxstream::base::beginTrace("glMemoryBarrier decode");
 			GLbitfield var_barriers = Unpack<GLbitfield,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -7526,11 +7526,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glMemoryBarrier(barriers:0x%08x )", stream, var_barriers);
 			this->glMemoryBarrier(var_barriers);
 			SET_LASTCALL("glMemoryBarrier");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glMemoryBarrierByRegion: {
-			android::base::beginTrace("glMemoryBarrierByRegion decode");
+			gfxstream::base::beginTrace("glMemoryBarrierByRegion decode");
 			GLbitfield var_barriers = Unpack<GLbitfield,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -7543,11 +7543,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glMemoryBarrierByRegion(barriers:0x%08x )", stream, var_barriers);
 			this->glMemoryBarrierByRegion(var_barriers);
 			SET_LASTCALL("glMemoryBarrierByRegion");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGenProgramPipelines: {
-			android::base::beginTrace("glGenProgramPipelines decode");
+			gfxstream::base::beginTrace("glGenProgramPipelines decode");
 			GLsizei var_n = Unpack<GLsizei,uint32_t>(ptr + 8);
 			uint32_t size_pipelines __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -7570,11 +7570,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGenProgramPipelines");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDeleteProgramPipelines: {
-			android::base::beginTrace("glDeleteProgramPipelines decode");
+			gfxstream::base::beginTrace("glDeleteProgramPipelines decode");
 			GLsizei var_n = Unpack<GLsizei,uint32_t>(ptr + 8);
 			uint32_t size_pipelines __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_pipelines(ptr + 8 + 4 + 4, size_pipelines);
@@ -7589,11 +7589,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDeleteProgramPipelines(n:%d pipelines:%p(%u) )", stream, var_n, (const GLuint*)(inptr_pipelines.get()), size_pipelines);
 			this->glDeleteProgramPipelines_dec(this, var_n, (const GLuint*)(inptr_pipelines.get()));
 			SET_LASTCALL("glDeleteProgramPipelines");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBindProgramPipeline: {
-			android::base::beginTrace("glBindProgramPipeline decode");
+			gfxstream::base::beginTrace("glBindProgramPipeline decode");
 			GLuint var_pipeline = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -7606,11 +7606,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glBindProgramPipeline(pipeline:%u )", stream, var_pipeline);
 			this->glBindProgramPipeline(var_pipeline);
 			SET_LASTCALL("glBindProgramPipeline");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetProgramPipelineiv: {
-			android::base::beginTrace("glGetProgramPipelineiv decode");
+			gfxstream::base::beginTrace("glGetProgramPipelineiv decode");
 			GLuint var_pipeline = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_params __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -7634,11 +7634,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetProgramPipelineiv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetProgramPipelineInfoLog: {
-			android::base::beginTrace("glGetProgramPipelineInfoLog decode");
+			gfxstream::base::beginTrace("glGetProgramPipelineInfoLog decode");
 			GLuint var_pipeline = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLsizei var_bufSize = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_length __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -7666,11 +7666,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetProgramPipelineInfoLog");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glValidateProgramPipeline: {
-			android::base::beginTrace("glValidateProgramPipeline decode");
+			gfxstream::base::beginTrace("glValidateProgramPipeline decode");
 			GLuint var_pipeline = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -7683,11 +7683,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glValidateProgramPipeline(pipeline:%u )", stream, var_pipeline);
 			this->glValidateProgramPipeline(var_pipeline);
 			SET_LASTCALL("glValidateProgramPipeline");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glIsProgramPipeline: {
-			android::base::beginTrace("glIsProgramPipeline decode");
+			gfxstream::base::beginTrace("glIsProgramPipeline decode");
 			GLuint var_pipeline = Unpack<GLuint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -7707,11 +7707,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glIsProgramPipeline");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUseProgramStages: {
-			android::base::beginTrace("glUseProgramStages decode");
+			gfxstream::base::beginTrace("glUseProgramStages decode");
 			GLuint var_pipeline = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLbitfield var_stages = Unpack<GLbitfield,uint32_t>(ptr + 8 + 4);
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8 + 4 + 4);
@@ -7726,11 +7726,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUseProgramStages(pipeline:%u stages:0x%08x program:%u )", stream, var_pipeline, var_stages, var_program);
 			this->glUseProgramStages_dec(this, var_pipeline, var_stages, var_program);
 			SET_LASTCALL("glUseProgramStages");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glActiveShaderProgram: {
-			android::base::beginTrace("glActiveShaderProgram decode");
+			gfxstream::base::beginTrace("glActiveShaderProgram decode");
 			GLuint var_pipeline = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -7744,11 +7744,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glActiveShaderProgram(pipeline:%u program:%u )", stream, var_pipeline, var_program);
 			this->glActiveShaderProgram_dec(this, var_pipeline, var_program);
 			SET_LASTCALL("glActiveShaderProgram");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glCreateShaderProgramv: {
-			android::base::beginTrace("glCreateShaderProgramv decode");
+			gfxstream::base::beginTrace("glCreateShaderProgramv decode");
 			GLenum var_type = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_strings __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -7771,11 +7771,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glCreateShaderProgramv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glCreateShaderProgramvAEMU: {
-			android::base::beginTrace("glCreateShaderProgramvAEMU decode");
+			gfxstream::base::beginTrace("glCreateShaderProgramvAEMU decode");
 			GLenum var_type = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			uint32_t size_packedStrings __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -7799,11 +7799,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glCreateShaderProgramvAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniform1f: {
-			android::base::beginTrace("glProgramUniform1f decode");
+			gfxstream::base::beginTrace("glProgramUniform1f decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLfloat var_v0 = Unpack<GLfloat,uint32_t>(ptr + 8 + 4 + 4);
@@ -7818,11 +7818,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniform1f(program:%u location:%d v0:%f )", stream, var_program, var_location, var_v0);
 			this->glProgramUniform1f_dec(this, var_program, var_location, var_v0);
 			SET_LASTCALL("glProgramUniform1f");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniform2f: {
-			android::base::beginTrace("glProgramUniform2f decode");
+			gfxstream::base::beginTrace("glProgramUniform2f decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLfloat var_v0 = Unpack<GLfloat,uint32_t>(ptr + 8 + 4 + 4);
@@ -7838,11 +7838,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniform2f(program:%u location:%d v0:%f v1:%f )", stream, var_program, var_location, var_v0, var_v1);
 			this->glProgramUniform2f_dec(this, var_program, var_location, var_v0, var_v1);
 			SET_LASTCALL("glProgramUniform2f");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniform3f: {
-			android::base::beginTrace("glProgramUniform3f decode");
+			gfxstream::base::beginTrace("glProgramUniform3f decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLfloat var_v0 = Unpack<GLfloat,uint32_t>(ptr + 8 + 4 + 4);
@@ -7859,11 +7859,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniform3f(program:%u location:%d v0:%f v1:%f v2:%f )", stream, var_program, var_location, var_v0, var_v1, var_v2);
 			this->glProgramUniform3f_dec(this, var_program, var_location, var_v0, var_v1, var_v2);
 			SET_LASTCALL("glProgramUniform3f");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniform4f: {
-			android::base::beginTrace("glProgramUniform4f decode");
+			gfxstream::base::beginTrace("glProgramUniform4f decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLfloat var_v0 = Unpack<GLfloat,uint32_t>(ptr + 8 + 4 + 4);
@@ -7881,11 +7881,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniform4f(program:%u location:%d v0:%f v1:%f v2:%f v3:%f )", stream, var_program, var_location, var_v0, var_v1, var_v2, var_v3);
 			this->glProgramUniform4f_dec(this, var_program, var_location, var_v0, var_v1, var_v2, var_v3);
 			SET_LASTCALL("glProgramUniform4f");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniform1i: {
-			android::base::beginTrace("glProgramUniform1i decode");
+			gfxstream::base::beginTrace("glProgramUniform1i decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_v0 = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -7900,11 +7900,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniform1i(program:%u location:%d v0:%d )", stream, var_program, var_location, var_v0);
 			this->glProgramUniform1i_dec(this, var_program, var_location, var_v0);
 			SET_LASTCALL("glProgramUniform1i");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniform2i: {
-			android::base::beginTrace("glProgramUniform2i decode");
+			gfxstream::base::beginTrace("glProgramUniform2i decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_v0 = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -7920,11 +7920,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniform2i(program:%u location:%d v0:%d v1:%d )", stream, var_program, var_location, var_v0, var_v1);
 			this->glProgramUniform2i_dec(this, var_program, var_location, var_v0, var_v1);
 			SET_LASTCALL("glProgramUniform2i");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniform3i: {
-			android::base::beginTrace("glProgramUniform3i decode");
+			gfxstream::base::beginTrace("glProgramUniform3i decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_v0 = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -7941,11 +7941,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniform3i(program:%u location:%d v0:%d v1:%d v2:%d )", stream, var_program, var_location, var_v0, var_v1, var_v2);
 			this->glProgramUniform3i_dec(this, var_program, var_location, var_v0, var_v1, var_v2);
 			SET_LASTCALL("glProgramUniform3i");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniform4i: {
-			android::base::beginTrace("glProgramUniform4i decode");
+			gfxstream::base::beginTrace("glProgramUniform4i decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_v0 = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -7963,11 +7963,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniform4i(program:%u location:%d v0:%d v1:%d v2:%d v3:%d )", stream, var_program, var_location, var_v0, var_v1, var_v2, var_v3);
 			this->glProgramUniform4i_dec(this, var_program, var_location, var_v0, var_v1, var_v2, var_v3);
 			SET_LASTCALL("glProgramUniform4i");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniform1ui: {
-			android::base::beginTrace("glProgramUniform1ui decode");
+			gfxstream::base::beginTrace("glProgramUniform1ui decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLuint var_v0 = Unpack<GLuint,uint32_t>(ptr + 8 + 4 + 4);
@@ -7982,11 +7982,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniform1ui(program:%u location:%d v0:%u )", stream, var_program, var_location, var_v0);
 			this->glProgramUniform1ui_dec(this, var_program, var_location, var_v0);
 			SET_LASTCALL("glProgramUniform1ui");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniform2ui: {
-			android::base::beginTrace("glProgramUniform2ui decode");
+			gfxstream::base::beginTrace("glProgramUniform2ui decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_v0 = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -8002,11 +8002,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniform2ui(program:%u location:%d v0:%d v1:%u )", stream, var_program, var_location, var_v0, var_v1);
 			this->glProgramUniform2ui_dec(this, var_program, var_location, var_v0, var_v1);
 			SET_LASTCALL("glProgramUniform2ui");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniform3ui: {
-			android::base::beginTrace("glProgramUniform3ui decode");
+			gfxstream::base::beginTrace("glProgramUniform3ui decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_v0 = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -8023,11 +8023,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniform3ui(program:%u location:%d v0:%d v1:%d v2:%u )", stream, var_program, var_location, var_v0, var_v1, var_v2);
 			this->glProgramUniform3ui_dec(this, var_program, var_location, var_v0, var_v1, var_v2);
 			SET_LASTCALL("glProgramUniform3ui");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniform4ui: {
-			android::base::beginTrace("glProgramUniform4ui decode");
+			gfxstream::base::beginTrace("glProgramUniform4ui decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_v0 = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -8045,11 +8045,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniform4ui(program:%u location:%d v0:%d v1:%d v2:%d v3:%u )", stream, var_program, var_location, var_v0, var_v1, var_v2, var_v3);
 			this->glProgramUniform4ui_dec(this, var_program, var_location, var_v0, var_v1, var_v2, var_v3);
 			SET_LASTCALL("glProgramUniform4ui");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniform1fv: {
-			android::base::beginTrace("glProgramUniform1fv decode");
+			gfxstream::base::beginTrace("glProgramUniform1fv decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -8066,11 +8066,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniform1fv(program:%u location:%d count:%d value:%p(%u) )", stream, var_program, var_location, var_count, (const GLfloat*)(inptr_value.get()), size_value);
 			this->glProgramUniform1fv_dec(this, var_program, var_location, var_count, (const GLfloat*)(inptr_value.get()));
 			SET_LASTCALL("glProgramUniform1fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniform2fv: {
-			android::base::beginTrace("glProgramUniform2fv decode");
+			gfxstream::base::beginTrace("glProgramUniform2fv decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -8087,11 +8087,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniform2fv(program:%u location:%d count:%d value:%p(%u) )", stream, var_program, var_location, var_count, (const GLfloat*)(inptr_value.get()), size_value);
 			this->glProgramUniform2fv_dec(this, var_program, var_location, var_count, (const GLfloat*)(inptr_value.get()));
 			SET_LASTCALL("glProgramUniform2fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniform3fv: {
-			android::base::beginTrace("glProgramUniform3fv decode");
+			gfxstream::base::beginTrace("glProgramUniform3fv decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -8108,11 +8108,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniform3fv(program:%u location:%d count:%d value:%p(%u) )", stream, var_program, var_location, var_count, (const GLfloat*)(inptr_value.get()), size_value);
 			this->glProgramUniform3fv_dec(this, var_program, var_location, var_count, (const GLfloat*)(inptr_value.get()));
 			SET_LASTCALL("glProgramUniform3fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniform4fv: {
-			android::base::beginTrace("glProgramUniform4fv decode");
+			gfxstream::base::beginTrace("glProgramUniform4fv decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -8129,11 +8129,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniform4fv(program:%u location:%d count:%d value:%p(%u) )", stream, var_program, var_location, var_count, (const GLfloat*)(inptr_value.get()), size_value);
 			this->glProgramUniform4fv_dec(this, var_program, var_location, var_count, (const GLfloat*)(inptr_value.get()));
 			SET_LASTCALL("glProgramUniform4fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniform1iv: {
-			android::base::beginTrace("glProgramUniform1iv decode");
+			gfxstream::base::beginTrace("glProgramUniform1iv decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -8150,11 +8150,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniform1iv(program:%u location:%d count:%d value:%p(%u) )", stream, var_program, var_location, var_count, (const GLint*)(inptr_value.get()), size_value);
 			this->glProgramUniform1iv_dec(this, var_program, var_location, var_count, (const GLint*)(inptr_value.get()));
 			SET_LASTCALL("glProgramUniform1iv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniform2iv: {
-			android::base::beginTrace("glProgramUniform2iv decode");
+			gfxstream::base::beginTrace("glProgramUniform2iv decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -8171,11 +8171,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniform2iv(program:%u location:%d count:%d value:%p(%u) )", stream, var_program, var_location, var_count, (const GLint*)(inptr_value.get()), size_value);
 			this->glProgramUniform2iv_dec(this, var_program, var_location, var_count, (const GLint*)(inptr_value.get()));
 			SET_LASTCALL("glProgramUniform2iv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniform3iv: {
-			android::base::beginTrace("glProgramUniform3iv decode");
+			gfxstream::base::beginTrace("glProgramUniform3iv decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -8192,11 +8192,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniform3iv(program:%u location:%d count:%d value:%p(%u) )", stream, var_program, var_location, var_count, (const GLint*)(inptr_value.get()), size_value);
 			this->glProgramUniform3iv_dec(this, var_program, var_location, var_count, (const GLint*)(inptr_value.get()));
 			SET_LASTCALL("glProgramUniform3iv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniform4iv: {
-			android::base::beginTrace("glProgramUniform4iv decode");
+			gfxstream::base::beginTrace("glProgramUniform4iv decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -8213,11 +8213,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniform4iv(program:%u location:%d count:%d value:%p(%u) )", stream, var_program, var_location, var_count, (const GLint*)(inptr_value.get()), size_value);
 			this->glProgramUniform4iv_dec(this, var_program, var_location, var_count, (const GLint*)(inptr_value.get()));
 			SET_LASTCALL("glProgramUniform4iv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniform1uiv: {
-			android::base::beginTrace("glProgramUniform1uiv decode");
+			gfxstream::base::beginTrace("glProgramUniform1uiv decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -8234,11 +8234,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniform1uiv(program:%u location:%d count:%d value:%p(%u) )", stream, var_program, var_location, var_count, (const GLuint*)(inptr_value.get()), size_value);
 			this->glProgramUniform1uiv_dec(this, var_program, var_location, var_count, (const GLuint*)(inptr_value.get()));
 			SET_LASTCALL("glProgramUniform1uiv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniform2uiv: {
-			android::base::beginTrace("glProgramUniform2uiv decode");
+			gfxstream::base::beginTrace("glProgramUniform2uiv decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -8255,11 +8255,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniform2uiv(program:%u location:%d count:%d value:%p(%u) )", stream, var_program, var_location, var_count, (const GLuint*)(inptr_value.get()), size_value);
 			this->glProgramUniform2uiv_dec(this, var_program, var_location, var_count, (const GLuint*)(inptr_value.get()));
 			SET_LASTCALL("glProgramUniform2uiv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniform3uiv: {
-			android::base::beginTrace("glProgramUniform3uiv decode");
+			gfxstream::base::beginTrace("glProgramUniform3uiv decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -8276,11 +8276,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniform3uiv(program:%u location:%d count:%d value:%p(%u) )", stream, var_program, var_location, var_count, (const GLuint*)(inptr_value.get()), size_value);
 			this->glProgramUniform3uiv_dec(this, var_program, var_location, var_count, (const GLuint*)(inptr_value.get()));
 			SET_LASTCALL("glProgramUniform3uiv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniform4uiv: {
-			android::base::beginTrace("glProgramUniform4uiv decode");
+			gfxstream::base::beginTrace("glProgramUniform4uiv decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -8297,11 +8297,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniform4uiv(program:%u location:%d count:%d value:%p(%u) )", stream, var_program, var_location, var_count, (const GLuint*)(inptr_value.get()), size_value);
 			this->glProgramUniform4uiv_dec(this, var_program, var_location, var_count, (const GLuint*)(inptr_value.get()));
 			SET_LASTCALL("glProgramUniform4uiv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniformMatrix2fv: {
-			android::base::beginTrace("glProgramUniformMatrix2fv decode");
+			gfxstream::base::beginTrace("glProgramUniformMatrix2fv decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -8319,11 +8319,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniformMatrix2fv(program:%u location:%d count:%d transpose:%d value:%p(%u) )", stream, var_program, var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()), size_value);
 			this->glProgramUniformMatrix2fv_dec(this, var_program, var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()));
 			SET_LASTCALL("glProgramUniformMatrix2fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniformMatrix3fv: {
-			android::base::beginTrace("glProgramUniformMatrix3fv decode");
+			gfxstream::base::beginTrace("glProgramUniformMatrix3fv decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -8341,11 +8341,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniformMatrix3fv(program:%u location:%d count:%d transpose:%d value:%p(%u) )", stream, var_program, var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()), size_value);
 			this->glProgramUniformMatrix3fv_dec(this, var_program, var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()));
 			SET_LASTCALL("glProgramUniformMatrix3fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniformMatrix4fv: {
-			android::base::beginTrace("glProgramUniformMatrix4fv decode");
+			gfxstream::base::beginTrace("glProgramUniformMatrix4fv decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -8363,11 +8363,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniformMatrix4fv(program:%u location:%d count:%d transpose:%d value:%p(%u) )", stream, var_program, var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()), size_value);
 			this->glProgramUniformMatrix4fv_dec(this, var_program, var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()));
 			SET_LASTCALL("glProgramUniformMatrix4fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniformMatrix2x3fv: {
-			android::base::beginTrace("glProgramUniformMatrix2x3fv decode");
+			gfxstream::base::beginTrace("glProgramUniformMatrix2x3fv decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -8385,11 +8385,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniformMatrix2x3fv(program:%u location:%d count:%d transpose:%d value:%p(%u) )", stream, var_program, var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()), size_value);
 			this->glProgramUniformMatrix2x3fv_dec(this, var_program, var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()));
 			SET_LASTCALL("glProgramUniformMatrix2x3fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniformMatrix3x2fv: {
-			android::base::beginTrace("glProgramUniformMatrix3x2fv decode");
+			gfxstream::base::beginTrace("glProgramUniformMatrix3x2fv decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -8407,11 +8407,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniformMatrix3x2fv(program:%u location:%d count:%d transpose:%d value:%p(%u) )", stream, var_program, var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()), size_value);
 			this->glProgramUniformMatrix3x2fv_dec(this, var_program, var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()));
 			SET_LASTCALL("glProgramUniformMatrix3x2fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniformMatrix2x4fv: {
-			android::base::beginTrace("glProgramUniformMatrix2x4fv decode");
+			gfxstream::base::beginTrace("glProgramUniformMatrix2x4fv decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -8429,11 +8429,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniformMatrix2x4fv(program:%u location:%d count:%d transpose:%d value:%p(%u) )", stream, var_program, var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()), size_value);
 			this->glProgramUniformMatrix2x4fv_dec(this, var_program, var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()));
 			SET_LASTCALL("glProgramUniformMatrix2x4fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniformMatrix4x2fv: {
-			android::base::beginTrace("glProgramUniformMatrix4x2fv decode");
+			gfxstream::base::beginTrace("glProgramUniformMatrix4x2fv decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -8451,11 +8451,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniformMatrix4x2fv(program:%u location:%d count:%d transpose:%d value:%p(%u) )", stream, var_program, var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()), size_value);
 			this->glProgramUniformMatrix4x2fv_dec(this, var_program, var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()));
 			SET_LASTCALL("glProgramUniformMatrix4x2fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniformMatrix3x4fv: {
-			android::base::beginTrace("glProgramUniformMatrix3x4fv decode");
+			gfxstream::base::beginTrace("glProgramUniformMatrix3x4fv decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -8473,11 +8473,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniformMatrix3x4fv(program:%u location:%d count:%d transpose:%d value:%p(%u) )", stream, var_program, var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()), size_value);
 			this->glProgramUniformMatrix3x4fv_dec(this, var_program, var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()));
 			SET_LASTCALL("glProgramUniformMatrix3x4fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glProgramUniformMatrix4x3fv: {
-			android::base::beginTrace("glProgramUniformMatrix4x3fv decode");
+			gfxstream::base::beginTrace("glProgramUniformMatrix4x3fv decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -8495,11 +8495,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glProgramUniformMatrix4x3fv(program:%u location:%d count:%d transpose:%d value:%p(%u) )", stream, var_program, var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()), size_value);
 			this->glProgramUniformMatrix4x3fv_dec(this, var_program, var_location, var_count, var_transpose, (const GLfloat*)(inptr_value.get()));
 			SET_LASTCALL("glProgramUniformMatrix4x3fv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetProgramInterfaceiv: {
-			android::base::beginTrace("glGetProgramInterfaceiv decode");
+			gfxstream::base::beginTrace("glGetProgramInterfaceiv decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_programInterface = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -8524,11 +8524,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetProgramInterfaceiv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetProgramResourceiv: {
-			android::base::beginTrace("glGetProgramResourceiv decode");
+			gfxstream::base::beginTrace("glGetProgramResourceiv decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_programInterface = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8 + 4 + 4);
@@ -8561,11 +8561,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetProgramResourceiv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetProgramResourceIndex: {
-			android::base::beginTrace("glGetProgramResourceIndex decode");
+			gfxstream::base::beginTrace("glGetProgramResourceIndex decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_programInterface = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_name __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -8588,11 +8588,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetProgramResourceIndex");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetProgramResourceLocation: {
-			android::base::beginTrace("glGetProgramResourceLocation decode");
+			gfxstream::base::beginTrace("glGetProgramResourceLocation decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_programInterface = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_name __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -8615,11 +8615,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetProgramResourceLocation");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetProgramResourceName: {
-			android::base::beginTrace("glGetProgramResourceName decode");
+			gfxstream::base::beginTrace("glGetProgramResourceName decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_programInterface = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8 + 4 + 4);
@@ -8649,11 +8649,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetProgramResourceName");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBindImageTexture: {
-			android::base::beginTrace("glBindImageTexture decode");
+			gfxstream::base::beginTrace("glBindImageTexture decode");
 			GLuint var_unit = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLuint var_texture = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			GLint var_level = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -8672,11 +8672,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glBindImageTexture(unit:%u texture:%u level:%d layered:%d layer:%d access:0x%08x format:0x%08x )", stream, var_unit, var_texture, var_level, var_layered, var_layer, var_access, var_format);
 			this->glBindImageTexture(var_unit, var_texture, var_level, var_layered, var_layer, var_access, var_format);
 			SET_LASTCALL("glBindImageTexture");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDispatchCompute: {
-			android::base::beginTrace("glDispatchCompute decode");
+			gfxstream::base::beginTrace("glDispatchCompute decode");
 			GLuint var_num_groups_x = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLuint var_num_groups_y = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			GLuint var_num_groups_z = Unpack<GLuint,uint32_t>(ptr + 8 + 4 + 4);
@@ -8691,11 +8691,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDispatchCompute(num_groups_x:%u num_groups_y:%u num_groups_z:%u )", stream, var_num_groups_x, var_num_groups_y, var_num_groups_z);
 			this->glDispatchCompute(var_num_groups_x, var_num_groups_y, var_num_groups_z);
 			SET_LASTCALL("glDispatchCompute");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDispatchComputeIndirect: {
-			android::base::beginTrace("glDispatchComputeIndirect decode");
+			gfxstream::base::beginTrace("glDispatchComputeIndirect decode");
 			GLintptr var_indirect = Unpack<GLintptr,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -8708,11 +8708,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDispatchComputeIndirect(indirect:0x%08lx )", stream, var_indirect);
 			this->glDispatchComputeIndirect(var_indirect);
 			SET_LASTCALL("glDispatchComputeIndirect");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBindVertexBuffer: {
-			android::base::beginTrace("glBindVertexBuffer decode");
+			gfxstream::base::beginTrace("glBindVertexBuffer decode");
 			GLuint var_bindingindex = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLuint var_buffer = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			GLintptr var_offset = Unpack<GLintptr,uint32_t>(ptr + 8 + 4 + 4);
@@ -8728,11 +8728,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glBindVertexBuffer(bindingindex:%u buffer:%u offset:0x%08lx stride:0x%08lx )", stream, var_bindingindex, var_buffer, var_offset, var_stride);
 			this->glBindVertexBuffer(var_bindingindex, var_buffer, var_offset, var_stride);
 			SET_LASTCALL("glBindVertexBuffer");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glVertexAttribBinding: {
-			android::base::beginTrace("glVertexAttribBinding decode");
+			gfxstream::base::beginTrace("glVertexAttribBinding decode");
 			GLuint var_attribindex = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLuint var_bindingindex = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -8746,11 +8746,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glVertexAttribBinding(attribindex:%u bindingindex:%u )", stream, var_attribindex, var_bindingindex);
 			this->glVertexAttribBinding(var_attribindex, var_bindingindex);
 			SET_LASTCALL("glVertexAttribBinding");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glVertexAttribFormat: {
-			android::base::beginTrace("glVertexAttribFormat decode");
+			gfxstream::base::beginTrace("glVertexAttribFormat decode");
 			GLuint var_attribindex = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_size = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLenum var_type = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -8767,11 +8767,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glVertexAttribFormat(attribindex:%u size:%d type:0x%08x normalized:%d relativeoffset:%u )", stream, var_attribindex, var_size, var_type, var_normalized, var_relativeoffset);
 			this->glVertexAttribFormat(var_attribindex, var_size, var_type, var_normalized, var_relativeoffset);
 			SET_LASTCALL("glVertexAttribFormat");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glVertexAttribIFormat: {
-			android::base::beginTrace("glVertexAttribIFormat decode");
+			gfxstream::base::beginTrace("glVertexAttribIFormat decode");
 			GLuint var_attribindex = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_size = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLenum var_type = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -8787,11 +8787,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glVertexAttribIFormat(attribindex:%u size:%d type:0x%08x relativeoffset:%u )", stream, var_attribindex, var_size, var_type, var_relativeoffset);
 			this->glVertexAttribIFormat(var_attribindex, var_size, var_type, var_relativeoffset);
 			SET_LASTCALL("glVertexAttribIFormat");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glVertexBindingDivisor: {
-			android::base::beginTrace("glVertexBindingDivisor decode");
+			gfxstream::base::beginTrace("glVertexBindingDivisor decode");
 			GLuint var_bindingindex = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLuint var_divisor = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -8805,11 +8805,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glVertexBindingDivisor(bindingindex:%u divisor:%u )", stream, var_bindingindex, var_divisor);
 			this->glVertexBindingDivisor(var_bindingindex, var_divisor);
 			SET_LASTCALL("glVertexBindingDivisor");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDrawArraysIndirect: {
-			android::base::beginTrace("glDrawArraysIndirect decode");
+			gfxstream::base::beginTrace("glDrawArraysIndirect decode");
 			GLenum var_mode = Unpack<GLenum,uint32_t>(ptr + 8);
 			uint32_t size_indirect __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_indirect(ptr + 8 + 4 + 4, size_indirect);
@@ -8824,11 +8824,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDrawArraysIndirect(mode:0x%08x indirect:%p(%u) )", stream, var_mode, (const void*)(inptr_indirect.get()), size_indirect);
 			this->glDrawArraysIndirect(var_mode, (const void*)(inptr_indirect.get()));
 			SET_LASTCALL("glDrawArraysIndirect");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDrawArraysIndirectDataAEMU: {
-			android::base::beginTrace("glDrawArraysIndirectDataAEMU decode");
+			gfxstream::base::beginTrace("glDrawArraysIndirectDataAEMU decode");
 			GLenum var_mode = Unpack<GLenum,uint32_t>(ptr + 8);
 			uint32_t size_indirect __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_indirect(ptr + 8 + 4 + 4, size_indirect);
@@ -8844,11 +8844,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDrawArraysIndirectDataAEMU(mode:0x%08x indirect:%p(%u) datalen:%u )", stream, var_mode, (const void*)(inptr_indirect.get()), size_indirect, var_datalen);
 			this->glDrawArraysIndirectDataAEMU(this, var_mode, (const void*)(inptr_indirect.get()), var_datalen);
 			SET_LASTCALL("glDrawArraysIndirectDataAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDrawArraysIndirectOffsetAEMU: {
-			android::base::beginTrace("glDrawArraysIndirectOffsetAEMU decode");
+			gfxstream::base::beginTrace("glDrawArraysIndirectOffsetAEMU decode");
 			GLenum var_mode = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLuint var_offset = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -8862,11 +8862,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDrawArraysIndirectOffsetAEMU(mode:0x%08x offset:%u )", stream, var_mode, var_offset);
 			this->glDrawArraysIndirectOffsetAEMU(this, var_mode, var_offset);
 			SET_LASTCALL("glDrawArraysIndirectOffsetAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDrawElementsIndirect: {
-			android::base::beginTrace("glDrawElementsIndirect decode");
+			gfxstream::base::beginTrace("glDrawElementsIndirect decode");
 			GLenum var_mode = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_type = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_indirect __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -8882,11 +8882,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDrawElementsIndirect(mode:0x%08x type:0x%08x indirect:%p(%u) )", stream, var_mode, var_type, (const void*)(inptr_indirect.get()), size_indirect);
 			this->glDrawElementsIndirect(var_mode, var_type, (const void*)(inptr_indirect.get()));
 			SET_LASTCALL("glDrawElementsIndirect");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDrawElementsIndirectDataAEMU: {
-			android::base::beginTrace("glDrawElementsIndirectDataAEMU decode");
+			gfxstream::base::beginTrace("glDrawElementsIndirectDataAEMU decode");
 			GLenum var_mode = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_type = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_indirect __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -8903,11 +8903,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDrawElementsIndirectDataAEMU(mode:0x%08x type:0x%08x indirect:%p(%u) datalen:%u )", stream, var_mode, var_type, (const void*)(inptr_indirect.get()), size_indirect, var_datalen);
 			this->glDrawElementsIndirectDataAEMU(this, var_mode, var_type, (const void*)(inptr_indirect.get()), var_datalen);
 			SET_LASTCALL("glDrawElementsIndirectDataAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDrawElementsIndirectOffsetAEMU: {
-			android::base::beginTrace("glDrawElementsIndirectOffsetAEMU decode");
+			gfxstream::base::beginTrace("glDrawElementsIndirectOffsetAEMU decode");
 			GLenum var_mode = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_type = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLuint var_offset = Unpack<GLuint,uint32_t>(ptr + 8 + 4 + 4);
@@ -8922,11 +8922,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDrawElementsIndirectOffsetAEMU(mode:0x%08x type:0x%08x offset:%u )", stream, var_mode, var_type, var_offset);
 			this->glDrawElementsIndirectOffsetAEMU(this, var_mode, var_type, var_offset);
 			SET_LASTCALL("glDrawElementsIndirectOffsetAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glTexStorage2DMultisample: {
-			android::base::beginTrace("glTexStorage2DMultisample decode");
+			gfxstream::base::beginTrace("glTexStorage2DMultisample decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLsizei var_samples = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			GLenum var_internalformat = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -8944,11 +8944,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glTexStorage2DMultisample(target:0x%08x samples:%d internalformat:0x%08x width:%d height:%d fixedsamplelocations:%d )", stream, var_target, var_samples, var_internalformat, var_width, var_height, var_fixedsamplelocations);
 			this->glTexStorage2DMultisample(var_target, var_samples, var_internalformat, var_width, var_height, var_fixedsamplelocations);
 			SET_LASTCALL("glTexStorage2DMultisample");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glSampleMaski: {
-			android::base::beginTrace("glSampleMaski decode");
+			gfxstream::base::beginTrace("glSampleMaski decode");
 			GLuint var_maskNumber = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLbitfield var_mask = Unpack<GLbitfield,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -8962,11 +8962,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glSampleMaski(maskNumber:%u mask:0x%08x )", stream, var_maskNumber, var_mask);
 			this->glSampleMaski(var_maskNumber, var_mask);
 			SET_LASTCALL("glSampleMaski");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetMultisamplefv: {
-			android::base::beginTrace("glGetMultisamplefv decode");
+			gfxstream::base::beginTrace("glGetMultisamplefv decode");
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			uint32_t size_val __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -8990,11 +8990,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetMultisamplefv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glFramebufferParameteri: {
-			android::base::beginTrace("glFramebufferParameteri decode");
+			gfxstream::base::beginTrace("glFramebufferParameteri decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLint var_param = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -9009,11 +9009,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glFramebufferParameteri(target:0x%08x pname:0x%08x param:%d )", stream, var_target, var_pname, var_param);
 			this->glFramebufferParameteri(var_target, var_pname, var_param);
 			SET_LASTCALL("glFramebufferParameteri");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetFramebufferParameteriv: {
-			android::base::beginTrace("glGetFramebufferParameteriv decode");
+			gfxstream::base::beginTrace("glGetFramebufferParameteriv decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			uint32_t size_params __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -9037,11 +9037,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetFramebufferParameteriv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetTexLevelParameterfv: {
-			android::base::beginTrace("glGetTexLevelParameterfv decode");
+			gfxstream::base::beginTrace("glGetTexLevelParameterfv decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_level = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -9066,11 +9066,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetTexLevelParameterfv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetTexLevelParameteriv: {
-			android::base::beginTrace("glGetTexLevelParameteriv decode");
+			gfxstream::base::beginTrace("glGetTexLevelParameteriv decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_level = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLenum var_pname = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -9095,11 +9095,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetTexLevelParameteriv");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glMapBufferRangeDMA: {
-			android::base::beginTrace("glMapBufferRangeDMA decode");
+			gfxstream::base::beginTrace("glMapBufferRangeDMA decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLintptr var_offset = Unpack<GLintptr,uint32_t>(ptr + 8 + 4);
 			GLsizeiptr var_length = Unpack<GLsizeiptr,uint32_t>(ptr + 8 + 4 + 4);
@@ -9116,11 +9116,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glMapBufferRangeDMA(target:0x%08x offset:0x%08lx length:0x%08lx access:0x%08x paddr:0x%016lx )", stream, var_target, var_offset, var_length, var_access, var_paddr);
 			this->glMapBufferRangeDMA(this, var_target, var_offset, var_length, var_access, var_paddr);
 			SET_LASTCALL("glMapBufferRangeDMA");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUnmapBufferDMA: {
-			android::base::beginTrace("glUnmapBufferDMA decode");
+			gfxstream::base::beginTrace("glUnmapBufferDMA decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLintptr var_offset = Unpack<GLintptr,uint32_t>(ptr + 8 + 4);
 			GLsizeiptr var_length = Unpack<GLsizeiptr,uint32_t>(ptr + 8 + 4 + 4);
@@ -9147,11 +9147,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glUnmapBufferDMA");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glMapBufferRangeDirect: {
-			android::base::beginTrace("glMapBufferRangeDirect decode");
+			gfxstream::base::beginTrace("glMapBufferRangeDirect decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLintptr var_offset = Unpack<GLintptr,uint32_t>(ptr + 8 + 4);
 			GLsizeiptr var_length = Unpack<GLsizeiptr,uint32_t>(ptr + 8 + 4 + 4);
@@ -9175,11 +9175,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glMapBufferRangeDirect");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUnmapBufferDirect: {
-			android::base::beginTrace("glUnmapBufferDirect decode");
+			gfxstream::base::beginTrace("glUnmapBufferDirect decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLintptr var_offset = Unpack<GLintptr,uint32_t>(ptr + 8 + 4);
 			GLsizeiptr var_length = Unpack<GLsizeiptr,uint32_t>(ptr + 8 + 4 + 4);
@@ -9207,11 +9207,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glUnmapBufferDirect");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glFlushMappedBufferRangeDirect: {
-			android::base::beginTrace("glFlushMappedBufferRangeDirect decode");
+			gfxstream::base::beginTrace("glFlushMappedBufferRangeDirect decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLintptr var_offset = Unpack<GLintptr,uint32_t>(ptr + 8 + 4);
 			GLsizeiptr var_length = Unpack<GLsizeiptr,uint32_t>(ptr + 8 + 4 + 4);
@@ -9227,11 +9227,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glFlushMappedBufferRangeDirect(target:0x%08x offset:0x%08lx length:0x%08lx access:0x%08x )", stream, var_target, var_offset, var_length, var_access);
 			this->glFlushMappedBufferRangeDirect(this, var_target, var_offset, var_length, var_access);
 			SET_LASTCALL("glFlushMappedBufferRangeDirect");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetGraphicsResetStatusEXT: {
-			android::base::beginTrace("glGetGraphicsResetStatusEXT decode");
+			gfxstream::base::beginTrace("glGetGraphicsResetStatusEXT decode");
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8, ptr + 8, checksumSize,
 					"gles2_decoder_context_t::decode, OP_glGetGraphicsResetStatusEXT: GL checksumCalculator failure\n");
@@ -9250,11 +9250,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetGraphicsResetStatusEXT");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glReadnPixelsEXT: {
-			android::base::beginTrace("glReadnPixelsEXT decode");
+			gfxstream::base::beginTrace("glReadnPixelsEXT decode");
 			GLint var_x = Unpack<GLint,uint32_t>(ptr + 8);
 			GLint var_y = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_width = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -9283,11 +9283,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glReadnPixelsEXT");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetnUniformfvEXT: {
-			android::base::beginTrace("glGetnUniformfvEXT decode");
+			gfxstream::base::beginTrace("glGetnUniformfvEXT decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_bufSize = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -9312,11 +9312,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetnUniformfvEXT");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glGetnUniformivEXT: {
-			android::base::beginTrace("glGetnUniformivEXT decode");
+			gfxstream::base::beginTrace("glGetnUniformivEXT decode");
 			GLuint var_program = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLint var_location = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_bufSize = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -9341,11 +9341,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glGetnUniformivEXT");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDrawArraysNullAEMU: {
-			android::base::beginTrace("glDrawArraysNullAEMU decode");
+			gfxstream::base::beginTrace("glDrawArraysNullAEMU decode");
 			GLenum var_mode = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLint var_first = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4 + 4);
@@ -9360,11 +9360,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDrawArraysNullAEMU(mode:0x%08x first:%d count:%d )", stream, var_mode, var_first, var_count);
 			this->glDrawArraysNullAEMU(var_mode, var_first, var_count);
 			SET_LASTCALL("glDrawArraysNullAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDrawElementsNullAEMU: {
-			android::base::beginTrace("glDrawElementsNullAEMU decode");
+			gfxstream::base::beginTrace("glDrawElementsNullAEMU decode");
 			GLenum var_mode = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			GLenum var_type = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -9381,11 +9381,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDrawElementsNullAEMU(mode:0x%08x count:%d type:0x%08x indices:%p(%u) )", stream, var_mode, var_count, var_type, (const GLvoid*)(inptr_indices.get()), size_indices);
 			this->glDrawElementsNullAEMU(var_mode, var_count, var_type, (const GLvoid*)(inptr_indices.get()));
 			SET_LASTCALL("glDrawElementsNullAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDrawElementsOffsetNullAEMU: {
-			android::base::beginTrace("glDrawElementsOffsetNullAEMU decode");
+			gfxstream::base::beginTrace("glDrawElementsOffsetNullAEMU decode");
 			GLenum var_mode = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			GLenum var_type = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -9401,11 +9401,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDrawElementsOffsetNullAEMU(mode:0x%08x count:%d type:0x%08x offset:%u )", stream, var_mode, var_count, var_type, var_offset);
 			this->glDrawElementsOffsetNullAEMU(this, var_mode, var_count, var_type, var_offset);
 			SET_LASTCALL("glDrawElementsOffsetNullAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDrawElementsDataNullAEMU: {
-			android::base::beginTrace("glDrawElementsDataNullAEMU decode");
+			gfxstream::base::beginTrace("glDrawElementsDataNullAEMU decode");
 			GLenum var_mode = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLsizei var_count = Unpack<GLsizei,uint32_t>(ptr + 8 + 4);
 			GLenum var_type = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -9423,11 +9423,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDrawElementsDataNullAEMU(mode:0x%08x count:%d type:0x%08x data:%p(%u) datalen:%u )", stream, var_mode, var_count, var_type, (void*)(inptr_data.get()), size_data, var_datalen);
 			this->glDrawElementsDataNullAEMU(this, var_mode, var_count, var_type, (void*)(inptr_data.get()), var_datalen);
 			SET_LASTCALL("glDrawElementsDataNullAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glUnmapBufferAsyncAEMU: {
-			android::base::beginTrace("glUnmapBufferAsyncAEMU decode");
+			gfxstream::base::beginTrace("glUnmapBufferAsyncAEMU decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLintptr var_offset = Unpack<GLintptr,uint32_t>(ptr + 8 + 4);
 			GLsizeiptr var_length = Unpack<GLsizeiptr,uint32_t>(ptr + 8 + 4 + 4);
@@ -9447,11 +9447,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glUnmapBufferAsyncAEMU(target:0x%08x offset:0x%08lx length:0x%08lx access:0x%08x guest_buffer:%p(%u) out_res:%p(%u) )", stream, var_target, var_offset, var_length, var_access, (void*)(inptr_guest_buffer.get()), size_guest_buffer, (GLboolean*)(inptr_out_res.get()), size_out_res);
 			this->glUnmapBufferAEMU(this, var_target, var_offset, var_length, var_access, size_guest_buffer == 0 ? nullptr : (void*)(inptr_guest_buffer.get()), (GLboolean*)(inptr_out_res.get()));
 			SET_LASTCALL("glUnmapBufferAsyncAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glFlushMappedBufferRangeAEMU2: {
-			android::base::beginTrace("glFlushMappedBufferRangeAEMU2 decode");
+			gfxstream::base::beginTrace("glFlushMappedBufferRangeAEMU2 decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLintptr var_offset = Unpack<GLintptr,uint32_t>(ptr + 8 + 4);
 			GLsizeiptr var_length = Unpack<GLsizeiptr,uint32_t>(ptr + 8 + 4 + 4);
@@ -9469,11 +9469,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glFlushMappedBufferRangeAEMU2(target:0x%08x offset:0x%08lx length:0x%08lx access:0x%08x guest_buffer:%p(%u) )", stream, var_target, var_offset, var_length, var_access, (void*)(inptr_guest_buffer.get()), size_guest_buffer);
 			this->glFlushMappedBufferRangeAEMU(this, var_target, var_offset, var_length, var_access, size_guest_buffer == 0 ? nullptr : (void*)(inptr_guest_buffer.get()));
 			SET_LASTCALL("glFlushMappedBufferRangeAEMU2");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBufferDataSyncAEMU: {
-			android::base::beginTrace("glBufferDataSyncAEMU decode");
+			gfxstream::base::beginTrace("glBufferDataSyncAEMU decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLsizeiptr var_size = Unpack<GLsizeiptr,uint32_t>(ptr + 8 + 4);
 			uint32_t size_data __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -9497,11 +9497,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glBufferDataSyncAEMU");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glTexBufferOES: {
-			android::base::beginTrace("glTexBufferOES decode");
+			gfxstream::base::beginTrace("glTexBufferOES decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_internalFormat = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLuint var_buffer = Unpack<GLuint,uint32_t>(ptr + 8 + 4 + 4);
@@ -9516,11 +9516,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glTexBufferOES(target:0x%08x internalFormat:0x%08x buffer:%u )", stream, var_target, var_internalFormat, var_buffer);
 			this->glTexBufferOES_dec(this, var_target, var_internalFormat, var_buffer);
 			SET_LASTCALL("glTexBufferOES");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glTexBufferRangeOES: {
-			android::base::beginTrace("glTexBufferRangeOES decode");
+			gfxstream::base::beginTrace("glTexBufferRangeOES decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_internalFormat = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLuint var_buffer = Unpack<GLuint,uint32_t>(ptr + 8 + 4 + 4);
@@ -9537,11 +9537,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glTexBufferRangeOES(target:0x%08x internalFormat:0x%08x buffer:%u offset:0x%08lx size:0x%08lx )", stream, var_target, var_internalFormat, var_buffer, var_offset, var_size);
 			this->glTexBufferRangeOES_dec(this, var_target, var_internalFormat, var_buffer, var_offset, var_size);
 			SET_LASTCALL("glTexBufferRangeOES");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glTexBufferEXT: {
-			android::base::beginTrace("glTexBufferEXT decode");
+			gfxstream::base::beginTrace("glTexBufferEXT decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_internalFormat = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLuint var_buffer = Unpack<GLuint,uint32_t>(ptr + 8 + 4 + 4);
@@ -9556,11 +9556,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glTexBufferEXT(target:0x%08x internalFormat:0x%08x buffer:%u )", stream, var_target, var_internalFormat, var_buffer);
 			this->glTexBufferEXT_dec(this, var_target, var_internalFormat, var_buffer);
 			SET_LASTCALL("glTexBufferEXT");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glTexBufferRangeEXT: {
-			android::base::beginTrace("glTexBufferRangeEXT decode");
+			gfxstream::base::beginTrace("glTexBufferRangeEXT decode");
 			GLenum var_target = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLenum var_internalFormat = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLuint var_buffer = Unpack<GLuint,uint32_t>(ptr + 8 + 4 + 4);
@@ -9577,11 +9577,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glTexBufferRangeEXT(target:0x%08x internalFormat:0x%08x buffer:%u offset:0x%08lx size:0x%08lx )", stream, var_target, var_internalFormat, var_buffer, var_offset, var_size);
 			this->glTexBufferRangeEXT_dec(this, var_target, var_internalFormat, var_buffer, var_offset, var_size);
 			SET_LASTCALL("glTexBufferRangeEXT");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glEnableiEXT: {
-			android::base::beginTrace("glEnableiEXT decode");
+			gfxstream::base::beginTrace("glEnableiEXT decode");
 			GLenum var_cap = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -9595,11 +9595,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glEnableiEXT(cap:0x%08x index:%u )", stream, var_cap, var_index);
 			this->glEnableiEXT_dec(this, var_cap, var_index);
 			SET_LASTCALL("glEnableiEXT");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glDisableiEXT: {
-			android::base::beginTrace("glDisableiEXT decode");
+			gfxstream::base::beginTrace("glDisableiEXT decode");
 			GLenum var_cap = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -9613,11 +9613,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glDisableiEXT(cap:0x%08x index:%u )", stream, var_cap, var_index);
 			this->glDisableiEXT_dec(this, var_cap, var_index);
 			SET_LASTCALL("glDisableiEXT");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBlendEquationiEXT: {
-			android::base::beginTrace("glBlendEquationiEXT decode");
+			gfxstream::base::beginTrace("glBlendEquationiEXT decode");
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_mode = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -9631,11 +9631,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glBlendEquationiEXT(index:%u mode:0x%08x )", stream, var_index, var_mode);
 			this->glBlendEquationiEXT_dec(this, var_index, var_mode);
 			SET_LASTCALL("glBlendEquationiEXT");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBlendEquationSeparateiEXT: {
-			android::base::beginTrace("glBlendEquationSeparateiEXT decode");
+			gfxstream::base::beginTrace("glBlendEquationSeparateiEXT decode");
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_modeRGB = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLenum var_modeAlpha = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -9650,11 +9650,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glBlendEquationSeparateiEXT(index:%u modeRGB:0x%08x modeAlpha:0x%08x )", stream, var_index, var_modeRGB, var_modeAlpha);
 			this->glBlendEquationSeparateiEXT_dec(this, var_index, var_modeRGB, var_modeAlpha);
 			SET_LASTCALL("glBlendEquationSeparateiEXT");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBlendFunciEXT: {
-			android::base::beginTrace("glBlendFunciEXT decode");
+			gfxstream::base::beginTrace("glBlendFunciEXT decode");
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_sfactor = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLenum var_dfactor = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -9669,11 +9669,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glBlendFunciEXT(index:%u sfactor:0x%08x dfactor:0x%08x )", stream, var_index, var_sfactor, var_dfactor);
 			this->glBlendFunciEXT_dec(this, var_index, var_sfactor, var_dfactor);
 			SET_LASTCALL("glBlendFunciEXT");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glBlendFuncSeparateiEXT: {
-			android::base::beginTrace("glBlendFuncSeparateiEXT decode");
+			gfxstream::base::beginTrace("glBlendFuncSeparateiEXT decode");
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLenum var_srcRGB = Unpack<GLenum,uint32_t>(ptr + 8 + 4);
 			GLenum var_dstRGB = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -9690,11 +9690,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glBlendFuncSeparateiEXT(index:%u srcRGB:0x%08x dstRGB:0x%08x srcAlpha:0x%08x dstAlpha:0x%08x )", stream, var_index, var_srcRGB, var_dstRGB, var_srcAlpha, var_dstAlpha);
 			this->glBlendFuncSeparateiEXT_dec(this, var_index, var_srcRGB, var_dstRGB, var_srcAlpha, var_dstAlpha);
 			SET_LASTCALL("glBlendFuncSeparateiEXT");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glColorMaskiEXT: {
-			android::base::beginTrace("glColorMaskiEXT decode");
+			gfxstream::base::beginTrace("glColorMaskiEXT decode");
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8);
 			GLboolean var_red = Unpack<GLboolean,uint8_t>(ptr + 8 + 4);
 			GLboolean var_green = Unpack<GLboolean,uint8_t>(ptr + 8 + 4 + 1);
@@ -9711,11 +9711,11 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			DECODER_DEBUG_LOG("gles2(%p): glColorMaskiEXT(index:%u red:%d green:%d blue:%d alpha:%d )", stream, var_index, var_red, var_green, var_blue, var_alpha);
 			this->glColorMaskiEXT_dec(this, var_index, var_red, var_green, var_blue, var_alpha);
 			SET_LASTCALL("glColorMaskiEXT");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_glIsEnablediEXT: {
-			android::base::beginTrace("glIsEnablediEXT decode");
+			gfxstream::base::beginTrace("glIsEnablediEXT decode");
 			GLenum var_cap = Unpack<GLenum,uint32_t>(ptr + 8);
 			GLuint var_index = Unpack<GLuint,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -9736,7 +9736,7 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 			stream->flush();
 			SET_LASTCALL("glIsEnablediEXT");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		default:

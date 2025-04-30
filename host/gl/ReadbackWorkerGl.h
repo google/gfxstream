@@ -22,8 +22,8 @@
 #include <EGL/egl.h>
 #include <GLES3/gl3.h>
 
-#include "aemu/base/Compiler.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/Compiler.h"
+#include "gfxstream/synchronization/Lock.h"
 #include "DisplaySurfaceGl.h"
 #include "ReadbackWorker.h"
 
@@ -98,7 +98,7 @@ class ReadbackWorkerGl : public ReadbackWorker {
     };
 
   private:
-    android::base::Lock mLock;
+    gfxstream::base::Lock mLock;
 
     std::unique_ptr<DisplaySurfaceGl> mSurface;
     std::unique_ptr<DisplaySurfaceGl> mFlushSurface;

@@ -19,7 +19,7 @@
 #include <EGL/eglext.h>
 #include <GLES2/gl2.h>
 #include "Hwc2.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/synchronization/Lock.h"
 
 #include <vector>
 
@@ -82,7 +82,7 @@ private:
     GLuint mVertexBuffer;
     GLuint mIndexBuffer;
 
-    android::base::Lock mMaskLock;
+    gfxstream::base::Lock mMaskLock;
     GLuint mMaskTexture;
     int    mMaskWidth;
     int    mMaskHeight;

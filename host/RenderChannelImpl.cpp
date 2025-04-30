@@ -21,6 +21,7 @@
 #include "GraphicsDriverLock.h"
 #include "RenderThread.h"
 #include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/synchronization/Lock.h"
 
 namespace gfxstream {
 
@@ -172,7 +173,7 @@ RenderChannelImpl::~RenderChannelImpl() {
     // Make sure the render thread is stopped before the channel is gone.
     mRenderThread->waitForFinished();
     {
-        AutoLock lock(*graphicsDriverLock());
+        gfxstream::base::AutoLock lock(*graphicsDriverLock());
         mRenderThread->sendExitSignal();
         mRenderThread->wait();
     }

@@ -13,7 +13,7 @@
 // limitations under the License.
 #include "VsyncThread.h"
 
-#include "aemu/base/system/System.h"
+#include "gfxstream/system/System.h"
 
 namespace gfxstream {
 
@@ -48,7 +48,7 @@ void VsyncThread::threadFunc() {
 
     while (true) {
         uint64_t periodUs = mPeriodNs / 1000ULL;
-        currentUs = android::base::getHighResTimeUs();
+        currentUs = gfxstream::base::getHighResTimeUs();
 
         if (lastTimeUs == ~0ULL) {
             phasedWaitTimeUs = currentUs + periodUs;
@@ -58,7 +58,7 @@ void VsyncThread::threadFunc() {
                 lastTimeUs;
         }
 
-        android::base::sleepToUs(phasedWaitTimeUs);
+        gfxstream::base::sleepToUs(phasedWaitTimeUs);
 
         lastTimeUs = phasedWaitTimeUs;
 

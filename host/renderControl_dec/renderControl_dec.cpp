@@ -37,7 +37,7 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
         const bool useChecksum = checksumSize > 0;
 		switch(opcode) {
 		case OP_rcGetRendererVersion: {
-			android::base::beginTrace("rcGetRendererVersion decode");
+			gfxstream::base::beginTrace("rcGetRendererVersion decode");
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8, ptr + 8, checksumSize,
 					"renderControl_decoder_context_t::decode, OP_rcGetRendererVersion: GL checksumCalculator failure\n");
@@ -52,11 +52,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcGetRendererVersion");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcGetEGLVersion: {
-			android::base::beginTrace("rcGetEGLVersion decode");
+			gfxstream::base::beginTrace("rcGetEGLVersion decode");
 			uint32_t size_major __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8);
 			uint32_t size_minor __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -79,11 +79,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcGetEGLVersion");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcQueryEGLString: {
-			android::base::beginTrace("rcQueryEGLString decode");
+			gfxstream::base::beginTrace("rcQueryEGLString decode");
 			EGLenum var_name = Unpack<EGLenum,uint32_t>(ptr + 8);
 			uint32_t size_buffer __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			EGLint var_bufferSize = Unpack<EGLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -104,11 +104,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcQueryEGLString");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcGetGLString: {
-			android::base::beginTrace("rcGetGLString decode");
+			gfxstream::base::beginTrace("rcGetGLString decode");
 			EGLenum var_name = Unpack<EGLenum,uint32_t>(ptr + 8);
 			uint32_t size_buffer __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			EGLint var_bufferSize = Unpack<EGLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -129,11 +129,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcGetGLString");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcGetNumConfigs: {
-			android::base::beginTrace("rcGetNumConfigs decode");
+			gfxstream::base::beginTrace("rcGetNumConfigs decode");
 			uint32_t size_numAttribs __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -152,11 +152,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcGetNumConfigs");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcGetConfigs: {
-			android::base::beginTrace("rcGetConfigs decode");
+			gfxstream::base::beginTrace("rcGetConfigs decode");
 			uint32_t var_bufSize = Unpack<uint32_t,uint32_t>(ptr + 8);
 			uint32_t size_buffer __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -176,11 +176,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcGetConfigs");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcChooseConfig: {
-			android::base::beginTrace("rcChooseConfig decode");
+			gfxstream::base::beginTrace("rcChooseConfig decode");
 			uint32_t size_attribs __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8);
 			InputBuffer inptr_attribs(ptr + 8 + 4, size_attribs);
 			uint32_t var_attribs_size = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + size_attribs);
@@ -203,11 +203,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcChooseConfig");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcGetFBParam: {
-			android::base::beginTrace("rcGetFBParam decode");
+			gfxstream::base::beginTrace("rcGetFBParam decode");
 			EGLint var_param = Unpack<EGLint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -223,11 +223,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcGetFBParam");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcCreateContext: {
-			android::base::beginTrace("rcCreateContext decode");
+			gfxstream::base::beginTrace("rcCreateContext decode");
 			uint32_t var_config = Unpack<uint32_t,uint32_t>(ptr + 8);
 			uint32_t var_share = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			uint32_t var_glVersion = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -245,11 +245,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcCreateContext");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcDestroyContext: {
-			android::base::beginTrace("rcDestroyContext decode");
+			gfxstream::base::beginTrace("rcDestroyContext decode");
 			uint32_t var_context = Unpack<uint32_t,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -258,11 +258,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			DECODER_DEBUG_LOG("renderControl(%p): rcDestroyContext(context:0x%08x )", stream, var_context);
 			this->rcDestroyContext(var_context);
 			SET_LASTCALL("rcDestroyContext");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcCreateWindowSurface: {
-			android::base::beginTrace("rcCreateWindowSurface decode");
+			gfxstream::base::beginTrace("rcCreateWindowSurface decode");
 			uint32_t var_config = Unpack<uint32_t,uint32_t>(ptr + 8);
 			uint32_t var_width = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			uint32_t var_height = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -280,11 +280,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcCreateWindowSurface");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcDestroyWindowSurface: {
-			android::base::beginTrace("rcDestroyWindowSurface decode");
+			gfxstream::base::beginTrace("rcDestroyWindowSurface decode");
 			uint32_t var_windowSurface = Unpack<uint32_t,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -293,11 +293,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			DECODER_DEBUG_LOG("renderControl(%p): rcDestroyWindowSurface(windowSurface:0x%08x )", stream, var_windowSurface);
 			this->rcDestroyWindowSurface(var_windowSurface);
 			SET_LASTCALL("rcDestroyWindowSurface");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcCreateColorBuffer: {
-			android::base::beginTrace("rcCreateColorBuffer decode");
+			gfxstream::base::beginTrace("rcCreateColorBuffer decode");
 			uint32_t var_width = Unpack<uint32_t,uint32_t>(ptr + 8);
 			uint32_t var_height = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			GLenum var_internalFormat = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -315,11 +315,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcCreateColorBuffer");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcOpenColorBuffer: {
-			android::base::beginTrace("rcOpenColorBuffer decode");
+			gfxstream::base::beginTrace("rcOpenColorBuffer decode");
 			uint32_t var_colorbuffer = Unpack<uint32_t,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -328,11 +328,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			DECODER_DEBUG_LOG("renderControl(%p): rcOpenColorBuffer(colorbuffer:0x%08x )", stream, var_colorbuffer);
 			this->rcOpenColorBuffer(var_colorbuffer);
 			SET_LASTCALL("rcOpenColorBuffer");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcCloseColorBuffer: {
-			android::base::beginTrace("rcCloseColorBuffer decode");
+			gfxstream::base::beginTrace("rcCloseColorBuffer decode");
 			uint32_t var_colorbuffer = Unpack<uint32_t,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -341,11 +341,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			DECODER_DEBUG_LOG("renderControl(%p): rcCloseColorBuffer(colorbuffer:0x%08x )", stream, var_colorbuffer);
 			this->rcCloseColorBuffer(var_colorbuffer);
 			SET_LASTCALL("rcCloseColorBuffer");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcSetWindowColorBuffer: {
-			android::base::beginTrace("rcSetWindowColorBuffer decode");
+			gfxstream::base::beginTrace("rcSetWindowColorBuffer decode");
 			uint32_t var_windowSurface = Unpack<uint32_t,uint32_t>(ptr + 8);
 			uint32_t var_colorBuffer = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -355,11 +355,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			DECODER_DEBUG_LOG("renderControl(%p): rcSetWindowColorBuffer(windowSurface:0x%08x colorBuffer:0x%08x )", stream, var_windowSurface, var_colorBuffer);
 			this->rcSetWindowColorBuffer(var_windowSurface, var_colorBuffer);
 			SET_LASTCALL("rcSetWindowColorBuffer");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcFlushWindowColorBuffer: {
-			android::base::beginTrace("rcFlushWindowColorBuffer decode");
+			gfxstream::base::beginTrace("rcFlushWindowColorBuffer decode");
 			uint32_t var_windowSurface = Unpack<uint32_t,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -375,11 +375,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcFlushWindowColorBuffer");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcMakeCurrent: {
-			android::base::beginTrace("rcMakeCurrent decode");
+			gfxstream::base::beginTrace("rcMakeCurrent decode");
 			uint32_t var_context = Unpack<uint32_t,uint32_t>(ptr + 8);
 			uint32_t var_drawSurf = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			uint32_t var_readSurf = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -397,11 +397,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcMakeCurrent");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcFBPost: {
-			android::base::beginTrace("rcFBPost decode");
+			gfxstream::base::beginTrace("rcFBPost decode");
 			uint32_t var_colorBuffer = Unpack<uint32_t,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -410,11 +410,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			DECODER_DEBUG_LOG("renderControl(%p): rcFBPost(colorBuffer:0x%08x )", stream, var_colorBuffer);
 			this->rcFBPost(var_colorBuffer);
 			SET_LASTCALL("rcFBPost");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcFBSetSwapInterval: {
-			android::base::beginTrace("rcFBSetSwapInterval decode");
+			gfxstream::base::beginTrace("rcFBSetSwapInterval decode");
 			EGLint var_interval = Unpack<EGLint,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -423,11 +423,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			DECODER_DEBUG_LOG("renderControl(%p): rcFBSetSwapInterval(interval:0x%08x )", stream, var_interval);
 			this->rcFBSetSwapInterval(var_interval);
 			SET_LASTCALL("rcFBSetSwapInterval");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcBindTexture: {
-			android::base::beginTrace("rcBindTexture decode");
+			gfxstream::base::beginTrace("rcBindTexture decode");
 			uint32_t var_colorBuffer = Unpack<uint32_t,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -436,11 +436,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			DECODER_DEBUG_LOG("renderControl(%p): rcBindTexture(colorBuffer:0x%08x )", stream, var_colorBuffer);
 			this->rcBindTexture(var_colorBuffer);
 			SET_LASTCALL("rcBindTexture");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcBindRenderbuffer: {
-			android::base::beginTrace("rcBindRenderbuffer decode");
+			gfxstream::base::beginTrace("rcBindRenderbuffer decode");
 			uint32_t var_colorBuffer = Unpack<uint32_t,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -449,11 +449,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			DECODER_DEBUG_LOG("renderControl(%p): rcBindRenderbuffer(colorBuffer:0x%08x )", stream, var_colorBuffer);
 			this->rcBindRenderbuffer(var_colorBuffer);
 			SET_LASTCALL("rcBindRenderbuffer");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcColorBufferCacheFlush: {
-			android::base::beginTrace("rcColorBufferCacheFlush decode");
+			gfxstream::base::beginTrace("rcColorBufferCacheFlush decode");
 			uint32_t var_colorbuffer = Unpack<uint32_t,uint32_t>(ptr + 8);
 			EGLint var_postCount = Unpack<EGLint,uint32_t>(ptr + 8 + 4);
 			int var_forRead = Unpack<int,uint32_t>(ptr + 8 + 4 + 4);
@@ -471,11 +471,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcColorBufferCacheFlush");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcReadColorBuffer: {
-			android::base::beginTrace("rcReadColorBuffer decode");
+			gfxstream::base::beginTrace("rcReadColorBuffer decode");
 			uint32_t var_colorbuffer = Unpack<uint32_t,uint32_t>(ptr + 8);
 			GLint var_x = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_y = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -500,11 +500,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcReadColorBuffer");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcUpdateColorBuffer: {
-			android::base::beginTrace("rcUpdateColorBuffer decode");
+			gfxstream::base::beginTrace("rcUpdateColorBuffer decode");
 			uint32_t var_colorbuffer = Unpack<uint32_t,uint32_t>(ptr + 8);
 			GLint var_x = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_y = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -528,11 +528,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcUpdateColorBuffer");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcOpenColorBuffer2: {
-			android::base::beginTrace("rcOpenColorBuffer2 decode");
+			gfxstream::base::beginTrace("rcOpenColorBuffer2 decode");
 			uint32_t var_colorbuffer = Unpack<uint32_t,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -548,11 +548,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcOpenColorBuffer2");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcCreateClientImage: {
-			android::base::beginTrace("rcCreateClientImage decode");
+			gfxstream::base::beginTrace("rcCreateClientImage decode");
 			uint32_t var_context = Unpack<uint32_t,uint32_t>(ptr + 8);
 			EGLenum var_target = Unpack<EGLenum,uint32_t>(ptr + 8 + 4);
 			GLuint var_buffer = Unpack<GLuint,uint32_t>(ptr + 8 + 4 + 4);
@@ -570,11 +570,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcCreateClientImage");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcDestroyClientImage: {
-			android::base::beginTrace("rcDestroyClientImage decode");
+			gfxstream::base::beginTrace("rcDestroyClientImage decode");
 			uint32_t var_image = Unpack<uint32_t,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -590,11 +590,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcDestroyClientImage");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcSelectChecksumHelper: {
-			android::base::beginTrace("rcSelectChecksumHelper decode");
+			gfxstream::base::beginTrace("rcSelectChecksumHelper decode");
 			uint32_t var_newProtocol = Unpack<uint32_t,uint32_t>(ptr + 8);
 			uint32_t var_reserved = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -604,11 +604,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			DECODER_DEBUG_LOG("renderControl(%p): rcSelectChecksumHelper(newProtocol:0x%08x reserved:0x%08x )", stream, var_newProtocol, var_reserved);
 			this->rcSelectChecksumHelper(var_newProtocol, var_reserved);
 			SET_LASTCALL("rcSelectChecksumHelper");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcCreateSyncKHR: {
-			android::base::beginTrace("rcCreateSyncKHR decode");
+			gfxstream::base::beginTrace("rcCreateSyncKHR decode");
 			EGLenum var_type = Unpack<EGLenum,uint32_t>(ptr + 8);
 			uint32_t size_attribs __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_attribs(ptr + 8 + 4 + 4, size_attribs);
@@ -635,11 +635,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcCreateSyncKHR");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcClientWaitSyncKHR: {
-			android::base::beginTrace("rcClientWaitSyncKHR decode");
+			gfxstream::base::beginTrace("rcClientWaitSyncKHR decode");
 			uint64_t var_sync = Unpack<uint64_t,uint64_t>(ptr + 8);
 			EGLint var_flags = Unpack<EGLint,uint32_t>(ptr + 8 + 8);
 			uint64_t var_timeout = Unpack<uint64_t,uint64_t>(ptr + 8 + 8 + 4);
@@ -657,11 +657,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcClientWaitSyncKHR");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcFlushWindowColorBufferAsync: {
-			android::base::beginTrace("rcFlushWindowColorBufferAsync decode");
+			gfxstream::base::beginTrace("rcFlushWindowColorBufferAsync decode");
 			uint32_t var_windowSurface = Unpack<uint32_t,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -670,11 +670,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			DECODER_DEBUG_LOG("renderControl(%p): rcFlushWindowColorBufferAsync(windowSurface:0x%08x )", stream, var_windowSurface);
 			this->rcFlushWindowColorBufferAsync(var_windowSurface);
 			SET_LASTCALL("rcFlushWindowColorBufferAsync");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcDestroySyncKHR: {
-			android::base::beginTrace("rcDestroySyncKHR decode");
+			gfxstream::base::beginTrace("rcDestroySyncKHR decode");
 			uint64_t var_sync = Unpack<uint64_t,uint64_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 8, ptr + 8 + 8, checksumSize,
@@ -690,11 +690,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcDestroySyncKHR");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcSetPuid: {
-			android::base::beginTrace("rcSetPuid decode");
+			gfxstream::base::beginTrace("rcSetPuid decode");
 			uint64_t var_puid = Unpack<uint64_t,uint64_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 8, ptr + 8 + 8, checksumSize,
@@ -703,11 +703,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			DECODER_DEBUG_LOG("renderControl(%p): rcSetPuid(puid:0x%016lx )", stream, var_puid);
 			this->rcSetPuid(var_puid);
 			SET_LASTCALL("rcSetPuid");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcUpdateColorBufferDMA: {
-			android::base::beginTrace("rcUpdateColorBufferDMA decode");
+			gfxstream::base::beginTrace("rcUpdateColorBufferDMA decode");
 			uint32_t var_colorbuffer = Unpack<uint32_t,uint32_t>(ptr + 8);
 			GLint var_x = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_y = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -734,11 +734,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcUpdateColorBufferDMA");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcCreateColorBufferDMA: {
-			android::base::beginTrace("rcCreateColorBufferDMA decode");
+			gfxstream::base::beginTrace("rcCreateColorBufferDMA decode");
 			uint32_t var_width = Unpack<uint32_t,uint32_t>(ptr + 8);
 			uint32_t var_height = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			GLenum var_internalFormat = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -757,11 +757,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcCreateColorBufferDMA");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcWaitSyncKHR: {
-			android::base::beginTrace("rcWaitSyncKHR decode");
+			gfxstream::base::beginTrace("rcWaitSyncKHR decode");
 			uint64_t var_sync = Unpack<uint64_t,uint64_t>(ptr + 8);
 			EGLint var_flags = Unpack<EGLint,uint32_t>(ptr + 8 + 8);
 			if (useChecksum) {
@@ -771,11 +771,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			DECODER_DEBUG_LOG("renderControl(%p): rcWaitSyncKHR(sync:0x%016lx flags:0x%08x )", stream, var_sync, var_flags);
 			this->rcWaitSyncKHR(var_sync, var_flags);
 			SET_LASTCALL("rcWaitSyncKHR");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcCompose: {
-			android::base::beginTrace("rcCompose decode");
+			gfxstream::base::beginTrace("rcCompose decode");
 			uint32_t var_bufferSize = Unpack<uint32_t,uint32_t>(ptr + 8);
 			uint32_t size_buffer __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_buffer(ptr + 8 + 4 + 4, size_buffer);
@@ -793,11 +793,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcCompose");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcCreateDisplay: {
-			android::base::beginTrace("rcCreateDisplay decode");
+			gfxstream::base::beginTrace("rcCreateDisplay decode");
 			uint32_t size_displayId __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -816,11 +816,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcCreateDisplay");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcDestroyDisplay: {
-			android::base::beginTrace("rcDestroyDisplay decode");
+			gfxstream::base::beginTrace("rcDestroyDisplay decode");
 			uint32_t var_displayId = Unpack<uint32_t,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -836,11 +836,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcDestroyDisplay");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcSetDisplayColorBuffer: {
-			android::base::beginTrace("rcSetDisplayColorBuffer decode");
+			gfxstream::base::beginTrace("rcSetDisplayColorBuffer decode");
 			uint32_t var_displayId = Unpack<uint32_t,uint32_t>(ptr + 8);
 			uint32_t var_colorBuffer = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -857,11 +857,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcSetDisplayColorBuffer");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcGetDisplayColorBuffer: {
-			android::base::beginTrace("rcGetDisplayColorBuffer decode");
+			gfxstream::base::beginTrace("rcGetDisplayColorBuffer decode");
 			uint32_t var_displayId = Unpack<uint32_t,uint32_t>(ptr + 8);
 			uint32_t size_colorBuffer __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -881,11 +881,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcGetDisplayColorBuffer");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcGetColorBufferDisplay: {
-			android::base::beginTrace("rcGetColorBufferDisplay decode");
+			gfxstream::base::beginTrace("rcGetColorBufferDisplay decode");
 			uint32_t var_colorBuffer = Unpack<uint32_t,uint32_t>(ptr + 8);
 			uint32_t size_displayId __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -905,11 +905,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcGetColorBufferDisplay");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcGetDisplayPose: {
-			android::base::beginTrace("rcGetDisplayPose decode");
+			gfxstream::base::beginTrace("rcGetDisplayPose decode");
 			uint32_t var_displayId = Unpack<uint32_t,uint32_t>(ptr + 8);
 			uint32_t size_x __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			uint32_t size_y __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -941,11 +941,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcGetDisplayPose");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcSetDisplayPose: {
-			android::base::beginTrace("rcSetDisplayPose decode");
+			gfxstream::base::beginTrace("rcSetDisplayPose decode");
 			uint32_t var_displayId = Unpack<uint32_t,uint32_t>(ptr + 8);
 			GLint var_x = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_y = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -965,11 +965,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcSetDisplayPose");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcSetColorBufferVulkanMode: {
-			android::base::beginTrace("rcSetColorBufferVulkanMode decode");
+			gfxstream::base::beginTrace("rcSetColorBufferVulkanMode decode");
 			uint32_t var_colorBuffer = Unpack<uint32_t,uint32_t>(ptr + 8);
 			uint32_t var_mode = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -986,11 +986,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcSetColorBufferVulkanMode");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcReadColorBufferYUV: {
-			android::base::beginTrace("rcReadColorBufferYUV decode");
+			gfxstream::base::beginTrace("rcReadColorBufferYUV decode");
 			uint32_t var_colorbuffer = Unpack<uint32_t,uint32_t>(ptr + 8);
 			GLint var_x = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_y = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -1014,11 +1014,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcReadColorBufferYUV");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcIsSyncSignaled: {
-			android::base::beginTrace("rcIsSyncSignaled decode");
+			gfxstream::base::beginTrace("rcIsSyncSignaled decode");
 			uint64_t var_sync = Unpack<uint64_t,uint64_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 8, ptr + 8 + 8, checksumSize,
@@ -1034,11 +1034,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcIsSyncSignaled");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcCreateColorBufferWithHandle: {
-			android::base::beginTrace("rcCreateColorBufferWithHandle decode");
+			gfxstream::base::beginTrace("rcCreateColorBufferWithHandle decode");
 			uint32_t var_width = Unpack<uint32_t,uint32_t>(ptr + 8);
 			uint32_t var_height = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			GLenum var_internalFormat = Unpack<GLenum,uint32_t>(ptr + 8 + 4 + 4);
@@ -1050,11 +1050,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			DECODER_DEBUG_LOG("renderControl(%p): rcCreateColorBufferWithHandle(width:0x%08x height:0x%08x internalFormat:0x%08x handle:0x%08x )", stream, var_width, var_height, var_internalFormat, var_handle);
 			this->rcCreateColorBufferWithHandle(var_width, var_height, var_internalFormat, var_handle);
 			SET_LASTCALL("rcCreateColorBufferWithHandle");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcCreateBuffer: {
-			android::base::beginTrace("rcCreateBuffer decode");
+			gfxstream::base::beginTrace("rcCreateBuffer decode");
 			uint32_t var_size = Unpack<uint32_t,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -1070,11 +1070,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcCreateBuffer");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcCloseBuffer: {
-			android::base::beginTrace("rcCloseBuffer decode");
+			gfxstream::base::beginTrace("rcCloseBuffer decode");
 			uint32_t var_buffer = Unpack<uint32_t,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -1083,11 +1083,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			DECODER_DEBUG_LOG("renderControl(%p): rcCloseBuffer(buffer:0x%08x )", stream, var_buffer);
 			this->rcCloseBuffer(var_buffer);
 			SET_LASTCALL("rcCloseBuffer");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcSetColorBufferVulkanMode2: {
-			android::base::beginTrace("rcSetColorBufferVulkanMode2 decode");
+			gfxstream::base::beginTrace("rcSetColorBufferVulkanMode2 decode");
 			uint32_t var_colorBuffer = Unpack<uint32_t,uint32_t>(ptr + 8);
 			uint32_t var_mode = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			uint32_t var_memoryProperty = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -1105,11 +1105,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcSetColorBufferVulkanMode2");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcMapGpaToBufferHandle: {
-			android::base::beginTrace("rcMapGpaToBufferHandle decode");
+			gfxstream::base::beginTrace("rcMapGpaToBufferHandle decode");
 			uint32_t var_bufferHandle = Unpack<uint32_t,uint32_t>(ptr + 8);
 			uint64_t var_gpa = Unpack<uint64_t,uint64_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -1126,11 +1126,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcMapGpaToBufferHandle");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcCreateBuffer2: {
-			android::base::beginTrace("rcCreateBuffer2 decode");
+			gfxstream::base::beginTrace("rcCreateBuffer2 decode");
 			uint64_t var_size = Unpack<uint64_t,uint64_t>(ptr + 8);
 			uint32_t var_memoryProperty = Unpack<uint32_t,uint32_t>(ptr + 8 + 8);
 			if (useChecksum) {
@@ -1147,11 +1147,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcCreateBuffer2");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcMapGpaToBufferHandle2: {
-			android::base::beginTrace("rcMapGpaToBufferHandle2 decode");
+			gfxstream::base::beginTrace("rcMapGpaToBufferHandle2 decode");
 			uint32_t var_bufferHandle = Unpack<uint32_t,uint32_t>(ptr + 8);
 			uint64_t var_gpa = Unpack<uint64_t,uint64_t>(ptr + 8 + 4);
 			uint64_t var_size = Unpack<uint64_t,uint64_t>(ptr + 8 + 4 + 8);
@@ -1169,11 +1169,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcMapGpaToBufferHandle2");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcFlushWindowColorBufferAsyncWithFrameNumber: {
-			android::base::beginTrace("rcFlushWindowColorBufferAsyncWithFrameNumber decode");
+			gfxstream::base::beginTrace("rcFlushWindowColorBufferAsyncWithFrameNumber decode");
 			uint32_t var_windowSurface = Unpack<uint32_t,uint32_t>(ptr + 8);
 			uint32_t var_frameNumber = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -1183,11 +1183,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			DECODER_DEBUG_LOG("renderControl(%p): rcFlushWindowColorBufferAsyncWithFrameNumber(windowSurface:0x%08x frameNumber:0x%08x )", stream, var_windowSurface, var_frameNumber);
 			this->rcFlushWindowColorBufferAsyncWithFrameNumber(var_windowSurface, var_frameNumber);
 			SET_LASTCALL("rcFlushWindowColorBufferAsyncWithFrameNumber");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcSetTracingForPuid: {
-			android::base::beginTrace("rcSetTracingForPuid decode");
+			gfxstream::base::beginTrace("rcSetTracingForPuid decode");
 			uint64_t var_puid = Unpack<uint64_t,uint64_t>(ptr + 8);
 			uint32_t var_enable = Unpack<uint32_t,uint32_t>(ptr + 8 + 8);
 			uint64_t var_guestTime = Unpack<uint64_t,uint64_t>(ptr + 8 + 8 + 4);
@@ -1198,11 +1198,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			DECODER_DEBUG_LOG("renderControl(%p): rcSetTracingForPuid(puid:0x%016lx enable:0x%08x guestTime:0x%016lx )", stream, var_puid, var_enable, var_guestTime);
 			this->rcSetTracingForPuid(var_puid, var_enable, var_guestTime);
 			SET_LASTCALL("rcSetTracingForPuid");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcMakeCurrentAsync: {
-			android::base::beginTrace("rcMakeCurrentAsync decode");
+			gfxstream::base::beginTrace("rcMakeCurrentAsync decode");
 			uint32_t var_context = Unpack<uint32_t,uint32_t>(ptr + 8);
 			uint32_t var_drawSurf = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			uint32_t var_readSurf = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + 4);
@@ -1213,11 +1213,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			DECODER_DEBUG_LOG("renderControl(%p): rcMakeCurrentAsync(context:0x%08x drawSurf:0x%08x readSurf:0x%08x )", stream, var_context, var_drawSurf, var_readSurf);
 			this->rcMakeCurrentAsync(var_context, var_drawSurf, var_readSurf);
 			SET_LASTCALL("rcMakeCurrentAsync");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcComposeAsync: {
-			android::base::beginTrace("rcComposeAsync decode");
+			gfxstream::base::beginTrace("rcComposeAsync decode");
 			uint32_t var_bufferSize = Unpack<uint32_t,uint32_t>(ptr + 8);
 			uint32_t size_buffer __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_buffer(ptr + 8 + 4 + 4, size_buffer);
@@ -1228,11 +1228,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			DECODER_DEBUG_LOG("renderControl(%p): rcComposeAsync(bufferSize:0x%08x buffer:%p(%u) )", stream, var_bufferSize, (void*)(inptr_buffer.get()), size_buffer);
 			this->rcComposeAsync(var_bufferSize, (void*)(inptr_buffer.get()));
 			SET_LASTCALL("rcComposeAsync");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcDestroySyncKHRAsync: {
-			android::base::beginTrace("rcDestroySyncKHRAsync decode");
+			gfxstream::base::beginTrace("rcDestroySyncKHRAsync decode");
 			uint64_t var_sync = Unpack<uint64_t,uint64_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 8, ptr + 8 + 8, checksumSize,
@@ -1241,11 +1241,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			DECODER_DEBUG_LOG("renderControl(%p): rcDestroySyncKHRAsync(sync:0x%016lx )", stream, var_sync);
 			this->rcDestroySyncKHRAsync(var_sync);
 			SET_LASTCALL("rcDestroySyncKHRAsync");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcComposeWithoutPost: {
-			android::base::beginTrace("rcComposeWithoutPost decode");
+			gfxstream::base::beginTrace("rcComposeWithoutPost decode");
 			uint32_t var_bufferSize = Unpack<uint32_t,uint32_t>(ptr + 8);
 			uint32_t size_buffer __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_buffer(ptr + 8 + 4 + 4, size_buffer);
@@ -1263,11 +1263,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcComposeWithoutPost");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcComposeAsyncWithoutPost: {
-			android::base::beginTrace("rcComposeAsyncWithoutPost decode");
+			gfxstream::base::beginTrace("rcComposeAsyncWithoutPost decode");
 			uint32_t var_bufferSize = Unpack<uint32_t,uint32_t>(ptr + 8);
 			uint32_t size_buffer __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			InputBuffer inptr_buffer(ptr + 8 + 4 + 4, size_buffer);
@@ -1278,11 +1278,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			DECODER_DEBUG_LOG("renderControl(%p): rcComposeAsyncWithoutPost(bufferSize:0x%08x buffer:%p(%u) )", stream, var_bufferSize, (void*)(inptr_buffer.get()), size_buffer);
 			this->rcComposeAsyncWithoutPost(var_bufferSize, (void*)(inptr_buffer.get()));
 			SET_LASTCALL("rcComposeAsyncWithoutPost");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcCreateDisplayById: {
-			android::base::beginTrace("rcCreateDisplayById decode");
+			gfxstream::base::beginTrace("rcCreateDisplayById decode");
 			uint32_t var_displayId = Unpack<uint32_t,uint32_t>(ptr + 8);
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4, ptr + 8 + 4, checksumSize,
@@ -1298,11 +1298,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcCreateDisplayById");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcSetDisplayPoseDpi: {
-			android::base::beginTrace("rcSetDisplayPoseDpi decode");
+			gfxstream::base::beginTrace("rcSetDisplayPoseDpi decode");
 			uint32_t var_displayId = Unpack<uint32_t,uint32_t>(ptr + 8);
 			GLint var_x = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_y = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -1323,11 +1323,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcSetDisplayPoseDpi");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcReadColorBufferDMA: {
-			android::base::beginTrace("rcReadColorBufferDMA decode");
+			gfxstream::base::beginTrace("rcReadColorBufferDMA decode");
 			uint32_t var_colorbuffer = Unpack<uint32_t,uint32_t>(ptr + 8);
 			GLint var_x = Unpack<GLint,uint32_t>(ptr + 8 + 4);
 			GLint var_y = Unpack<GLint,uint32_t>(ptr + 8 + 4 + 4);
@@ -1354,11 +1354,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcReadColorBufferDMA");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcGetFBDisplayConfigsCount: {
-			android::base::beginTrace("rcGetFBDisplayConfigsCount decode");
+			gfxstream::base::beginTrace("rcGetFBDisplayConfigsCount decode");
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8, ptr + 8, checksumSize,
 					"renderControl_decoder_context_t::decode, OP_rcGetFBDisplayConfigsCount: GL checksumCalculator failure\n");
@@ -1373,11 +1373,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcGetFBDisplayConfigsCount");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcGetFBDisplayConfigsParam: {
-			android::base::beginTrace("rcGetFBDisplayConfigsParam decode");
+			gfxstream::base::beginTrace("rcGetFBDisplayConfigsParam decode");
 			int var_configId = Unpack<int,uint32_t>(ptr + 8);
 			EGLint var_param = Unpack<EGLint,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -1394,11 +1394,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcGetFBDisplayConfigsParam");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcGetFBDisplayActiveConfig: {
-			android::base::beginTrace("rcGetFBDisplayActiveConfig decode");
+			gfxstream::base::beginTrace("rcGetFBDisplayActiveConfig decode");
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8, ptr + 8, checksumSize,
 					"renderControl_decoder_context_t::decode, OP_rcGetFBDisplayActiveConfig: GL checksumCalculator failure\n");
@@ -1413,11 +1413,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcGetFBDisplayActiveConfig");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcSetProcessMetadata: {
-			android::base::beginTrace("rcSetProcessMetadata decode");
+			gfxstream::base::beginTrace("rcSetProcessMetadata decode");
 			uint32_t size_key __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8);
 			InputBuffer inptr_key(ptr + 8 + 4, size_key);
 			uint32_t size_valuePtr __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4 + size_key);
@@ -1430,11 +1430,11 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			DECODER_DEBUG_LOG("renderControl(%p): rcSetProcessMetadata(key:%p(%u) valuePtr:%p(%u) valueSize:0x%08x )", stream, (char*)(inptr_key.get()), size_key, (RenderControlByte*)(inptr_valuePtr.get()), size_valuePtr, var_valueSize);
 			this->rcSetProcessMetadata((char*)(inptr_key.get()), (RenderControlByte*)(inptr_valuePtr.get()), var_valueSize);
 			SET_LASTCALL("rcSetProcessMetadata");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		case OP_rcGetHostExtensionsString: {
-			android::base::beginTrace("rcGetHostExtensionsString decode");
+			gfxstream::base::beginTrace("rcGetHostExtensionsString decode");
 			uint32_t var_bufferSize = Unpack<uint32_t,uint32_t>(ptr + 8);
 			uint32_t size_buffer __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
 			if (useChecksum) {
@@ -1454,7 +1454,7 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			}
 			stream->flush();
 			SET_LASTCALL("rcGetHostExtensionsString");
-			android::base::endTrace();
+			gfxstream::base::endTrace();
 			break;
 		}
 		default:

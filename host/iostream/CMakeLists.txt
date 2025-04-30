@@ -6,4 +6,8 @@ if (NOT TARGET gfxstream_host_iostream)
         gfxstream_host_iostream
         INTERFACE
         include)
+    target_link_libraries(
+        gfxstream_host_iostream
+        INTERFACE
+        aemu-base.headers)
 endif()

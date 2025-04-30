@@ -22,7 +22,7 @@
 namespace gfxstream {
 namespace host {
 
-using android::base::SharedMemory;
+using gfxstream::base::SharedMemory;
 
 RingBlob::RingBlob(uint32_t id,
                    uint64_t size,
@@ -34,7 +34,7 @@ bool RingBlob::isExportable() const {
     return std::holds_alternative<std::unique_ptr<SharedMemory>>(mMemory);
 }
 
-android::base::SharedMemory::handle_type RingBlob::releaseHandle() {
+gfxstream::base::SharedMemory::handle_type RingBlob::releaseHandle() {
     if (!isExportable()) {
         return SharedMemory::invalidHandle();
     }

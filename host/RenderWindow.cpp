@@ -19,8 +19,8 @@
 
 #include "FrameBuffer.h"
 #include "RendererImpl.h"
-#include "aemu/base/synchronization/MessageChannel.h"
-#include "aemu/base/threads/Thread.h"
+#include "gfxstream/synchronization/MessageChannel.h"
+#include "gfxstream/threads/Thread.h"
 #include "gfxstream/host/logging.h"
 #ifndef _WIN32
 #include <signal.h>
@@ -41,7 +41,7 @@ namespace {
 
 #if DEBUG
 void my_debug(const char* function, int line, const char* format, ...) {
-    static ::android::base::Lock mutex;
+    static ::gfxstream::base::Lock mutex;
     va_list args;
     va_start(args, format);
     mutex.lock();
@@ -373,8 +373,8 @@ public:
     }
 
 private:
-    android::base::MessageChannel<RenderWindowMessage, 16U> mIn;
-    android::base::MessageChannel<bool, 16U> mOut;
+    gfxstream::base::MessageChannel<RenderWindowMessage, 16U> mIn;
+    gfxstream::base::MessageChannel<bool, 16U> mOut;
 };
 
 namespace {
@@ -385,7 +385,7 @@ namespace {
 //
 // The thread ends with a CMD_FINALIZE.
 //
-class RenderWindowThread : public android::base::Thread {
+class RenderWindowThread : public gfxstream::base::Thread {
 public:
     RenderWindowThread(RenderWindowChannel* channel) : mChannel(channel) {}
 

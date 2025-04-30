@@ -18,7 +18,7 @@
 
 #include "ShaderParser.h"
 
-#include "aemu/base/containers/HybridComponentManager.h"
+#include "gfxstream/containers/HybridComponentManager.h"
 
 #include <memory>
 #include <sstream>
@@ -150,7 +150,7 @@ private:
             std::unordered_map<GLuint, GLUniformDesc> &uniformsOnSave) const;
 
     std::unordered_map<std::string, int> mUniNameToGuestLoc;
-    android::base::HybridComponentManager<10000, int, int> mGuestLocToHostLoc;
+    gfxstream::base::HybridComponentManager<10000, int, int> mGuestLocToHostLoc;
 
     int mCurrUniformBaseLoc = 0;
     bool mUseUniformLocationVirtualization = true;

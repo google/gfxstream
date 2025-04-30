@@ -28,7 +28,8 @@ lib_gl_common = static_library(
   files_lib_gl_common,
   cpp_args: gfxstream_host_args,
   include_directories: [inc_etc, inc_host_logging, inc_gl_openglesdispatch, inc_gfxstream_include,\
-                        inc_include, inc_stream_servers, inc_gl_common, inc_apigen_codec],
-  link_with: [lib_compressed_textures, lib_host_logging, lib_etc],
-  dependencies: [aemu_base_dep, aemu_logging_dep, aemu_snapshot_dep]
+                        inc_include, inc_stream_servers, inc_gl_common, inc_apigen_codec,
+                        inc_common_base, inc_host_snapshot, inc_host_library],
+  link_with: [lib_compressed_textures, lib_host_logging, lib_etc, lib_common_base,
+              lib_host_snapshot, lib_host_library],
 )

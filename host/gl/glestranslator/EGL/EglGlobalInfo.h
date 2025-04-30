@@ -21,7 +21,7 @@
 #include "EglContext.h"
 #include "EglOsApi.h"
 
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/synchronization/Lock.h"
 
 #include <GLcommon/TranslatorIfaces.h>
 
@@ -132,7 +132,7 @@ private:
     const GLESiface*               m_gles_ifaces[MAX_GLES_VERSION] = {};
     const EGLiface*                m_eglIface = nullptr;
     bool                           m_gles_extFuncs_inited[MAX_GLES_VERSION] = {};
-    mutable android::base::Lock           m_lock;
+    mutable gfxstream::base::Lock           m_lock;
 };
 
 #endif

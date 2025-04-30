@@ -23,9 +23,6 @@
 
 namespace gfxstream {
 
-using emugl::ABORT_REASON_OTHER;
-using emugl::FatalError;
-
 Buffer::Buffer(HandleType handle, uint64_t size) : mHandle(handle), mSize(size) {}
 
 /*static*/
@@ -55,7 +52,7 @@ std::shared_ptr<Buffer> Buffer::create(gl::EmulationGl* emulationGl, vk::VkEmula
         if (!vulkanOnly) {
 #if GFXSTREAM_ENABLE_HOST_GLES
             if (!buffer->mBufferGl) {
-                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Missing BufferGl?";
+                GFXSTREAM_FATAL("Missing BufferGl?");
             }
 #endif
             // TODO: external memory sharing.
@@ -116,7 +113,7 @@ void Buffer::readToBytes(uint64_t offset, uint64_t size, void* outBytes) {
         return;
     }
 
-    GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "No Buffer impl?";
+    GFXSTREAM_FATAL("No Buffer impl?");
 }
 
 bool Buffer::updateFromBytes(uint64_t offset, uint64_t size, const void* bytes) {
@@ -133,7 +130,7 @@ bool Buffer::updateFromBytes(uint64_t offset, uint64_t size, const void* bytes) 
         return mBufferVk->updateFromBytes(offset, size, bytes);
     }
 
-    GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "No Buffer impl?";
+    GFXSTREAM_FATAL("No Buffer impl?");
     return false;
 }
 

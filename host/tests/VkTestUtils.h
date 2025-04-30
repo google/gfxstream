@@ -1,7 +1,7 @@
 #ifndef VK_TEST_UTILS_H
 #define VK_TEST_UTILS_H
 
-#include "aemu/base/files/PathUtils.h"
+#include "gfxstream/files/PathUtils.h"
 #include "vulkan/VulkanDispatch.h"
 #include "vulkan/vk_util.h"
 

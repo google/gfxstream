@@ -20,15 +20,15 @@
 #include "OpenGLESDispatch/EGLDispatch.h"
 #include "OpenGLESDispatch/GLESv1Dispatch.h"
 #include "OpenGLESDispatch/GLESv2Dispatch.h"
-#include "aemu/base/synchronization/Lock.h"
-#include "aemu/base/containers/Lookup.h"
+#include "gfxstream/synchronization/Lock.h"
+#include "gfxstream/containers/Lookup.h"
 #include "aemu/base/files/StreamSerializing.h"
 
 namespace gfxstream {
 namespace gl {
 
-using android::base::AutoLock;
-using android::base::Lock;
+using gfxstream::base::AutoLock;
+using gfxstream::base::Lock;
 using android::base::Stream;
 
 static thread_local RenderThreadInfoGl* tlThreadInfo = nullptr;

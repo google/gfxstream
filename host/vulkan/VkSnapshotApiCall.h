@@ -16,7 +16,7 @@
 
 #include <vector>
 
-#include "aemu/base/containers/EntityManager.h"
+#include "gfxstream/containers/EntityManager.h"
 
 namespace gfxstream {
 namespace vk {
@@ -50,7 +50,7 @@ struct VkSnapshotApiCallInfo {
     }
 };
 
-using VkSnapshotApiCallManager = android::base::EntityManager<32, 16, 16, VkSnapshotApiCallInfo>;
+using VkSnapshotApiCallManager = gfxstream::base::EntityManager<32, 16, 16, VkSnapshotApiCallInfo>;
 
 }  // namespace vk
 }  // namespace gfxstream

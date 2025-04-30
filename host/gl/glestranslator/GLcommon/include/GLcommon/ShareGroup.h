@@ -16,7 +16,7 @@
 #ifndef _OBJECT_NAME_MANAGER_H
 #define _OBJECT_NAME_MANAGER_H
 
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/synchronization/Lock.h"
 #include "aemu/base/files/Stream.h"
 #include "GLcommon/NamedObject.h"
 #include "GLcommon/ObjectData.h"
@@ -140,8 +140,8 @@ private:
     const ObjectDataPtr& getObjectDataPtrNoLock(NamedObjectType p_type,
                                                 ObjectLocalName p_localName);
 
-    android::base::Lock m_namespaceLock;
-    android::base::Lock m_restoreLock;
+    gfxstream::base::Lock m_namespaceLock;
+    gfxstream::base::Lock m_restoreLock;
     NameSpace* m_nameSpace[static_cast<int>(NamedObjectType::NUM_OBJECT_TYPES)];
 
     // |m_objectsData| has no measured data races, so replace heavyweight mutex
@@ -218,7 +218,7 @@ public:
 private:
     // TODO: refactor share group map so that it is indexed by share group ID
     ShareGroupsMap m_groups;
-    android::base::Lock m_lock;
+    gfxstream::base::Lock m_lock;
     GlobalNameSpace *m_globalNameSpace = nullptr;
     // m_usedSharedGroupIDs is used to assign new IDs to new shared groups
     std::unordered_multiset<uint64_t> m_usedSharedGroupIDs;

@@ -20,7 +20,7 @@
 namespace gfxstream {
 namespace host {
 
-using android::base::DescriptorType;
+using gfxstream::base::DescriptorType;
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
 using gfxstream::host::snapshot::VirtioGpuResourceCreateArgs;
 using gfxstream::host::snapshot::VirtioGpuResourceCreateBlobArgs;

@@ -16,9 +16,9 @@
 #include <assert.h>
 #include <memory.h>
 
-#include "aemu/base/system/System.h"
 #include "gfxstream/host/dma_device.h"
 #include "gfxstream/host/logging.h"
+#include "gfxstream/system/System.h"
 
 namespace gfxstream {
 
@@ -62,7 +62,7 @@ int RingStream::commitBuffer(size_t size) {
             } else {
                 ring_buffer_yield();
                 if (iters > kBackoffIters) {
-                    android::base::sleepUs(10);
+                    gfxstream::base::sleepUs(10);
                     ++backedOffIters;
                 }
             }

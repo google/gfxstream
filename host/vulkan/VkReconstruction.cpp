@@ -20,7 +20,7 @@
 #include "FrameBuffer.h"
 #include "VkDecoder.h"
 #include "VulkanBoxedHandles.h"
-#include "aemu/base/containers/EntityManager.h"
+#include "gfxstream/containers/EntityManager.h"
 
 #define DEBUG_RECONSTRUCTION 0
 

@@ -386,7 +386,7 @@ bool TextureDraw::drawImpl(GLuint texture, float rotation,
     s_gles2.glGetUniformfv(mProgram, mScaleSlot, scale);
     GLfloat overlayScale[2];
     {
-        android::base::AutoLock lock(mMaskLock);
+        gfxstream::base::AutoLock lock(mMaskLock);
         if (wantOverlay && mHaveNewMask) {
             // Create a texture from the mask image and make it
             // available to be blended
@@ -484,7 +484,7 @@ TextureDraw::~TextureDraw() {
 }
 
 void TextureDraw::setScreenMask(int width, int height, const unsigned char* rgbaData) {
-    android::base::AutoLock lock(mMaskLock);
+    gfxstream::base::AutoLock lock(mMaskLock);
     if (width <= 0 || height <= 0 || rgbaData == nullptr) {
         mMaskIsValid = false;
         return;

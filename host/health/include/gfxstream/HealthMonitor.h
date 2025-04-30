@@ -38,11 +38,11 @@
 using gfxstream::base::EventHangMetadata;
 using gfxstream::base::getCurrentThreadId;
 
-#define WATCHDOG_BUILDER(healthMonitorPtr, msg)                                  \
-    ::emugl::HealthWatchdogBuilder<std::decay_t<decltype(*(healthMonitorPtr))>>( \
+#define WATCHDOG_BUILDER(healthMonitorPtr, msg)                                      \
+    ::gfxstream::HealthWatchdogBuilder<std::decay_t<decltype(*(healthMonitorPtr))>>( \
         (healthMonitorPtr), __FILE__, __func__, msg, __LINE__)
 
-namespace emugl {
+namespace gfxstream {
 
 using gfxstream::base::ConditionVariable;
 using gfxstream::base::Lock;
@@ -312,4 +312,4 @@ class HealthWatchdogBuilder {
 std::unique_ptr<HealthMonitor<>> CreateHealthMonitor(
     MetricsLogger& metricsLogger, uint64_t heartbeatInterval = kDefaultIntervalMs);
 
-}  // namespace emugl
+}  // namespace gfxstream

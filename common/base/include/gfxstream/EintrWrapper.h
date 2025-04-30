@@ -14,10 +14,9 @@
 
 #pragma once
 
+#include <cstdlib>
 #include <errno.h>
-#ifndef dfatal
-#include "gfxstream/logging/CLog.h"
-#endif
+
 
 namespace gfxstream {
 namespace base {
@@ -82,7 +81,7 @@ namespace base {
             if (eintr_wrapper_result != -1 || errno != EINTR) break;    \
             ++eintr_wrapper_loop_count;                                 \
             if (eintr_wrapper_loop_count >= MAX_EINTR_LOOP_COUNT)       \
-                dfatal("Looping around EINTR too many times");          \
+                std::abort();                                           \
         };                                                              \
         eintr_wrapper_result;                                           \
     })

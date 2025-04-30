@@ -17,8 +17,8 @@
 #include "GLcommon/GLDispatch.h"
 
 #include "GLcommon/GLLibrary.h"
-#include "aemu/base/SharedLibrary.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/SharedLibrary.h"
+#include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/host/logging.h"
 
 #ifdef __linux__
@@ -116,7 +116,7 @@ static return_type dummy_##func_name signature { \
 
 // Initializing static GLDispatch members*/
 
-android::base::Lock GLDispatch::s_lock;
+gfxstream::base::Lock GLDispatch::s_lock;
 
 #define GL_DISPATCH_DEFINE_POINTER(return_type, function_name, signature, args) \
     return_type (*GLDispatch::function_name) signature = NULL;
@@ -183,7 +183,7 @@ GLESVersion GLDispatch::getGLESVersion() const {
 }
 
 void GLDispatch::dispatchFuncs(GLESVersion version, GlLibrary* glLib, EGLGetProcAddressFunc eglGPA) {
-    android::base::AutoLock mutex(s_lock);
+    gfxstream::base::AutoLock mutex(s_lock);
     if(m_isLoaded)
         return;
 

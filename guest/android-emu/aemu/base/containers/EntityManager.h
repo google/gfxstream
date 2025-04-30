@@ -614,5 +614,5 @@ private:
     std::vector<InternalItem> mItems;
 };
 
-} // namespace android
+} // namespace gfxstream
 } // namespace base

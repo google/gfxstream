@@ -14,15 +14,13 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 #include <unordered_set>
 #include <utility>
 #include <vector>
 
 #include "RenderThread.h"
 #include "RenderWindow.h"
-#include "aemu/base/Compiler.h"
-#include "aemu/base/synchronization/Lock.h"
-#include "aemu/base/synchronization/MessageChannel.h"
 #include "aemu/base/threads/FunctorThread.h"
 #include "gfxstream/host/Features.h"
 #include "render-utils/Renderer.h"
@@ -139,8 +137,7 @@ private:
 
     std::unique_ptr<RenderWindow> mRenderWindow;
 
-    android::base::Lock mChannelsLock;
-
+    std::mutex mChannelsMutex;
     std::vector<std::shared_ptr<RenderChannelImpl>> mChannels;
     std::vector<std::shared_ptr<RenderChannelImpl>> mStoppedChannels;
     bool mStopped = false;
@@ -152,7 +149,7 @@ private:
 
     std::vector<RenderThread*> mAdditionalPostLoadRenderThreads;
 
-    android::base::Lock mAddressSpaceRenderThreadLock;
+    std::mutex mAddressSpaceRenderThreadMutex;
     std::unordered_set<RenderThread*> mAddressSpaceRenderThreads;
 };
 

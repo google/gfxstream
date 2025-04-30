@@ -40,7 +40,7 @@
 #include "vk_android_native_buffer_gfxstream.h"
 #include "vulkan_gfxstream.h"
 
-namespace android {
+namespace gfxstream {
 namespace base {
 class BumpPool;
 }  // namespace base

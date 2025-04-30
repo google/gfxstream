@@ -15,7 +15,7 @@
 
 #include <GLES2/gl2.h>
 
-#include "aemu/base/Optional.h"
+#include "gfxstream/Optional.h"
 
 #include <string>
 #include <vector>
@@ -25,10 +25,10 @@ namespace gfxstream {
 GLuint compileShader(GLenum shaderType, const char* src);
 GLint compileAndLinkShaderProgram(const char* vshaderSrc, const char* fshaderSrc);
 
-android::base::Optional<std::string> compileSpirvFromGLSL(
+gfxstream::base::Optional<std::string> compileSpirvFromGLSL(
         const std::string& shaderType,
         const std::string& src);
 
-android::base::Optional<std::vector<char>> readSpirv(const char* path);
+gfxstream::base::Optional<std::vector<char>> readSpirv(const char* path);
 
 }  // namespace gfxstream

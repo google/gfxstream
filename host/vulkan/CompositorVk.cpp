@@ -14,9 +14,6 @@
 namespace gfxstream {
 namespace vk {
 
-using emugl::ABORT_REASON_OTHER;
-using emugl::FatalError;
-
 namespace CompositorVkShader {
 #include "vulkan/CompositorFragmentShader.h"
 #include "vulkan/CompositorVertexShader.h"
@@ -38,8 +35,8 @@ const BorrowedImageInfoVk* getInfoOrAbort(const std::unique_ptr<BorrowedImageInf
         return imageVk;
     }
 
-    GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-        << "CompositorVk did not find BorrowedImageInfoVk";
+    GFXSTREAM_FATAL("CompositorVk did not find BorrowedImageInfoVk");
+    return nullptr;
 }
 
 struct Vertex {
@@ -107,9 +104,9 @@ CompositorVk::RenderTarget::RenderTarget(const VulkanDispatch& vk, VkDevice vkDe
       m_width(width),
       m_height(height) {
     if (vkImageView == VK_NULL_HANDLE) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "CompositorVk found empty image view handle when creating RenderTarget. Image: "
-            << m_vkImage << " Dimensions: " << m_width << "x" << m_height;
+        GFXSTREAM_FATAL("CompositorVk found empty image view handle when creating RenderTarget. "
+                        "VkImage:%p w:%" PRIu32 " h:%" PRIu32,
+                        m_vkImage, m_width, m_height);
     }
 
     const VkFramebufferCreateInfo framebufferCi = {
@@ -133,7 +130,7 @@ CompositorVk::RenderTarget::~RenderTarget() {
 
 std::unique_ptr<CompositorVk> CompositorVk::create(
     const VulkanDispatch& vk, VkDevice vkDevice, VkPhysicalDevice vkPhysicalDevice, VkQueue vkQueue,
-    std::shared_ptr<android::base::Lock> queueLock, uint32_t queueFamilyIndex,
+    std::shared_ptr<gfxstream::base::Lock> queueLock, uint32_t queueFamilyIndex,
     uint32_t maxFramesInFlight, DebugUtilsHelper debugUtils) {
     auto res = std::unique_ptr<CompositorVk>(new CompositorVk(vk, vkDevice, vkPhysicalDevice,
                                                               vkQueue, queueLock, queueFamilyIndex,
@@ -152,7 +149,7 @@ std::unique_ptr<CompositorVk> CompositorVk::create(
 
 CompositorVk::CompositorVk(const VulkanDispatch& vk, VkDevice vkDevice,
                            VkPhysicalDevice vkPhysicalDevice, VkQueue vkQueue,
-                           std::shared_ptr<android::base::Lock> queueLock,
+                           std::shared_ptr<gfxstream::base::Lock> queueLock,
                            uint32_t queueFamilyIndex, uint32_t maxFramesInFlight,
                            DebugUtilsHelper debugUtilsHelper)
     : CompositorVkBase(vk, vkDevice, vkPhysicalDevice, vkQueue, queueLock, queueFamilyIndex,
@@ -162,7 +159,7 @@ CompositorVk::CompositorVk(const VulkanDispatch& vk, VkDevice vkDevice,
 
 CompositorVk::~CompositorVk() {
     {
-        android::base::AutoLock lock(*m_vkQueueLock);
+        gfxstream::base::AutoLock lock(*m_vkQueueLock);
         VK_CHECK(vk_util::waitForVkQueueIdleWithRetry(m_vk, m_vkQueue));
     }
     if (m_defaultImage.m_vkImageView != VK_NULL_HANDLE) {
@@ -579,8 +576,7 @@ void CompositorVk::setUpDefaultImage() {
     auto memoryTypeIndexOpt =
         findMemoryType(imageMemoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     if (!memoryTypeIndexOpt) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "CompositorVk failed to find memory type for default image.";
+        GFXSTREAM_FATAL("CompositorVk failed to find memory type for default image.");
     }
 
     const VkMemoryAllocateInfo imageMemoryAllocInfo = {
@@ -948,9 +944,9 @@ void CompositorVk::buildCompositionVk(const CompositionRequest& compositionReque
 
     auto formatResourcesIt = m_formatResources.find(targetImage->imageCreateInfo.format);
     if (formatResourcesIt == m_formatResources.end()) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "CompositorVk did not find format resource for format "
-            << targetImage->imageCreateInfo.format;
+        const std::string formatString = string_VkFormat(targetImage->imageCreateInfo.format);
+        GFXSTREAM_FATAL("CompositorVk did not find format resources for VkFormat:%s",
+                        formatString.c_str());
     }
     const auto& formatResources = formatResourcesIt->second;
 
@@ -1073,8 +1069,7 @@ void CompositorVk::buildCompositionVk(const CompositionRequest& compositionReque
 
         } else {
             if (sourceImage == nullptr) {
-                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                    << "CompositorVk failed to find sourceImage.";
+                GFXSTREAM_FATAL("CompositorVk failed to find sourceImage.");
             }
             descriptorSetContents.binding0.sampledImageId = sourceImage->id;
             descriptorSetContents.binding0.sampledImageView = sourceImage->imageView;
@@ -1100,8 +1095,7 @@ CompositorVk::CompositionFinishedWaitable CompositorVk::compose(
 
     // Grab and wait for the next available resources.
     if (m_availableFrameResources.empty()) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "CompositorVk failed to get PerFrameResources.";
+        GFXSTREAM_FATAL("CompositorVk failed to get PerFrameResources.");
     }
     auto frameResourceFuture = std::move(m_availableFrameResources.front());
     m_availableFrameResources.pop_front();
@@ -1314,7 +1308,7 @@ CompositorVk::CompositionFinishedWaitable CompositorVk::compose(
     };
 
     {
-        android::base::AutoLock lock(*m_vkQueueLock);
+        gfxstream::base::AutoLock lock(*m_vkQueueLock);
         VK_CHECK(m_vk.vkQueueSubmit(m_vkQueue, 1, &submitInfo, composeCompleteFence));
     }
 
@@ -1388,9 +1382,9 @@ void CompositorVk::updateDescriptorSetsIfChanged(
     const uint32_t numRequestedLayers =
         static_cast<uint32_t>(descriptorSetsContents.descriptorSets.size());
     if (numRequestedLayers > kMaxLayersPerFrame) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "CompositorVk can't compose more than " << kMaxLayersPerFrame
-            << " layers. layers asked: " << numRequestedLayers;
+        GFXSTREAM_FATAL("CompositorVk can't compose more than %" PRIu32
+                        " layers. layers asked: %" PRIu32,
+                        kMaxLayersPerFrame, numRequestedLayers);
         return;
     }
 

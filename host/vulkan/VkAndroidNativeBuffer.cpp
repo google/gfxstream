@@ -31,7 +31,7 @@
 namespace gfxstream {
 namespace vk {
 
-#define VK_ANB_ERR(fmt, ...) ERR(fmt, ##__VA_ARGS__);
+#define VK_ANB_ERR(fmt, ...) GFXSTREAM_ERROR(fmt, ##__VA_ARGS__);
 
 #define ENABLE_VK_ANB_DEBUG 0
 
@@ -42,9 +42,6 @@ namespace vk {
 #define VK_ANB_DEBUG(fmt, ...)
 #define VK_ANB_DEBUG_OBJ(obj, fmt, ...)
 #endif
-
-using emugl::ABORT_REASON_OTHER;
-using emugl::FatalError;
 
 AndroidNativeBufferInfo::QsriWaitFencePool::QsriWaitFencePool(VulkanDispatch* vk, VkDevice device)
     : mVk(vk), mDevice(device) {}
@@ -113,7 +110,7 @@ bool parseAndroidNativeBufferInfo(const VkImageCreateInfo* pCreateInfo,
 /*static*/
 std::unique_ptr<AndroidNativeBufferInfo> AndroidNativeBufferInfo::create(
     VkEmulation* emu,
-    VulkanDispatch* vk, VkDevice device, android::base::BumpPool& allocator,
+    VulkanDispatch* vk, VkDevice device, gfxstream::base::BumpPool& allocator,
     const VkImageCreateInfo* pCreateInfo, const VkNativeBufferANDROID* nativeBufferANDROID,
     const VkAllocationCallbacks* pAllocator, const VkPhysicalDeviceMemoryProperties* memProps) {
     bool colorBufferExportedToGl = false;

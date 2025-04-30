@@ -4,10 +4,10 @@
 #include "GLSnapshotTesting.h"
 #include "GLTestUtils.h"
 #include "RenderThreadInfo.h"
-#include "apigen-codec-common/glUtils.h"
-#include "aemu/base/files/PathUtils.h"
 #include "aemu/base/files/StdioStream.h"
-#include "aemu/base/system/System.h"
+#include "apigen-codec-common/glUtils.h"
+#include "gfxstream/files/PathUtils.h"
+#include "gfxstream/system/System.h"
 #include "render-utils/snapshot_operations.h"
 
 namespace gfxstream {

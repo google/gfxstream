@@ -32,7 +32,7 @@
 #include "RenderThreadInfoGl.h"
 #include "RenderThreadInfoVk.h"
 #include "SyncThread.h"
-#include "aemu/base/Tracing.h"
+#include "gfxstream/Tracing.h"
 #include "compressedTextureFormats/AstcCpuDecompressor.h"
 #include "gfxstream/host/logging.h"
 #include "gfxstream/host/guest_operations.h"
@@ -44,8 +44,8 @@
 
 namespace gfxstream {
 
-using android::base::AutoLock;
-using android::base::Lock;
+using gfxstream::base::AutoLock;
+using gfxstream::base::Lock;
 using gl::EmulatedEglFenceSync;
 using gl::GLES_DISPATCH_MAX_VERSION_2;
 using gl::GLES_DISPATCH_MAX_VERSION_3_0;
@@ -145,17 +145,17 @@ public:
         int newLockState = --lockState;
         if (mEnabled && newLockState == 0) mGrallocColorBufferLock.unlockRead();
     }
-    android::base::ReadWriteLock mGrallocColorBufferLock;
+    gfxstream::base::ReadWriteLock mGrallocColorBufferLock;
 private:
     bool mEnabled;
     std::atomic<int> lockState;
     DISALLOW_COPY_ASSIGN_AND_MOVE(GrallocSync);
 };
 
-class GrallocSyncPostLock : public android::base::AutoWriteLock {
+class GrallocSyncPostLock : public gfxstream::base::AutoWriteLock {
 public:
     GrallocSyncPostLock(GrallocSync& grallocsync) :
-        android::base::AutoWriteLock(grallocsync.mGrallocColorBufferLock) { }
+        gfxstream::base::AutoWriteLock(grallocsync.mGrallocColorBufferLock) { }
 };
 
 static GrallocSync* sGrallocSync() {
@@ -1482,16 +1482,16 @@ static int32_t rcMapGpaToBufferHandle2(uint32_t bufferHandle,
 }
 
 static void rcFlushWindowColorBufferAsyncWithFrameNumber(uint32_t windowSurface, uint32_t frameNumber) {
-    android::base::traceCounter("gfxstreamFrameNumber", (int64_t)frameNumber);
+    gfxstream::base::traceCounter("gfxstreamFrameNumber", (int64_t)frameNumber);
     rcFlushWindowColorBufferAsync(windowSurface);
 }
 
 static void rcSetTracingForPuid(uint64_t puid, uint32_t enable, uint64_t time) {
     if (enable) {
-        android::base::setGuestTime(time);
-        android::base::enableTracing();
+        gfxstream::base::setGuestTime(time);
+        gfxstream::base::enableTracing();
     } else {
-        android::base::disableTracing();
+        gfxstream::base::disableTracing();
     }
 }
 

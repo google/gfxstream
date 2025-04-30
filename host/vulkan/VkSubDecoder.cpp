@@ -40,7 +40,7 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
     auto& metricsLogger = *context.metricsLogger;
     uint32_t count = 0;
     unsigned char* buf = (unsigned char*)pSubDecodeData;
-    android::base::BumpPool* pool = readStream->pool();
+    gfxstream::base::BumpPool* pool = readStream->pool();
     unsigned char* ptr = (unsigned char*)pSubDecodeData;
     const unsigned char* const end = (const unsigned char*)buf + subDecodeDataSize;
     VkDecoderGlobalState* globalstate = VkDecoderGlobalState::get();

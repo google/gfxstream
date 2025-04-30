@@ -22,8 +22,8 @@
 #include "EglOsApi.h"
 #include "GLcommon/GLLibrary.h"
 #include "MacNative.h"
-#include "aemu/base/SharedLibrary.h"
-#include "aemu/base/containers/Lookup.h"
+#include "gfxstream/SharedLibrary.h"
+#include "gfxstream/containers/Lookup.h"
 #include "gfxstream/host/logging.h"
 
 #define MAX_PBUFFER_MIPMAP_LEVEL 1
@@ -265,7 +265,7 @@ public:
                                   MacPixelFormat::from(pixelFormat)->handle());
 
         void* nsFormat = nullptr;
-        if (auto format = android::base::find(sFinalizedConfigs, key)) {
+        if (auto format = gfxstream::base::find(sFinalizedConfigs, key)) {
             nsFormat = *format;
         } else {
             nsFormat =
@@ -368,7 +368,7 @@ public:
         static const char kLibName[] =
                 "/System/Library/Frameworks/OpenGL.framework/OpenGL";
         char error[256];
-        mLib = android::base::SharedLibrary::open(kLibName, error, sizeof(error));
+        mLib = gfxstream::base::SharedLibrary::open(kLibName, error, sizeof(error));
         if (!mLib) {
             GFXSTREAM_ERROR("%s: Could not open GL library %s [%s]\n", __FUNCTION__, kLibName,
                             error);
@@ -387,7 +387,7 @@ public:
     }
 
 private:
-    android::base::SharedLibrary* mLib = nullptr;
+    gfxstream::base::SharedLibrary* mLib = nullptr;
 };
 
 class MacEngine : public EglOS::Engine {

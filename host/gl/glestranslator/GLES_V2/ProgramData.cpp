@@ -17,7 +17,7 @@
 #include "ProgramData.h"
 #include "apigen-codec-common/glUtils.h"
 
-#include "aemu/base/containers/Lookup.h"
+#include "gfxstream/containers/Lookup.h"
 #include "aemu/base/files/StreamSerializing.h"
 #include "ANGLEShaderParser.h"
 #include "GLcommon/GLutils.h"
@@ -669,7 +669,7 @@ ProgramData::getTranslatedName(const std::string& userVarName) const {
     // TODO: translate uniform array names
 #ifdef USE_ANGLE_SHADER_PARSER
     for (int i = 0; i < NUM_SHADER_TYPE; i++) {
-        if (const auto name = android::base::find(
+        if (const auto name = gfxstream::base::find(
                 attachedShaders[i].linkInfo.nameMap, userVarName)) {
             return *name;
         }
@@ -687,7 +687,7 @@ ProgramData::getDetranslatedName(const std::string& driverName) const {
 #ifdef USE_ANGLE_SHADER_PARSER
     // TODO: detranslate uniform array names
     for (int i = 0; i < NUM_SHADER_TYPE; i++) {
-        if (const auto name = android::base::find(
+        if (const auto name = gfxstream::base::find(
                 attachedShaders[i].linkInfo.nameMapReverse, driverName)) {
             return *name;
         }
@@ -986,7 +986,7 @@ static bool sCheckLimits(
     std::unordered_set<GLuint> explicitlyBound;
     int numImplicitlyBound = 0;
     for (const auto& elt : vertShaderLinkInfo.attributes) {
-        if (const auto loc = android::base::find(pData->boundAttribLocs, elt.name)) {
+        if (const auto loc = gfxstream::base::find(pData->boundAttribLocs, elt.name)) {
             explicitlyBound.insert(*loc);
         } else {
             numImplicitlyBound++;

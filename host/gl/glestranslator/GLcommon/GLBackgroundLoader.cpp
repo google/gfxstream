@@ -18,7 +18,7 @@
 
 #include "GLcommon/GLEScontext.h"
 #include "GLcommon/SaveableTexture.h"
-#include "aemu/base/system/System.h"
+#include "gfxstream/system/System.h"
 
 #include <EGL/eglext.h>
 #include <GLES2/gl2.h>
@@ -60,7 +60,7 @@ intptr_t GLBackgroundLoader::main() {
             m_glesIface.restoreTexture(saveable.get());
             // allow other threads to run for a while
             ptr.reset();
-            android::base::sleepMs(
+            gfxstream::base::sleepMs(
                 m_loadDelayMs.load(std::memory_order_relaxed));
         }
     }

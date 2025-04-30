@@ -14,21 +14,14 @@
 
 #pragma once
 
-#include "gfxstream/TypeTraits.h"
-
-#if __has_include("host-common/logging.h")
-#include "host-common/logging.h"
-#else
-#define ERR(x) void (0)
-#endif
-
 #include <cassert>
+#include <cstddef>
+#include <cstdlib>
 #include <initializer_list>
 #include <type_traits>
 #include <utility>
 
-#include <cstddef>
-#include <cstdlib>
+#include "gfxstream/TypeTraits.h"
 
 // Optional<T> - a template class to store an optional value of type T.
 //
@@ -358,14 +351,12 @@ public:
 
     T& value() {
         if (!constructed()) {
-            ERR("Optional not constructed");
             abort();
         }
         return get();
     }
     constexpr const T& value() const {
         if (!constructed()) {
-            ERR("Optional not constructed");
             abort();
         }
         return get();
@@ -388,14 +379,12 @@ public:
     // Pointer-like operators
     T& operator*() {
         if (!constructed()) {
-            ERR("Optional not constructed");
             abort();
         }
         return get();
     }
     constexpr const T& operator*() const {
         if (!constructed()) {
-            ERR("Optional not constructed");
             abort();
         }
         return get();
@@ -403,14 +392,12 @@ public:
 
     T* operator->() {
         if (!constructed()) {
-            ERR("Optional not constructed");
             abort();
         }
         return &get();
     }
     constexpr const T* operator->() const {
         if (!constructed()) {
-            ERR("Optional not constructed");
             abort();
         }
         return &get();

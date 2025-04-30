@@ -26,7 +26,6 @@ if (NOT MSVC)
                            -fvisibility=default)
 endif()
 
-
 target_link_libraries(
     gfxstream_openglesdispatch
     PUBLIC
@@ -35,6 +34,5 @@ target_link_libraries(
     gles2_dec
     apigen-codec-common
     PRIVATE
-    aemu-base.headers
     EGL_translator_static)
 

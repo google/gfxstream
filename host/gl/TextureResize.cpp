@@ -26,10 +26,10 @@
 #include <vector>
 
 #include "OpenGLESDispatch/DispatchTables.h"
-#include "aemu/base/synchronization/Lock.h"
 #include "gfxstream/Strings.h"
 #include "gfxstream/host/logging.h"
 #include "gfxstream/host/renderer_operations.h"
+#include "gfxstream/synchronization/Lock.h"
 #include "render-utils/Renderer.h"
 
 namespace gfxstream {
@@ -156,7 +156,7 @@ const char kGenericFragmentShaderSource[] = R"(
 )";
 
 static const float kVertexData[] = {-1, -1, 3, -1, -1, 3};
-static android::base::Lock s_postContextResources;
+static gfxstream::base::Lock s_postContextResources;
 static std::vector<GLuint> s_programsToRelease;
 static std::vector<GLuint> s_framebuffersToRelease;
 
@@ -279,7 +279,7 @@ TextureResize::~TextureResize() {
     // b/242245912
     // There seems to be a mesa bug that we have to delete the
     // program in the post thread.
-    android::base::AutoLock lock(s_postContextResources);
+    gfxstream::base::AutoLock lock(s_postContextResources);
     s_programsToRelease.push_back(mFBWidth.program);
     s_programsToRelease.push_back(mFBHeight.program);
     // b/285421327
@@ -423,7 +423,7 @@ void TextureResize::resize(GLuint texture) {
     s_gles2.glBindTexture(GL_TEXTURE_2D, 0);
     s_gles2.glDisableVertexAttribArray(mFBHeight.aPosition);
     s_gles2.glUseProgram(0);
-    android::base::AutoLock lock(s_postContextResources);
+    gfxstream::base::AutoLock lock(s_postContextResources);
     while (s_programsToRelease.size()) {
         s_gles2.glDeleteProgram(s_programsToRelease.back());
         s_programsToRelease.pop_back();

@@ -29,20 +29,20 @@
 #include "FrameworkFormats.h"
 #include "VkCommonOperations.h"
 #include "aemu/base/files/StdioStream.h"
-#include "aemu/base/memory/SharedMemory.h"
-#include "aemu/base/threads/WorkerThread.h"
 #include "gfxstream/host/address_space_operations.h"
 // TODO: remove after moving save/load interface to ops.
 #include "gfxstream/host/address_space_graphics.h"
 #include "gfxstream/host/Tracing.h"
+#include "gfxstream/memory/SharedMemory.h"
+#include "gfxstream/threads/WorkerThread.h"
 #include "virtgpu_gfxstream_protocol.h"
 
 namespace gfxstream {
 namespace host {
 namespace {
 
-using android::base::DescriptorType;
-using android::base::SharedMemory;
+using gfxstream::base::DescriptorType;
+using gfxstream::base::SharedMemory;
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
 using gfxstream::host::snapshot::VirtioGpuContextSnapshot;
 using gfxstream::host::snapshot::VirtioGpuFrontendSnapshot;
@@ -72,9 +72,9 @@ class CleanupThread {
                       using T = std::decay_t<decltype(work)>;
                       if constexpr (std::is_same_v<T, GenericCleanup>) {
                           work();
-                          return android::base::WorkerProcessingResult::Continue;
+                          return gfxstream::base::WorkerProcessingResult::Continue;
                       } else if constexpr (std::is_same_v<T, Exit>) {
-                          return android::base::WorkerProcessingResult::Stop;
+                          return gfxstream::base::WorkerProcessingResult::Stop;
                       }
                   },
                   std::move(task));
@@ -107,7 +107,7 @@ class CleanupThread {
    private:
     struct Exit {};
     using CleanupTask = std::variant<GenericCleanup, Exit>;
-    android::base::WorkerThread<CleanupTask> mWorker;
+    gfxstream::base::WorkerThread<CleanupTask> mWorker;
 };
 
 VirtioGpuFrontend::VirtioGpuFrontend() = default;

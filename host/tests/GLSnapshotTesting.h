@@ -20,8 +20,8 @@
 
 #include "InMemoryTextureSaverLoader.h"
 #include "OpenGLTestContext.h"
-#include "aemu/base/system/System.h"
-#include "aemu/base/testing/TestSystem.h"
+#include "gfxstream/system/System.h"
+#include "gfxstream/testing/TestSystem.h"
 #include "render-utils/snapshot_operations.h"
 
 // Clashes with X11's `None`  preprocessor...
@@ -222,7 +222,7 @@ class SnapshotTest : public gfxstream::gl::GLTest {
     void doSnapshot(std::function<void()> preloadCheck);
 
 protected:
-    android::base::TestSystem mTestSystem;
+    gfxstream::base::TestSystem mTestSystem;
     std::string mSnapshotPath = {};
 };
 

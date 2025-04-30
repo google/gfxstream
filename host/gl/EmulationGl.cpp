@@ -26,7 +26,7 @@
 #include "OpenGLESDispatch/GLESv2Dispatch.h"
 #include "OpenGLESDispatch/OpenGLDispatchLoader.h"
 #include "RenderThreadInfoGl.h"
-#include "aemu/base/misc/StringUtils.h"
+#include "gfxstream/misc/StringUtils.h"
 #include "gfxstream/host/logging.h"
 #include "gfxstream/host/renderer_operations.h"
 
@@ -285,7 +285,7 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
     emulationGl->mEglVendor = s_egl.eglQueryString(emulationGl->mEglDisplay, EGL_VENDOR);
 
     const std::string eglExtensions = s_egl.eglQueryString(emulationGl->mEglDisplay, EGL_EXTENSIONS);
-    android::base::split<std::string>(eglExtensions, " ",
+    gfxstream::base::split<std::string>(eglExtensions, " ",
                                       [&](const std::string& found) {
                                         emulationGl->mEglExtensions.insert(found);
                                       });

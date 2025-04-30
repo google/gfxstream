@@ -17,6 +17,7 @@
 #include <cstring>
 
 #include "gfxstream/host/logging.h"
+#include "gfxstream/system/System.h"
 
 namespace gfxstream {
 namespace host {
@@ -151,7 +152,7 @@ int VirtioGpuRenderThreadPipe::TransferFromHost(char* outRequestedData, size_t r
         // Try to get some data from the RenderThread.
         if (mReadBuffer.empty()) {
             static const RenderChannel::Duration kBlockAtMostUs = 10000;
-            auto currTime = android::base::getUnixTimeUs();
+            auto currTime = gfxstream::base::getUnixTimeUs();
 
             RenderChannel::IoResult result =
                 mChannel->readBefore(&mReadBuffer, currTime + kBlockAtMostUs);

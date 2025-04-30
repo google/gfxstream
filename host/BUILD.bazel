@@ -19,6 +19,7 @@ cc_library(
     includes = ["."],
     visibility = [":__subpackages__"],
     deps = [
+        "//host/health:gfxstream_host_health",
         "//host/snapshot:gfxstream_host_snapshot",
     ],
 )
@@ -137,6 +138,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":gfxstream_backend_headers",
+        "//common/base:gfxstream_common_base",
         "//host/apigen-codec-common",
         "//host/backend:gfxstream_host_backend",
         "//host/features:gfxstream_features",
@@ -148,6 +150,7 @@ cc_library(
         "//host/gl:gles2_dec",
         "//host/gl/OpenGLESDispatch:gfxstream_host_openglesdispatch",
         "//host/gl/glestranslator/GLES_CM:GLES_CM_translator_static",
+        "//host/health:gfxstream_host_health",
         "//host/logging:gfxstream_host_logging",
         "//host/renderControl_dec",
         "//host/snapshot:gfxstream_host_snapshot",

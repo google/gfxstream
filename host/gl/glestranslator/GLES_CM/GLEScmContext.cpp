@@ -23,7 +23,7 @@
 #include <GLES/gl.h>
 #include <GLES/glext.h>
 
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/synchronization/Lock.h"
 #include "aemu/base/files/StreamSerializing.h"
 #include "GLEScmValidate.h"
 
@@ -39,7 +39,7 @@ void GLEScmContext::setMaxGlesVersion(GLESVersion version) {
 }
 
 void GLEScmContext::init(bool nativeTextureDecompressionEnabled, bool programBinaryLinkStatusEnabled) {
-    android::base::AutoLock mutex(s_lock);
+    gfxstream::base::AutoLock mutex(s_lock);
     if(!m_initialized) {
         GLEScontext::init(nativeTextureDecompressionEnabled, programBinaryLinkStatusEnabled);
 

@@ -30,8 +30,8 @@
 #include "DisplayVk.h"
 #include "ExternalObjectManager.h"
 #include "FrameworkFormats.h"
-#include "aemu/base/Optional.h"
-#include "aemu/base/ThreadAnnotations.h"
+#include "gfxstream/Optional.h"
+#include "gfxstream/ThreadAnnotations.h"
 #include "gfxstream/host/BackendCallbacks.h"
 #include "gfxstream/host/Features.h"
 #include "goldfish_vk_private_defs.h"
@@ -241,9 +241,9 @@ class VkEmulation {
 
     bool allocExternalMemory(
         VulkanDispatch* vk, ExternalMemoryInfo* info,
-        android::base::Optional<uint64_t> deviceAlignment = android::base::kNullopt,
-        android::base::Optional<VkBuffer> bufferForDedicatedAllocation = android::base::kNullopt,
-        android::base::Optional<VkImage> imageForDedicatedAllocation = android::base::kNullopt);
+        gfxstream::base::Optional<uint64_t> deviceAlignment = gfxstream::base::kNullopt,
+        gfxstream::base::Optional<VkBuffer> bufferForDedicatedAllocation = gfxstream::base::kNullopt,
+        gfxstream::base::Optional<VkImage> imageForDedicatedAllocation = gfxstream::base::kNullopt);
 
     bool importExternalMemory(VulkanDispatch* vk, VkDevice targetDevice,
                               const ExternalMemoryInfo* info,
@@ -591,7 +591,7 @@ class VkEmulation {
     // for running commands to sync stuff system-wide.
     // TODO(b/197362803): Encapsulate host side VkQueue and the lock.
     VkQueue mQueue = VK_NULL_HANDLE;
-    std::shared_ptr<android::base::Lock> mQueueLock = nullptr;
+    std::shared_ptr<gfxstream::base::Lock> mQueueLock = nullptr;
     uint32_t mQueueFamilyIndex = 0;
 
     VkCommandPool mCommandPool = VK_NULL_HANDLE;

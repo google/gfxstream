@@ -36,9 +36,9 @@ enum {
 #include <io.h>
 #include <stdint.h>
 
-#include "sys/cdefs.h"
-
-__BEGIN_DECLS
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <fcntl.h>
 #include <limits.h>
@@ -61,6 +61,8 @@ __BEGIN_DECLS
 extern int asprintf(char** buf, const char* format, ...);
 extern int vasprintf(char** buf, const char* format, va_list args);
 
-__END_DECLS
+#ifdef __cplusplus
+}
+#endif
 
 #endif

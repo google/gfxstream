@@ -15,15 +15,15 @@
 */
 #pragma once
 
-#include "aemu/base/files/MemStream.h"
-#include "aemu/base/Optional.h"
-#include "aemu/base/synchronization/ConditionVariable.h"
-#include "aemu/base/synchronization/Lock.h"
-#include "aemu/base/threads/Thread.h"
-#include "render-utils/address_space_graphics_types.h"
-
 #include <atomic>
 #include <memory>
+
+#include "aemu/base/files/MemStream.h"
+#include "gfxstream/Optional.h"
+#include "gfxstream/synchronization/ConditionVariable.h"
+#include "gfxstream/synchronization/Lock.h"
+#include "gfxstream/threads/Thread.h"
+#include "render-utils/address_space_graphics_types.h"
 
 namespace gfxstream {
 
@@ -34,7 +34,7 @@ class RingStream;
 
 // A class used to model a thread of the RenderServer. Each one of them
 // handles a single guest client / protocol byte stream.
-class RenderThread : public android::base::Thread {
+class RenderThread : public gfxstream::base::Thread {
     using MemStream = android::base::MemStream;
 
 public:
@@ -95,9 +95,9 @@ private:
     bool loadSnapshot(const SnapshotObjects& objects);
     bool saveSnapshot(const SnapshotObjects& objects);
 
-    void waitForSnapshotCompletion(android::base::AutoLock* lock);
-    void loadImpl(android::base::AutoLock* lock, const SnapshotObjects& objects);
-    void saveImpl(android::base::AutoLock* lock, const SnapshotObjects& objects);
+    void waitForSnapshotCompletion(gfxstream::base::AutoLock* lock);
+    void loadImpl(gfxstream::base::AutoLock* lock, const SnapshotObjects& objects);
+    void saveImpl(gfxstream::base::AutoLock* lock, const SnapshotObjects& objects);
 
     bool isPausedForSnapshotLocked() const;
 
@@ -106,12 +106,12 @@ private:
 
     SnapshotState mState = SnapshotState::Empty;
     std::atomic<bool> mFinished { false };
-    android::base::Lock mLock;
-    android::base::ConditionVariable mSnapshotSignal;
-    android::base::ConditionVariable mFinishedSignal;
-    android::base::ConditionVariable mExitSignal;
+    gfxstream::base::Lock mLock;
+    gfxstream::base::ConditionVariable mSnapshotSignal;
+    gfxstream::base::ConditionVariable mFinishedSignal;
+    gfxstream::base::ConditionVariable mExitSignal;
     std::atomic<bool> mCanExit { false };
-    android::base::Optional<android::base::MemStream> mStream;
+    gfxstream::base::Optional<android::base::MemStream> mStream;
 
     bool mRunInLimitedMode = false;
     uint32_t mContextId = 0;

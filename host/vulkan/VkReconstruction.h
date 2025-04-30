@@ -23,7 +23,7 @@
 #include "VkSnapshotApiCall.h"
 #include "VulkanHandleMapping.h"
 #include "VulkanHandles.h"
-#include "aemu/base/HealthMonitor.h"
+#include "gfxstream/HealthMonitor.h"
 #include "aemu/base/files/Stream.h"
 #include "common/goldfish_vk_marshaling.h"
 #include "utils/GfxApiLogger.h"

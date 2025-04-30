@@ -21,10 +21,10 @@
 #include "GLcommon/GLEScontext.h"
 #include "GLcommon/GLutils.h"
 #include "GLcommon/TextureUtils.h"
-#include "aemu/base/ArraySize.h"
-#include "aemu/base/containers/SmallVector.h"
+#include "gfxstream/ArraySize.h"
+#include "gfxstream/containers/SmallVector.h"
 #include "aemu/base/files/StreamSerializing.h"
-#include "aemu/base/system/System.h"
+#include "gfxstream/system/System.h"
 #include "gfxstream/host/logging.h"
 
 #define SAVEABLE_TEXTURE_DEBUG 0
@@ -35,10 +35,10 @@
 #define D(fmt,...)
 #endif
 
-// using android::base::ScopedMemoryProfiler;
-// using android::base::LazyInstance;
-// using android::base::MemoryProfiler;
-// using android::base::StringView;
+// using gfxstream::base::ScopedMemoryProfiler;
+// using gfxstream::base::LazyInstance;
+// using gfxstream::base::MemoryProfiler;
+// using gfxstream::base::StringView;
 
 static const GLenum kTexParam[] = {
     GL_TEXTURE_MIN_FILTER,
@@ -600,12 +600,12 @@ void SaveableTexture::onSave(
                 GL_PACK_ALIGNMENT,
         };
         static constexpr GLint pixelStoreDesired[] = {0, 0, 0, 1};
-        GLint pixelStorePrev[android::base::arraySize(pixelStoreIndexes)];
+        GLint pixelStorePrev[gfxstream::base::arraySize(pixelStoreIndexes)];
 
         GLint prevTex = 0;
         GLDispatch& dispatcher = GLEScontext::dispatcher();
         assert(dispatcher.glGetIntegerv);
-        for (int i = 0; i != (int)android::base::arraySize(pixelStoreIndexes); ++i) {
+        for (int i = 0; i != (int)gfxstream::base::arraySize(pixelStoreIndexes); ++i) {
             if (isGles2Gles() && pixelStoreIndexes[i] != GL_PACK_ALIGNMENT &&
                 pixelStoreIndexes[i] != GL_UNPACK_ALIGNMENT) {
                 continue;
@@ -642,12 +642,12 @@ void SaveableTexture::onSave(
         // Texture saving causes hundreds of megabytes of memory ballooning.
         // This could be behind nullptr dereferences in crash reports if
         // the user ran out of commit charge on Windows, which is not measured
-        // in android::base::System::isUnderMemoryPressure.
+        // in gfxstream::base::System::isUnderMemoryPressure.
         //
         // To debug this issue, avoid keeping the imgData buffers around,
         // and log the memory usage.
         //
-        // bool isLowMem = android::base::System::isUnderMemoryPressure();
+        // bool isLowMem = gfxstream::base::System::isUnderMemoryPressure();
         bool isLowMem = true;
 
         auto saveTex = [this, stream, numLevels, &dispatcher, isLowMem](
@@ -805,7 +805,7 @@ void SaveableTexture::onSave(
                     s->putBe32(pair.second);
                 });
         // Restore environment
-        for (int i = 0; i != (int)android::base::arraySize(pixelStoreIndexes); ++i) {
+        for (int i = 0; i != (int)gfxstream::base::arraySize(pixelStoreIndexes); ++i) {
             if (isGles2Gles() && pixelStoreIndexes[i] != GL_PACK_ALIGNMENT &&
                 pixelStoreIndexes[i] != GL_UNPACK_ALIGNMENT) {
                 continue;
@@ -867,8 +867,8 @@ void SaveableTexture::restore() {
 
         static constexpr GLint pixelStoreDesired[] = {0, 0, 0, 0, 0, 1};
 
-        GLint pixelStorePrev[android::base::arraySize(pixelStoreIndexes)];
-        for (int i = 0; i != (int)android::base::arraySize(pixelStoreIndexes); ++i) {
+        GLint pixelStorePrev[gfxstream::base::arraySize(pixelStoreIndexes)];
+        for (int i = 0; i != (int)gfxstream::base::arraySize(pixelStoreIndexes); ++i) {
             if (isGles2Gles() && pixelStoreIndexes[i] != GL_PACK_ALIGNMENT &&
                 pixelStoreIndexes[i] != GL_UNPACK_ALIGNMENT) {
                 continue;
@@ -1025,7 +1025,7 @@ void SaveableTexture::restore() {
         }
         m_texParam.clear();
         // Restore environment
-        for (int i = 0; i != (int)android::base::arraySize(pixelStoreIndexes); ++i) {
+        for (int i = 0; i != (int)gfxstream::base::arraySize(pixelStoreIndexes); ++i) {
             if (isGles2Gles() && pixelStoreIndexes[i] != GL_PACK_ALIGNMENT &&
                 pixelStoreIndexes[i] != GL_UNPACK_ALIGNMENT) {
                 continue;

@@ -27,7 +27,7 @@
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
 #include "VirtioGpuTimelinesSnapshot.pb.h"
 #endif  // GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
-#include "aemu/base/ThreadAnnotations.h"
+#include "gfxstream/ThreadAnnotations.h"
 #include "gfxstream/virtio-gpu-gfxstream-renderer.h"
 
 typedef uint32_t VirtioGpuCtxId;

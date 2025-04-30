@@ -9,13 +9,12 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
-#ifndef _AEMU_SYS_STAT_H_
-#define _AEMU_SYS_STAT_H_
-
-
 // This sets up a series of compatibility defines that enable compilation
 // of qemu on windows with clang-cl.
 #include_next <sys/stat.h>
+
+#ifndef _AEMU_SYS_STAT_H_
+#define _AEMU_SYS_STAT_H_
 
 #define fstat64 _fstat64
 #define stat _stati64

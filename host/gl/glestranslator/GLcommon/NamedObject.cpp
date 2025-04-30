@@ -20,7 +20,7 @@
 #include "GLcommon/ObjectNameSpace.h"
 
 #include "aemu/base/GLObjectCounter.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/synchronization/Lock.h"
 
 static constexpr int toIndex(NamedObjectType type) {
     return static_cast<int>(type);
@@ -37,7 +37,7 @@ NamedObject::NamedObject(GenNameInfo genNameInfo,
         // This happens with glCreateShaderProgramv
         m_globalName = genNameInfo.m_existingGlobal;
     } else {
-        android::base::AutoLock _lock(m_globalNameSpace->m_lock);
+        gfxstream::base::AutoLock _lock(m_globalNameSpace->m_lock);
         switch (genNameInfo.m_type) {
             case NamedObjectType::VERTEXBUFFER:
                 GLEScontext::dispatcher().glGenBuffers(1,&m_globalName);
@@ -91,7 +91,7 @@ NamedObject::NamedObject(GenNameInfo genNameInfo,
 }
 
 NamedObject::~NamedObject() {
-    android::base::AutoLock _lock(m_globalNameSpace->m_lock);
+    gfxstream::base::AutoLock _lock(m_globalNameSpace->m_lock);
     assert(GLEScontext::dispatcher().isInitialized());
     switch (m_type) {
     case NamedObjectType::VERTEXBUFFER:

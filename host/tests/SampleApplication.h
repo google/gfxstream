@@ -20,7 +20,7 @@
 
 #include "Hwc2.h"
 #include "OpenGLESDispatch/GLESv2Dispatch.h"
-#include "aemu/base/Compiler.h"
+#include "gfxstream/Compiler.h"
 #include "gl/EmulatedEglContext.h"
 #include "gl/EmulatedEglFenceSync.h"
 

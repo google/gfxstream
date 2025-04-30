@@ -21,7 +21,7 @@ namespace vk {
 namespace testing {
 namespace {
 
-using ::android::base::BumpPool;
+using ::gfxstream::base::BumpPool;
 
 bool validationErrorsFound = false;
 
@@ -51,14 +51,13 @@ VulkanTestHelper::VulkanTestHelper()
     : mLock(mMutex),
       mVk(vkDispatch(/*forTesting=*/true)),
       mLogger(),
-      mMetricsLogger(android::base::CreateMetricsLogger()),
-      mHealthMonitor(*mMetricsLogger),
       mVkEmu(VkEmulation::create(mVk, {}, getGfxstreamFeatures())),
       mBp(std::make_unique<BumpPool>()),
       mDecoderContext(VkDecoderContext{.processName = "vulkan_test",
                                        .gfxApiLogger = &mLogger,
-                                       .healthMonitor = &mHealthMonitor,
-                                       .metricsLogger = mMetricsLogger.get()}),
+                                       .healthMonitor = nullptr,
+                                       .metricsLogger = nullptr,
+                                       }),
       mTestDispatch(mVk, mBp.get(), &mDecoderContext) {
     validationErrorsFound = false;
 }
@@ -88,7 +87,7 @@ void VulkanTestHelper::destroy() {
 VulkanTestHelper::~VulkanTestHelper() {
     destroy();
     if (mFailOnValidationErrors && validationErrorsFound) {
-        FATAL() << "Validation errors found. Aborting.";
+        GFXSTREAM_FATAL("Validation errors found. Aborting.");
     }
 }
 
@@ -111,7 +110,9 @@ void VulkanTestHelper::initialize(const InitializationOptions& options) {
             break;
         }
     }
-    if (!layerFound) FATAL() << "Vulkan Validation Layer not found";
+    if (!layerFound) {
+        GFXSTREAM_FATAL("Vulkan Validation Layer not found");
+    }
 
     // Create the instance
     VkApplicationInfo defaultAppInfo = {
@@ -155,7 +156,9 @@ void VulkanTestHelper::initialize(const InitializationOptions& options) {
     // Pick a physical device
     uint32_t deviceCount = 0;
     vk().vkEnumeratePhysicalDevices(mInstance, &deviceCount, nullptr);
-    if (deviceCount == 0) FATAL() << "No Vulkan device found.";
+    if (deviceCount == 0) {
+        GFXSTREAM_FATAL("No Vulkan device found.");
+    }
     std::vector<VkPhysicalDevice> devices(deviceCount);
     VK_CHECK(vk().vkEnumeratePhysicalDevices(mInstance, &deviceCount, devices.data()));
 
@@ -241,7 +244,8 @@ uint32_t VulkanTestHelper::getQueueFamilyIndex(VkQueueFlagBits queueFlags) {
         }
     }
 
-    FATAL() << "No queue family found matching the requested flags";
+    GFXSTREAM_FATAL("No queue family found matching the requested flags");
+    return -1;
 }
 
 uint32_t VulkanTestHelper::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
@@ -254,7 +258,8 @@ uint32_t VulkanTestHelper::findMemoryType(uint32_t typeFilter, VkMemoryPropertyF
             return i;
         }
     }
-    FATAL() << "failed to find suitable memory type!";
+    GFXSTREAM_FATAL("failed to find suitable memory type!");
+    return -1;
 }
 
 void VulkanTestHelper::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
@@ -314,7 +319,8 @@ void VulkanTestHelper::transitionImageLayout(VkCommandBuffer cmdBuf, VkImage ima
             barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
             break;
         default:
-            FATAL() << "Unsupported layout transition!";
+            GFXSTREAM_FATAL("Unsupported layout transition!");
+            break;
     }
 
     switch (newLayout) {
@@ -331,7 +337,8 @@ void VulkanTestHelper::transitionImageLayout(VkCommandBuffer cmdBuf, VkImage ima
             barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
             break;
         default:
-            FATAL() << "Unsupported layout transition!";
+            GFXSTREAM_FATAL("Unsupported layout transition!");
+            break;
     }
     vk().vkCmdPipelineBarrier(cmdBuf, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
                               VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0, nullptr, 1,

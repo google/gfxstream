@@ -35,9 +35,10 @@
 #include "VkEmulatedPhysicalDeviceMemory.h"
 #include "VkEmulatedPhysicalDeviceQueue.h"
 #include "aemu/base/files/Stream.h"
-#include "aemu/base/memory/SharedMemory.h"
-#include "aemu/base/synchronization/ConditionVariable.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/host/logging.h"
+#include "gfxstream/memory/SharedMemory.h"
+#include "gfxstream/synchronization/ConditionVariable.h"
+#include "gfxstream/synchronization/Lock.h"
 #include "common/goldfish_vk_deepcopy.h"
 #include "vulkan/VkAndroidNativeBuffer.h"
 #include "vulkan/VkFormatUtils.h"
@@ -54,14 +55,14 @@ class ExternalFencePool {
 
     ~ExternalFencePool() {
         if (!mPool.empty()) {
-            GFXSTREAM_ABORT(emugl::FatalError(emugl::ABORT_REASON_OTHER))
-                << "External fence pool for device " << static_cast<void*>(mDevice)
-                << " destroyed but " << mPool.size() << " fences still not destroyed.";
+            GFXSTREAM_FATAL(
+                "External fence pool for VkDevice:%p destroyed but %zu fences still not destroyed.",
+                mDevice, mPool.size());
         }
     }
 
     void add(VkFence fence) {
-        android::base::AutoLock lock(mLock);
+        gfxstream::base::AutoLock lock(mLock);
         mPool.push_back(fence);
         if (mPool.size() > mMaxSize) {
             GFXSTREAM_INFO("External fence pool for %p has increased to size %d", mDevice,
@@ -73,7 +74,7 @@ class ExternalFencePool {
     VkFence pop(const VkFenceCreateInfo* pCreateInfo) {
         VkFence fence = VK_NULL_HANDLE;
         {
-            android::base::AutoLock lock(mLock);
+            gfxstream::base::AutoLock lock(mLock);
             auto it = std::find_if(mPool.begin(), mPool.end(), [this](const VkFence& fence) {
                 VkResult status = m_vk->vkGetFenceStatus(mDevice, fence);
                 if (status != VK_SUCCESS) {
@@ -102,7 +103,7 @@ class ExternalFencePool {
     }
 
     std::vector<VkFence> popAll() {
-        android::base::AutoLock lock(mLock);
+        gfxstream::base::AutoLock lock(mLock);
         std::vector<VkFence> popped = mPool;
         mPool.clear();
         return popped;
@@ -111,7 +112,7 @@ class ExternalFencePool {
    private:
     TDispatch* m_vk;
     VkDevice mDevice;
-    android::base::Lock mLock;
+    gfxstream::base::Lock mLock;
     std::vector<VkFence> mPool;
     size_t mMaxSize;
 };
@@ -165,7 +166,7 @@ struct MemoryInfo {
     VkDevice device = VK_NULL_HANDLE;
     uint32_t memoryIndex = 0;
     // Set if the memory is backed by shared memory.
-    std::optional<android::base::SharedMemory> sharedMemory;
+    std::optional<gfxstream::base::SharedMemory> sharedMemory;
 
     std::shared_ptr<PrivateMemory> privateMemory;
     // virtio-gpu blobs
@@ -381,7 +382,7 @@ struct SamplerInfo {
     VkSampler boxed = VK_NULL_HANDLE;
     VkSamplerCreateInfo createInfo = {};
     VkSampler emulatedborderSampler = VK_NULL_HANDLE;
-    android::base::BumpPool pool = android::base::BumpPool(256);
+    gfxstream::base::BumpPool pool = gfxstream::base::BumpPool(256);
     SamplerInfo() = default;
     SamplerInfo& operator=(const SamplerInfo& other) {
         deepcopy_VkSamplerCreateInfo(&pool, VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,

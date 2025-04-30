@@ -17,7 +17,13 @@ cc_library_static {
         "libgfxstream_host_vulkan_cereal_common",
     ],
     static_libs: [
+        "libgfxstream_common_base",
+        "libgfxstream_host_health",
         "libgfxstream_host_logging",
+    ],
+    export_static_lib_headers: [
+        "libgfxstream_common_base",
+        "libgfxstream_host_health",
     ],
     srcs: [
         "AstcTexture.cpp",

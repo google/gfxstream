@@ -10,7 +10,7 @@
 #include <optional>
 
 #include "BorrowedImageVk.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/ImageUtils.h"
 #include "tests/VkTestUtils.h"
 #include "vulkan/VulkanDispatch.h"
@@ -23,7 +23,7 @@ namespace {
 static constexpr const bool kDefaultSaveImageIfComparisonFailed = false;
 
 std::string GetTestDataPath(const std::string& basename) {
-    const std::filesystem::path currentPath = android::base::getProgramDirectory();
+    const std::filesystem::path currentPath = gfxstream::base::getProgramDirectory();
     return (currentPath / "tests" / "testdata" / basename).string();
 }
 
@@ -69,7 +69,7 @@ class CompositorVkTest : public ::testing::Test {
         k_vk->vkGetDeviceQueue(m_vkDevice, m_compositorQueueFamilyIndex, 0, &m_compositorVkQueue);
         ASSERT_NE(m_compositorVkQueue, VK_NULL_HANDLE);
 
-        m_compositorVkQueueLock = std::make_shared<android::base::Lock>();
+        m_compositorVkQueueLock = std::make_shared<gfxstream::base::Lock>();
     }
 
     void TearDown() override {
@@ -265,7 +265,7 @@ class CompositorVkTest : public ::testing::Test {
     VkDevice m_vkDevice = VK_NULL_HANDLE;
     VkCommandPool m_vkCommandPool = VK_NULL_HANDLE;
     VkQueue m_compositorVkQueue = VK_NULL_HANDLE;
-    std::shared_ptr<android::base::Lock> m_compositorVkQueueLock;
+    std::shared_ptr<gfxstream::base::Lock> m_compositorVkQueueLock;
 
    private:
     void createInstance() {

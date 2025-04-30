@@ -15,7 +15,7 @@
 */
 #pragma once
 
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/synchronization/Lock.h"
 
 #include "X11Support.h"
 
@@ -31,6 +31,6 @@ private:
     static int s_lastErrorCode;
     EGLNativeDisplayType m_dpy;
     int (*m_oldErrorHandler)(Display *, XErrorEvent *) = nullptr;
-    static android::base::Lock s_lock;
+    static gfxstream::base::Lock s_lock;
     static int errorHandlerProc(Display* dpy, XErrorEvent* event);
 };

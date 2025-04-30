@@ -22,14 +22,14 @@ namespace vk {
 namespace {
 
 struct ReadStreamRegistry {
-    android::base::Lock mLock;
+    gfxstream::base::Lock mLock;
 
     std::vector<VulkanMemReadingStream*> freeStreams;
 
     ReadStreamRegistry() { freeStreams.reserve(100); };
 
     VulkanMemReadingStream* pop(const gfxstream::host::FeatureSet& features) {
-        android::base::AutoLock lock(mLock);
+        gfxstream::base::AutoLock lock(mLock);
         if (freeStreams.empty()) {
             return new VulkanMemReadingStream(nullptr, features);
         } else {
@@ -40,7 +40,7 @@ struct ReadStreamRegistry {
     }
 
     void push(VulkanMemReadingStream* stream) {
-        android::base::AutoLock lock(mLock);
+        gfxstream::base::AutoLock lock(mLock);
         freeStreams.push_back(stream);
     }
 };
@@ -423,12 +423,7 @@ VkObjectT unbox_VkType(VkObjectT boxed) {
             } else if constexpr (std::is_same_v<VkObjectT, VkFence>) {
                 // TODO: investigate.
             } else {
-                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                        << "Failed to unbox "
-                        << GetTypeStr<VkObjectT>()
-                        << " "
-                        << boxed
-                        << ", not found.";
+                GFXSTREAM_FATAL("Failed to unbox %s %p", GetTypeStr<VkObjectT>(), boxed);
             }
             unboxed = VK_NULL_HANDLE;
         } else {

@@ -15,7 +15,7 @@
 */
 #include "GLESv1Decoder.h"
 
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/synchronization/Lock.h"
 
 #include "OpenGLESDispatch/GLESv1Dispatch.h"
 
@@ -28,8 +28,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-using android::base::AutoLock;
-using android::base::StaticLock;
+using gfxstream::base::AutoLock;
+using gfxstream::base::StaticLock;
 
 namespace gfxstream {
 namespace gl {

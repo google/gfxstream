@@ -15,7 +15,7 @@
 */
 #include <GLcommon/GLutils.h>
 
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/synchronization/Lock.h"
 
 #include <GLES/gl.h>
 #include <GLES2/gl2.h>
@@ -27,7 +27,7 @@ bool isPowerOf2(int num) {
     return (num & (num -1)) == 0;
 }
 
-android::base::StaticLock sGlobalSettingsLock;
+gfxstream::base::StaticLock sGlobalSettingsLock;
 
 static uint32_t s_gles2Gles = 0;
 static uint32_t s_coreProfile = 0;

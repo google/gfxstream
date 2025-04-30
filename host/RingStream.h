@@ -17,8 +17,8 @@
 #include <functional>
 #include <vector>
 
-#include "aemu/base/ring_buffer.h"
 #include "gfxstream/host/iostream.h"
+#include "gfxstream/ring_buffer.h"
 #include "render-utils/RenderChannel.h"
 #include "render-utils/address_space_graphics_types.h"
 

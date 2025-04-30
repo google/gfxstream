@@ -43,9 +43,9 @@
 #include "VulkanBoxedHandles.h"
 #include "VulkanDispatch.h"
 #include "VulkanStream.h"
-#include "aemu/base/BumpPool.h"
-#include "aemu/base/Metrics.h"
-#include "aemu/base/system/System.h"
+#include "gfxstream/BumpPool.h"
+#include "gfxstream/Metrics.h"
+#include "gfxstream/system/System.h"
 #include "common/goldfish_vk_marshaling.h"
 #include "common/goldfish_vk_reserved_marshaling.h"
 #include "common/goldfish_vk_transform.h"
@@ -60,13 +60,13 @@
 namespace gfxstream {
 namespace vk {
 
-using android::base::MetricEventBadPacketLength;
-using android::base::MetricEventDuplicateSequenceNum;
+using gfxstream::base::MetricEventBadPacketLength;
+using gfxstream::base::MetricEventDuplicateSequenceNum;
 
 class VkDecoder::Impl {
    public:
     Impl()
-        : m_logCalls(android::base::getEnvironmentVariable("ANDROID_EMU_VK_LOG_CALLS") == "1"),
+        : m_logCalls(gfxstream::base::getEnvironmentVariable("ANDROID_EMU_VK_LOG_CALLS") == "1"),
           m_vk(vkDispatch()),
           m_state(VkDecoderGlobalState::get()),
           m_vkStream(nullptr, m_state->getFeatures()),
@@ -94,7 +94,7 @@ class VkDecoder::Impl {
     VulkanMemReadingStream m_vkMemReadingStream;
     BoxedHandleCreateMapping m_boxedHandleCreateMapping;
     BoxedHandleUnwrapMapping m_boxedHandleUnwrapMapping;
-    android::base::BumpPool m_pool;
+    gfxstream::base::BumpPool m_pool;
     std::optional<uint32_t> m_prevSeqno;
     bool m_queueSubmitWithCommandsEnabled = false;
     const bool m_snapshotsEnabled = false;

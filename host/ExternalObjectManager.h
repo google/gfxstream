@@ -21,9 +21,9 @@
 #include <unordered_map>
 #include <utility>
 
-#include "aemu/base/Compiler.h"
-#include "aemu/base/ManagedDescriptor.hpp"
-#include "aemu/base/ThreadAnnotations.h"
+#include "gfxstream/Compiler.h"
+#include "gfxstream/ManagedDescriptor.hpp"
+#include "gfxstream/ThreadAnnotations.h"
 
 // A global mapping from opaque host memory IDs to host virtual
 // addresses/sizes.  This is so that the guest doesn't have to know the host
@@ -35,8 +35,8 @@
 // address space device, though there are possible other consumers of this, so
 // it becomes a global object. It exports methods into VmOperations.
 
-using android::base::DescriptorType;
-using android::base::ManagedDescriptor;
+using gfxstream::base::DescriptorType;
+using gfxstream::base::ManagedDescriptor;
 
 namespace gfxstream {
 

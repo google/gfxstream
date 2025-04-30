@@ -13,7 +13,7 @@
 // limitations under the License.
 #pragma once
 
-#include "aemu/base/AlignedBuf.h"
+#include "gfxstream/AlignedBuf.h"
 
 #include "render-utils/render_api_platform_types.h"
 
@@ -23,7 +23,7 @@
 
 namespace gfxstream {
 
-using TestTexture = android::AlignedBuf<uint8_t, 4>;
+using TestTexture = gfxstream::AlignedBuf<uint8_t, 4>;
 
 testing::AssertionResult RowMatches(int rowIndex, size_t rowBytes,
                                     unsigned char* expected, unsigned char* actual);

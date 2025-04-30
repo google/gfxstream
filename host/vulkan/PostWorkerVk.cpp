@@ -21,13 +21,6 @@
 
 namespace gfxstream {
 
-namespace {
-
-using emugl::ABORT_REASON_OTHER;
-using emugl::FatalError;
-
-}  // namespace
-
 PostWorkerVk::PostWorkerVk(FrameBuffer* fb, Compositor* compositor, vk::DisplayVk* displayVk)
     : PostWorker(false, fb, compositor), m_displayVk(displayVk) {}
 

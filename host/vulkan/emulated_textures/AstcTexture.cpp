@@ -20,7 +20,7 @@
 #include <optional>
 #include <vector>
 
-#include "aemu/base/HealthMonitor.h"
+#include "gfxstream/HealthMonitor.h"
 #include "gfxstream/host/logging.h"
 #include "vulkan/vk_util.h"
 

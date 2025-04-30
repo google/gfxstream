@@ -7,6 +7,7 @@ target_link_libraries(
     PUBLIC
     apigen-codec-common
     PRIVATE
+    gfxstream_common_base
     gfxstream_egl_headers
     gfxstream_host_logging
     gfxstream_host_iostream

@@ -50,7 +50,7 @@ ReadbackWorkerGl::~ReadbackWorkerGl() {
 }
 
 void ReadbackWorkerGl::initReadbackForDisplay(uint32_t displayId, uint32_t w, uint32_t h) {
-    android::base::AutoLock lock(mLock);
+    gfxstream::base::AutoLock lock(mLock);
 
     auto [it, inserted] =  mTrackedDisplays.emplace(displayId, TrackedDisplay(displayId, w, h));
     if (!inserted) {
@@ -69,7 +69,7 @@ void ReadbackWorkerGl::initReadbackForDisplay(uint32_t displayId, uint32_t w, ui
 }
 
 void ReadbackWorkerGl::deinitReadbackForDisplay(uint32_t displayId) {
-    android::base::AutoLock lock(mLock);
+    gfxstream::base::AutoLock lock(mLock);
 
     auto it = mTrackedDisplays.find(displayId);
     if (it == mTrackedDisplays.end()) {
@@ -124,7 +124,7 @@ ReadbackWorkerGl::doNextReadback(uint32_t displayId,
     // - glReadPixels and then immediately map/copy the same buffer
     //   doesn't happen either (avoid sync point in glMapBufferRange)
     for (int i = 0; i < numIter; i++) {
-        android::base::AutoLock lock(mLock);
+        gfxstream::base::AutoLock lock(mLock);
         TrackedDisplay& r = mTrackedDisplays[displayId];
         if (r.mIsCopying) {
             switch (r.mMapCopyIndex) {
@@ -176,7 +176,7 @@ ReadbackWorkerGl::doNextReadback(uint32_t displayId,
 }
 
 ReadbackWorkerGl::FlushResult ReadbackWorkerGl::flushPipeline(uint32_t displayId) {
-    android::base::AutoLock lock(mLock);
+    gfxstream::base::AutoLock lock(mLock);
 
     auto it = mTrackedDisplays.find(displayId);
     if (it == mTrackedDisplays.end()) {
@@ -215,7 +215,7 @@ ReadbackWorkerGl::FlushResult ReadbackWorkerGl::flushPipeline(uint32_t displayId
 }
 
 void ReadbackWorkerGl::getPixels(uint32_t displayId, void* buf, uint32_t bytes) {
-    android::base::AutoLock lock(mLock);
+    gfxstream::base::AutoLock lock(mLock);
 
     auto it = mTrackedDisplays.find(displayId);
     if (it == mTrackedDisplays.end()) {

@@ -10,7 +10,6 @@ target_link_libraries(
     GLES_CM_translator_static PRIVATE
     GLcommon
     apigen-codec-common
-    aemu-base.headers
     gfxstream_host_logging
     gfxstream_host_snapshot.headers
     gfxstream_egl_headers)

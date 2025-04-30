@@ -29,27 +29,24 @@
 #include <string>
 #include <type_traits>
 
-#include "aemu/base/HealthMonitor.h"
-#include "aemu/base/Optional.h"
-#include "aemu/base/synchronization/ConditionVariable.h"
-#include "aemu/base/synchronization/Lock.h"
-#include "aemu/base/synchronization/MessageChannel.h"
-#include "aemu/base/threads/Thread.h"
-#include "aemu/base/threads/ThreadPool.h"
+#include "gfxstream/HealthMonitor.h"
+#include "gfxstream/Optional.h"
+#include "gfxstream/synchronization/ConditionVariable.h"
+#include "gfxstream/synchronization/Lock.h"
+#include "gfxstream/synchronization/MessageChannel.h"
+#include "gfxstream/threads/Thread.h"
+#include "gfxstream/threads/ThreadPool.h"
 #include "render-utils/virtio_gpu_ops.h"
 #include "vulkan/VkDecoderGlobalState.h"
 
 namespace gfxstream {
-
-using emugl::HealthMonitor;
-using emugl::HealthWatchdog;
 
 // SyncThread///////////////////////////////////////////////////////////////////
 // The purpose of SyncThread is to track sync device timelines and give out +
 // signal FD's that correspond to the completion of host-side GL fence commands.
 
 struct RenderThreadInfo;
-class SyncThread : public android::base::Thread {
+class SyncThread : public gfxstream::base::Thread {
    public:
     // - constructor: start up the sync worker threads for a given context.
     // The initialization of the sync threads is nonblocking.
@@ -114,12 +111,12 @@ class SyncThread : public android::base::Thread {
     static void destroy();
 
    private:
-    using WorkerId = android::base::ThreadPoolWorkerId;
+    using WorkerId = gfxstream::base::ThreadPoolWorkerId;
     struct Command {
         std::packaged_task<int(WorkerId)> mTask;
         std::string mDescription;
     };
-    using ThreadPool = android::base::ThreadPool<Command>;
+    using ThreadPool = gfxstream::base::ThreadPool<Command>;
 
     // Thread function.
     // It keeps the workers runner until |mExiting| is set.
@@ -149,8 +146,8 @@ class SyncThread : public android::base::Thread {
 #endif
 
     bool mExiting = false;
-    android::base::Lock mLock;
-    android::base::ConditionVariable mCv;
+    gfxstream::base::Lock mLock;
+    gfxstream::base::ConditionVariable mCv;
     ThreadPool mWorkerThreadPool;
     bool mHasGl;
 

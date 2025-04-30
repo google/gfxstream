@@ -17,7 +17,7 @@
 #ifndef SHADER_PARSER_H
 #define SHADER_PARSER_H
 
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/synchronization/Lock.h"
 #include "ANGLEShaderParser.h"
 #include "GLESv2Context.h"
 #include <string>
@@ -77,7 +77,7 @@ private:
     GLchar*     m_parsedLines = nullptr;
     std::string m_compiledSrc;
     std::basic_string<GLchar> m_infoLog;
-    mutable android::base::Lock m_programsLock;
+    mutable gfxstream::base::Lock m_programsLock;
     std::unordered_set<GLuint> m_programs;
     GLenum      m_type = 0;
     bool        m_compileStatus = false;

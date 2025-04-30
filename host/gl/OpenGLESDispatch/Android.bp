@@ -32,7 +32,7 @@ cc_library_static {
         "libgfxstream_host_openglesdispatch_headers",
     ],
     static_libs: [
-        "gfxstream_base",
+        "libgfxstream_common_base",
         "libgfxstream_thirdparty_glm",
         "libgfxstream_host_apigen_codec_common",
         "libgfxstream_glestranslator_egl",

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "aemu/base/Tracing.h"
+#include "gfxstream/Tracing.h"
 
 #include <assert.h>
 #include <stddef.h>

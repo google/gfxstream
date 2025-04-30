@@ -14,12 +14,12 @@
 
 #pragma once
 
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/synchronization/Lock.h"
 
 namespace gfxstream {
 
 // Used to workaround various driver bugs (e.g. vkDestroyDevice deadlock, eglMakeCurrent +
 // vkDestroyDevice).
-android::base::Lock* graphicsDriverLock();
+gfxstream::base::Lock* graphicsDriverLock();
 
 }  // namespace gfxstream

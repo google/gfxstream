@@ -14,7 +14,7 @@
 
 #include "AlignedBuf.h"
 
-namespace android {
+namespace gfxstream {
 
 // Convenience function for aligned malloc across platforms
 void* aligned_buf_alloc(size_t align, size_t size) {
@@ -42,4 +42,4 @@ void aligned_buf_free(void* buf) {
 #endif
 }
 
-} // namespace android
+} // namespace gfxstream

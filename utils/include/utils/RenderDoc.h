@@ -27,11 +27,11 @@
 #include <unordered_map>
 #include <vector>
 
-#include "aemu/base/SharedLibrary.h"
+#include "gfxstream/SharedLibrary.h"
 #include "gfxstream/host/logging.h"
 #include "vulkan/vulkan.h"
 
-using android::base::SharedLibrary;
+using gfxstream::base::SharedLibrary;
 
 namespace emugl {
 class RenderDoc {

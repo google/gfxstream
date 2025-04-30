@@ -24,7 +24,7 @@
 
 #include "OpenGLESDispatch/DispatchTables.h"
 #include "OpenGLESDispatch/EGLDispatch.h"
-#include "aemu/base/containers/Lookup.h"
+#include "gfxstream/containers/Lookup.h"
 #include "gfxstream/host/logging.h"
 
 namespace gfxstream {
@@ -243,12 +243,12 @@ std::unique_ptr<EmulatedEglWindowSurface> EmulatedEglWindowSurface::onLoad(
     assert(surface);
     // fb is already locked by its caller
     if (colorBufferHndl) {
-        const auto* colorBufferRef = android::base::find(colorBuffers, colorBufferHndl);
+        const auto* colorBufferRef = gfxstream::base::find(colorBuffers, colorBufferHndl);
         assert(colorBufferRef);
         surface->mAttachedColorBuffer = colorBufferRef->cb;
     }
-    surface->mReadContext = android::base::findOrDefault(contexts, readCtx);
-    surface->mDrawContext = android::base::findOrDefault(contexts, drawCtx);
+    surface->mReadContext = gfxstream::base::findOrDefault(contexts, readCtx);
+    surface->mDrawContext = gfxstream::base::findOrDefault(contexts, drawCtx);
     return surface;
 }
 

@@ -39,7 +39,7 @@ private:
 };
 
 } // namespace base
-} // namespace android
+} // namespace gfxstream
 
 #define __AEMU_GENSYM2(x,y) x##y
 #define __AEMU_GENSYM1(x,y) __AEMU_GENSYM2(x,y)

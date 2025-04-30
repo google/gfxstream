@@ -20,8 +20,8 @@
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
 #include "VirtioGpuResourceSnapshot.pb.h"
 #endif
-#include "aemu/base/AlignedBuf.h"
-#include "aemu/base/memory/SharedMemory.h"
+#include "gfxstream/AlignedBuf.h"
+#include "gfxstream/memory/SharedMemory.h"
 
 namespace gfxstream {
 namespace host {
@@ -31,11 +31,11 @@ namespace host {
 struct AlignedMemory {
     void* addr = nullptr;
 
-    AlignedMemory(size_t align, size_t size) : addr(android::aligned_buf_alloc(align, size)) {}
+    AlignedMemory(size_t align, size_t size) : addr(gfxstream::aligned_buf_alloc(align, size)) {}
 
     ~AlignedMemory() {
         if (addr != nullptr) {
-            android::aligned_buf_free(addr);
+            gfxstream::aligned_buf_free(addr);
         }
     }
 
@@ -55,7 +55,7 @@ class RingBlob {
     bool isExportable() const;
 
     // Only valid if `isExportable()` returns `true`.
-    android::base::SharedMemory::handle_type releaseHandle();
+    gfxstream::base::SharedMemory::handle_type releaseHandle();
 
     void* map();
 
@@ -73,13 +73,13 @@ class RingBlob {
              uint64_t size,
              uint64_t alignment,
              std::variant<std::unique_ptr<AlignedMemory>,
-                          std::unique_ptr<android::base::SharedMemory>> memory);
+                          std::unique_ptr<gfxstream::base::SharedMemory>> memory);
 
     const uint64_t mId;
     const uint64_t mSize;
     const uint64_t mAlignment;
     std::variant<std::unique_ptr<AlignedMemory>,
-                 std::unique_ptr<android::base::SharedMemory>> mMemory;
+                 std::unique_ptr<gfxstream::base::SharedMemory>> mMemory;
 };
 
 // LINT.ThenChange(VirtioGpuRingBlobSnapshot.h:virtio_gpu_ring_blob)

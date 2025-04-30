@@ -16,7 +16,7 @@
 #ifndef EGL_OS_API_H
 #define EGL_OS_API_H
 
-#include "aemu/base/Compiler.h"
+#include "gfxstream/Compiler.h"
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>

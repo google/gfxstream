@@ -30,9 +30,9 @@
 #include <GLcommon/TextureData.h>
 #include <GLcommon/TextureUtils.h>
 
-#include "aemu/base/containers/Lookup.h"
+#include "gfxstream/containers/Lookup.h"
 #include "aemu/base/files/StreamSerializing.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/host/logging.h"
 #ifndef _MSC_VER
 #include <strings.h>
@@ -173,7 +173,7 @@ void GLESConversionArrays::operator++(){
 }
 
 GLDispatch     GLEScontext::s_glDispatch;
-android::base::Lock   GLEScontext::s_lock;
+gfxstream::base::Lock   GLEScontext::s_lock;
 std::string*   GLEScontext::s_glExtensionsGles1 = NULL;
 bool           GLEScontext::s_glExtensionsGles1Initialized = false;
 std::string*   GLEScontext::s_glExtensionsGles31 = NULL;
@@ -1557,7 +1557,7 @@ bool GLEScontext::isEnabled(GLenum item) const {
         case GL_BLEND:
             return m_blendStates[0].bEnable!=GL_FALSE;
         default:
-            return android::base::findOrDefault(m_glEnableList, item, false);
+            return gfxstream::base::findOrDefault(m_glEnableList, item, false);
     }
 }
 

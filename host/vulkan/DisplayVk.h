@@ -16,7 +16,7 @@
 #include "DisplaySurfaceVk.h"
 #include "Hwc2.h"
 #include "SwapChainStateVk.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/synchronization/Lock.h"
 #include "goldfish_vk_dispatch.h"
 
 // The DisplayVk class holds the Vulkan and other states required to draw a
@@ -29,8 +29,8 @@ class DisplayVk : public gfxstream::Display {
    public:
     DisplayVk(const VulkanDispatch&, VkPhysicalDevice, uint32_t swapChainQueueFamilyIndex,
               uint32_t compositorQueueFamilyIndex, VkDevice, VkQueue compositorVkQueue,
-              std::shared_ptr<android::base::Lock> compositorVkQueueLock, VkQueue swapChainVkQueue,
-              std::shared_ptr<android::base::Lock> swapChainVkQueueLock);
+              std::shared_ptr<gfxstream::base::Lock> compositorVkQueueLock, VkQueue swapChainVkQueue,
+              std::shared_ptr<gfxstream::base::Lock> swapChainVkQueueLock);
     ~DisplayVk();
 
     PostResult post(const BorrowedImageInfo* info);
@@ -62,9 +62,9 @@ class DisplayVk : public gfxstream::Display {
     uint32_t m_compositorQueueFamilyIndex;
     VkDevice m_vkDevice;
     VkQueue m_compositorVkQueue;
-    std::shared_ptr<android::base::Lock> m_compositorVkQueueLock;
+    std::shared_ptr<gfxstream::base::Lock> m_compositorVkQueueLock;
     VkQueue m_swapChainVkQueue;
-    std::shared_ptr<android::base::Lock> m_swapChainVkQueueLock;
+    std::shared_ptr<gfxstream::base::Lock> m_swapChainVkQueueLock;
     VkCommandPool m_vkCommandPool;
 
     class PostResource {

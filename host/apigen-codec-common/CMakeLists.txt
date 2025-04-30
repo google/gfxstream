@@ -21,9 +21,12 @@ endif()
 target_link_libraries(
     apigen-codec-common
     PUBLIC
+    aemu-base.headers
+    gfxstream_common_base
+    gfxstream_host_library
     gfxstream_host_logging
     gfxstream_opengl_headers
-    aemu-base.headers)
+    )
 target_include_directories(
     apigen-codec-common
     PUBLIC

@@ -46,4 +46,4 @@ void ScopedTraceGuest::endTraceImpl(const char* name) {
 }
 
 } // namespace base
-} // namespace android
+} // namespace gfxstream

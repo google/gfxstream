@@ -32,23 +32,20 @@
 #include "RenderThreadInfo.h"
 #include "RingStream.h"
 #include "VkDecoderContext.h"
-#include "aemu/base/HealthMonitor.h"
-#include "aemu/base/Metrics.h"
-#include "aemu/base/files/StreamSerializing.h"
-#include "aemu/base/synchronization/Lock.h"
-#include "aemu/base/synchronization/MessageChannel.h"
-#include "aemu/base/system/System.h"
 #include "apigen-codec-common/ChecksumCalculatorThreadInfo.h"
+#include "aemu/base/files/StreamSerializing.h"
+#include "gfxstream/HealthMonitor.h"
 #include "gfxstream/host/logging.h"
+#include "gfxstream/Metrics.h"
+#include "gfxstream/synchronization/Lock.h"
+#include "gfxstream/synchronization/MessageChannel.h"
+#include "gfxstream/system/System.h"
 #include "vulkan/VkCommonOperations.h"
 
 namespace gfxstream {
 
-using android::base::AutoLock;
-using android::base::EventHangMetadata;
-using android::base::MessageChannel;
-using emugl::ABORT_REASON_OTHER;
-using emugl::FatalError;
+using gfxstream::base::AutoLock;
+using gfxstream::base::EventHangMetadata;
 using emugl::GfxApiLogger;
 using vk::VkDecoderContext;
 
@@ -61,7 +58,7 @@ struct RenderThread::SnapshotObjects {
 };
 
 static bool getBenchmarkEnabledFromEnv() {
-    auto threadEnabled = android::base::getEnvironmentVariable("ANDROID_EMUGL_RENDERTHREAD_STATS");
+    auto threadEnabled = gfxstream::base::getEnvironmentVariable("ANDROID_EMUGL_RENDERTHREAD_STATS");
     if (threadEnabled == "1") return true;
     return false;
 }
@@ -73,15 +70,15 @@ static constexpr int kStreamBufferSize = 128 * 1024;
 static constexpr int kMinThreadsToRunUnlimited = 5;
 
 // A thread run limiter that limits render threads to run one slice at a time.
-static android::base::Lock sThreadRunLimiter;
+static gfxstream::base::Lock sThreadRunLimiter;
 
 RenderThread::RenderThread(RenderChannelImpl* channel,
                            android::base::Stream* loadStream,
                            uint32_t virtioGpuContextId)
-    : android::base::Thread(android::base::ThreadFlags::MaskSignals, 2 * 1024 * 1024,
+    : gfxstream::base::Thread(gfxstream::base::ThreadFlags::MaskSignals, 2 * 1024 * 1024,
                             "RenderThread"),
       mChannel(channel),
-      mRunInLimitedMode(android::base::getCpuCoreCount() < kMinThreadsToRunUnlimited),
+      mRunInLimitedMode(gfxstream::base::getCpuCoreCount() < kMinThreadsToRunUnlimited),
       mContextId(virtioGpuContextId)
 {
     if (loadStream) {
@@ -102,7 +99,7 @@ RenderThread::RenderThread(
         android::emulation::asg::ConsumerCallbacks callbacks,
         uint32_t contextId, uint32_t capsetId,
         std::optional<std::string> nameOpt)
-    : android::base::Thread(android::base::ThreadFlags::MaskSignals, 2 * 1024 * 1024,
+    : gfxstream::base::Thread(gfxstream::base::ThreadFlags::MaskSignals, 2 * 1024 * 1024,
                             std::move(nameOpt)),
       mRingStream(
           new RingStream(context, callbacks, kStreamBufferSize)),
@@ -346,7 +343,7 @@ intptr_t RenderThread::main() {
 
     int stats_totalBytes = 0;
     uint64_t stats_progressTimeUs = 0;
-    auto stats_t0 = android::base::getHighResTimeUs() / 1000;
+    auto stats_t0 = gfxstream::base::getHighResTimeUs() / 1000;
     bool benchmarkEnabled = getBenchmarkEnabledFromEnv();
 
     //
@@ -420,14 +417,14 @@ intptr_t RenderThread::main() {
         //
         if (benchmarkEnabled) {
             stats_totalBytes += readBuf.validData();
-            auto dt = android::base::getHighResTimeUs() / 1000 - stats_t0;
+            auto dt = gfxstream::base::getHighResTimeUs() / 1000 - stats_t0;
             if (dt > 1000) {
                 float dts = (float)dt / 1000.0f;
                 printf("Used Bandwidth %5.3f MB/s, time in progress %f ms total %f ms\n", ((float)stats_totalBytes / dts) / (1024.0f*1024.0f),
                         stats_progressTimeUs / 1000.0f,
                         (float)dt);
                 readBuf.printStats();
-                stats_t0 = android::base::getHighResTimeUs() / 1000;
+                stats_t0 = gfxstream::base::getHighResTimeUs() / 1000;
                 stats_progressTimeUs = 0;
                 stats_totalBytes = 0;
             }
@@ -512,7 +509,7 @@ intptr_t RenderThread::main() {
                 }
             }
 
-            std::optional<android::base::AutoLock> limitedModeLock;
+            std::optional<gfxstream::base::AutoLock> limitedModeLock;
             if (mRunInLimitedMode) {
                 limitedModeLock.emplace(sThreadRunLimiter);
             }

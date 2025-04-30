@@ -15,7 +15,7 @@
 */
 #pragma once
 
-#include "aemu/base/Compiler.h"
+#include "gfxstream/Compiler.h"
 
 #include <GLES/gl.h>
 

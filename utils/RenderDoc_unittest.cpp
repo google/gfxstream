@@ -5,7 +5,7 @@
 
 #include <type_traits>
 
-#include "aemu/base/SharedLibrary.h"
+#include "gfxstream/SharedLibrary.h"
 
 namespace emugl {
 namespace {
@@ -17,10 +17,10 @@ using ::testing::MockFunction;
 using ::testing::Return;
 using ::testing::SetArgPointee;
 
-using FunctionPtr = android::base::SharedLibrary::FunctionPtr;
+using FunctionPtr = gfxstream::base::SharedLibrary::FunctionPtr;
 using RenderDocApi = RenderDoc::RenderDocApi;
 
-class MockSharedLibrary : public android::base::SharedLibrary {
+class MockSharedLibrary : public gfxstream::base::SharedLibrary {
    public:
     MockSharedLibrary() : SharedLibrary(NULL) {}
     MOCK_METHOD(FunctionPtr, findSymbol, (const char*), (const, override));

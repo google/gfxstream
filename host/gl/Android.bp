@@ -36,6 +36,7 @@ cc_library_static {
         "libgfxstream_backend_headers",
     ],
     static_libs: [
+        "libgfxstream_common_base",
         "libgfxstream_host_backend",
         "libgfxstream_host_features",
         "libgfxstream_host_gles1_dec",

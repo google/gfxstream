@@ -17,10 +17,10 @@
 #ifndef GLES_CONTEXT_H
 #define GLES_CONTEXT_H
 
-#include "aemu/base/ThreadAnnotations.h"
-#include "aemu/base/containers/Lookup.h"
+#include "gfxstream/ThreadAnnotations.h"
+#include "gfxstream/containers/Lookup.h"
 #include "aemu/base/files/Stream.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/synchronization/Lock.h"
 
 #include "GLDispatch.h"
 #include "GLESpointer.h"
@@ -420,7 +420,7 @@ public:
         m_hints[target] = mode;
     }
     GLenum getHint(GLenum target) const {
-        return android::base::findOrDefault(m_hints, target, GL_DONT_CARE);
+        return gfxstream::base::findOrDefault(m_hints, target, GL_DONT_CARE);
     }
 
     static GLDispatch& dispatcher(){return s_glDispatch;};
@@ -538,7 +538,7 @@ protected:
     virtual void initExtensionString() =0;
 
     bool                  m_needRestoreFromSnapshot = false;
-    static android::base::Lock   s_lock;
+    static gfxstream::base::Lock   s_lock;
     static GLDispatch     s_glDispatch;
     bool                  m_initialized = false;
     unsigned int          m_activeTexture = 0;

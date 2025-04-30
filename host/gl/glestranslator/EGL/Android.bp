@@ -14,11 +14,12 @@ cc_library_static {
         "gfxstream_opengl_headers",
     ],
     static_libs: [
-        "gfxstream_base",
+        "libgfxstream_common_base",
         "libgfxstream_common_utils",
         "libgfxstream_host_apigen_codec_common",
         "libgfxstream_host_backend",
         "libgfxstream_host_glestranslator_glcommon",
+        "libgfxstream_host_library",
         "libgfxstream_host_logging",
         "libgfxstream_glestranslator_glescm",
         "libgfxstream_glestranslator_glesv2",

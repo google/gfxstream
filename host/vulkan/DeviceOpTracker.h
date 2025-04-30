@@ -25,7 +25,7 @@
 #include <variant>
 
 #include "VulkanDispatch.h"
-#include "aemu/base/ThreadAnnotations.h"
+#include "gfxstream/ThreadAnnotations.h"
 
 namespace gfxstream {
 namespace vk {

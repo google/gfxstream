@@ -40,12 +40,15 @@ set_source_files_properties(VkSubDecoder.cpp PROPERTIES COMPILE_FLAGS -Wno-unuse
 set_source_files_properties(VkDecoderSnapshot.cpp PROPERTIES COMPILE_FLAGS -Wno-unused-variable)
 
 target_link_libraries(gfxstream-vulkan-server PUBLIC
-        aemu-base.headers
         apigen-codec-common
         emulated_textures
+        gfxstream_common_base
         gfxstream_features
         gfxstream_host_backend
+        gfxstream_host_backend
+        gfxstream_host_health
         gfxstream_host_iostream
+        gfxstream_host_library
         gfxstream_host_logging
         gfxstream_host_snapshot.headers
         gfxstream_host_tracing

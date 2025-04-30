@@ -17,6 +17,7 @@
 #define TRANSLATOR_IFACES_H
 
 #include "aemu/base/containers/SmallVector.h"
+#include "aemu/base/files/Stream.h"
 #include "GLcommon/GLutils.h"
 #include "GLcommon/ShareGroup.h"
 

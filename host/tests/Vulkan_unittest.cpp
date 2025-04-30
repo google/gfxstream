@@ -14,33 +14,32 @@
 
 #include <gtest/gtest.h>
 
-#include "FrameBuffer.h"
-#include "VkCommonOperations.h"
-#include "VulkanDispatch.h"
-
-#include "aemu/base/ArraySize.h"
-#include "aemu/base/files/PathUtils.h"
-#include "aemu/base/system/System.h"
-#include "aemu/base/testing/TestSystem.h"
-#include "tests/VkTestUtils.h"
-
-#include "Standalone.h"
-
 #include <sstream>
 #include <string>
+
 #include <vulkan/vulkan.h>
+
+#include "FrameBuffer.h"
+#include "Standalone.h"
+#include "VkCommonOperations.h"
+#include "VulkanDispatch.h"
+#include "gfxstream/ArraySize.h"
+#include "gfxstream/files/PathUtils.h"
+#include "gfxstream/system/System.h"
+#include "gfxstream/testing/TestSystem.h"
+#include "tests/VkTestUtils.h"
 
 #ifdef _WIN32
 #include <windows.h>
-#include "aemu/base/system/Win32UnicodeString.h"
-using android::base::Win32UnicodeString;
+#include "gfxstream/system/Win32UnicodeString.h"
+using gfxstream::base::Win32UnicodeString;
 #else
 #include <dlfcn.h>
 #endif
 
-using android::base::arraySize;
-using android::base::pj;
-using android::base::TestSystem;
+using gfxstream::base::arraySize;
+using gfxstream::base::pj;
+using gfxstream::base::TestSystem;
 
 namespace gfxstream {
 namespace vk {

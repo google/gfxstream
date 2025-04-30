@@ -22,7 +22,7 @@
 #include <EGL/egl.h>
 
 #include "GLcommon/TranslatorIfaces.h"
-#include "aemu/base/threads/Thread.h"
+#include "gfxstream/threads/Thread.h"
 #include "render-utils/snapshot_operations.h"
 
 

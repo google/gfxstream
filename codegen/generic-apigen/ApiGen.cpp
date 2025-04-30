@@ -14,13 +14,15 @@
 * limitations under the License.
 */
 #include "ApiGen.h"
-#include "aemu/base/EnumFlags.h"
-#include "EntryPoint.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "strUtils.h"
 #include <errno.h>
 #include <sys/types.h>
+
+#include "EntryPoint.h"
+#include "gfxstream/EnumFlags.h"
 
 /* Define this to 1 to enable support for the 'isLarge' variable flag
  * that instructs the encoder to send large data buffers by a direct
@@ -1089,7 +1091,7 @@ R"(        // Do this on every iteration, as some commands may change the checks
 
         // TODO - add for return value;
         fprintf(fp, "\t\tcase OP_%s: {\n", e->name().c_str());
-        fprintf(fp, "\t\t\tandroid::base::beginTrace(\"%s decode\");\n", e->name().c_str());
+        fprintf(fp, "\t\t\tgfxstream::base::beginTrace(\"%s decode\");\n", e->name().c_str());
 
 #if INSTRUMENT_TIMING_HOST
         fprintf(fp, "\t\t\tstruct timespec ts0, ts1, ts2;\n");
@@ -1483,7 +1485,7 @@ R"(        // Do this on every iteration, as some commands may change the checks
                     "ts1.tv_sec, ts1.tv_nsec/1000, timeDiff, timeDiff2);\n", e->name().c_str());
 #endif
         fprintf(fp, "\t\t\tSET_LASTCALL(\"%s\");\n", e->name().c_str());
-        fprintf(fp, "\t\t\tandroid::base::endTrace();\n");
+        fprintf(fp, "\t\t\tgfxstream::base::endTrace();\n");
         fprintf(fp, "\t\t\tbreak;\n");
         fprintf(fp, "\t\t}\n");
 

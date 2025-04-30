@@ -20,9 +20,9 @@
 #include "OpenGLESDispatch/OpenGLDispatchLoader.h"
 #endif
 
-#include "aemu/base/Metrics.h"
-#include "aemu/base/system/System.h"
-#include "aemu/base/threads/Thread.h"
+#include "gfxstream/Metrics.h"
+#include "gfxstream/system/System.h"
+#include "gfxstream/threads/Thread.h"
 #include "gfxstream/host/Tracing.h"
 #include "gfxstream/host/logging.h"
 #include "gfxstream/host/sync_device.h"
@@ -34,7 +34,7 @@
 
 namespace gfxstream {
 
-using android::base::EventHangMetadata;
+using gfxstream::base::EventHangMetadata;
 
 #if GFXSTREAM_ENABLE_HOST_GLES
 using gl::EGLDispatch;
@@ -92,8 +92,8 @@ public:
 private:
     std::unique_ptr<SyncThread> mSyncThread = nullptr;
     // lock for the access to this object
-    android::base::Lock mLock;
-    using AutoLock = android::base::AutoLock;
+    gfxstream::base::Lock mLock;
+    using AutoLock = gfxstream::base::AutoLock;
 };
 
 static GlobalSyncThread* sGlobalSyncThread() {
@@ -105,7 +105,7 @@ static const uint32_t kTimelineInterval = 1;
 static const uint64_t kDefaultTimeoutNsecs = 5ULL * 1000ULL * 1000ULL * 1000ULL;
 
 SyncThread::SyncThread(bool hasGl, HealthMonitor<>* healthMonitor)
-    : android::base::Thread(android::base::ThreadFlags::MaskSignals, 512 * 1024),
+    : gfxstream::base::Thread(gfxstream::base::ThreadFlags::MaskSignals, 512 * 1024),
       mWorkerThreadPool(kNumWorkerThreads,
                         [this](Command&& command, ThreadPool::WorkerId id) {
                             doSyncThreadCmd(std::move(command), id);

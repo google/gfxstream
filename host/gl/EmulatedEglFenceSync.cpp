@@ -21,18 +21,18 @@
 #include "OpenGLESDispatch/EGLDispatch.h"
 #include "RenderThreadInfoGl.h"
 #include "StalePtrRegistry.h"
-#include "aemu/base/containers/Lookup.h"
-#include "aemu/base/containers/StaticMap.h"
+#include "gfxstream/containers/Lookup.h"
+#include "gfxstream/containers/StaticMap.h"
 #include "aemu/base/files/StreamSerializing.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/synchronization/Lock.h"
 
 namespace gfxstream {
 namespace gl {
 namespace {
 
-using android::base::AutoLock;
-using android::base::Lock;
-using android::base::StaticMap;
+using gfxstream::base::AutoLock;
+using gfxstream::base::Lock;
+using gfxstream::base::StaticMap;
 
 // Timeline class is meant to delete native fences after the
 // sync device has incremented the timeline.  We assume a

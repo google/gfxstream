@@ -4,8 +4,8 @@
 #if defined(__linux__) || defined(__APPLE__)
 
 #include <mutex>
-#include "aemu/base/files/PathUtils.h"
-#include "aemu/base/memory/MemoryTracker.h"
+#include "gfxstream/files/PathUtils.h"
+#include "gfxstream/memory/MemoryTracker.h"
 
 #if 0
 
@@ -14,10 +14,10 @@
         static std::once_flag once_flag;                                \
         const std::string func(__FUNCTION__);                           \
         std::call_once(once_flag, [&func]() {                           \
-            if (android::base::MemoryTracker::get()) {                            \
+            if (gfxstream::base::MemoryTracker::get()) {                            \
                 std::string baseName; \
-                android::base::PathUtils::split(std::string(__FILE__), NULL, &baseName); \
-                android::base::MemoryTracker::get()->addToGroup(                  \
+                gfxstream::base::PathUtils::split(std::string(__FILE__), NULL, &baseName); \
+                gfxstream::base::MemoryTracker::get()->addToGroup(                  \
                         group, baseName.r() + ":" + func);            \
             }                                                           \
         });                                                             \

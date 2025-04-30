@@ -14,8 +14,8 @@
 
 #include "GLSnapshotTesting.h"
 
-#include "aemu/base/files/MemStream.h"
-#include "aemu/base/system/System.h"
+#include "gfxstream/files/MemStream.h"
+#include "gfxstream/system/System.h"
 #include "render-utils/snapshot_operations.h"
 
 #include "GLTestUtils.h"

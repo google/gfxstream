@@ -19,6 +19,7 @@ if (NOT TARGET gfxstream_host_address_space)
         gfxstream_host_address_space
         PUBLIC
         aemu-base.headers
+        gfxstream_common_base
         gfxstream_host_address_space.headers
         gfxstream_host_logging)
 endif()

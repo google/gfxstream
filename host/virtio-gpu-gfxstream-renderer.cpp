@@ -22,8 +22,8 @@ extern "C" {
 
 #include "FrameBuffer.h"
 #include "VirtioGpuFrontend.h"
-#include "aemu/base/Metrics.h"
-#include "aemu/base/system/System.h"
+#include "gfxstream/Metrics.h"
+#include "gfxstream/system/System.h"
 #include "gfxstream/Strings.h"
 #include "gfxstream/host/Features.h"
 #include "gfxstream/host/Tracing.h"
@@ -37,10 +37,10 @@ extern "C" {
 #include "vk_util.h"
 #include "vulkan/VulkanDispatch.h"
 
-using android::base::MetricsLogger;
-using gfxstream::RendererPtr;
+using gfxstream::MetricsLogger;
 using gfxstream::host::LogLevel;
 using gfxstream::host::VirtioGpuFrontend;
+using gfxstream::RendererPtr;
 
 namespace {
 
@@ -679,9 +679,10 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
                 break;
             }
             case STREAM_RENDERER_PARAM_METRICS_CALLBACK_ABORT: {
-                emugl::setDieFunction(
-                    reinterpret_cast<stream_renderer_param_metrics_callback_abort>(
-                        static_cast<uintptr_t>(param.value)));
+                GFXSTREAM_FATAL(
+                    "Deprecated STREAM_RENDERER_PARAM_METRICS_CALLBACK_ABORT. "
+                    "Use STREAM_RENDERER_PARAM_DEBUG_CALLBACK instead which includes "
+                    "fatal logs.");
                 break;
             }
             default: {

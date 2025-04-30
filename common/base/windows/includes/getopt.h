@@ -3,8 +3,7 @@
    the end of C declarations. */
 
 
-#ifndef _AEMU_GETOPT_H_
-#define _AEMU_GETOPT_H_
+#pragma once
 
 #ifndef __BEGIN_DECLS
 #ifdef __cplusplus
@@ -52,5 +51,3 @@ extern int getopt_long_only(int nargc,
                             const struct option* long_options,
                             int* idx);
 __END_DECLS
-
-#endif	/* Not _AEMU_GETOPT_H_ */

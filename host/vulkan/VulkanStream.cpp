@@ -18,7 +18,7 @@
 #include <vector>
 
 #include "gfxstream/host/iostream.h"
-#include "aemu/base/BumpPool.h"
+#include "gfxstream/BumpPool.h"
 
 namespace gfxstream {
 namespace vk {
@@ -167,7 +167,7 @@ VulkanHandleMapping* VulkanStream::handleMapping() const { return mCurrentHandle
 
 uint32_t VulkanStream::getFeatureBits() const { return mFeatureBits; }
 
-android::base::BumpPool* VulkanStream::pool() { return &mPool; }
+gfxstream::base::BumpPool* VulkanStream::pool() { return &mPool; }
 
 VulkanMemReadingStream::VulkanMemReadingStream(uint8_t* start, const gfxstream::host::FeatureSet& features)
     : VulkanStream(nullptr, features), mStart(start) {}

@@ -14,15 +14,15 @@
 
 #include "VulkanDispatch.h"
 
-#include "aemu/base/SharedLibrary.h"
-#include "aemu/base/files/PathUtils.h"
-#include "aemu/base/synchronization/Lock.h"
-#include "aemu/base/system/System.h"
+#include "gfxstream/SharedLibrary.h"
+#include "gfxstream/files/PathUtils.h"
+#include "gfxstream/synchronization/Lock.h"
+#include "gfxstream/system/System.h"
 #include "gfxstream/host/logging.h"
 
-using android::base::AutoLock;
-using android::base::Lock;
-using android::base::pj;
+using gfxstream::base::AutoLock;
+using gfxstream::base::Lock;
+using gfxstream::base::pj;
 
 namespace gfxstream {
 namespace vk {
@@ -34,20 +34,20 @@ static std::string icdJsonNameToProgramAndLauncherPaths(const std::string& icdFi
 #else
     const char* sep = ":";
 #endif
-    return pj({android::base::getProgramDirectory(), suffix}) + sep +
-           pj({android::base::getLauncherDirectory(), suffix});
+    return pj({gfxstream::base::getProgramDirectory(), suffix}) + sep +
+           pj({gfxstream::base::getLauncherDirectory(), suffix});
 }
 
 static void setIcdPaths(const std::string& icdFilename) {
     const std::string paths = icdJsonNameToProgramAndLauncherPaths(icdFilename);
     GFXSTREAM_INFO("Setting ICD filenames for the loader = %s", paths.c_str());
     // Set both for backwards compatibility
-    android::base::setEnvironmentVariable("VK_DRIVER_FILES", paths);
-    android::base::setEnvironmentVariable("VK_ICD_FILENAMES", paths);
+    gfxstream::base::setEnvironmentVariable("VK_DRIVER_FILES", paths);
+    gfxstream::base::setEnvironmentVariable("VK_ICD_FILENAMES", paths);
 }
 
 static void initIcdPaths(bool forTesting) {
-    auto androidIcd = android::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD");
+    auto androidIcd = gfxstream::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD");
     if (androidIcd == "") {
         // Rely on user to set VK_DRIVER_FILES
         return;
@@ -56,7 +56,7 @@ static void initIcdPaths(bool forTesting) {
     if (forTesting) {
         const char* testingICD = "swiftshader";
         GFXSTREAM_INFO("%s: In test environment, enforcing %s ICD.", __func__, testingICD);
-        android::base::setEnvironmentVariable("ANDROID_EMU_VK_ICD", testingICD);
+        gfxstream::base::setEnvironmentVariable("ANDROID_EMU_VK_ICD", testingICD);
         androidIcd = testingICD;
     }
     if (androidIcd == "lavapipe") {
@@ -70,7 +70,7 @@ static void initIcdPaths(bool forTesting) {
         // Mac: Use MoltenVK by default unless GPU mode is set to swiftshader
         if (androidIcd != "moltenvk") {
             GFXSTREAM_WARNING("%s: Unknown ICD, resetting to MoltenVK", __func__);
-            android::base::setEnvironmentVariable("ANDROID_EMU_VK_ICD", "moltenvk");
+            gfxstream::base::setEnvironmentVariable("ANDROID_EMU_VK_ICD", "moltenvk");
         }
         setIcdPaths("MoltenVK_icd.json");
 
@@ -81,9 +81,9 @@ static void initIcdPaths(bool forTesting) {
         // 3: Log errors, warnings and informational messages.
         // 4: Log errors, warnings, infos and debug messages.
         const bool verboseLogs =
-            (android::base::getEnvironmentVariable("ANDROID_EMUGL_VERBOSE") == "1");
+            (gfxstream::base::getEnvironmentVariable("ANDROID_EMUGL_VERBOSE") == "1");
         const char* logLevelValue = verboseLogs ? "4" : "1";
-        android::base::setEnvironmentVariable("MVK_CONFIG_LOG_LEVEL", logLevelValue);
+        gfxstream::base::setEnvironmentVariable("MVK_CONFIG_LOG_LEVEL", logLevelValue);
 
         //  Limit MoltenVK to use single queue, as some older ANGLE versions
         //  expect this for -guest-angle to work.
@@ -91,21 +91,21 @@ static void initIcdPaths(bool forTesting) {
         //  synchronization, and use Metal's implicit guarantees that all operations
         //  submitted to a queue will give the same result as if they had been run in
         //  submission order.
-        android::base::setEnvironmentVariable("MVK_CONFIG_VK_SEMAPHORE_SUPPORT_STYLE", "0");
+        gfxstream::base::setEnvironmentVariable("MVK_CONFIG_VK_SEMAPHORE_SUPPORT_STYLE", "0");
 
         // TODO(b/364055067)
         // MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS is not working correctly
-        android::base::setEnvironmentVariable("MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS", "0");
+        gfxstream::base::setEnvironmentVariable("MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS", "0");
 
         // MVK_CONFIG_USE_MTLHEAP is required for VK_EXT_external_memory_metal
-        android::base::setEnvironmentVariable("MVK_CONFIG_USE_MTLHEAP", "1");
+        gfxstream::base::setEnvironmentVariable("MVK_CONFIG_USE_MTLHEAP", "1");
 
         // TODO(b/351765838): VVL won't work with MoltenVK due to the current
         //  way of external memory handling, add it into disable list to
         //  avoid users enabling it implicitly (i.e. via vkconfig).
         //  It can be enabled with VK_LOADER_LAYERS_ALLOW=VK_LAYER_KHRONOS_validation
         GFXSTREAM_INFO("Vulkan Validation Layers won't be enabled with MoltenVK");
-        android::base::setEnvironmentVariable("VK_LOADER_LAYERS_DISABLE",
+        gfxstream::base::setEnvironmentVariable("VK_LOADER_LAYERS_DISABLE",
                                               "VK_LAYER_KHRONOS_validation");
 #else
         // By default, on other platforms, just use whatever the system
@@ -127,7 +127,7 @@ class SharedLibraries {
             return false;
         }
 
-        auto library = android::base::SharedLibrary::open(path.c_str());
+        auto library = gfxstream::base::SharedLibrary::open(path.c_str());
         if (library) {
             mLibs.push_back(library);
             GFXSTREAM_INFO("Added library: %s", path.c_str());
@@ -162,7 +162,7 @@ class SharedLibraries {
 
    private:
     size_t mSizeLimit;
-    std::vector<android::base::SharedLibrary*> mLibs;
+    std::vector<gfxstream::base::SharedLibrary*> mLibs;
 };
 
 static constexpr size_t getVulkanLibraryNumLimits() {
@@ -197,7 +197,7 @@ class VulkanDispatchImpl {
 
     std::vector<std::string> getPossibleLoaderPaths() {
         const std::string explicitPath =
-            android::base::getEnvironmentVariable("ANDROID_EMU_VK_LOADER_PATH");
+            gfxstream::base::getEnvironmentVariable("ANDROID_EMU_VK_LOADER_PATH");
         if (!explicitPath.empty()) {
             return {
                 explicitPath,
@@ -206,7 +206,7 @@ class VulkanDispatchImpl {
 
         const std::vector<std::string> possibleBasenames = getPossibleLoaderPathBasenames();
 
-        const std::string explicitIcd = android::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD");
+        const std::string explicitIcd = gfxstream::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD");
 
 #ifdef _WIN32
         constexpr const bool isWindows = true;
@@ -221,15 +221,15 @@ class VulkanDispatchImpl {
 
         if (mForTesting || explicitIcd == "mock") {
             possibleDirectories = {
-                pj({android::base::getProgramDirectory(), "testlib64"}),
-                pj({android::base::getLauncherDirectory(), "testlib64"}),
+                pj({gfxstream::base::getProgramDirectory(), "testlib64"}),
+                pj({gfxstream::base::getLauncherDirectory(), "testlib64"}),
             };
         }
 
         possibleDirectories.push_back(
-            pj({android::base::getProgramDirectory(), "lib64", "vulkan"}));
+            pj({gfxstream::base::getProgramDirectory(), "lib64", "vulkan"}));
         possibleDirectories.push_back(
-            pj({android::base::getLauncherDirectory(), "lib64", "vulkan"}));
+            pj({gfxstream::base::getLauncherDirectory(), "lib64", "vulkan"}));
 
         std::vector<std::string> possiblePaths;
         for (const std::string& possibleDirectory : possibleDirectories) {

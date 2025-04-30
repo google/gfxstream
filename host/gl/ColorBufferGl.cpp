@@ -32,7 +32,7 @@
 
 #define DEBUG_CB_FBO 0
 
-using android::base::ManagedDescriptor;
+using gfxstream::base::ManagedDescriptor;
 
 namespace gfxstream {
 namespace gl {

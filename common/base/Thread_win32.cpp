@@ -19,7 +19,6 @@
 
 #include "gfxstream/threads/Thread.h"
 #include "gfxstream/system/Win32UnicodeString.h"
-#include "host-common/logging.h"
 
 namespace gfxstream {
 namespace base {
@@ -54,7 +53,6 @@ bool Thread::start() {
     if (mNameOpt.has_value()) {
         Win32UnicodeString name(mNameOpt->c_str());
         if (!mNameOpt->empty() && name.size() == 0) {
-            ERR("Invalid thread name.");
             return ret;
         }
         HRESULT res = SetThreadDescription(mThread, name.c_str());
@@ -74,7 +72,6 @@ bool Thread::start() {
                 ss << res;
             }
             ss << ".";
-            ERR("%s", ss.str().c_str());
         }
     }
     return ret;

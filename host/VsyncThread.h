@@ -13,8 +13,8 @@
 // limitations under the License.
 #pragma once
 
-#include "aemu/base/threads/FunctorThread.h"
-#include "aemu/base/synchronization/MessageChannel.h"
+#include "gfxstream/threads/FunctorThread.h"
+#include "gfxstream/synchronization/MessageChannel.h"
 
 #include <inttypes.h>
 #include <functional>
@@ -72,8 +72,8 @@ private:
     uint64_t mPeriodNs = 0;
     uint64_t mCount = 0;
     bool mExiting = false;
-    android::base::MessageChannel<VsyncThreadCommand, 128> mChannel;
-    android::base::FunctorThread mThread;
+    gfxstream::base::MessageChannel<VsyncThreadCommand, 128> mChannel;
+    gfxstream::base::FunctorThread mThread;
 };
 
 }  // namespace gfxstream

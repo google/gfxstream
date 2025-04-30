@@ -17,7 +17,7 @@ files_lib_gl_openglesdispatch = files(
 lib_gl_openglesdispatch = static_library(
   'gl_openglesdispatch',
   files_lib_gl_openglesdispatch,
-  include_directories: [inc_gl_openglesdispatch, inc_gfxstream_include, inc_include],
+  include_directories: [inc_gl_openglesdispatch, inc_common_base, inc_gfxstream_include, inc_include],
   cpp_args: gfxstream_host_args,
-  link_with: [lib_egl_translator, lib_glescm_translator, lib_glesv2_translator]
+  link_with: [lib_egl_translator, lib_glescm_translator, lib_glesv2_translator, lib_common_base]
 )

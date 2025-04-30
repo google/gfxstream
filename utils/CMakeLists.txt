@@ -20,6 +20,7 @@ if (ENABLE_VKCEREAL_TESTS)
     target_link_libraries(
         gfxstream_utils_unittests
         PRIVATE
+        gfxstream_host_library
         gfxstream_host_logging
         gfxstream_utils
         ${GFXSTREAM_BASE_LIB}

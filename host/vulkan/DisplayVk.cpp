@@ -11,8 +11,6 @@
 namespace gfxstream {
 namespace vk {
 
-using emugl::ABORT_REASON_OTHER;
-using emugl::FatalError;
 using gfxstream::vk::formatIsDepthOrStencil;
 using gfxstream::vk::formatIsSInt;
 using gfxstream::vk::formatIsUInt;
@@ -48,9 +46,9 @@ bool shouldRecreateSwapchain(VkResult result) {
 DisplayVk::DisplayVk(const VulkanDispatch& vk, VkPhysicalDevice vkPhysicalDevice,
                      uint32_t swapChainQueueFamilyIndex, uint32_t compositorQueueFamilyIndex,
                      VkDevice vkDevice, VkQueue compositorVkQueue,
-                     std::shared_ptr<android::base::Lock> compositorVkQueueLock,
+                     std::shared_ptr<gfxstream::base::Lock> compositorVkQueueLock,
                      VkQueue swapChainVkqueue,
-                     std::shared_ptr<android::base::Lock> swapChainVkQueueLock)
+                     std::shared_ptr<gfxstream::base::Lock> swapChainVkQueueLock)
     : m_vk(vk),
       m_vkPhysicalDevice(vkPhysicalDevice),
       m_swapChainQueueFamilyIndex(swapChainQueueFamilyIndex),
@@ -85,14 +83,14 @@ DisplayVk::~DisplayVk() {
 
 void DisplayVk::drainQueues() {
     {
-        android::base::AutoLock lock(*m_swapChainVkQueueLock);
+        gfxstream::base::AutoLock lock(*m_swapChainVkQueueLock);
         VK_CHECK(vk_util::waitForVkQueueIdleWithRetry(m_vk, m_swapChainVkQueue));
     }
     // We don't assume all VkCommandBuffer submitted to m_compositorVkQueueLock is always followed
     // by another operation on the m_swapChainVkQueue. Therefore, only waiting for the
     // m_swapChainVkQueue is not enough to guarantee all resources used are free to be destroyed.
     {
-        android::base::AutoLock lock(*m_compositorVkQueueLock);
+        gfxstream::base::AutoLock lock(*m_compositorVkQueueLock);
         VK_CHECK(vk_util::waitForVkQueueIdleWithRetry(m_vk, m_compositorVkQueue));
     }
 }
@@ -228,7 +226,7 @@ DisplayVk::PostResult DisplayVk::postImpl(const BorrowedImageInfo* sourceImageIn
     const auto* sourceImageInfoVk = static_cast<const BorrowedImageInfoVk*>(sourceImageInfo);
     struct ImageBorrower {
         ImageBorrower(const VulkanDispatch& vk, VkQueue queue,
-                      std::shared_ptr<android::base::Lock> queueLock, uint32_t usedQueueFamilyIndex,
+                      std::shared_ptr<gfxstream::base::Lock> queueLock, uint32_t usedQueueFamilyIndex,
                       const BorrowedImageInfoVk& image, const ImageBorrowResource& acquireResource,
                       const ImageBorrowResource& releaseResource)
             : m_vk(vk),
@@ -308,7 +306,7 @@ DisplayVk::PostResult DisplayVk::postImpl(const BorrowedImageInfo* sourceImageIn
             };
             // Submit the acquire commands.
             {
-                android::base::AutoLock lock(*m_queueLock);
+                gfxstream::base::AutoLock lock(*m_queueLock);
                 VK_CHECK(
                     m_vk.vkQueueSubmit(m_vkQueue, 1, &submitInfo, acquireResource.m_completeFence));
             }
@@ -316,7 +314,7 @@ DisplayVk::PostResult DisplayVk::postImpl(const BorrowedImageInfo* sourceImageIn
 
         const VulkanDispatch& m_vk;
         const VkQueue m_vkQueue;
-        std::shared_ptr<android::base::Lock> m_queueLock;
+        std::shared_ptr<gfxstream::base::Lock> m_queueLock;
         const ImageBorrowResource& m_releaseResource;
         ~ImageBorrower() {
             VkSubmitInfo submitInfo = {
@@ -331,7 +329,7 @@ DisplayVk::PostResult DisplayVk::postImpl(const BorrowedImageInfo* sourceImageIn
             };
             // Submit the release commands.
             {
-                android::base::AutoLock lock(*m_queueLock);
+                gfxstream::base::AutoLock lock(*m_queueLock);
                 VK_CHECK(m_vk.vkQueueSubmit(m_vkQueue, 1, &submitInfo,
                                             m_releaseResource.m_completeFence));
             }
@@ -511,7 +509,7 @@ DisplayVk::PostResult DisplayVk::postImpl(const BorrowedImageInfo* sourceImageIn
                                .signalSemaphoreCount = 1,
                                .pSignalSemaphores = &postCompleteSemaphore};
     {
-        android::base::AutoLock lock(*m_compositorVkQueueLock);
+        gfxstream::base::AutoLock lock(*m_compositorVkQueueLock);
         VK_CHECK(m_vk.vkQueueSubmit(m_compositorVkQueue, 1, &submitInfo, postCompleteFence));
     }
     std::shared_future<std::shared_ptr<PostResource>> postResourceFuture =
@@ -540,7 +538,7 @@ DisplayVk::PostResult DisplayVk::postImpl(const BorrowedImageInfo* sourceImageIn
                                     .pImageIndices = &imageIndex};
     VkResult presentRes;
     {
-        android::base::AutoLock lock(*m_swapChainVkQueueLock);
+        gfxstream::base::AutoLock lock(*m_swapChainVkQueueLock);
         presentRes = m_vk.vkQueuePresentKHR(m_swapChainVkQueue, &presentInfo);
     }
     if (shouldRecreateSwapchain(presentRes)) {

@@ -43,10 +43,10 @@
 #include "GLcommon/TranslatorIfaces.h"
 #include "GraphicsDriverLock.h"
 #include "ThreadInfo.h"
-#include "aemu/base/SharedLibrary.h"
+#include "gfxstream/SharedLibrary.h"
 #include "aemu/base/files/Stream.h"
-#include "aemu/base/synchronization/Lock.h"
-#include "aemu/base/system/System.h"
+#include "gfxstream/synchronization/Lock.h"
+#include "gfxstream/system/System.h"
 #include "gfxstream/host/logging.h"
 #include "gfxstream/host/vm_operations.h"
 
@@ -78,11 +78,11 @@ static bool unbindAuxiliaryContext();
 #define tls_thread  EglThreadInfo::get()
 
 EglGlobalInfo* g_eglInfo = NULL;
-android::base::Lock  s_surfaceDestroyLock;
+gfxstream::base::Lock  s_surfaceDestroyLock;
 
 void initGlobalInfo()
 {
-    android::base::AutoLock mutex(*graphicsDriverLock());
+    gfxstream::base::AutoLock mutex(*graphicsDriverLock());
     if (!g_eglInfo) {
         g_eglInfo = EglGlobalInfo::getInstance();
     }
@@ -790,7 +790,7 @@ EGLAPI EGLSurface EGLAPIENTRY eglCreateWindowSurface(EGLDisplay display, EGLConf
         RETURN_ERROR(EGL_NO_SURFACE,EGL_BAD_ALLOC);
     }
 
-    android::base::AutoLock mutex(*graphicsDriverLock());
+    gfxstream::base::AutoLock mutex(*graphicsDriverLock());
     unsigned int width,height;
     if(!dpy->nativeType()->checkWindowPixelFormatMatch(
             win, cfg->nativeFormat(), &width, &height)) {
@@ -853,7 +853,7 @@ EGLAPI EGLSurface EGLAPIENTRY eglCreatePbufferSurface(
 
     tmpPbSurfacePtr->getAttrib(EGL_MIPMAP_TEXTURE, &pbinfo.hasMipmap);
 
-    android::base::AutoLock mutex(*graphicsDriverLock());
+    gfxstream::base::AutoLock mutex(*graphicsDriverLock());
     EglOS::Surface* pb = dpy->nativeType()->createPbufferSurface(
             cfg->nativeFormat(), &pbinfo);
     if(!pb) {
@@ -867,7 +867,7 @@ EGLAPI EGLSurface EGLAPIENTRY eglCreatePbufferSurface(
 
 EGLAPI EGLBoolean EGLAPIENTRY eglDestroySurface(EGLDisplay display, EGLSurface surface) {
     VALIDATE_DISPLAY(display);
-    android::base::AutoLock mutex(*graphicsDriverLock());
+    gfxstream::base::AutoLock mutex(*graphicsDriverLock());
     SurfacePtr srfc = dpy->getSurface(surface);
     if(!srfc.get()) {
         RETURN_ERROR(EGL_FALSE,EGL_BAD_SURFACE);
@@ -1018,7 +1018,7 @@ static EGLContext eglCreateOrLoadContext(EGLDisplay display, EGLConfig config,
         assert(shareGroupId);
     }
 
-    android::base::AutoLock mutex(*graphicsDriverLock());
+    gfxstream::base::AutoLock mutex(*graphicsDriverLock());
 
     ContextPtr ctx(new EglContext(dpy, shareGroupId, cfg,
                                   glesCtx, glesVersion,
@@ -1049,7 +1049,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglDestroyContext(EGLDisplay display, EGLContext c
     VALIDATE_DISPLAY(display);
     VALIDATE_CONTEXT(context);
 
-    android::base::AutoLock mutex(*graphicsDriverLock());
+    gfxstream::base::AutoLock mutex(*graphicsDriverLock());
     dpy->removeContext(context);
     return EGL_TRUE;
 }
@@ -1115,7 +1115,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglMakeCurrent(EGLDisplay display,
     if(releaseContext) { //releasing current context
        if(prevCtx.get()) {
            g_eglInfo->getIface(prevCtx->version())->flush();
-           android::base::AutoLock mutex(*graphicsDriverLock());
+           gfxstream::base::AutoLock mutex(*graphicsDriverLock());
            if(!dpy->nativeType()->makeCurrent(NULL,NULL,NULL)) {
                RETURN_ERROR(EGL_FALSE,EGL_BAD_ACCESS);
            }
@@ -1168,7 +1168,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglMakeCurrent(EGLDisplay display,
         }
 
         {
-            android::base::AutoLock mutex(*graphicsDriverLock());
+            gfxstream::base::AutoLock mutex(*graphicsDriverLock());
             if (!dpy->nativeType()->makeCurrent(
                         newReadPtr->native(),
                         newDrawPtr->native(),
@@ -1265,7 +1265,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglSwapBuffers(EGLDisplay display, EGLSurface surf
     }
 
     {
-        android::base::AutoLock mutex(*graphicsDriverLock());
+        gfxstream::base::AutoLock mutex(*graphicsDriverLock());
         dpy->nativeType()->swapBuffers(Srfc->native());
     }
     return EGL_TRUE;
@@ -1273,7 +1273,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglSwapBuffers(EGLDisplay display, EGLSurface surf
 
 EGLAPI EGLContext EGLAPIENTRY eglGetCurrentContext(void) {
     MEM_TRACE("EMUGL");
-    android::base::AutoLock mutex(*graphicsDriverLock());
+    gfxstream::base::AutoLock mutex(*graphicsDriverLock());
     ThreadInfo* thread = getThreadInfo();
     EglDisplay* dpy    = static_cast<EglDisplay*>(thread->eglDisplay);
     ContextPtr  ctx    = thread->eglContext;
@@ -1291,7 +1291,7 @@ EGLAPI EGLContext EGLAPIENTRY eglGetCurrentContext(void) {
 
 EGLAPI EGLSurface EGLAPIENTRY eglGetCurrentSurface(EGLint readdraw) {
     MEM_TRACE("EMUGL");
-    android::base::AutoLock mutex(*graphicsDriverLock());
+    gfxstream::base::AutoLock mutex(*graphicsDriverLock());
     if (!EglValidate::surfaceTarget(readdraw)) {
         return EGL_NO_SURFACE;
     }
@@ -1506,7 +1506,7 @@ EGLAPI EGLSyncKHR EGLAPIENTRY eglCreateSyncKHR(EGLDisplay dpy, EGLenum type, con
 
 EGLAPI EGLint EGLAPIENTRY eglClientWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint flags, EGLTimeKHR timeout) {
     MEM_TRACE("EMUGL");
-    android::base::AutoLock mutex(*graphicsDriverLock());
+    gfxstream::base::AutoLock mutex(*graphicsDriverLock());
     if (!g_eglInfo->isEgl2EglSyncSafeToUse()) {
         return EGL_CONDITION_SATISFIED_KHR;
     }
@@ -1654,7 +1654,7 @@ EGLAPI void EGLAPIENTRY eglWaitImageFenceANDROID(EGLDisplay dpy, void* fence) {
 
 EGLAPI void EGLAPIENTRY eglAddLibrarySearchPathANDROID(const char* path) {
     MEM_TRACE("EMUGL");
-    android::base::SharedLibrary::addLibrarySearchPath(path);
+    gfxstream::base::SharedLibrary::addLibrarySearchPath(path);
 }
 
 EGLAPI EGLBoolean EGLAPIENTRY eglQueryVulkanInteropSupportANDROID(void) {

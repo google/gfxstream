@@ -16,7 +16,7 @@
 
 #include "GLcommon/TextureData.h"
 
-#include "aemu/base/containers/Lookup.h"
+#include "gfxstream/containers/Lookup.h"
 #include "aemu/base/files/StreamSerializing.h"
 
 #include "GLcommon/GLEScontext.h"
@@ -24,7 +24,7 @@
 
 #include <cassert>
 
-using android::base::find;
+using gfxstream::base::find;
 
 TextureData::TextureData(android::base::Stream* stream) : ObjectData(stream) {
     // The current TextureData structure is wrong when dealing with mipmaps.

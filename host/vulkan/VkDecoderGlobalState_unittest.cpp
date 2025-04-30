@@ -17,7 +17,7 @@
 
 #include "VkDecoderGlobalState.cpp"
 
-#include "aemu/base/testing/TestUtils.h"
+#include "gfxstream/testing/TestUtils.h"
 
 namespace gfxstream {
 namespace vk {
@@ -139,7 +139,7 @@ TEST_F(VkDecoderGlobalStateExternalFenceDeathTest, undestroyedFences) {
             pool.add(fence);
         },
         MatchesStdRegex(
-            "External fence pool for device 0000000022220000|0x22220000 destroyed but 1 "
+            "External fence pool for VkDevice:0000000022220000|0x22220000 destroyed but 1 "
             "fences still not destroyed."));
 }
 

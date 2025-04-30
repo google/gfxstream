@@ -17,10 +17,10 @@
 #include "GLESVersionDetector.h"
 
 #include "OpenGLESDispatch/EGLDispatch.h"
-#include "aemu/base/system/System.h"
-#include "aemu/base/misc/StringUtils.h"
 #include "gfxstream/Strings.h"
 #include "gfxstream/host/renderer_operations.h"
+#include "gfxstream/misc/StringUtils.h"
+#include "gfxstream/system/System.h"
 
 #include <algorithm>
 
@@ -237,7 +237,7 @@ std::string filterExtensionsBasedOnMaxVersion(const gfxstream::host::FeatureSet&
         }
     };
 
-    android::base::split<std::string>(exts, " ", add);
+    gfxstream::base::split<std::string>(exts, " ", add);
 
     return filteredExtensions;
 }

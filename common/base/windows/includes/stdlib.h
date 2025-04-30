@@ -13,12 +13,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include_next <stdlib.h>
 
 #ifndef _AEMU_STDLIB_H_
 #define _AEMU_STDLIB_H_
+
 #include "compat_compiler.h"
 ANDROID_BEGIN_HEADER
-#include_next <stdlib.h>
 
 int mkstemp(char *tmpl);
 

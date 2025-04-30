@@ -3,6 +3,7 @@ module(
     version = "0.0.1",
 )
 
+bazel_dep(name = "abseil-cpp", version = "20250127.0", repo_name = "com_google_absl")
 bazel_dep(name = "aemu", version = "0.0.1")
 bazel_dep(name = "googletest", version = "1.15.2", repo_name = "com_google_googletest")
 bazel_dep(name = "platforms", version = "0.0.11")

@@ -9,11 +9,10 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
+#include_next <time.h>
 
 #ifndef _AEMU_TIME_H_
 #define _AEMU_TIME_H_
-
-#include_next <time.h>
 
 #ifndef _AEMU_SYS_CDEFS_H_
 #include <sys/cdefs.h>

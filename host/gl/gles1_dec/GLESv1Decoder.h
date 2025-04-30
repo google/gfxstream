@@ -19,7 +19,7 @@
 #include "gles1_dec.h"
 
 #include "GLDecoderContextData.h"
-#include "aemu/base/SharedLibrary.h"
+#include "gfxstream/SharedLibrary.h"
 
 namespace gfxstream {
 namespace gl {
@@ -92,7 +92,7 @@ private:
         static void * s_getProc(const char *name, void *userData);
 
     GLDecoderContextData *m_contextData;
-    android::base::SharedLibrary* m_glesDso;
+    gfxstream::base::SharedLibrary* m_glesDso;
 };
 
 }  // namespace gl

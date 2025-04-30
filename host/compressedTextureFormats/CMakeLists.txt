@@ -30,7 +30,6 @@ if (ENABLE_VKCEREAL_TESTS)
     target_link_libraries(
         gfxstream-compressedTextures_unittests
         PRIVATE
-        aemu-base.headers
         gfxstream-compressedTextures
         ${GFXSTREAM_BASE_LIB}
         gtest_main

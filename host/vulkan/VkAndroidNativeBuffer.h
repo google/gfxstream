@@ -25,11 +25,11 @@
 
 #include "VkCommonOperations.h"
 #include "VkQsriTimeline.h"
-#include "aemu/base/AsyncResult.h"
-#include "aemu/base/BumpPool.h"
-#include "aemu/base/ThreadAnnotations.h"
-#include "aemu/base/synchronization/ConditionVariable.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/AsyncResult.h"
+#include "gfxstream/BumpPool.h"
+#include "gfxstream/ThreadAnnotations.h"
+#include "gfxstream/synchronization/ConditionVariable.h"
+#include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/host/BackendCallbacks.h"
 #include "goldfish_vk_private_defs.h"
 
@@ -45,7 +45,7 @@ struct VulkanDispatch;
 class AndroidNativeBufferInfo {
    public:
     static std::unique_ptr<AndroidNativeBufferInfo> create(
-        VkEmulation* emu, VulkanDispatch* vk, VkDevice device, android::base::BumpPool& allocator,
+        VkEmulation* emu, VulkanDispatch* vk, VkDevice device, gfxstream::base::BumpPool& allocator,
         const VkImageCreateInfo* pCreateInfo, const VkNativeBufferANDROID* nativeBufferANDROID,
         const VkAllocationCallbacks* pAllocator, const VkPhysicalDeviceMemoryProperties* memProps);
 

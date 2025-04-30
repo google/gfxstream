@@ -14,7 +14,7 @@
 
 #include "CompressedImageInfo.h"
 
-#include "aemu/base/ArraySize.h"
+#include "gfxstream/ArraySize.h"
 #include "gfxstream/host/logging.h"
 #include "vulkan/VkFormatUtils.h"
 #include "vulkan/emulated_textures/shaders/DecompressionShaders.h"

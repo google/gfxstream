@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/logging/CLog.h"
-#include "aemu/base/Optional.h"
-#include "aemu/base/system/Memory.h"
-#include "aemu/base/system/System.h"
+#include "gfxstream/Optional.h"
+#include "gfxstream/system/Memory.h"
+#include "gfxstream/system/System.h"
 
 #include <Cocoa/Cocoa.h>
 #include <CoreFoundation/CoreFoundation.h>
@@ -36,7 +35,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
-namespace android {
+namespace gfxstream {
 namespace base {
 
 // From:

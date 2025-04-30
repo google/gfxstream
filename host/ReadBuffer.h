@@ -14,6 +14,7 @@
 * limitations under the License.
 */
 #pragma once
+
 #include "aemu/base/files/Stream.h"
 #include "gfxstream/host/iostream.h"
 

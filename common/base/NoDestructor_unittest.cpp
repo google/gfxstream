@@ -2,15 +2,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 #include "gfxstream/memory/NoDestructor.h"
+
+#include <cstdlib>
 #include <string>
 #include <utility>
 #include <gtest/gtest.h>
-#include "gfxstream/Log.h"
 
 namespace android::base {
 namespace {
 struct CheckOnDestroy {
-  ~CheckOnDestroy() { dfatal("Destructor was called"); }
+  ~CheckOnDestroy() { std::abort(); }
 };
 TEST(NoDestructorTest, SkipsDestructors) {
   NoDestructor<CheckOnDestroy> destructor_should_not_run;

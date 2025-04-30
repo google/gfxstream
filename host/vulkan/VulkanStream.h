@@ -19,13 +19,13 @@
 #include <vector>
 
 #include "VulkanHandleMapping.h"
-#include "aemu/base/BumpPool.h"
+#include "gfxstream/BumpPool.h"
 #include "aemu/base/files/Stream.h"
 #include "aemu/base/files/StreamSerializing.h"
 #include "gfxstream/host/Features.h"
 #include "goldfish_vk_private_defs.h"
 
-namespace android {
+namespace gfxstream {
 namespace base {
 class BumpPool;
 }  // namespace base
@@ -74,12 +74,12 @@ class VulkanStream : public android::base::Stream {
 
     uint32_t getFeatureBits() const;
 
-    android::base::BumpPool* pool();
+    gfxstream::base::BumpPool* pool();
 
    private:
     size_t remainingWriteBufferSize() const;
     ssize_t bufferedWrite(const void* buffer, size_t size);
-    android::base::BumpPool mPool;
+    gfxstream::base::BumpPool mPool;
     size_t mWritePos = 0;
     std::vector<uint8_t> mWriteBuffer;
     IOStream* mStream = nullptr;

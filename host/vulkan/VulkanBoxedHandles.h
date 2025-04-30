@@ -20,11 +20,11 @@
 #include "VulkanDispatch.h"
 #include "VulkanHandles.h"
 #include "VulkanStream.h"
-#include "aemu/base/ThreadAnnotations.h"
-#include "aemu/base/containers/HybridEntityManager.h"
-#include "aemu/base/containers/Lookup.h"
-#include "aemu/base/synchronization/ConditionVariable.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/ThreadAnnotations.h"
+#include "gfxstream/containers/HybridEntityManager.h"
+#include "gfxstream/containers/Lookup.h"
+#include "gfxstream/synchronization/ConditionVariable.h"
+#include "gfxstream/synchronization/Lock.h"
 
 namespace gfxstream {
 namespace vk {
@@ -49,8 +49,8 @@ using UnboxedHandle = uint64_t;
 
 struct OrderMaintenanceInfo {
     uint32_t sequenceNumber = 0;
-    android::base::Lock lock;
-    android::base::ConditionVariable cv;
+    gfxstream::base::Lock lock;
+    gfxstream::base::ConditionVariable cv;
 
     uint32_t refcount = 1;
 
@@ -88,7 +88,7 @@ class BoxedHandleManager {
     // We use 16000 as the max number of live handles to track; we don't
     // expect the system to go over 16000 total live handles, outside some
     // dEQP object management tests.
-    using Store = android::base::HybridEntityManager<16000, BoxedHandle, BoxedHandleInfo>;
+    using Store = gfxstream::base::HybridEntityManager<16000, BoxedHandle, BoxedHandleInfo>;
 
     BoxedHandle add(const BoxedHandleInfo& item, BoxedHandleTypeTag tag);
 

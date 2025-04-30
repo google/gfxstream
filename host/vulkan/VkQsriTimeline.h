@@ -7,7 +7,7 @@
 #include <mutex>
 #include <sstream>
 
-#include "aemu/base/ThreadAnnotations.h"
+#include "gfxstream/ThreadAnnotations.h"
 #include "gfxstream/host/logging.h"
 
 namespace gfxstream {

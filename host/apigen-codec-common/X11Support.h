@@ -3,7 +3,7 @@
 #include <X11/Xlib.h>
 #include <GL/glx.h>
 
-#include "aemu/base/export.h"
+#include "gfxstream/export.h"
 
 // GLX
 #define LIST_GLX_FUNCS(f) \

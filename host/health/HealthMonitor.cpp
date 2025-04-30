@@ -21,8 +21,7 @@
 #include "gfxstream/testing/TestClock.h"
 #include "gfxstream/host/logging.h"
 
-
-namespace emugl {
+namespace gfxstream {
 
 using gfxstream::base::AutoLock;
 using gfxstream::base::MetricEventHang;
@@ -281,4 +280,4 @@ std::unique_ptr<HealthMonitor<>> CreateHealthMonitor(MetricsLogger& metricsLogge
 template class HealthMonitor<steady_clock>;
 template class HealthMonitor<TestClock>;
 
-}  // namespace emugl
+}  // namespace gfxstream

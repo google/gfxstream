@@ -27,15 +27,15 @@
 #include <GLES3/gl3.h>
 #include <GLES3/gl31.h>
 
-#include "aemu/base/synchronization/Lock.h"
 #include "gfxstream/host/dma_device.h"
 #include "gfxstream/host/vm_operations.h"
+#include "gfxstream/synchronization/Lock.h"
 
 namespace gfxstream {
 namespace gl {
 
-using android::base::AutoLock;
-using android::base::StaticLock;
+using gfxstream::base::AutoLock;
+using gfxstream::base::StaticLock;
 
 static inline void* SafePointerFromUInt(GLuint value) {
   return (void*)(uintptr_t)value;

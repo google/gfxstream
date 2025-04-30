@@ -14,14 +14,17 @@ cc_library_static {
         "gfxstream_opengl_headers",
     ],
     static_libs: [
+        "libgfxstream_common_base",
         "libgfxstream_host_apigen_codec_common",
         "libgfxstream_host_backend",
-        "libgfxstream_host_logging",
         "libgfxstream_host_glsnapshot",
         "libgfxstream_host_iostream",
+        "libgfxstream_host_library",
+        "libgfxstream_host_logging",
     ],
     export_static_lib_headers: [
         "libgfxstream_host_iostream",
+        "libgfxstream_host_library",
     ],
     srcs: [
         "gles2_dec.cpp",

@@ -34,8 +34,8 @@
 
 #include "CoreProfileConfigs.h"
 #include "GLcommon/GLLibrary.h"
-#include "aemu/base/SharedLibrary.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/SharedLibrary.h"
+#include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/host/logging.h"
 
 #define IS_TRUE(a) \
@@ -61,7 +61,7 @@
 
 namespace {
 
-using android::base::SharedLibrary;
+using gfxstream::base::SharedLibrary;
 typedef GlLibrary::GlFunctionPointer GlFunctionPointer;
 
 // Returns true if an extension is include in a given extension list.
@@ -590,7 +590,7 @@ private:
     const WglExtensionsDispatch* m_dispatch = nullptr;
 };
 
-static android::base::StaticLock sGlobalLock;
+static gfxstream::base::StaticLock sGlobalLock;
 
 class WinContext : public EglOS::Context {
 public:
@@ -598,7 +598,7 @@ public:
         mDispatch(dispatch), mCtx(ctx) {}
 
     virtual ~WinContext() {
-        android::base::AutoLock lock(sGlobalLock);
+        gfxstream::base::AutoLock lock(sGlobalLock);
         if (!mDispatch->wglDeleteContext(mCtx)) {
             WGL_ERR("error deleting WGL context! error 0x%x\n",
                     (unsigned)GetLastError());
@@ -1020,7 +1020,7 @@ public:
             const EglOS::PixelFormat* pixelFormat,
             EglOS::Context* sharedContext) {
 
-        android::base::AutoLock lock(sGlobalLock);
+        gfxstream::base::AutoLock lock(sGlobalLock);
 
         const WinPixelFormat* format = WinPixelFormat::from(pixelFormat);
         HDC dpy = mGlobals->getDummyDC(format);
@@ -1053,7 +1053,7 @@ public:
     virtual EglOS::Surface* createPbufferSurface(
             const EglOS::PixelFormat* pixelFormat,
             const EglOS::PbufferInfo* info) {
-        android::base::AutoLock lock(sGlobalLock);
+        gfxstream::base::AutoLock lock(sGlobalLock);
         (void)info;
 
         bool needPrime = false;
@@ -1097,7 +1097,7 @@ public:
     }
 
     virtual bool releasePbuffer(EglOS::Surface* pb) {
-        android::base::AutoLock lock(sGlobalLock);
+        gfxstream::base::AutoLock lock(sGlobalLock);
         if (!pb) return false;
 
         WinSurface* winpb = WinSurface::from(pb);
@@ -1126,7 +1126,7 @@ public:
     virtual bool makeCurrent(EglOS::Surface* read,
                              EglOS::Surface* draw,
                              EglOS::Context* context) {
-        android::base::AutoLock lock(sGlobalLock);
+        gfxstream::base::AutoLock lock(sGlobalLock);
         WinSurface* readWinSurface = WinSurface::from(read);
         WinSurface* drawWinSurface = WinSurface::from(draw);
         HDC hdcRead = read ? readWinSurface->getDC() : NULL;
@@ -1179,7 +1179,7 @@ public:
     }
 
     virtual void swapBuffers(EglOS::Surface* srfc) {
-        android::base::AutoLock lock(sGlobalLock);
+        gfxstream::base::AutoLock lock(sGlobalLock);
         if (srfc && !mDispatch->SwapBuffers(WinSurface::from(srfc)->getDC())) {
             GetLastError();
         }

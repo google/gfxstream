@@ -18,6 +18,10 @@ cc_library_static {
     header_libs: [
         "gfxstream_opengl_headers",
         "libgfxstream_host_vulkan_cereal_common",
+        "libgfxstream_thirdparty_renderdoc_headers",
+    ],
+    export_header_lib_headers: [
+        "libgfxstream_thirdparty_renderdoc_headers",
     ],
     whole_static_libs: [
         "libgfxstream_host_tracing",
@@ -26,19 +30,24 @@ cc_library_static {
         "liblog",
     ],
     static_libs: [
-        "gfxstream_base",
         "gfxstream_host_common",
+        "libgfxstream_common_base",
         "libgfxstream_host_apigen_codec_common",
         "libgfxstream_host_backend",
         "libgfxstream_host_compressedtextures",
         "libgfxstream_host_features",
+        "libgfxstream_host_health",
         "libgfxstream_host_iostream",
+        "libgfxstream_host_library",
         "libgfxstream_host_logging",
         "libgfxstream_host_openglesdispatch",
         "libgfxstream_host_snapshot",
         "libgfxstream_host_vulkan_cereal",
         "libgfxstream_host_vulkan_emulatedtextures",
         "libgfxstream_thirdparty_glm",
+    ],
+    export_static_lib_headers: [
+        "libgfxstream_host_health",
     ],
     cflags: [
         "-fvisibility=hidden",
@@ -131,13 +140,13 @@ cc_test_host {
         "liblog",
     ],
     static_libs: [
-        "gfxstream_base",
         "gfxstream_host_common",
+        "libgfxstream_common_base",
         "libgfxstream_host_features",
         "libgfxstream_host_logging",
         "libgfxstream_host_vulkan_server",
-        "libgtest",
         "libgmock",
+        "libgtest",
     ],
     test_options: {
         unit_test: true,
@@ -187,7 +196,7 @@ cc_test_host {
         "liblog",
     ],
     static_libs: [
-        "gfxstream_base",
+        "libgfxstream_common_base",
         "gfxstream_host_common",
         "libgfxstream_host_features",
         "libgfxstream_host_vulkan_server",

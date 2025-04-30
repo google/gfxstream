@@ -14,7 +14,7 @@
 
 #include "GLTestUtils.h"
 
-using android::AlignedBuf;
+using gfxstream::AlignedBuf;
 
 namespace gfxstream {
 

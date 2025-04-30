@@ -22,8 +22,8 @@
 #include <string>
 
 #include "ShaderTranslator.h"
-#include "aemu/base/SharedLibrary.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/SharedLibrary.h"
+#include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/host/logging.h"
 
 #define GL_COMPUTE_SHADER 0x91B9
@@ -47,7 +47,7 @@ public:
         const char kLibName[] = "libshadertranslator.so";
 #endif
         char error[256];
-        mLib = android::base::SharedLibrary::open(kLibName, error, sizeof(error));
+        mLib = gfxstream::base::SharedLibrary::open(kLibName, error, sizeof(error));
         if (!mLib) {
             GFXSTREAM_ERROR("%s: Could not open shader translator library %s [%s]\n", __func__,
                             kLibName, error);
@@ -97,7 +97,7 @@ private:
                (nullptr != mDispatch.destroyInterfaceBlock);
     }
 
-    android::base::SharedLibrary* mLib = nullptr;
+    gfxstream::base::SharedLibrary* mLib = nullptr;
     bool mValid = false;
     STDispatch mDispatch;
 };
@@ -238,7 +238,7 @@ static ST_Handle getShaderCompiler(bool coreProfileHost, ShaderSpecKey key) {
     return it->second;
 }
 
-android::base::Lock kCompilerLock;
+gfxstream::base::Lock kCompilerLock;
 
 void initializeResources(
     BuiltinResourcesEditCallback callback) {
@@ -402,7 +402,7 @@ bool translate(bool hostUsesCoreProfile,
 
     // ANGLE may crash if multiple RenderThreads attempt to compile shaders
     // at the same time.
-    android::base::AutoLock autolock(kCompilerLock);
+    gfxstream::base::AutoLock autolock(kCompilerLock);
 
     ShaderSpecKey key;
     key.shaderType = shaderType;

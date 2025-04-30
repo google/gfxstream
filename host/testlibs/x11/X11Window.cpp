@@ -8,7 +8,7 @@
 
 #include "x11/X11Window.h"
 
-#include "aemu/base/system/System.h"
+#include "gfxstream/system/System.h"
 
 #include <assert.h>
 
@@ -343,7 +343,7 @@ bool X11Window::resize(int width, int height)
     while (mHeight != height && mWidth != width)
     {
         messageLoop();
-        android::base::sleepMs(100);
+        gfxstream::base::sleepMs(100);
     }
 
     return true;

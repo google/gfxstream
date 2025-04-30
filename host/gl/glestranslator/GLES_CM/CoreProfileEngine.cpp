@@ -20,8 +20,7 @@
 #include "GLcommon/GLEScontext.h"
 #include "GLcommon/GLESpointer.h"
 #include "GLEScmContext.h"
-
-#include "aemu/base/containers/Lookup.h"
+#include "gfxstream/containers/Lookup.h"
 
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>

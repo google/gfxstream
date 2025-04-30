@@ -22,9 +22,9 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
-#include "aemu/base/Compiler.h"
+#include "gfxstream/Compiler.h"
 #include "aemu/base/files/Stream.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/synchronization/Lock.h"
 
 namespace gfxstream {
 namespace gl {

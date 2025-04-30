@@ -1,3 +1,6 @@
+if(WIN32)
+    add_subdirectory(windows)
+endif()
 
 add_library(gfxstream_common_base.headers
             INTERFACE)
@@ -11,6 +14,11 @@ if(WIN32)
                                INTERFACE
                                WIN32_LEAN_AND_MEAN)
 endif()
+if(MSVC)
+    target_link_libraries(gfxstream_common_base.headers
+                          INTERFACE
+                          gfxstream_common_base_windows_compat)
+endif()
 
 if(ENABLE_CLANG_THREAD_SAFETY_CHECKS)
     target_compile_definitions(gfxstream_common_base.headers
@@ -23,7 +31,6 @@ endif()
 
 set(gfxstream_common_base_srcs
     AlignedBuf.cpp
-    CLog.cpp
     CpuTime.cpp
     FileUtils.cpp
     FunctorThread.cpp
@@ -133,50 +140,43 @@ if(GFXSTREAM_USE_LZ4)
 endif()
 
 if (APPLE)
-    set(gfxstream_common_base-platform_test_srcs
+    set(gfxstream_common_base_test_srcs
+        "")
+    set(gfxstream_common_base_test_deps
         "")
 elseif (WIN32)
-    set(gfxstream_common_base-platform_test_srcs
+    set(gfxstream_common_base_test_srcs
         Win32UnicodeString_unittest.cpp)
+    set(gfxstream_common_base_test_deps
+        gfxstream_common_base_windows_compat)
 else()
-    set(gfxstream_common_base-platform_test_srcs
+    set(gfxstream_common_base_test_srcs
+        "")
+    set(gfxstream_common_base_test_deps
         "")
 endif()
 
 if (ENABLE_VKCEREAL_TESTS)
     # Tests
-    add_library(gfxstream_common_base_testing_support
-                testing/file_io.cpp)
-
-    target_link_libraries(gfxstream_common_base_testing_support
-                          PUBLIC
-                          gfxstream_common_base
-                          gtest
-                          gmock)
-
-    if (NOT DEFINED gfxstream_common_base_test_srcs)
-        set(gfxstream_common_base_test_srcs
-            AlignedBuf_unittest.cpp
-            ArraySize_unittest.cpp
-            LayoutResolver_unittest.cpp
-            LruCache_unittest.cpp
-            ManagedDescriptor_unittest.cpp
-            Optional_unittest.cpp
-            ring_buffer_unittest.cpp
-            StringFormat_unittest.cpp
-            SubAllocator_unittest.cpp
-            TypeTraits_unittest.cpp
-            WorkerThread_unittest.cpp
-            HybridEntityManager_unittest.cpp)
-    endif()
-
     add_executable(gfxstream_common_base_unittests
-                   ${gfxstream_common_base_test_srcs})
+                   AlignedBuf_unittest.cpp
+                   ArraySize_unittest.cpp
+                    LayoutResolver_unittest.cpp
+                    LruCache_unittest.cpp
+                    ManagedDescriptor_unittest.cpp
+                    Optional_unittest.cpp
+                    ring_buffer_unittest.cpp
+                    StringFormat_unittest.cpp
+                    SubAllocator_unittest.cpp
+                    TypeTraits_unittest.cpp
+                    WorkerThread_unittest.cpp
+                    HybridEntityManager_unittest.cpp
+                    ${gfxstream_common_base_test_srcs})
 
     target_link_libraries(gfxstream_common_base_unittests
                           PUBLIC
                           gfxstream_common_base
-                          gfxstream_common_base_testing_support
+                          ${gfxstream_common_base_test_deps}
                           gmock
                           gtest_main)
 

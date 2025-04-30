@@ -19,18 +19,18 @@
 int X11ErrorHandler::s_lastErrorCode = 0;
 
 // static
-android::base::Lock X11ErrorHandler::s_lock;
+gfxstream::base::Lock X11ErrorHandler::s_lock;
 
 X11ErrorHandler::X11ErrorHandler(EGLNativeDisplayType dpy):
     m_dpy(dpy) {
-    android::base::AutoLock mutex(s_lock);
+    gfxstream::base::AutoLock mutex(s_lock);
     getX11Api()->XSync((Display*)dpy, False);
     s_lastErrorCode = 0;
     m_oldErrorHandler = getX11Api()->XSetErrorHandler(errorHandlerProc);
 }
 
 X11ErrorHandler::~X11ErrorHandler() {
-    android::base::AutoLock mutex(s_lock);
+    gfxstream::base::AutoLock mutex(s_lock);
     getX11Api()->XSync((Display*)m_dpy, False);
     getX11Api()->XSetErrorHandler(m_oldErrorHandler);
     s_lastErrorCode = 0;

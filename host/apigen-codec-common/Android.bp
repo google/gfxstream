@@ -10,7 +10,8 @@ cc_library_static {
         "gfxstream_opengl_headers",
     ],
     static_libs: [
-        "gfxstream_base",
+        "libgfxstream_common_base",
+        "libgfxstream_host_library",
         "libgfxstream_host_logging",
     ],
     cflags: ["-fvisibility=hidden"],

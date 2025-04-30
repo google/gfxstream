@@ -18,10 +18,10 @@
 #include <vector>
 
 #include "aemu/base/ring_buffer.h"
-#include "aemu/base/synchronization/MessageChannel.h"
 #include "aemu/base/threads/FunctorThread.h"
 #include "gfxstream/host/address_space_device.h"
 #include "gfxstream/host/address_space_service.h"
+#include "gfxstream/synchronization/MessageChannel.h"
 #include "render-utils/address_space_graphics_types.h"
 #include "render-utils/address_space_operations.h"
 
@@ -100,7 +100,7 @@ class AddressSpaceGraphicsContext : public AddressSpaceDeviceContext {
     void* mCurrentConsumer = 0;
 
     // Communication with consumer
-    mutable android::base::MessageChannel<ConsumerCommand, 4> mConsumerMessages;
+    mutable gfxstream::base::MessageChannel<ConsumerCommand, 4> mConsumerMessages;
     uint32_t mExiting = 0;
     // For onUnavailableRead
     uint32_t mUnavailableReadCount = 0;

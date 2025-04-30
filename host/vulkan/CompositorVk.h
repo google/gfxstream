@@ -17,8 +17,8 @@
 #include "Compositor.h"
 #include "DebugUtilsHelper.h"
 #include "Hwc2.h"
-#include "aemu/base/LruCache.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/LruCache.h"
+#include "gfxstream/synchronization/Lock.h"
 #include "goldfish_vk_dispatch.h"
 #include "vulkan/vk_util.h"
 
@@ -43,7 +43,7 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
     const VkQueue m_vkQueue;
     const uint32_t m_queueFamilyIndex;
     const DebugUtilsHelper m_debugUtilsHelper;
-    std::shared_ptr<android::base::Lock> m_vkQueueLock;
+    std::shared_ptr<gfxstream::base::Lock> m_vkQueueLock;
     VkDescriptorSetLayout m_vkDescriptorSetLayout;
     VkPipelineLayout m_vkPipelineLayout;
     struct PerFormatResources {
@@ -121,7 +121,7 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
 
     explicit CompositorVkBase(const VulkanDispatch& vk, VkDevice device,
                               VkPhysicalDevice physicalDevice, VkQueue queue,
-                              std::shared_ptr<android::base::Lock> queueLock,
+                              std::shared_ptr<gfxstream::base::Lock> queueLock,
                               uint32_t queueFamilyIndex, uint32_t maxFramesInFlight,
                               DebugUtilsHelper debugUtils)
         : m_vk(vk),
@@ -147,7 +147,7 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
    public:
     static std::unique_ptr<CompositorVk> create(
         const VulkanDispatch& vk, VkDevice vkDevice, VkPhysicalDevice vkPhysicalDevice,
-        VkQueue vkQueue, std::shared_ptr<android::base::Lock> queueLock, uint32_t queueFamilyIndex,
+        VkQueue vkQueue, std::shared_ptr<gfxstream::base::Lock> queueLock, uint32_t queueFamilyIndex,
         uint32_t maxFramesInFlight,
         DebugUtilsHelper debugUtils = DebugUtilsHelper::withUtilsDisabled());
 
@@ -163,7 +163,7 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
 
    private:
     explicit CompositorVk(const VulkanDispatch&, VkDevice, VkPhysicalDevice, VkQueue,
-                          std::shared_ptr<android::base::Lock> queueLock, uint32_t queueFamilyIndex,
+                          std::shared_ptr<gfxstream::base::Lock> queueLock, uint32_t queueFamilyIndex,
                           uint32_t maxFramesInFlight, DebugUtilsHelper debugUtils);
 
     void setUpGraphicsPipeline();
@@ -251,7 +251,7 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
     static constexpr const VkFormat k_renderTargetFormat = VK_FORMAT_R8G8B8A8_UNORM;
     static constexpr const uint32_t k_renderTargetCacheSize = 128;
     // Maps from borrowed image ids to render target info.
-    android::base::LruCache<uint32_t, std::unique_ptr<RenderTarget>> m_renderTargetCache;
+    gfxstream::base::LruCache<uint32_t, std::unique_ptr<RenderTarget>> m_renderTargetCache;
 };
 
 }  // namespace vk

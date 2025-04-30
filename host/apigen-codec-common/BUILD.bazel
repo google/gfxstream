@@ -34,8 +34,10 @@ cc_library(
     includes = ["."],
     visibility = ["//visibility:public"],
     deps = [
+        "//common/base:gfxstream_common_base",
         "//common/opengl:gfxstream_opengl_headers",
+        "//host/library:gfxstream_host_library",
         "//host/logging:gfxstream_host_logging",
-        "@aemu//base:aemu-base-headers",
+        "@aemu//base:aemu-base",
     ],
 )

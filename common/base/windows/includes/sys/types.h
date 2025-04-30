@@ -9,11 +9,11 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
+#include_next <sys/types.h>
+
 #ifndef _AEMU_SYS_TYPES_H_
 #define _AEMU_SYS_TYPES_H_
 
-
-#include_next <sys/types.h>
 #include <inttypes.h>
 #include <stddef.h>
 #include <BaseTsd.h>

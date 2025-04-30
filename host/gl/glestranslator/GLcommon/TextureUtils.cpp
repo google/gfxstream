@@ -21,10 +21,10 @@
 #include <cmath>
 #include <memory>
 
-#include "aemu/base/AlignedBuf.h"
+#include "gfxstream/AlignedBuf.h"
 #include "compressedTextureFormats/AstcCpuDecompressor.h"
 
-using android::AlignedBuf;
+using gfxstream::AlignedBuf;
 using gfxstream::vk::AstcCpuDecompressor;
 
 #define GL_R16 0x822A

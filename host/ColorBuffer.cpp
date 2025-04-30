@@ -23,9 +23,6 @@
 #include "vulkan/ColorBufferVk.h"
 #include "vulkan/VkCommonOperations.h"
 
-using emugl::ABORT_REASON_OTHER;
-using emugl::FatalError;
-
 namespace gfxstream {
 namespace {
 

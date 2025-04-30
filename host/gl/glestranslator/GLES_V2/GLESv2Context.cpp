@@ -20,7 +20,7 @@
 #include "SamplerData.h"
 #include "ShaderParser.h"
 #include "TransformFeedbackData.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/synchronization/Lock.h"
 #include "aemu/base/files/StreamSerializing.h"
 #include "gfxstream/host/logging.h"
 
@@ -64,7 +64,7 @@ void GLESv2Context::initGlobal(EGLiface* iface) {
 }
 
 void GLESv2Context::init(bool nativeTextureDecompressionEnabled, bool programBinaryLinkStatusEnabled) {
-    android::base::AutoLock mutex(s_lock);
+    gfxstream::base::AutoLock mutex(s_lock);
     if(!m_initialized) {
         GLEScontext::init(nativeTextureDecompressionEnabled, programBinaryLinkStatusEnabled);
         addVertexArrayObject(0);

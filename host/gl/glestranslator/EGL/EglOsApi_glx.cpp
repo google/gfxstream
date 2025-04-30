@@ -31,8 +31,8 @@
 #include "GLcommon/GLLibrary.h"
 #include "X11ErrorHandler.h"
 #include "X11Support.h"
-#include "aemu/base/SharedLibrary.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/SharedLibrary.h"
+#include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/host/logging.h"
 
 #define DEBUG_PBUF_POOL 0
@@ -61,7 +61,7 @@ public:
     GlxLibrary() {
         static const char kLibName[] = "libGL.so.1";
         char error[256];
-        mLib = android::base::SharedLibrary::open(kLibName, error, sizeof(error));
+        mLib = gfxstream::base::SharedLibrary::open(kLibName, error, sizeof(error));
         if (!mLib) {
             GFXSTREAM_ERROR("%s: Could not open GL library %s [%s]\n", __func__, kLibName, error);
             return;
@@ -94,7 +94,7 @@ public:
     }
 
 private:
-    android::base::SharedLibrary* mLib = nullptr;
+    gfxstream::base::SharedLibrary* mLib = nullptr;
     ResolverFunc* mResolver = nullptr;
 };
 
@@ -479,7 +479,7 @@ public:
             const EglOS::PixelFormat* pixelFormat,
             const EglOS::PbufferInfo* info) {
 
-        android::base::AutoLock lock(mPbufLock);
+        gfxstream::base::AutoLock lock(mPbufLock);
 
         GLXFBConfig config = GlxPixelFormat::from(pixelFormat);
 
@@ -519,7 +519,7 @@ public:
 
     virtual bool releasePbuffer(EglOS::Surface* pb) {
 
-        android::base::AutoLock lock(mPbufLock);
+        gfxstream::base::AutoLock lock(mPbufLock);
 
         PROFILE_SLOW("releasePbuffer");
         if (!pb) {
@@ -557,7 +557,7 @@ public:
                     GlxSurface::drawableFor(read),
                     GlxContext::contextFor(context));
             if (mSwapInterval && draw->type() == GlxSurface::SurfaceType::WINDOW) {
-                android::base::AutoLock lock(mPbufLock);
+                gfxstream::base::AutoLock lock(mPbufLock);
                 auto it = mDisabledVsyncWindows.find(draw);
                 bool notPresent = it == mDisabledVsyncWindows.end();
                 if (notPresent || !it->second) {
@@ -660,7 +660,7 @@ private:
     std::unordered_map<GLXFBConfig, std::vector<EglOS::Surface* > > mFreePbufs;
     std::unordered_map<GLXFBConfig, std::vector<EglOS::Surface* > > mLivePbufs;
     int mPbufPrimingCount = 8;
-    android::base::Lock mPbufLock;
+    gfxstream::base::Lock mPbufLock;
     std::unordered_map<EglOS::Surface*, bool> mDisabledVsyncWindows;
 };
 

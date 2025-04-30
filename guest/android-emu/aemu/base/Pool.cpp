@@ -437,4 +437,4 @@ void Pool::freeAll() {
 }
 
 } // namespace base
-} // namespace android
+} // namespace gfxstream

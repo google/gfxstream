@@ -18,7 +18,7 @@ lib_glesv2_translator = static_library(
   files_lib_glesv2_translator,
   cpp_args: gfxstream_host_args,
   include_directories: [inc_gfxstream_include, inc_include, inc_gl_common, inc_stream_servers,
-                        inc_etc, inc_host_logging, inc_gl_openglesdispatch],
-  link_with: [lib_host_logging],
-  dependencies: [aemu_base_dep, aemu_logging_dep, aemu_snapshot_dep]
+                        inc_etc, inc_host_logging, inc_gl_openglesdispatch, inc_common_base,
+                        inc_host_snapshot],
+  link_with: [lib_host_logging, lib_host_snapshot, lib_common_base],
 )

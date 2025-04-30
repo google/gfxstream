@@ -16,23 +16,23 @@
 
 #pragma once
 
+#include <memory>
+#include <unordered_map>
+#include <unordered_set>
+
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <GLES/gl.h>
 #include <GLES3/gl3.h>
 
-#include <memory>
-#include <unordered_map>
-#include <unordered_set>
-
-#include "gfxstream/host/borrowed_image.h"
 #include "ContextHelper.h"
 #include "FrameworkFormats.h"
 #include "Handle.h"
 #include "Hwc2.h"
-#include "aemu/base/ManagedDescriptor.hpp"
 #include "aemu/base/files/Stream.h"
+#include "gfxstream/ManagedDescriptor.hpp"
 #include "gfxstream/host/Features.h"
+#include "gfxstream/host/borrowed_image.h"
 #include "render-utils/Renderer.h"
 
 // From ANGLE "src/common/angleutils.h"
@@ -210,7 +210,7 @@ class ColorBufferGl {
     //
     // Change to opaque fd or opaque win32 handle-backed VkDeviceMemory
     // via GL_EXT_memory_objects
-    bool importMemory(android::base::ManagedDescriptor externalDescriptor, uint64_t size,
+    bool importMemory(gfxstream::base::ManagedDescriptor externalDescriptor, uint64_t size,
                       bool dedicated, bool linearTiling);
     // Change to EGL native pixmap
     bool importEglNativePixmap(void* pixmap, bool preserveContent);

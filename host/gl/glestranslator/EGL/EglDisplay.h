@@ -19,7 +19,7 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/synchronization/Lock.h"
 #include "aemu/base/files/Stream.h"
 #include "EglConfig.h"
 #include "EglContext.h"
@@ -172,7 +172,7 @@ private:
     SurfacesHndlMap         m_surfaces;
     GlobalNameSpace         m_globalNameSpace;
     ObjectNameManager*      m_manager[MAX_GLES_VERSION];
-    mutable android::base::Lock    m_lock;
+    mutable gfxstream::base::Lock    m_lock;
     ImagesHndlMap           m_eglImages;
     unsigned int            m_nextEglImageId = 0;
     mutable std::shared_ptr<EglOS::Context> m_globalSharedContext;

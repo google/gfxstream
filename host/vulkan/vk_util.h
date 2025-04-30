@@ -42,7 +42,7 @@
 
 #include "VkDecoderContext.h"
 #include "VulkanDispatch.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/host/logging.h"
 #include "vk_fn_info.h"
 #include "vk_struct_id.h"
@@ -430,7 +430,7 @@ class FindMemoryType : public U {
 template <class T, class U = CrtpBase>
 class RunSingleTimeCommand : public U {
    protected:
-    void runSingleTimeCommands(VkQueue queue, std::shared_ptr<android::base::Lock> queueLock,
+    void runSingleTimeCommands(VkQueue queue, std::shared_ptr<gfxstream::base::Lock> queueLock,
                                std::function<void(const VkCommandBuffer& commandBuffer)> f) const {
         const T& self = static_cast<const T&>(*this);
         VkCommandBuffer cmdBuff;
@@ -449,9 +449,9 @@ class RunSingleTimeCommand : public U {
                                    .commandBufferCount = 1,
                                    .pCommandBuffers = &cmdBuff};
         {
-            std::unique_ptr<android::base::AutoLock> lock = nullptr;
+            std::unique_ptr<gfxstream::base::AutoLock> lock = nullptr;
             if (queueLock) {
-                lock = std::make_unique<android::base::AutoLock>(*queueLock);
+                lock = std::make_unique<gfxstream::base::AutoLock>(*queueLock);
             }
             VK_CHECK(self.m_vk.vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE));
             VK_CHECK(self.m_vk.vkQueueWaitIdle(queue));
