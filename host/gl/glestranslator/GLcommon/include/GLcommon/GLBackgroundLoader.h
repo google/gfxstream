@@ -26,7 +26,7 @@
 #include "render-utils/snapshot_operations.h"
 
 
-class GLBackgroundLoader : public android::base::InterruptibleThread {
+class GLBackgroundLoader : public gfxstream::base::InterruptibleThread {
 public:
     GLBackgroundLoader(const gfxstream::ITextureLoaderWPtr& textureLoaderWeak,
                        const EGLiface& eglIface,

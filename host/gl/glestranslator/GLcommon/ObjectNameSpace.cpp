@@ -402,7 +402,16 @@ void GlobalNameSpace::onLoad(android::base::Stream* stream,
     m_backgroundLoader =
         std::make_shared<GLBackgroundLoader>(
             textureLoaderWPtr, *m_eglIface, *m_glesIface, m_textureMap);
-    textureLoader->acquireLoaderThread(m_backgroundLoader);
+
+    textureLoader->setAsyncUseCallbacks(
+        gfxstream::ITextureLoader::AsyncUseCallbacks{
+            .interrupt = [loader = m_backgroundLoader]() {
+                loader->interrupt();
+            },
+            .join = [loader = m_backgroundLoader]() {
+                loader->wait(nullptr);
+            },
+        });
 }
 
 void GlobalNameSpace::clearTextureMap() {
@@ -411,7 +420,7 @@ void GlobalNameSpace::clearTextureMap() {
 
 void GlobalNameSpace::postLoad(android::base::Stream* stream) {
     m_backgroundLoader->start();
-    m_backgroundLoader.reset(); // leave it to TextureLoader
+    m_backgroundLoader.reset();
 }
 
 const SaveableTexturePtr& GlobalNameSpace::getSaveableTextureFromLoad(

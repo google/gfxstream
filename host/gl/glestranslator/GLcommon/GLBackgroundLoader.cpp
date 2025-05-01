@@ -18,6 +18,7 @@
 
 #include "GLcommon/GLEScontext.h"
 #include "GLcommon/SaveableTexture.h"
+#include "gfxstream/host/logging.h"
 #include "gfxstream/system/System.h"
 
 #include <EGL/eglext.h>
@@ -29,7 +30,7 @@ EGLSurface s_surface = EGL_NO_SURFACE;
 intptr_t GLBackgroundLoader::main() {
 #if SNAPSHOT_PROFILE > 1
     const auto start = get_uptime_ms();
-    printf("Starting GL background loading at %" PRIu64 " ms\n", start);
+    GFXSTREAM_INFO("Starting GL background loading at %" PRIu64 " ms\n", start);
 #endif
 
     if (s_context == EGL_NO_CONTEXT) {
@@ -40,7 +41,7 @@ intptr_t GLBackgroundLoader::main() {
         // In unit tests, we might have torn down EGL. Check for stale
         // context and surface, and recreate them if that happened.
         if (!m_eglIface.bindAuxiliaryContext(s_context, s_surface)) {
-            printf("GLBackgroundLoader::%s auxiliary context gone, create a new one\n", __func__);
+            GFXSTREAM_INFO("GLBackgroundLoader::%s auxiliary context gone, create a new one\n", __func__);
             m_eglIface.createAndBindAuxiliaryContext(&s_context, &s_surface);
         }
     }
@@ -71,8 +72,8 @@ intptr_t GLBackgroundLoader::main() {
 
 #if SNAPSHOT_PROFILE > 1
     const auto end = get_uptime_ms();
-    printf("Finished GL background loading at %" PRIu64 " ms (%d ms total)\n",
-           end, int(end - start));
+    GFXSTREAM_INFO("Finished GL background loading at %" PRIu64 " ms (%d ms total)\n",
+                   end, int(end - start));
 #endif
 
     return 0;

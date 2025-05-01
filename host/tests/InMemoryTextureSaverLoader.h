@@ -42,34 +42,10 @@ class InMemoryTextureSaverLoader : public ITextureLoader, public ITextureSaver {
         callback(&stream);
     }
 
-    void acquireLoaderThread(LoaderThreadPtr thread) override {
-        mLoaderThread = std::move(thread);
-    }
-
-    void join() override {
-        if (mLoaderThread) {
-            mLoaderThread->wait();
-            mLoaderThread.reset();
-        }
-    }
-
-    void interrupt() override {
-        if (mLoaderThread) {
-            mLoaderThread->interrupt();
-            mLoaderThread->wait();
-            mLoaderThread.reset();
-        }
-    }
-
     bool start() override { return true; }
-    bool hasError() const override { return false; }
-    uint64_t diskSize() const override { return -1; }
-    bool compressed() const override { return false; }
-    bool getDuration(uint64_t*) { return true; }
 
   private:
     std::unordered_map<uint32_t, std::vector<char>> mTextures;
-    LoaderThreadPtr mLoaderThread;
 };
 
 }  // namespace gfxstream
