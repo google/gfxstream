@@ -15,7 +15,6 @@
 #pragma once
 
 #include "gfxstream/files/MemStream.h"
-#include "gfxstream/containers/SmallVector.h"
 #include "gfxstream/files/Stream.h"
 #include "gfxstream/TypeTraits.h"
 
@@ -49,19 +48,21 @@ bool loadBuffer(Stream* stream, std::vector<T>* buffer) {
     return ret == len * sizeof(T);
 }
 
-template <class T, class = enable_if<std::is_standard_layout<T>>>
-void saveBuffer(Stream* stream, const SmallVector<T>& buffer) {
+template <class Container,
+          class = enable_if<std::is_standard_layout<typename Container::value_type>>>
+void saveBuffer(Stream* stream, const Container& buffer) {
     stream->putBe32(buffer.size());
-    stream->write(buffer.data(), sizeof(T) * buffer.size());
+    stream->write(buffer.data(), sizeof(typename Container::value_type) * buffer.size());
 }
 
-template <class T, class = enable_if<std::is_standard_layout<T>>>
-bool loadBuffer(Stream* stream, SmallVector<T>* buffer) {
+template <class Container,
+          class = enable_if<std::is_standard_layout<typename Container::value_type>>>
+bool loadBuffer(Stream* stream, Container* buffer) {
     auto len = stream->getBe32();
     buffer->clear();
     buffer->resize_noinit(len);
-    int ret = (int)stream->read(buffer->data(), len * sizeof(T));
-    return ret == len * sizeof(T);
+    int ret = (int)stream->read(buffer->data(), len * sizeof(typename Container::value_type));
+    return ret == len * sizeof(typename Container::value_type);
 }
 
 template <class T, class SaveFunc>

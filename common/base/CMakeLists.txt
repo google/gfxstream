@@ -34,10 +34,7 @@ set(gfxstream_common_base_srcs
     CpuTime.cpp
     FileUtils.cpp
     FunctorThread.cpp
-    GLObjectCounter.cpp
-    GraphicsObjectCounter.cpp
     LayoutResolver.cpp
-    MemoryTracker.cpp
     MemStream.cpp
     MessageChannel.cpp
     PathUtils.cpp

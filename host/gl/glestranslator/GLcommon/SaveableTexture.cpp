@@ -21,11 +21,11 @@
 #include "GLcommon/GLEScontext.h"
 #include "GLcommon/GLutils.h"
 #include "GLcommon/TextureUtils.h"
-#include "gfxstream/ArraySize.h"
-#include "gfxstream/containers/SmallVector.h"
 #include "aemu/base/files/StreamSerializing.h"
+#include "gfxstream/ArraySize.h"
 #include "gfxstream/system/System.h"
 #include "gfxstream/host/logging.h"
+#include "render-utils/small_vector.h"
 
 #define SAVEABLE_TEXTURE_DEBUG 0
 
@@ -692,8 +692,7 @@ void SaveableTexture::onSave(
 
                     // ScopedMemoryProfiler mem("saveTexture", memoryProfilerCallback);
 
-                    android::base::SmallFixedVector<unsigned char, 16>& buffer
-                        = imgData.get()[level].m_data;
+                    auto& buffer = imgData.get()[level].m_data;
                     if (!isGles2Gles()) {
                         GLint glWidth;
                         GLint glHeight;

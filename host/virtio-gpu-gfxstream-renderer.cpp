@@ -112,7 +112,7 @@ ParseGfxstreamFeatures(const int rendererFlags,
         &features, VulkanShaderFloat16Int8, true);
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
         &features, VulkanSnapshots,
-        android::base::getEnvironmentVariable("ANDROID_GFXSTREAM_CAPTURE_VK_SNAPSHOT") == "1");
+        gfxstream::base::getEnvironmentVariable("ANDROID_GFXSTREAM_CAPTURE_VK_SNAPSHOT") == "1");
 
     for (const std::string& rendererFeature : gfxstream::Split(rendererFeatures, ",")) {
         if (rendererFeature.empty()) continue;
@@ -184,19 +184,19 @@ RendererPtr InitRenderer(uint32_t displayWidth,
     GFXSTREAM_DEBUG("Initializing renderer with width:%u height:%u renderer-flags:0x%x",
                     displayWidth, displayHeight, rendererFlags);
 
-    if (android::base::getEnvironmentVariable("ANDROID_GFXSTREAM_EGL") == "1") {
-        android::base::setEnvironmentVariable("ANDROID_EGL_ON_EGL", "1");
-        android::base::setEnvironmentVariable("ANDROID_EMUGL_LOG_PRINT", "1");
-        android::base::setEnvironmentVariable("ANDROID_EMUGL_VERBOSE", "1");
+    if (gfxstream::base::getEnvironmentVariable("ANDROID_GFXSTREAM_EGL") == "1") {
+        gfxstream::base::setEnvironmentVariable("ANDROID_EGL_ON_EGL", "1");
+        gfxstream::base::setEnvironmentVariable("ANDROID_EMUGL_LOG_PRINT", "1");
+        gfxstream::base::setEnvironmentVariable("ANDROID_EMUGL_VERBOSE", "1");
     }
-    android::base::setEnvironmentVariable("ANDROID_EMU_HEADLESS", "1");
+    gfxstream::base::setEnvironmentVariable("ANDROID_EMU_HEADLESS", "1");
 
-    const bool egl2eglByEnv = android::base::getEnvironmentVariable("ANDROID_EGL_ON_EGL") == "1";
+    const bool egl2eglByEnv = gfxstream::base::getEnvironmentVariable("ANDROID_EGL_ON_EGL") == "1";
     const bool egl2eglByFlag = rendererFlags & STREAM_RENDERER_FLAGS_USE_EGL_BIT;
     const bool enableEgl2egl = egl2eglByFlag || egl2eglByEnv;
     if (enableEgl2egl) {
-        android::base::setEnvironmentVariable("ANDROID_GFXSTREAM_EGL", "1");
-        android::base::setEnvironmentVariable("ANDROID_EGL_ON_EGL", "1");
+        gfxstream::base::setEnvironmentVariable("ANDROID_GFXSTREAM_EGL", "1");
+        gfxstream::base::setEnvironmentVariable("ANDROID_EGL_ON_EGL", "1");
     }
 
     gfxstream::vk::vkDispatch(false /* don't use test ICD */);

@@ -220,7 +220,6 @@ namespace egl {
         return ret;
 
 #define VALIDATE_DISPLAY_RETURN(EGLDisplay, ret)                \
-    MEM_TRACE_IF(strncmp(__FUNCTION__, "egl", 3) == 0, "EMUGL") \
     EglDisplay* dpy = g_eglInfo->getDisplay(EGLDisplay);        \
     if (!dpy) {                                                 \
         RETURN_ERROR(ret, EGL_BAD_DISPLAY);                     \
@@ -276,7 +275,6 @@ void* getProcAddressFromEGL(const char* func) {
 }
 
 EGLAPI EGLDisplay EGLAPIENTRY eglGetDisplay(EGLNativeDisplayType display_id) {
-    MEM_TRACE("EMUGL");
     EglDisplay* dpy = NULL;
     EglOS::Display* internalDisplay = NULL;
 
@@ -331,8 +329,6 @@ namespace translator {
 namespace egl {
 
 EGLAPI EGLBoolean EGLAPIENTRY eglInitialize(EGLDisplay display, EGLint *major, EGLint *minor) {
-    MEM_TRACE("EMUGL");
-
     initGlobalInfo();
 
     EglDisplay* dpy = g_eglInfo->getDisplay(display);
@@ -1272,7 +1268,6 @@ EGLAPI EGLBoolean EGLAPIENTRY eglSwapBuffers(EGLDisplay display, EGLSurface surf
 }
 
 EGLAPI EGLContext EGLAPIENTRY eglGetCurrentContext(void) {
-    MEM_TRACE("EMUGL");
     gfxstream::base::AutoLock mutex(*graphicsDriverLock());
     ThreadInfo* thread = getThreadInfo();
     EglDisplay* dpy    = static_cast<EglDisplay*>(thread->eglDisplay);
@@ -1290,7 +1285,6 @@ EGLAPI EGLContext EGLAPIENTRY eglGetCurrentContext(void) {
 }
 
 EGLAPI EGLSurface EGLAPIENTRY eglGetCurrentSurface(EGLint readdraw) {
-    MEM_TRACE("EMUGL");
     gfxstream::base::AutoLock mutex(*graphicsDriverLock());
     if (!EglValidate::surfaceTarget(readdraw)) {
         return EGL_NO_SURFACE;
@@ -1320,13 +1314,11 @@ EGLAPI EGLSurface EGLAPIENTRY eglGetCurrentSurface(EGLint readdraw) {
 }
 
 EGLAPI EGLDisplay EGLAPIENTRY eglGetCurrentDisplay(void) {
-    MEM_TRACE("EMUGL");
     ThreadInfo* thread = getThreadInfo();
     return (thread->eglContext.get()) ? thread->eglDisplay : EGL_NO_DISPLAY;
 }
 
 EGLAPI EGLBoolean EGLAPIENTRY eglBindAPI(EGLenum api) {
-    MEM_TRACE("EMUGL");
     if(!EglValidate::supportedApi(api)) {
         RETURN_ERROR(EGL_FALSE,EGL_BAD_PARAMETER);
     }
@@ -1336,13 +1328,11 @@ EGLAPI EGLBoolean EGLAPIENTRY eglBindAPI(EGLenum api) {
 }
 
 EGLAPI EGLenum EGLAPIENTRY eglQueryAPI(void) {
-    MEM_TRACE("EMUGL");
     CURRENT_THREAD();
     return tls_thread->getApi();
 }
 
 EGLAPI EGLBoolean EGLAPIENTRY eglReleaseThread(void) {
-    MEM_TRACE("EMUGL");
     ThreadInfo* thread  = getThreadInfo();
     EglDisplay* dpy     = static_cast<EglDisplay*>(thread->eglDisplay);
     if (!dpy) {
@@ -1490,7 +1480,6 @@ EGLAPI EGLBoolean EGLAPIENTRY eglDestroyImageKHR(EGLDisplay display, EGLImageKHR
 
 
 EGLAPI EGLSyncKHR EGLAPIENTRY eglCreateSyncKHR(EGLDisplay dpy, EGLenum type, const EGLint* attrib_list) {
-    MEM_TRACE("EMUGL");
     // swiftshader_indirect used to have a bug with eglCreateSyncKHR
     // but it seems to have been fixed now.
     // BUG: 65587659
@@ -1505,7 +1494,6 @@ EGLAPI EGLSyncKHR EGLAPIENTRY eglCreateSyncKHR(EGLDisplay dpy, EGLenum type, con
 }
 
 EGLAPI EGLint EGLAPIENTRY eglClientWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint flags, EGLTimeKHR timeout) {
-    MEM_TRACE("EMUGL");
     gfxstream::base::AutoLock mutex(*graphicsDriverLock());
     if (!g_eglInfo->isEgl2EglSyncSafeToUse()) {
         return EGL_CONDITION_SATISFIED_KHR;
@@ -1533,7 +1521,6 @@ EGLAPI EGLint EGLAPIENTRY eglClientWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR sync, 
 }
 
 EGLAPI EGLBoolean EGLAPIENTRY eglDestroySyncKHR(EGLDisplay dpy, EGLSyncKHR sync) {
-    MEM_TRACE("EMUGL");
     if (!g_eglInfo->isEgl2EglSyncSafeToUse()) {
         return EGL_TRUE;
     }
@@ -1545,7 +1532,6 @@ EGLAPI EGLBoolean EGLAPIENTRY eglDestroySyncKHR(EGLDisplay dpy, EGLSyncKHR sync)
 EGLAPI EGLBoolean EGLAPIENTRY eglGetSyncAttribKHR(
     EGLDisplay dpy, EGLSyncKHR sync,
     EGLint attribute, EGLint *value) {
-    MEM_TRACE("EMUGL");
 
     if (!g_eglInfo->isEgl2EglSyncSafeToUse()) {
         switch (attribute) {
@@ -1605,7 +1591,6 @@ EGLAPI EGLint EGLAPIENTRY eglGetMaxGLESVersion(EGLDisplay display) {
 }
 
 EGLAPI EGLint EGLAPIENTRY eglWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint flags) {
-    MEM_TRACE("EMUGL");
     if (!g_eglInfo->isEgl2EglSyncSafeToUse()) {
         return EGL_TRUE;
     }
@@ -1615,7 +1600,6 @@ EGLAPI EGLint EGLAPIENTRY eglWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint
 }
 
 EGLAPI void EGLAPIENTRY eglBlitFromCurrentReadBufferANDROID(EGLDisplay dpy, EGLImageKHR image) {
-    MEM_TRACE("EMUGL");
     const GLESiface* iface = g_eglInfo->getIface(GLES_2_0);
     iface->blitFromCurrentReadBufferANDROID((GLeglImageOES)image);
 }
@@ -1629,7 +1613,6 @@ EGLAPI void EGLAPIENTRY eglBlitFromCurrentReadBufferANDROID(EGLDisplay dpy, EGLI
 // reading, so we call eglSetImageFenceANDROID at the end of writing operations
 // in Thread A, and then wait on the fence in Thread B.
 EGLAPI void* EGLAPIENTRY eglSetImageFenceANDROID(EGLDisplay dpy, EGLImageKHR image) {
-    MEM_TRACE("EMUGL");
     unsigned int imagehndl = SafeUIntFromPointer(image);
     ImagePtr img = getEGLImage(imagehndl);
     const GLESiface* iface = g_eglInfo->getIface(GLES_2_0);
@@ -1647,31 +1630,26 @@ EGLAPI void* EGLAPIENTRY eglSetImageFenceANDROID(EGLDisplay dpy, EGLImageKHR ima
 }
 
 EGLAPI void EGLAPIENTRY eglWaitImageFenceANDROID(EGLDisplay dpy, void* fence) {
-    MEM_TRACE("EMUGL");
     const GLESiface* iface = g_eglInfo->getIface(GLES_2_0);
     iface->waitSync((GLsync)fence, 0, -1);
 }
 
 EGLAPI void EGLAPIENTRY eglAddLibrarySearchPathANDROID(const char* path) {
-    MEM_TRACE("EMUGL");
     gfxstream::base::SharedLibrary::addLibrarySearchPath(path);
 }
 
 EGLAPI EGLBoolean EGLAPIENTRY eglQueryVulkanInteropSupportANDROID(void) {
-    MEM_TRACE("EMUGL");
     const GLESiface* iface = g_eglInfo->getIface(GLES_2_0);
     return iface->vulkanInteropSupported() ? EGL_TRUE : EGL_FALSE;
 }
 
 EGLAPI EGLBoolean EGLAPIENTRY eglSetNativeTextureDecompressionEnabledANDROID(EGLDisplay display, EGLBoolean enabled) {
-    MEM_TRACE("EMUGL");
     VALIDATE_DISPLAY_RETURN(display, EGL_FALSE);
     dpy->setNativeTextureDecompressionEnabled(enabled == EGL_TRUE);
     return EGL_TRUE;
 }
 
 EGLAPI EGLBoolean EGLAPIENTRY eglSetProgramBinaryLinkStatusEnabledANDROID(EGLDisplay display, EGLBoolean enabled) {
-    MEM_TRACE("EMUGL");
     VALIDATE_DISPLAY_RETURN(display, EGL_FALSE);
     dpy->setProgramBinaryLinkStatusEnabled(enabled == EGL_TRUE);
     return EGL_TRUE;
@@ -1772,13 +1750,11 @@ EGLAPI EGLBoolean EGLAPIENTRY eglPostLoadAllImages(EGLDisplay display, EGLStream
 }
 
 EGLAPI void EGLAPIENTRY eglUseOsEglApi(EGLBoolean enable, EGLBoolean nullEgl) {
-    MEM_TRACE("EMUGL");
     EglGlobalInfo::setEgl2Egl(enable, nullEgl == EGL_TRUE);
     EglGlobalInfo::setEgl2EglSyncSafeToUse(EGL_TRUE);
 }
 
 EGLAPI void EGLAPIENTRY eglSetMaxGLESVersion(EGLint version) {
-    MEM_TRACE("EMUGL");
     // The "version" here follows the convention of eglGetMaxGLESVesion
     // 0: es2 1: es3.0 2: es3.1 3: es3.2
     GLESVersion glesVersion = GLES_2_0;
@@ -1802,7 +1778,6 @@ EGLAPI void EGLAPIENTRY eglSetMaxGLESVersion(EGLint version) {
 }
 
 EGLAPI void EGLAPIENTRY eglFillUsages(void* usages) {
-    MEM_TRACE("EMUGL");
     // TODO: Figure out better usage metrics interface
     // that doesn't require linking protobuf into Translator
     // if (g_eglInfo->getIface(GLES_1_1) &&
@@ -1981,7 +1956,6 @@ static bool unbindAuxiliaryContext() {
 }
 
 EGLAPI EGLint EGLAPIENTRY eglGetError(void) {
-    MEM_TRACE("EMUGL");
     CURRENT_THREAD();
     EGLint err = tls_thread->getError();
     tls_thread->setError(EGL_SUCCESS);

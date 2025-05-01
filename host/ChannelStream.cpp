@@ -16,6 +16,7 @@
 #include <assert.h>
 #include <memory.h>
 
+#include "aemu/base/files/StreamSerializing.h"
 #include "gfxstream/host/dma_device.h"
 #include "gfxstream/host/logging.h"
 #include "render-utils/RenderChannel.h"
