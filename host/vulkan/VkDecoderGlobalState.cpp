@@ -6713,9 +6713,16 @@ class VkDecoderGlobalState::Impl {
 
         std::unordered_set<HandleType> acquiredColorBuffers;
         std::unordered_set<HandleType> releasedColorBuffers;
-        if (!m_vkEmulation->getFeatures().GuestVulkanOnly.enabled) {
-            {
-                std::lock_guard<std::mutex> lock(mMutex);
+        VkDevice device = VK_NULL_HANDLE;
+        std::mutex* queueMutex = nullptr;
+        PhysicalQueuePendingOps* pendingOps = nullptr;
+        bool sharedQueue = false;
+        DeviceOpTracker* deviceOpTracker = nullptr;
+
+        {
+            std::lock_guard<std::mutex> lock(mMutex);
+
+            if (!m_vkEmulation->getFeatures().GuestVulkanOnly.enabled) {
                 for (uint32_t i = 0; i < submitCount; i++) {
                     for (int j = 0; j < getCommandBufferCount(pSubmits[i]); j++) {
                         VkCommandBuffer cmdBuffer = getCommandBuffer(pSubmits[i], j);
@@ -6752,18 +6759,6 @@ class VkDecoderGlobalState::Impl {
                 }
             }
 
-            for (HandleType cb : acquiredColorBuffers) {
-                m_vkEmulation->getCallbacks().invalidateColorBuffer(cb);
-            }
-        }
-
-        VkDevice device = VK_NULL_HANDLE;
-        std::mutex* queueMutex = nullptr;
-        PhysicalQueuePendingOps* pendingOps = nullptr;
-        bool sharedQueue = false;
-
-        {
-            std::lock_guard<std::mutex> lock(mMutex);
             auto* queueInfo = android::base::find(mQueueInfo, queue);
             if (!queueInfo) {
                 GFXSTREAM_ERROR("vkQueueSubmit cannot find queue info for %p", queue);
@@ -6773,83 +6768,82 @@ class VkDecoderGlobalState::Impl {
             queueMutex = queueInfo->queueMutex.get();
             pendingOps = queueInfo->pendingOps.get();
             sharedQueue = queueInfo->usingSharedPhysicalQueue;
+
+            auto* deviceInfo = android::base::find(mDeviceInfo, device);
+            if (!deviceInfo) {
+                GFXSTREAM_ERROR("vkQueueSubmit cannot find device info for %p", device);
+                return VK_ERROR_INITIALIZATION_FAILED;
+            }
+
+            deviceOpTracker = deviceInfo->deviceOpTracker.get();
         }
 
-        // Unsafe to release when snapshot enabled.
-        // Snapshot load might fail to find the shader modules if we release them here.
-        if (!snapshotsEnabled()) {
-            processDelayedRemovesForDevice(device);
+        for (HandleType cb : acquiredColorBuffers) {
+            m_vkEmulation->getCallbacks().invalidateColorBuffer(cb);
         }
 
         VkFence usedFence = fence;
-        DeviceOpWaitable queueCompletedWaitable;
-        {
-            std::lock_guard<std::mutex> lock(mMutex);
-
-            auto* deviceInfo = android::base::find(mDeviceInfo, device);
-            if (!deviceInfo) return VK_ERROR_INITIALIZATION_FAILED;
-            DeviceOpBuilder builder(*deviceInfo->deviceOpTracker);
-
-            if (VK_NULL_HANDLE == usedFence) {
-                // Note: This fence will be managed by the DeviceOpTracker after the
-                // OnQueueSubmittedWithFence call, so it does not need to be destroyed in the scope
-                // of this queueSubmit
-                usedFence = builder.CreateFenceForOp();
-            }
-            queueCompletedWaitable = builder.OnQueueSubmittedWithFence(usedFence);
-
-            deviceInfo->deviceOpTracker->PollAndProcessGarbage();
+        DeviceOpBuilder builder(*deviceOpTracker);
+        if (VK_NULL_HANDLE == usedFence) {
+            // Note: This fence will be managed by the DeviceOpTracker after the
+            // OnQueueSubmittedWithFence call, so it does not need to be destroyed in the scope
+            // of this queueSubmit
+            usedFence = builder.CreateFenceForOp();
         }
-
-#if DEBUG_TIMELINE_SEMAPHORES
-        GFXSTREAM_INFO("%s: on queue=%p, submitCount=%d", __func__, queue, submitCount);
-        for (uint32_t i = 0; i < submitCount; i++) {
-            const auto& s = pSubmits[i];
-            for (uint32_t j = 0; j < getWaitSemaphoreCount(s); j++) {
-                GFXSTREAM_INFO("%s: %p[%d] : waits %p %llu", __func__, queue, i, getWaitSemaphore(s, j),
-                     getWaitSemaphoreValue(s, j));
-            }
-            for (uint32_t j = 0; j < getSignalSemaphoreCount(s); j++) {
-                GFXSTREAM_INFO("%s: %p[%d] : signals %p %llu", __func__, queue, i, getSignalSemaphore(s, j),
-                     getSignalSemaphoreValue(s, j));
-            }
-        }
-#endif
 
         // Dispatch only if it's safe
         const bool canDispatch = safeToSubmit(sharedQueue, submitCount, pSubmits);
 
-        if (canDispatch) {
+        {
             std::lock_guard<std::mutex> queueLock(*queueMutex);
-            auto result = dispatchVkQueueSubmit(vk, queue, submitCount, pSubmits, usedFence);
-            if (result != VK_SUCCESS) {
-                GFXSTREAM_WARNING("dispatchVkQueueSubmit failed: %s [%d]", string_VkResult(result),
-                                  result);
-                return result;
-            }
-        } else {
-            // Special handling of submissions where the signalling will be done later.
-            // (E.g. dEQP-VK.synchronization2.timeline_semaphore.wait_before_signal.*)
-            // When a single physical queue is shared with VulkanVirtualQueue, signal
-            // cannot be processed as the wait operation blocks the queue. Here we defer
-            // the real submission until another queue submission with the necessary
-            // semaphore signaling is made.
-            // We cannot partially send some of the submissions, as that'd break the fence
-            // signalling, so we defer all the operations for this call.
-            // For other post-submit operations, we treat this submissions as if it has been
-            // sent to the GPU, because all the object lifetimes (e.g. semaphores, fences,
-            // command buffers) need to be managed correctly by the app side until actual
-            // GPU operation is started.
-            LOG_CALLS_VERBOSE("Deferring dispatch on queue %p, with fence %p", queue, usedFence);
+            if (canDispatch) {
+                auto result = dispatchVkQueueSubmit(vk, queue, submitCount, pSubmits, usedFence);
+                if (result != VK_SUCCESS) {
+                    GFXSTREAM_WARNING("dispatchVkQueueSubmit failed: %s [%d]", string_VkResult(result),
+                                    result);
+                    return result;
+                }
+            } else {
+                // Special handling of submissions where the signalling will be done later.
+                // (E.g. dEQP-VK.synchronization2.timeline_semaphore.wait_before_signal.*)
+                // When a single physical queue is shared with VulkanVirtualQueue, signal
+                // cannot be processed as the wait operation blocks the queue. Here we defer
+                // the real submission until another queue submission with the necessary
+                // semaphore signaling is made.
+                // We cannot partially send some of the submissions, as that'd break the fence
+                // signalling, so we defer all the operations for this call.
+                // For other post-submit operations, we treat this submissions as if it has been
+                // sent to the GPU, because all the object lifetimes (e.g. semaphores, fences,
+                // command buffers) need to be managed correctly by the app side until actual
+                // GPU operation is started.
+                LOG_CALLS_VERBOSE("Deferring dispatch on queue %p, with fence %p", queue,
+                                  usedFence);
 
-            std::lock_guard<std::mutex> queueLock(*queueMutex);
-            auto result = pendingOps->queuePendingSubmission(submitCount, pSubmits, usedFence);
-            if (result != VK_SUCCESS) {
-                GFXSTREAM_WARNING("dispatchVkQueueSubmit failed: %s [%d]", string_VkResult(result),
-                                  result);
-                return result;
+#if DEBUG_TIMELINE_SEMAPHORES
+                GFXSTREAM_INFO("%s: on queue=%p, submitCount=%d", __func__, queue, submitCount);
+                for (uint32_t i = 0; i < submitCount; i++) {
+                    const auto& s = pSubmits[i];
+                    for (uint32_t j = 0; j < getWaitSemaphoreCount(s); j++) {
+                        GFXSTREAM_INFO("%s: %p[%d] : waits %p %llu", __func__, queue, i,
+                                       getWaitSemaphore(s, j), getWaitSemaphoreValue(s, j));
+                    }
+                    for (uint32_t j = 0; j < getSignalSemaphoreCount(s); j++) {
+                        GFXSTREAM_INFO("%s: %p[%d] : signals %p %llu", __func__, queue, i,
+                                       getSignalSemaphore(s, j), getSignalSemaphoreValue(s, j));
+                    }
+                }
+#endif
+
+                auto result = pendingOps->queuePendingSubmission(submitCount, pSubmits, usedFence);
+                if (result != VK_SUCCESS) {
+                    GFXSTREAM_WARNING("dispatchVkQueueSubmit failed: %s [%d]", string_VkResult(result),
+                                    result);
+                    return result;
+                }
             }
         }
+
+        DeviceOpWaitable queueCompletedWaitable = builder.OnQueueSubmittedWithFence(usedFence);
 
         {
             std::lock_guard<std::mutex> lock(mMutex);
@@ -6929,6 +6923,13 @@ class VkDecoderGlobalState::Impl {
                     "the virtual queue is active.");
             }
         }
+
+        // Unsafe to release when snapshot enabled.
+        // Snapshot load might fail to find the shader modules if we release them here.
+        if (!snapshotsEnabled()) {
+            processDelayedRemovesForDevice(device);
+        }
+        deviceOpTracker->PollAndProcessGarbage();
 
         return VK_SUCCESS;
     }
