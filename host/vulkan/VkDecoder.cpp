@@ -241,7 +241,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                        readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -306,7 +306,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto vk = dispatch_VkInstance(instance);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -352,7 +352,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pPhysicalDeviceCount, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pPhysicalDeviceCount);
+                gfxstream::Stream::fromBe64((uint8_t*)&pPhysicalDeviceCount);
                 *readStreamPtrPtr += 8;
                 if (pPhysicalDeviceCount) {
                     vkReadStream->alloc((void**)&pPhysicalDeviceCount, sizeof(uint32_t));
@@ -363,7 +363,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((VkPhysicalDevice**)&pPhysicalDevices, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pPhysicalDevices);
+                gfxstream::Stream::fromBe64((uint8_t*)&pPhysicalDevices);
                 *readStreamPtrPtr += 8;
                 if (pPhysicalDevices) {
                     vkReadStream->alloc((void**)&pPhysicalDevices,
@@ -685,7 +685,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pQueueFamilyPropertyCount, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pQueueFamilyPropertyCount);
+                gfxstream::Stream::fromBe64((uint8_t*)&pQueueFamilyPropertyCount);
                 *readStreamPtrPtr += 8;
                 if (pQueueFamilyPropertyCount) {
                     vkReadStream->alloc((void**)&pQueueFamilyPropertyCount, sizeof(uint32_t));
@@ -697,7 +697,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((VkQueueFamilyProperties**)&pQueueFamilyProperties, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pQueueFamilyProperties);
+                gfxstream::Stream::fromBe64((uint8_t*)&pQueueFamilyProperties);
                 *readStreamPtrPtr += 8;
                 if (pQueueFamilyProperties) {
                     vkReadStream->alloc(
@@ -916,7 +916,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                      readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -986,7 +986,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto vk = dispatch_VkDevice(device);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -1025,7 +1025,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT) {
                     // WARNING PTR CHECK
                     memcpy((char**)&pLayerName, (*readStreamPtrPtr), 8);
-                    android::base::Stream::fromBe64((uint8_t*)&pLayerName);
+                    gfxstream::Stream::fromBe64((uint8_t*)&pLayerName);
                     *readStreamPtrPtr += 8;
                     if (pLayerName) {
                         vkReadStream->loadStringInPlaceWithStreamPtr((char**)&pLayerName,
@@ -1039,7 +1039,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pPropertyCount, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pPropertyCount);
+                gfxstream::Stream::fromBe64((uint8_t*)&pPropertyCount);
                 *readStreamPtrPtr += 8;
                 if (pPropertyCount) {
                     vkReadStream->alloc((void**)&pPropertyCount, sizeof(uint32_t));
@@ -1050,7 +1050,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((VkExtensionProperties**)&pProperties, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pProperties);
+                gfxstream::Stream::fromBe64((uint8_t*)&pProperties);
                 *readStreamPtrPtr += 8;
                 if (pProperties) {
                     vkReadStream->alloc((void**)&pProperties,
@@ -1145,7 +1145,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT) {
                     // WARNING PTR CHECK
                     memcpy((char**)&pLayerName, (*readStreamPtrPtr), 8);
-                    android::base::Stream::fromBe64((uint8_t*)&pLayerName);
+                    gfxstream::Stream::fromBe64((uint8_t*)&pLayerName);
                     *readStreamPtrPtr += 8;
                     if (pLayerName) {
                         vkReadStream->loadStringInPlaceWithStreamPtr((char**)&pLayerName,
@@ -1159,7 +1159,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pPropertyCount, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pPropertyCount);
+                gfxstream::Stream::fromBe64((uint8_t*)&pPropertyCount);
                 *readStreamPtrPtr += 8;
                 if (pPropertyCount) {
                     vkReadStream->alloc((void**)&pPropertyCount, sizeof(uint32_t));
@@ -1170,7 +1170,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((VkExtensionProperties**)&pProperties, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pProperties);
+                gfxstream::Stream::fromBe64((uint8_t*)&pProperties);
                 *readStreamPtrPtr += 8;
                 if (pProperties) {
                     vkReadStream->alloc((void**)&pProperties,
@@ -1259,7 +1259,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pPropertyCount, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pPropertyCount);
+                gfxstream::Stream::fromBe64((uint8_t*)&pPropertyCount);
                 *readStreamPtrPtr += 8;
                 if (pPropertyCount) {
                     vkReadStream->alloc((void**)&pPropertyCount, sizeof(uint32_t));
@@ -1270,7 +1270,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((VkLayerProperties**)&pProperties, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pProperties);
+                gfxstream::Stream::fromBe64((uint8_t*)&pProperties);
                 *readStreamPtrPtr += 8;
                 if (pProperties) {
                     vkReadStream->alloc((void**)&pProperties,
@@ -1362,7 +1362,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pPropertyCount, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pPropertyCount);
+                gfxstream::Stream::fromBe64((uint8_t*)&pPropertyCount);
                 *readStreamPtrPtr += 8;
                 if (pPropertyCount) {
                     vkReadStream->alloc((void**)&pPropertyCount, sizeof(uint32_t));
@@ -1373,7 +1373,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((VkLayerProperties**)&pProperties, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pProperties);
+                gfxstream::Stream::fromBe64((uint8_t*)&pProperties);
                 *readStreamPtrPtr += 8;
                 if (pProperties) {
                     vkReadStream->alloc((void**)&pProperties,
@@ -1646,7 +1646,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                        readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -1731,7 +1731,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memory = try_unbox_VkDeviceMemory(memory);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -1793,7 +1793,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((void***)&ppData, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&ppData);
+                gfxstream::Stream::fromBe64((uint8_t*)&ppData);
                 *readStreamPtrPtr += 8;
                 if (ppData) {
                     vkReadStream->alloc((void**)&ppData, sizeof(void*));
@@ -2321,7 +2321,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pSparseMemoryRequirementCount, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pSparseMemoryRequirementCount);
+                gfxstream::Stream::fromBe64((uint8_t*)&pSparseMemoryRequirementCount);
                 *readStreamPtrPtr += 8;
                 if (pSparseMemoryRequirementCount) {
                     vkReadStream->alloc((void**)&pSparseMemoryRequirementCount, sizeof(uint32_t));
@@ -2334,7 +2334,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 // WARNING PTR CHECK
                 memcpy((VkSparseImageMemoryRequirements**)&pSparseMemoryRequirements,
                        (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pSparseMemoryRequirements);
+                gfxstream::Stream::fromBe64((uint8_t*)&pSparseMemoryRequirements);
                 *readStreamPtrPtr += 8;
                 if (pSparseMemoryRequirements) {
                     vkReadStream->alloc((void**)&pSparseMemoryRequirements,
@@ -2444,7 +2444,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pPropertyCount, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pPropertyCount);
+                gfxstream::Stream::fromBe64((uint8_t*)&pPropertyCount);
                 *readStreamPtrPtr += 8;
                 if (pPropertyCount) {
                     vkReadStream->alloc((void**)&pPropertyCount, sizeof(uint32_t));
@@ -2455,7 +2455,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((VkSparseImageFormatProperties**)&pProperties, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pProperties);
+                gfxstream::Stream::fromBe64((uint8_t*)&pProperties);
                 *readStreamPtrPtr += 8;
                 if (pProperties) {
                     vkReadStream->alloc(
@@ -2604,7 +2604,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                     readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -2683,7 +2683,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 fence = try_unbox_VkFence(fence);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -2886,7 +2886,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                         readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -2968,7 +2968,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 semaphore = try_unbox_VkSemaphore(semaphore);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -3021,7 +3021,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                     readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -3103,7 +3103,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 event = try_unbox_VkEvent(event);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -3275,7 +3275,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                         readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -3360,7 +3360,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 queryPool = try_unbox_VkQueryPool(queryPool);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -3421,7 +3421,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&queryCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 memcpy((size_t*)&dataSize, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&dataSize);
+                gfxstream::Stream::fromBe64((uint8_t*)&dataSize);
                 *readStreamPtrPtr += 8;
                 // Begin manual dispatchable handle unboxing for pData;
                 vkReadStream->unsetHandleMapping();
@@ -3484,7 +3484,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                      readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -3565,7 +3565,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 buffer = try_unbox_VkBuffer(buffer);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -3619,7 +3619,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                          readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -3704,7 +3704,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 bufferView = try_unbox_VkBufferView(bufferView);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -3754,7 +3754,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                     readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -3834,7 +3834,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 image = try_unbox_VkImage(image);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -3949,7 +3949,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                         readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -4030,7 +4030,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 imageView = try_unbox_VkImageView(imageView);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -4082,7 +4082,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -4170,7 +4170,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 shaderModule = try_unbox_VkShaderModule(shaderModule);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -4223,7 +4223,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     (VkPipelineCacheCreateInfo*)(pCreateInfo), readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -4310,7 +4310,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 pipelineCache = try_unbox_VkPipelineCache(pipelineCache);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -4368,19 +4368,19 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((size_t**)&pDataSize, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pDataSize);
+                gfxstream::Stream::fromBe64((uint8_t*)&pDataSize);
                 *readStreamPtrPtr += 8;
                 if (pDataSize) {
                     vkReadStream->alloc((void**)&pDataSize, sizeof(size_t));
                     memcpy((size_t*)&(*pDataSize), (*readStreamPtrPtr), 8);
-                    android::base::Stream::fromBe64((uint8_t*)&(*pDataSize));
+                    gfxstream::Stream::fromBe64((uint8_t*)&(*pDataSize));
                     *readStreamPtrPtr += 8;
                 }
                 // Begin manual dispatchable handle unboxing for pData;
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((void**)&pData, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pData);
+                gfxstream::Stream::fromBe64((uint8_t*)&pData);
                 *readStreamPtrPtr += 8;
                 if (pData) {
                     vkReadStream->alloc((void**)&pData, (*(pDataSize)) * sizeof(uint8_t));
@@ -4525,7 +4525,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -4634,7 +4634,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -4732,7 +4732,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 pipeline = try_unbox_VkPipeline(pipeline);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -4784,7 +4784,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     (VkPipelineLayoutCreateInfo*)(pCreateInfo), readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -4873,7 +4873,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 pipelineLayout = try_unbox_VkPipelineLayout(pipelineLayout);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -4931,7 +4931,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                       readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -5012,7 +5012,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 sampler = try_unbox_VkSampler(sampler);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -5065,7 +5065,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     (VkDescriptorSetLayoutCreateInfo*)(pCreateInfo), readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -5156,7 +5156,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 descriptorSetLayout = try_unbox_VkDescriptorSetLayout(descriptorSetLayout);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -5209,7 +5209,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     (VkDescriptorPoolCreateInfo*)(pCreateInfo), readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -5296,7 +5296,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 descriptorPool = try_unbox_VkDescriptorPool(descriptorPool);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -5483,7 +5483,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                     ((descriptorSetCount)) * sizeof(VkDescriptorSet));
                 // WARNING PTR CHECK
                 memcpy((VkDescriptorSet**)&pDescriptorSets, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pDescriptorSets);
+                gfxstream::Stream::fromBe64((uint8_t*)&pDescriptorSets);
                 *readStreamPtrPtr += 8;
                 if (pDescriptorSets) {
                     vkReadStream->alloc((void**)&pDescriptorSets,
@@ -5626,7 +5626,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                           readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -5712,7 +5712,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 framebuffer = try_unbox_VkFramebuffer(framebuffer);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -5764,7 +5764,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                          readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -5848,7 +5848,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 renderPass = try_unbox_VkRenderPass(renderPass);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -5953,7 +5953,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                           readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -6039,7 +6039,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 commandPool = try_unbox_VkCommandPool(commandPool);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -6220,7 +6220,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                     ((commandBufferCount)) * sizeof(VkCommandBuffer));
                 // WARNING PTR CHECK
                 memcpy((VkCommandBuffer**)&pCommandBuffers, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pCommandBuffers);
+                gfxstream::Stream::fromBe64((uint8_t*)&pCommandBuffers);
                 *readStreamPtrPtr += 8;
                 if (pCommandBuffers) {
                     vkReadStream->alloc((void**)&pCommandBuffers,
@@ -9026,7 +9026,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pPhysicalDeviceGroupCount, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pPhysicalDeviceGroupCount);
+                gfxstream::Stream::fromBe64((uint8_t*)&pPhysicalDeviceGroupCount);
                 *readStreamPtrPtr += 8;
                 if (pPhysicalDeviceGroupCount) {
                     vkReadStream->alloc((void**)&pPhysicalDeviceGroupCount, sizeof(uint32_t));
@@ -9039,7 +9039,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 // WARNING PTR CHECK
                 memcpy((VkPhysicalDeviceGroupProperties**)&pPhysicalDeviceGroupProperties,
                        (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pPhysicalDeviceGroupProperties);
+                gfxstream::Stream::fromBe64((uint8_t*)&pPhysicalDeviceGroupProperties);
                 *readStreamPtrPtr += 8;
                 if (pPhysicalDeviceGroupProperties) {
                     vkReadStream->alloc(
@@ -9264,7 +9264,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pSparseMemoryRequirementCount, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pSparseMemoryRequirementCount);
+                gfxstream::Stream::fromBe64((uint8_t*)&pSparseMemoryRequirementCount);
                 *readStreamPtrPtr += 8;
                 if (pSparseMemoryRequirementCount) {
                     vkReadStream->alloc((void**)&pSparseMemoryRequirementCount, sizeof(uint32_t));
@@ -9277,7 +9277,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 // WARNING PTR CHECK
                 memcpy((VkSparseImageMemoryRequirements2**)&pSparseMemoryRequirements,
                        (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pSparseMemoryRequirements);
+                gfxstream::Stream::fromBe64((uint8_t*)&pSparseMemoryRequirements);
                 *readStreamPtrPtr += 8;
                 if (pSparseMemoryRequirements) {
                     vkReadStream->alloc((void**)&pSparseMemoryRequirements,
@@ -9602,7 +9602,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pQueueFamilyPropertyCount, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pQueueFamilyPropertyCount);
+                gfxstream::Stream::fromBe64((uint8_t*)&pQueueFamilyPropertyCount);
                 *readStreamPtrPtr += 8;
                 if (pQueueFamilyPropertyCount) {
                     vkReadStream->alloc((void**)&pQueueFamilyPropertyCount, sizeof(uint32_t));
@@ -9614,7 +9614,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((VkQueueFamilyProperties2**)&pQueueFamilyProperties, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pQueueFamilyProperties);
+                gfxstream::Stream::fromBe64((uint8_t*)&pQueueFamilyProperties);
                 *readStreamPtrPtr += 8;
                 if (pQueueFamilyProperties) {
                     vkReadStream->alloc(
@@ -9761,7 +9761,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pPropertyCount, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pPropertyCount);
+                gfxstream::Stream::fromBe64((uint8_t*)&pPropertyCount);
                 *readStreamPtrPtr += 8;
                 if (pPropertyCount) {
                     vkReadStream->alloc((void**)&pPropertyCount, sizeof(uint32_t));
@@ -9772,7 +9772,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((VkSparseImageFormatProperties2**)&pProperties, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pProperties);
+                gfxstream::Stream::fromBe64((uint8_t*)&pProperties);
                 *readStreamPtrPtr += 8;
                 if (pProperties) {
                     vkReadStream->alloc(
@@ -9958,7 +9958,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     (VkSamplerYcbcrConversionCreateInfo*)(pCreateInfo), readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -10051,7 +10051,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 ycbcrConversion = try_unbox_VkSamplerYcbcrConversion(ycbcrConversion);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -10105,7 +10105,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     (VkDescriptorUpdateTemplateCreateInfo*)(pCreateInfo), readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -10203,7 +10203,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     try_unbox_VkDescriptorUpdateTemplate(descriptorUpdateTemplate);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -10266,7 +10266,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (VkDescriptorUpdateTemplate)(*&cgen_var_2));
                 // WARNING PTR CHECK
                 memcpy((void**)&pData, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pData);
+                gfxstream::Stream::fromBe64((uint8_t*)&pData);
                 *readStreamPtrPtr += 8;
                 if (pData) {
                     vkReadStream->alloc((void**)&pData, sizeof(const uint8_t));
@@ -10700,7 +10700,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                           readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -11248,7 +11248,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pToolCount, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pToolCount);
+                gfxstream::Stream::fromBe64((uint8_t*)&pToolCount);
                 *readStreamPtrPtr += 8;
                 if (pToolCount) {
                     vkReadStream->alloc((void**)&pToolCount, sizeof(uint32_t));
@@ -11259,7 +11259,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((VkPhysicalDeviceToolProperties**)&pToolProperties, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pToolProperties);
+                gfxstream::Stream::fromBe64((uint8_t*)&pToolProperties);
                 *readStreamPtrPtr += 8;
                 if (pToolProperties) {
                     vkReadStream->alloc((void**)&pToolProperties,
@@ -11359,7 +11359,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     (VkPrivateDataSlotCreateInfo*)(pCreateInfo), readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -11448,7 +11448,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 privateDataSlot = try_unbox_VkPrivateDataSlot(privateDataSlot);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -12416,7 +12416,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += sizeof(uint32_t);
                 // WARNING PTR CHECK
                 memcpy((VkBuffer**)&pBuffers, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pBuffers);
+                gfxstream::Stream::fromBe64((uint8_t*)&pBuffers);
                 *readStreamPtrPtr += 8;
                 if (pBuffers) {
                     vkReadStream->alloc((void**)&pBuffers,
@@ -12440,7 +12440,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
                 // WARNING PTR CHECK
                 memcpy((VkDeviceSize**)&pSizes, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pSizes);
+                gfxstream::Stream::fromBe64((uint8_t*)&pSizes);
                 *readStreamPtrPtr += 8;
                 if (pSizes) {
                     vkReadStream->alloc((void**)&pSizes,
@@ -12451,7 +12451,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 // WARNING PTR CHECK
                 memcpy((VkDeviceSize**)&pStrides, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pStrides);
+                gfxstream::Stream::fromBe64((uint8_t*)&pStrides);
                 *readStreamPtrPtr += 8;
                 if (pStrides) {
                     vkReadStream->alloc((void**)&pStrides,
@@ -12961,7 +12961,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pSparseMemoryRequirementCount, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pSparseMemoryRequirementCount);
+                gfxstream::Stream::fromBe64((uint8_t*)&pSparseMemoryRequirementCount);
                 *readStreamPtrPtr += 8;
                 if (pSparseMemoryRequirementCount) {
                     vkReadStream->alloc((void**)&pSparseMemoryRequirementCount, sizeof(uint32_t));
@@ -12974,7 +12974,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 // WARNING PTR CHECK
                 memcpy((VkSparseImageMemoryRequirements2**)&pSparseMemoryRequirements,
                        (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pSparseMemoryRequirements);
+                gfxstream::Stream::fromBe64((uint8_t*)&pSparseMemoryRequirements);
                 *readStreamPtrPtr += 8;
                 if (pSparseMemoryRequirements) {
                     vkReadStream->alloc((void**)&pSparseMemoryRequirements,
@@ -13078,7 +13078,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                            readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -13166,7 +13166,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 swapchain = try_unbox_VkSwapchainKHR(swapchain);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -13222,7 +13222,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pSwapchainImageCount, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pSwapchainImageCount);
+                gfxstream::Stream::fromBe64((uint8_t*)&pSwapchainImageCount);
                 *readStreamPtrPtr += 8;
                 if (pSwapchainImageCount) {
                     vkReadStream->alloc((void**)&pSwapchainImageCount, sizeof(uint32_t));
@@ -13233,7 +13233,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((VkImage**)&pSwapchainImages, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pSwapchainImages);
+                gfxstream::Stream::fromBe64((uint8_t*)&pSwapchainImages);
                 *readStreamPtrPtr += 8;
                 if (pSwapchainImages) {
                     vkReadStream->alloc((void**)&pSwapchainImages,
@@ -13502,7 +13502,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((VkDeviceGroupPresentModeFlagsKHR**)&pModes, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pModes);
+                gfxstream::Stream::fromBe64((uint8_t*)&pModes);
                 *readStreamPtrPtr += 8;
                 if (pModes) {
                     vkReadStream->alloc((void**)&pModes, sizeof(VkDeviceGroupPresentModeFlagsKHR));
@@ -13575,7 +13575,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pRectCount, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pRectCount);
+                gfxstream::Stream::fromBe64((uint8_t*)&pRectCount);
                 *readStreamPtrPtr += 8;
                 if (pRectCount) {
                     vkReadStream->alloc((void**)&pRectCount, sizeof(uint32_t));
@@ -13586,7 +13586,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((VkRect2D**)&pRects, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pRects);
+                gfxstream::Stream::fromBe64((uint8_t*)&pRects);
                 *readStreamPtrPtr += 8;
                 if (pRects) {
                     vkReadStream->alloc((void**)&pRects, (*(pRectCount)) * sizeof(VkRect2D));
@@ -14037,7 +14037,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pQueueFamilyPropertyCount, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pQueueFamilyPropertyCount);
+                gfxstream::Stream::fromBe64((uint8_t*)&pQueueFamilyPropertyCount);
                 *readStreamPtrPtr += 8;
                 if (pQueueFamilyPropertyCount) {
                     vkReadStream->alloc((void**)&pQueueFamilyPropertyCount, sizeof(uint32_t));
@@ -14049,7 +14049,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((VkQueueFamilyProperties2**)&pQueueFamilyProperties, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pQueueFamilyProperties);
+                gfxstream::Stream::fromBe64((uint8_t*)&pQueueFamilyProperties);
                 *readStreamPtrPtr += 8;
                 if (pQueueFamilyProperties) {
                     vkReadStream->alloc(
@@ -14196,7 +14196,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pPropertyCount, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pPropertyCount);
+                gfxstream::Stream::fromBe64((uint8_t*)&pPropertyCount);
                 *readStreamPtrPtr += 8;
                 if (pPropertyCount) {
                     vkReadStream->alloc((void**)&pPropertyCount, sizeof(uint32_t));
@@ -14207,7 +14207,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((VkSparseImageFormatProperties2**)&pProperties, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pProperties);
+                gfxstream::Stream::fromBe64((uint8_t*)&pProperties);
                 *readStreamPtrPtr += 8;
                 if (pProperties) {
                     vkReadStream->alloc(
@@ -14592,7 +14592,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     (VkDescriptorUpdateTemplateCreateInfo*)(pCreateInfo), readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -14690,7 +14690,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     try_unbox_VkDescriptorUpdateTemplate(descriptorUpdateTemplate);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -14754,7 +14754,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (VkDescriptorUpdateTemplate)(*&cgen_var_2));
                 // WARNING PTR CHECK
                 memcpy((void**)&pData, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pData);
+                gfxstream::Stream::fromBe64((uint8_t*)&pData);
                 *readStreamPtrPtr += 8;
                 if (pData) {
                     vkReadStream->alloc((void**)&pData, sizeof(const uint8_t));
@@ -14804,7 +14804,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                           readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -15324,7 +15324,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pSparseMemoryRequirementCount, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pSparseMemoryRequirementCount);
+                gfxstream::Stream::fromBe64((uint8_t*)&pSparseMemoryRequirementCount);
                 *readStreamPtrPtr += 8;
                 if (pSparseMemoryRequirementCount) {
                     vkReadStream->alloc((void**)&pSparseMemoryRequirementCount, sizeof(uint32_t));
@@ -15337,7 +15337,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 // WARNING PTR CHECK
                 memcpy((VkSparseImageMemoryRequirements2**)&pSparseMemoryRequirements,
                        (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pSparseMemoryRequirements);
+                gfxstream::Stream::fromBe64((uint8_t*)&pSparseMemoryRequirements);
                 *readStreamPtrPtr += 8;
                 if (pSparseMemoryRequirements) {
                     vkReadStream->alloc((void**)&pSparseMemoryRequirements,
@@ -15440,7 +15440,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     (VkSamplerYcbcrConversionCreateInfo*)(pCreateInfo), readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -15534,7 +15534,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 ycbcrConversion = try_unbox_VkSamplerYcbcrConversion(ycbcrConversion);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -15905,7 +15905,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pExecutableCount, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pExecutableCount);
+                gfxstream::Stream::fromBe64((uint8_t*)&pExecutableCount);
                 *readStreamPtrPtr += 8;
                 if (pExecutableCount) {
                     vkReadStream->alloc((void**)&pExecutableCount, sizeof(uint32_t));
@@ -15916,7 +15916,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((VkPipelineExecutablePropertiesKHR**)&pProperties, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pProperties);
+                gfxstream::Stream::fromBe64((uint8_t*)&pProperties);
                 *readStreamPtrPtr += 8;
                 if (pProperties) {
                     vkReadStream->alloc(
@@ -16024,7 +16024,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pStatisticCount, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pStatisticCount);
+                gfxstream::Stream::fromBe64((uint8_t*)&pStatisticCount);
                 *readStreamPtrPtr += 8;
                 if (pStatisticCount) {
                     vkReadStream->alloc((void**)&pStatisticCount, sizeof(uint32_t));
@@ -16035,7 +16035,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((VkPipelineExecutableStatisticKHR**)&pStatistics, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pStatistics);
+                gfxstream::Stream::fromBe64((uint8_t*)&pStatistics);
                 *readStreamPtrPtr += 8;
                 if (pStatistics) {
                     vkReadStream->alloc(
@@ -16143,7 +16143,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pInternalRepresentationCount, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pInternalRepresentationCount);
+                gfxstream::Stream::fromBe64((uint8_t*)&pInternalRepresentationCount);
                 *readStreamPtrPtr += 8;
                 if (pInternalRepresentationCount) {
                     vkReadStream->alloc((void**)&pInternalRepresentationCount, sizeof(uint32_t));
@@ -16156,7 +16156,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 // WARNING PTR CHECK
                 memcpy((VkPipelineExecutableInternalRepresentationKHR**)&pInternalRepresentations,
                        (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pInternalRepresentations);
+                gfxstream::Stream::fromBe64((uint8_t*)&pInternalRepresentations);
                 *readStreamPtrPtr += 8;
                 if (pInternalRepresentations) {
                     vkReadStream->alloc((void**)&pInternalRepresentations,
@@ -16618,7 +16618,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pCheckpointDataCount, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pCheckpointDataCount);
+                gfxstream::Stream::fromBe64((uint8_t*)&pCheckpointDataCount);
                 *readStreamPtrPtr += 8;
                 if (pCheckpointDataCount) {
                     vkReadStream->alloc((void**)&pCheckpointDataCount, sizeof(uint32_t));
@@ -16629,7 +16629,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((VkCheckpointData2NV**)&pCheckpointData, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pCheckpointData);
+                gfxstream::Stream::fromBe64((uint8_t*)&pCheckpointData);
                 *readStreamPtrPtr += 8;
                 if (pCheckpointData) {
                     vkReadStream->alloc((void**)&pCheckpointData,
@@ -17090,7 +17090,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pSparseMemoryRequirementCount, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pSparseMemoryRequirementCount);
+                gfxstream::Stream::fromBe64((uint8_t*)&pSparseMemoryRequirementCount);
                 *readStreamPtrPtr += 8;
                 if (pSparseMemoryRequirementCount) {
                     vkReadStream->alloc((void**)&pSparseMemoryRequirementCount, sizeof(uint32_t));
@@ -17103,7 +17103,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 // WARNING PTR CHECK
                 memcpy((VkSparseImageMemoryRequirements2**)&pSparseMemoryRequirements,
                        (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pSparseMemoryRequirements);
+                gfxstream::Stream::fromBe64((uint8_t*)&pSparseMemoryRequirements);
                 *readStreamPtrPtr += 8;
                 if (pSparseMemoryRequirements) {
                     vkReadStream->alloc((void**)&pSparseMemoryRequirements,
@@ -17598,7 +17598,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += sizeof(uint32_t);
                 // WARNING PTR CHECK
                 memcpy((VkSemaphore**)&pWaitSemaphores, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pWaitSemaphores);
+                gfxstream::Stream::fromBe64((uint8_t*)&pWaitSemaphores);
                 *readStreamPtrPtr += 8;
                 if (pWaitSemaphores) {
                     vkReadStream->alloc((void**)&pWaitSemaphores,
@@ -17756,7 +17756,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     (VkDebugReportCallbackCreateInfoEXT*)(pCreateInfo), readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -17851,7 +17851,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 callback = try_unbox_VkDebugReportCallbackEXT(callback);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -17912,7 +17912,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint64_t*)&object, *readStreamPtrPtr, sizeof(uint64_t));
                 *readStreamPtrPtr += sizeof(uint64_t);
                 memcpy((size_t*)&location, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&location);
+                gfxstream::Stream::fromBe64((uint8_t*)&location);
                 *readStreamPtrPtr += 8;
                 memcpy((int32_t*)&messageCode, *readStreamPtrPtr, sizeof(int32_t));
                 *readStreamPtrPtr += sizeof(int32_t);
@@ -17985,7 +17985,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
                 // WARNING PTR CHECK
                 memcpy((VkDeviceSize**)&pSizes, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pSizes);
+                gfxstream::Stream::fromBe64((uint8_t*)&pSizes);
                 *readStreamPtrPtr += 8;
                 if (pSizes) {
                     vkReadStream->alloc((void**)&pSizes,
@@ -18042,7 +18042,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += sizeof(uint32_t);
                 // WARNING PTR CHECK
                 memcpy((VkBuffer**)&pCounterBuffers, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pCounterBuffers);
+                gfxstream::Stream::fromBe64((uint8_t*)&pCounterBuffers);
                 *readStreamPtrPtr += 8;
                 if (pCounterBuffers) {
                     vkReadStream->alloc((void**)&pCounterBuffers,
@@ -18061,7 +18061,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 // WARNING PTR CHECK
                 memcpy((VkDeviceSize**)&pCounterBufferOffsets, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pCounterBufferOffsets);
+                gfxstream::Stream::fromBe64((uint8_t*)&pCounterBufferOffsets);
                 *readStreamPtrPtr += 8;
                 if (pCounterBufferOffsets) {
                     vkReadStream->alloc((void**)&pCounterBufferOffsets,
@@ -18119,7 +18119,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += sizeof(uint32_t);
                 // WARNING PTR CHECK
                 memcpy((VkBuffer**)&pCounterBuffers, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pCounterBuffers);
+                gfxstream::Stream::fromBe64((uint8_t*)&pCounterBuffers);
                 *readStreamPtrPtr += 8;
                 if (pCounterBuffers) {
                     vkReadStream->alloc((void**)&pCounterBuffers,
@@ -18138,7 +18138,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 // WARNING PTR CHECK
                 memcpy((VkDeviceSize**)&pCounterBufferOffsets, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pCounterBufferOffsets);
+                gfxstream::Stream::fromBe64((uint8_t*)&pCounterBufferOffsets);
                 *readStreamPtrPtr += 8;
                 if (pCounterBufferOffsets) {
                     vkReadStream->alloc((void**)&pCounterBufferOffsets,
@@ -18668,7 +18668,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     (VkDebugUtilsMessengerCreateInfoEXT*)(pCreateInfo), readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -18763,7 +18763,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 messenger = try_unbox_VkDebugUtilsMessengerEXT(messenger);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -19016,7 +19016,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pToolCount, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pToolCount);
+                gfxstream::Stream::fromBe64((uint8_t*)&pToolCount);
                 *readStreamPtrPtr += 8;
                 if (pToolCount) {
                     vkReadStream->alloc((void**)&pToolCount, sizeof(uint32_t));
@@ -19027,7 +19027,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((VkPhysicalDeviceToolProperties**)&pToolProperties, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pToolProperties);
+                gfxstream::Stream::fromBe64((uint8_t*)&pToolProperties);
                 *readStreamPtrPtr += 8;
                 if (pToolProperties) {
                     vkReadStream->alloc((void**)&pToolProperties,
@@ -19374,7 +19374,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += sizeof(uint32_t);
                 // WARNING PTR CHECK
                 memcpy((VkBuffer**)&pBuffers, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pBuffers);
+                gfxstream::Stream::fromBe64((uint8_t*)&pBuffers);
                 *readStreamPtrPtr += 8;
                 if (pBuffers) {
                     vkReadStream->alloc((void**)&pBuffers,
@@ -19398,7 +19398,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
                 // WARNING PTR CHECK
                 memcpy((VkDeviceSize**)&pSizes, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pSizes);
+                gfxstream::Stream::fromBe64((uint8_t*)&pSizes);
                 *readStreamPtrPtr += 8;
                 if (pSizes) {
                     vkReadStream->alloc((void**)&pSizes,
@@ -19409,7 +19409,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 // WARNING PTR CHECK
                 memcpy((VkDeviceSize**)&pStrides, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pStrides);
+                gfxstream::Stream::fromBe64((uint8_t*)&pStrides);
                 *readStreamPtrPtr += 8;
                 if (pStrides) {
                     vkReadStream->alloc((void**)&pStrides,
@@ -20021,7 +20021,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     (VkPrivateDataSlotCreateInfo*)(pCreateInfo), readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -20099,7 +20099,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     (VkPrivateDataSlot)unbox_VkPrivateDataSlot((VkPrivateDataSlot)(*&cgen_var_1));
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -20489,7 +20489,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint64_t**)&pAddress, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAddress);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAddress);
                 *readStreamPtrPtr += 8;
                 if (pAddress) {
                     vkReadStream->alloc((void**)&pAddress, sizeof(uint64_t));
@@ -20574,7 +20574,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += sizeof(uint32_t);
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pImageInfoEntryIndices, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pImageInfoEntryIndices);
+                gfxstream::Stream::fromBe64((uint8_t*)&pImageInfoEntryIndices);
                 *readStreamPtrPtr += 8;
                 if (pImageInfoEntryIndices) {
                     vkReadStream->alloc((void**)&pImageInfoEntryIndices,
@@ -20585,7 +20585,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pBufferInfoEntryIndices, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pBufferInfoEntryIndices);
+                gfxstream::Stream::fromBe64((uint8_t*)&pBufferInfoEntryIndices);
                 *readStreamPtrPtr += 8;
                 if (pBufferInfoEntryIndices) {
                     vkReadStream->alloc((void**)&pBufferInfoEntryIndices,
@@ -20596,7 +20596,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pBufferViewEntryIndices, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pBufferViewEntryIndices);
+                gfxstream::Stream::fromBe64((uint8_t*)&pBufferViewEntryIndices);
                 *readStreamPtrPtr += 8;
                 if (pBufferViewEntryIndices) {
                     vkReadStream->alloc((void**)&pBufferViewEntryIndices,
@@ -20607,7 +20607,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 // WARNING PTR CHECK
                 memcpy((VkDescriptorImageInfo**)&pImageInfos, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pImageInfos);
+                gfxstream::Stream::fromBe64((uint8_t*)&pImageInfos);
                 *readStreamPtrPtr += 8;
                 if (pImageInfos) {
                     vkReadStream->alloc((void**)&pImageInfos,
@@ -20620,7 +20620,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 // WARNING PTR CHECK
                 memcpy((VkDescriptorBufferInfo**)&pBufferInfos, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pBufferInfos);
+                gfxstream::Stream::fromBe64((uint8_t*)&pBufferInfos);
                 *readStreamPtrPtr += 8;
                 if (pBufferInfos) {
                     vkReadStream->alloc((void**)&pBufferInfos,
@@ -20633,7 +20633,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 // WARNING PTR CHECK
                 memcpy((VkBufferView**)&pBufferViews, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pBufferViews);
+                gfxstream::Stream::fromBe64((uint8_t*)&pBufferViews);
                 *readStreamPtrPtr += 8;
                 if (pBufferViews) {
                     vkReadStream->alloc((void**)&pBufferViews,
@@ -20857,7 +20857,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                     readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -20960,7 +20960,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                      readStreamPtrPtr);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -21066,7 +21066,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint64_t**)&pAddress, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAddress);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAddress);
                 *readStreamPtrPtr += 8;
                 if (pAddress) {
                     vkReadStream->alloc((void**)&pAddress, sizeof(uint64_t));
@@ -21077,7 +21077,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint64_t**)&pSize, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pSize);
+                gfxstream::Stream::fromBe64((uint8_t*)&pSize);
                 *readStreamPtrPtr += 8;
                 if (pSize) {
                     vkReadStream->alloc((void**)&pSize, sizeof(uint64_t));
@@ -21088,7 +21088,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint64_t**)&pHostmemId, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pHostmemId);
+                gfxstream::Stream::fromBe64((uint8_t*)&pHostmemId);
                 *readStreamPtrPtr += 8;
                 if (pHostmemId) {
                     vkReadStream->alloc((void**)&pHostmemId, sizeof(uint64_t));
@@ -21171,7 +21171,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memory = try_unbox_VkDeviceMemory(memory);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -21684,7 +21684,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkReadStream->unsetHandleMapping();
                 // WARNING PTR CHECK
                 memcpy((uint64_t**)&pPoolIds, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pPoolIds);
+                gfxstream::Stream::fromBe64((uint8_t*)&pPoolIds);
                 *readStreamPtrPtr += 8;
                 if (pPoolIds) {
                     vkReadStream->alloc((void**)&pPoolIds, (*(pPoolIdCount)) * sizeof(uint64_t));
@@ -21740,7 +21740,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += sizeof(uint32_t);
                 // WARNING PTR CHECK
                 memcpy((VkSemaphore**)&pWaitSemaphores, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pWaitSemaphores);
+                gfxstream::Stream::fromBe64((uint8_t*)&pWaitSemaphores);
                 *readStreamPtrPtr += 8;
                 if (pWaitSemaphores) {
                     vkReadStream->alloc((void**)&pWaitSemaphores,
@@ -21922,7 +21922,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += sizeof(uint32_t);
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pImageInfoEntryIndices, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pImageInfoEntryIndices);
+                gfxstream::Stream::fromBe64((uint8_t*)&pImageInfoEntryIndices);
                 *readStreamPtrPtr += 8;
                 if (pImageInfoEntryIndices) {
                     vkReadStream->alloc((void**)&pImageInfoEntryIndices,
@@ -21933,7 +21933,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pBufferInfoEntryIndices, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pBufferInfoEntryIndices);
+                gfxstream::Stream::fromBe64((uint8_t*)&pBufferInfoEntryIndices);
                 *readStreamPtrPtr += 8;
                 if (pBufferInfoEntryIndices) {
                     vkReadStream->alloc((void**)&pBufferInfoEntryIndices,
@@ -21944,7 +21944,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 // WARNING PTR CHECK
                 memcpy((uint32_t**)&pBufferViewEntryIndices, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pBufferViewEntryIndices);
+                gfxstream::Stream::fromBe64((uint8_t*)&pBufferViewEntryIndices);
                 *readStreamPtrPtr += 8;
                 if (pBufferViewEntryIndices) {
                     vkReadStream->alloc((void**)&pBufferViewEntryIndices,
@@ -21955,7 +21955,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 // WARNING PTR CHECK
                 memcpy((VkDescriptorImageInfo**)&pImageInfos, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pImageInfos);
+                gfxstream::Stream::fromBe64((uint8_t*)&pImageInfos);
                 *readStreamPtrPtr += 8;
                 if (pImageInfos) {
                     vkReadStream->alloc((void**)&pImageInfos,
@@ -21968,7 +21968,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 // WARNING PTR CHECK
                 memcpy((VkDescriptorBufferInfo**)&pBufferInfos, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pBufferInfos);
+                gfxstream::Stream::fromBe64((uint8_t*)&pBufferInfos);
                 *readStreamPtrPtr += 8;
                 if (pBufferInfos) {
                     vkReadStream->alloc((void**)&pBufferInfos,
@@ -21981,7 +21981,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 // WARNING PTR CHECK
                 memcpy((VkBufferView**)&pBufferViews, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pBufferViews);
+                gfxstream::Stream::fromBe64((uint8_t*)&pBufferViews);
                 *readStreamPtrPtr += 8;
                 if (pBufferViews) {
                     vkReadStream->alloc((void**)&pBufferViews,
@@ -22000,7 +22000,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 // WARNING PTR CHECK
                 memcpy((uint8_t**)&pInlineUniformBlockData, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pInlineUniformBlockData);
+                gfxstream::Stream::fromBe64((uint8_t*)&pInlineUniformBlockData);
                 *readStreamPtrPtr += 8;
                 if (pInlineUniformBlockData) {
                     vkReadStream->alloc((void**)&pInlineUniformBlockData,
@@ -22270,7 +22270,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto vk = dispatch_VkDevice(device);
                 // End manual dispatchable handle unboxing for device;
                 memcpy((VkDeferredOperationKHR*)&deferredOperation, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&deferredOperation);
+                gfxstream::Stream::fromBe64((uint8_t*)&deferredOperation);
                 *readStreamPtrPtr += 8;
                 uint64_t cgen_var_2;
                 memcpy((uint64_t*)&cgen_var_2, *readStreamPtrPtr, 1 * 8);
@@ -22289,7 +22289,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pAllocator);
+                gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
                 *readStreamPtrPtr += 8;
                 if (pAllocator) {
                     vkReadStream->alloc((void**)&pAllocator, sizeof(const VkAllocationCallbacks));
@@ -22389,7 +22389,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&groupCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 memcpy((size_t*)&dataSize, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&dataSize);
+                gfxstream::Stream::fromBe64((uint8_t*)&dataSize);
                 *readStreamPtrPtr += 8;
                 // Begin manual dispatchable handle unboxing for pData;
                 vkReadStream->unsetHandleMapping();

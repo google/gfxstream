@@ -57,7 +57,7 @@ GLESbuffer::~GLESbuffer() {
     }
 }
 
-GLESbuffer::GLESbuffer(android::base::Stream* stream) : ObjectData(stream) {
+GLESbuffer::GLESbuffer(gfxstream::Stream* stream) : ObjectData(stream) {
     m_size = stream->getBe32();
     m_usage = stream->getBe32();
     if (m_size) {
@@ -69,7 +69,7 @@ GLESbuffer::GLESbuffer(android::base::Stream* stream) : ObjectData(stream) {
     m_wasBound = stream->getByte();
 }
 
-void GLESbuffer::onSave(android::base::Stream* stream,
+void GLESbuffer::onSave(gfxstream::Stream* stream,
         unsigned int globalName) const {
     ObjectData::onSave(stream, globalName);
     stream->putBe32(m_size);

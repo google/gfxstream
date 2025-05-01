@@ -66,7 +66,7 @@ static void setMaxGlesVersion(GLESVersion version);
 static void deleteGLESContext(GLEScontext* ctx);
 static void setShareGroup(GLEScontext* ctx,ShareGroupPtr grp);
 static GLEScontext* createGLESContext(int maj, int min,
-        GlobalNameSpace* globalNameSpace, android::base::Stream* stream);
+        GlobalNameSpace* globalNameSpace, gfxstream::Stream* stream);
 static __translatorMustCastToProperFunctionPointerType getProcAddressGles1(const char* procName);
 static bool vulkanInteropSupported();
 }
@@ -227,7 +227,7 @@ static void initContext(GLEScontext* ctx, ShareGroupPtr grp, bool nativeTextureD
 }
 
 static GLEScontext* createGLESContext(int maj, int min,
-        GlobalNameSpace* globalNameSpace, android::base::Stream* stream) {
+        GlobalNameSpace* globalNameSpace, gfxstream::Stream* stream) {
     (void)stream;
     return new GLEScmContext(maj, min, globalNameSpace, stream);
 }

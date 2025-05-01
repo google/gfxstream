@@ -16,7 +16,7 @@
 #ifndef EGL_CONTEXT_H
 #define EGL_CONTEXT_H
 
-#include "aemu/base/files/Stream.h"
+#include "render-utils/stream.h"
 
 #include "EglConfig.h"
 #include "EglOsApi.h"
@@ -44,7 +44,7 @@ public:
                GLESVersion ver,
                EGLint profile_mask,
                ObjectNameManager* mngr,
-               android::base::Stream* stream);
+               gfxstream::Stream* stream);
     bool usingSurface(SurfacePtr surface);
     EglOS::Context* nativeType() const { return m_native.get(); }
     bool getAttrib(EGLint attrib, EGLint* value);
@@ -58,8 +58,8 @@ public:
     unsigned int getHndl() { return m_hndl; }
 
     ~EglContext();
-    void onSave(android::base::Stream* stream);
-    void postSave(android::base::Stream* stream);
+    void onSave(gfxstream::Stream* stream);
+    void postSave(gfxstream::Stream* stream);
 
 private:
     static unsigned int s_nextContextHndl;

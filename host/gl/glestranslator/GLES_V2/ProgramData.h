@@ -29,7 +29,7 @@ struct GLUniformDesc {
     GLUniformDesc() = default;
     GLUniformDesc(const char* name, GLint location, GLsizei count, GLboolean transpose,
             GLenum type, GLsizei size, unsigned char* val);
-    GLUniformDesc(android::base::Stream* stream);
+    GLUniformDesc(gfxstream::Stream* stream);
     GLUniformDesc(GLUniformDesc&&) = default;
     GLUniformDesc& operator=(GLUniformDesc&&) = default;
 
@@ -40,7 +40,7 @@ struct GLUniformDesc {
 
     std::string mGuestName = {};
 
-    void onSave(android::base::Stream* stream) const;
+    void onSave(gfxstream::Stream* stream) const;
 };
 
 struct AttachedShader {
@@ -63,8 +63,8 @@ public:
         NUM_SHADER_TYPE
     };
     ProgramData(int glesMaj, int glesMin);
-    ProgramData(android::base::Stream* stream);
-    virtual void onSave(android::base::Stream* stream, unsigned int globalName) const override;
+    ProgramData(gfxstream::Stream* stream);
+    virtual void onSave(gfxstream::Stream* stream, unsigned int globalName) const override;
     virtual void postLoad(const getObjDataPtr_t& getObjDataPtr) override;
     // restore() in ProgramData must be executed after shaders
     virtual void restore(ObjectLocalName localName,

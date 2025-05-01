@@ -90,13 +90,13 @@ void BufferGl::subUpdate(uint64_t offset, uint64_t size, const void* bytes) {
 }
 
 /*static*/
-std::unique_ptr<BufferGl> BufferGl::onLoad(android::base::Stream* stream, ContextHelper* helper) {
+std::unique_ptr<BufferGl> BufferGl::onLoad(gfxstream::Stream* stream, ContextHelper* helper) {
     const auto size = static_cast<uint64_t>(stream->getBe64());
     const auto handle = static_cast<HandleType>(stream->getBe32());
     return std::unique_ptr<BufferGl>(new BufferGl(size, handle, helper));
 }
 
-void BufferGl::onSave(android::base::Stream* stream) {
+void BufferGl::onSave(gfxstream::Stream* stream) {
     stream->putBe64(mSize);
     stream->putBe32(mHandle);
 }

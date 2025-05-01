@@ -17,10 +17,10 @@
 #include <memory>
 #include <optional>
 
-#include "aemu/base/AlignedBuf.h"
-#include "aemu/base/SubAllocator.h"
+#include "gfxstream/AlignedBuf.h"
 #include "gfxstream/host/address_space_device.h"
 #include "gfxstream/host/logging.h"
+#include "gfxstream/host/sub_allocator.h"
 #include "render-utils/address_space_operations.h"
 
 namespace gfxstream {
@@ -28,7 +28,6 @@ namespace host {
 
 using android::base::AutoLock;
 using android::base::Lock;
-using android::base::SubAllocator;
 
 struct AllocationCreateInfo {
     bool virtioGpu;
@@ -274,7 +273,7 @@ class Globals {
         // mConsumerInterface.globalPreSave();
     }
 
-    void save(android::base::Stream* stream) {
+    void save(gfxstream::Stream* stream) {
         stream->putBe64(mRingBlocks.size());
         stream->putBe64(mBufferBlocks.size());
         stream->putBe64(mCombinedBlocks.size());
@@ -296,7 +295,7 @@ class Globals {
         // mConsumerInterface.globalPostSave();
     }
 
-    bool load(android::base::Stream* stream,
+    bool load(gfxstream::Stream* stream,
               const std::optional<AddressSpaceDeviceLoadResources>& resources) {
         clear();
         mConsumerInterface.globalPreLoad();
@@ -349,7 +348,7 @@ class Globals {
 private:
 
     void saveBlockLocked(
-        android::base::Stream* stream,
+        gfxstream::Stream* stream,
         const Block& block) {
 
         if (block.isEmpty) {
@@ -375,7 +374,7 @@ private:
         }
     }
 
-    void loadBlockLocked(android::base::Stream* stream,
+    void loadBlockLocked(gfxstream::Stream* stream,
                          const std::optional<AddressSpaceDeviceLoadResources>& resources,
                          Block& block) {
         uint32_t filled = stream->getBe32();
@@ -668,7 +667,7 @@ void AddressSpaceGraphicsContext::preSave() const {
     }
 }
 
-void AddressSpaceGraphicsContext::save(android::base::Stream* stream) const {
+void AddressSpaceGraphicsContext::save(gfxstream::Stream* stream) const {
     if (mVirtioGpuInfo) {
         const VirtioGpuInfo& info = *mVirtioGpuInfo;
         stream->putBe32(1);
@@ -709,7 +708,7 @@ void AddressSpaceGraphicsContext::postSave() const {
     }
 }
 
-bool AddressSpaceGraphicsContext::load(android::base::Stream* stream) {
+bool AddressSpaceGraphicsContext::load(gfxstream::Stream* stream) {
     const bool hasVirtioGpuInfo = (stream->getBe32() == 1);
     if (hasVirtioGpuInfo) {
         VirtioGpuInfo& info = mVirtioGpuInfo.emplace();
@@ -771,7 +770,7 @@ void AddressSpaceGraphicsContext::globalStatePreSave() {
     sGlobals()->preSave();
 }
 
-void AddressSpaceGraphicsContext::globalStateSave(android::base::Stream* stream) {
+void AddressSpaceGraphicsContext::globalStateSave(gfxstream::Stream* stream) {
     sGlobals()->save(stream);
 }
 
@@ -780,11 +779,11 @@ void AddressSpaceGraphicsContext::globalStatePostSave() {
 }
 
 bool AddressSpaceGraphicsContext::globalStateLoad(
-    android::base::Stream* stream, const std::optional<AddressSpaceDeviceLoadResources>& resources) {
+    gfxstream::Stream* stream, const std::optional<AddressSpaceDeviceLoadResources>& resources) {
     return sGlobals()->load(stream, resources);
 }
 
-void AddressSpaceGraphicsContext::saveRingConfig(android::base::Stream* stream, const struct asg_ring_config& config) const {
+void AddressSpaceGraphicsContext::saveRingConfig(gfxstream::Stream* stream, const struct asg_ring_config& config) const {
     stream->putBe32(config.buffer_size);
     stream->putBe32(config.flush_interval);
     stream->putBe32(config.host_consumed_pos);
@@ -794,14 +793,14 @@ void AddressSpaceGraphicsContext::saveRingConfig(android::base::Stream* stream, 
     stream->putBe32(config.in_error);
 }
 
-void AddressSpaceGraphicsContext::saveAllocation(android::base::Stream* stream, const Allocation& alloc) const {
+void AddressSpaceGraphicsContext::saveAllocation(gfxstream::Stream* stream, const Allocation& alloc) const {
     stream->putBe64(alloc.blockIndex);
     stream->putBe64(alloc.offsetIntoPhys);
     stream->putBe64(alloc.size);
     stream->putBe32(alloc.isView);
 }
 
-void AddressSpaceGraphicsContext::loadRingConfig(android::base::Stream* stream, struct asg_ring_config& config) {
+void AddressSpaceGraphicsContext::loadRingConfig(gfxstream::Stream* stream, struct asg_ring_config& config) {
     config.buffer_size = stream->getBe32();
     config.flush_interval = stream->getBe32();
     config.host_consumed_pos = stream->getBe32();
@@ -811,7 +810,7 @@ void AddressSpaceGraphicsContext::loadRingConfig(android::base::Stream* stream, 
     config.in_error = stream->getBe32();
 }
 
-void AddressSpaceGraphicsContext::loadAllocation(android::base::Stream* stream, Allocation& alloc) {
+void AddressSpaceGraphicsContext::loadAllocation(gfxstream::Stream* stream, Allocation& alloc) {
     alloc.blockIndex = stream->getBe64();
     alloc.offsetIntoPhys = stream->getBe64();
     alloc.size = stream->getBe64();

@@ -16,20 +16,20 @@
 
 #include "SamplerData.h"
 
-#include "aemu/base/files/StreamSerializing.h"
+#include "gfxstream/host/stream_utils.h"
 #include "GLcommon/GLEScontext.h"
 
-SamplerData::SamplerData(android::base::Stream* stream)
+SamplerData::SamplerData(gfxstream::Stream* stream)
     : ObjectData(stream) {
     if (stream) {
-        android::base::loadCollection(stream, &mParamis,
-                [](android::base::Stream* stream) {
+        gfxstream::loadCollection(stream, &mParamis,
+                [](gfxstream::Stream* stream) {
                     GLuint idx = stream->getBe32();
                     GLuint val = stream->getBe32();
                     return std::make_pair(idx, val);
                 });
-        android::base::loadCollection(stream, &mParamfs,
-                [](android::base::Stream* stream) {
+        gfxstream::loadCollection(stream, &mParamfs,
+                [](gfxstream::Stream* stream) {
                     GLuint idx = stream->getBe32();
                     GLfloat val = stream->getFloat();
                     return std::make_pair(idx, val);
@@ -37,16 +37,16 @@ SamplerData::SamplerData(android::base::Stream* stream)
     }
 }
 
-void SamplerData::onSave(android::base::Stream* stream, unsigned int globalName) const {
+void SamplerData::onSave(gfxstream::Stream* stream, unsigned int globalName) const {
     ObjectData::onSave(stream, globalName);
-    android::base::saveCollection(stream, mParamis,
-            [](android::base::Stream* stream,
+    gfxstream::saveCollection(stream, mParamis,
+            [](gfxstream::Stream* stream,
                 const std::pair<const GLenum, GLuint>& item) {
                 stream->putBe32(item.first);
                 stream->putBe32(item.second);
             });
-    android::base::saveCollection(stream, mParamfs,
-            [](android::base::Stream* stream,
+    gfxstream::saveCollection(stream, mParamfs,
+            [](gfxstream::Stream* stream,
                 const std::pair<const GLenum, GLfloat>& item) {
                 stream->putBe32(item.first);
                 stream->putFloat(item.second);

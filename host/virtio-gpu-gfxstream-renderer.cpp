@@ -213,7 +213,7 @@ RendererPtr InitRenderer(uint32_t displayWidth,
     gfxstream::host::AddressSpaceGraphicsContext::setConsumer(
         android::emulation::asg::ConsumerInterface{
             .create = [renderer](struct asg_context context,
-                                 android::base::Stream* loadStream,
+                                 gfxstream::Stream* loadStream,
                                  android::emulation::asg::ConsumerCallbacks callbacks,
                                  uint32_t contextId,
                                  uint32_t capsetId,
@@ -230,7 +230,7 @@ RendererPtr InitRenderer(uint32_t displayWidth,
             .globalPreSave = [renderer]() {
                 renderer->pauseAllPreSave();
             },
-            .save = [renderer](void* consumer, android::base::Stream* stream) {
+            .save = [renderer](void* consumer, gfxstream::Stream* stream) {
                 renderer->addressSpaceGraphicsConsumerSave(consumer, stream);
             },
             .globalPostSave = [renderer]() {

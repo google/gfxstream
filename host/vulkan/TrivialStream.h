@@ -60,8 +60,8 @@ class TrivialStream : public IOStream {
 
    protected:
     virtual const unsigned char* readRaw(void* buf, size_t* inout_len) { return nullptr; }
-    virtual void onSave(android::base::Stream* stream) {}
-    virtual unsigned char* onLoad(android::base::Stream* stream) { return nullptr; }
+    virtual void onSave(gfxstream::Stream* stream) {}
+    virtual unsigned char* onLoad(gfxstream::Stream* stream) { return nullptr; }
 };
 
 }  // namespace vk

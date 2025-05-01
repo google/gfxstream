@@ -16,10 +16,10 @@
 
 #include <gtest/gtest.h>
 
-#include "aemu/base/files/MemStream.h"
-#include "aemu/base/files/StdioStream.h"
 #include "gfxstream/files/PathUtils.h"
 #include "gfxstream/host/display_operations.h"
+#include "gfxstream/host/file_stream.h"
+#include "gfxstream/host/mem_stream.h"
 #include "gfxstream/host/window_operations.h"
 #include "gfxstream/system/System.h"
 #include "gfxstream/testing/TestSystem.h"
@@ -39,7 +39,7 @@
 namespace gfxstream {
 namespace {
 
-using android::base::StdioStream;
+using gfxstream::host::StdioStream;
 using gl::EGLDispatch;
 using gl::EmulatedEglConfigList;
 using gl::GLESApi_3_0;

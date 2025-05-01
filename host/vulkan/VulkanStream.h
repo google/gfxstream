@@ -20,8 +20,8 @@
 
 #include "VulkanHandleMapping.h"
 #include "gfxstream/BumpPool.h"
-#include "aemu/base/files/Stream.h"
-#include "aemu/base/files/StreamSerializing.h"
+#include "render-utils/stream.h"
+#include "gfxstream/host/stream_utils.h"
 #include "gfxstream/host/Features.h"
 #include "goldfish_vk_private_defs.h"
 
@@ -38,7 +38,7 @@ class IOStream;
 namespace gfxstream {
 namespace vk {
 
-class VulkanStream : public android::base::Stream {
+class VulkanStream : public gfxstream::Stream {
    public:
     VulkanStream(IOStream* stream, const gfxstream::host::FeatureSet& features);
     ~VulkanStream();

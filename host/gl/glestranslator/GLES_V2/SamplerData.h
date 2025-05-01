@@ -23,8 +23,8 @@
 class SamplerData : public ObjectData {
 public:
     SamplerData() : ObjectData(SAMPLER_DATA) {}
-    SamplerData(android::base::Stream* stream);
-    void onSave(android::base::Stream* stream,
+    SamplerData(gfxstream::Stream* stream);
+    void onSave(gfxstream::Stream* stream,
                 unsigned int globalName) const override;
     void restore(ObjectLocalName localName,
                  const getGlobalName_t& getGlobalName) override;

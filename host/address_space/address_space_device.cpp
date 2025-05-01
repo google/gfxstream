@@ -27,7 +27,7 @@
 namespace gfxstream {
 namespace host {
 
-using android::base::Stream;
+using gfxstream::Stream;
 
 class AddressSpaceDeviceState {
   public:
@@ -451,12 +451,12 @@ int gfxstream_address_space_set_load_resources(AddressSpaceDeviceLoadResources r
     return 0;
 }
 
-int gfxstream_address_space_save_memory_state(android::base::Stream *stream) {
+int gfxstream_address_space_save_memory_state(gfxstream::Stream *stream) {
     sAddressSpaceDeviceState()->save(stream);
     return 0;
 }
 
-int gfxstream_address_space_load_memory_state(android::base::Stream *stream) {
+int gfxstream_address_space_load_memory_state(gfxstream::Stream *stream) {
     return sAddressSpaceDeviceState()->load(stream) ? 0 : 1;
 }
 

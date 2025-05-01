@@ -21,7 +21,7 @@
 #include "GLcommon/GLEScontext.h"
 #include "GLcommon/GLutils.h"
 #include "GLcommon/TextureUtils.h"
-#include "aemu/base/files/StreamSerializing.h"
+#include "gfxstream/host/stream_utils.h"
 #include "gfxstream/ArraySize.h"
 #include "gfxstream/system/System.h"
 #include "gfxstream/host/logging.h"
@@ -517,7 +517,7 @@ SaveableTexture::SaveableTexture(GlobalNameSpace* globalNameSpace,
     mNeedRestore = true;
 }
 
-void SaveableTexture::loadFromStream(android::base::Stream* stream) {
+void SaveableTexture::loadFromStream(gfxstream::Stream* stream) {
     m_target = stream->getBe32();
     m_width = stream->getBe32();
     m_height = stream->getBe32();
@@ -564,7 +564,7 @@ void SaveableTexture::loadFromStream(android::base::Stream* stream) {
         }
         // Load tex param
         loadCollection(stream, &m_texParam,
-                [](android::base::Stream* stream)
+                [](gfxstream::Stream* stream)
                     -> std::unordered_map<GLenum, GLint>::value_type {
                     GLenum pname = stream->getBe32();
                     GLint value = stream->getBe32();
@@ -581,7 +581,7 @@ void SaveableTexture::loadFromStream(android::base::Stream* stream) {
 }
 
 void SaveableTexture::onSave(
-        android::base::Stream* stream) {
+        gfxstream::Stream* stream) {
     stream->putBe32(m_target);
     stream->putBe32(m_width);
     stream->putBe32(m_height);
@@ -798,7 +798,7 @@ void SaveableTexture::onSave(
                     sizeof(kTexParamGles3) / sizeof(kTexParamGles3[0]));
         }
         saveCollection(stream, texParam,
-                [](android::base::Stream* s,
+                [](gfxstream::Stream* s,
                     const std::unordered_map<GLenum, GLint>::value_type& pair) {
                     s->putBe32(pair.first);
                     s->putBe32(pair.second);

@@ -42,7 +42,7 @@ struct ShareGroup::ObjectDataAutoLock {
 
 ShareGroup::ShareGroup(GlobalNameSpace *globalNameSpace,
                        uint64_t sharedGroupID,
-                       android::base::Stream* stream,
+                       gfxstream::Stream* stream,
                        const ObjectData::loadObject_t& loadObject) :
                        m_sharedGroupID(sharedGroupID) {
     ObjectDataAutoLock lock(this);
@@ -77,7 +77,7 @@ void ShareGroup::preSave(GlobalNameSpace *globalNameSpace) {
     m_nameSpace[(int)NamedObjectType::TEXTURE]->preSave(globalNameSpace);
 }
 
-void ShareGroup::onSave(android::base::Stream* stream) {
+void ShareGroup::onSave(gfxstream::Stream* stream) {
     // we do not save m_nameSpace
     ObjectDataAutoLock lock(this);
     if (m_saveStage == Saved) return;
@@ -93,7 +93,7 @@ void ShareGroup::onSave(android::base::Stream* stream) {
     }
 }
 
-void ShareGroup::postSave(android::base::Stream* stream) {
+void ShareGroup::postSave(gfxstream::Stream* stream) {
     (void)stream;
     m_saveStage = Empty;
     // We need to mark the textures dirty, for those that has been bound to
@@ -387,7 +387,7 @@ ObjectNameManager::ObjectNameManager(GlobalNameSpace *globalNameSpace) :
 
 ShareGroupPtr
 ObjectNameManager::createShareGroup(void *p_groupName, uint64_t sharedGroupID,
-        android::base::Stream* stream, const ObjectData::loadObject_t& loadObject)
+        gfxstream::Stream* stream, const ObjectData::loadObject_t& loadObject)
 {
     gfxstream::base::AutoLock lock(m_lock);
 
@@ -452,7 +452,7 @@ ObjectNameManager::attachShareGroup(void *p_groupName,
 }
 
 ShareGroupPtr ObjectNameManager::attachOrCreateShareGroup(void *p_groupName,
-        uint64_t p_existingGroupID, android::base::Stream* stream,
+        uint64_t p_existingGroupID, gfxstream::Stream* stream,
         const ObjectData::loadObject_t& loadObject) {
     assert(m_groups.find(p_groupName) == m_groups.end());
     ShareGroupsMap::iterator ite = p_existingGroupID ? m_groups.begin()

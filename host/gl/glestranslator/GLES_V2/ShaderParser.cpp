@@ -40,7 +40,7 @@ GenNameInfo ShaderParser::getGenNameInfo() const {
     }
 }
 
-ShaderParser::ShaderParser(android::base::Stream* stream) : ObjectData(stream) {
+ShaderParser::ShaderParser(gfxstream::Stream* stream) : ObjectData(stream) {
     m_originalSrc = stream->getString();
     m_src = stream->getString();
     m_parsedSrc = stream->getString();
@@ -58,7 +58,7 @@ ShaderParser::ShaderParser(android::base::Stream* stream) : ObjectData(stream) {
     m_coreProfile = stream->getByte();
 }
 
-void ShaderParser::onSave(android::base::Stream* stream, unsigned int globalName) const {
+void ShaderParser::onSave(gfxstream::Stream* stream, unsigned int globalName) const {
     // The first byte is used to distinguish between program and shader object.
     // It will be loaded outside of this class
     stream->putByte(LOAD_SHADER);

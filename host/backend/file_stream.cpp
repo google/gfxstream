@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "gfxstream/files/StdioStream.h"
+#include "gfxstream/host/file_stream.h"
 
 #include <assert.h>
 #include <errno.h>
 
 namespace gfxstream {
-namespace base {
+namespace host {
 
 StdioStream::StdioStream(FILE* file, Ownership ownership) :
     mFile(file), mOwnership(ownership) {}
@@ -68,5 +68,5 @@ void StdioStream::close() {
     }
 }
 
-}  // namespace base
-}  // namespace android
+}  // namespace host
+}  // namespace gfxstream

@@ -1,4 +1,4 @@
-// Copyright 2015 The Android Open Source Project
+// Copyright 2019 The Android Open Source Project
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,21 +14,22 @@
 
 #pragma once
 
-#include "aemu/base/Compiler.h"
-#include "aemu/base/files/Stream.h"
-
 #include <vector>
 
+#include "render-utils/stream.h"
+
 namespace gfxstream {
-namespace guest {
 
 // An implementation of the Stream interface on top of a vector.
 class MemStream : public Stream {
-public:
+  public:
     using Buffer = std::vector<char>;
 
     MemStream(int reserveSize = 512);
     MemStream(Buffer&& data);
+
+    MemStream(const MemStream&) = delete;
+    MemStream& operator=(const MemStream&) = delete;
 
     MemStream(MemStream&& other) = default;
     MemStream& operator=(MemStream&& other) = default;
@@ -47,12 +48,15 @@ public:
 
     const Buffer& buffer() const { return mData; }
 
-private:
-    DISALLOW_COPY_AND_ASSIGN(MemStream);
+    void rewind();
 
+  private:
     Buffer mData;
     int mReadPos = 0;
+    void* mPb = nullptr;
 };
 
-}  // namespace base
-}  // namespace android
+void saveStream(Stream* stream, const MemStream& memStream);
+void loadStream(Stream* stream, MemStream* memStream);
+
+}  // namespace gfxstream

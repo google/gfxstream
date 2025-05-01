@@ -24,7 +24,7 @@ std::unique_ptr<ColorBufferVk> ColorBufferVk::create(VkEmulation& vkEmulation, u
                                                      uint32_t width, uint32_t height, GLenum format,
                                                      FrameworkFormat frameworkFormat,
                                                      bool vulkanOnly, uint32_t memoryProperty,
-                                                     android::base::Stream* stream) {
+                                                     gfxstream::Stream* stream) {
     if (!vkEmulation.createVkColorBuffer(width, height, format, frameworkFormat, handle, vulkanOnly,
                                          memoryProperty)) {
         GFXSTREAM_DEBUG("Failed to create ColorBufferVk:%d", handle);
@@ -37,7 +37,7 @@ std::unique_ptr<ColorBufferVk> ColorBufferVk::create(VkEmulation& vkEmulation, u
     return std::unique_ptr<ColorBufferVk>(new ColorBufferVk(vkEmulation, handle));
 }
 
-void ColorBufferVk::onSave(android::base::Stream* stream) {
+void ColorBufferVk::onSave(gfxstream::Stream* stream) {
     if (!mVkEmulation.getFeatures().VulkanSnapshots.enabled) {
         return;
     }

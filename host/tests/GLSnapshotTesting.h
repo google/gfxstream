@@ -204,12 +204,12 @@ class SnapshotTest : public gfxstream::gl::GLTest {
     void SetUp() override;
 
     // Mimics FrameBuffer.onSave, with fewer objects to manage.
-    void saveSnapshot(android::base::Stream* stream,
+    void saveSnapshot(gfxstream::Stream* stream,
                       const ITextureSaverPtr& textureSaver);
 
     // Mimics FrameBuffer.onLoad, with fewer objects to manage.
     // Assumes that a valid display is present.
-    void loadSnapshot(android::base::Stream* stream,
+    void loadSnapshot(gfxstream::Stream* stream,
                       const ITextureLoaderPtr& textureLoader);
 
     // Performs a teardown and reset of graphics objects in preparation for

@@ -5,6 +5,7 @@ cc_library(
     srcs = [
         "address_space_device.cpp",
         "address_space_graphics.cpp",
+        "sub_allocator.cpp",
     ],
     hdrs = glob(["include/**/*.h"]),
     copts = ["-fno-exceptions"],

@@ -38,12 +38,12 @@ NamedObjectType ObjectDataType2NamedObjectType(ObjectDataType objDataType) {
     }
 }
 
-ObjectData::ObjectData(android::base::Stream* stream) {
+ObjectData::ObjectData(gfxstream::Stream* stream) {
     m_dataType = (ObjectDataType)stream->getBe32();
     m_needRestore = true;
 }
 
-void ObjectData::onSave(android::base::Stream* stream, unsigned int globalName) const {
+void ObjectData::onSave(gfxstream::Stream* stream, unsigned int globalName) const {
     stream->putBe32(m_dataType);
 }
 

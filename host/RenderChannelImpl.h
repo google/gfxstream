@@ -13,7 +13,7 @@
 // limitations under the License.
 #pragma once
 
-#include "gfxstream/containers/BufferQueue.h"
+#include "gfxstream/host/buffer_queue.h"
 #include "render-utils/RenderChannel.h"
 #include "RendererImpl.h"
 
@@ -26,7 +26,7 @@ class RenderThread;
 // RenderThread instance.
 class RenderChannelImpl final : public RenderChannel {
   public:
-    explicit RenderChannelImpl(android::base::Stream* loadStream = nullptr,
+    explicit RenderChannelImpl(gfxstream::Stream* loadStream = nullptr,
                                uint32_t contextId = -1);
     ~RenderChannelImpl();
 
@@ -66,7 +66,7 @@ class RenderChannelImpl final : public RenderChannel {
     virtual void stop() override final;
 
     // Callback function when snapshotting the virtual machine.
-    virtual void onSave(android::base::Stream* stream) override;
+    virtual void onSave(gfxstream::Stream* stream) override;
 
     /////////////////////////////////////////////////////////////////
     // These functions are called from the host render thread or renderer.
@@ -114,8 +114,8 @@ class RenderChannelImpl final : public RenderChannel {
     mutable gfxstream::base::Lock mLock;
     State mState = State::Empty;
     State mWantedEvents = State::Empty;
-    gfxstream::base::BufferQueue<RenderChannel::Buffer> mFromGuest;
-    gfxstream::base::BufferQueue<RenderChannel::Buffer> mToGuest;
+    gfxstream::BufferQueue<RenderChannel::Buffer> mFromGuest;
+    gfxstream::BufferQueue<RenderChannel::Buffer> mToGuest;
 };
 
 }  // namespace gfxstream

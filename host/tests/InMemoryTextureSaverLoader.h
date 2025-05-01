@@ -18,7 +18,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "aemu/base/files/MemStream.h"
+#include "gfxstream/host/mem_stream.h"
 #include "render-utils/snapshot_operations.h"
 
 namespace gfxstream {
@@ -26,7 +26,7 @@ namespace gfxstream {
 class InMemoryTextureSaverLoader : public ITextureLoader, public ITextureSaver {
   public:
     void saveTexture(uint32_t textureId, const saver_t& saver) override {
-        android::base::MemStream stream;
+        gfxstream::MemStream stream;
         saver(&stream, nullptr);
         mTextures[textureId] = stream.buffer();
     }
@@ -38,7 +38,7 @@ class InMemoryTextureSaverLoader : public ITextureLoader, public ITextureSaver {
         }
         const auto& textureData = it->second;
         std::vector<char> textureDataCopy = textureData;
-        android::base::MemStream stream(std::move(textureDataCopy));
+        gfxstream::MemStream stream(std::move(textureDataCopy));
         callback(&stream);
     }
 

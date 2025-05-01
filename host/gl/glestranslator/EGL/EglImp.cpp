@@ -44,7 +44,7 @@
 #include "GraphicsDriverLock.h"
 #include "ThreadInfo.h"
 #include "gfxstream/SharedLibrary.h"
-#include "aemu/base/files/Stream.h"
+#include "render-utils/stream.h"
 #include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/system/System.h"
 #include "gfxstream/host/logging.h"
@@ -901,7 +901,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglSurfaceAttrib(EGLDisplay display, EGLSurface su
 static EGLContext eglCreateOrLoadContext(EGLDisplay display, EGLConfig config,
                 EGLContext share_context,
                 const EGLint *attrib_list,
-                android::base::Stream *stream) {
+                gfxstream::Stream *stream) {
     assert(share_context == EGL_NO_CONTEXT || stream == nullptr);
     VALIDATE_DISPLAY_RETURN(display,EGL_NO_CONTEXT);
 
@@ -1037,7 +1037,7 @@ EGLAPI EGLContext EGLAPIENTRY eglCreateContext(EGLDisplay display, EGLConfig con
 }
 
 EGLAPI EGLContext EGLAPIENTRY eglLoadContext(EGLDisplay display, const EGLint *attrib_list,
-                                             android::base::Stream *stream) {
+                                             gfxstream::Stream *stream) {
     return eglCreateOrLoadContext(display, (EGLConfig)0, (EGLContext)0, attrib_list, stream);
 }
 
@@ -1670,18 +1670,18 @@ EGLAPI EGLBoolean EGLAPIENTRY eglPreSaveContext(EGLDisplay display, EGLContext c
 EGLAPI EGLBoolean EGLAPIENTRY eglSaveContext(EGLDisplay display, EGLContext contex, EGLStreamKHR stream) {
     VALIDATE_DISPLAY(display);
     VALIDATE_CONTEXT(contex);
-    ctx->onSave((android::base::Stream*)stream);
+    ctx->onSave((gfxstream::Stream*)stream);
     return EGL_TRUE;
 }
 
 EGLAPI EGLContext EGLAPIENTRY eglLoadContext(EGLDisplay display, const EGLint *attrib_list, EGLStreamKHR stream) {
-    return eglCreateOrLoadContext(display, (EGLConfig)0, EGL_NO_CONTEXT, attrib_list, (android::base::Stream*)stream);
+    return eglCreateOrLoadContext(display, (EGLConfig)0, EGL_NO_CONTEXT, attrib_list, (gfxstream::Stream*)stream);
 }
 
 EGLAPI EGLBoolean EGLAPIENTRY eglPostSaveContext(EGLDisplay display, EGLContext context, EGLStreamKHR stream) {
     VALIDATE_DISPLAY(display);
     VALIDATE_CONTEXT(context);
-    ctx->postSave((android::base::Stream*)stream);
+    ctx->postSave((gfxstream::Stream*)stream);
     return EGL_TRUE;
 }
 
@@ -1689,14 +1689,14 @@ EGLAPI EGLBoolean EGLAPIENTRY eglSaveConfig(EGLDisplay display,
         EGLConfig config, EGLStreamKHR stream) {
     VALIDATE_DISPLAY(display);
     VALIDATE_CONFIG(config);
-    android::base::Stream* stm = static_cast<android::base::Stream*>(stream);
+    gfxstream::Stream* stm = static_cast<gfxstream::Stream*>(stream);
     stm->putBe32(cfg->id());
     return EGL_TRUE;
 }
 
 EGLAPI EGLConfig EGLAPIENTRY eglLoadConfig(EGLDisplay display, EGLStreamKHR stream) {
     VALIDATE_DISPLAY(display);
-    android::base::Stream* stm = static_cast<android::base::Stream*>(stream);
+    gfxstream::Stream* stm = static_cast<gfxstream::Stream*>(stream);
     EGLint cfgId = stm->getBe32();
     EglConfig* cfg = dpy->getConfig(cfgId);
     if (!cfg) {
@@ -1715,7 +1715,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglSaveAllImages(EGLDisplay display,
     if (!iface || !iface->saveTexture)
         return true;
     VALIDATE_DISPLAY(display);
-    android::base::Stream* stm = static_cast<android::base::Stream*>(stream);
+    gfxstream::Stream* stm = static_cast<gfxstream::Stream*>(stream);
     iface->preSaveTexture();
     dpy->onSaveAllImages(
             stm,
@@ -1734,7 +1734,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglLoadAllImages(EGLDisplay display,
     if (!iface || !iface->createTexture)
         return true;
     VALIDATE_DISPLAY(display);
-    android::base::Stream* stm = static_cast<android::base::Stream*>(stream);
+    gfxstream::Stream* stm = static_cast<gfxstream::Stream*>(stream);
     dpy->onLoadAllImages(
             stm,
             *static_cast<const gfxstream::ITextureLoaderPtr*>(textureLoader),
@@ -1744,7 +1744,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglLoadAllImages(EGLDisplay display,
 
 EGLAPI EGLBoolean EGLAPIENTRY eglPostLoadAllImages(EGLDisplay display, EGLStreamKHR stream) {
     VALIDATE_DISPLAY(display);
-    android::base::Stream* stm = static_cast<android::base::Stream*>(stream);
+    gfxstream::Stream* stm = static_cast<gfxstream::Stream*>(stream);
     dpy->postLoadAllImages(stm);
     return true;
 }

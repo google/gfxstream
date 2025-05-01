@@ -28,11 +28,11 @@ target_include_directories(
 target_link_libraries(
     GLcommon
     PUBLIC
-    aemu-base.headers
     gfxstream_backend_headers
     gfxstream_common_base
     gfxstream_egl_headers
     gfxstream_etc_headers
+    gfxstream_host_backend
     gfxstream_host_library
     gfxstream_host_logging
     gfxstream_host_snapshot.headers

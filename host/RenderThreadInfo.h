@@ -20,7 +20,7 @@
 #include <memory>
 #include <unordered_set>
 
-#include "aemu/base/files/Stream.h"
+#include "render-utils/stream.h"
 
 #if GFXSTREAM_ENABLE_HOST_GLES
 #include "renderControl_dec/renderControl_dec.h"
@@ -68,8 +68,8 @@ struct RenderThreadInfo {
 
     // Functions to save / load a snapshot
     // They must be called after Framebuffer snapshot
-    void onSave(android::base::Stream* stream);
-    bool onLoad(android::base::Stream* stream);
+    void onSave(gfxstream::Stream* stream);
+    bool onLoad(gfxstream::Stream* stream);
 
     // Sometimes we can load render thread info before
     // FrameBuffer repopulates the contexts.

@@ -1,4 +1,4 @@
-// Copyright 2017 The Android Open Source Project
+// Copyright 2019 The Android Open Source Project
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,54 +14,50 @@
 
 #pragma once
 
-#include "aemu/base/containers/SmallVector.h"
-#include "aemu/base/files/MemStream.h"
-#include "aemu/base/files/Stream.h"
-#include "aemu/base/TypeTraits.h"
-
 #include <string>
 #include <vector>
 
+#include "gfxstream/TypeTraits.h"
+#include "render-utils/stream.h"
+
 namespace gfxstream {
-namespace guest {
 
 //
 // Save/load operations for different types.
 //
 
-void saveStream(Stream* stream, const MemStream& memStream);
-void loadStream(Stream* stream, MemStream* memStream);
-
 void saveBufferRaw(Stream* stream, char* buffer, uint32_t len);
 bool loadBufferRaw(Stream* stream, char* buffer);
 
-template <class T, class = enable_if<std::is_standard_layout<T>>>
+template <class T, class = gfxstream::base::enable_if<std::is_standard_layout<T>>>
 void saveBuffer(Stream* stream, const std::vector<T>& buffer) {
     stream->putBe32(buffer.size());
     stream->write(buffer.data(), sizeof(T) * buffer.size());
 }
 
-template <class T, class = enable_if<std::is_standard_layout<T>>>
+template <class T, class = gfxstream::base::enable_if<std::is_standard_layout<T>>>
 bool loadBuffer(Stream* stream, std::vector<T>* buffer) {
     auto len = stream->getBe32();
     buffer->resize(len);
-    auto ret = static_cast<std::size_t>(stream->read(buffer->data(), len * sizeof(T)));
+    int ret = (int)stream->read(buffer->data(), len * sizeof(T));
     return ret == len * sizeof(T);
 }
 
-template <class T, class = enable_if<std::is_standard_layout<T>>>
-void saveBuffer(Stream* stream, const SmallVector<T>& buffer) {
+template <class Container,
+          class = gfxstream::base::enable_if<std::is_standard_layout<typename Container::value_type>>>
+void saveBuffer(Stream* stream, const Container& buffer) {
     stream->putBe32(buffer.size());
-    stream->write(buffer.data(), sizeof(T) * buffer.size());
+    stream->write(buffer.data(), sizeof(typename Container::value_type) * buffer.size());
 }
 
-template <class T, class = enable_if<std::is_standard_layout<T>>>
-bool loadBuffer(Stream* stream, SmallVector<T>* buffer) {
+template <class Container,
+          class = gfxstream::base::enable_if<std::is_standard_layout<typename Container::value_type>>>
+bool loadBuffer(Stream* stream, Container* buffer) {
     auto len = stream->getBe32();
     buffer->clear();
     buffer->resize_noinit(len);
-    int ret = (int)stream->read(buffer->data(), len * sizeof(T));
-    return ret == len * sizeof(T);
+    int ret = (int)stream->read(buffer->data(), len * sizeof(typename Container::value_type));
+    return ret == len * sizeof(typename Container::value_type);
 }
 
 template <class T, class SaveFunc>
@@ -113,5 +109,4 @@ void loadCollection(Stream* stream, Collection* c, LoadFunc&& loader) {
 void saveStringArray(Stream* stream, const char* const* strings, uint32_t count);
 std::vector<std::string> loadStringArray(Stream* stream);
 
-}  // namespace base
-}  // namespace android
+}  // namespace gfxstream

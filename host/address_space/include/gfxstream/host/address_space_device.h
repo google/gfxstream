@@ -16,8 +16,8 @@
 
 #include <unordered_map>
 
-#include "aemu/base/files/Stream.h"
 #include "render-utils/address_space_operations.h"
+#include "render-utils/stream.h"
 
 namespace gfxstream {
 namespace host {
@@ -27,15 +27,15 @@ constexpr const int kAsgWriteStepSize = 262144;
 constexpr const int kAsgDataRingSize = 524288;
 constexpr const int kAsgDrawFlushInterval = 10000;
 
-int gfxstream_address_space_save_memory_state(android::base::Stream* stream);
-int gfxstream_address_space_load_memory_state(android::base::Stream* stream);
+int gfxstream_address_space_save_memory_state(gfxstream::Stream* stream);
+int gfxstream_address_space_load_memory_state(gfxstream::Stream* stream);
 
 // Resources which can not be directly reloaded by ASG.
 struct AddressSpaceDeviceLoadResources {
     // ASGs may use memory backed by an external memory allocation (e.g. a
     // Virtio GPU blob resource with a host shmem allocation). These external
     // memory allocations can not be directly saved and loaded via
-    // `android::base::Stream` and may not have the same `void*` across save
+    // `gfxstream::Stream` and may not have the same `void*` across save
     // and load.
     struct ExternalMemory {
         void* externalAddress = nullptr;

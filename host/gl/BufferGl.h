@@ -23,7 +23,7 @@
 
 #include "ContextHelper.h"
 #include "Handle.h"
-#include "aemu/base/files/Stream.h"
+#include "render-utils/stream.h"
 
 namespace gfxstream {
 namespace gl {
@@ -42,9 +42,9 @@ class BufferGl {
 
     void subUpdate(uint64_t offset, uint64_t size, const void* bytes);
 
-    void onSave(android::base::Stream* stream);
+    void onSave(gfxstream::Stream* stream);
 
-    static std::unique_ptr<BufferGl> onLoad(android::base::Stream* stream, ContextHelper* helper);
+    static std::unique_ptr<BufferGl> onLoad(gfxstream::Stream* stream, ContextHelper* helper);
 
    protected:
     BufferGl(uint64_t size, HandleType hndl, ContextHelper* helper);

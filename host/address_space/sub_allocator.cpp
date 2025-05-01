@@ -11,17 +11,18 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include "gfxstream/SubAllocator.h"
 
-#include "gfxstream/address_space.h"
-#include "gfxstream/files/Stream.h"
+#include "gfxstream/host/sub_allocator.h"
 
 #include <iomanip>
 #include <sstream>
 #include <string>
 
+#include "gfxstream/host/address_space.h"
+#include "render-utils/stream.h"
+
 namespace gfxstream {
-namespace base {
+namespace host {
 
 class SubAllocator::Impl {
 public:
@@ -250,5 +251,5 @@ bool SubAllocator::empty() const {
     return mImpl->empty();
 }
 
-} // namespace base
+} // namespace host
 } // namespace gfxstream

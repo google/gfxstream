@@ -4,7 +4,6 @@
 #include "GLSnapshotTesting.h"
 #include "GLTestUtils.h"
 #include "RenderThreadInfo.h"
-#include "aemu/base/files/StdioStream.h"
 #include "apigen-codec-common/glUtils.h"
 #include "gfxstream/files/PathUtils.h"
 #include "gfxstream/system/System.h"
@@ -12,8 +11,6 @@
 
 namespace gfxstream {
 namespace gl {
-
-using android::base::StdioStream;
 
 static SnapshotTestDispatch* sSnapshotTestDispatch() {
     static SnapshotTestDispatch* s = new SnapshotTestDispatch;
@@ -47,7 +44,7 @@ void SnapshotTestDispatch::saveSnapshot() {
     }
 
 
-    mStream = std::make_unique<android::base::MemStream>();
+    mStream = std::make_unique<gfxstream::MemStream>();
     mTextureSaverLoader = std::make_shared<InMemoryTextureSaverLoader>();
 
     fb->onSave(mStream.get(), mTextureSaverLoader);
@@ -70,7 +67,7 @@ void SnapshotTestDispatch::loadSnapshot() {
     // unbind so load will destroy previous objects
     fb->bindContext(0, 0, 0);
 
-    android::base::MemStream loadStream(android::base::MemStream::Buffer(mStream->buffer()));
+    gfxstream::MemStream loadStream(gfxstream::MemStream::Buffer(mStream->buffer()));
 
     fb->onLoad(&loadStream, mTextureSaverLoader);
 

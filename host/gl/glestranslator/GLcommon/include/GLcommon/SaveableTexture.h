@@ -21,7 +21,7 @@
 #include <memory>
 #include <vector>
 
-#include "aemu/base/files/Stream.h"
+#include "render-utils/stream.h"
 #include "snapshot/LazySnapshotObj.h"
 #include "GLcommon/NamedObject.h"
 #include "GLcommon/TextureData.h"
@@ -52,7 +52,7 @@ class SaveableTexture : public gfxstream::LazySnapshotObj<SaveableTexture> {
   public:
     using Buffer = gfxstream::ITextureSaver::Buffer;
     using saver_t = void (*)(SaveableTexture*,
-                             android::base::Stream*,
+                             gfxstream::Stream*,
                              Buffer* buffer);
     // loader_t is supposed to setup a stream and trigger loadFromStream.
     typedef std::function<void(SaveableTexture*)> loader_t;
@@ -71,13 +71,13 @@ class SaveableTexture : public gfxstream::LazySnapshotObj<SaveableTexture> {
     static void preSave();
     static void postSave();
     // precondition: a context must be properly bound
-    void onSave(android::base::Stream* stream);
+    void onSave(gfxstream::Stream* stream);
     // getGlobalObject() will touch and load data onto GPU if it is not yet
     // restored
     const NamedObjectPtr& getGlobalObject();
     // precondition: a context must be properly bound
     void fillEglImage(EglImage* eglImage);
-    void loadFromStream(android::base::Stream* stream);
+    void loadFromStream(gfxstream::Stream* stream);
     void makeDirty();
     bool isDirty() const;
     void setTarget(GLenum target);

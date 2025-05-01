@@ -2422,7 +2422,7 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 *readStreamPtrPtr += sizeof(uint32_t);
                 // WARNING PTR CHECK
                 memcpy((VkBuffer**)&pBuffers, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pBuffers);
+                gfxstream::Stream::fromBe64((uint8_t*)&pBuffers);
                 *readStreamPtrPtr += 8;
                 if (pBuffers) {
                     if (((bindingCount)) <= MAX_STACK_ITEMS) {
@@ -2454,7 +2454,7 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
                 // WARNING PTR CHECK
                 memcpy((VkDeviceSize**)&pSizes, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pSizes);
+                gfxstream::Stream::fromBe64((uint8_t*)&pSizes);
                 *readStreamPtrPtr += 8;
                 if (pSizes) {
                     if (((bindingCount)) <= MAX_STACK_ITEMS) {
@@ -2469,7 +2469,7 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 }
                 // WARNING PTR CHECK
                 memcpy((VkDeviceSize**)&pStrides, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pStrides);
+                gfxstream::Stream::fromBe64((uint8_t*)&pStrides);
                 *readStreamPtrPtr += 8;
                 if (pStrides) {
                     if (((bindingCount)) <= MAX_STACK_ITEMS) {
@@ -3215,7 +3215,7 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
                 // WARNING PTR CHECK
                 memcpy((VkDeviceSize**)&pSizes, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pSizes);
+                gfxstream::Stream::fromBe64((uint8_t*)&pSizes);
                 *readStreamPtrPtr += 8;
                 if (pSizes) {
                     if (((bindingCount)) <= MAX_STACK_ITEMS) {
@@ -3256,7 +3256,7 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 *readStreamPtrPtr += sizeof(uint32_t);
                 // WARNING PTR CHECK
                 memcpy((VkBuffer**)&pCounterBuffers, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pCounterBuffers);
+                gfxstream::Stream::fromBe64((uint8_t*)&pCounterBuffers);
                 *readStreamPtrPtr += 8;
                 if (pCounterBuffers) {
                     if (((counterBufferCount)) <= MAX_STACK_ITEMS) {
@@ -3279,7 +3279,7 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 }
                 // WARNING PTR CHECK
                 memcpy((VkDeviceSize**)&pCounterBufferOffsets, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pCounterBufferOffsets);
+                gfxstream::Stream::fromBe64((uint8_t*)&pCounterBufferOffsets);
                 *readStreamPtrPtr += 8;
                 if (pCounterBufferOffsets) {
                     if (((counterBufferCount)) <= MAX_STACK_ITEMS) {
@@ -3320,7 +3320,7 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 *readStreamPtrPtr += sizeof(uint32_t);
                 // WARNING PTR CHECK
                 memcpy((VkBuffer**)&pCounterBuffers, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pCounterBuffers);
+                gfxstream::Stream::fromBe64((uint8_t*)&pCounterBuffers);
                 *readStreamPtrPtr += 8;
                 if (pCounterBuffers) {
                     if (((counterBufferCount)) <= MAX_STACK_ITEMS) {
@@ -3343,7 +3343,7 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 }
                 // WARNING PTR CHECK
                 memcpy((VkDeviceSize**)&pCounterBufferOffsets, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pCounterBufferOffsets);
+                gfxstream::Stream::fromBe64((uint8_t*)&pCounterBufferOffsets);
                 *readStreamPtrPtr += 8;
                 if (pCounterBufferOffsets) {
                     if (((counterBufferCount)) <= MAX_STACK_ITEMS) {
@@ -3685,7 +3685,7 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 *readStreamPtrPtr += sizeof(uint32_t);
                 // WARNING PTR CHECK
                 memcpy((VkBuffer**)&pBuffers, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pBuffers);
+                gfxstream::Stream::fromBe64((uint8_t*)&pBuffers);
                 *readStreamPtrPtr += 8;
                 if (pBuffers) {
                     if (((bindingCount)) <= MAX_STACK_ITEMS) {
@@ -3717,7 +3717,7 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
                 // WARNING PTR CHECK
                 memcpy((VkDeviceSize**)&pSizes, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pSizes);
+                gfxstream::Stream::fromBe64((uint8_t*)&pSizes);
                 *readStreamPtrPtr += 8;
                 if (pSizes) {
                     if (((bindingCount)) <= MAX_STACK_ITEMS) {
@@ -3732,7 +3732,7 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 }
                 // WARNING PTR CHECK
                 memcpy((VkDeviceSize**)&pStrides, (*readStreamPtrPtr), 8);
-                android::base::Stream::fromBe64((uint8_t*)&pStrides);
+                gfxstream::Stream::fromBe64((uint8_t*)&pStrides);
                 *readStreamPtrPtr += 8;
                 if (pStrides) {
                     if (((bindingCount)) <= MAX_STACK_ITEMS) {

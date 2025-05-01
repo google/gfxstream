@@ -15,7 +15,7 @@
 */
 #pragma once
 
-#include "aemu/base/files/Stream.h"
+#include "render-utils/stream.h"
 #include "gfxstream/host/iostream.h"
 
 namespace gfxstream {
@@ -31,8 +31,8 @@ public:
     size_t validData() const { return m_validData; } // return the amount of valid data in readptr
     void consume(size_t amount); // notify that 'amount' data has been consumed;
 
-    void onLoad(android::base::Stream* stream);
-    void onSave(android::base::Stream* stream);
+    void onLoad(gfxstream::Stream* stream);
+    void onSave(gfxstream::Stream* stream);
 
     void printStats();
 private:

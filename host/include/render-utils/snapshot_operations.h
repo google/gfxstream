@@ -20,7 +20,7 @@
 #include <optional>
 #include <vector>
 
-#include "aemu/base/files/Stream.h"
+#include "render-utils/stream.h"
 #include "render-utils/small_vector.h"
 
 namespace gfxstream {
@@ -34,7 +34,7 @@ class ITextureSaver {
     ITextureSaver& operator=(ITextureSaver&) = delete;
 
     using Buffer = SmallVector<unsigned char>;
-    using saver_t = std::function<void(android::base::Stream*, Buffer*)>;
+    using saver_t = std::function<void(gfxstream::Stream*, Buffer*)>;
 
     // Save texture to a stream as well as update the index
     virtual void saveTexture(uint32_t texId, const saver_t& saver) = 0;
@@ -50,7 +50,7 @@ class ITextureLoader {
 
     virtual bool start() = 0;
 
-    using loader_t = std::function<void(android::base::Stream*)>;
+    using loader_t = std::function<void(gfxstream::Stream*)>;
 
     // Move file position to texId and trigger loader
     virtual void loadTexture(uint32_t texId, const loader_t& loader) = 0;

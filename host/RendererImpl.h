@@ -43,17 +43,17 @@ public:
 
 public:
     RenderChannelPtr createRenderChannel(
-        android::base::Stream* loadStream, uint32_t virtioGpuContextId) final;
+        gfxstream::Stream* loadStream, uint32_t virtioGpuContextId) final;
 
     void* addressSpaceGraphicsConsumerCreate(
         struct asg_context,
-        android::base::Stream* stream,
+        gfxstream::Stream* stream,
         android::emulation::asg::ConsumerCallbacks,
         uint32_t contextId, uint32_t capsetId,
         std::optional<std::string> name) override final;
     void addressSpaceGraphicsConsumerDestroy(void*) override final;
     void addressSpaceGraphicsConsumerPreSave(void* consumer) override final;
-    void addressSpaceGraphicsConsumerSave(void* consumer, android::base::Stream* stream) override final;
+    void addressSpaceGraphicsConsumerSave(void* consumer, gfxstream::Stream* stream) override final;
     void addressSpaceGraphicsConsumerPostSave(void* consumer) override final;
     void addressSpaceGraphicsConsumerRegisterPostLoadRenderThread(void* consumer) override final;
 
@@ -102,9 +102,9 @@ public:
     void pauseAllPreSave() final;
     void resumeAll() final;
 
-    void save(android::base::Stream* stream,
+    void save(gfxstream::Stream* stream,
               const ITextureSaverPtr& textureSaver) final;
-    bool load(android::base::Stream* stream,
+    bool load(gfxstream::Stream* stream,
               const ITextureLoaderPtr& textureLoader) final;
     void fillGLESUsages(android_studio::EmulatorGLESUsages*) final;
     int getScreenshot(unsigned int nChannels, unsigned int* width, unsigned int* height,

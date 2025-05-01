@@ -7,6 +7,6 @@ cc_library(
     includes = ["include"],
     visibility = ["//visibility:public"],
     deps = [
-        "@aemu//base:aemu-base",
+        "//host:gfxstream_backend_headers",
     ],
 )

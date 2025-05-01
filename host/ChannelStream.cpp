@@ -16,7 +16,7 @@
 #include <assert.h>
 #include <memory.h>
 
-#include "aemu/base/files/StreamSerializing.h"
+#include "gfxstream/host/stream_utils.h"
 #include "gfxstream/host/dma_device.h"
 #include "gfxstream/host/logging.h"
 #include "render-utils/RenderChannel.h"
@@ -103,19 +103,19 @@ const unsigned char* ChannelStream::readFully(void *buf, size_t len) {
     return nullptr;
 }
 
-void ChannelStream::onSave(android::base::Stream* stream) {
+void ChannelStream::onSave(gfxstream::Stream* stream) {
     // Write only the data that's left in read buffer, but in the same format
     // as saveBuffer() does.
     stream->putBe32(mReadBufferLeft);
     stream->write(mReadBuffer.data() + mReadBuffer.size() - mReadBufferLeft,
                   mReadBufferLeft);
-    android::base::saveBuffer(stream, mWriteBuffer);
+    gfxstream::saveBuffer(stream, mWriteBuffer);
 }
 
-unsigned char* ChannelStream::onLoad(android::base::Stream* stream) {
-    android::base::loadBuffer(stream, &mReadBuffer);
+unsigned char* ChannelStream::onLoad(gfxstream::Stream* stream) {
+    gfxstream::loadBuffer(stream, &mReadBuffer);
     mReadBufferLeft = mReadBuffer.size();
-    android::base::loadBuffer(stream, &mWriteBuffer);
+    gfxstream::loadBuffer(stream, &mWriteBuffer);
     return reinterpret_cast<unsigned char*>(mWriteBuffer.data());
 }
 

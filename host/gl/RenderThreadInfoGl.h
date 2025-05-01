@@ -19,7 +19,7 @@
 
 #include "Handle.h"
 #include "StalePtrRegistry.h"
-#include "aemu/base/files/Stream.h"
+#include "render-utils/stream.h"
 #include "gl/EmulatedEglContext.h"
 #include "gl/EmulatedEglWindowSurface.h"
 #include "gl/gles1_dec/GLESv1Decoder.h"
@@ -42,8 +42,8 @@ struct RenderThreadInfoGl {
 
     // Functions to save / load a snapshot
     // They must be called after Framebuffer snapshot
-    void onSave(android::base::Stream* stream);
-    bool onLoad(android::base::Stream* stream);
+    void onSave(gfxstream::Stream* stream);
+    bool onLoad(gfxstream::Stream* stream);
 
     // Sometimes we can load render thread info before
     // FrameBuffer repopulates the contexts.

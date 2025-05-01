@@ -96,9 +96,9 @@ class EmulatedEglWindowSurface {
     GLuint getWidth() const;
     GLuint getHeight() const;
 
-    void onSave(android::base::Stream* stream) const;
+    void onSave(gfxstream::Stream* stream) const;
     static std::unique_ptr<EmulatedEglWindowSurface> onLoad(
-      android::base::Stream* stream,
+      gfxstream::Stream* stream,
       EGLDisplay display,
       const ColorBufferMap& colorBuffers,
       const EmulatedEglContextMap& contexts);

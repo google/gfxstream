@@ -16,7 +16,7 @@
 
 #include <memory>
 
-#include "aemu/base/files/Stream.h"
+#include "render-utils/stream.h"
 
 namespace gfxstream {
 namespace host {
@@ -37,8 +37,8 @@ class AddressSpaceDeviceContext {
     virtual ~AddressSpaceDeviceContext() {}
     virtual void perform(AddressSpaceDevicePingInfo *info) = 0;
     virtual AddressSpaceDeviceType getDeviceType() const = 0;
-    virtual void save(android::base::Stream* stream) const = 0;
-    virtual bool load(android::base::Stream* stream) = 0;
+    virtual void save(gfxstream::Stream* stream) const = 0;
+    virtual bool load(gfxstream::Stream* stream) = 0;
 
     virtual void preSave() const { }
     virtual void postSave() const { }

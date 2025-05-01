@@ -13,17 +13,19 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+
 #pragma once
 
 #include <atomic>
 #include <memory>
+#include <optional>
 
-#include "aemu/base/files/MemStream.h"
-#include "gfxstream/Optional.h"
+#include "gfxstream/host/mem_stream.h"
 #include "gfxstream/synchronization/ConditionVariable.h"
 #include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/threads/Thread.h"
 #include "render-utils/address_space_graphics_types.h"
+#include "render-utils/stream.h"
 
 namespace gfxstream {
 
@@ -35,19 +37,19 @@ class RingStream;
 // A class used to model a thread of the RenderServer. Each one of them
 // handles a single guest client / protocol byte stream.
 class RenderThread : public gfxstream::base::Thread {
-    using MemStream = android::base::MemStream;
+    using MemStream = gfxstream::MemStream;
 
 public:
     static constexpr uint32_t INVALID_CONTEXT_ID = std::numeric_limits<uint32_t>::max();
     // Create a new RenderThread instance.
     RenderThread(RenderChannelImpl* channel,
-                 android::base::Stream* loadStream = nullptr,
+                 gfxstream::Stream* loadStream = nullptr,
                  uint32_t virtioGpuContextId = INVALID_CONTEXT_ID);
 
     // Create a new RenderThread instance tied to the address space device.
     RenderThread(
         struct asg_context context,
-        android::base::Stream* loadStream,
+        gfxstream::Stream* loadStream,
         android::emulation::asg::ConsumerCallbacks callbacks,
         uint32_t contextId, uint32_t capsetId,
         std::optional<std::string> nameOpt);
@@ -59,7 +61,7 @@ public:
 
     void pausePreSnapshot();
     void resume();
-    void save(android::base::Stream* stream);
+    void save(gfxstream::Stream* stream);
 
     // RenderThreads are blocked from exiting after finished to workaround driver bugs.
     // `sendExitSignal` allows us to control when we can allow the thread to exit to synchronize
@@ -111,7 +113,7 @@ private:
     gfxstream::base::ConditionVariable mFinishedSignal;
     gfxstream::base::ConditionVariable mExitSignal;
     std::atomic<bool> mCanExit { false };
-    gfxstream::base::Optional<android::base::MemStream> mStream;
+    std::optional<gfxstream::MemStream> mStream;
 
     bool mRunInLimitedMode = false;
     uint32_t mContextId = 0;

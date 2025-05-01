@@ -44,7 +44,7 @@ public:
     }
     static void initGlobal(EGLiface* eglIface);
     GLESv2Context(int maj, int min, GlobalNameSpace* globalNameSpace,
-            android::base::Stream* stream, GlLibrary* glLib);
+            gfxstream::Stream* stream, GlLibrary* glLib);
     virtual ~GLESv2Context();
 
     enum class DrawCallCmd {
@@ -88,9 +88,9 @@ public:
     GLuint getCurrentProgram() const;
     ProgramData* getUseProgram();
 
-    virtual void onSave(android::base::Stream* stream) const override;
+    virtual void onSave(gfxstream::Stream* stream) const override;
     virtual ObjectDataPtr loadObject(NamedObjectType type,
-            ObjectLocalName localName, android::base::Stream* stream) const
+            ObjectLocalName localName, gfxstream::Stream* stream) const
             override;
 
     virtual void initDefaultFBO(

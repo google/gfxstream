@@ -17,7 +17,7 @@
 #include "GLcommon/TextureData.h"
 
 #include "gfxstream/containers/Lookup.h"
-#include "aemu/base/files/StreamSerializing.h"
+#include "gfxstream/host/stream_utils.h"
 
 #include "GLcommon/GLEScontext.h"
 #include "GLcommon/GLutils.h"
@@ -26,7 +26,7 @@
 
 using gfxstream::base::find;
 
-TextureData::TextureData(android::base::Stream* stream) : ObjectData(stream) {
+TextureData::TextureData(gfxstream::Stream* stream) : ObjectData(stream) {
     // The current TextureData structure is wrong when dealing with mipmaps.
     target = stream->getBe32();
     width = stream->getBe32();
@@ -46,14 +46,14 @@ TextureData::TextureData(android::base::Stream* stream) : ObjectData(stream) {
     texStorageLevels = stream->getBe32();
     stream->getBe32(); // deprecated mipmap level
     globalName = stream->getBe32();
-    loadCollection(stream, &m_texParam, [](android::base::Stream* stream) {
+    loadCollection(stream, &m_texParam, [](gfxstream::Stream* stream) {
         GLenum item = stream->getBe32();
         GLint val = stream->getBe32();
         return std::make_pair(item, val);
     });
 }
 
-void TextureData::onSave(android::base::Stream* stream, unsigned int overrideGlobalName) const {
+void TextureData::onSave(gfxstream::Stream* stream, unsigned int overrideGlobalName) const {
     ObjectData::onSave(stream, overrideGlobalName);
     // The current TextureData structure is wrong when dealing with mipmaps.
     stream->putBe32(target);
@@ -75,7 +75,7 @@ void TextureData::onSave(android::base::Stream* stream, unsigned int overrideGlo
     stream->putBe32(0); // deprecated mipmap level
     stream->putBe32(overrideGlobalName);
     saveCollection(stream, m_texParam,
-                   [](android::base::Stream* stream,
+                   [](gfxstream::Stream* stream,
                       const std::pair<const GLenum, GLint>& texParam) {
                        stream->putBe32(texParam.first);
                        stream->putBe32(texParam.second);

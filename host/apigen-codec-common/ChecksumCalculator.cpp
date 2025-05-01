@@ -16,7 +16,7 @@
 
 #include "ChecksumCalculator.h"
 
-#include "aemu/base/files/Stream.h"
+#include "render-utils/stream.h"
 
 #include <string>
 #include <vector>
@@ -141,7 +141,7 @@ uint32_t ChecksumCalculator::computeV1Checksum() const {
     return revLen;
 }
 
-void ChecksumCalculator::save(android::base::Stream* stream) {
+void ChecksumCalculator::save(gfxstream::Stream* stream) {
     assert(!m_isEncodingChecksum);
     switch (m_version) {
     case 1:
@@ -157,7 +157,7 @@ void ChecksumCalculator::save(android::base::Stream* stream) {
     stream->putBe32(m_numWrite);
 }
 
-void ChecksumCalculator::load(android::base::Stream* stream) {
+void ChecksumCalculator::load(gfxstream::Stream* stream) {
     assert(!m_isEncodingChecksum);
     switch (m_version) {
     case 1:

@@ -34,7 +34,7 @@
 #include <vulkan/vulkan.h>
 
 #include "VulkanStream.h"
-#include "aemu/base/files/StreamSerializing.h"
+#include "gfxstream/host/stream_utils.h"
 #include "goldfish_vk_private_defs.h"
 #include "vk_android_native_buffer_gfxstream.h"
 #include "vulkan_gfxstream.h"

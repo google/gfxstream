@@ -16,7 +16,7 @@
 #include <functional>
 #include <memory>
 
-#include "aemu/base/files/Stream.h"
+#include "render-utils/stream.h"
 #include "gfxstream/host/Features.h"
 #include "render-utils/Renderer.h"
 #include "render-utils/address_space_operations.h"

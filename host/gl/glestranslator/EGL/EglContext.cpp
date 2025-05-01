@@ -38,7 +38,7 @@ EglContext::EglContext(EglDisplay *dpy,
                        GLESVersion ver,
                        EGLint profileMask,
                        ObjectNameManager* mngr,
-                       android::base::Stream* stream) :
+                       gfxstream::Stream* stream) :
         m_dpy(dpy),
         m_config(config),
         m_glesContext(glesCtx),
@@ -85,7 +85,7 @@ EglContext::EglContext(EglDisplay *dpy,
                 m_native.get(), shareGroupId, stream,
                 [glesCtx](NamedObjectType type,
                           ObjectLocalName localName,
-                          android::base::Stream* stream) {
+                          gfxstream::Stream* stream) {
                     return glesCtx->loadObject(type, localName, stream);
                 });
         if (stream) {
@@ -179,7 +179,7 @@ bool EglContext::getAttrib(EGLint attrib,EGLint* value) {
     return true;
 }
 
-void EglContext::onSave(android::base::Stream* stream) {
+void EglContext::onSave(gfxstream::Stream* stream) {
     // Save gles context first
     assert(m_glesContext);
     m_glesContext->onSave(stream);
@@ -198,7 +198,7 @@ void EglContext::onSave(android::base::Stream* stream) {
     m_shareGroup->onSave(stream);
 }
 
-void EglContext::postSave(android::base::Stream* stream) {
+void EglContext::postSave(gfxstream::Stream* stream) {
     m_glesContext->postSave(stream);
     m_shareGroup->postSave(stream);
 }

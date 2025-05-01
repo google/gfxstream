@@ -1,4 +1,4 @@
-// Copyright 2015 The Android Open Source Project
+// Copyright 2019 The Android Open Source Project
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,16 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/files/MemStream.h"
-
-#include "aemu/base/files/StreamSerializing.h"
+#include "gfxstream/host/mem_stream.h"
 
 #include <algorithm>
+#include <string.h>
 #include <utility>
-#include <cstring>
+
+#include "gfxstream/host/stream_utils.h"
 
 namespace gfxstream {
-namespace guest {
 
 MemStream::MemStream(int reserveSize) {
     mData.reserve(reserveSize);
@@ -30,6 +29,9 @@ MemStream::MemStream(int reserveSize) {
 MemStream::MemStream(Buffer&& data) : mData(std::move(data)) {}
 
 ssize_t MemStream::read(void* buffer, size_t size) {
+    if (!buffer) {
+        return 0;
+    }
     const auto sizeToRead = std::min<int>(size, readSize());
     memcpy(buffer, mData.data() + mReadPos, sizeToRead);
     mReadPos += sizeToRead;
@@ -37,6 +39,9 @@ ssize_t MemStream::read(void* buffer, size_t size) {
 }
 
 ssize_t MemStream::write(const void* buffer, size_t size) {
+    if (!buffer) {
+        return 0;
+    }
     mData.insert(mData.end(), (const char*)buffer, (const char*)buffer + size);
     return size;
 }
@@ -62,5 +67,16 @@ void MemStream::load(Stream* stream) {
     mReadPos = 0;
 }
 
-}  // namespace base
-}  // namespace android
+void MemStream::rewind() {
+    mReadPos = 0;
+}
+
+void saveStream(Stream* stream, const MemStream& memStream) {
+    memStream.save(stream);
+}
+
+void loadStream(Stream* stream, MemStream* memStream) {
+    memStream->load(stream);
+}
+
+}  // namespace gfxstream

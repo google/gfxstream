@@ -9,5 +9,5 @@ if (NOT TARGET gfxstream_host_iostream)
     target_link_libraries(
         gfxstream_host_iostream
         INTERFACE
-        aemu-base.headers)
+        gfxstream_backend_headers)
 endif()

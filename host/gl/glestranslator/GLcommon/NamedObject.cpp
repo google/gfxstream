@@ -18,8 +18,6 @@
 
 #include "GLcommon/GLEScontext.h"
 #include "GLcommon/ObjectNameSpace.h"
-
-#include "aemu/base/GLObjectCounter.h"
 #include "gfxstream/synchronization/Lock.h"
 
 static constexpr int toIndex(NamedObjectType type) {
@@ -86,7 +84,6 @@ NamedObject::NamedObject(GenNameInfo genNameInfo,
             default:
                 m_globalName = 0;
         }
-        android::base::GLObjectCounter::get()->incCount(toIndex(genNameInfo.m_type));
     }
 }
 
@@ -128,6 +125,5 @@ NamedObject::~NamedObject() {
     default:
         break;
     }
-    android::base::GLObjectCounter::get()->decCount(toIndex(m_type));
 }
 

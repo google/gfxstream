@@ -111,13 +111,13 @@ void ReadBuffer::consume(size_t amount) {
     m_readPtr += amount;
 }
 
-void ReadBuffer::onSave(android::base::Stream* stream) {
+void ReadBuffer::onSave(gfxstream::Stream* stream) {
     stream->putBe32(m_size);
     stream->putBe32(m_validData);
     stream->write(m_readPtr, m_validData);
 }
 
-void ReadBuffer::onLoad(android::base::Stream* stream) {
+void ReadBuffer::onLoad(gfxstream::Stream* stream) {
     const auto size = stream->getBe32();
     if (size > m_size) {
         m_size = size;

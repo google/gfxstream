@@ -16,7 +16,7 @@
 #ifndef GLES_BUFFER_H
 #define GLES_BUFFER_H
 
-#include "aemu/base/files/Stream.h"
+#include "render-utils/stream.h"
 #include <stdio.h>
 #include <GLES/gl.h>
 #include <GLcommon/ObjectData.h>
@@ -25,8 +25,8 @@
 class GLESbuffer: public ObjectData {
 public:
    GLESbuffer():ObjectData(BUFFER_DATA) {}
-   GLESbuffer(android::base::Stream* stream);
-   void onSave(android::base::Stream* stream,
+   GLESbuffer(gfxstream::Stream* stream);
+   void onSave(gfxstream::Stream* stream,
                unsigned int globalName) const override;
    void restore(ObjectLocalName localName,
                 const getGlobalName_t& getGlobalName) override;

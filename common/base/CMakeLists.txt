@@ -35,15 +35,10 @@ set(gfxstream_common_base_srcs
     FileUtils.cpp
     FunctorThread.cpp
     LayoutResolver.cpp
-    MemStream.cpp
     MessageChannel.cpp
     PathUtils.cpp
     ring_buffer.cpp
-    StdioStream.cpp
-    Stream.cpp
-    StreamSerializing.cpp
     StringFormat.cpp
-    SubAllocator.cpp
     System.cpp
     Tracing.cpp
     )
@@ -164,7 +159,6 @@ if (ENABLE_VKCEREAL_TESTS)
                     Optional_unittest.cpp
                     ring_buffer_unittest.cpp
                     StringFormat_unittest.cpp
-                    SubAllocator_unittest.cpp
                     TypeTraits_unittest.cpp
                     WorkerThread_unittest.cpp
                     HybridEntityManager_unittest.cpp

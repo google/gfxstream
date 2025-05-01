@@ -20,7 +20,7 @@
 #include <EGL/eglext.h>
 
 #include "gfxstream/synchronization/Lock.h"
-#include "aemu/base/files/Stream.h"
+#include "render-utils/stream.h"
 #include "EglConfig.h"
 #include "EglContext.h"
 #include "EglOsApi.h"
@@ -140,14 +140,14 @@ public:
     EglOS::Context* getGlobalSharedContext() const;
     GlobalNameSpace* getGlobalNameSpace() { return &m_globalNameSpace; }
 
-    void onSaveAllImages(android::base::Stream* stream,
+    void onSaveAllImages(gfxstream::Stream* stream,
                          const gfxstream::ITextureSaverPtr& textureSaver,
                          SaveableTexture::saver_t saver,
                          SaveableTexture::restorer_t restorer);
-    void onLoadAllImages(android::base::Stream* stream,
+    void onLoadAllImages(gfxstream::Stream* stream,
                          const gfxstream::ITextureLoaderPtr& textureLoader,
                          SaveableTexture::creator_t creator);
-    void postLoadAllImages(android::base::Stream* stream);
+    void postLoadAllImages(gfxstream::Stream* stream);
 
     bool nativeTextureDecompressionEnabled() const;
     void setNativeTextureDecompressionEnabled(bool enabled);

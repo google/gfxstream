@@ -24,7 +24,7 @@
 #include "VulkanHandleMapping.h"
 #include "VulkanHandles.h"
 #include "gfxstream/HealthMonitor.h"
-#include "aemu/base/files/Stream.h"
+#include "render-utils/stream.h"
 #include "common/goldfish_vk_marshaling.h"
 #include "utils/GfxApiLogger.h"
 
@@ -37,8 +37,8 @@ class VkReconstruction {
 
     void clear();
 
-    void saveReplayBuffers(android::base::Stream* stream);
-    static void loadReplayBuffers(android::base::Stream* stream,
+    void saveReplayBuffers(gfxstream::Stream* stream);
+    static void loadReplayBuffers(gfxstream::Stream* stream,
                                   std::vector<uint64_t>* outHandleBuffer,
                                   std::vector<uint8_t>* outDecoderBuffer);
 

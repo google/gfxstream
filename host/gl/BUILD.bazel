@@ -152,8 +152,8 @@ cc_library(
         "//common/opengl:gfxstream_opengl_headers",
         "//host:gfxstream-compressedTextures",
         "//host:gfxstream_backend_headers",
+        "//host/backend:gfxstream_host_backend",
         "//host/logging:gfxstream_host_logging",
-        "@aemu//base:aemu-base",
     ],
 )
 

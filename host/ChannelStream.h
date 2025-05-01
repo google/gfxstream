@@ -38,8 +38,8 @@ protected:
     virtual void* getDmaForReading(uint64_t guest_paddr) override final;
     virtual void unlockDma(uint64_t guest_paddr) override final;
 
-    void onSave(android::base::Stream* stream) override;
-    unsigned char* onLoad(android::base::Stream* stream) override;
+    void onSave(gfxstream::Stream* stream) override;
+    unsigned char* onLoad(gfxstream::Stream* stream) override;
 
 private:
     RenderChannelImpl* mChannel;

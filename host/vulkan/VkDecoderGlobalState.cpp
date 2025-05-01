@@ -37,7 +37,7 @@
 #include "VulkanBoxedHandles.h"
 #include "VulkanDispatch.h"
 #include "VulkanStream.h"
-#include "aemu/base/files/Stream.h"
+#include "render-utils/stream.h"
 #include "common/goldfish_vk_deepcopy.h"
 #include "common/goldfish_vk_dispatch.h"
 #include "common/goldfish_vk_marshaling.h"
@@ -314,7 +314,7 @@ class VkDecoderGlobalState::Impl {
         stateBlock->deviceDispatch->vkDestroyCommandPool(stateBlock->device, stateBlock->commandPool, nullptr);
     }
 
-    void save(android::base::Stream* stream) {
+    void save(gfxstream::Stream* stream) {
         GFXSTREAM_DEBUG("VulkanSnapshots save (begin)");
         std::lock_guard<std::mutex> lock(mMutex);
 
@@ -584,7 +584,7 @@ class VkDecoderGlobalState::Impl {
         GFXSTREAM_DEBUG("VulkanSnapshots save (end)");
     }
 
-    void load(android::base::Stream* stream, GfxApiLogger& gfxLogger,
+    void load(gfxstream::Stream* stream, GfxApiLogger& gfxLogger,
               HealthMonitor<>* healthMonitor) {
         // assume that we already destroyed all instances
         // from FrameBuffer's onLoad method.
@@ -9638,9 +9638,9 @@ const gfxstream::host::FeatureSet& VkDecoderGlobalState::getFeatures() const { r
 
 bool VkDecoderGlobalState::vkCleanupEnabled() const { return mImpl->vkCleanupEnabled(); }
 
-void VkDecoderGlobalState::save(android::base::Stream* stream) { mImpl->save(stream); }
+void VkDecoderGlobalState::save(gfxstream::Stream* stream) { mImpl->save(stream); }
 
-void VkDecoderGlobalState::load(android::base::Stream* stream, GfxApiLogger& gfxLogger,
+void VkDecoderGlobalState::load(gfxstream::Stream* stream, GfxApiLogger& gfxLogger,
                                 HealthMonitor<>* healthMonitor) {
     mImpl->load(stream, gfxLogger, healthMonitor);
 }

@@ -14,39 +14,40 @@
 
 #pragma once
 
-#include "gfxstream/Compiler.h"
-#include "gfxstream/files/Stream.h"
-
-
 #include <stdio.h>
 
-namespace gfxstream {
-namespace base {
+#include "gfxstream/Compiler.h"
+#include "render-utils/stream.h"
 
-// An implementation of gfxstream::base::Stream interface on top of an
+namespace gfxstream {
+namespace host {
+
+// An implementation of the Stream interface on top of a
 // stdio FILE* instance.
-class StdioStream : public Stream {
-public:
+class StdioStream : public gfxstream::Stream {
+  public:
     enum Ownership { kNotOwner, kOwner };
 
     StdioStream(FILE* file = nullptr, Ownership ownership = kNotOwner);
+
+    StdioStream(const StdioStream&) = delete;
+    StdioStream& operator=(const StdioStream&) = delete;
+
     StdioStream(StdioStream&& other);
     StdioStream& operator=(StdioStream&& other);
 
     virtual ~StdioStream();
+
     virtual ssize_t read(void* buffer, size_t size) override;
     virtual ssize_t write(const void* buffer, size_t size) override;
 
     FILE* get() const { return mFile; }
     void close();
 
-private:
-
-    DISALLOW_COPY_AND_ASSIGN(StdioStream);
-
+  private:
     FILE* mFile;
     Ownership mOwnership;
 };
 
-}  // namespace base
+}  // namespace host
 }  // namespace gfxstream

@@ -16,7 +16,7 @@
 #include "EglDisplay.h"
 
 #include "gfxstream/containers/Lookup.h"
-#include "aemu/base/files/StreamSerializing.h"
+#include "gfxstream/host/stream_utils.h"
 #include "EglConfig.h"
 #include "EglGlobalInfo.h"
 #include "EglOsApi.h"
@@ -646,7 +646,7 @@ void EglDisplay::addConfig(void* opaque, const EglOS::ConfigInfo* info) {
     }
 }
 
-void EglDisplay::onSaveAllImages(android::base::Stream* stream,
+void EglDisplay::onSaveAllImages(gfxstream::Stream* stream,
                                  const gfxstream::ITextureSaverPtr& textureSaver,
                                  SaveableTexture::saver_t saver,
                                  SaveableTexture::restorer_t restorer) {
@@ -664,7 +664,7 @@ void EglDisplay::onSaveAllImages(android::base::Stream* stream,
     }
     m_globalNameSpace.onSave(stream, textureSaver, saver);
     saveCollection(stream, m_eglImages, [](
-            android::base::Stream* stream,
+            gfxstream::Stream* stream,
             const ImagesHndlMap::value_type& img) {
         stream->putBe32(img.first);
         stream->putBe32(img.second->globalTexObj->getGlobalName());
@@ -673,7 +673,7 @@ void EglDisplay::onSaveAllImages(android::base::Stream* stream,
     });
 }
 
-void EglDisplay::onLoadAllImages(android::base::Stream* stream,
+void EglDisplay::onLoadAllImages(gfxstream::Stream* stream,
                                  const gfxstream::ITextureLoaderPtr& textureLoader,
                                  SaveableTexture::creator_t creator) {
     if (!m_eglImages.empty()) {
@@ -689,7 +689,7 @@ void EglDisplay::onLoadAllImages(android::base::Stream* stream,
     m_globalNameSpace.onLoad(stream, textureLoader, creator);
 
     loadCollection(stream, &m_eglImages, [this](
-        android::base::Stream* stream) {
+        gfxstream::Stream* stream) {
         unsigned int hndl = stream->getBe32();
         unsigned int globalName = stream->getBe32();
         ImagePtr eglImg(new EglImage);
@@ -701,7 +701,7 @@ void EglDisplay::onLoadAllImages(android::base::Stream* stream,
     });
 }
 
-void EglDisplay::postLoadAllImages(android::base::Stream* stream) {
+void EglDisplay::postLoadAllImages(gfxstream::Stream* stream) {
     m_globalNameSpace.postLoad(stream);
 }
 

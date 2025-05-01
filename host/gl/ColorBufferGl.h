@@ -29,7 +29,7 @@
 #include "FrameworkFormats.h"
 #include "Handle.h"
 #include "Hwc2.h"
-#include "aemu/base/files/Stream.h"
+#include "render-utils/stream.h"
 #include "gfxstream/ManagedDescriptor.hpp"
 #include "gfxstream/host/Features.h"
 #include "gfxstream/host/borrowed_image.h"
@@ -192,8 +192,8 @@ class ColorBufferGl {
     // readback() but async (to the specified |buffer|)
     void readbackAsync(GLuint buffer, bool readbackBgra = false);
 
-    void onSave(android::base::Stream* stream);
-    static std::unique_ptr<ColorBufferGl> onLoad(android::base::Stream* stream,
+    void onSave(gfxstream::Stream* stream);
+    static std::unique_ptr<ColorBufferGl> onLoad(gfxstream::Stream* stream,
                                                  EGLDisplay p_display, ContextHelper* helper,
                                                  TextureDraw* textureDraw, bool fastBlitSupported,
                                                  const gfxstream::host::FeatureSet& features);

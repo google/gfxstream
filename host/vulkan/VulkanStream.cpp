@@ -87,7 +87,7 @@ void VulkanStream::loadStringInPlaceWithStreamPtr(char** forOutput, uint8_t** st
     uint32_t len;
     memcpy(&len, *streamPtr, sizeof(uint32_t));
     *streamPtr += sizeof(uint32_t);
-    android::base::Stream::fromBe32((uint8_t*)&len);
+    gfxstream::Stream::fromBe32((uint8_t*)&len);
 
     if (len == UINT32_MAX) {
         GFXSTREAM_FATAL("VulkanStream can't allocate UINT32_MAX bytes");
@@ -106,7 +106,7 @@ void VulkanStream::loadStringArrayInPlaceWithStreamPtr(char*** forOutput, uint8_
     uint32_t count;
     memcpy(&count, *streamPtr, sizeof(uint32_t));
     *streamPtr += sizeof(uint32_t);
-    android::base::Stream::fromBe32((uint8_t*)&count);
+    gfxstream::Stream::fromBe32((uint8_t*)&count);
 
     if (!count) {
         *forOutput = nullptr;

@@ -642,7 +642,7 @@ std::unique_ptr<BufferGl> EmulationGl::createBuffer(uint64_t size, HandleType ha
     return BufferGl::create(size, handle, getColorBufferContextHelper());
 }
 
-std::unique_ptr<BufferGl> EmulationGl::loadBuffer(android::base::Stream* stream) {
+std::unique_ptr<BufferGl> EmulationGl::loadBuffer(gfxstream::Stream* stream) {
     return BufferGl::onLoad(stream, getColorBufferContextHelper());
 }
 
@@ -669,7 +669,7 @@ std::unique_ptr<ColorBufferGl> EmulationGl::createColorBuffer(uint32_t width, ui
                                  isFastBlitSupported(), mFeatures);
 }
 
-std::unique_ptr<ColorBufferGl> EmulationGl::loadColorBuffer(android::base::Stream* stream) {
+std::unique_ptr<ColorBufferGl> EmulationGl::loadColorBuffer(gfxstream::Stream* stream) {
     return ColorBufferGl::onLoad(stream, mEglDisplay, getColorBufferContextHelper(),
                                  mTextureDraw.get(), isFastBlitSupported(), mFeatures);
 }
@@ -697,7 +697,7 @@ std::unique_ptr<EmulatedEglContext> EmulationGl::createEmulatedEglContext(
 }
 
 std::unique_ptr<EmulatedEglContext> EmulationGl::loadEmulatedEglContext(
-        android::base::Stream* stream) {
+        gfxstream::Stream* stream) {
     return EmulatedEglContext::onLoad(stream, mEglDisplay);
 }
 
@@ -741,7 +741,7 @@ std::unique_ptr<EmulatedEglWindowSurface> EmulationGl::createEmulatedEglWindowSu
 }
 
 std::unique_ptr<EmulatedEglWindowSurface> EmulationGl::loadEmulatedEglWindowSurface(
-        android::base::Stream* stream,
+        gfxstream::Stream* stream,
         const ColorBufferMap& colorBuffers,
         const EmulatedEglContextMap& contexts) {
     return EmulatedEglWindowSurface::onLoad(stream, mEglDisplay, colorBuffers, contexts);

@@ -29,8 +29,8 @@ class RenderbufferData : public ObjectData
 {
 public:
     RenderbufferData() : ObjectData(RENDERBUFFER_DATA) {  };
-    RenderbufferData(android::base::Stream* stream);
-    void onSave(android::base::Stream* stream,
+    RenderbufferData(gfxstream::Stream* stream);
+    void onSave(gfxstream::Stream* stream,
                 unsigned int globalName) const override;
     void restore(ObjectLocalName localName,
                  const getGlobalName_t& getGlobalName) override;
@@ -61,9 +61,9 @@ class FramebufferData : public ObjectData
 {
 public:
     explicit FramebufferData(GLuint name, GLuint globalName);
-    FramebufferData(android::base::Stream* stream);
+    FramebufferData(gfxstream::Stream* stream);
     ~FramebufferData();
-    void onSave(android::base::Stream* stream,
+    void onSave(gfxstream::Stream* stream,
                 unsigned int globalName) const override;
     void postLoad(const getObjDataPtr_t& getObjDataPtr) override;
     void restore(ObjectLocalName localName,

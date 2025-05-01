@@ -20,7 +20,7 @@
 #include "gfxstream/host/borrowed_image.h"
 #include "ExternalObjectManager.h"
 #include "FrameworkFormats.h"
-#include "aemu/base/files/Stream.h"
+#include "render-utils/stream.h"
 
 namespace gfxstream {
 namespace vk {
@@ -33,7 +33,7 @@ class ColorBufferVk {
                                                  uint32_t width, uint32_t height, GLenum format,
                                                  FrameworkFormat frameworkFormat, bool vulkanOnly,
                                                  uint32_t memoryProperty,
-                                                 android::base::Stream* stream = nullptr);
+                                                 gfxstream::Stream* stream = nullptr);
 
     ~ColorBufferVk();
 
@@ -47,7 +47,7 @@ class ColorBufferVk {
     std::unique_ptr<BorrowedImageInfo> borrowForComposition(bool colorBufferIsTarget);
     std::unique_ptr<BorrowedImageInfo> borrowForDisplay();
 
-    void onSave(android::base::Stream* stream);
+    void onSave(gfxstream::Stream* stream);
 
     std::optional<BlobDescriptorInfo> exportBlob();
 

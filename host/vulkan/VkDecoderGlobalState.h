@@ -87,8 +87,8 @@ class VkDecoderGlobalState {
     // bug 149997534
     bool vkCleanupEnabled() const;
 
-    void save(android::base::Stream* stream);
-    void load(android::base::Stream* stream, emugl::GfxApiLogger& gfxLogger,
+    void save(gfxstream::Stream* stream);
+    void load(gfxstream::Stream* stream, emugl::GfxApiLogger& gfxLogger,
               HealthMonitor<>* healthMonitor);
 
     VkResult on_vkEnumerateInstanceVersion(gfxstream::base::BumpPool* pool,

@@ -24,9 +24,9 @@
 class TransformFeedbackData : public ObjectData {
 public:
     TransformFeedbackData() : ObjectData(TRANSFORMFEEDBACK_DATA) {}
-    TransformFeedbackData(android::base::Stream* stream);
+    TransformFeedbackData(gfxstream::Stream* stream);
     void setMaxSize(int maxSize);
-    void onSave(android::base::Stream* stream,
+    void onSave(gfxstream::Stream* stream,
                 unsigned int globalName) const override;
     void restore(ObjectLocalName localName,
                  const getGlobalName_t& getGlobalName) override;

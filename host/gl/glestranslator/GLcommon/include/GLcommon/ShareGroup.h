@@ -17,7 +17,7 @@
 #define _OBJECT_NAME_MANAGER_H
 
 #include "gfxstream/synchronization/Lock.h"
-#include "aemu/base/files/Stream.h"
+#include "render-utils/stream.h"
 #include "GLcommon/NamedObject.h"
 #include "GLcommon/ObjectData.h"
 
@@ -112,15 +112,15 @@ public:
     ObjectDataPtr getObjectDataPtr(NamedObjectType p_type, ObjectLocalName p_localName);
     uint64_t getId() const {return m_sharedGroupID;}
     void preSave(GlobalNameSpace *globalNameSpace);
-    void onSave(android::base::Stream* stream);
-    void postSave(android::base::Stream* stream);
+    void onSave(gfxstream::Stream* stream);
+    void postSave(gfxstream::Stream* stream);
     // postLoadRestore() restores resources on hardware GPU
     void postLoadRestore();
     bool needRestore();
 private:
     explicit ShareGroup(GlobalNameSpace *globalNameSpace,
                         uint64_t sharedGroupID,
-                        android::base::Stream* stream,
+                        gfxstream::Stream* stream,
                         const ObjectData::loadObject_t& loadObject);
 
     void lockObjectData();
@@ -183,7 +183,7 @@ public:
     //                      new ID.
 
     ShareGroupPtr createShareGroup(void *p_groupName, uint64_t sharedGroupID,
-        android::base::Stream* stream, const ObjectData::loadObject_t& loadObject);
+        gfxstream::Stream* stream, const ObjectData::loadObject_t& loadObject);
 
     //
     // attachShareGroup - find the ShareGroup object attached to the ID
@@ -192,7 +192,7 @@ public:
     //
     ShareGroupPtr attachShareGroup(void *p_groupName, void *p_existingGroupName);
     ShareGroupPtr attachOrCreateShareGroup(void *p_groupName,
-        uint64_t p_existingGroupID, android::base::Stream* stream,
+        uint64_t p_existingGroupID, gfxstream::Stream* stream,
         const ObjectData::loadObject_t& loadObject);
 
     //

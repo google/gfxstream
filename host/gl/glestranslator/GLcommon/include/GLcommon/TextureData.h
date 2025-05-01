@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "aemu/base/files/Stream.h"
+#include "render-utils/stream.h"
 
 #include "GLcommon/ObjectData.h"
 
@@ -45,7 +45,7 @@ public:
                     compressed(false),
                     compressedFormat(0),
                     target(0) { resetSaveableTexture(); };
-    TextureData(android::base::Stream* stream);
+    TextureData(gfxstream::Stream* stream);
 
     unsigned int width;
     unsigned int height;
@@ -72,7 +72,7 @@ public:
     // both GLES2 and 3.
     unsigned int texStorageLevels = 0;
     int samples;
-    void onSave(android::base::Stream* stream,
+    void onSave(gfxstream::Stream* stream,
                 unsigned int globalName) const override;
     void restore(ObjectLocalName localName,
                  const getGlobalName_t& getGlobalName) override;

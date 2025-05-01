@@ -32,11 +32,11 @@ RenderThreadInfoVk::~RenderThreadInfoVk() { tlThreadInfo = nullptr; }
 
 RenderThreadInfoVk* RenderThreadInfoVk::get() { return tlThreadInfo; }
 
-void RenderThreadInfoVk::onSave(android::base::Stream* stream) {
+void RenderThreadInfoVk::onSave(gfxstream::Stream* stream) {
     stream->putBe32(ctx_id);
 }
 
-bool RenderThreadInfoVk::onLoad(android::base::Stream* stream) {
+bool RenderThreadInfoVk::onLoad(gfxstream::Stream* stream) {
     ctx_id = stream->getBe32();
     return true;
 }

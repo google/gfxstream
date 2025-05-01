@@ -16,7 +16,7 @@
 #include <assert.h>
 #include <memory.h>
 
-#include "aemu/base/files/StreamSerializing.h"
+#include "gfxstream/host/stream_utils.h"
 #include "gfxstream/host/dma_device.h"
 #include "gfxstream/host/logging.h"
 #include "gfxstream/system/System.h"
@@ -351,17 +351,17 @@ const unsigned char *RingStream::readFully( void *buf, size_t len) {
     return nullptr;
 }
 
-void RingStream::onSave(android::base::Stream* stream) {
+void RingStream::onSave(gfxstream::Stream* stream) {
     stream->putBe32(mReadBufferLeft);
     stream->write(mReadBuffer.data() + mReadBuffer.size() - mReadBufferLeft,
                   mReadBufferLeft);
-    android::base::saveBuffer(stream, mWriteBuffer);
+    gfxstream::saveBuffer(stream, mWriteBuffer);
 }
 
-unsigned char* RingStream::onLoad(android::base::Stream* stream) {
-    android::base::loadBuffer(stream, &mReadBuffer);
+unsigned char* RingStream::onLoad(gfxstream::Stream* stream) {
+    gfxstream::loadBuffer(stream, &mReadBuffer);
     mReadBufferLeft = mReadBuffer.size();
-    android::base::loadBuffer(stream, &mWriteBuffer);
+    gfxstream::loadBuffer(stream, &mWriteBuffer);
     return reinterpret_cast<unsigned char*>(mWriteBuffer.data());
 }
 

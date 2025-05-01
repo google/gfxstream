@@ -19,7 +19,7 @@
 #include "GLcommon/GLEScontext.h"
 #include "GLcommon/GLSnapshotSerializers.h"
 
-TransformFeedbackData::TransformFeedbackData(android::base::Stream* stream)
+TransformFeedbackData::TransformFeedbackData(gfxstream::Stream* stream)
     : ObjectData(stream) {
     if (stream) {
         loadContainer(stream, m_indexedTransformFeedbackBuffers);
@@ -30,7 +30,7 @@ void TransformFeedbackData::setMaxSize(int maxSize) {
     m_indexedTransformFeedbackBuffers.resize(maxSize);
 }
 
-void TransformFeedbackData::onSave(android::base::Stream* stream,
+void TransformFeedbackData::onSave(gfxstream::Stream* stream,
                                    unsigned int globalName) const {
     ObjectData::onSave(stream, globalName);
     saveContainer(stream, m_indexedTransformFeedbackBuffers);

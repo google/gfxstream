@@ -16,8 +16,8 @@
 #pragma once
 
 #include "gfxstream/containers/Lookup.h"
-#include "aemu/base/files/Stream.h"
-#include "aemu/base/files/StreamSerializing.h"
+#include "render-utils/stream.h"
+#include "gfxstream/host/stream_utils.h"
 #include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/Compiler.h"
 
@@ -88,21 +88,21 @@ public:
         return countWithStaleness(Staleness::PrevSnapshot);
     }
 
-    void onSave(android::base::Stream* stream) {
+    void onSave(gfxstream::Stream* stream) {
         gfxstream::base::AutoReadLock lock(mLock);
         saveCollection(
                 stream, mPtrs,
-                [](android::base::Stream* stream,
+                [](gfxstream::Stream* stream,
                    const std::pair<uint64_t, Entry>& entry) {
                     stream->putBe64(entry.first);
                 });
     }
 
-    void onLoad(android::base::Stream* stream) {
+    void onLoad(gfxstream::Stream* stream) {
         gfxstream::base::AutoWriteLock lock(mLock);
         loadCollection(
                 stream, &mPtrs,
-                [](android::base::Stream* stream) {
+                [](gfxstream::Stream* stream) {
                     uint64_t handle = stream->getBe64();
                     return std::make_pair(
                                handle,

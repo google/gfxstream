@@ -28,10 +28,10 @@
 #include "FrameBuffer.h"
 #include "FrameworkFormats.h"
 #include "VkCommonOperations.h"
-#include "aemu/base/files/StdioStream.h"
 #include "gfxstream/host/address_space_operations.h"
 // TODO: remove after moving save/load interface to ops.
 #include "gfxstream/host/address_space_graphics.h"
+#include "gfxstream/host/file_stream.h"
 #include "gfxstream/host/Tracing.h"
 #include "gfxstream/memory/SharedMemory.h"
 #include "gfxstream/threads/WorkerThread.h"
@@ -974,8 +974,7 @@ int VirtioGpuFrontend::snapshotRenderer(const char* directory) {
     const std::filesystem::path snapshotDirectory = std::string(directory);
     const std::filesystem::path snapshotPath = snapshotDirectory / kSnapshotBasenameRenderer;
 
-    android::base::StdioStream stream(fopen(snapshotPath.c_str(), "wb"),
-                                      android::base::StdioStream::kOwner);
+    StdioStream stream(fopen(snapshotPath.c_str(), "wb"), StdioStream::kOwner);
 
     if (!mRenderer) {
         GFXSTREAM_ERROR("Failed to snapshot renderer: renderer not available.");
@@ -1036,8 +1035,7 @@ int VirtioGpuFrontend::snapshotAsg(const char* directory) {
     const std::filesystem::path snapshotDirectory = std::string(directory);
     const std::filesystem::path snapshotPath = snapshotDirectory / kSnapshotBasenameAsg;
 
-    android::base::StdioStream stream(fopen(snapshotPath.c_str(), "wb"),
-                                      android::base::StdioStream::kOwner);
+   StdioStream stream(fopen(snapshotPath.c_str(), "wb"), StdioStream::kOwner);
 
     int ret = gfxstream_address_space_save_memory_state(&stream);
     if (ret) {
@@ -1082,8 +1080,7 @@ int VirtioGpuFrontend::restoreRenderer(const char* directory) {
     const std::filesystem::path snapshotDirectory = std::string(directory);
     const std::filesystem::path snapshotPath = snapshotDirectory / kSnapshotBasenameRenderer;
 
-    android::base::StdioStream stream(fopen(snapshotPath.c_str(), "rb"),
-                                      android::base::StdioStream::kOwner);
+    StdioStream stream(fopen(snapshotPath.c_str(), "rb"), StdioStream::kOwner);
 
     if (!mRenderer) {
         GFXSTREAM_ERROR("Failed to restore renderer: renderer not available.");
@@ -1147,8 +1144,7 @@ int VirtioGpuFrontend::restoreAsg(const char* directory) {
     const std::filesystem::path snapshotDirectory = std::string(directory);
     const std::filesystem::path snapshotPath = snapshotDirectory / kSnapshotBasenameAsg;
 
-    android::base::StdioStream stream(fopen(snapshotPath.c_str(), "rb"),
-                                      android::base::StdioStream::kOwner);
+    StdioStream stream(fopen(snapshotPath.c_str(), "rb"), StdioStream::kOwner);
 
     // Gather external memory info that the ASG device needs to reload.
     AddressSpaceDeviceLoadResources asgLoadResources;

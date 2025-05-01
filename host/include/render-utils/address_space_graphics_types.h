@@ -66,13 +66,8 @@
 // so that the host side (which is usually a separate thread that we don't want
 // to spin too much) wakes up and processes data.
 
-namespace android {
-namespace base {
+#include "render-utils/stream.h"
 
-class Stream;
-
-} // namespace base
-} // namespace android
 
 #define ADDRESS_SPACE_GRAPHICS_DEVICE_ID 0
 #define ADDRESS_SPACE_GRAPHICS_PAGE_SIZE 4096
@@ -302,7 +297,7 @@ struct ConsumerCallbacks {
 };
 
 using ConsumerCreateCallback =
-    std::function<void* (struct asg_context, base::Stream*, ConsumerCallbacks,
+    std::function<void* (struct asg_context, gfxstream::Stream*, ConsumerCallbacks,
                          uint32_t virtioGpuContextId, uint32_t virtioGpuCapsetId,
                          std::optional<std::string> nameOpt)>;
 using ConsumerDestroyCallback =
@@ -312,7 +307,7 @@ using ConsumerPreSaveCallback =
 using ConsumerGlobalPreSaveCallback =
     std::function<void()>;
 using ConsumerSaveCallback =
-    std::function<void(void*, base::Stream*)>;
+    std::function<void(void*, gfxstream::Stream*)>;
 using ConsumerGlobalPostSaveCallback =
     std::function<void()>;
 using ConsumerPostSaveCallback =

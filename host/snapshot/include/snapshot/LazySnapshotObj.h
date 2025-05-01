@@ -30,7 +30,7 @@ namespace gfxstream {
 // disk but does not load them into GPU. On restore it performs the heavy-weight
 // GPU data loading.
 
-#include "aemu/base/files/Stream.h"
+#include "render-utils/stream.h"
 
 template <class Derived>
 class LazySnapshotObj {
@@ -42,7 +42,7 @@ class LazySnapshotObj {
     LazySnapshotObj& operator=(const LazySnapshotObj&) = delete;
 
     // Snapshot loader
-    LazySnapshotObj(android::base::Stream*) : mNeedRestore(true) {}
+    LazySnapshotObj(gfxstream::Stream*) : mNeedRestore(true) {}
 
     void touch() {
         std::lock_guard<std::mutex> lock(mMutex);

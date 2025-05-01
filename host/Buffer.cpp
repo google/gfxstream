@@ -64,7 +64,7 @@ std::shared_ptr<Buffer> Buffer::create(gl::EmulationGl* emulationGl, vk::VkEmula
 
 /*static*/
 std::shared_ptr<Buffer> Buffer::onLoad(gl::EmulationGl* emulationGl, vk::VkEmulation*,
-                                       android::base::Stream* stream) {
+                                       gfxstream::Stream* stream) {
     const auto handle = static_cast<HandleType>(stream->getBe32());
     const auto size = static_cast<uint64_t>(stream->getBe64());
 
@@ -85,7 +85,7 @@ std::shared_ptr<Buffer> Buffer::onLoad(gl::EmulationGl* emulationGl, vk::VkEmula
     return buffer;
 }
 
-void Buffer::onSave(android::base::Stream* stream) {
+void Buffer::onSave(gfxstream::Stream* stream) {
     stream->putBe32(mHandle);
     stream->putBe64(mSize);
 

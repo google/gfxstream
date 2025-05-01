@@ -40,7 +40,7 @@ std::unique_ptr<EmulatedEglContext> EmulatedEglContext::createImpl(
         EGLContext sharedContext,
         HandleType hndl,
         GLESApi version,
-        android::base::Stream* stream) {
+        gfxstream::Stream* stream) {
     GLESApi clientVersion = version;
     int majorVersion = clientVersion;
     int minorVersion = 0;
@@ -98,7 +98,7 @@ EmulatedEglContext::~EmulatedEglContext() {
     }
 }
 
-void EmulatedEglContext::onSave(android::base::Stream* stream) {
+void EmulatedEglContext::onSave(gfxstream::Stream* stream) {
     stream->putBe32(mHndl);
     stream->putBe32(static_cast<uint32_t>(mVersion));
     assert(s_egl.eglCreateContext);
@@ -108,7 +108,7 @@ void EmulatedEglContext::onSave(android::base::Stream* stream) {
 }
 
 std::unique_ptr<EmulatedEglContext> EmulatedEglContext::onLoad(
-        android::base::Stream* stream,
+        gfxstream::Stream* stream,
         EGLDisplay display) {
     HandleType hndl = static_cast<HandleType>(stream->getBe32());
     GLESApi version = static_cast<GLESApi>(stream->getBe32());

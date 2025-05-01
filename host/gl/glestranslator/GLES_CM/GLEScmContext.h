@@ -41,7 +41,7 @@ public:
     virtual const GLSupport* getCaps() const override { return &(GLEScontext::s_glSupportGles1); }
     static void initGlobal(EGLiface* eglIface);
     GLEScmContext(int maj, int min, GlobalNameSpace* globalNameSpace,
-            android::base::Stream* stream);
+            gfxstream::Stream* stream);
     void setActiveTexture(GLenum tex) override;
     void  setClientActiveTexture(GLenum tex);
     GLenum  getActiveTexture() { return GL_TEXTURE0 + m_activeTexture;};
@@ -187,7 +187,7 @@ public:
     const Light& getLightInfo(uint32_t lightIndex);
     const Fog& getFogInfo();
 
-    virtual void onSave(android::base::Stream* stream) const override;
+    virtual void onSave(gfxstream::Stream* stream) const override;
 
 protected:
     virtual void postLoadRestoreCtx() override;

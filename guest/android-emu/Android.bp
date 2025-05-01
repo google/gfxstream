@@ -10,9 +10,6 @@ cc_library_shared {
     ],
     srcs: [
         "aemu/base/AlignedBuf.cpp",
-        "aemu/base/files/MemStream.cpp",
-        "aemu/base/files/Stream.cpp",
-        "aemu/base/files/StreamSerializing.cpp",
         "aemu/base/Path.cpp",
         "aemu/base/Pool.cpp",
         "aemu/base/StringFormat.cpp",
@@ -48,9 +45,6 @@ cc_library_static {
     ],
     srcs: [
         "aemu/base/AlignedBuf.cpp",
-        "aemu/base/files/MemStream.cpp",
-        "aemu/base/files/Stream.cpp",
-        "aemu/base/files/StreamSerializing.cpp",
         "aemu/base/Path.cpp",
         "aemu/base/Pool.cpp",
         "aemu/base/StringFormat.cpp",

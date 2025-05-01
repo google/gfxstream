@@ -31,7 +31,7 @@
 #include <GLcommon/TextureUtils.h>
 
 #include "gfxstream/containers/Lookup.h"
-#include "aemu/base/files/StreamSerializing.h"
+#include "gfxstream/host/stream_utils.h"
 #include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/host/logging.h"
 #ifndef _MSC_VER
@@ -48,7 +48,7 @@ static void convertFixedIndirectLoop(const char* dataIn,unsigned int strideIn,vo
 static void convertByteDirectLoop(const char* dataIn,unsigned int strideIn,void* dataOut,unsigned int nBytes,unsigned int strideOut,int attribSize);
 static void convertByteIndirectLoop(const char* dataIn,unsigned int strideIn,void* dataOut,GLsizei count,GLenum indices_type,const GLvoid* indices,unsigned int strideOut,int attribSize);
 
-void BufferBinding::onLoad(android::base::Stream* stream) {
+void BufferBinding::onLoad(gfxstream::Stream* stream) {
     buffer = stream->getBe32();
     offset = stream->getBe32();
     size = stream->getBe32();
@@ -57,7 +57,7 @@ void BufferBinding::onLoad(android::base::Stream* stream) {
     isBindBase = stream->getByte();
 }
 
-void BufferBinding::onSave(android::base::Stream* stream) const {
+void BufferBinding::onSave(gfxstream::Stream* stream) const {
     stream->putBe32(buffer);
     stream->putBe32(offset);
     stream->putBe32(size);
@@ -66,7 +66,7 @@ void BufferBinding::onSave(android::base::Stream* stream) const {
     stream->putByte(isBindBase);
 }
 
-VAOState::VAOState(android::base::Stream* stream) {
+VAOState::VAOState(gfxstream::Stream* stream) {
     element_array_buffer_binding = stream->getBe32();
 
     vertexAttribInfo.clear();
@@ -93,7 +93,7 @@ VAOState::VAOState(android::base::Stream* stream) {
     everBound = stream->getByte();
 }
 
-void VAOState::onSave(android::base::Stream* stream) const {
+void VAOState::onSave(gfxstream::Stream* stream) const {
     stream->putBe32(element_array_buffer_binding);
     for (uint32_t i = 0; i < kMaxVertexAttributes; ++i) {
         vertexAttribInfo[i].onSave(stream);
@@ -457,7 +457,7 @@ void GLEScontext::setActiveTexture(GLenum tex) {
 GLEScontext::GLEScontext() {}
 
 GLEScontext::GLEScontext(GlobalNameSpace* globalNameSpace,
-        android::base::Stream* stream, GlLibrary* glLib) {
+        gfxstream::Stream* stream, GlLibrary* glLib) {
     if (stream) {
         m_initialized = stream->getByte();
         m_glesMajorVersion = stream->getBe32();
@@ -505,7 +505,7 @@ GLEScontext::GLEScontext(GlobalNameSpace* globalNameSpace,
             m_scissorHeight = static_cast<GLsizei>(stream->getBe32());
 
             loadCollection(stream, &m_glEnableList,
-                    [](android::base::Stream* stream) {
+                    [](gfxstream::Stream* stream) {
                         GLenum item = stream->getBe32();
                         bool enabled = stream->getByte();
                         return std::make_pair(item, enabled);
@@ -516,7 +516,7 @@ GLEScontext::GLEScontext(GlobalNameSpace* globalNameSpace,
             stream->read(m_blendStates.data(), sizeof(BlendState) * blendStateCount);
 
             loadCollection(stream, &m_glPixelStoreiList,
-                    [](android::base::Stream* stream) {
+                    [](gfxstream::Stream* stream) {
                         GLenum item = stream->getBe32();
                         GLint val = stream->getBe32();
                         return std::make_pair(item, val);
@@ -565,7 +565,7 @@ GLEScontext::GLEScontext(GlobalNameSpace* globalNameSpace,
     }
     ObjectData::loadObject_t loader = [this](NamedObjectType type,
                                              long long unsigned int localName,
-                                             android::base::Stream* stream) {
+                                             gfxstream::Stream* stream) {
         return loadObject(type, localName, stream);
     };
     m_fboNameSpace = new NameSpace(NamedObjectType::FRAMEBUFFER,
@@ -642,7 +642,7 @@ void GLEScontext::postLoad() {
             });
 }
 
-void GLEScontext::onSave(android::base::Stream* stream) const {
+void GLEScontext::onSave(gfxstream::Stream* stream) const {
     stream->putByte(m_initialized);
     stream->putBe32(m_glesMajorVersion);
     stream->putBe32(m_glesMinorVersion);
@@ -684,7 +684,7 @@ void GLEScontext::onSave(android::base::Stream* stream) const {
         stream->putBe32(m_scissorWidth);
         stream->putBe32(m_scissorHeight);
 
-        saveCollection(stream, m_glEnableList, [](android::base::Stream* stream,
+        saveCollection(stream, m_glEnableList, [](gfxstream::Stream* stream,
                 const std::pair<const GLenum, bool>& enableItem) {
                     stream->putBe32(enableItem.first);
                     stream->putByte(enableItem.second);
@@ -692,7 +692,7 @@ void GLEScontext::onSave(android::base::Stream* stream) const {
         stream->putBe32((int)m_blendStates.size());
         stream->write(m_blendStates.data(), sizeof(BlendState) * m_blendStates.size());
 
-        saveCollection(stream, m_glPixelStoreiList, [](android::base::Stream* stream,
+        saveCollection(stream, m_glPixelStoreiList, [](gfxstream::Stream* stream,
                 const std::pair<const GLenum, GLint>& pixelStore) {
                     stream->putBe32(pixelStore.first);
                     stream->putBe32(pixelStore.second);
@@ -737,7 +737,7 @@ void GLEScontext::onSave(android::base::Stream* stream) const {
     // do not save m_vaoNameSpace
 }
 
-void GLEScontext::postSave(android::base::Stream* stream) const {
+void GLEScontext::postSave(gfxstream::Stream* stream) const {
     (void)stream;
     // We need to mark the textures dirty, for those that has been bound to
     // a potential render target.
@@ -937,7 +937,7 @@ void GLEScontext::postLoadRestoreCtx() {
 }
 
 ObjectDataPtr GLEScontext::loadObject(NamedObjectType type,
-            ObjectLocalName localName, android::base::Stream* stream) const {
+            ObjectLocalName localName, gfxstream::Stream* stream) const {
     switch (type) {
         case NamedObjectType::VERTEXBUFFER:
             return ObjectDataPtr(new GLESbuffer(stream));

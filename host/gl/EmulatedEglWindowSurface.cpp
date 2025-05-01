@@ -202,7 +202,7 @@ HandleType EmulatedEglWindowSurface::getHndl() const {
 }
 
 template <class obj_t>
-static void saveHndlOrNull(obj_t obj, android::base::Stream* stream) {
+static void saveHndlOrNull(obj_t obj, gfxstream::Stream* stream) {
     if (obj) {
         stream->putBe32(obj->getHndl());
     } else {
@@ -210,7 +210,7 @@ static void saveHndlOrNull(obj_t obj, android::base::Stream* stream) {
     }
 }
 
-void EmulatedEglWindowSurface::onSave(android::base::Stream* stream) const {
+void EmulatedEglWindowSurface::onSave(gfxstream::Stream* stream) const {
     stream->putBe32(getHndl());
     saveHndlOrNull(mAttachedColorBuffer, stream);
     saveHndlOrNull(mReadContext, stream);
@@ -223,7 +223,7 @@ void EmulatedEglWindowSurface::onSave(android::base::Stream* stream) const {
 }
 
 std::unique_ptr<EmulatedEglWindowSurface> EmulatedEglWindowSurface::onLoad(
-        android::base::Stream* stream,
+        gfxstream::Stream* stream,
         EGLDisplay display,
         const ColorBufferMap& colorBuffers,
         const EmulatedEglContextMap& contexts) {

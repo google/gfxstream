@@ -15,7 +15,7 @@
 
 #include "FrameBuffer.h"
 #include "RendererImpl.h"
-#include "aemu/base/files/Stream.h"
+#include "render-utils/stream.h"
 #include "gfxstream/host/address_space_operations.h"
 #include "gfxstream/host/display_operations.h"
 #include "gfxstream/host/dma_device.h"

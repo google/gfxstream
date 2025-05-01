@@ -28,10 +28,10 @@ namespace {
 using Buffer = RenderChannel::Buffer;
 using State = RenderChannel::State;
 using gfxstream::base::AutoLock;
-using gfxstream::base::BufferQueueResult;
+using gfxstream::BufferQueueResult;
 
 RenderChannel::IoResult
-ToIoResult(gfxstream::base::BufferQueueResult result) {
+ToIoResult(gfxstream::BufferQueueResult result) {
     switch (result) {
         case BufferQueueResult::Ok: {
             return RenderChannel::IoResult::Ok;
@@ -50,9 +50,9 @@ ToIoResult(gfxstream::base::BufferQueueResult result) {
 
 
 // TODO: Delete after fully migrating Gfxstream interface to gfxstream::base::Stream.
-class AemuStreamToGfxstreamStreamWrapper : public gfxstream::base::Stream {
+class AemuStreamToGfxstreamStreamWrapper : public gfxstream::Stream {
   public:
-    AemuStreamToGfxstreamStreamWrapper(android::base::Stream* stream)
+    AemuStreamToGfxstreamStreamWrapper(gfxstream::Stream* stream)
         : mStream(stream) {}
 
     ssize_t read(void* buffer, size_t size) override {
@@ -64,7 +64,7 @@ class AemuStreamToGfxstreamStreamWrapper : public gfxstream::base::Stream {
     }
 
   private:
-    android::base::Stream* const mStream = nullptr;
+    gfxstream::Stream* const mStream = nullptr;
 };
 
 }  // namespace
@@ -83,7 +83,7 @@ static constexpr size_t kGuestToHostQueueCapacity = 1024U;
 #endif
 static constexpr size_t kHostToGuestQueueCapacity = 16U;
 
-RenderChannelImpl::RenderChannelImpl(android::base::Stream* loadStream, uint32_t contextId)
+RenderChannelImpl::RenderChannelImpl(gfxstream::Stream* loadStream, uint32_t contextId)
     : mFromGuest(kGuestToHostQueueCapacity, mLock),
       mToGuest(kHostToGuestQueueCapacity, mLock) {
     if (loadStream) {
@@ -248,7 +248,7 @@ void RenderChannelImpl::notifyStateChangeLocked() {
     }
 }
 
-void RenderChannelImpl::onSave(android::base::Stream* stream) {
+void RenderChannelImpl::onSave(gfxstream::Stream* stream) {
     AutoLock lock(mLock);
 
     AemuStreamToGfxstreamStreamWrapper saveStreamWrapped(stream);

@@ -15,7 +15,7 @@
 */
 #include "GLcommon/FramebufferData.h"
 
-#include "aemu/base/files/StreamSerializing.h"
+#include "gfxstream/host/stream_utils.h"
 #include "GLcommon/GLEScontext.h"
 #include "GLcommon/GLutils.h"
 #include "GLcommon/TextureData.h"
@@ -23,7 +23,7 @@
 #include <GLES/gl.h>
 #include <GLES/glext.h>
 
-RenderbufferData::RenderbufferData(android::base::Stream* stream) :
+RenderbufferData::RenderbufferData(gfxstream::Stream* stream) :
     ObjectData(stream) {
     attachedFB = stream->getBe32();
     attachedPoint = stream->getBe32();
@@ -35,7 +35,7 @@ RenderbufferData::RenderbufferData(android::base::Stream* stream) :
     everBound = stream->getBe32();
 }
 
-void RenderbufferData::onSave(android::base::Stream* stream, unsigned int globalName) const {
+void RenderbufferData::onSave(gfxstream::Stream* stream, unsigned int globalName) const {
     ObjectData::onSave(stream, globalName);
     stream->putBe32(attachedFB);
     stream->putBe32(attachedPoint);
@@ -76,7 +76,7 @@ FramebufferData::FramebufferData(GLuint name, GLuint globalName) : ObjectData(FR
         , m_fbName(name), m_fbGlobalName(globalName) {
 }
 
-FramebufferData::FramebufferData(android::base::Stream* stream) :
+FramebufferData::FramebufferData(gfxstream::Stream* stream) :
     ObjectData(stream) {
     m_fbName = stream->getBe32();
     int attachNum = stream->getBe32();
@@ -92,7 +92,7 @@ FramebufferData::FramebufferData(android::base::Stream* stream) :
     m_dirty = stream->getByte();
     m_hasBeenBound = stream->getByte();
     m_hasDrawBuffers = stream->getByte();
-    android::base::loadBuffer(stream, &m_drawBuffers);
+    gfxstream::loadBuffer(stream, &m_drawBuffers);
     m_readBuffer = stream->getBe32();
 }
 
@@ -102,7 +102,7 @@ FramebufferData::~FramebufferData() {
     }
 }
 
-void FramebufferData::onSave(android::base::Stream* stream, unsigned int globalName) const {
+void FramebufferData::onSave(gfxstream::Stream* stream, unsigned int globalName) const {
     ObjectData::onSave(stream, globalName);
     stream->putBe32(m_fbName);
     stream->putBe32(MAX_ATTACH_POINTS);
@@ -121,7 +121,7 @@ void FramebufferData::onSave(android::base::Stream* stream, unsigned int globalN
     stream->putByte(m_dirty);
     stream->putByte(m_hasBeenBound);
     stream->putByte(m_hasDrawBuffers);
-    android::base::saveBuffer(stream, m_drawBuffers);
+    gfxstream::saveBuffer(stream, m_drawBuffers);
     stream->putBe32(m_readBuffer);
 }
 

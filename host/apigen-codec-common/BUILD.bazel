@@ -36,8 +36,8 @@ cc_library(
     deps = [
         "//common/base:gfxstream_common_base",
         "//common/opengl:gfxstream_opengl_headers",
+        "//host:gfxstream_backend_headers",
         "//host/library:gfxstream_host_library",
         "//host/logging:gfxstream_host_logging",
-        "@aemu//base:aemu-base",
     ],
 )

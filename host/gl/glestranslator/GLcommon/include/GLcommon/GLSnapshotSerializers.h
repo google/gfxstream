@@ -17,7 +17,7 @@
 #pragma once
 
 template <class Container>
-void loadContainer(android::base::Stream* stream, Container& c) {
+void loadContainer(gfxstream::Stream* stream, Container& c) {
     size_t size = (size_t)stream->getBe32();
     c.resize(size);
     for (auto& ite : c) {
@@ -26,7 +26,7 @@ void loadContainer(android::base::Stream* stream, Container& c) {
 }
 
 template <class NameMap>
-void loadNameMap(android::base::Stream* stream, NameMap& namemap) {
+void loadNameMap(gfxstream::Stream* stream, NameMap& namemap) {
     assert(namemap.size() == 0);
     size_t size = static_cast<size_t>(stream->getBe32());
     for (size_t i = 0; i < size; i++) {
@@ -36,7 +36,7 @@ void loadNameMap(android::base::Stream* stream, NameMap& namemap) {
 }
 
 template <class Container>
-void saveContainer(android::base::Stream* stream, const Container& c) {
+void saveContainer(gfxstream::Stream* stream, const Container& c) {
     stream->putBe32(c.size());
     for (const auto& ite : c) {
         ite.onSave(stream);
@@ -44,7 +44,7 @@ void saveContainer(android::base::Stream* stream, const Container& c) {
 }
 
 template <class NameMap>
-void saveNameMap(android::base::Stream* stream, const NameMap& nameMap) {
+void saveNameMap(gfxstream::Stream* stream, const NameMap& nameMap) {
     stream->putBe32(nameMap.size());
     for (const auto& ite : nameMap) {
         stream->putBe32(ite.first);

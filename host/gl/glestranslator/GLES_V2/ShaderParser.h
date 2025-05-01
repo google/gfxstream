@@ -27,8 +27,8 @@
 class ShaderParser : public ObjectData {
 public:
     ShaderParser(GLenum type, bool coreProfile);
-    ShaderParser(android::base::Stream* stream);
-    virtual void onSave(android::base::Stream* stream, unsigned int globalName) const override;
+    ShaderParser(gfxstream::Stream* stream);
+    virtual void onSave(gfxstream::Stream* stream, unsigned int globalName) const override;
     virtual void restore(ObjectLocalName localName,
                          const getGlobalName_t& getGlobalName) override;
     void setSrc(GLsizei count, const GLchar* const* strings,

@@ -24,7 +24,7 @@
 
 #include "GLDecoderContextData.h"
 #include "Handle.h"
-#include "aemu/base/files/Stream.h"
+#include "render-utils/stream.h"
 
 namespace gfxstream {
 namespace gl {
@@ -71,8 +71,8 @@ class EmulatedEglContext {
 
     HandleType getHndl() const { return mHndl; }
 
-    void onSave(android::base::Stream* stream);
-    static std::unique_ptr<EmulatedEglContext> onLoad(android::base::Stream* stream,
+    void onSave(gfxstream::Stream* stream);
+    static std::unique_ptr<EmulatedEglContext> onLoad(gfxstream::Stream* stream,
                                                       EGLDisplay display);
   private:
     EmulatedEglContext(EGLDisplay display,
@@ -89,7 +89,7 @@ class EmulatedEglContext {
                                                           EGLContext sharedContext,
                                                           HandleType hndl,
                                                           GLESApi version,
-                                                          android::base::Stream *stream);
+                                                          gfxstream::Stream *stream);
 
     EGLDisplay mDisplay;
     EGLContext mContext;

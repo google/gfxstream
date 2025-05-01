@@ -49,17 +49,17 @@ class AddressSpaceGraphicsContext : public AddressSpaceDeviceContext {
     void perform(AddressSpaceDevicePingInfo* info) override;
     AddressSpaceDeviceType getDeviceType() const override;
 
-    void save(android::base::Stream* stream) const override;
-    bool load(android::base::Stream* stream) override;
+    void save(gfxstream::Stream* stream) const override;
+    bool load(gfxstream::Stream* stream) override;
 
     void preSave() const override;
     void postSave() const override;
 
     static void globalStatePreSave();
-    static void globalStateSave(android::base::Stream*);
+    static void globalStateSave(gfxstream::Stream*);
     static void globalStatePostSave();
 
-    static bool globalStateLoad(android::base::Stream*,
+    static bool globalStateLoad(gfxstream::Stream*,
                                 const std::optional<AddressSpaceDeviceLoadResources>& resources);
 
     enum AllocType {
@@ -69,11 +69,11 @@ class AddressSpaceGraphicsContext : public AddressSpaceDeviceContext {
     };
 
   private:
-    void saveRingConfig(android::base::Stream* stream, const struct asg_ring_config& config) const;
-    void saveAllocation(android::base::Stream* stream, const Allocation& alloc) const;
+    void saveRingConfig(gfxstream::Stream* stream, const struct asg_ring_config& config) const;
+    void saveAllocation(gfxstream::Stream* stream, const Allocation& alloc) const;
 
-    void loadRingConfig(android::base::Stream* stream, struct asg_ring_config& config);
-    void loadAllocation(android::base::Stream* stream, Allocation& alloc);
+    void loadRingConfig(gfxstream::Stream* stream, struct asg_ring_config& config);
+    void loadAllocation(gfxstream::Stream* stream, Allocation& alloc);
 
     // For consumer communication
     enum ConsumerCommand {

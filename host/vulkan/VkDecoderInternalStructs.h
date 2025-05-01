@@ -34,7 +34,7 @@
 #include "Handle.h"
 #include "VkEmulatedPhysicalDeviceMemory.h"
 #include "VkEmulatedPhysicalDeviceQueue.h"
-#include "aemu/base/files/Stream.h"
+#include "render-utils/stream.h"
 #include "gfxstream/host/logging.h"
 #include "gfxstream/memory/SharedMemory.h"
 #include "gfxstream/synchronization/ConditionVariable.h"

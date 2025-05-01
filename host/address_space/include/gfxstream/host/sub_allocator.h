@@ -11,16 +11,17 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #pragma once
 
 #include <inttypes.h>
 #include <stddef.h>
 #include <string.h>
 
-namespace gfxstream {
-namespace base {
+#include "render-utils/stream.h"
 
-class Stream;
+namespace gfxstream {
+namespace host {
 
 // Class to create sub-allocations in an existing buffer. Similar interface to
 // Pool, but underlying mechanism is different as it's difficult to combine
@@ -91,5 +92,5 @@ private:
     Impl* mImpl = nullptr;
 };
 
-} // namespace base
+} // namespace host
 } // namespace gfxstream

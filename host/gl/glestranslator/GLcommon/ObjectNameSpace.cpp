@@ -22,12 +22,12 @@
 #include "GLcommon/TranslatorIfaces.h"
 #include "gfxstream/containers/Lookup.h"
 #include "gfxstream/files/PathUtils.h"
-#include "aemu/base/files/StreamSerializing.h"
+#include "gfxstream/host/stream_utils.h"
 #include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/host/logging.h"
 
 NameSpace::NameSpace(NamedObjectType p_type, GlobalNameSpace *globalNameSpace,
-        android::base::Stream* stream, const ObjectData::loadObject_t& loadObject) :
+        gfxstream::Stream* stream, const ObjectData::loadObject_t& loadObject) :
     m_type(p_type),
     m_globalNameSpace(globalNameSpace) {
     if (!stream) return;
@@ -141,7 +141,7 @@ void NameSpace::preSave(GlobalNameSpace *globalNameSpace) {
     }
 }
 
-void NameSpace::onSave(android::base::Stream* stream) {
+void NameSpace::onSave(gfxstream::Stream* stream) {
     stream->putBe32(m_objectDataMap.size());
     for (const auto& obj : m_objectDataMap) {
         stream->putBe64(obj.first);
@@ -325,7 +325,7 @@ void GlobalNameSpace::preSaveAddTex(TextureData* texture) {
     }
 }
 
-void GlobalNameSpace::onSave(android::base::Stream* stream,
+void GlobalNameSpace::onSave(gfxstream::Stream* stream,
                              const gfxstream::ITextureSaverPtr& textureSaver,
                              SaveableTexture::saver_t saver) {
 #if SNAPSHOT_PROFILE > 1
@@ -339,7 +339,7 @@ void GlobalNameSpace::onSave(android::base::Stream* stream,
             , &cleanTexs, &dirtyTexs
 #endif // SNAPSHOT_PROFILE > 1
                 ](
-                    android::base::Stream* stream,
+                    gfxstream::Stream* stream,
                     const std::pair<const unsigned int, SaveableTexturePtr>&
                             tex) {
                 stream->putBe32(tex.first);
@@ -352,7 +352,7 @@ void GlobalNameSpace::onSave(android::base::Stream* stream,
 #endif // SNAPSHOT_PROFILE > 1
                 textureSaver->saveTexture(
                         tex.first,
-                        [saver, &tex](android::base::Stream* stream,
+                        [saver, &tex](gfxstream::Stream* stream,
                                       gfxstream::ITextureSaver::Buffer* buffer) {
                             if (!tex.second.get()) return;
                             saver(tex.second.get(), stream, buffer);
@@ -365,7 +365,7 @@ void GlobalNameSpace::onSave(android::base::Stream* stream,
 #endif // SNAPSHOT_PROFILE > 1
 }
 
-void GlobalNameSpace::onLoad(android::base::Stream* stream,
+void GlobalNameSpace::onLoad(gfxstream::Stream* stream,
                              const gfxstream::ITextureLoaderWPtr& textureLoaderWPtr,
                              SaveableTexture::creator_t creator) {
     const gfxstream::ITextureLoaderPtr textureLoader = textureLoaderWPtr.lock();
@@ -376,7 +376,7 @@ void GlobalNameSpace::onLoad(android::base::Stream* stream,
     }
     loadCollection(
             stream, &m_textureMap,
-            [this, creator, textureLoaderWPtr](android::base::Stream* stream) {
+            [this, creator, textureLoaderWPtr](gfxstream::Stream* stream) {
                 unsigned int globalName = stream->getBe32();
                 // A lot of function wrapping happens here.
                 // When touched, saveableTexture triggers
@@ -391,7 +391,7 @@ void GlobalNameSpace::onLoad(android::base::Stream* stream,
                             textureLoader->loadTexture(
                                     globalName,
                                     [saveableTexture](
-                                            android::base::Stream* stream) {
+                                            gfxstream::Stream* stream) {
                                         saveableTexture->loadFromStream(stream);
                                     });
                         });
@@ -418,7 +418,7 @@ void GlobalNameSpace::clearTextureMap() {
     decltype(m_textureMap)().swap(m_textureMap);
 }
 
-void GlobalNameSpace::postLoad(android::base::Stream* stream) {
+void GlobalNameSpace::postLoad(gfxstream::Stream* stream) {
     m_backgroundLoader->start();
     m_backgroundLoader.reset();
 }

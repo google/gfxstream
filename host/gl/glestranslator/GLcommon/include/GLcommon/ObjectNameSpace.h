@@ -52,7 +52,7 @@ class NameSpace
 public:
 
     NameSpace(NamedObjectType p_type, GlobalNameSpace *globalNameSpace,
-              android::base::Stream* stream,
+              gfxstream::Stream* stream,
               const ObjectData::loadObject_t& loadObject);
     ~NameSpace();
 
@@ -113,7 +113,7 @@ public:
     void postLoad(const ObjectData::getObjDataPtr_t& getObjDataPtr);
     void postLoadRestore(const ObjectData::getGlobalName_t& getGlobalName);
     void preSave(GlobalNameSpace *globalNameSpace);
-    void onSave(android::base::Stream* stream);
+    void onSave(gfxstream::Stream* stream);
     ObjectDataMap::const_iterator objDataMapBegin() const;
     ObjectDataMap::const_iterator objDataMapEnd() const;
 private:
@@ -143,13 +143,13 @@ public:
     // The following are used for snapshot
     void preSaveAddEglImage(EglImage* eglImage);
     void preSaveAddTex(TextureData* texture);
-    void onSave(android::base::Stream* stream,
+    void onSave(gfxstream::Stream* stream,
                 const gfxstream::ITextureSaverPtr& textureSaver,
                 SaveableTexture::saver_t saver);
-    void onLoad(android::base::Stream* stream,
+    void onLoad(gfxstream::Stream* stream,
                 const gfxstream::ITextureLoaderWPtr& textureLoaderWPtr,
                 SaveableTexture::creator_t creator);
-    void postLoad(android::base::Stream* stream);
+    void postLoad(gfxstream::Stream* stream);
     const SaveableTexturePtr& getSaveableTextureFromLoad(unsigned int oldGlobalName);
     SaveableTextureMap* getSaveableTextureMap() { return &m_textureMap; }
 

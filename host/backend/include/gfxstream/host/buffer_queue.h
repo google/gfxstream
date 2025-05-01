@@ -11,23 +11,22 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #pragma once
 
+#include <assert.h>
+#include <iterator>
+#include <stddef.h>
+#include <utility>
+#include <vector>
+
 #include "gfxstream/Compiler.h"
-#include "gfxstream/files/Stream.h"
-#include "gfxstream/files/StreamSerializing.h"
+#include "gfxstream/host/stream_utils.h"
 #include "gfxstream/synchronization/ConditionVariable.h"
 #include "gfxstream/synchronization/Lock.h"
-
-#include <iterator>
-#include <vector>
-#include <utility>
-
-#include <assert.h>
-#include <stddef.h>
+#include "render-utils/stream.h"
 
 namespace gfxstream {
-namespace base {
 
 // Values corresponding to the result of BufferQueue operations.
 // |Ok| means everything went well.
@@ -205,18 +204,17 @@ public:
     }
 
     // Save to a snapshot file
-    void onSaveLocked(gfxstream::base::Stream* stream) {
+    void onSaveLocked(Stream* stream) {
         stream->putByte(mClosed);
         if (!mClosed) {
             stream->putBe32(mCount);
             for (int i = 0; i < mCount; i++) {
-                gfxstream::base::saveBuffer(
-                        stream, mBuffers[(i + mPos) % mBuffers.size()]);
+                saveBuffer(stream, mBuffers[(i + mPos) % mBuffers.size()]);
             }
         }
     }
 
-    bool onLoadLocked(gfxstream::base::Stream* stream) {
+    bool onLoadLocked(Stream* stream) {
         mClosed = stream->getByte();
         if (!mClosed) {
             mCount = stream->getBe32();
@@ -225,7 +223,7 @@ public:
             }
             mPos = 0;
             for (int i = 0; i < mCount; i++) {
-                if (!gfxstream::base::loadBuffer(stream, &mBuffers[i])) {
+                if (!loadBuffer(stream, &mBuffers[i])) {
                     return false;
                 }
             }
@@ -261,7 +259,7 @@ private:
         }
     }
 
-private:
+  private:
     int mPos = 0;
     int mCount = 0;
     bool mClosed = false;
@@ -275,5 +273,4 @@ private:
     DISALLOW_COPY_ASSIGN_AND_MOVE(BufferQueue);
 };
 
-}  // namespace base
-}  // namespace android
+}  // namespace gfxstream

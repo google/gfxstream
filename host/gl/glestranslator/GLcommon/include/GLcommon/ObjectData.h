@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "aemu/base/files/Stream.h"
+#include "render-utils/stream.h"
 #include "GLcommon/NamedObject.h"
 
 #include <functional>
@@ -43,12 +43,12 @@ class ObjectData
 {
 public:
     ObjectData(ObjectDataType type = UNDEFINED_DATA): m_dataType(type) {}
-    ObjectData(android::base::Stream* stream);
+    ObjectData(gfxstream::Stream* stream);
     ObjectDataType getDataType() { return m_dataType; };
     virtual ~ObjectData() = default;
-    virtual void onSave(android::base::Stream* stream, unsigned int globalName) const = 0;
+    virtual void onSave(gfxstream::Stream* stream, unsigned int globalName) const = 0;
     typedef std::function<ObjectDataPtr(NamedObjectType p_type,
-            ObjectLocalName p_localName, android::base::Stream* stream)>
+            ObjectLocalName p_localName, gfxstream::Stream* stream)>
                 loadObject_t;
     typedef std::function<const ObjectDataPtr(NamedObjectType,
             ObjectLocalName)> const getObjDataPtr_t;

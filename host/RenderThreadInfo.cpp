@@ -25,7 +25,7 @@
 namespace gfxstream {
 
 using gfxstream::base::AutoLock;
-using android::base::Stream;
+using gfxstream::Stream;
 using gfxstream::base::Lock;
 
 static thread_local RenderThreadInfo* s_threadInfoPtr;

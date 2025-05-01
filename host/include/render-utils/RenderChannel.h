@@ -14,7 +14,7 @@
 #pragma once
 
 #include "aemu/base/EnumFlags.h"
-#include "aemu/base/files/Stream.h"
+#include "render-utils/stream.h"
 #include "render-utils/small_vector.h"
 
 #include <functional>
@@ -119,7 +119,7 @@ class RenderChannel {
     virtual void stop() = 0;
 
     // Callback function when snapshotting the virtual machine.
-    virtual void onSave(android::base::Stream* stream) = 0;
+    virtual void onSave(gfxstream::Stream* stream) = 0;
 
   protected:
     ~RenderChannel() = default;

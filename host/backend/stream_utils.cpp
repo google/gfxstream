@@ -1,4 +1,4 @@
-// Copyright 2017 The Android Open Source Project
+// Copyright 2019 The Android Open Source Project
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,18 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/files/StreamSerializing.h"
+#include "gfxstream/host/stream_utils.h"
 
 namespace gfxstream {
-namespace guest {
-
-void saveStream(Stream* stream, const MemStream& memStream) {
-    memStream.save(stream);
-}
-
-void loadStream(Stream* stream, MemStream* memStream) {
-    memStream->load(stream);
-}
 
 void saveBufferRaw(Stream* stream, char* buffer, uint32_t len) {
     stream->putBe32(len);
@@ -52,5 +43,4 @@ std::vector<std::string> loadStringArray(Stream* stream) {
     return res;
 }
 
-}  // namespace base
-}  // namespace android
+}  // namespace gfxstream

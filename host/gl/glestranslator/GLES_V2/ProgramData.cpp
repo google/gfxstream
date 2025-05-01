@@ -18,7 +18,7 @@
 #include "apigen-codec-common/glUtils.h"
 
 #include "gfxstream/containers/Lookup.h"
-#include "aemu/base/files/StreamSerializing.h"
+#include "gfxstream/host/stream_utils.h"
 #include "ANGLEShaderParser.h"
 #include "GLcommon/GLutils.h"
 #include "GLcommon/GLESmacros.h"
@@ -33,7 +33,7 @@ GLUniformDesc::GLUniformDesc(const char* name, GLint location, GLsizei count, GL
         : mCount(count), mTranspose(transpose), mType(type)
         , mVal(val, val + size), mGuestName(name) { }
 
-GLUniformDesc::GLUniformDesc(android::base::Stream* stream) {
+GLUniformDesc::GLUniformDesc(gfxstream::Stream* stream) {
     mCount = stream->getBe32();
     mTranspose = stream->getByte();
     mType = stream->getBe32();
@@ -41,7 +41,7 @@ GLUniformDesc::GLUniformDesc(android::base::Stream* stream) {
     mGuestName = stream->getString();
 }
 
-void GLUniformDesc::onSave(android::base::Stream* stream) const {
+void GLUniformDesc::onSave(gfxstream::Stream* stream) const {
     stream->putBe32(mCount);
     stream->putByte(mTranspose);
     stream->putBe32(mType);
@@ -77,9 +77,9 @@ ProgramData::ProgramData(int glesMaj, int glesMin)
       mGlesMajorVersion(glesMaj),
       mGlesMinorVersion(glesMin) {}
 
-ProgramData::ProgramData(android::base::Stream* stream) :
+ProgramData::ProgramData(gfxstream::Stream* stream) :
     ObjectData(stream) {
-    auto loadAttribLocs = [](android::base::Stream* stream) {
+    auto loadAttribLocs = [](gfxstream::Stream* stream) {
                 std::string attrib = stream->getString();
                 GLuint loc = stream->getBe32();
                 return std::make_pair(std::move(attrib), loc);
@@ -87,13 +87,13 @@ ProgramData::ProgramData(android::base::Stream* stream) :
     loadCollection(stream, &boundAttribLocs, loadAttribLocs);
     loadCollection(stream, &linkedAttribLocs, loadAttribLocs);
 
-    loadCollection(stream, &uniforms, [](android::base::Stream* stream) {
+    loadCollection(stream, &uniforms, [](gfxstream::Stream* stream) {
        GLuint loc = stream->getBe32();
        GLUniformDesc desc(stream);
        return std::make_pair(loc, std::move(desc));
     });
     loadCollection(stream, &mUniformBlockBinding,
-            [](android::base::Stream* stream) {
+            [](gfxstream::Stream* stream) {
                 GLuint block = stream->getBe32();
                 GLuint binding = stream->getBe32();
                 return std::make_pair(block, binding);
@@ -121,7 +121,7 @@ ProgramData::ProgramData(android::base::Stream* stream) :
     mGlesMajorVersion = stream->getByte();
     mGlesMinorVersion = stream->getByte();
     loadCollection(stream, &mUniNameToGuestLoc,
-            [](android::base::Stream* stream) {
+            [](gfxstream::Stream* stream) {
         std::string name = stream->getString();
         int loc = stream->getBe32();
         return std::make_pair(name, loc);
@@ -289,12 +289,12 @@ static std::vector<std::string> collectTransformFeedbackInfo(GLuint pname) {
     return transformFeedbacks;
 }
 
-void ProgramData::onSave(android::base::Stream* stream, unsigned int globalName) const {
+void ProgramData::onSave(gfxstream::Stream* stream, unsigned int globalName) const {
     // The first byte is used to distinguish between program and shader object.
     // It will be loaded outside of this class
     stream->putByte(LOAD_PROGRAM);
     ObjectData::onSave(stream, globalName);
-    auto saveAttribLocs = [](android::base::Stream* stream,
+    auto saveAttribLocs = [](gfxstream::Stream* stream,
             const std::pair<std::string, GLuint>& attribLoc) {
                 stream->putString(attribLoc.first);
                 stream->putBe32(attribLoc.second);
@@ -302,17 +302,17 @@ void ProgramData::onSave(android::base::Stream* stream, unsigned int globalName)
     saveCollection(stream, boundAttribLocs, saveAttribLocs);
     saveCollection(stream, linkedAttribLocs, saveAttribLocs);
 
-    auto saveUniform = [](android::base::Stream* stream,
+    auto saveUniform = [](gfxstream::Stream* stream,
                 const std::pair<const GLuint, GLUniformDesc>& uniform) {
             stream->putBe32(uniform.first);
             uniform.second.onSave(stream);
         };
-    auto saveUniformBlock = [](android::base::Stream* stream,
+    auto saveUniformBlock = [](gfxstream::Stream* stream,
                 const std::pair<const GLuint, GLuint>& uniformBlock) {
             stream->putBe32(uniformBlock.first);
             stream->putBe32(uniformBlock.second);
         };
-    auto saveTransformFeedbacks = [](android::base::Stream* stream,
+    auto saveTransformFeedbacks = [](gfxstream::Stream* stream,
                 const std::vector<std::string>& transformFeedbacks) {
             stream->putBe32((int)transformFeedbacks.size());
             for (const auto& feedback : transformFeedbacks) {
@@ -361,7 +361,7 @@ void ProgramData::onSave(android::base::Stream* stream, unsigned int globalName)
 
     stream->putByte(mGlesMajorVersion);
     stream->putByte(mGlesMinorVersion);
-    saveCollection(stream, mUniNameToGuestLoc, [](android::base::Stream* stream,
+    saveCollection(stream, mUniNameToGuestLoc, [](gfxstream::Stream* stream,
                 const std::pair<std::string, int>& uniNameLoc) {
         stream->putString(uniNameLoc.first);
         stream->putBe32(uniNameLoc.second);

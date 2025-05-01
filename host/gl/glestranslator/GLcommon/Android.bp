@@ -26,6 +26,7 @@ cc_library_static {
     static_libs: [
         "libgfxstream_common_base",
         "libgfxstream_etc",
+        "libgfxstream_host_backend",
         "libgfxstream_host_library",
         "libgfxstream_host_logging",
         "libgfxstream_host_snapshot",

@@ -138,7 +138,7 @@ VkExtent3D getMipmapExtent(VkExtent3D baseExtent, uint32_t mipLevel) {
 
 }  // namespace
 
-void saveImageContent(android::base::Stream* stream, StateBlock* stateBlock, VkImage image,
+void saveImageContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkImage image,
                       const ImageInfo* imageInfo) {
     if (imageInfo->layout == VK_IMAGE_LAYOUT_UNDEFINED) {
         return;
@@ -292,7 +292,7 @@ void saveImageContent(android::base::Stream* stream, StateBlock* stateBlock, VkI
     dispatch->vkFreeCommandBuffers(stateBlock->device, stateBlock->commandPool, 1, &commandBuffer);
 }
 
-void loadImageContent(android::base::Stream* stream, StateBlock* stateBlock, VkImage image,
+void loadImageContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkImage image,
                       const ImageInfo* imageInfo) {
     if (imageInfo->layout == VK_IMAGE_LAYOUT_UNDEFINED) {
         return;
@@ -487,7 +487,7 @@ void loadImageContent(android::base::Stream* stream, StateBlock* stateBlock, VkI
     dispatch->vkFreeCommandBuffers(stateBlock->device, stateBlock->commandPool, 1, &commandBuffer);
 }
 
-void saveBufferContent(android::base::Stream* stream, StateBlock* stateBlock, VkBuffer buffer,
+void saveBufferContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkBuffer buffer,
                        const BufferInfo* bufferInfo) {
     VkBufferUsageFlags requiredUsages =
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
@@ -589,7 +589,7 @@ void saveBufferContent(android::base::Stream* stream, StateBlock* stateBlock, Vk
     dispatch->vkFreeCommandBuffers(stateBlock->device, stateBlock->commandPool, 1, &commandBuffer);
 }
 
-void loadBufferContent(android::base::Stream* stream, StateBlock* stateBlock, VkBuffer buffer,
+void loadBufferContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkBuffer buffer,
                        const BufferInfo* bufferInfo) {
     VkBufferUsageFlags requiredUsages =
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;

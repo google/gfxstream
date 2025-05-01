@@ -8,4 +8,4 @@ target_include_directories(
 target_link_libraries(
     gfxstream_host_snapshot.headers
     INTERFACE
-    aemu-base.headers)
+    gfxstream_backend_headers)

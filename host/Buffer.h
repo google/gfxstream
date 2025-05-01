@@ -18,7 +18,7 @@
 
 #include "ExternalObjectManager.h"
 #include "Handle.h"
-#include "aemu/base/files/Stream.h"
+#include "render-utils/stream.h"
 #include "snapshot/LazySnapshotObj.h"
 
 #if GFXSTREAM_ENABLE_HOST_GLES
@@ -48,9 +48,9 @@ class Buffer : public LazySnapshotObj<Buffer> {
 
     static std::shared_ptr<Buffer> onLoad(gl::EmulationGl* emulationGl,
                                           vk::VkEmulation* emulationVk,
-                                          android::base::Stream* stream);
+                                          gfxstream::Stream* stream);
 
-    void onSave(android::base::Stream* stream);
+    void onSave(gfxstream::Stream* stream);
     void restore();
 
     HandleType getHndl() const { return mHandle; }

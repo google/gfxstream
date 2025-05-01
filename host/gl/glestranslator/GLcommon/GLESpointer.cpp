@@ -171,7 +171,7 @@ void GLESpointer::getBufferConversions(const RangeList& rl, RangeList& rlOut) {
     m_buffer->getConversions(rl, rlOut);
 }
 
-GLESpointer::GLESpointer(android::base::Stream* stream) {
+GLESpointer::GLESpointer(gfxstream::Stream* stream) {
     onLoad(stream);
 }
 
@@ -181,7 +181,7 @@ void GLESpointer::restoreBufferObj(
     m_buffer = getBufferObj(m_bufferName);
 }
 
-void GLESpointer::onLoad(android::base::Stream* stream) {
+void GLESpointer::onLoad(gfxstream::Stream* stream) {
     m_size = stream->getBe32();
     m_type = stream->getBe32();
     m_stride = stream->getBe32();
@@ -204,7 +204,7 @@ void GLESpointer::onLoad(android::base::Stream* stream) {
     stream->read(m_values, sizeof(GLfloat) * m_valueCount);
 }
 
-void GLESpointer::onSave(android::base::Stream* stream) const {
+void GLESpointer::onSave(gfxstream::Stream* stream) const {
     stream->putBe32(m_size);
     stream->putBe32(m_type);
     stream->putBe32(m_stride);

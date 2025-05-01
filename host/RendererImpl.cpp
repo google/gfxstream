@@ -237,7 +237,7 @@ void RendererImpl::waitForProcessCleanup() {
 }
 
 RenderChannelPtr RendererImpl::createRenderChannel(
-        android::base::Stream* loadStream, uint32_t virtioGpuContextId) {
+        gfxstream::Stream* loadStream, uint32_t virtioGpuContextId) {
     const auto channel =
         std::make_shared<RenderChannelImpl>(loadStream, virtioGpuContextId);
     {
@@ -279,7 +279,7 @@ void RendererImpl::removeListener(FrameBufferChangeEventListener* listener) {
 
 void* RendererImpl::addressSpaceGraphicsConsumerCreate(
     struct asg_context context,
-    android::base::Stream* loadStream,
+    gfxstream::Stream* loadStream,
     android::emulation::asg::ConsumerCallbacks callbacks,
     uint32_t contextId, uint32_t capsetId,
     std::optional<std::string> nameOpt) {
@@ -312,7 +312,7 @@ void RendererImpl::addressSpaceGraphicsConsumerPreSave(void* consumer) {
     thread->pausePreSnapshot();
 }
 
-void RendererImpl::addressSpaceGraphicsConsumerSave(void* consumer, android::base::Stream* stream) {
+void RendererImpl::addressSpaceGraphicsConsumerSave(void* consumer, gfxstream::Stream* stream) {
     RenderThread* thread = (RenderThread*)consumer;
     thread->save(stream);
 }
@@ -370,7 +370,7 @@ void RendererImpl::resumeAll() {
     repaintOpenGLDisplay();
 }
 
-void RendererImpl::save(android::base::Stream* stream,
+void RendererImpl::save(gfxstream::Stream* stream,
                         const ITextureSaverPtr& textureSaver) {
     stream->putByte(mStopped);
     if (mStopped) {
@@ -381,7 +381,7 @@ void RendererImpl::save(android::base::Stream* stream,
     fb->onSave(stream, textureSaver);
 }
 
-bool RendererImpl::load(android::base::Stream* stream,
+bool RendererImpl::load(gfxstream::Stream* stream,
                         const ITextureLoaderPtr& textureLoader) {
 
 #ifdef SNAPSHOT_PROFILE

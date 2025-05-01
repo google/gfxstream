@@ -1010,7 +1010,7 @@ void ColorBufferGl::readbackAsync(GLuint buffer, bool readbackBgra) {
 
 HandleType ColorBufferGl::getHndl() const { return mHndl; }
 
-void ColorBufferGl::onSave(android::base::Stream* stream) {
+void ColorBufferGl::onSave(gfxstream::Stream* stream) {
     stream->putBe32(getHndl());
     stream->putBe32(static_cast<uint32_t>(m_width));
     stream->putBe32(static_cast<uint32_t>(m_height));
@@ -1023,7 +1023,7 @@ void ColorBufferGl::onSave(android::base::Stream* stream) {
     stream->putBe32(m_needFormatCheck);
 }
 
-std::unique_ptr<ColorBufferGl> ColorBufferGl::onLoad(android::base::Stream* stream,
+std::unique_ptr<ColorBufferGl> ColorBufferGl::onLoad(gfxstream::Stream* stream,
                                                      EGLDisplay p_display, ContextHelper* helper,
                                                      TextureDraw* textureDraw,
                                                      bool fastBlitSupported,

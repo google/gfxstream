@@ -23,7 +23,7 @@
 #include "StalePtrRegistry.h"
 #include "gfxstream/containers/Lookup.h"
 #include "gfxstream/containers/StaticMap.h"
-#include "aemu/base/files/StreamSerializing.h"
+#include "gfxstream/host/stream_utils.h"
 #include "gfxstream/synchronization/Lock.h"
 
 namespace gfxstream {
@@ -197,13 +197,13 @@ void EmulatedEglFenceSync::removeFromRegistry() {
 }
 
 // static
-void EmulatedEglFenceSync::onSave(android::base::Stream* stream) {
+void EmulatedEglFenceSync::onSave(gfxstream::Stream* stream) {
     sFenceRegistry()->makeCurrentPtrsStale();
     sFenceRegistry()->onSave(stream);
 }
 
 // static
-void EmulatedEglFenceSync::onLoad(android::base::Stream* stream) {
+void EmulatedEglFenceSync::onLoad(gfxstream::Stream* stream) {
     sFenceRegistry()->onLoad(stream);
 }
 

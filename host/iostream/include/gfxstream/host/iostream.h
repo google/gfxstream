@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "aemu/base/files/Stream.h"
+#include "render-utils/stream.h"
 #include "gfxstream/host/logging.h"
 
 namespace gfxstream {
@@ -85,14 +85,14 @@ public:
         return readFully(buf, len);
     }
 
-    void save(android::base::Stream* stream) {
+    void save(gfxstream::Stream* stream) {
         stream->putBe32(m_bufsize);
         stream->putBe32(m_free);
         stream->putByte(m_buf != nullptr);
         onSave(stream);
     }
 
-    void load(android::base::Stream* stream) {
+    void load(gfxstream::Stream* stream) {
         m_bufsize = stream->getBe32();
         m_free = stream->getBe32();
         const bool haveBuf = stream->getByte();
@@ -105,8 +105,8 @@ public:
 
 protected:
     virtual const unsigned char *readRaw(void *buf, size_t *inout_len) = 0;
-    virtual void onSave(android::base::Stream* stream) = 0;
-    virtual unsigned char* onLoad(android::base::Stream* stream) = 0;
+    virtual void onSave(gfxstream::Stream* stream) = 0;
+    virtual unsigned char* onLoad(gfxstream::Stream* stream) = 0;
 
     unsigned char* m_buf = nullptr;
     size_t m_bufsize;

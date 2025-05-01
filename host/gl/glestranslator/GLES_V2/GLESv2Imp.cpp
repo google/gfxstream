@@ -74,11 +74,11 @@ static void setMaxGlesVersion(GLESVersion version);
 static void deleteGLESContext(GLEScontext* ctx);
 static void setShareGroup(GLEScontext* ctx,ShareGroupPtr grp);
 static GLEScontext* createGLESContext(void);
-static GLEScontext* createGLESxContext(int maj, int min, GlobalNameSpace* globalNameSpace, android::base::Stream* stream);
+static GLEScontext* createGLESxContext(int maj, int min, GlobalNameSpace* globalNameSpace, gfxstream::Stream* stream);
 static __translatorMustCastToProperFunctionPointerType getProcAddressGles2(const char* procName);
 static void preSaveTexture();
 static void postSaveTexture();
-static void saveTexture(SaveableTexture* texture, android::base::Stream* stream,
+static void saveTexture(SaveableTexture* texture, gfxstream::Stream* stream,
                         gfxstream::SmallVector<unsigned char>* buffer);
 static SaveableTexture* createTexture(GlobalNameSpace* globalNameSpace,
                                       SaveableTexture::loader_t&& loader);
@@ -256,7 +256,7 @@ static GLEScontext* createGLESContext() {
     return new GLESv2Context(2, 0, nullptr, nullptr, nullptr);
 }
 static GLEScontext* createGLESxContext(int maj, int min,
-        GlobalNameSpace* globalNameSpace, android::base::Stream* stream) {
+        GlobalNameSpace* globalNameSpace, gfxstream::Stream* stream) {
     return new GLESv2Context(maj, min, globalNameSpace, stream,
             s_eglIface->eglGetGlLibrary());
 }
@@ -368,7 +368,7 @@ static void postSaveTexture() {
     SaveableTexture::postSave();
 }
 
-static void saveTexture(SaveableTexture* texture, android::base::Stream* stream,
+static void saveTexture(SaveableTexture* texture, gfxstream::Stream* stream,
                         SaveableTexture::Buffer* buffer) {
     texture->onSave(stream);
 }

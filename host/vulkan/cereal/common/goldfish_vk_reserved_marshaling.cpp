@@ -100,7 +100,7 @@ void reservedunmarshal_VkBaseInStructure(VulkanStream* vkStream, VkStructureType
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -126,7 +126,7 @@ void reservedunmarshal_VkBaseOutStructure(VulkanStream* vkStream, VkStructureTyp
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -153,7 +153,7 @@ void reservedunmarshal_VkBufferMemoryBarrier(VulkanStream* vkStream, VkStructure
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -250,7 +250,7 @@ void reservedunmarshal_VkImageMemoryBarrier(VulkanStream* vkStream, VkStructureT
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -294,7 +294,7 @@ void reservedunmarshal_VkMemoryBarrier(VulkanStream* vkStream, VkStructureType r
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -336,7 +336,7 @@ void reservedunmarshal_VkAllocationCallbacks(VulkanStream* vkStream, VkStructure
                                              uint8_t** ptr) {
     // WARNING PTR CHECK
     memcpy((void**)&forUnmarshaling->pUserData, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pUserData);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pUserData);
     *ptr += 8;
     if (forUnmarshaling->pUserData) {
         vkStream->alloc((void**)&forUnmarshaling->pUserData, sizeof(uint8_t));
@@ -344,20 +344,20 @@ void reservedunmarshal_VkAllocationCallbacks(VulkanStream* vkStream, VkStructure
         *ptr += sizeof(uint8_t);
     }
     memcpy((PFN_vkAllocationFunction*)&forUnmarshaling->pfnAllocation, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pfnAllocation);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pfnAllocation);
     *ptr += 8;
     memcpy((PFN_vkReallocationFunction*)&forUnmarshaling->pfnReallocation, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pfnReallocation);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pfnReallocation);
     *ptr += 8;
     memcpy((PFN_vkFreeFunction*)&forUnmarshaling->pfnFree, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pfnFree);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pfnFree);
     *ptr += 8;
     memcpy((PFN_vkInternalAllocationNotification*)&forUnmarshaling->pfnInternalAllocation, (*ptr),
            8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pfnInternalAllocation);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pfnInternalAllocation);
     *ptr += 8;
     memcpy((PFN_vkInternalFreeNotification*)&forUnmarshaling->pfnInternalFree, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pfnInternalFree);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pfnInternalFree);
     *ptr += 8;
 }
 
@@ -370,7 +370,7 @@ void reservedunmarshal_VkApplicationInfo(VulkanStream* vkStream, VkStructureType
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -388,7 +388,7 @@ void reservedunmarshal_VkApplicationInfo(VulkanStream* vkStream, VkStructureType
     if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT) {
         // WARNING PTR CHECK
         memcpy((char**)&forUnmarshaling->pApplicationName, (*ptr), 8);
-        android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pApplicationName);
+        gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pApplicationName);
         *ptr += 8;
         if (forUnmarshaling->pApplicationName) {
             vkStream->loadStringInPlaceWithStreamPtr((char**)&forUnmarshaling->pApplicationName,
@@ -402,7 +402,7 @@ void reservedunmarshal_VkApplicationInfo(VulkanStream* vkStream, VkStructureType
     if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT) {
         // WARNING PTR CHECK
         memcpy((char**)&forUnmarshaling->pEngineName, (*ptr), 8);
-        android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pEngineName);
+        gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pEngineName);
         *ptr += 8;
         if (forUnmarshaling->pEngineName) {
             vkStream->loadStringInPlaceWithStreamPtr((char**)&forUnmarshaling->pEngineName, ptr);
@@ -453,7 +453,7 @@ void reservedunmarshal_VkInstanceCreateInfo(VulkanStream* vkStream, VkStructureT
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -472,7 +472,7 @@ void reservedunmarshal_VkInstanceCreateInfo(VulkanStream* vkStream, VkStructureT
     *ptr += sizeof(VkInstanceCreateFlags);
     // WARNING PTR CHECK
     memcpy((VkApplicationInfo**)&forUnmarshaling->pApplicationInfo, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pApplicationInfo);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pApplicationInfo);
     *ptr += 8;
     if (forUnmarshaling->pApplicationInfo) {
         vkStream->alloc((void**)&forUnmarshaling->pApplicationInfo,
@@ -776,7 +776,7 @@ void reservedunmarshal_VkPhysicalDeviceLimits(VulkanStream* vkStream, VkStructur
     memcpy((uint32_t*)&forUnmarshaling->viewportSubPixelBits, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     memcpy((size_t*)&forUnmarshaling->minMemoryMapAlignment, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->minMemoryMapAlignment);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->minMemoryMapAlignment);
     *ptr += 8;
     memcpy((VkDeviceSize*)&forUnmarshaling->minTexelBufferOffsetAlignment, *ptr,
            sizeof(VkDeviceSize));
@@ -953,7 +953,7 @@ void reservedunmarshal_VkDeviceQueueCreateInfo(VulkanStream* vkStream, VkStructu
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -991,7 +991,7 @@ void reservedunmarshal_VkDeviceCreateInfo(VulkanStream* vkStream, VkStructureTyp
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -1027,7 +1027,7 @@ void reservedunmarshal_VkDeviceCreateInfo(VulkanStream* vkStream, VkStructureTyp
         (char***)&forUnmarshaling->ppEnabledExtensionNames, ptr);
     // WARNING PTR CHECK
     memcpy((VkPhysicalDeviceFeatures**)&forUnmarshaling->pEnabledFeatures, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pEnabledFeatures);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pEnabledFeatures);
     *ptr += 8;
     if (forUnmarshaling->pEnabledFeatures) {
         vkStream->alloc((void**)&forUnmarshaling->pEnabledFeatures,
@@ -1068,7 +1068,7 @@ void reservedunmarshal_VkSubmitInfo(VulkanStream* vkStream, VkStructureType root
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -1148,7 +1148,7 @@ void reservedunmarshal_VkMappedMemoryRange(VulkanStream* vkStream, VkStructureTy
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -1183,7 +1183,7 @@ void reservedunmarshal_VkMemoryAllocateInfo(VulkanStream* vkStream, VkStructureT
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -1322,7 +1322,7 @@ void reservedunmarshal_VkBindSparseInfo(VulkanStream* vkStream, VkStructureType 
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -1437,7 +1437,7 @@ void reservedunmarshal_VkFenceCreateInfo(VulkanStream* vkStream, VkStructureType
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -1466,7 +1466,7 @@ void reservedunmarshal_VkSemaphoreCreateInfo(VulkanStream* vkStream, VkStructure
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -1494,7 +1494,7 @@ void reservedunmarshal_VkEventCreateInfo(VulkanStream* vkStream, VkStructureType
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -1523,7 +1523,7 @@ void reservedunmarshal_VkQueryPoolCreateInfo(VulkanStream* vkStream, VkStructure
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -1558,7 +1558,7 @@ void reservedunmarshal_VkBufferCreateInfo(VulkanStream* vkStream, VkStructureTyp
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -1585,7 +1585,7 @@ void reservedunmarshal_VkBufferCreateInfo(VulkanStream* vkStream, VkStructureTyp
     *ptr += sizeof(uint32_t);
     // WARNING PTR CHECK
     memcpy((uint32_t**)&forUnmarshaling->pQueueFamilyIndices, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pQueueFamilyIndices);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pQueueFamilyIndices);
     *ptr += 8;
     if (forUnmarshaling->pQueueFamilyIndices) {
         vkStream->alloc((void**)&forUnmarshaling->pQueueFamilyIndices,
@@ -1606,7 +1606,7 @@ void reservedunmarshal_VkBufferViewCreateInfo(VulkanStream* vkStream, VkStructur
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -1645,7 +1645,7 @@ void reservedunmarshal_VkImageCreateInfo(VulkanStream* vkStream, VkStructureType
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -1683,7 +1683,7 @@ void reservedunmarshal_VkImageCreateInfo(VulkanStream* vkStream, VkStructureType
     *ptr += sizeof(uint32_t);
     // WARNING PTR CHECK
     memcpy((uint32_t**)&forUnmarshaling->pQueueFamilyIndices, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pQueueFamilyIndices);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pQueueFamilyIndices);
     *ptr += 8;
     if (forUnmarshaling->pQueueFamilyIndices) {
         vkStream->alloc((void**)&forUnmarshaling->pQueueFamilyIndices,
@@ -1732,7 +1732,7 @@ void reservedunmarshal_VkImageViewCreateInfo(VulkanStream* vkStream, VkStructure
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -1773,7 +1773,7 @@ void reservedunmarshal_VkShaderModuleCreateInfo(VulkanStream* vkStream, VkStruct
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -1792,7 +1792,7 @@ void reservedunmarshal_VkShaderModuleCreateInfo(VulkanStream* vkStream, VkStruct
            sizeof(VkShaderModuleCreateFlags));
     *ptr += sizeof(VkShaderModuleCreateFlags);
     memcpy((size_t*)&forUnmarshaling->codeSize, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->codeSize);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->codeSize);
     *ptr += 8;
     vkStream->alloc((void**)&forUnmarshaling->pCode,
                     (forUnmarshaling->codeSize / 4) * sizeof(const uint32_t));
@@ -1811,7 +1811,7 @@ void reservedunmarshal_VkPipelineCacheCreateInfo(VulkanStream* vkStream, VkStruc
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -1830,7 +1830,7 @@ void reservedunmarshal_VkPipelineCacheCreateInfo(VulkanStream* vkStream, VkStruc
            sizeof(VkPipelineCacheCreateFlags));
     *ptr += sizeof(VkPipelineCacheCreateFlags);
     memcpy((size_t*)&forUnmarshaling->initialDataSize, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->initialDataSize);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->initialDataSize);
     *ptr += 8;
     vkStream->alloc((void**)&forUnmarshaling->pInitialData,
                     forUnmarshaling->initialDataSize * sizeof(const uint8_t));
@@ -1847,7 +1847,7 @@ void reservedunmarshal_VkSpecializationMapEntry(VulkanStream* vkStream, VkStruct
     memcpy((uint32_t*)&forUnmarshaling->offset, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     memcpy((size_t*)&forUnmarshaling->size, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->size);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->size);
     *ptr += 8;
 }
 
@@ -1862,7 +1862,7 @@ void reservedunmarshal_VkSpecializationInfo(VulkanStream* vkStream, VkStructureT
             vkStream, rootType, (VkSpecializationMapEntry*)(forUnmarshaling->pMapEntries + i), ptr);
     }
     memcpy((size_t*)&forUnmarshaling->dataSize, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->dataSize);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->dataSize);
     *ptr += 8;
     vkStream->alloc((void**)&forUnmarshaling->pData,
                     forUnmarshaling->dataSize * sizeof(const uint8_t));
@@ -1880,7 +1880,7 @@ void reservedunmarshal_VkPipelineShaderStageCreateInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -1908,7 +1908,7 @@ void reservedunmarshal_VkPipelineShaderStageCreateInfo(
     vkStream->loadStringInPlaceWithStreamPtr((char**)&forUnmarshaling->pName, ptr);
     // WARNING PTR CHECK
     memcpy((VkSpecializationInfo**)&forUnmarshaling->pSpecializationInfo, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pSpecializationInfo);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pSpecializationInfo);
     *ptr += 8;
     if (forUnmarshaling->pSpecializationInfo) {
         vkStream->alloc((void**)&forUnmarshaling->pSpecializationInfo,
@@ -1928,7 +1928,7 @@ void reservedunmarshal_VkComputePipelineCreateInfo(VulkanStream* vkStream, VkStr
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -1995,7 +1995,7 @@ void reservedunmarshal_VkPipelineVertexInputStateCreateInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -2047,7 +2047,7 @@ void reservedunmarshal_VkPipelineInputAssemblyStateCreateInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -2081,7 +2081,7 @@ void reservedunmarshal_VkPipelineTessellationStateCreateInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -2129,7 +2129,7 @@ void reservedunmarshal_VkPipelineViewportStateCreateInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -2151,7 +2151,7 @@ void reservedunmarshal_VkPipelineViewportStateCreateInfo(
     *ptr += sizeof(uint32_t);
     // WARNING PTR CHECK
     memcpy((VkViewport**)&forUnmarshaling->pViewports, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pViewports);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pViewports);
     *ptr += 8;
     if (forUnmarshaling->pViewports) {
         vkStream->alloc((void**)&forUnmarshaling->pViewports,
@@ -2165,7 +2165,7 @@ void reservedunmarshal_VkPipelineViewportStateCreateInfo(
     *ptr += sizeof(uint32_t);
     // WARNING PTR CHECK
     memcpy((VkRect2D**)&forUnmarshaling->pScissors, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pScissors);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pScissors);
     *ptr += 8;
     if (forUnmarshaling->pScissors) {
         vkStream->alloc((void**)&forUnmarshaling->pScissors,
@@ -2187,7 +2187,7 @@ void reservedunmarshal_VkPipelineRasterizationStateCreateInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -2237,7 +2237,7 @@ void reservedunmarshal_VkPipelineMultisampleStateCreateInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -2264,7 +2264,7 @@ void reservedunmarshal_VkPipelineMultisampleStateCreateInfo(
     *ptr += sizeof(float);
     // WARNING PTR CHECK
     memcpy((VkSampleMask**)&forUnmarshaling->pSampleMask, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pSampleMask);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pSampleMask);
     *ptr += 8;
     if (forUnmarshaling->pSampleMask) {
         vkStream->alloc(
@@ -2308,7 +2308,7 @@ void reservedunmarshal_VkPipelineDepthStencilStateCreateInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -2378,7 +2378,7 @@ void reservedunmarshal_VkPipelineColorBlendStateCreateInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -2424,7 +2424,7 @@ void reservedunmarshal_VkPipelineDynamicStateCreateInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -2458,13 +2458,13 @@ void reservedunmarshal_VkGraphicsPipelineCreateInfo(VulkanStream* vkStream,
     uint32_t hasRasterization = 1;
     if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) {
         memcpy((uint32_t*)&hasRasterization, (*ptr), 4);
-        android::base::Stream::fromBe32((uint8_t*)&hasRasterization);
+        gfxstream::Stream::fromBe32((uint8_t*)&hasRasterization);
         *ptr += 4;
     }
     uint32_t hasTessellation = 1;
     if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) {
         memcpy((uint32_t*)&hasTessellation, (*ptr), 4);
-        android::base::Stream::fromBe32((uint8_t*)&hasTessellation);
+        gfxstream::Stream::fromBe32((uint8_t*)&hasTessellation);
         *ptr += 4;
     }
     memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
@@ -2474,7 +2474,7 @@ void reservedunmarshal_VkGraphicsPipelineCreateInfo(VulkanStream* vkStream,
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -2504,7 +2504,7 @@ void reservedunmarshal_VkGraphicsPipelineCreateInfo(VulkanStream* vkStream,
     if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) {
         memcpy((VkPipelineVertexInputStateCreateInfo**)&forUnmarshaling->pVertexInputState, (*ptr),
                8);
-        android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pVertexInputState);
+        gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pVertexInputState);
         *ptr += 8;
     }
     if ((!(vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) ||
@@ -2519,7 +2519,7 @@ void reservedunmarshal_VkGraphicsPipelineCreateInfo(VulkanStream* vkStream,
     if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) {
         memcpy((VkPipelineInputAssemblyStateCreateInfo**)&forUnmarshaling->pInputAssemblyState,
                (*ptr), 8);
-        android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pInputAssemblyState);
+        gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pInputAssemblyState);
         *ptr += 8;
     }
     if ((!(vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) ||
@@ -2533,7 +2533,7 @@ void reservedunmarshal_VkGraphicsPipelineCreateInfo(VulkanStream* vkStream,
     // WARNING PTR CHECK
     memcpy((VkPipelineTessellationStateCreateInfo**)&forUnmarshaling->pTessellationState, (*ptr),
            8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pTessellationState);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pTessellationState);
     *ptr += 8;
     if (forUnmarshaling->pTessellationState) {
         if (hasTessellation) {
@@ -2548,7 +2548,7 @@ void reservedunmarshal_VkGraphicsPipelineCreateInfo(VulkanStream* vkStream,
     }
     // WARNING PTR CHECK
     memcpy((VkPipelineViewportStateCreateInfo**)&forUnmarshaling->pViewportState, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pViewportState);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pViewportState);
     *ptr += 8;
     if (forUnmarshaling->pViewportState) {
         if (hasRasterization) {
@@ -2565,7 +2565,7 @@ void reservedunmarshal_VkGraphicsPipelineCreateInfo(VulkanStream* vkStream,
     if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) {
         memcpy((VkPipelineRasterizationStateCreateInfo**)&forUnmarshaling->pRasterizationState,
                (*ptr), 8);
-        android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pRasterizationState);
+        gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pRasterizationState);
         *ptr += 8;
     }
     if ((!(vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) ||
@@ -2578,7 +2578,7 @@ void reservedunmarshal_VkGraphicsPipelineCreateInfo(VulkanStream* vkStream,
     }
     // WARNING PTR CHECK
     memcpy((VkPipelineMultisampleStateCreateInfo**)&forUnmarshaling->pMultisampleState, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pMultisampleState);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pMultisampleState);
     *ptr += 8;
     if (forUnmarshaling->pMultisampleState) {
         if (hasRasterization) {
@@ -2594,7 +2594,7 @@ void reservedunmarshal_VkGraphicsPipelineCreateInfo(VulkanStream* vkStream,
     // WARNING PTR CHECK
     memcpy((VkPipelineDepthStencilStateCreateInfo**)&forUnmarshaling->pDepthStencilState, (*ptr),
            8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pDepthStencilState);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pDepthStencilState);
     *ptr += 8;
     if (forUnmarshaling->pDepthStencilState) {
         if (hasRasterization) {
@@ -2609,7 +2609,7 @@ void reservedunmarshal_VkGraphicsPipelineCreateInfo(VulkanStream* vkStream,
     }
     // WARNING PTR CHECK
     memcpy((VkPipelineColorBlendStateCreateInfo**)&forUnmarshaling->pColorBlendState, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pColorBlendState);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pColorBlendState);
     *ptr += 8;
     if (forUnmarshaling->pColorBlendState) {
         if (hasRasterization) {
@@ -2624,7 +2624,7 @@ void reservedunmarshal_VkGraphicsPipelineCreateInfo(VulkanStream* vkStream,
     }
     // WARNING PTR CHECK
     memcpy((VkPipelineDynamicStateCreateInfo**)&forUnmarshaling->pDynamicState, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pDynamicState);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pDynamicState);
     *ptr += 8;
     if (forUnmarshaling->pDynamicState) {
         vkStream->alloc((void**)&forUnmarshaling->pDynamicState,
@@ -2674,7 +2674,7 @@ void reservedunmarshal_VkPipelineLayoutCreateInfo(VulkanStream* vkStream, VkStru
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -2730,7 +2730,7 @@ void reservedunmarshal_VkSamplerCreateInfo(VulkanStream* vkStream, VkStructureTy
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -2791,7 +2791,7 @@ void reservedunmarshal_VkCopyDescriptorSet(VulkanStream* vkStream, VkStructureTy
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -2875,7 +2875,7 @@ void reservedunmarshal_VkDescriptorPoolCreateInfo(VulkanStream* vkStream, VkStru
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -2915,7 +2915,7 @@ void reservedunmarshal_VkDescriptorSetAllocateInfo(VulkanStream* vkStream, VkStr
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -2969,7 +2969,7 @@ void reservedunmarshal_VkDescriptorSetLayoutBinding(VulkanStream* vkStream,
     *ptr += sizeof(VkShaderStageFlags);
     // WARNING PTR CHECK
     memcpy((VkSampler**)&forUnmarshaling->pImmutableSamplers, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pImmutableSamplers);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pImmutableSamplers);
     *ptr += 8;
     if (forUnmarshaling->pImmutableSamplers) {
         vkStream->alloc((void**)&forUnmarshaling->pImmutableSamplers,
@@ -2999,7 +2999,7 @@ void reservedunmarshal_VkDescriptorSetLayoutCreateInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -3037,7 +3037,7 @@ void reservedunmarshal_VkWriteDescriptorSet(VulkanStream* vkStream, VkStructureT
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -3067,7 +3067,7 @@ void reservedunmarshal_VkWriteDescriptorSet(VulkanStream* vkStream, VkStructureT
     *ptr += sizeof(VkDescriptorType);
     // WARNING PTR CHECK
     memcpy((VkDescriptorImageInfo**)&forUnmarshaling->pImageInfo, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pImageInfo);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pImageInfo);
     *ptr += 8;
     if (forUnmarshaling->pImageInfo) {
         if ((!(vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) ||
@@ -3089,7 +3089,7 @@ void reservedunmarshal_VkWriteDescriptorSet(VulkanStream* vkStream, VkStructureT
     }
     // WARNING PTR CHECK
     memcpy((VkDescriptorBufferInfo**)&forUnmarshaling->pBufferInfo, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pBufferInfo);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pBufferInfo);
     *ptr += 8;
     if (forUnmarshaling->pBufferInfo) {
         if ((!(vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) ||
@@ -3111,7 +3111,7 @@ void reservedunmarshal_VkWriteDescriptorSet(VulkanStream* vkStream, VkStructureT
     }
     // WARNING PTR CHECK
     memcpy((VkBufferView**)&forUnmarshaling->pTexelBufferView, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pTexelBufferView);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pTexelBufferView);
     *ptr += 8;
     if (forUnmarshaling->pTexelBufferView) {
         if ((!(vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) ||
@@ -3182,7 +3182,7 @@ void reservedunmarshal_VkFramebufferCreateInfo(VulkanStream* vkStream, VkStructu
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -3263,7 +3263,7 @@ void reservedunmarshal_VkSubpassDescription(VulkanStream* vkStream, VkStructureT
     }
     // WARNING PTR CHECK
     memcpy((VkAttachmentReference**)&forUnmarshaling->pResolveAttachments, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pResolveAttachments);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pResolveAttachments);
     *ptr += 8;
     if (forUnmarshaling->pResolveAttachments) {
         vkStream->alloc(
@@ -3277,7 +3277,7 @@ void reservedunmarshal_VkSubpassDescription(VulkanStream* vkStream, VkStructureT
     }
     // WARNING PTR CHECK
     memcpy((VkAttachmentReference**)&forUnmarshaling->pDepthStencilAttachment, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pDepthStencilAttachment);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pDepthStencilAttachment);
     *ptr += 8;
     if (forUnmarshaling->pDepthStencilAttachment) {
         vkStream->alloc((void**)&forUnmarshaling->pDepthStencilAttachment,
@@ -3325,7 +3325,7 @@ void reservedunmarshal_VkRenderPassCreateInfo(VulkanStream* vkStream, VkStructur
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -3379,7 +3379,7 @@ void reservedunmarshal_VkCommandPoolCreateInfo(VulkanStream* vkStream, VkStructu
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -3411,7 +3411,7 @@ void reservedunmarshal_VkCommandBufferAllocateInfo(VulkanStream* vkStream, VkStr
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -3447,7 +3447,7 @@ void reservedunmarshal_VkCommandBufferInheritanceInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -3493,7 +3493,7 @@ void reservedunmarshal_VkCommandBufferBeginInfo(VulkanStream* vkStream, VkStruct
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -3513,7 +3513,7 @@ void reservedunmarshal_VkCommandBufferBeginInfo(VulkanStream* vkStream, VkStruct
     *ptr += sizeof(VkCommandBufferUsageFlags);
     // WARNING PTR CHECK
     memcpy((VkCommandBufferInheritanceInfo**)&forUnmarshaling->pInheritanceInfo, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pInheritanceInfo);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pInheritanceInfo);
     *ptr += 8;
     if (forUnmarshaling->pInheritanceInfo) {
         vkStream->alloc((void**)&forUnmarshaling->pInheritanceInfo,
@@ -3655,7 +3655,7 @@ void reservedunmarshal_VkRenderPassBeginInfo(VulkanStream* vkStream, VkStructure
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -3685,7 +3685,7 @@ void reservedunmarshal_VkRenderPassBeginInfo(VulkanStream* vkStream, VkStructure
     *ptr += sizeof(uint32_t);
     // WARNING PTR CHECK
     memcpy((VkClearValue**)&forUnmarshaling->pClearValues, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pClearValues);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pClearValues);
     *ptr += 8;
     if (forUnmarshaling->pClearValues) {
         vkStream->alloc((void**)&forUnmarshaling->pClearValues,
@@ -3709,7 +3709,7 @@ void reservedunmarshal_VkPhysicalDeviceSubgroupProperties(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -3746,7 +3746,7 @@ void reservedunmarshal_VkBindBufferMemoryInfo(VulkanStream* vkStream, VkStructur
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -3784,7 +3784,7 @@ void reservedunmarshal_VkBindImageMemoryInfo(VulkanStream* vkStream, VkStructure
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -3822,7 +3822,7 @@ void reservedunmarshal_VkPhysicalDevice16BitStorageFeatures(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -3858,7 +3858,7 @@ void reservedunmarshal_VkMemoryDedicatedRequirements(VulkanStream* vkStream,
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -3890,7 +3890,7 @@ void reservedunmarshal_VkMemoryDedicatedAllocateInfo(VulkanStream* vkStream,
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -3925,7 +3925,7 @@ void reservedunmarshal_VkMemoryAllocateFlagsInfo(VulkanStream* vkStream, VkStruc
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -3956,7 +3956,7 @@ void reservedunmarshal_VkDeviceGroupRenderPassBeginInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -3993,7 +3993,7 @@ void reservedunmarshal_VkDeviceGroupCommandBufferBeginInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4022,7 +4022,7 @@ void reservedunmarshal_VkDeviceGroupSubmitInfo(VulkanStream* vkStream, VkStructu
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4070,7 +4070,7 @@ void reservedunmarshal_VkDeviceGroupBindSparseInfo(VulkanStream* vkStream, VkStr
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4101,7 +4101,7 @@ void reservedunmarshal_VkBindBufferMemoryDeviceGroupInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4135,7 +4135,7 @@ void reservedunmarshal_VkBindImageMemoryDeviceGroupInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4177,7 +4177,7 @@ void reservedunmarshal_VkPhysicalDeviceGroupProperties(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4212,7 +4212,7 @@ void reservedunmarshal_VkDeviceGroupDeviceCreateInfo(VulkanStream* vkStream,
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4256,7 +4256,7 @@ void reservedunmarshal_VkBufferMemoryRequirementsInfo2(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4287,7 +4287,7 @@ void reservedunmarshal_VkImageMemoryRequirementsInfo2(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4318,7 +4318,7 @@ void reservedunmarshal_VkImageSparseMemoryRequirementsInfo2(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4349,7 +4349,7 @@ void reservedunmarshal_VkMemoryRequirements2(VulkanStream* vkStream, VkStructure
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4378,7 +4378,7 @@ void reservedunmarshal_VkSparseImageMemoryRequirements2(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4408,7 +4408,7 @@ void reservedunmarshal_VkPhysicalDeviceFeatures2(VulkanStream* vkStream, VkStruc
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4437,7 +4437,7 @@ void reservedunmarshal_VkPhysicalDeviceProperties2(VulkanStream* vkStream, VkStr
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4465,7 +4465,7 @@ void reservedunmarshal_VkFormatProperties2(VulkanStream* vkStream, VkStructureTy
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4494,7 +4494,7 @@ void reservedunmarshal_VkImageFormatProperties2(VulkanStream* vkStream, VkStruct
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4524,7 +4524,7 @@ void reservedunmarshal_VkPhysicalDeviceImageFormatInfo2(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4561,7 +4561,7 @@ void reservedunmarshal_VkQueueFamilyProperties2(VulkanStream* vkStream, VkStruct
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4591,7 +4591,7 @@ void reservedunmarshal_VkPhysicalDeviceMemoryProperties2(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4621,7 +4621,7 @@ void reservedunmarshal_VkSparseImageFormatProperties2(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4650,7 +4650,7 @@ void reservedunmarshal_VkPhysicalDeviceSparseImageFormatInfo2(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4687,7 +4687,7 @@ void reservedunmarshal_VkPhysicalDevicePointClippingProperties(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4728,7 +4728,7 @@ void reservedunmarshal_VkRenderPassInputAttachmentAspectCreateInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4765,7 +4765,7 @@ void reservedunmarshal_VkImageViewUsageCreateInfo(VulkanStream* vkStream, VkStru
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4794,7 +4794,7 @@ void reservedunmarshal_VkPipelineTessellationDomainOriginStateCreateInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4824,7 +4824,7 @@ void reservedunmarshal_VkRenderPassMultiviewCreateInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4872,7 +4872,7 @@ void reservedunmarshal_VkPhysicalDeviceMultiviewFeatures(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4905,7 +4905,7 @@ void reservedunmarshal_VkPhysicalDeviceMultiviewProperties(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4936,7 +4936,7 @@ void reservedunmarshal_VkPhysicalDeviceVariablePointersFeatures(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4967,7 +4967,7 @@ void reservedunmarshal_VkPhysicalDeviceProtectedMemoryFeatures(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -4996,7 +4996,7 @@ void reservedunmarshal_VkPhysicalDeviceProtectedMemoryProperties(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -5024,7 +5024,7 @@ void reservedunmarshal_VkDeviceQueueInfo2(VulkanStream* vkStream, VkStructureTyp
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -5058,7 +5058,7 @@ void reservedunmarshal_VkProtectedSubmitInfo(VulkanStream* vkStream, VkStructure
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -5087,7 +5087,7 @@ void reservedunmarshal_VkSamplerYcbcrConversionCreateInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -5132,7 +5132,7 @@ void reservedunmarshal_VkSamplerYcbcrConversionInfo(VulkanStream* vkStream,
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -5165,7 +5165,7 @@ void reservedunmarshal_VkBindImagePlaneMemoryInfo(VulkanStream* vkStream, VkStru
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -5195,7 +5195,7 @@ void reservedunmarshal_VkImagePlaneMemoryRequirementsInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -5225,7 +5225,7 @@ void reservedunmarshal_VkPhysicalDeviceSamplerYcbcrConversionFeatures(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -5254,7 +5254,7 @@ void reservedunmarshal_VkSamplerYcbcrConversionImageFormatProperties(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -5286,10 +5286,10 @@ void reservedunmarshal_VkDescriptorUpdateTemplateEntry(
     memcpy((VkDescriptorType*)&forUnmarshaling->descriptorType, *ptr, sizeof(VkDescriptorType));
     *ptr += sizeof(VkDescriptorType);
     memcpy((size_t*)&forUnmarshaling->offset, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->offset);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->offset);
     *ptr += 8;
     memcpy((size_t*)&forUnmarshaling->stride, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->stride);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->stride);
     *ptr += 8;
 }
 
@@ -5303,7 +5303,7 @@ void reservedunmarshal_VkDescriptorUpdateTemplateCreateInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -5375,7 +5375,7 @@ void reservedunmarshal_VkPhysicalDeviceExternalImageFormatInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -5405,7 +5405,7 @@ void reservedunmarshal_VkExternalImageFormatProperties(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -5435,7 +5435,7 @@ void reservedunmarshal_VkPhysicalDeviceExternalBufferInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -5469,7 +5469,7 @@ void reservedunmarshal_VkExternalBufferProperties(VulkanStream* vkStream, VkStru
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -5500,7 +5500,7 @@ void reservedunmarshal_VkPhysicalDeviceIDProperties(VulkanStream* vkStream,
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -5537,7 +5537,7 @@ void reservedunmarshal_VkExternalMemoryImageCreateInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -5567,7 +5567,7 @@ void reservedunmarshal_VkExternalMemoryBufferCreateInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -5597,7 +5597,7 @@ void reservedunmarshal_VkExportMemoryAllocateInfo(VulkanStream* vkStream, VkStru
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -5627,7 +5627,7 @@ void reservedunmarshal_VkPhysicalDeviceExternalFenceInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -5657,7 +5657,7 @@ void reservedunmarshal_VkExternalFenceProperties(VulkanStream* vkStream, VkStruc
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -5693,7 +5693,7 @@ void reservedunmarshal_VkExportFenceCreateInfo(VulkanStream* vkStream, VkStructu
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -5723,7 +5723,7 @@ void reservedunmarshal_VkExportSemaphoreCreateInfo(VulkanStream* vkStream, VkStr
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -5753,7 +5753,7 @@ void reservedunmarshal_VkPhysicalDeviceExternalSemaphoreInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -5784,7 +5784,7 @@ void reservedunmarshal_VkExternalSemaphoreProperties(VulkanStream* vkStream,
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -5820,7 +5820,7 @@ void reservedunmarshal_VkPhysicalDeviceMaintenance3Properties(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -5852,7 +5852,7 @@ void reservedunmarshal_VkDescriptorSetLayoutSupport(VulkanStream* vkStream,
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -5881,7 +5881,7 @@ void reservedunmarshal_VkPhysicalDeviceShaderDrawParametersFeatures(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -5912,7 +5912,7 @@ void reservedunmarshal_VkPhysicalDeviceVulkan11Features(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -5963,7 +5963,7 @@ void reservedunmarshal_VkPhysicalDeviceVulkan11Properties(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -6023,7 +6023,7 @@ void reservedunmarshal_VkPhysicalDeviceVulkan12Features(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -6175,7 +6175,7 @@ void reservedunmarshal_VkPhysicalDeviceVulkan12Properties(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -6336,7 +6336,7 @@ void reservedunmarshal_VkImageFormatListCreateInfo(VulkanStream* vkStream, VkStr
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -6370,7 +6370,7 @@ void reservedunmarshal_VkAttachmentDescription2(VulkanStream* vkStream, VkStruct
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -6417,7 +6417,7 @@ void reservedunmarshal_VkAttachmentReference2(VulkanStream* vkStream, VkStructur
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -6450,7 +6450,7 @@ void reservedunmarshal_VkSubpassDescription2(VulkanStream* vkStream, VkStructure
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -6493,7 +6493,7 @@ void reservedunmarshal_VkSubpassDescription2(VulkanStream* vkStream, VkStructure
     }
     // WARNING PTR CHECK
     memcpy((VkAttachmentReference2**)&forUnmarshaling->pResolveAttachments, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pResolveAttachments);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pResolveAttachments);
     *ptr += 8;
     if (forUnmarshaling->pResolveAttachments) {
         vkStream->alloc(
@@ -6507,7 +6507,7 @@ void reservedunmarshal_VkSubpassDescription2(VulkanStream* vkStream, VkStructure
     }
     // WARNING PTR CHECK
     memcpy((VkAttachmentReference2**)&forUnmarshaling->pDepthStencilAttachment, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pDepthStencilAttachment);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pDepthStencilAttachment);
     *ptr += 8;
     if (forUnmarshaling->pDepthStencilAttachment) {
         vkStream->alloc((void**)&forUnmarshaling->pDepthStencilAttachment,
@@ -6534,7 +6534,7 @@ void reservedunmarshal_VkSubpassDependency2(VulkanStream* vkStream, VkStructureT
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -6579,7 +6579,7 @@ void reservedunmarshal_VkRenderPassCreateInfo2(VulkanStream* vkStream, VkStructu
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -6640,7 +6640,7 @@ void reservedunmarshal_VkSubpassBeginInfo(VulkanStream* vkStream, VkStructureTyp
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -6668,7 +6668,7 @@ void reservedunmarshal_VkSubpassEndInfo(VulkanStream* vkStream, VkStructureType 
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -6695,7 +6695,7 @@ void reservedunmarshal_VkPhysicalDevice8BitStorageFeatures(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -6728,7 +6728,7 @@ void reservedunmarshal_VkPhysicalDeviceDriverProperties(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -6763,7 +6763,7 @@ void reservedunmarshal_VkPhysicalDeviceShaderAtomicInt64Features(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -6794,7 +6794,7 @@ void reservedunmarshal_VkPhysicalDeviceShaderFloat16Int8Features(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -6825,7 +6825,7 @@ void reservedunmarshal_VkPhysicalDeviceFloatControlsProperties(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -6891,7 +6891,7 @@ void reservedunmarshal_VkDescriptorSetLayoutBindingFlagsCreateInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -6910,7 +6910,7 @@ void reservedunmarshal_VkDescriptorSetLayoutBindingFlagsCreateInfo(
     *ptr += sizeof(uint32_t);
     // WARNING PTR CHECK
     memcpy((VkDescriptorBindingFlags**)&forUnmarshaling->pBindingFlags, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pBindingFlags);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pBindingFlags);
     *ptr += 8;
     if (forUnmarshaling->pBindingFlags) {
         vkStream->alloc((void**)&forUnmarshaling->pBindingFlags,
@@ -6931,7 +6931,7 @@ void reservedunmarshal_VkPhysicalDeviceDescriptorIndexingFeatures(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -7016,7 +7016,7 @@ void reservedunmarshal_VkPhysicalDeviceDescriptorIndexingProperties(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -7110,7 +7110,7 @@ void reservedunmarshal_VkDescriptorSetVariableDescriptorCountAllocateInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -7144,7 +7144,7 @@ void reservedunmarshal_VkDescriptorSetVariableDescriptorCountLayoutSupport(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -7173,7 +7173,7 @@ void reservedunmarshal_VkSubpassDescriptionDepthStencilResolve(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -7196,7 +7196,7 @@ void reservedunmarshal_VkSubpassDescriptionDepthStencilResolve(
     *ptr += sizeof(VkResolveModeFlagBits);
     // WARNING PTR CHECK
     memcpy((VkAttachmentReference2**)&forUnmarshaling->pDepthStencilResolveAttachment, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pDepthStencilResolveAttachment);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pDepthStencilResolveAttachment);
     *ptr += 8;
     if (forUnmarshaling->pDepthStencilResolveAttachment) {
         vkStream->alloc((void**)&forUnmarshaling->pDepthStencilResolveAttachment,
@@ -7217,7 +7217,7 @@ void reservedunmarshal_VkPhysicalDeviceDepthStencilResolveProperties(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -7254,7 +7254,7 @@ void reservedunmarshal_VkPhysicalDeviceScalarBlockLayoutFeatures(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -7284,7 +7284,7 @@ void reservedunmarshal_VkImageStencilUsageCreateInfo(VulkanStream* vkStream,
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -7313,7 +7313,7 @@ void reservedunmarshal_VkSamplerReductionModeCreateInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -7343,7 +7343,7 @@ void reservedunmarshal_VkPhysicalDeviceSamplerFilterMinmaxProperties(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -7374,7 +7374,7 @@ void reservedunmarshal_VkPhysicalDeviceVulkanMemoryModelFeatures(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -7408,7 +7408,7 @@ void reservedunmarshal_VkPhysicalDeviceImagelessFramebufferFeatures(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -7437,7 +7437,7 @@ void reservedunmarshal_VkFramebufferAttachmentImageInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -7481,7 +7481,7 @@ void reservedunmarshal_VkFramebufferAttachmentsCreateInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -7518,7 +7518,7 @@ void reservedunmarshal_VkRenderPassAttachmentBeginInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -7561,7 +7561,7 @@ void reservedunmarshal_VkPhysicalDeviceUniformBufferStandardLayoutFeatures(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -7590,7 +7590,7 @@ void reservedunmarshal_VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -7619,7 +7619,7 @@ void reservedunmarshal_VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -7648,7 +7648,7 @@ void reservedunmarshal_VkAttachmentReferenceStencilLayout(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -7677,7 +7677,7 @@ void reservedunmarshal_VkAttachmentDescriptionStencilLayout(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -7708,7 +7708,7 @@ void reservedunmarshal_VkPhysicalDeviceHostQueryResetFeatures(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -7737,7 +7737,7 @@ void reservedunmarshal_VkPhysicalDeviceTimelineSemaphoreFeatures(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -7766,7 +7766,7 @@ void reservedunmarshal_VkPhysicalDeviceTimelineSemaphoreProperties(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -7796,7 +7796,7 @@ void reservedunmarshal_VkSemaphoreTypeCreateInfo(VulkanStream* vkStream, VkStruc
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -7828,7 +7828,7 @@ void reservedunmarshal_VkTimelineSemaphoreSubmitInfo(VulkanStream* vkStream,
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -7847,7 +7847,7 @@ void reservedunmarshal_VkTimelineSemaphoreSubmitInfo(VulkanStream* vkStream,
     *ptr += sizeof(uint32_t);
     // WARNING PTR CHECK
     memcpy((uint64_t**)&forUnmarshaling->pWaitSemaphoreValues, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pWaitSemaphoreValues);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pWaitSemaphoreValues);
     *ptr += 8;
     if (forUnmarshaling->pWaitSemaphoreValues) {
         vkStream->alloc((void**)&forUnmarshaling->pWaitSemaphoreValues,
@@ -7860,7 +7860,7 @@ void reservedunmarshal_VkTimelineSemaphoreSubmitInfo(VulkanStream* vkStream,
     *ptr += sizeof(uint32_t);
     // WARNING PTR CHECK
     memcpy((uint64_t**)&forUnmarshaling->pSignalSemaphoreValues, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pSignalSemaphoreValues);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pSignalSemaphoreValues);
     *ptr += 8;
     if (forUnmarshaling->pSignalSemaphoreValues) {
         vkStream->alloc((void**)&forUnmarshaling->pSignalSemaphoreValues,
@@ -7880,7 +7880,7 @@ void reservedunmarshal_VkSemaphoreWaitInfo(VulkanStream* vkStream, VkStructureTy
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -7930,7 +7930,7 @@ void reservedunmarshal_VkSemaphoreSignalInfo(VulkanStream* vkStream, VkStructure
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -7964,7 +7964,7 @@ void reservedunmarshal_VkPhysicalDeviceBufferDeviceAddressFeatures(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -7997,7 +7997,7 @@ void reservedunmarshal_VkBufferDeviceAddressInfo(VulkanStream* vkStream, VkStruc
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -8028,7 +8028,7 @@ void reservedunmarshal_VkBufferOpaqueCaptureAddressCreateInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -8057,7 +8057,7 @@ void reservedunmarshal_VkMemoryOpaqueCaptureAddressAllocateInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -8086,7 +8086,7 @@ void reservedunmarshal_VkDeviceMemoryOpaqueCaptureAddressInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -8120,7 +8120,7 @@ void reservedunmarshal_VkPhysicalDeviceVulkan13Features(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -8179,7 +8179,7 @@ void reservedunmarshal_VkPhysicalDeviceVulkan13Properties(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -8360,7 +8360,7 @@ void reservedunmarshal_VkPipelineCreationFeedbackCreateInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -8403,7 +8403,7 @@ void reservedunmarshal_VkPhysicalDeviceShaderTerminateInvocationFeatures(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -8432,7 +8432,7 @@ void reservedunmarshal_VkPhysicalDeviceToolProperties(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -8469,7 +8469,7 @@ void reservedunmarshal_VkPhysicalDeviceShaderDemoteToHelperInvocationFeatures(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -8498,7 +8498,7 @@ void reservedunmarshal_VkPhysicalDevicePrivateDataFeatures(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -8528,7 +8528,7 @@ void reservedunmarshal_VkDevicePrivateDataCreateInfo(VulkanStream* vkStream,
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -8557,7 +8557,7 @@ void reservedunmarshal_VkPrivateDataSlotCreateInfo(VulkanStream* vkStream, VkStr
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -8587,7 +8587,7 @@ void reservedunmarshal_VkPhysicalDevicePipelineCreationCacheControlFeatures(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -8615,7 +8615,7 @@ void reservedunmarshal_VkMemoryBarrier2(VulkanStream* vkStream, VkStructureType 
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -8652,7 +8652,7 @@ void reservedunmarshal_VkBufferMemoryBarrier2(VulkanStream* vkStream, VkStructur
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -8701,7 +8701,7 @@ void reservedunmarshal_VkImageMemoryBarrier2(VulkanStream* vkStream, VkStructure
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -8751,7 +8751,7 @@ void reservedunmarshal_VkDependencyInfo(VulkanStream* vkStream, VkStructureType 
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -8807,7 +8807,7 @@ void reservedunmarshal_VkSemaphoreSubmitInfo(VulkanStream* vkStream, VkStructure
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -8846,7 +8846,7 @@ void reservedunmarshal_VkCommandBufferSubmitInfo(VulkanStream* vkStream, VkStruc
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -8879,7 +8879,7 @@ void reservedunmarshal_VkSubmitInfo2(VulkanStream* vkStream, VkStructureType roo
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -8937,7 +8937,7 @@ void reservedunmarshal_VkPhysicalDeviceSynchronization2Features(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -8966,7 +8966,7 @@ void reservedunmarshal_VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -8996,7 +8996,7 @@ void reservedunmarshal_VkPhysicalDeviceImageRobustnessFeatures(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -9024,7 +9024,7 @@ void reservedunmarshal_VkBufferCopy2(VulkanStream* vkStream, VkStructureType roo
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -9056,7 +9056,7 @@ void reservedunmarshal_VkCopyBufferInfo2(VulkanStream* vkStream, VkStructureType
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -9098,7 +9098,7 @@ void reservedunmarshal_VkImageCopy2(VulkanStream* vkStream, VkStructureType root
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -9133,7 +9133,7 @@ void reservedunmarshal_VkCopyImageInfo2(VulkanStream* vkStream, VkStructureType 
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -9179,7 +9179,7 @@ void reservedunmarshal_VkBufferImageCopy2(VulkanStream* vkStream, VkStructureTyp
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -9218,7 +9218,7 @@ void reservedunmarshal_VkCopyBufferToImageInfo2(VulkanStream* vkStream, VkStruct
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -9263,7 +9263,7 @@ void reservedunmarshal_VkCopyImageToBufferInfo2(VulkanStream* vkStream, VkStruct
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -9307,7 +9307,7 @@ void reservedunmarshal_VkImageBlit2(VulkanStream* vkStream, VkStructureType root
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -9345,7 +9345,7 @@ void reservedunmarshal_VkBlitImageInfo2(VulkanStream* vkStream, VkStructureType 
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -9393,7 +9393,7 @@ void reservedunmarshal_VkImageResolve2(VulkanStream* vkStream, VkStructureType r
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -9428,7 +9428,7 @@ void reservedunmarshal_VkResolveImageInfo2(VulkanStream* vkStream, VkStructureTy
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -9475,7 +9475,7 @@ void reservedunmarshal_VkPhysicalDeviceSubgroupSizeControlFeatures(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -9506,7 +9506,7 @@ void reservedunmarshal_VkPhysicalDeviceSubgroupSizeControlProperties(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -9542,7 +9542,7 @@ void reservedunmarshal_VkPipelineShaderStageRequiredSubgroupSizeCreateInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -9571,7 +9571,7 @@ void reservedunmarshal_VkPhysicalDeviceInlineUniformBlockFeatures(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -9603,7 +9603,7 @@ void reservedunmarshal_VkPhysicalDeviceInlineUniformBlockProperties(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -9644,7 +9644,7 @@ void reservedunmarshal_VkWriteDescriptorSetInlineUniformBlock(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -9677,7 +9677,7 @@ void reservedunmarshal_VkDescriptorPoolInlineUniformBlockCreateInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -9706,7 +9706,7 @@ void reservedunmarshal_VkPhysicalDeviceTextureCompressionASTCHDRFeatures(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -9735,7 +9735,7 @@ void reservedunmarshal_VkRenderingAttachmentInfo(VulkanStream* vkStream, VkStruc
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -9784,7 +9784,7 @@ void reservedunmarshal_VkRenderingInfo(VulkanStream* vkStream, VkStructureType r
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -9818,7 +9818,7 @@ void reservedunmarshal_VkRenderingInfo(VulkanStream* vkStream, VkStructureType r
     }
     // WARNING PTR CHECK
     memcpy((VkRenderingAttachmentInfo**)&forUnmarshaling->pDepthAttachment, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pDepthAttachment);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pDepthAttachment);
     *ptr += 8;
     if (forUnmarshaling->pDepthAttachment) {
         vkStream->alloc((void**)&forUnmarshaling->pDepthAttachment,
@@ -9829,7 +9829,7 @@ void reservedunmarshal_VkRenderingInfo(VulkanStream* vkStream, VkStructureType r
     }
     // WARNING PTR CHECK
     memcpy((VkRenderingAttachmentInfo**)&forUnmarshaling->pStencilAttachment, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pStencilAttachment);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pStencilAttachment);
     *ptr += 8;
     if (forUnmarshaling->pStencilAttachment) {
         vkStream->alloc((void**)&forUnmarshaling->pStencilAttachment,
@@ -9851,7 +9851,7 @@ void reservedunmarshal_VkPipelineRenderingCreateInfo(VulkanStream* vkStream,
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -9872,7 +9872,7 @@ void reservedunmarshal_VkPipelineRenderingCreateInfo(VulkanStream* vkStream,
     *ptr += sizeof(uint32_t);
     // WARNING PTR CHECK
     memcpy((VkFormat**)&forUnmarshaling->pColorAttachmentFormats, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pColorAttachmentFormats);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pColorAttachmentFormats);
     *ptr += 8;
     if (forUnmarshaling->pColorAttachmentFormats) {
         vkStream->alloc((void**)&forUnmarshaling->pColorAttachmentFormats,
@@ -9897,7 +9897,7 @@ void reservedunmarshal_VkPhysicalDeviceDynamicRenderingFeatures(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -9926,7 +9926,7 @@ void reservedunmarshal_VkCommandBufferInheritanceRenderingInfo(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -9971,7 +9971,7 @@ void reservedunmarshal_VkPhysicalDeviceShaderIntegerDotProductFeatures(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -10000,7 +10000,7 @@ void reservedunmarshal_VkPhysicalDeviceShaderIntegerDotProductProperties(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -10132,7 +10132,7 @@ void reservedunmarshal_VkPhysicalDeviceTexelBufferAlignmentProperties(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -10170,7 +10170,7 @@ void reservedunmarshal_VkFormatProperties3(VulkanStream* vkStream, VkStructureTy
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -10206,7 +10206,7 @@ void reservedunmarshal_VkPhysicalDeviceMaintenance4Features(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -10235,7 +10235,7 @@ void reservedunmarshal_VkPhysicalDeviceMaintenance4Properties(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -10264,7 +10264,7 @@ void reservedunmarshal_VkDeviceBufferMemoryRequirements(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -10294,7 +10294,7 @@ void reservedunmarshal_VkDeviceImageMemoryRequirements(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -10329,7 +10329,7 @@ void reservedunmarshal_VkSwapchainCreateInfoKHR(VulkanStream* vkStream, VkStruct
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -10370,7 +10370,7 @@ void reservedunmarshal_VkSwapchainCreateInfoKHR(VulkanStream* vkStream, VkStruct
     *ptr += sizeof(uint32_t);
     // WARNING PTR CHECK
     memcpy((uint32_t**)&forUnmarshaling->pQueueFamilyIndices, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pQueueFamilyIndices);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pQueueFamilyIndices);
     *ptr += 8;
     if (forUnmarshaling->pQueueFamilyIndices) {
         vkStream->alloc((void**)&forUnmarshaling->pQueueFamilyIndices,
@@ -10405,7 +10405,7 @@ void reservedunmarshal_VkPresentInfoKHR(VulkanStream* vkStream, VkStructureType 
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -10460,7 +10460,7 @@ void reservedunmarshal_VkPresentInfoKHR(VulkanStream* vkStream, VkStructureType 
     *ptr += forUnmarshaling->swapchainCount * sizeof(const uint32_t);
     // WARNING PTR CHECK
     memcpy((VkResult**)&forUnmarshaling->pResults, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pResults);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pResults);
     *ptr += 8;
     if (forUnmarshaling->pResults) {
         vkStream->alloc((void**)&forUnmarshaling->pResults,
@@ -10482,7 +10482,7 @@ void reservedunmarshal_VkImageSwapchainCreateInfoKHR(VulkanStream* vkStream,
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -10514,7 +10514,7 @@ void reservedunmarshal_VkBindImageMemorySwapchainInfoKHR(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -10548,7 +10548,7 @@ void reservedunmarshal_VkAcquireNextImageInfoKHR(VulkanStream* vkStream, VkStruc
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -10593,7 +10593,7 @@ void reservedunmarshal_VkDeviceGroupPresentCapabilitiesKHR(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -10626,7 +10626,7 @@ void reservedunmarshal_VkDeviceGroupPresentInfoKHR(VulkanStream* vkStream, VkStr
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -10663,7 +10663,7 @@ void reservedunmarshal_VkDeviceGroupSwapchainCreateInfoKHR(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -10695,7 +10695,7 @@ void reservedunmarshal_VkRenderingFragmentShadingRateAttachmentInfoKHR(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -10731,7 +10731,7 @@ void reservedunmarshal_VkRenderingFragmentDensityMapAttachmentInfoEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -10765,7 +10765,7 @@ void reservedunmarshal_VkAttachmentSampleCountInfoAMD(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -10784,7 +10784,7 @@ void reservedunmarshal_VkAttachmentSampleCountInfoAMD(
     *ptr += sizeof(uint32_t);
     // WARNING PTR CHECK
     memcpy((VkSampleCountFlagBits**)&forUnmarshaling->pColorAttachmentSamples, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pColorAttachmentSamples);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pColorAttachmentSamples);
     *ptr += 8;
     if (forUnmarshaling->pColorAttachmentSamples) {
         vkStream->alloc(
@@ -10809,7 +10809,7 @@ void reservedunmarshal_VkMultiviewPerViewAttributesInfoNVX(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -10842,7 +10842,7 @@ void reservedunmarshal_VkImportSemaphoreFdInfoKHR(VulkanStream* vkStream, VkStru
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -10881,7 +10881,7 @@ void reservedunmarshal_VkSemaphoreGetFdInfoKHR(VulkanStream* vkStream, VkStructu
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -10922,7 +10922,7 @@ void reservedunmarshal_VkPresentRegionKHR(VulkanStream* vkStream, VkStructureTyp
     *ptr += sizeof(uint32_t);
     // WARNING PTR CHECK
     memcpy((VkRectLayerKHR**)&forUnmarshaling->pRectangles, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pRectangles);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pRectangles);
     *ptr += 8;
     if (forUnmarshaling->pRectangles) {
         vkStream->alloc((void**)&forUnmarshaling->pRectangles,
@@ -10943,7 +10943,7 @@ void reservedunmarshal_VkPresentRegionsKHR(VulkanStream* vkStream, VkStructureTy
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -10962,7 +10962,7 @@ void reservedunmarshal_VkPresentRegionsKHR(VulkanStream* vkStream, VkStructureTy
     *ptr += sizeof(uint32_t);
     // WARNING PTR CHECK
     memcpy((VkPresentRegionKHR**)&forUnmarshaling->pRegions, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pRegions);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pRegions);
     *ptr += 8;
     if (forUnmarshaling->pRegions) {
         vkStream->alloc((void**)&forUnmarshaling->pRegions,
@@ -10986,7 +10986,7 @@ void reservedunmarshal_VkImportFenceFdInfoKHR(VulkanStream* vkStream, VkStructur
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -11023,7 +11023,7 @@ void reservedunmarshal_VkFenceGetFdInfoKHR(VulkanStream* vkStream, VkStructureTy
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -11059,7 +11059,7 @@ void reservedunmarshal_VkDeviceQueueGlobalPriorityCreateInfoKHR(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -11089,7 +11089,7 @@ void reservedunmarshal_VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -11118,7 +11118,7 @@ void reservedunmarshal_VkQueueFamilyGlobalPriorityPropertiesKHR(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -11152,7 +11152,7 @@ void reservedunmarshal_VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -11180,7 +11180,7 @@ void reservedunmarshal_VkPipelineInfoKHR(VulkanStream* vkStream, VkStructureType
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -11212,7 +11212,7 @@ void reservedunmarshal_VkPipelineExecutablePropertiesKHR(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -11247,7 +11247,7 @@ void reservedunmarshal_VkPipelineExecutableInfoKHR(VulkanStream* vkStream, VkStr
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -11288,7 +11288,7 @@ void reservedunmarshal_VkPipelineExecutableStatisticKHR(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -11324,7 +11324,7 @@ void reservedunmarshal_VkPipelineExecutableInternalRepresentationKHR(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -11346,11 +11346,11 @@ void reservedunmarshal_VkPipelineExecutableInternalRepresentationKHR(
     memcpy((VkBool32*)&forUnmarshaling->isText, *ptr, sizeof(VkBool32));
     *ptr += sizeof(VkBool32);
     memcpy((size_t*)&forUnmarshaling->dataSize, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->dataSize);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->dataSize);
     *ptr += 8;
     // WARNING PTR CHECK
     memcpy((void**)&forUnmarshaling->pData, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pData);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pData);
     *ptr += 8;
     if (forUnmarshaling->pData) {
         vkStream->alloc((void**)&forUnmarshaling->pData,
@@ -11372,7 +11372,7 @@ void reservedunmarshal_VkPipelineLibraryCreateInfoKHR(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -11417,7 +11417,7 @@ void reservedunmarshal_VkQueueFamilyCheckpointProperties2NV(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -11446,7 +11446,7 @@ void reservedunmarshal_VkCheckpointData2NV(VulkanStream* vkStream, VkStructureTy
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -11465,7 +11465,7 @@ void reservedunmarshal_VkCheckpointData2NV(VulkanStream* vkStream, VkStructureTy
     *ptr += sizeof(VkPipelineStageFlags2);
     // WARNING PTR CHECK
     memcpy((void**)&forUnmarshaling->pCheckpointMarker, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pCheckpointMarker);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pCheckpointMarker);
     *ptr += 8;
     if (forUnmarshaling->pCheckpointMarker) {
         vkStream->alloc((void**)&forUnmarshaling->pCheckpointMarker, sizeof(uint8_t));
@@ -11486,7 +11486,7 @@ void reservedunmarshal_VkPhysicalDeviceMaintenance5FeaturesKHR(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -11515,7 +11515,7 @@ void reservedunmarshal_VkPhysicalDeviceMaintenance5PropertiesKHR(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -11557,7 +11557,7 @@ void reservedunmarshal_VkRenderingAreaInfoKHR(VulkanStream* vkStream, VkStructur
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -11578,7 +11578,7 @@ void reservedunmarshal_VkRenderingAreaInfoKHR(VulkanStream* vkStream, VkStructur
     *ptr += sizeof(uint32_t);
     // WARNING PTR CHECK
     memcpy((VkFormat**)&forUnmarshaling->pColorAttachmentFormats, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pColorAttachmentFormats);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pColorAttachmentFormats);
     *ptr += 8;
     if (forUnmarshaling->pColorAttachmentFormats) {
         vkStream->alloc((void**)&forUnmarshaling->pColorAttachmentFormats,
@@ -11603,7 +11603,7 @@ void reservedunmarshal_VkImageSubresource2KHR(VulkanStream* vkStream, VkStructur
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -11632,7 +11632,7 @@ void reservedunmarshal_VkDeviceImageSubresourceInfoKHR(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -11665,7 +11665,7 @@ void reservedunmarshal_VkSubresourceLayout2KHR(VulkanStream* vkStream, VkStructu
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -11694,7 +11694,7 @@ void reservedunmarshal_VkPipelineCreateFlags2CreateInfoKHR(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -11724,7 +11724,7 @@ void reservedunmarshal_VkBufferUsageFlags2CreateInfoKHR(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -11755,7 +11755,7 @@ void reservedunmarshal_VkPhysicalDeviceLineRasterizationFeaturesKHR(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -11794,7 +11794,7 @@ void reservedunmarshal_VkPhysicalDeviceLineRasterizationPropertiesKHR(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -11823,7 +11823,7 @@ void reservedunmarshal_VkPipelineRasterizationLineStateCreateInfoKHR(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -11870,7 +11870,7 @@ void reservedunmarshal_VkNativeBufferANDROID(VulkanStream* vkStream, VkStructure
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -11887,7 +11887,7 @@ void reservedunmarshal_VkNativeBufferANDROID(VulkanStream* vkStream, VkStructure
     }
     // WARNING PTR CHECK
     memcpy((uint32_t**)&forUnmarshaling->handle, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->handle);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->handle);
     *ptr += 8;
     if (forUnmarshaling->handle) {
         vkStream->alloc((void**)&forUnmarshaling->handle, sizeof(const uint32_t));
@@ -11914,7 +11914,7 @@ void reservedunmarshal_VkSwapchainImageCreateInfoANDROID(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -11944,7 +11944,7 @@ void reservedunmarshal_VkPhysicalDevicePresentationPropertiesANDROID(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -11975,7 +11975,7 @@ void reservedunmarshal_VkDebugReportCallbackCreateInfoEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -11993,11 +11993,11 @@ void reservedunmarshal_VkDebugReportCallbackCreateInfoEXT(
     memcpy((VkDebugReportFlagsEXT*)&forUnmarshaling->flags, *ptr, sizeof(VkDebugReportFlagsEXT));
     *ptr += sizeof(VkDebugReportFlagsEXT);
     memcpy((PFN_vkDebugReportCallbackEXT*)&forUnmarshaling->pfnCallback, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pfnCallback);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pfnCallback);
     *ptr += 8;
     // WARNING PTR CHECK
     memcpy((void**)&forUnmarshaling->pUserData, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pUserData);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pUserData);
     *ptr += 8;
     if (forUnmarshaling->pUserData) {
         vkStream->alloc((void**)&forUnmarshaling->pUserData, sizeof(uint8_t));
@@ -12018,7 +12018,7 @@ void reservedunmarshal_VkPhysicalDeviceTransformFeedbackFeaturesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -12049,7 +12049,7 @@ void reservedunmarshal_VkPhysicalDeviceTransformFeedbackPropertiesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -12100,7 +12100,7 @@ void reservedunmarshal_VkPipelineRasterizationStateStreamCreateInfoEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -12134,7 +12134,7 @@ void reservedunmarshal_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -12163,7 +12163,7 @@ void reservedunmarshal_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -12196,7 +12196,7 @@ void reservedunmarshal_VkDebugUtilsLabelEXT(VulkanStream* vkStream, VkStructureT
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -12227,7 +12227,7 @@ void reservedunmarshal_VkDebugUtilsObjectNameInfoEXT(VulkanStream* vkStream,
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -12249,7 +12249,7 @@ void reservedunmarshal_VkDebugUtilsObjectNameInfoEXT(VulkanStream* vkStream,
     if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT) {
         // WARNING PTR CHECK
         memcpy((char**)&forUnmarshaling->pObjectName, (*ptr), 8);
-        android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pObjectName);
+        gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pObjectName);
         *ptr += 8;
         if (forUnmarshaling->pObjectName) {
             vkStream->loadStringInPlaceWithStreamPtr((char**)&forUnmarshaling->pObjectName, ptr);
@@ -12269,7 +12269,7 @@ void reservedunmarshal_VkDebugUtilsMessengerCallbackDataEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -12290,7 +12290,7 @@ void reservedunmarshal_VkDebugUtilsMessengerCallbackDataEXT(
     if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT) {
         // WARNING PTR CHECK
         memcpy((char**)&forUnmarshaling->pMessageIdName, (*ptr), 8);
-        android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pMessageIdName);
+        gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pMessageIdName);
         *ptr += 8;
         if (forUnmarshaling->pMessageIdName) {
             vkStream->loadStringInPlaceWithStreamPtr((char**)&forUnmarshaling->pMessageIdName, ptr);
@@ -12338,7 +12338,7 @@ void reservedunmarshal_VkDebugUtilsMessengerCreateInfoEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -12363,11 +12363,11 @@ void reservedunmarshal_VkDebugUtilsMessengerCreateInfoEXT(
            sizeof(VkDebugUtilsMessageTypeFlagsEXT));
     *ptr += sizeof(VkDebugUtilsMessageTypeFlagsEXT);
     memcpy((PFN_vkDebugUtilsMessengerCallbackEXT*)&forUnmarshaling->pfnUserCallback, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pfnUserCallback);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pfnUserCallback);
     *ptr += 8;
     // WARNING PTR CHECK
     memcpy((void**)&forUnmarshaling->pUserData, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pUserData);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pUserData);
     *ptr += 8;
     if (forUnmarshaling->pUserData) {
         vkStream->alloc((void**)&forUnmarshaling->pUserData, sizeof(uint8_t));
@@ -12387,7 +12387,7 @@ void reservedunmarshal_VkDebugUtilsObjectTagInfoEXT(VulkanStream* vkStream,
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -12409,7 +12409,7 @@ void reservedunmarshal_VkDebugUtilsObjectTagInfoEXT(VulkanStream* vkStream,
     memcpy((uint64_t*)&forUnmarshaling->tagName, *ptr, sizeof(uint64_t));
     *ptr += sizeof(uint64_t);
     memcpy((size_t*)&forUnmarshaling->tagSize, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->tagSize);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->tagSize);
     *ptr += 8;
     vkStream->alloc((void**)&forUnmarshaling->pTag,
                     forUnmarshaling->tagSize * sizeof(const uint8_t));
@@ -12441,7 +12441,7 @@ void reservedunmarshal_VkDrmFormatModifierPropertiesListEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -12461,7 +12461,7 @@ void reservedunmarshal_VkDrmFormatModifierPropertiesListEXT(
     // WARNING PTR CHECK
     memcpy((VkDrmFormatModifierPropertiesEXT**)&forUnmarshaling->pDrmFormatModifierProperties,
            (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pDrmFormatModifierProperties);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pDrmFormatModifierProperties);
     *ptr += 8;
     if (forUnmarshaling->pDrmFormatModifierProperties) {
         vkStream->alloc(
@@ -12487,7 +12487,7 @@ void reservedunmarshal_VkPhysicalDeviceImageDrmFormatModifierInfoEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -12510,7 +12510,7 @@ void reservedunmarshal_VkPhysicalDeviceImageDrmFormatModifierInfoEXT(
     *ptr += sizeof(uint32_t);
     // WARNING PTR CHECK
     memcpy((uint32_t**)&forUnmarshaling->pQueueFamilyIndices, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pQueueFamilyIndices);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pQueueFamilyIndices);
     *ptr += 8;
     if (forUnmarshaling->pQueueFamilyIndices) {
         vkStream->alloc((void**)&forUnmarshaling->pQueueFamilyIndices,
@@ -12531,7 +12531,7 @@ void reservedunmarshal_VkImageDrmFormatModifierListCreateInfoEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -12565,7 +12565,7 @@ void reservedunmarshal_VkImageDrmFormatModifierExplicitCreateInfoEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -12603,7 +12603,7 @@ void reservedunmarshal_VkImageDrmFormatModifierPropertiesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -12644,7 +12644,7 @@ void reservedunmarshal_VkDrmFormatModifierPropertiesList2EXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -12664,7 +12664,7 @@ void reservedunmarshal_VkDrmFormatModifierPropertiesList2EXT(
     // WARNING PTR CHECK
     memcpy((VkDrmFormatModifierProperties2EXT**)&forUnmarshaling->pDrmFormatModifierProperties,
            (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pDrmFormatModifierProperties);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pDrmFormatModifierProperties);
     *ptr += 8;
     if (forUnmarshaling->pDrmFormatModifierProperties) {
         vkStream->alloc(
@@ -12692,7 +12692,7 @@ void reservedunmarshal_VkImportMemoryHostPointerInfoEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -12725,7 +12725,7 @@ void reservedunmarshal_VkMemoryHostPointerPropertiesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -12754,7 +12754,7 @@ void reservedunmarshal_VkPhysicalDeviceExternalMemoryHostPropertiesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -12786,7 +12786,7 @@ void reservedunmarshal_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -12824,7 +12824,7 @@ void reservedunmarshal_VkPipelineVertexInputDivisorStateCreateInfoEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -12863,7 +12863,7 @@ void reservedunmarshal_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -12898,7 +12898,7 @@ void reservedunmarshal_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -12933,7 +12933,7 @@ void reservedunmarshal_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -12967,7 +12967,7 @@ void reservedunmarshal_VkRenderPassFragmentDensityMapCreateInfoEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -12999,7 +12999,7 @@ void reservedunmarshal_VkValidationFeaturesEXT(VulkanStream* vkStream, VkStructu
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -13048,7 +13048,7 @@ void reservedunmarshal_VkPhysicalDeviceProvokingVertexFeaturesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -13080,7 +13080,7 @@ void reservedunmarshal_VkPhysicalDeviceProvokingVertexPropertiesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -13112,7 +13112,7 @@ void reservedunmarshal_VkPipelineRasterizationProvokingVertexStateCreateInfoEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -13144,7 +13144,7 @@ void reservedunmarshal_VkPhysicalDeviceIndexTypeUint8FeaturesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -13175,7 +13175,7 @@ void reservedunmarshal_VkPhysicalDeviceExtendedDynamicStateFeaturesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -13206,7 +13206,7 @@ void reservedunmarshal_VkPhysicalDeviceHostImageCopyFeaturesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -13235,7 +13235,7 @@ void reservedunmarshal_VkPhysicalDeviceHostImageCopyPropertiesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -13254,7 +13254,7 @@ void reservedunmarshal_VkPhysicalDeviceHostImageCopyPropertiesEXT(
     *ptr += sizeof(uint32_t);
     // WARNING PTR CHECK
     memcpy((VkImageLayout**)&forUnmarshaling->pCopySrcLayouts, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pCopySrcLayouts);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pCopySrcLayouts);
     *ptr += 8;
     if (forUnmarshaling->pCopySrcLayouts) {
         vkStream->alloc((void**)&forUnmarshaling->pCopySrcLayouts,
@@ -13267,7 +13267,7 @@ void reservedunmarshal_VkPhysicalDeviceHostImageCopyPropertiesEXT(
     *ptr += sizeof(uint32_t);
     // WARNING PTR CHECK
     memcpy((VkImageLayout**)&forUnmarshaling->pCopyDstLayouts, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pCopyDstLayouts);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pCopyDstLayouts);
     *ptr += 8;
     if (forUnmarshaling->pCopyDstLayouts) {
         vkStream->alloc((void**)&forUnmarshaling->pCopyDstLayouts,
@@ -13293,7 +13293,7 @@ void reservedunmarshal_VkMemoryToImageCopyEXT(VulkanStream* vkStream, VkStructur
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -13333,7 +13333,7 @@ void reservedunmarshal_VkImageToMemoryCopyEXT(VulkanStream* vkStream, VkStructur
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -13373,7 +13373,7 @@ void reservedunmarshal_VkCopyMemoryToImageInfoEXT(VulkanStream* vkStream, VkStru
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -13417,7 +13417,7 @@ void reservedunmarshal_VkCopyImageToMemoryInfoEXT(VulkanStream* vkStream, VkStru
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -13461,7 +13461,7 @@ void reservedunmarshal_VkCopyImageToImageInfoEXT(VulkanStream* vkStream, VkStruc
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -13511,7 +13511,7 @@ void reservedunmarshal_VkHostImageLayoutTransitionInfoEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -13548,7 +13548,7 @@ void reservedunmarshal_VkSubresourceHostMemcpySizeEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -13577,7 +13577,7 @@ void reservedunmarshal_VkHostImageCopyDevicePerformanceQueryEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -13610,7 +13610,7 @@ void reservedunmarshal_VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -13639,7 +13639,7 @@ void reservedunmarshal_VkSwapchainPresentFenceInfoEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -13682,7 +13682,7 @@ void reservedunmarshal_VkSwapchainPresentModesCreateInfoEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -13717,7 +13717,7 @@ void reservedunmarshal_VkSwapchainPresentModeInfoEXT(VulkanStream* vkStream,
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -13751,7 +13751,7 @@ void reservedunmarshal_VkSwapchainPresentScalingCreateInfoEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -13787,7 +13787,7 @@ void reservedunmarshal_VkReleaseSwapchainImagesInfoEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -13828,7 +13828,7 @@ void reservedunmarshal_VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -13859,7 +13859,7 @@ void reservedunmarshal_VkPhysicalDeviceDeviceMemoryReportFeaturesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -13888,7 +13888,7 @@ void reservedunmarshal_VkDeviceMemoryReportCallbackDataEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -13931,7 +13931,7 @@ void reservedunmarshal_VkDeviceDeviceMemoryReportCreateInfoEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -13950,7 +13950,7 @@ void reservedunmarshal_VkDeviceDeviceMemoryReportCreateInfoEXT(
            sizeof(VkDeviceMemoryReportFlagsEXT));
     *ptr += sizeof(VkDeviceMemoryReportFlagsEXT);
     memcpy((PFN_vkDeviceMemoryReportCallbackEXT*)&forUnmarshaling->pfnUserCallback, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pfnUserCallback);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pfnUserCallback);
     *ptr += 8;
     vkStream->alloc((void**)&forUnmarshaling->pUserData, sizeof(uint8_t));
     memcpy((void*)forUnmarshaling->pUserData, *ptr, sizeof(uint8_t));
@@ -13969,7 +13969,7 @@ void reservedunmarshal_VkPhysicalDeviceRobustness2FeaturesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -14002,7 +14002,7 @@ void reservedunmarshal_VkPhysicalDeviceRobustness2PropertiesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -14037,7 +14037,7 @@ void reservedunmarshal_VkSamplerCustomBorderColorCreateInfoEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -14068,7 +14068,7 @@ void reservedunmarshal_VkPhysicalDeviceCustomBorderColorPropertiesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -14097,7 +14097,7 @@ void reservedunmarshal_VkPhysicalDeviceCustomBorderColorFeaturesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -14130,7 +14130,7 @@ void reservedunmarshal_VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -14159,7 +14159,7 @@ void reservedunmarshal_VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -14191,7 +14191,7 @@ void reservedunmarshal_VkGraphicsPipelineLibraryCreateInfoEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -14223,7 +14223,7 @@ void reservedunmarshal_VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -14254,7 +14254,7 @@ void reservedunmarshal_VkPhysicalDeviceImageCompressionControlFeaturesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -14284,7 +14284,7 @@ void reservedunmarshal_VkImageCompressionControlEXT(VulkanStream* vkStream,
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -14306,7 +14306,7 @@ void reservedunmarshal_VkImageCompressionControlEXT(VulkanStream* vkStream,
     *ptr += sizeof(uint32_t);
     // WARNING PTR CHECK
     memcpy((VkImageCompressionFixedRateFlagsEXT**)&forUnmarshaling->pFixedRateFlags, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pFixedRateFlags);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pFixedRateFlags);
     *ptr += 8;
     if (forUnmarshaling->pFixedRateFlags) {
         vkStream->alloc((void**)&forUnmarshaling->pFixedRateFlags,
@@ -14330,7 +14330,7 @@ void reservedunmarshal_VkImageCompressionPropertiesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -14365,7 +14365,7 @@ void reservedunmarshal_VkPhysicalDevice4444FormatsFeaturesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -14398,7 +14398,7 @@ void reservedunmarshal_VkPhysicalDevicePrimitiveTopologyListRestartFeaturesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -14431,7 +14431,7 @@ void reservedunmarshal_VkPhysicalDeviceExtendedDynamicState2FeaturesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -14467,7 +14467,7 @@ void reservedunmarshal_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -14496,7 +14496,7 @@ void reservedunmarshal_VkPipelineColorWriteCreateInfoEXT(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -14533,7 +14533,7 @@ void reservedunmarshal_VkImportColorBufferGOOGLE(VulkanStream* vkStream, VkStruc
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -14562,7 +14562,7 @@ void reservedunmarshal_VkImportBufferGOOGLE(VulkanStream* vkStream, VkStructureT
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -14591,7 +14591,7 @@ void reservedunmarshal_VkCreateBlobGOOGLE(VulkanStream* vkStream, VkStructureTyp
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -14626,7 +14626,7 @@ void reservedunmarshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesE
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -14657,7 +14657,7 @@ void reservedunmarshal_VkRayTracingShaderGroupCreateInfoKHR(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -14685,7 +14685,7 @@ void reservedunmarshal_VkRayTracingShaderGroupCreateInfoKHR(
     *ptr += sizeof(uint32_t);
     // WARNING PTR CHECK
     memcpy((void**)&forUnmarshaling->pShaderGroupCaptureReplayHandle, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pShaderGroupCaptureReplayHandle);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pShaderGroupCaptureReplayHandle);
     *ptr += 8;
     if (forUnmarshaling->pShaderGroupCaptureReplayHandle) {
         vkStream->alloc((void**)&forUnmarshaling->pShaderGroupCaptureReplayHandle,
@@ -14706,7 +14706,7 @@ void reservedunmarshal_VkRayTracingPipelineInterfaceCreateInfoKHR(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -14737,7 +14737,7 @@ void reservedunmarshal_VkRayTracingPipelineCreateInfoKHR(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -14777,7 +14777,7 @@ void reservedunmarshal_VkRayTracingPipelineCreateInfoKHR(
     *ptr += sizeof(uint32_t);
     // WARNING PTR CHECK
     memcpy((VkPipelineLibraryCreateInfoKHR**)&forUnmarshaling->pLibraryInfo, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pLibraryInfo);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pLibraryInfo);
     *ptr += 8;
     if (forUnmarshaling->pLibraryInfo) {
         vkStream->alloc((void**)&forUnmarshaling->pLibraryInfo,
@@ -14789,7 +14789,7 @@ void reservedunmarshal_VkRayTracingPipelineCreateInfoKHR(
     // WARNING PTR CHECK
     memcpy((VkRayTracingPipelineInterfaceCreateInfoKHR**)&forUnmarshaling->pLibraryInterface,
            (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pLibraryInterface);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pLibraryInterface);
     *ptr += 8;
     if (forUnmarshaling->pLibraryInterface) {
         vkStream->alloc((void**)&forUnmarshaling->pLibraryInterface,
@@ -14800,7 +14800,7 @@ void reservedunmarshal_VkRayTracingPipelineCreateInfoKHR(
     }
     // WARNING PTR CHECK
     memcpy((VkPipelineDynamicStateCreateInfo**)&forUnmarshaling->pDynamicState, (*ptr), 8);
-    android::base::Stream::fromBe64((uint8_t*)&forUnmarshaling->pDynamicState);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pDynamicState);
     *ptr += 8;
     if (forUnmarshaling->pDynamicState) {
         vkStream->alloc((void**)&forUnmarshaling->pDynamicState,
@@ -14833,7 +14833,7 @@ void reservedunmarshal_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {
@@ -14873,7 +14873,7 @@ void reservedunmarshal_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(
     }
     uint32_t pNext_size;
     memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
     *ptr += sizeof(uint32_t);
     forUnmarshaling->pNext = nullptr;
     if (pNext_size) {

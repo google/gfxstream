@@ -50,7 +50,7 @@ std::shared_ptr<ColorBuffer> ColorBuffer::create(gl::EmulationGl* emulationGl,
                                                  vk::VkEmulation* emulationVk, uint32_t width,
                                                  uint32_t height, GLenum format,
                                                  FrameworkFormat frameworkFormat, HandleType handle,
-                                                 android::base::Stream* stream) {
+                                                 gfxstream::Stream* stream) {
     std::shared_ptr<ColorBuffer> colorBuffer(
         new ColorBuffer(handle, width, height, format, frameworkFormat));
 
@@ -119,7 +119,7 @@ std::shared_ptr<ColorBuffer> ColorBuffer::create(gl::EmulationGl* emulationGl,
 /*static*/
 std::shared_ptr<ColorBuffer> ColorBuffer::onLoad(gl::EmulationGl* emulationGl,
                                                  vk::VkEmulation* emulationVk,
-                                                 android::base::Stream* stream) {
+                                                 gfxstream::Stream* stream) {
     const auto handle = static_cast<HandleType>(stream->getBe32());
     const auto width = static_cast<uint32_t>(stream->getBe32());
     const auto height = static_cast<uint32_t>(stream->getBe32());
@@ -132,7 +132,7 @@ std::shared_ptr<ColorBuffer> ColorBuffer::onLoad(gl::EmulationGl* emulationGl,
     return colorBuffer;
 }
 
-void ColorBuffer::onSave(android::base::Stream* stream) {
+void ColorBuffer::onSave(gfxstream::Stream* stream) {
     stream->putBe32(getHndl());
     stream->putBe32(mWidth);
     stream->putBe32(mHeight);

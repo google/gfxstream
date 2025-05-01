@@ -14,19 +14,16 @@
 
 #include "GLSnapshotTesting.h"
 
-#include "gfxstream/files/MemStream.h"
-#include "gfxstream/system/System.h"
-#include "render-utils/snapshot_operations.h"
-
-#include "GLTestUtils.h"
-#include "OpenGLTestContext.h"
-
-#include <gtest/gtest.h>
-
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
 #include <GLES3/gl31.h>
+#include <gtest/gtest.h>
 
+#include "GLTestUtils.h"
+#include "OpenGLTestContext.h"
+#include "gfxstream/host/mem_stream.h"
+#include "gfxstream/system/System.h"
+#include "render-utils/snapshot_operations.h"
 
 namespace gfxstream {
 namespace gl {
@@ -234,7 +231,7 @@ void SnapshotTest::SetUp() {
     mSnapshotPath = mTestSystem.getTempRoot()->makeSubPath("Snapshots");
 }
 
-void SnapshotTest::saveSnapshot(android::base::Stream* stream,
+void SnapshotTest::saveSnapshot(gfxstream::Stream* stream,
                                 const ITextureSaverPtr& textureSaver) {
     const EGLDispatch* egl = LazyLoadedEGLDispatch::get();
 
@@ -256,7 +253,7 @@ void SnapshotTest::saveSnapshot(android::base::Stream* stream,
     egl->eglPostSaveContext(m_display, m_context, eglStream);
 }
 
-void SnapshotTest::loadSnapshot(android::base::Stream* stream,
+void SnapshotTest::loadSnapshot(gfxstream::Stream* stream,
                                 const ITextureLoaderPtr& textureLoader) {
 
     const EGLDispatch* egl = LazyLoadedEGLDispatch::get();
@@ -287,14 +284,14 @@ void SnapshotTest::doSnapshot(std::function<void()> preloadCheck = [] {}) {
     std::shared_ptr<InMemoryTextureSaverLoader> textureSaverLoader =
         std::make_shared<InMemoryTextureSaverLoader>();
 
-    android::base::MemStream saveStream;
+    gfxstream::MemStream saveStream;
     saveSnapshot(&saveStream, textureSaverLoader);
 
     preloadReset();
     preloadCheck();
 
-    android::base::MemStream loadStream(
-        android::base::MemStream::Buffer(saveStream.buffer()));
+    gfxstream::MemStream loadStream(
+        gfxstream::MemStream::Buffer(saveStream.buffer()));
     loadSnapshot(&loadStream, textureSaverLoader);
 
     EXPECT_NE(m_context, EGL_NO_CONTEXT);

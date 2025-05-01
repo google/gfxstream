@@ -16,7 +16,7 @@
 #ifndef GLES_POINTER_H
 #define GLES_POINTER_H
 
-#include "aemu/base/files/Stream.h"
+#include "render-utils/stream.h"
 #include <GLES/gl.h>
 #include "GLESbuffer.h"
 
@@ -29,8 +29,8 @@ public:
         ARRAY, BUFFER, VALUE
     };
     GLESpointer() = default;
-    GLESpointer(android::base::Stream* stream);
-    void onLoad(android::base::Stream* stream);
+    GLESpointer(gfxstream::Stream* stream);
+    void onLoad(gfxstream::Stream* stream);
     GLenum getType() const;
     GLint getSize() const;
     GLsizei getStride() const;
@@ -78,7 +78,7 @@ public:
     AttribType getAttribType() const;
     bool isIntPointer() const;
     void enable(bool b);
-    void onSave(android::base::Stream* stream) const;
+    void onSave(gfxstream::Stream* stream) const;
     void restoreBufferObj(std::function<GLESbuffer*(GLuint)> getBufferObj);
 private:
     GLint m_size = 4;
