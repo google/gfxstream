@@ -31,6 +31,7 @@ void DefaultSetSansphotUsesVulkan() {}
 gfxstream_vm_ops sGfxstreamVmOps = {
     .map_user_memory = DefaultMapUserMemory,
     .unmap_user_memory = DefaultUnmapUserMemory,
+    .unmap_user_memory_async = DefaultUnmapUserMemory,
     .lookup_user_memory = DefaultLookupUserMemory,
 
     .register_vulkan_instance = DefaultRegisterVulkanInstance,

@@ -31,9 +31,6 @@
 #include "VulkanDispatch.h"
 #include "gfxstream/Optional.h"
 #include "gfxstream/Tracing.h"
-#ifdef CONFIG_AEMU
-#include "aemu/base/async/ThreadLooper.h"
-#endif
 #include "gfxstream/containers/Lookup.h"
 #include "gfxstream/containers/StaticMap.h"
 #include "gfxstream/synchronization/Lock.h"
@@ -2133,14 +2130,7 @@ void VkEmulation::freeExternalMemoryLocked(VulkanDispatch* vk,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
         if (mOccupiedGpas.find(info->gpa) != mOccupiedGpas.end()) {
             mOccupiedGpas.erase(info->gpa);
-#ifdef CONFIG_AEMU
-            android::base::ThreadLooper::runOnMainLooper(
-                [gpa = info->gpa, size = info->sizeToPage] {
-                    get_gfxstream_vm_operations().unmap_user_memory(gpa, size);
-                });
-#else
-            get_gfxstream_vm_operations().unmap_user_memory(info->gpa, info->sizeToPage);
-#endif
+            get_gfxstream_vm_operations().unmap_user_memory_async(info->gpa, info->sizeToPage);
             info->gpa = 0u;
         }
 

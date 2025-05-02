@@ -41,6 +41,7 @@ typedef void (*gfxstream_vm_set_snapshot_uses_vulkan_t)(void);
 typedef struct gfxstream_vm_ops {
     gfxstream_vm_map_user_memory_t map_user_memory;
     gfxstream_vm_unmap_user_memory_t unmap_user_memory;
+    gfxstream_vm_unmap_user_memory_t unmap_user_memory_async;
     gfxstream_vm_lookup_user_memory_t lookup_user_memory;
 
     gfxstream_vm_register_vulkan_instance_t register_vulkan_instance;
