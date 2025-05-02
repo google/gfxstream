@@ -44,7 +44,7 @@ namespace gfxstream {
 namespace base {
 class BumpPool;
 }  // namespace base
-}  // namespace android
+}  // namespace gfxstream
 
 namespace gfxstream {
 class IOStream;
