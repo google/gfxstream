@@ -889,11 +889,13 @@ VkResult AndroidNativeBufferInfo::on_vkQueueSignalReleaseImageANDROID(
             case VK_FORMAT_R8G8B8_UNORM:
                 bpp = 3;
                 break;
-            default:
             case VK_FORMAT_R8G8B8A8_UNORM:
             case VK_FORMAT_B8G8R8A8_UNORM:
                 bpp = 4;
                 break;
+            default:
+                GFXSTREAM_WARNING("%s: Unhandled format: %s [%d]", __func__,
+                                  string_VkFormat(mVkFormat), mVkFormat);
         }
         const void* bytes = mMappedStagingPtr;
         const size_t bytesSize = bpp * mExtent.width * mExtent.height;
