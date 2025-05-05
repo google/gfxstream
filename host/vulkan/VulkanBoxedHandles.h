@@ -39,6 +39,7 @@ enum BoxedHandleTypeTag {
     // extra command for snapshot purpose
     Tag_VkBindMemory,
     Tag_VkMapMemory,
+    Tag_VkCmdOp,
     Tag_VkUpdateDescriptorSets,
     // additional generic tag
     Tag_VkGeneric = 0xFF,

@@ -194,6 +194,10 @@ void VkReconstruction::forEachHandleAddApi(const uint64_t* toProcess, uint32_t c
     }
 }
 
+void VkReconstruction::removeDescendantsOfHandle(const uint64_t handle) {
+    mGraph.removeDescendantsOfHandle(handle);
+}
+
 void VkReconstruction::addHandleDependency(const uint64_t* handles, uint32_t count,
                                            uint64_t parentHandle, HandleState childState,
                                            HandleState parentState) {

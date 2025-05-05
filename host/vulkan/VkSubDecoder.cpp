@@ -34,7 +34,8 @@
 #define MAX_PACKET_LENGTH (400 * 1024 * 1024)  // 400MB
 #define CC_LIKELY(exp) (__builtin_expect(!!(exp), true))
 #define CC_UNLIKELY(exp) (__builtin_expect(!!(exp), false))
-size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* boxed_dispatchHandle,
+size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
+                 VkSnapshotApiCallInfo* snapshotApiCallInfo, void* boxed_dispatchHandle,
                  void* dispatchHandle, VkDeviceSize subDecodeDataSize, const void* pSubDecodeData,
                  const VkDecoderContext& context) {
     auto& metricsLogger = *context.metricsLogger;
@@ -83,6 +84,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if ((vkBeginCommandBuffer_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     this->on_DeviceLost();
                 this->on_CheckOutOfMemory(vkBeginCommandBuffer_VkResult_return, opcode, context);
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkBeginCommandBuffer(
+                        pool, snapshotApiCallInfo, nullptr, 0, vkBeginCommandBuffer_VkResult_return,
+                        (VkCommandBuffer)(boxed_dispatchHandle), pBeginInfo);
+                }
                 break;
             }
             case OP_vkEndCommandBuffer: {
@@ -96,6 +102,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if ((vkEndCommandBuffer_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     this->on_DeviceLost();
                 this->on_CheckOutOfMemory(vkEndCommandBuffer_VkResult_return, opcode, context);
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkEndCommandBuffer(pool, snapshotApiCallInfo, nullptr, 0,
+                                                         vkEndCommandBuffer_VkResult_return,
+                                                         (VkCommandBuffer)(boxed_dispatchHandle));
+                }
                 break;
             }
             case OP_vkResetCommandBuffer: {
@@ -113,6 +124,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if ((vkResetCommandBuffer_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     this->on_DeviceLost();
                 this->on_CheckOutOfMemory(vkResetCommandBuffer_VkResult_return, opcode, context);
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkResetCommandBuffer(
+                        pool, snapshotApiCallInfo, nullptr, 0, vkResetCommandBuffer_VkResult_return,
+                        (VkCommandBuffer)(boxed_dispatchHandle), flags);
+                }
                 break;
             }
             case OP_vkCmdBindPipeline: {
@@ -131,6 +147,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     this->on_vkCmdBindPipeline(pool, nullptr,
                                                (VkCommandBuffer)(boxed_dispatchHandle),
                                                pipelineBindPoint, pipeline);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdBindPipeline(pool, snapshotApiCallInfo, nullptr, 0,
+                                                        (VkCommandBuffer)(boxed_dispatchHandle),
+                                                        pipelineBindPoint, pipeline);
                 }
                 break;
             }
@@ -164,6 +185,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdSetViewport((VkCommandBuffer)dispatchHandle, firstViewport,
                                          viewportCount, pViewports);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetViewport(pool, snapshotApiCallInfo, nullptr, 0,
+                                                       (VkCommandBuffer)(boxed_dispatchHandle),
+                                                       firstViewport, viewportCount, pViewports);
+                }
                 break;
             }
             case OP_vkCmdSetScissor: {
@@ -196,6 +222,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdSetScissor((VkCommandBuffer)dispatchHandle, firstScissor, scissorCount,
                                         pScissors);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetScissor(pool, snapshotApiCallInfo, nullptr, 0,
+                                                      (VkCommandBuffer)(boxed_dispatchHandle),
+                                                      firstScissor, scissorCount, pScissors);
+                }
                 break;
             }
             case OP_vkCmdSetLineWidth: {
@@ -206,6 +237,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(float);
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetLineWidth((VkCommandBuffer)dispatchHandle, lineWidth);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetLineWidth(pool, snapshotApiCallInfo, nullptr, 0,
+                                                        (VkCommandBuffer)(boxed_dispatchHandle),
+                                                        lineWidth);
                 }
                 break;
             }
@@ -225,6 +261,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdSetDepthBias((VkCommandBuffer)dispatchHandle, depthBiasConstantFactor,
                                           depthBiasClamp, depthBiasSlopeFactor);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetDepthBias(pool, snapshotApiCallInfo, nullptr, 0,
+                                                        (VkCommandBuffer)(boxed_dispatchHandle),
+                                                        depthBiasConstantFactor, depthBiasClamp,
+                                                        depthBiasSlopeFactor);
+                }
                 break;
             }
             case OP_vkCmdSetBlendConstants: {
@@ -235,6 +277,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += 4 * sizeof(const float);
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetBlendConstants((VkCommandBuffer)dispatchHandle, blendConstants);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetBlendConstants(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), blendConstants);
                 }
                 break;
             }
@@ -250,6 +297,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetDepthBounds((VkCommandBuffer)dispatchHandle, minDepthBounds,
                                             maxDepthBounds);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetDepthBounds(pool, snapshotApiCallInfo, nullptr, 0,
+                                                          (VkCommandBuffer)(boxed_dispatchHandle),
+                                                          minDepthBounds, maxDepthBounds);
                 }
                 break;
             }
@@ -267,6 +319,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdSetStencilCompareMask((VkCommandBuffer)dispatchHandle, faceMask,
                                                    compareMask);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetStencilCompareMask(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), faceMask, compareMask);
+                }
                 break;
             }
             case OP_vkCmdSetStencilWriteMask: {
@@ -283,6 +340,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdSetStencilWriteMask((VkCommandBuffer)dispatchHandle, faceMask,
                                                  writeMask);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetStencilWriteMask(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), faceMask, writeMask);
+                }
                 break;
             }
             case OP_vkCmdSetStencilReference: {
@@ -298,6 +360,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetStencilReference((VkCommandBuffer)dispatchHandle, faceMask,
                                                  reference);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetStencilReference(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), faceMask, reference);
                 }
                 break;
             }
@@ -359,6 +426,13 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                         layout, firstSet, descriptorSetCount, pDescriptorSets, dynamicOffsetCount,
                         pDynamicOffsets);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdBindDescriptorSets(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), pipelineBindPoint, layout,
+                        firstSet, descriptorSetCount, pDescriptorSets, dynamicOffsetCount,
+                        pDynamicOffsets);
+                }
                 break;
             }
             case OP_vkCmdBindIndexBuffer: {
@@ -378,6 +452,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdBindIndexBuffer((VkCommandBuffer)dispatchHandle, buffer, offset,
                                              indexType);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdBindIndexBuffer(pool, snapshotApiCallInfo, nullptr, 0,
+                                                           (VkCommandBuffer)(boxed_dispatchHandle),
+                                                           buffer, offset, indexType);
                 }
                 break;
             }
@@ -422,6 +501,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdBindVertexBuffers((VkCommandBuffer)dispatchHandle, firstBinding,
                                                bindingCount, pBuffers, pOffsets);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdBindVertexBuffers(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), firstBinding, bindingCount,
+                        pBuffers, pOffsets);
+                }
                 break;
             }
             case OP_vkCmdDraw: {
@@ -441,6 +526,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdDraw((VkCommandBuffer)dispatchHandle, vertexCount, instanceCount,
                                   firstVertex, firstInstance);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdDraw(pool, snapshotApiCallInfo, nullptr, 0,
+                                                (VkCommandBuffer)(boxed_dispatchHandle),
+                                                vertexCount, instanceCount, firstVertex,
+                                                firstInstance);
                 }
                 break;
             }
@@ -466,6 +557,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdDrawIndexed((VkCommandBuffer)dispatchHandle, indexCount, instanceCount,
                                          firstIndex, vertexOffset, firstInstance);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdDrawIndexed(pool, snapshotApiCallInfo, nullptr, 0,
+                                                       (VkCommandBuffer)(boxed_dispatchHandle),
+                                                       indexCount, instanceCount, firstIndex,
+                                                       vertexOffset, firstInstance);
+                }
                 break;
             }
             case OP_vkCmdDrawIndirect: {
@@ -488,6 +585,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdDrawIndirect((VkCommandBuffer)dispatchHandle, buffer, offset,
                                           drawCount, stride);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdDrawIndirect(pool, snapshotApiCallInfo, nullptr, 0,
+                                                        (VkCommandBuffer)(boxed_dispatchHandle),
+                                                        buffer, offset, drawCount, stride);
                 }
                 break;
             }
@@ -512,6 +614,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdDrawIndexedIndirect((VkCommandBuffer)dispatchHandle, buffer, offset,
                                                  drawCount, stride);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdDrawIndexedIndirect(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), buffer, offset, drawCount, stride);
+                }
                 break;
             }
             case OP_vkCmdDispatch: {
@@ -530,6 +637,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdDispatch((VkCommandBuffer)dispatchHandle, groupCountX, groupCountY,
                                       groupCountZ);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdDispatch(pool, snapshotApiCallInfo, nullptr, 0,
+                                                    (VkCommandBuffer)(boxed_dispatchHandle),
+                                                    groupCountX, groupCountY, groupCountZ);
+                }
                 break;
             }
             case OP_vkCmdDispatchIndirect: {
@@ -545,6 +657,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdDispatchIndirect((VkCommandBuffer)dispatchHandle, buffer, offset);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdDispatchIndirect(pool, snapshotApiCallInfo, nullptr, 0,
+                                                            (VkCommandBuffer)(boxed_dispatchHandle),
+                                                            buffer, offset);
                 }
                 break;
             }
@@ -584,6 +701,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdCopyBuffer((VkCommandBuffer)dispatchHandle, srcBuffer, dstBuffer,
                                         regionCount, pRegions);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdCopyBuffer(pool, snapshotApiCallInfo, nullptr, 0,
+                                                      (VkCommandBuffer)(boxed_dispatchHandle),
+                                                      srcBuffer, dstBuffer, regionCount, pRegions);
                 }
                 break;
             }
@@ -630,6 +752,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     this->on_vkCmdCopyImage(pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle),
                                             srcImage, srcImageLayout, dstImage, dstImageLayout,
                                             regionCount, pRegions);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdCopyImage(pool, snapshotApiCallInfo, nullptr, 0,
+                                                     (VkCommandBuffer)(boxed_dispatchHandle),
+                                                     srcImage, srcImageLayout, dstImage,
+                                                     dstImageLayout, regionCount, pRegions);
                 }
                 break;
             }
@@ -679,6 +807,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdBlitImage((VkCommandBuffer)dispatchHandle, srcImage, srcImageLayout,
                                        dstImage, dstImageLayout, regionCount, pRegions, filter);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdBlitImage(pool, snapshotApiCallInfo, nullptr, 0,
+                                                     (VkCommandBuffer)(boxed_dispatchHandle),
+                                                     srcImage, srcImageLayout, dstImage,
+                                                     dstImageLayout, regionCount, pRegions, filter);
+                }
                 break;
             }
             case OP_vkCmdCopyBufferToImage: {
@@ -723,6 +857,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     this->on_vkCmdCopyBufferToImage(
                         pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), srcBuffer, dstImage,
                         dstImageLayout, regionCount, pRegions, context);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdCopyBufferToImage(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), srcBuffer, dstImage,
+                        dstImageLayout, regionCount, pRegions);
                 }
                 break;
             }
@@ -769,6 +909,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                         pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), srcImage,
                         srcImageLayout, dstBuffer, regionCount, pRegions);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdCopyImageToBuffer(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), srcImage, srcImageLayout,
+                        dstBuffer, regionCount, pRegions);
+                }
                 break;
             }
             case OP_vkCmdUpdateBuffer: {
@@ -798,6 +944,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdUpdateBuffer((VkCommandBuffer)dispatchHandle, dstBuffer, dstOffset,
                                           dataSize, pData);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdUpdateBuffer(pool, snapshotApiCallInfo, nullptr, 0,
+                                                        (VkCommandBuffer)(boxed_dispatchHandle),
+                                                        dstBuffer, dstOffset, dataSize, pData);
+                }
                 break;
             }
             case OP_vkCmdFillBuffer: {
@@ -820,6 +971,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdFillBuffer((VkCommandBuffer)dispatchHandle, dstBuffer, dstOffset, size,
                                         data);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdFillBuffer(pool, snapshotApiCallInfo, nullptr, 0,
+                                                      (VkCommandBuffer)(boxed_dispatchHandle),
+                                                      dstBuffer, dstOffset, size, data);
                 }
                 break;
             }
@@ -867,6 +1023,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdClearColorImage((VkCommandBuffer)dispatchHandle, image, imageLayout,
                                              pColor, rangeCount, pRanges);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdClearColorImage(pool, snapshotApiCallInfo, nullptr, 0,
+                                                           (VkCommandBuffer)(boxed_dispatchHandle),
+                                                           image, imageLayout, pColor, rangeCount,
+                                                           pRanges);
                 }
                 break;
             }
@@ -918,6 +1080,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                                                     imageLayout, pDepthStencil, rangeCount,
                                                     pRanges);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdClearDepthStencilImage(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), image, imageLayout, pDepthStencil,
+                        rangeCount, pRanges);
+                }
                 break;
             }
             case OP_vkCmdClearAttachments: {
@@ -968,6 +1136,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdClearAttachments((VkCommandBuffer)dispatchHandle, attachmentCount,
                                               pAttachments, rectCount, pRects);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdClearAttachments(pool, snapshotApiCallInfo, nullptr, 0,
+                                                            (VkCommandBuffer)(boxed_dispatchHandle),
+                                                            attachmentCount, pAttachments,
+                                                            rectCount, pRects);
+                }
                 break;
             }
             case OP_vkCmdResolveImage: {
@@ -1015,6 +1189,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdResolveImage((VkCommandBuffer)dispatchHandle, srcImage, srcImageLayout,
                                           dstImage, dstImageLayout, regionCount, pRegions);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdResolveImage(pool, snapshotApiCallInfo, nullptr, 0,
+                                                        (VkCommandBuffer)(boxed_dispatchHandle),
+                                                        srcImage, srcImageLayout, dstImage,
+                                                        dstImageLayout, regionCount, pRegions);
+                }
                 break;
             }
             case OP_vkCmdSetEvent: {
@@ -1032,6 +1212,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetEvent((VkCommandBuffer)dispatchHandle, event, stageMask);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetEvent(pool, snapshotApiCallInfo, nullptr, 0,
+                                                    (VkCommandBuffer)(boxed_dispatchHandle), event,
+                                                    stageMask);
+                }
                 break;
             }
             case OP_vkCmdResetEvent: {
@@ -1048,6 +1233,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(VkPipelineStageFlags);
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdResetEvent((VkCommandBuffer)dispatchHandle, event, stageMask);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdResetEvent(pool, snapshotApiCallInfo, nullptr, 0,
+                                                      (VkCommandBuffer)(boxed_dispatchHandle),
+                                                      event, stageMask);
                 }
                 break;
             }
@@ -1156,6 +1346,13 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                         dstStageMask, memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount,
                         pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdWaitEvents(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), eventCount, pEvents, srcStageMask,
+                        dstStageMask, memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount,
+                        pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers);
+                }
                 break;
             }
             case OP_vkCmdPipelineBarrier: {
@@ -1248,6 +1445,14 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                         bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount,
                         pImageMemoryBarriers);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdPipelineBarrier(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), srcStageMask, dstStageMask,
+                        dependencyFlags, memoryBarrierCount, pMemoryBarriers,
+                        bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount,
+                        pImageMemoryBarriers);
+                }
                 break;
             }
             case OP_vkCmdBeginQuery: {
@@ -1269,6 +1474,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdBeginQuery((VkCommandBuffer)dispatchHandle, queryPool, query, flags);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdBeginQuery(pool, snapshotApiCallInfo, nullptr, 0,
+                                                      (VkCommandBuffer)(boxed_dispatchHandle),
+                                                      queryPool, query, flags);
+                }
                 break;
             }
             case OP_vkCmdEndQuery: {
@@ -1285,6 +1495,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdEndQuery((VkCommandBuffer)dispatchHandle, queryPool, query);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdEndQuery(pool, snapshotApiCallInfo, nullptr, 0,
+                                                    (VkCommandBuffer)(boxed_dispatchHandle),
+                                                    queryPool, query);
                 }
                 break;
             }
@@ -1307,6 +1522,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdResetQueryPool((VkCommandBuffer)dispatchHandle, queryPool, firstQuery,
                                             queryCount);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdResetQueryPool(pool, snapshotApiCallInfo, nullptr, 0,
+                                                          (VkCommandBuffer)(boxed_dispatchHandle),
+                                                          queryPool, firstQuery, queryCount);
+                }
                 break;
             }
             case OP_vkCmdWriteTimestamp: {
@@ -1328,6 +1548,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdWriteTimestamp((VkCommandBuffer)dispatchHandle, pipelineStage,
                                             queryPool, query);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdWriteTimestamp(pool, snapshotApiCallInfo, nullptr, 0,
+                                                          (VkCommandBuffer)(boxed_dispatchHandle),
+                                                          pipelineStage, queryPool, query);
                 }
                 break;
             }
@@ -1365,6 +1590,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                         pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), queryPool,
                         firstQuery, queryCount, dstBuffer, dstOffset, stride, flags);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdCopyQueryPoolResults(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), queryPool, firstQuery, queryCount,
+                        dstBuffer, dstOffset, stride, flags);
+                }
                 break;
             }
             case OP_vkCmdPushConstants: {
@@ -1399,6 +1630,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdPushConstants((VkCommandBuffer)dispatchHandle, layout, stageFlags,
                                            offset, size, pValues);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdPushConstants(pool, snapshotApiCallInfo, nullptr, 0,
+                                                         (VkCommandBuffer)(boxed_dispatchHandle),
+                                                         layout, stageFlags, offset, size, pValues);
+                }
                 break;
             }
             case OP_vkCmdBeginRenderPass: {
@@ -1422,6 +1658,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                                                   (VkCommandBuffer)(boxed_dispatchHandle),
                                                   pRenderPassBegin, contents);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdBeginRenderPass(pool, snapshotApiCallInfo, nullptr, 0,
+                                                           (VkCommandBuffer)(boxed_dispatchHandle),
+                                                           pRenderPassBegin, contents);
+                }
                 break;
             }
             case OP_vkCmdNextSubpass: {
@@ -1433,6 +1674,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdNextSubpass((VkCommandBuffer)dispatchHandle, contents);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdNextSubpass(pool, snapshotApiCallInfo, nullptr, 0,
+                                                       (VkCommandBuffer)(boxed_dispatchHandle),
+                                                       contents);
+                }
                 break;
             }
             case OP_vkCmdEndRenderPass: {
@@ -1440,6 +1686,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                                       "VkSubDecoder vkCmdEndRenderPass");
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdEndRenderPass((VkCommandBuffer)dispatchHandle);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdEndRenderPass(pool, snapshotApiCallInfo, nullptr, 0,
+                                                         (VkCommandBuffer)(boxed_dispatchHandle));
                 }
                 break;
             }
@@ -1473,6 +1723,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                                                   (VkCommandBuffer)(boxed_dispatchHandle),
                                                   commandBufferCount, pCommandBuffers);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdExecuteCommands(pool, snapshotApiCallInfo, nullptr, 0,
+                                                           (VkCommandBuffer)(boxed_dispatchHandle),
+                                                           commandBufferCount, pCommandBuffers);
+                }
                 break;
             }
 #endif
@@ -1485,6 +1740,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(uint32_t);
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetDeviceMask((VkCommandBuffer)dispatchHandle, deviceMask);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetDeviceMask(pool, snapshotApiCallInfo, nullptr, 0,
+                                                         (VkCommandBuffer)(boxed_dispatchHandle),
+                                                         deviceMask);
                 }
                 break;
             }
@@ -1512,6 +1772,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdDispatchBase((VkCommandBuffer)dispatchHandle, baseGroupX, baseGroupY,
                                           baseGroupZ, groupCountX, groupCountY, groupCountZ);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdDispatchBase(pool, snapshotApiCallInfo, nullptr, 0,
+                                                        (VkCommandBuffer)(boxed_dispatchHandle),
+                                                        baseGroupX, baseGroupY, baseGroupZ,
+                                                        groupCountX, groupCountY, groupCountZ);
                 }
                 break;
             }
@@ -1547,6 +1813,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                                                countBuffer, countBufferOffset, maxDrawCount,
                                                stride);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdDrawIndirectCount(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), buffer, offset, countBuffer,
+                        countBufferOffset, maxDrawCount, stride);
+                }
                 break;
             }
             case OP_vkCmdDrawIndexedIndirectCount: {
@@ -1579,6 +1851,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                                                       offset, countBuffer, countBufferOffset,
                                                       maxDrawCount, stride);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdDrawIndexedIndirectCount(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), buffer, offset, countBuffer,
+                        countBufferOffset, maxDrawCount, stride);
+                }
                 break;
             }
             case OP_vkCmdBeginRenderPass2: {
@@ -1609,6 +1887,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                                                    (VkCommandBuffer)(boxed_dispatchHandle),
                                                    pRenderPassBegin, pSubpassBeginInfo);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdBeginRenderPass2(pool, snapshotApiCallInfo, nullptr, 0,
+                                                            (VkCommandBuffer)(boxed_dispatchHandle),
+                                                            pRenderPassBegin, pSubpassBeginInfo);
+                }
                 break;
             }
             case OP_vkCmdNextSubpass2: {
@@ -1638,6 +1921,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdNextSubpass2((VkCommandBuffer)dispatchHandle, pSubpassBeginInfo,
                                           pSubpassEndInfo);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdNextSubpass2(pool, snapshotApiCallInfo, nullptr, 0,
+                                                        (VkCommandBuffer)(boxed_dispatchHandle),
+                                                        pSubpassBeginInfo, pSubpassEndInfo);
+                }
                 break;
             }
             case OP_vkCmdEndRenderPass2: {
@@ -1655,6 +1943,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdEndRenderPass2((VkCommandBuffer)dispatchHandle, pSubpassEndInfo);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdEndRenderPass2(pool, snapshotApiCallInfo, nullptr, 0,
+                                                          (VkCommandBuffer)(boxed_dispatchHandle),
+                                                          pSubpassEndInfo);
                 }
                 break;
             }
@@ -1681,6 +1974,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetEvent2((VkCommandBuffer)dispatchHandle, event, pDependencyInfo);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetEvent2(pool, snapshotApiCallInfo, nullptr, 0,
+                                                     (VkCommandBuffer)(boxed_dispatchHandle), event,
+                                                     pDependencyInfo);
+                }
                 break;
             }
             case OP_vkCmdResetEvent2: {
@@ -1697,6 +1995,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(VkPipelineStageFlags2);
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdResetEvent2((VkCommandBuffer)dispatchHandle, event, stageMask);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdResetEvent2(pool, snapshotApiCallInfo, nullptr, 0,
+                                                       (VkCommandBuffer)(boxed_dispatchHandle),
+                                                       event, stageMask);
                 }
                 break;
             }
@@ -1746,6 +2049,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdWaitEvents2((VkCommandBuffer)dispatchHandle, eventCount, pEvents,
                                          pDependencyInfos);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdWaitEvents2(pool, snapshotApiCallInfo, nullptr, 0,
+                                                       (VkCommandBuffer)(boxed_dispatchHandle),
+                                                       eventCount, pEvents, pDependencyInfos);
+                }
                 break;
             }
             case OP_vkCmdPipelineBarrier2: {
@@ -1764,6 +2072,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     this->on_vkCmdPipelineBarrier2(
                         pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), pDependencyInfo);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdPipelineBarrier2(pool, snapshotApiCallInfo, nullptr, 0,
+                                                            (VkCommandBuffer)(boxed_dispatchHandle),
+                                                            pDependencyInfo);
                 }
                 break;
             }
@@ -1787,6 +2100,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdWriteTimestamp2((VkCommandBuffer)dispatchHandle, stage, queryPool,
                                              query);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdWriteTimestamp2(pool, snapshotApiCallInfo, nullptr, 0,
+                                                           (VkCommandBuffer)(boxed_dispatchHandle),
+                                                           stage, queryPool, query);
+                }
                 break;
             }
             case OP_vkCmdCopyBuffer2: {
@@ -1804,6 +2122,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdCopyBuffer2((VkCommandBuffer)dispatchHandle, pCopyBufferInfo);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdCopyBuffer2(pool, snapshotApiCallInfo, nullptr, 0,
+                                                       (VkCommandBuffer)(boxed_dispatchHandle),
+                                                       pCopyBufferInfo);
                 }
                 break;
             }
@@ -1823,6 +2146,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     this->on_vkCmdCopyImage2(pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle),
                                              pCopyImageInfo);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdCopyImage2(pool, snapshotApiCallInfo, nullptr, 0,
+                                                      (VkCommandBuffer)(boxed_dispatchHandle),
+                                                      pCopyImageInfo);
                 }
                 break;
             }
@@ -1844,6 +2172,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                                                      (VkCommandBuffer)(boxed_dispatchHandle),
                                                      pCopyBufferToImageInfo, context);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdCopyBufferToImage2(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), pCopyBufferToImageInfo);
+                }
                 break;
             }
             case OP_vkCmdCopyImageToBuffer2: {
@@ -1864,6 +2197,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                                                      (VkCommandBuffer)(boxed_dispatchHandle),
                                                      pCopyImageToBufferInfo);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdCopyImageToBuffer2(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), pCopyImageToBufferInfo);
+                }
                 break;
             }
             case OP_vkCmdBlitImage2: {
@@ -1881,6 +2219,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdBlitImage2((VkCommandBuffer)dispatchHandle, pBlitImageInfo);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdBlitImage2(pool, snapshotApiCallInfo, nullptr, 0,
+                                                      (VkCommandBuffer)(boxed_dispatchHandle),
+                                                      pBlitImageInfo);
                 }
                 break;
             }
@@ -1900,6 +2243,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdResolveImage2((VkCommandBuffer)dispatchHandle, pResolveImageInfo);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdResolveImage2(pool, snapshotApiCallInfo, nullptr, 0,
+                                                         (VkCommandBuffer)(boxed_dispatchHandle),
+                                                         pResolveImageInfo);
+                }
                 break;
             }
             case OP_vkCmdBeginRendering: {
@@ -1918,6 +2266,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdBeginRendering((VkCommandBuffer)dispatchHandle, pRenderingInfo);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdBeginRendering(pool, snapshotApiCallInfo, nullptr, 0,
+                                                          (VkCommandBuffer)(boxed_dispatchHandle),
+                                                          pRenderingInfo);
+                }
                 break;
             }
             case OP_vkCmdEndRendering: {
@@ -1925,6 +2278,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                                       "VkSubDecoder vkCmdEndRendering");
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdEndRendering((VkCommandBuffer)dispatchHandle);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdEndRendering(pool, snapshotApiCallInfo, nullptr, 0,
+                                                        (VkCommandBuffer)(boxed_dispatchHandle));
                 }
                 break;
             }
@@ -1937,6 +2294,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetCullMode((VkCommandBuffer)dispatchHandle, cullMode);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetCullMode(pool, snapshotApiCallInfo, nullptr, 0,
+                                                       (VkCommandBuffer)(boxed_dispatchHandle),
+                                                       cullMode);
+                }
                 break;
             }
             case OP_vkCmdSetFrontFace: {
@@ -1947,6 +2309,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(VkFrontFace);
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetFrontFace((VkCommandBuffer)dispatchHandle, frontFace);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetFrontFace(pool, snapshotApiCallInfo, nullptr, 0,
+                                                        (VkCommandBuffer)(boxed_dispatchHandle),
+                                                        frontFace);
                 }
                 break;
             }
@@ -1960,6 +2327,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetPrimitiveTopology((VkCommandBuffer)dispatchHandle,
                                                   primitiveTopology);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetPrimitiveTopology(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), primitiveTopology);
                 }
                 break;
             }
@@ -1990,6 +2362,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdSetViewportWithCount((VkCommandBuffer)dispatchHandle, viewportCount,
                                                   pViewports);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetViewportWithCount(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), viewportCount, pViewports);
+                }
                 break;
             }
             case OP_vkCmdSetScissorWithCount: {
@@ -2018,6 +2395,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetScissorWithCount((VkCommandBuffer)dispatchHandle, scissorCount,
                                                  pScissors);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetScissorWithCount(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), scissorCount, pScissors);
                 }
                 break;
             }
@@ -2104,6 +2486,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdBindVertexBuffers2((VkCommandBuffer)dispatchHandle, firstBinding,
                                                 bindingCount, pBuffers, pOffsets, pSizes, pStrides);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdBindVertexBuffers2(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), firstBinding, bindingCount,
+                        pBuffers, pOffsets, pSizes, pStrides);
+                }
                 break;
             }
             case OP_vkCmdSetDepthTestEnable: {
@@ -2114,6 +2502,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(VkBool32);
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetDepthTestEnable((VkCommandBuffer)dispatchHandle, depthTestEnable);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetDepthTestEnable(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), depthTestEnable);
                 }
                 break;
             }
@@ -2126,6 +2519,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetDepthWriteEnable((VkCommandBuffer)dispatchHandle, depthWriteEnable);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetDepthWriteEnable(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), depthWriteEnable);
+                }
                 break;
             }
             case OP_vkCmdSetDepthCompareOp: {
@@ -2136,6 +2534,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(VkCompareOp);
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetDepthCompareOp((VkCommandBuffer)dispatchHandle, depthCompareOp);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetDepthCompareOp(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), depthCompareOp);
                 }
                 break;
             }
@@ -2149,6 +2552,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdSetDepthBoundsTestEnable((VkCommandBuffer)dispatchHandle,
                                                       depthBoundsTestEnable);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetDepthBoundsTestEnable(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), depthBoundsTestEnable);
+                }
                 break;
             }
             case OP_vkCmdSetStencilTestEnable: {
@@ -2160,6 +2568,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetStencilTestEnable((VkCommandBuffer)dispatchHandle,
                                                   stencilTestEnable);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetStencilTestEnable(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), stencilTestEnable);
                 }
                 break;
             }
@@ -2186,6 +2599,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdSetStencilOp((VkCommandBuffer)dispatchHandle, faceMask, failOp, passOp,
                                           depthFailOp, compareOp);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetStencilOp(pool, snapshotApiCallInfo, nullptr, 0,
+                                                        (VkCommandBuffer)(boxed_dispatchHandle),
+                                                        faceMask, failOp, passOp, depthFailOp,
+                                                        compareOp);
+                }
                 break;
             }
             case OP_vkCmdSetRasterizerDiscardEnable: {
@@ -2198,6 +2617,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdSetRasterizerDiscardEnable((VkCommandBuffer)dispatchHandle,
                                                         rasterizerDiscardEnable);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetRasterizerDiscardEnable(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), rasterizerDiscardEnable);
+                }
                 break;
             }
             case OP_vkCmdSetDepthBiasEnable: {
@@ -2208,6 +2632,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(VkBool32);
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetDepthBiasEnable((VkCommandBuffer)dispatchHandle, depthBiasEnable);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetDepthBiasEnable(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), depthBiasEnable);
                 }
                 break;
             }
@@ -2220,6 +2649,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetPrimitiveRestartEnable((VkCommandBuffer)dispatchHandle,
                                                        primitiveRestartEnable);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetPrimitiveRestartEnable(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), primitiveRestartEnable);
                 }
                 break;
             }
@@ -2241,6 +2675,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdBeginRenderingKHR((VkCommandBuffer)dispatchHandle, pRenderingInfo);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdBeginRenderingKHR(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), pRenderingInfo);
+                }
                 break;
             }
             case OP_vkCmdEndRenderingKHR: {
@@ -2248,6 +2687,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                                       "VkSubDecoder vkCmdEndRenderingKHR");
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdEndRenderingKHR((VkCommandBuffer)dispatchHandle);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdEndRenderingKHR(pool, snapshotApiCallInfo, nullptr, 0,
+                                                           (VkCommandBuffer)(boxed_dispatchHandle));
                 }
                 break;
             }
@@ -2281,6 +2724,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                                                       (VkCommandBuffer)(boxed_dispatchHandle),
                                                       pRenderPassBegin, pSubpassBeginInfo);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdBeginRenderPass2KHR(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), pRenderPassBegin,
+                        pSubpassBeginInfo);
+                }
                 break;
             }
             case OP_vkCmdNextSubpass2KHR: {
@@ -2310,6 +2759,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdNextSubpass2KHR((VkCommandBuffer)dispatchHandle, pSubpassBeginInfo,
                                              pSubpassEndInfo);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdNextSubpass2KHR(pool, snapshotApiCallInfo, nullptr, 0,
+                                                           (VkCommandBuffer)(boxed_dispatchHandle),
+                                                           pSubpassBeginInfo, pSubpassEndInfo);
+                }
                 break;
             }
             case OP_vkCmdEndRenderPass2KHR: {
@@ -2327,6 +2781,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdEndRenderPass2KHR((VkCommandBuffer)dispatchHandle, pSubpassEndInfo);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdEndRenderPass2KHR(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), pSubpassEndInfo);
                 }
                 break;
             }
@@ -2353,6 +2812,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetEvent2KHR((VkCommandBuffer)dispatchHandle, event, pDependencyInfo);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetEvent2KHR(pool, snapshotApiCallInfo, nullptr, 0,
+                                                        (VkCommandBuffer)(boxed_dispatchHandle),
+                                                        event, pDependencyInfo);
+                }
                 break;
             }
             case OP_vkCmdResetEvent2KHR: {
@@ -2369,6 +2833,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(VkPipelineStageFlags2);
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdResetEvent2KHR((VkCommandBuffer)dispatchHandle, event, stageMask);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdResetEvent2KHR(pool, snapshotApiCallInfo, nullptr, 0,
+                                                          (VkCommandBuffer)(boxed_dispatchHandle),
+                                                          event, stageMask);
                 }
                 break;
             }
@@ -2418,6 +2887,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdWaitEvents2KHR((VkCommandBuffer)dispatchHandle, eventCount, pEvents,
                                             pDependencyInfos);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdWaitEvents2KHR(pool, snapshotApiCallInfo, nullptr, 0,
+                                                          (VkCommandBuffer)(boxed_dispatchHandle),
+                                                          eventCount, pEvents, pDependencyInfos);
+                }
                 break;
             }
             case OP_vkCmdPipelineBarrier2KHR: {
@@ -2435,6 +2909,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdPipelineBarrier2KHR((VkCommandBuffer)dispatchHandle, pDependencyInfo);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdPipelineBarrier2KHR(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), pDependencyInfo);
                 }
                 break;
             }
@@ -2457,6 +2936,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdWriteTimestamp2KHR((VkCommandBuffer)dispatchHandle, stage, queryPool,
                                                 query);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdWriteTimestamp2KHR(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), stage, queryPool, query);
                 }
                 break;
             }
@@ -2482,6 +2966,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdWriteBufferMarker2AMD((VkCommandBuffer)dispatchHandle, stage,
                                                    dstBuffer, dstOffset, marker);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdWriteBufferMarker2AMD(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), stage, dstBuffer, dstOffset,
+                        marker);
+                }
                 break;
             }
 #endif
@@ -2502,6 +2992,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdCopyBuffer2KHR((VkCommandBuffer)dispatchHandle, pCopyBufferInfo);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdCopyBuffer2KHR(pool, snapshotApiCallInfo, nullptr, 0,
+                                                          (VkCommandBuffer)(boxed_dispatchHandle),
+                                                          pCopyBufferInfo);
+                }
                 break;
             }
             case OP_vkCmdCopyImage2KHR: {
@@ -2520,6 +3015,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     this->on_vkCmdCopyImage2KHR(
                         pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), pCopyImageInfo);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdCopyImage2KHR(pool, snapshotApiCallInfo, nullptr, 0,
+                                                         (VkCommandBuffer)(boxed_dispatchHandle),
+                                                         pCopyImageInfo);
                 }
                 break;
             }
@@ -2541,6 +3041,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                                                         (VkCommandBuffer)(boxed_dispatchHandle),
                                                         pCopyBufferToImageInfo, context);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdCopyBufferToImage2KHR(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), pCopyBufferToImageInfo);
+                }
                 break;
             }
             case OP_vkCmdCopyImageToBuffer2KHR: {
@@ -2561,6 +3066,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                                                         (VkCommandBuffer)(boxed_dispatchHandle),
                                                         pCopyImageToBufferInfo);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdCopyImageToBuffer2KHR(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), pCopyImageToBufferInfo);
+                }
                 break;
             }
             case OP_vkCmdBlitImage2KHR: {
@@ -2579,6 +3089,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdBlitImage2KHR((VkCommandBuffer)dispatchHandle, pBlitImageInfo);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdBlitImage2KHR(pool, snapshotApiCallInfo, nullptr, 0,
+                                                         (VkCommandBuffer)(boxed_dispatchHandle),
+                                                         pBlitImageInfo);
+                }
                 break;
             }
             case OP_vkCmdResolveImage2KHR: {
@@ -2596,6 +3111,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdResolveImage2KHR((VkCommandBuffer)dispatchHandle, pResolveImageInfo);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdResolveImage2KHR(pool, snapshotApiCallInfo, nullptr, 0,
+                                                            (VkCommandBuffer)(boxed_dispatchHandle),
+                                                            pResolveImageInfo);
                 }
                 break;
             }
@@ -2622,6 +3142,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdBindIndexBuffer2KHR((VkCommandBuffer)dispatchHandle, buffer, offset,
                                                  size, indexType);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdBindIndexBuffer2KHR(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), buffer, offset, size, indexType);
+                }
                 break;
             }
 #endif
@@ -2638,6 +3163,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetLineStippleKHR((VkCommandBuffer)dispatchHandle, lineStippleFactor,
                                                lineStipplePattern);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetLineStippleKHR(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), lineStippleFactor,
+                        lineStipplePattern);
                 }
                 break;
             }
@@ -2702,6 +3233,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                                                              firstBinding, bindingCount, pBuffers,
                                                              pOffsets, pSizes);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdBindTransformFeedbackBuffersEXT(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), firstBinding, bindingCount,
+                        pBuffers, pOffsets, pSizes);
+                }
                 break;
             }
             case OP_vkCmdBeginTransformFeedbackEXT: {
@@ -2759,6 +3296,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdBeginTransformFeedbackEXT((VkCommandBuffer)dispatchHandle,
                                                        firstCounterBuffer, counterBufferCount,
                                                        pCounterBuffers, pCounterBufferOffsets);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdBeginTransformFeedbackEXT(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), firstCounterBuffer,
+                        counterBufferCount, pCounterBuffers, pCounterBufferOffsets);
                 }
                 break;
             }
@@ -2818,6 +3361,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                                                      firstCounterBuffer, counterBufferCount,
                                                      pCounterBuffers, pCounterBufferOffsets);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdEndTransformFeedbackEXT(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), firstCounterBuffer,
+                        counterBufferCount, pCounterBuffers, pCounterBufferOffsets);
+                }
                 break;
             }
             case OP_vkCmdBeginQueryIndexedEXT: {
@@ -2843,6 +3392,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdBeginQueryIndexedEXT((VkCommandBuffer)dispatchHandle, queryPool, query,
                                                   flags, index);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdBeginQueryIndexedEXT(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), queryPool, query, flags, index);
+                }
                 break;
             }
             case OP_vkCmdEndQueryIndexedEXT: {
@@ -2863,6 +3417,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdEndQueryIndexedEXT((VkCommandBuffer)dispatchHandle, queryPool, query,
                                                 index);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdEndQueryIndexedEXT(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), queryPool, query, index);
                 }
                 break;
             }
@@ -2895,6 +3454,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                         (VkCommandBuffer)dispatchHandle, instanceCount, firstInstance,
                         counterBuffer, counterBufferOffset, counterOffset, vertexStride);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdDrawIndirectByteCountEXT(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), instanceCount, firstInstance,
+                        counterBuffer, counterBufferOffset, counterOffset, vertexStride);
+                }
                 break;
             }
 #endif
@@ -2915,6 +3480,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdBeginDebugUtilsLabelEXT((VkCommandBuffer)dispatchHandle, pLabelInfo);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdBeginDebugUtilsLabelEXT(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), pLabelInfo);
+                }
                 break;
             }
             case OP_vkCmdEndDebugUtilsLabelEXT: {
@@ -2922,6 +3492,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                                       "VkSubDecoder vkCmdEndDebugUtilsLabelEXT");
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdEndDebugUtilsLabelEXT((VkCommandBuffer)dispatchHandle);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdEndDebugUtilsLabelEXT(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle));
                 }
                 break;
             }
@@ -2941,6 +3516,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdInsertDebugUtilsLabelEXT((VkCommandBuffer)dispatchHandle, pLabelInfo);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdInsertDebugUtilsLabelEXT(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), pLabelInfo);
+                }
                 break;
             }
 #endif
@@ -2958,6 +3538,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdSetLineStippleEXT((VkCommandBuffer)dispatchHandle, lineStippleFactor,
                                                lineStipplePattern);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetLineStippleEXT(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), lineStippleFactor,
+                        lineStipplePattern);
+                }
                 break;
             }
 #endif
@@ -2971,6 +3557,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetCullModeEXT((VkCommandBuffer)dispatchHandle, cullMode);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetCullModeEXT(pool, snapshotApiCallInfo, nullptr, 0,
+                                                          (VkCommandBuffer)(boxed_dispatchHandle),
+                                                          cullMode);
+                }
                 break;
             }
             case OP_vkCmdSetFrontFaceEXT: {
@@ -2981,6 +3572,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(VkFrontFace);
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetFrontFaceEXT((VkCommandBuffer)dispatchHandle, frontFace);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetFrontFaceEXT(pool, snapshotApiCallInfo, nullptr, 0,
+                                                           (VkCommandBuffer)(boxed_dispatchHandle),
+                                                           frontFace);
                 }
                 break;
             }
@@ -2994,6 +3590,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetPrimitiveTopologyEXT((VkCommandBuffer)dispatchHandle,
                                                      primitiveTopology);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetPrimitiveTopologyEXT(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), primitiveTopology);
                 }
                 break;
             }
@@ -3024,6 +3625,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdSetViewportWithCountEXT((VkCommandBuffer)dispatchHandle, viewportCount,
                                                      pViewports);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetViewportWithCountEXT(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), viewportCount, pViewports);
+                }
                 break;
             }
             case OP_vkCmdSetScissorWithCountEXT: {
@@ -3052,6 +3658,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetScissorWithCountEXT((VkCommandBuffer)dispatchHandle, scissorCount,
                                                     pScissors);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetScissorWithCountEXT(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), scissorCount, pScissors);
                 }
                 break;
             }
@@ -3139,6 +3750,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                                                    bindingCount, pBuffers, pOffsets, pSizes,
                                                    pStrides);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdBindVertexBuffers2EXT(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), firstBinding, bindingCount,
+                        pBuffers, pOffsets, pSizes, pStrides);
+                }
                 break;
             }
             case OP_vkCmdSetDepthTestEnableEXT: {
@@ -3150,6 +3767,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetDepthTestEnableEXT((VkCommandBuffer)dispatchHandle,
                                                    depthTestEnable);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetDepthTestEnableEXT(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), depthTestEnable);
                 }
                 break;
             }
@@ -3163,6 +3785,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdSetDepthWriteEnableEXT((VkCommandBuffer)dispatchHandle,
                                                     depthWriteEnable);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetDepthWriteEnableEXT(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), depthWriteEnable);
+                }
                 break;
             }
             case OP_vkCmdSetDepthCompareOpEXT: {
@@ -3173,6 +3800,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(VkCompareOp);
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetDepthCompareOpEXT((VkCommandBuffer)dispatchHandle, depthCompareOp);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetDepthCompareOpEXT(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), depthCompareOp);
                 }
                 break;
             }
@@ -3186,6 +3818,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdSetDepthBoundsTestEnableEXT((VkCommandBuffer)dispatchHandle,
                                                          depthBoundsTestEnable);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetDepthBoundsTestEnableEXT(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), depthBoundsTestEnable);
+                }
                 break;
             }
             case OP_vkCmdSetStencilTestEnableEXT: {
@@ -3197,6 +3834,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetStencilTestEnableEXT((VkCommandBuffer)dispatchHandle,
                                                      stencilTestEnable);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetStencilTestEnableEXT(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), stencilTestEnable);
                 }
                 break;
             }
@@ -3223,6 +3865,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdSetStencilOpEXT((VkCommandBuffer)dispatchHandle, faceMask, failOp,
                                              passOp, depthFailOp, compareOp);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetStencilOpEXT(pool, snapshotApiCallInfo, nullptr, 0,
+                                                           (VkCommandBuffer)(boxed_dispatchHandle),
+                                                           faceMask, failOp, passOp, depthFailOp,
+                                                           compareOp);
+                }
                 break;
             }
 #endif
@@ -3237,6 +3885,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdSetPatchControlPointsEXT((VkCommandBuffer)dispatchHandle,
                                                       patchControlPoints);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetPatchControlPointsEXT(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), patchControlPoints);
+                }
                 break;
             }
             case OP_vkCmdSetRasterizerDiscardEnableEXT: {
@@ -3248,6 +3901,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetRasterizerDiscardEnableEXT((VkCommandBuffer)dispatchHandle,
                                                            rasterizerDiscardEnable);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetRasterizerDiscardEnableEXT(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), rasterizerDiscardEnable);
                 }
                 break;
             }
@@ -3261,6 +3919,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdSetDepthBiasEnableEXT((VkCommandBuffer)dispatchHandle,
                                                    depthBiasEnable);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetDepthBiasEnableEXT(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), depthBiasEnable);
+                }
                 break;
             }
             case OP_vkCmdSetLogicOpEXT: {
@@ -3271,6 +3934,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(VkLogicOp);
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetLogicOpEXT((VkCommandBuffer)dispatchHandle, logicOp);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetLogicOpEXT(pool, snapshotApiCallInfo, nullptr, 0,
+                                                         (VkCommandBuffer)(boxed_dispatchHandle),
+                                                         logicOp);
                 }
                 break;
             }
@@ -3283,6 +3951,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetPrimitiveRestartEnableEXT((VkCommandBuffer)dispatchHandle,
                                                           primitiveRestartEnable);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetPrimitiveRestartEnableEXT(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), primitiveRestartEnable);
                 }
                 break;
             }
@@ -3309,6 +3982,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     vk->vkCmdSetColorWriteEnableEXT((VkCommandBuffer)dispatchHandle,
                                                     attachmentCount, pColorWriteEnables);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetColorWriteEnableEXT(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), attachmentCount,
+                        pColorWriteEnables);
+                }
                 break;
             }
 #endif
@@ -3331,6 +4010,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                         pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), pBeginInfo,
                         context);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkBeginCommandBufferAsyncGOOGLE(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), pBeginInfo);
+                }
                 break;
             }
             case OP_vkEndCommandBufferAsyncGOOGLE: {
@@ -3339,6 +4023,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     this->on_vkEndCommandBufferAsyncGOOGLE(
                         pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), context);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkEndCommandBufferAsyncGOOGLE(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle));
                 }
                 break;
             }
@@ -3352,6 +4041,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     this->on_vkResetCommandBufferAsyncGOOGLE(
                         pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), flags);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkResetCommandBufferAsyncGOOGLE(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), flags);
                 }
                 break;
             }
@@ -3368,6 +4062,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     this->on_vkCommandBufferHostSyncGOOGLE(pool, nullptr,
                                                            (VkCommandBuffer)(boxed_dispatchHandle),
                                                            needHostSync, sequenceNumber);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCommandBufferHostSyncGOOGLE(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), needHostSync, sequenceNumber);
                 }
                 break;
             }
@@ -3438,6 +4137,13 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                                           pHitShaderBindingTable, pCallableShaderBindingTable,
                                           width, height, depth);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdTraceRaysKHR(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), pRaygenShaderBindingTable,
+                        pMissShaderBindingTable, pHitShaderBindingTable,
+                        pCallableShaderBindingTable, width, height, depth);
+                }
                 break;
             }
             case OP_vkCmdTraceRaysIndirectKHR: {
@@ -3500,6 +4206,13 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                         pMissShaderBindingTable, pHitShaderBindingTable,
                         pCallableShaderBindingTable, indirectDeviceAddress);
                 }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdTraceRaysIndirectKHR(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), pRaygenShaderBindingTable,
+                        pMissShaderBindingTable, pHitShaderBindingTable,
+                        pCallableShaderBindingTable, indirectDeviceAddress);
+                }
                 break;
             }
             case OP_vkCmdSetRayTracingPipelineStackSizeKHR: {
@@ -3511,6 +4224,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetRayTracingPipelineStackSizeKHR((VkCommandBuffer)dispatchHandle,
                                                                pipelineStackSize);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetRayTracingPipelineStackSizeKHR(
+                        pool, snapshotApiCallInfo, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), pipelineStackSize);
                 }
                 break;
             }

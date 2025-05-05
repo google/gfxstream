@@ -7924,16 +7924,17 @@ class VkDecoderGlobalState::Impl {
 
 #include "VkSubDecoder.cpp"
 
-    void on_vkQueueFlushCommandsGOOGLE(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo*,
-                                       VkQueue queue, VkCommandBuffer boxed_commandBuffer,
-                                       VkDeviceSize dataSize, const void* pData,
-                                       const VkDecoderContext& context) {
+    void on_vkQueueFlushCommandsGOOGLE(gfxstream::base::BumpPool* pool,
+                                       VkSnapshotApiCallInfo* snapshotApiCallInfo, VkQueue queue,
+                                       VkCommandBuffer boxed_commandBuffer, VkDeviceSize dataSize,
+                                       const void* pData, const VkDecoderContext& context) {
         (void)queue;
 
         VkCommandBuffer commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
         VulkanDispatch* vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
         VulkanMemReadingStream* readStream = readstream_VkCommandBuffer(boxed_commandBuffer);
-        subDecode(readStream, vk, boxed_commandBuffer, commandBuffer, dataSize, pData, context);
+        subDecode(readStream, vk, snapshotApiCallInfo, boxed_commandBuffer, commandBuffer, dataSize,
+                  pData, context);
     }
 
     void on_vkQueueFlushCommandsFromAuxMemoryGOOGLE(gfxstream::base::BumpPool* pool,

@@ -32,6 +32,15 @@ namespace vk {
 
 #endif
 
+void DependencyGraph::removeDescendantsOfHandle(const NodeId id) {
+    auto* nd = getDepNode(id);
+    if (nd) {
+        for (auto child : nd->childNodeIds) {
+            removeNodeAndDescendants(child);
+        }
+    }
+}
+
 void DependencyGraph::removeNodesAndDescendants(const NodeId* toRemove, uint32_t count) {
     // shader can be removed after pipeline is created, but we need it during
     // load, so do not remove it. This also apply to renderpass
@@ -47,12 +56,7 @@ void DependencyGraph::removeNodesAndDescendants(const NodeId* toRemove, uint32_t
 }
 
 void DependencyGraph::removeNodeAndDescendants(NodeId id) {
-    auto* nd = getDepNode(id);
-    if (nd) {
-        for (auto child : nd->childNodeIds) {
-            removeNodeAndDescendants(child);
-        }
-    }
+    removeDescendantsOfHandle(id);
     mDepId2DepNode.erase(id);
 }
 
@@ -174,7 +178,9 @@ void DependencyGraph::addDep(NodeId child_id, NodeId parent_id) {
         case Tag_VkBufferView:
         case Tag_VkSampler:
         case Tag_VkDescriptorSet:
+        case Tag_VkDescriptorPool:
         case Tag_VkCommandPool:
+        case Tag_VkCommandBuffer:
             break;
         default:
             return;
