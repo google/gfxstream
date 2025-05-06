@@ -79,7 +79,7 @@ static __translatorMustCastToProperFunctionPointerType getProcAddressGles2(const
 static void preSaveTexture();
 static void postSaveTexture();
 static void saveTexture(SaveableTexture* texture, android::base::Stream* stream,
-                        android::base::SmallVector<unsigned char>* buffer);
+                        gfxstream::SmallVector<unsigned char>* buffer);
 static SaveableTexture* createTexture(GlobalNameSpace* globalNameSpace,
                                       SaveableTexture::loader_t&& loader);
 static void restoreTexture(SaveableTexture* texture);

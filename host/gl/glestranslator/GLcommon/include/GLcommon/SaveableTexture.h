@@ -16,18 +16,20 @@
 
 #pragma once
 
-#include "aemu/base/containers/SmallVector.h"
+#include <atomic>
+#include <functional>
+#include <memory>
+#include <vector>
+
 #include "aemu/base/files/Stream.h"
 #include "snapshot/LazySnapshotObj.h"
 #include "GLcommon/NamedObject.h"
 #include "GLcommon/TextureData.h"
 #include "GLcommon/TranslatorIfaces.h"
+#include "render-utils/snapshot_operations.h"
+#include "render-utils/small_vector.h"
 
 #include <GLES2/gl2ext.h>
-
-#include <atomic>
-#include <functional>
-#include <memory>
 
 class GLDispatch;
 class GlobalNameSpace;
@@ -46,10 +48,9 @@ class TextureData;
 // EglImages and GLES textures are being loaded. Then TextureGlobal will be
 // destroyed.
 
-class SaveableTexture :
-        public gfxstream::LazySnapshotObj<SaveableTexture> {
-public:
-    using Buffer = android::base::SmallVector<unsigned char>;
+class SaveableTexture : public gfxstream::LazySnapshotObj<SaveableTexture> {
+  public:
+    using Buffer = gfxstream::ITextureSaver::Buffer;
     using saver_t = void (*)(SaveableTexture*,
                              android::base::Stream*,
                              Buffer* buffer);
@@ -107,7 +108,7 @@ private:
         unsigned int m_width = 0;
         unsigned int m_height = 0;
         unsigned int m_depth = 0;
-        android::base::SmallFixedVector<unsigned char, 16> m_data;
+        gfxstream::SmallFixedVector<unsigned char, 16> m_data;
     };
     std::unique_ptr<LevelImageData[]> m_levelData[6] = {};
     std::unordered_map<GLenum, GLint> m_texParam;

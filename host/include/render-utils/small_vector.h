@@ -14,16 +14,13 @@
 
 #pragma once
 
-#include "gfxstream/TypeTraits.h"
-
 #include <algorithm>
 #include <initializer_list>
 #include <memory>
-#include <type_traits>
-#include <utility>
-
 #include <stddef.h>
 #include <stdlib.h>
+#include <type_traits>
+#include <utility>
 
 //
 // SmallVector<T>, SmallFixedVector<T, SmallSize>
@@ -49,7 +46,44 @@
 //
 
 namespace gfxstream {
-namespace base {
+namespace internal {
+
+// Use 'enable_if<Predicate,Type>' instead of
+// 'typename std::enable_if<Predicate::value,Type>::type'
+template <class Predicate, class Type = void*>
+using enable_if = typename std::enable_if<Predicate::value, Type>::type;
+
+// Use 'enable_if_c<Predicate,Type>' instead of
+// 'typename std::enable_if<Predicate,Type>::type'
+template <bool Predicate, class Type = void*>
+using enable_if_c = typename std::enable_if<Predicate, Type>::type;
+
+// Use 'enable_if_convertible<From,To,Type>' instead of
+// 'typename std::enable_if<std::is_convertible<From,To>::value, Type>::type'
+template <class From, class To, class Type = void*>
+using enable_if_convertible = enable_if<std::is_convertible<From, To>>;
+
+// is_range<T> - check if type |T| is a range-like type.
+//
+// It makes sure that expressions std::begin(t) and std::end(t) are well-formed
+// and those return the same type.
+template <class T>
+using is_range_helper = std::is_same<
+        decltype(std::begin(
+                std::declval<typename std::add_lvalue_reference<T>::type>())),
+        decltype(std::end(
+                std::declval<typename std::add_lvalue_reference<T>::type>()))>;
+
+template <class T, class = void>
+struct is_range : std::false_type {};
+
+template <class T>
+struct is_range<
+        T,
+        typename std::enable_if<is_range_helper<T>::value>::type>
+        : std::true_type {};
+
+}  // namespace internal
 
 //
 // Forward-declare the 'real' small vector class.
@@ -315,17 +349,19 @@ public:
     // Ctor from a range - anything that has begin and end.
     // Note: template constructor is never a copy/move-ctor.
     template <class Range,
-              class = enable_if_c<!std::is_same<Range, T>::value &&
-                                  is_range<Range>::value>>
+              class = internal::enable_if_c<
+                    !std::is_same<Range, T>::value &&
+                            internal::is_range<Range>::value>>
     explicit SmallFixedVector(const Range& r)
         : SmallFixedVector(std::begin(r), std::end(r)) {}
     template <class Range,
-              class = enable_if_c<!std::is_same<Range, T>::value &&
-                                  is_range<Range>::value>>
+              class = internal::enable_if_c<
+                    !std::is_same<Range, T>::value &&
+                            internal::is_range<Range>::value>>
     explicit SmallFixedVector(Range&& r)
         : SmallFixedVector(std::make_move_iterator(std::begin(r)),
                            std::make_move_iterator(std::end(r))) {}
-    template <class U, class = enable_if_convertible<U, T>>
+    template <class U, class = internal::enable_if_convertible<U, T>>
     SmallFixedVector(std::initializer_list<U> list)
         : SmallFixedVector(std::begin(list), std::end(list)) {}
 
@@ -409,5 +445,4 @@ private:
     } mData;
 };
 
-}  // namespace base
-}  // namespace android
+}  // namespace gfxstream

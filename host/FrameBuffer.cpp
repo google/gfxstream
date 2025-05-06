@@ -37,7 +37,6 @@
 #include "gfxstream/Tracing.h"
 #include "gfxstream/containers/Lookup.h"
 #include "aemu/base/files/StreamSerializing.h"
-#include "gfxstream/memory/MemoryTracker.h"
 #include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/system/System.h"
 

@@ -19,9 +19,9 @@
 #include <memory>
 #include <vector>
 
-#include "aemu/base/containers/SmallVector.h"
 #include "aemu/base/files/Stream.h"
 #include "aemu/base/threads/Thread.h"
+#include "render-utils/small_vector.h"
 
 namespace gfxstream {
 
@@ -33,7 +33,7 @@ class ITextureSaver {
     ITextureSaver(ITextureSaver&) = delete;
     ITextureSaver& operator=(ITextureSaver&) = delete;
 
-    using Buffer = android::base::SmallVector<unsigned char>;
+    using Buffer = SmallVector<unsigned char>;
     using saver_t = std::function<void(android::base::Stream*, Buffer*)>;
 
     // Save texture to a stream as well as update the index
