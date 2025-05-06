@@ -17,8 +17,8 @@
 #include <functional>
 #include <vector>
 
+#include "gfxstream/host/address_space_graphics_types.h"
 #include "gfxstream/host/iostream.h"
-#include "gfxstream/ring_buffer.h"
 #include "render-utils/RenderChannel.h"
 #include "render-utils/address_space_graphics_types.h"
 
@@ -29,23 +29,12 @@ namespace gfxstream {
 // a callback that does something when there are no available bytes to read in
 // the "to host" ring buffer.
 class RingStream final : public IOStream {
-public:
-    using OnUnavailableReadCallback = std::function<int()>;
-    using GetPtrAndSizeCallback =
-        std::function<void(uint64_t, char**, size_t*)>;
-
-    RingStream(
-        struct asg_context context,
-        android::emulation::asg::ConsumerCallbacks callbacks,
-        size_t bufsize);
+  public:
+    RingStream(const AsgConsumerCreateInfo& info, size_t bufsize);
     ~RingStream();
-
-    int getNeededFreeTailSize() const;
 
     int writeFully(const void* buf, size_t len) override;
     const unsigned char *readFully( void *buf, size_t len) override;
-
-    void printStats();
 
     void pausePreSnapshot() {
         mInSnapshotOperation = true;
@@ -55,11 +44,9 @@ public:
         mInSnapshotOperation = false;
     }
 
-    bool inSnapshotOperation() const {
-        return mInSnapshotOperation;
-    }
+    void reloadRingConfig();
 
-protected:
+  protected:
     virtual void* allocBuffer(size_t minSize) override final;
     virtual int commitBuffer(size_t size) override final;
     virtual const unsigned char* readRaw(void* buf, size_t* inout_len) override final;
@@ -74,7 +61,8 @@ protected:
     void type3Read(uint32_t available, size_t* count, char** current, const char* ptrEnd);
 
     struct asg_context mContext;
-    android::emulation::asg::ConsumerCallbacks mCallbacks;
+    struct asg_ring_config mSavedRingConfig;
+    ConsumerCallbacks mCallbacks;
 
     std::vector<asg_type1_xfer> mType1Xfers;
     std::vector<asg_type2_xfer> mType2Xfers;
@@ -82,6 +70,11 @@ protected:
     RenderChannel::Buffer mReadBuffer;
     RenderChannel::Buffer mWriteBuffer;
     size_t mReadBufferLeft = 0;
+
+    // The number of times this RingStream should attempt reading
+    // before going to sleep.
+    static const uint32_t kMaxUnavailableReads = 8;
+    uint32_t mUnavailableReadCount = 0;
 
     size_t mXmits = 0;
     size_t mTotalRecv = 0;

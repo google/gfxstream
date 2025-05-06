@@ -17,7 +17,7 @@ lib_apigen_codec = static_library(
   'apigen_codec',
   files_lib_apigen_codec,
   cpp_args: gfxstream_host_args,
-  include_directories: [inc_gfxstream_include, inc_include, inc_common_base, inc_host_library,
-                        inc_host_logging],
+  include_directories: [inc_gfxstream_include, inc_include, inc_common_base, inc_host_include,
+                        inc_host_library, inc_host_logging],
   link_with: [lib_common_base, lib_host_library, lib_host_logging],
 )

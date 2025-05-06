@@ -19,7 +19,6 @@
 #include "InMemoryTextureSaverLoader.h"
 #include "OpenGLESDispatch/OpenGLDispatchLoader.h"
 #include "gfxstream/host/mem_stream.h"
-#include "gfxstream/testing/TestSystem.h"
 
 namespace gfxstream {
 namespace gl {
@@ -65,8 +64,6 @@ protected:
     bool mValid = false;
 
     int mLoadCount = 0;
-
-    gfxstream::base::TestSystem mTestSystem;
 
     std::unique_ptr<gfxstream::MemStream> mStream;
     std::shared_ptr<InMemoryTextureSaverLoader> mTextureSaverLoader;

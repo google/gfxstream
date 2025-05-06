@@ -18,7 +18,7 @@
 #include <vector>
 
 #include "gfxstream/host/borrowed_image.h"
-#include "ExternalObjectManager.h"
+#include "gfxstream/host/external_object_manager.h"
 #include "FrameworkFormats.h"
 #include "render-utils/stream.h"
 

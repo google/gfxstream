@@ -44,7 +44,6 @@ cc_test(
     copts = ["-fno-exceptions"],
     deps = [
         ":gfxstream-compressedTextures",
-        "@aemu//base:aemu-base",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -84,9 +83,7 @@ cc_library(
         "Buffer.cpp",
         "ChannelStream.cpp",
         "ColorBuffer.cpp",
-        "ExternalObjectManager.cpp",
         "FrameBuffer.cpp",
-        "GraphicsDriverLock.cpp",
         "Hwc2.cpp",
         "PostWorker.cpp",
         "PostWorkerGl.cpp",
@@ -156,8 +153,6 @@ cc_library(
         "//host/snapshot:gfxstream_host_snapshot",
         "//host/tracing:gfxstream_host_tracing",
         "//host/vulkan:gfxstream-vulkan-server",
-        "@aemu//base:aemu-base",
-        "@aemu//base:aemu-base-metrics",
     ] + select({
         "@platforms//os:macos": [
             ":gfxstream_backend_static-darwin",
@@ -187,8 +182,6 @@ cc_library(
     deps = [
         ":gfxstream_backend_static",
         "//common/utils:gfxstream_common_utils",
-        "@aemu//base:aemu-base",
-        "@aemu//base:aemu-base-metrics",
     ],
 )
 
@@ -204,8 +197,6 @@ cc_binary(
     deps = [
         ":gfxstream_backend_static",
         "//common/utils:gfxstream_common_utils",
-        "@aemu//base:aemu-base",
-        "@aemu//base:aemu-base-metrics",
     ],
 )
 

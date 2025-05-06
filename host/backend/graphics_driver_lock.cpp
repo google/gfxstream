@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "GraphicsDriverLock.h"
+#include "gfxstream/host/graphics_driver_lock.h"
 
 namespace {
 gfxstream::base::Lock* sLock = new gfxstream::base::Lock();

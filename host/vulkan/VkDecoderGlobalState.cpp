@@ -23,7 +23,7 @@
 #include <vector>
 
 #include "FrameBuffer.h"
-#include "GraphicsDriverLock.h"
+#include "gfxstream/host/graphics_driver_lock.h"
 #include "RenderThreadInfoVk.h"
 #include "TrivialStream.h"
 #include "VkAndroidNativeBuffer.h"
@@ -90,7 +90,7 @@ using emugl::GfxApiLogger;
 using gfxstream::ExternalObjectManager;
 using gfxstream::VulkanInfo;
 
-// TODO(b/261477138): Move to a shared aemu definition
+// TODO(b/261477138): Move to a shared definition
 #define __ALIGN_MASK(x, mask) (((x) + (mask)) & ~(mask))
 #define __ALIGN(x, a) __ALIGN_MASK(x, (__typeof__(x))(a)-1)
 

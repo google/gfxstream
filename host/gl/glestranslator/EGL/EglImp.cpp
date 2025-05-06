@@ -41,7 +41,7 @@
 #include "GLcommon/TextureData.h"
 #include "GLcommon/TextureUtils.h"
 #include "GLcommon/TranslatorIfaces.h"
-#include "GraphicsDriverLock.h"
+#include "gfxstream/host/graphics_driver_lock.h"
 #include "ThreadInfo.h"
 #include "gfxstream/SharedLibrary.h"
 #include "render-utils/stream.h"

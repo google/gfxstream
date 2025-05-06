@@ -30,13 +30,12 @@
 #include "RenderControl.h"
 #endif
 #include "RenderThreadInfo.h"
-#include "RingStream.h"
 #include "VkDecoderContext.h"
 #include "apigen-codec-common/ChecksumCalculatorThreadInfo.h"
-#include "gfxstream/host/stream_utils.h"
 #include "gfxstream/HealthMonitor.h"
-#include "gfxstream/host/logging.h"
 #include "gfxstream/Metrics.h"
+#include "gfxstream/host/logging.h"
+#include "gfxstream/host/stream_utils.h"
 #include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/synchronization/MessageChannel.h"
 #include "gfxstream/system/System.h"
@@ -93,17 +92,12 @@ RenderThread::RenderThread(RenderChannelImpl* channel,
     }
 }
 
-RenderThread::RenderThread(
-        struct asg_context context,
-        gfxstream::Stream* load,
-        android::emulation::asg::ConsumerCallbacks callbacks,
-        uint32_t contextId, uint32_t capsetId,
-        std::optional<std::string> nameOpt)
+RenderThread::RenderThread(const AsgConsumerCreateInfo& info, Stream* load)
     : gfxstream::base::Thread(gfxstream::base::ThreadFlags::MaskSignals, 2 * 1024 * 1024,
-                            std::move(nameOpt)),
-      mRingStream(
-          new RingStream(context, callbacks, kStreamBufferSize)),
-      mContextId(contextId), mCapsetId(capsetId) {
+                              info.virtioGpuContextName ? *info.virtioGpuContextName : ""),
+      mRingStream(new RingStream(info, kStreamBufferSize)),
+      mContextId(info.virtioGpuContextId ? *info.virtioGpuContextId : 0),
+      mCapsetId(info.virtioGpuCapsetId ? *info.virtioGpuCapsetId : 0) {
     if (load) {
         const bool success = load->getByte();
         if (success) {
@@ -242,6 +236,12 @@ void RenderThread::sendExitSignal() {
     }
     mCanExit.store(true, std::memory_order_relaxed);
     mExitSignal.broadcastAndUnlock(&lock);
+}
+
+void RenderThread::addressSpaceGraphicsReloadRingConfig() {
+    if (mRingStream) {
+        mRingStream->reloadRingConfig();
+    }
 }
 
 void RenderThread::setFinished() {

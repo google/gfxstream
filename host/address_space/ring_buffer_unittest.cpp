@@ -11,16 +11,17 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include "gfxstream/ring_buffer.h"
+#include "gfxstream/host/ring_buffer.h"
 
-#include "gfxstream/system/System.h"
-#include "gfxstream/threads/FunctorThread.h"
+#include <errno.h>
+#include <random>
 
 #include <gtest/gtest.h>
 
-#include <random>
+#include "gfxstream/threads/FunctorThread.h"
+#include "gfxstream/system/System.h"
 
-#include <errno.h>
+
 #ifdef _MSC_VER
 #include "gfxstream/msvc.h"
 #else

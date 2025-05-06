@@ -32,7 +32,6 @@ add_library(gfxstream-gl-server
 target_link_libraries(
         gfxstream-gl-server
         PUBLIC
-        aemu-base.headers
         gfxstream_backend_headers
         gfxstream_features
         gfxstream_openglesdispatch

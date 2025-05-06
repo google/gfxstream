@@ -18,7 +18,7 @@
 #include <string.h>
 #include <utility>
 
-#include "GraphicsDriverLock.h"
+#include "gfxstream/host/graphics_driver_lock.h"
 #include "RenderThread.h"
 #include "gfxstream/synchronization/Lock.h"
 

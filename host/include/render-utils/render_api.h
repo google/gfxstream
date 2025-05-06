@@ -17,15 +17,15 @@
 
 #include "render-utils/render_api_functions.h"
 
-#include "aemu/base/c_header.h"
-
 #include <KHR/khrplatform.h>
 
 // All interfaces which can fail return an int, with zero indicating failure
 // and anything else indicating success.
 
 #ifndef USING_ANDROID_BP
-ANDROID_BEGIN_HEADER
+#ifdef __cplusplus
+extern "C" {
+#endif
 #endif
 
 namespace gfxstream {
@@ -46,5 +46,7 @@ RENDER_APICALL RenderLibPtr RENDER_APIENTRY initLibrary();
 }  // namespace gfxstream
 
 #ifndef USING_ANDROID_BP
-ANDROID_END_HEADER
+#ifdef __cplusplus
+} // extern "C"
+#endif
 #endif

@@ -13,17 +13,13 @@
 // limitations under the License.
 #pragma once
 
-#include "aemu/base/EnumFlags.h"
-#include "render-utils/stream.h"
-#include "render-utils/small_vector.h"
-
 #include <functional>
 #include <memory>
 
-namespace gfxstream {
+#include "render-utils/stream.h"
+#include "render-utils/small_vector.h"
 
-// Turn the RenderChannel::State enum into flags.
-using namespace ::android::base::EnumFlags;
+namespace gfxstream {
 
 // RenderChannel - For each guest-to-host renderer connection, this provides
 // an interface for the guest side to interact with the corresponding renderer

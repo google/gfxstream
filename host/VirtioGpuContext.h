@@ -22,7 +22,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "ExternalObjectManager.h"
+#include "gfxstream/host/external_object_manager.h"
 #include "VirtioGpu.h"
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
 // X11 defines status as a preprocessor define which messes up

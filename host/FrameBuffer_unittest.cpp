@@ -22,7 +22,6 @@
 #include "gfxstream/host/mem_stream.h"
 #include "gfxstream/host/window_operations.h"
 #include "gfxstream/system/System.h"
-#include "gfxstream/testing/TestSystem.h"
 #include "tests/GLSnapshotTesting.h"
 #include "tests/GLTestUtils.h"
 #include "tests/Standalone.h"
@@ -92,13 +91,6 @@ class FrameBufferTest : public ::testing::Test {
 
         mRenderThreadInfo = new RenderThreadInfo();
         mRenderThreadInfo->initGl();
-
-        // Snapshots
-        mTestSystem.getTempRoot()->makeSubDir("Snapshots");
-        mSnapshotPath = mTestSystem.getTempRoot()->makeSubPath("Snapshots");
-        mTimeStamp = std::to_string(gfxstream::base::getUnixTimeUs());
-        mSnapshotFile = gfxstream::base::pj({mSnapshotPath, std::string("snapshot_") + mTimeStamp + ".snap"});
-        mTextureFile = gfxstream::base::pj({mSnapshotPath,  std::string("textures_") + mTimeStamp + ".stex"});
     }
 
     virtual void TearDown() override {
@@ -111,23 +103,19 @@ class FrameBufferTest : public ::testing::Test {
     }
 
     void saveSnapshot() {
-        std::unique_ptr<StdioStream> m_stream(new StdioStream(
-                    android_fopen(mSnapshotFile.c_str(), "wb"), StdioStream::kOwner));
+        mSnapshotStream = std::make_unique<MemStream>();
         mSnapshotTextureSaverLoader = std::make_shared<InMemoryTextureSaverLoader>();
-        mFb->onSave(m_stream.get(), mSnapshotTextureSaverLoader);
+        mFb->onSave(mSnapshotStream.get(), mSnapshotTextureSaverLoader);
 
-        m_stream->close();
     }
 
     void loadSnapshot() {
         // unbind so load will destroy previous objects
         mFb->bindContext(0, 0, 0);
 
-        std::unique_ptr<StdioStream> m_stream(new StdioStream(
-                    android_fopen(mSnapshotFile.c_str(), "rb"), StdioStream::kOwner));
+        mSnapshotStream->rewind();
+        mFb->onLoad(mSnapshotStream.get(), mSnapshotTextureSaverLoader);
 
-        mFb->onLoad(m_stream.get(), mSnapshotTextureSaverLoader);
-        m_stream->close();
     }
 
     bool mUseSubWindow = false;
@@ -135,19 +123,13 @@ class FrameBufferTest : public ::testing::Test {
     FrameBuffer* mFb = nullptr;
     RenderThreadInfo* mRenderThreadInfo = nullptr;
 
-
+    std::unique_ptr<MemStream> mSnapshotStream;
     std::shared_ptr<InMemoryTextureSaverLoader> mSnapshotTextureSaverLoader;
 
     int mWidth = 256;
     int mHeight = 256;
     int mXOffset= 400;
     int mYOffset= 400;
-
-    gfxstream::base::TestSystem mTestSystem;
-    std::string mSnapshotPath;
-    std::string mTimeStamp;
-    std::string mSnapshotFile;
-    std::string mTextureFile;
 };
 
 // Tests that framebuffer initialization and finalization works.

@@ -119,4 +119,48 @@ typedef struct address_space_device_control_ops {
     address_space_device_create_instance_t create_instance;
 } address_space_device_control_ops;
 
+// State/config changes may only occur if the ring is empty, or the state
+// is transitioning to Error. That way, the host and guest have a chance to
+// synchronize on the same state.
+//
+// Thus far we've established how commands and data are transferred
+// to and from the host. Next, let's discuss how AddressSpaceGraphicsContext
+// talks to the code that actually does something with the commands
+// and sends data back.
+
+// Handled outside in address_space_device.cpp:
+//
+// Ping(device id): Create the device. On the host, the two rings and
+// auxiliary buffer are allocated. The two rings are allocated up front.
+// Both the auxiliary buffers and the rings are allocated from blocks of
+// rings and auxiliary buffers. New blocks are created if we run out either
+// way.
+enum asg_command {
+    // Ping(get_ring): Returns, in the fields:
+    // metadata: offset to give to claimShared and mmap() in the guest
+    // size: size to give to claimShared and mmap() in the guest
+    ASG_GET_RING = 0,
+
+    // Ping(get_buffer): Returns, in the fields:
+    // metadata: offset to give to claimShared and mmap() in the guest
+    // size: size to give to claimShared and mmap() in the guest
+    ASG_GET_BUFFER = 1,
+
+    // Ping(set_version): Run after the guest reads and negotiates its
+    // version of the device with the host. The host now knows the guest's
+    // version and can proceed with a protocol that works for both.
+    // size (in): the version of the guest
+    // size (out): the version of the host
+    // After this command runs, the consumer is
+    // implicitly created.
+    ASG_SET_VERSION = 2,
+
+    // Ping(notiy_available): Wakes up the consumer from sleep so it
+    // can read data via toHost
+    ASG_NOTIFY_AVAILABLE = 3,
+
+    // Retrieve the config.
+    ASG_GET_CONFIG = 4,
+};
+
 } // extern "C"

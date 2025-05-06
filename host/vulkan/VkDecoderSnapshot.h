@@ -36,7 +36,6 @@
 #include <memory>
 
 #include "VkSnapshotApiCall.h"
-#include "aemu/base/files/Stream.h"
 #include "gfxstream/HealthMonitor.h"
 #include "goldfish_vk_private_defs.h"
 #include "utils/GfxApiLogger.h"

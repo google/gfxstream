@@ -28,7 +28,7 @@
 #include "DebugUtilsHelper.h"
 #include "DeviceLostHelper.h"
 #include "DisplayVk.h"
-#include "ExternalObjectManager.h"
+#include "gfxstream/host/external_object_manager.h"
 #include "FrameworkFormats.h"
 #include "gfxstream/Optional.h"
 #include "gfxstream/ThreadAnnotations.h"

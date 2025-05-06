@@ -45,7 +45,6 @@ target_link_libraries(gfxstream-vulkan-server PUBLIC
         gfxstream_common_base
         gfxstream_features
         gfxstream_host_backend
-        gfxstream_host_backend
         gfxstream_host_health
         gfxstream_host_iostream
         gfxstream_host_library

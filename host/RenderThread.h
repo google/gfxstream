@@ -20,6 +20,7 @@
 #include <memory>
 #include <optional>
 
+#include "RingStream.h"
 #include "gfxstream/host/mem_stream.h"
 #include "gfxstream/synchronization/ConditionVariable.h"
 #include "gfxstream/synchronization/Lock.h"
@@ -30,29 +31,20 @@
 namespace gfxstream {
 
 class RenderChannelImpl;
-class RendererImpl;
-class ReadBuffer;
-class RingStream;
 
 // A class used to model a thread of the RenderServer. Each one of them
 // handles a single guest client / protocol byte stream.
 class RenderThread : public gfxstream::base::Thread {
-    using MemStream = gfxstream::MemStream;
+  public:
+    static constexpr uint32_t INVALID_CONTEXT_ID = std::numeric_limits<uint32_t>::max();\
 
-public:
-    static constexpr uint32_t INVALID_CONTEXT_ID = std::numeric_limits<uint32_t>::max();
     // Create a new RenderThread instance.
     RenderThread(RenderChannelImpl* channel,
                  gfxstream::Stream* loadStream = nullptr,
                  uint32_t virtioGpuContextId = INVALID_CONTEXT_ID);
 
-    // Create a new RenderThread instance tied to the address space device.
-    RenderThread(
-        struct asg_context context,
-        gfxstream::Stream* loadStream,
-        android::emulation::asg::ConsumerCallbacks callbacks,
-        uint32_t contextId, uint32_t capsetId,
-        std::optional<std::string> nameOpt);
+    // Create a new RenderThread instance tied to the given address space device.
+    RenderThread(const AsgConsumerCreateInfo& info, Stream* loadStream);
     virtual ~RenderThread();
 
     // Returns true iff the thread has finished.
@@ -69,7 +61,11 @@ public:
     // This must be called after RenderThread has finished (use `waitForFinished`), as a deadlock
     // can occur if vulkan commands are still processing.
     void sendExitSignal();
-private:
+
+    //
+    void addressSpaceGraphicsReloadRingConfig();
+
+  private:
     virtual intptr_t main();
     void setFinished();
     void waitForExitSignal();
@@ -113,7 +109,7 @@ private:
     gfxstream::base::ConditionVariable mFinishedSignal;
     gfxstream::base::ConditionVariable mExitSignal;
     std::atomic<bool> mCanExit { false };
-    std::optional<gfxstream::MemStream> mStream;
+    std::optional<MemStream> mStream;
 
     bool mRunInLimitedMode = false;
     uint32_t mContextId = 0;

@@ -21,5 +21,4 @@ lib_emulated_textures = static_library(
                         inc_host_metrics],
   link_with: [lib_compressed_textures, lib_host_logging, lib_common_base, lib_host_health,
               lib_host_metrics],
-  dependencies: [aemu_common_dep]
 )

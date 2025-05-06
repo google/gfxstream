@@ -19,7 +19,6 @@
 #include "gfxstream/synchronization/ConditionVariable.h"
 #include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/system/System.h"
-#include "gfxstream/testing/TestSystem.h"
 #include "gfxstream/threads/FunctorThread.h"
 
 #include <EGL/egl.h>
@@ -33,7 +32,6 @@ using gfxstream::base::ConditionVariable;
 using gfxstream::base::FunctorThread;
 using gfxstream::base::Lock;
 using gfxstream::base::MessageChannel;
-using gfxstream::base::TestSystem;
 using gl::EmulatedEglFenceSync;
 using gl::GLESApi;
 using gl::GLESApi_3_0;

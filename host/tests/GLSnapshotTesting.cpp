@@ -227,8 +227,6 @@ testing::AssertionResult compareGlobalGlFloatv(
 
 void SnapshotTest::SetUp() {
     GLTest::SetUp();
-    mTestSystem.getTempRoot()->makeSubDir("Snapshots");
-    mSnapshotPath = mTestSystem.getTempRoot()->makeSubPath("Snapshots");
 }
 
 void SnapshotTest::saveSnapshot(gfxstream::Stream* stream,

@@ -20,23 +20,6 @@ endif ()
 add_subdirectory(renderdoc)
 add_subdirectory(stb)
 
-if(ENABLE_VKCEREAL_TESTS)
-    set(AEMU_BASE_USE_LZ4 ON CACHE BOOL "" FORCE)
-endif()
-
-if(NOT TARGET lz4_static AND AEMU_BASE_USE_LZ4)
-    set(BUILD_STATIC_LIBS ON CACHE BOOL "" FORCE)
-    if(DEPENDENCY_RESOLUTION STREQUAL "AOSP")
-        set(LZ4_PATH ${PROJECT_SOURCE_DIR}/../../../external/lz4/build/cmake)
-        if(EXISTS ${LZ4_PATH})
-            add_subdirectory(${LZ4_PATH} lz4)
-        endif()
-    elseif(DEPENDENCY_RESOLUTION STREQUAL "SYSTEM")
-        find_package(PkgConfig REQUIRED)
-        pkg_search_module(lz4 REQUIRED IMPORTED_TARGET GLOBAL liblz4)
-        add_library(lz4_static ALIAS PkgConfig::lz4)
-    endif()
-endif()
 
 if(NOT TARGET gtest_main AND ENABLE_VKCEREAL_TESTS)
     # For Windows: Prevent overriding the parent project's compiler/linker settings
@@ -56,59 +39,6 @@ if(NOT TARGET gtest_main AND ENABLE_VKCEREAL_TESTS)
         add_library(gtest_main ALIAS PkgConfig::gtest_main)
         add_library(gmock ALIAS PkgConfig::gmock)
         add_library(gmock_main ALIAS PkgConfig::gmock_main)
-    endif()
-endif()
-
-if(NOT TARGET aemu_common)
-    set(AEMU_COMMON_BUILD_CONFIG "gfxstream" CACHE STRING "")
-    if(DEPENDENCY_RESOLUTION STREQUAL "AOSP")
-        set(AEMU_COMMON_PATH ${PROJECT_SOURCE_DIR}/../../../hardware/google/aemu)
-        if(EXISTS ${AEMU_COMMON_PATH})
-            add_subdirectory(${AEMU_COMMON_PATH} aemu_common)
-        endif()
-    elseif(DEPENDENCY_RESOLUTION STREQUAL "SYSTEM")
-        find_package(PkgConfig REQUIRED)
-        set(AEMU_PC_FILES
-            aemu_base
-            aemu_logging
-            aemu_host_common
-            aemu_base_testing_support
-            aemu_host_common_testing_support
-            aemu_snapshot)
-        foreach(PC_FILE IN LISTS AEMU_PC_FILES)
-            pkg_search_module(${PC_FILE} REQUIRED IMPORTED_TARGET GLOBAL ${PC_FILE}>=0.0.0)
-        endforeach()
-
-        add_library(aemu-base.headers INTERFACE)
-        target_include_directories(aemu-base.headers INTERFACE ${aemu_base_INCLUDE_DIRS})
-
-        if (WIN32)
-            set(aemu-base-platform-deps Shlwapi)
-        else()
-            set(aemu-base-platform-deps dl rt)
-        endif()
-        add_library(aemu-base INTERFACE)
-        target_link_libraries(
-            aemu-base
-            INTERFACE
-            PkgConfig::aemu_base
-            logging-base
-            ${aemu-base-platform-deps})
-        if(TARGET lz4_static)
-            target_link_libraries(aemu-base INTERFACE lz4_static)
-        endif()
-        if(TARGET perfetto-tracing-only)
-            target_link_libraries(aemu-base INTERFACE perfetto-tracing-only)
-        endif()
-
-        add_library(aemu-base-testing-support INTERFACE)
-        target_link_libraries(
-            aemu-base-testing-support
-            INTERFACE
-            PkgConfig::aemu_base_testing_support
-            aemu-base
-            gmock
-            gtest)
     endif()
 endif()
 
@@ -213,9 +143,6 @@ if(NOT TARGET libdrm_headers)
     endif()
 endif()
 
-if(NOT TARGET aemu_common)
-    message(FATAL_ERROR "The dependency aemu_common not found")
-endif()
 if(NOT TARGET gfxstream_vulkan_headers)
     message(FATAL_ERROR "The dependency gfxstream_vulkan_headers not found")
 endif()

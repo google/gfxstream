@@ -15,7 +15,7 @@
 #include <memory>
 #include <vector>
 
-#include "ExternalObjectManager.h"
+#include "gfxstream/host/external_object_manager.h"
 
 namespace gfxstream {
 namespace vk {
