@@ -472,6 +472,8 @@ class VkEmulation {
 
 #ifdef _WIN32
         PFN_vkGetMemoryWin32HandleKHR getMemoryHandleFunc = nullptr;
+#elif defined(__ANDROID__)
+        PFN_vkGetMemoryAndroidHardwareBufferANDROID getMemoryHandleFunc = nullptr;
 #else
         PFN_vkGetMemoryFdKHR getMemoryHandleFunc = nullptr;
 #endif

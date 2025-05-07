@@ -84,7 +84,12 @@ std::optional<GenericDescriptorInfo> VkEmulation::exportMemoryHandle(VkDevice de
                                                                      VkDeviceMemory memory) {
     GenericDescriptorInfo ret;
 
-#if defined(__unix__)
+#if defined(__ANDROID__)
+    // On Android, we currently don't run virtio-gpu in a separate process. Therefore,
+    // we don't have a need to export memory handles from the gpu process to the main
+    // process. Let's not implement this for now.
+    return std::nullopt;
+#elif defined(__unix__)
     VkMemoryGetFdInfoKHR memoryGetFdInfo = {
         .sType = VK_STRUCTURE_TYPE_MEMORY_GET_FD_INFO_KHR,
         .pNext = nullptr,
@@ -335,6 +340,10 @@ VkExternalMemoryHandleTypeFlagBits VkEmulation::getDefaultExternalMemoryHandleTy
     if (mInstanceSupportsMoltenVK) {
         return VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLHEAP_BIT_EXT;
     }
+#endif
+
+#if defined(__ANDROID__)
+    return VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID;
 #endif
 
 #if defined(__QNX__)
@@ -865,6 +874,8 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
         VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME,
 #ifdef _WIN32
         VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME,
+#elif defined(__ANDROID__)
+        VK_ANDROID_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER_EXTENSION_NAME,
 #elif defined(__QNX__)
         VK_QNX_EXTERNAL_MEMORY_SCREEN_BUFFER_EXTENSION_NAME,
         VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME,
@@ -1554,6 +1565,15 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
             GFXSTREAM_ERROR("Cannot find vkGetMemoryWin32HandleKHR");
             return nullptr;
         }
+#elif defined(__ANDROID__)
+        // Use vkGetMemoryAndroidHardwareBufferANDROID
+        emulation->mDeviceInfo.getMemoryHandleFunc =
+            reinterpret_cast<PFN_vkGetMemoryAndroidHardwareBufferANDROID>(
+                dvk->vkGetDeviceProcAddr(emulation->mDevice, "vkGetMemoryAndroidHardwareBufferANDROID"));
+        if (!emulation->mDeviceInfo.getMemoryHandleFunc) {
+            GFXSTREAM_ERROR("Cannot find vkGetMemoryAndroidHardwareBufferANDROID");
+            return nullptr;
+        }
 #else
         if (emulation->mInstanceSupportsMoltenVK) {
             // We'll use vkGetMemoryMetalHandleEXT, no need to save into getMemoryHandleFunc
@@ -2070,6 +2090,19 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
     info->handleInfo = ExternalHandleInfo{
         .handle = reinterpret_cast<ExternalHandleType>(exportHandle),
         .streamHandleType = STREAM_HANDLE_TYPE_MEM_OPAQUE_WIN32,
+    };
+#elif defined(__ANDROID__)
+    VkMemoryGetAndroidHardwareBufferInfoANDROID getAhbInfo = {
+        .sType = VK_STRUCTURE_TYPE_MEMORY_GET_ANDROID_HARDWARE_BUFFER_INFO_ANDROID,
+        .pNext = nullptr,
+        .memory = info->memory,
+    };
+    AHardwareBuffer* exportHandle = static_cast<AHardwareBuffer*>(reinterpret_cast<void*>(info->handleInfo->handle));
+    exportRes = mDeviceInfo.getMemoryHandleFunc(
+        mDevice, &getAhbInfo, &exportHandle);
+    validHandle = (VK_SUCCESS == exportRes) && (NULL != exportHandle);
+    info->handleInfo = ExternalHandleInfo{
+        .handle = reinterpret_cast<ExternalHandleType>(exportHandle),
     };
 #else
 
