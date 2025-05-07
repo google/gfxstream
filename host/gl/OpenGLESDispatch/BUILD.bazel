@@ -1,11 +1,14 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
 cc_library(
     name = "gfxstream_host_openglesdispatch_headers",
     hdrs = glob(["include/**/*.h"]),
     copts = ["-fno-exceptions"],
     includes = ["include"],
-    visibility = ["//visibility:public"],
 )
 
 cc_library(
@@ -24,7 +27,6 @@ cc_library(
         "-Wno-extern-c-compat",
     ],
     defines = ["EMUGL_BUILD"],
-    visibility = ["//visibility:public"],
     deps = [
         ":gfxstream_host_openglesdispatch_headers",
         "//common/opengl:gfxstream_opengl_headers",

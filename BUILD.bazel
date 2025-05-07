@@ -1,9 +1,16 @@
 load("@rules_license//rules:license.bzl", "license")
 load("@rules_license//rules:license_kind.bzl", "license_kind")
 
+package_group(
+    name = "gfxstream",
+    packages = [
+        "//...",
+    ],
+)
+
 package(
     default_applicable_licenses = [":license"],
-    default_visibility = ["//visibility:public"],
+    default_visibility = ["//:gfxstream"],
 )
 
 license(
@@ -16,7 +23,6 @@ license(
         ":SPDX-license-identifier-MIT",
         ":SPDX-license-identifier-BSL-1.0",
     ],
-    visibility = [":__subpackages__"],
 )
 
 license_kind(

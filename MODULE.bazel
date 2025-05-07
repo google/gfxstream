@@ -4,8 +4,49 @@ module(
 )
 
 bazel_dep(name = "abseil-cpp", version = "20250127.0", repo_name = "com_google_absl")
-bazel_dep(name = "aemu", version = "0.0.1")
 bazel_dep(name = "googletest", version = "1.15.2", repo_name = "com_google_googletest")
 bazel_dep(name = "platforms", version = "0.0.11")
 bazel_dep(name = "rules_cc", version = "0.0.14")
 bazel_dep(name = "rules_license", version = "1.0.0")
+
+###########  When building Gfxstream from standalone repo ###########
+
+bazel_dep(name = "toolchains_llvm", version = "1.2.0", dev_dependency = True)
+
+llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm", dev_dependency = True)
+llvm.toolchain(
+    llvm_version = "18.1.8",
+)
+use_repo(llvm, "llvm_toolchain")
+
+file_detector = use_repo_rule("//toolchain:file_detector.bzl", "file_detector")
+
+file_detector(
+    name = "clang_detector",
+    dev_dependency = True,
+    files = {
+        "/usr/bin/clang-11": "clang_11",
+        "/usr/bin/clang-12": "clang_12",
+        "/usr/bin/clang-13": "clang_13",
+        "/usr/bin/clang-14": "clang_14",
+        "/usr/bin/clang-15": "clang_15",
+        "/usr/bin/clang-16": "clang_16",
+        "/usr/bin/clang-17": "clang_17",
+        "/usr/bin/clang-18": "clang_18",
+        "/usr/bin/clang-19": "clang_19",
+    },
+)
+
+# The first toolchain that satisfies platform constraints is chosen.
+# Alternatively, a specific toolchain can be chosen with the
+# `--extra_toolchains` flag, e.g.
+# ```
+# bazel build //cuttlefish/package:cvd \
+#   --extra_toolchains=//toolchain:linux_local_clang_19
+# ```
+#
+# For more information, see https://bazel.build/extending/toolchains
+register_toolchains(
+    "@llvm_toolchain//:all",
+    dev_dependency = True,
+)

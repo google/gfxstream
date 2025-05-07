@@ -1,5 +1,9 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
 cc_library(
     name = "renderControl_dec",
     srcs = [
@@ -7,7 +11,6 @@ cc_library(
         "renderControl_server_context.cpp",
     ] + glob(["*.h"]),
     hdrs = [],
-    visibility = ["//visibility:public"],
     deps = [
         "//common/opengl:gfxstream_opengl_headers",
         "//host/decoder_common:gfxstream_host_decoder_common",

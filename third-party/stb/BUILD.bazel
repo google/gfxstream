@@ -1,3 +1,9 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
 cc_library(
     name = "gfxstream_stb",
     srcs = [
@@ -6,5 +12,4 @@ cc_library(
     ],
     hdrs = glob(["include/stb/*.h"]),
     includes = ["include"],
-    visibility = ["//visibility:public"],
 )

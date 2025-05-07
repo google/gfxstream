@@ -1,5 +1,9 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
 cc_library(
     name = "gfxstream_host_backend",
     srcs = [
@@ -21,7 +25,6 @@ cc_library(
     ],
     hdrs = glob(["include/**/*.h"]),
     includes = ["include"],
-    visibility = ["//visibility:public"],
     deps = [
         "//common/utils:gfxstream_common_utils",
         "//host:gfxstream_backend_headers",

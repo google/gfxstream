@@ -1,7 +1,12 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
 cc_library(
     name = "gfxstream_features",
     srcs = ["Features.cpp"] + glob(["include/**/*.h"]),
     copts = ["-fno-exceptions"],
     includes = ["include"],
-    visibility = ["//visibility:public"],
 )

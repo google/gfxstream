@@ -1,5 +1,9 @@
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test", "objc_library")
 
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
 cc_library(
     name = "gfxstream_common_base_headers",
     hdrs = glob([
@@ -13,7 +17,6 @@ cc_library(
         "//conditions:default": [],
     }),
     strip_include_prefix = "include",
-    visibility = ["//visibility:public"],
     deps = [
         "@com_google_absl//absl/strings:str_format",
     ] + select({
@@ -92,7 +95,6 @@ cc_library(
         ],
         "//conditions:default": [],
     }),
-    visibility = ["//visibility:public"],
     deps = [
         ":gfxstream_common_base_headers",
     ] + select({

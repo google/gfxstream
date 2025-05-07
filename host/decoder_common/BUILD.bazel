@@ -1,5 +1,9 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
 cc_library(
     name = "gfxstream_host_decoder_common",
     srcs = [
@@ -18,8 +22,10 @@ cc_library(
         "include/**/*.h",
     ]),
     copts = ["-fno-exceptions"],
-    includes = ["include"],
-    visibility = ["//visibility:public"],
+    includes = [
+        ".",
+        "include",
+    ],
     deps = [
         "//common/base:gfxstream_common_base",
         "//common/opengl:gfxstream_opengl_headers",

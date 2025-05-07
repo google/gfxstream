@@ -1,5 +1,9 @@
 load("@rules_cc//cc:defs.bzl", "cc_library", "objc_library")
 
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
 cc_library(
     name = "gles1_dec",
     srcs = [
@@ -9,7 +13,6 @@ cc_library(
     ] + glob(["gles1_dec/*.h"]),
     copts = ["-fno-exceptions"],
     defines = ["EMUGL_BUILD"],
-    visibility = ["//visibility:public"],
     deps = [
         ":GLSnapshot",
         "//common/opengl:gfxstream_opengl_headers",
@@ -24,7 +27,6 @@ cc_library(
     hdrs = glob(["glestranslator/GLcommon/include/**/*.h"]),
     copts = ["-fno-exceptions"],
     includes = ["glestranslator/GLcommon/include"],
-    visibility = ["//visibility:public"],
     deps = [
         "//host/decoder_common:gfxstream_host_decoder_common",
         "//host/gl/OpenGLESDispatch:gfxstream_host_openglesdispatch_headers",
@@ -49,7 +51,6 @@ objc_library(
     target_compatible_with = [
         "@platforms//os:macos",
     ],
-    visibility = ["//visibility:public"],
     alwayslink = True,
 )
 
@@ -93,7 +94,6 @@ cc_library(
         "-Wno-return-type-c-linkage",
     ],
     defines = ["EMUGL_BUILD"],
-    visibility = ["//visibility:public"],
     deps =
         [
             ":gl-common-headers",
@@ -145,7 +145,6 @@ cc_library(
         "EMUGL_BUILD",
         "BUILDING_EMUGL_COMMON_SHARED",
     ],
-    visibility = ["//visibility:public"],
     deps = [
         ":gl-common-headers",
         "//common/etc:gfxstream_etc",
@@ -166,7 +165,6 @@ cc_library(
     ] + glob(["gles2_dec/*.h"]),
     copts = ["-fno-exceptions"],
     defines = ["EMUGL_BUILD"],
-    visibility = ["//visibility:public"],
     deps = [
         ":GLSnapshot",
         "//common/opengl:gfxstream_opengl_headers",
@@ -187,7 +185,6 @@ cc_library(
     ],
     defines = ["EMUGL_BUILD"],
     includes = ["glsnapshot"],
-    visibility = ["//visibility:public"],
     deps = [
         "//host/decoder_common:gfxstream_host_decoder_common",
         "//host/gl/OpenGLESDispatch:gfxstream_host_openglesdispatch",
@@ -227,7 +224,6 @@ cc_library(
         "GFXSTREAM_ENABLE_HOST_GLES=1",
         "EMUGL_BUILD",
     ],
-    visibility = ["//visibility:public"],
     deps = [
         ":gles1_dec",
         ":gles2_dec",
@@ -245,6 +241,4 @@ cc_library(
 cc_library(
     name = "gl_headers",
     hdrs = glob(["*.h"]),
-    visibility = ["//visibility:public"],
-    # visibility = ["//a:__pkg__"],
 )

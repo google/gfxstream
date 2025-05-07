@@ -1,5 +1,9 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
 cc_library(
     name = "gfxstream_vulkan_cereal",
     srcs = [
@@ -12,7 +16,6 @@ cc_library(
     ],
     hdrs = glob([
         "**/*.h",
-        "*.h",
     ]),
     defines = [
         "VK_GFXSTREAM_STRUCTURE_TYPE_EXT",
@@ -29,7 +32,6 @@ cc_library(
         "//conditions:default": [],
     }),
     includes = ["common"],
-    visibility = ["//visibility:public"],
     deps = [
         "//common/base:gfxstream_common_base",
         "//common/vulkan:gfxstream_vulkan_headers",

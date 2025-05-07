@@ -1,5 +1,9 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "objc_library")
 
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
 cc_library(
     name = "gfxstream_backend_headers",
     hdrs = glob(["include/**/*.h"]),
@@ -15,7 +19,6 @@ cc_library(
     ]),
     copts = ["-fno-exceptions"],
     includes = ["."],
-    visibility = [":__subpackages__"],
     deps = [
         "//host/health:gfxstream_host_health",
         "//host/snapshot:gfxstream_host_snapshot",
@@ -173,11 +176,3 @@ cc_binary(
         "//common/utils:gfxstream_common_utils",
     ],
 )
-
-# Note: It looks like cc_shared_library refuses to include objc_library
-# b/331235218
-# cc_shared_library(
-#     name = "gfxstream_backend",
-#     visibility = ["//visibility:public"],
-#     deps = [":gfxstream_backend_shared"],
-# )
