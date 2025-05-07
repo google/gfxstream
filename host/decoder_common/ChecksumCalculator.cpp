@@ -14,15 +14,15 @@
 * limitations under the License.
 */
 
-#include "ChecksumCalculator.h"
-
-#include "render-utils/stream.h"
+#include "gfxstream/host/ChecksumCalculator.h"
 
 #include <string>
 #include <vector>
 
 #include <assert.h>
 #include <string.h>
+
+#include "render-utils/stream.h"
 
 // Checklist when implementing new protocol:
 // 1. update CHECKSUMHELPER_MAX_VERSION

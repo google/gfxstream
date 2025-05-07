@@ -12,7 +12,7 @@ lib_gles1_dec = static_library(
   files_lib_gles1_dec,
   cpp_args: gfxstream_host_args,
   include_directories: [
-    inc_apigen_codec,
+    inc_host_decoder_common,
     inc_common_base,
     inc_gl_openglesdispatch,
     inc_gfxstream_server,

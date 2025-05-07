@@ -6,7 +6,7 @@ add_library(
 target_link_libraries(
     gles2_dec
     PUBLIC
-    apigen-codec-common
+    gfxstream_host_decoder_common
     gfxstream_host_iostream
     GLSnapshot
     ${GFXSTREAM_BASE_LIB}
@@ -22,4 +22,4 @@ target_include_directories(
     PRIVATE
     ${GFXSTREAM_REPO_ROOT}
     ${GFXSTREAM_REPO_ROOT}/host
-    ${GFXSTREAM_REPO_ROOT}/host/apigen-codec-common)
+    ${GFXSTREAM_REPO_ROOT}/host/gfxstream_host_decoder_common)

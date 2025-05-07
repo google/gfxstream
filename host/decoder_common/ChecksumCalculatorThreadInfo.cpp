@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 
-#include "ChecksumCalculatorThreadInfo.h"
+#include "gfxstream/host/ChecksumCalculatorThreadInfo.h"
 
 #include <atomic>
 #include <string>

@@ -42,7 +42,7 @@
 #include "common/goldfish_vk_dispatch.h"
 #include "common/goldfish_vk_marshaling.h"
 #include "common/goldfish_vk_reserved_marshaling.h"
-#include "compressedTextureFormats/AstcCpuDecompressor.h"
+#include "gfxstream/host/AstcCpuDecompressor.h"
 #include "gfxstream/containers/Lookup.h"
 #include "gfxstream/host/Tracing.h"
 #include "gfxstream/host/logging.h"

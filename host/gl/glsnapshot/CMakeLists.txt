@@ -4,7 +4,7 @@ add_library(
 target_link_libraries(
     GLSnapshot
     PUBLIC
-    apigen-codec-common
+    gfxstream_host_decoder_common
     gfxstream_openglesdispatch)
 target_include_directories(
     GLSnapshot

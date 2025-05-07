@@ -13,10 +13,11 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-#include "glUtils.h"
+#include "gfxstream/host/glUtils.h"
+
+#include <string.h>
 
 #include <GLES3/gl31.h>
-#include <string.h>
 
 #include "gfxstream/host/logging.h"
 

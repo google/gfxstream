@@ -14,7 +14,7 @@
 
 #include "GLSnapshotTestStateUtils.h"
 #include "GLSnapshotTesting.h"
-#include "apigen-codec-common/glUtils.h"
+#include "gfxstream/host/glUtils.h"
 
 #include <gtest/gtest.h>
 #include <map>

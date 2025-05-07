@@ -5,7 +5,7 @@
 #define GUARD_gles2_decoder_context_t
 
 #include "gfxstream/host/iostream.h"
-#include "ChecksumCalculator.h"
+#include "gfxstream/host/ChecksumCalculator.h"
 #include "gles2_server_context.h"
 
 

@@ -1,4 +1,4 @@
-load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test", "objc_library")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "objc_library")
 
 cc_library(
     name = "gfxstream_backend_headers",
@@ -10,9 +10,7 @@ cc_library(
 
 cc_library(
     name = "gfxstream_host_headers",
-    hdrs = [
-        "compressedTextureFormats/AstcCpuDecompressor.h",
-    ] + glob([
+    hdrs = glob([
         "*.h",
     ]),
     copts = ["-fno-exceptions"],
@@ -21,30 +19,6 @@ cc_library(
     deps = [
         "//host/health:gfxstream_host_health",
         "//host/snapshot:gfxstream_host_snapshot",
-    ],
-)
-
-cc_library(
-    name = "gfxstream-compressedTextures",
-    srcs = ["compressedTextureFormats/AstcCpuDecompressorNoOp.cpp"] + glob(["compressedTextureFormats/*.h"]),
-    hdrs = [
-        "compressedTextureFormats/AstcCpuDecompressor.h",
-    ],
-    copts = ["-fno-exceptions"],
-    includes = ["."],
-    visibility = ["//visibility:public"],
-    deps = [
-        "//common/etc:gfxstream_etc",
-    ],
-)
-
-cc_test(
-    name = "gfxstream-compressedTextures_unittests",
-    srcs = ["compressedTextureFormats/AstcCpuDecompressor_unittest.cpp"],
-    copts = ["-fno-exceptions"],
-    deps = [
-        ":gfxstream-compressedTextures",
-        "@com_google_googletest//:gtest_main",
     ],
 )
 
@@ -136,8 +110,8 @@ cc_library(
     deps = [
         ":gfxstream_backend_headers",
         "//common/base:gfxstream_common_base",
-        "//host/apigen-codec-common",
         "//host/backend:gfxstream_host_backend",
+        "//host/decoder_common:gfxstream_host_decoder_common",
         "//host/features:gfxstream_features",
         "//host/gl:EGL_translator_static",
         "//host/gl:gfxstream-gl-server",
@@ -152,7 +126,7 @@ cc_library(
         "//host/renderControl_dec",
         "//host/snapshot:gfxstream_host_snapshot",
         "//host/tracing:gfxstream_host_tracing",
-        "//host/vulkan:gfxstream-vulkan-server",
+        "//host/vulkan:gfxstream_vulkan_server",
     ] + select({
         "@platforms//os:macos": [
             ":gfxstream_backend_static-darwin",

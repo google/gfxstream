@@ -32,7 +32,7 @@
 #endif
 
 #ifdef __linux__
-#include "X11Support.h"
+#include "gfxstream/host/X11Support.h"
 #include "X11ErrorHandler.h"
 #endif
 

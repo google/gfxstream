@@ -23,6 +23,6 @@ target_link_libraries(
     GLES_V2_translator_static
     PRIVATE
     GLcommon
-    apigen-codec-common
+    gfxstream_host_decoder_common
     gfxstream_host_backend
     gfxstream_host_logging)

@@ -22,7 +22,7 @@
 #include <memory>
 
 #include "gfxstream/AlignedBuf.h"
-#include "compressedTextureFormats/AstcCpuDecompressor.h"
+#include "gfxstream/host/AstcCpuDecompressor.h"
 
 using gfxstream::AlignedBuf;
 using gfxstream::vk::AstcCpuDecompressor;

@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "ChecksumCalculator.h"
+#include "gfxstream/host/ChecksumCalculator.h"
 
 // ChecksumCalculatorThreadInfo is the class that makes ChecksumCalculator
 // thread-safe. On the host, please only use ChecksumCalculator through this

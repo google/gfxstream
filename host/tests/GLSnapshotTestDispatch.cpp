@@ -4,7 +4,7 @@
 #include "GLSnapshotTesting.h"
 #include "GLTestUtils.h"
 #include "RenderThreadInfo.h"
-#include "apigen-codec-common/glUtils.h"
+#include "gfxstream/host/glUtils.h"
 #include "gfxstream/files/PathUtils.h"
 #include "gfxstream/system/System.h"
 #include "render-utils/snapshot_operations.h"

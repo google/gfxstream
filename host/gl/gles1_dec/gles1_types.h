@@ -16,6 +16,6 @@
 #ifndef __GLES1_TYPES__H
 #define __GLES1_TYPES__H
 
-#include "gl_base_types.h"
+#include "gfxstream/host/gl_base_types.h"
 
 #endif  // __GLES1_TYPES__H

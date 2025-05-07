@@ -28,7 +28,7 @@ cc_library(
     deps = [
         ":gfxstream_host_openglesdispatch_headers",
         "//common/opengl:gfxstream_opengl_headers",
-        "//host/apigen-codec-common",
+        "//host/decoder_common:gfxstream_host_decoder_common",
         "//host/gl:EGL_translator_static",
     ],
 )

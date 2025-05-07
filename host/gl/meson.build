@@ -46,7 +46,7 @@ lib_gl_server = static_library(
   files_lib_gl_server,
   cpp_args: gfxstream_host_args,
   include_directories: [
-    inc_apigen_codec,
+    inc_host_decoder_common,
     inc_common_base,
     inc_common_opengl,
     inc_common_utils,
@@ -69,7 +69,7 @@ lib_gl_server = static_library(
     inc_utils,
   ],
   link_with: [
-    lib_apigen_codec,
+    lib_host_decoder_common,
     lib_common_base,
     lib_common_utils,
     lib_gl_openglesdispatch,

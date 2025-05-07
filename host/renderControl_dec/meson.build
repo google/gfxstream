@@ -11,7 +11,7 @@ lib_composer = static_library(
   files_lib_composer,
   cpp_args: gfxstream_host_args,
   include_directories: [
-    inc_apigen_codec,
+    inc_host_decoder_common,
     inc_common_base,
     inc_gfxstream_server,
     inc_host_iostream,

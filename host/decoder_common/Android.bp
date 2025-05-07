@@ -4,7 +4,7 @@ package {
 }
 
 cc_library_static {
-    name: "libgfxstream_host_apigen_codec_common",
+    name: "libgfxstream_host_decoder_common",
     defaults: ["gfxstream_defaults"],
     header_libs: [
         "gfxstream_opengl_headers",
@@ -16,7 +16,9 @@ cc_library_static {
         "libgfxstream_host_logging",
     ],
     cflags: ["-fvisibility=hidden"],
-    export_include_dirs: ["."],
+    export_include_dirs: [
+        "include",
+    ],
     srcs: [
         "ChecksumCalculator.cpp",
         "ChecksumCalculatorThreadInfo.cpp",

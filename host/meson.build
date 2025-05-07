@@ -128,16 +128,17 @@ subdir('health')
 subdir('library')
 subdir('tracing')
 subdir('snapshot')
-subdir('apigen-codec-common')
+subdir('decoder_common')
 subdir('address_space')
 subdir('backend')
 
 inc_gfxstream_backend = [
-  inc_apigen_codec,
+  inc_host_decoder_common,
   inc_common_base,
   inc_common_opengl,
   inc_common_utils,
   inc_gfxstream_include,
+  inc_glm,
   inc_host_address_space,
   inc_host_backend,
   inc_host_features,
@@ -155,7 +156,7 @@ inc_gfxstream_backend = [
 ]
 
 link_gfxstream_backend = [
-  lib_apigen_codec,
+  lib_host_decoder_common,
   lib_common_base,
   lib_common_utils,
   lib_host_address_space,
@@ -174,19 +175,19 @@ files_lib_gfxstream_backend = files(
   'Buffer.cpp',
   'ChannelStream.cpp',
   'ColorBuffer.cpp',
+  'FrameBuffer.cpp',
   'Hwc2.cpp',
   'PostWorker.cpp',
   'ReadBuffer.cpp',
   'render_api.cpp',
   'RenderChannelImpl.cpp',
+  'RendererImpl.cpp',
+  'RenderLibImpl.cpp',
   'RenderThread.cpp',
   'RenderThreadInfo.cpp',
+  'RenderWindow.cpp',
   'RingStream.cpp',
   'SyncThread.cpp',
-  'RenderWindow.cpp',
-  'RenderLibImpl.cpp',
-  'RendererImpl.cpp',
-  'FrameBuffer.cpp',
   'virtio-gpu-gfxstream-renderer.cpp',
   'VirtioGpuContext.cpp',
   'VirtioGpuFrontend.cpp',
@@ -198,7 +199,14 @@ files_lib_gfxstream_backend = files(
 )
 
 if use_gles or use_vulkan
-  subdir('compressedTextureFormats')
+  subdir('compressed_textures')
+
+  inc_gfxstream_backend += [
+    inc_host_compressed_textures,
+  ]
+  link_gfxstream_backend + [
+    lib_host_compressed_textures,
+  ]
 endif
 
 if use_gles
@@ -207,8 +215,15 @@ if use_gles
   files_lib_gfxstream_backend += files('PostWorkerGl.cpp')
   files_lib_gfxstream_backend += files('RenderControl.cpp')
 
-  inc_gfxstream_backend += [inc_gl_server, inc_gl_snapshot, inc_gl_common, inc_gl_openglesdispatch]
-  link_gfxstream_backend += lib_gl_server
+  inc_gfxstream_backend += [
+    inc_gl_common,
+    inc_gl_openglesdispatch,
+    inc_gl_server,
+    inc_gl_snapshot,
+  ]
+  link_gfxstream_backend += [
+    lib_gl_server,
+  ]
 endif
 
 if use_vulkan
@@ -268,7 +283,7 @@ gfxstream_backend = library(
   'gfxstream_backend',
   files_lib_gfxstream_backend,
   cpp_args: gfxstream_host_args + gfxstream_backend_cpp_args,
-  include_directories: [inc_gfxstream_backend, inc_glm],
+  include_directories: [inc_gfxstream_backend],
   gnu_symbol_visibility: 'default',
   dependencies: deps_gfxstream_backend,
   link_with: link_gfxstream_backend,

@@ -16,6 +16,6 @@
 
 #include <stdint.h>
 #include <EGL/egl.h>
-#include "glUtils.h"
+#include "gfxstream/host/glUtils.h"
 
 using RenderControlByte = char;

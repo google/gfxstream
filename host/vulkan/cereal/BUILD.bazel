@@ -1,0 +1,45 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+cc_library(
+    name = "gfxstream_vulkan_cereal",
+    srcs = [
+        "common/goldfish_vk_deepcopy.cpp",
+        "common/goldfish_vk_dispatch.cpp",
+        "common/goldfish_vk_extension_structs.cpp",
+        "common/goldfish_vk_marshaling.cpp",
+        "common/goldfish_vk_reserved_marshaling.cpp",
+        "common/goldfish_vk_transform.cpp",
+    ],
+    hdrs = glob([
+        "**/*.h",
+        "*.h",
+    ]),
+    defines = [
+        "VK_GFXSTREAM_STRUCTURE_TYPE_EXT",
+        "VK_GOOGLE_gfxstream",
+    ] + select({
+        "@platforms//os:macos": [
+            "VK_USE_PLATFORM_METAL_EXT",
+            "VK_USE_PLATFORM_MACOS_MVK",
+        ],
+        "@platforms//os:windows": [
+            "VK_USE_PLATFORM_WIN32_KHR",
+        ],
+        "@platforms//os:linux": [],
+        "//conditions:default": [],
+    }),
+    includes = ["common"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//common/base:gfxstream_common_base",
+        "//common/vulkan:gfxstream_vulkan_headers",
+        "//host:gfxstream_host_headers",
+        "//host/backend:gfxstream_host_backend",
+        "//host/features:gfxstream_features",
+        "//host/health:gfxstream_host_health",
+        "//host/logging:gfxstream_host_logging",
+        "//host/tracing:gfxstream_host_tracing",
+        "//host/vulkan:gfxstream_vulkan_headers",
+        "//utils:gfxstream_utils",
+    ],
+)

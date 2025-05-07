@@ -15,19 +15,18 @@
 */
 #pragma once
 
-#include "gfxstream/synchronization/Lock.h"
-
-#include "X11Support.h"
-
 #include <EGL/egl.h>
 
+#include "gfxstream/host/X11Support.h"
+#include "gfxstream/synchronization/Lock.h"
+
 class X11ErrorHandler {
-public:
+  public:
     X11ErrorHandler(EGLNativeDisplayType dpy);
     ~X11ErrorHandler();
     int getLastError() const { return s_lastErrorCode; }
 
-private:
+  private:
     static int s_lastErrorCode;
     EGLNativeDisplayType m_dpy;
     int (*m_oldErrorHandler)(Display *, XErrorEvent *) = nullptr;

@@ -13,7 +13,7 @@
 // limitations under the License.
 #pragma once
 
-#include "compressedTextureFormats/AstcCpuDecompressor.h"
+#include "gfxstream/host/AstcCpuDecompressor.h"
 #include "vulkan/VkDecoderContext.h"
 #include "goldfish_vk_dispatch.h"
 #include "vulkan/vulkan.h"

@@ -30,7 +30,7 @@
 #include "CoreProfileConfigs.h"
 #include "GLcommon/GLLibrary.h"
 #include "X11ErrorHandler.h"
-#include "X11Support.h"
+#include "gfxstream/host/X11Support.h"
 #include "gfxstream/SharedLibrary.h"
 #include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/host/logging.h"

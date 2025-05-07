@@ -14,7 +14,7 @@
 
 #include <gmock/gmock.h>
 
-#include "AstcCpuDecompressor.h"
+#include "gfxstream/host/AstcCpuDecompressor.h"
 
 namespace gfxstream {
 namespace vk {

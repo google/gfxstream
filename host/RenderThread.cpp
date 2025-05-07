@@ -31,7 +31,7 @@
 #endif
 #include "RenderThreadInfo.h"
 #include "VkDecoderContext.h"
-#include "apigen-codec-common/ChecksumCalculatorThreadInfo.h"
+#include "gfxstream/host/ChecksumCalculatorThreadInfo.h"
 #include "gfxstream/HealthMonitor.h"
 #include "gfxstream/Metrics.h"
 #include "gfxstream/host/logging.h"

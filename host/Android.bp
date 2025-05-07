@@ -64,7 +64,8 @@ gfxstream_backend_static_deps = [
     "libgfxstream_glestranslator_glescm",
     "libgfxstream_glestranslator_glesv2",
     "libgfxstream_host_address_space",
-    "libgfxstream_host_apigen_codec_common",
+    "libgfxstream_host_compressedtextures",
+    "libgfxstream_host_decoder_common",
     "libgfxstream_host_backend",
     "libgfxstream_host_compressedtextures",
     "libgfxstream_host_features",
@@ -127,6 +128,7 @@ cc_defaults {
     export_static_lib_headers: [
         "libgfxstream_common_base",
         "libgfxstream_host_backend",
+        "libgfxstream_host_decoder_common",
         "libgfxstream_host_features",
         "libgfxstream_host_health",
         "libgfxstream_host_snapshot",
@@ -216,7 +218,7 @@ cc_test_library {
     static_libs: [
         "gfxstream_base_test_support",
         "libgfxstream_common_base",
-        "libgfxstream_host_apigen_codec_common",
+        "libgfxstream_host_decoder_common",
         "libgfxstream_host_logging",
         "libgfxstream_host_iostream",
         "libgfxstream_host_snapshot",

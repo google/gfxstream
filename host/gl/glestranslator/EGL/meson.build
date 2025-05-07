@@ -53,7 +53,7 @@ lib_egl_translator = static_library(
   files_lib_egl_translator,
   cpp_args: egl_cpp_args + gfxstream_host_args,
   include_directories: [
-    inc_apigen_codec,
+    inc_host_decoder_common,
     inc_common_base,
     inc_common_utils,
     inc_etc,
@@ -69,7 +69,7 @@ lib_egl_translator = static_library(
     inc_stream_servers,
   ],
   link_with: [
-    lib_apigen_codec,
+    lib_host_decoder_common,
     lib_common_base,
     lib_common_utils,
     lib_gl_common,

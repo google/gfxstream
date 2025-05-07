@@ -1,37 +1,24 @@
-# File: project_root/src/apigen-codec-common/BUILD
-
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_library(
-    name = "apigen-codec-common",
+    name = "gfxstream_host_decoder_common",
     srcs = [
         "ChecksumCalculator.cpp",
-        "ChecksumCalculator.h",
         "ChecksumCalculatorThreadInfo.cpp",
-        "ChecksumCalculatorThreadInfo.h",
         "glUtils.cpp",
-        "glUtils.h",
     ] + select({
         "@platforms//os:linux": [
             "X11Support.cpp",
-            "X11Support.h",
         ],
         "//conditions:default": [],
     }),
     hdrs = glob([
         "GL/**/*.h",
         "X11/**/*.h",
-    ]) + [
-        "GLDecoderContextData.h",
-        "ProtocolUtils.h",
-        "gl_base_types.h",
-    ],
+        "include/**/*.h",
+    ]),
     copts = ["-fno-exceptions"],
-    defines = [
-        "EMUGL_BUILD",
-        "BUILDING_EMUGL_COMMON_SHARED",
-    ],
-    includes = ["."],
+    includes = ["include"],
     visibility = ["//visibility:public"],
     deps = [
         "//common/base:gfxstream_common_base",

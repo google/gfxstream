@@ -32,7 +32,7 @@ target_link_libraries(
     gfxstream_openglesdispatch.headers
     gles1_dec
     gles2_dec
-    apigen-codec-common
+    gfxstream_host_decoder_common
     PRIVATE
     EGL_translator_static)
 

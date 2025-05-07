@@ -1,4 +1,4 @@
-#include "X11Support.h"
+#include "gfxstream/host/X11Support.h"
 
 #include "gfxstream/SharedLibrary.h"
 
@@ -66,7 +66,7 @@ class GlxFunctionGetter {
                 auto f = mGlxLib->findSymbol(#funcname); \
                 if (f) mApi.funcname = (funcname##_t)f; \
                 } \
-           
+
                 LIST_GLX_FUNCS(GLX_GET_FUNC);
 
             }

@@ -16,7 +16,7 @@
 #include <future>
 #include <unordered_map>
 
-#include "AstcCpuDecompressor.h"
+#include "gfxstream/host/AstcCpuDecompressor.h"
 #include "astcenc.h"
 
 namespace gfxstream {

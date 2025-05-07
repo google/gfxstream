@@ -1,0 +1,27 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+cc_library(
+    name = "gfxstream_host_compressed_textures",
+    srcs = [
+        "AstcCpuDecompressorNoOp.cpp",
+    ],
+    hdrs = glob(["include/**/*.h"]),
+    copts = ["-fno-exceptions"],
+    strip_include_prefix = "include",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//common/etc:gfxstream_etc",
+    ],
+)
+
+cc_test(
+    name = "gfxstream_host_compressed_textures_unittests",
+    srcs = [
+        "AstcCpuDecompressor_unittest.cpp",
+    ],
+    copts = ["-fno-exceptions"],
+    deps = [
+        ":gfxstream_host_compressed_textures",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

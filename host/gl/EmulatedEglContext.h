@@ -22,7 +22,7 @@
 
 #include <EGL/egl.h>
 
-#include "GLDecoderContextData.h"
+#include "gfxstream/host/GLDecoderContextData.h"
 #include "Handle.h"
 #include "render-utils/stream.h"
 

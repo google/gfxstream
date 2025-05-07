@@ -29,7 +29,7 @@ cc_library(
     includes = ["."],
     visibility = ["//visibility:public"],
     deps = [
-        "//host/apigen-codec-common",
+        "//host/decoder_common:gfxstream_host_decoder_common",
         "//host/gl:gl_common",
     ],
     alwayslink = True,

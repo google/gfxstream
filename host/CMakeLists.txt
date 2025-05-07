@@ -1,4 +1,3 @@
-# Logging subdirectory
 add_subdirectory(logging)
 
 add_library(
@@ -18,10 +17,8 @@ add_subdirectory(library)
 add_subdirectory(metrics)
 add_subdirectory(snapshot)
 add_subdirectory(tracing)
-
-# Codec common sources
-add_subdirectory(apigen-codec-common)
-add_subdirectory(compressedTextureFormats)
+add_subdirectory(decoder_common)
+add_subdirectory(compressed_textures)
 
 # GL
 add_subdirectory(gl)
@@ -103,7 +100,7 @@ target_link_libraries(
         PUBLIC
         gfxstream_backend.headers
         ${GFXSTREAM_HOST_COMMON_LIB}
-        apigen-codec-common
+        gfxstream_host_decoder_common
         gfxstream_common_base
         gfxstream_egl_headers
         gfxstream_features
@@ -130,7 +127,7 @@ target_include_directories(
         ${GFXSTREAM_REPO_ROOT}
         ${GFXSTREAM_REPO_ROOT}/host
         ${GFXSTREAM_REPO_ROOT}/host/include
-        ${GFXSTREAM_REPO_ROOT}/host/apigen-codec-common
+        ${GFXSTREAM_REPO_ROOT}/host/gfxstream_host_decoder_common
         ${GFXSTREAM_REPO_ROOT}/host/gl
         ${GFXSTREAM_REPO_ROOT}/host/gl/glestranslator/include
         ${GFXSTREAM_REPO_ROOT}/host/vulkan
@@ -251,7 +248,7 @@ endfunction()
         ${GFXSTREAM_REPO_ROOT}/host
         ${GFXSTREAM_REPO_ROOT}/host/gl/glestranslator/GLES_CM
         ${GFXSTREAM_REPO_ROOT}/host/gl/glestranslator/include
-        ${GFXSTREAM_REPO_ROOT}/host/apigen-codec-common
+        ${GFXSTREAM_REPO_ROOT}/host/gfxstream_host_decoder_common
         ${GFXSTREAM_REPO_ROOT}/host/vulkan)
     target_link_libraries(
         stream-server-testing-support
@@ -274,7 +271,7 @@ endfunction()
         target_include_directories(
             x11_testing_support
             PUBLIC
-            ${GFXSTREAM_REPO_ROOT}/host/apigen-codec-common)
+            ${GFXSTREAM_REPO_ROOT}/host/decoder_common/include)
     endif()
 
     # Basic opengl rendering tests##################################################
