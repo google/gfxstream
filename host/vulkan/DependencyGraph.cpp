@@ -32,6 +32,14 @@ namespace vk {
 
 #endif
 
+void DependencyGraph::removeGrandChildren(const NodeId id) {
+    auto* nd = getDepNode(id);
+    if (!nd) return;
+    for (auto child : nd->childNodeIds) {
+        removeDescendantsOfHandle(child);
+    }
+}
+
 void DependencyGraph::removeDescendantsOfHandle(const NodeId id) {
     auto* nd = getDepNode(id);
     if (nd) {

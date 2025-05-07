@@ -991,7 +991,12 @@ class VkDecoderSnapshot::Impl {
     void vkResetCommandPool(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                             VkResult input_result, VkDevice device, VkCommandPool commandPool,
-                            VkCommandPoolResetFlags flags) {}
+                            VkCommandPoolResetFlags flags) {
+        // Note: special implementation
+        std::lock_guard<std::mutex> lock(mReconstructionMutex);
+        mReconstruction.removeGrandChildren(
+            (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkCommandPool(commandPool));
+    }
     void vkAllocateCommandBuffers(gfxstream::base::BumpPool* pool,
                                   VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
                                   size_t apiCallPacketSize, VkResult input_result, VkDevice device,

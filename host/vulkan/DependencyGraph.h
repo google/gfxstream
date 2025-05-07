@@ -74,6 +74,7 @@ class DependencyGraph {
 
     void clearChildDependencies(NodeId id);
 
+    void removeGrandChildren(const NodeId id);
     void removeNodesAndDescendants(const NodeId* toRemove, uint32_t count);
     void removeDescendantsOfHandle(const NodeId handle);
 
