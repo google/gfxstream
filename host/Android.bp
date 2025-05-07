@@ -86,7 +86,6 @@ gfxstream_backend_static_deps = [
     "libgfxstream_host_vulkan_cereal",
     "libgfxstream_host_vulkan_emulatedtextures",
     "libgfxstream_host_vulkan_server",
-    "libgfxstream_thirdparty_glm",
     "libgfxstream_utils_renderdoc",
 ]
 
@@ -109,8 +108,10 @@ cc_defaults {
         "-Wno-unused-function",
     ],
     header_libs: [
-        "gfxstream_opengl_headers",
+        "libgfxstream_thirdparty_drm_headers",
+        "libgfxstream_thirdparty_opengl_headers",
         "libgfxstream_host_vulkan_cereal_common",
+        "libgfxstream_thirdparty_glm",
         "libgfxstream_thirdparty_renderdoc_headers",
     ],
     export_header_lib_headers: [
@@ -204,7 +205,7 @@ cc_test_library {
         "tests/ShaderUtils.cpp",
     ],
     header_libs: [
-        "gfxstream_opengl_headers",
+        "libgfxstream_thirdparty_opengl_headers",
         "libgfxstream_host_vulkan_cereal_common",
     ],
     shared_libs: [
@@ -234,6 +235,7 @@ cc_test_host {
     defaults: ["gfxstream_defaults"],
     header_libs: [
         "libgfxstream_host_vulkan_cereal_common",
+        "libgfxstream_thirdparty_glm",
     ],
     srcs: [
         "tests/CompositorVk_unittest.cpp",
@@ -275,7 +277,6 @@ cc_test_host {
     static_libs: [
         "libgfxstream_host_logging",
         "libgfxstream_host_vulkan_server",
-        "libgfxstream_thirdparty_glm",
     ],
     test_options: {
         // Disabled by default as requires Vulkan.
@@ -292,6 +293,7 @@ cc_test_host {
     defaults: ["gfxstream_defaults"],
     header_libs: [
         "libgfxstream_host_vulkan_cereal_common",
+        "libgfxstream_thirdparty_glm",
     ],
     srcs: [
         "FrameBuffer_unittest.cpp",
@@ -309,7 +311,6 @@ cc_test_host {
         "libgfxstream_host_vulkan_server",
         "libgfxstream_oswindow_test_support",
         "libgfxstream_host_snapshot",
-        "libgfxstream_thirdparty_glm",
         "libgmock",
     ],
     test_options: {

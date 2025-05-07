@@ -29,4 +29,4 @@ target_include_directories(
     ${GFXSTREAM_REPO_ROOT}
     ${GFXSTREAM_REPO_ROOT}/host/
     ${GFXSTREAM_REPO_ROOT}/host/gl/glestranslator/include
-    ${GFXSTREAM_REPO_ROOT}/third-party/glm/include)
+    ${GFXSTREAM_REPO_ROOT}/third_party/glm/include)

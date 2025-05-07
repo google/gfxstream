@@ -50,7 +50,7 @@ objc_library(
     ],
     deps = [
         ":gfxstream_backend_headers",
-        "//common/opengl:gfxstream_opengl_headers",
+        "//third_party/opengl:gfxstream_opengl_headers",
     ],
 )
 
@@ -130,6 +130,7 @@ cc_library(
         "//host/snapshot:gfxstream_host_snapshot",
         "//host/tracing:gfxstream_host_tracing",
         "//host/vulkan:gfxstream_vulkan_server",
+        "//third_party/drm:gfxstream_drm_headers",
     ] + select({
         "@platforms//os:macos": [
             ":gfxstream_backend_static-darwin",

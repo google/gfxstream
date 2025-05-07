@@ -95,4 +95,4 @@ target_include_directories(gfxstream-vulkan-server
                            ${GFXSTREAM_REPO_ROOT}/host/vulkan
                            ${GFXSTREAM_REPO_ROOT}/host/vulkan/cereal/common
                            ${GFXSTREAM_REPO_ROOT}/host/gfxstream_host_decoder_common
-                           ${GFXSTREAM_REPO_ROOT}/third-party/glm/include)
+                           ${GFXSTREAM_REPO_ROOT}/third_party/glm/include)

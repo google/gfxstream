@@ -151,7 +151,7 @@ set(EXTRA_SUBDIR_TEST_INCLUDE_FILES)
 add_subdirectory(common)
 
 # Third party dependencies
-add_subdirectory(third-party)
+add_subdirectory(third_party)
 
 # Backends######################################################################
 

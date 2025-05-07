@@ -1,5 +1,9 @@
+package {
+    default_applicable_licenses: ["hardware_google_gfxstream_license"],
+}
+
 cc_library_headers {
-    name: "libgfxstream_vulkan_headers",
+    name: "libgfxstream_thirdparty_vulkan_headers",
     export_include_dirs: ["include"],
     host_supported: true,
     vendor_available: true,

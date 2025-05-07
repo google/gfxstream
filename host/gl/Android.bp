@@ -32,7 +32,7 @@ cc_library_static {
         "YUVConverter.cpp",
     ],
     header_libs: [
-        "gfxstream_opengl_headers",
+        "libgfxstream_thirdparty_opengl_headers",
         "libgfxstream_backend_headers",
     ],
     static_libs: [

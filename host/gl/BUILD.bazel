@@ -15,10 +15,10 @@ cc_library(
     defines = ["EMUGL_BUILD"],
     deps = [
         ":GLSnapshot",
-        "//common/opengl:gfxstream_opengl_headers",
         "//host/decoder_common:gfxstream_host_decoder_common",
         "//host/iostream:gfxstream_host_iostream",
         "//host/logging:gfxstream_host_logging",
+        "//third_party/opengl:gfxstream_opengl_headers",
     ],
 )
 
@@ -98,7 +98,6 @@ cc_library(
         [
             ":gl-common-headers",
             "//common/etc:gfxstream_etc",
-            "//common/opengl:gfxstream_opengl_headers",
             "//common/utils:gfxstream_common_utils",
             "//host:gfxstream_backend_headers",
             "//host:gfxstream_host_headers",
@@ -107,6 +106,7 @@ cc_library(
             "//host/gl/glestranslator/GLES_CM:GLES_CM_translator_static",
             "//host/gl/glestranslator/GLES_V2:GLES_V2_translator_static",
             "//host/logging:gfxstream_host_logging",
+            "//third_party/opengl:gfxstream_opengl_headers",
         ] + select({
             "@platforms//os:macos": [":egl_translator-darwin"],
             "//conditions:default": [],
@@ -148,11 +148,11 @@ cc_library(
     deps = [
         ":gl-common-headers",
         "//common/etc:gfxstream_etc",
-        "//common/opengl:gfxstream_opengl_headers",
         "//host:gfxstream_backend_headers",
         "//host/backend:gfxstream_host_backend",
         "//host/compressed_textures:gfxstream_host_compressed_textures",
         "//host/logging:gfxstream_host_logging",
+        "//third_party/opengl:gfxstream_opengl_headers",
     ],
 )
 
@@ -167,11 +167,11 @@ cc_library(
     defines = ["EMUGL_BUILD"],
     deps = [
         ":GLSnapshot",
-        "//common/opengl:gfxstream_opengl_headers",
         "//host/backend:gfxstream_host_backend",
         "//host/decoder_common:gfxstream_host_decoder_common",
         "//host/iostream:gfxstream_host_iostream",
         "//host/logging:gfxstream_host_logging",
+        "//third_party/opengl:gfxstream_opengl_headers",
     ],
 )
 

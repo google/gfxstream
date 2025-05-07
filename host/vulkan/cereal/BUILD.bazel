@@ -34,7 +34,6 @@ cc_library(
     includes = ["common"],
     deps = [
         "//common/base:gfxstream_common_base",
-        "//common/vulkan:gfxstream_vulkan_headers",
         "//host:gfxstream_host_headers",
         "//host/backend:gfxstream_host_backend",
         "//host/features:gfxstream_features",
@@ -42,6 +41,7 @@ cc_library(
         "//host/logging:gfxstream_host_logging",
         "//host/tracing:gfxstream_host_tracing",
         "//host/vulkan:gfxstream_vulkan_headers",
+        "//third_party/vulkan:gfxstream_vulkan_headers",
         "//utils:gfxstream_utils",
     ],
 )

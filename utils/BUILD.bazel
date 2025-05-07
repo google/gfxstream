@@ -9,10 +9,10 @@ cc_library(
     hdrs = glob(["include/**/*.h"]),
     includes = ["include"],
     deps = [
-        "//common/vulkan:gfxstream_vulkan_headers",
         "//host/library:gfxstream_host_library",
         "//host/logging:gfxstream_host_logging",
-        "//third-party/renderdoc",
+        "//third_party/renderdoc",
+        "//third_party/vulkan:gfxstream_vulkan_headers",
     ],
 )
 

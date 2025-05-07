@@ -16,7 +16,6 @@
 #define VIRTGPU_GFXSTREAM_PROTOCOL_H
 
 #include <stdint.h>
-#include "virgl_hw.h"
 
 namespace gfxstream {
 

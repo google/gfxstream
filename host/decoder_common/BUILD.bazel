@@ -28,9 +28,10 @@ cc_library(
     ],
     deps = [
         "//common/base:gfxstream_common_base",
-        "//common/opengl:gfxstream_opengl_headers",
         "//host:gfxstream_backend_headers",
         "//host/library:gfxstream_host_library",
         "//host/logging:gfxstream_host_logging",
+        "//third_party/opengl:gfxstream_opengl_headers",
+        "//third_party/x11:gfxstream_x11_headers",
     ],
 )

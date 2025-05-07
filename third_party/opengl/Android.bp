@@ -4,7 +4,7 @@ package {
 }
 
 cc_library_headers {
-    name: "gfxstream_opengl_headers",
+    name: "libgfxstream_thirdparty_opengl_headers",
     export_include_dirs: [
         "include",
     ],

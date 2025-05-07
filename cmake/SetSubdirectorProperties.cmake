@@ -2,7 +2,7 @@
 function(set_subdirectory_properties subdir)
     get_filename_component(abs_subdir ${subdir} ABSOLUTE)
     set(GFXSTREAM_THIRD_PARTY_ROOT ${GFXSTREAM_REPO_ROOT})
-    cmake_path(APPEND GFXSTREAM_THIRD_PARTY_ROOT "third-party")
+    cmake_path(APPEND GFXSTREAM_THIRD_PARTY_ROOT "third_party")
     cmake_path(IS_PREFIX GFXSTREAM_THIRD_PARTY_ROOT ${abs_subdir} NORMALIZE IS_THIRD_PARTY)
     if(IS_THIRD_PARTY)
         return()

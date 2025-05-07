@@ -12,7 +12,7 @@ cc_library_static {
     defaults: ["gfxstream_defaults"],
     header_libs: [
         "gfxstream_headers",
-        "gfxstream_opengl_headers",
+        "libgfxstream_thirdparty_opengl_headers",
     ],
     static_libs: [
         "libgfxstream_common_base",

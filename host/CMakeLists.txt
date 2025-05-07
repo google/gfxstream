@@ -100,6 +100,8 @@ target_link_libraries(
         PUBLIC
         gfxstream_backend.headers
         ${GFXSTREAM_HOST_COMMON_LIB}
+        gfxstream_drm_headers
+        gfxstream_glm_headers
         gfxstream_host_decoder_common
         gfxstream_common_base
         gfxstream_egl_headers
@@ -132,7 +134,7 @@ target_include_directories(
         ${GFXSTREAM_REPO_ROOT}/host/gl/glestranslator/include
         ${GFXSTREAM_REPO_ROOT}/host/vulkan
         ${GFXSTREAM_REPO_ROOT}/host/vulkan/cereal/common
-        ${GFXSTREAM_REPO_ROOT}/third-party/glm/include)
+        )
 
 if (APPLE)
     target_link_libraries(gfxstream_backend_static PUBLIC "-framework AppKit -framework QuartzCore -framework IOSurface")

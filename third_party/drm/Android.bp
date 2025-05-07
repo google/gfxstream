@@ -1,0 +1,11 @@
+package {
+    default_applicable_licenses: ["hardware_google_gfxstream_license"],
+}
+
+cc_library_headers {
+    name: "libgfxstream_thirdparty_drm_headers",
+    defaults: ["gfxstream_defaults"],
+    export_include_dirs: [
+        "include",
+    ],
+}

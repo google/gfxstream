@@ -14,10 +14,10 @@ cc_library_headers {
         "include",
     ],
     header_libs: [
-        "gfxstream_opengl_headers",
+        "libgfxstream_thirdparty_opengl_headers",
     ],
     export_header_lib_headers: [
-        "gfxstream_opengl_headers",
+        "libgfxstream_thirdparty_opengl_headers",
     ],
 }
 
@@ -25,15 +25,15 @@ cc_library_static {
     name: "libgfxstream_host_openglesdispatch",
     defaults: ["gfxstream_defaults"],
     header_libs: [
-        "gfxstream_opengl_headers",
+        "libgfxstream_thirdparty_opengl_headers",
         "libgfxstream_host_openglesdispatch_headers",
+        "libgfxstream_thirdparty_glm",
     ],
     export_header_lib_headers: [
         "libgfxstream_host_openglesdispatch_headers",
     ],
     static_libs: [
         "libgfxstream_common_base",
-        "libgfxstream_thirdparty_glm",
         "libgfxstream_host_decoder_common",
         "libgfxstream_glestranslator_egl",
     ],

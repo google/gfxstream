@@ -87,7 +87,8 @@ gfxstream_headers = files(
 
 inc_gfxstream_server = include_directories('include')
 
-inc_common_opengl = include_directories('../common/opengl/include')
+inc_common_opengl = include_directories('../third_party/opengl/include')
+inc_drm_headers = include_directories('../third_party/drm/include')
 
 inc_root = include_directories('../')
 inc_gfxstream_include = []
@@ -100,20 +101,22 @@ if host_machine.system() == 'qnx'
 endif
 
 if use_vulkan
-  inc_vulkan_headers = include_directories('../common/vulkan/include')
+  inc_vulkan_headers = include_directories('../third_party/vulkan/include')
 
   if cc.has_header('renderdoc_app.h')
     inc_renderdoc_external = include_directories()
   else
-    inc_renderdoc_external = include_directories('../third-party/renderdoc/include')
+    inc_renderdoc_external = include_directories('../third_party/renderdoc/include')
   endif
 endif
 
 if cc.has_header('glm/glm.hpp')
   inc_glm = include_directories()
 else
-  inc_glm = include_directories('../third-party/glm/include')
+  inc_glm = include_directories('../third_party/glm/include')
 endif
+
+inc_x11_headers = include_directories('../third_party/x11/include')
 
 inc_stream_servers = include_directories('.')
 inc_host_include = include_directories('include')
@@ -137,6 +140,7 @@ inc_gfxstream_backend = [
   inc_common_base,
   inc_common_opengl,
   inc_common_utils,
+  inc_drm_headers,
   inc_gfxstream_include,
   inc_glm,
   inc_host_address_space,

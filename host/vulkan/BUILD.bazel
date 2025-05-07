@@ -76,7 +76,6 @@ cc_library(
     ],
     deps = [
         "//common/base:gfxstream_common_base",
-        "//common/vulkan:gfxstream_vulkan_headers",
         "//host:gfxstream_host_headers",
         "//host/compressed_textures:gfxstream_host_compressed_textures",
         "//host/decoder_common:gfxstream_host_decoder_common",
@@ -87,8 +86,9 @@ cc_library(
         "//host/logging:gfxstream_host_logging",
         "//host/vulkan/cereal:gfxstream_vulkan_cereal",
         "//host/vulkan/emulated_textures:gfxstream_host_vulkan_emulated_textures",
-        "//third-party/glm",
-        "//third-party/renderdoc",
+        "//third_party/glm",
+        "//third_party/renderdoc",
+        "//third_party/vulkan:gfxstream_vulkan_headers",
         "//utils:gfxstream_utils",
     ],
 )

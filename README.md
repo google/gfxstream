@@ -247,3 +247,9 @@ enthusiasts.  Some ideas include:
 6) Improving display virtualization
 
 Please reach out to your local gfxstreamist today if you are interested!
+
+## Notice
+
+This is not an officially supported Google product. This project is not
+eligible for the [Google Open Source Software Vulnerability Rewards
+Program](https://bughunters.google.com/open-source-security).

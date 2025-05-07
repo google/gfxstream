@@ -26,6 +26,7 @@ target_link_libraries(
     gfxstream_host_library
     gfxstream_host_logging
     gfxstream_opengl_headers
+    gfxstream_x11_headers
     )
 target_include_directories(
     gfxstream_host_decoder_common

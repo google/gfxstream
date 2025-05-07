@@ -20,6 +20,6 @@ cc_library(
         "//host:gfxstream_backend_headers",
         "//host/decoder_common:gfxstream_host_decoder_common",
         "//host/gl:gl_common",
-        "//third-party/glm",
+        "//third_party/glm",
     ],
 )

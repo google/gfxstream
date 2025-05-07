@@ -52,4 +52,4 @@ target_include_directories(gfxstream-gl-server
                            ${GFXSTREAM_REPO_ROOT}/gldispatch/include
                            ${GFXSTREAM_REPO_ROOT}/host
                            ${GFXSTREAM_REPO_ROOT}/host/gl
-                           ${GFXSTREAM_REPO_ROOT}/third-party/glm/include)
+                           ${GFXSTREAM_REPO_ROOT}/third_party/glm/include)

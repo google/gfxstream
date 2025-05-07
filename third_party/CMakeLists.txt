@@ -17,9 +17,14 @@ endif ()
 
 # Enable perfetto in CMake if needed
 # add_subdirectory(perfetto-tracing-only)
+
+add_subdirectory(drm)
+add_subdirectory(glm)
+add_subdirectory(opengl)
 add_subdirectory(renderdoc)
 add_subdirectory(stb)
-
+add_subdirectory(vulkan)
+add_subdirectory(x11)
 
 if(NOT TARGET gtest_main AND ENABLE_VKCEREAL_TESTS)
     # For Windows: Prevent overriding the parent project's compiler/linker settings

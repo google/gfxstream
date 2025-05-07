@@ -14,6 +14,8 @@
 
 #include "VirtioGpuResource.h"
 
+#include <drm/drm_fourcc.h>
+
 #include "FrameBuffer.h"
 #include "VirtioGpuFormatUtils.h"
 

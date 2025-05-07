@@ -15,8 +15,7 @@
 #pragma once
 
 extern "C" {
-#include "drm_fourcc.h"
-#include "virgl_hw.h"
+#include "drm/drm_fourcc.h"
 }  // extern "C"
 
 #include "gfxstream/host/logging.h"
@@ -24,9 +23,35 @@ extern "C" {
 namespace gfxstream {
 namespace host {
 
-#define VIRGL_FORMAT_NV12 166
-#define VIRGL_FORMAT_YV12 163
-#define VIRGL_FORMAT_P010 314
+// clang-format off
+#define VIRGL_BIND_RENDER_TARGET (1u << 1)
+#define VIRGL_BIND_SAMPLER_VIEW  (1u << 3)
+#define VIRGL_BIND_CURSOR        (1u << 16)
+#define VIRGL_BIND_CUSTOM        (1u << 17)
+#define VIRGL_BIND_SCANOUT       (1u << 18)
+#define VIRGL_BIND_SHARED        (1u << 20)
+#define VIRGL_BIND_LINEAR        (1u << 22)
+
+#define VIRGL_FORMAT_B8G8R8A8_UNORM          1
+#define VIRGL_FORMAT_B8G8R8X8_UNORM          2
+#define VIRGL_FORMAT_B5G6R5_UNORM            7
+#define VIRGL_FORMAT_R10G10B10A2_UNORM       8
+#define VIRGL_FORMAT_Z16_UNORM               16
+#define VIRGL_FORMAT_Z32_FLOAT               18
+#define VIRGL_FORMAT_Z24_UNORM_S8_UINT       19
+#define VIRGL_FORMAT_Z24X8_UNORM             21
+#define VIRGL_FORMAT_R16_UNORM               48
+#define VIRGL_FORMAT_R8_UNORM                64
+#define VIRGL_FORMAT_R8G8_UNORM              65
+#define VIRGL_FORMAT_R8G8B8_UNORM            66
+#define VIRGL_FORMAT_R8G8B8A8_UNORM          67
+#define VIRGL_FORMAT_R16G16B16A16_FLOAT      94
+#define VIRGL_FORMAT_Z32_FLOAT_S8X24_UINT    126
+#define VIRGL_FORMAT_R8G8B8X8_UNORM          134
+#define VIRGL_FORMAT_YV12                    163
+#define VIRGL_FORMAT_NV12                    166
+#define VIRGL_FORMAT_P010                    314
+// clang-format on
 
 const uint32_t kGlBgra = 0x80e1;
 const uint32_t kGlRgba = 0x1908;

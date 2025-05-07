@@ -11,7 +11,7 @@ cc_library_static {
     name: "libgfxstream_host_gles2_dec",
     defaults: ["gfxstream_defaults"],
     header_libs: [
-        "gfxstream_opengl_headers",
+        "libgfxstream_thirdparty_opengl_headers",
     ],
     static_libs: [
         "libgfxstream_common_base",

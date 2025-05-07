@@ -55,6 +55,7 @@ lib_egl_translator = static_library(
   include_directories: [
     inc_host_decoder_common,
     inc_common_base,
+    inc_common_opengl,
     inc_common_utils,
     inc_etc,
     inc_gfxstream_include,
@@ -67,6 +68,7 @@ lib_egl_translator = static_library(
     inc_host_snapshot,
     inc_include,
     inc_stream_servers,
+    inc_x11_headers,
   ],
   link_with: [
     lib_host_decoder_common,

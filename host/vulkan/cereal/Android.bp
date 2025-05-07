@@ -29,11 +29,11 @@ cc_library_static {
         "common/goldfish_vk_transform.cpp",
     ],
     header_libs: [
-        "libgfxstream_vulkan_headers",
+        "libgfxstream_thirdparty_vulkan_headers",
         "libgfxstream_host_vulkan_cereal_common",
     ],
     export_header_lib_headers: [
-        "libgfxstream_vulkan_headers",
+        "libgfxstream_thirdparty_vulkan_headers",
     ],
     cflags: [
         "-DVK_ANDROID_native_buffer",

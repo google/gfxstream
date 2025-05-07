@@ -36,25 +36,12 @@ cc_library_headers {
     header_libs: [
         "aemu_common_headers",
         "gfxstream_magma_headers",
-        "libgfxstream_vulkan_headers",
+        "libgfxstream_thirdparty_vulkan_headers",
     ],
     export_header_lib_headers: [
         "aemu_common_headers",
         "gfxstream_magma_headers",
-        "libgfxstream_vulkan_headers",
-    ],
-    apex_available: [
-        "//apex_available:platform",
-        "com.android.virt",
-    ],
-}
-
-cc_library_headers {
-    name: "gfxstream_x11_headers",
-    vendor_available: true,
-    host_supported: true,
-    export_include_dirs: [
-        "host/decoder_common",
+        "libgfxstream_thirdparty_vulkan_headers",
     ],
     apex_available: [
         "//apex_available:platform",
@@ -67,9 +54,9 @@ cc_library_headers {
     vendor_available: true,
     host_supported: true,
     export_include_dirs: [
-        "third-party/fuchsia/magma/include",
+        "third_party/fuchsia/magma/include",
         // TODO(b/274956288): use consistent header paths
-        "third-party/fuchsia/magma/include/lib",
+        "third_party/fuchsia/magma/include/lib",
     ],
     apex_available: [
         "//apex_available:platform",
@@ -160,7 +147,6 @@ cc_defaults {
     ],
     header_libs: [
         "gfxstream_headers",
-        "gfxstream_x11_headers",
     ],
     target: {
         host: {
