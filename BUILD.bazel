@@ -18,10 +18,8 @@ license(
     license_kinds = [
         ":SPDX-license-identifier-Apache-2.0",
         ":SPDX-license-identifier-BSD",
-        ":SPDX-license-identifier-CC-BY-4.0",
         ":SPDX-license-identifier-ISC",
         ":SPDX-license-identifier-MIT",
-        ":SPDX-license-identifier-BSL-1.0",
     ],
 )
 
@@ -32,20 +30,12 @@ license_kind(
 )
 
 license_kind(
-    name = "SPDX-license-identifier-BSD-3-Clause",
+    name = "SPDX-license-identifier-BSD",
     conditions = ["notice"],
     url = "https://spdx.org/licenses/BSD-3-Clause.html",
 )
 
-license_kind(
-    name = "SPDX-license-identifier-CC-BY-4.0",
-    conditions = [
-        "notice",
-        "attribution",
-    ],
-    url = "https://spdx.org/licenses/CC-BY-4.0.html",
-)
-
+# X11 headers
 license_kind(
     name = "SPDX-license-identifier-ISC",
     conditions = ["notice"],
@@ -56,16 +46,4 @@ license_kind(
     name = "SPDX-license-identifier-MIT",
     conditions = ["notice"],
     url = "https://spdx.org/licenses/MIT.html",
-)
-
-license_kind(
-    name = "SPDX-license-identifier-BSL-1.0",
-    conditions = ["notice"],
-    url = "https://spdx.org/licenses/BSL-1.0.html",
-)
-
-license_kind(
-    name = "SPDX-license-identifier-BSD",
-    conditions = ["notice"],
-    url = "https://spdx.org/licenses/BSD-3-Clause.html",
 )
