@@ -75,6 +75,7 @@ class DependencyGraph {
     void clearChildDependencies(NodeId id);
 
     void removeNodesAndDescendants(const NodeId* toRemove, uint32_t count);
+    void removeDescendantsOfHandle(const NodeId handle);
 
     void setCreatedNodeIdsForApi(ApiCallId apiCallId, const NodeId* nodeIds, uint32_t count);
     void addApiNode(ApiCallId id);

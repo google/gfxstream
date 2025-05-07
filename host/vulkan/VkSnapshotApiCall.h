@@ -31,6 +31,7 @@ struct VkSnapshotApiCallInfo {
 
     // Book-keeping for which handles were created by this API
     std::vector<uint64_t> createdHandles;
+    std::vector<uint64_t> depends;
 
     // Extra boxed handles created for this API call that are not identifiable
     // solely from the API parameters itself. For example, the extra boxed `VkQueue`s

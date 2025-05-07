@@ -1055,482 +1055,168 @@ class VkDecoderSnapshot::Impl {
                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                               VkResult input_result, VkCommandBuffer commandBuffer,
                               VkCommandBufferResetFlags flags) {
+        // Note: special implementation
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleClearModifyApi((const uint64_t*)(&boxed), 1);
-        }
+        mReconstruction.removeDescendantsOfHandle((uint64_t)(uintptr_t)commandBuffer);
     }
     void vkCmdBindPipeline(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                            VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint,
-                           VkPipeline pipeline) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                           VkPipeline pipeline) {}
     void vkCmdSetViewport(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                           VkCommandBuffer commandBuffer, uint32_t firstViewport,
-                          uint32_t viewportCount, const VkViewport* pViewports) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                          uint32_t viewportCount, const VkViewport* pViewports) {}
     void vkCmdSetScissor(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                          VkCommandBuffer commandBuffer, uint32_t firstScissor,
-                         uint32_t scissorCount, const VkRect2D* pScissors) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                         uint32_t scissorCount, const VkRect2D* pScissors) {}
     void vkCmdSetLineWidth(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
-                           VkCommandBuffer commandBuffer, float lineWidth) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                           VkCommandBuffer commandBuffer, float lineWidth) {}
     void vkCmdSetDepthBias(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                            VkCommandBuffer commandBuffer, float depthBiasConstantFactor,
-                           float depthBiasClamp, float depthBiasSlopeFactor) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                           float depthBiasClamp, float depthBiasSlopeFactor) {}
     void vkCmdSetBlendConstants(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                                 const uint8_t* apiCallPacket, size_t apiCallPacketSize,
-                                VkCommandBuffer commandBuffer, const float blendConstants[4]) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                VkCommandBuffer commandBuffer, const float blendConstants[4]) {}
     void vkCmdSetDepthBounds(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                              VkCommandBuffer commandBuffer, float minDepthBounds,
-                             float maxDepthBounds) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                             float maxDepthBounds) {}
     void vkCmdSetStencilCompareMask(gfxstream::base::BumpPool* pool,
                                     VkSnapshotApiCallInfo* apiCallInfo,
                                     const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                     VkCommandBuffer commandBuffer, VkStencilFaceFlags faceMask,
-                                    uint32_t compareMask) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                    uint32_t compareMask) {}
     void vkCmdSetStencilWriteMask(gfxstream::base::BumpPool* pool,
                                   VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
                                   size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
-                                  VkStencilFaceFlags faceMask, uint32_t writeMask) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                  VkStencilFaceFlags faceMask, uint32_t writeMask) {}
     void vkCmdSetStencilReference(gfxstream::base::BumpPool* pool,
                                   VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
                                   size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
-                                  VkStencilFaceFlags faceMask, uint32_t reference) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                  VkStencilFaceFlags faceMask, uint32_t reference) {}
     void vkCmdBindDescriptorSets(gfxstream::base::BumpPool* pool,
                                  VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
                                  size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
                                  VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout layout,
                                  uint32_t firstSet, uint32_t descriptorSetCount,
                                  const VkDescriptorSet* pDescriptorSets,
-                                 uint32_t dynamicOffsetCount, const uint32_t* pDynamicOffsets) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                 uint32_t dynamicOffsetCount, const uint32_t* pDynamicOffsets) {}
     void vkCmdBindIndexBuffer(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                               VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset,
-                              VkIndexType indexType) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                              VkIndexType indexType) {}
     void vkCmdBindVertexBuffers(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                                 const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                 VkCommandBuffer commandBuffer, uint32_t firstBinding,
                                 uint32_t bindingCount, const VkBuffer* pBuffers,
                                 const VkDeviceSize* pOffsets) {
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
+        for (uint32_t i = 0; i < bindingCount; ++i) {
+            apiCallInfo->depends.push_back(
+                (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkBuffer(pBuffers[i]));
         }
     }
     void vkCmdDraw(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                    const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                    VkCommandBuffer commandBuffer, uint32_t vertexCount, uint32_t instanceCount,
-                   uint32_t firstVertex, uint32_t firstInstance) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                   uint32_t firstVertex, uint32_t firstInstance) {}
     void vkCmdDrawIndexed(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                           VkCommandBuffer commandBuffer, uint32_t indexCount,
                           uint32_t instanceCount, uint32_t firstIndex, int32_t vertexOffset,
-                          uint32_t firstInstance) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                          uint32_t firstInstance) {}
     void vkCmdDrawIndirect(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                            VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset,
-                           uint32_t drawCount, uint32_t stride) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                           uint32_t drawCount, uint32_t stride) {}
     void vkCmdDrawIndexedIndirect(gfxstream::base::BumpPool* pool,
                                   VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
                                   size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
                                   VkBuffer buffer, VkDeviceSize offset, uint32_t drawCount,
-                                  uint32_t stride) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                  uint32_t stride) {}
     void vkCmdDispatch(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                        VkCommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY,
-                       uint32_t groupCountZ) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                       uint32_t groupCountZ) {}
     void vkCmdDispatchIndirect(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                                const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                VkCommandBuffer commandBuffer, VkBuffer buffer,
-                               VkDeviceSize offset) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                               VkDeviceSize offset) {}
     void vkCmdCopyBuffer(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                          VkCommandBuffer commandBuffer, VkBuffer srcBuffer, VkBuffer dstBuffer,
-                         uint32_t regionCount, const VkBufferCopy* pRegions) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                         uint32_t regionCount, const VkBufferCopy* pRegions) {}
     void vkCmdCopyImage(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                         VkCommandBuffer commandBuffer, VkImage srcImage,
                         VkImageLayout srcImageLayout, VkImage dstImage,
                         VkImageLayout dstImageLayout, uint32_t regionCount,
-                        const VkImageCopy* pRegions) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                        const VkImageCopy* pRegions) {}
     void vkCmdBlitImage(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                         VkCommandBuffer commandBuffer, VkImage srcImage,
                         VkImageLayout srcImageLayout, VkImage dstImage,
                         VkImageLayout dstImageLayout, uint32_t regionCount,
-                        const VkImageBlit* pRegions, VkFilter filter) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                        const VkImageBlit* pRegions, VkFilter filter) {}
     void vkCmdCopyBufferToImage(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                                 const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                 VkCommandBuffer commandBuffer, VkBuffer srcBuffer, VkImage dstImage,
                                 VkImageLayout dstImageLayout, uint32_t regionCount,
                                 const VkBufferImageCopy* pRegions) {
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
+        apiCallInfo->depends.push_back(
+            (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkBuffer(srcBuffer));
+        apiCallInfo->depends.push_back(
+            (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkImage(dstImage));
     }
     void vkCmdCopyImageToBuffer(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                                 const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                 VkCommandBuffer commandBuffer, VkImage srcImage,
                                 VkImageLayout srcImageLayout, VkBuffer dstBuffer,
-                                uint32_t regionCount, const VkBufferImageCopy* pRegions) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                uint32_t regionCount, const VkBufferImageCopy* pRegions) {}
     void vkCmdUpdateBuffer(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                            VkCommandBuffer commandBuffer, VkBuffer dstBuffer,
-                           VkDeviceSize dstOffset, VkDeviceSize dataSize, const void* pData) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                           VkDeviceSize dstOffset, VkDeviceSize dataSize, const void* pData) {}
     void vkCmdFillBuffer(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                          VkCommandBuffer commandBuffer, VkBuffer dstBuffer, VkDeviceSize dstOffset,
-                         VkDeviceSize size, uint32_t data) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                         VkDeviceSize size, uint32_t data) {}
     void vkCmdClearColorImage(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                               VkCommandBuffer commandBuffer, VkImage image,
                               VkImageLayout imageLayout, const VkClearColorValue* pColor,
-                              uint32_t rangeCount, const VkImageSubresourceRange* pRanges) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                              uint32_t rangeCount, const VkImageSubresourceRange* pRanges) {}
     void vkCmdClearDepthStencilImage(gfxstream::base::BumpPool* pool,
                                      VkSnapshotApiCallInfo* apiCallInfo,
                                      const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                      VkCommandBuffer commandBuffer, VkImage image,
                                      VkImageLayout imageLayout,
                                      const VkClearDepthStencilValue* pDepthStencil,
-                                     uint32_t rangeCount, const VkImageSubresourceRange* pRanges) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                     uint32_t rangeCount, const VkImageSubresourceRange* pRanges) {}
     void vkCmdClearAttachments(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                                const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                VkCommandBuffer commandBuffer, uint32_t attachmentCount,
                                const VkClearAttachment* pAttachments, uint32_t rectCount,
-                               const VkClearRect* pRects) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                               const VkClearRect* pRects) {}
     void vkCmdResolveImage(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                            VkCommandBuffer commandBuffer, VkImage srcImage,
                            VkImageLayout srcImageLayout, VkImage dstImage,
                            VkImageLayout dstImageLayout, uint32_t regionCount,
-                           const VkImageResolve* pRegions) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                           const VkImageResolve* pRegions) {}
     void vkCmdSetEvent(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                        VkCommandBuffer commandBuffer, VkEvent event,
-                       VkPipelineStageFlags stageMask) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                       VkPipelineStageFlags stageMask) {}
     void vkCmdResetEvent(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                          VkCommandBuffer commandBuffer, VkEvent event,
-                         VkPipelineStageFlags stageMask) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                         VkPipelineStageFlags stageMask) {}
     void vkCmdWaitEvents(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                          VkCommandBuffer commandBuffer, uint32_t eventCount, const VkEvent* pEvents,
@@ -1539,17 +1225,7 @@ class VkDecoderSnapshot::Impl {
                          uint32_t bufferMemoryBarrierCount,
                          const VkBufferMemoryBarrier* pBufferMemoryBarriers,
                          uint32_t imageMemoryBarrierCount,
-                         const VkImageMemoryBarrier* pImageMemoryBarriers) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                         const VkImageMemoryBarrier* pImageMemoryBarriers) {}
     void vkCmdPipelineBarrier(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                               VkCommandBuffer commandBuffer, VkPipelineStageFlags srcStageMask,
@@ -1560,156 +1236,63 @@ class VkDecoderSnapshot::Impl {
                               uint32_t imageMemoryBarrierCount,
                               const VkImageMemoryBarrier* pImageMemoryBarriers) {
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
+        for (uint32_t i = 0; i < bufferMemoryBarrierCount; ++i) {
+            apiCallInfo->depends.push_back(
+                (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkBuffer(
+                    pBufferMemoryBarriers[i].buffer));
+        }
+        for (uint32_t i = 0; i < imageMemoryBarrierCount; ++i) {
+            apiCallInfo->depends.push_back(
+                (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkImage(
+                    pImageMemoryBarriers[i].image));
         }
     }
     void vkCmdBeginQuery(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                          VkCommandBuffer commandBuffer, VkQueryPool queryPool, uint32_t query,
-                         VkQueryControlFlags flags) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                         VkQueryControlFlags flags) {}
     void vkCmdEndQuery(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
-                       VkCommandBuffer commandBuffer, VkQueryPool queryPool, uint32_t query) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                       VkCommandBuffer commandBuffer, VkQueryPool queryPool, uint32_t query) {}
     void vkCmdResetQueryPool(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                              VkCommandBuffer commandBuffer, VkQueryPool queryPool,
-                             uint32_t firstQuery, uint32_t queryCount) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                             uint32_t firstQuery, uint32_t queryCount) {}
     void vkCmdWriteTimestamp(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                              VkCommandBuffer commandBuffer, VkPipelineStageFlagBits pipelineStage,
-                             VkQueryPool queryPool, uint32_t query) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                             VkQueryPool queryPool, uint32_t query) {}
     void vkCmdCopyQueryPoolResults(gfxstream::base::BumpPool* pool,
                                    VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
                                    size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
                                    VkQueryPool queryPool, uint32_t firstQuery, uint32_t queryCount,
                                    VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize stride,
-                                   VkQueryResultFlags flags) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                   VkQueryResultFlags flags) {}
     void vkCmdPushConstants(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                             VkCommandBuffer commandBuffer, VkPipelineLayout layout,
                             VkShaderStageFlags stageFlags, uint32_t offset, uint32_t size,
-                            const void* pValues) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                            const void* pValues) {}
     void vkCmdBeginRenderPass(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                               VkCommandBuffer commandBuffer,
                               const VkRenderPassBeginInfo* pRenderPassBegin,
                               VkSubpassContents contents) {
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
+        apiCallInfo->depends.push_back(
+            (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkFramebuffer(
+                pRenderPassBegin->framebuffer));
     }
     void vkCmdNextSubpass(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
-                          VkCommandBuffer commandBuffer, VkSubpassContents contents) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                          VkCommandBuffer commandBuffer, VkSubpassContents contents) {}
     void vkCmdEndRenderPass(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
-                            VkCommandBuffer commandBuffer) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                            VkCommandBuffer commandBuffer) {}
     void vkCmdExecuteCommands(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                               VkCommandBuffer commandBuffer, uint32_t commandBufferCount,
-                              const VkCommandBuffer* pCommandBuffers) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                              const VkCommandBuffer* pCommandBuffers) {}
 #endif
 #ifdef VK_VERSION_1_1
     void vkEnumerateInstanceVersion(gfxstream::base::BumpPool* pool,
@@ -1753,32 +1336,12 @@ class VkDecoderSnapshot::Impl {
                                             VkPeerMemoryFeatureFlags* pPeerMemoryFeatures) {}
     void vkCmdSetDeviceMask(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
-                            VkCommandBuffer commandBuffer, uint32_t deviceMask) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                            VkCommandBuffer commandBuffer, uint32_t deviceMask) {}
     void vkCmdDispatchBase(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                            VkCommandBuffer commandBuffer, uint32_t baseGroupX, uint32_t baseGroupY,
                            uint32_t baseGroupZ, uint32_t groupCountX, uint32_t groupCountY,
-                           uint32_t groupCountZ) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                           uint32_t groupCountZ) {}
     void vkEnumeratePhysicalDeviceGroups(
         gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
         const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkResult input_result,
@@ -1932,34 +1495,14 @@ class VkDecoderSnapshot::Impl {
                                 const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                 VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset,
                                 VkBuffer countBuffer, VkDeviceSize countBufferOffset,
-                                uint32_t maxDrawCount, uint32_t stride) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                uint32_t maxDrawCount, uint32_t stride) {}
     void vkCmdDrawIndexedIndirectCount(gfxstream::base::BumpPool* pool,
                                        VkSnapshotApiCallInfo* apiCallInfo,
                                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                        VkCommandBuffer commandBuffer, VkBuffer buffer,
                                        VkDeviceSize offset, VkBuffer countBuffer,
                                        VkDeviceSize countBufferOffset, uint32_t maxDrawCount,
-                                       uint32_t stride) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                       uint32_t stride) {}
     void vkCreateRenderPass2(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                              VkResult input_result, VkDevice device,
@@ -1983,44 +1526,19 @@ class VkDecoderSnapshot::Impl {
                                const VkRenderPassBeginInfo* pRenderPassBegin,
                                const VkSubpassBeginInfo* pSubpassBeginInfo) {
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
+        apiCallInfo->depends.push_back(
+            (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkFramebuffer(
+                pRenderPassBegin->framebuffer));
     }
     void vkCmdNextSubpass2(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                            VkCommandBuffer commandBuffer,
                            const VkSubpassBeginInfo* pSubpassBeginInfo,
-                           const VkSubpassEndInfo* pSubpassEndInfo) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                           const VkSubpassEndInfo* pSubpassEndInfo) {}
     void vkCmdEndRenderPass2(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                              VkCommandBuffer commandBuffer,
-                             const VkSubpassEndInfo* pSubpassEndInfo) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                             const VkSubpassEndInfo* pSubpassEndInfo) {}
     void vkResetQueryPool(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                           const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDevice device,
                           VkQueryPool queryPool, uint32_t firstQuery, uint32_t queryCount) {}
@@ -2098,73 +1616,23 @@ class VkDecoderSnapshot::Impl {
     void vkCmdSetEvent2(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                         VkCommandBuffer commandBuffer, VkEvent event,
-                        const VkDependencyInfo* pDependencyInfo) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                        const VkDependencyInfo* pDependencyInfo) {}
     void vkCmdResetEvent2(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                           VkCommandBuffer commandBuffer, VkEvent event,
-                          VkPipelineStageFlags2 stageMask) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                          VkPipelineStageFlags2 stageMask) {}
     void vkCmdWaitEvents2(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                           VkCommandBuffer commandBuffer, uint32_t eventCount,
-                          const VkEvent* pEvents, const VkDependencyInfo* pDependencyInfos) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                          const VkEvent* pEvents, const VkDependencyInfo* pDependencyInfos) {}
     void vkCmdPipelineBarrier2(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                                const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                VkCommandBuffer commandBuffer,
-                               const VkDependencyInfo* pDependencyInfo) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                               const VkDependencyInfo* pDependencyInfo) {}
     void vkCmdWriteTimestamp2(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                               VkCommandBuffer commandBuffer, VkPipelineStageFlags2 stage,
-                              VkQueryPool queryPool, uint32_t query) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                              VkQueryPool queryPool, uint32_t query) {}
     void vkQueueSubmit2(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                         VkResult input_result, VkQueue queue, uint32_t submitCount,
@@ -2172,323 +1640,95 @@ class VkDecoderSnapshot::Impl {
     void vkCmdCopyBuffer2(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                           VkCommandBuffer commandBuffer, const VkCopyBufferInfo2* pCopyBufferInfo) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
     }
     void vkCmdCopyImage2(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
-                         VkCommandBuffer commandBuffer, const VkCopyImageInfo2* pCopyImageInfo) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                         VkCommandBuffer commandBuffer, const VkCopyImageInfo2* pCopyImageInfo) {}
     void vkCmdCopyBufferToImage2(gfxstream::base::BumpPool* pool,
                                  VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
                                  size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
-                                 const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                 const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo) {}
     void vkCmdCopyImageToBuffer2(gfxstream::base::BumpPool* pool,
                                  VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
                                  size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
-                                 const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                 const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo) {}
     void vkCmdBlitImage2(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
-                         VkCommandBuffer commandBuffer, const VkBlitImageInfo2* pBlitImageInfo) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                         VkCommandBuffer commandBuffer, const VkBlitImageInfo2* pBlitImageInfo) {}
     void vkCmdResolveImage2(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                             VkCommandBuffer commandBuffer,
-                            const VkResolveImageInfo2* pResolveImageInfo) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                            const VkResolveImageInfo2* pResolveImageInfo) {}
     void vkCmdBeginRendering(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                              VkCommandBuffer commandBuffer, const VkRenderingInfo* pRenderingInfo) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
     }
     void vkCmdEndRendering(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
-                           VkCommandBuffer commandBuffer) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                           VkCommandBuffer commandBuffer) {}
     void vkCmdSetCullMode(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
-                          VkCommandBuffer commandBuffer, VkCullModeFlags cullMode) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                          VkCommandBuffer commandBuffer, VkCullModeFlags cullMode) {}
     void vkCmdSetFrontFace(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
-                           VkCommandBuffer commandBuffer, VkFrontFace frontFace) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                           VkCommandBuffer commandBuffer, VkFrontFace frontFace) {}
     void vkCmdSetPrimitiveTopology(gfxstream::base::BumpPool* pool,
                                    VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
                                    size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
-                                   VkPrimitiveTopology primitiveTopology) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                   VkPrimitiveTopology primitiveTopology) {}
     void vkCmdSetViewportWithCount(gfxstream::base::BumpPool* pool,
                                    VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
                                    size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
-                                   uint32_t viewportCount, const VkViewport* pViewports) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                   uint32_t viewportCount, const VkViewport* pViewports) {}
     void vkCmdSetScissorWithCount(gfxstream::base::BumpPool* pool,
                                   VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
                                   size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
-                                  uint32_t scissorCount, const VkRect2D* pScissors) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                  uint32_t scissorCount, const VkRect2D* pScissors) {}
     void vkCmdBindVertexBuffers2(gfxstream::base::BumpPool* pool,
                                  VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
                                  size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
                                  uint32_t firstBinding, uint32_t bindingCount,
                                  const VkBuffer* pBuffers, const VkDeviceSize* pOffsets,
-                                 const VkDeviceSize* pSizes, const VkDeviceSize* pStrides) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                 const VkDeviceSize* pSizes, const VkDeviceSize* pStrides) {}
     void vkCmdSetDepthTestEnable(gfxstream::base::BumpPool* pool,
                                  VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
                                  size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
-                                 VkBool32 depthTestEnable) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                 VkBool32 depthTestEnable) {}
     void vkCmdSetDepthWriteEnable(gfxstream::base::BumpPool* pool,
                                   VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
                                   size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
-                                  VkBool32 depthWriteEnable) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                  VkBool32 depthWriteEnable) {}
     void vkCmdSetDepthCompareOp(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                                 const uint8_t* apiCallPacket, size_t apiCallPacketSize,
-                                VkCommandBuffer commandBuffer, VkCompareOp depthCompareOp) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                VkCommandBuffer commandBuffer, VkCompareOp depthCompareOp) {}
     void vkCmdSetDepthBoundsTestEnable(gfxstream::base::BumpPool* pool,
                                        VkSnapshotApiCallInfo* apiCallInfo,
                                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                        VkCommandBuffer commandBuffer,
-                                       VkBool32 depthBoundsTestEnable) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                       VkBool32 depthBoundsTestEnable) {}
     void vkCmdSetStencilTestEnable(gfxstream::base::BumpPool* pool,
                                    VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
                                    size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
-                                   VkBool32 stencilTestEnable) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                   VkBool32 stencilTestEnable) {}
     void vkCmdSetStencilOp(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                            VkCommandBuffer commandBuffer, VkStencilFaceFlags faceMask,
                            VkStencilOp failOp, VkStencilOp passOp, VkStencilOp depthFailOp,
-                           VkCompareOp compareOp) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                           VkCompareOp compareOp) {}
     void vkCmdSetRasterizerDiscardEnable(gfxstream::base::BumpPool* pool,
                                          VkSnapshotApiCallInfo* apiCallInfo,
                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkCommandBuffer commandBuffer,
-                                         VkBool32 rasterizerDiscardEnable) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                         VkBool32 rasterizerDiscardEnable) {}
     void vkCmdSetDepthBiasEnable(gfxstream::base::BumpPool* pool,
                                  VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
                                  size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
-                                 VkBool32 depthBiasEnable) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                 VkBool32 depthBiasEnable) {}
     void vkCmdSetPrimitiveRestartEnable(gfxstream::base::BumpPool* pool,
                                         VkSnapshotApiCallInfo* apiCallInfo,
                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                         VkCommandBuffer commandBuffer,
-                                        VkBool32 primitiveRestartEnable) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                        VkBool32 primitiveRestartEnable) {}
     void vkGetDeviceBufferMemoryRequirements(gfxstream::base::BumpPool* pool,
                                              VkSnapshotApiCallInfo* apiCallInfo,
                                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
@@ -2574,30 +1814,10 @@ class VkDecoderSnapshot::Impl {
     void vkCmdBeginRenderingKHR(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                                 const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                 VkCommandBuffer commandBuffer,
-                                const VkRenderingInfo* pRenderingInfo) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                const VkRenderingInfo* pRenderingInfo) {}
     void vkCmdEndRenderingKHR(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
-                              VkCommandBuffer commandBuffer) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                              VkCommandBuffer commandBuffer) {}
 #endif
 #ifdef VK_KHR_get_physical_device_properties2
     void vkGetPhysicalDeviceFeatures2KHR(gfxstream::base::BumpPool* pool,
@@ -2726,46 +1946,16 @@ class VkDecoderSnapshot::Impl {
                                   VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
                                   size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
                                   const VkRenderPassBeginInfo* pRenderPassBegin,
-                                  const VkSubpassBeginInfo* pSubpassBeginInfo) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                  const VkSubpassBeginInfo* pSubpassBeginInfo) {}
     void vkCmdNextSubpass2KHR(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                               VkCommandBuffer commandBuffer,
                               const VkSubpassBeginInfo* pSubpassBeginInfo,
-                              const VkSubpassEndInfo* pSubpassEndInfo) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                              const VkSubpassEndInfo* pSubpassEndInfo) {}
     void vkCmdEndRenderPass2KHR(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                                 const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                 VkCommandBuffer commandBuffer,
-                                const VkSubpassEndInfo* pSubpassEndInfo) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                const VkSubpassEndInfo* pSubpassEndInfo) {}
 #endif
 #ifdef VK_KHR_external_fence_capabilities
     void vkGetPhysicalDeviceExternalFencePropertiesKHR(
@@ -2912,74 +2102,24 @@ class VkDecoderSnapshot::Impl {
     void vkCmdSetEvent2KHR(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                            VkCommandBuffer commandBuffer, VkEvent event,
-                           const VkDependencyInfo* pDependencyInfo) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                           const VkDependencyInfo* pDependencyInfo) {}
     void vkCmdResetEvent2KHR(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                              VkCommandBuffer commandBuffer, VkEvent event,
-                             VkPipelineStageFlags2 stageMask) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                             VkPipelineStageFlags2 stageMask) {}
     void vkCmdWaitEvents2KHR(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                              VkCommandBuffer commandBuffer, uint32_t eventCount,
-                             const VkEvent* pEvents, const VkDependencyInfo* pDependencyInfos) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                             const VkEvent* pEvents, const VkDependencyInfo* pDependencyInfos) {}
     void vkCmdPipelineBarrier2KHR(gfxstream::base::BumpPool* pool,
                                   VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
                                   size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
-                                  const VkDependencyInfo* pDependencyInfo) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                  const VkDependencyInfo* pDependencyInfo) {}
     void vkCmdWriteTimestamp2KHR(gfxstream::base::BumpPool* pool,
                                  VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
                                  size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
                                  VkPipelineStageFlags2 stage, VkQueryPool queryPool,
-                                 uint32_t query) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                 uint32_t query) {}
     void vkQueueSubmit2KHR(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                            VkResult input_result, VkQueue queue, uint32_t submitCount,
@@ -2988,17 +2128,7 @@ class VkDecoderSnapshot::Impl {
                                     VkSnapshotApiCallInfo* apiCallInfo,
                                     const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                     VkCommandBuffer commandBuffer, VkPipelineStageFlags2 stage,
-                                    VkBuffer dstBuffer, VkDeviceSize dstOffset, uint32_t marker) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                    VkBuffer dstBuffer, VkDeviceSize dstOffset, uint32_t marker) {}
     void vkGetQueueCheckpointData2NV(gfxstream::base::BumpPool* pool,
                                      VkSnapshotApiCallInfo* apiCallInfo,
                                      const uint8_t* apiCallPacket, size_t apiCallPacketSize,
@@ -3009,87 +2139,29 @@ class VkDecoderSnapshot::Impl {
     void vkCmdCopyBuffer2KHR(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                              VkCommandBuffer commandBuffer,
-                             const VkCopyBufferInfo2* pCopyBufferInfo) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                             const VkCopyBufferInfo2* pCopyBufferInfo) {}
     void vkCmdCopyImage2KHR(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                             VkCommandBuffer commandBuffer, const VkCopyImageInfo2* pCopyImageInfo) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
     }
     void vkCmdCopyBufferToImage2KHR(gfxstream::base::BumpPool* pool,
                                     VkSnapshotApiCallInfo* apiCallInfo,
                                     const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                     VkCommandBuffer commandBuffer,
-                                    const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                    const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo) {}
     void vkCmdCopyImageToBuffer2KHR(gfxstream::base::BumpPool* pool,
                                     VkSnapshotApiCallInfo* apiCallInfo,
                                     const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                     VkCommandBuffer commandBuffer,
-                                    const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                    const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo) {}
     void vkCmdBlitImage2KHR(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                             VkCommandBuffer commandBuffer, const VkBlitImageInfo2* pBlitImageInfo) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
     }
     void vkCmdResolveImage2KHR(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                                const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                VkCommandBuffer commandBuffer,
-                               const VkResolveImageInfo2* pResolveImageInfo) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                               const VkResolveImageInfo2* pResolveImageInfo) {}
 #endif
 #ifdef VK_KHR_maintenance4
     void vkGetDeviceBufferMemoryRequirementsKHR(gfxstream::base::BumpPool* pool,
@@ -3115,17 +2187,7 @@ class VkDecoderSnapshot::Impl {
                                   VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
                                   size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
                                   VkBuffer buffer, VkDeviceSize offset, VkDeviceSize size,
-                                  VkIndexType indexType) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                  VkIndexType indexType) {}
     void vkGetRenderingAreaGranularityKHR(gfxstream::base::BumpPool* pool,
                                           VkSnapshotApiCallInfo* apiCallInfo,
                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
@@ -3149,17 +2211,7 @@ class VkDecoderSnapshot::Impl {
     void vkCmdSetLineStippleKHR(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                                 const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                 VkCommandBuffer commandBuffer, uint32_t lineStippleFactor,
-                                uint16_t lineStipplePattern) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                uint16_t lineStipplePattern) {}
 #endif
 #ifdef VK_ANDROID_native_buffer
     void vkGetSwapchainGrallocUsageANDROID(gfxstream::base::BumpPool* pool,
@@ -3226,96 +2278,36 @@ class VkDecoderSnapshot::Impl {
         gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
         const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
         uint32_t firstBinding, uint32_t bindingCount, const VkBuffer* pBuffers,
-        const VkDeviceSize* pOffsets, const VkDeviceSize* pSizes) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+        const VkDeviceSize* pOffsets, const VkDeviceSize* pSizes) {}
     void vkCmdBeginTransformFeedbackEXT(gfxstream::base::BumpPool* pool,
                                         VkSnapshotApiCallInfo* apiCallInfo,
                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                         VkCommandBuffer commandBuffer, uint32_t firstCounterBuffer,
                                         uint32_t counterBufferCount,
                                         const VkBuffer* pCounterBuffers,
-                                        const VkDeviceSize* pCounterBufferOffsets) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                        const VkDeviceSize* pCounterBufferOffsets) {}
     void vkCmdEndTransformFeedbackEXT(gfxstream::base::BumpPool* pool,
                                       VkSnapshotApiCallInfo* apiCallInfo,
                                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                       VkCommandBuffer commandBuffer, uint32_t firstCounterBuffer,
                                       uint32_t counterBufferCount, const VkBuffer* pCounterBuffers,
-                                      const VkDeviceSize* pCounterBufferOffsets) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                      const VkDeviceSize* pCounterBufferOffsets) {}
     void vkCmdBeginQueryIndexedEXT(gfxstream::base::BumpPool* pool,
                                    VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
                                    size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
                                    VkQueryPool queryPool, uint32_t query, VkQueryControlFlags flags,
-                                   uint32_t index) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                   uint32_t index) {}
     void vkCmdEndQueryIndexedEXT(gfxstream::base::BumpPool* pool,
                                  VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
                                  size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
-                                 VkQueryPool queryPool, uint32_t query, uint32_t index) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                 VkQueryPool queryPool, uint32_t query, uint32_t index) {}
     void vkCmdDrawIndirectByteCountEXT(gfxstream::base::BumpPool* pool,
                                        VkSnapshotApiCallInfo* apiCallInfo,
                                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                        VkCommandBuffer commandBuffer, uint32_t instanceCount,
                                        uint32_t firstInstance, VkBuffer counterBuffer,
                                        VkDeviceSize counterBufferOffset, uint32_t counterOffset,
-                                       uint32_t vertexStride) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                       uint32_t vertexStride) {}
 #endif
 #ifdef VK_EXT_debug_utils
     void vkSetDebugUtilsObjectNameEXT(gfxstream::base::BumpPool* pool,
@@ -3344,46 +2336,16 @@ class VkDecoderSnapshot::Impl {
                                       VkSnapshotApiCallInfo* apiCallInfo,
                                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                       VkCommandBuffer commandBuffer,
-                                      const VkDebugUtilsLabelEXT* pLabelInfo) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                      const VkDebugUtilsLabelEXT* pLabelInfo) {}
     void vkCmdEndDebugUtilsLabelEXT(gfxstream::base::BumpPool* pool,
                                     VkSnapshotApiCallInfo* apiCallInfo,
                                     const uint8_t* apiCallPacket, size_t apiCallPacketSize,
-                                    VkCommandBuffer commandBuffer) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                    VkCommandBuffer commandBuffer) {}
     void vkCmdInsertDebugUtilsLabelEXT(gfxstream::base::BumpPool* pool,
                                        VkSnapshotApiCallInfo* apiCallInfo,
                                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                        VkCommandBuffer commandBuffer,
-                                       const VkDebugUtilsLabelEXT* pLabelInfo) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                       const VkDebugUtilsLabelEXT* pLabelInfo) {}
     void vkCreateDebugUtilsMessengerEXT(gfxstream::base::BumpPool* pool,
                                         VkSnapshotApiCallInfo* apiCallInfo,
                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
@@ -3443,193 +2405,63 @@ class VkDecoderSnapshot::Impl {
     void vkCmdSetLineStippleEXT(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                                 const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                 VkCommandBuffer commandBuffer, uint32_t lineStippleFactor,
-                                uint16_t lineStipplePattern) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                uint16_t lineStipplePattern) {}
 #endif
 #ifdef VK_EXT_extended_dynamic_state
     void vkCmdSetCullModeEXT(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
-                             VkCommandBuffer commandBuffer, VkCullModeFlags cullMode) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                             VkCommandBuffer commandBuffer, VkCullModeFlags cullMode) {}
     void vkCmdSetFrontFaceEXT(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
-                              VkCommandBuffer commandBuffer, VkFrontFace frontFace) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                              VkCommandBuffer commandBuffer, VkFrontFace frontFace) {}
     void vkCmdSetPrimitiveTopologyEXT(gfxstream::base::BumpPool* pool,
                                       VkSnapshotApiCallInfo* apiCallInfo,
                                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                       VkCommandBuffer commandBuffer,
-                                      VkPrimitiveTopology primitiveTopology) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                      VkPrimitiveTopology primitiveTopology) {}
     void vkCmdSetViewportWithCountEXT(gfxstream::base::BumpPool* pool,
                                       VkSnapshotApiCallInfo* apiCallInfo,
                                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                       VkCommandBuffer commandBuffer, uint32_t viewportCount,
-                                      const VkViewport* pViewports) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                      const VkViewport* pViewports) {}
     void vkCmdSetScissorWithCountEXT(gfxstream::base::BumpPool* pool,
                                      VkSnapshotApiCallInfo* apiCallInfo,
                                      const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                      VkCommandBuffer commandBuffer, uint32_t scissorCount,
-                                     const VkRect2D* pScissors) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                     const VkRect2D* pScissors) {}
     void vkCmdBindVertexBuffers2EXT(gfxstream::base::BumpPool* pool,
                                     VkSnapshotApiCallInfo* apiCallInfo,
                                     const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                     VkCommandBuffer commandBuffer, uint32_t firstBinding,
                                     uint32_t bindingCount, const VkBuffer* pBuffers,
                                     const VkDeviceSize* pOffsets, const VkDeviceSize* pSizes,
-                                    const VkDeviceSize* pStrides) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                    const VkDeviceSize* pStrides) {}
     void vkCmdSetDepthTestEnableEXT(gfxstream::base::BumpPool* pool,
                                     VkSnapshotApiCallInfo* apiCallInfo,
                                     const uint8_t* apiCallPacket, size_t apiCallPacketSize,
-                                    VkCommandBuffer commandBuffer, VkBool32 depthTestEnable) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                    VkCommandBuffer commandBuffer, VkBool32 depthTestEnable) {}
     void vkCmdSetDepthWriteEnableEXT(gfxstream::base::BumpPool* pool,
                                      VkSnapshotApiCallInfo* apiCallInfo,
                                      const uint8_t* apiCallPacket, size_t apiCallPacketSize,
-                                     VkCommandBuffer commandBuffer, VkBool32 depthWriteEnable) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                     VkCommandBuffer commandBuffer, VkBool32 depthWriteEnable) {}
     void vkCmdSetDepthCompareOpEXT(gfxstream::base::BumpPool* pool,
                                    VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
                                    size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
-                                   VkCompareOp depthCompareOp) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                   VkCompareOp depthCompareOp) {}
     void vkCmdSetDepthBoundsTestEnableEXT(gfxstream::base::BumpPool* pool,
                                           VkSnapshotApiCallInfo* apiCallInfo,
                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkCommandBuffer commandBuffer,
-                                          VkBool32 depthBoundsTestEnable) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                          VkBool32 depthBoundsTestEnable) {}
     void vkCmdSetStencilTestEnableEXT(gfxstream::base::BumpPool* pool,
                                       VkSnapshotApiCallInfo* apiCallInfo,
                                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
-                                      VkCommandBuffer commandBuffer, VkBool32 stencilTestEnable) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                      VkCommandBuffer commandBuffer, VkBool32 stencilTestEnable) {}
     void vkCmdSetStencilOpEXT(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                               VkCommandBuffer commandBuffer, VkStencilFaceFlags faceMask,
                               VkStencilOp failOp, VkStencilOp passOp, VkStencilOp depthFailOp,
-                              VkCompareOp compareOp) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                              VkCompareOp compareOp) {}
 #endif
 #ifdef VK_EXT_host_image_copy
     void vkCopyMemoryToImageEXT(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
@@ -3692,90 +2524,31 @@ class VkDecoderSnapshot::Impl {
                                        VkSnapshotApiCallInfo* apiCallInfo,
                                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                        VkCommandBuffer commandBuffer, uint32_t patchControlPoints) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
     }
     void vkCmdSetRasterizerDiscardEnableEXT(gfxstream::base::BumpPool* pool,
                                             VkSnapshotApiCallInfo* apiCallInfo,
                                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                             VkCommandBuffer commandBuffer,
-                                            VkBool32 rasterizerDiscardEnable) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                            VkBool32 rasterizerDiscardEnable) {}
     void vkCmdSetDepthBiasEnableEXT(gfxstream::base::BumpPool* pool,
                                     VkSnapshotApiCallInfo* apiCallInfo,
                                     const uint8_t* apiCallPacket, size_t apiCallPacketSize,
-                                    VkCommandBuffer commandBuffer, VkBool32 depthBiasEnable) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                    VkCommandBuffer commandBuffer, VkBool32 depthBiasEnable) {}
     void vkCmdSetLogicOpEXT(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
-                            VkCommandBuffer commandBuffer, VkLogicOp logicOp) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                            VkCommandBuffer commandBuffer, VkLogicOp logicOp) {}
     void vkCmdSetPrimitiveRestartEnableEXT(gfxstream::base::BumpPool* pool,
                                            VkSnapshotApiCallInfo* apiCallInfo,
                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                            VkCommandBuffer commandBuffer,
-                                           VkBool32 primitiveRestartEnable) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                           VkBool32 primitiveRestartEnable) {}
 #endif
 #ifdef VK_EXT_color_write_enable
     void vkCmdSetColorWriteEnableEXT(gfxstream::base::BumpPool* pool,
                                      VkSnapshotApiCallInfo* apiCallInfo,
                                      const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                      VkCommandBuffer commandBuffer, uint32_t attachmentCount,
-                                     const VkBool32* pColorWriteEnables) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                     const VkBool32* pColorWriteEnables) {}
 #endif
 #ifdef VK_GOOGLE_gfxstream
     void vkMapMemoryIntoAddressSpaceGOOGLE(gfxstream::base::BumpPool* pool,
@@ -3905,7 +2678,25 @@ class VkDecoderSnapshot::Impl {
                                     VkSnapshotApiCallInfo* apiCallInfo,
                                     const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                     VkQueue queue, VkCommandBuffer commandBuffer,
-                                    VkDeviceSize dataSize, const void* pData) {}
+                                    VkDeviceSize dataSize, const void* pData) {
+        // Note: special implementation
+        std::lock_guard<std::mutex> lock(mReconstructionMutex);
+        VkDecoderGlobalState* m_state = VkDecoderGlobalState::get();
+        uint64_t handle = m_state->newGlobalVkGenericHandle(Tag_VkCmdOp);
+        mReconstruction.addHandles((const uint64_t*)(&handle), 1);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)(&handle), 1, apiCallInfo->handle,
+                                            VkReconstruction::CREATED);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)(&handle), 1);
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.addHandleDependency((const uint64_t*)(&handle), 1,
+                                            (uint64_t)(uintptr_t)commandBuffer);
+        for (uint32_t i = 0; i < apiCallInfo->depends.size(); ++i) {
+            auto parent = apiCallInfo->depends[i];
+            mReconstruction.addHandleDependency((const uint64_t*)(&handle), 1,
+                                                (uint64_t)(uintptr_t)parent);
+        }
+    }
     void vkQueueCommitDescriptorSetUpdatesGOOGLE(
         gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
         const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkQueue queue,
@@ -3973,17 +2764,7 @@ class VkDecoderSnapshot::Impl {
                            const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable,
                            const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
                            const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable,
-                           uint32_t width, uint32_t height, uint32_t depth) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                           uint32_t width, uint32_t height, uint32_t depth) {}
     void vkCreateRayTracingPipelinesKHR(
         gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
         const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkResult input_result,
@@ -4002,17 +2783,7 @@ class VkDecoderSnapshot::Impl {
         const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable,
         const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
         const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable,
-        VkDeviceAddress indirectDeviceAddress) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+        VkDeviceAddress indirectDeviceAddress) {}
     void vkGetRayTracingShaderGroupStackSizeKHR(
         gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
         const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDeviceSize input_result,
@@ -4022,17 +2793,7 @@ class VkDecoderSnapshot::Impl {
                                                 const uint8_t* apiCallPacket,
                                                 size_t apiCallPacketSize,
                                                 VkCommandBuffer commandBuffer,
-                                                uint32_t pipelineStackSize) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // commandBuffer modify
-        auto apiCallHandle = apiCallInfo->handle;
-        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
-        }
-    }
+                                                uint32_t pipelineStackSize) {}
 #endif
    private:
     std::mutex mReconstructionMutex;
