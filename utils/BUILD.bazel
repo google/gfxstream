@@ -1,19 +1,18 @@
-# File: BUILD
-
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
-# Interface Library
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
 cc_library(
     name = "gfxstream_utils_headers",
     hdrs = glob(["include/**/*.h"]),
     includes = ["include"],
-    visibility = ["//visibility:public"],
     deps = [
-        "//common/vulkan:gfxstream_vulkan_headers",
         "//host/library:gfxstream_host_library",
         "//host/logging:gfxstream_host_logging",
-        "//third-party/renderdoc",
-        "@aemu//base:aemu-base-headers",
+        "//third_party/renderdoc",
+        "//third_party/vulkan:gfxstream_vulkan_headers",
     ],
 )
 
@@ -21,11 +20,9 @@ cc_library(
     name = "gfxstream_utils",
     srcs = ["GfxApiLogger.cpp"],
     copts = ["-fno-exceptions"],
-    visibility = ["//visibility:public"],
     deps = [":gfxstream_utils_headers"],
 )
 
-# Conditional Executable (Test target)
 cc_test(
     name = "gfxstream_utils_unittests",
     srcs = [
@@ -34,7 +31,6 @@ cc_test(
     ],
     deps = [
         ":gfxstream_utils",
-        "@aemu//base:aemu-base",
         "@com_google_googletest//:gtest_main",
     ],
 )

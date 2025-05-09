@@ -16,9 +16,10 @@ cc_library_static {
         "gfxstream_host_cc_defaults",
     ],
     header_libs: [
-        "gfxstream_opengl_headers",
+        "libgfxstream_thirdparty_opengl_headers",
         "libgfxstream_host_vulkan_cereal_common",
         "libgfxstream_thirdparty_renderdoc_headers",
+        "libgfxstream_thirdparty_glm",
     ],
     export_header_lib_headers: [
         "libgfxstream_thirdparty_renderdoc_headers",
@@ -32,7 +33,7 @@ cc_library_static {
     static_libs: [
         "gfxstream_host_common",
         "libgfxstream_common_base",
-        "libgfxstream_host_apigen_codec_common",
+        "libgfxstream_host_decoder_common",
         "libgfxstream_host_backend",
         "libgfxstream_host_compressedtextures",
         "libgfxstream_host_features",
@@ -44,7 +45,6 @@ cc_library_static {
         "libgfxstream_host_snapshot",
         "libgfxstream_host_vulkan_cereal",
         "libgfxstream_host_vulkan_emulatedtextures",
-        "libgfxstream_thirdparty_glm",
     ],
     export_static_lib_headers: [
         "libgfxstream_host_health",
@@ -111,12 +111,14 @@ cc_test_host {
     srcs: [
         "VkFormatUtils_unittest.cpp",
     ],
+    header_libs: [
+        "libgfxstream_thirdparty_glm",
+    ],
     shared_libs: [
         "libbase",
         "liblog",
     ],
     static_libs: [
-        "libgfxstream_thirdparty_glm",
         "gfxstream_host_common",
         "libgfxstream_host_logging",
         "libgfxstream_host_vulkan_server",

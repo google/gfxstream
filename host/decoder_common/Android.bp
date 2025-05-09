@@ -1,0 +1,37 @@
+package {
+    // See: http://go/android-license-faq
+    default_applicable_licenses: ["hardware_google_gfxstream_license"],
+}
+
+cc_library_static {
+    name: "libgfxstream_host_decoder_common",
+    defaults: ["gfxstream_defaults"],
+    header_libs: [
+        "libgfxstream_backend_headers",
+        "libgfxstream_thirdparty_opengl_headers",
+        "libgfxstream_x11_headers",
+    ],
+    export_header_lib_headers: [
+        "libgfxstream_thirdparty_opengl_headers",
+        "libgfxstream_x11_headers",
+    ],
+    static_libs: [
+        "libgfxstream_common_base",
+        "libgfxstream_host_library",
+        "libgfxstream_host_logging",
+    ],
+    cflags: ["-fvisibility=hidden"],
+    export_include_dirs: [
+        "include",
+    ],
+    srcs: [
+        "ChecksumCalculator.cpp",
+        "ChecksumCalculatorThreadInfo.cpp",
+        "glUtils.cpp",
+    ],
+    target: {
+        host: {
+            srcs: ["X11Support.cpp"],
+        },
+    },
+}

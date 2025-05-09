@@ -1,5 +1,9 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
 cc_library(
     name = "GLES_V2_translator_static",
     srcs = [
@@ -27,9 +31,8 @@ cc_library(
         "BUILDING_EMUGL_COMMON_SHARED",
     ],
     includes = ["."],
-    visibility = ["//visibility:public"],
     deps = [
-        "//host/apigen-codec-common",
+        "//host/decoder_common:gfxstream_host_decoder_common",
         "//host/gl:gl_common",
     ],
     alwayslink = True,

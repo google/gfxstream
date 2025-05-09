@@ -15,7 +15,7 @@
 */
 
 #include "ProgramData.h"
-#include "apigen-codec-common/glUtils.h"
+#include "gfxstream/host/glUtils.h"
 
 #include "gfxstream/containers/Lookup.h"
 #include "gfxstream/host/stream_utils.h"

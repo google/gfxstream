@@ -31,7 +31,7 @@
 #include "Compositor.h"
 #include "gfxstream/host/display.h"
 #include "gfxstream/host/display_surface.h"
-#include "ExternalObjectManager.h"
+#include "gfxstream/host/external_object_manager.h"
 #include "Hwc2.h"
 #include "PostCommands.h"
 #include "PostWorker.h"

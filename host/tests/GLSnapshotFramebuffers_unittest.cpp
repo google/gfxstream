@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include "GLSnapshotTesting.h"
-#include "apigen-codec-common/glUtils.h"
+#include "gfxstream/host/glUtils.h"
 
 #include <gtest/gtest.h>
 

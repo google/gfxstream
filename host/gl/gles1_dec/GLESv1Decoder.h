@@ -18,7 +18,7 @@
 
 #include "gles1_dec.h"
 
-#include "GLDecoderContextData.h"
+#include "gfxstream/host/GLDecoderContextData.h"
 #include "gfxstream/SharedLibrary.h"
 
 namespace gfxstream {

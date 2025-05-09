@@ -23,7 +23,7 @@
 #include <limits>
 #include <memory>
 
-#include "ChecksumCalculatorThreadInfo.h"
+#include "gfxstream/host/ChecksumCalculatorThreadInfo.h"
 #include "FrameBuffer.h"
 #include "GLESVersionDetector.h"
 #include "OpenGLESDispatch/DispatchTables.h"
@@ -33,7 +33,7 @@
 #include "RenderThreadInfoVk.h"
 #include "SyncThread.h"
 #include "gfxstream/Tracing.h"
-#include "compressedTextureFormats/AstcCpuDecompressor.h"
+#include "gfxstream/host/AstcCpuDecompressor.h"
 #include "gfxstream/host/logging.h"
 #include "gfxstream/host/guest_operations.h"
 #include "gfxstream/host/renderer_operations.h"

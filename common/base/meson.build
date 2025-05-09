@@ -11,7 +11,6 @@ files_lib_common_base = files(
     'LayoutResolver.cpp',
     'MessageChannel.cpp',
     'PathUtils.cpp',
-    'ring_buffer.cpp',
     'SharedMemory_posix.cpp',
     'StringFormat.cpp',
     'System.cpp',

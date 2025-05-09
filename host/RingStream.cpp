@@ -11,29 +11,68 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #include "RingStream.h"
 
 #include <assert.h>
 #include <memory.h>
 
-#include "gfxstream/host/stream_utils.h"
 #include "gfxstream/host/dma_device.h"
 #include "gfxstream/host/logging.h"
+#include "gfxstream/host/stream_utils.h"
 #include "gfxstream/system/System.h"
+#include "render-utils/dma_device.h"
+#include "render-utils/stream.h"
 
 namespace gfxstream {
+namespace {
 
-RingStream::RingStream(
-    struct asg_context context,
-    android::emulation::asg::ConsumerCallbacks callbacks,
-    size_t bufsize) :
+struct asg_context CreateContext(const AsgConsumerCreateInfo& info) {
+    struct asg_context context = asg_context_create(info.ring_storage, info.buffer, info.buffer_size);
+
+    context.ring_config->buffer_size = info.buffer_size;
+    context.ring_config->flush_interval = info.buffer_flush_interval;
+    context.ring_config->host_consumed_pos = 0;
+    context.ring_config->guest_write_pos = 0;
+    context.ring_config->transfer_mode = 1;
+    context.ring_config->transfer_size = 0;
+    context.ring_config->in_error = 0;
+
+    return context;
+}
+
+void SaveRingConfig(Stream* stream, const struct asg_ring_config& config) {
+    stream->putBe32(config.buffer_size);
+    stream->putBe32(config.flush_interval);
+    stream->putBe32(config.host_consumed_pos);
+    stream->putBe32(config.guest_write_pos);
+    stream->putBe32(config.transfer_mode);
+    stream->putBe32(config.transfer_size);
+    stream->putBe32(config.in_error);
+}
+
+void LoadRingConfig(Stream* stream, struct asg_ring_config* config) {
+    config->buffer_size = stream->getBe32();
+    config->flush_interval = stream->getBe32();
+    config->host_consumed_pos = stream->getBe32();
+    config->guest_write_pos = stream->getBe32();
+    config->transfer_mode = stream->getBe32();
+    config->transfer_size = stream->getBe32();
+    config->in_error = stream->getBe32();
+}
+
+}  // namespace
+
+RingStream::RingStream(const AsgConsumerCreateInfo& info, size_t bufsize) :
     IOStream(bufsize),
-    mContext(context),
-    mCallbacks(callbacks) { }
+    mContext(CreateContext(info)),
+    mSavedRingConfig(*mContext.ring_config),
+    mCallbacks(info.callbacks) {}
+
 RingStream::~RingStream() = default;
 
-int RingStream::getNeededFreeTailSize() const {
-    return mContext.ring_config->flush_interval;
+void RingStream::reloadRingConfig() {
+    *mContext.ring_config = mSavedRingConfig;
 }
 
 void* RingStream::allocBuffer(size_t minSize) {
@@ -125,12 +164,6 @@ const unsigned char* RingStream::readRaw(void* buf, size_t* inout_len) {
 
         *(mContext.host_state) = ASG_HOST_STATE_CAN_CONSUME;
 
-        // if (mInSnapshotOperation) {
-        //     fprintf(stderr, "%s: %p in snapshot operation, exit\n", __func__, mRenderThreadPtr);
-        //     // In a snapshot operation, exit
-        //     return nullptr;
-        // }
-
         if (mShouldExit) {
             return nullptr;
         }
@@ -197,22 +230,38 @@ const unsigned char* RingStream::readRaw(void* buf, size_t* inout_len) {
                 return nullptr;
             }
 
-            int unavailReadResult = mCallbacks.onUnavailableRead();
+            ++mUnavailableReadCount;
+            if (mUnavailableReadCount >= kMaxUnavailableReads) {
+                *(mContext.host_state) = ASG_HOST_STATE_NEED_NOTIFY;
 
-            if (-1 == unavailReadResult) {
-                mShouldExit = true;
+                bool sleeping = false;
+                do {
+                    const AsgOnUnavailableReadStatus status = mCallbacks.onUnavailableRead();
+                    switch (status) {
+                        case AsgOnUnavailableReadStatus::kContinue: {
+                            *(mContext.host_state) = ASG_HOST_STATE_CAN_CONSUME;
+                            break;
+                        }
+                        case AsgOnUnavailableReadStatus::kExit: {
+                            *(mContext.host_state) = ASG_HOST_STATE_EXIT;
+                            mShouldExit = true;
+                            break;
+                        }
+                        case AsgOnUnavailableReadStatus::kSleep: {
+                            sleeping = true;
+                            break;
+                        }
+                        case AsgOnUnavailableReadStatus::kPauseForSnapshot: {
+                            mShouldExitForSnapshot = true;
+                            break;
+                        }
+                        case AsgOnUnavailableReadStatus::kResumeAfterSnapshot: {
+                            mShouldExitForSnapshot = false;
+                            break;
+                        }
+                    }
+                } while (sleeping);
             }
-
-            // pause pre snapshot
-            if (-2 == unavailReadResult) {
-                mShouldExitForSnapshot = true;
-            }
-
-            // resume post snapshot
-            if (-3 == unavailReadResult) {
-                mShouldExitForSnapshot = false;
-            }
-
             continue;
         }
     }
@@ -355,13 +404,24 @@ void RingStream::onSave(gfxstream::Stream* stream) {
     stream->putBe32(mReadBufferLeft);
     stream->write(mReadBuffer.data() + mReadBuffer.size() - mReadBufferLeft,
                   mReadBufferLeft);
+
     gfxstream::saveBuffer(stream, mWriteBuffer);
+
+    stream->putBe32(mUnavailableReadCount);
+
+    SaveRingConfig(stream, mSavedRingConfig);
 }
 
 unsigned char* RingStream::onLoad(gfxstream::Stream* stream) {
     gfxstream::loadBuffer(stream, &mReadBuffer);
     mReadBufferLeft = mReadBuffer.size();
+
     gfxstream::loadBuffer(stream, &mWriteBuffer);
+
+    mUnavailableReadCount = stream->getBe32();
+
+    LoadRingConfig(stream, &mSavedRingConfig);
+
     return reinterpret_cast<unsigned char*>(mWriteBuffer.data());
 }
 

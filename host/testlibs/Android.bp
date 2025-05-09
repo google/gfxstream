@@ -16,7 +16,7 @@ cc_test_library {
     name: "libgfxstream_oswindow_test_support",
     defaults: ["gfxstream_defaults"],
     header_libs: [
-        "gfxstream_opengl_headers",
+        "libgfxstream_thirdparty_opengl_headers",
     ],
     shared_libs: [
         "libbase",

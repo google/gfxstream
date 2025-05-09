@@ -20,7 +20,7 @@
 #include <variant>
 
 #include "FrameBuffer.h"
-#include "GraphicsDriverLock.h"
+#include "gfxstream/host/graphics_driver_lock.h"
 #include "RenderChannelImpl.h"
 #include "RenderThread.h"
 #include "gfxstream/system/System.h"
@@ -278,13 +278,8 @@ void RendererImpl::removeListener(FrameBufferChangeEventListener* listener) {
 }
 
 void* RendererImpl::addressSpaceGraphicsConsumerCreate(
-    struct asg_context context,
-    gfxstream::Stream* loadStream,
-    android::emulation::asg::ConsumerCallbacks callbacks,
-    uint32_t contextId, uint32_t capsetId,
-    std::optional<std::string> nameOpt) {
-    auto thread = new RenderThread(context, loadStream, callbacks, contextId,
-                                   capsetId, std::move(nameOpt));
+        const AsgConsumerCreateInfo& info, gfxstream::Stream* loadStream) {
+    auto thread = new RenderThread(info, loadStream);
     thread->start();
     std::lock_guard<std::mutex> lock(mAddressSpaceRenderThreadMutex);
     mAddressSpaceRenderThreads.emplace(thread);
@@ -325,6 +320,11 @@ void RendererImpl::addressSpaceGraphicsConsumerPostSave(void* consumer) {
 void RendererImpl::addressSpaceGraphicsConsumerRegisterPostLoadRenderThread(void* consumer) {
     RenderThread* thread = (RenderThread*)consumer;
     mAdditionalPostLoadRenderThreads.push_back(thread);
+}
+
+void RendererImpl::addressSpaceGraphicsConsumerReloadRingConfig(void* consumer) {
+    RenderThread* thread = (RenderThread*)consumer;
+    thread->addressSpaceGraphicsReloadRingConfig();
 }
 
 void RendererImpl::pauseAllPreSave() {

@@ -1,7 +1,19 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
 cc_library(
-    name = "gfxstream-vulkan-server",
+    name = "gfxstream_vulkan_headers",
+    hdrs = glob([
+        "*.h",
+    ]),
+    includes = ["."],
+)
+
+cc_library(
+    name = "gfxstream_vulkan_server",
     srcs = [
         "BorrowedImageVk.cpp",
         "BufferVk.cpp",
@@ -62,104 +74,21 @@ cc_library(
         "cereal",
         "cereal/common",
     ],
-    visibility = ["//visibility:public"],
     deps = [
         "//common/base:gfxstream_common_base",
-        "//common/vulkan:gfxstream_vulkan_headers",
-        "//host:gfxstream-compressedTextures",
         "//host:gfxstream_host_headers",
-        "//host/apigen-codec-common",
+        "//host/compressed_textures:gfxstream_host_compressed_textures",
+        "//host/decoder_common:gfxstream_host_decoder_common",
         "//host/gl:gl_headers",
         "//host/gl/OpenGLESDispatch:gfxstream_host_openglesdispatch_headers",
         "//host/health:gfxstream_host_health",
         "//host/iostream:gfxstream_host_iostream",
         "//host/logging:gfxstream_host_logging",
-        "//host/vulkan:OpenglRender_vulkan_cereal",
-        "//host/vulkan:emulated_textures",
-        "//third-party/glm",
-        "//third-party/renderdoc",
-        "//utils:gfxstream_utils",
-    ],
-)
-
-cc_library(
-    name = "OpenglRender_vulkan_cereal",
-    srcs = [
-        "cereal/common/goldfish_vk_deepcopy.cpp",
-        "cereal/common/goldfish_vk_dispatch.cpp",
-        "cereal/common/goldfish_vk_extension_structs.cpp",
-        "cereal/common/goldfish_vk_marshaling.cpp",
-        "cereal/common/goldfish_vk_reserved_marshaling.cpp",
-        "cereal/common/goldfish_vk_transform.cpp",
-    ] + glob([
-        "**/*.h",
-        "*.h",
-    ]),
-    defines = [
-        "EMUGL_BUILD",
-        "BUILDING_EMUGL_COMMON_SHARED",
-        "VK_GFXSTREAM_STRUCTURE_TYPE_EXT",
-        "VK_GOOGLE_gfxstream",
-    ] + select({
-        "@platforms//os:macos": [
-            "VK_USE_PLATFORM_METAL_EXT",
-            "VK_USE_PLATFORM_MACOS_MVK",
-        ],
-        "@platforms//os:windows": ["VK_USE_PLATFORM_WIN32_KHR"],
-        "@platforms//os:linux": [],
-        "//conditions:default": [],
-    }),
-    includes = [
-        ".",
-        "cereal/common",
-    ],
-    deps = [
-        "//common/base:gfxstream_common_base",
-        "//common/vulkan:gfxstream_vulkan_headers",
-        "//host:gfxstream_host_headers",
-        "//host/backend:gfxstream_host_backend",
-        "//host/features:gfxstream_features",
-        "//host/health:gfxstream_host_health",
-        "//host/logging:gfxstream_host_logging",
-        "//host/tracing:gfxstream_host_tracing",
-        "//utils:gfxstream_utils",
-        "@aemu//base:aemu-base-headers",
-    ],
-)
-
-cc_library(
-    name = "emulated_textures",
-    srcs = [
-        "emulated_textures/AstcTexture.cpp",
-        "emulated_textures/CompressedImageInfo.cpp",
-        "emulated_textures/GpuDecompressionPipeline.cpp",
-    ] + glob([
-        "**/*.h",
-        "**/*.inl",
-    ]),
-    defines = [
-        "EMUGL_BUILD",
-        "BUILDING_EMUGL_COMMON_SHARED",
-        "VK_GFXSTREAM_STRUCTURE_TYPE_EXT",
-        "VK_GOOGLE_gfxstream",
-    ] + select({
-        "@platforms//os:macos": [
-            "VK_USE_PLATFORM_METAL_EXT",
-            "VK_USE_PLATFORM_MACOS_MVK",
-        ],
-        "@platforms//os:windows": ["VK_USE_PLATFORM_WIN32_KHR"],
-        "@platforms//os:linux": [],
-        "//conditions:default": [],
-    }),
-    includes = [
-        ".",
-        "cereal/common",
-    ],
-    deps = [
-        "//common/vulkan:gfxstream_vulkan_headers",
-        "//host:gfxstream_host_headers",
-        "//host/health:gfxstream_host_health",
-        "//host/logging:gfxstream_host_logging",
+        "//host/vulkan/cereal:gfxstream_vulkan_cereal",
+        "//host/vulkan/emulated_textures:gfxstream_host_vulkan_emulated_textures",
+        "//third_party/glm",
+        "//third_party/renderdoc",
+        "//third_party/vulkan:gfxstream_vulkan_headers",
         "//utils:gfxstream_utils",
     ],
 )

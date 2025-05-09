@@ -14,9 +14,10 @@
 * limitations under the License.
 */
 #include "NativeSubWindow.h"
-#include "X11Support.h"
 
 #include <stdio.h>
+
+#include "gfxstream/host/X11Support.h"
 
 namespace {
 

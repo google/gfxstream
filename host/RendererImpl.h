@@ -21,7 +21,6 @@
 
 #include "RenderThread.h"
 #include "RenderWindow.h"
-#include "aemu/base/threads/FunctorThread.h"
 #include "gfxstream/host/Features.h"
 #include "render-utils/Renderer.h"
 
@@ -46,16 +45,13 @@ public:
         gfxstream::Stream* loadStream, uint32_t virtioGpuContextId) final;
 
     void* addressSpaceGraphicsConsumerCreate(
-        struct asg_context,
-        gfxstream::Stream* stream,
-        android::emulation::asg::ConsumerCallbacks,
-        uint32_t contextId, uint32_t capsetId,
-        std::optional<std::string> name) override final;
+        const AsgConsumerCreateInfo& info, gfxstream::Stream* stream) override final;
     void addressSpaceGraphicsConsumerDestroy(void*) override final;
     void addressSpaceGraphicsConsumerPreSave(void* consumer) override final;
     void addressSpaceGraphicsConsumerSave(void* consumer, gfxstream::Stream* stream) override final;
     void addressSpaceGraphicsConsumerPostSave(void* consumer) override final;
     void addressSpaceGraphicsConsumerRegisterPostLoadRenderThread(void* consumer) override final;
+    void addressSpaceGraphicsConsumerReloadRingConfig(void* consumer) override final;
 
     HardwareStrings getHardwareStrings() final;
     void setPostCallback(OnPostCallback onPost,

@@ -26,7 +26,6 @@
 #include "gfxstream/ArraySize.h"
 #include "gfxstream/files/PathUtils.h"
 #include "gfxstream/system/System.h"
-#include "gfxstream/testing/TestSystem.h"
 #include "tests/VkTestUtils.h"
 
 #ifdef _WIN32
@@ -38,8 +37,6 @@ using gfxstream::base::Win32UnicodeString;
 #endif
 
 using gfxstream::base::arraySize;
-using gfxstream::base::pj;
-using gfxstream::base::TestSystem;
 
 namespace gfxstream {
 namespace vk {

@@ -1,0 +1,12 @@
+package {
+    // See: http://go/android-license-faq
+    default_applicable_licenses: ["hardware_google_gfxstream_license"],
+}
+
+cc_library_headers {
+    name: "libgfxstream_x11_headers",
+    defaults: ["gfxstream_defaults"],
+    export_include_dirs: [
+        "include",
+    ],
+}

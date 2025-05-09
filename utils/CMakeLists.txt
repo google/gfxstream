@@ -5,8 +5,7 @@ target_link_libraries(
     gfxstream_utils.headers
     INTERFACE
     renderdoc
-    gfxstream_vulkan_headers
-    aemu-base.headers)
+    gfxstream_vulkan_headers)
 
 add_library(gfxstream_utils OBJECT GfxApiLogger.cpp)
 target_link_libraries(gfxstream_utils PUBLIC gfxstream_utils.headers)

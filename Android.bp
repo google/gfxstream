@@ -5,19 +5,6 @@ package {
     default_applicable_licenses: ["hardware_google_gfxstream_license"],
 }
 
-// Added automatically by a large-scale-change that took the approach of
-// 'apply every license found to every target'. While this makes sure we respect
-// every license restriction, it may not be entirely correct.
-//
-// e.g. GPL in an MIT project might only apply to the contrib/ directory.
-//
-// Please consider splitting the single license below into multiple licenses,
-// taking care not to lose any license_kind information, and overriding the
-// default license using the 'licenses: [...]' property on targets as needed.
-//
-// For unused files, consider creating a 'fileGroup' with "//visibility:private"
-// to attach the license to, and including a comment whether the files may be
-// used in the current project.
 // See: http://go/android-license-faq
 license {
     name: "hardware_google_gfxstream_license",
@@ -28,10 +15,8 @@ license {
     license_kinds: [
         "SPDX-license-identifier-Apache-2.0",
         "SPDX-license-identifier-BSD",
-        "SPDX-license-identifier-CC-BY-4.0",
-        "SPDX-license-identifier-ISC",
+        "SPDX-license-identifier-ISC", // X11 headers
         "SPDX-license-identifier-MIT",
-        "SPDX-license-identifier-BSL-1.0",
         "legacy_unencumbered",
     ],
 }
@@ -51,25 +36,12 @@ cc_library_headers {
     header_libs: [
         "aemu_common_headers",
         "gfxstream_magma_headers",
-        "libgfxstream_vulkan_headers",
+        "libgfxstream_thirdparty_vulkan_headers",
     ],
     export_header_lib_headers: [
         "aemu_common_headers",
         "gfxstream_magma_headers",
-        "libgfxstream_vulkan_headers",
-    ],
-    apex_available: [
-        "//apex_available:platform",
-        "com.android.virt",
-    ],
-}
-
-cc_library_headers {
-    name: "gfxstream_x11_headers",
-    vendor_available: true,
-    host_supported: true,
-    export_include_dirs: [
-        "host/apigen-codec-common",
+        "libgfxstream_thirdparty_vulkan_headers",
     ],
     apex_available: [
         "//apex_available:platform",
@@ -82,9 +54,9 @@ cc_library_headers {
     vendor_available: true,
     host_supported: true,
     export_include_dirs: [
-        "third-party/fuchsia/magma/include",
+        "third_party/fuchsia/magma/include",
         // TODO(b/274956288): use consistent header paths
-        "third-party/fuchsia/magma/include/lib",
+        "third_party/fuchsia/magma/include/lib",
     ],
     apex_available: [
         "//apex_available:platform",
@@ -180,7 +152,6 @@ cc_defaults {
     ],
     header_libs: [
         "gfxstream_headers",
-        "gfxstream_x11_headers",
     ],
     target: {
         host: {

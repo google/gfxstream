@@ -5,7 +5,7 @@ add_library(
 target_link_libraries(
     renderControl_dec
     PUBLIC
-    apigen-codec-common
+    gfxstream_host_decoder_common
     PRIVATE
     gfxstream_common_base
     gfxstream_egl_headers
@@ -18,4 +18,4 @@ target_include_directories(
     ${GFXSTREAM_REPO_ROOT}
     ${GFXSTREAM_REPO_ROOT}/include
     ${GFXSTREAM_REPO_ROOT}/host
-    ${GFXSTREAM_REPO_ROOT}/host/apigen-codec-common)
+    ${GFXSTREAM_REPO_ROOT}/host/gfxstream_host_decoder_common)

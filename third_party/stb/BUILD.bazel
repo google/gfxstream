@@ -1,0 +1,15 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
+cc_library(
+    name = "gfxstream_stb",
+    srcs = [
+        "src/stb_image.cpp",
+        "src/stb_image_write.cpp",
+    ],
+    hdrs = glob(["include/stb/*.h"]),
+    includes = ["include"],
+)

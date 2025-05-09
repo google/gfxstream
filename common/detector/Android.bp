@@ -30,7 +30,7 @@ cc_library_host_static {
         "Vulkan.cpp",
     ],
     header_libs: [
-        "libgfxstream_vulkan_headers",
+        "libgfxstream_thirdparty_vulkan_headers",
     ],
     static_libs: [
         "libgfxstream_graphics_detector_proto",

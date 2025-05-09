@@ -1,4 +1,8 @@
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(
+    default_visibility = ["//:gfxstream"],
+)
 
 cc_library(
     name = "gfxstream_common_base_windows_compat_hdrs",
@@ -11,7 +15,6 @@ cc_library(
     target_compatible_with = [
         "@platforms//os:windows",
     ],
-    visibility = ["//visibility:public"],
 )
 
 cc_library(
@@ -40,6 +43,5 @@ cc_library(
     target_compatible_with = [
         "@platforms//os:windows",
     ],
-    visibility = ["//visibility:public"],
     deps = [":gfxstream_common_base_windows_compat_hdrs"],
 )

@@ -11,11 +11,11 @@ cc_library_static {
     name: "libgfxstream_glestranslator_glesv2",
     defaults: ["gfxstream_defaults"],
     header_libs: [
-        "gfxstream_opengl_headers",
+        "libgfxstream_thirdparty_opengl_headers",
     ],
     static_libs: [
         "libgfxstream_common_base",
-        "libgfxstream_host_apigen_codec_common",
+        "libgfxstream_host_decoder_common",
         "libgfxstream_host_backend",
         "libgfxstream_host_glestranslator_glcommon",
         "libgfxstream_host_logging",

@@ -17,7 +17,8 @@ cc_library_static {
         "-Wno-unused-function",
     ],
     header_libs: [
-        "gfxstream_opengl_headers",
+        "libgfxstream_thirdparty_opengl_headers",
+        "libgfxstream_x11_headers",
         "libgfxstream_host_openglesdispatch_headers",
     ],
     export_header_lib_headers: [
@@ -27,6 +28,7 @@ cc_library_static {
         "libgfxstream_common_base",
         "libgfxstream_etc",
         "libgfxstream_host_backend",
+        "libgfxstream_host_compressedtextures",
         "libgfxstream_host_library",
         "libgfxstream_host_logging",
         "libgfxstream_host_snapshot",

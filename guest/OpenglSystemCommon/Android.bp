@@ -49,7 +49,7 @@ cc_defaults {
         "mesa_platform_virtgpu_defaults",
     ],
     header_libs: [
-        "libgfxstream_vulkan_headers",
+        "libgfxstream_thirdparty_vulkan_headers",
         "libgfxstream_guest_graphics_headers",
         "mesa_gfxstream_guest_iostream",
         "libhardware_headers",
@@ -103,10 +103,10 @@ cc_defaults {
     target: {
         android: {
             header_libs: [
-                "gfxstream_opengl_headers",
+                "libgfxstream_thirdparty_opengl_headers",
             ],
             export_header_lib_headers: [
-                "gfxstream_opengl_headers",
+                "libgfxstream_thirdparty_opengl_headers",
             ],
         },
     },

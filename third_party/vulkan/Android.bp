@@ -1,0 +1,24 @@
+package {
+    default_applicable_licenses: ["hardware_google_gfxstream_license"],
+}
+
+cc_library_headers {
+    name: "libgfxstream_thirdparty_vulkan_headers",
+    export_include_dirs: ["include"],
+    host_supported: true,
+    vendor_available: true,
+    apex_available: [
+        "//apex_available:platform",
+        "com.android.virt",
+    ],
+    target: {
+        android: {
+            header_libs: [
+                "libcutils_headers",
+            ],
+            export_header_lib_headers: [
+                "libcutils_headers",
+            ],
+        },
+    },
+}

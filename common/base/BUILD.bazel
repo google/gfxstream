@@ -1,5 +1,9 @@
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test", "objc_library")
 
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
 cc_library(
     name = "gfxstream_common_base_headers",
     hdrs = glob([
@@ -13,7 +17,6 @@ cc_library(
         "//conditions:default": [],
     }),
     strip_include_prefix = "include",
-    visibility = ["//visibility:public"],
     deps = [
         "@com_google_absl//absl/strings:str_format",
     ] + select({
@@ -53,11 +56,9 @@ cc_library(
         "LayoutResolver.cpp",
         "MessageChannel.cpp",
         "PathUtils.cpp",
-        "RingStreambuf.cpp",
         "StringFormat.cpp",
         "System.cpp",
         "Tracing.cpp",
-        "ring_buffer.cpp",
     ] + select({
         "@platforms//os:windows": [
             "SharedMemory_win32.cpp",
@@ -94,7 +95,6 @@ cc_library(
         ],
         "//conditions:default": [],
     }),
-    visibility = ["//visibility:public"],
     deps = [
         ":gfxstream_common_base_headers",
     ] + select({
@@ -120,11 +120,9 @@ cc_test(
         "ManagedDescriptor_unittest.cpp",
         "NoDestructor_unittest.cpp",
         "Optional_unittest.cpp",
-        "RingStreambuf_unittest.cpp",
         "StringFormat_unittest.cpp",
         "TypeTraits_unittest.cpp",
         "WorkerThread_unittest.cpp",
-        "ring_buffer_unittest.cpp",
     ] + select({
         "@platforms//os:windows": [
             "Win32UnicodeString_unittest.cpp",

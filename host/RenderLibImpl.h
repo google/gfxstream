@@ -15,15 +15,16 @@
 
 #include "render-utils/RenderLib.h"
 
-#include "aemu/base/Compiler.h"
-
 #include <memory>
 
 namespace gfxstream {
 
 class RenderLibImpl final : public RenderLib {
-public:
+  public:
     RenderLibImpl() = default;
+
+    RenderLibImpl(const RenderLibImpl&) = delete;
+    RenderLibImpl& operator=(const RenderLibImpl&) = delete;
 
     virtual void setRenderer(SelectedRenderer renderer) override;
     virtual void setGuestAndroidApiLevel(int api) override;
@@ -59,10 +60,7 @@ public:
 
     OnLastColorBufferRef getOnLastColorBufferRef() override;
 
-private:
-    DISALLOW_COPY_ASSIGN_AND_MOVE(RenderLibImpl);
-
-private:
+  private:
     std::weak_ptr<Renderer> mRenderer;
 };
 

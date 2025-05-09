@@ -25,7 +25,7 @@ option(BUILD_STANDALONE "Build with standalone implementations of base/host-comm
 if (BUILD_STANDALONE)
     # These libraries may be changed in non-standalone builds to inject another implementation of
     # these APIs.
-    set(GFXSTREAM_BASE_LIB aemu-base)
+    set(GFXSTREAM_HOST_COMMON_LIB "")
 endif()
 
 option(BUILD_GRAPHICS_DETECTOR "Build the graphics detector utility" OFF)
@@ -151,7 +151,7 @@ set(EXTRA_SUBDIR_TEST_INCLUDE_FILES)
 add_subdirectory(common)
 
 # Third party dependencies
-add_subdirectory(third-party)
+add_subdirectory(third_party)
 
 # Backends######################################################################
 

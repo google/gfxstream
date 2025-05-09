@@ -19,7 +19,7 @@ target_link_libraries(
     GLES_CM_translator_static
     PRIVATE
     GLcommon
-    apigen-codec-common
+    gfxstream_host_decoder_common
     gfxstream_host_backend
     gfxstream_host_logging
     gfxstream_host_snapshot.headers
@@ -29,4 +29,4 @@ target_include_directories(
     ${GFXSTREAM_REPO_ROOT}
     ${GFXSTREAM_REPO_ROOT}/host/
     ${GFXSTREAM_REPO_ROOT}/host/gl/glestranslator/include
-    ${GFXSTREAM_REPO_ROOT}/third-party/glm/include)
+    ${GFXSTREAM_REPO_ROOT}/third_party/glm/include)

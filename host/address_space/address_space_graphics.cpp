@@ -26,9 +26,6 @@
 namespace gfxstream {
 namespace host {
 
-using android::base::AutoLock;
-using android::base::Lock;
-
 struct AllocationCreateInfo {
     bool virtioGpu;
     bool hostmemRegisterFixed;
@@ -53,14 +50,14 @@ struct Block {
 
 class Globals {
   public:
-    Globals() : mPerContextBufferSize(kAsgWriteBufferSize) { }
+    Globals() {}
     ~Globals() { clear(); }
 
-    void setConsumer(android::emulation::asg::ConsumerInterface iface) {
+    void setConsumer(ConsumerInterface iface) {
         mConsumerInterface = iface;
     }
 
-    android::emulation::asg::ConsumerInterface getConsumerInterface() {
+    ConsumerInterface getConsumerInterface() {
         if (!mConsumerInterface.create) {
             GFXSTREAM_FATAL("Missing ASG consumer create interface.");
         }
@@ -106,19 +103,15 @@ class Globals {
         mCombinedBlocks.clear();
     }
 
-    uint64_t perContextBufferSize() const {
-        return mPerContextBufferSize;
-    }
-
     Allocation newAllocation(struct AllocationCreateInfo& create,
                              std::vector<Block>& existingBlocks) {
         std::lock_guard<std::mutex> lock(mMutex);
 
-        if (create.size > ADDRESS_SPACE_GRAPHICS_BLOCK_SIZE) {
+        if (create.size > kAsgBlockSize) {
             GFXSTREAM_FATAL("wanted size 0x%llx which is "
                             "greater than block size 0x%llx",
                             (unsigned long long)create.size,
-                            (unsigned long long)ADDRESS_SPACE_GRAPHICS_BLOCK_SIZE);
+                            (unsigned long long)kAsgBlockSize);
         }
 
         Allocation res;
@@ -209,7 +202,7 @@ class Globals {
 
     Allocation allocRingStorage() {
         struct AllocationCreateInfo create = {0};
-        create.size = sizeof(struct asg_ring_storage);
+        create.size = kAsgConsumerRingStorageSize;
         return newAllocation(create, mRingBlocks);
     }
 
@@ -220,7 +213,7 @@ class Globals {
 
     Allocation allocBuffer() {
         struct AllocationCreateInfo create = {0};
-        create.size = mPerContextBufferSize;
+        create.size = kAsgWriteBufferSize;
         return newAllocation(create, mBufferBlocks);
     }
 
@@ -235,7 +228,7 @@ class Globals {
         }
 
         struct AllocationCreateInfo create = {0};
-        create.size = sizeof(struct asg_ring_storage) + mPerContextBufferSize;
+        create.size = kAsgConsumerRingStorageSize + kAsgWriteBufferSize;
         create.dedicatedContextHandle = asgCreate.handle;
         create.virtioGpu = true;
         if (asgCreate.externalAddr) {
@@ -252,15 +245,15 @@ class Globals {
     Allocation allocRingViewIntoCombined(const Allocation& alloc) {
         Allocation res = alloc;
         res.buffer = alloc.buffer;
-        res.size = sizeof(struct asg_ring_storage);
+        res.size = kAsgConsumerRingStorageSize;
         res.isView = true;
         return res;
     }
 
     Allocation allocBufferViewIntoCombined(const Allocation& alloc) {
         Allocation res = alloc;
-        res.buffer = alloc.buffer + sizeof(asg_ring_storage);
-        res.size = mPerContextBufferSize;
+        res.buffer = alloc.buffer + kAsgConsumerRingStorageSize;
+        res.size = kAsgWriteBufferSize;
         res.isView = true;
         return res;
     }
@@ -453,7 +446,7 @@ private:
         block.external = true;
         block.buffer = (char*)create.externalAddr;
         block.bufferSize = create.size;
-        block.subAlloc = new SubAllocator(block.buffer, block.bufferSize, ADDRESS_SPACE_GRAPHICS_PAGE_SIZE);
+        block.subAlloc = new SubAllocator(block.buffer, block.bufferSize, kAsgPageSize);
         block.offsetIntoPhys = 0;
         block.isEmpty = false;
         block.usesVirtioGpuHostmem = create.virtioGpu;
@@ -476,8 +469,7 @@ private:
     }
 
     std::mutex mMutex;
-    uint64_t mPerContextBufferSize = 0;
-    android::emulation::asg::ConsumerInterface mConsumerInterface;
+    ConsumerInterface mConsumerInterface;
     std::vector<Block> mRingBlocks;
     std::vector<Block> mBufferBlocks;
     std::vector<Block> mCombinedBlocks;
@@ -494,7 +486,7 @@ void AddressSpaceGraphicsContext::clear() {
 }
 
 // static
-void AddressSpaceGraphicsContext::setConsumer(android::emulation::asg::ConsumerInterface iface) {
+void AddressSpaceGraphicsContext::setConsumer(ConsumerInterface iface) {
     sGlobals()->setConsumer(iface);
 }
 
@@ -514,7 +506,9 @@ AddressSpaceGraphicsContext::AddressSpaceGraphicsContext(
         return;
     }
 
-    const bool isVirtio = (create.type == AddressSpaceDeviceType::VirtioGpuGraphics);
+    const bool isVirtio =
+        static_cast<AddressSpaceDeviceType>(create.type) == AddressSpaceDeviceType::VirtioGpuGraphics;
+
     if (isVirtio) {
         VirtioGpuInfo& info = mVirtioGpuInfo.emplace();
         info.contextId = create.virtioGpuContextId;
@@ -541,34 +535,31 @@ AddressSpaceGraphicsContext::AddressSpaceGraphicsContext(
             "Failed to allocate buffer for ASG context");
     }
 
-    mHostContext = asg_context_create(
-        mRingAllocation.buffer,
-        mBufferAllocation.buffer,
-        sGlobals()->perContextBufferSize());
-    mHostContext.ring_config->buffer_size =
-        sGlobals()->perContextBufferSize();
-    mHostContext.ring_config->flush_interval = kAsgWriteStepSize;
-    mHostContext.ring_config->host_consumed_pos = 0;
-    mHostContext.ring_config->guest_write_pos = 0;
-    mHostContext.ring_config->transfer_mode = 1;
-    mHostContext.ring_config->transfer_size = 0;
-    mHostContext.ring_config->in_error = 0;
-
-    mSavedConfig = *mHostContext.ring_config;
-
     if (create.createRenderThread) {
-        mCurrentConsumer =
-            mConsumerInterface.create(mHostContext, nullptr, mConsumerCallbacks,
-                                      mVirtioGpuInfo ? mVirtioGpuInfo->contextId : 0,
-                                      mVirtioGpuInfo ? mVirtioGpuInfo->capsetId : 0,
-                                      mVirtioGpuInfo ? mVirtioGpuInfo->name : std::nullopt);
+        const AsgConsumerCreateInfo& consumerCreateInfo = {
+            .version = mVersion,
+            .ring_storage = mRingAllocation.buffer,
+            .buffer = mBufferAllocation.buffer,
+            .buffer_size = kAsgWriteBufferSize,
+            .buffer_flush_interval = kAsgWriteStepSize,
+            .callbacks = mConsumerCallbacks,
+            .virtioGpuContextId = mVirtioGpuInfo ?
+                std::optional<uint32_t>(mVirtioGpuInfo->contextId) :
+                std::nullopt,
+            .virtioGpuContextName = mVirtioGpuInfo ?
+                std::optional<std::string>(mVirtioGpuInfo->name) :
+                std::nullopt,
+            .virtioGpuCapsetId = mVirtioGpuInfo ?
+                std::optional<uint32_t>(mVirtioGpuInfo->capsetId) :
+                std::nullopt,
+        };
+        mCurrentConsumer = mConsumerInterface.create(consumerCreateInfo, nullptr);
     }
 }
 
 AddressSpaceGraphicsContext::~AddressSpaceGraphicsContext() {
     if (mCurrentConsumer) {
         mExiting = 1;
-        *(mHostContext.host_state) = ASG_HOST_STATE_EXIT;
         mConsumerMessages.send(ConsumerCommand::Exit);
         mConsumerInterface.destroy(mCurrentConsumer);
     }
@@ -592,9 +583,25 @@ void AddressSpaceGraphicsContext::perform(AddressSpaceDevicePingInfo* info) {
         auto guestVersion = (uint32_t)info->size;
         info->size = (uint64_t)(mVersion > guestVersion ? guestVersion : mVersion);
         mVersion = (uint32_t)info->size;
-        mCurrentConsumer = mConsumerInterface.create(
-            mHostContext, nullptr /* no load stream */, mConsumerCallbacks, 0, 0,
-            std::nullopt);
+
+        const AsgConsumerCreateInfo& consumerCreateInfo = {
+            .version = mVersion,
+            .ring_storage = mRingAllocation.buffer,
+            .buffer = mBufferAllocation.buffer,
+            .buffer_size = kAsgWriteBufferSize,
+            .buffer_flush_interval = kAsgWriteStepSize,
+            .callbacks = mConsumerCallbacks,
+            .virtioGpuContextId = mVirtioGpuInfo ?
+                std::optional<uint32_t>(mVirtioGpuInfo->contextId) :
+                std::nullopt,
+            .virtioGpuContextName = mVirtioGpuInfo ?
+                std::optional<std::string>(mVirtioGpuInfo->name) :
+                std::nullopt,
+            .virtioGpuCapsetId = mVirtioGpuInfo ?
+                std::optional<uint32_t>(mVirtioGpuInfo->capsetId) :
+                std::nullopt,
+        };
+        mCurrentConsumer = mConsumerInterface.create(consumerCreateInfo, nullptr);
 
         if (mVirtioGpuInfo) {
             info->metadata = mCombinedAllocation.hostmemId;
@@ -606,54 +613,26 @@ void AddressSpaceGraphicsContext::perform(AddressSpaceDevicePingInfo* info) {
         info->metadata = 0;
         break;
     case ASG_GET_CONFIG:
-        *mHostContext.ring_config = mSavedConfig;
         info->metadata = 0;
         break;
     }
 }
 
-int AddressSpaceGraphicsContext::onUnavailableRead() {
-    static const uint32_t kMaxUnavailableReads = 8;
-
-    ++mUnavailableReadCount;
-    ring_buffer_yield();
-
+AsgOnUnavailableReadStatus AddressSpaceGraphicsContext::onUnavailableRead() {
     ConsumerCommand cmd;
-
-    if (mExiting) {
-        mUnavailableReadCount = kMaxUnavailableReads;
+    mConsumerMessages.receive(&cmd);
+    switch (cmd) {
+        case ConsumerCommand::Wakeup:
+            return AsgOnUnavailableReadStatus::kContinue;
+        case ConsumerCommand::Exit:
+            return AsgOnUnavailableReadStatus::kExit;
+        case ConsumerCommand::Sleep:
+            return AsgOnUnavailableReadStatus::kSleep;
+        case ConsumerCommand::PausePreSnapshot:
+            return AsgOnUnavailableReadStatus::kPauseForSnapshot;
+        case ConsumerCommand::ResumePostSnapshot:
+            return AsgOnUnavailableReadStatus::kResumeAfterSnapshot;
     }
-
-    if (mUnavailableReadCount >= kMaxUnavailableReads) {
-        mUnavailableReadCount = 0;
-
-sleep:
-        *(mHostContext.host_state) = ASG_HOST_STATE_NEED_NOTIFY;
-        mConsumerMessages.receive(&cmd);
-
-        switch (cmd) {
-            case ConsumerCommand::Wakeup:
-                *(mHostContext.host_state) = ASG_HOST_STATE_CAN_CONSUME;
-                break;
-            case ConsumerCommand::Exit:
-                *(mHostContext.host_state) = ASG_HOST_STATE_EXIT;
-                return -1;
-            case ConsumerCommand::Sleep:
-                goto sleep;
-            case ConsumerCommand::PausePreSnapshot:
-                return -2;
-            case ConsumerCommand::ResumePostSnapshot:
-                return -3;
-            default:
-                GFXSTREAM_FATAL(
-                    "AddressSpaceGraphicsContext::onUnavailableRead: "
-                    "Unknown command: 0x%x\n",
-                    (uint32_t)cmd);
-        }
-
-        return 1;
-    }
-    return 0;
 }
 
 AddressSpaceDeviceType AddressSpaceGraphicsContext::getDeviceType() const {
@@ -685,13 +664,10 @@ void AddressSpaceGraphicsContext::save(gfxstream::Stream* stream) const {
 
     stream->putBe32(mVersion);
     stream->putBe32(mExiting);
-    stream->putBe32(mUnavailableReadCount);
 
     saveAllocation(stream, mRingAllocation);
     saveAllocation(stream, mBufferAllocation);
     saveAllocation(stream, mCombinedAllocation);
-
-    saveRingConfig(stream, mSavedConfig);
 
     if (mCurrentConsumer) {
         stream->putBe32(1);
@@ -722,7 +698,6 @@ bool AddressSpaceGraphicsContext::load(gfxstream::Stream* stream) {
 
     mVersion = stream->getBe32();
     mExiting = stream->getBe32();
-    mUnavailableReadCount = stream->getBe32();
 
     loadAllocation(stream, mRingAllocation);
     loadAllocation(stream, mBufferAllocation);
@@ -737,29 +712,27 @@ bool AddressSpaceGraphicsContext::load(gfxstream::Stream* stream) {
         sGlobals()->fillAllocFromLoad(mBufferAllocation, AllocType::AllocTypeBuffer);
     }
 
-    mHostContext = asg_context_create(
-        mRingAllocation.buffer,
-        mBufferAllocation.buffer,
-        sGlobals()->perContextBufferSize());
-    mHostContext.ring_config->buffer_size = sGlobals()->perContextBufferSize();
-    mHostContext.ring_config->flush_interval = kAsgWriteStepSize;
-
-    // In load, the live ring config state is in shared host/guest ram.
-    //
-    // mHostContext.ring_config->host_consumed_pos = 0;
-    // mHostContext.ring_config->transfer_mode = 1;
-    // mHostContext.ring_config->transfer_size = 0;
-    // mHostContext.ring_config->in_error = 0;
-
-    loadRingConfig(stream, mSavedConfig);
-
     const bool hasConsumer = stream->getBe32() == 1;
     if (hasConsumer) {
-        mCurrentConsumer =
-            mConsumerInterface.create(mHostContext, stream, mConsumerCallbacks,
-                                      mVirtioGpuInfo ? mVirtioGpuInfo->contextId : 0,
-                                      mVirtioGpuInfo ? mVirtioGpuInfo->capsetId : 0,
-                                      mVirtioGpuInfo ? mVirtioGpuInfo->name : std::nullopt);
+        const AsgConsumerCreateInfo& consumerCreateInfo = {
+            .version = mVersion,
+            .ring_storage = mRingAllocation.buffer,
+            .buffer = mBufferAllocation.buffer,
+            .buffer_size = kAsgWriteBufferSize,
+            .buffer_flush_interval = kAsgWriteStepSize,
+            .callbacks = mConsumerCallbacks,
+            .virtioGpuContextId = mVirtioGpuInfo ?
+                std::optional<uint32_t>(mVirtioGpuInfo->contextId) :
+                std::nullopt,
+            .virtioGpuContextName = mVirtioGpuInfo ?
+                std::optional<std::string>(mVirtioGpuInfo->name) :
+                std::nullopt,
+            .virtioGpuCapsetId = mVirtioGpuInfo ?
+                std::optional<uint32_t>(mVirtioGpuInfo->capsetId) :
+                std::nullopt,
+        };
+        mCurrentConsumer = mConsumerInterface.create(consumerCreateInfo, stream);
+
         mConsumerInterface.postLoad(mCurrentConsumer);
     }
 
@@ -783,31 +756,11 @@ bool AddressSpaceGraphicsContext::globalStateLoad(
     return sGlobals()->load(stream, resources);
 }
 
-void AddressSpaceGraphicsContext::saveRingConfig(gfxstream::Stream* stream, const struct asg_ring_config& config) const {
-    stream->putBe32(config.buffer_size);
-    stream->putBe32(config.flush_interval);
-    stream->putBe32(config.host_consumed_pos);
-    stream->putBe32(config.guest_write_pos);
-    stream->putBe32(config.transfer_mode);
-    stream->putBe32(config.transfer_size);
-    stream->putBe32(config.in_error);
-}
-
 void AddressSpaceGraphicsContext::saveAllocation(gfxstream::Stream* stream, const Allocation& alloc) const {
     stream->putBe64(alloc.blockIndex);
     stream->putBe64(alloc.offsetIntoPhys);
     stream->putBe64(alloc.size);
     stream->putBe32(alloc.isView);
-}
-
-void AddressSpaceGraphicsContext::loadRingConfig(gfxstream::Stream* stream, struct asg_ring_config& config) {
-    config.buffer_size = stream->getBe32();
-    config.flush_interval = stream->getBe32();
-    config.host_consumed_pos = stream->getBe32();
-    config.guest_write_pos = stream->getBe32();
-    config.transfer_mode = stream->getBe32();
-    config.transfer_size = stream->getBe32();
-    config.in_error = stream->getBe32();
 }
 
 void AddressSpaceGraphicsContext::loadAllocation(gfxstream::Stream* stream, Allocation& alloc) {

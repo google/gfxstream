@@ -6,8 +6,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "ChecksumCalculatorThreadInfo.h"
-#include "ProtocolUtils.h"
+#include "gfxstream/host/ChecksumCalculatorThreadInfo.h"
+#include "gfxstream/host/ProtocolUtils.h"
 #include "gfxstream/host/logging.h"
 #include "renderControl_opcodes.h"
 

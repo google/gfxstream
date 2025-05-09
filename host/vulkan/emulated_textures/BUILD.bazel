@@ -1,0 +1,43 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
+cc_library(
+    name = "gfxstream_host_vulkan_emulated_textures",
+    srcs = [
+        "AstcTexture.cpp",
+        "CompressedImageInfo.cpp",
+        "GpuDecompressionPipeline.cpp",
+    ],
+    hdrs = glob([
+        "**/*.h",
+        "**/*.inl",
+    ]),
+    defines = [
+        "VK_GFXSTREAM_STRUCTURE_TYPE_EXT",
+        "VK_GOOGLE_gfxstream",
+    ] + select({
+        "@platforms//os:macos": [
+            "VK_USE_PLATFORM_METAL_EXT",
+            "VK_USE_PLATFORM_MACOS_MVK",
+        ],
+        "@platforms//os:windows": [
+            "VK_USE_PLATFORM_WIN32_KHR",
+        ],
+        "@platforms//os:linux": [],
+        "//conditions:default": [],
+    }),
+    visibility = ["//visibility:public"],
+    deps = [
+        "//host:gfxstream_host_headers",
+        "//host/compressed_textures:gfxstream_host_compressed_textures",
+        "//host/health:gfxstream_host_health",
+        "//host/logging:gfxstream_host_logging",
+        "//host/vulkan:gfxstream_vulkan_headers",
+        "//host/vulkan/cereal:gfxstream_vulkan_cereal",
+        "//third_party/vulkan:gfxstream_vulkan_headers",
+        "//utils:gfxstream_utils",
+    ],
+)

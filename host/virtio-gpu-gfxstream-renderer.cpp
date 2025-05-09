@@ -211,16 +211,10 @@ RendererPtr InitRenderer(uint32_t displayWidth,
 
     // TODO: move this into a proper function in address_space_device_control_ops.
     gfxstream::host::AddressSpaceGraphicsContext::setConsumer(
-        android::emulation::asg::ConsumerInterface{
-            .create = [renderer](struct asg_context context,
-                                 gfxstream::Stream* loadStream,
-                                 android::emulation::asg::ConsumerCallbacks callbacks,
-                                 uint32_t contextId,
-                                 uint32_t capsetId,
-                                 std::optional<std::string> nameOpt) {
-                return renderer->addressSpaceGraphicsConsumerCreate(
-                    context, loadStream, callbacks, contextId, capsetId, std::move(nameOpt));
-                },
+        gfxstream::ConsumerInterface{
+            .create = [renderer](const gfxstream::AsgConsumerCreateInfo& info, gfxstream::Stream* loadStream) {
+                return renderer->addressSpaceGraphicsConsumerCreate(info, loadStream);
+            },
             .destroy = [renderer](void* consumer) {
                 renderer->addressSpaceGraphicsConsumerDestroy(consumer);
             },
@@ -243,6 +237,9 @@ RendererPtr InitRenderer(uint32_t displayWidth,
                 renderer->addressSpaceGraphicsConsumerRegisterPostLoadRenderThread(consumer);
             },
             .globalPreLoad = [renderer]() {
+            },
+            .reloadRingConfig = [renderer](void* consumer) {
+                renderer->addressSpaceGraphicsConsumerReloadRingConfig(consumer);
             },
         });
 

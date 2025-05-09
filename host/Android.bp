@@ -64,7 +64,8 @@ gfxstream_backend_static_deps = [
     "libgfxstream_glestranslator_glescm",
     "libgfxstream_glestranslator_glesv2",
     "libgfxstream_host_address_space",
-    "libgfxstream_host_apigen_codec_common",
+    "libgfxstream_host_compressedtextures",
+    "libgfxstream_host_decoder_common",
     "libgfxstream_host_backend",
     "libgfxstream_host_compressedtextures",
     "libgfxstream_host_features",
@@ -85,7 +86,6 @@ gfxstream_backend_static_deps = [
     "libgfxstream_host_vulkan_cereal",
     "libgfxstream_host_vulkan_emulatedtextures",
     "libgfxstream_host_vulkan_server",
-    "libgfxstream_thirdparty_glm",
     "libgfxstream_utils_renderdoc",
 ]
 
@@ -108,8 +108,10 @@ cc_defaults {
         "-Wno-unused-function",
     ],
     header_libs: [
-        "gfxstream_opengl_headers",
+        "libgfxstream_thirdparty_drm_headers",
+        "libgfxstream_thirdparty_opengl_headers",
         "libgfxstream_host_vulkan_cereal_common",
+        "libgfxstream_thirdparty_glm",
         "libgfxstream_thirdparty_renderdoc_headers",
     ],
     export_header_lib_headers: [
@@ -127,6 +129,7 @@ cc_defaults {
     export_static_lib_headers: [
         "libgfxstream_common_base",
         "libgfxstream_host_backend",
+        "libgfxstream_host_decoder_common",
         "libgfxstream_host_features",
         "libgfxstream_host_health",
         "libgfxstream_host_snapshot",
@@ -143,26 +146,22 @@ cc_defaults {
     ],
     srcs: [
         "Buffer.cpp",
-        "ExternalObjectManager.cpp",
         "ChannelStream.cpp",
         "ColorBuffer.cpp",
+        "FrameBuffer.cpp",
         "Hwc2.cpp",
         "PostWorker.cpp",
         "PostWorkerGl.cpp",
         "ReadBuffer.cpp",
-        "render_api.cpp",
         "RenderChannelImpl.cpp",
+        "RenderControl.cpp",
+        "RendererImpl.cpp",
+        "RenderLibImpl.cpp",
         "RenderThread.cpp",
         "RenderThreadInfo.cpp",
+        "RenderWindow.cpp",
         "RingStream.cpp",
         "SyncThread.cpp",
-        "RenderControl.cpp",
-        "RenderWindow.cpp",
-        "RenderLibImpl.cpp",
-        "RendererImpl.cpp",
-        "FrameBuffer.cpp",
-        "GraphicsDriverLock.cpp",
-        "virtio-gpu-gfxstream-renderer.cpp",
         "VirtioGpuContext.cpp",
         "VirtioGpuFrontend.cpp",
         "VirtioGpuPipe.cpp",
@@ -170,6 +169,8 @@ cc_defaults {
         "VirtioGpuRingBlob.cpp",
         "VirtioGpuTimelines.cpp",
         "VsyncThread.cpp",
+        "render_api.cpp",
+        "virtio-gpu-gfxstream-renderer.cpp",
     ],
     host_ldlibs: [
         "-lpthread",
@@ -204,7 +205,7 @@ cc_test_library {
         "tests/ShaderUtils.cpp",
     ],
     header_libs: [
-        "gfxstream_opengl_headers",
+        "libgfxstream_thirdparty_opengl_headers",
         "libgfxstream_host_vulkan_cereal_common",
     ],
     shared_libs: [
@@ -218,13 +219,12 @@ cc_test_library {
     static_libs: [
         "gfxstream_base_test_support",
         "libgfxstream_common_base",
-        "libgfxstream_host_apigen_codec_common",
+        "libgfxstream_host_decoder_common",
         "libgfxstream_host_logging",
         "libgfxstream_host_iostream",
         "libgfxstream_host_snapshot",
         "libgfxstream_oswindow_test_support",
         "libgmock",
-        "liblz4",
     ],
     export_include_dirs: ["tests"],
 }
@@ -235,6 +235,7 @@ cc_test_host {
     defaults: ["gfxstream_defaults"],
     header_libs: [
         "libgfxstream_host_vulkan_cereal_common",
+        "libgfxstream_thirdparty_glm",
     ],
     srcs: [
         "tests/CompositorVk_unittest.cpp",
@@ -276,7 +277,6 @@ cc_test_host {
     static_libs: [
         "libgfxstream_host_logging",
         "libgfxstream_host_vulkan_server",
-        "libgfxstream_thirdparty_glm",
     ],
     test_options: {
         // Disabled by default as requires Vulkan.
@@ -293,6 +293,7 @@ cc_test_host {
     defaults: ["gfxstream_defaults"],
     header_libs: [
         "libgfxstream_host_vulkan_cereal_common",
+        "libgfxstream_thirdparty_glm",
     ],
     srcs: [
         "FrameBuffer_unittest.cpp",
@@ -310,9 +311,7 @@ cc_test_host {
         "libgfxstream_host_vulkan_server",
         "libgfxstream_oswindow_test_support",
         "libgfxstream_host_snapshot",
-        "libgfxstream_thirdparty_glm",
         "libgmock",
-        "liblz4",
     ],
     test_options: {
         // Disabled by default as requires Vulkan.

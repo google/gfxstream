@@ -1,20 +1,20 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-# Header Library
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
 cc_library(
     name = "gfxstream_etc_headers",
     hdrs = glob([
         "include/**/*.h",
     ]),
     includes = ["include"],
-    visibility = ["//visibility:public"],
 )
 
-# Static Library
 cc_library(
     name = "gfxstream_etc",
     srcs = ["etc.cpp"],
     copts = ["-fno-exceptions"],
-    visibility = ["//visibility:public"],  # Control visibility
     deps = [":gfxstream_etc_headers"],
 )

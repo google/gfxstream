@@ -15,7 +15,9 @@
 */
 #ifndef _GL_2_TYPES_H_
 #define _GL_2_TYPES_H_
-#include "gl_base_types.h"
+
+#include "gfxstream/host/gl_base_types.h"
 
 typedef void *GLvoidptr;
+
 #endif

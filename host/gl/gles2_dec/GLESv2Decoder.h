@@ -18,7 +18,7 @@
 #define _GL2_DECODER_H_
 
 #include "gles2_dec.h"
-#include "GLDecoderContextData.h"
+#include "gfxstream/host/GLDecoderContextData.h"
 #include "gfxstream/SharedLibrary.h"
 
 #include "GLSnapshot.h"

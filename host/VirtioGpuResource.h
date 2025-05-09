@@ -20,7 +20,7 @@
 #include <optional>
 #include <unordered_set>
 
-#include "ExternalObjectManager.h"
+#include "gfxstream/host/external_object_manager.h"
 #include "VirtioGpu.h"
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
 #include "VirtioGpuResourceSnapshot.pb.h"

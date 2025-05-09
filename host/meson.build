@@ -39,21 +39,6 @@ if host_machine.system() == 'qnx'
   rel_path_prefix = meson.get_external_property('qnx_path_prefix')
   abs_path_prefix = meson.current_source_dir() + '/' + rel_path_prefix
 
-  aemu_libs_path = abs_path_prefix + '/aemu/install/lib'
-
-  incl_aemu_headers = include_directories([
-    rel_path_prefix + '/aemu/install/include',
-    rel_path_prefix + '/aemu/install/include/aemu/host-common',
-    rel_path_prefix + '/aemu/install/include/aemu/snapshot',
-  ])
-
-
-  aemu_common_lib = cc.find_library('aemu-host-common', dirs: aemu_libs_path)
-  aemu_common_dep = declare_dependency(include_directories : incl_aemu_headers, dependencies : [aemu_common_lib])
-
-  aemu_logging_lib = cc.find_library('aemu-logging', dirs: aemu_libs_path)
-  aemu_logging_dep = declare_dependency(include_directories : incl_aemu_headers, dependencies : [aemu_logging_lib])
-
   inc_qnx_headers = include_directories(join_paths(qnx_target, 'usr/include'))
   qnx_screen_lib = cc.find_library('screen', required : true)
   qnx_screen_dep = declare_dependency(include_directories: inc_qnx_headers, dependencies: [qnx_screen_lib])
@@ -65,8 +50,6 @@ if host_machine.system() == 'qnx'
   qnx_gles2_dep = declare_dependency(include_directories: inc_qnx_headers, dependencies: [qnx_gles2_lib])
 
 else
-  aemu_common_dep = dependency('aemu_host_common')
-  aemu_logging_dep = dependency('aemu_logging')
   dl_dep = dependency('dl')
   thread_dep = dependency('threads')
   gfxstream_host_args += '-DGFXSTREAM_UNSTABLE_VULKAN_EXTERNAL_SYNC=1'
@@ -104,8 +87,11 @@ gfxstream_headers = files(
 
 inc_gfxstream_server = include_directories('include')
 
+inc_common_opengl = include_directories('../third_party/opengl/include')
+inc_drm_headers = include_directories('../third_party/drm/include')
+
 inc_root = include_directories('../')
-inc_gfxstream_include = include_directories('../include')
+inc_gfxstream_include = []
 # Included by all host component builds. Leave empty for future build updates.
 inc_include = include_directories()
 inc_utils = include_directories('../utils/include')
@@ -115,20 +101,22 @@ if host_machine.system() == 'qnx'
 endif
 
 if use_vulkan
-  inc_vulkan_headers = include_directories('../common/vulkan/include')
+  inc_vulkan_headers = include_directories('../third_party/vulkan/include')
 
   if cc.has_header('renderdoc_app.h')
     inc_renderdoc_external = include_directories()
   else
-    inc_renderdoc_external = include_directories('../third-party/renderdoc/include')
+    inc_renderdoc_external = include_directories('../third_party/renderdoc/include')
   endif
 endif
 
 if cc.has_header('glm/glm.hpp')
   inc_glm = include_directories()
 else
-  inc_glm = include_directories('../third-party/glm/include')
+  inc_glm = include_directories('../third_party/glm/include')
 endif
+
+inc_x11_headers = include_directories('../third_party/x11/include')
 
 inc_stream_servers = include_directories('.')
 inc_host_include = include_directories('include')
@@ -143,39 +131,67 @@ subdir('health')
 subdir('library')
 subdir('tracing')
 subdir('snapshot')
-subdir('apigen-codec-common')
+subdir('decoder_common')
+subdir('address_space')
 subdir('backend')
 
-inc_gfxstream_backend = [inc_root, inc_gfxstream_include, inc_include, inc_apigen_codec, inc_utils,
-                         inc_gl_host_common, inc_host_include, inc_common_utils, inc_host_backend,
-                         inc_host_features, inc_host_logging, inc_host_iostream, inc_host_tracing,
-                         inc_common_base, inc_host_library, inc_host_health, inc_host_metrics,
-                         inc_host_snapshot]
+inc_gfxstream_backend = [
+  inc_host_decoder_common,
+  inc_common_base,
+  inc_common_opengl,
+  inc_common_utils,
+  inc_drm_headers,
+  inc_gfxstream_include,
+  inc_glm,
+  inc_host_address_space,
+  inc_host_backend,
+  inc_host_features,
+  inc_host_health,
+  inc_host_include,
+  inc_host_iostream,
+  inc_host_library,
+  inc_host_logging,
+  inc_host_metrics,
+  inc_host_snapshot,
+  inc_host_tracing,
+  inc_include,
+  inc_root,
+  inc_utils,
+]
 
-link_gfxstream_backend = [lib_gl_host_common, lib_apigen_codec, lib_common_utils, lib_host_backend,
-                          lib_host_features, lib_host_logging, lib_host_iostream, lib_host_tracing,
-                          lib_common_base, lib_host_library, lib_host_health, lib_host_metrics,
-                          lib_host_snapshot]
+link_gfxstream_backend = [
+  lib_host_decoder_common,
+  lib_common_base,
+  lib_common_utils,
+  lib_host_address_space,
+  lib_host_backend,
+  lib_host_features,
+  lib_host_health,
+  lib_host_iostream,
+  lib_host_library,
+  lib_host_logging,
+  lib_host_metrics,
+  lib_host_snapshot,
+  lib_host_tracing,
+]
 
 files_lib_gfxstream_backend = files(
   'Buffer.cpp',
-  'ExternalObjectManager.cpp',
   'ChannelStream.cpp',
   'ColorBuffer.cpp',
+  'FrameBuffer.cpp',
   'Hwc2.cpp',
   'PostWorker.cpp',
   'ReadBuffer.cpp',
   'render_api.cpp',
   'RenderChannelImpl.cpp',
+  'RendererImpl.cpp',
+  'RenderLibImpl.cpp',
   'RenderThread.cpp',
   'RenderThreadInfo.cpp',
+  'RenderWindow.cpp',
   'RingStream.cpp',
   'SyncThread.cpp',
-  'RenderWindow.cpp',
-  'RenderLibImpl.cpp',
-  'RendererImpl.cpp',
-  'FrameBuffer.cpp',
-  'GraphicsDriverLock.cpp',
   'virtio-gpu-gfxstream-renderer.cpp',
   'VirtioGpuContext.cpp',
   'VirtioGpuFrontend.cpp',
@@ -187,7 +203,14 @@ files_lib_gfxstream_backend = files(
 )
 
 if use_gles or use_vulkan
-  subdir('compressedTextureFormats')
+  subdir('compressed_textures')
+
+  inc_gfxstream_backend += [
+    inc_host_compressed_textures,
+  ]
+  link_gfxstream_backend + [
+    lib_host_compressed_textures,
+  ]
 endif
 
 if use_gles
@@ -196,8 +219,15 @@ if use_gles
   files_lib_gfxstream_backend += files('PostWorkerGl.cpp')
   files_lib_gfxstream_backend += files('RenderControl.cpp')
 
-  inc_gfxstream_backend += [inc_gl_server, inc_gl_snapshot, inc_gl_common, inc_gl_openglesdispatch]
-  link_gfxstream_backend += lib_gl_server
+  inc_gfxstream_backend += [
+    inc_gl_common,
+    inc_gl_openglesdispatch,
+    inc_gl_server,
+    inc_gl_snapshot,
+  ]
+  link_gfxstream_backend += [
+    lib_gl_server,
+  ]
 endif
 
 if use_vulkan
@@ -233,10 +263,7 @@ gfxstream_backend_cpp_args = [
   '-DVK_GFXSTREAM_STRUCTURE_TYPE_EXT',
 ]
 
-deps_gfxstream_backend = [
-  aemu_common_dep,
-  aemu_logging_dep,
-]
+deps_gfxstream_backend = []
 
 link_args_gfxstream_backend = ''
 
@@ -260,7 +287,7 @@ gfxstream_backend = library(
   'gfxstream_backend',
   files_lib_gfxstream_backend,
   cpp_args: gfxstream_host_args + gfxstream_backend_cpp_args,
-  include_directories: [inc_gfxstream_backend, inc_glm],
+  include_directories: [inc_gfxstream_backend],
   gnu_symbol_visibility: 'default',
   dependencies: deps_gfxstream_backend,
   link_with: link_gfxstream_backend,

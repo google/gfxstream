@@ -1,6 +1,0 @@
-cc_library(
-    name = "renderdoc",
-    hdrs = glob(["include/*.h"]),
-    includes = ["include"],
-    visibility = ["//visibility:public"],
-)

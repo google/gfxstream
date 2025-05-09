@@ -35,12 +35,12 @@ cc_library_shared {
         "libgfxstream_guest_cc_defaults",
     ],
     header_libs: [
-        "gfxstream_opengl_headers",
+        "libgfxstream_thirdparty_opengl_headers",
         "libgfxstream_guest_graphics_headers",
         "mesa_gfxstream_guest_iostream",
     ],
     export_header_lib_headers: [
-        "gfxstream_opengl_headers",
+        "libgfxstream_thirdparty_opengl_headers",
     ],
     shared_libs: [
         "libcutils",
@@ -86,12 +86,12 @@ cc_library_static {
         "libgfxstream_guest_cc_defaults",
     ],
     header_libs: [
-        "gfxstream_opengl_headers",
+        "libgfxstream_thirdparty_opengl_headers",
         "libgfxstream_guest_graphics_headers",
         "mesa_gfxstream_guest_iostream",
     ],
     export_header_lib_headers: [
-        "gfxstream_opengl_headers",
+        "libgfxstream_thirdparty_opengl_headers",
     ],
     shared_libs: [
         "libcutils",
