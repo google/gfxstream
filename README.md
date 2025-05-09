@@ -1,8 +1,8 @@
-# Graphics Streaming Kit (formerly: Vulkan Cereal)
+# Gfxstream
 
-Graphics Streaming Kit (colloquially known as Gfxstream) is a code generator
-that makes it easier to serialize and forward graphics API calls from one place
-to another:
+Graphics Streaming Kit, colloquially known as Gfxstream and previously known as
+Vulkan Cereal, is a collection of code generators and libraries for streaming
+rendering APIs from one place to another.
 
 -   From a virtual machine guest to host for virtualized graphics
 -   From one process to another for IPC graphics
@@ -14,18 +14,15 @@ to another:
 
 #### Bazel
 
-The Bazel build used for building the host backend for virtual device host
-tooling.
-
-The Bazel build currently requires an Android repo but a standalone build is
-a WIP.
+The Bazel build current supports building the host server which is typically
+used for Android virtual device host tooling.
 
 ```
-cd <aosp/emu-dev>
+cd <gfxstream project>
 
-prebuilts/bazel/linux-x86_64/bazel test \
-    --platforms=@//build/bazel/platforms:linux_x64 \
-    @gfxstream//...
+bazel build ...
+
+bazel test ...
 ```
 
 #### CMake
@@ -39,15 +36,19 @@ inside an Android repo.
 Then,
 
 ```
-mkdir build && cd build
+mkdir build
+
+cd build
+
 cmake .. -G Ninja
+
 ninja
 ```
 
 For validating a Goldfish build,
 
 ```
-cd <aosp/emu-master-dev repo>
+cd <aosp/emu-main-dev repo>
 
 cd external/qemu
 
@@ -56,11 +57,11 @@ python android/build/python/cmake.py --gfxstream
 
 #### Meson
 
-The Meson build has historically been used for building the backend for
-Linux guest on Linux host use cases.
+The Meson build has historically been used for building the backend for Linux
+guest on Linux host use cases.
 
 ```
-cd <aosp/main repo>
+cd <gfxstream project>
 
 meson setup \
     -Ddefault_library=static \
@@ -92,6 +93,7 @@ For validating changes, consider running
 
 ```
 cd hardware/google/gfxstream
+
 mma
 ```
 
@@ -105,7 +107,9 @@ Then:
 
 ```
 mkdir build
+
 cd build
+
 cmake . ../ -A x64 -T ClangCL
 ```
 
@@ -126,7 +130,9 @@ scripts/generate-apigen-source.sh
 
 To re-generate both guest and Vulkan code, please run:
 
+```
 scripts/generate-gfxstream-vulkan.sh
+```
 
 ## Testing
 
@@ -144,8 +150,6 @@ m GfxstreamEnd2EndTests
 There are a bunch of test executables generated. They require `libEGL.dll` and
 `libGLESv2.dll` and `vulkan-1.dll` to be available, possibly from your GPU
 vendor or ANGLE, in the `%PATH%`.
-
-
 
 ## Features
 
@@ -215,16 +219,16 @@ file" to view the trace.
 gfxstream vulkan is the most actively developed component. Some key commponents
 of the current design include:
 
--   1:1 threading model - each guest Vulkan encoder thread gets host side
+*   1:1 threading model - each guest Vulkan encoder thread gets host side
     decoding thread
--   Support for both virtio-gpu, goldish and testing transports.
--   Support for Android, Fuchsia, and Linux guests.
--   Ring Buffer to stream commands, in the style of io_uring.
--   Mesa embedded to provide
+*   Support for both virtio-gpu, goldish and testing transports.
+*   Support for Android, Fuchsia, and Linux guests.
+*   Ring Buffer to stream commands, in the style of io_uring.
+*   Mesa embedded to provide
     [dispatch](https://gitlab.freedesktop.org/mesa/mesa/-/blob/main/docs/vulkan/dispatch.rst)
     and
     [objects](https://gitlab.freedesktop.org/mesa/mesa/-/blob/main/docs/vulkan/base-objs.rst).
--   Currently, there are a set of Mesa objects and gfxstream objects. For
+*   Currently, there are a set of Mesa objects and gfxstream objects. For
     example, `struct gfxstream_vk_device` and the gfxstream object
     `goldfish_device` both are internal representations of Vulkan opaque handle
     `VkDevice`. The Mesa object is used first, since Mesa provides dispatch. The
@@ -236,20 +240,20 @@ of the current design include:
 
 Gfxstream is a first class open source project, and welcomes new contributors.
 There are many interesting projects available, for new and experienced software
-enthusiasts.  Some ideas include:
+enthusiasts. Some ideas include:
 
-1) New OS support (Windows, Haiku, MacOS) support for gfxstream guest
-2) Rewriting the gfxstream protocol using python templates and working
-   with other FOSS projects to de-duplicate
-3) Guided performance optimizations
-4) KVM or hypervisor integration to close gap between HW GPU virtualization
-5) Improving rutabaga integrations
-6) Improving display virtualization
+1.  New OS support (Windows, Haiku, MacOS) support for gfxstream guest
+2.  Rewriting the gfxstream protocol using python templates and working with
+    other FOSS projects to de-duplicate
+3.  Guided performance optimizations
+4.  KVM or hypervisor integration to close gap between HW GPU virtualization
+5.  Improving rutabaga integrations
+6.  Improving display virtualization
 
 Please reach out to your local gfxstreamist today if you are interested!
 
 ## Notice
 
-This is not an officially supported Google product. This project is not
-eligible for the [Google Open Source Software Vulnerability Rewards
-Program](https://bughunters.google.com/open-source-security).
+This is not an officially supported Google product. This project is not eligible
+for the
+[Google Open Source Software Vulnerability Rewards Program](https://bughunters.google.com/open-source-security).
