@@ -803,7 +803,7 @@ VkExtent3D CompressedImageInfo::compressedMipmapPortion(const VkExtent3D& origEx
         .height = std::min(ceil_div(origExtent.height, mBlock.height), maxExtent.height),
         // TODO(gregschlom): this is correct for 2DArrays, but incorrect for 3D images. We should
         // take the image type into account to do the right thing here. See also
-        // https://android-review.git.corp.google.com/c/device/generic/vulkan-cereal/+/2458549/comment/cfc7480f_912dd378/
+        // https://android-review.googlesource.com/c/device/generic/vulkan-cereal/+/2458549/comment/cfc7480f_912dd378/
         .depth = origExtent.depth,
     };
 }
