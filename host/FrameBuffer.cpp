@@ -31,7 +31,6 @@
 #include "NativeSubWindow.h"
 #include "RenderThreadInfo.h"
 #include "SyncThread.h"
-#include "gfxstream/LayoutResolver.h"
 #include "gfxstream/Metrics.h"
 #include "gfxstream/SharedLibrary.h"
 #include "gfxstream/Tracing.h"

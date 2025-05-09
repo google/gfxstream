@@ -16,7 +16,6 @@ cc_library_static {
         "CpuTime.cpp",
         "FileUtils.cpp",
         "FunctorThread.cpp",
-        "LayoutResolver.cpp",
         "MessageChannel.cpp",
         "PathUtils.cpp",
         "SharedMemory_posix.cpp",

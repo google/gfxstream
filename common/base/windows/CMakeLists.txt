@@ -43,7 +43,6 @@ target_sources(
     PRIVATE
     src/asprintf.c
     src/files.cpp
-    src/getopt.c
     src/msvc-posix.c
     src/pread.cpp
     src/time.cpp)
