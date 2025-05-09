@@ -154,7 +154,7 @@ void sAddExtensionIfSupported(GLESDispatchMaxVersion currVersion,
                               std::string& to) {
     // If we chose a GLES version less than or equal to
     // the |extVersion| the extension |ext| is tagged with,
-    // filter it according to the whitelist.
+    // filter it according to the allowlist.
     if (HasExtension(from.c_str(), ext.c_str()) &&
         currVersion > extVersion) {
         to += ext;
@@ -162,56 +162,56 @@ void sAddExtensionIfSupported(GLESDispatchMaxVersion currVersion,
     }
 }
 
-static bool sWhitelistedExtensionsGLES2(const std::string& hostExt) {
+static bool sAllowedExtensionsGLES2(const std::string& hostExt) {
 
-#define WHITELIST(ext) \
+#define ALLOWED(ext) \
     if (hostExt == #ext) return true; \
 
-WHITELIST(GL_OES_compressed_ETC1_RGB8_texture)
-WHITELIST(GL_OES_depth24)
-WHITELIST(GL_OES_depth32)
-WHITELIST(GL_OES_depth_texture)
-WHITELIST(GL_OES_depth_texture_cube_map)
-WHITELIST(GL_OES_EGL_image)
-WHITELIST(GL_OES_EGL_image_external)
-WHITELIST(GL_OES_EGL_sync)
-WHITELIST(GL_OES_element_index_uint)
-WHITELIST(GL_OES_framebuffer_object)
-WHITELIST(GL_OES_packed_depth_stencil)
-WHITELIST(GL_OES_rgb8_rgba8)
-WHITELIST(GL_OES_standard_derivatives)
-WHITELIST(GL_OES_texture_float)
-WHITELIST(GL_OES_texture_float_linear)
-WHITELIST(GL_OES_texture_half_float)
-WHITELIST(GL_OES_texture_half_float_linear)
-WHITELIST(GL_OES_texture_npot)
-WHITELIST(GL_OES_texture_3D)
-WHITELIST(GL_OVR_multiview2)
-WHITELIST(GL_EXT_multiview_texture_multisample)
-WHITELIST(GL_EXT_blend_minmax)
-WHITELIST(GL_EXT_color_buffer_half_float)
-WHITELIST(GL_EXT_draw_buffers)
-WHITELIST(GL_EXT_instanced_arrays)
-WHITELIST(GL_EXT_occlusion_query_boolean)
-WHITELIST(GL_EXT_read_format_bgra)
-WHITELIST(GL_EXT_texture_compression_rgtc)
-WHITELIST(GL_EXT_texture_filter_anisotropic)
-WHITELIST(GL_EXT_texture_format_BGRA8888)
-WHITELIST(GL_EXT_texture_rg)
-WHITELIST(GL_ANGLE_framebuffer_blit)
-WHITELIST(GL_ANGLE_framebuffer_multisample)
-WHITELIST(GL_ANGLE_instanced_arrays)
-WHITELIST(GL_CHROMIUM_texture_filtering_hint)
-WHITELIST(GL_NV_fence)
-WHITELIST(GL_NV_framebuffer_blit)
-WHITELIST(GL_NV_read_depth)
+ALLOWED(GL_OES_compressed_ETC1_RGB8_texture)
+ALLOWED(GL_OES_depth24)
+ALLOWED(GL_OES_depth32)
+ALLOWED(GL_OES_depth_texture)
+ALLOWED(GL_OES_depth_texture_cube_map)
+ALLOWED(GL_OES_EGL_image)
+ALLOWED(GL_OES_EGL_image_external)
+ALLOWED(GL_OES_EGL_sync)
+ALLOWED(GL_OES_element_index_uint)
+ALLOWED(GL_OES_framebuffer_object)
+ALLOWED(GL_OES_packed_depth_stencil)
+ALLOWED(GL_OES_rgb8_rgba8)
+ALLOWED(GL_OES_standard_derivatives)
+ALLOWED(GL_OES_texture_float)
+ALLOWED(GL_OES_texture_float_linear)
+ALLOWED(GL_OES_texture_half_float)
+ALLOWED(GL_OES_texture_half_float_linear)
+ALLOWED(GL_OES_texture_npot)
+ALLOWED(GL_OES_texture_3D)
+ALLOWED(GL_OVR_multiview2)
+ALLOWED(GL_EXT_multiview_texture_multisample)
+ALLOWED(GL_EXT_blend_minmax)
+ALLOWED(GL_EXT_color_buffer_half_float)
+ALLOWED(GL_EXT_draw_buffers)
+ALLOWED(GL_EXT_instanced_arrays)
+ALLOWED(GL_EXT_occlusion_query_boolean)
+ALLOWED(GL_EXT_read_format_bgra)
+ALLOWED(GL_EXT_texture_compression_rgtc)
+ALLOWED(GL_EXT_texture_filter_anisotropic)
+ALLOWED(GL_EXT_texture_format_BGRA8888)
+ALLOWED(GL_EXT_texture_rg)
+ALLOWED(GL_ANGLE_framebuffer_blit)
+ALLOWED(GL_ANGLE_framebuffer_multisample)
+ALLOWED(GL_ANGLE_instanced_arrays)
+ALLOWED(GL_CHROMIUM_texture_filtering_hint)
+ALLOWED(GL_NV_fence)
+ALLOWED(GL_NV_framebuffer_blit)
+ALLOWED(GL_NV_read_depth)
 
 #if defined(__linux__)
-WHITELIST(GL_EXT_texture_compression_bptc)
-WHITELIST(GL_EXT_texture_compression_s3tc)
+ALLOWED(GL_EXT_texture_compression_bptc)
+ALLOWED(GL_EXT_texture_compression_s3tc)
 #endif
 
-#undef WHITELIST
+#undef ALLOWED
 
     return false;
 }
@@ -231,7 +231,7 @@ std::string filterExtensionsBasedOnMaxVersion(const gfxstream::host::FeatureSet&
     filteredExtensions.reserve(4096);
     auto add = [&filteredExtensions](const std::string& hostExt) {
         if (!hostExt.empty() &&
-            sWhitelistedExtensionsGLES2(hostExt)) {
+            sAllowedExtensionsGLES2(hostExt)) {
             filteredExtensions += hostExt;
             filteredExtensions += " ";
         }
