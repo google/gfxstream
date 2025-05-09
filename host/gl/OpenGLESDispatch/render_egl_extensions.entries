@@ -28,4 +28,4 @@ EGLBoolean eglSetImageInfoANDROID(EGLDisplay display, EGLImage image, EGLint wid
 EGLImage eglImportImageANDROID(EGLDisplay display, EGLImage image);
 EGLint eglDebugMessageControlKHR(EGLDEBUGPROCKHR callback, const EGLAttrib * attrib_list);
 EGLBoolean eglSetNativeTextureDecompressionEnabledANDROID(EGLDisplay display, EGLBoolean enabled);
-EGLBoolean eglSetProgramBinaryLinkStatusEnabledANDROID(EGLDisplay display, EGLboolean enabled);
+EGLBoolean eglSetProgramBinaryLinkStatusEnabledANDROID(EGLDisplay display, EGLBoolean enabled);
