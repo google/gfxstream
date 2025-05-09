@@ -26,10 +26,10 @@ target_link_libraries(
     ${GFXSTREAM_BASE_LIB}
     PRIVATE
     gfxstream_common_base
-    gfxstream_egl_headers
+    gfxstream_common_logging
     gfxstream_host_backend
     gfxstream_host_library
-    gfxstream_common_logging
+    gfxstream_opengl_headers
     )
 target_include_directories(
     gles2_dec

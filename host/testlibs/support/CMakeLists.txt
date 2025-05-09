@@ -1,0 +1,50 @@
+
+add_library(
+    gfxstream_host_testing_support
+    GLSnapshotTestDispatch.cpp
+    GLSnapshotTesting.cpp
+    GLSnapshotTestStateUtils.cpp
+    GLTestUtils.cpp
+    HelloTriangleImp.cpp
+    OpenGLTestContext.cpp
+    SampleApplication.cpp
+    ShaderUtils.cpp
+    )
+target_include_directories(
+    gfxstream_host_testing_support
+    PUBLIC
+    include
+    ${GFXSTREAM_REPO_ROOT}
+    ${GFXSTREAM_REPO_ROOT}/host
+    ${GFXSTREAM_REPO_ROOT}/host/gl/glestranslator/GLES_CM
+    ${GFXSTREAM_REPO_ROOT}/host/gl/glestranslator/include
+    ${GFXSTREAM_REPO_ROOT}/host/gfxstream_host_decoder_common
+    ${GFXSTREAM_REPO_ROOT}/host/vulkan
+    )
+target_link_libraries(
+    gfxstream_host_testing_support
+    PUBLIC
+    gfxstream_common_image
+    gfxstream_backend_static
+    gfxstream_host_testing_oswindow_support
+    gfxstream_stb
+    gtest
+    )
+
+if (LINUX)
+    add_library(
+        x11_testing_support
+        X11TestingSupport.cpp
+        )
+    target_link_libraries(
+        x11_testing_support
+        PUBLIC
+        gfxstream_common_base
+        gfxstream_opengl_headers
+        )
+    target_include_directories(
+        x11_testing_support
+        PUBLIC
+        ${GFXSTREAM_REPO_ROOT}/host/decoder_common/include
+        )
+endif()

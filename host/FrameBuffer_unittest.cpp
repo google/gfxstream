@@ -12,22 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
 #include <memory>
 
 #include <gtest/gtest.h>
 
+#include "FrameBuffer.h"
+#include "RenderThreadInfo.h"
 #include "gfxstream/files/PathUtils.h"
 #include "gfxstream/host/display_operations.h"
 #include "gfxstream/host/file_stream.h"
 #include "gfxstream/host/mem_stream.h"
 #include "gfxstream/host/window_operations.h"
 #include "gfxstream/system/System.h"
-#include "tests/GLSnapshotTesting.h"
-#include "tests/GLTestUtils.h"
-#include "tests/Standalone.h"
-#ifdef __linux__
-#include "tests/X11TestingSupport.h"
-#endif
+#include "gfxstream/host/testing/GLSnapshotTesting.h"
+#include "gfxstream/host/testing/GLTestUtils.h"
+#include "gfxstream/host/testing/OSWindow.h"
+#include "gfxstream/host/testing/SampleApplication.h"
+#include "gfxstream/host/testing/ShaderUtils.h"
 
 #ifdef _MSC_VER
 #include "gfxstream/msvc.h"

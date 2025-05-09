@@ -22,9 +22,9 @@ target_link_libraries(
     gfxstream_host_decoder_common
     PRIVATE
     gfxstream_common_base
-    gfxstream_egl_headers
     gfxstream_common_logging
     gfxstream_host_iostream
+    gfxstream_opengl_headers
     )
 target_include_directories(
     renderControl_dec

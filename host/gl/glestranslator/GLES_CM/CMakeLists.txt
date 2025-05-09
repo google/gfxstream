@@ -33,11 +33,12 @@ target_link_libraries(
     GLES_CM_translator_static
     PRIVATE
     GLcommon
-    gfxstream_host_decoder_common
-    gfxstream_host_backend
     gfxstream_common_logging
+    gfxstream_host_backend
+    gfxstream_host_decoder_common
     gfxstream_host_snapshot.headers
-    gfxstream_egl_headers)
+    gfxstream_opengl_headers
+    )
 target_include_directories(
     GLES_CM_translator_static PRIVATE
     ${GFXSTREAM_REPO_ROOT}

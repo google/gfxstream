@@ -18,6 +18,15 @@
 #include <string>
 #include <string.h>
 
+#ifdef _WIN32
+#include <BaseTsd.h>
+#ifndef ssize_t
+typedef SSIZE_T ssize_t;
+#endif
+#else
+#include <sys/types.h>
+#endif
+
 namespace gfxstream {
 
 // Abstract interface to byte streams of all kind.

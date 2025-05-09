@@ -13,10 +13,12 @@
 // limitations under the License.
 #include <gtest/gtest.h>
 
-#include "Standalone.h"
-#include "GLTestUtils.h"
-
 #include <memory>
+
+#include "FrameBuffer.h"
+#include "OpenGLESDispatch/OpenGLDispatchLoader.h"
+#include "gfxstream/host/testing/GLTestUtils.h"
+#include "gfxstream/host/testing/SampleApplication.h"
 
 namespace gfxstream {
 namespace {

@@ -35,12 +35,10 @@ cc_library_static {
         "sub_allocator.cpp",
     ],
     static_libs: [
-        "gfxstream_base",
         "libgfxstream_common_base",
         "libgfxstream_common_logging",
     ],
     export_static_lib_headers: [
-        "gfxstream_base",
         "libgfxstream_common_base",
     ],
 }

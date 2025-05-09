@@ -14,8 +14,8 @@
 
 #include <gtest/gtest.h>
 
-#include "GLTestUtils.h"
-#include "OpenGLTestContext.h"
+#include "gfxstream/host/testing/GLTestUtils.h"
+#include "gfxstream/host/testing/OpenGLTestContext.h"
 #include "TextureDraw.h"
 
 namespace gfxstream {

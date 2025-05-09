@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "GLSnapshotTestStateUtils.h"
-#include "GLSnapshotTesting.h"
-#include "OpenGLTestContext.h"
+#include "gfxstream/host/testing/GLSnapshotTestStateUtils.h"
+#include "gfxstream/host/testing/GLSnapshotTesting.h"
+#include "gfxstream/host/testing/OpenGLTestContext.h"
 
 #include <gtest/gtest.h>
 

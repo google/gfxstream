@@ -16,8 +16,8 @@
 
 #include <vector>
 
-#include "OSWindow.h"
 #include "VirtioGpuFormatUtils.h"
+#include "gfxstream/host/testing/OSWindow.h"
 #include "gfxstream/system/System.h"
 #include "gfxstream/virtio-gpu-gfxstream-renderer-unstable.h"
 #include "gfxstream/virtio-gpu-gfxstream-renderer.h"

@@ -112,24 +112,24 @@ add_library(
 target_link_libraries(
         gfxstream_backend_static
         PUBLIC
-        gfxstream_backend.headers
         ${GFXSTREAM_HOST_COMMON_LIB}
-        gfxstream_drm_headers
-        gfxstream_glm_headers
-        gfxstream_host_decoder_common
+        gfxstream_backend.headers
         gfxstream_common_base
-        gfxstream_egl_headers
+        gfxstream_common_logging
+        gfxstream_drm_headers
         gfxstream_features
+        gfxstream_glm_headers
         gfxstream_host_address_space
         gfxstream_host_backend
+        gfxstream_host_decoder_common
         gfxstream_host_health
         gfxstream_host_iostream
         gfxstream_host_library
-        gfxstream_common_logging
         gfxstream_host_metrics
         gfxstream_host_renderdoc
         gfxstream_host_snapshot.headers
         gfxstream_host_tracing
+        gfxstream_opengl_headers
         gfxstream_openglesdispatch
         gfxstream-gl-server
         gfxstream-vulkan-server
@@ -237,72 +237,26 @@ endfunction()
     target_link_libraries(
         gfxstream_backend_unittests
         PRIVATE
-        OSWindow
         gfxstream_backend
+        gfxstream_host_testing_oswindow_support
         ${GFXSTREAM_BASE_LIB}
         gtest_main)
-        discover_tests(gfxstream_backend_unittests)
-
-    # More functional tests#########################################################
-
-    # Common testing support library################################################
-    # This includes the server core and testing sources
-    add_library(
-        stream-server-testing-support
-        tests/SampleApplication.cpp
-        tests/GLSnapshotTesting.cpp
-        tests/OpenGLTestContext.cpp
-        tests/GLTestUtils.cpp
-        tests/ShaderUtils.cpp
-        tests/GLSnapshotTestDispatch.cpp
-        tests/GLSnapshotTestStateUtils.cpp
-        tests/HelloTriangleImp.cpp)
-    target_include_directories(
-        stream-server-testing-support
-        PUBLIC
-        ${GFXSTREAM_REPO_ROOT}
-        ${GFXSTREAM_REPO_ROOT}/host
-        ${GFXSTREAM_REPO_ROOT}/host/gl/glestranslator/GLES_CM
-        ${GFXSTREAM_REPO_ROOT}/host/gl/glestranslator/include
-        ${GFXSTREAM_REPO_ROOT}/host/gfxstream_host_decoder_common
-        ${GFXSTREAM_REPO_ROOT}/host/vulkan)
-    target_link_libraries(
-        stream-server-testing-support
-        PUBLIC
-        gfxstream_common_image
-        gfxstream_backend_static
-        gfxstream_stb
-        OSWindow
-        gtest)
-
-    if (LINUX)
-        add_library(
-            x11_testing_support
-            tests/X11TestingSupport.cpp)
-        target_link_libraries(
-            x11_testing_support
-            PUBLIC
-            gfxstream_common_base
-            gfxstream_opengl_headers)
-        target_include_directories(
-            x11_testing_support
-            PUBLIC
-            ${GFXSTREAM_REPO_ROOT}/host/decoder_common/include)
-    endif()
+    discover_tests(gfxstream_backend_unittests)
 
     # Basic opengl rendering tests##################################################
     add_executable(
         OpenglRender_unittests
         FrameBuffer_unittest.cpp
+        VsyncThread_unittest.cpp
         tests/GLES1Dispatch_unittest.cpp
         tests/DefaultFramebufferBlit_unittest.cpp
         tests/TextureDraw_unittest.cpp
         tests/StalePtrRegistry_unittest.cpp
-        tests/VsyncThread_unittest.cpp)
+        )
     target_link_libraries(
         OpenglRender_unittests
         PRIVATE
-        stream-server-testing-support
+        gfxstream_host_testing_support
         gfxstream_backend_static
         gfxstream_common_base
         gfxstream_host_backend
@@ -339,7 +293,7 @@ endfunction()
     target_link_libraries(
         OpenglRender_snapshot_unittests
         PRIVATE
-        stream-server-testing-support
+        gfxstream_host_testing_support
         gfxstream_backend_static
         gfxstream_common_base
         gfxstream_host_backend
@@ -349,28 +303,35 @@ endfunction()
     # Vulkan tests##################################################################
     add_executable(
         Vulkan_unittests
-        tests/Vulkan_unittest.cpp
-        tests/CompositorVk_unittest.cpp
-        tests/SwapChainStateVk_unittest.cpp
-        tests/DisplayVk_unittest.cpp
         VirtioGpuTimelinesTests.cpp
-        vulkan/vk_util_unittest.cpp
+        vulkan/CompositorVk_unittest.cpp
+        vulkan/DisplayVk_unittest.cpp
+        vulkan/SwapChainStateVk_unittest.cpp
+        vulkan/VkDecoderGlobalState_unittest.cpp
         vulkan/VkFormatUtils_unittest.cpp
         vulkan/VkQsriTimeline_unittest.cpp
-        vulkan/VkDecoderGlobalState_unittest.cpp
+        vulkan/Vulkan_unittest.cpp
+        vulkan/vk_util_unittest.cpp
     )
     target_link_libraries(
         Vulkan_unittests
         PRIVATE
-        stream-server-testing-support
+        gfxstream_host_testing_support
+        gfxstream_host_testing_oswindow_support
         gfxstream_backend_static
         gfxstream-vulkan-server
         gtest
         gtest_main
         gmock)
     if (APPLE)
-        target_compile_definitions(Vulkan_unittests PRIVATE -DVK_USE_PLATFORM_METAL_EXT)
-        target_link_libraries(Vulkan_unittests PUBLIC "-framework AppKit")
+        target_compile_definitions(
+            Vulkan_unittests
+            PRIVATE
+            -DVK_USE_PLATFORM_METAL_EXT)
+        target_link_libraries(
+            Vulkan_unittests
+            PUBLIC
+            "-framework AppKit")
     endif()
     discover_tests(
             Vulkan_unittests
@@ -385,13 +346,13 @@ endfunction()
     endif()
 
 
-    file(GLOB Vulkan_unittests_datafiles "tests/testdata/*.png")
+    file(GLOB Vulkan_unittests_datafiles "vulkan/testdata/*.png")
     add_custom_command(TARGET Vulkan_unittests POST_BUILD
                        COMMAND ${CMAKE_COMMAND} -E make_directory
-                            ${CMAKE_BINARY_DIR}/tests/testdata
+                            ${CMAKE_BINARY_DIR}/testdata
                        COMMAND ${CMAKE_COMMAND} -E copy_if_different
                             ${Vulkan_unittests_datafiles}
-                            ${CMAKE_BINARY_DIR}/tests/testdata)
+                            ${CMAKE_BINARY_DIR}/testdata)
 
     add_executable(
             Vulkan_integrationtests
@@ -405,7 +366,7 @@ endfunction()
             gfxstream_common_base
             gfxstream-gl-server
             gfxstream-vulkan-server
-            stream-server-testing-support
+            gfxstream_host_testing_support
             gtest
             gtest_main
             gmock)

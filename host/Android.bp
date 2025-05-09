@@ -50,7 +50,6 @@ cc_library_host_static {
 }
 
 gfxstream_backend_static_deps = [
-    "gfxstream_base",
     "libgfxstream_common_base",
     "libgfxstream_common_utils",
     "libgfxstream_etc",
@@ -184,101 +183,6 @@ cc_library {
     defaults: ["libgfxstream_backend_defaults"],
 }
 
-cc_test_library {
-    name: "gfxstream_backend_test_support",
-    defaults: ["gfxstream_host_cc_defaults"],
-    srcs: [
-        "tests/GLSnapshotTesting.cpp",
-        "tests/GLTestUtils.cpp",
-        "tests/GLSnapshotTestDispatch.cpp",
-        "tests/GLSnapshotTestStateUtils.cpp",
-        "tests/OpenGLTestContext.cpp",
-        "tests/SampleApplication.cpp",
-        "tests/ShaderUtils.cpp",
-    ],
-    header_libs: [
-        "libgfxstream_thirdparty_opengl_headers",
-        "libgfxstream_host_vulkan_cereal_common",
-    ],
-    shared_libs: [
-        "libbase",
-        "libgfxstream_backend",
-    ],
-    export_static_lib_headers: [
-        "libgfxstream_host_iostream",
-        "libgfxstream_oswindow_test_support",
-    ],
-    static_libs: [
-        "gfxstream_base_test_support",
-        "libgfxstream_common_base",
-        "libgfxstream_host_decoder_common",
-        "libgfxstream_common_logging",
-        "libgfxstream_host_iostream",
-        "libgfxstream_host_snapshot",
-        "libgfxstream_oswindow_test_support",
-        "libgmock",
-    ],
-    export_include_dirs: ["tests"],
-}
-
-// Run with `atest --host gfxstream_compositorvk_test`
-cc_test_host {
-    name: "gfxstream_compositorvk_test",
-    defaults: ["gfxstream_host_cc_defaults"],
-    header_libs: [
-        "libgfxstream_host_vulkan_cereal_common",
-        "libgfxstream_thirdparty_glm",
-    ],
-    srcs: [
-        "tests/CompositorVk_unittest.cpp",
-    ],
-    data: [
-        "tests/testdata/256x256_android.png",
-        "tests/testdata/256x256_android_with_transparency.png",
-        "tests/testdata/256x256_golden_blend_premultiplied.png",
-        "tests/testdata/256x256_golden_crop.png",
-        "tests/testdata/256x256_golden_simple_composition.png",
-        "tests/testdata/256x256_golden_multiple_layers.png",
-        "tests/testdata/256x256_golden_multiple_targets_0.png",
-        "tests/testdata/256x256_golden_multiple_targets_1.png",
-        "tests/testdata/256x256_golden_multiple_targets_2.png",
-        "tests/testdata/256x256_golden_multiple_targets_3.png",
-        "tests/testdata/256x256_golden_multiple_targets_4.png",
-        "tests/testdata/256x256_golden_multiple_targets_5.png",
-        "tests/testdata/256x256_golden_multiple_targets_6.png",
-        "tests/testdata/256x256_golden_multiple_targets_7.png",
-        "tests/testdata/256x256_golden_multiple_targets_8.png",
-        "tests/testdata/256x256_golden_multiple_targets_9.png",
-        "tests/testdata/256x256_golden_solid_color.png",
-        "tests/testdata/256x256_golden_solid_color_above.png",
-        "tests/testdata/256x256_golden_solid_color_below.png",
-        "tests/testdata/256x256_golden_transform_none.png",
-        "tests/testdata/256x256_golden_transform_fliph.png",
-        "tests/testdata/256x256_golden_transform_flipv.png",
-        "tests/testdata/256x256_golden_transform_rot90.png",
-        "tests/testdata/256x256_golden_transform_rot180.png",
-        "tests/testdata/256x256_golden_transform_rot270.png",
-        "tests/testdata/256x256_golden_transform_fliphrot90.png",
-        "tests/testdata/256x256_golden_transform_flipvrot90.png",
-    ],
-    shared_libs: [
-        "libbase",
-        "libgfxstream_backend",
-        "libgfxstream_common_image",
-    ],
-    static_libs: [
-        "libgfxstream_common_logging",
-        "libgfxstream_host_vulkan_server",
-    ],
-    test_options: {
-        // Disabled by default as requires Vulkan.
-        unit_test: false,
-    },
-    test_suites: [
-        "general-tests",
-    ],
-}
-
 // Run with `atest --host gfxstream_framebuffer_tests`
 cc_test_host {
     name: "gfxstream_framebuffer_tests",
@@ -295,14 +199,14 @@ cc_test_host {
         "libgfxstream_backend",
     ],
     static_libs: [
-        "gfxstream_backend_test_support",
         "gfxstream_base_test_support",
         "libgfxstream_common_base",
         "libgfxstream_common_image",
         "libgfxstream_common_logging",
+        "libgfxstream_host_snapshot",
+        "libgfxstream_host_test_support",
         "libgfxstream_host_vulkan_server",
         "libgfxstream_oswindow_test_support",
-        "libgfxstream_host_snapshot",
         "libgmock",
     ],
     test_options: {

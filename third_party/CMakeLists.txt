@@ -85,22 +85,6 @@ if (QNX) # QNX SDP provides EGL headers
     target_include_directories(gfxstream_egl_headers INTERFACE ${QNX_TARGET}/usr/include)
 endif()
 
-if(NOT TARGET gfxstream_egl_headers)
-    if(DEPENDENCY_RESOLUTION STREQUAL "AOSP")
-        # ANGLE provides the EGL headers for us.
-        set(ANGLE_PATH ${PROJECT_SOURCE_DIR}/../../../external/angle)
-        if(NOT EXISTS ${ANGLE_PATH})
-            message(FATAL_ERROR "ANGLE is not found.")
-        endif()
-        add_library(gfxstream_egl_headers INTERFACE)
-        target_include_directories(gfxstream_egl_headers INTERFACE ${ANGLE_PATH}/include)
-    elseif(DEPENDENCY_RESOLUTION STREQUAL "SYSTEM")
-        find_package(PkgConfig REQUIRED)
-        pkg_search_module(egl REQUIRED IMPORTED_TARGET GLOBAL egl>=1.5)
-        add_library(gfxstream_egl_headers ALIAS PkgConfig::egl)
-    endif()
-endif()
-
 if(WITH_BENCHMARK)
     # Add Google's benchmarking framework
     set(BENCHMARK_ENABLE_EXCEPTIONS OFF)  # We disable exceptions in gfxstream

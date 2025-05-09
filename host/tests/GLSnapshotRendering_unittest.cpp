@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "GLSnapshotTestDispatch.h"
-#include "GLSnapshotTesting.h"
-#include "Standalone.h"
-#include "HelloTriangle.h"
-
 #include <gtest/gtest.h>
+
+#include "FrameBuffer.h"
+#include "gfxstream/host/testing/HelloTriangle.h"
+#include "gfxstream/host/testing/GLSnapshotTestDispatch.h"
+#include "gfxstream/host/testing/GLSnapshotTesting.h"
+#include "gfxstream/host/testing/OSWindow.h"
 
 namespace gfxstream {
 namespace gl {
