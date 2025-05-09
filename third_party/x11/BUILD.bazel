@@ -6,6 +6,6 @@ package(
 
 cc_library(
     name = "gfxstream_x11_headers",
-    hdrs = glob(["include/*.h"]),
+    hdrs = glob(["include/**/*.h"]),
     strip_include_prefix = "include",
 )

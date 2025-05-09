@@ -17,8 +17,6 @@ cc_library(
         "//conditions:default": [],
     }),
     hdrs = glob([
-        "GL/**/*.h",
-        "X11/**/*.h",
         "include/**/*.h",
     ]),
     copts = ["-fno-exceptions"],
