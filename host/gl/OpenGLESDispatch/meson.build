@@ -1,5 +1,5 @@
 # Copyright 2023 Android Open Source Project
-# SPDX-License-Identifier: MIT
+# SPDX-License-Identifier: MIT OR Apache-2.0
 
 # Forward declared in host/gl/meson.build:
 # inc_gl_openglesdispatch = include_directories('include')

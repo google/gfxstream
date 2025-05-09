@@ -1,6 +1,6 @@
 # 2023 Android Open Source Project
 # Copyright © 2017-2019 Intel Corporation
-# SPDX-License-Identifier: MIT
+# SPDX-License-Identifier: MIT OR Apache-2.0
 
 option(
   'platforms',

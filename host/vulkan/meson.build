@@ -1,5 +1,5 @@
 # Copyright 2023 Android Open Source Project
-# SPDX-License-Identifier: MIT
+# SPDX-License-Identifier: MIT OR Apache-2.0
 
 inc_cereal = include_directories('cereal')
 inc_cereal_common = include_directories('cereal/common')
