@@ -13,7 +13,7 @@
 //   https://fgiesen.wordpress.com/2022/11/08/whats-that-magic-computation-in-stb__refineblock/
 //
 // That version then made it to many places, including ANGLE, first as a C++ version:
-//   https://source.corp.google.com/android/external/angle/src/image_util/loadimage_etc.cpp;l=1073;bpv=0;bpt=0;rcl=90f88d3bc0d38ef5ec06ddaaef230db2d6e6fc02
+//   https://cs/android/external/angle/src/image_util/loadimage_etc.cpp;l=1073;bpv=0;bpt=0;rcl=90f88d3bc0d38ef5ec06ddaaef230db2d6e6fc02
 //
 // and then as a compute shader version upon which this shader is based:
 //   http://cs/android/external/angle/src/libANGLE/renderer/vulkan/shaders/src/EtcToBc.comp;rcl=81e45c881c54a7737f6fce95097f6df2f94cd76f

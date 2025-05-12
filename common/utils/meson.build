@@ -1,5 +1,5 @@
 # Copyright 2024 Android Open Source Project
-# SPDX-License-Identifier: MIT
+# SPDX-License-Identifier: MIT OR Apache-2.0
 
 inc_common_utils = include_directories('include')
 
