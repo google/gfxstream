@@ -42,6 +42,5 @@ cc_library(
         "//host/tracing:gfxstream_host_tracing",
         "//host/vulkan:gfxstream_vulkan_headers",
         "//third_party/vulkan:gfxstream_vulkan_headers",
-        "//utils:gfxstream_utils",
     ],
 )

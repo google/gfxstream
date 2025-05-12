@@ -21,6 +21,7 @@ cc_library(
     includes = ["."],
     deps = [
         "//host/health:gfxstream_host_health",
+        "//host/renderdoc:gfxstream_host_renderdoc",
         "//host/snapshot:gfxstream_host_snapshot",
     ],
 )
@@ -127,6 +128,7 @@ cc_library(
         "//host/health:gfxstream_host_health",
         "//host/logging:gfxstream_host_logging",
         "//host/renderControl_dec",
+        "//host/renderdoc:gfxstream_host_renderdoc",
         "//host/snapshot:gfxstream_host_snapshot",
         "//host/tracing:gfxstream_host_tracing",
         "//host/vulkan:gfxstream_vulkan_server",

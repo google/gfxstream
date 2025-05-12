@@ -19,7 +19,7 @@
 #include "gfxstream/BumpPool.h"
 #include "gfxstream/HealthMonitor.h"
 #include "gfxstream/Metrics.h"
-#include "utils/include/utils/GfxApiLogger.h"
+#include "gfxstream/host/GfxApiLogger.h"
 #include "vulkan/VkCommonOperations.h"
 #include "vulkan/VkDecoderContext.h"
 #include "vulkan/testing/VkDecoderTestDispatch.h"
@@ -99,7 +99,7 @@ class VulkanTestHelper {
     static std::mutex mMutex;  // Locked for the entire lifetime of this class.
     std::lock_guard<std::mutex> mLock;
     VulkanDispatch* mVk;
-    emugl::GfxApiLogger mLogger;
+    gfxstream::host::GfxApiLogger mLogger;
     std::unique_ptr<VkEmulation> mVkEmu;
     std::unique_ptr<::gfxstream::base::BumpPool> mBp;
     VkDecoderContext mDecoderContext;

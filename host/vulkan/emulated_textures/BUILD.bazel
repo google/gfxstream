@@ -38,6 +38,5 @@ cc_library(
         "//host/vulkan:gfxstream_vulkan_headers",
         "//host/vulkan/cereal:gfxstream_vulkan_cereal",
         "//third_party/vulkan:gfxstream_vulkan_headers",
-        "//utils:gfxstream_utils",
     ],
 )

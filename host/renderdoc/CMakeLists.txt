@@ -13,44 +13,38 @@
 # limitations under the License.
 
 add_library(
-    gfxstream_utils.headers
+    gfxstream_host_renderdoc
     INTERFACE)
 
 target_include_directories(
-    gfxstream_utils.headers
+    gfxstream_host_renderdoc
     INTERFACE
     include)
 target_link_libraries(
-    gfxstream_utils.headers
+    gfxstream_host_renderdoc
     INTERFACE
     renderdoc
     gfxstream_vulkan_headers)
 
-add_library(
-    gfxstream_utils
-    OBJECT
-    GfxApiLogger.cpp)
-target_link_libraries(
-    gfxstream_utils
-    PUBLIC
-    gfxstream_utils.headers)
-
 if (ENABLE_VKCEREAL_TESTS)
-    add_executable(
-        gfxstream_utils_unittests
-        RenderDoc_unittest.cpp
-        GfxApiLogger_unittest.cpp)
+    # AEMU build seems to have strange rpath setup which results in
+    # `libc++.so: cannot open shared object file: No such file or directory`.
+    if(NOT CONFIG_AEMU)
+        add_executable(
+            gfxstream_host_renderdoc_tests
+            RenderDoc_unittest.cpp)
 
-    target_link_libraries(
-        gfxstream_utils_unittests
-        PRIVATE
-        gfxstream_host_library
-        gfxstream_host_logging
-        gfxstream_utils
-        ${GFXSTREAM_BASE_LIB}
-        renderdoc
-        gtest_main
-        gmock_main)
+        target_link_libraries(
+            gfxstream_host_renderdoc_tests
+            PRIVATE
+            gfxstream_host_library
+            gfxstream_host_logging
+            gfxstream_host_renderdoc
+            renderdoc
+            gtest_main
+            gmock_main)
 
-    gtest_discover_tests(gfxstream_utils_unittests)
+        gtest_discover_tests(
+            gfxstream_host_renderdoc_tests)
+    endif()
 endif()

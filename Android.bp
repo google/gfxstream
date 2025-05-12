@@ -41,7 +41,6 @@ cc_library_headers {
         "host/gl",
         "host/vulkan",
         "host/include",
-        "utils/include",
     ],
     header_libs: [
         "aemu_common_headers",

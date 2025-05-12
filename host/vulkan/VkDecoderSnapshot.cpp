@@ -41,8 +41,6 @@
 #include "VulkanHandleMapping.h"
 #include "gfxstream/ThreadAnnotations.h"
 
-using emugl::GfxApiLogger;
-
 namespace gfxstream {
 namespace vk {
 

@@ -46,6 +46,7 @@ add_library(gfxstream-gl-server
 target_link_libraries(
         gfxstream-gl-server
         PUBLIC
+        gfxstream_backend.headers
         gfxstream_backend_headers
         gfxstream_features
         gfxstream_openglesdispatch
@@ -54,7 +55,6 @@ target_link_libraries(
         gfxstream_host_backend
         gfxstream_host_logging
         gfxstream_host_health
-        gfxstream_utils
         gles1_dec
         gles2_dec
         GLcommon

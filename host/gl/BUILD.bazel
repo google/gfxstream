@@ -234,7 +234,6 @@ cc_library(
         "//host/gl:GLSnapshot",
         "//host/gl/OpenGLESDispatch:gfxstream_host_openglesdispatch",
         "//host/logging:gfxstream_host_logging",
-        "//utils:gfxstream_utils_headers",
     ],
 )
 

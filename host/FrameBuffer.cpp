@@ -67,10 +67,11 @@ namespace gfxstream {
 
 using gfxstream::base::AutoLock;
 using gfxstream::base::MetricEventVulkanOutOfMemory;
+using gfxstream::base::SharedLibrary;
 using gfxstream::Stream;
 using gfxstream::base::WorkerProcessingResult;
-using emugl::GfxApiLogger;
 using gfxstream::host::FeatureSet;
+using gfxstream::host::GfxApiLogger;
 
 #if GFXSTREAM_ENABLE_HOST_GLES
 using gl::DisplaySurfaceGl;
@@ -225,7 +226,7 @@ bool FrameBuffer::initialize(int width, int height, const gfxstream::host::Featu
 
     GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DEFAULT_CATEGORY, "FrameBuffer::Init()");
 
-    std::unique_ptr<emugl::RenderDocWithMultipleVkInstances> renderDocMultipleVkInstances = nullptr;
+    std::unique_ptr<gfxstream::host::RenderDocWithMultipleVkInstances> renderDocMultipleVkInstances = nullptr;
     if (!gfxstream::base::getEnvironmentVariable("ANDROID_EMU_RENDERDOC").empty()) {
         SharedLibrary* renderdocLib = nullptr;
 #ifdef _WIN32
@@ -233,11 +234,11 @@ bool FrameBuffer::initialize(int width, int height, const gfxstream::host::Featu
 #elif defined(__linux__)
         renderdocLib = SharedLibrary::open("librenderdoc.so");
 #endif
-        fb->m_renderDoc = emugl::RenderDoc::create(renderdocLib);
+        fb->m_renderDoc = gfxstream::host::RenderDoc::create(renderdocLib);
         if (fb->m_renderDoc) {
             GFXSTREAM_INFO("RenderDoc integration enabled.");
             renderDocMultipleVkInstances =
-                std::make_unique<emugl::RenderDocWithMultipleVkInstances>(*fb->m_renderDoc);
+                std::make_unique<gfxstream::host::RenderDocWithMultipleVkInstances>(*fb->m_renderDoc);
             if (!renderDocMultipleVkInstances) {
                 GFXSTREAM_ERROR(
                     "Failed to initialize RenderDoc with multiple VkInstances. Can't capture any "
@@ -916,7 +917,7 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
                 // TODO: Make RenderDoc a DisplaySurfaceUser.
                 if (m_displayVk) {
                     if (m_renderDoc) {
-                        m_renderDoc->call(emugl::RenderDoc::kSetActiveWindow,
+                        m_renderDoc->call(gfxstream::host::RenderDoc::kSetActiveWindow,
                                           RENDERDOC_DEVICEPOINTER_FROM_VKINSTANCE(m_vkInstance),
                                           reinterpret_cast<RENDERDOC_WindowHandle>(m_subWin));
                     }
@@ -1101,10 +1102,7 @@ void FrameBuffer::createColorBufferWithResourceHandle(int p_width, int p_height,
 
         // Check for handle collision
         if (m_colorbuffers.count(handle) != 0) {
-            // emugl::emugl_crash_reporter(
-            //     "FATAL: color buffer with handle %u already exists",
-            //     handle);
-            GFXSTREAM_FATAL("");
+            GFXSTREAM_FATAL("ColorBuffer:%d already exists!", handle);
         }
 
         createColorBufferWithResourceHandleLocked(p_width, p_height, p_internalFormat,

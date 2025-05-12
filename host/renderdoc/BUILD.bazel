@@ -5,7 +5,7 @@ package(
 )
 
 cc_library(
-    name = "gfxstream_utils_headers",
+    name = "gfxstream_host_renderdoc",
     hdrs = glob(["include/**/*.h"]),
     includes = ["include"],
     deps = [
@@ -16,21 +16,13 @@ cc_library(
     ],
 )
 
-cc_library(
-    name = "gfxstream_utils",
-    srcs = ["GfxApiLogger.cpp"],
-    copts = ["-fno-exceptions"],
-    deps = [":gfxstream_utils_headers"],
-)
-
 cc_test(
-    name = "gfxstream_utils_unittests",
+    name = "gfxstream_host_renderdoc_tests",
     srcs = [
-        "GfxApiLogger_unittest.cpp",
         "RenderDoc_unittest.cpp",
     ],
     deps = [
-        ":gfxstream_utils",
+        ":gfxstream_host_renderdoc",
         "@com_google_googletest//:gtest_main",
     ],
 )

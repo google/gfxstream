@@ -10,6 +10,9 @@ cc_library(
         "*.h",
     ]),
     includes = ["."],
+    deps = [
+        "//host/decoder_common:gfxstream_host_decoder_common",
+    ],
 )
 
 cc_library(
@@ -84,11 +87,11 @@ cc_library(
         "//host/health:gfxstream_host_health",
         "//host/iostream:gfxstream_host_iostream",
         "//host/logging:gfxstream_host_logging",
+        "//host/renderdoc:gfxstream_host_renderdoc",
         "//host/vulkan/cereal:gfxstream_vulkan_cereal",
         "//host/vulkan/emulated_textures:gfxstream_host_vulkan_emulated_textures",
         "//third_party/glm",
         "//third_party/renderdoc",
         "//third_party/vulkan:gfxstream_vulkan_headers",
-        "//utils:gfxstream_utils",
     ],
 )

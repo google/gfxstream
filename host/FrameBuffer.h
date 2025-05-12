@@ -43,12 +43,12 @@
 #include "gfxstream/HealthMonitor.h"
 #include "gfxstream/Metrics.h"
 #include "gfxstream/ThreadAnnotations.h"
-#include "render-utils/stream.h"
 #include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/synchronization/MessageChannel.h"
 #include "gfxstream/threads/Thread.h"
 #include "gfxstream/threads/WorkerThread.h"
 #include "gfxstream/host/Features.h"
+#include "gfxstream/host/RenderDoc.h"
 
 #if GFXSTREAM_ENABLE_HOST_GLES
 
@@ -71,6 +71,11 @@
 #include "GlesCompat.h"
 #endif
 
+#include "render-utils/Renderer.h"
+#include "render-utils/render_api.h"
+#include "render-utils/stream.h"
+#include "render-utils/virtio_gpu_ops.h"
+
 // values for 'param' argument of rcGetFBParam
 #define FB_WIDTH 1
 #define FB_HEIGHT 2
@@ -79,11 +84,6 @@
 #define FB_FPS 5
 #define FB_MIN_SWAP_INTERVAL 6
 #define FB_MAX_SWAP_INTERVAL 7
-
-#include "render-utils/Renderer.h"
-#include "render-utils/virtio_gpu_ops.h"
-#include "render-utils/render_api.h"
-#include "utils/RenderDoc.h"
 
 namespace gfxstream {
 namespace vk {
@@ -871,7 +871,7 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
     // calling FrameBuffer::initialize(). DisplayVk is actually owned by VkEmulation.
     vk::DisplayVk* m_displayVk = nullptr;
     VkInstance m_vkInstance = VK_NULL_HANDLE;
-    std::unique_ptr<emugl::RenderDoc> m_renderDoc = nullptr;
+    std::unique_ptr<gfxstream::host::RenderDoc> m_renderDoc = nullptr;
 
     // TODO(b/233939967): Refactor to create DisplayGl and DisplaySurfaceGl
     // and remove usage of non-generic DisplayVk.
