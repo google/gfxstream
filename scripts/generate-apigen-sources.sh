@@ -21,6 +21,3 @@ rm codegen/gles2/gl2.types
 
 ./build/gfxstream-generic-apigen -i ./codegen/renderControl -D ./host/renderControl_dec renderControl
 ./build/gfxstream-generic-apigen -i ./codegen/renderControl -E ./guest/renderControl_enc renderControl
-
-./build/gfxstream-generic-apigen -i ./codegen/magma -D ./host/magma/magma_dec magma
-./build/gfxstream-generic-apigen -i ./codegen/magma -E ./guest/magma/magma_enc magma
