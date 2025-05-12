@@ -2118,14 +2118,6 @@ size_t goldfish_vk_extension_struct_size(VkStructureType rootType, const void* s
             return sizeof(VkPhysicalDeviceAccelerationStructurePropertiesKHR);
         }
 #endif
-#ifdef VK_KHR_ray_tracing_pipeline
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR: {
-            return sizeof(VkPhysicalDeviceRayTracingPipelineFeaturesKHR);
-        }
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR: {
-            return sizeof(VkPhysicalDeviceRayTracingPipelinePropertiesKHR);
-        }
-#endif
 #ifdef VK_KHR_ray_query
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR: {
             return sizeof(VkPhysicalDeviceRayQueryFeaturesKHR);
@@ -4231,14 +4223,6 @@ size_t goldfish_vk_extension_struct_size_with_stream_features(uint32_t streamFea
         }
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_PROPERTIES_KHR: {
             return sizeof(VkPhysicalDeviceAccelerationStructurePropertiesKHR);
-        }
-#endif
-#ifdef VK_KHR_ray_tracing_pipeline
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR: {
-            return sizeof(VkPhysicalDeviceRayTracingPipelineFeaturesKHR);
-        }
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR: {
-            return sizeof(VkPhysicalDeviceRayTracingPipelinePropertiesKHR);
         }
 #endif
 #ifdef VK_KHR_ray_query
