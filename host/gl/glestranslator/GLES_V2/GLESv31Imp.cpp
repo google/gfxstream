@@ -1,3 +1,17 @@
+// Copyright 2025 The Android Open Source Project
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expresso or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 // Auto-generated with: android/scripts/gen-entries.py --mode=translator_passthrough android/android-emugl/host/libs/libOpenGLESDispatch/gles31_only.entries --output=android/android-emugl/host/libs/Translator/GLES_V2/GLESv31Imp.cpp
 // This file is best left unedited.
 // Try to make changes through gen_translator in gen-entries.py,

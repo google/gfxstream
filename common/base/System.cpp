@@ -465,7 +465,7 @@ CpuTime cpuTime() {
 
 #ifdef _WIN32
 // Based on chromium/src/base/file_version_info_win.cc's CreateFileVersionInfoWin
-// Currently used to query Vulkan DLL's on the system and blacklist known
+// Currently used to query Vulkan DLL's on the system and disallow known
 // problematic DLLs
 // static
 // Windows 10 funcs
