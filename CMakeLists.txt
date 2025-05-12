@@ -177,7 +177,7 @@ add_subdirectory(host)
 add_subdirectory(codegen)
 
 if (ENABLE_VKCEREAL_TESTS)
-    list(APPEND EXTRA_SUBDIR_TEST_INCLUDE_FILES ${CMAKE_SOURCE_DIR}/cmake/test_properties.cmake)
+    list(APPEND EXTRA_SUBDIR_TEST_INCLUDE_FILES ${CMAKE_SOURCE_DIR}/toolchain/cmake/test_properties.cmake)
 endif()
 
-include(cmake/SetSubdirectorProperties.cmake)
+include(toolchain/cmake/SetSubdirectorProperties.cmake)
