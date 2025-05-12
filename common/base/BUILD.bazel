@@ -50,10 +50,8 @@ cc_library(
     srcs = [
         "AlignedBuf.cpp",
         "CpuTime.cpp",
-        "Debug.cpp",
         "FileUtils.cpp",
         "FunctorThread.cpp",
-        "LayoutResolver.cpp",
         "MessageChannel.cpp",
         "PathUtils.cpp",
         "StringFormat.cpp",

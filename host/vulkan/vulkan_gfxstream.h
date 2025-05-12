@@ -1,5 +1,6 @@
 /*
 ** Copyright 2015-2023 The Khronos Group Inc.
+** Copyright (C) 2025 Google Inc.
 **
 ** SPDX-License-Identifier: Apache-2.0
 */
