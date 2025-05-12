@@ -13,19 +13,19 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+
 #include <stdio.h>
 #include <stdlib.h>
-#include "errors.h"
-#include "EntryPoint.h"
-#include "strUtils.h"
+#include <string>
+
 #include "ApiGen.h"
+#include "EntryPoint.h"
 #include "TypeFactory.h"
-#include "getopt.h"
+#include "errors.h"
 
 const std::string SPEC_EXTENSION = std::string(".in");
 const std::string ATTRIB_EXTENSION = std::string(".attrib");
 const std::string TYPES_EXTENTION = std::string(".types");
-
 
 void usage(const char *filename)
 {
@@ -40,46 +40,54 @@ void usage(const char *filename)
 
 int main(int argc, char *argv[])
 {
-    std::string encoderDir = "";
-    std::string decoderDir = "";
-    std::string wrapperDir = "";
+    std::string baseName;
+    std::string encoderDir;
+    std::string decoderDir;
+    std::string wrapperDir;
     std::string inDir = ".";
+
     bool generateAttributesTemplate = false;
 
-    int c;
-    while((c = getopt(argc, argv, "TE:D:i:hW:")) != -1) {
-        switch(c) {
-        case 'W':
-            wrapperDir = std::string(optarg);
-            break;
-        case 'T':
-            generateAttributesTemplate = true;
-            break;
-        case 'h':
-            usage(argv[0]);
-            exit(0);
-            break;
-        case 'E':
-            encoderDir = std::string(optarg);
-            break;
-        case 'D':
-            decoderDir = std::string(optarg);
-            break;
-        case 'i':
-            inDir = std::string(optarg);
-            break;
-        case ':':
-            fprintf(stderr, "Missing argument !!\n");
-            // fall through
-        default:
-            usage(argv[0]);
-            exit(0);
-        }
+    std::vector<std::string> args;
+    for (int i = 1; i < argc; i++) {
+        args.push_back(std::string(argv[i]));
     }
 
-    if (optind >= argc) {
-        fprintf(stderr, "Usage: %s [options] <base name> \n", argv[0]);
-        return BAD_USAGE;
+    while (!args.empty()) {
+        std::string arg = args[0];
+        args.erase(args.begin());
+
+        if (arg == "-h") {
+            usage(argv[0]);
+            return 0;
+        }
+
+        if (arg == "-T") {
+            generateAttributesTemplate = true;
+            continue;
+        }
+
+        if (args.empty()) {
+            fprintf(stderr, "Missing argument value: %s\n", arg.c_str());
+            return BAD_USAGE;
+        }
+        std::string argopt = args[0];
+        args.erase(args.begin());
+
+        if (arg == "-B") {
+            baseName = argopt;
+        } else if (arg == "-W") {
+            wrapperDir = argopt;
+        } else if (arg == "-E") {
+            encoderDir = argopt;
+        } else if (arg == "-D") {
+            decoderDir = argopt;
+        } else if (arg == "-i") {
+            inDir = argopt;
+        } else {
+            fprintf(stderr, "Unknown argument: %s\n", arg.c_str());
+            return BAD_USAGE;
+        }
     }
 
     if (encoderDir.size() == 0 &&
@@ -90,7 +98,6 @@ int main(int argc, char *argv[])
         return BAD_USAGE;
     }
 
-    std::string baseName = std::string(argv[optind]);
     ApiGen apiEntries(baseName);
 
     // init types;
