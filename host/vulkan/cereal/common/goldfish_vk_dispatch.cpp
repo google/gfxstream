@@ -420,6 +420,39 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
         (PFN_vkGetDeviceImageSparseMemoryRequirements)dlSymFunc(
             lib, "vkGetDeviceImageSparseMemoryRequirements");
 #endif
+#ifdef VK_VERSION_1_4
+    out->vkCmdSetLineStipple = (PFN_vkCmdSetLineStipple)dlSymFunc(lib, "vkCmdSetLineStipple");
+    out->vkMapMemory2 = (PFN_vkMapMemory2)dlSymFunc(lib, "vkMapMemory2");
+    out->vkUnmapMemory2 = (PFN_vkUnmapMemory2)dlSymFunc(lib, "vkUnmapMemory2");
+    out->vkCmdBindIndexBuffer2 = (PFN_vkCmdBindIndexBuffer2)dlSymFunc(lib, "vkCmdBindIndexBuffer2");
+    out->vkGetRenderingAreaGranularity =
+        (PFN_vkGetRenderingAreaGranularity)dlSymFunc(lib, "vkGetRenderingAreaGranularity");
+    out->vkGetDeviceImageSubresourceLayout =
+        (PFN_vkGetDeviceImageSubresourceLayout)dlSymFunc(lib, "vkGetDeviceImageSubresourceLayout");
+    out->vkGetImageSubresourceLayout2 =
+        (PFN_vkGetImageSubresourceLayout2)dlSymFunc(lib, "vkGetImageSubresourceLayout2");
+    out->vkCmdPushDescriptorSet =
+        (PFN_vkCmdPushDescriptorSet)dlSymFunc(lib, "vkCmdPushDescriptorSet");
+    out->vkCmdPushDescriptorSetWithTemplate = (PFN_vkCmdPushDescriptorSetWithTemplate)dlSymFunc(
+        lib, "vkCmdPushDescriptorSetWithTemplate");
+    out->vkCmdSetRenderingAttachmentLocations = (PFN_vkCmdSetRenderingAttachmentLocations)dlSymFunc(
+        lib, "vkCmdSetRenderingAttachmentLocations");
+    out->vkCmdSetRenderingInputAttachmentIndices =
+        (PFN_vkCmdSetRenderingInputAttachmentIndices)dlSymFunc(
+            lib, "vkCmdSetRenderingInputAttachmentIndices");
+    out->vkCmdBindDescriptorSets2 =
+        (PFN_vkCmdBindDescriptorSets2)dlSymFunc(lib, "vkCmdBindDescriptorSets2");
+    out->vkCmdPushConstants2 = (PFN_vkCmdPushConstants2)dlSymFunc(lib, "vkCmdPushConstants2");
+    out->vkCmdPushDescriptorSet2 =
+        (PFN_vkCmdPushDescriptorSet2)dlSymFunc(lib, "vkCmdPushDescriptorSet2");
+    out->vkCmdPushDescriptorSetWithTemplate2 = (PFN_vkCmdPushDescriptorSetWithTemplate2)dlSymFunc(
+        lib, "vkCmdPushDescriptorSetWithTemplate2");
+    out->vkCopyMemoryToImage = (PFN_vkCopyMemoryToImage)dlSymFunc(lib, "vkCopyMemoryToImage");
+    out->vkCopyImageToMemory = (PFN_vkCopyImageToMemory)dlSymFunc(lib, "vkCopyImageToMemory");
+    out->vkCopyImageToImage = (PFN_vkCopyImageToImage)dlSymFunc(lib, "vkCopyImageToImage");
+    out->vkTransitionImageLayout =
+        (PFN_vkTransitionImageLayout)dlSymFunc(lib, "vkTransitionImageLayout");
+#endif
 #ifdef VK_KHR_surface
     out->vkGetPhysicalDeviceSurfaceSupportKHR = (PFN_vkGetPhysicalDeviceSurfaceSupportKHR)dlSymFunc(
         lib, "vkGetPhysicalDeviceSurfaceSupportKHR");
@@ -583,10 +616,6 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
     out->vkCmdWriteTimestamp2KHR =
         (PFN_vkCmdWriteTimestamp2KHR)dlSymFunc(lib, "vkCmdWriteTimestamp2KHR");
     out->vkQueueSubmit2KHR = (PFN_vkQueueSubmit2KHR)dlSymFunc(lib, "vkQueueSubmit2KHR");
-    out->vkCmdWriteBufferMarker2AMD =
-        (PFN_vkCmdWriteBufferMarker2AMD)dlSymFunc(lib, "vkCmdWriteBufferMarker2AMD");
-    out->vkGetQueueCheckpointData2NV =
-        (PFN_vkGetQueueCheckpointData2NV)dlSymFunc(lib, "vkGetQueueCheckpointData2NV");
 #endif
 #ifdef VK_KHR_copy_commands2
     out->vkCmdCopyBuffer2KHR = (PFN_vkCmdCopyBuffer2KHR)dlSymFunc(lib, "vkCmdCopyBuffer2KHR");
@@ -677,6 +706,8 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
     out->vkCmdSetCheckpointNV = (PFN_vkCmdSetCheckpointNV)dlSymFunc(lib, "vkCmdSetCheckpointNV");
     out->vkGetQueueCheckpointDataNV =
         (PFN_vkGetQueueCheckpointDataNV)dlSymFunc(lib, "vkGetQueueCheckpointDataNV");
+    out->vkGetQueueCheckpointData2NV =
+        (PFN_vkGetQueueCheckpointData2NV)dlSymFunc(lib, "vkGetQueueCheckpointData2NV");
 #endif
 #ifdef VK_EXT_tooling_info
     out->vkGetPhysicalDeviceToolPropertiesEXT = (PFN_vkGetPhysicalDeviceToolPropertiesEXT)dlSymFunc(
@@ -1352,6 +1383,50 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
         (PFN_vkGetDeviceImageSparseMemoryRequirements)vk->vkGetInstanceProcAddr(
             instance, "vkGetDeviceImageSparseMemoryRequirements");
 #endif
+#ifdef VK_VERSION_1_4
+    out->vkCmdSetLineStipple =
+        (PFN_vkCmdSetLineStipple)vk->vkGetInstanceProcAddr(instance, "vkCmdSetLineStipple");
+    out->vkMapMemory2 = (PFN_vkMapMemory2)vk->vkGetInstanceProcAddr(instance, "vkMapMemory2");
+    out->vkUnmapMemory2 = (PFN_vkUnmapMemory2)vk->vkGetInstanceProcAddr(instance, "vkUnmapMemory2");
+    out->vkCmdBindIndexBuffer2 =
+        (PFN_vkCmdBindIndexBuffer2)vk->vkGetInstanceProcAddr(instance, "vkCmdBindIndexBuffer2");
+    out->vkGetRenderingAreaGranularity =
+        (PFN_vkGetRenderingAreaGranularity)vk->vkGetInstanceProcAddr(
+            instance, "vkGetRenderingAreaGranularity");
+    out->vkGetDeviceImageSubresourceLayout =
+        (PFN_vkGetDeviceImageSubresourceLayout)vk->vkGetInstanceProcAddr(
+            instance, "vkGetDeviceImageSubresourceLayout");
+    out->vkGetImageSubresourceLayout2 = (PFN_vkGetImageSubresourceLayout2)vk->vkGetInstanceProcAddr(
+        instance, "vkGetImageSubresourceLayout2");
+    out->vkCmdPushDescriptorSet =
+        (PFN_vkCmdPushDescriptorSet)vk->vkGetInstanceProcAddr(instance, "vkCmdPushDescriptorSet");
+    out->vkCmdPushDescriptorSetWithTemplate =
+        (PFN_vkCmdPushDescriptorSetWithTemplate)vk->vkGetInstanceProcAddr(
+            instance, "vkCmdPushDescriptorSetWithTemplate");
+    out->vkCmdSetRenderingAttachmentLocations =
+        (PFN_vkCmdSetRenderingAttachmentLocations)vk->vkGetInstanceProcAddr(
+            instance, "vkCmdSetRenderingAttachmentLocations");
+    out->vkCmdSetRenderingInputAttachmentIndices =
+        (PFN_vkCmdSetRenderingInputAttachmentIndices)vk->vkGetInstanceProcAddr(
+            instance, "vkCmdSetRenderingInputAttachmentIndices");
+    out->vkCmdBindDescriptorSets2 = (PFN_vkCmdBindDescriptorSets2)vk->vkGetInstanceProcAddr(
+        instance, "vkCmdBindDescriptorSets2");
+    out->vkCmdPushConstants2 =
+        (PFN_vkCmdPushConstants2)vk->vkGetInstanceProcAddr(instance, "vkCmdPushConstants2");
+    out->vkCmdPushDescriptorSet2 =
+        (PFN_vkCmdPushDescriptorSet2)vk->vkGetInstanceProcAddr(instance, "vkCmdPushDescriptorSet2");
+    out->vkCmdPushDescriptorSetWithTemplate2 =
+        (PFN_vkCmdPushDescriptorSetWithTemplate2)vk->vkGetInstanceProcAddr(
+            instance, "vkCmdPushDescriptorSetWithTemplate2");
+    out->vkCopyMemoryToImage =
+        (PFN_vkCopyMemoryToImage)vk->vkGetInstanceProcAddr(instance, "vkCopyMemoryToImage");
+    out->vkCopyImageToMemory =
+        (PFN_vkCopyImageToMemory)vk->vkGetInstanceProcAddr(instance, "vkCopyImageToMemory");
+    out->vkCopyImageToImage =
+        (PFN_vkCopyImageToImage)vk->vkGetInstanceProcAddr(instance, "vkCopyImageToImage");
+    out->vkTransitionImageLayout =
+        (PFN_vkTransitionImageLayout)vk->vkGetInstanceProcAddr(instance, "vkTransitionImageLayout");
+#endif
 #ifdef VK_KHR_surface
     out->vkGetPhysicalDeviceSurfaceSupportKHR =
         (PFN_vkGetPhysicalDeviceSurfaceSupportKHR)vk->vkGetInstanceProcAddr(
@@ -1544,10 +1619,6 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
         (PFN_vkCmdWriteTimestamp2KHR)vk->vkGetInstanceProcAddr(instance, "vkCmdWriteTimestamp2KHR");
     out->vkQueueSubmit2KHR =
         (PFN_vkQueueSubmit2KHR)vk->vkGetInstanceProcAddr(instance, "vkQueueSubmit2KHR");
-    out->vkCmdWriteBufferMarker2AMD = (PFN_vkCmdWriteBufferMarker2AMD)vk->vkGetInstanceProcAddr(
-        instance, "vkCmdWriteBufferMarker2AMD");
-    out->vkGetQueueCheckpointData2NV = (PFN_vkGetQueueCheckpointData2NV)vk->vkGetInstanceProcAddr(
-        instance, "vkGetQueueCheckpointData2NV");
 #endif
 #ifdef VK_KHR_copy_commands2
     out->vkCmdCopyBuffer2KHR =
@@ -1657,6 +1728,8 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
         (PFN_vkCmdSetCheckpointNV)vk->vkGetInstanceProcAddr(instance, "vkCmdSetCheckpointNV");
     out->vkGetQueueCheckpointDataNV = (PFN_vkGetQueueCheckpointDataNV)vk->vkGetInstanceProcAddr(
         instance, "vkGetQueueCheckpointDataNV");
+    out->vkGetQueueCheckpointData2NV = (PFN_vkGetQueueCheckpointData2NV)vk->vkGetInstanceProcAddr(
+        instance, "vkGetQueueCheckpointData2NV");
 #endif
 #ifdef VK_EXT_tooling_info
     out->vkGetPhysicalDeviceToolPropertiesEXT =
@@ -2343,6 +2416,49 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
         (PFN_vkGetDeviceImageSparseMemoryRequirements)vk->vkGetDeviceProcAddr(
             device, "vkGetDeviceImageSparseMemoryRequirements");
 #endif
+#ifdef VK_VERSION_1_4
+    out->vkCmdSetLineStipple =
+        (PFN_vkCmdSetLineStipple)vk->vkGetDeviceProcAddr(device, "vkCmdSetLineStipple");
+    out->vkMapMemory2 = (PFN_vkMapMemory2)vk->vkGetDeviceProcAddr(device, "vkMapMemory2");
+    out->vkUnmapMemory2 = (PFN_vkUnmapMemory2)vk->vkGetDeviceProcAddr(device, "vkUnmapMemory2");
+    out->vkCmdBindIndexBuffer2 =
+        (PFN_vkCmdBindIndexBuffer2)vk->vkGetDeviceProcAddr(device, "vkCmdBindIndexBuffer2");
+    out->vkGetRenderingAreaGranularity = (PFN_vkGetRenderingAreaGranularity)vk->vkGetDeviceProcAddr(
+        device, "vkGetRenderingAreaGranularity");
+    out->vkGetDeviceImageSubresourceLayout =
+        (PFN_vkGetDeviceImageSubresourceLayout)vk->vkGetDeviceProcAddr(
+            device, "vkGetDeviceImageSubresourceLayout");
+    out->vkGetImageSubresourceLayout2 = (PFN_vkGetImageSubresourceLayout2)vk->vkGetDeviceProcAddr(
+        device, "vkGetImageSubresourceLayout2");
+    out->vkCmdPushDescriptorSet =
+        (PFN_vkCmdPushDescriptorSet)vk->vkGetDeviceProcAddr(device, "vkCmdPushDescriptorSet");
+    out->vkCmdPushDescriptorSetWithTemplate =
+        (PFN_vkCmdPushDescriptorSetWithTemplate)vk->vkGetDeviceProcAddr(
+            device, "vkCmdPushDescriptorSetWithTemplate");
+    out->vkCmdSetRenderingAttachmentLocations =
+        (PFN_vkCmdSetRenderingAttachmentLocations)vk->vkGetDeviceProcAddr(
+            device, "vkCmdSetRenderingAttachmentLocations");
+    out->vkCmdSetRenderingInputAttachmentIndices =
+        (PFN_vkCmdSetRenderingInputAttachmentIndices)vk->vkGetDeviceProcAddr(
+            device, "vkCmdSetRenderingInputAttachmentIndices");
+    out->vkCmdBindDescriptorSets2 =
+        (PFN_vkCmdBindDescriptorSets2)vk->vkGetDeviceProcAddr(device, "vkCmdBindDescriptorSets2");
+    out->vkCmdPushConstants2 =
+        (PFN_vkCmdPushConstants2)vk->vkGetDeviceProcAddr(device, "vkCmdPushConstants2");
+    out->vkCmdPushDescriptorSet2 =
+        (PFN_vkCmdPushDescriptorSet2)vk->vkGetDeviceProcAddr(device, "vkCmdPushDescriptorSet2");
+    out->vkCmdPushDescriptorSetWithTemplate2 =
+        (PFN_vkCmdPushDescriptorSetWithTemplate2)vk->vkGetDeviceProcAddr(
+            device, "vkCmdPushDescriptorSetWithTemplate2");
+    out->vkCopyMemoryToImage =
+        (PFN_vkCopyMemoryToImage)vk->vkGetDeviceProcAddr(device, "vkCopyMemoryToImage");
+    out->vkCopyImageToMemory =
+        (PFN_vkCopyImageToMemory)vk->vkGetDeviceProcAddr(device, "vkCopyImageToMemory");
+    out->vkCopyImageToImage =
+        (PFN_vkCopyImageToImage)vk->vkGetDeviceProcAddr(device, "vkCopyImageToImage");
+    out->vkTransitionImageLayout =
+        (PFN_vkTransitionImageLayout)vk->vkGetDeviceProcAddr(device, "vkTransitionImageLayout");
+#endif
 #ifdef VK_KHR_surface
     out->vkGetPhysicalDeviceSurfaceSupportKHR =
         (PFN_vkGetPhysicalDeviceSurfaceSupportKHR)vk->vkGetDeviceProcAddr(
@@ -2534,10 +2650,6 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
         (PFN_vkCmdWriteTimestamp2KHR)vk->vkGetDeviceProcAddr(device, "vkCmdWriteTimestamp2KHR");
     out->vkQueueSubmit2KHR =
         (PFN_vkQueueSubmit2KHR)vk->vkGetDeviceProcAddr(device, "vkQueueSubmit2KHR");
-    out->vkCmdWriteBufferMarker2AMD = (PFN_vkCmdWriteBufferMarker2AMD)vk->vkGetDeviceProcAddr(
-        device, "vkCmdWriteBufferMarker2AMD");
-    out->vkGetQueueCheckpointData2NV = (PFN_vkGetQueueCheckpointData2NV)vk->vkGetDeviceProcAddr(
-        device, "vkGetQueueCheckpointData2NV");
 #endif
 #ifdef VK_KHR_copy_commands2
     out->vkCmdCopyBuffer2KHR =
@@ -2645,6 +2757,8 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
         (PFN_vkCmdSetCheckpointNV)vk->vkGetDeviceProcAddr(device, "vkCmdSetCheckpointNV");
     out->vkGetQueueCheckpointDataNV = (PFN_vkGetQueueCheckpointDataNV)vk->vkGetDeviceProcAddr(
         device, "vkGetQueueCheckpointDataNV");
+    out->vkGetQueueCheckpointData2NV = (PFN_vkGetQueueCheckpointData2NV)vk->vkGetDeviceProcAddr(
+        device, "vkGetQueueCheckpointData2NV");
 #endif
 #ifdef VK_EXT_tooling_info
     out->vkGetPhysicalDeviceToolPropertiesEXT =

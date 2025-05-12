@@ -293,6 +293,27 @@ struct VulkanDispatch {
     PFN_vkGetDeviceImageMemoryRequirements vkGetDeviceImageMemoryRequirements;
     PFN_vkGetDeviceImageSparseMemoryRequirements vkGetDeviceImageSparseMemoryRequirements;
 #endif
+#ifdef VK_VERSION_1_4
+    PFN_vkCmdSetLineStipple vkCmdSetLineStipple;
+    PFN_vkMapMemory2 vkMapMemory2;
+    PFN_vkUnmapMemory2 vkUnmapMemory2;
+    PFN_vkCmdBindIndexBuffer2 vkCmdBindIndexBuffer2;
+    PFN_vkGetRenderingAreaGranularity vkGetRenderingAreaGranularity;
+    PFN_vkGetDeviceImageSubresourceLayout vkGetDeviceImageSubresourceLayout;
+    PFN_vkGetImageSubresourceLayout2 vkGetImageSubresourceLayout2;
+    PFN_vkCmdPushDescriptorSet vkCmdPushDescriptorSet;
+    PFN_vkCmdPushDescriptorSetWithTemplate vkCmdPushDescriptorSetWithTemplate;
+    PFN_vkCmdSetRenderingAttachmentLocations vkCmdSetRenderingAttachmentLocations;
+    PFN_vkCmdSetRenderingInputAttachmentIndices vkCmdSetRenderingInputAttachmentIndices;
+    PFN_vkCmdBindDescriptorSets2 vkCmdBindDescriptorSets2;
+    PFN_vkCmdPushConstants2 vkCmdPushConstants2;
+    PFN_vkCmdPushDescriptorSet2 vkCmdPushDescriptorSet2;
+    PFN_vkCmdPushDescriptorSetWithTemplate2 vkCmdPushDescriptorSetWithTemplate2;
+    PFN_vkCopyMemoryToImage vkCopyMemoryToImage;
+    PFN_vkCopyImageToMemory vkCopyImageToMemory;
+    PFN_vkCopyImageToImage vkCopyImageToImage;
+    PFN_vkTransitionImageLayout vkTransitionImageLayout;
+#endif
 #ifdef VK_KHR_surface
     PFN_vkDestroySurfaceKHR vkDestroySurfaceKHR;
     PFN_vkGetPhysicalDeviceSurfaceSupportKHR vkGetPhysicalDeviceSurfaceSupportKHR;
@@ -413,8 +434,6 @@ struct VulkanDispatch {
     PFN_vkCmdPipelineBarrier2KHR vkCmdPipelineBarrier2KHR;
     PFN_vkCmdWriteTimestamp2KHR vkCmdWriteTimestamp2KHR;
     PFN_vkQueueSubmit2KHR vkQueueSubmit2KHR;
-    PFN_vkCmdWriteBufferMarker2AMD vkCmdWriteBufferMarker2AMD;
-    PFN_vkGetQueueCheckpointData2NV vkGetQueueCheckpointData2NV;
 #endif
 #ifdef VK_KHR_copy_commands2
     PFN_vkCmdCopyBuffer2KHR vkCmdCopyBuffer2KHR;
@@ -479,6 +498,7 @@ struct VulkanDispatch {
 #ifdef VK_NV_device_diagnostic_checkpoints
     PFN_vkCmdSetCheckpointNV vkCmdSetCheckpointNV;
     PFN_vkGetQueueCheckpointDataNV vkGetQueueCheckpointDataNV;
+    PFN_vkGetQueueCheckpointData2NV vkGetQueueCheckpointData2NV;
 #endif
 #ifdef VK_EXT_metal_surface
     PFN_vkCreateMetalSurfaceEXT vkCreateMetalSurfaceEXT;

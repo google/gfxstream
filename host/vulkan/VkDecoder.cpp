@@ -13056,6 +13056,976 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 break;
             }
 #endif
+#ifdef VK_VERSION_1_4
+            case OP_vkCmdSetLineStipple: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkDecoder vkCmdSetLineStipple");
+                VkCommandBuffer commandBuffer;
+                uint32_t lineStippleFactor;
+                uint16_t lineStipplePattern;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((uint32_t*)&lineStippleFactor, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint16_t*)&lineStipplePattern, *readStreamPtrPtr, sizeof(uint16_t));
+                *readStreamPtrPtr += sizeof(uint16_t);
+                if (m_logCalls) {
+                    GFXSTREAM_INFO("stream %p: call vkCmdSetLineStipple 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)lineStippleFactor,
+                                   (unsigned long long)lineStipplePattern);
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetLineStipple(unboxed_commandBuffer, lineStippleFactor,
+                                            lineStipplePattern);
+                }
+                vkStream->unsetHandleMapping();
+                if (m_snapshotsEnabled) {
+                    m_state->snapshot()->vkCmdSetLineStipple(&m_pool, snapshotApiCallInfo, packet,
+                                                             packetLen, commandBuffer,
+                                                             lineStippleFactor, lineStipplePattern);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                break;
+            }
+            case OP_vkMapMemory2: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY, "VkDecoder vkMapMemory2");
+                VkDevice device;
+                const VkMemoryMapInfo* pMemoryMapInfo;
+                void** ppData;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                vkReadStream->alloc((void**)&pMemoryMapInfo, sizeof(const VkMemoryMapInfo));
+                reservedunmarshal_VkMemoryMapInfo(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                  (VkMemoryMapInfo*)(pMemoryMapInfo),
+                                                  readStreamPtrPtr);
+                // Begin manual dispatchable handle unboxing for ppData;
+                vkReadStream->unsetHandleMapping();
+                // WARNING PTR CHECK
+                memcpy((void***)&ppData, (*readStreamPtrPtr), 8);
+                gfxstream::Stream::fromBe64((uint8_t*)&ppData);
+                *readStreamPtrPtr += 8;
+                if (ppData) {
+                    vkReadStream->alloc((void**)&ppData, sizeof(void*));
+                    memcpy((void**)ppData, *readStreamPtrPtr, sizeof(void*));
+                    *readStreamPtrPtr += sizeof(void*);
+                }
+                if (pMemoryMapInfo) {
+                    transform_tohost_VkMemoryMapInfo(m_state, (VkMemoryMapInfo*)(pMemoryMapInfo));
+                }
+                if (m_logCalls) {
+                    GFXSTREAM_INFO("stream %p: call vkMapMemory2 0x%llx 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)device, (unsigned long long)pMemoryMapInfo,
+                                   (unsigned long long)ppData);
+                }
+                VkResult vkMapMemory2_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
+                if (CC_LIKELY(vk)) {
+                    vkMapMemory2_VkResult_return =
+                        vk->vkMapMemory2(unboxed_device, pMemoryMapInfo, ppData);
+                }
+                if ((vkMapMemory2_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkMapMemory2_VkResult_return, opcode, context);
+                vkStream->unsetHandleMapping();
+                // WARNING PTR CHECK
+                uint64_t cgen_var_2 = (uint64_t)(uintptr_t)ppData;
+                vkStream->putBe64(cgen_var_2);
+                if (ppData) {
+                    vkStream->write((void**)ppData, sizeof(void*));
+                }
+                vkStream->write(&vkMapMemory2_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                if (m_snapshotsEnabled) {
+                    m_state->snapshot()->vkMapMemory2(&m_pool, snapshotApiCallInfo, packet,
+                                                      packetLen, vkMapMemory2_VkResult_return,
+                                                      device, pMemoryMapInfo, ppData);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                break;
+            }
+            case OP_vkUnmapMemory2: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY, "VkDecoder vkUnmapMemory2");
+                VkDevice device;
+                const VkMemoryUnmapInfo* pMemoryUnmapInfo;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                vkReadStream->alloc((void**)&pMemoryUnmapInfo, sizeof(const VkMemoryUnmapInfo));
+                reservedunmarshal_VkMemoryUnmapInfo(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                    (VkMemoryUnmapInfo*)(pMemoryUnmapInfo),
+                                                    readStreamPtrPtr);
+                if (pMemoryUnmapInfo) {
+                    transform_tohost_VkMemoryUnmapInfo(m_state,
+                                                       (VkMemoryUnmapInfo*)(pMemoryUnmapInfo));
+                }
+                if (m_logCalls) {
+                    GFXSTREAM_INFO("stream %p: call vkUnmapMemory2 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)device,
+                                   (unsigned long long)pMemoryUnmapInfo);
+                }
+                VkResult vkUnmapMemory2_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
+                if (CC_LIKELY(vk)) {
+                    vkUnmapMemory2_VkResult_return =
+                        vk->vkUnmapMemory2(unboxed_device, pMemoryUnmapInfo);
+                }
+                if ((vkUnmapMemory2_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkUnmapMemory2_VkResult_return, opcode, context);
+                vkStream->unsetHandleMapping();
+                vkStream->write(&vkUnmapMemory2_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                if (m_snapshotsEnabled) {
+                    m_state->snapshot()->vkUnmapMemory2(&m_pool, snapshotApiCallInfo, packet,
+                                                        packetLen, vkUnmapMemory2_VkResult_return,
+                                                        device, pMemoryUnmapInfo);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                break;
+            }
+            case OP_vkCmdBindIndexBuffer2: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkDecoder vkCmdBindIndexBuffer2");
+                VkCommandBuffer commandBuffer;
+                VkBuffer buffer;
+                VkDeviceSize offset;
+                VkDeviceSize size;
+                VkIndexType indexType;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkBuffer*)&buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_1));
+                memcpy((VkDeviceSize*)&offset, *readStreamPtrPtr, sizeof(VkDeviceSize));
+                *readStreamPtrPtr += sizeof(VkDeviceSize);
+                memcpy((VkDeviceSize*)&size, *readStreamPtrPtr, sizeof(VkDeviceSize));
+                *readStreamPtrPtr += sizeof(VkDeviceSize);
+                memcpy((VkIndexType*)&indexType, *readStreamPtrPtr, sizeof(VkIndexType));
+                *readStreamPtrPtr += sizeof(VkIndexType);
+                if (m_logCalls) {
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdBindIndexBuffer2 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)buffer,
+                        (unsigned long long)offset, (unsigned long long)size,
+                        (unsigned long long)indexType);
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdBindIndexBuffer2(unboxed_commandBuffer, buffer, offset, size,
+                                              indexType);
+                }
+                vkStream->unsetHandleMapping();
+                if (m_snapshotsEnabled) {
+                    m_state->snapshot()->vkCmdBindIndexBuffer2(&m_pool, snapshotApiCallInfo, packet,
+                                                               packetLen, commandBuffer, buffer,
+                                                               offset, size, indexType);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                break;
+            }
+            case OP_vkGetRenderingAreaGranularity: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkDecoder vkGetRenderingAreaGranularity");
+                VkDevice device;
+                const VkRenderingAreaInfo* pRenderingAreaInfo;
+                VkExtent2D* pGranularity;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                vkReadStream->alloc((void**)&pRenderingAreaInfo, sizeof(const VkRenderingAreaInfo));
+                reservedunmarshal_VkRenderingAreaInfo(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                      (VkRenderingAreaInfo*)(pRenderingAreaInfo),
+                                                      readStreamPtrPtr);
+                // Begin manual dispatchable handle unboxing for pGranularity;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pGranularity, sizeof(VkExtent2D));
+                reservedunmarshal_VkExtent2D(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                             (VkExtent2D*)(pGranularity), readStreamPtrPtr);
+                if (pRenderingAreaInfo) {
+                    transform_tohost_VkRenderingAreaInfo(
+                        m_state, (VkRenderingAreaInfo*)(pRenderingAreaInfo));
+                }
+                if (pGranularity) {
+                    transform_tohost_VkExtent2D(m_state, (VkExtent2D*)(pGranularity));
+                }
+                if (m_logCalls) {
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetRenderingAreaGranularity 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device,
+                        (unsigned long long)pRenderingAreaInfo, (unsigned long long)pGranularity);
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkGetRenderingAreaGranularity(unboxed_device, pRenderingAreaInfo,
+                                                      pGranularity);
+                }
+                vkStream->unsetHandleMapping();
+                if (pGranularity) {
+                    transform_fromhost_VkExtent2D(m_state, (VkExtent2D*)(pGranularity));
+                }
+                marshal_VkExtent2D(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                   (VkExtent2D*)(pGranularity));
+                vkStream->commitWrite();
+                if (m_snapshotsEnabled) {
+                    m_state->snapshot()->vkGetRenderingAreaGranularity(
+                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, pRenderingAreaInfo,
+                        pGranularity);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                break;
+            }
+            case OP_vkGetDeviceImageSubresourceLayout: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkDecoder vkGetDeviceImageSubresourceLayout");
+                VkDevice device;
+                const VkDeviceImageSubresourceInfo* pInfo;
+                VkSubresourceLayout2* pLayout;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                vkReadStream->alloc((void**)&pInfo, sizeof(const VkDeviceImageSubresourceInfo));
+                reservedunmarshal_VkDeviceImageSubresourceInfo(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkDeviceImageSubresourceInfo*)(pInfo), readStreamPtrPtr);
+                // Begin manual dispatchable handle unboxing for pLayout;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pLayout, sizeof(VkSubresourceLayout2));
+                reservedunmarshal_VkSubresourceLayout2(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                       (VkSubresourceLayout2*)(pLayout),
+                                                       readStreamPtrPtr);
+                if (pInfo) {
+                    transform_tohost_VkDeviceImageSubresourceInfo(
+                        m_state, (VkDeviceImageSubresourceInfo*)(pInfo));
+                }
+                if (pLayout) {
+                    transform_tohost_VkSubresourceLayout2(m_state,
+                                                          (VkSubresourceLayout2*)(pLayout));
+                }
+                if (m_logCalls) {
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetDeviceImageSubresourceLayout 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)pInfo,
+                        (unsigned long long)pLayout);
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkGetDeviceImageSubresourceLayout(unboxed_device, pInfo, pLayout);
+                }
+                vkStream->unsetHandleMapping();
+                if (pLayout) {
+                    transform_fromhost_VkSubresourceLayout2(m_state,
+                                                            (VkSubresourceLayout2*)(pLayout));
+                }
+                marshal_VkSubresourceLayout2(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                             (VkSubresourceLayout2*)(pLayout));
+                vkStream->commitWrite();
+                if (m_snapshotsEnabled) {
+                    m_state->snapshot()->vkGetDeviceImageSubresourceLayout(
+                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, pInfo, pLayout);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                break;
+            }
+            case OP_vkGetImageSubresourceLayout2: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkDecoder vkGetImageSubresourceLayout2");
+                VkDevice device;
+                VkImage image;
+                const VkImageSubresource2* pSubresource;
+                VkSubresourceLayout2* pLayout;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkImage*)&image = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_1));
+                vkReadStream->alloc((void**)&pSubresource, sizeof(const VkImageSubresource2));
+                reservedunmarshal_VkImageSubresource2(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                      (VkImageSubresource2*)(pSubresource),
+                                                      readStreamPtrPtr);
+                // Begin manual dispatchable handle unboxing for pLayout;
+                vkReadStream->unsetHandleMapping();
+                vkReadStream->alloc((void**)&pLayout, sizeof(VkSubresourceLayout2));
+                reservedunmarshal_VkSubresourceLayout2(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                       (VkSubresourceLayout2*)(pLayout),
+                                                       readStreamPtrPtr);
+                if (pSubresource) {
+                    transform_tohost_VkImageSubresource2(m_state,
+                                                         (VkImageSubresource2*)(pSubresource));
+                }
+                if (pLayout) {
+                    transform_tohost_VkSubresourceLayout2(m_state,
+                                                          (VkSubresourceLayout2*)(pLayout));
+                }
+                if (m_logCalls) {
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkGetImageSubresourceLayout2 0x%llx 0x%llx 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)device, (unsigned long long)image,
+                        (unsigned long long)pSubresource, (unsigned long long)pLayout);
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkGetImageSubresourceLayout2(unboxed_device, image, pSubresource, pLayout);
+                }
+                vkStream->unsetHandleMapping();
+                if (pLayout) {
+                    transform_fromhost_VkSubresourceLayout2(m_state,
+                                                            (VkSubresourceLayout2*)(pLayout));
+                }
+                marshal_VkSubresourceLayout2(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                             (VkSubresourceLayout2*)(pLayout));
+                vkStream->commitWrite();
+                if (m_snapshotsEnabled) {
+                    m_state->snapshot()->vkGetImageSubresourceLayout2(&m_pool, snapshotApiCallInfo,
+                                                                      packet, packetLen, device,
+                                                                      image, pSubresource, pLayout);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                break;
+            }
+            case OP_vkCmdPushDescriptorSet: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkDecoder vkCmdPushDescriptorSet");
+                VkCommandBuffer commandBuffer;
+                VkPipelineBindPoint pipelineBindPoint;
+                VkPipelineLayout layout;
+                uint32_t set;
+                uint32_t descriptorWriteCount;
+                const VkWriteDescriptorSet* pDescriptorWrites;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((VkPipelineBindPoint*)&pipelineBindPoint, *readStreamPtrPtr,
+                       sizeof(VkPipelineBindPoint));
+                *readStreamPtrPtr += sizeof(VkPipelineBindPoint);
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkPipelineLayout*)&layout =
+                    (VkPipelineLayout)unbox_VkPipelineLayout((VkPipelineLayout)(*&cgen_var_1));
+                memcpy((uint32_t*)&set, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&descriptorWriteCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                vkReadStream->alloc((void**)&pDescriptorWrites,
+                                    ((descriptorWriteCount)) * sizeof(const VkWriteDescriptorSet));
+                for (uint32_t i = 0; i < (uint32_t)((descriptorWriteCount)); ++i) {
+                    reservedunmarshal_VkWriteDescriptorSet(
+                        vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkWriteDescriptorSet*)(pDescriptorWrites + i), readStreamPtrPtr);
+                }
+                if (pDescriptorWrites) {
+                    for (uint32_t i = 0; i < (uint32_t)((descriptorWriteCount)); ++i) {
+                        transform_tohost_VkWriteDescriptorSet(
+                            m_state, (VkWriteDescriptorSet*)(pDescriptorWrites + i));
+                    }
+                }
+                if (m_logCalls) {
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdPushDescriptorSet 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx "
+                        "0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)pipelineBindPoint, (unsigned long long)layout,
+                        (unsigned long long)set, (unsigned long long)descriptorWriteCount,
+                        (unsigned long long)pDescriptorWrites);
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdPushDescriptorSet(unboxed_commandBuffer, pipelineBindPoint, layout,
+                                               set, descriptorWriteCount, pDescriptorWrites);
+                }
+                vkStream->unsetHandleMapping();
+                if (m_snapshotsEnabled) {
+                    m_state->snapshot()->vkCmdPushDescriptorSet(
+                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        pipelineBindPoint, layout, set, descriptorWriteCount, pDescriptorWrites);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                break;
+            }
+            case OP_vkCmdPushDescriptorSetWithTemplate: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkDecoder vkCmdPushDescriptorSetWithTemplate");
+                VkCommandBuffer commandBuffer;
+                VkDescriptorUpdateTemplate descriptorUpdateTemplate;
+                VkPipelineLayout layout;
+                uint32_t set;
+                const void* pData;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDescriptorUpdateTemplate*)&descriptorUpdateTemplate =
+                    (VkDescriptorUpdateTemplate)unbox_VkDescriptorUpdateTemplate(
+                        (VkDescriptorUpdateTemplate)(*&cgen_var_1));
+                uint64_t cgen_var_2;
+                memcpy((uint64_t*)&cgen_var_2, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkPipelineLayout*)&layout =
+                    (VkPipelineLayout)unbox_VkPipelineLayout((VkPipelineLayout)(*&cgen_var_2));
+                memcpy((uint32_t*)&set, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                // WARNING PTR CHECK
+                memcpy((void**)&pData, (*readStreamPtrPtr), 8);
+                gfxstream::Stream::fromBe64((uint8_t*)&pData);
+                *readStreamPtrPtr += 8;
+                if (pData) {
+                    vkReadStream->alloc((void**)&pData, sizeof(const uint8_t));
+                    memcpy((void*)pData, *readStreamPtrPtr, sizeof(const uint8_t));
+                    *readStreamPtrPtr += sizeof(const uint8_t);
+                }
+                if (m_logCalls) {
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdPushDescriptorSetWithTemplate 0x%llx 0x%llx 0x%llx "
+                        "0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)descriptorUpdateTemplate, (unsigned long long)layout,
+                        (unsigned long long)set, (unsigned long long)pData);
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdPushDescriptorSetWithTemplate(
+                        unboxed_commandBuffer, descriptorUpdateTemplate, layout, set, pData);
+                }
+                vkStream->unsetHandleMapping();
+                if (m_snapshotsEnabled) {
+                    m_state->snapshot()->vkCmdPushDescriptorSetWithTemplate(
+                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        descriptorUpdateTemplate, layout, set, pData);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                break;
+            }
+            case OP_vkCmdSetRenderingAttachmentLocations: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkDecoder vkCmdSetRenderingAttachmentLocations");
+                VkCommandBuffer commandBuffer;
+                const VkRenderingAttachmentLocationInfo* pLocationInfo;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                vkReadStream->alloc((void**)&pLocationInfo,
+                                    sizeof(const VkRenderingAttachmentLocationInfo));
+                reservedunmarshal_VkRenderingAttachmentLocationInfo(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkRenderingAttachmentLocationInfo*)(pLocationInfo), readStreamPtrPtr);
+                if (pLocationInfo) {
+                    transform_tohost_VkRenderingAttachmentLocationInfo(
+                        m_state, (VkRenderingAttachmentLocationInfo*)(pLocationInfo));
+                }
+                if (m_logCalls) {
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdSetRenderingAttachmentLocations 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)pLocationInfo);
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetRenderingAttachmentLocations(unboxed_commandBuffer, pLocationInfo);
+                }
+                vkStream->unsetHandleMapping();
+                if (m_snapshotsEnabled) {
+                    m_state->snapshot()->vkCmdSetRenderingAttachmentLocations(
+                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        pLocationInfo);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                break;
+            }
+            case OP_vkCmdSetRenderingInputAttachmentIndices: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkDecoder vkCmdSetRenderingInputAttachmentIndices");
+                VkCommandBuffer commandBuffer;
+                const VkRenderingInputAttachmentIndexInfo* pInputAttachmentIndexInfo;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                vkReadStream->alloc((void**)&pInputAttachmentIndexInfo,
+                                    sizeof(const VkRenderingInputAttachmentIndexInfo));
+                reservedunmarshal_VkRenderingInputAttachmentIndexInfo(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkRenderingInputAttachmentIndexInfo*)(pInputAttachmentIndexInfo),
+                    readStreamPtrPtr);
+                if (pInputAttachmentIndexInfo) {
+                    transform_tohost_VkRenderingInputAttachmentIndexInfo(
+                        m_state, (VkRenderingInputAttachmentIndexInfo*)(pInputAttachmentIndexInfo));
+                }
+                if (m_logCalls) {
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdSetRenderingInputAttachmentIndices 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)pInputAttachmentIndexInfo);
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetRenderingInputAttachmentIndices(unboxed_commandBuffer,
+                                                                pInputAttachmentIndexInfo);
+                }
+                vkStream->unsetHandleMapping();
+                if (m_snapshotsEnabled) {
+                    m_state->snapshot()->vkCmdSetRenderingInputAttachmentIndices(
+                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        pInputAttachmentIndexInfo);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                break;
+            }
+            case OP_vkCmdBindDescriptorSets2: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkDecoder vkCmdBindDescriptorSets2");
+                VkCommandBuffer commandBuffer;
+                const VkBindDescriptorSetsInfo* pBindDescriptorSetsInfo;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                vkReadStream->alloc((void**)&pBindDescriptorSetsInfo,
+                                    sizeof(const VkBindDescriptorSetsInfo));
+                reservedunmarshal_VkBindDescriptorSetsInfo(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkBindDescriptorSetsInfo*)(pBindDescriptorSetsInfo), readStreamPtrPtr);
+                if (pBindDescriptorSetsInfo) {
+                    transform_tohost_VkBindDescriptorSetsInfo(
+                        m_state, (VkBindDescriptorSetsInfo*)(pBindDescriptorSetsInfo));
+                }
+                if (m_logCalls) {
+                    GFXSTREAM_INFO("stream %p: call vkCmdBindDescriptorSets2 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)pBindDescriptorSetsInfo);
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdBindDescriptorSets2(unboxed_commandBuffer, pBindDescriptorSetsInfo);
+                }
+                vkStream->unsetHandleMapping();
+                if (m_snapshotsEnabled) {
+                    m_state->snapshot()->vkCmdBindDescriptorSets2(&m_pool, snapshotApiCallInfo,
+                                                                  packet, packetLen, commandBuffer,
+                                                                  pBindDescriptorSetsInfo);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                break;
+            }
+            case OP_vkCmdPushConstants2: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkDecoder vkCmdPushConstants2");
+                VkCommandBuffer commandBuffer;
+                const VkPushConstantsInfo* pPushConstantsInfo;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                vkReadStream->alloc((void**)&pPushConstantsInfo, sizeof(const VkPushConstantsInfo));
+                reservedunmarshal_VkPushConstantsInfo(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                      (VkPushConstantsInfo*)(pPushConstantsInfo),
+                                                      readStreamPtrPtr);
+                if (pPushConstantsInfo) {
+                    transform_tohost_VkPushConstantsInfo(
+                        m_state, (VkPushConstantsInfo*)(pPushConstantsInfo));
+                }
+                if (m_logCalls) {
+                    GFXSTREAM_INFO("stream %p: call vkCmdPushConstants2 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)commandBuffer,
+                                   (unsigned long long)pPushConstantsInfo);
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdPushConstants2(unboxed_commandBuffer, pPushConstantsInfo);
+                }
+                vkStream->unsetHandleMapping();
+                if (m_snapshotsEnabled) {
+                    m_state->snapshot()->vkCmdPushConstants2(&m_pool, snapshotApiCallInfo, packet,
+                                                             packetLen, commandBuffer,
+                                                             pPushConstantsInfo);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                break;
+            }
+            case OP_vkCmdPushDescriptorSet2: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkDecoder vkCmdPushDescriptorSet2");
+                VkCommandBuffer commandBuffer;
+                const VkPushDescriptorSetInfo* pPushDescriptorSetInfo;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                vkReadStream->alloc((void**)&pPushDescriptorSetInfo,
+                                    sizeof(const VkPushDescriptorSetInfo));
+                reservedunmarshal_VkPushDescriptorSetInfo(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkPushDescriptorSetInfo*)(pPushDescriptorSetInfo), readStreamPtrPtr);
+                if (pPushDescriptorSetInfo) {
+                    transform_tohost_VkPushDescriptorSetInfo(
+                        m_state, (VkPushDescriptorSetInfo*)(pPushDescriptorSetInfo));
+                }
+                if (m_logCalls) {
+                    GFXSTREAM_INFO("stream %p: call vkCmdPushDescriptorSet2 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)commandBuffer,
+                                   (unsigned long long)pPushDescriptorSetInfo);
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdPushDescriptorSet2(unboxed_commandBuffer, pPushDescriptorSetInfo);
+                }
+                vkStream->unsetHandleMapping();
+                if (m_snapshotsEnabled) {
+                    m_state->snapshot()->vkCmdPushDescriptorSet2(&m_pool, snapshotApiCallInfo,
+                                                                 packet, packetLen, commandBuffer,
+                                                                 pPushDescriptorSetInfo);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                break;
+            }
+            case OP_vkCmdPushDescriptorSetWithTemplate2: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkDecoder vkCmdPushDescriptorSetWithTemplate2");
+                VkCommandBuffer commandBuffer;
+                const VkPushDescriptorSetWithTemplateInfo* pPushDescriptorSetWithTemplateInfo;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                vkReadStream->alloc((void**)&pPushDescriptorSetWithTemplateInfo,
+                                    sizeof(const VkPushDescriptorSetWithTemplateInfo));
+                reservedunmarshal_VkPushDescriptorSetWithTemplateInfo(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkPushDescriptorSetWithTemplateInfo*)(pPushDescriptorSetWithTemplateInfo),
+                    readStreamPtrPtr);
+                if (pPushDescriptorSetWithTemplateInfo) {
+                    transform_tohost_VkPushDescriptorSetWithTemplateInfo(
+                        m_state,
+                        (VkPushDescriptorSetWithTemplateInfo*)(pPushDescriptorSetWithTemplateInfo));
+                }
+                if (m_logCalls) {
+                    GFXSTREAM_INFO(
+                        "stream %p: call vkCmdPushDescriptorSetWithTemplate2 0x%llx 0x%llx ",
+                        ioStream, (unsigned long long)commandBuffer,
+                        (unsigned long long)pPushDescriptorSetWithTemplateInfo);
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdPushDescriptorSetWithTemplate2(unboxed_commandBuffer,
+                                                            pPushDescriptorSetWithTemplateInfo);
+                }
+                vkStream->unsetHandleMapping();
+                if (m_snapshotsEnabled) {
+                    m_state->snapshot()->vkCmdPushDescriptorSetWithTemplate2(
+                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        pPushDescriptorSetWithTemplateInfo);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                break;
+            }
+            case OP_vkCopyMemoryToImage: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkDecoder vkCopyMemoryToImage");
+                VkDevice device;
+                const VkCopyMemoryToImageInfo* pCopyMemoryToImageInfo;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                vkReadStream->alloc((void**)&pCopyMemoryToImageInfo,
+                                    sizeof(const VkCopyMemoryToImageInfo));
+                reservedunmarshal_VkCopyMemoryToImageInfo(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkCopyMemoryToImageInfo*)(pCopyMemoryToImageInfo), readStreamPtrPtr);
+                if (pCopyMemoryToImageInfo) {
+                    transform_tohost_VkCopyMemoryToImageInfo(
+                        m_state, (VkCopyMemoryToImageInfo*)(pCopyMemoryToImageInfo));
+                }
+                if (m_logCalls) {
+                    GFXSTREAM_INFO("stream %p: call vkCopyMemoryToImage 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)device,
+                                   (unsigned long long)pCopyMemoryToImageInfo);
+                }
+                VkResult vkCopyMemoryToImage_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
+                if (CC_LIKELY(vk)) {
+                    vkCopyMemoryToImage_VkResult_return =
+                        vk->vkCopyMemoryToImage(unboxed_device, pCopyMemoryToImageInfo);
+                }
+                if ((vkCopyMemoryToImage_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkCopyMemoryToImage_VkResult_return, opcode, context);
+                vkStream->unsetHandleMapping();
+                vkStream->write(&vkCopyMemoryToImage_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                if (m_snapshotsEnabled) {
+                    m_state->snapshot()->vkCopyMemoryToImage(
+                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        vkCopyMemoryToImage_VkResult_return, device, pCopyMemoryToImageInfo);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                break;
+            }
+            case OP_vkCopyImageToMemory: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkDecoder vkCopyImageToMemory");
+                VkDevice device;
+                const VkCopyImageToMemoryInfo* pCopyImageToMemoryInfo;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                vkReadStream->alloc((void**)&pCopyImageToMemoryInfo,
+                                    sizeof(const VkCopyImageToMemoryInfo));
+                reservedunmarshal_VkCopyImageToMemoryInfo(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkCopyImageToMemoryInfo*)(pCopyImageToMemoryInfo), readStreamPtrPtr);
+                if (pCopyImageToMemoryInfo) {
+                    transform_tohost_VkCopyImageToMemoryInfo(
+                        m_state, (VkCopyImageToMemoryInfo*)(pCopyImageToMemoryInfo));
+                }
+                if (m_logCalls) {
+                    GFXSTREAM_INFO("stream %p: call vkCopyImageToMemory 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)device,
+                                   (unsigned long long)pCopyImageToMemoryInfo);
+                }
+                VkResult vkCopyImageToMemory_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
+                if (CC_LIKELY(vk)) {
+                    vkCopyImageToMemory_VkResult_return =
+                        vk->vkCopyImageToMemory(unboxed_device, pCopyImageToMemoryInfo);
+                }
+                if ((vkCopyImageToMemory_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkCopyImageToMemory_VkResult_return, opcode, context);
+                vkStream->unsetHandleMapping();
+                vkStream->write(&vkCopyImageToMemory_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                if (m_snapshotsEnabled) {
+                    m_state->snapshot()->vkCopyImageToMemory(
+                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        vkCopyImageToMemory_VkResult_return, device, pCopyImageToMemoryInfo);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                break;
+            }
+            case OP_vkCopyImageToImage: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkDecoder vkCopyImageToImage");
+                VkDevice device;
+                const VkCopyImageToImageInfo* pCopyImageToImageInfo;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                vkReadStream->alloc((void**)&pCopyImageToImageInfo,
+                                    sizeof(const VkCopyImageToImageInfo));
+                reservedunmarshal_VkCopyImageToImageInfo(
+                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkCopyImageToImageInfo*)(pCopyImageToImageInfo), readStreamPtrPtr);
+                if (pCopyImageToImageInfo) {
+                    transform_tohost_VkCopyImageToImageInfo(
+                        m_state, (VkCopyImageToImageInfo*)(pCopyImageToImageInfo));
+                }
+                if (m_logCalls) {
+                    GFXSTREAM_INFO("stream %p: call vkCopyImageToImage 0x%llx 0x%llx ", ioStream,
+                                   (unsigned long long)device,
+                                   (unsigned long long)pCopyImageToImageInfo);
+                }
+                VkResult vkCopyImageToImage_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
+                if (CC_LIKELY(vk)) {
+                    vkCopyImageToImage_VkResult_return =
+                        vk->vkCopyImageToImage(unboxed_device, pCopyImageToImageInfo);
+                }
+                if ((vkCopyImageToImage_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkCopyImageToImage_VkResult_return, opcode, context);
+                vkStream->unsetHandleMapping();
+                vkStream->write(&vkCopyImageToImage_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                if (m_snapshotsEnabled) {
+                    m_state->snapshot()->vkCopyImageToImage(
+                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        vkCopyImageToImage_VkResult_return, device, pCopyImageToImageInfo);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                break;
+            }
+            case OP_vkTransitionImageLayout: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkDecoder vkTransitionImageLayout");
+                VkDevice device;
+                uint32_t transitionCount;
+                const VkHostImageLayoutTransitionInfo* pTransitions;
+                // Begin non wrapped dispatchable handle unboxing for device;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
+                auto unboxed_device = unbox_VkDevice(device);
+                auto vk = dispatch_VkDevice(device);
+                // End manual dispatchable handle unboxing for device;
+                memcpy((uint32_t*)&transitionCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                vkReadStream->alloc(
+                    (void**)&pTransitions,
+                    ((transitionCount)) * sizeof(const VkHostImageLayoutTransitionInfo));
+                for (uint32_t i = 0; i < (uint32_t)((transitionCount)); ++i) {
+                    reservedunmarshal_VkHostImageLayoutTransitionInfo(
+                        vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkHostImageLayoutTransitionInfo*)(pTransitions + i), readStreamPtrPtr);
+                }
+                if (pTransitions) {
+                    for (uint32_t i = 0; i < (uint32_t)((transitionCount)); ++i) {
+                        transform_tohost_VkHostImageLayoutTransitionInfo(
+                            m_state, (VkHostImageLayoutTransitionInfo*)(pTransitions + i));
+                    }
+                }
+                if (m_logCalls) {
+                    GFXSTREAM_INFO("stream %p: call vkTransitionImageLayout 0x%llx 0x%llx 0x%llx ",
+                                   ioStream, (unsigned long long)device,
+                                   (unsigned long long)transitionCount,
+                                   (unsigned long long)pTransitions);
+                }
+                VkResult vkTransitionImageLayout_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
+                if (CC_LIKELY(vk)) {
+                    vkTransitionImageLayout_VkResult_return =
+                        vk->vkTransitionImageLayout(unboxed_device, transitionCount, pTransitions);
+                }
+                if ((vkTransitionImageLayout_VkResult_return) == VK_ERROR_DEVICE_LOST)
+                    m_state->on_DeviceLost();
+                m_state->on_CheckOutOfMemory(vkTransitionImageLayout_VkResult_return, opcode,
+                                             context);
+                vkStream->unsetHandleMapping();
+                vkStream->write(&vkTransitionImageLayout_VkResult_return, sizeof(VkResult));
+                vkStream->commitWrite();
+                if (m_snapshotsEnabled) {
+                    m_state->snapshot()->vkTransitionImageLayout(
+                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        vkTransitionImageLayout_VkResult_return, device, transitionCount,
+                        pTransitions);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                break;
+            }
+#endif
 #ifdef VK_KHR_swapchain
             case OP_vkCreateSwapchainKHR: {
                 GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
@@ -16549,154 +17519,6 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
                 break;
             }
-            case OP_vkCmdWriteBufferMarker2AMD: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkDecoder vkCmdWriteBufferMarker2AMD");
-                VkCommandBuffer commandBuffer;
-                VkPipelineStageFlags2 stage;
-                VkBuffer dstBuffer;
-                VkDeviceSize dstOffset;
-                uint32_t marker;
-                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
-                uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
-                *(VkCommandBuffer*)&commandBuffer =
-                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
-                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
-                auto vk = dispatch_VkCommandBuffer(commandBuffer);
-                // End manual dispatchable handle unboxing for commandBuffer;
-                memcpy((VkPipelineStageFlags2*)&stage, *readStreamPtrPtr,
-                       sizeof(VkPipelineStageFlags2));
-                *readStreamPtrPtr += sizeof(VkPipelineStageFlags2);
-                uint64_t cgen_var_1;
-                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
-                *(VkBuffer*)&dstBuffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_1));
-                memcpy((VkDeviceSize*)&dstOffset, *readStreamPtrPtr, sizeof(VkDeviceSize));
-                *readStreamPtrPtr += sizeof(VkDeviceSize);
-                memcpy((uint32_t*)&marker, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                if (m_logCalls) {
-                    GFXSTREAM_INFO(
-                        "stream %p: call vkCmdWriteBufferMarker2AMD 0x%llx 0x%llx 0x%llx 0x%llx "
-                        "0x%llx ",
-                        ioStream, (unsigned long long)commandBuffer, (unsigned long long)stage,
-                        (unsigned long long)dstBuffer, (unsigned long long)dstOffset,
-                        (unsigned long long)marker);
-                }
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdWriteBufferMarker2AMD(unboxed_commandBuffer, stage, dstBuffer,
-                                                   dstOffset, marker);
-                }
-                vkStream->unsetHandleMapping();
-                if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdWriteBufferMarker2AMD(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer, stage,
-                        dstBuffer, dstOffset, marker);
-                }
-                vkReadStream->clearPool();
-                if (m_queueSubmitWithCommandsEnabled)
-                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
-                break;
-            }
-            case OP_vkGetQueueCheckpointData2NV: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkDecoder vkGetQueueCheckpointData2NV");
-                VkQueue queue;
-                uint32_t* pCheckpointDataCount;
-                VkCheckpointData2NV* pCheckpointData;
-                // Begin non wrapped dispatchable handle unboxing for queue;
-                uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
-                *(VkQueue*)&queue = (VkQueue)(VkQueue)((VkQueue)(*&cgen_var_0));
-                auto unboxed_queue = unbox_VkQueue(queue);
-                auto vk = dispatch_VkQueue(queue);
-                // End manual dispatchable handle unboxing for queue;
-                // Begin manual dispatchable handle unboxing for pCheckpointDataCount;
-                vkReadStream->unsetHandleMapping();
-                // WARNING PTR CHECK
-                memcpy((uint32_t**)&pCheckpointDataCount, (*readStreamPtrPtr), 8);
-                gfxstream::Stream::fromBe64((uint8_t*)&pCheckpointDataCount);
-                *readStreamPtrPtr += 8;
-                if (pCheckpointDataCount) {
-                    vkReadStream->alloc((void**)&pCheckpointDataCount, sizeof(uint32_t));
-                    memcpy((uint32_t*)pCheckpointDataCount, *readStreamPtrPtr, sizeof(uint32_t));
-                    *readStreamPtrPtr += sizeof(uint32_t);
-                }
-                // Begin manual dispatchable handle unboxing for pCheckpointData;
-                vkReadStream->unsetHandleMapping();
-                // WARNING PTR CHECK
-                memcpy((VkCheckpointData2NV**)&pCheckpointData, (*readStreamPtrPtr), 8);
-                gfxstream::Stream::fromBe64((uint8_t*)&pCheckpointData);
-                *readStreamPtrPtr += 8;
-                if (pCheckpointData) {
-                    vkReadStream->alloc((void**)&pCheckpointData,
-                                        (*(pCheckpointDataCount)) * sizeof(VkCheckpointData2NV));
-                    for (uint32_t i = 0; i < (uint32_t)(*(pCheckpointDataCount)); ++i) {
-                        reservedunmarshal_VkCheckpointData2NV(
-                            vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                            (VkCheckpointData2NV*)(pCheckpointData + i), readStreamPtrPtr);
-                    }
-                }
-                if (pCheckpointDataCount) {
-                    if (pCheckpointData) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pCheckpointDataCount)); ++i) {
-                            transform_tohost_VkCheckpointData2NV(
-                                m_state, (VkCheckpointData2NV*)(pCheckpointData + i));
-                        }
-                    }
-                }
-                if (m_logCalls) {
-                    GFXSTREAM_INFO(
-                        "stream %p: call vkGetQueueCheckpointData2NV 0x%llx 0x%llx 0x%llx ",
-                        ioStream, (unsigned long long)queue,
-                        (unsigned long long)pCheckpointDataCount,
-                        (unsigned long long)pCheckpointData);
-                }
-                if (CC_LIKELY(vk)) {
-                    vk->vkGetQueueCheckpointData2NV(unboxed_queue, pCheckpointDataCount,
-                                                    pCheckpointData);
-                }
-                vkStream->unsetHandleMapping();
-                // WARNING PTR CHECK
-                uint64_t cgen_var_3 = (uint64_t)(uintptr_t)pCheckpointDataCount;
-                vkStream->putBe64(cgen_var_3);
-                if (pCheckpointDataCount) {
-                    vkStream->write((uint32_t*)pCheckpointDataCount, sizeof(uint32_t));
-                }
-                if (pCheckpointDataCount) {
-                    if (pCheckpointData) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pCheckpointDataCount)); ++i) {
-                            transform_fromhost_VkCheckpointData2NV(
-                                m_state, (VkCheckpointData2NV*)(pCheckpointData + i));
-                        }
-                    }
-                }
-                // WARNING PTR CHECK
-                uint64_t cgen_var_4 = (uint64_t)(uintptr_t)pCheckpointData;
-                vkStream->putBe64(cgen_var_4);
-                if (pCheckpointData) {
-                    if (pCheckpointDataCount) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pCheckpointDataCount)); ++i) {
-                            marshal_VkCheckpointData2NV(
-                                vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                (VkCheckpointData2NV*)(pCheckpointData + i));
-                        }
-                    }
-                }
-                vkStream->commitWrite();
-                if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkGetQueueCheckpointData2NV(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, queue,
-                        pCheckpointDataCount, pCheckpointData);
-                }
-                vkReadStream->clearPool();
-                if (m_queueSubmitWithCommandsEnabled)
-                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
-                break;
-            }
 #endif
 #ifdef VK_KHR_copy_commands2
             case OP_vkCmdCopyBuffer2KHR: {
@@ -17240,7 +18062,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
                                       "VkDecoder vkGetRenderingAreaGranularityKHR");
                 VkDevice device;
-                const VkRenderingAreaInfoKHR* pRenderingAreaInfo;
+                const VkRenderingAreaInfo* pRenderingAreaInfo;
                 VkExtent2D* pGranularity;
                 // Begin non wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
@@ -17250,19 +18072,18 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto unboxed_device = unbox_VkDevice(device);
                 auto vk = dispatch_VkDevice(device);
                 // End manual dispatchable handle unboxing for device;
-                vkReadStream->alloc((void**)&pRenderingAreaInfo,
-                                    sizeof(const VkRenderingAreaInfoKHR));
-                reservedunmarshal_VkRenderingAreaInfoKHR(
-                    vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                    (VkRenderingAreaInfoKHR*)(pRenderingAreaInfo), readStreamPtrPtr);
+                vkReadStream->alloc((void**)&pRenderingAreaInfo, sizeof(const VkRenderingAreaInfo));
+                reservedunmarshal_VkRenderingAreaInfo(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                      (VkRenderingAreaInfo*)(pRenderingAreaInfo),
+                                                      readStreamPtrPtr);
                 // Begin manual dispatchable handle unboxing for pGranularity;
                 vkReadStream->unsetHandleMapping();
                 vkReadStream->alloc((void**)&pGranularity, sizeof(VkExtent2D));
                 reservedunmarshal_VkExtent2D(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                              (VkExtent2D*)(pGranularity), readStreamPtrPtr);
                 if (pRenderingAreaInfo) {
-                    transform_tohost_VkRenderingAreaInfoKHR(
-                        m_state, (VkRenderingAreaInfoKHR*)(pRenderingAreaInfo));
+                    transform_tohost_VkRenderingAreaInfo(
+                        m_state, (VkRenderingAreaInfo*)(pRenderingAreaInfo));
                 }
                 if (pGranularity) {
                     transform_tohost_VkExtent2D(m_state, (VkExtent2D*)(pGranularity));
@@ -17298,8 +18119,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
                                       "VkDecoder vkGetDeviceImageSubresourceLayoutKHR");
                 VkDevice device;
-                const VkDeviceImageSubresourceInfoKHR* pInfo;
-                VkSubresourceLayout2KHR* pLayout;
+                const VkDeviceImageSubresourceInfo* pInfo;
+                VkSubresourceLayout2* pLayout;
                 // Begin non wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
@@ -17308,23 +18129,23 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto unboxed_device = unbox_VkDevice(device);
                 auto vk = dispatch_VkDevice(device);
                 // End manual dispatchable handle unboxing for device;
-                vkReadStream->alloc((void**)&pInfo, sizeof(const VkDeviceImageSubresourceInfoKHR));
-                reservedunmarshal_VkDeviceImageSubresourceInfoKHR(
+                vkReadStream->alloc((void**)&pInfo, sizeof(const VkDeviceImageSubresourceInfo));
+                reservedunmarshal_VkDeviceImageSubresourceInfo(
                     vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                    (VkDeviceImageSubresourceInfoKHR*)(pInfo), readStreamPtrPtr);
+                    (VkDeviceImageSubresourceInfo*)(pInfo), readStreamPtrPtr);
                 // Begin manual dispatchable handle unboxing for pLayout;
                 vkReadStream->unsetHandleMapping();
-                vkReadStream->alloc((void**)&pLayout, sizeof(VkSubresourceLayout2KHR));
-                reservedunmarshal_VkSubresourceLayout2KHR(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                                          (VkSubresourceLayout2KHR*)(pLayout),
-                                                          readStreamPtrPtr);
+                vkReadStream->alloc((void**)&pLayout, sizeof(VkSubresourceLayout2));
+                reservedunmarshal_VkSubresourceLayout2(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                       (VkSubresourceLayout2*)(pLayout),
+                                                       readStreamPtrPtr);
                 if (pInfo) {
-                    transform_tohost_VkDeviceImageSubresourceInfoKHR(
-                        m_state, (VkDeviceImageSubresourceInfoKHR*)(pInfo));
+                    transform_tohost_VkDeviceImageSubresourceInfo(
+                        m_state, (VkDeviceImageSubresourceInfo*)(pInfo));
                 }
                 if (pLayout) {
-                    transform_tohost_VkSubresourceLayout2KHR(m_state,
-                                                             (VkSubresourceLayout2KHR*)(pLayout));
+                    transform_tohost_VkSubresourceLayout2(m_state,
+                                                          (VkSubresourceLayout2*)(pLayout));
                 }
                 if (m_logCalls) {
                     GFXSTREAM_INFO(
@@ -17338,11 +18159,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (pLayout) {
-                    transform_fromhost_VkSubresourceLayout2KHR(m_state,
-                                                               (VkSubresourceLayout2KHR*)(pLayout));
+                    transform_fromhost_VkSubresourceLayout2(m_state,
+                                                            (VkSubresourceLayout2*)(pLayout));
                 }
-                marshal_VkSubresourceLayout2KHR(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                                (VkSubresourceLayout2KHR*)(pLayout));
+                marshal_VkSubresourceLayout2(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                             (VkSubresourceLayout2*)(pLayout));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetDeviceImageSubresourceLayoutKHR(
@@ -17358,8 +18179,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                       "VkDecoder vkGetImageSubresourceLayout2KHR");
                 VkDevice device;
                 VkImage image;
-                const VkImageSubresource2KHR* pSubresource;
-                VkSubresourceLayout2KHR* pLayout;
+                const VkImageSubresource2* pSubresource;
+                VkSubresourceLayout2* pLayout;
                 // Begin non wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
@@ -17372,23 +18193,23 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkImage*)&image = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_1));
-                vkReadStream->alloc((void**)&pSubresource, sizeof(const VkImageSubresource2KHR));
-                reservedunmarshal_VkImageSubresource2KHR(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                                         (VkImageSubresource2KHR*)(pSubresource),
-                                                         readStreamPtrPtr);
+                vkReadStream->alloc((void**)&pSubresource, sizeof(const VkImageSubresource2));
+                reservedunmarshal_VkImageSubresource2(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                      (VkImageSubresource2*)(pSubresource),
+                                                      readStreamPtrPtr);
                 // Begin manual dispatchable handle unboxing for pLayout;
                 vkReadStream->unsetHandleMapping();
-                vkReadStream->alloc((void**)&pLayout, sizeof(VkSubresourceLayout2KHR));
-                reservedunmarshal_VkSubresourceLayout2KHR(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                                          (VkSubresourceLayout2KHR*)(pLayout),
-                                                          readStreamPtrPtr);
+                vkReadStream->alloc((void**)&pLayout, sizeof(VkSubresourceLayout2));
+                reservedunmarshal_VkSubresourceLayout2(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                       (VkSubresourceLayout2*)(pLayout),
+                                                       readStreamPtrPtr);
                 if (pSubresource) {
-                    transform_tohost_VkImageSubresource2KHR(
-                        m_state, (VkImageSubresource2KHR*)(pSubresource));
+                    transform_tohost_VkImageSubresource2(m_state,
+                                                         (VkImageSubresource2*)(pSubresource));
                 }
                 if (pLayout) {
-                    transform_tohost_VkSubresourceLayout2KHR(m_state,
-                                                             (VkSubresourceLayout2KHR*)(pLayout));
+                    transform_tohost_VkSubresourceLayout2(m_state,
+                                                          (VkSubresourceLayout2*)(pLayout));
                 }
                 if (m_logCalls) {
                     GFXSTREAM_INFO(
@@ -17403,11 +18224,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (pLayout) {
-                    transform_fromhost_VkSubresourceLayout2KHR(m_state,
-                                                               (VkSubresourceLayout2KHR*)(pLayout));
+                    transform_fromhost_VkSubresourceLayout2(m_state,
+                                                            (VkSubresourceLayout2*)(pLayout));
                 }
-                marshal_VkSubresourceLayout2KHR(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                                (VkSubresourceLayout2KHR*)(pLayout));
+                marshal_VkSubresourceLayout2(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                             (VkSubresourceLayout2*)(pLayout));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetImageSubresourceLayout2KHR(
@@ -19678,7 +20499,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
                                       "VkDecoder vkCopyMemoryToImageEXT");
                 VkDevice device;
-                const VkCopyMemoryToImageInfoEXT* pCopyMemoryToImageInfo;
+                const VkCopyMemoryToImageInfo* pCopyMemoryToImageInfo;
                 // Begin non wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
@@ -19688,13 +20509,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto vk = dispatch_VkDevice(device);
                 // End manual dispatchable handle unboxing for device;
                 vkReadStream->alloc((void**)&pCopyMemoryToImageInfo,
-                                    sizeof(const VkCopyMemoryToImageInfoEXT));
-                reservedunmarshal_VkCopyMemoryToImageInfoEXT(
+                                    sizeof(const VkCopyMemoryToImageInfo));
+                reservedunmarshal_VkCopyMemoryToImageInfo(
                     vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                    (VkCopyMemoryToImageInfoEXT*)(pCopyMemoryToImageInfo), readStreamPtrPtr);
+                    (VkCopyMemoryToImageInfo*)(pCopyMemoryToImageInfo), readStreamPtrPtr);
                 if (pCopyMemoryToImageInfo) {
-                    transform_tohost_VkCopyMemoryToImageInfoEXT(
-                        m_state, (VkCopyMemoryToImageInfoEXT*)(pCopyMemoryToImageInfo));
+                    transform_tohost_VkCopyMemoryToImageInfo(
+                        m_state, (VkCopyMemoryToImageInfo*)(pCopyMemoryToImageInfo));
                 }
                 if (m_logCalls) {
                     GFXSTREAM_INFO("stream %p: call vkCopyMemoryToImageEXT 0x%llx 0x%llx ",
@@ -19727,7 +20548,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
                                       "VkDecoder vkCopyImageToMemoryEXT");
                 VkDevice device;
-                const VkCopyImageToMemoryInfoEXT* pCopyImageToMemoryInfo;
+                const VkCopyImageToMemoryInfo* pCopyImageToMemoryInfo;
                 // Begin non wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
@@ -19737,13 +20558,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto vk = dispatch_VkDevice(device);
                 // End manual dispatchable handle unboxing for device;
                 vkReadStream->alloc((void**)&pCopyImageToMemoryInfo,
-                                    sizeof(const VkCopyImageToMemoryInfoEXT));
-                reservedunmarshal_VkCopyImageToMemoryInfoEXT(
+                                    sizeof(const VkCopyImageToMemoryInfo));
+                reservedunmarshal_VkCopyImageToMemoryInfo(
                     vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                    (VkCopyImageToMemoryInfoEXT*)(pCopyImageToMemoryInfo), readStreamPtrPtr);
+                    (VkCopyImageToMemoryInfo*)(pCopyImageToMemoryInfo), readStreamPtrPtr);
                 if (pCopyImageToMemoryInfo) {
-                    transform_tohost_VkCopyImageToMemoryInfoEXT(
-                        m_state, (VkCopyImageToMemoryInfoEXT*)(pCopyImageToMemoryInfo));
+                    transform_tohost_VkCopyImageToMemoryInfo(
+                        m_state, (VkCopyImageToMemoryInfo*)(pCopyImageToMemoryInfo));
                 }
                 if (m_logCalls) {
                     GFXSTREAM_INFO("stream %p: call vkCopyImageToMemoryEXT 0x%llx 0x%llx ",
@@ -19776,7 +20597,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
                                       "VkDecoder vkCopyImageToImageEXT");
                 VkDevice device;
-                const VkCopyImageToImageInfoEXT* pCopyImageToImageInfo;
+                const VkCopyImageToImageInfo* pCopyImageToImageInfo;
                 // Begin non wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
@@ -19786,13 +20607,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto vk = dispatch_VkDevice(device);
                 // End manual dispatchable handle unboxing for device;
                 vkReadStream->alloc((void**)&pCopyImageToImageInfo,
-                                    sizeof(const VkCopyImageToImageInfoEXT));
-                reservedunmarshal_VkCopyImageToImageInfoEXT(
+                                    sizeof(const VkCopyImageToImageInfo));
+                reservedunmarshal_VkCopyImageToImageInfo(
                     vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                    (VkCopyImageToImageInfoEXT*)(pCopyImageToImageInfo), readStreamPtrPtr);
+                    (VkCopyImageToImageInfo*)(pCopyImageToImageInfo), readStreamPtrPtr);
                 if (pCopyImageToImageInfo) {
-                    transform_tohost_VkCopyImageToImageInfoEXT(
-                        m_state, (VkCopyImageToImageInfoEXT*)(pCopyImageToImageInfo));
+                    transform_tohost_VkCopyImageToImageInfo(
+                        m_state, (VkCopyImageToImageInfo*)(pCopyImageToImageInfo));
                 }
                 if (m_logCalls) {
                     GFXSTREAM_INFO("stream %p: call vkCopyImageToImageEXT 0x%llx 0x%llx ", ioStream,
@@ -19826,7 +20647,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                       "VkDecoder vkTransitionImageLayoutEXT");
                 VkDevice device;
                 uint32_t transitionCount;
-                const VkHostImageLayoutTransitionInfoEXT* pTransitions;
+                const VkHostImageLayoutTransitionInfo* pTransitions;
                 // Begin non wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
@@ -19839,16 +20660,16 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc(
                     (void**)&pTransitions,
-                    ((transitionCount)) * sizeof(const VkHostImageLayoutTransitionInfoEXT));
+                    ((transitionCount)) * sizeof(const VkHostImageLayoutTransitionInfo));
                 for (uint32_t i = 0; i < (uint32_t)((transitionCount)); ++i) {
-                    reservedunmarshal_VkHostImageLayoutTransitionInfoEXT(
+                    reservedunmarshal_VkHostImageLayoutTransitionInfo(
                         vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                        (VkHostImageLayoutTransitionInfoEXT*)(pTransitions + i), readStreamPtrPtr);
+                        (VkHostImageLayoutTransitionInfo*)(pTransitions + i), readStreamPtrPtr);
                 }
                 if (pTransitions) {
                     for (uint32_t i = 0; i < (uint32_t)((transitionCount)); ++i) {
-                        transform_tohost_VkHostImageLayoutTransitionInfoEXT(
-                            m_state, (VkHostImageLayoutTransitionInfoEXT*)(pTransitions + i));
+                        transform_tohost_VkHostImageLayoutTransitionInfo(
+                            m_state, (VkHostImageLayoutTransitionInfo*)(pTransitions + i));
                     }
                 }
                 if (m_logCalls) {
@@ -19885,8 +20706,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                       "VkDecoder vkGetImageSubresourceLayout2EXT");
                 VkDevice device;
                 VkImage image;
-                const VkImageSubresource2KHR* pSubresource;
-                VkSubresourceLayout2KHR* pLayout;
+                const VkImageSubresource2* pSubresource;
+                VkSubresourceLayout2* pLayout;
                 // Begin non wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
@@ -19899,23 +20720,23 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkImage*)&image = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_1));
-                vkReadStream->alloc((void**)&pSubresource, sizeof(const VkImageSubresource2KHR));
-                reservedunmarshal_VkImageSubresource2KHR(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                                         (VkImageSubresource2KHR*)(pSubresource),
-                                                         readStreamPtrPtr);
+                vkReadStream->alloc((void**)&pSubresource, sizeof(const VkImageSubresource2));
+                reservedunmarshal_VkImageSubresource2(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                      (VkImageSubresource2*)(pSubresource),
+                                                      readStreamPtrPtr);
                 // Begin manual dispatchable handle unboxing for pLayout;
                 vkReadStream->unsetHandleMapping();
-                vkReadStream->alloc((void**)&pLayout, sizeof(VkSubresourceLayout2KHR));
-                reservedunmarshal_VkSubresourceLayout2KHR(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                                          (VkSubresourceLayout2KHR*)(pLayout),
-                                                          readStreamPtrPtr);
+                vkReadStream->alloc((void**)&pLayout, sizeof(VkSubresourceLayout2));
+                reservedunmarshal_VkSubresourceLayout2(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                       (VkSubresourceLayout2*)(pLayout),
+                                                       readStreamPtrPtr);
                 if (pSubresource) {
-                    transform_tohost_VkImageSubresource2KHR(
-                        m_state, (VkImageSubresource2KHR*)(pSubresource));
+                    transform_tohost_VkImageSubresource2(m_state,
+                                                         (VkImageSubresource2*)(pSubresource));
                 }
                 if (pLayout) {
-                    transform_tohost_VkSubresourceLayout2KHR(m_state,
-                                                             (VkSubresourceLayout2KHR*)(pLayout));
+                    transform_tohost_VkSubresourceLayout2(m_state,
+                                                          (VkSubresourceLayout2*)(pLayout));
                 }
                 if (m_logCalls) {
                     GFXSTREAM_INFO(
@@ -19930,11 +20751,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (pLayout) {
-                    transform_fromhost_VkSubresourceLayout2KHR(m_state,
-                                                               (VkSubresourceLayout2KHR*)(pLayout));
+                    transform_fromhost_VkSubresourceLayout2(m_state,
+                                                            (VkSubresourceLayout2*)(pLayout));
                 }
-                marshal_VkSubresourceLayout2KHR(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                                (VkSubresourceLayout2KHR*)(pLayout));
+                marshal_VkSubresourceLayout2(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                             (VkSubresourceLayout2*)(pLayout));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetImageSubresourceLayout2EXT(

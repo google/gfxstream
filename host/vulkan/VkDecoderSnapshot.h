@@ -1052,6 +1052,95 @@ class VkDecoderSnapshot {
         const VkDeviceImageMemoryRequirements* pInfo, uint32_t* pSparseMemoryRequirementCount,
         VkSparseImageMemoryRequirements2* pSparseMemoryRequirements);
 #endif
+#ifdef VK_VERSION_1_4
+    void vkCmdSetLineStipple(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                             VkCommandBuffer commandBuffer, uint32_t lineStippleFactor,
+                             uint16_t lineStipplePattern);
+    void vkMapMemory2(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                      const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkResult input_result,
+                      VkDevice device, const VkMemoryMapInfo* pMemoryMapInfo, void** ppData);
+    void vkUnmapMemory2(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                        VkResult input_result, VkDevice device,
+                        const VkMemoryUnmapInfo* pMemoryUnmapInfo);
+    void vkCmdBindIndexBuffer2(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                               VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset,
+                               VkDeviceSize size, VkIndexType indexType);
+    void vkGetRenderingAreaGranularity(gfxstream::base::BumpPool* pool,
+                                       VkSnapshotApiCallInfo* apiCallInfo,
+                                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                       VkDevice device,
+                                       const VkRenderingAreaInfo* pRenderingAreaInfo,
+                                       VkExtent2D* pGranularity);
+    void vkGetDeviceImageSubresourceLayout(gfxstream::base::BumpPool* pool,
+                                           VkSnapshotApiCallInfo* apiCallInfo,
+                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                           VkDevice device,
+                                           const VkDeviceImageSubresourceInfo* pInfo,
+                                           VkSubresourceLayout2* pLayout);
+    void vkGetImageSubresourceLayout2(gfxstream::base::BumpPool* pool,
+                                      VkSnapshotApiCallInfo* apiCallInfo,
+                                      const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                      VkDevice device, VkImage image,
+                                      const VkImageSubresource2* pSubresource,
+                                      VkSubresourceLayout2* pLayout);
+    void vkCmdPushDescriptorSet(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                VkCommandBuffer commandBuffer,
+                                VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout layout,
+                                uint32_t set, uint32_t descriptorWriteCount,
+                                const VkWriteDescriptorSet* pDescriptorWrites);
+    void vkCmdPushDescriptorSetWithTemplate(gfxstream::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* apiCallInfo,
+                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                            VkCommandBuffer commandBuffer,
+                                            VkDescriptorUpdateTemplate descriptorUpdateTemplate,
+                                            VkPipelineLayout layout, uint32_t set,
+                                            const void* pData);
+    void vkCmdSetRenderingAttachmentLocations(
+        gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
+        const VkRenderingAttachmentLocationInfo* pLocationInfo);
+    void vkCmdSetRenderingInputAttachmentIndices(
+        gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
+        const VkRenderingInputAttachmentIndexInfo* pInputAttachmentIndexInfo);
+    void vkCmdBindDescriptorSets2(gfxstream::base::BumpPool* pool,
+                                  VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+                                  size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
+                                  const VkBindDescriptorSetsInfo* pBindDescriptorSetsInfo);
+    void vkCmdPushConstants2(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                             VkCommandBuffer commandBuffer,
+                             const VkPushConstantsInfo* pPushConstantsInfo);
+    void vkCmdPushDescriptorSet2(gfxstream::base::BumpPool* pool,
+                                 VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+                                 size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
+                                 const VkPushDescriptorSetInfo* pPushDescriptorSetInfo);
+    void vkCmdPushDescriptorSetWithTemplate2(
+        gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
+        const VkPushDescriptorSetWithTemplateInfo* pPushDescriptorSetWithTemplateInfo);
+    void vkCopyMemoryToImage(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                             VkResult input_result, VkDevice device,
+                             const VkCopyMemoryToImageInfo* pCopyMemoryToImageInfo);
+    void vkCopyImageToMemory(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                             VkResult input_result, VkDevice device,
+                             const VkCopyImageToMemoryInfo* pCopyImageToMemoryInfo);
+    void vkCopyImageToImage(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                            VkResult input_result, VkDevice device,
+                            const VkCopyImageToImageInfo* pCopyImageToImageInfo);
+    void vkTransitionImageLayout(gfxstream::base::BumpPool* pool,
+                                 VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+                                 size_t apiCallPacketSize, VkResult input_result, VkDevice device,
+                                 uint32_t transitionCount,
+                                 const VkHostImageLayoutTransitionInfo* pTransitions);
+#endif
 #ifdef VK_KHR_swapchain
     void vkCreateSwapchainKHR(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
@@ -1345,16 +1434,6 @@ class VkDecoderSnapshot {
                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                            VkResult input_result, VkQueue queue, uint32_t submitCount,
                            const VkSubmitInfo2* pSubmits, VkFence fence);
-    void vkCmdWriteBufferMarker2AMD(gfxstream::base::BumpPool* pool,
-                                    VkSnapshotApiCallInfo* apiCallInfo,
-                                    const uint8_t* apiCallPacket, size_t apiCallPacketSize,
-                                    VkCommandBuffer commandBuffer, VkPipelineStageFlags2 stage,
-                                    VkBuffer dstBuffer, VkDeviceSize dstOffset, uint32_t marker);
-    void vkGetQueueCheckpointData2NV(gfxstream::base::BumpPool* pool,
-                                     VkSnapshotApiCallInfo* apiCallInfo,
-                                     const uint8_t* apiCallPacket, size_t apiCallPacketSize,
-                                     VkQueue queue, uint32_t* pCheckpointDataCount,
-                                     VkCheckpointData2NV* pCheckpointData);
 #endif
 #ifdef VK_KHR_copy_commands2
     void vkCmdCopyBuffer2KHR(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
@@ -1411,20 +1490,20 @@ class VkDecoderSnapshot {
                                           VkSnapshotApiCallInfo* apiCallInfo,
                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkDevice device,
-                                          const VkRenderingAreaInfoKHR* pRenderingAreaInfo,
+                                          const VkRenderingAreaInfo* pRenderingAreaInfo,
                                           VkExtent2D* pGranularity);
     void vkGetDeviceImageSubresourceLayoutKHR(gfxstream::base::BumpPool* pool,
                                               VkSnapshotApiCallInfo* apiCallInfo,
                                               const uint8_t* apiCallPacket,
                                               size_t apiCallPacketSize, VkDevice device,
-                                              const VkDeviceImageSubresourceInfoKHR* pInfo,
-                                              VkSubresourceLayout2KHR* pLayout);
+                                              const VkDeviceImageSubresourceInfo* pInfo,
+                                              VkSubresourceLayout2* pLayout);
     void vkGetImageSubresourceLayout2KHR(gfxstream::base::BumpPool* pool,
                                          VkSnapshotApiCallInfo* apiCallInfo,
                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkDevice device, VkImage image,
-                                         const VkImageSubresource2KHR* pSubresource,
-                                         VkSubresourceLayout2KHR* pLayout);
+                                         const VkImageSubresource2* pSubresource,
+                                         VkSubresourceLayout2* pLayout);
 #endif
 #ifdef VK_KHR_line_rasterization
     void vkCmdSetLineStippleKHR(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
@@ -1658,27 +1737,27 @@ class VkDecoderSnapshot {
     void vkCopyMemoryToImageEXT(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                                 const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                 VkResult input_result, VkDevice device,
-                                const VkCopyMemoryToImageInfoEXT* pCopyMemoryToImageInfo);
+                                const VkCopyMemoryToImageInfo* pCopyMemoryToImageInfo);
     void vkCopyImageToMemoryEXT(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                                 const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                 VkResult input_result, VkDevice device,
-                                const VkCopyImageToMemoryInfoEXT* pCopyImageToMemoryInfo);
+                                const VkCopyImageToMemoryInfo* pCopyImageToMemoryInfo);
     void vkCopyImageToImageEXT(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                                const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                VkResult input_result, VkDevice device,
-                               const VkCopyImageToImageInfoEXT* pCopyImageToImageInfo);
+                               const VkCopyImageToImageInfo* pCopyImageToImageInfo);
     void vkTransitionImageLayoutEXT(gfxstream::base::BumpPool* pool,
                                     VkSnapshotApiCallInfo* apiCallInfo,
                                     const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                     VkResult input_result, VkDevice device,
                                     uint32_t transitionCount,
-                                    const VkHostImageLayoutTransitionInfoEXT* pTransitions);
+                                    const VkHostImageLayoutTransitionInfo* pTransitions);
     void vkGetImageSubresourceLayout2EXT(gfxstream::base::BumpPool* pool,
                                          VkSnapshotApiCallInfo* apiCallInfo,
                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkDevice device, VkImage image,
-                                         const VkImageSubresource2KHR* pSubresource,
-                                         VkSubresourceLayout2KHR* pLayout);
+                                         const VkImageSubresource2* pSubresource,
+                                         VkSubresourceLayout2* pLayout);
 #endif
 #ifdef VK_EXT_swapchain_maintenance1
     void vkReleaseSwapchainImagesEXT(gfxstream::base::BumpPool* pool,

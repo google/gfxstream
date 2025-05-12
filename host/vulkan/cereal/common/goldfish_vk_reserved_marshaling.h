@@ -1114,6 +1114,205 @@ void reservedunmarshal_VkDeviceImageMemoryRequirements(
     VkDeviceImageMemoryRequirements* forUnmarshaling, uint8_t** ptr);
 
 #endif
+#ifdef VK_VERSION_1_4
+void reservedunmarshal_VkPhysicalDeviceVulkan14Features(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceVulkan14Features* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceVulkan14Properties(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceVulkan14Properties* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkDeviceQueueGlobalPriorityCreateInfo(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDeviceQueueGlobalPriorityCreateInfo* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceGlobalPriorityQueryFeatures(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceGlobalPriorityQueryFeatures* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkQueueFamilyGlobalPriorityProperties(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkQueueFamilyGlobalPriorityProperties* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceShaderSubgroupRotateFeatures(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceShaderSubgroupRotateFeatures* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceShaderFloatControls2Features(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceShaderFloatControls2Features* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceShaderExpectAssumeFeatures(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceShaderExpectAssumeFeatures* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceLineRasterizationFeatures(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceLineRasterizationFeatures* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceLineRasterizationProperties(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceLineRasterizationProperties* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPipelineRasterizationLineStateCreateInfo(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineRasterizationLineStateCreateInfo* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceVertexAttributeDivisorProperties(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceVertexAttributeDivisorProperties* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkVertexInputBindingDivisorDescription(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkVertexInputBindingDivisorDescription* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPipelineVertexInputDivisorStateCreateInfo(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineVertexInputDivisorStateCreateInfo* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceVertexAttributeDivisorFeatures(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceVertexAttributeDivisorFeatures* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceIndexTypeUint8Features(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceIndexTypeUint8Features* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkMemoryMapInfo(VulkanStream* vkStream, VkStructureType rootType,
+                                       VkMemoryMapInfo* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkMemoryUnmapInfo(VulkanStream* vkStream, VkStructureType rootType,
+                                         VkMemoryUnmapInfo* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceMaintenance5Features(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMaintenance5Features* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceMaintenance5Properties(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMaintenance5Properties* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkRenderingAreaInfo(VulkanStream* vkStream, VkStructureType rootType,
+                                           VkRenderingAreaInfo* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkImageSubresource2(VulkanStream* vkStream, VkStructureType rootType,
+                                           VkImageSubresource2* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkDeviceImageSubresourceInfo(VulkanStream* vkStream,
+                                                    VkStructureType rootType,
+                                                    VkDeviceImageSubresourceInfo* forUnmarshaling,
+                                                    uint8_t** ptr);
+
+void reservedunmarshal_VkSubresourceLayout2(VulkanStream* vkStream, VkStructureType rootType,
+                                            VkSubresourceLayout2* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPipelineCreateFlags2CreateInfo(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineCreateFlags2CreateInfo* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkBufferUsageFlags2CreateInfo(VulkanStream* vkStream,
+                                                     VkStructureType rootType,
+                                                     VkBufferUsageFlags2CreateInfo* forUnmarshaling,
+                                                     uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDevicePushDescriptorProperties(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDevicePushDescriptorProperties* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceDynamicRenderingLocalReadFeatures(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceDynamicRenderingLocalReadFeatures* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkRenderingAttachmentLocationInfo(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRenderingAttachmentLocationInfo* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkRenderingInputAttachmentIndexInfo(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRenderingInputAttachmentIndexInfo* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceMaintenance6Features(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMaintenance6Features* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceMaintenance6Properties(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMaintenance6Properties* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkBindMemoryStatus(VulkanStream* vkStream, VkStructureType rootType,
+                                          VkBindMemoryStatus* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkBindDescriptorSetsInfo(VulkanStream* vkStream, VkStructureType rootType,
+                                                VkBindDescriptorSetsInfo* forUnmarshaling,
+                                                uint8_t** ptr);
+
+void reservedunmarshal_VkPushConstantsInfo(VulkanStream* vkStream, VkStructureType rootType,
+                                           VkPushConstantsInfo* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPushDescriptorSetInfo(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkPushDescriptorSetInfo* forUnmarshaling,
+                                               uint8_t** ptr);
+
+void reservedunmarshal_VkPushDescriptorSetWithTemplateInfo(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPushDescriptorSetWithTemplateInfo* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDevicePipelineProtectedAccessFeatures(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDevicePipelineProtectedAccessFeatures* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDevicePipelineRobustnessFeatures(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDevicePipelineRobustnessFeatures* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDevicePipelineRobustnessProperties(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDevicePipelineRobustnessProperties* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPipelineRobustnessCreateInfo(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineRobustnessCreateInfo* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceHostImageCopyFeatures(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceHostImageCopyFeatures* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceHostImageCopyProperties(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceHostImageCopyProperties* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkMemoryToImageCopy(VulkanStream* vkStream, VkStructureType rootType,
+                                           VkMemoryToImageCopy* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkImageToMemoryCopy(VulkanStream* vkStream, VkStructureType rootType,
+                                           VkImageToMemoryCopy* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkCopyMemoryToImageInfo(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkCopyMemoryToImageInfo* forUnmarshaling,
+                                               uint8_t** ptr);
+
+void reservedunmarshal_VkCopyImageToMemoryInfo(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkCopyImageToMemoryInfo* forUnmarshaling,
+                                               uint8_t** ptr);
+
+void reservedunmarshal_VkCopyImageToImageInfo(VulkanStream* vkStream, VkStructureType rootType,
+                                              VkCopyImageToImageInfo* forUnmarshaling,
+                                              uint8_t** ptr);
+
+void reservedunmarshal_VkHostImageLayoutTransitionInfo(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkHostImageLayoutTransitionInfo* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkSubresourceHostMemcpySize(VulkanStream* vkStream, VkStructureType rootType,
+                                                   VkSubresourceHostMemcpySize* forUnmarshaling,
+                                                   uint8_t** ptr);
+
+void reservedunmarshal_VkHostImageCopyDevicePerformanceQuery(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkHostImageCopyDevicePerformanceQuery* forUnmarshaling, uint8_t** ptr);
+
+#endif
 #ifdef VK_KHR_swapchain
 void reservedunmarshal_VkSwapchainCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
                                                 VkSwapchainCreateInfoKHR* forUnmarshaling,
@@ -1162,25 +1361,6 @@ DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceDynamicRenderingFeatures
 
 DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkCommandBufferInheritanceRenderingInfo,
                       reservedunmarshal_VkCommandBufferInheritanceRenderingInfoKHR)
-
-void reservedunmarshal_VkRenderingFragmentShadingRateAttachmentInfoKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkRenderingFragmentShadingRateAttachmentInfoKHR* forUnmarshaling, uint8_t** ptr);
-
-void reservedunmarshal_VkRenderingFragmentDensityMapAttachmentInfoEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkRenderingFragmentDensityMapAttachmentInfoEXT* forUnmarshaling, uint8_t** ptr);
-
-void reservedunmarshal_VkAttachmentSampleCountInfoAMD(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkAttachmentSampleCountInfoAMD* forUnmarshaling, uint8_t** ptr);
-
-DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkAttachmentSampleCountInfoAMD,
-                      reservedunmarshal_VkAttachmentSampleCountInfoNV)
-
-void reservedunmarshal_VkMultiviewPerViewAttributesInfoNVX(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkMultiviewPerViewAttributesInfoNVX* forUnmarshaling, uint8_t** ptr);
 
 #endif
 #ifdef VK_KHR_multiview
@@ -1450,17 +1630,14 @@ DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceShaderSubgroupExtendedTy
 
 #endif
 #ifdef VK_KHR_global_priority
-void reservedunmarshal_VkDeviceQueueGlobalPriorityCreateInfoKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkDeviceQueueGlobalPriorityCreateInfoKHR* forUnmarshaling, uint8_t** ptr);
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkDeviceQueueGlobalPriorityCreateInfo,
+                      reservedunmarshal_VkDeviceQueueGlobalPriorityCreateInfoKHR)
 
-void reservedunmarshal_VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR* forUnmarshaling, uint8_t** ptr);
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceGlobalPriorityQueryFeatures,
+                      reservedunmarshal_VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR)
 
-void reservedunmarshal_VkQueueFamilyGlobalPriorityPropertiesKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkQueueFamilyGlobalPriorityPropertiesKHR* forUnmarshaling, uint8_t** ptr);
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkQueueFamilyGlobalPriorityProperties,
+                      reservedunmarshal_VkQueueFamilyGlobalPriorityPropertiesKHR)
 
 #endif
 #ifdef VK_KHR_vulkan_memory_model
@@ -1555,13 +1732,6 @@ DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkCommandBufferSubmitInfo,
 DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceSynchronization2Features,
                       reservedunmarshal_VkPhysicalDeviceSynchronization2FeaturesKHR)
 
-void reservedunmarshal_VkQueueFamilyCheckpointProperties2NV(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkQueueFamilyCheckpointProperties2NV* forUnmarshaling, uint8_t** ptr);
-
-void reservedunmarshal_VkCheckpointData2NV(VulkanStream* vkStream, VkStructureType rootType,
-                                           VkCheckpointData2NV* forUnmarshaling, uint8_t** ptr);
-
 #endif
 #ifdef VK_KHR_zero_initialize_workgroup_memory
 DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures,
@@ -1615,51 +1785,40 @@ DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkDeviceImageMemoryRequirements,
 
 #endif
 #ifdef VK_KHR_maintenance5
-void reservedunmarshal_VkPhysicalDeviceMaintenance5FeaturesKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPhysicalDeviceMaintenance5FeaturesKHR* forUnmarshaling, uint8_t** ptr);
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceMaintenance5Features,
+                      reservedunmarshal_VkPhysicalDeviceMaintenance5FeaturesKHR)
 
-void reservedunmarshal_VkPhysicalDeviceMaintenance5PropertiesKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPhysicalDeviceMaintenance5PropertiesKHR* forUnmarshaling, uint8_t** ptr);
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceMaintenance5Properties,
+                      reservedunmarshal_VkPhysicalDeviceMaintenance5PropertiesKHR)
 
-void reservedunmarshal_VkRenderingAreaInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
-                                              VkRenderingAreaInfoKHR* forUnmarshaling,
-                                              uint8_t** ptr);
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkRenderingAreaInfo,
+                      reservedunmarshal_VkRenderingAreaInfoKHR)
 
-void reservedunmarshal_VkImageSubresource2KHR(VulkanStream* vkStream, VkStructureType rootType,
-                                              VkImageSubresource2KHR* forUnmarshaling,
-                                              uint8_t** ptr);
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkDeviceImageSubresourceInfo,
+                      reservedunmarshal_VkDeviceImageSubresourceInfoKHR)
 
-void reservedunmarshal_VkDeviceImageSubresourceInfoKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkDeviceImageSubresourceInfoKHR* forUnmarshaling, uint8_t** ptr);
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkImageSubresource2,
+                      reservedunmarshal_VkImageSubresource2KHR)
 
-void reservedunmarshal_VkSubresourceLayout2KHR(VulkanStream* vkStream, VkStructureType rootType,
-                                               VkSubresourceLayout2KHR* forUnmarshaling,
-                                               uint8_t** ptr);
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkSubresourceLayout2,
+                      reservedunmarshal_VkSubresourceLayout2KHR)
 
-void reservedunmarshal_VkPipelineCreateFlags2CreateInfoKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPipelineCreateFlags2CreateInfoKHR* forUnmarshaling, uint8_t** ptr);
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPipelineCreateFlags2CreateInfo,
+                      reservedunmarshal_VkPipelineCreateFlags2CreateInfoKHR)
 
-void reservedunmarshal_VkBufferUsageFlags2CreateInfoKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkBufferUsageFlags2CreateInfoKHR* forUnmarshaling, uint8_t** ptr);
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkBufferUsageFlags2CreateInfo,
+                      reservedunmarshal_VkBufferUsageFlags2CreateInfoKHR)
 
 #endif
 #ifdef VK_KHR_line_rasterization
-void reservedunmarshal_VkPhysicalDeviceLineRasterizationFeaturesKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPhysicalDeviceLineRasterizationFeaturesKHR* forUnmarshaling, uint8_t** ptr);
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceLineRasterizationFeatures,
+                      reservedunmarshal_VkPhysicalDeviceLineRasterizationFeaturesKHR)
 
-void reservedunmarshal_VkPhysicalDeviceLineRasterizationPropertiesKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPhysicalDeviceLineRasterizationPropertiesKHR* forUnmarshaling, uint8_t** ptr);
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceLineRasterizationProperties,
+                      reservedunmarshal_VkPhysicalDeviceLineRasterizationPropertiesKHR)
 
-void reservedunmarshal_VkPipelineRasterizationLineStateCreateInfoKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPipelineRasterizationLineStateCreateInfoKHR* forUnmarshaling, uint8_t** ptr);
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPipelineRasterizationLineStateCreateInfo,
+                      reservedunmarshal_VkPipelineRasterizationLineStateCreateInfoKHR)
 
 #endif
 #ifdef VK_ANDROID_native_buffer
@@ -1804,17 +1963,14 @@ void reservedunmarshal_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
     VulkanStream* vkStream, VkStructureType rootType,
     VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* forUnmarshaling, uint8_t** ptr);
 
-void reservedunmarshal_VkVertexInputBindingDivisorDescriptionEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkVertexInputBindingDivisorDescriptionEXT* forUnmarshaling, uint8_t** ptr);
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkVertexInputBindingDivisorDescription,
+                      reservedunmarshal_VkVertexInputBindingDivisorDescriptionEXT)
 
-void reservedunmarshal_VkPipelineVertexInputDivisorStateCreateInfoEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPipelineVertexInputDivisorStateCreateInfoEXT* forUnmarshaling, uint8_t** ptr);
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPipelineVertexInputDivisorStateCreateInfo,
+                      reservedunmarshal_VkPipelineVertexInputDivisorStateCreateInfoEXT)
 
-void reservedunmarshal_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* forUnmarshaling, uint8_t** ptr);
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceVertexAttributeDivisorFeatures,
+                      reservedunmarshal_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT)
 
 #endif
 #ifdef VK_EXT_pipeline_creation_feedback
@@ -1837,6 +1993,10 @@ void reservedunmarshal_VkPhysicalDeviceFragmentDensityMapPropertiesEXT(
 void reservedunmarshal_VkRenderPassFragmentDensityMapCreateInfoEXT(
     VulkanStream* vkStream, VkStructureType rootType,
     VkRenderPassFragmentDensityMapCreateInfoEXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkRenderingFragmentDensityMapAttachmentInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRenderingFragmentDensityMapAttachmentInfoEXT* forUnmarshaling, uint8_t** ptr);
 
 #endif
 #ifdef VK_EXT_scalar_block_layout
@@ -1881,20 +2041,19 @@ void reservedunmarshal_VkPipelineRasterizationProvokingVertexStateCreateInfoEXT(
 
 #endif
 #ifdef VK_EXT_line_rasterization
-DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceLineRasterizationFeaturesKHR,
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceLineRasterizationFeatures,
                       reservedunmarshal_VkPhysicalDeviceLineRasterizationFeaturesEXT)
 
-DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceLineRasterizationPropertiesKHR,
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceLineRasterizationProperties,
                       reservedunmarshal_VkPhysicalDeviceLineRasterizationPropertiesEXT)
 
-DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPipelineRasterizationLineStateCreateInfoKHR,
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPipelineRasterizationLineStateCreateInfo,
                       reservedunmarshal_VkPipelineRasterizationLineStateCreateInfoEXT)
 
 #endif
 #ifdef VK_EXT_index_type_uint8
-void reservedunmarshal_VkPhysicalDeviceIndexTypeUint8FeaturesEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPhysicalDeviceIndexTypeUint8FeaturesEXT* forUnmarshaling, uint8_t** ptr);
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceIndexTypeUint8Features,
+                      reservedunmarshal_VkPhysicalDeviceIndexTypeUint8FeaturesEXT)
 
 #endif
 #ifdef VK_EXT_extended_dynamic_state
@@ -1904,50 +2063,40 @@ void reservedunmarshal_VkPhysicalDeviceExtendedDynamicStateFeaturesEXT(
 
 #endif
 #ifdef VK_EXT_host_image_copy
-void reservedunmarshal_VkPhysicalDeviceHostImageCopyFeaturesEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPhysicalDeviceHostImageCopyFeaturesEXT* forUnmarshaling, uint8_t** ptr);
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceHostImageCopyFeatures,
+                      reservedunmarshal_VkPhysicalDeviceHostImageCopyFeaturesEXT)
 
-void reservedunmarshal_VkPhysicalDeviceHostImageCopyPropertiesEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPhysicalDeviceHostImageCopyPropertiesEXT* forUnmarshaling, uint8_t** ptr);
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceHostImageCopyProperties,
+                      reservedunmarshal_VkPhysicalDeviceHostImageCopyPropertiesEXT)
 
-void reservedunmarshal_VkMemoryToImageCopyEXT(VulkanStream* vkStream, VkStructureType rootType,
-                                              VkMemoryToImageCopyEXT* forUnmarshaling,
-                                              uint8_t** ptr);
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkMemoryToImageCopy,
+                      reservedunmarshal_VkMemoryToImageCopyEXT)
 
-void reservedunmarshal_VkImageToMemoryCopyEXT(VulkanStream* vkStream, VkStructureType rootType,
-                                              VkImageToMemoryCopyEXT* forUnmarshaling,
-                                              uint8_t** ptr);
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkImageToMemoryCopy,
+                      reservedunmarshal_VkImageToMemoryCopyEXT)
 
-void reservedunmarshal_VkCopyMemoryToImageInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
-                                                  VkCopyMemoryToImageInfoEXT* forUnmarshaling,
-                                                  uint8_t** ptr);
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkCopyMemoryToImageInfo,
+                      reservedunmarshal_VkCopyMemoryToImageInfoEXT)
 
-void reservedunmarshal_VkCopyImageToMemoryInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
-                                                  VkCopyImageToMemoryInfoEXT* forUnmarshaling,
-                                                  uint8_t** ptr);
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkCopyImageToMemoryInfo,
+                      reservedunmarshal_VkCopyImageToMemoryInfoEXT)
 
-void reservedunmarshal_VkCopyImageToImageInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
-                                                 VkCopyImageToImageInfoEXT* forUnmarshaling,
-                                                 uint8_t** ptr);
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkCopyImageToImageInfo,
+                      reservedunmarshal_VkCopyImageToImageInfoEXT)
 
-void reservedunmarshal_VkHostImageLayoutTransitionInfoEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkHostImageLayoutTransitionInfoEXT* forUnmarshaling, uint8_t** ptr);
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkHostImageLayoutTransitionInfo,
+                      reservedunmarshal_VkHostImageLayoutTransitionInfoEXT)
 
-void reservedunmarshal_VkSubresourceHostMemcpySizeEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkSubresourceHostMemcpySizeEXT* forUnmarshaling, uint8_t** ptr);
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkSubresourceHostMemcpySize,
+                      reservedunmarshal_VkSubresourceHostMemcpySizeEXT)
 
-void reservedunmarshal_VkHostImageCopyDevicePerformanceQueryEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkHostImageCopyDevicePerformanceQueryEXT* forUnmarshaling, uint8_t** ptr);
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkHostImageCopyDevicePerformanceQuery,
+                      reservedunmarshal_VkHostImageCopyDevicePerformanceQueryEXT)
 
-DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkSubresourceLayout2KHR,
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkSubresourceLayout2,
                       reservedunmarshal_VkSubresourceLayout2EXT)
 
-DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkImageSubresource2KHR,
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkImageSubresource2,
                       reservedunmarshal_VkImageSubresource2EXT)
 
 #endif

@@ -27,7 +27,7 @@
 #define VULKAN_HPP_NO_CONSTRUCTORS
 #define VULKAN_HPP_NO_EXCEPTIONS
 #define VULKAN_HPP_ASSERT_ON_RESULT
-#include <vulkan/vulkan_raii.hpp>
+#include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_to_string.hpp>
 
 #include "Expected.h"
@@ -180,7 +180,7 @@ class Vk {
     vkhpp::Device& device() { return *mDevice; }
 
   private:
-    Vk(vkhpp::DynamicLoader loader,
+    Vk(vkhpp::detail::DynamicLoader loader,
        vkhpp::UniqueInstance instance,
        std::optional<vkhpp::UniqueDebugUtilsMessengerEXT> debug,
        vkhpp::PhysicalDevice physical_device,
@@ -202,7 +202,7 @@ class Vk {
           mStagingBufferMemory(std::move(stagingBufferMemory)) {}
 
     // Note: order is important for destruction.
-    vkhpp::DynamicLoader mLoader;
+    vkhpp::detail::DynamicLoader mLoader;
     vkhpp::UniqueInstance mInstance;
     std::optional<vkhpp::UniqueDebugUtilsMessengerEXT> mDebugMessenger;
     vkhpp::PhysicalDevice mPhysicalDevice;

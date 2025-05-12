@@ -10318,6 +10318,1926 @@ void reservedunmarshal_VkDeviceImageMemoryRequirements(
 }
 
 #endif
+#ifdef VK_VERSION_1_4
+void reservedunmarshal_VkPhysicalDeviceVulkan14Features(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceVulkan14Features* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkBool32*)&forUnmarshaling->globalPriorityQuery, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->shaderSubgroupRotate, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->shaderSubgroupRotateClustered, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->shaderFloatControls2, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->shaderExpectAssume, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->rectangularLines, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->bresenhamLines, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->smoothLines, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->stippledRectangularLines, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->stippledBresenhamLines, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->stippledSmoothLines, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->vertexAttributeInstanceRateDivisor, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->vertexAttributeInstanceRateZeroDivisor, *ptr,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->indexTypeUint8, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->dynamicRenderingLocalRead, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->maintenance5, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->maintenance6, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->pipelineProtectedAccess, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->pipelineRobustness, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->hostImageCopy, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->pushDescriptor, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkPhysicalDeviceVulkan14Properties(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceVulkan14Properties* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((uint32_t*)&forUnmarshaling->lineSubPixelPrecisionBits, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((uint32_t*)&forUnmarshaling->maxVertexAttribDivisor, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((VkBool32*)&forUnmarshaling->supportsNonZeroFirstInstance, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((uint32_t*)&forUnmarshaling->maxPushDescriptors, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((VkBool32*)&forUnmarshaling->dynamicRenderingLocalReadDepthStencilAttachments, *ptr,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->dynamicRenderingLocalReadMultisampledAttachments, *ptr,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->earlyFragmentMultisampleCoverageAfterSampleCounting, *ptr,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->earlyFragmentSampleMaskTestBeforeSampleCounting, *ptr,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->depthStencilSwizzleOneSupport, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->polygonModePointSize, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->nonStrictSinglePixelWideLinesUseParallelogram, *ptr,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->nonStrictWideLinesUseParallelogram, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->blockTexelViewCompatibleMultipleLayers, *ptr,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((uint32_t*)&forUnmarshaling->maxCombinedImageSamplerDescriptorCount, *ptr,
+           sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((VkBool32*)&forUnmarshaling->fragmentShadingRateClampCombinerInputs, *ptr,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkPipelineRobustnessBufferBehavior*)&forUnmarshaling->defaultRobustnessStorageBuffers,
+           *ptr, sizeof(VkPipelineRobustnessBufferBehavior));
+    *ptr += sizeof(VkPipelineRobustnessBufferBehavior);
+    memcpy((VkPipelineRobustnessBufferBehavior*)&forUnmarshaling->defaultRobustnessUniformBuffers,
+           *ptr, sizeof(VkPipelineRobustnessBufferBehavior));
+    *ptr += sizeof(VkPipelineRobustnessBufferBehavior);
+    memcpy((VkPipelineRobustnessBufferBehavior*)&forUnmarshaling->defaultRobustnessVertexInputs,
+           *ptr, sizeof(VkPipelineRobustnessBufferBehavior));
+    *ptr += sizeof(VkPipelineRobustnessBufferBehavior);
+    memcpy((VkPipelineRobustnessImageBehavior*)&forUnmarshaling->defaultRobustnessImages, *ptr,
+           sizeof(VkPipelineRobustnessImageBehavior));
+    *ptr += sizeof(VkPipelineRobustnessImageBehavior);
+    memcpy((uint32_t*)&forUnmarshaling->copySrcLayoutCount, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    memcpy((VkImageLayout**)&forUnmarshaling->pCopySrcLayouts, (*ptr), 8);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pCopySrcLayouts);
+    *ptr += 8;
+    if (forUnmarshaling->pCopySrcLayouts) {
+        vkStream->alloc((void**)&forUnmarshaling->pCopySrcLayouts,
+                        forUnmarshaling->copySrcLayoutCount * sizeof(VkImageLayout));
+        memcpy((VkImageLayout*)forUnmarshaling->pCopySrcLayouts, *ptr,
+               forUnmarshaling->copySrcLayoutCount * sizeof(VkImageLayout));
+        *ptr += forUnmarshaling->copySrcLayoutCount * sizeof(VkImageLayout);
+    }
+    memcpy((uint32_t*)&forUnmarshaling->copyDstLayoutCount, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    memcpy((VkImageLayout**)&forUnmarshaling->pCopyDstLayouts, (*ptr), 8);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pCopyDstLayouts);
+    *ptr += 8;
+    if (forUnmarshaling->pCopyDstLayouts) {
+        vkStream->alloc((void**)&forUnmarshaling->pCopyDstLayouts,
+                        forUnmarshaling->copyDstLayoutCount * sizeof(VkImageLayout));
+        memcpy((VkImageLayout*)forUnmarshaling->pCopyDstLayouts, *ptr,
+               forUnmarshaling->copyDstLayoutCount * sizeof(VkImageLayout));
+        *ptr += forUnmarshaling->copyDstLayoutCount * sizeof(VkImageLayout);
+    }
+    memcpy((uint8_t*)forUnmarshaling->optimalTilingLayoutUUID, *ptr,
+           VK_UUID_SIZE * sizeof(uint8_t));
+    *ptr += VK_UUID_SIZE * sizeof(uint8_t);
+    memcpy((VkBool32*)&forUnmarshaling->identicalMemoryTypeRequirements, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkDeviceQueueGlobalPriorityCreateInfo(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDeviceQueueGlobalPriorityCreateInfo* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkQueueGlobalPriority*)&forUnmarshaling->globalPriority, *ptr,
+           sizeof(VkQueueGlobalPriority));
+    *ptr += sizeof(VkQueueGlobalPriority);
+}
+
+void reservedunmarshal_VkPhysicalDeviceGlobalPriorityQueryFeatures(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceGlobalPriorityQueryFeatures* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkBool32*)&forUnmarshaling->globalPriorityQuery, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkQueueFamilyGlobalPriorityProperties(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkQueueFamilyGlobalPriorityProperties* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((uint32_t*)&forUnmarshaling->priorityCount, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((VkQueueGlobalPriority*)forUnmarshaling->priorities, *ptr,
+           VK_MAX_GLOBAL_PRIORITY_SIZE * sizeof(VkQueueGlobalPriority));
+    *ptr += VK_MAX_GLOBAL_PRIORITY_SIZE * sizeof(VkQueueGlobalPriority);
+}
+
+void reservedunmarshal_VkPhysicalDeviceShaderSubgroupRotateFeatures(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceShaderSubgroupRotateFeatures* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkBool32*)&forUnmarshaling->shaderSubgroupRotate, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->shaderSubgroupRotateClustered, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkPhysicalDeviceShaderFloatControls2Features(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceShaderFloatControls2Features* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkBool32*)&forUnmarshaling->shaderFloatControls2, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkPhysicalDeviceShaderExpectAssumeFeatures(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceShaderExpectAssumeFeatures* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkBool32*)&forUnmarshaling->shaderExpectAssume, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkPhysicalDeviceLineRasterizationFeatures(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceLineRasterizationFeatures* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkBool32*)&forUnmarshaling->rectangularLines, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->bresenhamLines, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->smoothLines, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->stippledRectangularLines, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->stippledBresenhamLines, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->stippledSmoothLines, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkPhysicalDeviceLineRasterizationProperties(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceLineRasterizationProperties* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((uint32_t*)&forUnmarshaling->lineSubPixelPrecisionBits, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedunmarshal_VkPipelineRasterizationLineStateCreateInfo(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineRasterizationLineStateCreateInfo* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkLineRasterizationMode*)&forUnmarshaling->lineRasterizationMode, *ptr,
+           sizeof(VkLineRasterizationMode));
+    *ptr += sizeof(VkLineRasterizationMode);
+    memcpy((VkBool32*)&forUnmarshaling->stippledLineEnable, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((uint32_t*)&forUnmarshaling->lineStippleFactor, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((uint16_t*)&forUnmarshaling->lineStipplePattern, *ptr, sizeof(uint16_t));
+    *ptr += sizeof(uint16_t);
+}
+
+void reservedunmarshal_VkPhysicalDeviceVertexAttributeDivisorProperties(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceVertexAttributeDivisorProperties* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((uint32_t*)&forUnmarshaling->maxVertexAttribDivisor, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((VkBool32*)&forUnmarshaling->supportsNonZeroFirstInstance, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkVertexInputBindingDivisorDescription(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkVertexInputBindingDivisorDescription* forUnmarshaling, uint8_t** ptr) {
+    memcpy((uint32_t*)&forUnmarshaling->binding, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((uint32_t*)&forUnmarshaling->divisor, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedunmarshal_VkPipelineVertexInputDivisorStateCreateInfo(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineVertexInputDivisorStateCreateInfo* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((uint32_t*)&forUnmarshaling->vertexBindingDivisorCount, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    vkStream->alloc((void**)&forUnmarshaling->pVertexBindingDivisors,
+                    forUnmarshaling->vertexBindingDivisorCount *
+                        sizeof(const VkVertexInputBindingDivisorDescription));
+    for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->vertexBindingDivisorCount; ++i) {
+        reservedunmarshal_VkVertexInputBindingDivisorDescription(
+            vkStream, rootType,
+            (VkVertexInputBindingDivisorDescription*)(forUnmarshaling->pVertexBindingDivisors + i),
+            ptr);
+    }
+}
+
+void reservedunmarshal_VkPhysicalDeviceVertexAttributeDivisorFeatures(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceVertexAttributeDivisorFeatures* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkBool32*)&forUnmarshaling->vertexAttributeInstanceRateDivisor, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->vertexAttributeInstanceRateZeroDivisor, *ptr,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkPhysicalDeviceIndexTypeUint8Features(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceIndexTypeUint8Features* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkBool32*)&forUnmarshaling->indexTypeUint8, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkMemoryMapInfo(VulkanStream* vkStream, VkStructureType rootType,
+                                       VkMemoryMapInfo* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkMemoryMapFlags*)&forUnmarshaling->flags, *ptr, sizeof(VkMemoryMapFlags));
+    *ptr += sizeof(VkMemoryMapFlags);
+    uint64_t cgen_var_0;
+    memcpy((uint64_t*)&cgen_var_0, *ptr, 1 * 8);
+    *ptr += 1 * 8;
+    *(VkDeviceMemory*)&forUnmarshaling->memory =
+        (VkDeviceMemory)unbox_VkDeviceMemory((VkDeviceMemory)(*&cgen_var_0));
+    memcpy((VkDeviceSize*)&forUnmarshaling->offset, *ptr, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+    memcpy((VkDeviceSize*)&forUnmarshaling->size, *ptr, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+}
+
+void reservedunmarshal_VkMemoryUnmapInfo(VulkanStream* vkStream, VkStructureType rootType,
+                                         VkMemoryUnmapInfo* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkMemoryUnmapFlags*)&forUnmarshaling->flags, *ptr, sizeof(VkMemoryUnmapFlags));
+    *ptr += sizeof(VkMemoryUnmapFlags);
+    uint64_t cgen_var_0;
+    memcpy((uint64_t*)&cgen_var_0, *ptr, 1 * 8);
+    *ptr += 1 * 8;
+    *(VkDeviceMemory*)&forUnmarshaling->memory =
+        (VkDeviceMemory)unbox_VkDeviceMemory((VkDeviceMemory)(*&cgen_var_0));
+}
+
+void reservedunmarshal_VkPhysicalDeviceMaintenance5Features(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMaintenance5Features* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkBool32*)&forUnmarshaling->maintenance5, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkPhysicalDeviceMaintenance5Properties(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMaintenance5Properties* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkBool32*)&forUnmarshaling->earlyFragmentMultisampleCoverageAfterSampleCounting, *ptr,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->earlyFragmentSampleMaskTestBeforeSampleCounting, *ptr,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->depthStencilSwizzleOneSupport, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->polygonModePointSize, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->nonStrictSinglePixelWideLinesUseParallelogram, *ptr,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->nonStrictWideLinesUseParallelogram, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkRenderingAreaInfo(VulkanStream* vkStream, VkStructureType rootType,
+                                           VkRenderingAreaInfo* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((uint32_t*)&forUnmarshaling->viewMask, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((uint32_t*)&forUnmarshaling->colorAttachmentCount, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    memcpy((VkFormat**)&forUnmarshaling->pColorAttachmentFormats, (*ptr), 8);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pColorAttachmentFormats);
+    *ptr += 8;
+    if (forUnmarshaling->pColorAttachmentFormats) {
+        vkStream->alloc((void**)&forUnmarshaling->pColorAttachmentFormats,
+                        forUnmarshaling->colorAttachmentCount * sizeof(const VkFormat));
+        memcpy((VkFormat*)forUnmarshaling->pColorAttachmentFormats, *ptr,
+               forUnmarshaling->colorAttachmentCount * sizeof(const VkFormat));
+        *ptr += forUnmarshaling->colorAttachmentCount * sizeof(const VkFormat);
+    }
+    memcpy((VkFormat*)&forUnmarshaling->depthAttachmentFormat, *ptr, sizeof(VkFormat));
+    *ptr += sizeof(VkFormat);
+    memcpy((VkFormat*)&forUnmarshaling->stencilAttachmentFormat, *ptr, sizeof(VkFormat));
+    *ptr += sizeof(VkFormat);
+}
+
+void reservedunmarshal_VkImageSubresource2(VulkanStream* vkStream, VkStructureType rootType,
+                                           VkImageSubresource2* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    reservedunmarshal_VkImageSubresource(
+        vkStream, rootType, (VkImageSubresource*)(&forUnmarshaling->imageSubresource), ptr);
+}
+
+void reservedunmarshal_VkDeviceImageSubresourceInfo(VulkanStream* vkStream,
+                                                    VkStructureType rootType,
+                                                    VkDeviceImageSubresourceInfo* forUnmarshaling,
+                                                    uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    vkStream->alloc((void**)&forUnmarshaling->pCreateInfo, sizeof(const VkImageCreateInfo));
+    reservedunmarshal_VkImageCreateInfo(vkStream, rootType,
+                                        (VkImageCreateInfo*)(forUnmarshaling->pCreateInfo), ptr);
+    vkStream->alloc((void**)&forUnmarshaling->pSubresource, sizeof(const VkImageSubresource2));
+    reservedunmarshal_VkImageSubresource2(
+        vkStream, rootType, (VkImageSubresource2*)(forUnmarshaling->pSubresource), ptr);
+}
+
+void reservedunmarshal_VkSubresourceLayout2(VulkanStream* vkStream, VkStructureType rootType,
+                                            VkSubresourceLayout2* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    reservedunmarshal_VkSubresourceLayout(
+        vkStream, rootType, (VkSubresourceLayout*)(&forUnmarshaling->subresourceLayout), ptr);
+}
+
+void reservedunmarshal_VkPipelineCreateFlags2CreateInfo(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineCreateFlags2CreateInfo* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkPipelineCreateFlags2*)&forUnmarshaling->flags, *ptr, sizeof(VkPipelineCreateFlags2));
+    *ptr += sizeof(VkPipelineCreateFlags2);
+}
+
+void reservedunmarshal_VkBufferUsageFlags2CreateInfo(VulkanStream* vkStream,
+                                                     VkStructureType rootType,
+                                                     VkBufferUsageFlags2CreateInfo* forUnmarshaling,
+                                                     uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkBufferUsageFlags2*)&forUnmarshaling->usage, *ptr, sizeof(VkBufferUsageFlags2));
+    *ptr += sizeof(VkBufferUsageFlags2);
+}
+
+void reservedunmarshal_VkPhysicalDevicePushDescriptorProperties(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDevicePushDescriptorProperties* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((uint32_t*)&forUnmarshaling->maxPushDescriptors, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedunmarshal_VkPhysicalDeviceDynamicRenderingLocalReadFeatures(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceDynamicRenderingLocalReadFeatures* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkBool32*)&forUnmarshaling->dynamicRenderingLocalRead, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkRenderingAttachmentLocationInfo(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRenderingAttachmentLocationInfo* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((uint32_t*)&forUnmarshaling->colorAttachmentCount, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    memcpy((uint32_t**)&forUnmarshaling->pColorAttachmentLocations, (*ptr), 8);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pColorAttachmentLocations);
+    *ptr += 8;
+    if (forUnmarshaling->pColorAttachmentLocations) {
+        vkStream->alloc((void**)&forUnmarshaling->pColorAttachmentLocations,
+                        forUnmarshaling->colorAttachmentCount * sizeof(const uint32_t));
+        memcpy((uint32_t*)forUnmarshaling->pColorAttachmentLocations, *ptr,
+               forUnmarshaling->colorAttachmentCount * sizeof(const uint32_t));
+        *ptr += forUnmarshaling->colorAttachmentCount * sizeof(const uint32_t);
+    }
+}
+
+void reservedunmarshal_VkRenderingInputAttachmentIndexInfo(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRenderingInputAttachmentIndexInfo* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((uint32_t*)&forUnmarshaling->colorAttachmentCount, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    memcpy((uint32_t**)&forUnmarshaling->pColorAttachmentInputIndices, (*ptr), 8);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pColorAttachmentInputIndices);
+    *ptr += 8;
+    if (forUnmarshaling->pColorAttachmentInputIndices) {
+        vkStream->alloc((void**)&forUnmarshaling->pColorAttachmentInputIndices,
+                        forUnmarshaling->colorAttachmentCount * sizeof(const uint32_t));
+        memcpy((uint32_t*)forUnmarshaling->pColorAttachmentInputIndices, *ptr,
+               forUnmarshaling->colorAttachmentCount * sizeof(const uint32_t));
+        *ptr += forUnmarshaling->colorAttachmentCount * sizeof(const uint32_t);
+    }
+    // WARNING PTR CHECK
+    memcpy((uint32_t**)&forUnmarshaling->pDepthInputAttachmentIndex, (*ptr), 8);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pDepthInputAttachmentIndex);
+    *ptr += 8;
+    if (forUnmarshaling->pDepthInputAttachmentIndex) {
+        vkStream->alloc((void**)&forUnmarshaling->pDepthInputAttachmentIndex,
+                        sizeof(const uint32_t));
+        memcpy((uint32_t*)forUnmarshaling->pDepthInputAttachmentIndex, *ptr,
+               sizeof(const uint32_t));
+        *ptr += sizeof(const uint32_t);
+    }
+    // WARNING PTR CHECK
+    memcpy((uint32_t**)&forUnmarshaling->pStencilInputAttachmentIndex, (*ptr), 8);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pStencilInputAttachmentIndex);
+    *ptr += 8;
+    if (forUnmarshaling->pStencilInputAttachmentIndex) {
+        vkStream->alloc((void**)&forUnmarshaling->pStencilInputAttachmentIndex,
+                        sizeof(const uint32_t));
+        memcpy((uint32_t*)forUnmarshaling->pStencilInputAttachmentIndex, *ptr,
+               sizeof(const uint32_t));
+        *ptr += sizeof(const uint32_t);
+    }
+}
+
+void reservedunmarshal_VkPhysicalDeviceMaintenance6Features(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMaintenance6Features* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkBool32*)&forUnmarshaling->maintenance6, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkPhysicalDeviceMaintenance6Properties(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMaintenance6Properties* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkBool32*)&forUnmarshaling->blockTexelViewCompatibleMultipleLayers, *ptr,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((uint32_t*)&forUnmarshaling->maxCombinedImageSamplerDescriptorCount, *ptr,
+           sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((VkBool32*)&forUnmarshaling->fragmentShadingRateClampCombinerInputs, *ptr,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkBindMemoryStatus(VulkanStream* vkStream, VkStructureType rootType,
+                                          VkBindMemoryStatus* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    vkStream->alloc((void**)&forUnmarshaling->pResult, sizeof(VkResult));
+    memcpy((VkResult*)forUnmarshaling->pResult, *ptr, sizeof(VkResult));
+    *ptr += sizeof(VkResult);
+}
+
+void reservedunmarshal_VkBindDescriptorSetsInfo(VulkanStream* vkStream, VkStructureType rootType,
+                                                VkBindDescriptorSetsInfo* forUnmarshaling,
+                                                uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkShaderStageFlags*)&forUnmarshaling->stageFlags, *ptr, sizeof(VkShaderStageFlags));
+    *ptr += sizeof(VkShaderStageFlags);
+    uint64_t cgen_var_0;
+    memcpy((uint64_t*)&cgen_var_0, *ptr, 1 * 8);
+    *ptr += 1 * 8;
+    *(VkPipelineLayout*)&forUnmarshaling->layout =
+        (VkPipelineLayout)unbox_VkPipelineLayout((VkPipelineLayout)(*&cgen_var_0));
+    memcpy((uint32_t*)&forUnmarshaling->firstSet, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((uint32_t*)&forUnmarshaling->descriptorSetCount, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    vkStream->alloc((void**)&forUnmarshaling->pDescriptorSets,
+                    forUnmarshaling->descriptorSetCount * sizeof(const VkDescriptorSet));
+    if (forUnmarshaling->descriptorSetCount) {
+        uint8_t* cgen_var_1_ptr = (uint8_t*)(*ptr);
+        *ptr += 8 * forUnmarshaling->descriptorSetCount;
+        if (forUnmarshaling) {
+            for (uint32_t k = 0; k < forUnmarshaling->descriptorSetCount; ++k) {
+                uint64_t tmpval;
+                memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
+                *(((VkDescriptorSet*)forUnmarshaling->pDescriptorSets) + k) =
+                    tmpval ? (VkDescriptorSet)unbox_VkDescriptorSet((VkDescriptorSet)tmpval)
+                           : VK_NULL_HANDLE;
+            }
+        }
+    }
+    memcpy((uint32_t*)&forUnmarshaling->dynamicOffsetCount, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    memcpy((uint32_t**)&forUnmarshaling->pDynamicOffsets, (*ptr), 8);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pDynamicOffsets);
+    *ptr += 8;
+    if (forUnmarshaling->pDynamicOffsets) {
+        vkStream->alloc((void**)&forUnmarshaling->pDynamicOffsets,
+                        forUnmarshaling->dynamicOffsetCount * sizeof(const uint32_t));
+        memcpy((uint32_t*)forUnmarshaling->pDynamicOffsets, *ptr,
+               forUnmarshaling->dynamicOffsetCount * sizeof(const uint32_t));
+        *ptr += forUnmarshaling->dynamicOffsetCount * sizeof(const uint32_t);
+    }
+}
+
+void reservedunmarshal_VkPushConstantsInfo(VulkanStream* vkStream, VkStructureType rootType,
+                                           VkPushConstantsInfo* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    uint64_t cgen_var_0;
+    memcpy((uint64_t*)&cgen_var_0, *ptr, 1 * 8);
+    *ptr += 1 * 8;
+    *(VkPipelineLayout*)&forUnmarshaling->layout =
+        (VkPipelineLayout)unbox_VkPipelineLayout((VkPipelineLayout)(*&cgen_var_0));
+    memcpy((VkShaderStageFlags*)&forUnmarshaling->stageFlags, *ptr, sizeof(VkShaderStageFlags));
+    *ptr += sizeof(VkShaderStageFlags);
+    memcpy((uint32_t*)&forUnmarshaling->offset, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((uint32_t*)&forUnmarshaling->size, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    vkStream->alloc((void**)&forUnmarshaling->pValues,
+                    forUnmarshaling->size * sizeof(const uint8_t));
+    memcpy((void*)forUnmarshaling->pValues, *ptr, forUnmarshaling->size * sizeof(const uint8_t));
+    *ptr += forUnmarshaling->size * sizeof(const uint8_t);
+}
+
+void reservedunmarshal_VkPushDescriptorSetInfo(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkPushDescriptorSetInfo* forUnmarshaling,
+                                               uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkShaderStageFlags*)&forUnmarshaling->stageFlags, *ptr, sizeof(VkShaderStageFlags));
+    *ptr += sizeof(VkShaderStageFlags);
+    uint64_t cgen_var_0;
+    memcpy((uint64_t*)&cgen_var_0, *ptr, 1 * 8);
+    *ptr += 1 * 8;
+    *(VkPipelineLayout*)&forUnmarshaling->layout =
+        (VkPipelineLayout)unbox_VkPipelineLayout((VkPipelineLayout)(*&cgen_var_0));
+    memcpy((uint32_t*)&forUnmarshaling->set, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((uint32_t*)&forUnmarshaling->descriptorWriteCount, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    vkStream->alloc((void**)&forUnmarshaling->pDescriptorWrites,
+                    forUnmarshaling->descriptorWriteCount * sizeof(const VkWriteDescriptorSet));
+    for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->descriptorWriteCount; ++i) {
+        reservedunmarshal_VkWriteDescriptorSet(
+            vkStream, rootType, (VkWriteDescriptorSet*)(forUnmarshaling->pDescriptorWrites + i),
+            ptr);
+    }
+}
+
+void reservedunmarshal_VkPushDescriptorSetWithTemplateInfo(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPushDescriptorSetWithTemplateInfo* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    uint64_t cgen_var_0;
+    memcpy((uint64_t*)&cgen_var_0, *ptr, 1 * 8);
+    *ptr += 1 * 8;
+    *(VkDescriptorUpdateTemplate*)&forUnmarshaling->descriptorUpdateTemplate =
+        (VkDescriptorUpdateTemplate)unbox_VkDescriptorUpdateTemplate(
+            (VkDescriptorUpdateTemplate)(*&cgen_var_0));
+    uint64_t cgen_var_1;
+    memcpy((uint64_t*)&cgen_var_1, *ptr, 1 * 8);
+    *ptr += 1 * 8;
+    *(VkPipelineLayout*)&forUnmarshaling->layout =
+        (VkPipelineLayout)unbox_VkPipelineLayout((VkPipelineLayout)(*&cgen_var_1));
+    memcpy((uint32_t*)&forUnmarshaling->set, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    vkStream->alloc((void**)&forUnmarshaling->pData, sizeof(const uint8_t));
+    memcpy((void*)forUnmarshaling->pData, *ptr, sizeof(const uint8_t));
+    *ptr += sizeof(const uint8_t);
+}
+
+void reservedunmarshal_VkPhysicalDevicePipelineProtectedAccessFeatures(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDevicePipelineProtectedAccessFeatures* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkBool32*)&forUnmarshaling->pipelineProtectedAccess, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkPhysicalDevicePipelineRobustnessFeatures(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDevicePipelineRobustnessFeatures* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkBool32*)&forUnmarshaling->pipelineRobustness, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkPhysicalDevicePipelineRobustnessProperties(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDevicePipelineRobustnessProperties* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkPipelineRobustnessBufferBehavior*)&forUnmarshaling->defaultRobustnessStorageBuffers,
+           *ptr, sizeof(VkPipelineRobustnessBufferBehavior));
+    *ptr += sizeof(VkPipelineRobustnessBufferBehavior);
+    memcpy((VkPipelineRobustnessBufferBehavior*)&forUnmarshaling->defaultRobustnessUniformBuffers,
+           *ptr, sizeof(VkPipelineRobustnessBufferBehavior));
+    *ptr += sizeof(VkPipelineRobustnessBufferBehavior);
+    memcpy((VkPipelineRobustnessBufferBehavior*)&forUnmarshaling->defaultRobustnessVertexInputs,
+           *ptr, sizeof(VkPipelineRobustnessBufferBehavior));
+    *ptr += sizeof(VkPipelineRobustnessBufferBehavior);
+    memcpy((VkPipelineRobustnessImageBehavior*)&forUnmarshaling->defaultRobustnessImages, *ptr,
+           sizeof(VkPipelineRobustnessImageBehavior));
+    *ptr += sizeof(VkPipelineRobustnessImageBehavior);
+}
+
+void reservedunmarshal_VkPipelineRobustnessCreateInfo(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineRobustnessCreateInfo* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkPipelineRobustnessBufferBehavior*)&forUnmarshaling->storageBuffers, *ptr,
+           sizeof(VkPipelineRobustnessBufferBehavior));
+    *ptr += sizeof(VkPipelineRobustnessBufferBehavior);
+    memcpy((VkPipelineRobustnessBufferBehavior*)&forUnmarshaling->uniformBuffers, *ptr,
+           sizeof(VkPipelineRobustnessBufferBehavior));
+    *ptr += sizeof(VkPipelineRobustnessBufferBehavior);
+    memcpy((VkPipelineRobustnessBufferBehavior*)&forUnmarshaling->vertexInputs, *ptr,
+           sizeof(VkPipelineRobustnessBufferBehavior));
+    *ptr += sizeof(VkPipelineRobustnessBufferBehavior);
+    memcpy((VkPipelineRobustnessImageBehavior*)&forUnmarshaling->images, *ptr,
+           sizeof(VkPipelineRobustnessImageBehavior));
+    *ptr += sizeof(VkPipelineRobustnessImageBehavior);
+}
+
+void reservedunmarshal_VkPhysicalDeviceHostImageCopyFeatures(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceHostImageCopyFeatures* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkBool32*)&forUnmarshaling->hostImageCopy, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkPhysicalDeviceHostImageCopyProperties(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceHostImageCopyProperties* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((uint32_t*)&forUnmarshaling->copySrcLayoutCount, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    memcpy((VkImageLayout**)&forUnmarshaling->pCopySrcLayouts, (*ptr), 8);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pCopySrcLayouts);
+    *ptr += 8;
+    if (forUnmarshaling->pCopySrcLayouts) {
+        vkStream->alloc((void**)&forUnmarshaling->pCopySrcLayouts,
+                        forUnmarshaling->copySrcLayoutCount * sizeof(VkImageLayout));
+        memcpy((VkImageLayout*)forUnmarshaling->pCopySrcLayouts, *ptr,
+               forUnmarshaling->copySrcLayoutCount * sizeof(VkImageLayout));
+        *ptr += forUnmarshaling->copySrcLayoutCount * sizeof(VkImageLayout);
+    }
+    memcpy((uint32_t*)&forUnmarshaling->copyDstLayoutCount, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    memcpy((VkImageLayout**)&forUnmarshaling->pCopyDstLayouts, (*ptr), 8);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pCopyDstLayouts);
+    *ptr += 8;
+    if (forUnmarshaling->pCopyDstLayouts) {
+        vkStream->alloc((void**)&forUnmarshaling->pCopyDstLayouts,
+                        forUnmarshaling->copyDstLayoutCount * sizeof(VkImageLayout));
+        memcpy((VkImageLayout*)forUnmarshaling->pCopyDstLayouts, *ptr,
+               forUnmarshaling->copyDstLayoutCount * sizeof(VkImageLayout));
+        *ptr += forUnmarshaling->copyDstLayoutCount * sizeof(VkImageLayout);
+    }
+    memcpy((uint8_t*)forUnmarshaling->optimalTilingLayoutUUID, *ptr,
+           VK_UUID_SIZE * sizeof(uint8_t));
+    *ptr += VK_UUID_SIZE * sizeof(uint8_t);
+    memcpy((VkBool32*)&forUnmarshaling->identicalMemoryTypeRequirements, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkMemoryToImageCopy(VulkanStream* vkStream, VkStructureType rootType,
+                                           VkMemoryToImageCopy* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    vkStream->alloc((void**)&forUnmarshaling->pHostPointer, sizeof(const uint8_t));
+    memcpy((void*)forUnmarshaling->pHostPointer, *ptr, sizeof(const uint8_t));
+    *ptr += sizeof(const uint8_t);
+    memcpy((uint32_t*)&forUnmarshaling->memoryRowLength, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((uint32_t*)&forUnmarshaling->memoryImageHeight, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    reservedunmarshal_VkImageSubresourceLayers(
+        vkStream, rootType, (VkImageSubresourceLayers*)(&forUnmarshaling->imageSubresource), ptr);
+    reservedunmarshal_VkOffset3D(vkStream, rootType, (VkOffset3D*)(&forUnmarshaling->imageOffset),
+                                 ptr);
+    reservedunmarshal_VkExtent3D(vkStream, rootType, (VkExtent3D*)(&forUnmarshaling->imageExtent),
+                                 ptr);
+}
+
+void reservedunmarshal_VkImageToMemoryCopy(VulkanStream* vkStream, VkStructureType rootType,
+                                           VkImageToMemoryCopy* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    vkStream->alloc((void**)&forUnmarshaling->pHostPointer, sizeof(uint8_t));
+    memcpy((void*)forUnmarshaling->pHostPointer, *ptr, sizeof(uint8_t));
+    *ptr += sizeof(uint8_t);
+    memcpy((uint32_t*)&forUnmarshaling->memoryRowLength, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((uint32_t*)&forUnmarshaling->memoryImageHeight, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    reservedunmarshal_VkImageSubresourceLayers(
+        vkStream, rootType, (VkImageSubresourceLayers*)(&forUnmarshaling->imageSubresource), ptr);
+    reservedunmarshal_VkOffset3D(vkStream, rootType, (VkOffset3D*)(&forUnmarshaling->imageOffset),
+                                 ptr);
+    reservedunmarshal_VkExtent3D(vkStream, rootType, (VkExtent3D*)(&forUnmarshaling->imageExtent),
+                                 ptr);
+}
+
+void reservedunmarshal_VkCopyMemoryToImageInfo(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkCopyMemoryToImageInfo* forUnmarshaling,
+                                               uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkHostImageCopyFlags*)&forUnmarshaling->flags, *ptr, sizeof(VkHostImageCopyFlags));
+    *ptr += sizeof(VkHostImageCopyFlags);
+    uint64_t cgen_var_0;
+    memcpy((uint64_t*)&cgen_var_0, *ptr, 1 * 8);
+    *ptr += 1 * 8;
+    *(VkImage*)&forUnmarshaling->dstImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
+    memcpy((VkImageLayout*)&forUnmarshaling->dstImageLayout, *ptr, sizeof(VkImageLayout));
+    *ptr += sizeof(VkImageLayout);
+    memcpy((uint32_t*)&forUnmarshaling->regionCount, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    vkStream->alloc((void**)&forUnmarshaling->pRegions,
+                    forUnmarshaling->regionCount * sizeof(const VkMemoryToImageCopy));
+    for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->regionCount; ++i) {
+        reservedunmarshal_VkMemoryToImageCopy(
+            vkStream, rootType, (VkMemoryToImageCopy*)(forUnmarshaling->pRegions + i), ptr);
+    }
+}
+
+void reservedunmarshal_VkCopyImageToMemoryInfo(VulkanStream* vkStream, VkStructureType rootType,
+                                               VkCopyImageToMemoryInfo* forUnmarshaling,
+                                               uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkHostImageCopyFlags*)&forUnmarshaling->flags, *ptr, sizeof(VkHostImageCopyFlags));
+    *ptr += sizeof(VkHostImageCopyFlags);
+    uint64_t cgen_var_0;
+    memcpy((uint64_t*)&cgen_var_0, *ptr, 1 * 8);
+    *ptr += 1 * 8;
+    *(VkImage*)&forUnmarshaling->srcImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
+    memcpy((VkImageLayout*)&forUnmarshaling->srcImageLayout, *ptr, sizeof(VkImageLayout));
+    *ptr += sizeof(VkImageLayout);
+    memcpy((uint32_t*)&forUnmarshaling->regionCount, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    vkStream->alloc((void**)&forUnmarshaling->pRegions,
+                    forUnmarshaling->regionCount * sizeof(const VkImageToMemoryCopy));
+    for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->regionCount; ++i) {
+        reservedunmarshal_VkImageToMemoryCopy(
+            vkStream, rootType, (VkImageToMemoryCopy*)(forUnmarshaling->pRegions + i), ptr);
+    }
+}
+
+void reservedunmarshal_VkCopyImageToImageInfo(VulkanStream* vkStream, VkStructureType rootType,
+                                              VkCopyImageToImageInfo* forUnmarshaling,
+                                              uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkHostImageCopyFlags*)&forUnmarshaling->flags, *ptr, sizeof(VkHostImageCopyFlags));
+    *ptr += sizeof(VkHostImageCopyFlags);
+    uint64_t cgen_var_0;
+    memcpy((uint64_t*)&cgen_var_0, *ptr, 1 * 8);
+    *ptr += 1 * 8;
+    *(VkImage*)&forUnmarshaling->srcImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
+    memcpy((VkImageLayout*)&forUnmarshaling->srcImageLayout, *ptr, sizeof(VkImageLayout));
+    *ptr += sizeof(VkImageLayout);
+    uint64_t cgen_var_1;
+    memcpy((uint64_t*)&cgen_var_1, *ptr, 1 * 8);
+    *ptr += 1 * 8;
+    *(VkImage*)&forUnmarshaling->dstImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_1));
+    memcpy((VkImageLayout*)&forUnmarshaling->dstImageLayout, *ptr, sizeof(VkImageLayout));
+    *ptr += sizeof(VkImageLayout);
+    memcpy((uint32_t*)&forUnmarshaling->regionCount, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    vkStream->alloc((void**)&forUnmarshaling->pRegions,
+                    forUnmarshaling->regionCount * sizeof(const VkImageCopy2));
+    for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->regionCount; ++i) {
+        reservedunmarshal_VkImageCopy2(vkStream, rootType,
+                                       (VkImageCopy2*)(forUnmarshaling->pRegions + i), ptr);
+    }
+}
+
+void reservedunmarshal_VkHostImageLayoutTransitionInfo(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkHostImageLayoutTransitionInfo* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    uint64_t cgen_var_0;
+    memcpy((uint64_t*)&cgen_var_0, *ptr, 1 * 8);
+    *ptr += 1 * 8;
+    *(VkImage*)&forUnmarshaling->image = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
+    memcpy((VkImageLayout*)&forUnmarshaling->oldLayout, *ptr, sizeof(VkImageLayout));
+    *ptr += sizeof(VkImageLayout);
+    memcpy((VkImageLayout*)&forUnmarshaling->newLayout, *ptr, sizeof(VkImageLayout));
+    *ptr += sizeof(VkImageLayout);
+    reservedunmarshal_VkImageSubresourceRange(
+        vkStream, rootType, (VkImageSubresourceRange*)(&forUnmarshaling->subresourceRange), ptr);
+}
+
+void reservedunmarshal_VkSubresourceHostMemcpySize(VulkanStream* vkStream, VkStructureType rootType,
+                                                   VkSubresourceHostMemcpySize* forUnmarshaling,
+                                                   uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkDeviceSize*)&forUnmarshaling->size, *ptr, sizeof(VkDeviceSize));
+    *ptr += sizeof(VkDeviceSize);
+}
+
+void reservedunmarshal_VkHostImageCopyDevicePerformanceQuery(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkHostImageCopyDevicePerformanceQuery* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkBool32*)&forUnmarshaling->optimalDeviceAccess, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->identicalMemoryLayout, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+#endif
 #ifdef VK_KHR_swapchain
 void reservedunmarshal_VkSwapchainCreateInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
                                                 VkSwapchainCreateInfoKHR* forUnmarshaling,
@@ -10684,153 +12604,6 @@ void reservedunmarshal_VkDeviceGroupSwapchainCreateInfoKHR(
 }
 
 #endif
-#ifdef VK_KHR_dynamic_rendering
-void reservedunmarshal_VkRenderingFragmentShadingRateAttachmentInfoKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkRenderingFragmentShadingRateAttachmentInfoKHR* forUnmarshaling, uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    uint64_t cgen_var_0;
-    memcpy((uint64_t*)&cgen_var_0, *ptr, 1 * 8);
-    *ptr += 1 * 8;
-    *(VkImageView*)&forUnmarshaling->imageView =
-        (VkImageView)unbox_VkImageView((VkImageView)(*&cgen_var_0));
-    memcpy((VkImageLayout*)&forUnmarshaling->imageLayout, *ptr, sizeof(VkImageLayout));
-    *ptr += sizeof(VkImageLayout);
-    reservedunmarshal_VkExtent2D(
-        vkStream, rootType, (VkExtent2D*)(&forUnmarshaling->shadingRateAttachmentTexelSize), ptr);
-}
-
-void reservedunmarshal_VkRenderingFragmentDensityMapAttachmentInfoEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkRenderingFragmentDensityMapAttachmentInfoEXT* forUnmarshaling, uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    uint64_t cgen_var_0;
-    memcpy((uint64_t*)&cgen_var_0, *ptr, 1 * 8);
-    *ptr += 1 * 8;
-    *(VkImageView*)&forUnmarshaling->imageView =
-        (VkImageView)unbox_VkImageView((VkImageView)(*&cgen_var_0));
-    memcpy((VkImageLayout*)&forUnmarshaling->imageLayout, *ptr, sizeof(VkImageLayout));
-    *ptr += sizeof(VkImageLayout);
-}
-
-void reservedunmarshal_VkAttachmentSampleCountInfoAMD(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkAttachmentSampleCountInfoAMD* forUnmarshaling, uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    memcpy((uint32_t*)&forUnmarshaling->colorAttachmentCount, *ptr, sizeof(uint32_t));
-    *ptr += sizeof(uint32_t);
-    // WARNING PTR CHECK
-    memcpy((VkSampleCountFlagBits**)&forUnmarshaling->pColorAttachmentSamples, (*ptr), 8);
-    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pColorAttachmentSamples);
-    *ptr += 8;
-    if (forUnmarshaling->pColorAttachmentSamples) {
-        vkStream->alloc(
-            (void**)&forUnmarshaling->pColorAttachmentSamples,
-            forUnmarshaling->colorAttachmentCount * sizeof(const VkSampleCountFlagBits));
-        memcpy((VkSampleCountFlagBits*)forUnmarshaling->pColorAttachmentSamples, *ptr,
-               forUnmarshaling->colorAttachmentCount * sizeof(const VkSampleCountFlagBits));
-        *ptr += forUnmarshaling->colorAttachmentCount * sizeof(const VkSampleCountFlagBits);
-    }
-    memcpy((VkSampleCountFlagBits*)&forUnmarshaling->depthStencilAttachmentSamples, *ptr,
-           sizeof(VkSampleCountFlagBits));
-    *ptr += sizeof(VkSampleCountFlagBits);
-}
-
-void reservedunmarshal_VkMultiviewPerViewAttributesInfoNVX(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkMultiviewPerViewAttributesInfoNVX* forUnmarshaling, uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    memcpy((VkBool32*)&forUnmarshaling->perViewAttributes, *ptr, sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-    memcpy((VkBool32*)&forUnmarshaling->perViewAttributesPositionXOnly, *ptr, sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-}
-
-#endif
 #ifdef VK_KHR_external_semaphore_fd
 void reservedunmarshal_VkImportSemaphoreFdInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
                                                   VkImportSemaphoreFdInfoKHR* forUnmarshaling,
@@ -11045,99 +12818,6 @@ void reservedunmarshal_VkFenceGetFdInfoKHR(VulkanStream* vkStream, VkStructureTy
     memcpy((VkExternalFenceHandleTypeFlagBits*)&forUnmarshaling->handleType, *ptr,
            sizeof(VkExternalFenceHandleTypeFlagBits));
     *ptr += sizeof(VkExternalFenceHandleTypeFlagBits);
-}
-
-#endif
-#ifdef VK_KHR_global_priority
-void reservedunmarshal_VkDeviceQueueGlobalPriorityCreateInfoKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkDeviceQueueGlobalPriorityCreateInfoKHR* forUnmarshaling, uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    memcpy((VkQueueGlobalPriorityKHR*)&forUnmarshaling->globalPriority, *ptr,
-           sizeof(VkQueueGlobalPriorityKHR));
-    *ptr += sizeof(VkQueueGlobalPriorityKHR);
-}
-
-void reservedunmarshal_VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR* forUnmarshaling, uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    memcpy((VkBool32*)&forUnmarshaling->globalPriorityQuery, *ptr, sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-}
-
-void reservedunmarshal_VkQueueFamilyGlobalPriorityPropertiesKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkQueueFamilyGlobalPriorityPropertiesKHR* forUnmarshaling, uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    memcpy((uint32_t*)&forUnmarshaling->priorityCount, *ptr, sizeof(uint32_t));
-    *ptr += sizeof(uint32_t);
-    memcpy((VkQueueGlobalPriorityKHR*)forUnmarshaling->priorities, *ptr,
-           VK_MAX_GLOBAL_PRIORITY_SIZE_KHR * sizeof(VkQueueGlobalPriorityKHR));
-    *ptr += VK_MAX_GLOBAL_PRIORITY_SIZE_KHR * sizeof(VkQueueGlobalPriorityKHR);
 }
 
 #endif
@@ -11403,450 +13083,6 @@ void reservedunmarshal_VkPipelineLibraryCreateInfoKHR(
             }
         }
     }
-}
-
-#endif
-#ifdef VK_KHR_synchronization2
-void reservedunmarshal_VkQueueFamilyCheckpointProperties2NV(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkQueueFamilyCheckpointProperties2NV* forUnmarshaling, uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    memcpy((VkPipelineStageFlags2*)&forUnmarshaling->checkpointExecutionStageMask, *ptr,
-           sizeof(VkPipelineStageFlags2));
-    *ptr += sizeof(VkPipelineStageFlags2);
-}
-
-void reservedunmarshal_VkCheckpointData2NV(VulkanStream* vkStream, VkStructureType rootType,
-                                           VkCheckpointData2NV* forUnmarshaling, uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    memcpy((VkPipelineStageFlags2*)&forUnmarshaling->stage, *ptr, sizeof(VkPipelineStageFlags2));
-    *ptr += sizeof(VkPipelineStageFlags2);
-    // WARNING PTR CHECK
-    memcpy((void**)&forUnmarshaling->pCheckpointMarker, (*ptr), 8);
-    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pCheckpointMarker);
-    *ptr += 8;
-    if (forUnmarshaling->pCheckpointMarker) {
-        vkStream->alloc((void**)&forUnmarshaling->pCheckpointMarker, sizeof(uint8_t));
-        memcpy((void*)forUnmarshaling->pCheckpointMarker, *ptr, sizeof(uint8_t));
-        *ptr += sizeof(uint8_t);
-    }
-}
-
-#endif
-#ifdef VK_KHR_maintenance5
-void reservedunmarshal_VkPhysicalDeviceMaintenance5FeaturesKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPhysicalDeviceMaintenance5FeaturesKHR* forUnmarshaling, uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    memcpy((VkBool32*)&forUnmarshaling->maintenance5, *ptr, sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-}
-
-void reservedunmarshal_VkPhysicalDeviceMaintenance5PropertiesKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPhysicalDeviceMaintenance5PropertiesKHR* forUnmarshaling, uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    memcpy((VkBool32*)&forUnmarshaling->earlyFragmentMultisampleCoverageAfterSampleCounting, *ptr,
-           sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-    memcpy((VkBool32*)&forUnmarshaling->earlyFragmentSampleMaskTestBeforeSampleCounting, *ptr,
-           sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-    memcpy((VkBool32*)&forUnmarshaling->depthStencilSwizzleOneSupport, *ptr, sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-    memcpy((VkBool32*)&forUnmarshaling->polygonModePointSize, *ptr, sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-    memcpy((VkBool32*)&forUnmarshaling->nonStrictSinglePixelWideLinesUseParallelogram, *ptr,
-           sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-    memcpy((VkBool32*)&forUnmarshaling->nonStrictWideLinesUseParallelogram, *ptr, sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-}
-
-void reservedunmarshal_VkRenderingAreaInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
-                                              VkRenderingAreaInfoKHR* forUnmarshaling,
-                                              uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    memcpy((uint32_t*)&forUnmarshaling->viewMask, *ptr, sizeof(uint32_t));
-    *ptr += sizeof(uint32_t);
-    memcpy((uint32_t*)&forUnmarshaling->colorAttachmentCount, *ptr, sizeof(uint32_t));
-    *ptr += sizeof(uint32_t);
-    // WARNING PTR CHECK
-    memcpy((VkFormat**)&forUnmarshaling->pColorAttachmentFormats, (*ptr), 8);
-    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pColorAttachmentFormats);
-    *ptr += 8;
-    if (forUnmarshaling->pColorAttachmentFormats) {
-        vkStream->alloc((void**)&forUnmarshaling->pColorAttachmentFormats,
-                        forUnmarshaling->colorAttachmentCount * sizeof(const VkFormat));
-        memcpy((VkFormat*)forUnmarshaling->pColorAttachmentFormats, *ptr,
-               forUnmarshaling->colorAttachmentCount * sizeof(const VkFormat));
-        *ptr += forUnmarshaling->colorAttachmentCount * sizeof(const VkFormat);
-    }
-    memcpy((VkFormat*)&forUnmarshaling->depthAttachmentFormat, *ptr, sizeof(VkFormat));
-    *ptr += sizeof(VkFormat);
-    memcpy((VkFormat*)&forUnmarshaling->stencilAttachmentFormat, *ptr, sizeof(VkFormat));
-    *ptr += sizeof(VkFormat);
-}
-
-void reservedunmarshal_VkImageSubresource2KHR(VulkanStream* vkStream, VkStructureType rootType,
-                                              VkImageSubresource2KHR* forUnmarshaling,
-                                              uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    reservedunmarshal_VkImageSubresource(
-        vkStream, rootType, (VkImageSubresource*)(&forUnmarshaling->imageSubresource), ptr);
-}
-
-void reservedunmarshal_VkDeviceImageSubresourceInfoKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkDeviceImageSubresourceInfoKHR* forUnmarshaling, uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    vkStream->alloc((void**)&forUnmarshaling->pCreateInfo, sizeof(const VkImageCreateInfo));
-    reservedunmarshal_VkImageCreateInfo(vkStream, rootType,
-                                        (VkImageCreateInfo*)(forUnmarshaling->pCreateInfo), ptr);
-    vkStream->alloc((void**)&forUnmarshaling->pSubresource, sizeof(const VkImageSubresource2KHR));
-    reservedunmarshal_VkImageSubresource2KHR(
-        vkStream, rootType, (VkImageSubresource2KHR*)(forUnmarshaling->pSubresource), ptr);
-}
-
-void reservedunmarshal_VkSubresourceLayout2KHR(VulkanStream* vkStream, VkStructureType rootType,
-                                               VkSubresourceLayout2KHR* forUnmarshaling,
-                                               uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    reservedunmarshal_VkSubresourceLayout(
-        vkStream, rootType, (VkSubresourceLayout*)(&forUnmarshaling->subresourceLayout), ptr);
-}
-
-void reservedunmarshal_VkPipelineCreateFlags2CreateInfoKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPipelineCreateFlags2CreateInfoKHR* forUnmarshaling, uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    memcpy((VkPipelineCreateFlags2KHR*)&forUnmarshaling->flags, *ptr,
-           sizeof(VkPipelineCreateFlags2KHR));
-    *ptr += sizeof(VkPipelineCreateFlags2KHR);
-}
-
-void reservedunmarshal_VkBufferUsageFlags2CreateInfoKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkBufferUsageFlags2CreateInfoKHR* forUnmarshaling, uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    memcpy((VkBufferUsageFlags2KHR*)&forUnmarshaling->usage, *ptr, sizeof(VkBufferUsageFlags2KHR));
-    *ptr += sizeof(VkBufferUsageFlags2KHR);
-}
-
-#endif
-#ifdef VK_KHR_line_rasterization
-void reservedunmarshal_VkPhysicalDeviceLineRasterizationFeaturesKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPhysicalDeviceLineRasterizationFeaturesKHR* forUnmarshaling, uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    memcpy((VkBool32*)&forUnmarshaling->rectangularLines, *ptr, sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-    memcpy((VkBool32*)&forUnmarshaling->bresenhamLines, *ptr, sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-    memcpy((VkBool32*)&forUnmarshaling->smoothLines, *ptr, sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-    memcpy((VkBool32*)&forUnmarshaling->stippledRectangularLines, *ptr, sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-    memcpy((VkBool32*)&forUnmarshaling->stippledBresenhamLines, *ptr, sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-    memcpy((VkBool32*)&forUnmarshaling->stippledSmoothLines, *ptr, sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-}
-
-void reservedunmarshal_VkPhysicalDeviceLineRasterizationPropertiesKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPhysicalDeviceLineRasterizationPropertiesKHR* forUnmarshaling, uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    memcpy((uint32_t*)&forUnmarshaling->lineSubPixelPrecisionBits, *ptr, sizeof(uint32_t));
-    *ptr += sizeof(uint32_t);
-}
-
-void reservedunmarshal_VkPipelineRasterizationLineStateCreateInfoKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPipelineRasterizationLineStateCreateInfoKHR* forUnmarshaling, uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    memcpy((VkLineRasterizationModeKHR*)&forUnmarshaling->lineRasterizationMode, *ptr,
-           sizeof(VkLineRasterizationModeKHR));
-    *ptr += sizeof(VkLineRasterizationModeKHR);
-    memcpy((VkBool32*)&forUnmarshaling->stippledLineEnable, *ptr, sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-    memcpy((uint32_t*)&forUnmarshaling->lineStippleFactor, *ptr, sizeof(uint32_t));
-    *ptr += sizeof(uint32_t);
-    memcpy((uint16_t*)&forUnmarshaling->lineStipplePattern, *ptr, sizeof(uint16_t));
-    *ptr += sizeof(uint16_t);
 }
 
 #endif
@@ -12300,7 +13536,17 @@ void reservedunmarshal_VkDebugUtilsMessengerCallbackDataEXT(
     }
     memcpy((int32_t*)&forUnmarshaling->messageIdNumber, *ptr, sizeof(int32_t));
     *ptr += sizeof(int32_t);
-    vkStream->loadStringInPlaceWithStreamPtr((char**)&forUnmarshaling->pMessage, ptr);
+    if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT) {
+        // WARNING PTR CHECK
+        memcpy((char**)&forUnmarshaling->pMessage, (*ptr), 8);
+        gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pMessage);
+        *ptr += 8;
+        if (forUnmarshaling->pMessage) {
+            vkStream->loadStringInPlaceWithStreamPtr((char**)&forUnmarshaling->pMessage, ptr);
+        }
+    } else {
+        vkStream->loadStringInPlaceWithStreamPtr((char**)&forUnmarshaling->pMessage, ptr);
+    }
     memcpy((uint32_t*)&forUnmarshaling->queueLabelCount, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pQueueLabels,
@@ -12805,86 +14051,6 @@ void reservedunmarshal_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
     *ptr += sizeof(uint32_t);
 }
 
-void reservedunmarshal_VkVertexInputBindingDivisorDescriptionEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkVertexInputBindingDivisorDescriptionEXT* forUnmarshaling, uint8_t** ptr) {
-    memcpy((uint32_t*)&forUnmarshaling->binding, *ptr, sizeof(uint32_t));
-    *ptr += sizeof(uint32_t);
-    memcpy((uint32_t*)&forUnmarshaling->divisor, *ptr, sizeof(uint32_t));
-    *ptr += sizeof(uint32_t);
-}
-
-void reservedunmarshal_VkPipelineVertexInputDivisorStateCreateInfoEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPipelineVertexInputDivisorStateCreateInfoEXT* forUnmarshaling, uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    memcpy((uint32_t*)&forUnmarshaling->vertexBindingDivisorCount, *ptr, sizeof(uint32_t));
-    *ptr += sizeof(uint32_t);
-    vkStream->alloc((void**)&forUnmarshaling->pVertexBindingDivisors,
-                    forUnmarshaling->vertexBindingDivisorCount *
-                        sizeof(const VkVertexInputBindingDivisorDescriptionEXT));
-    for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->vertexBindingDivisorCount; ++i) {
-        reservedunmarshal_VkVertexInputBindingDivisorDescriptionEXT(
-            vkStream, rootType,
-            (VkVertexInputBindingDivisorDescriptionEXT*)(forUnmarshaling->pVertexBindingDivisors +
-                                                         i),
-            ptr);
-    }
-}
-
-void reservedunmarshal_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* forUnmarshaling, uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    memcpy((VkBool32*)&forUnmarshaling->vertexAttributeInstanceRateDivisor, *ptr, sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-    memcpy((VkBool32*)&forUnmarshaling->vertexAttributeInstanceRateZeroDivisor, *ptr,
-           sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-}
-
 #endif
 #ifdef VK_EXT_fragment_density_map
 void reservedunmarshal_VkPhysicalDeviceFragmentDensityMapFeaturesEXT(
@@ -12985,6 +14151,40 @@ void reservedunmarshal_VkRenderPassFragmentDensityMapCreateInfoEXT(
     reservedunmarshal_VkAttachmentReference(
         vkStream, rootType,
         (VkAttachmentReference*)(&forUnmarshaling->fragmentDensityMapAttachment), ptr);
+}
+
+void reservedunmarshal_VkRenderingFragmentDensityMapAttachmentInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkRenderingFragmentDensityMapAttachmentInfoEXT* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    uint64_t cgen_var_0;
+    memcpy((uint64_t*)&cgen_var_0, *ptr, 1 * 8);
+    *ptr += 1 * 8;
+    *(VkImageView*)&forUnmarshaling->imageView =
+        (VkImageView)unbox_VkImageView((VkImageView)(*&cgen_var_0));
+    memcpy((VkImageLayout*)&forUnmarshaling->imageLayout, *ptr, sizeof(VkImageLayout));
+    *ptr += sizeof(VkImageLayout);
 }
 
 #endif
@@ -13133,37 +14333,6 @@ void reservedunmarshal_VkPipelineRasterizationProvokingVertexStateCreateInfoEXT(
 }
 
 #endif
-#ifdef VK_EXT_index_type_uint8
-void reservedunmarshal_VkPhysicalDeviceIndexTypeUint8FeaturesEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPhysicalDeviceIndexTypeUint8FeaturesEXT* forUnmarshaling, uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    memcpy((VkBool32*)&forUnmarshaling->indexTypeUint8, *ptr, sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-}
-
-#endif
 #ifdef VK_EXT_extended_dynamic_state
 void reservedunmarshal_VkPhysicalDeviceExtendedDynamicStateFeaturesEXT(
     VulkanStream* vkStream, VkStructureType rootType,
@@ -13191,410 +14360,6 @@ void reservedunmarshal_VkPhysicalDeviceExtendedDynamicStateFeaturesEXT(
                                            ptr);
     }
     memcpy((VkBool32*)&forUnmarshaling->extendedDynamicState, *ptr, sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-}
-
-#endif
-#ifdef VK_EXT_host_image_copy
-void reservedunmarshal_VkPhysicalDeviceHostImageCopyFeaturesEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPhysicalDeviceHostImageCopyFeaturesEXT* forUnmarshaling, uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    memcpy((VkBool32*)&forUnmarshaling->hostImageCopy, *ptr, sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-}
-
-void reservedunmarshal_VkPhysicalDeviceHostImageCopyPropertiesEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPhysicalDeviceHostImageCopyPropertiesEXT* forUnmarshaling, uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    memcpy((uint32_t*)&forUnmarshaling->copySrcLayoutCount, *ptr, sizeof(uint32_t));
-    *ptr += sizeof(uint32_t);
-    // WARNING PTR CHECK
-    memcpy((VkImageLayout**)&forUnmarshaling->pCopySrcLayouts, (*ptr), 8);
-    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pCopySrcLayouts);
-    *ptr += 8;
-    if (forUnmarshaling->pCopySrcLayouts) {
-        vkStream->alloc((void**)&forUnmarshaling->pCopySrcLayouts,
-                        forUnmarshaling->copySrcLayoutCount * sizeof(VkImageLayout));
-        memcpy((VkImageLayout*)forUnmarshaling->pCopySrcLayouts, *ptr,
-               forUnmarshaling->copySrcLayoutCount * sizeof(VkImageLayout));
-        *ptr += forUnmarshaling->copySrcLayoutCount * sizeof(VkImageLayout);
-    }
-    memcpy((uint32_t*)&forUnmarshaling->copyDstLayoutCount, *ptr, sizeof(uint32_t));
-    *ptr += sizeof(uint32_t);
-    // WARNING PTR CHECK
-    memcpy((VkImageLayout**)&forUnmarshaling->pCopyDstLayouts, (*ptr), 8);
-    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pCopyDstLayouts);
-    *ptr += 8;
-    if (forUnmarshaling->pCopyDstLayouts) {
-        vkStream->alloc((void**)&forUnmarshaling->pCopyDstLayouts,
-                        forUnmarshaling->copyDstLayoutCount * sizeof(VkImageLayout));
-        memcpy((VkImageLayout*)forUnmarshaling->pCopyDstLayouts, *ptr,
-               forUnmarshaling->copyDstLayoutCount * sizeof(VkImageLayout));
-        *ptr += forUnmarshaling->copyDstLayoutCount * sizeof(VkImageLayout);
-    }
-    memcpy((uint8_t*)forUnmarshaling->optimalTilingLayoutUUID, *ptr,
-           VK_UUID_SIZE * sizeof(uint8_t));
-    *ptr += VK_UUID_SIZE * sizeof(uint8_t);
-    memcpy((VkBool32*)&forUnmarshaling->identicalMemoryTypeRequirements, *ptr, sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-}
-
-void reservedunmarshal_VkMemoryToImageCopyEXT(VulkanStream* vkStream, VkStructureType rootType,
-                                              VkMemoryToImageCopyEXT* forUnmarshaling,
-                                              uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    vkStream->alloc((void**)&forUnmarshaling->pHostPointer, sizeof(const uint8_t));
-    memcpy((void*)forUnmarshaling->pHostPointer, *ptr, sizeof(const uint8_t));
-    *ptr += sizeof(const uint8_t);
-    memcpy((uint32_t*)&forUnmarshaling->memoryRowLength, *ptr, sizeof(uint32_t));
-    *ptr += sizeof(uint32_t);
-    memcpy((uint32_t*)&forUnmarshaling->memoryImageHeight, *ptr, sizeof(uint32_t));
-    *ptr += sizeof(uint32_t);
-    reservedunmarshal_VkImageSubresourceLayers(
-        vkStream, rootType, (VkImageSubresourceLayers*)(&forUnmarshaling->imageSubresource), ptr);
-    reservedunmarshal_VkOffset3D(vkStream, rootType, (VkOffset3D*)(&forUnmarshaling->imageOffset),
-                                 ptr);
-    reservedunmarshal_VkExtent3D(vkStream, rootType, (VkExtent3D*)(&forUnmarshaling->imageExtent),
-                                 ptr);
-}
-
-void reservedunmarshal_VkImageToMemoryCopyEXT(VulkanStream* vkStream, VkStructureType rootType,
-                                              VkImageToMemoryCopyEXT* forUnmarshaling,
-                                              uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    vkStream->alloc((void**)&forUnmarshaling->pHostPointer, sizeof(uint8_t));
-    memcpy((void*)forUnmarshaling->pHostPointer, *ptr, sizeof(uint8_t));
-    *ptr += sizeof(uint8_t);
-    memcpy((uint32_t*)&forUnmarshaling->memoryRowLength, *ptr, sizeof(uint32_t));
-    *ptr += sizeof(uint32_t);
-    memcpy((uint32_t*)&forUnmarshaling->memoryImageHeight, *ptr, sizeof(uint32_t));
-    *ptr += sizeof(uint32_t);
-    reservedunmarshal_VkImageSubresourceLayers(
-        vkStream, rootType, (VkImageSubresourceLayers*)(&forUnmarshaling->imageSubresource), ptr);
-    reservedunmarshal_VkOffset3D(vkStream, rootType, (VkOffset3D*)(&forUnmarshaling->imageOffset),
-                                 ptr);
-    reservedunmarshal_VkExtent3D(vkStream, rootType, (VkExtent3D*)(&forUnmarshaling->imageExtent),
-                                 ptr);
-}
-
-void reservedunmarshal_VkCopyMemoryToImageInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
-                                                  VkCopyMemoryToImageInfoEXT* forUnmarshaling,
-                                                  uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    memcpy((VkHostImageCopyFlagsEXT*)&forUnmarshaling->flags, *ptr,
-           sizeof(VkHostImageCopyFlagsEXT));
-    *ptr += sizeof(VkHostImageCopyFlagsEXT);
-    uint64_t cgen_var_0;
-    memcpy((uint64_t*)&cgen_var_0, *ptr, 1 * 8);
-    *ptr += 1 * 8;
-    *(VkImage*)&forUnmarshaling->dstImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
-    memcpy((VkImageLayout*)&forUnmarshaling->dstImageLayout, *ptr, sizeof(VkImageLayout));
-    *ptr += sizeof(VkImageLayout);
-    memcpy((uint32_t*)&forUnmarshaling->regionCount, *ptr, sizeof(uint32_t));
-    *ptr += sizeof(uint32_t);
-    vkStream->alloc((void**)&forUnmarshaling->pRegions,
-                    forUnmarshaling->regionCount * sizeof(const VkMemoryToImageCopyEXT));
-    for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->regionCount; ++i) {
-        reservedunmarshal_VkMemoryToImageCopyEXT(
-            vkStream, rootType, (VkMemoryToImageCopyEXT*)(forUnmarshaling->pRegions + i), ptr);
-    }
-}
-
-void reservedunmarshal_VkCopyImageToMemoryInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
-                                                  VkCopyImageToMemoryInfoEXT* forUnmarshaling,
-                                                  uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    memcpy((VkHostImageCopyFlagsEXT*)&forUnmarshaling->flags, *ptr,
-           sizeof(VkHostImageCopyFlagsEXT));
-    *ptr += sizeof(VkHostImageCopyFlagsEXT);
-    uint64_t cgen_var_0;
-    memcpy((uint64_t*)&cgen_var_0, *ptr, 1 * 8);
-    *ptr += 1 * 8;
-    *(VkImage*)&forUnmarshaling->srcImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
-    memcpy((VkImageLayout*)&forUnmarshaling->srcImageLayout, *ptr, sizeof(VkImageLayout));
-    *ptr += sizeof(VkImageLayout);
-    memcpy((uint32_t*)&forUnmarshaling->regionCount, *ptr, sizeof(uint32_t));
-    *ptr += sizeof(uint32_t);
-    vkStream->alloc((void**)&forUnmarshaling->pRegions,
-                    forUnmarshaling->regionCount * sizeof(const VkImageToMemoryCopyEXT));
-    for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->regionCount; ++i) {
-        reservedunmarshal_VkImageToMemoryCopyEXT(
-            vkStream, rootType, (VkImageToMemoryCopyEXT*)(forUnmarshaling->pRegions + i), ptr);
-    }
-}
-
-void reservedunmarshal_VkCopyImageToImageInfoEXT(VulkanStream* vkStream, VkStructureType rootType,
-                                                 VkCopyImageToImageInfoEXT* forUnmarshaling,
-                                                 uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    memcpy((VkHostImageCopyFlagsEXT*)&forUnmarshaling->flags, *ptr,
-           sizeof(VkHostImageCopyFlagsEXT));
-    *ptr += sizeof(VkHostImageCopyFlagsEXT);
-    uint64_t cgen_var_0;
-    memcpy((uint64_t*)&cgen_var_0, *ptr, 1 * 8);
-    *ptr += 1 * 8;
-    *(VkImage*)&forUnmarshaling->srcImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
-    memcpy((VkImageLayout*)&forUnmarshaling->srcImageLayout, *ptr, sizeof(VkImageLayout));
-    *ptr += sizeof(VkImageLayout);
-    uint64_t cgen_var_1;
-    memcpy((uint64_t*)&cgen_var_1, *ptr, 1 * 8);
-    *ptr += 1 * 8;
-    *(VkImage*)&forUnmarshaling->dstImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_1));
-    memcpy((VkImageLayout*)&forUnmarshaling->dstImageLayout, *ptr, sizeof(VkImageLayout));
-    *ptr += sizeof(VkImageLayout);
-    memcpy((uint32_t*)&forUnmarshaling->regionCount, *ptr, sizeof(uint32_t));
-    *ptr += sizeof(uint32_t);
-    vkStream->alloc((void**)&forUnmarshaling->pRegions,
-                    forUnmarshaling->regionCount * sizeof(const VkImageCopy2));
-    for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->regionCount; ++i) {
-        reservedunmarshal_VkImageCopy2(vkStream, rootType,
-                                       (VkImageCopy2*)(forUnmarshaling->pRegions + i), ptr);
-    }
-}
-
-void reservedunmarshal_VkHostImageLayoutTransitionInfoEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkHostImageLayoutTransitionInfoEXT* forUnmarshaling, uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    uint64_t cgen_var_0;
-    memcpy((uint64_t*)&cgen_var_0, *ptr, 1 * 8);
-    *ptr += 1 * 8;
-    *(VkImage*)&forUnmarshaling->image = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
-    memcpy((VkImageLayout*)&forUnmarshaling->oldLayout, *ptr, sizeof(VkImageLayout));
-    *ptr += sizeof(VkImageLayout);
-    memcpy((VkImageLayout*)&forUnmarshaling->newLayout, *ptr, sizeof(VkImageLayout));
-    *ptr += sizeof(VkImageLayout);
-    reservedunmarshal_VkImageSubresourceRange(
-        vkStream, rootType, (VkImageSubresourceRange*)(&forUnmarshaling->subresourceRange), ptr);
-}
-
-void reservedunmarshal_VkSubresourceHostMemcpySizeEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkSubresourceHostMemcpySizeEXT* forUnmarshaling, uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    memcpy((VkDeviceSize*)&forUnmarshaling->size, *ptr, sizeof(VkDeviceSize));
-    *ptr += sizeof(VkDeviceSize);
-}
-
-void reservedunmarshal_VkHostImageCopyDevicePerformanceQueryEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkHostImageCopyDevicePerformanceQueryEXT* forUnmarshaling, uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    memcpy((VkBool32*)&forUnmarshaling->optimalDeviceAccess, *ptr, sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-    memcpy((VkBool32*)&forUnmarshaling->identicalMemoryLayout, *ptr, sizeof(VkBool32));
     *ptr += sizeof(VkBool32);
 }
 
@@ -13656,17 +14421,23 @@ void reservedunmarshal_VkSwapchainPresentFenceInfoEXT(
     }
     memcpy((uint32_t*)&forUnmarshaling->swapchainCount, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
-    vkStream->alloc((void**)&forUnmarshaling->pFences,
-                    forUnmarshaling->swapchainCount * sizeof(const VkFence));
-    if (forUnmarshaling->swapchainCount) {
-        uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
-        *ptr += 8 * forUnmarshaling->swapchainCount;
-        if (forUnmarshaling) {
-            for (uint32_t k = 0; k < forUnmarshaling->swapchainCount; ++k) {
-                uint64_t tmpval;
-                memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
-                *(((VkFence*)forUnmarshaling->pFences) + k) =
-                    tmpval ? (VkFence)unbox_VkFence((VkFence)tmpval) : VK_NULL_HANDLE;
+    // WARNING PTR CHECK
+    memcpy((VkFence**)&forUnmarshaling->pFences, (*ptr), 8);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pFences);
+    *ptr += 8;
+    if (forUnmarshaling->pFences) {
+        vkStream->alloc((void**)&forUnmarshaling->pFences,
+                        forUnmarshaling->swapchainCount * sizeof(const VkFence));
+        if (forUnmarshaling->swapchainCount) {
+            uint8_t* cgen_var_0_0_ptr = (uint8_t*)(*ptr);
+            *ptr += 8 * forUnmarshaling->swapchainCount;
+            if (forUnmarshaling) {
+                for (uint32_t k = 0; k < forUnmarshaling->swapchainCount; ++k) {
+                    uint64_t tmpval;
+                    memcpy(&tmpval, cgen_var_0_0_ptr + k * 8, sizeof(uint64_t));
+                    *(((VkFence*)forUnmarshaling->pFences) + k) =
+                        tmpval ? (VkFence)unbox_VkFence((VkFence)tmpval) : VK_NULL_HANDLE;
+                }
             }
         }
     }
@@ -14674,6 +15445,12 @@ void reservedunmarshal_extension_struct(VulkanStream* vkStream, VkStructureType 
                 reinterpret_cast<VkShaderModuleCreateInfo*>(structExtension_out), ptr);
             break;
         }
+        case VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO: {
+            reservedunmarshal_VkPipelineLayoutCreateInfo(
+                vkStream, rootType,
+                reinterpret_cast<VkPipelineLayoutCreateInfo*>(structExtension_out), ptr);
+            break;
+        }
 #endif
 #ifdef VK_VERSION_1_1
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_PROPERTIES: {
@@ -15395,6 +16172,238 @@ void reservedunmarshal_extension_struct(VulkanStream* vkStream, VkStructureType 
             break;
         }
 #endif
+#ifdef VK_VERSION_1_4
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES: {
+            reservedunmarshal_VkPhysicalDeviceVulkan14Features(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceVulkan14Features*>(structExtension_out), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_PROPERTIES: {
+            reservedunmarshal_VkPhysicalDeviceVulkan14Properties(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceVulkan14Properties*>(structExtension_out), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DEVICE_QUEUE_GLOBAL_PRIORITY_CREATE_INFO: {
+            reservedunmarshal_VkDeviceQueueGlobalPriorityCreateInfo(
+                vkStream, rootType,
+                reinterpret_cast<VkDeviceQueueGlobalPriorityCreateInfo*>(structExtension_out), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GLOBAL_PRIORITY_QUERY_FEATURES: {
+            reservedunmarshal_VkPhysicalDeviceGlobalPriorityQueryFeatures(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceGlobalPriorityQueryFeatures*>(structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_QUEUE_FAMILY_GLOBAL_PRIORITY_PROPERTIES: {
+            reservedunmarshal_VkQueueFamilyGlobalPriorityProperties(
+                vkStream, rootType,
+                reinterpret_cast<VkQueueFamilyGlobalPriorityProperties*>(structExtension_out), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_ROTATE_FEATURES: {
+            reservedunmarshal_VkPhysicalDeviceShaderSubgroupRotateFeatures(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceShaderSubgroupRotateFeatures*>(
+                    structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_FLOAT_CONTROLS_2_FEATURES: {
+            reservedunmarshal_VkPhysicalDeviceShaderFloatControls2Features(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceShaderFloatControls2Features*>(
+                    structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_EXPECT_ASSUME_FEATURES: {
+            reservedunmarshal_VkPhysicalDeviceShaderExpectAssumeFeatures(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceShaderExpectAssumeFeatures*>(structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES: {
+            reservedunmarshal_VkPhysicalDeviceLineRasterizationFeatures(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceLineRasterizationFeatures*>(structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES: {
+            reservedunmarshal_VkPhysicalDeviceLineRasterizationProperties(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceLineRasterizationProperties*>(structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO: {
+            reservedunmarshal_VkPipelineRasterizationLineStateCreateInfo(
+                vkStream, rootType,
+                reinterpret_cast<VkPipelineRasterizationLineStateCreateInfo*>(structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES: {
+            reservedunmarshal_VkPhysicalDeviceVertexAttributeDivisorProperties(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceVertexAttributeDivisorProperties*>(
+                    structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO: {
+            reservedunmarshal_VkPipelineVertexInputDivisorStateCreateInfo(
+                vkStream, rootType,
+                reinterpret_cast<VkPipelineVertexInputDivisorStateCreateInfo*>(structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES: {
+            reservedunmarshal_VkPhysicalDeviceVertexAttributeDivisorFeatures(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceVertexAttributeDivisorFeatures*>(
+                    structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INDEX_TYPE_UINT8_FEATURES: {
+            reservedunmarshal_VkPhysicalDeviceIndexTypeUint8Features(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceIndexTypeUint8Features*>(structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_FEATURES: {
+            reservedunmarshal_VkPhysicalDeviceMaintenance5Features(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceMaintenance5Features*>(structExtension_out), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_PROPERTIES: {
+            reservedunmarshal_VkPhysicalDeviceMaintenance5Properties(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceMaintenance5Properties*>(structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_CREATE_FLAGS_2_CREATE_INFO: {
+            reservedunmarshal_VkPipelineCreateFlags2CreateInfo(
+                vkStream, rootType,
+                reinterpret_cast<VkPipelineCreateFlags2CreateInfo*>(structExtension_out), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_BUFFER_USAGE_FLAGS_2_CREATE_INFO: {
+            reservedunmarshal_VkBufferUsageFlags2CreateInfo(
+                vkStream, rootType,
+                reinterpret_cast<VkBufferUsageFlags2CreateInfo*>(structExtension_out), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PUSH_DESCRIPTOR_PROPERTIES: {
+            reservedunmarshal_VkPhysicalDevicePushDescriptorProperties(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDevicePushDescriptorProperties*>(structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_LOCAL_READ_FEATURES: {
+            reservedunmarshal_VkPhysicalDeviceDynamicRenderingLocalReadFeatures(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceDynamicRenderingLocalReadFeatures*>(
+                    structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_LOCATION_INFO: {
+            reservedunmarshal_VkRenderingAttachmentLocationInfo(
+                vkStream, rootType,
+                reinterpret_cast<VkRenderingAttachmentLocationInfo*>(structExtension_out), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_RENDERING_INPUT_ATTACHMENT_INDEX_INFO: {
+            reservedunmarshal_VkRenderingInputAttachmentIndexInfo(
+                vkStream, rootType,
+                reinterpret_cast<VkRenderingInputAttachmentIndexInfo*>(structExtension_out), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_6_FEATURES: {
+            reservedunmarshal_VkPhysicalDeviceMaintenance6Features(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceMaintenance6Features*>(structExtension_out), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_6_PROPERTIES: {
+            reservedunmarshal_VkPhysicalDeviceMaintenance6Properties(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceMaintenance6Properties*>(structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_BIND_MEMORY_STATUS: {
+            reservedunmarshal_VkBindMemoryStatus(
+                vkStream, rootType, reinterpret_cast<VkBindMemoryStatus*>(structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_PROTECTED_ACCESS_FEATURES: {
+            reservedunmarshal_VkPhysicalDevicePipelineProtectedAccessFeatures(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDevicePipelineProtectedAccessFeatures*>(
+                    structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_ROBUSTNESS_FEATURES: {
+            reservedunmarshal_VkPhysicalDevicePipelineRobustnessFeatures(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDevicePipelineRobustnessFeatures*>(structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_ROBUSTNESS_PROPERTIES: {
+            reservedunmarshal_VkPhysicalDevicePipelineRobustnessProperties(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDevicePipelineRobustnessProperties*>(
+                    structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_ROBUSTNESS_CREATE_INFO: {
+            reservedunmarshal_VkPipelineRobustnessCreateInfo(
+                vkStream, rootType,
+                reinterpret_cast<VkPipelineRobustnessCreateInfo*>(structExtension_out), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_IMAGE_COPY_FEATURES: {
+            reservedunmarshal_VkPhysicalDeviceHostImageCopyFeatures(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceHostImageCopyFeatures*>(structExtension_out), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_IMAGE_COPY_PROPERTIES: {
+            reservedunmarshal_VkPhysicalDeviceHostImageCopyProperties(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceHostImageCopyProperties*>(structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SUBRESOURCE_HOST_MEMCPY_SIZE: {
+            reservedunmarshal_VkSubresourceHostMemcpySize(
+                vkStream, rootType,
+                reinterpret_cast<VkSubresourceHostMemcpySize*>(structExtension_out), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_HOST_IMAGE_COPY_DEVICE_PERFORMANCE_QUERY: {
+            reservedunmarshal_VkHostImageCopyDevicePerformanceQuery(
+                vkStream, rootType,
+                reinterpret_cast<VkHostImageCopyDevicePerformanceQuery*>(structExtension_out), ptr);
+            break;
+        }
+#endif
 #ifdef VK_KHR_swapchain
         case VK_STRUCTURE_TYPE_IMAGE_SWAPCHAIN_CREATE_INFO_KHR: {
             reservedunmarshal_VkImageSwapchainCreateInfoKHR(
@@ -15421,64 +16430,10 @@ void reservedunmarshal_extension_struct(VulkanStream* vkStream, VkStructureType 
             break;
         }
 #endif
-#ifdef VK_KHR_dynamic_rendering
-        case VK_STRUCTURE_TYPE_RENDERING_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR: {
-            reservedunmarshal_VkRenderingFragmentShadingRateAttachmentInfoKHR(
-                vkStream, rootType,
-                reinterpret_cast<VkRenderingFragmentShadingRateAttachmentInfoKHR*>(
-                    structExtension_out),
-                ptr);
-            break;
-        }
-        case VK_STRUCTURE_TYPE_RENDERING_FRAGMENT_DENSITY_MAP_ATTACHMENT_INFO_EXT: {
-            reservedunmarshal_VkRenderingFragmentDensityMapAttachmentInfoEXT(
-                vkStream, rootType,
-                reinterpret_cast<VkRenderingFragmentDensityMapAttachmentInfoEXT*>(
-                    structExtension_out),
-                ptr);
-            break;
-        }
-        case VK_STRUCTURE_TYPE_ATTACHMENT_SAMPLE_COUNT_INFO_AMD: {
-            reservedunmarshal_VkAttachmentSampleCountInfoAMD(
-                vkStream, rootType,
-                reinterpret_cast<VkAttachmentSampleCountInfoAMD*>(structExtension_out), ptr);
-            break;
-        }
-        case VK_STRUCTURE_TYPE_MULTIVIEW_PER_VIEW_ATTRIBUTES_INFO_NVX: {
-            reservedunmarshal_VkMultiviewPerViewAttributesInfoNVX(
-                vkStream, rootType,
-                reinterpret_cast<VkMultiviewPerViewAttributesInfoNVX*>(structExtension_out), ptr);
-            break;
-        }
-#endif
 #ifdef VK_KHR_incremental_present
         case VK_STRUCTURE_TYPE_PRESENT_REGIONS_KHR: {
             reservedunmarshal_VkPresentRegionsKHR(
                 vkStream, rootType, reinterpret_cast<VkPresentRegionsKHR*>(structExtension_out),
-                ptr);
-            break;
-        }
-#endif
-#ifdef VK_KHR_global_priority
-        case VK_STRUCTURE_TYPE_DEVICE_QUEUE_GLOBAL_PRIORITY_CREATE_INFO_KHR: {
-            reservedunmarshal_VkDeviceQueueGlobalPriorityCreateInfoKHR(
-                vkStream, rootType,
-                reinterpret_cast<VkDeviceQueueGlobalPriorityCreateInfoKHR*>(structExtension_out),
-                ptr);
-            break;
-        }
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GLOBAL_PRIORITY_QUERY_FEATURES_KHR: {
-            reservedunmarshal_VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR(
-                vkStream, rootType,
-                reinterpret_cast<VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR*>(
-                    structExtension_out),
-                ptr);
-            break;
-        }
-        case VK_STRUCTURE_TYPE_QUEUE_FAMILY_GLOBAL_PRIORITY_PROPERTIES_KHR: {
-            reservedunmarshal_VkQueueFamilyGlobalPriorityPropertiesKHR(
-                vkStream, rootType,
-                reinterpret_cast<VkQueueFamilyGlobalPriorityPropertiesKHR*>(structExtension_out),
                 ptr);
             break;
         }
@@ -15498,68 +16453,6 @@ void reservedunmarshal_extension_struct(VulkanStream* vkStream, VkStructureType 
             reservedunmarshal_VkPipelineLibraryCreateInfoKHR(
                 vkStream, rootType,
                 reinterpret_cast<VkPipelineLibraryCreateInfoKHR*>(structExtension_out), ptr);
-            break;
-        }
-#endif
-#ifdef VK_KHR_synchronization2
-        case VK_STRUCTURE_TYPE_QUEUE_FAMILY_CHECKPOINT_PROPERTIES_2_NV: {
-            reservedunmarshal_VkQueueFamilyCheckpointProperties2NV(
-                vkStream, rootType,
-                reinterpret_cast<VkQueueFamilyCheckpointProperties2NV*>(structExtension_out), ptr);
-            break;
-        }
-#endif
-#ifdef VK_KHR_maintenance5
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_FEATURES_KHR: {
-            reservedunmarshal_VkPhysicalDeviceMaintenance5FeaturesKHR(
-                vkStream, rootType,
-                reinterpret_cast<VkPhysicalDeviceMaintenance5FeaturesKHR*>(structExtension_out),
-                ptr);
-            break;
-        }
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_PROPERTIES_KHR: {
-            reservedunmarshal_VkPhysicalDeviceMaintenance5PropertiesKHR(
-                vkStream, rootType,
-                reinterpret_cast<VkPhysicalDeviceMaintenance5PropertiesKHR*>(structExtension_out),
-                ptr);
-            break;
-        }
-        case VK_STRUCTURE_TYPE_PIPELINE_CREATE_FLAGS_2_CREATE_INFO_KHR: {
-            reservedunmarshal_VkPipelineCreateFlags2CreateInfoKHR(
-                vkStream, rootType,
-                reinterpret_cast<VkPipelineCreateFlags2CreateInfoKHR*>(structExtension_out), ptr);
-            break;
-        }
-        case VK_STRUCTURE_TYPE_BUFFER_USAGE_FLAGS_2_CREATE_INFO_KHR: {
-            reservedunmarshal_VkBufferUsageFlags2CreateInfoKHR(
-                vkStream, rootType,
-                reinterpret_cast<VkBufferUsageFlags2CreateInfoKHR*>(structExtension_out), ptr);
-            break;
-        }
-#endif
-#ifdef VK_KHR_line_rasterization
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_KHR: {
-            reservedunmarshal_VkPhysicalDeviceLineRasterizationFeaturesKHR(
-                vkStream, rootType,
-                reinterpret_cast<VkPhysicalDeviceLineRasterizationFeaturesKHR*>(
-                    structExtension_out),
-                ptr);
-            break;
-        }
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_KHR: {
-            reservedunmarshal_VkPhysicalDeviceLineRasterizationPropertiesKHR(
-                vkStream, rootType,
-                reinterpret_cast<VkPhysicalDeviceLineRasterizationPropertiesKHR*>(
-                    structExtension_out),
-                ptr);
-            break;
-        }
-        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_KHR: {
-            reservedunmarshal_VkPipelineRasterizationLineStateCreateInfoKHR(
-                vkStream, rootType,
-                reinterpret_cast<VkPipelineRasterizationLineStateCreateInfoKHR*>(
-                    structExtension_out),
-                ptr);
             break;
         }
 #endif
@@ -15698,22 +16591,6 @@ void reservedunmarshal_extension_struct(VulkanStream* vkStream, VkStructureType 
                 ptr);
             break;
         }
-        case VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_EXT: {
-            reservedunmarshal_VkPipelineVertexInputDivisorStateCreateInfoEXT(
-                vkStream, rootType,
-                reinterpret_cast<VkPipelineVertexInputDivisorStateCreateInfoEXT*>(
-                    structExtension_out),
-                ptr);
-            break;
-        }
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_EXT: {
-            reservedunmarshal_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
-                vkStream, rootType,
-                reinterpret_cast<VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT*>(
-                    structExtension_out),
-                ptr);
-            break;
-        }
 #endif
 #ifdef VK_EXT_fragment_density_map
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_FEATURES_EXT: {
@@ -15813,6 +16690,14 @@ void reservedunmarshal_extension_struct(VulkanStream* vkStream, VkStructureType 
             }
             break;
         }
+        case VK_STRUCTURE_TYPE_RENDERING_FRAGMENT_DENSITY_MAP_ATTACHMENT_INFO_EXT: {
+            reservedunmarshal_VkRenderingFragmentDensityMapAttachmentInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkRenderingFragmentDensityMapAttachmentInfoEXT*>(
+                    structExtension_out),
+                ptr);
+            break;
+        }
 #endif
 #ifdef VK_EXT_validation_features
         case VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT: {
@@ -15847,50 +16732,12 @@ void reservedunmarshal_extension_struct(VulkanStream* vkStream, VkStructureType 
             break;
         }
 #endif
-#ifdef VK_EXT_index_type_uint8
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INDEX_TYPE_UINT8_FEATURES_EXT: {
-            reservedunmarshal_VkPhysicalDeviceIndexTypeUint8FeaturesEXT(
-                vkStream, rootType,
-                reinterpret_cast<VkPhysicalDeviceIndexTypeUint8FeaturesEXT*>(structExtension_out),
-                ptr);
-            break;
-        }
-#endif
 #ifdef VK_EXT_extended_dynamic_state
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT: {
             reservedunmarshal_VkPhysicalDeviceExtendedDynamicStateFeaturesEXT(
                 vkStream, rootType,
                 reinterpret_cast<VkPhysicalDeviceExtendedDynamicStateFeaturesEXT*>(
                     structExtension_out),
-                ptr);
-            break;
-        }
-#endif
-#ifdef VK_EXT_host_image_copy
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_IMAGE_COPY_FEATURES_EXT: {
-            reservedunmarshal_VkPhysicalDeviceHostImageCopyFeaturesEXT(
-                vkStream, rootType,
-                reinterpret_cast<VkPhysicalDeviceHostImageCopyFeaturesEXT*>(structExtension_out),
-                ptr);
-            break;
-        }
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_IMAGE_COPY_PROPERTIES_EXT: {
-            reservedunmarshal_VkPhysicalDeviceHostImageCopyPropertiesEXT(
-                vkStream, rootType,
-                reinterpret_cast<VkPhysicalDeviceHostImageCopyPropertiesEXT*>(structExtension_out),
-                ptr);
-            break;
-        }
-        case VK_STRUCTURE_TYPE_SUBRESOURCE_HOST_MEMCPY_SIZE_EXT: {
-            reservedunmarshal_VkSubresourceHostMemcpySizeEXT(
-                vkStream, rootType,
-                reinterpret_cast<VkSubresourceHostMemcpySizeEXT*>(structExtension_out), ptr);
-            break;
-        }
-        case VK_STRUCTURE_TYPE_HOST_IMAGE_COPY_DEVICE_PERFORMANCE_QUERY_EXT: {
-            reservedunmarshal_VkHostImageCopyDevicePerformanceQueryEXT(
-                vkStream, rootType,
-                reinterpret_cast<VkHostImageCopyDevicePerformanceQueryEXT*>(structExtension_out),
                 ptr);
             break;
         }

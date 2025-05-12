@@ -518,7 +518,7 @@ class GfxstreamEnd2EndTest : public ::testing::TestWithParam<TestParams> {
    public:
     std::unique_ptr<GuestGlDispatchTable> SetupGuestGl();
     std::unique_ptr<GuestRenderControlDispatchTable> SetupGuestRc();
-    std::unique_ptr<vkhpp::DynamicLoader> SetupGuestVk();
+    std::unique_ptr<vkhpp::detail::DynamicLoader> SetupGuestVk();
 
     void SetUp() override;
 
@@ -575,7 +575,7 @@ class GfxstreamEnd2EndTest : public ::testing::TestWithParam<TestParams> {
     std::unique_ptr<SyncHelper> mSync;
     std::unique_ptr<GuestGlDispatchTable> mGl;
     std::unique_ptr<GuestRenderControlDispatchTable> mRc;
-    std::unique_ptr<vkhpp::DynamicLoader> mVk;
+    std::unique_ptr<vkhpp::detail::DynamicLoader> mVk;
 
     std::unique_ptr<KumquatInstance> mKumquatInstance = nullptr;
 };

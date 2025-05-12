@@ -1869,7 +1869,7 @@ TEST_P(GfxstreamEnd2EndVkTest, AcquireImageAndroidWithFenceAndSemaphore) {
     DoAcquireImageAndroidWithSync(/*withFence=*/true, /*withSemaphore=*/true);
 }
 
-VKAPI_ATTR void VKAPI_CALL MemoryReportCallback(const VkDeviceMemoryReportCallbackDataEXT*, void*) {
+VKAPI_ATTR void VKAPI_CALL MemoryReportCallback(const vkhpp::DeviceMemoryReportCallbackDataEXT*, void*) {
     // Unused
 }
 

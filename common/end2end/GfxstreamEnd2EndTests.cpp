@@ -199,11 +199,11 @@ std::unique_ptr<GuestRenderControlDispatchTable> GfxstreamEnd2EndTest::SetupGues
     return rc;
 }
 
-std::unique_ptr<vkhpp::DynamicLoader> GfxstreamEnd2EndTest::SetupGuestVk() {
+std::unique_ptr<vkhpp::detail::DynamicLoader> GfxstreamEnd2EndTest::SetupGuestVk() {
     const std::filesystem::path testDirectory = gfxstream::guest::getProgramDirectory();
     const std::string vkLibPath = (testDirectory / "vulkan.ranchu.so").string();
 
-    auto dl = std::make_unique<vkhpp::DynamicLoader>(vkLibPath);
+    auto dl = std::make_unique<vkhpp::detail::DynamicLoader>(vkLibPath);
     if (!dl->success()) {
         ALOGE("Failed to load Vulkan from: %s", vkLibPath.c_str());
         return nullptr;
