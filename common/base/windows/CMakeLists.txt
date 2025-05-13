@@ -41,7 +41,6 @@ endif()
 target_sources(
     gfxstream_common_base_windows_compat
     PRIVATE
-    src/asprintf.c
     src/files.cpp
     src/msvc-posix.c
     src/pread.cpp
