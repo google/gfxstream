@@ -19,7 +19,7 @@ llvm.toolchain(
 )
 use_repo(llvm, "llvm_toolchain")
 
-file_detector = use_repo_rule("//toolchain:file_detector.bzl", "file_detector")
+file_detector = use_repo_rule("//toolchain/bazel:file_detector.bzl", "file_detector")
 
 file_detector(
     name = "clang_detector",
