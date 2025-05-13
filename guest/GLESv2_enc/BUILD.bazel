@@ -1,0 +1,53 @@
+load("@protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
+load("@protobuf//bazel:proto_library.bzl", "proto_library")
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
+proto_library(
+    name = "gfxstream_guest_glesv2encoder_proto",
+    srcs = [
+        "ProgramBinary.proto",
+    ],
+)
+
+cc_proto_library(
+    name = "gfxstream_guest_glesv2encoder_cc_proto",
+    deps = [":gfxstream_guest_glesv2encoder_proto"],
+)
+
+cc_library(
+    name = "gfxstream_guest_glesv2_entries",
+    textual_hdrs = [
+        "gl2_entry.cpp",
+    ],
+    visibility = [
+        "//guest/GLESv2:__pkg__",
+    ],
+)
+
+cc_library(
+    name = "gfxstream_guest_glesv2encoder",
+    srcs = [
+        "GL2Encoder.cpp",
+        "GL2EncoderUtils.cpp",
+        "GLESv2Validation.cpp",
+        "IOStream2.cpp",
+        "gl2_client_context.cpp",
+        "gl2_enc.cpp",
+        "gl2_entry.cpp",
+    ],
+    hdrs = glob([
+        "**/*.h",
+    ]),
+    includes = [
+        ".",
+    ],
+    deps = [
+        ":gfxstream_guest_glesv2encoder_cc_proto",
+        "//guest/OpenglCodecCommon:gfxstream_guest_openglcodeccommon",
+        "@mesa//:mesa_gfxstream_guest_iostream",
+    ],
+)

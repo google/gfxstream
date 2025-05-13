@@ -16,14 +16,19 @@
 
 #include <GLES3/gl31.h>
 #include <assert.h>
-#include <cutils/properties.h>
-#include <cutils/trace.h>
+
 #include <poll.h>
 #include <qemu_pipe_bp.h>
 #include <time.h>
 #include <xf86drm.h>
 
 #include <atomic>
+
+#ifdef __ANDROID__
+#include <cutils/properties.h>
+#include <cutils/trace.h>
+#endif
+#include <hardware/gralloc.h>
 
 #include "ClientAPIExts.h"
 #include "EGLImage.h"
@@ -38,7 +43,6 @@
 #include "eglContext.h"
 #include "eglDisplay.h"
 #include "eglSync.h"
-#include "egl_ftable.h"
 #include "gfxstream/common/logging.h"
 #include "gfxstream/guest/GLClientState.h"
 #include "gfxstream/guest/GLSharedGroup.h"
@@ -693,7 +697,9 @@ static FrameTracingState sFrameTracingState;
 
 static void sFlushBufferAndCreateFence(
     HostConnection*, ExtendedRCEncoderContext* rcEnc, uint32_t rcSurface, uint32_t frameNumber, int* presentFenceFd) {
+#ifdef __ANDROID__
     atrace_int(ATRACE_TAG_GRAPHICS, "gfxstreamFrameNumber", (int32_t)frameNumber);
+#endif
 
     if (rcEnc->hasHostSideTracing()) {
         rcEnc->rcFlushWindowColorBufferAsyncWithFrameNumber(rcEnc, rcSurface, frameNumber);
@@ -1113,22 +1119,6 @@ EGLint eglGetError()
     return error;
 }
 
-__eglMustCastToProperFunctionPointerType eglGetProcAddress(const char *procname)
-{
-    // search in EGL function table
-    for (int i=0; i<egl_num_funcs; i++) {
-        if (!strcmp(egl_funcs_by_name[i].name, procname)) {
-            return (__eglMustCastToProperFunctionPointerType)egl_funcs_by_name[i].proc;
-        }
-    }
-
-    // look in gles client api's extensions table
-    return (__eglMustCastToProperFunctionPointerType)ClientAPIExts::getProcAddress(procname);
-
-    // Fail - function not found.
-    return NULL;
-}
-
 const char* eglQueryString(EGLDisplay dpy, EGLint name)
 {
     // EGL_BAD_DISPLAY is generated if display is not an EGL display connection, unless display is
@@ -1356,11 +1346,13 @@ EGLBoolean eglDestroySurface(EGLDisplay dpy, EGLSurface eglSurface)
 
 static float s_getNativeDpi() {
     float nativeDPI = 560.0f;
+#ifdef __ANDROID__
     const char* dpiPropName = "qemu.sf.lcd_density";
     char dpiProp[PROPERTY_VALUE_MAX];
     if (property_get(dpiPropName, dpiProp, NULL) > 0) {
         nativeDPI = atof(dpiProp);
     }
+#endif
     return nativeDPI;
 }
 
@@ -2584,4 +2576,22 @@ EGLint eglWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR eglsync, EGLint flags) {
     }
 
     return EGL_TRUE;
+}
+
+#include "egl_ftable.h"
+
+__eglMustCastToProperFunctionPointerType eglGetProcAddress(const char *procname)
+{
+    // search in EGL function table
+    for (int i=0; i<egl_num_funcs; i++) {
+        if (!strcmp(egl_funcs_by_name[i].name, procname)) {
+            return (__eglMustCastToProperFunctionPointerType)egl_funcs_by_name[i].proc;
+        }
+    }
+
+    // look in gles client api's extensions table
+    return (__eglMustCastToProperFunctionPointerType)ClientAPIExts::getProcAddress(procname);
+
+    // Fail - function not found.
+    return NULL;
 }

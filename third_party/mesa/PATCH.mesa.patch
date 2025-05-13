@@ -1,0 +1,15 @@
+diff --git a/include/android_stub/android/hardware_buffer.h b/include/android_stub/android/hardware_buffer.h
+index aa03b4b096e..7a51ede4736 100644
+--- a/include/android_stub/android/hardware_buffer.h
++++ b/include/android_stub/android/hardware_buffer.h
+@@ -51,6 +51,10 @@
+
+ #include <android/rect.h>
+
++#if !defined(__BIONIC__) && !defined(__INTRODUCED_IN)
++#define __INTRODUCED_IN(x)
++#endif
++
+ __BEGIN_DECLS
+
+ /**

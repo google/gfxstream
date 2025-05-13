@@ -1,0 +1,27 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
+cc_library(
+    name = "gfxstream_guest_qemupipe",
+    srcs = [
+        "qemu_pipe_common.cpp",
+        "qemu_pipe_guest.cpp",
+    ],
+    hdrs = glob([
+        "include/**/*.h",
+        "include-types/**/*.h",
+    ]),
+    defines = [
+        "GFXSTREAM_USE_COMMON_LOGGING",
+    ],
+    includes = [
+        "include",
+        "include-types",
+    ],
+    deps = [
+        "//common/logging:gfxstream_common_logging",
+    ],
+)

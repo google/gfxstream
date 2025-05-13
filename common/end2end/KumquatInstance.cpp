@@ -12,16 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-
 #include "KumquatInstance.h"
 
 #include <unistd.h>
 
-#include <filesystem>
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
-#include "aemu/base/Path.h"
+#include "TestDataUtils.h"
 
 using testing::Eq;
 
@@ -31,8 +29,7 @@ namespace tests {
 KumquatInstance::KumquatInstance() {}
 
 void KumquatInstance::SetUp(bool withGl, bool withVk, std::string features) {
-    const std::filesystem::path testDirectory = gfxstream::guest::getProgramDirectory();
-    const std::string kumquatCommand = (testDirectory / "kumquat").string();
+    const std::string kumquatCommand = GetTestDataPath("kumquat").string();
     const std::string renderer_features = "--renderer-features=" + features;
 
     std::string capset_names = "--capset-names=";

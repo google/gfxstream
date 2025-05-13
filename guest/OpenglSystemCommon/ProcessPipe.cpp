@@ -18,11 +18,11 @@
 
 #include <errno.h>
 #include <pthread.h>
-#include <qemu_pipe_bp.h>
 
 #include "HostConnection.h"
 
 #ifndef __Fuchsia__
+#include <qemu_pipe_bp.h>
 
 #include "QemuPipeStream.h"
 #include "VirtioGpuPipeStream.h"

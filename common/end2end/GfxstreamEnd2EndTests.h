@@ -464,19 +464,7 @@ struct PixelR8G8B8A8 {
 
 void RGBToYUV(uint8_t r, uint8_t g, uint8_t b, uint8_t* outY, uint8_t* outU, uint8_t* outV);
 
-constexpr std::vector<uint8_t> Fill(uint32_t w, uint32_t h, const PixelR8G8B8A8& pixel) {
-    std::vector<uint8_t> ret;
-    ret.reserve(w * h * 4);
-    for (uint32_t y = 0; y < h; y++) {
-        for (uint32_t x = 0; x < w; x++) {
-            ret.push_back(pixel.r);
-            ret.push_back(pixel.g);
-            ret.push_back(pixel.b);
-            ret.push_back(pixel.a);
-        }
-    }
-    return ret;
-}
+std::vector<uint8_t> Fill(uint32_t w, uint32_t h, const PixelR8G8B8A8& pixel);
 
 struct Image {
     uint32_t width;
