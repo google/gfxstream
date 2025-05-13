@@ -59,6 +59,7 @@ class VkReconstruction {
     void addHandles(const uint64_t* toAdd, uint32_t count);
     void removeHandles(const uint64_t* toRemove, uint32_t count, bool recursive = true);
 
+    void removeGrandChildren(const uint64_t handle);
     void removeDescendantsOfHandle(const uint64_t handle);
 
     void forEachHandleAddApi(const uint64_t* toProcess, uint32_t count,
