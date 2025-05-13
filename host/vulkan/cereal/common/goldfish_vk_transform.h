@@ -3537,53 +3537,5 @@ void transform_fromhost_VkPhysicalDeviceImageCompressionControlSwapchainFeatures
     VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT* toTransform);
 
 #endif
-#ifdef VK_KHR_ray_tracing_pipeline
-void transform_tohost_VkRayTracingShaderGroupCreateInfoKHR(
-    VkDecoderGlobalState* resourceTracker, VkRayTracingShaderGroupCreateInfoKHR* toTransform);
-
-void transform_fromhost_VkRayTracingShaderGroupCreateInfoKHR(
-    VkDecoderGlobalState* resourceTracker, VkRayTracingShaderGroupCreateInfoKHR* toTransform);
-
-void transform_tohost_VkRayTracingPipelineInterfaceCreateInfoKHR(
-    VkDecoderGlobalState* resourceTracker, VkRayTracingPipelineInterfaceCreateInfoKHR* toTransform);
-
-void transform_fromhost_VkRayTracingPipelineInterfaceCreateInfoKHR(
-    VkDecoderGlobalState* resourceTracker, VkRayTracingPipelineInterfaceCreateInfoKHR* toTransform);
-
-void transform_tohost_VkRayTracingPipelineCreateInfoKHR(
-    VkDecoderGlobalState* resourceTracker, VkRayTracingPipelineCreateInfoKHR* toTransform);
-
-void transform_fromhost_VkRayTracingPipelineCreateInfoKHR(
-    VkDecoderGlobalState* resourceTracker, VkRayTracingPipelineCreateInfoKHR* toTransform);
-
-void transform_tohost_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceRayTracingPipelineFeaturesKHR* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceRayTracingPipelineFeaturesKHR* toTransform);
-
-void transform_tohost_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceRayTracingPipelinePropertiesKHR* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceRayTracingPipelinePropertiesKHR* toTransform);
-
-void transform_tohost_VkStridedDeviceAddressRegionKHR(VkDecoderGlobalState* resourceTracker,
-                                                      VkStridedDeviceAddressRegionKHR* toTransform);
-
-void transform_fromhost_VkStridedDeviceAddressRegionKHR(
-    VkDecoderGlobalState* resourceTracker, VkStridedDeviceAddressRegionKHR* toTransform);
-
-void transform_tohost_VkTraceRaysIndirectCommandKHR(VkDecoderGlobalState* resourceTracker,
-                                                    VkTraceRaysIndirectCommandKHR* toTransform);
-
-void transform_fromhost_VkTraceRaysIndirectCommandKHR(VkDecoderGlobalState* resourceTracker,
-                                                      VkTraceRaysIndirectCommandKHR* toTransform);
-
-#endif
 }  // namespace vk
 }  // namespace gfxstream

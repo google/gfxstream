@@ -18911,389 +18911,6 @@ void unmarshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
 }
 
 #endif
-#ifdef VK_KHR_ray_tracing_pipeline
-void marshal_VkRayTracingShaderGroupCreateInfoKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    const VkRayTracingShaderGroupCreateInfoKHR* forMarshaling) {
-    (void)rootType;
-    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forMarshaling->sType;
-    }
-    marshal_extension_struct(vkStream, rootType, forMarshaling->pNext);
-    vkStream->write((VkRayTracingShaderGroupTypeKHR*)&forMarshaling->type,
-                    sizeof(VkRayTracingShaderGroupTypeKHR));
-    vkStream->write((uint32_t*)&forMarshaling->generalShader, sizeof(uint32_t));
-    vkStream->write((uint32_t*)&forMarshaling->closestHitShader, sizeof(uint32_t));
-    vkStream->write((uint32_t*)&forMarshaling->anyHitShader, sizeof(uint32_t));
-    vkStream->write((uint32_t*)&forMarshaling->intersectionShader, sizeof(uint32_t));
-    // WARNING PTR CHECK
-    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pShaderGroupCaptureReplayHandle;
-    vkStream->putBe64(cgen_var_0);
-    if (forMarshaling->pShaderGroupCaptureReplayHandle) {
-        vkStream->write((const void*)forMarshaling->pShaderGroupCaptureReplayHandle,
-                        sizeof(const uint8_t));
-    }
-}
-
-void unmarshal_VkRayTracingShaderGroupCreateInfoKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkRayTracingShaderGroupCreateInfoKHR* forUnmarshaling) {
-    (void)rootType;
-    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        vkStream->read((void*)forUnmarshaling->pNext, sizeof(VkStructureType));
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        unmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext));
-    }
-    vkStream->read((VkRayTracingShaderGroupTypeKHR*)&forUnmarshaling->type,
-                   sizeof(VkRayTracingShaderGroupTypeKHR));
-    vkStream->read((uint32_t*)&forUnmarshaling->generalShader, sizeof(uint32_t));
-    vkStream->read((uint32_t*)&forUnmarshaling->closestHitShader, sizeof(uint32_t));
-    vkStream->read((uint32_t*)&forUnmarshaling->anyHitShader, sizeof(uint32_t));
-    vkStream->read((uint32_t*)&forUnmarshaling->intersectionShader, sizeof(uint32_t));
-    // WARNING PTR CHECK
-    forUnmarshaling->pShaderGroupCaptureReplayHandle = (const void*)(uintptr_t)vkStream->getBe64();
-    if (forUnmarshaling->pShaderGroupCaptureReplayHandle) {
-        vkStream->alloc((void**)&forUnmarshaling->pShaderGroupCaptureReplayHandle,
-                        sizeof(const uint8_t));
-        vkStream->read((void*)forUnmarshaling->pShaderGroupCaptureReplayHandle,
-                       sizeof(const uint8_t));
-    }
-}
-
-void marshal_VkRayTracingPipelineInterfaceCreateInfoKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    const VkRayTracingPipelineInterfaceCreateInfoKHR* forMarshaling) {
-    (void)rootType;
-    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forMarshaling->sType;
-    }
-    marshal_extension_struct(vkStream, rootType, forMarshaling->pNext);
-    vkStream->write((uint32_t*)&forMarshaling->maxPipelineRayPayloadSize, sizeof(uint32_t));
-    vkStream->write((uint32_t*)&forMarshaling->maxPipelineRayHitAttributeSize, sizeof(uint32_t));
-}
-
-void unmarshal_VkRayTracingPipelineInterfaceCreateInfoKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkRayTracingPipelineInterfaceCreateInfoKHR* forUnmarshaling) {
-    (void)rootType;
-    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        vkStream->read((void*)forUnmarshaling->pNext, sizeof(VkStructureType));
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        unmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext));
-    }
-    vkStream->read((uint32_t*)&forUnmarshaling->maxPipelineRayPayloadSize, sizeof(uint32_t));
-    vkStream->read((uint32_t*)&forUnmarshaling->maxPipelineRayHitAttributeSize, sizeof(uint32_t));
-}
-
-void marshal_VkRayTracingPipelineCreateInfoKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    const VkRayTracingPipelineCreateInfoKHR* forMarshaling) {
-    (void)rootType;
-    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forMarshaling->sType;
-    }
-    marshal_extension_struct(vkStream, rootType, forMarshaling->pNext);
-    vkStream->write((VkPipelineCreateFlags*)&forMarshaling->flags, sizeof(VkPipelineCreateFlags));
-    vkStream->write((uint32_t*)&forMarshaling->stageCount, sizeof(uint32_t));
-    if (forMarshaling) {
-        for (uint32_t i = 0; i < (uint32_t)forMarshaling->stageCount; ++i) {
-            marshal_VkPipelineShaderStageCreateInfo(
-                vkStream, rootType,
-                (const VkPipelineShaderStageCreateInfo*)(forMarshaling->pStages + i));
-        }
-    }
-    vkStream->write((uint32_t*)&forMarshaling->groupCount, sizeof(uint32_t));
-    if (forMarshaling) {
-        for (uint32_t i = 0; i < (uint32_t)forMarshaling->groupCount; ++i) {
-            marshal_VkRayTracingShaderGroupCreateInfoKHR(
-                vkStream, rootType,
-                (const VkRayTracingShaderGroupCreateInfoKHR*)(forMarshaling->pGroups + i));
-        }
-    }
-    vkStream->write((uint32_t*)&forMarshaling->maxPipelineRayRecursionDepth, sizeof(uint32_t));
-    // WARNING PTR CHECK
-    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pLibraryInfo;
-    vkStream->putBe64(cgen_var_0);
-    if (forMarshaling->pLibraryInfo) {
-        marshal_VkPipelineLibraryCreateInfoKHR(
-            vkStream, rootType,
-            (const VkPipelineLibraryCreateInfoKHR*)(forMarshaling->pLibraryInfo));
-    }
-    // WARNING PTR CHECK
-    uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->pLibraryInterface;
-    vkStream->putBe64(cgen_var_1);
-    if (forMarshaling->pLibraryInterface) {
-        marshal_VkRayTracingPipelineInterfaceCreateInfoKHR(
-            vkStream, rootType,
-            (const VkRayTracingPipelineInterfaceCreateInfoKHR*)(forMarshaling->pLibraryInterface));
-    }
-    // WARNING PTR CHECK
-    uint64_t cgen_var_2 = (uint64_t)(uintptr_t)forMarshaling->pDynamicState;
-    vkStream->putBe64(cgen_var_2);
-    if (forMarshaling->pDynamicState) {
-        marshal_VkPipelineDynamicStateCreateInfo(
-            vkStream, rootType,
-            (const VkPipelineDynamicStateCreateInfo*)(forMarshaling->pDynamicState));
-    }
-    uint64_t cgen_var_3;
-    vkStream->handleMapping()->mapHandles_VkPipelineLayout_u64(&forMarshaling->layout, &cgen_var_3,
-                                                               1);
-    vkStream->write((uint64_t*)&cgen_var_3, 1 * 8);
-    uint64_t cgen_var_4;
-    vkStream->handleMapping()->mapHandles_VkPipeline_u64(&forMarshaling->basePipelineHandle,
-                                                         &cgen_var_4, 1);
-    vkStream->write((uint64_t*)&cgen_var_4, 1 * 8);
-    vkStream->write((int32_t*)&forMarshaling->basePipelineIndex, sizeof(int32_t));
-}
-
-void unmarshal_VkRayTracingPipelineCreateInfoKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkRayTracingPipelineCreateInfoKHR* forUnmarshaling) {
-    (void)rootType;
-    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        vkStream->read((void*)forUnmarshaling->pNext, sizeof(VkStructureType));
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        unmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext));
-    }
-    vkStream->read((VkPipelineCreateFlags*)&forUnmarshaling->flags, sizeof(VkPipelineCreateFlags));
-    vkStream->read((uint32_t*)&forUnmarshaling->stageCount, sizeof(uint32_t));
-    vkStream->alloc((void**)&forUnmarshaling->pStages,
-                    forUnmarshaling->stageCount * sizeof(const VkPipelineShaderStageCreateInfo));
-    if (forUnmarshaling) {
-        for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->stageCount; ++i) {
-            unmarshal_VkPipelineShaderStageCreateInfo(
-                vkStream, rootType,
-                (VkPipelineShaderStageCreateInfo*)(forUnmarshaling->pStages + i));
-        }
-    }
-    vkStream->read((uint32_t*)&forUnmarshaling->groupCount, sizeof(uint32_t));
-    vkStream->alloc(
-        (void**)&forUnmarshaling->pGroups,
-        forUnmarshaling->groupCount * sizeof(const VkRayTracingShaderGroupCreateInfoKHR));
-    if (forUnmarshaling) {
-        for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->groupCount; ++i) {
-            unmarshal_VkRayTracingShaderGroupCreateInfoKHR(
-                vkStream, rootType,
-                (VkRayTracingShaderGroupCreateInfoKHR*)(forUnmarshaling->pGroups + i));
-        }
-    }
-    vkStream->read((uint32_t*)&forUnmarshaling->maxPipelineRayRecursionDepth, sizeof(uint32_t));
-    // WARNING PTR CHECK
-    forUnmarshaling->pLibraryInfo =
-        (const VkPipelineLibraryCreateInfoKHR*)(uintptr_t)vkStream->getBe64();
-    if (forUnmarshaling->pLibraryInfo) {
-        vkStream->alloc((void**)&forUnmarshaling->pLibraryInfo,
-                        sizeof(const VkPipelineLibraryCreateInfoKHR));
-        unmarshal_VkPipelineLibraryCreateInfoKHR(
-            vkStream, rootType, (VkPipelineLibraryCreateInfoKHR*)(forUnmarshaling->pLibraryInfo));
-    }
-    // WARNING PTR CHECK
-    forUnmarshaling->pLibraryInterface =
-        (const VkRayTracingPipelineInterfaceCreateInfoKHR*)(uintptr_t)vkStream->getBe64();
-    if (forUnmarshaling->pLibraryInterface) {
-        vkStream->alloc((void**)&forUnmarshaling->pLibraryInterface,
-                        sizeof(const VkRayTracingPipelineInterfaceCreateInfoKHR));
-        unmarshal_VkRayTracingPipelineInterfaceCreateInfoKHR(
-            vkStream, rootType,
-            (VkRayTracingPipelineInterfaceCreateInfoKHR*)(forUnmarshaling->pLibraryInterface));
-    }
-    // WARNING PTR CHECK
-    forUnmarshaling->pDynamicState =
-        (const VkPipelineDynamicStateCreateInfo*)(uintptr_t)vkStream->getBe64();
-    if (forUnmarshaling->pDynamicState) {
-        vkStream->alloc((void**)&forUnmarshaling->pDynamicState,
-                        sizeof(const VkPipelineDynamicStateCreateInfo));
-        unmarshal_VkPipelineDynamicStateCreateInfo(
-            vkStream, rootType,
-            (VkPipelineDynamicStateCreateInfo*)(forUnmarshaling->pDynamicState));
-    }
-    uint64_t cgen_var_3;
-    vkStream->read((uint64_t*)&cgen_var_3, 1 * 8);
-    vkStream->handleMapping()->mapHandles_u64_VkPipelineLayout(
-        &cgen_var_3, (VkPipelineLayout*)&forUnmarshaling->layout, 1);
-    uint64_t cgen_var_4;
-    vkStream->read((uint64_t*)&cgen_var_4, 1 * 8);
-    vkStream->handleMapping()->mapHandles_u64_VkPipeline(
-        &cgen_var_4, (VkPipeline*)&forUnmarshaling->basePipelineHandle, 1);
-    vkStream->read((int32_t*)&forUnmarshaling->basePipelineIndex, sizeof(int32_t));
-}
-
-void marshal_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    const VkPhysicalDeviceRayTracingPipelineFeaturesKHR* forMarshaling) {
-    (void)rootType;
-    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forMarshaling->sType;
-    }
-    marshal_extension_struct(vkStream, rootType, forMarshaling->pNext);
-    vkStream->write((VkBool32*)&forMarshaling->rayTracingPipeline, sizeof(VkBool32));
-    vkStream->write((VkBool32*)&forMarshaling->rayTracingPipelineShaderGroupHandleCaptureReplay,
-                    sizeof(VkBool32));
-    vkStream->write(
-        (VkBool32*)&forMarshaling->rayTracingPipelineShaderGroupHandleCaptureReplayMixed,
-        sizeof(VkBool32));
-    vkStream->write((VkBool32*)&forMarshaling->rayTracingPipelineTraceRaysIndirect,
-                    sizeof(VkBool32));
-    vkStream->write((VkBool32*)&forMarshaling->rayTraversalPrimitiveCulling, sizeof(VkBool32));
-}
-
-void unmarshal_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPhysicalDeviceRayTracingPipelineFeaturesKHR* forUnmarshaling) {
-    (void)rootType;
-    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        vkStream->read((void*)forUnmarshaling->pNext, sizeof(VkStructureType));
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        unmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext));
-    }
-    vkStream->read((VkBool32*)&forUnmarshaling->rayTracingPipeline, sizeof(VkBool32));
-    vkStream->read((VkBool32*)&forUnmarshaling->rayTracingPipelineShaderGroupHandleCaptureReplay,
-                   sizeof(VkBool32));
-    vkStream->read(
-        (VkBool32*)&forUnmarshaling->rayTracingPipelineShaderGroupHandleCaptureReplayMixed,
-        sizeof(VkBool32));
-    vkStream->read((VkBool32*)&forUnmarshaling->rayTracingPipelineTraceRaysIndirect,
-                   sizeof(VkBool32));
-    vkStream->read((VkBool32*)&forUnmarshaling->rayTraversalPrimitiveCulling, sizeof(VkBool32));
-}
-
-void marshal_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    const VkPhysicalDeviceRayTracingPipelinePropertiesKHR* forMarshaling) {
-    (void)rootType;
-    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forMarshaling->sType;
-    }
-    marshal_extension_struct(vkStream, rootType, forMarshaling->pNext);
-    vkStream->write((uint32_t*)&forMarshaling->shaderGroupHandleSize, sizeof(uint32_t));
-    vkStream->write((uint32_t*)&forMarshaling->maxRayRecursionDepth, sizeof(uint32_t));
-    vkStream->write((uint32_t*)&forMarshaling->maxShaderGroupStride, sizeof(uint32_t));
-    vkStream->write((uint32_t*)&forMarshaling->shaderGroupBaseAlignment, sizeof(uint32_t));
-    vkStream->write((uint32_t*)&forMarshaling->shaderGroupHandleCaptureReplaySize,
-                    sizeof(uint32_t));
-    vkStream->write((uint32_t*)&forMarshaling->maxRayDispatchInvocationCount, sizeof(uint32_t));
-    vkStream->write((uint32_t*)&forMarshaling->shaderGroupHandleAlignment, sizeof(uint32_t));
-    vkStream->write((uint32_t*)&forMarshaling->maxRayHitAttributeSize, sizeof(uint32_t));
-}
-
-void unmarshal_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPhysicalDeviceRayTracingPipelinePropertiesKHR* forUnmarshaling) {
-    (void)rootType;
-    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        vkStream->read((void*)forUnmarshaling->pNext, sizeof(VkStructureType));
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        unmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext));
-    }
-    vkStream->read((uint32_t*)&forUnmarshaling->shaderGroupHandleSize, sizeof(uint32_t));
-    vkStream->read((uint32_t*)&forUnmarshaling->maxRayRecursionDepth, sizeof(uint32_t));
-    vkStream->read((uint32_t*)&forUnmarshaling->maxShaderGroupStride, sizeof(uint32_t));
-    vkStream->read((uint32_t*)&forUnmarshaling->shaderGroupBaseAlignment, sizeof(uint32_t));
-    vkStream->read((uint32_t*)&forUnmarshaling->shaderGroupHandleCaptureReplaySize,
-                   sizeof(uint32_t));
-    vkStream->read((uint32_t*)&forUnmarshaling->maxRayDispatchInvocationCount, sizeof(uint32_t));
-    vkStream->read((uint32_t*)&forUnmarshaling->shaderGroupHandleAlignment, sizeof(uint32_t));
-    vkStream->read((uint32_t*)&forUnmarshaling->maxRayHitAttributeSize, sizeof(uint32_t));
-}
-
-void marshal_VkStridedDeviceAddressRegionKHR(VulkanStream* vkStream, VkStructureType rootType,
-                                             const VkStridedDeviceAddressRegionKHR* forMarshaling) {
-    (void)rootType;
-    vkStream->write((VkDeviceAddress*)&forMarshaling->deviceAddress, sizeof(VkDeviceAddress));
-    vkStream->write((VkDeviceSize*)&forMarshaling->stride, sizeof(VkDeviceSize));
-    vkStream->write((VkDeviceSize*)&forMarshaling->size, sizeof(VkDeviceSize));
-}
-
-void unmarshal_VkStridedDeviceAddressRegionKHR(VulkanStream* vkStream, VkStructureType rootType,
-                                               VkStridedDeviceAddressRegionKHR* forUnmarshaling) {
-    (void)rootType;
-    vkStream->read((VkDeviceAddress*)&forUnmarshaling->deviceAddress, sizeof(VkDeviceAddress));
-    vkStream->read((VkDeviceSize*)&forUnmarshaling->stride, sizeof(VkDeviceSize));
-    vkStream->read((VkDeviceSize*)&forUnmarshaling->size, sizeof(VkDeviceSize));
-}
-
-void marshal_VkTraceRaysIndirectCommandKHR(VulkanStream* vkStream, VkStructureType rootType,
-                                           const VkTraceRaysIndirectCommandKHR* forMarshaling) {
-    (void)rootType;
-    vkStream->write((uint32_t*)&forMarshaling->width, sizeof(uint32_t));
-    vkStream->write((uint32_t*)&forMarshaling->height, sizeof(uint32_t));
-    vkStream->write((uint32_t*)&forMarshaling->depth, sizeof(uint32_t));
-}
-
-void unmarshal_VkTraceRaysIndirectCommandKHR(VulkanStream* vkStream, VkStructureType rootType,
-                                             VkTraceRaysIndirectCommandKHR* forUnmarshaling) {
-    (void)rootType;
-    vkStream->read((uint32_t*)&forUnmarshaling->width, sizeof(uint32_t));
-    vkStream->read((uint32_t*)&forUnmarshaling->height, sizeof(uint32_t));
-    vkStream->read((uint32_t*)&forUnmarshaling->depth, sizeof(uint32_t));
-}
-
-#endif
 void marshal_extension_struct(VulkanStream* vkStream, VkStructureType rootType,
                               const void* structExtension) {
     VkInstanceCreateInfo* structAccess = (VkInstanceCreateInfo*)(structExtension);
@@ -20683,22 +20300,6 @@ void marshal_extension_struct(VulkanStream* vkStream, VkStructureType rootType,
             break;
         }
 #endif
-#ifdef VK_KHR_ray_tracing_pipeline
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR: {
-            marshal_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(
-                vkStream, rootType,
-                reinterpret_cast<const VkPhysicalDeviceRayTracingPipelineFeaturesKHR*>(
-                    structExtension));
-            break;
-        }
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR: {
-            marshal_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(
-                vkStream, rootType,
-                reinterpret_cast<const VkPhysicalDeviceRayTracingPipelinePropertiesKHR*>(
-                    structExtension));
-            break;
-        }
-#endif
         default: {
             // fatal; the switch is only taken if the extension struct is known
             fprintf(stderr, " %s, Unhandled Vulkan structure type %s [%d], aborting.\n", __func__,
@@ -22078,22 +21679,6 @@ void unmarshal_extension_struct(VulkanStream* vkStream, VkStructureType rootType
             break;
         }
 #endif
-#ifdef VK_KHR_ray_tracing_pipeline
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR: {
-            unmarshal_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(
-                vkStream, rootType,
-                reinterpret_cast<VkPhysicalDeviceRayTracingPipelineFeaturesKHR*>(
-                    structExtension_out));
-            break;
-        }
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR: {
-            unmarshal_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(
-                vkStream, rootType,
-                reinterpret_cast<VkPhysicalDeviceRayTracingPipelinePropertiesKHR*>(
-                    structExtension_out));
-            break;
-        }
-#endif
         default: {
             // fatal; the switch is only taken if the extension struct is known
             fprintf(stderr, " %s, Unhandled Vulkan structure type %s [%d], aborting.\n", __func__,
@@ -22902,11 +22487,6 @@ const char* api_opcode_to_string(const uint32_t opcode) {
             return "OP_vkCopyImageToMemoryEXT";
         }
 #endif
-#ifdef VK_KHR_ray_tracing_pipeline
-        case OP_vkGetRayTracingShaderGroupStackSizeKHR: {
-            return "OP_vkGetRayTracingShaderGroupStackSizeKHR";
-        }
-#endif
 #ifdef VK_EXT_extended_dynamic_state2
         case OP_vkCmdSetPatchControlPointsEXT: {
             return "OP_vkCmdSetPatchControlPointsEXT";
@@ -22922,11 +22502,6 @@ const char* api_opcode_to_string(const uint32_t opcode) {
             return "OP_vkCmdSetDepthTestEnable";
         }
 #endif
-#ifdef VK_KHR_ray_tracing_pipeline
-        case OP_vkCmdTraceRaysIndirectKHR: {
-            return "OP_vkCmdTraceRaysIndirectKHR";
-        }
-#endif
 #ifdef VK_EXT_extended_dynamic_state
         case OP_vkCmdSetFrontFaceEXT: {
             return "OP_vkCmdSetFrontFaceEXT";
@@ -22935,11 +22510,6 @@ const char* api_opcode_to_string(const uint32_t opcode) {
 #ifdef VK_GOOGLE_gfxstream
         case OP_vkCollectDescriptorPoolIdsGOOGLE: {
             return "OP_vkCollectDescriptorPoolIdsGOOGLE";
-        }
-#endif
-#ifdef VK_KHR_ray_tracing_pipeline
-        case OP_vkCmdTraceRaysKHR: {
-            return "OP_vkCmdTraceRaysKHR";
         }
 #endif
 #ifdef VK_VERSION_1_3
@@ -22984,13 +22554,6 @@ const char* api_opcode_to_string(const uint32_t opcode) {
         case OP_vkCmdEndRenderPass2: {
             return "OP_vkCmdEndRenderPass2";
         }
-#endif
-#ifdef VK_KHR_ray_tracing_pipeline
-        case OP_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR: {
-            return "OP_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR";
-        }
-#endif
-#ifdef VK_VERSION_1_2
         case OP_vkGetBufferDeviceAddress: {
             return "OP_vkGetBufferDeviceAddress";
         }
@@ -23168,11 +22731,6 @@ const char* api_opcode_to_string(const uint32_t opcode) {
             return "OP_vkCmdCopyImage2";
         }
 #endif
-#ifdef VK_KHR_ray_tracing_pipeline
-        case OP_vkCreateRayTracingPipelinesKHR: {
-            return "OP_vkCreateRayTracingPipelinesKHR";
-        }
-#endif
 #ifdef VK_EXT_extended_dynamic_state
         case OP_vkCmdSetDepthCompareOpEXT: {
             return "OP_vkCmdSetDepthCompareOpEXT";
@@ -23234,11 +22792,6 @@ const char* api_opcode_to_string(const uint32_t opcode) {
 #ifdef VK_KHR_copy_commands2
         case OP_vkCmdBlitImage2KHR: {
             return "OP_vkCmdBlitImage2KHR";
-        }
-#endif
-#ifdef VK_KHR_ray_tracing_pipeline
-        case OP_vkCmdSetRayTracingPipelineStackSizeKHR: {
-            return "OP_vkCmdSetRayTracingPipelineStackSizeKHR";
         }
 #endif
 #ifdef VK_VERSION_1_2

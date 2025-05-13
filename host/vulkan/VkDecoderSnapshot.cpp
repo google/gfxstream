@@ -2755,45 +2755,6 @@ class VkDecoderSnapshot::Impl {
                               VkResult input_result, VkDevice device, VkSemaphore semaphore,
                               uint64_t syncId) {}
 #endif
-#ifdef VK_KHR_ray_tracing_pipeline
-    void vkCmdTraceRaysKHR(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
-                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
-                           VkCommandBuffer commandBuffer,
-                           const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
-                           const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable,
-                           const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
-                           const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable,
-                           uint32_t width, uint32_t height, uint32_t depth) {}
-    void vkCreateRayTracingPipelinesKHR(
-        gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
-        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkResult input_result,
-        VkDevice device, VkDeferredOperationKHR deferredOperation, VkPipelineCache pipelineCache,
-        uint32_t createInfoCount, const VkRayTracingPipelineCreateInfoKHR* pCreateInfos,
-        const VkAllocationCallbacks* pAllocator, VkPipeline* pPipelines) {}
-    void vkGetRayTracingCaptureReplayShaderGroupHandlesKHR(
-        gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
-        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkResult input_result,
-        VkDevice device, VkPipeline pipeline, uint32_t firstGroup, uint32_t groupCount,
-        size_t dataSize, void* pData) {}
-    void vkCmdTraceRaysIndirectKHR(
-        gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
-        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
-        const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
-        const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable,
-        const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
-        const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable,
-        VkDeviceAddress indirectDeviceAddress) {}
-    void vkGetRayTracingShaderGroupStackSizeKHR(
-        gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
-        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDeviceSize input_result,
-        VkDevice device, VkPipeline pipeline, uint32_t group, VkShaderGroupShaderKHR groupShader) {}
-    void vkCmdSetRayTracingPipelineStackSizeKHR(gfxstream::base::BumpPool* pool,
-                                                VkSnapshotApiCallInfo* apiCallInfo,
-                                                const uint8_t* apiCallPacket,
-                                                size_t apiCallPacketSize,
-                                                VkCommandBuffer commandBuffer,
-                                                uint32_t pipelineStackSize) {}
-#endif
    private:
     std::mutex mReconstructionMutex;
     VkReconstruction mReconstruction GUARDED_BY(mReconstructionMutex);
@@ -6626,79 +6587,6 @@ void VkDecoderSnapshot::vkGetSemaphoreGOOGLE(gfxstream::base::BumpPool* pool,
                                              VkSemaphore semaphore, uint64_t syncId) {
     mImpl->vkGetSemaphoreGOOGLE(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
                                 device, semaphore, syncId);
-}
-#endif
-#ifdef VK_KHR_ray_tracing_pipeline
-void VkDecoderSnapshot::vkCmdTraceRaysKHR(
-    gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
-    const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
-    const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
-    const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable,
-    const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
-    const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable, uint32_t width,
-    uint32_t height, uint32_t depth) {
-    mImpl->vkCmdTraceRaysKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
-                             pRaygenShaderBindingTable, pMissShaderBindingTable,
-                             pHitShaderBindingTable, pCallableShaderBindingTable, width, height,
-                             depth);
-}
-#endif
-#ifdef VK_KHR_ray_tracing_pipeline
-void VkDecoderSnapshot::vkCreateRayTracingPipelinesKHR(
-    gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
-    const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkResult input_result, VkDevice device,
-    VkDeferredOperationKHR deferredOperation, VkPipelineCache pipelineCache,
-    uint32_t createInfoCount, const VkRayTracingPipelineCreateInfoKHR* pCreateInfos,
-    const VkAllocationCallbacks* pAllocator, VkPipeline* pPipelines) {
-    mImpl->vkCreateRayTracingPipelinesKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
-                                          input_result, device, deferredOperation, pipelineCache,
-                                          createInfoCount, pCreateInfos, pAllocator, pPipelines);
-}
-#endif
-#ifdef VK_KHR_ray_tracing_pipeline
-void VkDecoderSnapshot::vkGetRayTracingCaptureReplayShaderGroupHandlesKHR(
-    gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
-    const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkResult input_result, VkDevice device,
-    VkPipeline pipeline, uint32_t firstGroup, uint32_t groupCount, size_t dataSize, void* pData) {
-    mImpl->vkGetRayTracingCaptureReplayShaderGroupHandlesKHR(
-        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result, device, pipeline,
-        firstGroup, groupCount, dataSize, pData);
-}
-#endif
-#ifdef VK_KHR_ray_tracing_pipeline
-void VkDecoderSnapshot::vkCmdTraceRaysIndirectKHR(
-    gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
-    const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
-    const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
-    const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable,
-    const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
-    const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable,
-    VkDeviceAddress indirectDeviceAddress) {
-    mImpl->vkCmdTraceRaysIndirectKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
-                                     commandBuffer, pRaygenShaderBindingTable,
-                                     pMissShaderBindingTable, pHitShaderBindingTable,
-                                     pCallableShaderBindingTable, indirectDeviceAddress);
-}
-#endif
-#ifdef VK_KHR_ray_tracing_pipeline
-void VkDecoderSnapshot::vkGetRayTracingShaderGroupStackSizeKHR(
-    gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
-    const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDeviceSize input_result,
-    VkDevice device, VkPipeline pipeline, uint32_t group, VkShaderGroupShaderKHR groupShader) {
-    mImpl->vkGetRayTracingShaderGroupStackSizeKHR(pool, apiCallInfo, apiCallPacket,
-                                                  apiCallPacketSize, input_result, device, pipeline,
-                                                  group, groupShader);
-}
-#endif
-#ifdef VK_KHR_ray_tracing_pipeline
-void VkDecoderSnapshot::vkCmdSetRayTracingPipelineStackSizeKHR(gfxstream::base::BumpPool* pool,
-                                                               VkSnapshotApiCallInfo* apiCallInfo,
-                                                               const uint8_t* apiCallPacket,
-                                                               size_t apiCallPacketSize,
-                                                               VkCommandBuffer commandBuffer,
-                                                               uint32_t pipelineStackSize) {
-    mImpl->vkCmdSetRayTracingPipelineStackSizeKHR(
-        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer, pipelineStackSize);
 }
 #endif
 

@@ -2132,36 +2132,5 @@ void reservedunmarshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesE
     VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT* forUnmarshaling, uint8_t** ptr);
 
 #endif
-#ifdef VK_KHR_ray_tracing_pipeline
-void reservedunmarshal_VkRayTracingShaderGroupCreateInfoKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkRayTracingShaderGroupCreateInfoKHR* forUnmarshaling, uint8_t** ptr);
-
-void reservedunmarshal_VkRayTracingPipelineInterfaceCreateInfoKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkRayTracingPipelineInterfaceCreateInfoKHR* forUnmarshaling, uint8_t** ptr);
-
-void reservedunmarshal_VkRayTracingPipelineCreateInfoKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkRayTracingPipelineCreateInfoKHR* forUnmarshaling, uint8_t** ptr);
-
-void reservedunmarshal_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPhysicalDeviceRayTracingPipelineFeaturesKHR* forUnmarshaling, uint8_t** ptr);
-
-void reservedunmarshal_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPhysicalDeviceRayTracingPipelinePropertiesKHR* forUnmarshaling, uint8_t** ptr);
-
-void reservedunmarshal_VkStridedDeviceAddressRegionKHR(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkStridedDeviceAddressRegionKHR* forUnmarshaling, uint8_t** ptr);
-
-void reservedunmarshal_VkTraceRaysIndirectCommandKHR(VulkanStream* vkStream,
-                                                     VkStructureType rootType,
-                                                     VkTraceRaysIndirectCommandKHR* forUnmarshaling,
-                                                     uint8_t** ptr);
-
-#endif
 }  // namespace vk
 }  // namespace gfxstream
