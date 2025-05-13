@@ -1882,10 +1882,19 @@ class VkDecoderGlobalState::Impl {
             if (privateDataFeatures != nullptr) {
                 privateDataFeatures->privateData = VK_TRUE;
             } else {
-                // Insert into device create info chain
-                forceEnablePrivateData.pNext = const_cast<void*>(createInfoFiltered.pNext);
-                createInfoFiltered.pNext = &forceEnablePrivateData;
-                privateDataFeatures = &forceEnablePrivateData;
+                VkPhysicalDeviceVulkan13Features* vkPhysicalDeviceVulkan13Features =
+                    vk_find_struct<VkPhysicalDeviceVulkan13Features>(&createInfoFiltered);
+                if (vkPhysicalDeviceVulkan13Features == nullptr) {
+                    // Insert into device create info chain
+                    forceEnablePrivateData.pNext = const_cast<void*>(createInfoFiltered.pNext);
+                    createInfoFiltered.pNext = &forceEnablePrivateData;
+                    privateDataFeatures = &forceEnablePrivateData;
+                } else {
+                    // Attempted to add VkPhysicalDevicePrivateDataFeatures but
+                    // VkPhysicalDeviceVulkan13Features is already present which will result in
+                    // a spec violation
+                    vkPhysicalDeviceVulkan13Features->privateData = VK_TRUE;
+                }
             }
         }
 
