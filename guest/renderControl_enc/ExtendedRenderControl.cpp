@@ -13,6 +13,8 @@
 // limitations under the License.
 #include "ExtendedRenderControl.h"
 
+#include "gfxstream/common/logging.h"
+
 using gfxstream::guest::ChecksumCalculator;
 
 const std::string& ExtendedRCEncoderContext::queryHostExtensions() {
@@ -40,6 +42,18 @@ const std::string& ExtendedRCEncoderContext::queryHostExtensions() {
 
     return m_hostExtensions;
 }
+
+uint64_t ExtendedRCEncoderContext::lockAndWriteDma(void* data, uint32_t size) {
+        if (m_dmaPtr && m_dmaPhysAddr) {
+            if (data != m_dmaPtr) {
+                memcpy(m_dmaPtr, data, size);
+            }
+            return m_dmaPhysAddr;
+        } else {
+            GFXSTREAM_ERROR("No DMA context bound!");
+            return 0;
+        }
+    }
 
 void ExtendedRCEncoderContext::queryAndSetHostCompositionImpl() {
     const std::string& hostExtensions = queryHostExtensions();
@@ -105,7 +119,7 @@ void ExtendedRCEncoderContext::queryAndSetGLESMaxVersion() {
     } else if (hostExtensions.find(kGLESMaxVersion_3_2) != std::string::npos) {
         this->setGLESMaxVersion(GLES_MAX_VERSION_3_2);
     } else {
-        ALOGW("Unrecognized GLES max version string in extensions: %s", hostExtensions.c_str());
+        GFXSTREAM_WARNING("Unrecognized GLES max version string in extensions: %s", hostExtensions.c_str());
         this->setGLESMaxVersion(GLES_MAX_VERSION_2);
     }
 }

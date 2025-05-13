@@ -16,7 +16,7 @@
 
 #include "gfxstream/host/display.h"
 #include "gfxstream/host/display_surface.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 
 namespace gfxstream {
 

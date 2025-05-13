@@ -22,6 +22,7 @@
 #include "GLEncoder.h"
 #include "HostConnection.h"
 #include "ThreadInfo.h"
+#include "gfxstream/common/logging.h"
 
 //XXX: fix this macro to get the context from fast tls path
 #define GET_CONTEXT GLEncoder * ctx = getEGLThreadInfo()->hostConn->glEncoder();
@@ -37,22 +38,22 @@ static EGLClient_glesInterface * s_gl = NULL;
 #define DEFINE_AND_VALIDATE_HOST_CONNECTION(ret)                     \
     HostConnection* hostCon = HostConnection::get();                 \
     if (!hostCon) {                                                  \
-        ALOGE("egl: Failed to get host connection\n");               \
+        GFXSTREAM_ERROR("egl: Failed to get host connection.");      \
         return ret;                                                  \
     }                                                                \
     renderControl_encoder_context_t* rcEnc = hostCon->rcEncoder();   \
     if (!rcEnc) {                                                    \
-        ALOGE("egl: Failed to get renderControl encoder context\n"); \
+        GFXSTREAM_ERROR("egl: Failed to get renderControl encoder context."); \
         return ret;                                                  \
     }                                                                \
     auto* grallocHelper = hostCon->grallocHelper();                  \
     if (!grallocHelper) {                                            \
-        ALOGE("egl: Failed to get grallocHelper\n");                 \
+        GFXSTREAM_ERROR("egl: Failed to get grallocHelper.");        \
         return ret;                                                  \
     }                                                                \
     auto* anwHelper = hostCon->anwHelper();                          \
     if (!anwHelper) {                                                \
-        ALOGE("egl: Failed to get anwHelper\n");                     \
+        GFXSTREAM_ERROR("egl: Failed to get anwHelper.");            \
         return ret;                                                  \
     }
 
@@ -68,7 +69,7 @@ void glEGLImageTargetTexture2DOES(void * self, GLenum target, GLeglImageOES img)
 
         EGLClientBuffer buffer = image->buffer;
         if (!anwHelper->isValid(buffer)) {
-            ALOGE("Invalid native buffer.");
+            GFXSTREAM_ERROR("Invalid native buffer.");
             return;
         }
 
@@ -100,7 +101,7 @@ void glEGLImageTargetRenderbufferStorageOES(void *self, GLenum target, GLeglImag
 
         EGLClientBuffer buffer = image->buffer;
         if (!anwHelper->isValid(buffer)) {
-            ALOGE("Invalid native buffer.");
+            GFXSTREAM_ERROR("Invalid native buffer.");
             return;
         }
 

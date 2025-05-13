@@ -18,7 +18,7 @@ package {
 
 cc_library_static {
     name: "libgfxstream_host_address_space",
-    defaults: ["gfxstream_defaults"],
+    defaults: ["gfxstream_host_cc_defaults"],
     header_libs: [
         "libgfxstream_backend_headers",
     ],
@@ -37,7 +37,7 @@ cc_library_static {
     static_libs: [
         "gfxstream_base",
         "libgfxstream_common_base",
-        "libgfxstream_host_logging",
+        "libgfxstream_common_logging",
     ],
     export_static_lib_headers: [
         "gfxstream_base",

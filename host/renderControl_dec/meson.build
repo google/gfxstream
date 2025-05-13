@@ -15,12 +15,12 @@ lib_composer = static_library(
     inc_common_base,
     inc_gfxstream_server,
     inc_host_iostream,
-    inc_host_logging,
+    inc_common_logging,
     inc_include,
   ],
   link_with: [
     lib_common_base,
     lib_host_iostream,
-    lib_host_logging,
+    lib_common_logging,
   ],
 )

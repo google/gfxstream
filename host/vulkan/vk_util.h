@@ -44,7 +44,7 @@
 #include "VkDecoderContext.h"
 #include "VulkanDispatch.h"
 #include "gfxstream/synchronization/Lock.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "vk_fn_info.h"
 #include "vk_struct_id.h"
 #include "vulkan/vk_enum_string_helper.h"

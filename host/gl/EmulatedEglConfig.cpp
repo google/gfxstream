@@ -20,7 +20,7 @@
 #include "OpenGLESDispatch/EGLDispatch.h"
 #include "gfxstream/host/Features.h"
 #include "gfxstream/host/guest_operations.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "gfxstream/host/renderer_operations.h"
 
 namespace gfxstream {

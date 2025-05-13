@@ -47,7 +47,7 @@
 #include "render-utils/stream.h"
 #include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/system/System.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "gfxstream/host/vm_operations.h"
 
 #define MAJOR          1

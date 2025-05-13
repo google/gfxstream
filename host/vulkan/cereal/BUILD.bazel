@@ -34,11 +34,11 @@ cc_library(
     includes = ["common"],
     deps = [
         "//common/base:gfxstream_common_base",
+        "//common/logging:gfxstream_common_logging",
         "//host:gfxstream_host_headers",
         "//host/backend:gfxstream_host_backend",
         "//host/features:gfxstream_features",
         "//host/health:gfxstream_host_health",
-        "//host/logging:gfxstream_host_logging",
         "//host/tracing:gfxstream_host_tracing",
         "//host/vulkan:gfxstream_vulkan_headers",
         "//third_party/vulkan:gfxstream_vulkan_headers",

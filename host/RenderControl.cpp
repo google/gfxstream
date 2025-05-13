@@ -34,7 +34,7 @@
 #include "SyncThread.h"
 #include "gfxstream/Tracing.h"
 #include "gfxstream/host/AstcCpuDecompressor.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "gfxstream/host/guest_operations.h"
 #include "gfxstream/host/renderer_operations.h"
 #include "gfxstream/host/sync_device.h"

@@ -35,7 +35,7 @@
 #include "GLEScmContext.h"
 #include "GLEScmUtils.h"
 #include "GLEScmValidate.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 
 #define DEBUG 0
 

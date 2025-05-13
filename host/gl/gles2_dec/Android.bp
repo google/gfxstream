@@ -18,7 +18,7 @@ package {
 
 cc_library_static {
     name: "libgfxstream_host_gles2_dec",
-    defaults: ["gfxstream_defaults"],
+    defaults: ["gfxstream_host_cc_defaults"],
     header_libs: [
         "libgfxstream_thirdparty_opengl_headers",
     ],
@@ -29,7 +29,7 @@ cc_library_static {
         "libgfxstream_host_glsnapshot",
         "libgfxstream_host_iostream",
         "libgfxstream_host_library",
-        "libgfxstream_host_logging",
+        "libgfxstream_common_logging",
     ],
     export_static_lib_headers: [
         "libgfxstream_host_iostream",

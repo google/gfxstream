@@ -27,7 +27,7 @@ target_link_libraries(
     gfxstream_common_base
     gfxstream_egl_headers
     gfxstream_host_library
-    gfxstream_host_logging)
+    gfxstream_common_logging)
 target_include_directories(
     gles1_dec
     PRIVATE

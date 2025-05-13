@@ -30,6 +30,7 @@
 #include "EncoderDebug.h"
 #include "GLESTextureUtils.h"
 #include "GLESv2Validation.h"
+#include "gfxstream/common/logging.h"
 
 using gfxstream::guest::BufferData;
 using gfxstream::guest::ChecksumCalculator;
@@ -54,29 +55,27 @@ static GLubyte *gVersionString= (GLubyte *) "OpenGL ES 3.0";
 static GLubyte *gExtensionsString= (GLubyte *) "GL_OES_EGL_image_external ";
 
 #define SET_ERROR_IF(condition, err) if((condition)) { \
-        ALOGE("%s:%s:%d GL error 0x%x condition [%s]\n", __FILE__, __FUNCTION__, __LINE__, err, #condition); \
+        GFXSTREAM_ERROR("GL error 0x%x condition [%s].", err, #condition); \
         ctx->setError(err); \
         return; \
     }
 
 #define SET_ERROR_WITH_MESSAGE_IF(condition, err, generator, genargs) if ((condition)) { \
         std::string msg = generator genargs; \
-        ALOGE("%s:%s:%d GL error 0x%x\n" \
-              "Info: %s\n", __FILE__, __FUNCTION__, __LINE__, err, msg.c_str()); \
+        GFXSTREAM_ERROR("GL error 0x%x: %s", err, msg.c_str()); \
         ctx->setError(err); \
         return; \
     } \
 
 #define RET_AND_SET_ERROR_IF(condition, err, ret) if((condition)) { \
-        ALOGE("%s:%s:%d GL error 0x%x\n", __FILE__, __FUNCTION__, __LINE__, err); \
+        GFXSTREAM_ERROR("GL error 0x%x.", err); \
         ctx->setError(err);  \
         return ret; \
     } \
 
 #define RET_AND_SET_ERROR_WITH_MESSAGE_IF(condition, err, ret, generator, genargs) if((condition)) { \
         std::string msg = generator genargs; \
-        ALOGE("%s:%s:%d GL error 0x%x\n" \
-              "Info: %s\n", __FILE__, __FUNCTION__, __LINE__, err, msg.c_str()); \
+        GFXSTREAM_ERROR("GL error 0x%x: %s", err, msg.c_str()); \
         ctx->setError(err);   \
         return ret; \
     } \
@@ -1238,7 +1237,7 @@ void GL2Encoder::calcIndexRange(const void* indices,
                 m_primitiveRestartEnabled, GLUtils::primitiveRestartIndex<unsigned int>());
         break;
     default:
-        ALOGE("unsupported index buffer type %d\n", type);
+        GFXSTREAM_ERROR("unsupported index buffer type %d.", type);
     }
 }
 
@@ -1281,7 +1280,7 @@ void* GL2Encoder::recenterIndices(const void* src,
                     (unsigned int)m_primitiveRestartIndex);
             break;
         default:
-            ALOGE("unsupported index buffer type %d\n", type);
+            GFXSTREAM_ERROR("unsupported index buffer type %d.", type);
         }
     }
 
@@ -1310,7 +1309,7 @@ void GL2Encoder::getBufferIndexRange(BufferData* buf,
             type, offset, count, m_primitiveRestartEnabled,
             *minIndex_out, *maxIndex_out);
 
-    ALOGV("%s: got range [%u %u] pr? %d", __FUNCTION__, *minIndex_out, *maxIndex_out, m_primitiveRestartEnabled);
+    GFXSTREAM_VERBOSE("Got range [%u %u] pr? %d", *minIndex_out, *maxIndex_out, m_primitiveRestartEnabled);
 }
 
 // For detecting legacy usage of glVertexAttribPointer
@@ -1359,11 +1358,12 @@ void GL2Encoder::sendVertexAttributes(GLint first, GLsizei count, bool hasClient
             if (bufferObject == 0) {
                 unsigned int datalen = state.elementSize * count;
                 if (divisor) {
-                    ALOGV("%s: divisor for att %d: %d, w/ stride %d (effective stride %d) size %d type 0x%x) datalen %u",
-                            __FUNCTION__, i, divisor, state.stride, effectiveStride, state.elementSize, state.type, datalen);
+                    GFXSTREAM_VERBOSE(
+                        "Divisor for att %d: %d, w/ stride %d (effective stride %d) size %d type 0x%x) datalen %u",
+                        i, divisor, state.stride, effectiveStride, state.elementSize, state.type, datalen);
                     int actual_count = std::max(1, (int)((primcount + divisor - 1) / divisor));
                     datalen = state.elementSize * actual_count;
-                    ALOGV("%s: actual datalen %u", __FUNCTION__, datalen);
+                    GFXSTREAM_VERBOSE("Actual datalen %u", datalen);
                 }
                 if (state.elementSize == 0) {
                     // The vertex attribute array is uninitialized. Abandon it.
@@ -1409,11 +1409,12 @@ void GL2Encoder::sendVertexAttributes(GLint first, GLsizei count, bool hasClient
                     }
                 } else {
                     if (m_state->isAttribIndexUsedByProgram(i)) {
-                        ALOGE("a vertex attribute index out of boundary is detected. Skipping corresponding vertex attribute. buf=%p", buf);
+                        GFXSTREAM_ERROR("a vertex attribute index out of boundary is detected. Skipping corresponding vertex attribute. buf=%p", buf);
                         if (buf) {
-                            ALOGE("Out of bounds vertex attribute info: "
-                                    "clientArray? %d attribute %d vbo %u allocedBufferSize %u bufferDataSpecified? %d wantedStart %u wantedEnd %u",
-                                    hasClientArrays, i, bufferObject, (unsigned int)buf->m_size, buf != NULL, firstIndex, firstIndex + bufLen);
+                            GFXSTREAM_ERROR(
+                                "Out of bounds vertex attribute info: "
+                                "clientArray? %d attribute %d vbo %u allocedBufferSize %u bufferDataSpecified? %d wantedStart %u wantedEnd %u",
+                                hasClientArrays, i, bufferObject, (unsigned int)buf->m_size, buf != NULL, firstIndex, firstIndex + bufLen);
                         }
                         m_glDisableVertexAttribArray_enc(this, i);
                     }
@@ -1498,7 +1499,7 @@ void GL2Encoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum
     ctx->getVBOUsage(&has_client_vertex_arrays, &has_indirect_arrays);
 
     if (!has_client_vertex_arrays && !has_indirect_arrays) {
-        // ALOGW("glDrawElements: no vertex arrays / buffers bound to the command\n");
+        // GFXSTREAM_WARNING("glDrawElements: no vertex arrays / buffers bound to the command\n");
         GLenum status = ctx->glCheckFramebufferStatus(self, GL_FRAMEBUFFER);
         SET_ERROR_IF(status != GL_FRAMEBUFFER_COMPLETE, GL_INVALID_FRAMEBUFFER_OPERATION);
     }
@@ -1560,12 +1561,12 @@ void GL2Encoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum
                                     count * glSizeof(type));
             // XXX - OPTIMIZATION (see the other else branch) should be implemented
             if(!has_indirect_arrays) {
-                //ALOGD("unoptimized drawelements !!!\n");
+                //GFXSTREAM_DEBUG("unoptimized drawelements !!!\n");
             }
         } else {
             // we are all direct arrays and immidate mode index array -
             // rebuild the arrays and the index array;
-            ALOGE("glDrawElements: direct index & direct buffer data - will be implemented in later versions;\n");
+            GFXSTREAM_ERROR("Direct index & direct buffer data - will be implemented in later versions.");
         }
     }
 
@@ -1615,7 +1616,7 @@ void GL2Encoder::s_glDrawElementsNullAEMU(void *self, GLenum mode, GLsizei count
     ctx->getVBOUsage(&has_client_vertex_arrays, &has_indirect_arrays);
 
     if (!has_client_vertex_arrays && !has_indirect_arrays) {
-        // ALOGW("glDrawElements: no vertex arrays / buffers bound to the command\n");
+        // GFXSTREAM_WARNING("glDrawElements: no vertex arrays / buffers bound to the command\n");
         GLenum status = ctx->glCheckFramebufferStatus(self, GL_FRAMEBUFFER);
         SET_ERROR_IF(status != GL_FRAMEBUFFER_COMPLETE, GL_INVALID_FRAMEBUFFER_OPERATION);
     }
@@ -1681,12 +1682,12 @@ void GL2Encoder::s_glDrawElementsNullAEMU(void *self, GLenum mode, GLsizei count
                                     count * glSizeof(type));
             // XXX - OPTIMIZATION (see the other else branch) should be implemented
             if(!has_indirect_arrays) {
-                //ALOGD("unoptimized drawelements !!!\n");
+                //GFXSTREAM_DEBUG("unoptimized drawelements !!!\n");
             }
         } else {
             // we are all direct arrays and immidate mode index array -
             // rebuild the arrays and the index array;
-            ALOGE("glDrawElementsNullAEMU: direct index & direct buffer data - will be implemented in later versions;\n");
+            GFXSTREAM_ERROR("Direct index & direct buffer data - will be implemented in later versions.");
         }
     }
     ctx->m_state->postDraw();
@@ -3321,7 +3322,7 @@ void GL2Encoder::s_glGenVertexArrays(void* self, GLsizei n, GLuint* arrays) {
 
     ctx->m_glGenVertexArrays_enc(self, n, arrays);
     for (int i = 0; i < n; i++) {
-        ALOGV("%s: gen vao %u", __FUNCTION__, arrays[i]);
+        GFXSTREAM_VERBOSE("gen vao %u", arrays[i]);
     }
     state->addVertexArrayObjects(n, arrays);
 }
@@ -3333,13 +3334,13 @@ void GL2Encoder::s_glDeleteVertexArrays(void* self, GLsizei n, const GLuint* arr
 
     ctx->m_glDeleteVertexArrays_enc(self, n, arrays);
     for (int i = 0; i < n; i++) {
-        ALOGV("%s: delete vao %u", __FUNCTION__, arrays[i]);
+        GFXSTREAM_VERBOSE("delete vao %u", arrays[i]);
     }
     state->removeVertexArrayObjects(n, arrays);
 }
 
 void GL2Encoder::s_glBindVertexArray(void* self, GLuint array) {
-    ALOGV("%s: call. array=%u\n", __FUNCTION__, array);
+    GFXSTREAM_VERBOSE("call. array=%u\n", array);
     GL2Encoder* ctx = (GL2Encoder*)self;
     GLClientState* state = ctx->m_state;
     SET_ERROR_IF(!state->isVertexArrayObject(array), GL_INVALID_OPERATION);
@@ -3969,7 +3970,7 @@ void GL2Encoder::s_glGetUniformIndices(void* self, GLuint program, GLsizei unifo
         int err;
         arrIndices.push_back(sArrIndexOfUniformExpr(uniformNames[i], &err));
         if (err) {
-            ALOGE("%s: invalid uniform name %s!", __FUNCTION__, uniformNames[i]);
+            GFXSTREAM_ERROR("Invalid uniform name %s!", uniformNames[i]);
             return;
         }
     }
@@ -4746,7 +4747,7 @@ void GL2Encoder::s_glDrawElementsInstanced(void* self, GLenum mode, GLsizei coun
     ctx->getVBOUsage(&has_client_vertex_arrays, &has_indirect_arrays);
 
     if (!has_client_vertex_arrays && !has_indirect_arrays) {
-        // ALOGW("glDrawElements: no vertex arrays / buffers bound to the command\n");
+        // GFXSTREAM_WARNING("glDrawElements: no vertex arrays / buffers bound to the command\n");
         GLenum status = ctx->glCheckFramebufferStatus(self, GL_FRAMEBUFFER);
         SET_ERROR_IF(status != GL_FRAMEBUFFER_COMPLETE, GL_INVALID_FRAMEBUFFER_OPERATION);
     }
@@ -4809,12 +4810,12 @@ void GL2Encoder::s_glDrawElementsInstanced(void* self, GLenum mode, GLsizei coun
             ctx->m_stream->flush();
             // XXX - OPTIMIZATION (see the other else branch) should be implemented
             if(!has_indirect_arrays) {
-                //ALOGD("unoptimized drawelements !!!\n");
+                //GFXSTREAM_DEBUG("unoptimized drawelements !!!\n");
             }
         } else {
             // we are all direct arrays and immidate mode index array -
             // rebuild the arrays and the index array;
-            ALOGE("glDrawElements: direct index & direct buffer data - will be implemented in later versions;\n");
+            GFXSTREAM_ERROR("Direct index & direct buffer data - will be implemented in later versions.");
         }
     }
     ctx->m_state->postDraw();
@@ -4839,7 +4840,7 @@ void GL2Encoder::s_glDrawRangeElements(void* self, GLenum mode, GLuint start, GL
     ctx->getVBOUsage(&has_client_vertex_arrays, &has_indirect_arrays);
 
     if (!has_client_vertex_arrays && !has_indirect_arrays) {
-        // ALOGW("glDrawElements: no vertex arrays / buffers bound to the command\n");
+        // GFXSTREAM_WARNING("No vertex arrays / buffers bound to the command");
         GLenum status = ctx->glCheckFramebufferStatus(self, GL_FRAMEBUFFER);
         SET_ERROR_IF(status != GL_FRAMEBUFFER_COMPLETE, GL_INVALID_FRAMEBUFFER_OPERATION);
     }
@@ -4855,14 +4856,14 @@ void GL2Encoder::s_glDrawRangeElements(void* self, GLenum mode, GLuint start, GL
     // caching previous results.
     if (ctx->m_state->currentIndexVbo() != 0) {
         buf = ctx->m_shared->getBufferData(ctx->m_state->currentIndexVbo());
-        ALOGV("%s: current index vbo: %p len %zu count %zu\n", __func__, buf, buf->m_fixedBuffer.size(), (size_t)count);
+        GFXSTREAM_VERBOSE("Current index vbo: %p len %zu count %zu.", buf, buf->m_fixedBuffer.size(), (size_t)count);
         offset = (GLintptr)indices;
         void* oldIndices = (void*)indices;
         indices = &buf->m_fixedBuffer[offset];
-        ALOGV("%s: indices arg: %p buffer start: %p indices: %p\n", __func__,
-                (void*)(uintptr_t)(oldIndices),
-                buf->m_fixedBuffer.data(),
-                indices);
+        GFXSTREAM_VERBOSE("%s: indices arg: %p buffer start: %p indices: %p.",
+                          (void*)(uintptr_t)(oldIndices),
+                          buf->m_fixedBuffer.data(),
+                          indices);
         ctx->getBufferIndexRange(buf,
                                  indices,
                                  type,
@@ -4908,12 +4909,12 @@ void GL2Encoder::s_glDrawRangeElements(void* self, GLenum mode, GLuint start, GL
             ctx->m_stream->flush();
             // XXX - OPTIMIZATION (see the other else branch) should be implemented
             if(!has_indirect_arrays) {
-                //ALOGD("unoptimized drawelements !!!\n");
+                //GFXSTREAM_WARNING("unoptimized drawelements !!!");
             }
         } else {
             // we are all direct arrays and immidate mode index array -
             // rebuild the arrays and the index array;
-            ALOGE("glDrawElements: direct index & direct buffer data - will be implemented in later versions;\n");
+            GFXSTREAM_ERROR("Direct index & direct buffer data - will be implemented in later versions.");
         }
     }
     ctx->m_state->postDraw();
@@ -6390,7 +6391,7 @@ void GL2Encoder::s_glCopyTexSubImage2D(void *self , GLenum target, GLint level, 
     GLuint tex = ctx->m_state->getBoundTexture(target);
     GLsizei neededWidth = xoffset + width;
     GLsizei neededHeight = yoffset + height;
-    ALOGV("%s: tex %u needed width height %d %d xoff %d width %d yoff %d height %d (texture width %d height %d) level %d\n", __func__,
+    GFXSTREAM_VERBOSE("tex %u needed width height %d %d xoff %d width %d yoff %d height %d (texture width %d height %d) level %d\n",
             tex,
             neededWidth,
             neededHeight,

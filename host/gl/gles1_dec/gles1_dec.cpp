@@ -20,9 +20,9 @@
 #include <string.h>
 
 #include "gles1_opcodes.h"
+#include "gfxstream/common/logging.h"
 #include "gfxstream/host/ChecksumCalculatorThreadInfo.h"
 #include "gfxstream/host/ProtocolUtils.h"
-#include "gfxstream/host/logging.h"
 namespace gfxstream {
 typedef unsigned int tsize_t; // Target "size_t", which is 32-bit for now. It may or may not be the same as host's size_t when emugen is compiled.
 

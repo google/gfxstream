@@ -18,10 +18,7 @@ package {
 
 cc_library_static {
     name: "libgfxstream_host_vulkan_emulatedtextures",
-    defaults: [
-        "gfxstream_defaults",
-        "gfxstream_host_cc_defaults",
-    ],
+    defaults: ["gfxstream_host_cc_defaults"],
     header_libs: [
         "libgfxstream_host_vulkan_cereal_common",
     ],
@@ -30,7 +27,7 @@ cc_library_static {
         "libgfxstream_host_compressedtextures",
         "libgfxstream_host_decoder_common",
         "libgfxstream_host_health",
-        "libgfxstream_host_logging",
+        "libgfxstream_common_logging",
     ],
     export_static_lib_headers: [
         "libgfxstream_common_base",

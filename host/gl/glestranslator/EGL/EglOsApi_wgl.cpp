@@ -36,7 +36,7 @@
 #include "GLcommon/GLLibrary.h"
 #include "gfxstream/SharedLibrary.h"
 #include "gfxstream/synchronization/Lock.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 
 #define IS_TRUE(a) \
         do { if (!(a)) return NULL; } while (0)

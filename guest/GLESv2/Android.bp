@@ -19,13 +19,14 @@ package {
 cc_library_shared {
     name: "libGLESv2_emulation",
     defaults: [
-        "libgfxstream_guest_cc_defaults",
+        "gfxstream_guest_cc_defaults",
     ],
     header_libs: [
         "libgfxstream_egl_headers",
     ],
     static_libs: [
         "libgfxstream_androidemu_static",
+        "libgfxstream_common_logging",
     ],
     shared_libs: [
         "liblog",

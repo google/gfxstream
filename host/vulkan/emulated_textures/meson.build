@@ -23,7 +23,7 @@ lib_emulated_textures = static_library(
     inc_host_decoder_common,
     inc_host_health,
     inc_host_include,
-    inc_host_logging,
+    inc_common_logging,
     inc_host_metrics,
     inc_include,
     inc_root,
@@ -35,7 +35,7 @@ lib_emulated_textures = static_library(
     lib_common_base,
     lib_host_compressed_textures,
     lib_host_health,
-    lib_host_logging,
+    lib_common_logging,
     lib_host_metrics,
   ],
 )

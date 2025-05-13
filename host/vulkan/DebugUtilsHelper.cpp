@@ -19,7 +19,7 @@
 #include <cstdarg>
 #include <cstdio>
 
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 
 namespace gfxstream {
 namespace vk {

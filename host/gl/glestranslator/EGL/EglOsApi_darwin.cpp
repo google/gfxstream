@@ -24,7 +24,7 @@
 #include "MacNative.h"
 #include "gfxstream/SharedLibrary.h"
 #include "gfxstream/containers/Lookup.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 
 #define MAX_PBUFFER_MIPMAP_LEVEL 1
 

@@ -19,7 +19,7 @@ package {
 cc_library_headers {
     name: "libgfxstream_guest_rendercontrol_encoder_headers",
     defaults: [
-        "libgfxstream_guest_cc_defaults",
+        "gfxstream_guest_cc_defaults",
     ],
     export_include_dirs: [
         ".",
@@ -29,7 +29,7 @@ cc_library_headers {
 cc_library_shared {
     name: "lib_renderControl_enc",
     defaults: [
-        "libgfxstream_guest_cc_defaults",
+        "gfxstream_guest_cc_defaults",
     ],
     header_libs: [
         "libgfxstream_guest_graphics_headers",
@@ -41,6 +41,7 @@ cc_library_shared {
     ],
     static_libs: [
         "libgfxstream_androidemu_static",
+        "libgfxstream_common_logging",
     ],
     shared_libs: [
         "liblog",
@@ -66,7 +67,7 @@ cc_library_shared {
 cc_library_static {
     name: "libgfxstream_rcEnc_static",
     defaults: [
-        "libgfxstream_guest_cc_defaults",
+        "gfxstream_guest_cc_defaults",
         "mesa_platform_virtgpu_defaults",
     ],
     header_libs: [
@@ -79,6 +80,7 @@ cc_library_static {
     ],
     static_libs: [
         "libgfxstream_androidemu_static",
+        "libgfxstream_common_logging",
         "mesa_gfxstream_connection_manager",
     ],
     shared_libs: [

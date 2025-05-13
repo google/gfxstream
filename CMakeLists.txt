@@ -105,7 +105,6 @@ elseif(QNX)
     # TODO(jsimonot): fix build error
     # add_compile_definitions(VK_USE_PLATFORM_SCREEN_QNX)
 elseif(UNIX)
-    # TODO(kaiyili, b/179477624): Add Linux specific Vulkan platform macro definitions
     # Use X11 version of EGL platform specific definitions.
     add_compile_definitions(USE_X11)
 elseif(WIN32)

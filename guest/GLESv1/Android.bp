@@ -19,20 +19,23 @@ package {
 cc_library_shared {
     name: "libGLESv1_CM_emulation",
     defaults: [
-        "libgfxstream_guest_cc_defaults",
+        "gfxstream_guest_cc_defaults",
     ],
     header_libs: [
         "libgfxstream_egl_headers",
     ],
     shared_libs: [
-        "liblog",
         "libOpenglSystemCommon",
         "lib_renderControl_enc",
         "libGLESv1_enc",
     ],
+    static_libs: [
+        "libgfxstream_common_logging",
+    ],
     cflags: [
         "-DGL_GLEXT_PROTOTYPES",
         "-DLOG_TAG=\"GLES_emulation\"",
+        "-Wno-sign-compare",
     ],
     srcs: [
         "gl.cpp",

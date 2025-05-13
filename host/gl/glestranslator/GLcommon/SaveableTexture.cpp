@@ -24,7 +24,7 @@
 #include "gfxstream/host/stream_utils.h"
 #include "gfxstream/ArraySize.h"
 #include "gfxstream/system/System.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "render-utils/small_vector.h"
 
 #define SAVEABLE_TEXTURE_DEBUG 0

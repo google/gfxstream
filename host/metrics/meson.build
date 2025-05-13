@@ -10,6 +10,6 @@ files_lib_host_metrics = files(
 lib_host_metrics = static_library(
   'host_metrics',
   files_lib_host_metrics,
-  include_directories: [inc_host_metrics, inc_common_base, inc_host_logging],
-  link_with: [lib_common_base, lib_host_logging]
+  include_directories: [inc_host_metrics, inc_common_base, inc_common_logging],
+  link_with: [lib_common_base, lib_common_logging]
 )

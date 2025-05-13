@@ -21,7 +21,7 @@
 #include "RendererImpl.h"
 #include "gfxstream/synchronization/MessageChannel.h"
 #include "gfxstream/threads/Thread.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #ifndef _WIN32
 #include <signal.h>
 #include <pthread.h>

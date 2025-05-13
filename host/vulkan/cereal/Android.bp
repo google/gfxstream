@@ -18,17 +18,14 @@ package {
 
 cc_library_static {
     name: "libgfxstream_host_vulkan_cereal",
-    defaults: [
-        "gfxstream_defaults",
-        "gfxstream_host_cc_defaults",
-    ],
+    defaults: ["gfxstream_host_cc_defaults"],
     static_libs: [
         "libgfxstream_common_base",
         "libgfxstream_host_backend",
         "libgfxstream_host_decoder_common",
         "libgfxstream_host_features",
         "libgfxstream_host_health",
-        "libgfxstream_host_logging",
+        "libgfxstream_common_logging",
     ],
     srcs: [
         "common/goldfish_vk_extension_structs.cpp",

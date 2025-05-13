@@ -25,7 +25,7 @@ lib_glesv2_translator = static_library(
     inc_gl_openglesdispatch,
     inc_host_backend,
     inc_host_decoder_common,
-    inc_host_logging,
+    inc_common_logging,
     inc_host_snapshot,
     inc_include,
     inc_stream_servers,
@@ -34,7 +34,7 @@ lib_glesv2_translator = static_library(
     lib_common_base,
     lib_host_backend,
     lib_host_decoder_common,
-    lib_host_logging,
+    lib_common_logging,
     lib_host_snapshot,
   ],
 )

@@ -24,10 +24,10 @@
 #include "ShaderCache.h"
 #include "gfxstream/SharedLibrary.h"
 #include "gfxstream/Strings.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "gfxstream/system/System.h"
 
-#ifdef ANDROID
+#ifdef __ANDROID__
 #include <android/native_window.h>
 #endif
 
@@ -406,7 +406,7 @@ EglOsEglDisplay::EglOsEglDisplay(bool nullEgl) {
 
     mHeadless = gfxstream::base::getEnvironmentVariable("ANDROID_EMU_HEADLESS") == "1";
 
-#ifdef ANDROID
+#ifdef __ANDROID__
     mGlxDisplay = nullptr;
 #elif defined(__linux__)
     if (mHeadless) mGlxDisplay = nullptr;
@@ -805,7 +805,7 @@ bool EglOsEglDisplay::checkWindowPixelFormatMatch(EGLNativeWindowType win,
     *width = r.right - r.left;
     *height = r.bottom - r.top;
     return true;
-#elif defined(ANDROID)
+#elif defined(__ANDROID__)
     *width = ANativeWindow_getWidth((ANativeWindow*)win);
     *height = ANativeWindow_getHeight((ANativeWindow*)win);
     return true;

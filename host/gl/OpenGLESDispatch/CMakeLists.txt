@@ -12,6 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Use EGL platform specific definitions.
+if (APPLE)
+    add_compile_definitions(__APPLE__)
+elseif(UNIX)
+    add_compile_definitions(USE_X11)
+endif()
+
 add_library(
     gfxstream_openglesdispatch.headers
     INTERFACE)

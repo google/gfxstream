@@ -17,7 +17,6 @@
 #include "ProcessPipe.h"
 
 #include <errno.h>
-#include <log/log.h>
 #include <pthread.h>
 #include <qemu_pipe_bp.h>
 
@@ -27,6 +26,7 @@
 
 #include "QemuPipeStream.h"
 #include "VirtioGpuPipeStream.h"
+#include "gfxstream/common/logging.h"
 
 static QemuPipeStream* sQemuPipeStream = nullptr;
 static VirtioGpuPipeStream* sVirtioGpuPipeStream = nullptr;
@@ -51,7 +51,7 @@ static void processPipeDoInit(uint32_t noRenderControlEnc) {
 
 #if defined(__Fuchsia__)
     // Note: sProcUID is not initialized.
-    ALOGE("Fuchsia: requires noRenderControlEnc");
+    GFXSTREAM_ERROR("Fuchsia: requires noRenderControlEnc");
     abort();
 #else
     switch (sConnType) {

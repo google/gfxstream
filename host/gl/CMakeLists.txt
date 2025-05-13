@@ -53,7 +53,7 @@ target_link_libraries(
         gfxstream_vulkan_headers
         gfxstream_egl_headers
         gfxstream_host_backend
-        gfxstream_host_logging
+        gfxstream_common_logging
         gfxstream_host_health
         gles1_dec
         gles2_dec

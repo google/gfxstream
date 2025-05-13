@@ -21,7 +21,7 @@
 #include <optional>
 
 #include "gfxstream/host/Tracing.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "vulkan/vk_enum_string_helper.h"
 #include "vulkan/vk_util.h"
 

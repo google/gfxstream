@@ -18,7 +18,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
 
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "vulkan/VkFormatUtils.h"
 #include "vulkan/vk_enum_string_helper.h"
 

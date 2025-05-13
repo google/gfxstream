@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 
 #include <stdlib.h>
 
@@ -21,6 +21,10 @@
 #include <cstdio>
 #include <cstring>
 #include <sstream>
+
+#ifdef __ANDROID__
+#include <android/log.h>
+#endif
 
 namespace gfxstream {
 namespace host {
@@ -32,20 +36,42 @@ GfxstreamLogCallback DefaultLogCallback() {
               const char* message) {
         const std::string formatted = GetDefaultFormattedLog(level, file, line, function, message);
 
+#ifdef __ANDROID__
+        android_LogPriority priority = ANDROID_LOG_ERROR;
+        switch (level) {
+            case LogLevel::kFatal:
+                priority = ANDROID_LOG_FATAL;
+                break;
+            case LogLevel::kError:
+                priority = ANDROID_LOG_ERROR;
+                break;
+            case LogLevel::kWarning:
+                priority = ANDROID_LOG_WARN;
+                break;
+            case LogLevel::kInfo:
+                priority = ANDROID_LOG_INFO;
+                break;
+            case LogLevel::kDebug:
+                priority = ANDROID_LOG_DEBUG;
+                break;
+            case LogLevel::kVerbose:
+                priority = ANDROID_LOG_VERBOSE;
+                break;
+        }
+        __android_log_print(priority, "GFXSTREAM", "%s\n", formatted.c_str());
+#else
         FILE* f;
         switch (level) {
             case LogLevel::kFatal:
             case LogLevel::kError:
             case LogLevel::kWarning: {
-                f
-                = stderr;
+                f = stderr;
                 break;
             }
             case LogLevel::kInfo:
             case LogLevel::kDebug:
             case LogLevel::kVerbose: {
-                f
-                = stdout;
+                f = stdout;
                 break;
             }
         }
@@ -53,6 +79,7 @@ GfxstreamLogCallback DefaultLogCallback() {
         if (level == LogLevel::kFatal) {
             fflush(f);
         }
+#endif
     };
 }
 

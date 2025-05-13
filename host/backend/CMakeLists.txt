@@ -50,7 +50,7 @@ if (NOT TARGET gfxstream_host_backend)
         gfxstream_host_backend.headers
         PRIVATE
         gfxstream_host_address_space
-        gfxstream_host_logging
+        gfxstream_common_logging
         )
 endif()
 

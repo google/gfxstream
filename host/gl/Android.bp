@@ -18,7 +18,7 @@ package {
 
 cc_library_static {
     name: "libgfxstream_host_gl_server",
-    defaults: ["gfxstream_defaults"],
+    defaults: ["gfxstream_host_cc_defaults"],
     srcs: [
         "BufferGl.cpp",
         "ColorBufferGl.cpp",
@@ -52,7 +52,7 @@ cc_library_static {
         "libgfxstream_host_gles2_dec",
         "libgfxstream_host_glestranslator_glcommon",
         "libgfxstream_host_glsnapshot",
-        "libgfxstream_host_logging",
+        "libgfxstream_common_logging",
         "libgfxstream_host_openglesdispatch",
         "libgfxstream_host_renderdoc",
     ],

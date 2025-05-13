@@ -19,7 +19,7 @@ package {
 cc_library_headers {
     name: "libgfxstream_egl_headers",
     defaults: [
-        "libgfxstream_guest_cc_defaults",
+        "gfxstream_guest_cc_defaults",
     ],
     export_include_dirs: [
         ".",
@@ -29,7 +29,8 @@ cc_library_headers {
 cc_library_shared {
     name: "libEGL_emulation",
     defaults: [
-        "libgfxstream_guest_cc_defaults",
+        "gfxstream_defaults",
+        "gfxstream_guest_cc_defaults",
         "mesa_platform_virtgpu_defaults",
     ],
     header_libs: [
@@ -42,14 +43,14 @@ cc_library_shared {
     shared_libs: [
         "libcutils",
         "libdrm",
-        "liblog",
         "libOpenglCodecCommon",
         "libOpenglSystemCommon",
     ],
     static_libs: [
         "libgfxstream_androidemu_static",
+        "libgfxstream_common_logging",
         "libarect",
-        "libqemupipe.ranchu",
+        "libqemupipe.gfxstream",
     ],
     cflags: [
         "-DGL_GLEXT_PROTOTYPES",
@@ -58,6 +59,7 @@ cc_library_shared {
         "-DWITH_GLES2",
         "-Wno-cast-function-type-mismatch",
         "-Wno-gnu-designator",
+        "-Wno-unused-result",
     ],
     srcs: [
         "eglDisplay.cpp",

@@ -22,7 +22,7 @@
 #include <vector>
 
 #include "gfxstream/files/PathUtils.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 
 #ifndef _WIN32
 #include <dlfcn.h>

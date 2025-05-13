@@ -16,8 +16,6 @@
 
 #include "aemu/base/TypeTraits.h"
 
-#include <log/log.h>
-
 #include <cassert>
 #include <initializer_list>
 #include <new>
@@ -355,14 +353,12 @@ public:
 
     T& value() {
         if (!constructed()) {
-            ALOGE("Optional not constructed");
             abort();
         }
         return get();
     }
     constexpr const T& value() const {
         if (!constructed()) {
-            ALOGE("Optional not constructed");
             abort();
         }
         return get();
@@ -385,14 +381,12 @@ public:
     // Pointer-like operators
     T& operator*() {
         if (!constructed()) {
-            ALOGE("Optional not constructed");
             abort();
         }
         return get();
     }
     constexpr const T& operator*() const {
         if (!constructed()) {
-            ALOGE("Optional not constructed");
             abort();
         }
         return get();
@@ -400,14 +394,12 @@ public:
 
     T* operator->() {
         if (!constructed()) {
-            ALOGE("Optional not constructed");
             abort();
         }
         return &get();
     }
     constexpr const T* operator->() const {
         if (!constructed()) {
-            ALOGE("Optional not constructed");
             abort();
         }
         return &get();

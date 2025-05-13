@@ -19,7 +19,7 @@ package {
 cc_library_headers {
     name: "libgfxstream_guest_rendercontrol_headers",
     defaults: [
-        "libgfxstream_guest_cc_defaults",
+        "gfxstream_guest_cc_defaults",
     ],
     export_include_dirs: [
         "include",
@@ -35,7 +35,7 @@ cc_library_headers {
 cc_library_shared {
     name: "libgfxstream_guest_rendercontrol",
     defaults: [
-        "libgfxstream_guest_cc_defaults",
+        "gfxstream_guest_cc_defaults",
         "mesa_platform_virtgpu_defaults",
     ],
     header_libs: [
@@ -47,6 +47,9 @@ cc_library_shared {
     shared_libs: [
         "libOpenglSystemCommon",
         "liblog",
+    ],
+    static_libs: [
+        "libgfxstream_common_logging",
     ],
     srcs: [
         "RenderControl.cpp",

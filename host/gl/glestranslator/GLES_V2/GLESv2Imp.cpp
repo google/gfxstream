@@ -45,7 +45,7 @@
 #include "ShaderParser.h"
 #include "TransformFeedbackData.h"
 #include "gfxstream/system/System.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 
 #ifdef _MSC_VER
 #include "gfxstream/msvc.h"

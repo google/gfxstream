@@ -25,5 +25,5 @@ target_link_libraries(
     gfxstream_host_health
     PUBLIC
     gfxstream_common_base
-    gfxstream_host_logging
+    gfxstream_common_logging
     gfxstream_host_metrics)

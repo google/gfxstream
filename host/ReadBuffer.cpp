@@ -21,7 +21,7 @@
 
 #include <algorithm>
 
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 
 namespace gfxstream {
 

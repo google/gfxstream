@@ -12,7 +12,7 @@ cc_library(
     includes = ["include"],
     deps = [
         "//common/base:gfxstream_common_base",
-        "//host/logging:gfxstream_host_logging",
+        "//common/logging:gfxstream_common_logging",
         "//host/metrics:gfxstream_host_metrics",
     ],
 )

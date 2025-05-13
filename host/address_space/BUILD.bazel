@@ -17,8 +17,8 @@ cc_library(
     strip_include_prefix = "include",
     deps = [
         "//common/base:gfxstream_common_base",
+        "//common/logging:gfxstream_common_logging",
         "//host:gfxstream_backend_headers",
-        "//host/logging:gfxstream_host_logging",
     ],
 )
 

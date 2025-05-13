@@ -29,7 +29,7 @@ target_link_libraries(
     gfxstream_egl_headers
     gfxstream_host_backend
     gfxstream_host_library
-    gfxstream_host_logging
+    gfxstream_common_logging
     )
 target_include_directories(
     gles2_dec

@@ -18,6 +18,7 @@
 #include <GLES3/gl31.h>
 #include <string.h>
 
+#include "gfxstream/common/logging.h"
 #include "gfxstream/guest/IOStream.h"
 
 using gfxstream::guest::IOStream;
@@ -557,7 +558,7 @@ size_t glSizeof(GLenum type)
 		retval = 4 + 4;
         break;
     default:
-        ALOGE("**** ERROR unknown type 0x%x (%s,%d)\n", type, __FUNCTION__,__LINE__);
+        GFXSTREAM_ERROR("Unknown type 0x%x.", type);
         retval = 4;
     }
     return retval;
@@ -955,7 +956,7 @@ int glUtilsPixelBitSize(GLenum format, GLenum type)
         pixelsize = 32;
         break;
     default:
-        ALOGE("glUtilsPixelBitSize: unknown pixel type %d - assuming pixel data 0\n", type);
+        GFXSTREAM_ERROR("glUtilsPixelBitSize: unknown pixel type %d - assuming pixel data 0", type);
         componentsize = 0;
     }
 
@@ -989,7 +990,7 @@ int glUtilsPixelBitSize(GLenum format, GLenum type)
             pixelsize = 64;
             break;
         default:
-            ALOGE("glUtilsPixelBitSize: unknown pixel format %d\n", format);
+            GFXSTREAM_ERROR("glUtilsPixelBitSize: unknown pixel format %d", format);
             components = 0;
         }
         if (pixelsize == 0) {

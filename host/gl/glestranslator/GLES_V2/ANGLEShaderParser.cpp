@@ -24,7 +24,7 @@
 #include "ShaderTranslator.h"
 #include "gfxstream/SharedLibrary.h"
 #include "gfxstream/synchronization/Lock.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 
 #define GL_COMPUTE_SHADER 0x91B9
 

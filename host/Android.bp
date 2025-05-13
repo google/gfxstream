@@ -19,10 +19,7 @@ package {
 
 cc_library_headers {
     name: "libgfxstream_backend_headers",
-    defaults: [
-        "gfxstream_defaults",
-        "gfxstream_host_cc_defaults",
-    ],
+    defaults: ["gfxstream_host_cc_defaults"],
     export_include_dirs: [
         "include",
     ],
@@ -36,10 +33,7 @@ cc_library_headers {
 
 cc_library_host_static {
     name: "libgfxstream_backend_proto",
-    defaults: [
-        "gfxstream_defaults",
-        "gfxstream_host_cc_defaults",
-    ],
+    defaults: ["gfxstream_host_cc_defaults"],
     proto: {
         canonical_path_from_root: false,
         export_proto_headers: true,
@@ -77,7 +71,7 @@ gfxstream_backend_static_deps = [
     "libgfxstream_host_health",
     "libgfxstream_host_iostream",
     "libgfxstream_host_library",
-    "libgfxstream_host_logging",
+    "libgfxstream_common_logging",
     "libgfxstream_host_metrics",
     "libgfxstream_host_openglesdispatch",
     "libgfxstream_host_rendercontrol_dec",
@@ -97,10 +91,7 @@ gfxstream_backend_snapshot_static_deps = [
 
 cc_defaults {
     name: "libgfxstream_backend_defaults",
-    defaults: [
-        "gfxstream_defaults",
-        "gfxstream_host_cc_defaults",
-    ],
+    defaults: ["gfxstream_host_cc_defaults"],
     vendor_available: true,
     cflags: [
         "-Wno-unused-parameter",
@@ -195,7 +186,7 @@ cc_library {
 
 cc_test_library {
     name: "gfxstream_backend_test_support",
-    defaults: ["gfxstream_defaults"],
+    defaults: ["gfxstream_host_cc_defaults"],
     srcs: [
         "tests/GLSnapshotTesting.cpp",
         "tests/GLTestUtils.cpp",
@@ -221,7 +212,7 @@ cc_test_library {
         "gfxstream_base_test_support",
         "libgfxstream_common_base",
         "libgfxstream_host_decoder_common",
-        "libgfxstream_host_logging",
+        "libgfxstream_common_logging",
         "libgfxstream_host_iostream",
         "libgfxstream_host_snapshot",
         "libgfxstream_oswindow_test_support",
@@ -233,7 +224,7 @@ cc_test_library {
 // Run with `atest --host gfxstream_compositorvk_test`
 cc_test_host {
     name: "gfxstream_compositorvk_test",
-    defaults: ["gfxstream_defaults"],
+    defaults: ["gfxstream_host_cc_defaults"],
     header_libs: [
         "libgfxstream_host_vulkan_cereal_common",
         "libgfxstream_thirdparty_glm",
@@ -276,7 +267,7 @@ cc_test_host {
         "libgfxstream_common_image",
     ],
     static_libs: [
-        "libgfxstream_host_logging",
+        "libgfxstream_common_logging",
         "libgfxstream_host_vulkan_server",
     ],
     test_options: {
@@ -291,7 +282,7 @@ cc_test_host {
 // Run with `atest --host gfxstream_framebuffer_tests`
 cc_test_host {
     name: "gfxstream_framebuffer_tests",
-    defaults: ["gfxstream_defaults"],
+    defaults: ["gfxstream_host_cc_defaults"],
     header_libs: [
         "libgfxstream_host_vulkan_cereal_common",
         "libgfxstream_thirdparty_glm",
@@ -308,7 +299,7 @@ cc_test_host {
         "gfxstream_base_test_support",
         "libgfxstream_common_base",
         "libgfxstream_common_image",
-        "libgfxstream_host_logging",
+        "libgfxstream_common_logging",
         "libgfxstream_host_vulkan_server",
         "libgfxstream_oswindow_test_support",
         "libgfxstream_host_snapshot",
@@ -326,7 +317,7 @@ cc_test_host {
 // Run with `atest GfxstreamVirtioGpuTimelineTests`
 cc_test_host {
     name: "GfxstreamVirtioGpuTimelineTests",
-    defaults: ["gfxstream_defaults"],
+    defaults: ["gfxstream_host_cc_defaults"],
     srcs: [
         "VirtioGpuTimelinesTests.cpp",
     ],

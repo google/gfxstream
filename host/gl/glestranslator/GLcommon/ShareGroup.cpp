@@ -23,7 +23,7 @@
 #include "GLcommon/FramebufferData.h"
 #include "gfxstream/containers/Lookup.h"
 #include "gfxstream/synchronization/Lock.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 
 static constexpr int toIndex(NamedObjectType type) {
     return static_cast<int>(type);

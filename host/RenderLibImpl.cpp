@@ -20,7 +20,7 @@
 #include "gfxstream/host/display_operations.h"
 #include "gfxstream/host/dma_device.h"
 #include "gfxstream/host/guest_operations.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "gfxstream/host/renderer_operations.h"
 #include "gfxstream/host/sync_device.h"
 #include "gfxstream/host/vm_operations.h"

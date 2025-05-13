@@ -35,7 +35,7 @@
 #include "VkEmulatedPhysicalDeviceMemory.h"
 #include "VkEmulatedPhysicalDeviceQueue.h"
 #include "render-utils/stream.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "gfxstream/memory/SharedMemory.h"
 #include "gfxstream/synchronization/ConditionVariable.h"
 #include "gfxstream/synchronization/Lock.h"

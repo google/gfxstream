@@ -18,14 +18,8 @@ package {
 
 cc_library_headers {
     name: "libgfxstream_host_vulkan_cereal_common",
-    defaults: ["gfxstream_defaults"],
-    vendor_available: true,
-    host_supported: true,
+    defaults: ["gfxstream_host_cc_defaults"],
     export_include_dirs: [
         ".",
-    ],
-    apex_available: [
-        "//apex_available:platform",
-        "com.android.virt",
     ],
 }

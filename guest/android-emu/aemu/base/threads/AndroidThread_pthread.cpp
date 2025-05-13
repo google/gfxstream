@@ -16,7 +16,6 @@
 
 #include "aemu/base/threads/AndroidThreadStore.h"
 
-#include <log/log.h>
 #include <assert.h>
 #include <errno.h>
 #include <signal.h>
@@ -66,7 +65,6 @@ bool Thread::start() {
 
     if (pthread_create(&mThread, mStackSize ? &attr : nullptr, thread_main,
                        this)) {
-        ALOGE("Thread: failed to create a thread, errno %d\n", errno);
         ret = false;
         // We _do not_ need to guard this access to |mFinished| because we're
         // sure that the launched thread failed, so there can't be parallel
@@ -116,9 +114,7 @@ bool Thread::tryWait(intptr_t* exitStatus) {
     }
 
     if (!mJoined) {
-        if (pthread_join(mThread, NULL)) {
-            ALOGW("Thread: failed to join a finished thread, errno %d\n", errno);
-        }
+        pthread_join(mThread, NULL);
         mJoined = true;
     }
 
@@ -139,10 +135,7 @@ void* Thread::thread_main(void* arg) {
         }
 
         if ((self->mFlags & ThreadFlags::Detach) != ThreadFlags::NoFlags) {
-            if (pthread_detach(pthread_self())) {
-                // This only means a slow memory leak, so use VERBOSE.
-                ALOGV("Failed to set thread to detach mode\n");
-            }
+            pthread_detach(pthread_self());
         }
 
         ret = self->main();

@@ -22,7 +22,7 @@
 #include "TransformFeedbackData.h"
 #include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/host/stream_utils.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 
 #include <string.h>
 

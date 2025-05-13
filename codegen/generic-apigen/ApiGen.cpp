@@ -535,8 +535,7 @@ static void writeEncodingChecksumValidatorOnReturn(const char* funcName, FILE* f
                 "\t\tif (checksumSize > 0) checksumBufPtr = &checksumBuf[0];\n"
                 "\t\tstream->readback(checksumBufPtr, checksumSize);\n"
                 "\t\tif (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {\n"
-                "\t\t\tALOGE(\"%s: GL communication error, please report this issue to b.android.com.\\n\");\n"
-                "\t\t\tabort();\n"
+                "\t\t\tGFXSTREAM_FATAL(\"%s: GL communication error, please report this issue to b.android.com.\\n\");\n"
                 "\t\t}\n"
                 "\t}\n",
             funcName
@@ -550,9 +549,9 @@ static void addGuestTimePrinting(const EntryPoint* e, bool hasTimeBeforeReadback
     fprintf(fp, "\tlong timeDiff = ts1.tv_sec*1000000 + ts1.tv_nsec/1000 - (ts0.tv_sec*1000000 + ts0.tv_nsec/1000);\n");
     if (hasTimeBeforeReadback) {
         fprintf(fp, "\tlong timeDiff2 = ts1.tv_sec*1000000 + ts1.tv_nsec/1000 - (ts2.tv_sec*1000000 + ts2.tv_nsec/1000);\n");
-        fprintf(fp, "\tALOGW(\"%s: %%ld (%%ld) us\\n\", timeDiff, timeDiff2);\n", e->name().c_str());
+        fprintf(fp, "\tGFXSTREAM_WARNING(\"%%ld (%%ld) us\\n\", timeDiff, timeDiff2);\n");
     } else {
-        fprintf(fp, "\tALOGW(\"%s: %%ld us\\n\", timeDiff);\n", e->name().c_str());
+        fprintf(fp, "\tGFXSTREAM_WARNING(\"%%ld us\\n\", timeDiff);\n");
     }
 #endif
 }
@@ -595,6 +594,7 @@ int ApiGen::genEncoderImpl(const std::string &filename)
     fprintf(fp, "#include <stdio.h>\n\n");
     fprintf(fp, "#include \"aemu/base/Tracing.h\"\n\n");
     fprintf(fp, "#include \"EncoderDebug.h\"\n\n");
+    fprintf(fp, "#include \"gfxstream/common/logging.h\"\n\n");
 
     // fprintf(fp, "namespace gfxstream {\n\n");
     fprintf(fp, "using gfxstream::guest::ChecksumCalculator;\n\n");
@@ -605,7 +605,7 @@ int ApiGen::genEncoderImpl(const std::string &filename)
     fprintf(fp,
             "void enc_unsupported()\n"
             "{\n"
-            "\tALOGE(\"Function is unsupported\\n\");\n"
+            "\tGFXSTREAM_ERROR(\"Function is unsupported\\n\");\n"
             "}\n\n");
 
     // entry points;
@@ -1036,9 +1036,9 @@ int ApiGen::genDecoderImpl(const std::string &filename)
     fprintf(fp, "#include <string.h>\n");
     fprintf(fp, "\n");
     fprintf(fp, "#include \"%s_opcodes.h\"\n", m_basename.c_str());
+    fprintf(fp, "#include \"gfxstream/common/logging.h\"\n");
     fprintf(fp, "#include \"gfxstream/host/ChecksumCalculatorThreadInfo.h\"\n");
     fprintf(fp, "#include \"gfxstream/host/ProtocolUtils.h\"\n");
-    fprintf(fp, "#include \"gfxstream/host/logging.h\"\n");
 
     fprintf(fp, "namespace gfxstream {\n");
 

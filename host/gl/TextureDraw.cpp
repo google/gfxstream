@@ -22,7 +22,7 @@
 #include <string>
 
 #include "OpenGLESDispatch/DispatchTables.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 
 #ifndef NDEBUG
 #define DEBUG_TEXTURE_DRAW

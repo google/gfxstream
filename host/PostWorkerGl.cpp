@@ -17,7 +17,7 @@
 
 #include "FrameBuffer.h"
 #include "gfxstream/host/display_operations.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "gfxstream/host/renderer_operations.h"
 #include "gfxstream/host/window_operations.h"
 #include "gl/DisplayGl.h"

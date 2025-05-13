@@ -39,7 +39,7 @@ lib_gl_common = static_library(
     inc_host_compressed_textures,
     inc_host_decoder_common,
     inc_host_library,
-    inc_host_logging,
+    inc_common_logging,
     inc_host_snapshot,
     inc_include,
     inc_stream_servers,
@@ -50,7 +50,7 @@ lib_gl_common = static_library(
     lib_etc,
     lib_host_backend,
     lib_host_library,
-    lib_host_logging,
+    lib_common_logging,
     lib_host_snapshot,
   ],
 )

@@ -27,13 +27,13 @@ lib_host_decoder_common = static_library(
     inc_host_decoder_common,
     inc_host_include,
     inc_host_library,
-    inc_host_logging,
+    inc_common_logging,
     inc_include,
     inc_x11_headers,
   ],
   link_with: [
     lib_common_base,
     lib_host_library,
-    lib_host_logging,
+    lib_common_logging,
   ],
 )

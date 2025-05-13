@@ -18,6 +18,8 @@
 
 #include <sstream>
 
+#include "gfxstream/common/logging.h"
+
 #define LIST_VALID_TEX_INTERNALFORMATS(f) \
     f(GL_BGRA8_EXT) \
     f(GL_R8) \
@@ -1212,7 +1214,7 @@ bool pixelInternalFormat(GLenum internalformat) {
         break;
     }
 
-    ALOGW("error internal format: 0x%x is invalid\n", internalformat);
+    GFXSTREAM_WARNING("Error internal format: 0x%x is invalid.", internalformat);
     return false;
 }
 
@@ -1224,7 +1226,7 @@ bool textureBufferFormat(__attribute__((unused)) GL2Encoder* ctx, GLenum interna
         break;
     }
 
-    ALOGW("error internal format: 0x%x is invalid\n", internalFormat);
+    GFXSTREAM_WARNING("Error internal format: 0x%x is invalid\n", internalFormat);
     return false;
 }
 
@@ -1456,7 +1458,7 @@ bool allowedEnable(int majorVersion, int minorVersion, GLenum cap) {
         case GL_SAMPLE_MASK:
             return majorVersion >= 3 && minorVersion >= 1;
         default:
-            ALOGW("error cap: 0x%x is invalid\n", cap);
+            GFXSTREAM_WARNING("error cap: 0x%x is invalid.", cap);
 	    return false;
     }
 }
