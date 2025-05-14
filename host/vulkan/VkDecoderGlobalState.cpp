@@ -1317,21 +1317,10 @@ class VkDecoderGlobalState::Impl {
                 }
             }
 
-            // Private data from the guest side is not currently supported and causes emulator
-            // crashes with the dEQP-VK.api.object_management.private_data tests (b/368009403).
-            VkPhysicalDevicePrivateDataFeatures* privateDataFeatures =
-                vk_find_struct<VkPhysicalDevicePrivateDataFeatures>(pFeatures);
-            if (privateDataFeatures != nullptr) {
-                privateDataFeatures->privateData = VK_FALSE;
-            }
-            if (vulkan13Features != nullptr) {
-                vulkan13Features->privateData = VK_FALSE;
-            }
-
             if (m_vkEmulation->getFeatures().VulkanBatchedDescriptorSetUpdate.enabled) {
                 // Currently not supporting iub due to descriptor set optimization.
-                // TODO: fix the non-optimized descriptor set path and re-enable the features
-                // afterwads. b/372217918
+                // TODO: fix the non-optimized descriptor set path and re-enable the features afterwads.
+                // b/372217918
                 VkPhysicalDeviceInlineUniformBlockFeatures* iubFeatures =
                     vk_find_struct<VkPhysicalDeviceInlineUniformBlockFeatures>(pFeatures);
                 if (iubFeatures != nullptr) {
@@ -1846,30 +1835,6 @@ class VkDecoderGlobalState::Impl {
             featuresFiltered = *pCreateInfo->pEnabledFeatures;
             createInfoFiltered.pEnabledFeatures = &featuresFiltered;
             featuresToFilter.emplace_back(&featuresFiltered);
-        }
-
-        // Check for private data usage before force enabling. The api is unsupported so return error.
-        {
-            bool requestedPrivateData = false;
-            VkPhysicalDevicePrivateDataFeatures* privateDataFeatures =
-                vk_find_struct<VkPhysicalDevicePrivateDataFeatures>(&createInfoFiltered);
-            if (privateDataFeatures != nullptr && privateDataFeatures->privateData) {
-                requestedPrivateData = true;
-            }
-
-            VkPhysicalDeviceVulkan13Features* vulkan13Features =
-                vk_find_struct<VkPhysicalDeviceVulkan13Features>(&createInfoFiltered);
-            if (vulkan13Features != nullptr && vulkan13Features->privateData) {
-                requestedPrivateData = true;
-            }
-
-            // This may be hit by the CTS in create_device_unsupported_features.vulkan13_features
-            // We log the behavior, to identify cases as some system apps may still try creating
-            // private data devices without checking the feature support.
-            if (requestedPrivateData) {
-                GFXSTREAM_WARNING("%s: Unsupported private data feature is requested!", __func__);
-                return VK_ERROR_FEATURE_NOT_PRESENT;
-            }
         }
 
         // TODO(b/378686769): Force enable private data feature when available to
