@@ -1063,7 +1063,11 @@ class VkDecoderSnapshot::Impl {
     void vkCmdBindPipeline(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                            VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint,
-                           VkPipeline pipeline) {}
+                           VkPipeline pipeline) {
+        std::lock_guard<std::mutex> lock(mReconstructionMutex);
+        apiCallInfo->depends.push_back(
+            (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkPipeline(pipeline));
+    }
     void vkCmdSetViewport(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                           VkCommandBuffer commandBuffer, uint32_t firstViewport,
