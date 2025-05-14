@@ -94,7 +94,6 @@ inc_root = include_directories('../')
 inc_gfxstream_include = []
 # Included by all host component builds. Leave empty for future build updates.
 inc_include = include_directories()
-inc_utils = include_directories('../utils/include')
 
 if host_machine.system() == 'qnx'
   inc_gfxstream_include = [inc_qnx_headers, inc_gfxstream_include]
@@ -130,6 +129,7 @@ subdir('iostream')
 subdir('health')
 subdir('library')
 subdir('tracing')
+subdir('renderdoc')
 subdir('snapshot')
 subdir('decoder_common')
 subdir('address_space')
@@ -152,11 +152,11 @@ inc_gfxstream_backend = [
   inc_host_library,
   inc_host_logging,
   inc_host_metrics,
+  inc_host_renderdoc,
   inc_host_snapshot,
   inc_host_tracing,
   inc_include,
   inc_root,
-  inc_utils,
 ]
 
 link_gfxstream_backend = [

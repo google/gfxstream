@@ -34,9 +34,9 @@
 #include "gfxstream/ThreadAnnotations.h"
 #include "gfxstream/host/BackendCallbacks.h"
 #include "gfxstream/host/Features.h"
+#include "gfxstream/host/GfxApiLogger.h"
+#include "gfxstream/host/RenderDoc.h"
 #include "goldfish_vk_private_defs.h"
-#include "utils/GfxApiLogger.h"
-#include "utils/RenderDoc.h"
 
 #if defined(_WIN32)
 typedef void* HANDLE;
@@ -90,7 +90,7 @@ class VkEmulation {
         bool createResourceWithRequirements = false;
         bool useVulkanComposition = false;
         bool useVulkanNativeSwapchain = false;
-        std::unique_ptr<emugl::RenderDocWithMultipleVkInstances> guestRenderDoc = nullptr;
+        std::unique_ptr<gfxstream::host::RenderDocWithMultipleVkInstances> guestRenderDoc = nullptr;
         AstcEmulationMode astcLdrEmulationMode = AstcEmulationMode::Disabled;
         bool enableEtc2Emulation = false;
         bool enableYcbcrEmulation = false;
@@ -149,7 +149,7 @@ class VkEmulation {
 
     AstcEmulationMode getAstcLdrEmulationMode() const;
 
-    emugl::RenderDocWithMultipleVkInstances* getRenderDoc();
+    gfxstream::host::RenderDocWithMultipleVkInstances* getRenderDoc();
 
     Compositor* getCompositor();
 
@@ -534,7 +534,7 @@ class VkEmulation {
     bool mUseCreateResourcesWithRequirements = false;
 
     // RenderDoc integration for guest VkInstances.
-    std::unique_ptr<emugl::RenderDocWithMultipleVkInstances> mGuestRenderDoc;
+    std::unique_ptr<gfxstream::host::RenderDocWithMultipleVkInstances> mGuestRenderDoc;
 
     // Whether to use ASTC emulation. Our current ASTC decoder implementation may lead to device
     // lost on certain device on Windows.

@@ -81,12 +81,12 @@ gfxstream_backend_static_deps = [
     "libgfxstream_host_metrics",
     "libgfxstream_host_openglesdispatch",
     "libgfxstream_host_rendercontrol_dec",
+    "libgfxstream_host_renderdoc",
     "libgfxstream_host_snapshot",
     "libgfxstream_host_tracing",
     "libgfxstream_host_vulkan_cereal",
     "libgfxstream_host_vulkan_emulatedtextures",
     "libgfxstream_host_vulkan_server",
-    "libgfxstream_utils_renderdoc",
 ]
 
 gfxstream_backend_snapshot_static_deps = [
@@ -132,6 +132,7 @@ cc_defaults {
         "libgfxstream_host_decoder_common",
         "libgfxstream_host_features",
         "libgfxstream_host_health",
+        "libgfxstream_host_renderdoc",
         "libgfxstream_host_snapshot",
         "libgfxstream_host_tracing",
         "libgfxstream_host_gles2_dec",

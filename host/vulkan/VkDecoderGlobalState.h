@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #pragma once
 
 #include <vulkan/vulkan.h>
@@ -32,8 +33,8 @@
 #include "gfxstream/synchronization/Lock.h"
 #include "cereal/common/goldfish_vk_transform.h"
 #include "gfxstream/host/Features.h"
+#include "gfxstream/host/GfxApiLogger.h"
 #include "goldfish_vk_private_defs.h"
-#include "utils/GfxApiLogger.h"
 #include "vk_util.h"
 
 using gfxstream::base::AutoLock;
@@ -88,7 +89,8 @@ class VkDecoderGlobalState {
     bool vkCleanupEnabled() const;
 
     void save(gfxstream::Stream* stream);
-    void load(gfxstream::Stream* stream, emugl::GfxApiLogger& gfxLogger,
+    void load(gfxstream::Stream* stream,
+              gfxstream::host::GfxApiLogger& gfxLogger,
               HealthMonitor<>* healthMonitor);
 
     VkResult on_vkEnumerateInstanceVersion(gfxstream::base::BumpPool* pool,

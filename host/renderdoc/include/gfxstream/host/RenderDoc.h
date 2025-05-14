@@ -17,6 +17,7 @@
 #define RENDER_DOC_H
 
 #include <renderdoc_app.h>
+#include <vulkan/vulkan.h>
 
 #include <algorithm>
 #include <cstring>
@@ -29,15 +30,14 @@
 
 #include "gfxstream/SharedLibrary.h"
 #include "gfxstream/host/logging.h"
-#include "vulkan/vulkan.h"
 
-using gfxstream::base::SharedLibrary;
+namespace gfxstream {
+namespace host {
 
-namespace emugl {
 class RenderDoc {
    public:
     using RenderDocApi = RENDERDOC_API_1_4_2;
-    static std::unique_ptr<RenderDoc> create(const SharedLibrary* renderDocLib) {
+    static std::unique_ptr<RenderDoc> create(const gfxstream::base::SharedLibrary* renderDocLib) {
         if (!renderDocLib) {
             GFXSTREAM_ERROR("The renderdoc shared library is null.");
             return nullptr;
@@ -120,6 +120,8 @@ class RenderDocWithMultipleVkInstancesBase {
 };
 
 using RenderDocWithMultipleVkInstances = RenderDocWithMultipleVkInstancesBase<RenderDoc>;
-}  // namespace emugl
+
+}  // namespace host
+}  // namespace gfxstream
 
 #endif

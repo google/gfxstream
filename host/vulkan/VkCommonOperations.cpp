@@ -1837,7 +1837,7 @@ const gfxstream::host::BackendCallbacks& VkEmulation::getCallbacks() const { ret
 
 AstcEmulationMode VkEmulation::getAstcLdrEmulationMode() const { return mAstcLdrEmulationMode; }
 
-emugl::RenderDocWithMultipleVkInstances* VkEmulation::getRenderDoc() {
+gfxstream::host::RenderDocWithMultipleVkInstances* VkEmulation::getRenderDoc() {
     return mGuestRenderDoc.get();
 }
 

@@ -63,10 +63,10 @@ target_link_libraries(gfxstream-vulkan-server PUBLIC
         gfxstream_host_iostream
         gfxstream_host_library
         gfxstream_host_logging
+        gfxstream_host_renderdoc
         gfxstream_host_snapshot.headers
         gfxstream_host_tracing
         gfxstream_openglesdispatch.headers
-        gfxstream_utils
         gfxstream_vulkan_headers
         gfxstream_host_compressed_textures
         OpenglRender_vulkan_cereal
@@ -108,5 +108,4 @@ target_include_directories(gfxstream-vulkan-server
                            ${GFXSTREAM_REPO_ROOT}/host/tracing
                            ${GFXSTREAM_REPO_ROOT}/host/vulkan
                            ${GFXSTREAM_REPO_ROOT}/host/vulkan/cereal/common
-                           ${GFXSTREAM_REPO_ROOT}/host/gfxstream_host_decoder_common
                            ${GFXSTREAM_REPO_ROOT}/third_party/glm/include)

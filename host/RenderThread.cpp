@@ -45,7 +45,7 @@ namespace gfxstream {
 
 using gfxstream::base::AutoLock;
 using gfxstream::base::EventHangMetadata;
-using emugl::GfxApiLogger;
+using gfxstream::host::GfxApiLogger;
 using vk::VkDecoderContext;
 
 struct RenderThread::SnapshotObjects {

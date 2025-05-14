@@ -12,16 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-
-#include "utils/RenderDoc.h"
+#include "gfxstream/host/RenderDoc.h"
 
 #include <type_traits>
 
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include "gfxstream/SharedLibrary.h"
 
-namespace emugl {
+namespace gfxstream {
+namespace host {
 namespace {
 
 using ::testing::_;
@@ -189,4 +190,5 @@ TEST(RenderDocWithMultipleVkInstancesTest, ShouldEndFrameCaptureOnVkInstanceRemo
         .Times(0);
 }
 }  // namespace
-}  // namespace emugl
+}  // namespace host
+}  // namespace gfxstream

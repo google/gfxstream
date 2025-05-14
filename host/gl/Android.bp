@@ -54,6 +54,6 @@ cc_library_static {
         "libgfxstream_host_glsnapshot",
         "libgfxstream_host_logging",
         "libgfxstream_host_openglesdispatch",
-        "libgfxstream_utils_renderdoc",
+        "libgfxstream_host_renderdoc",
     ],
 }

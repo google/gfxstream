@@ -44,11 +44,11 @@
 #include "common/goldfish_vk_reserved_marshaling.h"
 #include "gfxstream/host/AstcCpuDecompressor.h"
 #include "gfxstream/containers/Lookup.h"
+#include "gfxstream/host/RenderDoc.h"
 #include "gfxstream/host/Tracing.h"
 #include "gfxstream/host/logging.h"
 #include "gfxstream/host/address_space_operations.h"
 #include "gfxstream/host/vm_operations.h"
-#include "utils/RenderDoc.h"
 #include "vk_util.h"
 #include "vulkan/emulated_textures/AstcTexture.h"
 #include "vulkan/emulated_textures/CompressedImageInfo.h"
@@ -86,7 +86,7 @@ using gfxstream::base::MetricEventVulkanOutOfMemory;
 using gfxstream::base::Optional;
 using gfxstream::base::SharedMemory;
 using gfxstream::base::StaticLock;
-using emugl::GfxApiLogger;
+using gfxstream::host::GfxApiLogger;
 using gfxstream::ExternalObjectManager;
 using gfxstream::VulkanInfo;
 
@@ -9373,7 +9373,7 @@ class VkDecoderGlobalState::Impl {
 
     VulkanDispatch* m_vk;
     VkEmulation* m_vkEmulation;
-    emugl::RenderDocWithMultipleVkInstances* mRenderDocWithMultipleVkInstances = nullptr;
+    gfxstream::host::RenderDocWithMultipleVkInstances* mRenderDocWithMultipleVkInstances = nullptr;
     bool mSnapshotsEnabled = false;
     bool mBatchedDescriptorSetUpdateEnabled = false;
     bool mDisableSparseBindingSupport = false;

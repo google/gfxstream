@@ -17,7 +17,7 @@ package {
 }
 
 cc_library_static {
-    name: "libgfxstream_utils_renderdoc",
+    name: "libgfxstream_host_renderdoc",
     defaults: ["gfxstream_defaults"],
     export_include_dirs: [
         "include",
@@ -27,5 +27,13 @@ cc_library_static {
     ],
     export_header_lib_headers: [
         "libgfxstream_thirdparty_renderdoc_headers",
+    ],
+    static_libs: [
+        "libgfxstream_host_library",
+        "libgfxstream_host_logging",
+    ],
+    export_static_lib_headers: [
+        "libgfxstream_host_library",
+        "libgfxstream_host_logging",
     ],
 }
