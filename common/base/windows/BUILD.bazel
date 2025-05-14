@@ -23,7 +23,6 @@ cc_library(
         "src/dirent/dirent.cpp",
     ] + glob([
         "src/*.c",
-        "src/*.h",
         "src/*.cpp",
     ]),
     defines = [
