@@ -19,7 +19,7 @@ package {
 cc_library {
     name: "libgfxstream_gles2_encoder_program_binary_proto",
     defaults: [
-        "libgfxstream_guest_cc_defaults",
+        "gfxstream_guest_cc_defaults",
     ],
     proto: {
         canonical_path_from_root: false,
@@ -34,7 +34,7 @@ cc_library {
 cc_library_shared {
     name: "libGLESv2_enc",
     defaults: [
-        "libgfxstream_guest_cc_defaults",
+        "gfxstream_guest_cc_defaults",
     ],
     header_libs: [
         "libgfxstream_guest_graphics_headers",
@@ -49,6 +49,7 @@ cc_library_shared {
     ],
     static_libs: [
         "libgfxstream_androidemu_static",
+        "libgfxstream_common_logging",
         "libgfxstream_gles2_encoder_program_binary_proto",
         "libprotobuf-cpp-lite",
     ],
@@ -58,6 +59,8 @@ cc_library_shared {
     cflags: [
         "-DGL_GLEXT_PROTOTYPES",
         "-DLOG_TAG=\"emuglGLESv2_enc\"",
+        "-Wno-sign-compare",
+        "-Wno-shadow",
         "-Wno-unused-private-field",
     ],
     srcs: [

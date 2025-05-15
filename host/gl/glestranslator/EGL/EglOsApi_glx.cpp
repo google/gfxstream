@@ -33,7 +33,7 @@
 #include "gfxstream/host/X11Support.h"
 #include "gfxstream/SharedLibrary.h"
 #include "gfxstream/synchronization/Lock.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 
 #define DEBUG_PBUF_POOL 0
 

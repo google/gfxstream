@@ -16,7 +16,6 @@
 
 #include <GLES3/gl31.h>
 #include <assert.h>
-#include <cutils/log.h>
 #include <cutils/properties.h>
 #include <cutils/trace.h>
 #include <poll.h>
@@ -40,6 +39,7 @@
 #include "eglDisplay.h"
 #include "eglSync.h"
 #include "egl_ftable.h"
+#include "gfxstream/common/logging.h"
 #include "gfxstream/guest/GLClientState.h"
 #include "gfxstream/guest/GLSharedGroup.h"
 #include "gfxstream/guest/goldfish_sync.h"
@@ -48,9 +48,8 @@ using gfxstream::guest::GLClientState;
 using gfxstream::guest::getCurrentThreadId;
 
 #define DEBUG_EGL 0
-
 #if DEBUG_EGL
-#define DPRINT(fmt,...) ALOGD("%s: " fmt, __FUNCTION__, ##__VA_ARGS__);
+#define DPRINT(fmt,...) GFXSTREAM_DEBUG(fmt, ##__VA_ARGS__);
 #else
 #define DPRINT(...)
 #endif
@@ -83,32 +82,17 @@ const char *  eglStrError(EGLint err)
     }
 }
 
-#define LOG_EGL_ERRORS 1
-
-#ifdef LOG_EGL_ERRORS
-
-#define setErrorReturn(error, retVal)                                                           \
-    {                                                                                           \
-        ALOGE("tid %lu: %s(%d): error 0x%x (%s)", getCurrentThreadId(), __FUNCTION__, __LINE__, \
-              error, eglStrError(error));                                                       \
-        return setErrorFunc(error, retVal);                                                     \
+#define setErrorReturn(error, retVal)                                                                 \
+    {                                                                                                 \
+        GFXSTREAM_ERROR("tid %lu: error 0x%x (%s)", getCurrentThreadId(), error, eglStrError(error)); \
+        return setErrorFunc(error, retVal);                                                           \
     }
 
-#define RETURN_ERROR(ret, err)                                                                   \
-    ALOGE("tid %lu: %s(%d): error 0x%x (%s)", getCurrentThreadId(), __FUNCTION__, __LINE__, err, \
-          eglStrError(err));                                                                     \
-    getEGLThreadInfo()->eglError = err;                                                          \
+#define RETURN_ERROR(ret, err)                                                                        \
+    GFXSTREAM_ERROR("tid %lu: error 0x%x (%s)", getCurrentThreadId(), err, eglStrError(err));         \
+    getEGLThreadInfo()->eglError = err;                                                               \
     return ret;
 
-#else //!LOG_EGL_ERRORS
-
-#define setErrorReturn(error, retVal) return setErrorFunc(error, retVal);
-
-#define RETURN_ERROR(ret,err)           \
-    getEGLThreadInfo()->eglError = err; \
-    return ret;
-
-#endif //LOG_EGL_ERRORS
 
 #define VALIDATE_CONFIG(cfg,ret) \
     if (!s_display.isValidConfig(cfg)) { \
@@ -133,44 +117,44 @@ const char *  eglStrError(EGLint err)
 #define DEFINE_AND_VALIDATE_HOST_CONNECTION(ret)                     \
     HostConnection* hostCon = HostConnection::get();                 \
     if (!hostCon) {                                                  \
-        ALOGE("egl: Failed to get host connection\n");               \
+        GFXSTREAM_ERROR("egl: Failed to get host connection\n");               \
         return ret;                                                  \
     }                                                                \
     ExtendedRCEncoderContext* rcEnc = hostCon->rcEncoder();          \
     if (!rcEnc) {                                                    \
-        ALOGE("egl: Failed to get renderControl encoder context\n"); \
+        GFXSTREAM_ERROR("egl: Failed to get renderControl encoder context\n"); \
         return ret;                                                  \
     }                                                                \
     auto* grallocHelper = hostCon->grallocHelper();                  \
     if (!grallocHelper) {                                            \
-        ALOGE("egl: Failed to get grallocHelper\n");                 \
+        GFXSTREAM_ERROR("egl: Failed to get grallocHelper\n");                 \
         return ret;                                                  \
     }                                                                \
     auto* anwHelper = hostCon->anwHelper();                          \
     if (!anwHelper) {                                                \
-        ALOGE("egl: Failed to get anwHelper\n");                     \
+        GFXSTREAM_ERROR("egl: Failed to get anwHelper\n");                     \
         return ret;                                                  \
     }
 
 #define DEFINE_AND_VALIDATE_HOST_CONNECTION_FOR_TLS(ret, tls)                      \
     HostConnection* hostCon = HostConnection::getWithThreadInfo(tls, kCapsetNone); \
     if (!hostCon) {                                                                \
-        ALOGE("egl: Failed to get host connection\n");                             \
+        GFXSTREAM_ERROR("egl: Failed to get host connection\n");                             \
         return ret;                                                                \
     }                                                                              \
     ExtendedRCEncoderContext* rcEnc = hostCon->rcEncoder();                        \
     if (!rcEnc) {                                                                  \
-        ALOGE("egl: Failed to get renderControl encoder context\n");               \
+        GFXSTREAM_ERROR("egl: Failed to get renderControl encoder context\n");               \
         return ret;                                                                \
     }                                                                              \
     auto const* grallocHelper = hostCon->grallocHelper();                          \
     if (!grallocHelper) {                                                          \
-        ALOGE("egl: Failed to get grallocHelper\n");                               \
+        GFXSTREAM_ERROR("egl: Failed to get grallocHelper\n");                               \
         return ret;                                                                \
     }                                                                              \
     auto* anwHelper = hostCon->anwHelper();                                        \
     if (!anwHelper) {                                                              \
-        ALOGE("egl: Failed to get anwHelper\n");                                   \
+        GFXSTREAM_ERROR("egl: Failed to get anwHelper\n");                                   \
         return ret;                                                                \
     }
 
@@ -489,7 +473,7 @@ EGLBoolean egl_window_surface_t::init()
 
         int waitRet = syncHelper->wait(acquireFenceFd, /* wait forever */-1);
         if (waitRet < 0) {
-            ALOGE("Failed to wait for window surface's dequeued buffer.");
+            GFXSTREAM_ERROR("Failed to wait for window surface's dequeued buffer.");
             anwHelper->cancelBuffer(nativeWindow, buffer);
         }
 
@@ -516,7 +500,7 @@ EGLBoolean egl_window_surface_t::init()
             getWidth(), getHeight());
 
     if (!rcSurface) {
-        ALOGE("rcCreateWindowSurface returned 0");
+        GFXSTREAM_ERROR("rcCreateWindowSurface returned 0");
         return EGL_FALSE;
     }
 
@@ -635,17 +619,14 @@ static uint64_t createNativeSync_virtioGpu(
     if (type == EGL_SYNC_NATIVE_FENCE_ANDROID && fd_in >= 0) {
         // Import fence fd; dup and close
         int importedFd = dup(fd_in);
-
         if (importedFd < 0) {
-            ALOGE("%s: error: failed to dup imported fd. original: %d errno %d\n",
-                  __func__, fd_in, errno);
+            GFXSTREAM_ERROR("Failed to dup imported fd. original: %d errno %d", fd_in, errno);
         }
 
         *fd_out = importedFd;
 
         if (close(fd_in)) {
-            ALOGE("%s: error: failed to close imported fd. original: %d errno %d\n",
-                  __func__, fd_in, errno);
+            GFXSTREAM_ERROR("Failed to close imported fd. original: %d errno %d", fd_in, errno);
         }
     } else if (type == EGL_SYNC_NATIVE_FENCE_ANDROID && fd_in < 0) {
         // Export fence fd
@@ -660,7 +641,7 @@ static uint64_t createNativeSync_virtioGpu(
         exec.command_size = sizeof(exportSync);
         exec.flags = kFenceOut;
         if (instance->execBuffer(exec, /*blob=*/nullptr)) {
-            ALOGE("Failed to execbuffer to create sync.");
+            GFXSTREAM_ERROR("Failed to execbuffer to create sync.");
             return 0;
         }
         *fd_out = exec.handle.osHandle
@@ -760,7 +741,7 @@ EGLBoolean egl_window_surface_t::swapBuffers()
     int presentFenceFd = -1;
 
     if (buffer == NULL) {
-        ALOGE("egl_window_surface_t::swapBuffers called with NULL buffer");
+        GFXSTREAM_ERROR("egl_window_surface_t::swapBuffers called with NULL buffer");
         setErrorReturn(EGL_BAD_SURFACE, EGL_FALSE);
     }
 
@@ -885,11 +866,10 @@ EGLBoolean egl_pbuffer_surface_t::init(GLenum pixelFormat)
     rcSurface = rcEnc->rcCreateWindowSurface(rcEnc, (uintptr_t)s_display.getIndexOfConfig(config),
             getWidth(), getHeight());
     if (!rcSurface) {
-        ALOGE("rcCreateWindowSurface returned 0");
+        GFXSTREAM_ERROR("rcCreateWindowSurface returned 0");
         return EGL_FALSE;
     }
 
-    uint32_t rcColorBuffer = 0;
     if (grallocHelper->getGrallocType() == gfxstream::GRALLOC_TYPE_GOLDFISH) {
         rcColorBuffer = rcEnc->rcCreateColorBuffer(rcEnc, getWidth(), getHeight(), pixelFormat);
     } else {
@@ -897,7 +877,7 @@ EGLBoolean egl_pbuffer_surface_t::init(GLenum pixelFormat)
     }
 
     if (!rcColorBuffer) {
-        ALOGE("rcCreateColorBuffer returned 0");
+        GFXSTREAM_ERROR("rcCreateColorBuffer returned 0");
         return EGL_FALSE;
     } else {
         refcountPipeFd = qemu_pipe_open("refcount");
@@ -1317,7 +1297,7 @@ EGLSurface eglCreatePbufferSurface(EGLDisplay dpy, EGLConfig config, const EGLin
             case EGL_VG_COLORSPACE:
                 break;
             default:
-                ALOGE("%s:%d unknown attribute: 0x%x\n", __func__, __LINE__, attrib_list[0]);
+                GFXSTREAM_ERROR("Unknown attribute: 0x%x", attrib_list[0]);
                 setErrorReturn(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
         };
         attrib_list+=2;
@@ -1483,7 +1463,7 @@ EGLBoolean eglQuerySurface(EGLDisplay dpy, EGLSurface eglSurface, EGLint attribu
                     *value = EGL_BACK_BUFFER;
                     break;
                 default:
-                    ALOGE("eglQuerySurface %x unknown surface type %x",
+                    GFXSTREAM_ERROR("eglQuerySurface %x unknown surface type %x",
                             attribute, surface->getSurfaceType());
                     ret = setErrorFunc(EGL_BAD_ATTRIBUTE, EGL_FALSE);
                     break;
@@ -1502,7 +1482,7 @@ EGLBoolean eglQuerySurface(EGLDisplay dpy, EGLSurface eglSurface, EGLint attribu
             break;
         //TODO: complete other attributes
         default:
-            ALOGE("eglQuerySurface %x  EGL_BAD_ATTRIBUTE", attribute);
+            GFXSTREAM_ERROR("eglQuerySurface %x  EGL_BAD_ATTRIBUTE", attribute);
             ret = setErrorFunc(EGL_BAD_ATTRIBUTE, EGL_FALSE);
             break;
     }
@@ -1577,7 +1557,7 @@ EGLSurface eglCreatePbufferFromClientBuffer(EGLDisplay dpy, EGLenum buftype, EGL
     (void)buffer;
     (void)config;
     (void)attrib_list;
-    ALOGW("%s not implemented", __FUNCTION__);
+    GFXSTREAM_WARNING("Not implemented");
     return 0;
 }
 
@@ -1625,7 +1605,7 @@ EGLBoolean eglSurfaceAttrib(EGLDisplay dpy, EGLSurface surface, EGLint attribute
         p_surface->setCollectingTimestamps(value);
         return true;
     default:
-        ALOGW("%s: attr=0x%x not implemented", __FUNCTION__, attribute);
+        GFXSTREAM_WARNING("attr=0x%x not implemented", attribute);
         setErrorReturn(EGL_BAD_ATTRIBUTE, EGL_FALSE);
     }
     return false;
@@ -1668,7 +1648,7 @@ EGLBoolean eglReleaseTexImage(EGLDisplay dpy, EGLSurface surface, EGLint buffer)
     (void)dpy;
     (void)surface;
     (void)buffer;
-    ALOGW("%s not implemented", __FUNCTION__);
+    GFXSTREAM_WARNING("Not implemented");
     return 0;
 }
 
@@ -1705,7 +1685,7 @@ static EGLConfig chooseDefaultEglConfig(const EGLDisplay& display) {
     EGLint numConfigs;
     EGLConfig config;
     if (!eglChooseConfig(display, attribs, &config, 1, &numConfigs)) {
-        ALOGE("eglChooseConfig failed to select a default config");
+        GFXSTREAM_ERROR("eglChooseConfig failed to select a default config");
         return EGL_NO_CONFIG_KHR;
     }
     return config;
@@ -1723,8 +1703,6 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
 
     EGLint majorVersion = 1; //default
     EGLint minorVersion = 0;
-    EGLint context_flags = 0;
-    EGLint profile_mask = 0;
 
     bool wantedMajorVersion = false;
     bool wantedMinorVersion = false;
@@ -1744,7 +1722,7 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
             if ((attrib_val & EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR) ||
                 (attrib_val & EGL_CONTEXT_OPENGL_FORWARD_COMPATIBLE_BIT_KHR)  ||
                 (attrib_val & EGL_CONTEXT_OPENGL_ROBUST_ACCESS_BIT_KHR)) {
-                context_flags = attrib_val;
+                // Valid.
             } else {
                 RETURN_ERROR(EGL_NO_CONTEXT,EGL_BAD_ATTRIBUTE);
             }
@@ -1752,7 +1730,7 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
         case EGL_CONTEXT_OPENGL_PROFILE_MASK_KHR:
             if ((attrib_val | EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT_KHR) ||
                 (attrib_val | EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT_KHR)) {
-                profile_mask = attrib_val;
+                // Valid
             } else {
                 RETURN_ERROR(EGL_NO_CONTEXT,EGL_BAD_ATTRIBUTE);
             }
@@ -1762,7 +1740,7 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
             // https://www.khronos.org/registry/EGL/extensions/IMG/EGL_IMG_context_priority.txt
             break;
         default:
-            ALOGV("eglCreateContext unsupported attrib 0x%x", attrib_list[0]);
+            GFXSTREAM_VERBOSE("eglCreateContext unsupported attrib 0x%x", attrib_list[0]);
             setErrorReturn(EGL_BAD_ATTRIBUTE, EGL_NO_CONTEXT);
         }
         attrib_list+=2;
@@ -1810,7 +1788,7 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
         break;
     case 3:
         if (rcEnc->getGLESMaxVersion() < GLES_MAX_VERSION_3_0) {
-            ALOGE("%s: EGL_BAD_CONFIG: no ES 3 support", __FUNCTION__);
+            GFXSTREAM_ERROR("EGL_BAD_CONFIG: no ES 3 support");
             setErrorReturn(EGL_BAD_CONFIG, EGL_NO_CONTEXT);
         }
         switch (minorVersion) {
@@ -1818,25 +1796,24 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
                 break;
             case 1:
                 if (rcEnc->getGLESMaxVersion() < GLES_MAX_VERSION_3_1) {
-                    ALOGE("%s: EGL_BAD_CONFIG: no ES 3.1 support", __FUNCTION__);
+                    GFXSTREAM_ERROR("EGL_BAD_CONFIG: no ES 3.1 support");
                     setErrorReturn(EGL_BAD_CONFIG, EGL_NO_CONTEXT);
                 }
                 break;
             case 2:
                 if (rcEnc->getGLESMaxVersion() < GLES_MAX_VERSION_3_2) {
-                    ALOGE("%s: EGL_BAD_CONFIG: no ES 3.2 support", __FUNCTION__);
+                    GFXSTREAM_ERROR("EGL_BAD_CONFIG: no ES 3.2 support");
                     setErrorReturn(EGL_BAD_CONFIG, EGL_NO_CONTEXT);
                 }
                 break;
             default:
-                ALOGE("%s: EGL_BAD_CONFIG: Unknown ES version %d.%d",
-                      __FUNCTION__, majorVersion, minorVersion);
+                GFXSTREAM_ERROR("EGL_BAD_CONFIG: Unknown ES version %d.%d",
+                                majorVersion, minorVersion);
                 setErrorReturn(EGL_BAD_CONFIG, EGL_NO_CONTEXT);
         }
         break;
     default:
-        ALOGE("%s:%d EGL_BAD_CONFIG: invalid major GLES version: %d\n",
-              __func__, __LINE__, majorVersion);
+        GFXSTREAM_ERROR("%s:%d EGL_BAD_CONFIG: invalid major GLES version: %d", majorVersion);
         setErrorReturn(EGL_BAD_CONFIG, EGL_NO_CONTEXT);
     }
 
@@ -1858,14 +1835,14 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
     }
     uint32_t rcContext = rcEnc->rcCreateContext(rcEnc, (uintptr_t)s_display.getIndexOfConfig(config), rcShareCtx, rcMajorVersion);
     if (!rcContext) {
-        ALOGE("rcCreateContext returned 0");
+        GFXSTREAM_ERROR("rcCreateContext returned 0");
         setErrorReturn(EGL_BAD_ALLOC, EGL_NO_CONTEXT);
     }
 
     EGLContext_t * context = new EGLContext_t(dpy, config, shareCtx, majorVersion, minorVersion);
     DPRINT("%s: %p: maj %d min %d rcv %d", __FUNCTION__, context, majorVersion, minorVersion, rcMajorVersion);
     if (!context) {
-        ALOGE("could not alloc egl context!");
+        GFXSTREAM_ERROR("could not alloc egl context!");
         setErrorReturn(EGL_BAD_ALLOC, EGL_NO_CONTEXT);
     }
 
@@ -1912,7 +1889,7 @@ static EGLSurface getOrCreateDummySurface(EGLContext_t* context) {
 
     context->dummy_surface = eglCreatePbufferSurface(context->dpy, context->config, attribs);
     if (context->dummy_surface == EGL_NO_SURFACE) {
-        ALOGE("Unable to create a dummy PBuffer EGL surface");
+        GFXSTREAM_ERROR("Unable to create a dummy PBuffer EGL surface");
     }
     return context->dummy_surface;
 }
@@ -1972,7 +1949,7 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
 
     if (context && (context->flags & EGLContext_t::IS_CURRENT) && (context != tInfo->currentContext)) {
         // context is current to another thread
-        ALOGE("%s: error: EGL_BAD_ACCESS: context %p current to another thread!\n", __FUNCTION__, context);
+        GFXSTREAM_ERROR("EGL_BAD_ACCESS: context %p current to another thread!", context);
         setErrorReturn(EGL_BAD_ACCESS, EGL_FALSE);
     }
 
@@ -2116,7 +2093,7 @@ EGLSurface eglGetCurrentSurface(EGLint readdraw)
         case EGL_DRAW:
             return context->draw;
         default:
-            ALOGE("%s:%d unknown parameter: 0x%x\n", __func__, __LINE__, readdraw);
+            GFXSTREAM_ERROR("Unknown parameter: 0x%x\n", readdraw);
             setErrorReturn(EGL_BAD_PARAMETER, EGL_NO_SURFACE);
     }
 }
@@ -2155,7 +2132,7 @@ EGLBoolean eglQueryContext(EGLDisplay dpy, EGLContext ctx, EGLint attribute, EGL
                 *value = EGL_BACK_BUFFER; //single buffer not supported
             break;
         default:
-            ALOGE("eglQueryContext %x  EGL_BAD_ATTRIBUTE", attribute);
+            GFXSTREAM_ERROR("eglQueryContext %x  EGL_BAD_ATTRIBUTE", attribute);
             setErrorReturn(EGL_BAD_ATTRIBUTE, EGL_FALSE);
             break;
     }
@@ -2270,10 +2247,10 @@ EGLImageKHR eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EG
             case HAL_PIXEL_FORMAT_DEPTH_32F_STENCIL_8:
                 break;
             case HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED:
-                ALOGW("%s:%d using HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED\n", __func__, __LINE__);
+                GFXSTREAM_WARNING("Using HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED");
                 break;
             default:
-                ALOGE("%s:%d unknown parameter: 0x%x\n", __func__, __LINE__, format);
+                GFXSTREAM_ERROR("Unknown parameter: 0x%x", format);
                 setErrorReturn(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
         }
 
@@ -2465,7 +2442,7 @@ EGLBoolean eglDestroySyncKHR(EGLDisplay dpy, EGLSyncKHR eglsync)
     (void)dpy;
 
     if (!eglsync) {
-        ALOGE("%s: null sync object!", __FUNCTION__);
+        GFXSTREAM_ERROR("Null sync object!");
         setErrorReturn(EGL_BAD_PARAMETER, EGL_FALSE);
     }
 
@@ -2497,7 +2474,7 @@ EGLint eglClientWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR eglsync, EGLint flags,
     (void)dpy;
 
     if (!eglsync) {
-        ALOGE("%s: null sync object!", __FUNCTION__);
+        GFXSTREAM_ERROR("Null sync object!");
         setErrorReturn(EGL_BAD_PARAMETER, EGL_FALSE);
     }
 
@@ -2591,12 +2568,12 @@ EGLint eglWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR eglsync, EGLint flags) {
     (void)dpy;
 
     if (!eglsync) {
-        ALOGE("%s: null sync object!", __FUNCTION__);
+        GFXSTREAM_ERROR("Null sync object!");
         setErrorReturn(EGL_BAD_PARAMETER, EGL_FALSE);
     }
 
     if (flags) {
-        ALOGE("%s: flags must be 0, got 0x%x", __FUNCTION__, flags);
+        GFXSTREAM_ERROR("Flags must be 0, got 0x%x", flags);
         setErrorReturn(EGL_BAD_PARAMETER, EGL_FALSE);
     }
 

@@ -18,7 +18,7 @@
 #include <memory.h>
 
 #include "gfxstream/host/dma_device.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "gfxstream/host/stream_utils.h"
 #include "gfxstream/system/System.h"
 #include "render-utils/dma_device.h"

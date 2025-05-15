@@ -56,17 +56,7 @@ class ExtendedRCEncoderContext : public renderControl_encoder_context_t {
         m_dmaPtr = dmaPtr;
         m_dmaPhysAddr = dmaPhysAddr;
     }
-    virtual uint64_t lockAndWriteDma(void* data, uint32_t size) {
-        if (m_dmaPtr && m_dmaPhysAddr) {
-            if (data != m_dmaPtr) {
-                memcpy(m_dmaPtr, data, size);
-            }
-            return m_dmaPhysAddr;
-        } else {
-            ALOGE("%s: ALOGEOR: No DMA context bound!", __func__);
-            return 0;
-        }
-    }
+    virtual uint64_t lockAndWriteDma(void* data, uint32_t size);
     void setGLESMaxVersion(GLESMaxVersion ver) { m_featureInfo.glesMaxVersion = ver; }
     GLESMaxVersion getGLESMaxVersion() const { return m_featureInfo.glesMaxVersion; }
     bool hasDirectMem() const { return m_featureInfo.hasDirectMem; }

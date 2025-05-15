@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "gfxstream/HealthMonitor.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "vulkan/vk_util.h"
 
 namespace gfxstream {

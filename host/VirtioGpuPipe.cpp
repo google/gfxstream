@@ -16,7 +16,7 @@
 
 #include <cstring>
 
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "gfxstream/system/System.h"
 
 namespace gfxstream {

@@ -46,7 +46,7 @@
 #include "gfxstream/containers/Lookup.h"
 #include "gfxstream/host/RenderDoc.h"
 #include "gfxstream/host/Tracing.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "gfxstream/host/address_space_operations.h"
 #include "gfxstream/host/vm_operations.h"
 #include "vk_util.h"

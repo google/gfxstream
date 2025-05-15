@@ -14,10 +14,12 @@
 * limitations under the License.
 */
 #include "GLEncoder.h"
-#include "glUtils.h"
-#include <log/log.h>
+
 #include <assert.h>
 #include <vector>
+
+#include "gfxstream/common/logging.h"
+#include "glUtils.h"
 
 using gfxstream::guest::BufferData;
 using gfxstream::guest::ChecksumCalculator;
@@ -33,17 +35,17 @@ static GLubyte *gRendererString= (GLubyte *) "Android HW-GLES 1.0";
 static GLubyte *gVersionString= (GLubyte *) "OpenGL ES-CM 1.0";
 static GLubyte *gExtensionsString= (GLubyte *) "GL_OES_EGL_image_external ";
 
-#define SET_ERROR_IF(condition,err) if((condition)) {                            \
-        ALOGE("%s:%s:%d GL error 0x%x\n", __FILE__, __FUNCTION__, __LINE__, err); \
-        ctx->setError(err);                                    \
-        return;                                                  \
+#define SET_ERROR_IF(condition,err) if((condition)) {               \
+        GFXSTREAM_ERROR("GL error 0x%x.", err);                     \
+        ctx->setError(err);                                         \
+        return;                                                     \
     }
 
 
-#define RET_AND_SET_ERROR_IF(condition,err,ret) if((condition)) {                \
-        ALOGE("%s:%s:%d GL error 0x%x\n", __FILE__, __FUNCTION__, __LINE__, err); \
-        ctx->setError(err);                                    \
-        return ret;                                              \
+#define RET_AND_SET_ERROR_IF(condition,err,ret) if((condition)) {   \
+        GFXSTREAM_ERROR("GL error 0x%x.", err);                     \
+        ctx->setError(err);                                         \
+        return ret;                                                 \
     }
 
 GLenum GLEncoder::s_glGetError(void * self)
@@ -269,7 +271,9 @@ void GLEncoder::s_glPixelStorei(void *self, GLenum param, GLint value)
 {
     GLEncoder *ctx = (GLEncoder *)self;
     ctx->m_glPixelStorei_enc(ctx, param, value);
-    ALOG_ASSERT(ctx->m_state, "GLEncoder::s_glPixelStorei");
+    if (ctx->m_state == nullptr) {
+        GFXSTREAM_FATAL("Missing state.");
+    }
     ctx->m_state->setPixelStore(param, value);
 }
 
@@ -526,14 +530,14 @@ void GLEncoder::s_glDrawArrays(void *self, GLenum mode, GLint first, GLsizei cou
             if (state.bufferObject || state.data) {
                 has_arrays = true;
             } else {
-                ALOGE("glDrawArrays: a vertex attribute array is enabled with no data bound\n");
+                GFXSTREAM_ERROR("A vertex attribute array is enabled with no data bound.");
                 ctx->setError(GL_INVALID_OPERATION);
                 return;
             }
         }
     }
     if (!has_arrays) {
-        ALOGE("glDrawArrays: no data bound to the command - ignoring\n");
+        GFXSTREAM_ERROR("No data bound to the command - ignoring.");
         return;
     }
 
@@ -560,7 +564,7 @@ void GLEncoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum 
             } else if (state.data) {
                 has_immediate_arrays = true;
             } else {
-                ALOGE("glDrawElements: a vertex attribute array is enabled with no data bound\n");
+                GFXSTREAM_ERROR("A vertex attribute array is enabled with no data bound.");
                 ctx->setError(GL_INVALID_OPERATION);
                 return;
             }
@@ -568,7 +572,7 @@ void GLEncoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum 
     }
 
     if (!has_immediate_arrays && !has_indirect_arrays) {
-        ALOGE("glDrawElements: no data bound to the command - ignoring\n");
+        GFXSTREAM_ERROR("No data bound to the command - ignoring.");
         return;
     }
 
@@ -625,7 +629,7 @@ void GLEncoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum 
             }
             break;
         default:
-            ALOGE("unsupported index buffer type %d\n", type);
+            GFXSTREAM_ERROR("unsupported index buffer type %d.", type);
         }
         if (has_indirect_arrays || 1) {
             ctx->sendVertexData(minIndex, maxIndex - minIndex + 1);
@@ -634,12 +638,12 @@ void GLEncoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum 
             ctx->m_stream->flush();
             // XXX - OPTIMIZATION (see the other else branch) should be implemented
             if(!has_indirect_arrays) {
-                //ALOGD("unoptimized drawelements !!!\n");
+                //GFXSTREAM_DEBUG("unoptimized drawelements !!!");
             }
         } else {
             // we are all direct arrays and immidate mode index array -
             // rebuild the arrays and the index array;
-            ALOGE("glDrawElements: direct index & direct buffer data - will be implemented in later versions;\n");
+            GFXSTREAM_ERROR("Direct index & direct buffer data - will be implemented in later versions.");
         }
     }
 }
@@ -651,7 +655,7 @@ void GLEncoder::s_glActiveTexture(void* self, GLenum texture)
     GLenum err;
 
     if ((err = state->setActiveTextureUnit(texture)) != GL_NO_ERROR) {
-        ALOGE("%s:%s:%d GL error %#x\n", __FILE__, __FUNCTION__, __LINE__, err);
+        GFXSTREAM_ERROR("GL error %#x.", err);
         ctx->setError(err);
         return;
     }
@@ -667,7 +671,7 @@ void GLEncoder::s_glBindTexture(void* self, GLenum target, GLuint texture)
 
     GLboolean firstUse;
     if ((err = state->bindTexture(target, texture, &firstUse)) != GL_NO_ERROR) {
-        ALOGE("%s:%s:%d GL error %#x\n", __FILE__, __FUNCTION__, __LINE__, err);
+        GFXSTREAM_ERROR("GL error %#x.", err);
         ctx->setError(err);
         return;
     }

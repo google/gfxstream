@@ -245,7 +245,7 @@ UniformValidationInfo ProgramData::compileValidationInfo(bool* error) const {
             .isUnsigned = isUnsignedIntType(m_Indexes[i].type),
             .isBool = isBoolType(m_Indexes[i].type),
         };
-        for (GLuint j = 0; j < m_Indexes[i].size; ++j) {
+        for (GLint j = 0; j < m_Indexes[i].size; ++j) {
             res.add(m_Indexes[i].base + j, info);
         }
     }

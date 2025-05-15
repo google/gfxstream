@@ -26,7 +26,7 @@
 #include "OpenGLESDispatch/gldefs.h"
 #include "OpenGLESDispatch/gles_functions.h"
 #include "gfxstream/synchronization/Lock.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 
 #define GLAPIENTRY GL_APIENTRY
 typedef void (*FUNCPTR_NO_ARGS_RET_VOID)();

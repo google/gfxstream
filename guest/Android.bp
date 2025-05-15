@@ -15,26 +15,3 @@
 package {
     default_applicable_licenses: ["hardware_google_gfxstream_license"],
 }
-
-cc_defaults {
-    name: "libgfxstream_guest_cc_defaults",
-    host_supported: true,
-    vendor: true,
-    cflags: [
-        "-DVK_GFXSTREAM_STRUCTURE_TYPE_EXT",
-        "-DGFXSTREAM_ENABLE_GUEST_GOLDFISH=1",
-        "-Wno-cast-function-type-mismatch",
-        "-Wno-missing-field-initializers",
-        "-Wno-unused-parameter",
-    ],
-    product_variables: {
-        platform_sdk_version: {
-            cflags: ["-DANDROID_API_LEVEL=%d"],
-        },
-    },
-    target: {
-        host: {
-            compile_multilib: "64",
-        },
-    },
-}

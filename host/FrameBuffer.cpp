@@ -53,7 +53,7 @@
 #include "gfxstream/host/Tracing.h"
 #include "gfxstream/host/display_operations.h"
 #include "gfxstream/host/guest_operations.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "gfxstream/host/renderer_operations.h"
 #include "gfxstream/host/vm_operations.h"
 #include "gfxstream/host/window_operations.h"

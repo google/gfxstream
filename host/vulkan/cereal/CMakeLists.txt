@@ -26,10 +26,10 @@ endif()
 target_link_libraries(
     OpenglRender_vulkan_cereal
     PUBLIC
+    gfxstream_common_logging
     gfxstream_features
     gfxstream_host_backend
     gfxstream_host_decoder_common
-    gfxstream_host_logging
     gfxstream_host_health
     gfxstream_vulkan_headers
     )

@@ -19,7 +19,7 @@ package {
 cc_library_headers {
     name: "libgfxstream_guest_errorlog_headers",
     defaults: [
-        "libgfxstream_guest_cc_defaults",
+        "gfxstream_guest_cc_defaults",
     ],
     export_include_dirs: [
         ".",
@@ -29,7 +29,7 @@ cc_library_headers {
 cc_library_shared {
     name: "libOpenglCodecCommon",
     defaults: [
-        "libgfxstream_guest_cc_defaults",
+        "gfxstream_guest_cc_defaults",
     ],
     header_libs: [
         "libgfxstream_thirdparty_opengl_headers",
@@ -54,7 +54,7 @@ cc_library_shared {
     static_libs: [
         "libgfxstream_etc",
         "libgfxstream_androidemu_static",
-        "libqemupipe.ranchu",
+        "libgfxstream_common_logging",
     ],
     cflags: [
         "-DLOG_TAG=\"eglCodecCommon\"",
@@ -77,10 +77,8 @@ cc_library_shared {
 
 cc_library_static {
     name: "libOpenglCodecCommon_static",
-    host_supported: true,
-    vendor: true,
     defaults: [
-        "libgfxstream_guest_cc_defaults",
+        "gfxstream_guest_cc_defaults",
     ],
     header_libs: [
         "libgfxstream_thirdparty_opengl_headers",
@@ -105,7 +103,7 @@ cc_library_static {
     static_libs: [
         "libgfxstream_etc",
         "libgfxstream_androidemu_static",
-        "libqemupipe.ranchu",
+        "libgfxstream_common_logging",
     ],
     cflags: [
         "-DLOG_TAG=\"eglCodecCommon\"",

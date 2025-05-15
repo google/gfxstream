@@ -18,7 +18,7 @@ package {
 
 cc_library_static {
     name: "libgfxstream_host_decoder_common",
-    defaults: ["gfxstream_defaults"],
+    defaults: ["gfxstream_host_cc_defaults"],
     header_libs: [
         "libgfxstream_backend_headers",
         "libgfxstream_thirdparty_opengl_headers",
@@ -31,7 +31,7 @@ cc_library_static {
     static_libs: [
         "libgfxstream_common_base",
         "libgfxstream_host_library",
-        "libgfxstream_host_logging",
+        "libgfxstream_common_logging",
     ],
     cflags: ["-fvisibility=hidden"],
     export_include_dirs: [

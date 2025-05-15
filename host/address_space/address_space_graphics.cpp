@@ -19,7 +19,7 @@
 
 #include "gfxstream/AlignedBuf.h"
 #include "gfxstream/host/address_space_device.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "gfxstream/host/sub_allocator.h"
 #include "render-utils/address_space_operations.h"
 

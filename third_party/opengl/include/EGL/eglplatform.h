@@ -95,7 +95,7 @@ typedef struct gbm_device  *EGLNativeDisplayType;
 typedef struct gbm_bo      *EGLNativePixmapType;
 typedef void               *EGLNativeWindowType;
 
-#elif defined(__ANDROID__) || defined(ANDROID)
+#elif defined(__ANDROID__)
 
 struct ANativeWindow;
 struct egl_native_pixmap_t;
@@ -110,7 +110,7 @@ typedef intptr_t EGLNativeDisplayType;
 typedef intptr_t EGLNativeWindowType;
 typedef intptr_t EGLNativePixmapType;
 
-#elif defined(__unix__) || defined(USE_X11)
+#elif defined(USE_X11)
 
 /* X11 (tentative)  */
 #include <X11/Xlib.h>
@@ -119,6 +119,12 @@ typedef intptr_t EGLNativePixmapType;
 typedef Display *EGLNativeDisplayType;
 typedef Pixmap   EGLNativePixmapType;
 typedef Window   EGLNativeWindowType;
+
+#elif defined(__unix__)
+
+typedef void             *EGLNativeDisplayType;
+typedef khronos_uintptr_t EGLNativePixmapType;
+typedef khronos_uintptr_t EGLNativeWindowType;
 
 #elif defined(__APPLE__)
 

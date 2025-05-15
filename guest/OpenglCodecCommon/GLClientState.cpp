@@ -15,12 +15,13 @@
 */
 #include "gfxstream/guest/GLClientState.h"
 
-#include <cutils/log.h>
+#include <optional>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "GLESTextureUtils.h"
+#include "gfxstream/common/logging.h"
 #include "glUtils.h"
 
 #ifndef MAX
@@ -245,8 +246,7 @@ void GLClientState::removeVertexArrayObjects(GLsizei n, const GLuint* arrays) {
 void GLClientState::addVertexArrayObject(GLuint name) {
     if (m_vaoMap.find(name) !=
         m_vaoMap.end()) {
-        ALOGE("%s: ERROR: %u already part of current VAO state!",
-              __FUNCTION__, name);
+        GFXSTREAM_ERROR("%u already part of current VAO state!", name);
         return;
     }
 
@@ -269,21 +269,19 @@ void GLClientState::addVertexArrayObject(GLuint name) {
 
     VertexAttribBindingVector& bindingState =
         m_vaoMap.find(name)->second.bindingState;
-    for (int i = 0; i < bindingState.size(); i++) {
+    for (size_t i = 0; i < bindingState.size(); i++) {
         bindingState[i].effectiveStride = 16;
     }
 }
 
 void GLClientState::removeVertexArrayObject(GLuint name) {
     if (name == 0) {
-        ALOGE("%s: ERROR: cannot delete VAO 0!",
-              __FUNCTION__);
+        GFXSTREAM_ERROR("Cannot delete VAO 0!");
         return;
     }
     if (m_vaoMap.find(name) ==
         m_vaoMap.end()) {
-        ALOGE("%s: ERROR: %u not found in VAO state!",
-              __FUNCTION__, name);
+        GFXSTREAM_ERROR("%u not found in VAO state!", name);
         return;
     }
     m_vaoMap.erase(name);
@@ -292,14 +290,12 @@ void GLClientState::removeVertexArrayObject(GLuint name) {
 void GLClientState::setVertexArrayObject(GLuint name) {
     if (m_vaoMap.find(name) ==
         m_vaoMap.end()) {
-        ALOGE("%s: ERROR: %u not found in VAO state!",
-              __FUNCTION__, name);
+        GFXSTREAM_ERROR("%u not found in VAO state!", name);
         return;
     }
 
     if (name && m_currVaoState.vaoId() == name) {
-        ALOGV("%s: set vao to self, no-op (%u)",
-              __FUNCTION__, name);
+        GFXSTREAM_ERROR("set vao to self, no-op (%u)", name);
         return;
     }
 
@@ -503,8 +499,7 @@ void GLClientState::setExistence(ObjectType type, bool exists, GLsizei count, co
                 break;
             case ObjectType::Sampler:
             default:
-                ALOGE("%s: Unreachable code\n", __func__);
-                abort();
+                GFXSTREAM_FATAL("Unreachable code.");
         }
 
         if (exists) {
@@ -531,7 +526,7 @@ bool GLClientState::queryExistence(ObjectType type, GLuint id) const {
         case ObjectType::Query:
             return mQueryIds.get(id);
         default:
-            ALOGD("%s: unknown object type: 0x%x\n", __func__, type);
+            GFXSTREAM_FATAL("Unknown object type: 0x%x", type);
             abort();
     }
 }
@@ -562,8 +557,7 @@ bool GLClientState::tryBind(GLenum target, GLuint id) {
                 mBoundQueryValidity_TransformFeedbackPrimitivesWritten.valid = false;
                 break;
             default:
-                ALOGE("%s: target 0x%x not yet supported in new state tracking model\n", __func__, target);
-                abort();
+                GFXSTREAM_FATAL("Target 0x%x not yet supported in new state tracking model", target);
         }
         return true;
     }
@@ -580,7 +574,7 @@ bool GLClientState::tryBind(GLenum target, GLuint id) {
             }
             break;
         default:
-            ALOGE("%s: target 0x%x not yet supported in new state tracking model\n", __func__, target);
+            GFXSTREAM_FATAL("Target 0x%x not yet supported in new state tracking model", target);
             abort();
     }
 
@@ -603,7 +597,7 @@ bool GLClientState::tryBind(GLenum target, GLuint id) {
         mBoundQueryValidity_TransformFeedbackPrimitivesWritten.valid = true;
         break;
     default:
-        ALOGE("%s: target 0x%x not yet supported in new state tracking model\n", __func__, target);
+        GFXSTREAM_ERROR("Target 0x%x not yet supported in new state tracking model", target);
         abort();
     }
     return true;
@@ -620,7 +614,7 @@ bool GLClientState::isBoundTargetValid(GLenum target) {
     case GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN:
         return mBoundQueryValidity_TransformFeedbackPrimitivesWritten.valid;
     default:
-        ALOGE("%s: target 0x%x not yet supported in new state tracking model\n", __func__, target);
+        GFXSTREAM_FATAL("Target 0x%x not yet supported in new state tracking model", target);
         abort();
     }
 }
@@ -1070,7 +1064,7 @@ bool GLClientState::isRenderbufferThatWasBound(GLuint name) const {
 
 void GLClientState::getClientStatePointer(GLenum pname, GLvoid** params)
 {
-    GLenum which_state = -1;
+    std::optional<GLenum> which_state;
     switch (pname) {
     case GL_VERTEX_ARRAY_POINTER: {
         which_state = GLClientState::VERTEX_LOCATION;
@@ -1101,8 +1095,9 @@ void GLClientState::getClientStatePointer(GLenum pname, GLvoid** params)
         break;
         }
     }
-    if (which_state != -1)
-        *params = m_currVaoState[which_state].data;
+    if (which_state) {
+        *params = m_currVaoState[*which_state].data;
+    }
 }
 
 int GLClientState::setPixelStore(GLenum param, GLint value)
@@ -1150,21 +1145,21 @@ size_t GLClientState::pixelDataSize(GLsizei width, GLsizei height, GLsizei depth
 {
     if (width <= 0 || height <= 0 || depth <= 0) return 0;
 
-    ALOGV("%s: pack? %d", __FUNCTION__, pack);
+    GFXSTREAM_VERBOSE("pack? %d", pack);
     if (pack) {
-        ALOGV("%s: pack stats", __FUNCTION__);
-        ALOGV("%s: pack align %d", __FUNCTION__, m_pixelStore.pack_alignment);
-        ALOGV("%s: pack rowlen %d", __FUNCTION__, m_pixelStore.pack_row_length);
-        ALOGV("%s: pack skippixels %d", __FUNCTION__, m_pixelStore.pack_skip_pixels);
-        ALOGV("%s: pack skiprows %d", __FUNCTION__, m_pixelStore.pack_skip_rows);
+        GFXSTREAM_VERBOSE("pack stats");
+        GFXSTREAM_VERBOSE("pack align %d", m_pixelStore.pack_alignment);
+        GFXSTREAM_VERBOSE("pack rowlen %d", m_pixelStore.pack_row_length);
+        GFXSTREAM_VERBOSE("pack skippixels %d", m_pixelStore.pack_skip_pixels);
+        GFXSTREAM_VERBOSE("pack skiprows %d", m_pixelStore.pack_skip_rows);
     } else {
-        ALOGV("%s: unpack stats", __FUNCTION__);
-        ALOGV("%s: unpack align %d", __FUNCTION__, m_pixelStore.unpack_alignment);
-        ALOGV("%s: unpack rowlen %d", __FUNCTION__, m_pixelStore.unpack_row_length);
-        ALOGV("%s: unpack imgheight %d", __FUNCTION__, m_pixelStore.unpack_image_height);
-        ALOGV("%s: unpack skippixels %d", __FUNCTION__, m_pixelStore.unpack_skip_pixels);
-        ALOGV("%s: unpack skiprows %d", __FUNCTION__, m_pixelStore.unpack_skip_rows);
-        ALOGV("%s: unpack skipimages %d", __FUNCTION__, m_pixelStore.unpack_skip_images);
+        GFXSTREAM_VERBOSE("unpack stats");
+        GFXSTREAM_VERBOSE("unpack align %d", m_pixelStore.unpack_alignment);
+        GFXSTREAM_VERBOSE("unpack rowlen %d", m_pixelStore.unpack_row_length);
+        GFXSTREAM_VERBOSE("unpack imgheight %d", m_pixelStore.unpack_image_height);
+        GFXSTREAM_VERBOSE("unpack skippixels %d", m_pixelStore.unpack_skip_pixels);
+        GFXSTREAM_VERBOSE("unpack skiprows %d", m_pixelStore.unpack_skip_rows);
+        GFXSTREAM_VERBOSE("unpack skipimages %d", m_pixelStore.unpack_skip_images);
     }
     return GLESTextureUtils::computeTotalImageSize(
             width, height, depth,
@@ -1181,21 +1176,21 @@ size_t GLClientState::pboNeededDataSize(GLsizei width, GLsizei height, GLsizei d
 {
     if (width <= 0 || height <= 0 || depth <= 0) return 0;
 
-    ALOGV("%s: pack? %d", __FUNCTION__, pack);
+    GFXSTREAM_VERBOSE("pack? %d", pack);
     if (pack) {
-        ALOGV("%s: pack stats", __FUNCTION__);
-        ALOGV("%s: pack align %d", __FUNCTION__, m_pixelStore.pack_alignment);
-        ALOGV("%s: pack rowlen %d", __FUNCTION__, m_pixelStore.pack_row_length);
-        ALOGV("%s: pack skippixels %d", __FUNCTION__, m_pixelStore.pack_skip_pixels);
-        ALOGV("%s: pack skiprows %d", __FUNCTION__, m_pixelStore.pack_skip_rows);
+        GFXSTREAM_VERBOSE("pack stats");
+        GFXSTREAM_VERBOSE("pack align %d", m_pixelStore.pack_alignment);
+        GFXSTREAM_VERBOSE("pack rowlen %d", m_pixelStore.pack_row_length);
+        GFXSTREAM_VERBOSE("pack skippixels %d", m_pixelStore.pack_skip_pixels);
+        GFXSTREAM_VERBOSE("pack skiprows %d", m_pixelStore.pack_skip_rows);
     } else {
-        ALOGV("%s: unpack stats", __FUNCTION__);
-        ALOGV("%s: unpack align %d", __FUNCTION__, m_pixelStore.unpack_alignment);
-        ALOGV("%s: unpack rowlen %d", __FUNCTION__, m_pixelStore.unpack_row_length);
-        ALOGV("%s: unpack imgheight %d", __FUNCTION__, m_pixelStore.unpack_image_height);
-        ALOGV("%s: unpack skippixels %d", __FUNCTION__, m_pixelStore.unpack_skip_pixels);
-        ALOGV("%s: unpack skiprows %d", __FUNCTION__, m_pixelStore.unpack_skip_rows);
-        ALOGV("%s: unpack skipimages %d", __FUNCTION__, m_pixelStore.unpack_skip_images);
+        GFXSTREAM_VERBOSE("unpack stats");
+        GFXSTREAM_VERBOSE("unpack align %d", m_pixelStore.unpack_alignment);
+        GFXSTREAM_VERBOSE("unpack rowlen %d", m_pixelStore.unpack_row_length);
+        GFXSTREAM_VERBOSE("unpack imgheight %d", m_pixelStore.unpack_image_height);
+        GFXSTREAM_VERBOSE("unpack skippixels %d", m_pixelStore.unpack_skip_pixels);
+        GFXSTREAM_VERBOSE("unpack skiprows %d", m_pixelStore.unpack_skip_rows);
+        GFXSTREAM_VERBOSE("unpack skipimages %d", m_pixelStore.unpack_skip_images);
     }
     return GLESTextureUtils::computeNeededBufferSize(
             width, height, depth,
@@ -1386,7 +1381,7 @@ bool GLClientState::isSamplerBindNoOp(GLuint unit, GLuint sampler) {
 }
 
 void GLClientState::onDeleteSamplers(GLsizei n, const GLuint* samplers) {
-    for (uint32_t i = 0; i < n; ++i) {
+    for (GLsizei i = 0; i < n; ++i) {
         for (uint32_t j = 0; j < MAX_TEXTURE_UNITS; ++j) {
             uint32_t currentSampler = m_tex.unit[j].boundSampler;
             if (currentSampler == samplers[i]) {
@@ -1583,7 +1578,7 @@ void GLClientState::setBoundTextureDims(GLenum target, GLenum cubetarget, GLsize
     size_t indexToSet = 0;
 
     if (target == GL_TEXTURE_CUBE_MAP) {
-        if (-1 == cubetarget) {
+        if (static_cast<GLenum>(-1) == cubetarget) {
             setBoundTextureDims(target, GL_TEXTURE_CUBE_MAP_NEGATIVE_X, level, width, height, depth);
             setBoundTextureDims(target, GL_TEXTURE_CUBE_MAP_POSITIVE_X, level, width, height, depth);
             setBoundTextureDims(target, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, level, width, height, depth);
@@ -1782,7 +1777,7 @@ GLenum GLClientState::checkFramebufferCompleteness(GLenum target) {
             hasAttachment = true;
         }
         if (attachmentRes) {
-            ALOGD("%s: color attachment %d not complete: 0x%x\n", __func__, i, attachmentRes);
+            GFXSTREAM_DEBUG("color attachment %d not complete: 0x%x\n", i, attachmentRes);
             return attachmentRes;
         }
     }
@@ -1796,7 +1791,7 @@ GLenum GLClientState::checkFramebufferCompleteness(GLenum target) {
             hasAttachment = true;
         }
         if (depthAttachmentRes) {
-            ALOGD("%s: depth attachment not complete: 0x%x\n", __func__, depthAttachmentRes);
+            GFXSTREAM_DEBUG("depth attachment not complete: 0x%x", depthAttachmentRes);
             return depthAttachmentRes;
         }
     }
@@ -1807,7 +1802,7 @@ GLenum GLClientState::checkFramebufferCompleteness(GLenum target) {
             hasAttachment = true;
         }
         if (stencilAttachmentRes) {
-            ALOGD("%s: stencil attachment not complete: 0x%x\n", __func__, stencilAttachmentRes);
+            GFXSTREAM_DEBUG("stencil attachment not complete: 0x%x", stencilAttachmentRes);
             return stencilAttachmentRes;
         }
     }
@@ -1817,18 +1812,18 @@ GLenum GLClientState::checkFramebufferCompleteness(GLenum target) {
         if (m_glesMajorVersion > 2) {
             if ((props.depthAttachment_hasTexObj && props.stencilAttachment_hasRbo) ||
                 (props.stencilAttachment_hasTexObj && props.depthAttachment_hasRbo)) {
-                ALOGD("%s: GL_FRAMEBUFFER_UNSUPPORTED: using different types of depth/stencil attachment images in GLES 3+\n", __func__);
+                GFXSTREAM_DEBUG("GL_FRAMEBUFFER_UNSUPPORTED: using different types of depth/stencil attachment images in GLES 3+");
                 return GL_FRAMEBUFFER_UNSUPPORTED;
             }
             if (props.depthAttachment_hasTexObj) {
                 if (props.depthAttachment_texture != props.stencilAttachment_texture) {
-                    ALOGD("%s: GL_FRAMEBUFFER_UNSUPPORTED: using different texture images for depth and stencil attachments in GLES 3+\n", __func__);
+                    GFXSTREAM_DEBUG("GL_FRAMEBUFFER_UNSUPPORTED: using different texture images for depth and stencil attachments in GLES 3+");
                     return GL_FRAMEBUFFER_UNSUPPORTED;
                 }
             }
             if (props.depthAttachment_hasRbo) {
                 if (props.depthAttachment_rbo != props.stencilAttachment_rbo) {
-                    ALOGD("%s: GL_FRAMEBUFFER_UNSUPPORTED: using different renderbuffers for depth and stencil attachments in GLES 3+\n", __func__);
+                    GFXSTREAM_DEBUG("GL_FRAMEBUFFER_UNSUPPORTED: using different renderbuffers for depth and stencil attachments in GLES 3+");
                     return GL_FRAMEBUFFER_UNSUPPORTED;
                 }
             }
@@ -1899,21 +1894,21 @@ GLenum GLClientState::checkFramebufferAttachmentCompleteness(GLenum target, GLen
     if (!renderable) {
         switch (fbo_format_info.type) {
             case FBO_ATTACHMENT_RENDERBUFFER:
-                ALOGD("%s: rbo not color renderable. target=0x%x attachment=0x%x rb_format=0x%x "
-                      "gles=%d.%d floatext=%d hfloatext=%d\n",
-                      __func__, target, attachment, fbo_format_info.rb_format,
-                      m_glesMajorVersion, m_glesMinorVersion,
-                      m_has_color_buffer_float_extension,
-                      m_has_color_buffer_half_float_extension);
+                GFXSTREAM_DEBUG("rbo not color renderable. target=0x%x attachment=0x%x rb_format=0x%x "
+                                "gles=%d.%d floatext=%d hfloatext=%d\n",
+                                target, attachment, fbo_format_info.rb_format,
+                                m_glesMajorVersion, m_glesMinorVersion,
+                                m_has_color_buffer_float_extension,
+                                m_has_color_buffer_half_float_extension);
                 break;
             case FBO_ATTACHMENT_TEXTURE:
-                ALOGD("%s: tex not color renderable. target=0x%x attachment=0x%x "
-                      "tex_intformat=0x%x tex_format=0x%x tex_type=0x%x gles=%d.%d "
-                      "floatext=%d hfloatext=%d\n",
-                      __func__, target, attachment, fbo_format_info.tex_internalformat,
-                      fbo_format_info.tex_format, fbo_format_info.tex_type, m_glesMajorVersion,
-                      m_glesMinorVersion, m_has_color_buffer_float_extension,
-                      m_has_color_buffer_half_float_extension);
+                GFXSTREAM_DEBUG("tex not color renderable. target=0x%x attachment=0x%x "
+                                "tex_intformat=0x%x tex_format=0x%x tex_type=0x%x gles=%d.%d "
+                                "floatext=%d hfloatext=%d\n",
+                                target, attachment, fbo_format_info.tex_internalformat,
+                                fbo_format_info.tex_format, fbo_format_info.tex_type, m_glesMajorVersion,
+                                m_glesMinorVersion, m_has_color_buffer_float_extension,
+                                m_has_color_buffer_half_float_extension);
                 break;
             default:
                 break;
@@ -1929,7 +1924,7 @@ GLenum GLClientState::checkFramebufferAttachmentCompleteness(GLenum target, GLen
         rbo = getFboAttachmentRbo(target, attachment);
         if (!fbo_format_info.rb_external) {
             if (!rbo || 0 == rbo->width || 0 == rbo->height) {
-                ALOGD("%s: rbo has zero dimension\n", __func__);
+                GFXSTREAM_DEBUG("rbo has zero dimension");
                 return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
             }
         }
@@ -1939,12 +1934,12 @@ GLenum GLClientState::checkFramebufferAttachmentCompleteness(GLenum target, GLen
         if (!fbo_format_info.tex_external) {
             if (0 == texrec->dims->widths[fbo_format_info.tex_level] ||
                     0 == texrec->dims->heights[fbo_format_info.tex_level]) {
-                ALOGD("%s: texture has zero dimension\n", __func__);
+                GFXSTREAM_DEBUG("texture has zero dimension");
                 return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
             }
             GLsizei depth = texrec->dims->depths[fbo_format_info.tex_level];
             if (fbo_format_info.tex_layer >= depth) {
-                ALOGD("%s: texture layer/zoffset too high, wanted %d but only have %d layers\n", __func__,
+                GFXSTREAM_DEBUG("texture layer/zoffset too high, wanted %d but only have %d layers",
                       fbo_format_info.tex_layer, depth);
                 return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
             }
@@ -2093,7 +2088,7 @@ void GLClientState::addFreshRenderbuffer(GLuint name) {
 }
 
 void GLClientState::addRenderbuffers(GLsizei n, GLuint* renderbuffers) {
-    for (size_t i = 0; i < n; i++) {
+    for (GLsizei i = 0; i < n; i++) {
         addFreshRenderbuffer(renderbuffers[i]);
     }
 }
@@ -2102,7 +2097,7 @@ void GLClientState::removeRenderbuffers(GLsizei n, const GLuint* renderbuffers) 
     bool unbindCurrent = false;
     {
         RenderbufferInfo::ScopedView view(mRboState.rboData);
-        for (size_t i = 0; i < n; i++) {
+        for (GLsizei i = 0; i < n; i++) {
             if (renderbuffers[i] != 0) { // Never remove the zero rb.
                 auto rboPtr = view.get_shared_ptr(renderbuffers[i]);
                 if (!rboPtr) {
@@ -2354,7 +2349,8 @@ void GLClientState::validateUniform(bool isFloat, bool isUnsigned, GLint columns
     if (-1 == location) return;
     auto info = currentUniformValidationInfo.get_const(location);
     UNIFORM_VALIDATION_ERR_COND(!info || !info->valid, GL_INVALID_OPERATION);
-    UNIFORM_VALIDATION_ERR_COND(columns != info->columns || rows != info->rows, GL_INVALID_OPERATION);
+    UNIFORM_VALIDATION_ERR_COND(static_cast<uint32_t>(columns) != info->columns ||
+                                static_cast<uint32_t>(rows) != info->rows, GL_INVALID_OPERATION);
     UNIFORM_VALIDATION_ERR_COND(count > 1 && !info->isArray, GL_INVALID_OPERATION);
     if (isFloat) {
         UNIFORM_VALIDATION_ERR_COND(UNIFORM_VALIDATION_TYPE_VIOLATION_FOR_FLOATS, GL_INVALID_OPERATION);
@@ -2416,14 +2412,14 @@ void GLClientState::addFreshFramebuffer(GLuint name) {
 }
 
 void GLClientState::addFramebuffers(GLsizei n, GLuint* framebuffers) {
-    for (size_t i = 0; i < n; i++) {
+    for (GLsizei i = 0; i < n; i++) {
         addFreshFramebuffer(framebuffers[i]);
     }
 }
 
 void GLClientState::removeFramebuffers(GLsizei n, const GLuint* framebuffers) {
     RenderbufferInfo::ScopedView view(mRboState.rboData);
-    for (size_t i = 0; i < n; i++) {
+    for (GLsizei i = 0; i < n; i++) {
         if (framebuffers[i] != 0) { // Never remove the zero fb.
             if (framebuffers[i] == mFboState.boundDrawFramebuffer) {
                 bindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
@@ -2972,7 +2968,7 @@ void GLClientState::initFromCaps(
 
     // Derive some other settings
     m_log2MaxTextureSize = 0;
-    uint32_t current = 1;
+    int current = 1;
     while (current < m_hostDriverCaps.max_texture_size) {
         current = current << 1;
         ++m_log2MaxTextureSize;

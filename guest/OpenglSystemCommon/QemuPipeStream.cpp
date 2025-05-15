@@ -16,12 +16,13 @@
 #include "QemuPipeStream.h"
 #include <qemu_pipe_bp.h>
 
-#include <cutils/log.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+
+#include "gfxstream/common/logging.h"
 
 static const size_t kReadSize = 512 * 1024;
 static const size_t kWriteOffset = kReadSize;
@@ -60,7 +61,7 @@ QemuPipeStream::~QemuPipeStream()
 int QemuPipeStream::connect(const char* serviceName) {
     m_sock = qemu_pipe_open("opengles");
     if (!valid()) {
-        ALOGE("%s: failed to connect to opengles pipe", __FUNCTION__);
+        GFXSTREAM_ERROR("Failed to connect to opengles pipe");
         qemu_pipe_print_error(m_sock);
         return -1;
     }
@@ -73,7 +74,7 @@ uint64_t QemuPipeStream::processPipeInit() {
     uint64_t procUID = 0;
     if (!qemu_pipe_valid(processPipe)) {
         processPipe = 0;
-        ALOGW("Process pipe failed");
+        GFXSTREAM_WARNING("Process pipe failed");
         return 0;
     }
 
@@ -82,7 +83,7 @@ uint64_t QemuPipeStream::processPipeInit() {
     if (qemu_pipe_write_fully(processPipe, &confirmInt, sizeof(confirmInt))) {  // failed
         qemu_pipe_close(processPipe);
         processPipe = 0;
-        ALOGW("Process pipe failed");
+        GFXSTREAM_WARNING("Process pipe failed");
         return 0;
     }
 
@@ -91,7 +92,7 @@ uint64_t QemuPipeStream::processPipeInit() {
         qemu_pipe_close(processPipe);
         processPipe = 0;
         procUID = 0;
-        ALOGW("Process pipe failed");
+        GFXSTREAM_WARNING("Process pipe failed");
         return 0;
     }
 
@@ -113,7 +114,7 @@ void *QemuPipeStream::allocBuffer(size_t minSize)
             m_buf = p;
             m_bufsize = allocSize;
         } else {
-            ALOGE("realloc (%zu) failed\n", allocSize);
+            GFXSTREAM_ERROR("realloc (%zu) failed\n", allocSize);
             free(m_buf);
             m_buf = NULL;
             m_bufsize = 0;
@@ -151,9 +152,9 @@ const unsigned char *QemuPipeStream::commitBufferAndReadFully(size_t writeSize, 
 
     if (!userReadBuf) {
         if (totalReadSize > 0) {
-            ALOGE("QemuPipeStream::commitBufferAndReadFully failed, userReadBuf=NULL, totalReadSize %zu, lethal"
-                    " error, exiting.", totalReadSize);
-            abort();
+            GFXSTREAM_FATAL("QemuPipeStream::commitBufferAndReadFully failed, "
+                            "userReadBuf=NULL, totalReadSize %zu, lethal"
+                            " error, exiting.", totalReadSize);
         }
         if (!writeSize) {
             return NULL;
@@ -194,7 +195,7 @@ const unsigned char *QemuPipeStream::commitBufferAndReadFully(size_t writeSize, 
         }
 
         if (actual == 0) {
-            ALOGD("%s: end of pipe", __FUNCTION__);
+            GFXSTREAM_DEBUG("End of pipe.");
             return NULL;
         }
     }
@@ -214,7 +215,7 @@ const unsigned char *QemuPipeStream::commitBufferAndReadFully(size_t writeSize, 
         actual = qemu_pipe_read(m_sock, m_buf, kReadSize);
 
         if (actual == 0) {
-            ALOGD("%s: Failed reading from pipe: %d", __FUNCTION__,  errno);
+            GFXSTREAM_DEBUG("Failed reading from pipe: %d", errno);
             return NULL;
         }
 
@@ -224,7 +225,7 @@ const unsigned char *QemuPipeStream::commitBufferAndReadFully(size_t writeSize, 
         }
 
         if (!qemu_pipe_try_again(actual)) {
-            ALOGD("%s: Error reading from pipe: %d", __FUNCTION__, errno);
+            GFXSTREAM_DEBUG("Error reading from pipe: %d", errno);
             return NULL;
         }
     }
@@ -237,7 +238,7 @@ const unsigned char *QemuPipeStream::read( void *buf, size_t *inout_len)
     //DBG(">> QemuPipeStream::read %d\n", *inout_len);
     if (!valid()) return NULL;
     if (!buf) {
-        ALOGE("QemuPipeStream::read failed, buf=NULL");
+        GFXSTREAM_ERROR("QemuPipeStream::read failed, buf=NULL");
         return NULL;  // do not allow NULL buf in that implementation
     }
 

@@ -19,7 +19,7 @@ package {
 cc_library_headers {
     name: "libgfxstream_guest_graphics_headers",
     defaults: [
-        "libgfxstream_guest_cc_defaults",
+        "gfxstream_guest_cc_defaults",
     ],
     export_include_dirs: [
         ".",

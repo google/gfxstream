@@ -18,7 +18,7 @@ extern "C" {
 #include "drm/drm_fourcc.h"
 }  // extern "C"
 
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 
 namespace gfxstream {
 namespace host {

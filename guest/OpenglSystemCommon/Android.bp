@@ -26,7 +26,7 @@ cc_library_headers {
 cc_library_headers {
     name: "libOpenglSystemCommonHeaders",
     defaults: [
-        "libgfxstream_guest_cc_defaults",
+        "gfxstream_guest_cc_defaults",
     ],
     export_include_dirs: [
         ".",
@@ -42,7 +42,7 @@ cc_library_headers {
 cc_defaults {
     name: "libOpenglSystemCommonDefaults",
     defaults: [
-        "libgfxstream_guest_cc_defaults",
+        "gfxstream_guest_cc_defaults",
         "mesa_platform_virtgpu_defaults",
     ],
     header_libs: [
@@ -79,8 +79,9 @@ cc_defaults {
     ],
     static_libs: [
         "mesa_goldfish_address_space",
+        "libgfxstream_common_logging",
         "libringbuffer",
-        "libqemupipe.ranchu",
+        "libqemupipe.gfxstream",
     ],
     cflags: [
         "-Wno-unused-variable",
@@ -119,6 +120,7 @@ cc_library_shared {
     ],
     static_libs: [
         "libgfxstream_androidemu_static",
+        "libgfxstream_common_logging",
         "mesa_gfxstream_guest_android",
         "mesa_util",
         "mesa_util_c11",

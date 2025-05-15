@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_subdirectory(logging)
-
 add_library(
         gfxstream_backend_headers
         INTERFACE)
@@ -127,7 +125,7 @@ target_link_libraries(
         gfxstream_host_health
         gfxstream_host_iostream
         gfxstream_host_library
-        gfxstream_host_logging
+        gfxstream_common_logging
         gfxstream_host_metrics
         gfxstream_host_renderdoc
         gfxstream_host_snapshot.headers

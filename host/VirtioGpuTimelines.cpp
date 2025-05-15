@@ -17,7 +17,7 @@
 #include <cstdio>
 
 #include "gfxstream/host/Tracing.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 
 using TaskId = VirtioGpuTimelines::TaskId;
 using Ring = VirtioGpuTimelines::Ring;

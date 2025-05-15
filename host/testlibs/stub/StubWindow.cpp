@@ -14,7 +14,7 @@
 
 #include "OSWindow.h"
 
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 
 OSWindow* CreateOSWindow() {
     GFXSTREAM_FATAL("Attempting to create OSWindow without an Impl.");

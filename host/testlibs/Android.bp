@@ -18,7 +18,7 @@ package {
 
 cc_test_library {
     name: "libgfxstream_oswindow_test_support",
-    defaults: ["gfxstream_defaults"],
+    defaults: ["gfxstream_host_cc_defaults"],
     header_libs: [
         "libgfxstream_thirdparty_opengl_headers",
     ],
@@ -27,7 +27,7 @@ cc_test_library {
     ],
     static_libs: [
         "libgfxstream_common_base",
-        "libgfxstream_host_logging",
+        "libgfxstream_common_logging",
         "libgfxstream_host_metrics",
     ],
     srcs: [

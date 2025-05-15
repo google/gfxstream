@@ -21,7 +21,7 @@
 
 #include "gfxstream/host/address_space_graphics.h"
 #include "gfxstream/host/address_space_service.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "render-utils/address_space_operations.h"
 
 namespace gfxstream {

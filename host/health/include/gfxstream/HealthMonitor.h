@@ -33,7 +33,7 @@
 #include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/Metrics.h"
 #include "gfxstream/threads/Thread.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 
 using gfxstream::base::EventHangMetadata;
 using gfxstream::base::getCurrentThreadId;

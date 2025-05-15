@@ -21,7 +21,7 @@
 #include "EglDisplay.h"
 #include "EglOsApi.h"
 #include "GLcommon/GLutils.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 
 namespace {
 

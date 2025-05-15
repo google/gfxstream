@@ -27,7 +27,7 @@
 
 #include "OpenGLESDispatch/DispatchTables.h"
 #include "gfxstream/Strings.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "gfxstream/host/renderer_operations.h"
 #include "gfxstream/synchronization/Lock.h"
 #include "render-utils/Renderer.h"

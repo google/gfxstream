@@ -23,7 +23,7 @@ target_link_libraries(
     PRIVATE
     gfxstream_common_base
     gfxstream_egl_headers
-    gfxstream_host_logging
+    gfxstream_common_logging
     gfxstream_host_iostream
     )
 target_include_directories(

@@ -28,7 +28,7 @@ extern "C" {
 #include "gfxstream/host/Features.h"
 #include "gfxstream/host/Tracing.h"
 #include "gfxstream/host/address_space_graphics.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #ifdef CONFIG_AEMU
 #include "host-common/opengles.h"
 #endif

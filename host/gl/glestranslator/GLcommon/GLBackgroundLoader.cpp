@@ -18,7 +18,7 @@
 
 #include "GLcommon/GLEScontext.h"
 #include "GLcommon/SaveableTexture.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "gfxstream/system/System.h"
 
 #include <EGL/eglext.h>

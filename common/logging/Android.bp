@@ -18,10 +18,9 @@ package {
 }
 
 cc_library_static {
-    name: "libgfxstream_host_logging",
+    name: "libgfxstream_common_logging",
     defaults: [
         "gfxstream_defaults",
-        "gfxstream_host_cc_defaults",
     ],
     srcs: [
         "logging.cpp",
@@ -33,4 +32,11 @@ cc_library_static {
         "//apex_available:platform",
         "com.android.virt",
     ],
+    target: {
+        android: {
+            shared_libs: [
+                "liblog",
+            ],
+        },
+    },
 }

@@ -17,6 +17,7 @@
 #include <vector>
 
 #include "HostConnection.h"
+#include "gfxstream/common/logging.h"
 
 namespace {
 
@@ -58,13 +59,13 @@ class RenderControlDeviceImpl {
 
     int DoCompose(std::vector<uint8_t>& bytes) {
         if (!mHostConnection) {
-            ALOGE("RenderControlDevice missing HostConnection.");
+            GFXSTREAM_ERROR("RenderControlDevice missing HostConnection.");
             return -1;
         }
 
         auto* rc = mHostConnection->rcEncoder();
         if (!rc) {
-            ALOGE("RenderControlDevice missing rcEncoder.");
+            GFXSTREAM_ERROR("RenderControlDevice missing rcEncoder.");
             return -1;
         }
 

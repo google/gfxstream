@@ -16,11 +16,10 @@
 
 #include <algorithm>
 
-#include "glUtils.h"
-#include "gfxstream/etc.h"
 #include "astc-codec.h"
-
-#include <cutils/log.h>
+#include "glUtils.h"
+#include "gfxstream/common/logging.h"
+#include "gfxstream/etc.h"
 
 #define ASTC_FORMATS_LIST(EXPAND_MACRO) \
     EXPAND_MACRO(GL_COMPRESSED_RGBA_ASTC_4x4_KHR, astc_codec::FootprintType::k4x4, false) \
@@ -65,7 +64,7 @@ namespace GLESTextureUtils {
 static int computePixelSize(GLenum format, GLenum type) {
 
 #define FORMAT_ERROR(format, type) \
-    ALOGE("%s:%d unknown format/type 0x%x 0x%x", __FUNCTION__, __LINE__, format, type) \
+    GFXSTREAM_ERROR("unknown format/type 0x%x 0x%x", format, type) \
 
     switch(type) {
     case GL_BYTE:
@@ -273,7 +272,7 @@ void computeTextureStartEnd(
     GLsizei inputPitch = computePitch(inputWidth, format, type, unpackAlignment);
     GLsizei inputHeight = (unpackImageHeight == 0) ? height : unpackImageHeight;
 
-    ALOGV("%s: input idim %d %d %d w p h %d %d %d:", __FUNCTION__, width, height, depth, inputWidth, inputPitch, inputHeight);
+    GFXSTREAM_VERBOSE("input idim %d %d %d w p h %d %d %d:", width, height, depth, inputWidth, inputPitch, inputHeight);
 
     int startVal = computePackingOffset(format, type, inputWidth, inputHeight, unpackAlignment, unpackSkipPixels, unpackSkipRows, unpackSkipImages);
     int endVal;
@@ -291,7 +290,7 @@ void computeTextureStartEnd(
     if (start) *start = startVal;
     if (end) *end = endVal;
 
-    ALOGV("%s: start/end: %d %d", __FUNCTION__, *start, *end);
+    GFXSTREAM_VERBOSE("Start/end: %d %d", *start, *end);
 
 }
 
@@ -535,7 +534,7 @@ void getAstcFormatInfo(GLenum internalformat,
         ASTC_FORMATS_LIST(ASTC_FORMAT)
 #undef ASTC_FORMAT
         default:
-            ALOGE("%s: invalid astc format: 0x%x\n", __func__, internalformat);
+            GFXSTREAM_ERROR("Invalid astc format: 0x%x.", internalformat);
             abort();
     }
 }
@@ -557,7 +556,7 @@ int getAstcFootprintWidth(astc_codec::FootprintType footprint) {
         case astc_codec::FootprintType::k12x10: return 12;
         case astc_codec::FootprintType::k12x12: return 12;
         default:
-            ALOGE("%s: invalid astc footprint: 0x%x\n", __func__, footprint);
+            GFXSTREAM_FATAL("Invalid astc footprint: 0x%x.", footprint);
             abort();
     }
 }
@@ -579,7 +578,7 @@ int getAstcFootprintHeight(astc_codec::FootprintType footprint) {
         case astc_codec::FootprintType::k12x10: return 10;
         case astc_codec::FootprintType::k12x12: return 12;
         default:
-            ALOGE("%s: invalid astc footprint: 0x%x\n", __func__, footprint);
+            GFXSTREAM_FATAL("Invalid astc footprint: 0x%x.", footprint);
             abort();
     }
 }
@@ -636,7 +635,7 @@ GLsizei getCompressedImageBlocksize(GLenum internalformat) {
             return 16;
     }
 
-    ALOGE("%s: Unknown blocksize for internal format: 0x%x\n", __func__, internalformat);
+    GFXSTREAM_FATAL("Unknown blocksize for internal format: 0x%x.", internalformat);
     abort();
 }
 
@@ -664,7 +663,7 @@ GLsizei getCompressedImageSize(GLenum internalformat, GLsizei width, GLsizei hei
         return get4x4CompressedSize(width, height, depth, blocksize, error);
     }
 
-    ALOGE("%s: Unknown compressed internal format: 0x%x\n", __func__, internalformat);
+    GFXSTREAM_FATAL("Unknown compressed internal format: 0x%x.", internalformat);
     abort();
 }
 

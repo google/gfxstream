@@ -16,11 +16,10 @@
 
 #include "TraceProviderFuchsia.h"
 
-#include <log/log.h>
-
 #include <lib/async/cpp/task.h>
 #include <lib/zx/channel.h>
 
+#include "gfxstream/common/logging.h"
 #include "services/service_connector.h"
 
 TraceProviderFuchsia::~TraceProviderFuchsia() {
@@ -47,13 +46,13 @@ bool TraceProviderFuchsia::Initialize() {
     zx_handle_t client_channel =
         GetConnectToServiceFunction()("/svc/fuchsia.tracing.provider.Registry");
     if (client_channel == ZX_HANDLE_INVALID) {
-        ALOGE("Failed to connect to tracing provider service");
+        GFXSTREAM_ERROR("Failed to connect to tracing provider service");
         return false;
     }
 
     zx_status_t status = mLoop.StartThread();
     if (status != ZX_OK) {
-        ALOGE("Failed to start async loop: %d", status);
+        GFXSTREAM_ERROR("Failed to start async loop: %d", status);
         return false;
     }
 

@@ -23,7 +23,7 @@
 #include <windows.h>
 
 typedef HWND    FBNativeWindowType;
-#elif defined(ANDROID)
+#elif defined(__ANDROID__)
 #include <android/native_window.h>
 typedef ANativeWindow*    FBNativeWindowType;
 #elif defined(__linux__)

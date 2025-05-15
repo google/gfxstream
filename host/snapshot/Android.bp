@@ -18,7 +18,7 @@ package {
 
 cc_library_static {
     name: "libgfxstream_host_snapshot",
-    defaults: ["gfxstream_defaults"],
+    defaults: ["gfxstream_host_cc_defaults"],
     header_libs: [
         "libgfxstream_backend_headers",
     ],

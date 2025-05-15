@@ -38,7 +38,7 @@ target_link_libraries(
     gfxstream_backend_headers
     gfxstream_common_base
     gfxstream_host_library
-    gfxstream_host_logging
+    gfxstream_common_logging
     gfxstream_opengl_headers
     gfxstream_x11_headers
     )

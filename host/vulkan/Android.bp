@@ -19,10 +19,7 @@ package {
 
 cc_library_static {
     name: "libgfxstream_host_vulkan_server",
-    defaults: [
-        "gfxstream_defaults",
-        "gfxstream_host_cc_defaults",
-    ],
+    defaults: ["gfxstream_host_cc_defaults"],
     header_libs: [
         "libgfxstream_thirdparty_opengl_headers",
         "libgfxstream_host_vulkan_cereal_common",
@@ -48,7 +45,7 @@ cc_library_static {
         "libgfxstream_host_health",
         "libgfxstream_host_iostream",
         "libgfxstream_host_library",
-        "libgfxstream_host_logging",
+        "libgfxstream_common_logging",
         "libgfxstream_host_openglesdispatch",
         "libgfxstream_host_renderdoc",
         "libgfxstream_host_snapshot",
@@ -117,7 +114,7 @@ cc_library_static {
 // Run with `atest --host gfxstream_vkformatutils_tests`
 cc_test_host {
     name: "gfxstream_vkformatutils_tests",
-    defaults: ["gfxstream_defaults"],
+    defaults: ["gfxstream_host_cc_defaults"],
     srcs: [
         "VkFormatUtils_unittest.cpp",
     ],
@@ -130,7 +127,7 @@ cc_test_host {
     ],
     static_libs: [
         "gfxstream_host_common",
-        "libgfxstream_host_logging",
+        "libgfxstream_common_logging",
         "libgfxstream_host_vulkan_server",
         "libgtest",
         "libgmock",
@@ -143,7 +140,7 @@ cc_test_host {
 // Run with `atest --host gfxstream_vkguestmemoryutils_tests`
 cc_test_host {
     name: "gfxstream_vkemulatedphysicaldevicememory_tests",
-    defaults: ["gfxstream_defaults"],
+    defaults: ["gfxstream_host_cc_defaults"],
     srcs: [
         "VkEmulatedPhysicalDeviceMemoryTests.cpp",
     ],
@@ -155,7 +152,7 @@ cc_test_host {
         "gfxstream_host_common",
         "libgfxstream_common_base",
         "libgfxstream_host_features",
-        "libgfxstream_host_logging",
+        "libgfxstream_common_logging",
         "libgfxstream_host_vulkan_server",
         "libgmock",
         "libgtest",
@@ -171,7 +168,7 @@ cc_test_host {
 // Run with `atest --host gfxstream_vkutil_tests`
 cc_test_host {
     name: "gfxstream_vkutil_tests",
-    defaults: ["gfxstream_defaults"],
+    defaults: ["gfxstream_host_cc_defaults"],
     srcs: [
         "vk_util_unittest.cpp",
     ],
@@ -184,7 +181,7 @@ cc_test_host {
     ],
     static_libs: [
         "libgfxstream_host_vulkan_server",
-        "libgfxstream_host_logging",
+        "libgfxstream_common_logging",
         "libgtest",
         "libgmock",
     ],
@@ -199,7 +196,7 @@ cc_test_host {
 // Run with `atest --host gfxstream_vkguestqueueutils_tests`
 cc_test_host {
     name: "gfxstream_vkemulatedphysicaldevicequeue_tests",
-    defaults: ["gfxstream_defaults"],
+    defaults: ["gfxstream_host_cc_defaults"],
     srcs: [
         "VkEmulatedPhysicalDeviceQueueTests.cpp",
     ],

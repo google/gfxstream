@@ -18,7 +18,7 @@ package {
 
 cc_library_static {
     name: "libgfxstream_host_glestranslator_glcommon",
-    defaults: ["gfxstream_defaults"],
+    defaults: ["gfxstream_host_cc_defaults"],
     cflags: [
         "-fvisibility=hidden",
         "-Wno-inconsistent-missing-override",
@@ -39,7 +39,7 @@ cc_library_static {
         "libgfxstream_host_backend",
         "libgfxstream_host_compressedtextures",
         "libgfxstream_host_library",
-        "libgfxstream_host_logging",
+        "libgfxstream_common_logging",
         "libgfxstream_host_snapshot",
     ],
     export_static_lib_headers: [

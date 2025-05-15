@@ -14,7 +14,7 @@
 
 #include "GpuDecompressionPipeline.h"
 
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "vulkan/VkFormatUtils.h"
 #include "vulkan/emulated_textures/shaders/DecompressionShaders.h"
 #include "vulkan/vk_enum_string_helper.h"

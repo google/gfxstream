@@ -30,6 +30,8 @@
 
 #include "EncoderDebug.h"
 
+#include "gfxstream/common/logging.h"
+
 using gfxstream::guest::ChecksumCalculator;
 
 using gfxstream::guest::IOStream;
@@ -38,7 +40,7 @@ namespace {
 
 void enc_unsupported()
 {
-	ALOGE("Function is unsupported\n");
+	GFXSTREAM_ERROR("Function is unsupported\n");
 }
 
 GLint rcGetRendererVersion_enc(void *self )
@@ -75,8 +77,7 @@ GLint rcGetRendererVersion_enc(void *self )
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcGetRendererVersion: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcGetRendererVersion: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -124,8 +125,7 @@ EGLint rcGetEGLVersion_enc(void *self , EGLint* major, EGLint* minor)
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcGetEGLVersion: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcGetEGLVersion: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -171,8 +171,7 @@ EGLint rcQueryEGLString_enc(void *self , EGLenum name, void* buffer, EGLint buff
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcQueryEGLString: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcQueryEGLString: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -218,8 +217,7 @@ EGLint rcGetGLString_enc(void *self , EGLenum name, void* buffer, EGLint bufferS
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcGetGLString: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcGetGLString: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -263,8 +261,7 @@ EGLint rcGetNumConfigs_enc(void *self , uint32_t* numAttribs)
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcGetNumConfigs: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcGetNumConfigs: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -309,8 +306,7 @@ EGLint rcGetConfigs_enc(void *self , uint32_t bufSize, GLuint* buffer)
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcGetConfigs: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcGetConfigs: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -361,8 +357,7 @@ EGLint rcChooseConfig_enc(void *self , EGLint* attribs, uint32_t attribs_size, u
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcChooseConfig: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcChooseConfig: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -403,8 +398,7 @@ EGLint rcGetFBParam_enc(void *self , EGLint param)
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcGetFBParam: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcGetFBParam: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -447,8 +441,7 @@ uint32_t rcCreateContext_enc(void *self , uint32_t config, uint32_t share, uint3
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcCreateContext: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcCreateContext: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -518,8 +511,7 @@ uint32_t rcCreateWindowSurface_enc(void *self , uint32_t config, uint32_t width,
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcCreateWindowSurface: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcCreateWindowSurface: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -589,8 +581,7 @@ uint32_t rcCreateColorBuffer_enc(void *self , uint32_t width, uint32_t height, G
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcCreateColorBuffer: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcCreateColorBuffer: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -714,8 +705,7 @@ int rcFlushWindowColorBuffer_enc(void *self , uint32_t windowSurface)
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcFlushWindowColorBuffer: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcFlushWindowColorBuffer: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -758,8 +748,7 @@ EGLint rcMakeCurrent_enc(void *self , uint32_t context, uint32_t drawSurf, uint3
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcMakeCurrent: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcMakeCurrent: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -910,8 +899,7 @@ EGLint rcColorBufferCacheFlush_enc(void *self , uint32_t colorbuffer, EGLint pos
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcColorBufferCacheFlush: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcColorBufferCacheFlush: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -958,8 +946,7 @@ void rcReadColorBuffer_enc(void *self , uint32_t colorbuffer, GLint x, GLint y, 
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcReadColorBuffer: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcReadColorBuffer: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 }
@@ -1012,8 +999,7 @@ int rcUpdateColorBuffer_enc(void *self , uint32_t colorbuffer, GLint x, GLint y,
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcUpdateColorBuffer: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcUpdateColorBuffer: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -1054,8 +1040,7 @@ int rcOpenColorBuffer2_enc(void *self , uint32_t colorbuffer)
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcOpenColorBuffer2: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcOpenColorBuffer2: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -1098,8 +1083,7 @@ uint32_t rcCreateClientImage_enc(void *self , uint32_t context, EGLenum target, 
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcCreateClientImage: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcCreateClientImage: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -1140,8 +1124,7 @@ int rcDestroyClientImage_enc(void *self , uint32_t image)
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcDestroyClientImage: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcDestroyClientImage: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -1219,8 +1202,7 @@ void rcCreateSyncKHR_enc(void *self , EGLenum type, EGLint* attribs, uint32_t nu
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcCreateSyncKHR: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcCreateSyncKHR: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 }
@@ -1262,8 +1244,7 @@ EGLint rcClientWaitSyncKHR_enc(void *self , uint64_t sync, EGLint flags, uint64_
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcClientWaitSyncKHR: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcClientWaitSyncKHR: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -1331,8 +1312,7 @@ int rcDestroySyncKHR_enc(void *self , uint64_t sync)
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcDestroySyncKHR: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcDestroySyncKHR: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -1409,8 +1389,7 @@ int rcUpdateColorBufferDMA_enc(void *self , uint32_t colorbuffer, GLint x, GLint
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcUpdateColorBufferDMA: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcUpdateColorBufferDMA: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -1454,8 +1433,7 @@ uint32_t rcCreateColorBufferDMA_enc(void *self , uint32_t width, uint32_t height
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcCreateColorBufferDMA: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcCreateColorBufferDMA: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -1527,8 +1505,7 @@ GLint rcCompose_enc(void *self , uint32_t bufferSize, void* buffer)
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcCompose: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcCompose: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -1572,8 +1549,7 @@ int rcCreateDisplay_enc(void *self , uint32_t* displayId)
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcCreateDisplay: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcCreateDisplay: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -1614,8 +1590,7 @@ int rcDestroyDisplay_enc(void *self , uint32_t displayId)
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcDestroyDisplay: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcDestroyDisplay: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -1657,8 +1632,7 @@ int rcSetDisplayColorBuffer_enc(void *self , uint32_t displayId, uint32_t colorB
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcSetDisplayColorBuffer: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcSetDisplayColorBuffer: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -1703,8 +1677,7 @@ int rcGetDisplayColorBuffer_enc(void *self , uint32_t displayId, uint32_t* color
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcGetDisplayColorBuffer: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcGetDisplayColorBuffer: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -1749,8 +1722,7 @@ int rcGetColorBufferDisplay_enc(void *self , uint32_t colorBuffer, uint32_t* dis
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcGetColorBufferDisplay: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcGetColorBufferDisplay: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -1807,8 +1779,7 @@ int rcGetDisplayPose_enc(void *self , uint32_t displayId, GLint* x, GLint* y, ui
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcGetDisplayPose: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcGetDisplayPose: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -1853,8 +1824,7 @@ int rcSetDisplayPose_enc(void *self , uint32_t displayId, GLint x, GLint y, uint
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcSetDisplayPose: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcSetDisplayPose: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -1896,8 +1866,7 @@ GLint rcSetColorBufferVulkanMode_enc(void *self , uint32_t colorBuffer, uint32_t
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcSetColorBufferVulkanMode: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcSetColorBufferVulkanMode: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -1943,8 +1912,7 @@ void rcReadColorBufferYUV_enc(void *self , uint32_t colorbuffer, GLint x, GLint 
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcReadColorBufferYUV: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcReadColorBufferYUV: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 }
@@ -1984,8 +1952,7 @@ int rcIsSyncSignaled_enc(void *self , uint64_t sync)
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcIsSyncSignaled: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcIsSyncSignaled: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -2056,8 +2023,7 @@ uint32_t rcCreateBuffer_enc(void *self , uint32_t size)
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcCreateBuffer: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcCreateBuffer: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -2127,8 +2093,7 @@ GLint rcSetColorBufferVulkanMode2_enc(void *self , uint32_t colorBuffer, uint32_
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcSetColorBufferVulkanMode2: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcSetColorBufferVulkanMode2: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -2170,8 +2135,7 @@ int rcMapGpaToBufferHandle_enc(void *self , uint32_t bufferHandle, uint64_t gpa)
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcMapGpaToBufferHandle: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcMapGpaToBufferHandle: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -2213,8 +2177,7 @@ uint32_t rcCreateBuffer2_enc(void *self , uint64_t size, uint32_t memoryProperty
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcCreateBuffer2: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcCreateBuffer2: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -2257,8 +2220,7 @@ int rcMapGpaToBufferHandle2_enc(void *self , uint32_t bufferHandle, uint64_t gpa
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcMapGpaToBufferHandle2: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcMapGpaToBufferHandle2: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -2448,8 +2410,7 @@ GLint rcComposeWithoutPost_enc(void *self , uint32_t bufferSize, void* buffer)
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcComposeWithoutPost: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcComposeWithoutPost: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -2521,8 +2482,7 @@ int rcCreateDisplayById_enc(void *self , uint32_t displayId)
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcCreateDisplayById: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcCreateDisplayById: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -2568,8 +2528,7 @@ int rcSetDisplayPoseDpi_enc(void *self , uint32_t displayId, GLint x, GLint y, u
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcSetDisplayPoseDpi: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcSetDisplayPoseDpi: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -2621,8 +2580,7 @@ int rcReadColorBufferDMA_enc(void *self , uint32_t colorbuffer, GLint x, GLint y
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcReadColorBufferDMA: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcReadColorBufferDMA: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -2662,8 +2620,7 @@ int rcGetFBDisplayConfigsCount_enc(void *self )
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcGetFBDisplayConfigsCount: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcGetFBDisplayConfigsCount: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -2705,8 +2662,7 @@ int rcGetFBDisplayConfigsParam_enc(void *self , int configId, EGLint param)
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcGetFBDisplayConfigsParam: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcGetFBDisplayConfigsParam: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -2746,8 +2702,7 @@ int rcGetFBDisplayActiveConfig_enc(void *self )
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcGetFBDisplayActiveConfig: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcGetFBDisplayActiveConfig: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;
@@ -2825,8 +2780,7 @@ int rcGetHostExtensionsString_enc(void *self , uint32_t bufferSize, void* buffer
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcGetHostExtensionsString: GL communication error, please report this issue to b.android.com.\n");
-			abort();
+			GFXSTREAM_FATAL("rcGetHostExtensionsString: GL communication error, please report this issue to b.android.com.\n");
 		}
 	}
 	return retval;

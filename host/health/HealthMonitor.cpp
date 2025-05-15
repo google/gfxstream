@@ -19,7 +19,7 @@
 
 #include "gfxstream/system/System.h"
 #include "gfxstream/testing/TestClock.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 
 namespace gfxstream {
 

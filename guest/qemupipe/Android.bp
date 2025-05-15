@@ -36,3 +36,27 @@ cc_library {
     shared_libs: ["liblog"],
     export_include_dirs: ["include"],
 }
+
+cc_library {
+    name: "libqemupipe.gfxstream",
+    defaults: [
+        "gfxstream_defaults",
+    ],
+    srcs: [
+        "qemu_pipe_common.cpp",
+        "qemu_pipe_guest.cpp",
+    ],
+    header_libs: [
+        "libqemupipe-types.ranchu",
+    ],
+    export_header_lib_headers: [
+        "libqemupipe-types.ranchu",
+    ],
+    static_libs: [
+        "libgfxstream_common_logging",
+    ],
+    cflags: [
+        "-DGFXSTREAM_USE_COMMON_LOGGING",
+    ],
+    export_include_dirs: ["include"],
+}

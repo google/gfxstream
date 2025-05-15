@@ -18,7 +18,7 @@ package {
 
 cc_library_static {
     name: "libgfxstream_glestranslator_egl",
-    defaults: ["gfxstream_defaults"],
+    defaults: ["gfxstream_host_cc_defaults"],
     header_libs: [
         "libgfxstream_thirdparty_opengl_headers",
         "libgfxstream_x11_headers",
@@ -30,7 +30,7 @@ cc_library_static {
         "libgfxstream_host_backend",
         "libgfxstream_host_glestranslator_glcommon",
         "libgfxstream_host_library",
-        "libgfxstream_host_logging",
+        "libgfxstream_common_logging",
         "libgfxstream_glestranslator_glescm",
         "libgfxstream_glestranslator_glesv2",
     ],

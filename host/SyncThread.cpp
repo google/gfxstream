@@ -24,7 +24,7 @@
 #include "gfxstream/system/System.h"
 #include "gfxstream/threads/Thread.h"
 #include "gfxstream/host/Tracing.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "gfxstream/host/sync_device.h"
 
 #ifndef _MSC_VER

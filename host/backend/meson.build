@@ -29,11 +29,11 @@ lib_host_backend = static_library(
     inc_gfxstream_server,
     inc_host_address_space,
     inc_host_backend,
-    inc_host_logging,
+    inc_common_logging,
   ],
   link_with: [
     lib_common_base,
     lib_host_address_space,
-    lib_host_logging,
+    lib_common_logging,
   ],
 )

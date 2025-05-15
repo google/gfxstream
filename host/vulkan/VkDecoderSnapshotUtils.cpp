@@ -15,7 +15,7 @@
 #include "vulkan/VkDecoderSnapshotUtils.h"
 
 #include "VkCommonOperations.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "vk_util.h"
 
 namespace gfxstream {

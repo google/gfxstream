@@ -27,7 +27,7 @@
 #include "OpenGLESDispatch/OpenGLDispatchLoader.h"
 #include "RenderThreadInfoGl.h"
 #include "gfxstream/misc/StringUtils.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "gfxstream/host/renderer_operations.h"
 
 namespace gfxstream {

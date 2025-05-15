@@ -19,7 +19,7 @@
 
 #include <GLES3/gl31.h>
 
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 
 size_t glSizeof(GLenum type)
 {

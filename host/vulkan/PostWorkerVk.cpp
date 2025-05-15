@@ -16,7 +16,7 @@
 #include "PostWorkerVk.h"
 
 #include "FrameBuffer.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "vulkan/DisplayVk.h"
 
 namespace gfxstream {

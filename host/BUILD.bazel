@@ -114,6 +114,7 @@ cc_library(
     deps = [
         ":gfxstream_backend_headers",
         "//common/base:gfxstream_common_base",
+        "//common/logging:gfxstream_common_logging",
         "//host/backend:gfxstream_host_backend",
         "//host/decoder_common:gfxstream_host_decoder_common",
         "//host/features:gfxstream_features",
@@ -126,7 +127,6 @@ cc_library(
         "//host/gl/OpenGLESDispatch:gfxstream_host_openglesdispatch",
         "//host/gl/glestranslator/GLES_CM:GLES_CM_translator_static",
         "//host/health:gfxstream_host_health",
-        "//host/logging:gfxstream_host_logging",
         "//host/renderControl_dec",
         "//host/renderdoc:gfxstream_host_renderdoc",
         "//host/snapshot:gfxstream_host_snapshot",

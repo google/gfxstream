@@ -25,7 +25,7 @@
 #include "RenderThread.h"
 #include "gfxstream/system/System.h"
 #include "gfxstream/threads/WorkerThread.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "gfxstream/host/renderer_operations.h"
 
 #if GFXSTREAM_ENABLE_HOST_GLES

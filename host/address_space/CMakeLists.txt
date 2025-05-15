@@ -36,5 +36,5 @@ if (NOT TARGET gfxstream_host_address_space)
         PUBLIC
         gfxstream_common_base
         gfxstream_host_address_space.headers
-        gfxstream_host_logging)
+        gfxstream_common_logging)
 endif()

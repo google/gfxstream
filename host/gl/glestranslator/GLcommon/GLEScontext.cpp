@@ -33,7 +33,7 @@
 #include "gfxstream/containers/Lookup.h"
 #include "gfxstream/host/stream_utils.h"
 #include "gfxstream/synchronization/Lock.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #ifndef _MSC_VER
 #include <strings.h>
 #endif

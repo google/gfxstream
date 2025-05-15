@@ -24,7 +24,7 @@
 #include "gfxstream/files/PathUtils.h"
 #include "gfxstream/host/stream_utils.h"
 #include "gfxstream/synchronization/Lock.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 
 NameSpace::NameSpace(NamedObjectType p_type, GlobalNameSpace *globalNameSpace,
         gfxstream::Stream* stream, const ObjectData::loadObject_t& loadObject) :

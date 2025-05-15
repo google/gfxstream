@@ -19,7 +19,7 @@
 #endif
 
 #include "FrameBuffer.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "vulkan/ColorBufferVk.h"
 #include "vulkan/VkCommonOperations.h"
 

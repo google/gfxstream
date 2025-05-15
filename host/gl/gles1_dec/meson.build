@@ -18,7 +18,7 @@ lib_gles1_dec = static_library(
     inc_gfxstream_server,
     inc_host_iostream,
     inc_host_library,
-    inc_host_logging,
+    inc_common_logging,
     inc_include,
   ],
   link_with: [
@@ -26,6 +26,6 @@ lib_gles1_dec = static_library(
     lib_gl_openglesdispatch,
     lib_host_iostream,
     lib_host_library,
-    lib_host_logging,
+    lib_common_logging,
   ],
 )

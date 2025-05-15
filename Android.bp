@@ -43,12 +43,10 @@ cc_library_headers {
         "host/include",
     ],
     header_libs: [
-        "aemu_common_headers",
         "gfxstream_magma_headers",
         "libgfxstream_thirdparty_vulkan_headers",
     ],
     export_header_lib_headers: [
-        "aemu_common_headers",
         "gfxstream_magma_headers",
         "libgfxstream_thirdparty_vulkan_headers",
     ],
@@ -73,13 +71,6 @@ cc_library_headers {
     ],
 }
 
-cc_defaults {
-    name: "gfxstream_cc_defaults",
-    cflags: [
-        "-DGFXSTREAM",
-    ],
-}
-
 soong_config_string_variable {
     name: "mesa3d_platforms",
     values: [
@@ -90,63 +81,16 @@ soong_config_string_variable {
 }
 
 cc_defaults {
-    name: "gfxstream_guest_cc_defaults",
-    defaults: [
-        "gfxstream_cc_defaults",
-    ],
-    cflags: select(soong_config_variable("gfxstream", "mesa3d_platforms"), {
-        // Android surfaceless build
-        "none": [
-            "-UANDROID",
-            "-U__ANDROID__",
-            "-DLINUX_GUEST_BUILD",
-        ],
-        // The default when variable is not set is Android
-        default: [
-            "-DVK_USE_PLATFORM_ANDROID_KHR",
-        ],
-    }),
-}
-
-cc_defaults {
-    name: "gfxstream_host_cc_defaults",
-    defaults: [
-        "gfxstream_cc_defaults",
-    ],
-    cflags: [
-        "-DGFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT=1",
-        "-DGFXSTREAM_BUILD_WITH_TRACING=1",
-    ] + select(soong_config_variable("gfxstream", "mesa3d_platforms"), {
-        // Android surfaceless build
-        "none": [
-            "-DGFXSTREAM_ENABLE_GUEST_VIRTIO_RESOURCE_TILING_CONTROL=1",
-        ],
-        // The default when variable is not set is Android
-        default: [],
-    }),
-    target: {
-        host: {
-            cflags: [
-                "-DGFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT=1",
-            ],
-        },
-        android: {
-            cflags: [
-                "-DVK_USE_PLATFORM_ANDROID_KHR",
-            ],
-        },
-    },
-}
-
-cc_defaults {
     name: "gfxstream_defaults",
     cflags: [
         // Android build system has some global cflags that we cannot override (e.g.
         // -Werror=return-type), so -Wno-return-type and -Wno-return-type-c-linkage will not work.
         // See build/soong/cc/config/global.go
+        "-DGFXSTREAM",
         "-DUSING_ANDROID_BP",
         "-D_FILE_OFFSET_BITS=64",
         "-DVK_GFXSTREAM_STRUCTURE_TYPE_EXT",
+        "-DGFXSTREAM_ENABLE_GUEST_GOLDFISH=1",
         "-DGFXSTREAM_ENABLE_HOST_GLES=1",
         "-Wall",
         "-Werror",
@@ -163,27 +107,79 @@ cc_defaults {
         "gfxstream_headers",
     ],
     target: {
-        host: {
-            compile_multilib: "64",
-            cflags: [
-                "-U__ANDROID__",
-                "-UANDROID",
+        android: {
+            shared_libs: [
+                "liblog",
+                "libnativewindow",
             ],
         },
-        android: {
+        host: {
             compile_multilib: "64",
-            shared_libs: ["libnativewindow"],
         },
         linux_bionic_arm64: {
             enabled: true,
             cflags: ["-Dandroidbionic"],
         },
     },
+    product_variables: {
+        platform_sdk_version: {
+            cflags: ["-DANDROID_API_LEVEL=%d"],
+        },
+    },
     host_supported: true,
-    vendor_available: true,
-
     apex_available: [
         "//apex_available:platform",
         "com.android.virt",
     ],
+}
+
+cc_defaults {
+    name: "gfxstream_guest_cc_defaults",
+    defaults: [
+        "gfxstream_defaults",
+    ],
+    cflags: select(soong_config_variable("gfxstream", "mesa3d_platforms"), {
+        // Android surfaceless build
+        "none": [
+            "-UANDROID",
+            "-U__ANDROID__",
+            "-DLINUX_GUEST_BUILD",
+        ],
+        // The default when variable is not set is Android
+        default: [
+            "-DVK_USE_PLATFORM_ANDROID_KHR",
+        ],
+    }),
+    vendor: true,
+}
+
+cc_defaults {
+    name: "gfxstream_host_cc_defaults",
+    defaults: [
+        "gfxstream_defaults",
+    ],
+    cflags: [
+        "-DGFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT=1",
+        "-DGFXSTREAM_BUILD_WITH_TRACING=1",
+    ] + select(soong_config_variable("gfxstream", "mesa3d_platforms"), {
+        // Android surfaceless build
+        "none": [
+            "-DGFXSTREAM_ENABLE_GUEST_VIRTIO_RESOURCE_TILING_CONTROL=1",
+        ],
+        // The default when variable is not set is Android
+        default: [],
+    }),
+    target: {
+        android: {
+            cflags: [
+                "-DVK_USE_PLATFORM_ANDROID_KHR",
+            ],
+            compile_multilib: "64",
+        },
+        host: {
+            cflags: [
+                "-DGFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT=1",
+            ],
+        },
+    },
 }

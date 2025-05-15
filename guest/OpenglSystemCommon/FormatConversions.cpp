@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <hardware/gralloc.h>
 #include "FormatConversions.h"
 
-#include <cutils/log.h>
 #include <string.h>
 #include <stdio.h>
 
-#define DEBUG 0
+#include <hardware/gralloc.h>
 
+#include "gfxstream/common/logging.h"
+
+#define DEBUG 0
 #if DEBUG
-#define DD(...) ALOGD(__VA_ARGS__)
+#define DD(...) GFXSTREAM_DEBUG(__VA_ARGS__)
 #else
 #define DD(...)
 #endif

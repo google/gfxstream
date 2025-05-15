@@ -23,7 +23,7 @@
 #include "FrameBuffer.h"
 #include "RenderThreadInfo.h"
 #include "gfxstream/Tracing.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "gfxstream/host/window_operations.h"
 #include "vulkan/VkCommonOperations.h"
 

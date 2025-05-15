@@ -37,8 +37,8 @@ if (ENABLE_VKCEREAL_TESTS)
         target_link_libraries(
             gfxstream_host_renderdoc_tests
             PRIVATE
+            gfxstream_common_logging
             gfxstream_host_library
-            gfxstream_host_logging
             gfxstream_host_renderdoc
             renderdoc
             gtest_main

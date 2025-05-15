@@ -17,7 +17,7 @@
 
 #include <vector>
 
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "vulkan/vk_enum_string_helper.h"
 
 namespace gfxstream {

@@ -16,7 +16,7 @@
 
 #include <atomic>
 #include <errno.h>
-#include <log/log.h>
+
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <fcntl.h>
@@ -26,6 +26,14 @@
 #include <unistd.h>
 #include <linux/vm_sockets.h>
 #include <qemu_pipe_bp.h>
+
+#ifdef GFXSTREAM_USE_COMMON_LOGGING
+#include "gfxstream/common/logging.h"
+#else
+#include <log/log.h>
+#define GFXSTREAM_ERROR(...) ALOGE(__VA_ARGS__)
+#define GFXSTREAM_WARNING(...) ALOGW(__VA_ARGS__)
+#endif
 
 namespace {
 enum class VsockPort {
@@ -52,8 +60,7 @@ int open_verbose_path(const char* name, const int flags) {
     const int fd = QEMU_PIPE_RETRY(open(name, flags));
     if (fd < 0) {
         const int e = errno;
-        ALOGE("%s:%d: Could not open '%s': %s",
-              __func__, __LINE__, name, strerror(e));
+        GFXSTREAM_ERROR("Could not open '%s': %s", name, strerror(e));
         return -checkErr(e, EINVAL);
     }
     return fd;
@@ -86,8 +93,8 @@ int open_verbose_vsock(const VsockPort port, const int flags) {
     if (flags) {
         const int oldFlags = QEMU_PIPE_RETRY(fcntl(fd, F_GETFL, 0));
         if (oldFlags < 0) {
-            ALOGE("%s:%d fcntl(fd=%d, F_GETFL) failed with '%s' (%d)",
-                  __func__, __LINE__, fd, strerror(errno), errno);
+            GFXSTREAM_ERROR("fcntl(fd=%d, F_GETFL) failed with '%s' (%d)",
+                            fd, strerror(errno), errno);
             close(fd);
             return -checkErr(errno, EINVAL);
         }
@@ -96,8 +103,8 @@ int open_verbose_vsock(const VsockPort port, const int flags) {
 
         r = QEMU_PIPE_RETRY(fcntl(fd, F_SETFL, newFlags));
         if (r < 0) {
-            ALOGE("%s:%d fcntl(fd=%d, F_SETFL, flags=0x%X) failed with '%s' (%d)",
-                  __func__, __LINE__, fd, newFlags, strerror(errno), errno);
+            GFXSTREAM_ERROR("fcntl(fd=%d, F_SETFL, flags=0x%X) failed with '%s' (%d)",
+                            fd, newFlags, strerror(errno), errno);
             close(fd);
             return -checkErr(errno, EINVAL);
         }
@@ -124,16 +131,15 @@ int open_verbose(const char *pipeName, const int flags) {
         return fd;
     }
 
-    ALOGE("%s:%d: both vsock and goldfish_pipe paths failed",
-          __func__, __LINE__);
+    GFXSTREAM_ERROR("Both vsock and goldfish_pipe paths failed");
     return fd;
 }
 
 void vsock_ping() {
     const int fd = open_verbose_vsock(VsockPort::Ping, 0);
     if (fd >= 0) {
-        ALOGE("%s:%d open_verbose_vsock(kVsockPingPort) is expected to fail, "
-              "but it succeeded, fd=%d", __func__, __LINE__, fd);
+        GFXSTREAM_ERROR("open_verbose_vsock(kVsockPingPort) is expected to fail, "
+                        "but it succeeded, fd=%d", fd);
         close(fd);
     }
 }
@@ -162,8 +168,8 @@ int qemu_pipe_open_ns(const char* ns, const char* pipeName, int flags) {
 
     const int e = qemu_pipe_write_fully(fd, buf, bufLen + 1);
     if (e < 0) {
-        ALOGE("%s:%d: Could not connect to the '%s' service: %s",
-              __func__, __LINE__, buf, strerror(-e));
+        GFXSTREAM_ERROR("Could not connect to the '%s' service: %s",
+                        buf, strerror(-e));
         close(fd);
         return e;
     }
@@ -211,7 +217,7 @@ int qemu_pipe_try_again(int ret) {
 }
 
 void qemu_pipe_print_error(int pipe) {
-    ALOGE("pipe error: fd %d errno %d", pipe, errno);
+    GFXSTREAM_ERROR("pipe error: fd %d errno %d", pipe, errno);
 }
 
 }  // extern "C"

@@ -22,7 +22,7 @@
 #include "OpenGLESDispatch/DispatchTables.h"
 #include "OpenGLESDispatch/EGLDispatch.h"
 #include "OpenGLESDispatch/GLESv2Dispatch.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 #include "gl/ColorBufferGl.h"
 
 namespace gfxstream {

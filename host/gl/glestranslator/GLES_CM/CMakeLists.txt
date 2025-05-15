@@ -35,7 +35,7 @@ target_link_libraries(
     GLcommon
     gfxstream_host_decoder_common
     gfxstream_host_backend
-    gfxstream_host_logging
+    gfxstream_common_logging
     gfxstream_host_snapshot.headers
     gfxstream_egl_headers)
 target_include_directories(

@@ -20,7 +20,7 @@
 #include "GLESVersionDetector.h"
 #include "OpenGLESDispatch/EGLDispatch.h"
 #include "OpenGLESDispatch/GLESv1Dispatch.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 
 namespace gfxstream {
 namespace gl {

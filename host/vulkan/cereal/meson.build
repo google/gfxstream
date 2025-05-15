@@ -32,7 +32,7 @@ lib_vulkan_cereal = static_library(
     inc_host_decoder_common,
     inc_host_features,
     inc_host_health,
-    inc_host_logging,
+    inc_common_logging,
     inc_host_metrics,
     inc_include,
     inc_stream_servers,
@@ -44,7 +44,7 @@ lib_vulkan_cereal = static_library(
     lib_host_backend,
     lib_host_features,
     lib_host_health,
-    lib_host_logging,
+    lib_common_logging,
     lib_host_metrics,
   ],
 )

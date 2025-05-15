@@ -18,7 +18,7 @@
 #include "gfxstream/files/PathUtils.h"
 #include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/system/System.h"
-#include "gfxstream/host/logging.h"
+#include "gfxstream/common/logging.h"
 
 using gfxstream::base::AutoLock;
 using gfxstream::base::Lock;
