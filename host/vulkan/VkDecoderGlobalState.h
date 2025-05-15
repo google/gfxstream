@@ -229,6 +229,16 @@ class VkDecoderGlobalState {
         VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo,
         uint32_t* pPropertyCount, VkSparseImageFormatProperties2* pProperties);
 
+    void on_vkGetDeviceImageMemoryRequirements(gfxstream::base::BumpPool* pool,
+                                               VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
+                                               const VkDeviceImageMemoryRequirements* pInfo,
+                                               VkMemoryRequirements2* pMemoryRequirements);
+    void on_vkGetDeviceImageMemoryRequirementsKHR(gfxstream::base::BumpPool* pool,
+                                                  VkSnapshotApiCallInfo* snapshotInfo,
+                                                  VkDevice device,
+                                                  const VkDeviceImageMemoryRequirements* pInfo,
+                                                  VkMemoryRequirements2* pMemoryRequirements);
+
     void on_vkDestroyDevice(gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
                             VkDevice device, const VkAllocationCallbacks* pAllocator);
 

@@ -2376,6 +2376,16 @@ class VkDecoderGlobalState::Impl {
             physicalDevice, pFormatInfo, pPropertyCount, pProperties);
     }
 
+    void on_vkGetDeviceImageMemoryRequirements(gfxstream::base::BumpPool* pool,
+                                               VkSnapshotApiCallInfo* snapshotInfo,
+                                               VkDevice boxed_device,
+                                               const VkDeviceImageMemoryRequirements* pInfo,
+                                               VkMemoryRequirements2* pMemoryRequirements) {
+        auto device = unbox_VkDevice(boxed_device);
+        auto vk = dispatch_VkDevice(boxed_device);
+        return vk->vkGetDeviceImageMemoryRequirements(device, pInfo, pMemoryRequirements);
+    }
+
     void destroyDeviceWithExclusiveInfo(VkDevice device, DeviceInfo& deviceInfo,
                                         std::unordered_map<VkFence, FenceInfo>& fenceInfos,
                                         std::unordered_map<VkQueue, QueueInfo>& queueInfos,
@@ -9873,6 +9883,20 @@ void VkDecoderGlobalState::on_vkGetPhysicalDeviceSparseImageFormatProperties2KHR
         VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo,
         uint32_t* pPropertyCount, VkSparseImageFormatProperties2* pProperties) {
     mImpl->on_vkGetPhysicalDeviceSparseImageFormatProperties2KHR(pool, snapshotInfo, physicalDevice, pFormatInfo, pPropertyCount, pProperties);
+}
+
+void VkDecoderGlobalState::on_vkGetDeviceImageMemoryRequirements(
+    gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
+    const VkDeviceImageMemoryRequirements* pInfo, VkMemoryRequirements2* pMemoryRequirements) {
+    mImpl->on_vkGetDeviceImageMemoryRequirements(pool, snapshotInfo, device, pInfo,
+                                                 pMemoryRequirements);
+}
+
+void VkDecoderGlobalState::on_vkGetDeviceImageMemoryRequirementsKHR(
+    gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
+    const VkDeviceImageMemoryRequirements* pInfo, VkMemoryRequirements2* pMemoryRequirements) {
+    mImpl->on_vkGetDeviceImageMemoryRequirements(pool, snapshotInfo, device, pInfo,
+                                                 pMemoryRequirements);
 }
 
 void VkDecoderGlobalState::on_vkDestroyDevice(gfxstream::base::BumpPool* pool,
