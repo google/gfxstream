@@ -40,7 +40,8 @@ uint32_t GetMemoryType(const PhysicalDeviceInfo& physicalDevice,
     return -1;
 }
 
-uint32_t bytes_per_pixel(VkFormat format) {
+VkDeviceSize GetImageLayerSize(const VkExtent3D& extent, VkFormat format) {
+    auto sz = extent.width * extent.height * extent.depth;
     switch (format) {
         case VK_FORMAT_R8_UNORM:
         case VK_FORMAT_R8_SNORM:
@@ -50,7 +51,9 @@ uint32_t bytes_per_pixel(VkFormat format) {
         case VK_FORMAT_R8_SINT:
         case VK_FORMAT_R8_SRGB:
         case VK_FORMAT_S8_UINT:
-            return 1;
+            return sz;
+        case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
+            return 3 * (sz >> 1);
         case VK_FORMAT_R8G8_UNORM:
         case VK_FORMAT_R8G8_SNORM:
         case VK_FORMAT_R8G8_USCALED:
@@ -59,7 +62,7 @@ uint32_t bytes_per_pixel(VkFormat format) {
         case VK_FORMAT_R8G8_SINT:
         case VK_FORMAT_R8G8_SRGB:
         case VK_FORMAT_D16_UNORM:
-            return 2;
+            return 2 * sz;
         case VK_FORMAT_R8G8B8_UNORM:
         case VK_FORMAT_R8G8B8_SNORM:
         case VK_FORMAT_R8G8B8_USCALED:
@@ -75,7 +78,7 @@ uint32_t bytes_per_pixel(VkFormat format) {
         case VK_FORMAT_B8G8R8_SINT:
         case VK_FORMAT_B8G8R8_SRGB:
         case VK_FORMAT_D16_UNORM_S8_UINT:
-            return 3;
+            return 3 * sz;
         case VK_FORMAT_R8G8B8A8_UNORM:
         case VK_FORMAT_R8G8B8A8_SNORM:
         case VK_FORMAT_R8G8B8A8_USCALED:
@@ -114,17 +117,20 @@ uint32_t bytes_per_pixel(VkFormat format) {
         case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
         case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
         case VK_FORMAT_X8_D24_UNORM_PACK32:
-            return 4;
+        case VK_FORMAT_D32_SFLOAT:
+            return 4 * sz;
+        case VK_FORMAT_D32_SFLOAT_S8_UINT:
+            return 5 * sz;
         case VK_FORMAT_R16G16B16A16_SINT:
         case VK_FORMAT_R16G16B16A16_SFLOAT:
-            return 8;
+            return 8 * sz;
         case VK_FORMAT_R32G32B32A32_SINT:
         case VK_FORMAT_R32G32B32A32_SFLOAT:
-            return 16;
+            return 16 * sz;
         default:
             const std::string formatString = string_VkFormat(format);
-            GFXSTREAM_FATAL("Unsupported VkFormat:%s for snapshot save.", formatString.c_str());
-            return -1;
+            GFXSTREAM_WARNING("Unsupported VkFormat:%s for snapshot save.", formatString.c_str());
+            return 0;
     }
 }
 
@@ -136,19 +142,31 @@ VkExtent3D getMipmapExtent(VkExtent3D baseExtent, uint32_t mipLevel) {
     };
 }
 
+constexpr uint32_t kBadImageSnapshot = 0xbaadbeef;
+constexpr uint32_t kGoodImageSnapshot = 0x900df00d;
 }  // namespace
 
 void saveImageContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkImage image,
                       const ImageInfo* imageInfo) {
     if (imageInfo->layout == VK_IMAGE_LAYOUT_UNDEFINED) {
+        stream->putBe32(kBadImageSnapshot);
         return;
     }
     // TODO(b/333936705): snapshot multi-sample images
     if (imageInfo->imageCreateInfoShallow.samples != VK_SAMPLE_COUNT_1_BIT) {
+        stream->putBe32(kBadImageSnapshot);
         return;
     }
+
     VulkanDispatch* dispatch = stateBlock->deviceDispatch;
     const VkImageCreateInfo& imageCreateInfo = imageInfo->imageCreateInfoShallow;
+
+    if (!GetImageLayerSize(imageCreateInfo.extent, imageCreateInfo.format)) {
+        stream->putBe32(kBadImageSnapshot);
+        return;
+    }
+
+    stream->putBe32(kGoodImageSnapshot);
     VkCommandBufferAllocateInfo allocInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
         .commandPool = stateBlock->commandPool,
@@ -165,9 +183,7 @@ void saveImageContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkImage
     VK_CHECK(dispatch->vkCreateFence(stateBlock->device, &fenceCreateInfo, nullptr, &fence));
     VkBufferCreateInfo bufferCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-        .size = static_cast<VkDeviceSize>(
-            imageCreateInfo.extent.width * imageCreateInfo.extent.height *
-            imageCreateInfo.extent.depth * bytes_per_pixel(imageCreateInfo.format)),
+        .size = GetImageLayerSize(imageCreateInfo.extent, imageCreateInfo.format),
         .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT,
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
     };
@@ -279,8 +295,7 @@ void saveImageContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkImage
             VK_CHECK(
                 dispatch->vkWaitForFences(stateBlock->device, 1, &fence, VK_TRUE, 3000000000L));
             VK_CHECK(dispatch->vkResetFences(stateBlock->device, 1, &fence));
-            size_t bytes = mipmapExtent.width * mipmapExtent.height * mipmapExtent.depth *
-                           bytes_per_pixel(imageCreateInfo.format);
+            auto bytes = GetImageLayerSize(mipmapExtent, imageCreateInfo.format);
             stream->putBe64(bytes);
             stream->write(mapped, bytes);
         }
@@ -294,11 +309,14 @@ void saveImageContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkImage
 
 void loadImageContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkImage image,
                       const ImageInfo* imageInfo) {
-    if (imageInfo->layout == VK_IMAGE_LAYOUT_UNDEFINED) {
+    const bool validImage = (stream->getBe32() == kGoodImageSnapshot);
+    if (!validImage) {
         return;
     }
+
     VulkanDispatch* dispatch = stateBlock->deviceDispatch;
     const VkImageCreateInfo& imageCreateInfo = imageInfo->imageCreateInfoShallow;
+
     VkCommandBufferAllocateInfo allocInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
         .commandPool = stateBlock->commandPool,
@@ -362,9 +380,7 @@ void loadImageContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkImage
     }
     VkBufferCreateInfo bufferCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-        .size = static_cast<VkDeviceSize>(
-            imageCreateInfo.extent.width * imageCreateInfo.extent.height *
-            imageCreateInfo.extent.depth * bytes_per_pixel(imageCreateInfo.format)),
+        .size = GetImageLayerSize(imageCreateInfo.extent, imageCreateInfo.format),
         .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
     };
