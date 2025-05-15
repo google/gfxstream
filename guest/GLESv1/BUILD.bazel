@@ -1,0 +1,33 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_shared_library")
+
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
+cc_library(
+    name = "gfxstream_guest_glesv1_impl",
+    srcs = [
+        "gl.cpp",
+    ],
+    defines = [
+        "ANDROID",
+        "GL_GLEXT_PROTOTYPES",
+    ],
+    linkopts = [
+        # FIXME: gl2_entry.cpp is included in both the encoder and the full library...
+        "-z muldefs",
+    ],
+    deps = [
+        "//guest/GLESv1_enc:gfxstream_guest_glesv1_entries",
+        "//guest/OpenglSystemCommon:gfxstream_guest_openglsystemcommon",
+        "//guest/egl:gfxstream_guest_egl_headers",
+    ],
+)
+
+cc_shared_library(
+    name = "gfxstream_guest_glesv1",
+    shared_lib_name = "libGLESv1_CM_emulation.so",
+    deps = [
+        ":gfxstream_guest_glesv1_impl",
+    ],
+)

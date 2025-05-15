@@ -16,8 +16,6 @@
 #ifndef __GL_UTILS_H__
 #define __GL_UTILS_H__
 
-#include <cutils/log.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 

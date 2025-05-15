@@ -1,0 +1,28 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
+cc_library(
+    name = "gfxstream_guest_rendercontrolencoder",
+    srcs = [
+        "ExtendedRenderControl.cpp",
+        "GfxStreamRenderControl.cpp",
+        "GfxStreamRenderControlConnection.cpp",
+        "renderControl_client_context.cpp",
+        "renderControl_enc.cpp",
+        "renderControl_entry.cpp",
+    ],
+    hdrs = glob([
+        "**/*.h",
+    ]),
+    includes = [
+        ".",
+    ],
+    deps = [
+        "//guest/OpenglCodecCommon:gfxstream_guest_openglcodeccommon",
+        "@mesa//:mesa_gfxstream_connection_manager",
+        "@mesa//:mesa_gfxstream_guest_iostream",
+    ],
+)

@@ -1,0 +1,33 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
+cc_library(
+    name = "gfxstream_guest_openglcodeccommon",
+    srcs = [
+        "ChecksumCalculator.cpp",
+        "EncoderDebug.cpp",
+        "GLClientState.cpp",
+        "GLESTextureUtils.cpp",
+        "GLSharedGroup.cpp",
+        "IndexRangeCache.cpp",
+        "glUtils.cpp",
+    ],
+    hdrs = glob([
+        "*.h",
+        "include/**/*.h",
+    ]),
+    includes = [
+        ".",
+        "include",
+    ],
+    deps = [
+        "//common/etc:gfxstream_etc",
+        "//common/logging:gfxstream_common_logging",
+        "//guest/android-emu:gfxstream_guest_base",
+        "//third_party/opengl:gfxstream_opengl_headers",
+        "@mesa//:mesa_gfxstream_guest_iostream",
+    ],
+)

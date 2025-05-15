@@ -20,7 +20,7 @@
 #include <fstream>
 #include <streambuf>
 
-#include <android/log.h>
+#include "gfxstream/common/logging.h"
 
 namespace {
 
@@ -34,12 +34,10 @@ bool encoderShouldLog() {
                                    std::istreambuf_iterator<char>());
 
         if (cmdline.find(ENABLE_ENCODER_DEBUG_LOGGING_FOR_APP) != std::string::npos) {
-            const std::string message = "Enabling gfxstream encoder logging for " + cmdline;
-            __android_log_write(ANDROID_LOG_DEBUG, "gfxstream", message.c_str());
+            GFXSTREAM_INFO("Enabling gfxstream encoder logging for %s.", message.c_str());
             return true;
         } else {
-            const std::string message = "Not enabling gfxstream encoder logging for " + cmdline;
-            __android_log_write(ANDROID_LOG_DEBUG, "gfxstream", message.c_str());
+            GFXSTREAM_INFO("Not enabling gfxstream encoder logging for %s.", message.c_str());
             return false;
         }
     }();
@@ -57,15 +55,7 @@ void encoderLog(const char* format, ...) {
     if (!encoderShouldLog()) {
         return;
     }
-
-    char buffer[2048];
-
-    va_list args;
-    va_start(args, format);
-    vsnprintf(buffer, 2048, format, args);
-    va_end(args);
-
-    __android_log_write(ANDROID_LOG_DEBUG, "gfxstream", buffer);
+    GFXSTREAM_DEBUG(format, ...);
 #else
     (void)format;
 #endif

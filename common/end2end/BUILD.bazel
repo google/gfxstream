@@ -1,0 +1,54 @@
+load("@rules_cc//cc:defs.bzl", "cc_test")
+
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
+cc_test(
+    name = "gfxstream_end2end_tests",
+    srcs = [
+        "GfxstreamEnd2EndCompositionTests.cpp",
+        "GfxstreamEnd2EndGlTests.cpp",
+        "GfxstreamEnd2EndTestUtils.cpp",
+        "GfxstreamEnd2EndTestUtils.h",
+        "GfxstreamEnd2EndTests.cpp",
+        "GfxstreamEnd2EndTests.h",
+        "GfxstreamEnd2EndVkTests.cpp",
+        "KumquatInstance.cpp",
+        "KumquatInstance.h",
+        "TestDataUtils.cpp",
+        "TestDataUtils.h",
+    ] + glob([
+        "shaders/**/*.h",
+    ]),
+    data = [
+        "testdata/256x256_android.png",
+        "testdata/256x256_android_with_transparency.png",
+        "testdata/256x256_golden_basic_composition.png",
+        "//guest/GLESv1:gfxstream_guest_glesv1",
+        "//guest/GLESv2:gfxstream_guest_glesv2",
+        "//guest/egl:gfxstream_guest_egl",
+        "//guest/rendercontrol:gfxstream_guest_rendercontrol",
+        "@mesa//:mesa_gfxstream_guest_vulkan",
+        "@rutabaga//:rutabaga_gfx_kumquat_server",
+    ],
+    defines = [
+        "ANDROID",
+        "VK_USE_PLATFORM_ANDROID_KHR",
+    ],
+    deps = [
+        "//common/base:gfxstream_common_base",
+        "//common/image:gfxstream_common_image",
+        "//common/logging:gfxstream_common_logging",
+        "//common/utils:gfxstream_common_utils",
+        "//guest/rendercontrol:gfxstream_guest_rendercontrol_headers",
+        "//host/gl/OpenGLESDispatch:gfxstream_host_openglesdispatch_headers",
+        "//third_party/android:gfxstream_thirdparty_android_headers",
+        "//third_party/vulkan:gfxstream_vulkan_headers",
+        "@com_google_googletest//:gtest_main",
+        "@mesa//:mesa_gfxstream_guest_android",
+        "@mesa//:mesa_gfxstream_guest_platform",
+        "@rules_cc//cc/runfiles",
+        "@rutabaga//:rutabaga_gfx_kumquat_client_ffi_headers",
+    ],
+)

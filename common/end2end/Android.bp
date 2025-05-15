@@ -27,6 +27,7 @@ cc_test_host {
         "GfxstreamEnd2EndGlTests.cpp",
         "GfxstreamEnd2EndVkTests.cpp",
         "KumquatInstance.cpp",
+        "TestDataUtils.cpp",
     ],
     header_libs: [
         "virtgpu_kumquat_ffi_headers",
@@ -54,8 +55,9 @@ cc_test_host {
         "libOpenglSystemCommon",
     ],
     static_libs: [
-        "libgfxstream_androidemu_static",
+        "libgfxstream_common_base",
         "libgfxstream_common_image",
+        "libgfxstream_common_logging",
         "libgfxstream_common_utils",
         "mesa_gfxstream_guest_android",
         "libgfxstream_thirdparty_stb",

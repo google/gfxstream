@@ -59,7 +59,6 @@ public:
 #include "ProcessPipe.h"
 #include "QemuPipeStream.h"
 #include "ThreadInfo.h"
-
 #include "VirtGpu.h"
 #include "VirtioGpuPipeStream.h"
 

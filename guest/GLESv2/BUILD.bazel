@@ -1,0 +1,29 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_shared_library")
+
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
+cc_library(
+    name = "gfxstream_guest_glesv2_impl",
+    srcs = [
+        "gl2.cpp",
+    ],
+    linkopts = [
+        # FIXME: gl2_entry.cpp is included in both the encoder and the full library...
+        "-z muldefs",
+    ],
+    deps = [
+        "//guest/GLESv2_enc:gfxstream_guest_glesv2_entries",
+        "//guest/OpenglSystemCommon:gfxstream_guest_openglsystemcommon",
+        "//guest/egl:gfxstream_guest_egl_headers",
+    ],
+)
+
+cc_shared_library(
+    name = "gfxstream_guest_glesv2",
+    shared_lib_name = "libGLESv2_emulation.so",
+    deps = [
+        ":gfxstream_guest_glesv2_impl",
+    ],
+)

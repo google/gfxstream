@@ -23,9 +23,9 @@
 #include <dlfcn.h>
 #include <GLES3/gl31.h>
 
-#include <aemu/base/Path.h>
 #include <system/graphics.h>
 
+#include "aemu/base/Path.h"
 #include "gfxstream/common/logging.h"
 
 static const int systemEGLVersionMajor = 1;

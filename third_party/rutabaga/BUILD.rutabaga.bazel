@@ -1,0 +1,123 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library")
+
+package(
+    default_visibility = ["@//:gfxstream"],
+)
+
+rust_library(
+    name = "rutabaga_gfx",
+    srcs = glob([
+        "rutabaga_gfx/src/**/*.rs",
+    ]),
+    proc_macro_deps = [
+        "@rutabaga_crate_deps//:remain",
+    ],
+    rustc_flags = [
+        "--cfg=fence_passing_option1",
+    ],
+    deps = [
+        "@rutabaga_crate_deps//:anyhow",
+        "@rutabaga_crate_deps//:cfg-if",
+        "@rutabaga_crate_deps//:libc",
+        "@rutabaga_crate_deps//:log",
+        "@rutabaga_crate_deps//:nix",
+        "@rutabaga_crate_deps//:serde",
+        "@rutabaga_crate_deps//:serde_json",
+        "@rutabaga_crate_deps//:thiserror",
+        "@rutabaga_crate_deps//:zerocopy",
+    ],
+)
+
+rust_library(
+    name = "rutabaga_gfx_gfxstream",
+    srcs = glob([
+        "rutabaga_gfx/src/**/*.rs",
+    ]),
+    crate_features = [
+        "gfxstream",
+    ],
+    crate_name = "rutabaga_gfx",
+    proc_macro_deps = [
+        "@rutabaga_crate_deps//:remain",
+    ],
+    rustc_flags = [
+        "--cfg=fence_passing_option1",
+    ],
+    deps = [
+        "@//host:gfxstream_backend_shared",
+        "@rutabaga_crate_deps//:anyhow",
+        "@rutabaga_crate_deps//:cfg-if",
+        "@rutabaga_crate_deps//:libc",
+        "@rutabaga_crate_deps//:log",
+        "@rutabaga_crate_deps//:nix",
+        "@rutabaga_crate_deps//:serde",
+        "@rutabaga_crate_deps//:serde_json",
+        "@rutabaga_crate_deps//:thiserror",
+        "@rutabaga_crate_deps//:zerocopy",
+    ],
+)
+
+cc_library(
+    name = "rutabaga_gfx_kumquat_client_ffi_headers",
+    hdrs = [
+        "rutabaga_gfx/kumquat/gpu_client/src/include/virtgpu_kumquat_ffi.h",
+    ],
+    strip_include_prefix = "rutabaga_gfx/kumquat/gpu_client/src/include",
+    visibility = [
+        "@//:gfxstream",
+        "@mesa//:__subpackages__",
+    ],
+)
+
+cc_library(
+    name = "rutabaga_gfx_kumquat_client_ffi_prefixed_headers",
+    hdrs = [
+        "rutabaga_gfx/kumquat/gpu_client/src/include/virtgpu_kumquat_ffi.h",
+    ],
+    include_prefix = "virtgpu_kumquat",
+    strip_include_prefix = "rutabaga_gfx/kumquat/gpu_client/src/include",
+    visibility = [
+        "@//:gfxstream",
+        "@mesa//:__subpackages__",
+    ],
+)
+
+rust_library(
+    name = "rutabaga_gfx_kumquat_client_ffi",
+    srcs = glob([
+        "rutabaga_gfx/kumquat/gpu_client/src/**/*.rs",
+    ]),
+    visibility = [
+        "@//:gfxstream",
+        "@mesa//:__subpackages__",
+    ],
+    deps = [
+        ":rutabaga_gfx",
+        "@rutabaga_crate_deps//:anyhow",
+        "@rutabaga_crate_deps//:libc",
+        "@rutabaga_crate_deps//:log",
+        "@rutabaga_crate_deps//:zerocopy",
+    ],
+)
+
+rust_binary(
+    name = "rutabaga_gfx_kumquat_server",
+    srcs = glob([
+        "rutabaga_gfx/kumquat/server/src/**/*.rs",
+    ]),
+    binary_name = "kumquat",
+    features = [
+        "gfxstream",
+    ],
+    deps = [
+        ":rutabaga_gfx_gfxstream",
+        "@//host:gfxstream_backend_static",
+        "@rutabaga_crate_deps//:anyhow",
+        "@rutabaga_crate_deps//:clap",
+        "@rutabaga_crate_deps//:libc",
+        "@rutabaga_crate_deps//:log",
+        "@rutabaga_crate_deps//:nix",
+        "@rutabaga_crate_deps//:zerocopy",
+    ],
+)

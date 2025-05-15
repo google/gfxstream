@@ -1,0 +1,39 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
+cc_library(
+    name = "gfxstream_guest_glesv1_entries",
+    textual_hdrs = [
+        "gl_entry.cpp",
+    ],
+    visibility = [
+        "//guest/GLESv1:__pkg__",
+    ],
+)
+
+cc_library(
+    name = "gfxstream_guest_glesv1encoder",
+    srcs = [
+        "GLEncoder.cpp",
+        "GLEncoderUtils.cpp",
+        "gl_client_context.cpp",
+        "gl_enc.cpp",
+        "gl_entry.cpp",
+    ],
+    hdrs = glob([
+        "**/*.h",
+    ]),
+    defines = [
+        "GL_GLEXT_PROTOTYPES",
+    ],
+    includes = [
+        ".",
+    ],
+    deps = [
+        "//guest/OpenglCodecCommon:gfxstream_guest_openglcodeccommon",
+        "@mesa//:mesa_gfxstream_guest_iostream",
+    ],
+)

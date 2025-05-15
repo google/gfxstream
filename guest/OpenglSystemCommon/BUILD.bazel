@@ -1,0 +1,36 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
+cc_library(
+    name = "gfxstream_guest_openglsystemcommon",
+    srcs = [
+        "FormatConversions.cpp",
+        "HostConnection.cpp",
+        "ProcessPipe.cpp",
+        "ThreadInfo.cpp",
+        "VirtioGpuPipeStream.cpp",
+    ],
+    hdrs = glob([
+        "**/*.h",
+    ]),
+    defines = [
+        "ANDROID",
+        "GFXSTREAM_NO_QEMU_PIPE",
+    ],
+    includes = [
+        ".",
+    ],
+    deps = [
+        "//guest/GLESv1_enc:gfxstream_guest_glesv1encoder",
+        "//guest/GLESv2_enc:gfxstream_guest_glesv2encoder",
+        "//guest/OpenglCodecCommon:gfxstream_guest_openglcodeccommon",
+        "//guest/android-emu:gfxstream_guest_ringbuffer",
+        "//guest/qemupipe:gfxstream_guest_qemupipe",
+        "//guest/renderControl_enc:gfxstream_guest_rendercontrolencoder",
+        "@mesa//:mesa_gfxstream_goldfish_address_space",
+        "@mesa//:mesa_gfxstream_guest_android",
+    ],
+)

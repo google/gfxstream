@@ -1,0 +1,40 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_shared_library")
+
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
+cc_library(
+    name = "gfxstream_guest_rendercontrol_headers",
+    hdrs = glob([
+        "include/**/*.h",
+    ]),
+    strip_include_prefix = "include",
+    deps = [
+        "//third_party/android:gfxstream_thirdparty_android_headers",
+    ],
+)
+
+cc_library(
+    name = "gfxstream_guest_rendercontrol_impl",
+    srcs = [
+        "RenderControl.cpp",
+    ],
+    linkopts = [
+        # FIXME: gl2_entry.cpp is included in both the encoder and the full library...
+        "-z muldefs",
+    ],
+    deps = [
+        ":gfxstream_guest_rendercontrol_headers",
+        "//common/logging:gfxstream_common_logging",
+        "//guest/OpenglSystemCommon:gfxstream_guest_openglsystemcommon",
+    ],
+)
+
+cc_shared_library(
+    name = "gfxstream_guest_rendercontrol",
+    shared_lib_name = "libgfxstream_guest_rendercontrol.so",
+    deps = [
+        ":gfxstream_guest_rendercontrol_impl",
+    ],
+)
