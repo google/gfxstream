@@ -27,8 +27,6 @@ license {
         "SPDX-license-identifier-Apache-2.0",
     ],
     license_text: [
-        "LICENSE.txt",
+        "LICENSE",
     ],
 }
-
-// TODO(gregschlom) Write the rules to actually build this library
