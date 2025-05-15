@@ -2345,6 +2345,7 @@ class VkDecoderGlobalState::Impl {
         return vk->vkGetPhysicalDeviceSparseImageFormatProperties(
             physicalDevice, format, type, samples, usage, tiling, pPropertyCount, pProperties);
     }
+
     void on_vkGetPhysicalDeviceSparseImageFormatProperties2(
         gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
         VkPhysicalDevice boxed_physicalDevice,
@@ -2357,9 +2358,10 @@ class VkDecoderGlobalState::Impl {
 
         auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
         auto vk = dispatch_VkPhysicalDevice(boxed_physicalDevice);
-        return vk->vkGetPhysicalDeviceSparseImageFormatProperties2(
-            physicalDevice, pFormatInfo, pPropertyCount, pProperties);
+        return vk->vkGetPhysicalDeviceSparseImageFormatProperties2(physicalDevice, pFormatInfo,
+                                                                   pPropertyCount, pProperties);
     }
+
     void on_vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
         gfxstream::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
         VkPhysicalDevice boxed_physicalDevice,
@@ -2372,8 +2374,8 @@ class VkDecoderGlobalState::Impl {
 
         auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
         auto vk = dispatch_VkPhysicalDevice(boxed_physicalDevice);
-        return vk->vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
-            physicalDevice, pFormatInfo, pPropertyCount, pProperties);
+        return vk->vkGetPhysicalDeviceSparseImageFormatProperties2KHR(physicalDevice, pFormatInfo,
+                                                                      pPropertyCount, pProperties);
     }
 
     void on_vkGetDeviceImageMemoryRequirements(gfxstream::base::BumpPool* pool,
@@ -2383,7 +2385,65 @@ class VkDecoderGlobalState::Impl {
                                                VkMemoryRequirements2* pMemoryRequirements) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
-        return vk->vkGetDeviceImageMemoryRequirements(device, pInfo, pMemoryRequirements);
+
+        if (vk->vkGetDeviceImageMemoryRequirements) {
+            vk->vkGetDeviceImageMemoryRequirements(device, pInfo, pMemoryRequirements);
+        } else if (vk->vkGetDeviceImageMemoryRequirementsKHR) {
+            vk->vkGetDeviceImageMemoryRequirementsKHR(device, pInfo, pMemoryRequirements);
+        } else {
+            GFXSTREAM_FATAL("%s: function implementation cannot be found!");
+        }
+
+        const VkFormat format = pInfo->pCreateInfo->format;
+        bool needDecompression = gfxstream::vk::isEtc2(format) || gfxstream::vk::isAstc(format);
+        if (!needDecompression) {
+            // No modifications needed
+            return;
+        }
+
+        std::lock_guard<std::mutex> lock(mMutex);
+
+        auto* deviceInfo = gfxstream::base::find(mDeviceInfo, device);
+        if (!deviceInfo) {
+            GFXSTREAM_ERROR("%s: Failed to find device: %p", __func__, device);
+            return;
+        }
+
+        needDecompression = deviceInfo->needEmulatedDecompression(format);
+        if (!needDecompression) {
+            // No modifications needed
+            return;
+        }
+
+        // Create CompressedImageInfo on the fly to get requirements to use when creating the image
+        CompressedImageInfo cmpInfo =
+            CompressedImageInfo(device, *pInfo->pCreateInfo, deviceInfo->decompPipelines.get());
+        {
+            VkImageCreateInfo decompInfo = cmpInfo.getOutputCreateInfo(*pInfo->pCreateInfo);
+            VkImage tempImage;
+            VkResult createRes = vk->vkCreateImage(device, &decompInfo, nullptr, &tempImage);
+            if (createRes != VK_SUCCESS) {
+                GFXSTREAM_ERROR("%s: Failed to find device: %p", __func__, device);
+                return;
+            }
+
+            cmpInfo.setOutputImage(tempImage);
+            cmpInfo.createCompressedMipmapImages(vk, decompInfo);
+        }
+
+        pMemoryRequirements->memoryRequirements = cmpInfo.getMemoryRequirements();
+        cmpInfo.destroy(vk);
+
+        auto* physicalDeviceInfo = gfxstream::base::find(mPhysdevInfo, deviceInfo->physicalDevice);
+        if (!physicalDeviceInfo) {
+            GFXSTREAM_ERROR("Failed to find physical device info for physical device:%p",
+                            deviceInfo->physicalDevice);
+            return;
+        }
+
+        auto& physicalDeviceMemHelper = physicalDeviceInfo->memoryPropertiesHelper;
+        physicalDeviceMemHelper->transformToGuestMemoryRequirements(
+            &pMemoryRequirements->memoryRequirements);
     }
 
     void destroyDeviceWithExclusiveInfo(VkDevice device, DeviceInfo& deviceInfo,
