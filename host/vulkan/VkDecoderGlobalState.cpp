@@ -6980,15 +6980,15 @@ class VkDecoderGlobalState::Impl {
             // finish the after-dispatch operations. vkWaitForFences is skipped, as it can deadlock.
             if (canDispatch) {
                 VkResult result =
-                    vk->vkWaitForFences(device, 1, &usedFence, VK_TRUE, /* 1 sec */ 1000000000L);
+                    vk->vkWaitForFences(device, 1, &usedFence, VK_TRUE, /* 5 sec */ 5000000000L);
                 if (result != VK_SUCCESS) {
-                    GFXSTREAM_ERROR("vkWaitForFences failed: %s [%d]", string_VkResult(result),
-                                    result);
-                    return result;
-                }
-
-                for (HandleType cb : releasedColorBuffers) {
-                    m_vkEmulation->getCallbacks().flushColorBuffer(cb);
+                    // This may cause presentation issues, but no need to return a failure
+                    GFXSTREAM_ERROR("Cannot sync colorbuffers, vkWaitForFences failed: %s [%d]",
+                                    string_VkResult(result), result);
+                } else {
+                    for (HandleType cb : releasedColorBuffers) {
+                        m_vkEmulation->getCallbacks().flushColorBuffer(cb);
+                    }
                 }
             } else {
                 GFXSTREAM_ERROR(
