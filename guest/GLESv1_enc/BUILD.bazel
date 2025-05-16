@@ -1,4 +1,4 @@
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_shared_library")
 
 package(
     default_visibility = ["//:gfxstream"],
@@ -26,14 +26,28 @@ cc_library(
     hdrs = glob([
         "**/*.h",
     ]),
-    defines = [
-        "GL_GLEXT_PROTOTYPES",
-    ],
     includes = [
         ".",
+    ],
+    linkopts = [
+        # Search the current directory for this library's shared libs.
+        # Used for the end2end tests which package all of the guest
+        # libraries into a single `testdata` directory for testing.
+        "-Wl,-rpath,'$$ORIGIN'",
     ],
     deps = [
         "//guest/OpenglCodecCommon:gfxstream_guest_openglcodeccommon",
         "@mesa//:mesa_gfxstream_guest_iostream",
+    ],
+)
+
+cc_shared_library(
+    name = "gfxstream_guest_glesv1encoder_shared",
+    dynamic_deps = [
+        "//guest/OpenglCodecCommon:gfxstream_guest_openglcodeccommon_shared",
+    ],
+    shared_lib_name = "libGLESv1_enc.so",
+    deps = [
+        ":gfxstream_guest_glesv1encoder",
     ],
 )

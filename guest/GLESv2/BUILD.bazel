@@ -10,10 +10,13 @@ cc_library(
         "gl2.cpp",
     ],
     linkopts = [
-        # FIXME: gl2_entry.cpp is included in both the encoder and the full library...
-        "-z muldefs",
+        # Search the current directory for this library's shared libs.
+        # Used for the end2end tests which package all of the guest
+        # libraries into a single `testdata` directory for testing.
+        "-Wl,-rpath,'$$ORIGIN'",
     ],
     deps = [
+        "//common/logging:gfxstream_common_logging",
         "//guest/GLESv2_enc:gfxstream_guest_glesv2_entries",
         "//guest/OpenglSystemCommon:gfxstream_guest_openglsystemcommon",
         "//guest/egl:gfxstream_guest_egl_headers",
@@ -22,6 +25,9 @@ cc_library(
 
 cc_shared_library(
     name = "gfxstream_guest_glesv2",
+    dynamic_deps = [
+        "//guest/OpenglSystemCommon:gfxstream_guest_openglsystemcommon_shared",
+    ],
     shared_lib_name = "libGLESv2_emulation.so",
     deps = [
         ":gfxstream_guest_glesv2_impl",

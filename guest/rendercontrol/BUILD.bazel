@@ -21,18 +21,22 @@ cc_library(
         "RenderControl.cpp",
     ],
     linkopts = [
-        # FIXME: gl2_entry.cpp is included in both the encoder and the full library...
-        "-z muldefs",
+        # Search the current directory for this library's shared libs.
+        # Used for the end2end tests which package all of the guest
+        # libraries into a single `testdata` directory for testing.
+        "-Wl,-rpath,'$$ORIGIN'",
     ],
     deps = [
         ":gfxstream_guest_rendercontrol_headers",
-        "//common/logging:gfxstream_common_logging",
         "//guest/OpenglSystemCommon:gfxstream_guest_openglsystemcommon",
     ],
 )
 
 cc_shared_library(
     name = "gfxstream_guest_rendercontrol",
+    dynamic_deps = [
+        "//guest/OpenglSystemCommon:gfxstream_guest_openglsystemcommon_shared",
+    ],
     shared_lib_name = "libgfxstream_guest_rendercontrol.so",
     deps = [
         ":gfxstream_guest_rendercontrol_impl",

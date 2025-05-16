@@ -114,22 +114,10 @@ bool endsWith(std::string_view string, std::string_view suffix) {
                    suffix.data(), suffix.size()) == 0;
 }
 
-void splitTokens(const std::string& input,
-                 std::vector<std::string>* out,
-                 std::string_view splitBy) {
-    auto removeWhiteSpace = [out](std::string_view strView) {
-        std::string s(strView);
-        s.erase(std::remove_if(s.begin(), s.end(), ::isspace), s.end());
-        out->push_back(s);
-    };
-    out->clear();
-    split(input, splitBy, removeWhiteSpace);
-}
-
 std::vector<std::string> Split(const std::string& s,
                                const std::string& delimiters) {
     if (delimiters.empty()) {
-        return {}
+        return {};
     }
 
     std::vector<std::string> result;

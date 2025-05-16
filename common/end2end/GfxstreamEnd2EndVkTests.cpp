@@ -325,7 +325,7 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
             };
         }
         const vkhpp::SamplerCreateInfo samplerCreateInfo = {
-            .pNext = ahbIsYuv ? &samplerConversionInfo : nullptr,
+            .pNext = ahbIsYuv ? &*samplerConversionInfo : nullptr,
             .magFilter = vkhpp::Filter::eNearest,
             .minFilter = vkhpp::Filter::eNearest,
             .mipmapMode = vkhpp::SamplerMipmapMode::eNearest,
@@ -396,7 +396,7 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
         vk.device->bindImageMemory(*image, *imageMemory, 0);
 
         const vkhpp::ImageViewCreateInfo imageViewCreateInfo = {
-            .pNext = &samplerConversionInfo,
+            .pNext = ahbIsYuv ? &*samplerConversionInfo : nullptr,
             .image = *image,
             .viewType = vkhpp::ImageViewType::e2D,
             .format = static_cast<vkhpp::Format>(ahbFormatProperties.format),
