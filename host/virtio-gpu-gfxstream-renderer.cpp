@@ -19,6 +19,7 @@ extern "C" {
 
 #include <cstdint>
 #include <optional>
+#include <string_view>
 
 #include "FrameBuffer.h"
 #include "VirtioGpuFrontend.h"
@@ -37,6 +38,8 @@ extern "C" {
 #include "vk_util.h"
 #include "vulkan/VulkanDispatch.h"
 
+using namespace std::literals;
+
 using gfxstream::MetricsLogger;
 using gfxstream::host::LogLevel;
 using gfxstream::host::VirtioGpuFrontend;
@@ -48,7 +51,6 @@ static VirtioGpuFrontend* sFrontend() {
     static VirtioGpuFrontend* p = new VirtioGpuFrontend;
     return p;
 }
-
 
 std::optional<gfxstream::host::FeatureSet>
 ParseGfxstreamFeatures(const int rendererFlags,
@@ -177,6 +179,43 @@ GetGfxstreamFeatures(const int rendererFlags,
     return ParseGfxstreamFeatures(rendererFlags, rendererFeaturesString);
 }
 
+SelectedRenderer parse_renderer(std::string_view renderer) {
+  if (renderer == "host"sv || renderer == "on"sv) {
+        return SELECTED_RENDERER_HOST;
+  } else if (renderer == "off"sv) {
+        return SELECTED_RENDERER_OFF;
+  } else if (renderer == "guest"sv) {
+        return SELECTED_RENDERER_GUEST;
+  } else if (renderer == "mesa"sv) {
+        return SELECTED_RENDERER_MESA;
+  } else if (renderer == "swiftshader"sv) {
+        return SELECTED_RENDERER_SWIFTSHADER;
+  } else if (renderer == "angle"sv || renderer == "swangle"sv) {
+        return SELECTED_RENDERER_ANGLE;
+  } else if (renderer == "angle9"sv) {
+        return SELECTED_RENDERER_ANGLE9;
+  } else if (renderer == "swiftshader_indirect"sv) {
+        return SELECTED_RENDERER_SWIFTSHADER_INDIRECT;
+  } else if (renderer == "angle_indirect"sv || renderer == "swangle_indirect"sv) {
+        return SELECTED_RENDERER_ANGLE_INDIRECT;
+  } else if (renderer == "angle9_indirect"sv) {
+        return SELECTED_RENDERER_ANGLE9_INDIRECT;
+  } else {
+        return SELECTED_RENDERER_UNKNOWN;
+  }
+}
+
+// TODO(b/418238945): Remove this AEMU specific code if possible.
+void MaybeConfigureRenderer(gfxstream::RenderLib& rendererLibrary) {
+    if (const std::string& s_renderer = gfxstream::base::getEnvironmentVariable("ANDROID_EMU_RENDERER"); !s_renderer.empty()) {
+      SelectedRenderer renderer = parse_renderer(s_renderer);
+      if (renderer == SELECTED_RENDERER_UNKNOWN) {
+        GFXSTREAM_FATAL("Unknown renderer specified in ANDROID_EMU_RENDERER envvar: ", s_renderer.c_str());
+      }
+      rendererLibrary.setRenderer(renderer);
+    }
+}
+
 RendererPtr InitRenderer(uint32_t displayWidth,
                          uint32_t displayHeight,
                          int rendererFlags,
@@ -186,7 +225,6 @@ RendererPtr InitRenderer(uint32_t displayWidth,
 
     if (gfxstream::base::getEnvironmentVariable("ANDROID_GFXSTREAM_EGL") == "1") {
         gfxstream::base::setEnvironmentVariable("ANDROID_EGL_ON_EGL", "1");
-        gfxstream::base::setEnvironmentVariable("ANDROID_EMUGL_LOG_PRINT", "1");
         gfxstream::base::setEnvironmentVariable("ANDROID_EMUGL_VERBOSE", "1");
     }
     gfxstream::base::setEnvironmentVariable("ANDROID_EMU_HEADLESS", "1");
@@ -195,13 +233,13 @@ RendererPtr InitRenderer(uint32_t displayWidth,
     const bool egl2eglByFlag = rendererFlags & STREAM_RENDERER_FLAGS_USE_EGL_BIT;
     const bool enableEgl2egl = egl2eglByFlag || egl2eglByEnv;
     if (enableEgl2egl) {
-        gfxstream::base::setEnvironmentVariable("ANDROID_GFXSTREAM_EGL", "1");
         gfxstream::base::setEnvironmentVariable("ANDROID_EGL_ON_EGL", "1");
     }
 
     gfxstream::vk::vkDispatch(false /* don't use test ICD */);
 
     static gfxstream::RenderLibPtr sRendererLibrary = gfxstream::initLibrary();
+    MaybeConfigureRenderer(*sRendererLibrary);
 
     RendererPtr renderer = sRendererLibrary->initRenderer(displayWidth, displayHeight, features, true, enableEgl2egl);
     if (!renderer) {
