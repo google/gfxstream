@@ -17,6 +17,7 @@ lib_composer = static_library(
     inc_host_iostream,
     inc_common_logging,
     inc_include,
+    inc_opengl_headers,
   ],
   link_with: [
     lib_common_base,

@@ -28,6 +28,7 @@ lib_glesv2_translator = static_library(
     inc_common_logging,
     inc_host_snapshot,
     inc_include,
+    inc_opengl_headers,
     inc_stream_servers,
   ],
   link_with: [
