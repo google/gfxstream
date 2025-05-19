@@ -77,6 +77,7 @@ class VkDecoderSnapshot::Impl {
                           VkResult input_result, const VkInstanceCreateInfo* pCreateInfo,
                           const VkAllocationCallbacks* pAllocator, VkInstance* pInstance) {
         if (!pInstance) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pInstance create
         mReconstruction.addHandles((const uint64_t*)pInstance, 1);
@@ -100,6 +101,7 @@ class VkDecoderSnapshot::Impl {
                                     uint32_t* pPhysicalDeviceCount,
                                     VkPhysicalDevice* pPhysicalDevices) {
         if (!pPhysicalDevices) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pPhysicalDevices create
         mReconstruction.addHandles((const uint64_t*)pPhysicalDevices, (*(pPhysicalDeviceCount)));
@@ -162,6 +164,7 @@ class VkDecoderSnapshot::Impl {
                         const VkDeviceCreateInfo* pCreateInfo,
                         const VkAllocationCallbacks* pAllocator, VkDevice* pDevice) {
         if (!pDevice) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pDevice create
         mReconstruction.addHandles((const uint64_t*)pDevice, 1);
@@ -223,6 +226,7 @@ class VkDecoderSnapshot::Impl {
                           const VkMemoryAllocateInfo* pAllocateInfo,
                           const VkAllocationCallbacks* pAllocator, VkDeviceMemory* pMemory) {
         if (!pMemory) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pMemory create
         mReconstruction.addHandles((const uint64_t*)pMemory, 1);
@@ -352,6 +356,7 @@ class VkDecoderSnapshot::Impl {
                        VkResult input_result, VkDevice device, const VkFenceCreateInfo* pCreateInfo,
                        const VkAllocationCallbacks* pAllocator, VkFence* pFence) {
         if (!pFence) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pFence create
         mReconstruction.addHandles((const uint64_t*)pFence, 1);
@@ -387,6 +392,7 @@ class VkDecoderSnapshot::Impl {
                            const VkSemaphoreCreateInfo* pCreateInfo,
                            const VkAllocationCallbacks* pAllocator, VkSemaphore* pSemaphore) {
         if (!pSemaphore) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pSemaphore create
         mReconstruction.addHandles((const uint64_t*)pSemaphore, 1);
@@ -410,6 +416,7 @@ class VkDecoderSnapshot::Impl {
                        VkResult input_result, VkDevice device, const VkEventCreateInfo* pCreateInfo,
                        const VkAllocationCallbacks* pAllocator, VkEvent* pEvent) {
         if (!pEvent) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pEvent create
         mReconstruction.addHandles((const uint64_t*)pEvent, 1);
@@ -443,6 +450,7 @@ class VkDecoderSnapshot::Impl {
                            const VkQueryPoolCreateInfo* pCreateInfo,
                            const VkAllocationCallbacks* pAllocator, VkQueryPool* pQueryPool) {
         if (!pQueryPool) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pQueryPool create
         mReconstruction.addHandles((const uint64_t*)pQueryPool, 1);
@@ -472,6 +480,7 @@ class VkDecoderSnapshot::Impl {
                         const VkBufferCreateInfo* pCreateInfo,
                         const VkAllocationCallbacks* pAllocator, VkBuffer* pBuffer) {
         if (!pBuffer) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pBuffer create
         mReconstruction.addHandles((const uint64_t*)pBuffer, 1);
@@ -496,6 +505,7 @@ class VkDecoderSnapshot::Impl {
                             const VkBufferViewCreateInfo* pCreateInfo,
                             const VkAllocationCallbacks* pAllocator, VkBufferView* pView) {
         if (!pView) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pView create
         mReconstruction.addHandles((const uint64_t*)pView, 1);
@@ -519,6 +529,7 @@ class VkDecoderSnapshot::Impl {
                        VkResult input_result, VkDevice device, const VkImageCreateInfo* pCreateInfo,
                        const VkAllocationCallbacks* pAllocator, VkImage* pImage) {
         if (!pImage) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pImage create
         mReconstruction.addHandles((const uint64_t*)pImage, 1);
@@ -549,6 +560,7 @@ class VkDecoderSnapshot::Impl {
                            const VkImageViewCreateInfo* pCreateInfo,
                            const VkAllocationCallbacks* pAllocator, VkImageView* pView) {
         if (!pView) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pView create
         mReconstruction.addHandles((const uint64_t*)pView, 1);
@@ -576,6 +588,7 @@ class VkDecoderSnapshot::Impl {
                               const VkAllocationCallbacks* pAllocator,
                               VkShaderModule* pShaderModule) {
         if (!pShaderModule) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pShaderModule create
         mReconstruction.addHandles((const uint64_t*)pShaderModule, 1);
@@ -602,6 +615,7 @@ class VkDecoderSnapshot::Impl {
                                const VkAllocationCallbacks* pAllocator,
                                VkPipelineCache* pPipelineCache) {
         if (!pPipelineCache) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pPipelineCache create
         mReconstruction.addHandles((const uint64_t*)pPipelineCache, 1);
@@ -637,6 +651,7 @@ class VkDecoderSnapshot::Impl {
                                    const VkAllocationCallbacks* pAllocator,
                                    VkPipeline* pPipelines) {
         if (!pPipelines) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pPipelines create
         mReconstruction.addHandles((const uint64_t*)pPipelines, ((createInfoCount)));
@@ -668,6 +683,7 @@ class VkDecoderSnapshot::Impl {
                                   const VkComputePipelineCreateInfo* pCreateInfos,
                                   const VkAllocationCallbacks* pAllocator, VkPipeline* pPipelines) {
         if (!pPipelines) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pPipelines create
         mReconstruction.addHandles((const uint64_t*)pPipelines, ((createInfoCount)));
@@ -694,6 +710,7 @@ class VkDecoderSnapshot::Impl {
                                 const VkAllocationCallbacks* pAllocator,
                                 VkPipelineLayout* pPipelineLayout) {
         if (!pPipelineLayout) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pPipelineLayout create
         mReconstruction.addHandles((const uint64_t*)pPipelineLayout, 1);
@@ -720,6 +737,7 @@ class VkDecoderSnapshot::Impl {
                          const VkSamplerCreateInfo* pCreateInfo,
                          const VkAllocationCallbacks* pAllocator, VkSampler* pSampler) {
         if (!pSampler) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pSampler create
         mReconstruction.addHandles((const uint64_t*)pSampler, 1);
@@ -746,6 +764,7 @@ class VkDecoderSnapshot::Impl {
                                      const VkAllocationCallbacks* pAllocator,
                                      VkDescriptorSetLayout* pSetLayout) {
         if (!pSetLayout) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pSetLayout create
         mReconstruction.addHandles((const uint64_t*)pSetLayout, 1);
@@ -773,6 +792,7 @@ class VkDecoderSnapshot::Impl {
                                 const VkAllocationCallbacks* pAllocator,
                                 VkDescriptorPool* pDescriptorPool) {
         if (!pDescriptorPool) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pDescriptorPool create
         mReconstruction.addHandles((const uint64_t*)pDescriptorPool, 1);
@@ -803,6 +823,7 @@ class VkDecoderSnapshot::Impl {
                                   const VkDescriptorSetAllocateInfo* pAllocateInfo,
                                   VkDescriptorSet* pDescriptorSets) {
         if (!pDescriptorSets) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pDescriptorSets create
         mReconstruction.addHandles((const uint64_t*)pDescriptorSets,
@@ -901,6 +922,7 @@ class VkDecoderSnapshot::Impl {
                              const VkFramebufferCreateInfo* pCreateInfo,
                              const VkAllocationCallbacks* pAllocator, VkFramebuffer* pFramebuffer) {
         if (!pFramebuffer) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pFramebuffer create
         mReconstruction.addHandles((const uint64_t*)pFramebuffer, 1);
@@ -936,6 +958,7 @@ class VkDecoderSnapshot::Impl {
                             const VkRenderPassCreateInfo* pCreateInfo,
                             const VkAllocationCallbacks* pAllocator, VkRenderPass* pRenderPass) {
         if (!pRenderPass) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pRenderPass create
         mReconstruction.addHandles((const uint64_t*)pRenderPass, 1);
@@ -966,6 +989,7 @@ class VkDecoderSnapshot::Impl {
                              const VkCommandPoolCreateInfo* pCreateInfo,
                              const VkAllocationCallbacks* pAllocator, VkCommandPool* pCommandPool) {
         if (!pCommandPool) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pCommandPool create
         mReconstruction.addHandles((const uint64_t*)pCommandPool, 1);
@@ -1000,6 +1024,7 @@ class VkDecoderSnapshot::Impl {
                                   const VkCommandBufferAllocateInfo* pAllocateInfo,
                                   VkCommandBuffer* pCommandBuffers) {
         if (!pCommandBuffers) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pCommandBuffers create
         mReconstruction.addHandles((const uint64_t*)pCommandBuffers,
@@ -1422,6 +1447,7 @@ class VkDecoderSnapshot::Impl {
                                         const VkAllocationCallbacks* pAllocator,
                                         VkSamplerYcbcrConversion* pYcbcrConversion) {
         if (!pYcbcrConversion) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pYcbcrConversion create
         mReconstruction.addHandles((const uint64_t*)pYcbcrConversion, 1);
@@ -1451,6 +1477,7 @@ class VkDecoderSnapshot::Impl {
                                           const VkAllocationCallbacks* pAllocator,
                                           VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate) {
         if (!pDescriptorUpdateTemplate) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pDescriptorUpdateTemplate create
         mReconstruction.addHandles((const uint64_t*)pDescriptorUpdateTemplate, 1);
@@ -1520,6 +1547,7 @@ class VkDecoderSnapshot::Impl {
                              const VkRenderPassCreateInfo2* pCreateInfo,
                              const VkAllocationCallbacks* pAllocator, VkRenderPass* pRenderPass) {
         if (!pRenderPass) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pRenderPass create
         mReconstruction.addHandles((const uint64_t*)pRenderPass, 1);
@@ -1594,6 +1622,7 @@ class VkDecoderSnapshot::Impl {
                                  const VkAllocationCallbacks* pAllocator,
                                  VkPrivateDataSlot* pPrivateDataSlot) {
         if (!pPrivateDataSlot) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pPrivateDataSlot create
         mReconstruction.addHandles((const uint64_t*)pPrivateDataSlot, 1);
@@ -1854,6 +1883,7 @@ class VkDecoderSnapshot::Impl {
                               const VkSwapchainCreateInfoKHR* pCreateInfo,
                               const VkAllocationCallbacks* pAllocator, VkSwapchainKHR* pSwapchain) {
         if (!pSwapchain) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pSwapchain create
         mReconstruction.addHandles((const uint64_t*)pSwapchain, 1);
@@ -1993,6 +2023,7 @@ class VkDecoderSnapshot::Impl {
         const VkAllocationCallbacks* pAllocator,
         VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate) {
         if (!pDescriptorUpdateTemplate) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pDescriptorUpdateTemplate create
         mReconstruction.addHandles((const uint64_t*)pDescriptorUpdateTemplate, 1);
@@ -2031,6 +2062,7 @@ class VkDecoderSnapshot::Impl {
                                 const VkAllocationCallbacks* pAllocator,
                                 VkRenderPass* pRenderPass) {
         if (!pRenderPass) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pRenderPass create
         mReconstruction.addHandles((const uint64_t*)pRenderPass, 1);
@@ -2102,6 +2134,7 @@ class VkDecoderSnapshot::Impl {
                                            const VkAllocationCallbacks* pAllocator,
                                            VkSamplerYcbcrConversion* pYcbcrConversion) {
         if (!pYcbcrConversion) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pYcbcrConversion create
         mReconstruction.addHandles((const uint64_t*)pYcbcrConversion, 1);
@@ -2338,6 +2371,7 @@ class VkDecoderSnapshot::Impl {
                                         const VkAllocationCallbacks* pAllocator,
                                         VkDebugReportCallbackEXT* pCallback) {
         if (!pCallback) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pCallback create
         mReconstruction.addHandles((const uint64_t*)pCallback, 1);
@@ -2444,6 +2478,7 @@ class VkDecoderSnapshot::Impl {
                                         const VkAllocationCallbacks* pAllocator,
                                         VkDebugUtilsMessengerEXT* pMessenger) {
         if (!pMessenger) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pMessenger create
         mReconstruction.addHandles((const uint64_t*)pMessenger, 1);
@@ -2695,6 +2730,7 @@ class VkDecoderSnapshot::Impl {
                                              VkImage* pImage,
                                              VkMemoryRequirements* pMemoryRequirements) {
         if (!pImage) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pImage create
         mReconstruction.addHandles((const uint64_t*)pImage, 1);
@@ -2713,6 +2749,7 @@ class VkDecoderSnapshot::Impl {
         const VkAllocationCallbacks* pAllocator, VkBuffer* pBuffer,
         VkMemoryRequirements* pMemoryRequirements) {
         if (!pBuffer) return;
+        if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pBuffer create
         mReconstruction.addHandles((const uint64_t*)pBuffer, 1);
