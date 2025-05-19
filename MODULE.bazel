@@ -59,6 +59,32 @@ register_toolchains(
 git_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
 git_repository(
+    name = "angle",
+    build_file = "@//third_party/angle:BUILD.angle.bazel",
+    commit = "8b39631d6ab5a2efa21629c6fa94a80381720950",
+    remote = "https://android.googlesource.com/platform/external/angle.git",
+)
+
+git_repository(
+    name = "spirv_headers",
+    commit = "aa6cef192b8e693916eb713e7a9ccadf06062ceb",  # vulkan-sdk-1.4.313.0
+    remote = "https://github.com/KhronosGroup/SPIRV-Headers.git",
+)
+
+git_repository(
+    name = "spirv_tools",
+    commit = "f289d047f49fb60488301ec62bafab85573668cc",  # vulkan-sdk-1.4.313.0
+    remote = "https://github.com/KhronosGroup/SPIRV-Tools.git",
+)
+
+git_repository(
+    name = "zlib_android",
+    build_file = "@//third_party/zlib:BUILD.zlib.bazel",
+    commit = "f29fc757b1f27c182f36790eb0ccc6cf8ec27e8e",
+    remote = "https://android.googlesource.com/platform/external/zlib.git",
+)
+
+git_repository(
     name = "drm",
     build_file = "@//third_party/mesa:BUILD.drm.bazel",
     # TODO: b/414448658 - gitlab.freedesktop.org having an outage

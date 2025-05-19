@@ -1,0 +1,39 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(
+    default_visibility = [
+        "@//:gfxstream",
+        "@angle//:__subpackages__",
+    ],
+)
+
+cc_library(
+    name = "zlib",
+    srcs = [
+        "adler32.c",
+        "adler32_simd.c",
+        "compress.c",
+        "cpu_features.c",
+        "crc32.c",
+        "crc32_simd.c",
+        "crc_folding.c",
+        "deflate.c",
+        "google/compression_utils_portable.cc",
+        "gzclose.c",
+        "gzlib.c",
+        "gzread.c",
+        "gzwrite.c",
+        "infback.c",
+        "inffast.c",
+        "inflate.c",
+        "inftrees.c",
+        "trees.c",
+        "uncompr.c",
+        "zutil.c",
+    ],
+    hdrs = glob(["**/*.h"]),
+    includes = [
+        ".",
+        "google",
+    ],
+)
