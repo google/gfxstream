@@ -105,9 +105,12 @@ void DependencyGraph::getIdsByTimestamp(std::vector<NodeId>& uniqApiRefsByTopoOr
     for (const auto& [nodeId, item] : mDepId2DepNode) {
         time2node[item->timestamp] = item.get();
     }
+    std::unordered_set<uint64_t> apiset;
     for (const auto& [timestamp, item] : time2node) {
         auto apiCallId = item->apiCallId;
-        uniqApiRefsByTopoOrder.push_back(apiCallId);
+        if (auto [_, inserted] = apiset.insert(apiCallId); inserted) {
+            uniqApiRefsByTopoOrder.push_back(apiCallId);
+        }
     }
 }
 
