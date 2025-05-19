@@ -11,6 +11,7 @@ bazel_dep(name = "rules_license", version = "1.0.0")
 
 ###########  When building Gfxstream from standalone repo ###########
 
+bazel_dep(name = "aspect_bazel_lib", version = "2.14.0", dev_dependency = True)
 bazel_dep(name = "protobuf", version = "29.1", dev_dependency = True)
 bazel_dep(name = "toolchains_llvm", version = "1.2.0", dev_dependency = True)
 bazel_dep(name = "rules_python", version = "0.40.0", dev_dependency = True)
@@ -161,6 +162,10 @@ rutabaga_crate_deps.spec(
 rutabaga_crate_deps.spec(
     package = "thiserror",
     version = "1.0.23",
+)
+rutabaga_crate_deps.spec(
+    package = "vulkano",
+    version = "0.33.0",
 )
 rutabaga_crate_deps.spec(
     features = ["derive"],

@@ -27,6 +27,9 @@
 
 #include "aemu/base/Path.h"
 #include "gfxstream/common/logging.h"
+#ifndef __ANDROID__
+#include "gfxstream/system/System.h"
+#endif
 
 static const int systemEGLVersionMajor = 1;
 static const int systemEGLVersionMinor = 4;
@@ -282,11 +285,10 @@ EGLClient_glesInterface *eglDisplay::loadGLESClientAPI(const char *basename,
                     basename +
                     std::string(LIBSUFFIX));
 #else
-    const std::string directory = gfxstream::guest::getProgramDirectory();
-    paths.push_back(directory + "/" + basename + LIBSUFFIX);
-    paths.push_back(directory + "/" + basename + "_with_host" + LIBSUFFIX);
-    paths.push_back(directory + "/lib64/" + basename + LIBSUFFIX);
-    paths.push_back(directory + "/lib64/" + basename + "_with_host" + LIBSUFFIX);
+    const std::string testdataDirectory =
+        gfxstream::base::getEnvironmentVariable("GFXSTREAM_TESTDATA_PATH");
+    paths.push_back(testdataDirectory + "/" + basename + LIBSUFFIX);
+    paths.push_back(testdataDirectory + "/" + basename + "_with_host" + LIBSUFFIX);
 #endif
 
     void* lib = nullptr;
@@ -296,6 +298,7 @@ EGLClient_glesInterface *eglDisplay::loadGLESClientAPI(const char *basename,
         if (lib) {
             break;
         }
+        GFXSTREAM_ERROR("Failed to dlopen %s: %s", path.c_str(), dlerror());
     }
     if (!lib) {
         GFXSTREAM_ERROR("Failed to dlopen %s", basename);

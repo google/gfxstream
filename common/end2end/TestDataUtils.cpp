@@ -16,12 +16,12 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-
 #ifdef BAZEL_CURRENT_REPOSITORY
-#include "rules_cc/cc/runfiles/runfiles.h"
-#else
-#include "gfxstream/system/System.h"
+#include <rules_cc/cc/runfiles/runfiles.h>
 #endif
+
+#include "gfxstream/common/logging.h"
+#include "gfxstream/system/System.h"
 
 namespace gfxstream {
 namespace tests {
@@ -45,14 +45,7 @@ std::filesystem::path GetTestDataPath(const std::string& basename) {
         return "";
     }
     const std::vector<std::string> possiblePaths = {
-        std::string("_main/common/end2end/") + basename,
-        std::string("_main/common/end2end/testdata/") + basename,
-        std::string("_main/guest/GLESv1/") + basename,
-        std::string("_main/guest/GLESv2/") + basename,
-        std::string("_main/guest/egl/") + basename,
-        std::string("_main/guest/rendercontrol/") + basename,
-        std::string("+_repo_rules2+mesa/") + basename,
-        std::string("+_repo_rules2+rutabaga/") + basename,
+        std::string("_main/common/end2end/gfxstream_end2end_testdata/") + basename,
     };
     for (const std::string& possiblePath : possiblePaths) {
         const std::string path = sRunfiles->Rlocation(possiblePath);

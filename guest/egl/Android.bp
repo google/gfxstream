@@ -48,6 +48,7 @@ cc_library_shared {
     ],
     static_libs: [
         "libgfxstream_androidemu_static",
+        "libgfxstream_common_base",
         "libgfxstream_common_logging",
         "libarect",
         "libqemupipe.gfxstream",

@@ -11,11 +11,12 @@ cc_library(
     ],
     defines = [
         "ANDROID",
-        "GL_GLEXT_PROTOTYPES",
     ],
     linkopts = [
-        # FIXME: gl2_entry.cpp is included in both the encoder and the full library...
-        "-z muldefs",
+        # Search the current directory for this library's shared libs.
+        # Used for the end2end tests which package all of the guest
+        # libraries into a single `testdata` directory for testing.
+        "-Wl,-rpath,'$$ORIGIN'",
     ],
     deps = [
         "//guest/GLESv1_enc:gfxstream_guest_glesv1_entries",
@@ -26,6 +27,9 @@ cc_library(
 
 cc_shared_library(
     name = "gfxstream_guest_glesv1",
+    dynamic_deps = [
+        "//guest/OpenglSystemCommon:gfxstream_guest_openglsystemcommon_shared",
+    ],
     shared_lib_name = "libGLESv1_CM_emulation.so",
     deps = [
         ":gfxstream_guest_glesv1_impl",

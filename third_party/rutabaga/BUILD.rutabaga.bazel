@@ -1,5 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
-load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library", "rust_static_library")
 
 package(
     default_visibility = ["@//:gfxstream"],
@@ -10,6 +10,9 @@ rust_library(
     srcs = glob([
         "rutabaga_gfx/src/**/*.rs",
     ]),
+    crate_features = [
+        "vulkano",
+    ],
     proc_macro_deps = [
         "@rutabaga_crate_deps//:remain",
     ],
@@ -25,6 +28,7 @@ rust_library(
         "@rutabaga_crate_deps//:serde",
         "@rutabaga_crate_deps//:serde_json",
         "@rutabaga_crate_deps//:thiserror",
+        "@rutabaga_crate_deps//:vulkano",
         "@rutabaga_crate_deps//:zerocopy",
     ],
 )
@@ -83,7 +87,7 @@ cc_library(
     ],
 )
 
-rust_library(
+rust_static_library(
     name = "rutabaga_gfx_kumquat_client_ffi",
     srcs = glob([
         "rutabaga_gfx/kumquat/gpu_client/src/**/*.rs",

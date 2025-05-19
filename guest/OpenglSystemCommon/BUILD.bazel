@@ -1,4 +1,4 @@
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_shared_library")
 
 package(
     default_visibility = ["//:gfxstream"],
@@ -23,14 +23,40 @@ cc_library(
     includes = [
         ".",
     ],
+    linkopts = [
+        # Search the current directory for this library's shared libs.
+        # Used for the end2end tests which package all of the guest
+        # libraries into a single `testdata` directory for testing.
+        "-Wl,-rpath,'$$ORIGIN'",
+    ],
     deps = [
-        "//guest/GLESv1_enc:gfxstream_guest_glesv1encoder",
+        # Order is important! Both encoders seem to export the same
+        # functions...
         "//guest/GLESv2_enc:gfxstream_guest_glesv2encoder",
+        "//guest/GLESv1_enc:gfxstream_guest_glesv1encoder",
+        # End-Section
         "//guest/OpenglCodecCommon:gfxstream_guest_openglcodeccommon",
         "//guest/android-emu:gfxstream_guest_ringbuffer",
         "//guest/qemupipe:gfxstream_guest_qemupipe",
         "//guest/renderControl_enc:gfxstream_guest_rendercontrolencoder",
         "@mesa//:mesa_gfxstream_goldfish_address_space",
         "@mesa//:mesa_gfxstream_guest_android",
+        "@mesa//:mesa_gfxstream_guest_platform",
+    ],
+)
+
+cc_shared_library(
+    name = "gfxstream_guest_openglsystemcommon_shared",
+    dynamic_deps = [
+        # Order is important! Both encoders seem to export the same
+        # functions...
+        "//guest/GLESv2_enc:gfxstream_guest_glesv2encoder_shared",
+        "//guest/GLESv1_enc:gfxstream_guest_glesv1encoder_shared",
+        # End-Section
+        "//guest/OpenglCodecCommon:gfxstream_guest_openglcodeccommon_shared",
+    ],
+    shared_lib_name = "libOpenglSystemCommon.so",
+    deps = [
+        ":gfxstream_guest_openglsystemcommon",
     ],
 )

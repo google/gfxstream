@@ -22,6 +22,7 @@
 #include <gtest/gtest.h>
 
 #include "TestDataUtils.h"
+#include "VirtGpu.h"
 #include "gfxstream/ImageUtils.h"
 #include "gfxstream/Strings.h"
 #include "gfxstream/common/logging.h"
@@ -123,18 +124,34 @@ std::vector<TestParams> WithAndWithoutFeatures(const std::vector<TestParams>& pa
 }
 
 std::unique_ptr<GuestGlDispatchTable> GfxstreamEnd2EndTest::SetupGuestGl() {
-    const std::string eglLibPath = GetTestDataPath("libEGL_emulation.so").string();
-    const std::string gles2LibPath = GetTestDataPath("libGLESv2_emulation.so").string();
+    const std::filesystem::path eglLibPath = GetTestDataPath("libEGL_emulation.so");
+    const std::filesystem::path gles1LibPath = GetTestDataPath("libGLESv1_CM_emulation.so");
+    const std::filesystem::path gles2LibPath = GetTestDataPath("libGLESv2_emulation.so");
+    const std::string eglLibPathStr = eglLibPath.string();
+    const std::string gles1LibPathStr = gles1LibPath.string();
+    const std::string gles2LibPathStr = gles2LibPath.string();
 
-    void* eglLib = dlopen(eglLibPath.c_str(), RTLD_NOW | RTLD_LOCAL);
+    const std::string testdataDirectory = eglLibPath.parent_path().string();
+    gfxstream::base::setEnvironmentVariable("GFXSTREAM_TESTDATA_PATH", testdataDirectory.c_str());
+
+    void* eglLib = dlopen(eglLibPathStr.c_str(), RTLD_NOW | RTLD_LOCAL);
     if (!eglLib) {
-        GFXSTREAM_ERROR("Failed to load Gfxstream EGL library from %s: %s.", eglLibPath.c_str(), dlerror());
+        GFXSTREAM_ERROR("Failed to load Gfxstream EGL library from %s: %s.",
+                        eglLibPathStr.c_str(), dlerror());
         return nullptr;
     }
 
-    void* gles2Lib = dlopen(gles2LibPath.c_str(), RTLD_NOW | RTLD_LOCAL);
+    void* gles1Lib = dlopen(gles1LibPathStr.c_str(), RTLD_NOW | RTLD_LOCAL);
+    if (!gles1Lib) {
+        GFXSTREAM_ERROR("Failed to load Gfxstream GLES1 library from %s: %s.",
+                        gles1LibPathStr.c_str(), dlerror());
+        return nullptr;
+    }
+
+    void* gles2Lib = dlopen(gles2LibPathStr.c_str(), RTLD_NOW | RTLD_LOCAL);
     if (!gles2Lib) {
-        GFXSTREAM_ERROR("Failed to load Gfxstream GLES2 library from %s: %s.", gles2LibPath.c_str(), dlerror());
+        GFXSTREAM_ERROR("Failed to load Gfxstream GLES2 library from %s: %s.",
+                        gles2LibPathStr.c_str(), dlerror());
         return nullptr;
     }
 
@@ -143,7 +160,8 @@ std::unique_ptr<GuestGlDispatchTable> GfxstreamEnd2EndTest::SetupGuestGl() {
 
     auto eglGetAddr = reinterpret_cast<GetProcAddrType*>(dlsym(eglLib, "eglGetProcAddress"));
     if (!eglGetAddr) {
-        GFXSTREAM_ERROR("Failed to load Gfxstream EGL library from %s.", eglLibPath.c_str());
+        GFXSTREAM_ERROR("Failed to load Gfxstream EGL library from %s: %s",
+                        eglLibPathStr.c_str(), dlerror());
         return nullptr;
     }
 
@@ -270,6 +288,7 @@ void GfxstreamEnd2EndTest::TearDownGuest() {
 void GfxstreamEnd2EndTest::TearDown() {
     TearDownGuest();
     mKumquatInstance.reset();
+    VirtGpuDevice::resetInstance();
 }
 
 void GfxstreamEnd2EndTest::SetUpEglContextAndSurface(
