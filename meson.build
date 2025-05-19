@@ -14,11 +14,7 @@ prog_python = import('python').find_installation('python3')
 # Subdirectories #
 #================#
 
-build = get_option('gfxstream-build')
-
-with_guest = build.contains('guest') or build.contains('both')
-with_host = build.contains('host') or build.contains('both')
-with_guest_test = build.contains('guest-test')
+inc_opengl_headers = include_directories('third_party/opengl/include')
 
 #========================#
 # Logging + error report #
@@ -30,21 +26,13 @@ log_level = get_option('log-level')
 #===============#
 decoders = get_option('decoders')
 
-use_auto = decoders.contains('auto') and with_host
-use_gles = decoders.contains('gles') and with_host
-use_vulkan = decoders.contains('vulkan') and with_host
-use_composer = decoders.contains('composer') and with_host
+use_auto = decoders.contains('auto')
+use_gles = decoders.contains('gles')
+use_vulkan = decoders.contains('vulkan')
+use_composer = decoders.contains('composer')
 
-if with_guest or with_guest_test
-  genvk = files('codegen/vulkan/vulkan-docs-next/scripts/genvk.py')
-  vk_xml_gfxstream = files('codegen/vulkan/vulkan-docs-next/xml/vk.xml')
-  vk_gfxstream_xml = files('codegen/vulkan/vulkan-docs-next/xml/vk_gfxstream.xml')
-  subdir('guest')
-endif
-if with_host and not with_guest_test
-  subdir('common')
-  subdir('host')
-endif
+subdir('common')
+subdir('host')
 
 #================#
 # Summary        #

@@ -25,6 +25,7 @@ lib_glescm_translator = static_library(
     inc_common_logging,
     inc_host_snapshot,
     inc_include,
+    inc_opengl_headers,
   ],
   link_with: [
     lib_common_base,

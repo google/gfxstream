@@ -223,6 +223,7 @@ if use_gles
     inc_gl_openglesdispatch,
     inc_gl_server,
     inc_gl_snapshot,
+    inc_opengl_headers,
   ]
   link_gfxstream_backend += [
     lib_gl_server,

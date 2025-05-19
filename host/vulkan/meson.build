@@ -84,6 +84,7 @@ lib_vulkan_server = static_library(
     inc_host_snapshot,
     inc_host_tracing,
     inc_include,
+    inc_opengl_headers,
     inc_renderdoc_external,
     inc_root,
     inc_stream_servers,
