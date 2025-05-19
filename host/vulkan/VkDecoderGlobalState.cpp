@@ -1286,37 +1286,52 @@ class VkDecoderGlobalState::Impl {
 
         // Disable a set of Vulkan features if BypassVulkanDeviceFeatureOverrides is NOT enabled.
         if (!m_vkEmulation->getFeatures().BypassVulkanDeviceFeatureOverrides.enabled) {
+            VkPhysicalDeviceVulkan11Features* vk11Features =
+                vk_find_struct<VkPhysicalDeviceVulkan11Features>(pFeatures);
+            VkPhysicalDeviceVulkan12Features* vk12Features =
+                vk_find_struct<VkPhysicalDeviceVulkan12Features>(pFeatures);
+            VkPhysicalDeviceVulkan13Features* vulkan13Features =
+                vk_find_struct<VkPhysicalDeviceVulkan13Features>(pFeatures);
+
+            // Protected memory is not supported on emulators. Override feature
+            // information to mark as unsupported (see b/329845987).
             VkPhysicalDeviceProtectedMemoryFeatures* protectedMemoryFeatures =
                 vk_find_struct<VkPhysicalDeviceProtectedMemoryFeatures>(pFeatures);
             if (protectedMemoryFeatures != nullptr) {
-                // Protected memory is not supported on emulators. Override feature
-                // information to mark as unsupported (see b/329845987).
                 protectedMemoryFeatures->protectedMemory = VK_FALSE;
             }
-            VkPhysicalDeviceVulkan11Features* vk11Features =
-                vk_find_struct<VkPhysicalDeviceVulkan11Features>(pFeatures);
             if (vk11Features != nullptr) {
                 vk11Features->protectedMemory = VK_FALSE;
             }
 
+            // TODO(b/398986781) Issues with signal-after-wait when the virtual queue is enabled
+            // Test: dEQP-VK.synchronization.timeline_semaphore.wait_before_signal.*
+            if (m_vkEmulation->getFeatures().VulkanVirtualQueue.enabled) {
+                VkPhysicalDeviceTimelineSemaphoreFeaturesKHR* timelineSemaphoreFeatures =
+                    vk_find_struct<VkPhysicalDeviceTimelineSemaphoreFeaturesKHR>(pFeatures);
+                if (timelineSemaphoreFeatures) {
+                    timelineSemaphoreFeatures->timelineSemaphore = VK_FALSE;
+                }
+                if (vk12Features != nullptr) {
+                    vk12Features->timelineSemaphore = VK_FALSE;
+                }
+            }
+
+            // Private data from the guest side is not currently supported and causes emulator
+            // crashes with the dEQP-VK.api.object_management.private_data tests (b/368009403).
             VkPhysicalDevicePrivateDataFeatures* privateDataFeatures =
                 vk_find_struct<VkPhysicalDevicePrivateDataFeatures>(pFeatures);
             if (privateDataFeatures != nullptr) {
-                // Private data from the guest side is not currently supported and causes emulator
-                // crashes with the dEQP-VK.api.object_management.private_data tests (b/368009403).
                 privateDataFeatures->privateData = VK_FALSE;
             }
-
-            VkPhysicalDeviceVulkan13Features* vulkan13Features =
-                vk_find_struct<VkPhysicalDeviceVulkan13Features>(pFeatures);
             if (vulkan13Features != nullptr) {
                 vulkan13Features->privateData = VK_FALSE;
             }
 
             if (m_vkEmulation->getFeatures().VulkanBatchedDescriptorSetUpdate.enabled) {
                 // Currently not supporting iub due to descriptor set optimization.
-                // TODO: fix the non-optimized descriptor set path and re-enable the features afterwads.
-                // b/372217918
+                // TODO: fix the non-optimized descriptor set path and re-enable the features
+                // afterwads. b/372217918
                 VkPhysicalDeviceInlineUniformBlockFeatures* iubFeatures =
                     vk_find_struct<VkPhysicalDeviceInlineUniformBlockFeatures>(pFeatures);
                 if (iubFeatures != nullptr) {

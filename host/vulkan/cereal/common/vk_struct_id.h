@@ -107,6 +107,8 @@ REGISTER_VK_STRUCT_ID(VkPhysicalDeviceInlineUniformBlockFeatures,
                       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INLINE_UNIFORM_BLOCK_FEATURES);
 REGISTER_VK_STRUCT_ID(VkPhysicalDeviceRobustness2FeaturesEXT,
                       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT);
+REGISTER_VK_STRUCT_ID(VkPhysicalDeviceTimelineSemaphoreFeaturesKHR,
+                      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES);
 
 #if defined(VK_USE_PLATFORM_SCREEN_QNX)
 REGISTER_VK_STRUCT_ID(VkPhysicalDeviceExternalMemoryScreenBufferFeaturesQNX,
