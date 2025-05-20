@@ -1,4 +1,4 @@
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 package(
     default_visibility = ["//:gfxstream"],
@@ -93,5 +93,60 @@ cc_library(
         "//third_party/glm",
         "//third_party/renderdoc",
         "//third_party/vulkan:gfxstream_vulkan_headers",
+    ],
+)
+
+cc_test(
+    name = "gfxstream_compositorvk_tests",
+    srcs = [
+        "CompositorVk_unittest.cpp",
+    ],
+    data = [
+        "testdata/256x256_android.png",
+        "testdata/256x256_android_with_transparency.png",
+        "testdata/256x256_golden_blend_premultiplied.png",
+        "testdata/256x256_golden_crop.png",
+        "testdata/256x256_golden_multiple_layers.png",
+        "testdata/256x256_golden_multiple_targets_0.png",
+        "testdata/256x256_golden_multiple_targets_1.png",
+        "testdata/256x256_golden_multiple_targets_2.png",
+        "testdata/256x256_golden_multiple_targets_3.png",
+        "testdata/256x256_golden_multiple_targets_4.png",
+        "testdata/256x256_golden_multiple_targets_5.png",
+        "testdata/256x256_golden_multiple_targets_6.png",
+        "testdata/256x256_golden_multiple_targets_7.png",
+        "testdata/256x256_golden_multiple_targets_8.png",
+        "testdata/256x256_golden_multiple_targets_9.png",
+        "testdata/256x256_golden_simple_composition.png",
+        "testdata/256x256_golden_solid_color.png",
+        "testdata/256x256_golden_solid_color_above.png",
+        "testdata/256x256_golden_solid_color_below.png",
+        "testdata/256x256_golden_transform_fliph.png",
+        "testdata/256x256_golden_transform_fliphrot90.png",
+        "testdata/256x256_golden_transform_flipv.png",
+        "testdata/256x256_golden_transform_flipvrot90.png",
+        "testdata/256x256_golden_transform_none.png",
+        "testdata/256x256_golden_transform_rot180.png",
+        "testdata/256x256_golden_transform_rot270.png",
+        "testdata/256x256_golden_transform_rot90.png",
+    ],
+    deps = [
+        ":gfxstream_vulkan_server",
+        "//common/image:gfxstream_common_image",
+        "//host/testlibs/support:gfxstream_host_testing_support",
+        "@com_google_googletest//:gtest_main",
+        "@rules_cc//cc/runfiles",
+    ],
+)
+
+cc_test(
+    name = "gfxstream_displayvk_tests",
+    srcs = [
+        "DisplayVk_unittest.cpp",
+    ],
+    deps = [
+        ":gfxstream_vulkan_server",
+        "//host/testlibs/support:gfxstream_host_testing_support",
+        "@com_google_googletest//:gtest_main",
     ],
 )

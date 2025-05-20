@@ -25,9 +25,10 @@ target_link_libraries(
     GLSnapshot
     PRIVATE
     gfxstream_common_base
-    gfxstream_egl_headers
+    gfxstream_common_logging
     gfxstream_host_library
-    gfxstream_common_logging)
+    gfxstream_opengl_headers
+    )
 target_include_directories(
     gles1_dec
     PRIVATE

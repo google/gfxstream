@@ -38,14 +38,14 @@ cc_library_static {
     static_libs: [
         "gfxstream_host_common",
         "libgfxstream_common_base",
-        "libgfxstream_host_decoder_common",
+        "libgfxstream_common_logging",
         "libgfxstream_host_backend",
         "libgfxstream_host_compressedtextures",
+        "libgfxstream_host_decoder_common",
         "libgfxstream_host_features",
         "libgfxstream_host_health",
         "libgfxstream_host_iostream",
         "libgfxstream_host_library",
-        "libgfxstream_common_logging",
         "libgfxstream_host_openglesdispatch",
         "libgfxstream_host_renderdoc",
         "libgfxstream_host_snapshot",
@@ -111,6 +111,65 @@ cc_library_static {
     ],
 }
 
+// Run with `atest --host gfxstream_compositorvk_test`
+cc_test_host {
+    name: "gfxstream_compositorvk_test",
+    defaults: ["gfxstream_host_cc_defaults"],
+    header_libs: [
+        "libgfxstream_host_vulkan_cereal_common",
+        "libgfxstream_thirdparty_glm",
+    ],
+    srcs: [
+        "CompositorVk_unittest.cpp",
+    ],
+    data: [
+        "testdata/256x256_android.png",
+        "testdata/256x256_android_with_transparency.png",
+        "testdata/256x256_golden_blend_premultiplied.png",
+        "testdata/256x256_golden_crop.png",
+        "testdata/256x256_golden_simple_composition.png",
+        "testdata/256x256_golden_multiple_layers.png",
+        "testdata/256x256_golden_multiple_targets_0.png",
+        "testdata/256x256_golden_multiple_targets_1.png",
+        "testdata/256x256_golden_multiple_targets_2.png",
+        "testdata/256x256_golden_multiple_targets_3.png",
+        "testdata/256x256_golden_multiple_targets_4.png",
+        "testdata/256x256_golden_multiple_targets_5.png",
+        "testdata/256x256_golden_multiple_targets_6.png",
+        "testdata/256x256_golden_multiple_targets_7.png",
+        "testdata/256x256_golden_multiple_targets_8.png",
+        "testdata/256x256_golden_multiple_targets_9.png",
+        "testdata/256x256_golden_solid_color.png",
+        "testdata/256x256_golden_solid_color_above.png",
+        "testdata/256x256_golden_solid_color_below.png",
+        "testdata/256x256_golden_transform_none.png",
+        "testdata/256x256_golden_transform_fliph.png",
+        "testdata/256x256_golden_transform_flipv.png",
+        "testdata/256x256_golden_transform_rot90.png",
+        "testdata/256x256_golden_transform_rot180.png",
+        "testdata/256x256_golden_transform_rot270.png",
+        "testdata/256x256_golden_transform_fliphrot90.png",
+        "testdata/256x256_golden_transform_flipvrot90.png",
+    ],
+    shared_libs: [
+        "libbase",
+        "libgfxstream_backend",
+        "libgfxstream_common_image",
+    ],
+    static_libs: [
+        "libgfxstream_common_logging",
+        "libgfxstream_host_vulkan_server",
+        "libgfxstream_host_test_support",
+    ],
+    test_options: {
+        // Disabled by default as requires Vulkan.
+        unit_test: false,
+    },
+    test_suites: [
+        "general-tests",
+    ],
+}
+
 // Run with `atest --host gfxstream_vkformatutils_tests`
 cc_test_host {
     name: "gfxstream_vkformatutils_tests",
@@ -151,8 +210,8 @@ cc_test_host {
     static_libs: [
         "gfxstream_host_common",
         "libgfxstream_common_base",
-        "libgfxstream_host_features",
         "libgfxstream_common_logging",
+        "libgfxstream_host_features",
         "libgfxstream_host_vulkan_server",
         "libgmock",
         "libgtest",
@@ -180,10 +239,10 @@ cc_test_host {
         "libgfxstream_host_vulkan_cereal_common",
     ],
     static_libs: [
-        "libgfxstream_host_vulkan_server",
         "libgfxstream_common_logging",
-        "libgtest",
+        "libgfxstream_host_vulkan_server",
         "libgmock",
+        "libgtest",
     ],
     test_options: {
         unit_test: true,
@@ -205,12 +264,12 @@ cc_test_host {
         "liblog",
     ],
     static_libs: [
-        "libgfxstream_common_base",
         "gfxstream_host_common",
+        "libgfxstream_common_base",
         "libgfxstream_host_features",
         "libgfxstream_host_vulkan_server",
-        "libgtest",
         "libgmock",
+        "libgtest",
     ],
     test_options: {
         unit_test: true,

@@ -46,15 +46,15 @@ add_library(gfxstream-gl-server
 target_link_libraries(
         gfxstream-gl-server
         PUBLIC
-        gfxstream_backend.headers
         gfxstream_backend_headers
+        gfxstream_backend.headers
+        gfxstream_common_logging
         gfxstream_features
+        gfxstream_host_backend
+        gfxstream_host_health
+        gfxstream_opengl_headers
         gfxstream_openglesdispatch
         gfxstream_vulkan_headers
-        gfxstream_egl_headers
-        gfxstream_host_backend
-        gfxstream_common_logging
-        gfxstream_host_health
         gles1_dec
         gles2_dec
         GLcommon

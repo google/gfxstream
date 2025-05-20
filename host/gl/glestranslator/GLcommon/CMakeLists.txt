@@ -44,14 +44,14 @@ target_link_libraries(
     PUBLIC
     gfxstream_backend_headers
     gfxstream_common_base
-    gfxstream_egl_headers
+    gfxstream_common_logging
     gfxstream_etc_headers
     gfxstream_host_backend
-    gfxstream_host_library
-    gfxstream_common_logging
-    gfxstream_host_snapshot.headers
-    gfxstream_openglesdispatch
     gfxstream_host_compressed_textures
+    gfxstream_host_library
+    gfxstream_host_snapshot.headers
+    gfxstream_opengl_headers
+    gfxstream_openglesdispatch
     PRIVATE
     gfxstream_etc)
 if (NOT MSVC)

@@ -1,4 +1,4 @@
-load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "objc_library")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test", "objc_library")
 
 package(
     default_visibility = ["//:gfxstream"],
@@ -177,5 +177,27 @@ cc_binary(
     deps = [
         ":gfxstream_backend_static",
         "//common/utils:gfxstream_common_utils",
+    ],
+)
+
+cc_test(
+    name = "gfxstream_framebuffer_tests",
+    srcs = [
+        "FrameBuffer_unittest.cpp",
+    ],
+    deps = [
+        "//host/testlibs/support:gfxstream_host_testing_support",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "gfxstream_vsyncthread_tests",
+    srcs = [
+        "VsyncThread_unittest.cpp",
+    ],
+    deps = [
+        "//host/testlibs/support:gfxstream_host_testing_support",
+        "@com_google_googletest//:gtest_main",
     ],
 )
