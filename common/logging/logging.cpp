@@ -21,6 +21,7 @@
 #include <cstdio>
 #include <cstring>
 #include <sstream>
+#include <filesystem>
 
 #ifdef __ANDROID__
 #include <android/log.h>
@@ -120,7 +121,7 @@ void GfxstreamLog(LogLevel level, const char* file, int line, const char* functi
 std::string GetDefaultFormattedLog(LogLevel, const char* file, int line, const char*,
                                    const char* message) {
     std::stringstream ss;
-    ss << "[" << file << "(" << line << ") " << message;
+    ss << "[" << std::filesystem::path(file).filename().string() << "(" << line << ")] " << message;
     return ss.str();
 }
 
