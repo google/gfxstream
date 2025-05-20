@@ -8666,7 +8666,7 @@ class VkDecoderGlobalState::Impl {
                                                       VkImageTiling tiling, VkImageUsageFlags usage,
                                                       VkImageCreateFlags flags) {
         // BUG: 139193497
-        return !(usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) && !(type == VK_IMAGE_TYPE_1D);
+        return !(usage & VK_IMAGE_USAGE_STORAGE_BIT) && !(usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) && !(type == VK_IMAGE_TYPE_1D);
     }
 
     std::vector<const char*> filteredDeviceExtensionNames(VulkanDispatch* vk,
