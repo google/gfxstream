@@ -1,0 +1,11 @@
+package(
+    default_visibility = [
+        "@//:gfxstream",
+        "@angle//:__subpackages__",
+    ],
+)
+
+exports_files([
+    "libGLESv2_angle.lds",
+    "libEGL_angle.lds",
+])
