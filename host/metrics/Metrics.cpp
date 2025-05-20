@@ -35,7 +35,6 @@ constexpr int64_t kEmulatorGraphicsHangSyncThread = 10026;
 constexpr int64_t kEmulatorGraphicsUnHangSyncThread = 10027;
 constexpr int64_t kEmulatorGraphicsBadPacketLength = 10031;
 constexpr int64_t kEmulatorGraphicsDuplicateSequenceNum = 10032;
-constexpr int64_t kEmulatorGraphicsVulkanOutOfMemory = 10033;
 constexpr int64_t kEmulatorGraphicsHangOther = 10034;
 constexpr int64_t kEmulatorGraphicsUnHangOther = 10035;
 

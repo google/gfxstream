@@ -368,7 +368,6 @@ class VkEmulation {
                        uint32_t memoryProperty = 0);
     bool teardownVkBuffer(uint32_t bufferHandle);
 
-    std::optional<GenericDescriptorInfo> exportMemoryHandle(VkDevice device, VkDeviceMemory memory);
     std::optional<ExternalHandleInfo> dupBufferExtMemoryHandle(uint32_t bufferHandle);
 #ifdef __APPLE__
     MTLResource_id getBufferMetalMemoryHandle(uint32_t bufferHandle);
