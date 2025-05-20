@@ -58,6 +58,7 @@ cc_test_host {
         "libgfxstream_common_base",
         "libgfxstream_common_image",
         "libgfxstream_common_logging",
+        "libgfxstream_common_testenv",
         "libgfxstream_common_utils",
         "mesa_gfxstream_guest_android",
         "libgfxstream_thirdparty_stb",
