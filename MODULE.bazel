@@ -3,7 +3,6 @@ module(
     version = "0.0.1",
 )
 
-bazel_dep(name = "abseil-cpp", version = "20250127.0", repo_name = "com_google_absl")
 bazel_dep(name = "googletest", version = "1.15.2", repo_name = "com_google_googletest")
 bazel_dep(name = "platforms", version = "0.0.11")
 bazel_dep(name = "rules_cc", version = "0.0.14")
@@ -11,6 +10,7 @@ bazel_dep(name = "rules_license", version = "1.0.0")
 
 ###########  When building Gfxstream from standalone repo ###########
 
+bazel_dep(name = "abseil-cpp", version = "20250127.0", dev_dependency = True)
 bazel_dep(name = "aspect_bazel_lib", version = "2.14.0", dev_dependency = True)
 bazel_dep(name = "bazel_skylib", version = "1.7.1", dev_dependency = True)
 bazel_dep(name = "protobuf", version = "29.1", dev_dependency = True)

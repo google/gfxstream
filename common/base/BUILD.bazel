@@ -17,9 +17,7 @@ cc_library(
         "//conditions:default": [],
     }),
     strip_include_prefix = "include",
-    deps = [
-        "@com_google_absl//absl/strings:str_format",
-    ] + select({
+    deps = select({
         "@platforms//os:windows": [
             "//common/base/windows:gfxstream_common_base_windows_compat_hdrs",
         ],
@@ -129,9 +127,6 @@ cc_test(
     ],
     deps = [
         "gfxstream_common_base",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/strings:str_format",
         "@com_google_googletest//:gtest_main",
     ],
 )
