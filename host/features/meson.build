@@ -1,5 +1,5 @@
 # Copyright 2024 Android Open Source Project
-# SPDX-License-Identifier: MIT OR Apache-2.0
+# SPDX-License-Identifier: Apache-2.0
 
 inc_host_features = include_directories('include')
 
