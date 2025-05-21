@@ -1,5 +1,5 @@
 # Copyright 2022 Android Open Source Project
-# SPDX-License-Identifier: MIT OR Apache-2.0
+# SPDX-License-Identifier: Apache-2.0
 
 inc_qemu_pipe = include_directories('include')
 inc_qemu_pipe_types = include_directories('include-types')

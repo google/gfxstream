@@ -1,5 +1,5 @@
 # Copyright 2025 Android Open Source Project
-# SPDX-License-Identifier: MIT OR Apache-2.0
+# SPDX-License-Identifier: Apache-2.0
 
 inc_common_logging = include_directories('include')
 
