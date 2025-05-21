@@ -2701,7 +2701,22 @@ class VkDecoderSnapshot::Impl {
         uint32_t imageInfoCount, uint32_t bufferInfoCount, uint32_t bufferViewCount,
         const uint32_t* pImageInfoEntryIndices, const uint32_t* pBufferInfoEntryIndices,
         const uint32_t* pBufferViewEntryIndices, const VkDescriptorImageInfo* pImageInfos,
-        const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews) {}
+        const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews) {
+        std::lock_guard<std::mutex> lock(mReconstructionMutex);
+        VkDecoderGlobalState* m_state = VkDecoderGlobalState::get();
+        if (m_state->batchedDescriptorSetUpdateEnabled()) {
+            return;
+        }
+        uint64_t handle = m_state->newGlobalVkGenericHandle(Tag_VkUpdateDescriptorSets);
+        mReconstruction.addHandles((const uint64_t*)(&handle), 1);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.addHandleDependency((const uint64_t*)(&handle), 1,
+                                            (uint64_t)(uintptr_t)device);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)(&handle), 1, apiCallHandle,
+                                            VkReconstruction::CREATED);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)(&handle), 1);
+    }
     void vkBeginCommandBufferAsyncGOOGLE(gfxstream::base::BumpPool* pool,
                                          VkSnapshotApiCallInfo* apiCallInfo,
                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
@@ -2873,7 +2888,22 @@ class VkDecoderSnapshot::Impl {
         uint32_t inlineUniformBlockCount, const uint32_t* pImageInfoEntryIndices,
         const uint32_t* pBufferInfoEntryIndices, const uint32_t* pBufferViewEntryIndices,
         const VkDescriptorImageInfo* pImageInfos, const VkDescriptorBufferInfo* pBufferInfos,
-        const VkBufferView* pBufferViews, const uint8_t* pInlineUniformBlockData) {}
+        const VkBufferView* pBufferViews, const uint8_t* pInlineUniformBlockData) {
+        std::lock_guard<std::mutex> lock(mReconstructionMutex);
+        VkDecoderGlobalState* m_state = VkDecoderGlobalState::get();
+        if (m_state->batchedDescriptorSetUpdateEnabled()) {
+            return;
+        }
+        uint64_t handle = m_state->newGlobalVkGenericHandle(Tag_VkUpdateDescriptorSets);
+        mReconstruction.addHandles((const uint64_t*)(&handle), 1);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.addHandleDependency((const uint64_t*)(&handle), 1,
+                                            (uint64_t)(uintptr_t)device);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)(&handle), 1, apiCallHandle,
+                                            VkReconstruction::CREATED);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)(&handle), 1);
+    }
     void vkQueueSubmitAsync2GOOGLE(gfxstream::base::BumpPool* pool,
                                    VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
                                    size_t apiCallPacketSize, VkQueue queue, uint32_t submitCount,
