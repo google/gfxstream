@@ -1,0 +1,10 @@
+package(
+    default_visibility = [
+        "@//:gfxstream",
+        "@mesa//:__subpackages__",
+    ],
+)
+
+exports_files([
+    "vk_swiftshader_icd.json",
+])

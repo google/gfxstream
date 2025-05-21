@@ -12,6 +12,7 @@ bazel_dep(name = "rules_license", version = "1.0.0")
 ###########  When building Gfxstream from standalone repo ###########
 
 bazel_dep(name = "aspect_bazel_lib", version = "2.14.0", dev_dependency = True)
+bazel_dep(name = "bazel_skylib", version = "1.7.1", dev_dependency = True)
 bazel_dep(name = "protobuf", version = "29.1", dev_dependency = True)
 bazel_dep(name = "toolchains_llvm", version = "1.2.0", dev_dependency = True)
 bazel_dep(name = "rules_python", version = "0.40.0", dev_dependency = True)
@@ -78,6 +79,13 @@ git_repository(
 )
 
 git_repository(
+    name = "swiftshader",
+    build_file = "@//third_party/swiftshader:BUILD.swiftshader.bazel",
+    commit = "4c3426403b9c89253322265323ca658a2476faca",
+    remote = "https://swiftshader.googlesource.com/SwiftShader.git",
+)
+
+git_repository(
     name = "zlib_android",
     build_file = "@//third_party/zlib:BUILD.zlib.bazel",
     commit = "f29fc757b1f27c182f36790eb0ccc6cf8ec27e8e",
@@ -130,6 +138,10 @@ git_repository(
     name = "rutabaga",
     build_file = "@//third_party/rutabaga:BUILD.rutabaga.bazel",
     commit = "99ea64dca3024b667d09f3ec56f7dd77f6671495",
+    patch_args = ["-p1"],
+    patches = [
+        "@//third_party/rutabaga:PATCH.rutabaga.patch",
+    ],
     remote = "https://chromium.googlesource.com/crosvm/crosvm.git",
 )
 

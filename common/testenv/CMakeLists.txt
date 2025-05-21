@@ -12,10 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_subdirectory(base)
-add_subdirectory(detector)
-add_subdirectory(etc)
-add_subdirectory(logging)
-add_subdirectory(image)
-add_subdirectory(testenv)
-add_subdirectory(utils)
+add_library(
+    gfxstream_common_testenv.headers
+    INTERFACE)
+target_include_directories(
+    gfxstream_common_testenv.headers
+    INTERFACE
+    include)
+add_library(
+    gfxstream_common_testenv
+    GraphicsTestEnvironment.cpp)
+target_link_libraries(
+    gfxstream_common_testenv
+    PUBLIC
+    gfxstream_common_base
+    gfxstream_common_logging
+    gfxstream_common_testenv.headers)

@@ -26,6 +26,7 @@
 #include "gfxstream/ImageUtils.h"
 #include "gfxstream/Strings.h"
 #include "gfxstream/common/logging.h"
+#include "gfxstream/common/testing/GraphicsTestEnvironment.h"
 #include "gfxstream/system/System.h"
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
@@ -34,13 +35,13 @@ namespace gfxstream {
 namespace tests {
 namespace {
 
-using testing::AnyOf;
-using testing::Eq;
-using testing::Gt;
-using testing::IsFalse;
-using testing::IsTrue;
-using testing::Not;
-using testing::NotNull;
+using ::testing::AnyOf;
+using ::testing::Eq;
+using ::testing::Gt;
+using ::testing::IsFalse;
+using ::testing::IsTrue;
+using ::testing::Not;
+using ::testing::NotNull;
 
 }  // namespace
 
@@ -238,6 +239,9 @@ void GfxstreamEnd2EndTest::SetUp() {
     for (const std::string& feature : params.with_features) {
         featureEnables.push_back(feature + ":enabled");
     }
+
+    ASSERT_THAT(gfxstream::testing::SetupGraphicsTestEnvironment(), IsTrue())
+        << "Failed to configured graphics test environment!";
 
     ASSERT_THAT(setenv("GFXSTREAM_TRANSPORT", transportValue.c_str(), /*overwrite=*/1), Eq(0));
 

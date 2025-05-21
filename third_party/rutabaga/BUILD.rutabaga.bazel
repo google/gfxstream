@@ -49,7 +49,7 @@ rust_library(
         "--cfg=fence_passing_option1",
     ],
     deps = [
-        "@//host:gfxstream_backend_shared",
+        "@//host:gfxstream_backend",
         "@rutabaga_crate_deps//:anyhow",
         "@rutabaga_crate_deps//:cfg-if",
         "@rutabaga_crate_deps//:libc",
