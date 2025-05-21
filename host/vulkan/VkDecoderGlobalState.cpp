@@ -6367,7 +6367,7 @@ class VkDecoderGlobalState::Impl {
         if (!info) return VK_ERROR_OUT_OF_HOST_MEMORY;
 
         auto* deviceInfo = gfxstream::base::find(mDeviceInfo, device);
-        if (!info) return VK_ERROR_OUT_OF_HOST_MEMORY;
+        if (!deviceInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
 
         hostBlobId = (info->blobId && !hostBlobId) ? info->blobId : hostBlobId;
 
