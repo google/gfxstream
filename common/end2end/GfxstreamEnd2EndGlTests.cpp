@@ -334,7 +334,8 @@ TEST_P(GfxstreamEnd2EndGlTest, FramebufferFetchShader) {
     const bool supportsFramebufferFetch =
         extensionsString.find("GL_EXT_shader_framebuffer_fetch") != std::string::npos;
 
-    const std::string shaderSource = R"(#version 300 es
+    const std::string shaderSource = R"(\
+#version 300 es
 #extension GL_EXT_shader_framebuffer_fetch : require
 precision highp float;
 in vec3 color_varying;
@@ -352,7 +353,8 @@ void main() {
 }
 
 TEST_P(GfxstreamEnd2EndGlTest, ConstantMatrixShader) {
-    const std::string shaderSource = R"(#version 300 es
+    const std::string shaderSource = R"(\
+#version 300 es
 precision mediump float;
 in highp vec4 dEQP_Position;
 out vec2 out0;
@@ -374,7 +376,8 @@ void main() {
 }
 
 TEST_P(GfxstreamEnd2EndGlTest, Draw) {
-    const std::string vertSource = R"(#version 300 es
+    const std::string vertSource = R"(\
+#version 300 es
 precision highp float;
 
 layout (location = 0) in vec2 pos;
@@ -390,7 +393,8 @@ void main() {
 }
     )";
 
-    const std::string fragSource = R"(#version 300 es
+    const std::string fragSource = R"(\
+#version 300 es
 precision highp float;
 
 in vec3 color_varying;
@@ -483,7 +487,8 @@ TEST_P(GfxstreamEnd2EndGlTest, ProgramBinaryWithAHB) {
     GLenum programBinaryFormat = GL_NONE;
     std::vector<uint8_t> programBinaryData;
     {
-        const std::string vertSource = R"(#version 300 es
+        const std::string vertSource = R"(\
+            #version 300 es
 
             layout (location = 0) in vec2 pos;
             layout (location = 1) in vec2 tex;
@@ -495,7 +500,8 @@ TEST_P(GfxstreamEnd2EndGlTest, ProgramBinaryWithAHB) {
                 vTex = tex;
             })";
 
-        const std::string fragSource = R"(#version 300 es
+        const std::string fragSource = R"(\
+            #version 300 es
 
             precision highp float;
 
@@ -620,7 +626,8 @@ TEST_P(GfxstreamEnd2EndGlTest, ProgramBinaryWithTexture) {
     GLenum programBinaryFormat = GL_NONE;
     std::vector<uint8_t> programBinaryData;
     {
-        const std::string vertSource = R"(#version 300 es
+        const std::string vertSource = R"(\
+            #version 300 es
 
             layout (location = 0) in vec2 pos;
             layout (location = 1) in vec2 tex;
@@ -632,7 +639,8 @@ TEST_P(GfxstreamEnd2EndGlTest, ProgramBinaryWithTexture) {
                 vTex = tex;
             })";
 
-        const std::string fragSource = R"(#version 300 es
+        const std::string fragSource = R"(\
+            #version 300 es
 
             precision highp float;
 
@@ -895,7 +903,8 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbTextureUploadAndBlit) {
 
     // Blit from AHB to an additional framebuffer and readback:
     {
-        const std::string blitTextureVertSource = R"(#version 300 es
+        const std::string blitTextureVertSource = R"(\
+            #version 300 es
 
             layout (location = 0) in vec2 pos;
             layout (location = 1) in vec2 tex;
@@ -907,7 +916,8 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbTextureUploadAndBlit) {
                 vTex = tex;
             })";
 
-        const std::string blitTextureFragSource = R"(#version 300 es
+        const std::string blitTextureFragSource = R"(\
+            #version 300 es
 
             precision highp float;
 
@@ -1064,7 +1074,8 @@ TEST_P(GfxstreamEnd2EndGlTest, MultiThreadedAhbTextureUploadAndReadback) {
             mGl->glBufferData(GL_ARRAY_BUFFER, sizeof(VertexAttributes) * fullscreenTriVerts.size(),
                               fullscreenTriVerts.data(), GL_STATIC_DRAW);
 
-            const std::string vertSource = R"(#version 300 es
+            const std::string vertSource = R"(\
+                    #version 300 es
                     layout (location = 0) in vec2 pos;
                     layout (location = 1) in vec2 tex;
                     out vec2 vTex;
@@ -1072,7 +1083,8 @@ TEST_P(GfxstreamEnd2EndGlTest, MultiThreadedAhbTextureUploadAndReadback) {
                         gl_Position = vec4(pos, 0.0, 1.0);
                         vTex = tex;
                     })";
-            const std::string fragSource = R"(#version 300 es
+            const std::string fragSource = R"(\
+                    #version 300 es
                     precision highp float;
                     uniform sampler2D uTexture;
                     in vec2 vTex;
@@ -1300,7 +1312,8 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbTextureUploadAndExternalOesBlit) {
 
     // Blit from AHB to an additional framebuffer for readback:
     {
-        const std::string blitTextureVertSource = R"(#version 300 es
+        const std::string blitTextureVertSource = R"(\
+            #version 300 es
             layout (location = 0) in vec2 pos;
             layout (location = 1) in vec2 tex;
             out vec2 vTex;
@@ -1309,7 +1322,8 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbTextureUploadAndExternalOesBlit) {
                 vTex = tex;
             })";
 
-        const std::string blitTextureFragSource = R"(#version 300 es
+        const std::string blitTextureFragSource = R"(\
+            #version 300 es
             #extension GL_OES_EGL_image_external
             precision highp float;
             uniform samplerExternalOES uTexture;
@@ -1428,7 +1442,8 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbExternalOesTextureBlit) {
 
     // Blit from AHB to an additional framebuffer and readback:
     {
-        const std::string blitTextureVertSource = R"(#version 300 es
+        const std::string blitTextureVertSource = R"(\
+            #version 300 es
 
             layout (location = 0) in vec2 pos;
             layout (location = 1) in vec2 tex;
@@ -1440,7 +1455,8 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbExternalOesTextureBlit) {
                 vTex = tex;
             })";
 
-        const std::string blitTextureFragSource = R"(#version 300 es
+        const std::string blitTextureFragSource = R"(\
+            #version 300 es
             #extension GL_OES_EGL_image_external
 
             precision highp float;
@@ -1567,7 +1583,8 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbExternalOesTextureBlitProgramBinary) {
     GLenum programBinaryFormat = GL_NONE;
     std::vector<uint8_t> programBinaryData;
     {
-        const std::string vertSource = R"(#version 300 es
+        const std::string vertSource = R"(\
+            #version 300 es
             layout (location = 0) in vec2 pos;
             layout (location = 1) in vec2 tex;
             out vec2 vTex;
@@ -1576,7 +1593,8 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbExternalOesTextureBlitProgramBinary) {
                 vTex = tex;
             })";
 
-        const std::string fragSource = R"(#version 300 es
+        const std::string fragSource = R"(\
+            #version 300 es
             #extension GL_OES_EGL_image_external
             precision highp float;
             uniform samplerExternalOES uTexture;
