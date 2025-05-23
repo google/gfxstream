@@ -19,8 +19,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <cmath>
-
 #include "BorrowedImageGl.h"
 #include "DebugGl.h"
 #include "GLcommon/GLutils.h"
@@ -443,31 +441,15 @@ ColorBufferGl::~ColorBufferGl() {
     delete m_resizer;
 }
 
-
-static void convertRgbaToRgbPixels(void* dst, const void* src, uint32_t w, uint32_t h,
-                                   GLenum p_type) {
+static void convertRgbaToRgbPixels(void* dst, const void* src, uint32_t w, uint32_t h) {
     const size_t pixelCount = w * h;
     const uint32_t* srcPixels = reinterpret_cast<const uint32_t*>(src);
-
-    if (p_type == GL_UNSIGNED_BYTE) {
-        uint8_t* dstBytes = reinterpret_cast<uint8_t*>(dst);
-        for (size_t i = 0; i < pixelCount; ++i) {
-            const uint32_t pixel = *(srcPixels++);
-            *(dstBytes++) = (pixel & 0xff);
-            *(dstBytes++) = ((pixel >> 8) & 0xff);
-            *(dstBytes++) = ((pixel >> 16) & 0xff);
-        }
-    } else if (p_type == GL_UNSIGNED_SHORT_5_6_5) {
-        uint16_t* dstPixel = reinterpret_cast<uint16_t*>(dst);
-        for (size_t i = 0; i < pixelCount; ++i) {
-            uint32_t pixel = *(srcPixels++);
-            uint16_t r5 = (uint16_t) std::round(((pixel & 0xff) / 255.0) * 31);
-            pixel = pixel >> 8;
-            uint16_t g6 = (uint16_t) std::round(((pixel & 0xff) / 255.0) * 63);
-            pixel = pixel >> 8;
-            uint16_t b5 = (uint16_t) std::round(((pixel & 0xff) / 255.0) * 31);
-            *(dstPixel++) = (r5 << 11) | (g6 << 5) | b5;
-        }
+    uint8_t* dstBytes = reinterpret_cast<uint8_t*>(dst);
+    for (size_t i = 0; i < pixelCount; ++i) {
+        const uint32_t pixel = *(srcPixels++);
+        *(dstBytes++) = (pixel & 0xff);
+        *(dstBytes++) = ((pixel >> 8) & 0xff);
+        *(dstBytes++) = ((pixel >> 16) & 0xff);
     }
 }
 
@@ -490,12 +472,11 @@ bool ColorBufferGl::readPixels(int x, int y, int width, int height, GLenum p_for
         GLint prevAlignment = 0;
         s_gles2.glGetIntegerv(GL_PACK_ALIGNMENT, &prevAlignment);
         s_gles2.glPixelStorei(GL_PACK_ALIGNMENT, 1);
-        if ((p_format == GL_RGB || p_format == GL_RGB8) &&
-            (p_type == GL_UNSIGNED_BYTE || p_type == GL_UNSIGNED_SHORT_5_6_5)) {
+        if ((p_format == GL_RGB || p_format == GL_RGB8) && p_type == GL_UNSIGNED_BYTE) {
             // GL_RGB reads fail with SwiftShader.
             uint8_t* tmpPixels = new uint8_t[width * height * 4];
-            s_gles2.glReadPixels(x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, tmpPixels);
-            convertRgbaToRgbPixels(pixels, tmpPixels, width, height, p_type);
+            s_gles2.glReadPixels(x, y, width, height, GL_RGBA, p_type, tmpPixels);
+            convertRgbaToRgbPixels(pixels, tmpPixels, width, height);
         } else {
             s_gles2.glReadPixels(x, y, width, height, p_format, p_type, pixels);
         }
@@ -691,8 +672,8 @@ bool ColorBufferGl::subUpdateFromFrameworkFormat(int x, int y, int width, int he
     GL_SCOPED_DEBUG_GROUP("ColorBufferGl::subUpdate(handle:%d fbo:%d tex:%d)", mHndl, m_fbo, m_tex);
 
     if (m_needFormatCheck) {
-        if (p_type != m_type || p_unsizedFormat != m_format) {
-            reformat((GLint)p_unsizedFormat, p_type);
+        if (p_type != m_type || p_format != m_format) {
+            reformat((GLint)p_format, p_type);
         }
         m_needFormatCheck = false;
     }
