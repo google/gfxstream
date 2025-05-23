@@ -180,39 +180,42 @@ GetGfxstreamFeatures(const int rendererFlags,
 }
 
 SelectedRenderer parse_renderer(std::string_view renderer) {
-  if (renderer == "host"sv || renderer == "on"sv) {
+    if (renderer == "host"sv || renderer == "on"sv) {
         return SELECTED_RENDERER_HOST;
-  } else if (renderer == "off"sv) {
+    } else if (renderer == "off"sv) {
         return SELECTED_RENDERER_OFF;
-  } else if (renderer == "guest"sv) {
+    } else if (renderer == "guest"sv) {
         return SELECTED_RENDERER_GUEST;
-  } else if (renderer == "mesa"sv) {
+    } else if (renderer == "mesa"sv) {
         return SELECTED_RENDERER_MESA;
-  } else if (renderer == "swiftshader"sv) {
+    } else if (renderer == "swiftshader"sv) {
         return SELECTED_RENDERER_SWIFTSHADER;
-  } else if (renderer == "angle"sv || renderer == "swangle"sv) {
+    } else if (renderer == "angle"sv || renderer == "swangle"sv) {
         return SELECTED_RENDERER_ANGLE;
-  } else if (renderer == "angle9"sv) {
+    } else if (renderer == "angle9"sv) {
         return SELECTED_RENDERER_ANGLE9;
-  } else if (renderer == "swiftshader_indirect"sv) {
+    } else if (renderer == "swiftshader_indirect"sv) {
         return SELECTED_RENDERER_SWIFTSHADER_INDIRECT;
-  } else if (renderer == "angle_indirect"sv || renderer == "swangle_indirect"sv) {
+    } else if (renderer == "angle_indirect"sv || renderer == "swangle_indirect"sv) {
         return SELECTED_RENDERER_ANGLE_INDIRECT;
-  } else if (renderer == "angle9_indirect"sv) {
+    } else if (renderer == "angle9_indirect"sv) {
         return SELECTED_RENDERER_ANGLE9_INDIRECT;
-  } else {
+    } else {
         return SELECTED_RENDERER_UNKNOWN;
-  }
+    }
 }
 
 // TODO(b/418238945): Remove this AEMU specific code if possible.
 void MaybeConfigureRenderer(gfxstream::RenderLib& rendererLibrary) {
     if (const std::string& s_renderer = gfxstream::base::getEnvironmentVariable("ANDROID_EMU_RENDERER"); !s_renderer.empty()) {
-      SelectedRenderer renderer = parse_renderer(s_renderer);
-      if (renderer == SELECTED_RENDERER_UNKNOWN) {
-        GFXSTREAM_FATAL("Unknown renderer specified in ANDROID_EMU_RENDERER envvar: ", s_renderer.c_str());
-      }
-      rendererLibrary.setRenderer(renderer);
+        SelectedRenderer renderer = parse_renderer(s_renderer);
+        if (renderer == SELECTED_RENDERER_UNKNOWN) {
+            GFXSTREAM_FATAL("Unknown renderer specified in ANDROID_EMU_RENDERER envvar: ", s_renderer.c_str());
+        }
+        rendererLibrary.setRenderer(renderer);
+    } else {
+        // TODO: decouple from init and auto detect needed features in EmulationGl.
+        rendererLibrary.setRenderer(SELECTED_RENDERER_SWIFTSHADER_INDIRECT);
     }
 }
 
