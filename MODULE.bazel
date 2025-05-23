@@ -12,6 +12,7 @@ bazel_dep(name = "rules_license", version = "1.0.0")
 ###########  When building Gfxstream from standalone repo ###########
 
 bazel_dep(name = "aspect_bazel_lib", version = "2.14.0", dev_dependency = True)
+bazel_dep(name = "bazel_skylib", version = "1.7.1", dev_dependency = True)
 bazel_dep(name = "protobuf", version = "29.1", dev_dependency = True)
 bazel_dep(name = "toolchains_llvm", version = "1.2.0", dev_dependency = True)
 bazel_dep(name = "rules_python", version = "0.40.0", dev_dependency = True)
@@ -60,76 +61,98 @@ git_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:git.bzl", "g
 
 git_repository(
     name = "angle",
-    build_file = "@//third_party/angle:BUILD.angle.bazel",
+    build_file = "//third_party/angle:BUILD.angle.bazel",
     commit = "8b39631d6ab5a2efa21629c6fa94a80381720950",
+    dev_dependency = True,
     remote = "https://android.googlesource.com/platform/external/angle.git",
 )
 
 git_repository(
     name = "spirv_headers",
     commit = "aa6cef192b8e693916eb713e7a9ccadf06062ceb",  # vulkan-sdk-1.4.313.0
+    dev_dependency = True,
     remote = "https://github.com/KhronosGroup/SPIRV-Headers.git",
 )
 
 git_repository(
     name = "spirv_tools",
     commit = "f289d047f49fb60488301ec62bafab85573668cc",  # vulkan-sdk-1.4.313.0
+    dev_dependency = True,
     remote = "https://github.com/KhronosGroup/SPIRV-Tools.git",
 )
 
 git_repository(
+    name = "swiftshader",
+    build_file = "//third_party/swiftshader:BUILD.swiftshader.bazel",
+    commit = "4c3426403b9c89253322265323ca658a2476faca",
+    dev_dependency = True,
+    remote = "https://swiftshader.googlesource.com/SwiftShader.git",
+)
+
+git_repository(
     name = "zlib_android",
-    build_file = "@//third_party/zlib:BUILD.zlib.bazel",
+    build_file = "//third_party/zlib:BUILD.zlib.bazel",
     commit = "f29fc757b1f27c182f36790eb0ccc6cf8ec27e8e",
+    dev_dependency = True,
     remote = "https://android.googlesource.com/platform/external/zlib.git",
 )
 
 git_repository(
     name = "drm",
-    build_file = "@//third_party/mesa:BUILD.drm.bazel",
+    build_file = "//third_party/mesa:BUILD.drm.bazel",
     # TODO: b/414448658 - gitlab.freedesktop.org having an outage
     #commit = "998d2a2e81e11043781672494dc3d294c1ecfce0",
     #remote = "https://gitlab.freedesktop.org/mesa/drm.git",
     commit = "f241f822cebbd681e46201b16685a827eb024736",
+    dev_dependency = True,
     remote = "https://android.googlesource.com/platform/external/libdrm.git",
 )
 
 git_repository(
     name = "mesa",
-    build_file = "@//third_party/mesa:BUILD.mesa.bazel",
+    build_file = "//third_party/mesa:BUILD.mesa.bazel",
     commit = "224e91e39836d3ca31f80df2e0379e55c70574f8",
+    dev_dependency = True,
     patch_args = ["-p1"],
     patches = [
-        "@//third_party/mesa:PATCH.mesa.patch",
+        "//third_party/mesa:PATCH.mesa.patch",
     ],
     remote = "https://android.googlesource.com/platform/external/mesa3d.git",
 )
 
 git_repository(
     name = "mako",
-    build_file = "@//third_party/mesa:BUILD.mako.bazel",
+    build_file = "//third_party/mesa:BUILD.mako.bazel",
     commit = "51505647100b7cf20a79b496bc12dec379ac9cdc",  # 1.3.0
+    dev_dependency = True,
     remote = "https://github.com/sqlalchemy/mako",
 )
 
 git_repository(
     name = "markupsafe",
-    build_file = "@//third_party/mesa:BUILD.markupsafe.bazel",
+    build_file = "//third_party/mesa:BUILD.markupsafe.bazel",
     commit = "63efa5521c5c75d40cfed0b6b8f6528ecce9bc6a",  # 2.0.1
+    dev_dependency = True,
     remote = "https://github.com/pallets/markupsafe",
 )
 
 git_repository(
     name = "pyyaml",
-    build_file = "@//third_party/mesa:BUILD.pyyaml.bazel",
+    build_file = "//third_party/mesa:BUILD.pyyaml.bazel",
     commit = "41309b0bcb4559edb1d691d47199035ef539d785",  # 6.0.2
+    dev_dependency = True,
     remote = "https://github.com/yaml/pyyaml.git",
 )
 
 git_repository(
     name = "rutabaga",
-    build_file = "@//third_party/rutabaga:BUILD.rutabaga.bazel",
+    build_file = "//third_party/rutabaga:BUILD.rutabaga.bazel",
     commit = "99ea64dca3024b667d09f3ec56f7dd77f6671495",
+    dev_dependency = True,
+    patch_args = ["-p1"],
+    patches = [
+        "//third_party/rutabaga:PATCH.rutabaga.patch",
+    ],
     remote = "https://chromium.googlesource.com/crosvm/crosvm.git",
 )
 
