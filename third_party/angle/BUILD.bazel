@@ -8,4 +8,5 @@ package(
 exports_files([
     "libGLESv2_angle.lds",
     "libEGL_angle.lds",
+    "libEGL_angle_vendor_icd.json",
 ])

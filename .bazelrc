@@ -1,2 +1,21 @@
 # TODO: fixup shared library usage.
 build --noexperimental_link_static_libraries_once
+
+# Graphics testing environments options:
+#
+#  * <default>
+#     Uses the default host GLES and VK drivers.
+#
+#  * `gles_angle_vulkan_lavapipe`
+#     Uses locally built ANGLE GLES and EGL drivers and Lavapipe VK driver.
+#
+#  * `gles_angle_vulkan_swiftshader`
+#     Uses locally built ANGLE GLES and EGL drivers and SwiftShader VK driver.
+#
+# How to use:
+#
+#   bazel build --graphics_drivers=gles_angle_vulkan_lavapipe
+#
+#   bazel test --graphics_drivers=gles_angle_vulkan_lavapipe
+#
+build --flag_alias=graphics_drivers=//common/testenv:graphics_test_environment
