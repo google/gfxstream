@@ -660,14 +660,6 @@ cc_library(
 )
 
 cc_library(
-    name = "angle_third_party_vulkan_headers",
-    hdrs = glob([
-        "third_party/vulkan-headers/src/include/**/*.h",
-    ]),
-    strip_include_prefix = "third_party/vulkan-headers/src/include",
-)
-
-cc_library(
     name = "angle_volk",
     srcs = [
         "src/third_party/volk/volk.c",
@@ -676,12 +668,9 @@ cc_library(
         "src/third_party/volk/volk.h",
     ],
     includes = [
-        "src/third_party/volk",
         "third_party/vulkan-headers/src/include",
     ],
-    deps = [
-        ":angle_third_party_vulkan_headers",
-    ],
+    strip_include_prefix = "src/third_party/volk",
 )
 
 cc_library(
@@ -1155,11 +1144,11 @@ cc_library(
     ],
     linkstatic = True,
     local_defines = [
-        'ANGLE_DISPATCH_LIBRARY=\\\"libGLESv2.so\\\"',
-        'ANGLE_EGL_LIBRARY_NAME=\\"libEGL\\"',
+        'ANGLE_DISPATCH_LIBRARY=\\\"libGLESv2_angle.so.2\\\"',
+        'ANGLE_EGL_LIBRARY_NAME=\\"libEGL_angle\\"',
         "ANGLE_ENABLE_CONTEXT_MUTEX=1",
         "ANGLE_ENABLE_SHARE_CONTEXT_LOCK=1",
-        'ANGLE_GLESV2_LIBRARY_NAME=\\"libGLESv2\\"',
+        'ANGLE_GLESV2_LIBRARY_NAME=\\"libGLESv2_angle\\"',
         "ANGLE_IS_LINUX",
         "ANGLE_OUTSIDE_WEBKIT",
         "ANGLE_USE_EGL_LOADER",
@@ -1750,7 +1739,6 @@ cc_library(
     ],
     deps = [
         ":angle_common",
-        ":angle_third_party_vulkan_headers",
     ],
     alwayslink = True,
 )
@@ -2025,7 +2013,7 @@ cc_library(
     includes = [
         "include/",
         "src/",
-        "third_party/vulkan-headers/src/include/",
+        "third_party/vulkan-headers/src/include",
         "third_party/vulkan_memory_allocator/include/",
     ],
     linkstatic = True,
@@ -2064,9 +2052,6 @@ cc_library(
         "VMA_USE_STL_CONTAINERS=1",
     ],
     strip_include_prefix = "third_party/vulkan_memory_allocator/include",
-    deps = [
-        ":angle_third_party_vulkan_headers",
-    ],
 )
 
 cc_library(
@@ -2387,11 +2372,11 @@ cc_library(
 )
 
 cc_shared_library(
-    name = "libEGL",
+    name = "libEGL_angle",
     additional_linker_inputs = [
         "@//third_party/angle:libEGL_angle.lds",
     ],
-    shared_lib_name = "libEGL.so",
+    shared_lib_name = "libEGL_angle.so.1",
     user_link_flags = [
         "-ldl",
         "-Wl,--gc-sections",
@@ -2405,11 +2390,11 @@ cc_shared_library(
 )
 
 cc_shared_library(
-    name = "libGLESv2",
+    name = "libGLESv2_angle",
     additional_linker_inputs = [
         "@//third_party/angle:libGLESv2_angle.lds",
     ],
-    shared_lib_name = "libGLESv2.so",
+    shared_lib_name = "libGLESv2_angle.so.2",
     user_link_flags = [
         "-ldl",
         "-Wl,--gc-sections",

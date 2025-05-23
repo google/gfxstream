@@ -4,5 +4,4 @@
 subdir('base')
 subdir('etc')
 subdir('logging')
-subdir('testenv')
 subdir('utils')

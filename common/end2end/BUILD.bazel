@@ -72,7 +72,6 @@ cc_test(
         "//common/base:gfxstream_common_base",
         "//common/image:gfxstream_common_image",
         "//common/logging:gfxstream_common_logging",
-        "//common/testenv:graphics_test_environment_support",
         "//common/utils:gfxstream_common_utils",
         "//guest/OpenglSystemCommon:gfxstream_guest_openglsystemcommon",
         "//guest/rendercontrol:gfxstream_guest_rendercontrol_headers",
