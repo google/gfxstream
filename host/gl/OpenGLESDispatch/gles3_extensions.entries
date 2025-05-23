@@ -1,0 +1,18 @@
+!gles3_extensions
+namespaces translator,gles2
+
+# GLES 3.x extensions
+void glVertexAttribIPointerWithDataSize(GLuint indx, GLint size, GLenum type, GLsizei stride, const GLvoid* ptr, GLsizei dataSize);
+void glPrimitiveRestartIndex(GLuint index);
+void glTexBufferOES(GLenum target, GLenum internalformat, GLuint buffer);
+void glTexBufferRangeOES(GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size);
+void glTexBufferEXT(GLenum target, GLenum internalformat, GLuint buffer);
+void glTexBufferRangeEXT(GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size);
+void glEnableiEXT(GLenum cap, GLuint index);
+void glDisableiEXT(GLenum cap, GLuint index);
+void glBlendEquationiEXT(GLuint buf, GLenum mode);
+void glBlendEquationSeparateiEXT(GLuint buf, GLenum modeRGB, GLenum modeAlpha);
+void glBlendFunciEXT(GLuint buf, GLenum sfactor, GLenum dfactor);
+void glBlendFuncSeparateiEXT(GLuint buf, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha);
+void glColorMaskiEXT(GLuint buf, GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha);
+GLboolean  glIsEnablediEXT(GLenum cap, GLuint index);

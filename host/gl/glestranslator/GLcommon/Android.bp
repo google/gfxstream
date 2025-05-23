@@ -1,0 +1,73 @@
+// Copyright 2025 The Android Open Source Project
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expresso or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package {
+    default_applicable_licenses: ["hardware_google_gfxstream_license"],
+}
+
+cc_library_static {
+    name: "libgfxstream_host_glestranslator_glcommon",
+    defaults: ["gfxstream_host_cc_defaults"],
+    cflags: [
+        "-fvisibility=hidden",
+        "-Wno-inconsistent-missing-override",
+        "-Wno-unused-parameter",
+        "-Wno-unused-function",
+    ],
+    header_libs: [
+        "libgfxstream_thirdparty_opengl_headers",
+        "libgfxstream_x11_headers",
+        "libgfxstream_host_openglesdispatch_headers",
+    ],
+    export_header_lib_headers: [
+        "libgfxstream_host_openglesdispatch_headers",
+    ],
+    static_libs: [
+        "libgfxstream_common_base",
+        "libgfxstream_etc",
+        "libgfxstream_host_backend",
+        "libgfxstream_host_compressedtextures",
+        "libgfxstream_host_library",
+        "libgfxstream_common_logging",
+        "libgfxstream_host_snapshot",
+    ],
+    export_static_lib_headers: [
+        "libgfxstream_etc",
+        "libgfxstream_host_snapshot",
+    ],
+    srcs: [
+        "rgtc.cpp",
+        "FramebufferData.cpp",
+        "GLBackgroundLoader.cpp",
+        "GLDispatch.cpp",
+        "GLESbuffer.cpp",
+        "GLEScontext.cpp",
+        "GLESpointer.cpp",
+        "GLESvalidate.cpp",
+        "GLutils.cpp",
+        "NamedObject.cpp",
+        "ObjectData.cpp",
+        "ObjectNameSpace.cpp",
+        "PaletteTexture.cpp",
+        "RangeManip.cpp",
+        "SaveableTexture.cpp",
+        "ScopedGLState.cpp",
+        "ShareGroup.cpp",
+        "TextureData.cpp",
+        "TextureUtils.cpp",
+    ],
+    export_include_dirs: [
+        "include",
+    ],
+}

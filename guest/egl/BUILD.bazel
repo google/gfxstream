@@ -1,0 +1,49 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_shared_library")
+
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
+cc_library(
+    name = "gfxstream_guest_egl_headers",
+    hdrs = glob([
+        "**/*.h",
+        "**/*.in",
+    ]),
+    includes = [
+        ".",
+    ],
+)
+
+cc_library(
+    name = "gfxstream_guest_egl_impl",
+    srcs = [
+        "ClientAPIExts.cpp",
+        "egl.cpp",
+        "eglDisplay.cpp",
+    ],
+    linkopts = [
+        # Search the current directory for this library's shared libs.
+        # Used for the end2end tests which package all of the guest
+        # libraries into a single `testdata` directory for testing.
+        "-Wl,-rpath,'$$ORIGIN'",
+    ],
+    deps = [
+        ":gfxstream_guest_egl_headers",
+        "//common/base:gfxstream_common_base",
+        "//guest/OpenglSystemCommon:gfxstream_guest_openglsystemcommon",
+        "//guest/android-emu:gfxstream_guest_base",
+        "//guest/qemupipe:gfxstream_guest_qemupipe",
+    ],
+)
+
+cc_shared_library(
+    name = "gfxstream_guest_egl",
+    dynamic_deps = [
+        "//guest/OpenglSystemCommon:gfxstream_guest_openglsystemcommon_shared",
+    ],
+    shared_lib_name = "libEGL_emulation.so",
+    deps = [
+        ":gfxstream_guest_egl_impl",
+    ],
+)

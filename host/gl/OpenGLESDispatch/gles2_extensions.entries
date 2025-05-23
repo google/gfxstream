@@ -1,0 +1,26 @@
+!gles2_extensions
+namespaces translator,gles2
+
+%#include <GLES/gl.h>
+%#include <GLES2/gl2.h>
+%#include <GLES2/gl2ext.h>
+
+# GLES 2.0 extensions
+void glGetShaderPrecisionFormat(GLenum shadertype, GLenum precisiontype, GLint* range, GLint* precision);
+void glReleaseShaderCompiler(void);
+void glShaderBinary(GLsizei n, const GLuint* shaders, GLenum binaryformat, const GLvoid* binary, GLsizei length);
+void glVertexAttribPointerWithDataSize(GLuint indx, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* ptr, GLsizei dataSize);
+void glFramebufferTexture3DOES(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset);
+void glTestHostDriverPerformance(GLuint count, uint64_t* duration_us, uint64_t* duration_cpu_us);
+
+void glBindVertexArrayOES(GLuint array);
+void glDeleteVertexArraysOES(GLsizei n, const GLuint *arrays);
+void glGenVertexArraysOES(GLsizei n, GLuint *arrays);
+GLboolean glIsVertexArrayOES(GLuint array);
+
+void glDebugMessageControlKHR(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint *ids, GLboolean enabled);
+void glDebugMessageInsertKHR(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *buf);
+void glDebugMessageCallbackKHR(GLDEBUGPROCKHR callback, const void *userParam);
+GLuint glGetDebugMessageLogKHR(GLuint count, GLsizei bufSize, GLenum *sources, GLenum *types, GLuint *ids, GLenum *severities, GLsizei *lengths, GLchar *messageLog);
+void glPushDebugGroupKHR(GLenum source, GLuint id, GLsizei length, const GLchar* message);
+void glPopDebugGroupKHR(void);

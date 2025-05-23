@@ -1,0 +1,44 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_shared_library")
+
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
+cc_library(
+    name = "gfxstream_guest_rendercontrol_headers",
+    hdrs = glob([
+        "include/**/*.h",
+    ]),
+    strip_include_prefix = "include",
+    deps = [
+        "//third_party/android:gfxstream_thirdparty_android_headers",
+    ],
+)
+
+cc_library(
+    name = "gfxstream_guest_rendercontrol_impl",
+    srcs = [
+        "RenderControl.cpp",
+    ],
+    linkopts = [
+        # Search the current directory for this library's shared libs.
+        # Used for the end2end tests which package all of the guest
+        # libraries into a single `testdata` directory for testing.
+        "-Wl,-rpath,'$$ORIGIN'",
+    ],
+    deps = [
+        ":gfxstream_guest_rendercontrol_headers",
+        "//guest/OpenglSystemCommon:gfxstream_guest_openglsystemcommon",
+    ],
+)
+
+cc_shared_library(
+    name = "gfxstream_guest_rendercontrol",
+    dynamic_deps = [
+        "//guest/OpenglSystemCommon:gfxstream_guest_openglsystemcommon_shared",
+    ],
+    shared_lib_name = "libgfxstream_guest_rendercontrol.so",
+    deps = [
+        ":gfxstream_guest_rendercontrol_impl",
+    ],
+)

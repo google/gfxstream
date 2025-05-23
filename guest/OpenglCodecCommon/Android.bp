@@ -1,0 +1,124 @@
+// Copyright 2025 The Android Open Source Project
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expresso or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package {
+    default_applicable_licenses: ["hardware_google_gfxstream_license"],
+}
+
+cc_library_headers {
+    name: "libgfxstream_guest_errorlog_headers",
+    defaults: [
+        "gfxstream_guest_cc_defaults",
+    ],
+    export_include_dirs: [
+        ".",
+    ],
+}
+
+cc_library_shared {
+    name: "libOpenglCodecCommon",
+    defaults: [
+        "gfxstream_guest_cc_defaults",
+    ],
+    header_libs: [
+        "libgfxstream_thirdparty_opengl_headers",
+        "libgfxstream_guest_graphics_headers",
+        "mesa_gfxstream_guest_iostream",
+    ],
+    export_header_lib_headers: [
+        "libgfxstream_thirdparty_opengl_headers",
+    ],
+    shared_libs: [
+        "libcutils",
+        "liblog",
+        "libutils",
+    ],
+    export_shared_lib_headers: [
+        "libcutils",
+        "liblog",
+    ],
+    export_static_lib_headers: [
+        "libgfxstream_androidemu_static",
+    ],
+    static_libs: [
+        "libgfxstream_etc",
+        "libgfxstream_androidemu_static",
+        "libgfxstream_common_logging",
+    ],
+    cflags: [
+        "-DLOG_TAG=\"eglCodecCommon\"",
+        "-Wno-unused-private-field",
+    ],
+    srcs: [
+        "ChecksumCalculator.cpp",
+        "EncoderDebug.cpp",
+        "GLClientState.cpp",
+        "GLESTextureUtils.cpp",
+        "GLSharedGroup.cpp",
+        "glUtils.cpp",
+        "IndexRangeCache.cpp",
+    ],
+    export_include_dirs: [
+        "include",
+        ".",
+    ],
+}
+
+cc_library_static {
+    name: "libOpenglCodecCommon_static",
+    defaults: [
+        "gfxstream_guest_cc_defaults",
+    ],
+    header_libs: [
+        "libgfxstream_thirdparty_opengl_headers",
+        "libgfxstream_guest_graphics_headers",
+        "mesa_gfxstream_guest_iostream",
+    ],
+    export_header_lib_headers: [
+        "libgfxstream_thirdparty_opengl_headers",
+    ],
+    shared_libs: [
+        "libcutils",
+        "liblog",
+        "libutils",
+    ],
+    export_shared_lib_headers: [
+        "libcutils",
+        "liblog",
+    ],
+    export_static_lib_headers: [
+        "libgfxstream_androidemu_static",
+    ],
+    static_libs: [
+        "libgfxstream_etc",
+        "libgfxstream_androidemu_static",
+        "libgfxstream_common_logging",
+    ],
+    cflags: [
+        "-DLOG_TAG=\"eglCodecCommon\"",
+        "-Wno-unused-private-field",
+    ],
+    srcs: [
+        "ChecksumCalculator.cpp",
+        "EncoderDebug.cpp",
+        "GLClientState.cpp",
+        "GLESTextureUtils.cpp",
+        "GLSharedGroup.cpp",
+        "glUtils.cpp",
+        "IndexRangeCache.cpp",
+    ],
+    export_include_dirs: [
+        "include",
+    ],
+}

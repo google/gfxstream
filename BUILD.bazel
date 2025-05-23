@@ -1,0 +1,49 @@
+load("@rules_license//rules:license.bzl", "license")
+load("@rules_license//rules:license_kind.bzl", "license_kind")
+
+package_group(
+    name = "gfxstream",
+    packages = [
+        "//...",
+    ],
+)
+
+package(
+    default_applicable_licenses = [":license"],
+    default_visibility = ["//:gfxstream"],
+)
+
+license(
+    name = "license",
+    license_kinds = [
+        ":SPDX-license-identifier-Apache-2.0",
+        ":SPDX-license-identifier-BSD",
+        ":SPDX-license-identifier-ISC",
+        ":SPDX-license-identifier-MIT",
+    ],
+)
+
+license_kind(
+    name = "SPDX-license-identifier-Apache-2.0",
+    conditions = ["notice"],
+    url = "https://spdx.org/licenses/Apache-2.0.html",
+)
+
+license_kind(
+    name = "SPDX-license-identifier-BSD",
+    conditions = ["notice"],
+    url = "https://spdx.org/licenses/BSD-3-Clause.html",
+)
+
+# X11 headers
+license_kind(
+    name = "SPDX-license-identifier-ISC",
+    conditions = ["notice"],
+    url = "https://spdx.org/licenses/ISC.html",
+)
+
+license_kind(
+    name = "SPDX-license-identifier-MIT",
+    conditions = ["notice"],
+    url = "https://spdx.org/licenses/MIT.html",
+)

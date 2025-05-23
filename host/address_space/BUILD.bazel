@@ -1,0 +1,34 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
+cc_library(
+    name = "gfxstream_host_address_space",
+    srcs = [
+        "address_space_device.cpp",
+        "address_space_graphics.cpp",
+        "ring_buffer.cpp",
+        "sub_allocator.cpp",
+    ],
+    hdrs = glob(["include/**/*.h"]),
+    copts = ["-fno-exceptions"],
+    strip_include_prefix = "include",
+    deps = [
+        "//common/base:gfxstream_common_base",
+        "//common/logging:gfxstream_common_logging",
+        "//host:gfxstream_backend_headers",
+    ],
+)
+
+cc_test(
+    name = "gfxstream_host_address_space_tests",
+    srcs = [
+        "ring_buffer_unittest.cpp",
+    ],
+    deps = [
+        ":gfxstream_host_address_space",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

@@ -1,0 +1,1 @@
+These files come from fuchsia.googlesource.com. Once Magma is in the Fuchsia SDK (https://fxbug.dev/42067270, https://fxbug.dev/42062806), these files should be removed and the Fuchsia SDK added as a proper dependency (https://fxbug.dev/42073654).

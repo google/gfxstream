@@ -1,0 +1,91 @@
+// Copyright 2025 The Android Open Source Project
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expresso or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package {
+    default_applicable_licenses: ["hardware_google_gfxstream_license"],
+}
+
+// Run with `atest --host GfxstreamEnd2EndTests`
+cc_test_host {
+    name: "GfxstreamEnd2EndTests",
+    defaults: ["mesa_platform_virtgpu_defaults"],
+    srcs: [
+        "GfxstreamEnd2EndTests.cpp",
+        "GfxstreamEnd2EndTestUtils.cpp",
+        "GfxstreamEnd2EndCompositionTests.cpp",
+        "GfxstreamEnd2EndGlTests.cpp",
+        "GfxstreamEnd2EndVkTests.cpp",
+        "KumquatInstance.cpp",
+        "TestDataUtils.cpp",
+    ],
+    header_libs: [
+        "virtgpu_kumquat_ffi_headers",
+        "gfxstream_headers",
+        "libgfxstream_guest_rendercontrol_headers",
+        "libgfxstream_host_openglesdispatch_headers",
+    ],
+    data: [
+        "//external/crosvm:kumquat",
+        "testdata/256x256_android.png",
+        "testdata/256x256_android_with_transparency.png",
+        "testdata/256x256_golden_basic_composition.png",
+    ],
+    data_libs: [
+        "libEGL_emulation",
+        "libgfxstream_guest_rendercontrol",
+        "vulkan.ranchu",
+        "libGLESv1_CM_emulation",
+        "libGLESv2_emulation",
+    ],
+    shared_libs: [
+        "liblog",
+        "libdrm",
+        "libOpenglCodecCommon",
+        "libOpenglSystemCommon",
+    ],
+    static_libs: [
+        "libgfxstream_common_base",
+        "libgfxstream_common_image",
+        "libgfxstream_common_logging",
+        "libgfxstream_common_testenv",
+        "libgfxstream_common_utils",
+        "mesa_gfxstream_guest_android",
+        "libgfxstream_thirdparty_stb",
+        "libgmock",
+    ],
+    cflags: [
+        // TODO: remove
+        "-DVK_USE_PLATFORM_ANDROID_KHR",
+        "-Wno-macro-redefined",
+        "-Wno-unused-parameter",
+        "-Wno-extern-c-compat",
+    ],
+    local_include_dirs: [
+        ".",
+    ],
+    test_options: {
+        // Disabled by default as requires host OpenGL and Vulkan.
+        unit_test: false,
+        test_runner_options: [
+            {
+                name: "native-test-timeout",
+                value: "30m",
+            },
+        ],
+    },
+    test_suites: [
+        "general-tests",
+    ],
+    compile_multilib: "64",
+}

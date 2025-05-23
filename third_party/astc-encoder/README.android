@@ -1,0 +1,20 @@
+Name: astc-encoder
+URL: https://github.com/ARM-software/astc-encoder
+Version: 3103c70ccf6194e3796467c466f5adb047deac7f
+License: Apache-2.0
+License File: LICENSE.txt
+Owners: gregschlom
+
+Description:
+A fast compressor and decompressor for the ASTC texture format.
+
+Local Modifications:
+Removed the following directories and files, which are not needed to compile the library:
+    Docs
+    Test
+    Utils
+    jenkins
+    .gitattributes
+    .gitignore
+    .gitmodules
+    .pylintrc

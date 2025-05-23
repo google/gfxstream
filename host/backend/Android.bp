@@ -1,0 +1,57 @@
+// Copyright 2025 The Android Open Source Project
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expresso or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package {
+    default_applicable_licenses: ["hardware_google_gfxstream_license"],
+}
+
+cc_library_static {
+    name: "libgfxstream_host_backend",
+    defaults: ["gfxstream_host_cc_defaults"],
+    srcs: [
+        "address_space_operations.cpp",
+        "display_operations.cpp",
+        "display_surface.cpp",
+        "display_surface_user.cpp",
+        "dma_device.cpp",
+        "external_object_manager.cpp",
+        "file_stream.cpp",
+        "graphics_driver_lock.cpp",
+        "guest_operations.cpp",
+        "mem_stream.cpp",
+        "renderer_operations.cpp",
+        "stream_utils.cpp",
+        "sync_device.cpp",
+        "vm_operations.cpp",
+        "window_operations.cpp",
+    ],
+    export_include_dirs: [
+        "include",
+    ],
+    header_libs: [
+        "libgfxstream_backend_headers",
+    ],
+    export_header_lib_headers: [
+        "libgfxstream_backend_headers",
+    ],
+    static_libs: [
+        "libgfxstream_common_utils",
+        "libgfxstream_host_address_space",
+        "libgfxstream_common_logging",
+    ],
+    export_static_lib_headers: [
+        "libgfxstream_common_utils",
+    ],
+
+}

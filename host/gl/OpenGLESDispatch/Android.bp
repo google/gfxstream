@@ -1,0 +1,61 @@
+// Copyright 2025 The Android Open Source Project
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expresso or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package {
+    default_applicable_licenses: ["hardware_google_gfxstream_license"],
+}
+
+cc_library_headers {
+    name: "libgfxstream_host_openglesdispatch_headers",
+    defaults: ["gfxstream_host_cc_defaults"],
+    export_include_dirs: [
+        "include",
+    ],
+    header_libs: [
+        "libgfxstream_thirdparty_opengl_headers",
+    ],
+    export_header_lib_headers: [
+        "libgfxstream_thirdparty_opengl_headers",
+    ],
+}
+
+cc_library_static {
+    name: "libgfxstream_host_openglesdispatch",
+    defaults: ["gfxstream_host_cc_defaults"],
+    header_libs: [
+        "libgfxstream_thirdparty_opengl_headers",
+        "libgfxstream_host_openglesdispatch_headers",
+        "libgfxstream_thirdparty_glm",
+    ],
+    export_header_lib_headers: [
+        "libgfxstream_host_openglesdispatch_headers",
+    ],
+    static_libs: [
+        "libgfxstream_common_base",
+        "libgfxstream_host_decoder_common",
+        "libgfxstream_glestranslator_egl",
+    ],
+    cflags: [
+        "-fvisibility=default",
+    ],
+    srcs: [
+        "EGLDispatch.cpp",
+        "gles1_stubbed_in_translator_namespace.cpp",
+        "gles2_stubbed_in_translator_namespace.cpp",
+        "GLESv1Dispatch.cpp",
+        "GLESv2Dispatch.cpp",
+        "OpenGLDispatchLoader.cpp",
+        "StaticDispatch.cpp",
+    ],
+}

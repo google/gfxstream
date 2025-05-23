@@ -1,0 +1,137 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test", "objc_library")
+
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
+cc_library(
+    name = "gfxstream_common_base_headers",
+    hdrs = glob([
+        "include/**/*.h",
+        "include/**/*.hpp",
+    ]),
+    defines = select({
+        "@platforms//os:windows": [
+            "WIN32_LEAN_AND_MEAN",
+        ],
+        "//conditions:default": [],
+    }),
+    strip_include_prefix = "include",
+    deps = [
+        "@com_google_absl//absl/strings:str_format",
+    ] + select({
+        "@platforms//os:windows": [
+            "//common/base/windows:gfxstream_common_base_windows_compat_hdrs",
+        ],
+        "//conditions:default": [],
+    }),
+)
+
+objc_library(
+    name = "gfxstream_common_base_mac",
+    srcs = [
+        "system-native-mac.mm",
+    ],
+    sdk_frameworks = [
+        "IOkit",
+        "AppKit",
+    ],
+    target_compatible_with = [
+        "@platforms//os:macos",
+    ],
+    deps = [
+        ":gfxstream_common_base_headers",
+    ],
+    alwayslink = True,
+)
+
+cc_library(
+    name = "gfxstream_common_base",
+    srcs = [
+        "AlignedBuf.cpp",
+        "CpuTime.cpp",
+        "FileUtils.cpp",
+        "FunctorThread.cpp",
+        "MessageChannel.cpp",
+        "PathUtils.cpp",
+        "StringFormat.cpp",
+        "System.cpp",
+        "Tracing.cpp",
+    ] + select({
+        "@platforms//os:windows": [
+            "SharedMemory_win32.cpp",
+            "Thread_win32.cpp",
+            "Win32UnicodeString.cpp",
+        ],
+        "@platforms//os:macos": [
+            "SharedMemory_posix.cpp",
+            "Thread_pthread.cpp",
+        ],
+        "@platforms//os:linux": [
+            "SharedMemory_posix.cpp",
+            "Thread_pthread.cpp",
+        ],
+    }),
+    defines = select({
+        "@platforms//os:windows": [
+            "WIN32_LEAN_AND_MEAN",
+        ],
+        "//conditions:default": [],
+    }),
+    linkopts = select({
+        "@platforms//os:linux": [
+            "-ldl",
+            "-lrt",
+        ],
+        "@platforms//os:windows": [
+            "-DEFAULTLIB:Shlwapi.lib",
+        ],
+        "@platforms//os:macos": [
+            "-framework Foundation",
+            "-framework AppKit",
+            "-framework IOKit",
+        ],
+        "//conditions:default": [],
+    }),
+    deps = [
+        ":gfxstream_common_base_headers",
+    ] + select({
+        "@platforms//os:macos": [
+            ":gfxstream_common_base_mac",
+        ],
+        "@platforms//os:windows": [
+            "//common/base/windows:gfxstream_common_base_windows_compat",
+        ],
+        "//conditions:default": [],
+    }),
+)
+
+cc_test(
+    name = "gfxstream_common_base_tests",
+    srcs = [
+        "AlignedBuf_unittest.cpp",
+        "ArraySize_unittest.cpp",
+        "FileMatcher_unittest.cpp",
+        "HybridEntityManager_unittest.cpp",
+        "LruCache_unittest.cpp",
+        "ManagedDescriptor_unittest.cpp",
+        "StringFormat_unittest.cpp",
+        "TypeTraits_unittest.cpp",
+        "WorkerThread_unittest.cpp",
+    ] + select({
+        "@platforms//os:windows": [
+            "Win32UnicodeString_unittest.cpp",
+        ],
+        "//conditions:default": [],
+    }),
+    linkopts = [
+        "-undefined error",
+    ],
+    deps = [
+        "gfxstream_common_base",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/strings:str_format",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

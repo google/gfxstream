@@ -1,0 +1,48 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
+cc_library(
+    name = "gfxstream_guest_base",
+    srcs = [
+        "aemu/base/AlignedBuf.cpp",
+        "aemu/base/Path.cpp",
+        "aemu/base/Pool.cpp",
+        "aemu/base/Process.cpp",
+        "aemu/base/StringFormat.cpp",
+        "aemu/base/Tracing.cpp",
+        "aemu/base/synchronization/AndroidMessageChannel.cpp",
+        "aemu/base/threads/AndroidFunctorThread.cpp",
+        "aemu/base/threads/AndroidThreadStore.cpp",
+        "aemu/base/threads/AndroidThread_pthread.cpp",
+        "aemu/base/threads/AndroidWorkPool.cpp",
+        "android/utils/debug.c",
+    ],
+    hdrs = glob([
+        "**/*.h",
+    ]),
+    includes = [
+        ".",
+    ],
+    linkstatic = True,
+)
+
+cc_library(
+    name = "gfxstream_guest_ringbuffer",
+    srcs = [
+        "aemu/base/ring_buffer.c",
+    ],
+    hdrs = glob([
+        "**/*.h",
+    ]),
+    includes = [
+        ".",
+        "aemu/base",
+    ],
+    visibility = [
+        "//:gfxstream",
+        "@mesa//:__subpackages__",
+    ],
+)

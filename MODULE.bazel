@@ -1,0 +1,227 @@
+module(
+    name = "gfxstream",
+    version = "0.0.1",
+)
+
+bazel_dep(name = "abseil-cpp", version = "20250127.0", repo_name = "com_google_absl")
+bazel_dep(name = "googletest", version = "1.15.2", repo_name = "com_google_googletest")
+bazel_dep(name = "platforms", version = "0.0.11")
+bazel_dep(name = "rules_cc", version = "0.0.14")
+bazel_dep(name = "rules_license", version = "1.0.0")
+
+###########  When building Gfxstream from standalone repo ###########
+
+bazel_dep(name = "aspect_bazel_lib", version = "2.14.0", dev_dependency = True)
+bazel_dep(name = "bazel_skylib", version = "1.7.1", dev_dependency = True)
+bazel_dep(name = "protobuf", version = "29.1", dev_dependency = True)
+bazel_dep(name = "toolchains_llvm", version = "1.2.0", dev_dependency = True)
+bazel_dep(name = "rules_python", version = "0.40.0", dev_dependency = True)
+bazel_dep(name = "rules_rust", version = "0.60.0", dev_dependency = True)
+bazel_dep(name = "zlib", version = "1.3.1.bcr.3", dev_dependency = True)
+
+llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm", dev_dependency = True)
+llvm.toolchain(
+    llvm_version = "18.1.8",
+)
+use_repo(llvm, "llvm_toolchain")
+
+file_detector = use_repo_rule("//toolchain/bazel:file_detector.bzl", "file_detector")
+
+file_detector(
+    name = "clang_detector",
+    dev_dependency = True,
+    files = {
+        "/usr/bin/clang-11": "clang_11",
+        "/usr/bin/clang-12": "clang_12",
+        "/usr/bin/clang-13": "clang_13",
+        "/usr/bin/clang-14": "clang_14",
+        "/usr/bin/clang-15": "clang_15",
+        "/usr/bin/clang-16": "clang_16",
+        "/usr/bin/clang-17": "clang_17",
+        "/usr/bin/clang-18": "clang_18",
+        "/usr/bin/clang-19": "clang_19",
+    },
+)
+
+# The first toolchain that satisfies platform constraints is chosen.
+# Alternatively, a specific toolchain can be chosen with the
+# `--extra_toolchains` flag, e.g.
+# ```
+# bazel build //cuttlefish/package:cvd \
+#   --extra_toolchains=//toolchain:linux_local_clang_19
+# ```
+#
+# For more information, see https://bazel.build/extending/toolchains
+register_toolchains(
+    "@llvm_toolchain//:all",
+    dev_dependency = True,
+)
+
+git_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
+git_repository(
+    name = "angle",
+    build_file = "//third_party/angle:BUILD.angle.bazel",
+    commit = "8b39631d6ab5a2efa21629c6fa94a80381720950",
+    dev_dependency = True,
+    remote = "https://android.googlesource.com/platform/external/angle.git",
+)
+
+git_repository(
+    name = "spirv_headers",
+    commit = "aa6cef192b8e693916eb713e7a9ccadf06062ceb",  # vulkan-sdk-1.4.313.0
+    dev_dependency = True,
+    remote = "https://github.com/KhronosGroup/SPIRV-Headers.git",
+)
+
+git_repository(
+    name = "spirv_tools",
+    commit = "f289d047f49fb60488301ec62bafab85573668cc",  # vulkan-sdk-1.4.313.0
+    dev_dependency = True,
+    remote = "https://github.com/KhronosGroup/SPIRV-Tools.git",
+)
+
+git_repository(
+    name = "swiftshader",
+    build_file = "//third_party/swiftshader:BUILD.swiftshader.bazel",
+    commit = "4c3426403b9c89253322265323ca658a2476faca",
+    dev_dependency = True,
+    remote = "https://swiftshader.googlesource.com/SwiftShader.git",
+)
+
+git_repository(
+    name = "zlib_android",
+    build_file = "//third_party/zlib:BUILD.zlib.bazel",
+    commit = "f29fc757b1f27c182f36790eb0ccc6cf8ec27e8e",
+    dev_dependency = True,
+    remote = "https://android.googlesource.com/platform/external/zlib.git",
+)
+
+git_repository(
+    name = "drm",
+    build_file = "//third_party/mesa:BUILD.drm.bazel",
+    # TODO: b/414448658 - gitlab.freedesktop.org having an outage
+    #commit = "998d2a2e81e11043781672494dc3d294c1ecfce0",
+    #remote = "https://gitlab.freedesktop.org/mesa/drm.git",
+    commit = "f241f822cebbd681e46201b16685a827eb024736",
+    dev_dependency = True,
+    remote = "https://android.googlesource.com/platform/external/libdrm.git",
+)
+
+git_repository(
+    name = "mesa",
+    build_file = "//third_party/mesa:BUILD.mesa.bazel",
+    commit = "224e91e39836d3ca31f80df2e0379e55c70574f8",
+    dev_dependency = True,
+    patch_args = ["-p1"],
+    patches = [
+        "//third_party/mesa:PATCH.mesa.patch",
+    ],
+    remote = "https://android.googlesource.com/platform/external/mesa3d.git",
+)
+
+git_repository(
+    name = "mako",
+    build_file = "//third_party/mesa:BUILD.mako.bazel",
+    commit = "51505647100b7cf20a79b496bc12dec379ac9cdc",  # 1.3.0
+    dev_dependency = True,
+    remote = "https://github.com/sqlalchemy/mako",
+)
+
+git_repository(
+    name = "markupsafe",
+    build_file = "//third_party/mesa:BUILD.markupsafe.bazel",
+    commit = "63efa5521c5c75d40cfed0b6b8f6528ecce9bc6a",  # 2.0.1
+    dev_dependency = True,
+    remote = "https://github.com/pallets/markupsafe",
+)
+
+git_repository(
+    name = "pyyaml",
+    build_file = "//third_party/mesa:BUILD.pyyaml.bazel",
+    commit = "41309b0bcb4559edb1d691d47199035ef539d785",  # 6.0.2
+    dev_dependency = True,
+    remote = "https://github.com/yaml/pyyaml.git",
+)
+
+git_repository(
+    name = "rutabaga",
+    build_file = "//third_party/rutabaga:BUILD.rutabaga.bazel",
+    commit = "99ea64dca3024b667d09f3ec56f7dd77f6671495",
+    dev_dependency = True,
+    patch_args = ["-p1"],
+    patches = [
+        "//third_party/rutabaga:PATCH.rutabaga.patch",
+    ],
+    remote = "https://chromium.googlesource.com/crosvm/crosvm.git",
+)
+
+rutabaga_crate_deps = use_extension(
+    "@rules_rust//crate_universe:extensions.bzl",
+    "crate",
+    dev_dependency = True,
+)
+rutabaga_crate_deps.spec(
+    package = "anyhow",
+    version = "1",
+)
+rutabaga_crate_deps.spec(
+    package = "cfg-if",
+    version = "1.0.0",
+)
+rutabaga_crate_deps.spec(
+    features = ["derive"],
+    package = "clap",
+    version = "4.1.8",
+)
+rutabaga_crate_deps.spec(
+    package = "libc",
+    version = "0.2.116",
+)
+rutabaga_crate_deps.spec(
+    package = "log",
+    version = "0.4",
+)
+rutabaga_crate_deps.spec(
+    features = [
+        "event",
+        "feature",
+        "fs",
+        "mman",
+        "socket",
+        "uio",
+        "ioctl",
+    ],
+    package = "nix",
+    version = "0.29",
+)
+rutabaga_crate_deps.spec(
+    package = "remain",
+    version = "0.2",
+)
+rutabaga_crate_deps.spec(
+    features = ["derive"],
+    package = "serde",
+    version = "1",
+)
+rutabaga_crate_deps.spec(
+    package = "serde_json",
+    version = "1",
+)
+rutabaga_crate_deps.spec(
+    package = "thiserror",
+    version = "1.0.23",
+)
+rutabaga_crate_deps.spec(
+    package = "vulkano",
+    version = "0.33.0",
+)
+rutabaga_crate_deps.spec(
+    features = ["derive"],
+    package = "zerocopy",
+    version = "0.8.13",
+)
+rutabaga_crate_deps.from_specs(
+    name = "rutabaga_crate_deps",
+)
+use_repo(rutabaga_crate_deps, "rutabaga_crate_deps")

@@ -1,0 +1,34 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
+cc_library(
+    name = "gfxstream_host_backend",
+    srcs = [
+        "address_space_operations.cpp",
+        "display_operations.cpp",
+        "display_surface.cpp",
+        "display_surface_user.cpp",
+        "dma_device.cpp",
+        "external_object_manager.cpp",
+        "file_stream.cpp",
+        "graphics_driver_lock.cpp",
+        "guest_operations.cpp",
+        "mem_stream.cpp",
+        "renderer_operations.cpp",
+        "stream_utils.cpp",
+        "sync_device.cpp",
+        "vm_operations.cpp",
+        "window_operations.cpp",
+    ],
+    hdrs = glob(["include/**/*.h"]),
+    includes = ["include"],
+    deps = [
+        "//common/logging:gfxstream_common_logging",
+        "//common/utils:gfxstream_common_utils",
+        "//host:gfxstream_backend_headers",
+        "//host/address_space:gfxstream_host_address_space",
+    ],
+)

@@ -1,0 +1,9 @@
+prefix=${env:QNX_TARGET}
+exec_prefix=${prefix}/${env:VARIANT}
+libdir=${exec_prefix}/usr/lib
+includedir=${prefix}/usr/include
+
+Name: screen
+Description: QNX Screen Composited Windowing Native API client
+Libs: -L${libdir} -lscreen
+Cflags: -I${includedir}

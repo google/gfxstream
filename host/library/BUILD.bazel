@@ -1,0 +1,17 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
+cc_library(
+    name = "gfxstream_host_library",
+    srcs = ["SharedLibrary.cpp"],
+    hdrs = glob(["include/**/*.h"]),
+    copts = ["-fno-exceptions"],
+    includes = ["include"],
+    deps = [
+        "//common/base:gfxstream_common_base",
+        "//common/logging:gfxstream_common_logging",
+    ],
+)

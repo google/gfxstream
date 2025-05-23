@@ -1,0 +1,62 @@
+// Copyright 2025 The Android Open Source Project
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expresso or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package {
+    default_applicable_licenses: ["hardware_google_gfxstream_license"],
+}
+
+cc_library_headers {
+    name: "libqemupipe-types.ranchu",
+    host_supported: true,
+    vendor_available: true,
+    export_include_dirs: ["include-types"],
+}
+
+cc_library {
+    name: "libqemupipe.ranchu",
+    host_supported: true,
+    vendor_available: true,
+    srcs: [
+        "qemu_pipe_common.cpp",
+        "qemu_pipe_guest.cpp",
+    ],
+    header_libs: ["libqemupipe-types.ranchu"],
+    export_header_lib_headers: ["libqemupipe-types.ranchu"],
+    shared_libs: ["liblog"],
+    export_include_dirs: ["include"],
+}
+
+cc_library {
+    name: "libqemupipe.gfxstream",
+    defaults: [
+        "gfxstream_defaults",
+    ],
+    srcs: [
+        "qemu_pipe_common.cpp",
+        "qemu_pipe_guest.cpp",
+    ],
+    header_libs: [
+        "libqemupipe-types.ranchu",
+    ],
+    export_header_lib_headers: [
+        "libqemupipe-types.ranchu",
+    ],
+    static_libs: [
+        "libgfxstream_common_logging",
+    ],
+    cflags: [
+        "-DGFXSTREAM_USE_COMMON_LOGGING",
+    ],
+    export_include_dirs: ["include"],
+}

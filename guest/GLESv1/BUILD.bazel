@@ -1,0 +1,37 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_shared_library")
+
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
+cc_library(
+    name = "gfxstream_guest_glesv1_impl",
+    srcs = [
+        "gl.cpp",
+    ],
+    defines = [
+        "ANDROID",
+    ],
+    linkopts = [
+        # Search the current directory for this library's shared libs.
+        # Used for the end2end tests which package all of the guest
+        # libraries into a single `testdata` directory for testing.
+        "-Wl,-rpath,'$$ORIGIN'",
+    ],
+    deps = [
+        "//guest/GLESv1_enc:gfxstream_guest_glesv1_entries",
+        "//guest/OpenglSystemCommon:gfxstream_guest_openglsystemcommon",
+        "//guest/egl:gfxstream_guest_egl_headers",
+    ],
+)
+
+cc_shared_library(
+    name = "gfxstream_guest_glesv1",
+    dynamic_deps = [
+        "//guest/OpenglSystemCommon:gfxstream_guest_openglsystemcommon_shared",
+    ],
+    shared_lib_name = "libGLESv1_CM_emulation.so",
+    deps = [
+        ":gfxstream_guest_glesv1_impl",
+    ],
+)

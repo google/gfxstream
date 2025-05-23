@@ -1,0 +1,203 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test", "objc_library")
+
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
+cc_library(
+    name = "gfxstream_backend_headers",
+    hdrs = glob(["include/**/*.h"]),
+    copts = ["-fno-exceptions"],
+    includes = ["include"],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "gfxstream_host_headers",
+    hdrs = glob([
+        "*.h",
+    ]),
+    copts = ["-fno-exceptions"],
+    includes = ["."],
+    deps = [
+        "//host/health:gfxstream_host_health",
+        "//host/renderdoc:gfxstream_host_renderdoc",
+        "//host/snapshot:gfxstream_host_snapshot",
+    ],
+)
+
+objc_library(
+    name = "gfxstream_backend_static-darwin",
+    srcs = [
+        "GlesCompat.h",
+        "NativeSubWindow.h",
+        "NativeSubWindow_cocoa.mm",
+    ],
+    copts = [
+        "-fno-exceptions",
+        "-Wno-deprecated-declarations",
+    ],
+    defines = [
+        "EMUGL_BUILD",
+        "GFXSTREAM_ENABLE_HOST_GLES=1",
+    ],
+    sdk_frameworks = [
+        "AppKit",
+        "QuartzCore",
+        "IOSurface",
+    ],
+    target_compatible_with = [
+        "@platforms//os:macos",
+    ],
+    deps = [
+        ":gfxstream_backend_headers",
+        "//third_party/opengl:gfxstream_opengl_headers",
+    ],
+)
+
+cc_library(
+    name = "gfxstream_backend_static",
+    srcs = [
+        "Buffer.cpp",
+        "ChannelStream.cpp",
+        "ColorBuffer.cpp",
+        "FrameBuffer.cpp",
+        "Hwc2.cpp",
+        "PostWorker.cpp",
+        "PostWorkerGl.cpp",
+        "ReadBuffer.cpp",
+        "RenderChannelImpl.cpp",
+        "RenderControl.cpp",
+        "RenderLibImpl.cpp",
+        "RenderThread.cpp",
+        "RenderThreadInfo.cpp",
+        "RenderWindow.cpp",
+        "RendererImpl.cpp",
+        "RingStream.cpp",
+        "SyncThread.cpp",
+        "VirtioGpuContext.cpp",
+        "VirtioGpuFrontend.cpp",
+        "VirtioGpuPipe.cpp",
+        "VirtioGpuResource.cpp",
+        "VirtioGpuRingBlob.cpp",
+        "VirtioGpuTimelines.cpp",
+        "VsyncThread.cpp",
+    ] + select({
+        "@platforms//os:macos": [],
+        "@platforms//os:windows": ["NativeSubWindow_win32.cpp"],
+        "@platforms//os:linux": ["NativeSubWindow_x11.cpp"],
+        "//conditions:default": [],
+    }) + glob([
+        "*.h",
+    ]),
+    copts = [
+        "-Wno-return-type-c-linkage",
+        "-Wno-extern-c-compat",
+        "-fno-exceptions",
+    ],
+    defines = [
+        "QEMU_NEXT",
+        "EMUGL_BUILD",
+        "GFXSTREAM_ENABLE_HOST_GLES=1",
+    ] + select({
+        "@platforms//os:windows": [
+            "WIN32_LEAN_AND_MEAN",
+        ],
+        "//conditions:default": [],
+    }),
+    includes = [
+        ".",
+        "gl",
+    ],
+    linkstatic = True,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gfxstream_backend_headers",
+        "//common/base:gfxstream_common_base",
+        "//common/logging:gfxstream_common_logging",
+        "//host/backend:gfxstream_host_backend",
+        "//host/decoder_common:gfxstream_host_decoder_common",
+        "//host/features:gfxstream_features",
+        "//host/gl:EGL_translator_static",
+        "//host/gl:gfxstream-gl-server",
+        "//host/gl:gl-common-headers",
+        "//host/gl:gl_headers",
+        "//host/gl:gles1_dec",
+        "//host/gl:gles2_dec",
+        "//host/gl/OpenGLESDispatch:gfxstream_host_openglesdispatch",
+        "//host/gl/glestranslator/GLES_CM:GLES_CM_translator_static",
+        "//host/health:gfxstream_host_health",
+        "//host/renderControl_dec",
+        "//host/renderdoc:gfxstream_host_renderdoc",
+        "//host/snapshot:gfxstream_host_snapshot",
+        "//host/tracing:gfxstream_host_tracing",
+        "//host/vulkan:gfxstream_vulkan_server",
+        "//third_party/drm:gfxstream_drm_headers",
+    ] + select({
+        "@platforms//os:macos": [
+            ":gfxstream_backend_static-darwin",
+        ],
+        "//conditions:default": [],
+    }),
+)
+
+cc_library(
+    name = "gfxstream_backend_shared",
+    srcs = [
+        "render_api.cpp",
+        "virtio-gpu-gfxstream-renderer.cpp",
+    ],
+    copts = [
+        "-fno-exceptions",
+        "-Wno-extern-c-compat",
+        "-Wno-return-type-c-linkage",
+    ],
+    defines = [
+        "EMUGL_BUILD",
+        "BUILDING_EMUGL_COMMON_SHARED",
+        "WIN32_LEAN_AND_MEAN",
+    ],
+    linkstatic = True,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gfxstream_backend_static",
+        "//common/utils:gfxstream_common_utils",
+    ],
+)
+
+cc_binary(
+    name = "gfxstream_backend",
+    srcs = [
+        "render_api.cpp",
+        "virtio-gpu-gfxstream-renderer.cpp",
+    ],
+    copts = ["-fno-exceptions"],
+    linkshared = True,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gfxstream_backend_static",
+        "//common/utils:gfxstream_common_utils",
+    ],
+)
+
+cc_test(
+    name = "gfxstream_framebuffer_tests",
+    srcs = [
+        "FrameBuffer_unittest.cpp",
+    ],
+    deps = [
+        "//host/testlibs/support:gfxstream_host_testing_support",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "gfxstream_vsyncthread_tests",
+    srcs = [
+        "VsyncThread_unittest.cpp",
+    ],
+    deps = [
+        "//host/testlibs/support:gfxstream_host_testing_support",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

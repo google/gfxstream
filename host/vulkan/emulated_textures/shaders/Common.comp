@@ -1,0 +1,46 @@
+// Copyright 2019 The Android Open Source Project
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// This file contains common code used by the image decompression shaders.
+
+// DIM is preprocessor macro set by the build script that determines whether the shader will
+// process 1D, 2D or 3D images
+#if DIM == 1
+#define IMG_TYPE 1DArray
+#elif DIM == 2
+#define IMG_TYPE 2DArray
+#elif DIM == 3
+#define IMG_TYPE 3D
+#else
+#error "Please set the `DIM` preprocessor macro to 1, 2 or 3. Example: glslc -DDIM=2"
+#endif
+
+// Concatenates 2 tokens while also performing macro replacement
+//
+// For example:
+//   #define FOO world
+//   CONCAT(hello, FOO)
+//
+// Becomes:
+//   helloworld
+#define CONCAT_(x, y) x##y          // concatenation
+#define CONCAT(x, y) CONCAT_(x, y)  // macro replacement
+
+// Appends the correct image type ("1DArray", "2DArray", or "3D") to x
+#define WITH_TYPE(x) CONCAT(x, IMG_TYPE)
+
+// TODO(gregschlom): do we actually use 1DArray images?
+ivec2 getPos1DArray(ivec3 pos) { return pos.xz; }
+ivec3 getPos2DArray(ivec3 pos) { return pos; }
+ivec3 getPos3D(ivec3 pos) { return pos; }

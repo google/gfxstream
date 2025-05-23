@@ -1,0 +1,39 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
+cc_library(
+    name = "GLES_V2_translator_static",
+    srcs = [
+        "ANGLEShaderParser.cpp",
+        "GLESv2Context.cpp",
+        "GLESv2Imp.cpp",
+        "GLESv2Validate.cpp",
+        "ProgramData.cpp",
+        "SamplerData.cpp",
+        "ShaderParser.cpp",
+        "ShaderValidator.cpp",
+        "TransformFeedbackData.cpp",
+    ] + glob(["*.h"]),
+    hdrs = [
+        "GLESv2Imp.cpp",
+        "GLESv30Imp.cpp",
+        "GLESv31Imp.cpp",
+        "GLESv32Imp.cpp",
+    ],
+    copts = [
+        "-Wno-extern-c-compat",
+        "-Wno-inconsistent-missing-override",
+    ],
+    defines = [
+        "BUILDING_EMUGL_COMMON_SHARED",
+    ],
+    includes = ["."],
+    deps = [
+        "//host/decoder_common:gfxstream_host_decoder_common",
+        "//host/gl:gl_common",
+    ],
+    alwayslink = True,
+)

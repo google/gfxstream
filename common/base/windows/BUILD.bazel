@@ -1,0 +1,63 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
+cc_library(
+    name = "gfxstream_common_base_windows_compat_hdrs",
+    hdrs = [
+        "includes/compat_compiler.h",
+        "includes/dirent/dirent.h",
+        "includes/fcntl.h",
+        "includes/libgen.h",
+        "includes/limits.h",
+        "includes/stdlib.h",
+        "includes/strings.h",
+        "includes/sys/cdefs.h",
+        "includes/sys/param.h",
+        "includes/sys/stat.h",
+        "includes/sys/time.h",
+        "includes/sys/types.h",
+        "includes/time.h",
+        "includes/unistd.h",
+    ],
+    defines = ["AEMU_WIN_COMPAT"],
+    includes = [
+        "includes",
+        "includes/dirent",
+    ],
+    target_compatible_with = [
+        "@platforms//os:windows",
+    ],
+)
+
+cc_library(
+    name = "gfxstream_common_base_windows_compat",
+    srcs = [
+        "src/asprintf.c",
+        "src/dirent/dirent.cpp",
+        "src/files.cpp",
+        "src/msvc-posix.c",
+        "src/pread.cpp",
+        "src/time.cpp",
+    ],
+    defines = [
+        "WIN32_LEAN_AND_MEAN",
+    ],
+    includes = [
+        "src",
+    ],
+    linkopts = [
+        "-DEFAULTLIB:ws2_32.lib",
+        "-DEFAULTLIB:Pathcch.lib",
+        "-DEFAULTLIB:ole32.lib",
+        "-DEFAULTLIB:dxguid.lib",
+        "-DEFAULTLIB:Winmm.lib",
+    ],
+    linkstatic = True,
+    target_compatible_with = [
+        "@platforms//os:windows",
+    ],
+    deps = [":gfxstream_common_base_windows_compat_hdrs"],
+)

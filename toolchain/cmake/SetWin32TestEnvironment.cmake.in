@@ -1,0 +1,15 @@
+set(BUILD_DIR "@CMAKE_BINARY_DIR@")
+set(ALL_TESTS "@LIST_OF_TESTS@")
+
+set(envs
+    "PATH=path_list_prepend:${BUILD_DIR}/lib64/gles_swiftshader"
+    "PATH=path_list_prepend:${BUILD_DIR}/lib64/vulkan"
+    "VK_ICD_FILENAMES=set:${BUILD_DIR}/lib64/vulkan/vk_swiftshader_icd.json"
+    "VK_DRIVER_FILES=set:${BUILD_DIR}/lib64/vulkan/vk_swiftshader_icd.json"
+)
+
+foreach(test_target ${ALL_TESTS})
+    set_tests_properties(${${test_target}_TESTS}
+        PROPERTIES ENVIRONMENT_MODIFICATION "${envs}"
+    )
+endforeach()

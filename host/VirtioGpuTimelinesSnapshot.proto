@@ -1,0 +1,72 @@
+// Copyright (C) 2024 The Android Open Source Project
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package gfxstream.host.snapshot;
+
+message VirtioGpuGlobalRing {}
+
+message VirtioGpuContextSpecificRing {
+    optional uint32 context_id = 1;
+    optional uint32 ring_id = 2;
+}
+
+message VirtioGpuRing {
+    oneof ring {
+        VirtioGpuGlobalRing global = 1;
+        VirtioGpuContextSpecificRing context_specific = 2;
+    }
+}
+
+message VirtioGpuTimelineFence {
+    optional uint64 id = 1;
+}
+
+// LINT.IfChange(virtio_gpu_timeline_task)
+message VirtioGpuTimelineTask {
+    optional uint64 id = 1;
+    optional VirtioGpuRing ring = 2;
+    optional uint64 trace_id = 3;
+    optional bool completed = 4;
+}
+// LINT.ThenChange(VirtioGpuTimelines.h:virtio_gpu_timeline_task)
+
+// LINT.IfChange(virtio_gpu_timeline_item)
+message VirtioGpuTimelineItem {
+    oneof item {
+        VirtioGpuTimelineFence fence = 1;
+        VirtioGpuTimelineTask task = 2;
+    }
+}
+// LINT.ThenChange(VirtioGpuTimelines.h:virtio_gpu_timeline_item)
+
+// LINT.IfChange(virtio_gpu_timeline)
+message VirtioGpuTimeline {
+    optional uint64 trace_id = 1;
+    repeated VirtioGpuTimelineItem items = 2;
+}
+// LINT.ThenChange(VirtioGpuTimelines.h:virtio_gpu_timeline)
+
+// LINT.IfChange(virtio_gpu_timelines)
+message VirtioGpuTimelinesSnapshot {
+    optional uint64 next_id = 1;
+
+    message RingWithTimeline {
+        optional VirtioGpuRing ring = 1;
+        optional VirtioGpuTimeline timeline = 2;
+    }
+    repeated RingWithTimeline timelines = 2;
+}
+// LINT.ThenChange(VirtioGpuTimelines.h:virtio_gpu_timelines)

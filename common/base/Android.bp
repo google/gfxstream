@@ -1,0 +1,37 @@
+package {
+    default_team: "trendy_team_automotive",
+    default_applicable_licenses: ["hardware_google_gfxstream_license"],
+}
+
+cc_library_static {
+    name: "libgfxstream_common_base",
+    host_supported: true,
+    vendor_available: true,
+    cflags: [
+        "-Wno-unused-parameter",
+        "-Wno-reorder-ctor",
+    ],
+    srcs: [
+        "AlignedBuf.cpp",
+        "CpuTime.cpp",
+        "FileUtils.cpp",
+        "FunctorThread.cpp",
+        "MessageChannel.cpp",
+        "PathUtils.cpp",
+        "SharedMemory_posix.cpp",
+        "StringFormat.cpp",
+        "System.cpp",
+        "Tracing.cpp",
+        "Thread_pthread.cpp",
+    ],
+    export_include_dirs: [
+        "include",
+    ],
+    static_libs: [
+        "liblz4",
+    ],
+    apex_available: [
+        "//apex_available:platform",
+        "com.android.virt",
+    ],
+}

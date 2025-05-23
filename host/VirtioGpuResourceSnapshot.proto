@@ -1,0 +1,79 @@
+// Copyright (C) 2024 The Android Open Source Project
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+import "VirtioGpuRingBlobSnapshot.proto";
+
+package gfxstream.host.snapshot;
+
+// LINT.IfChange(virtio_gpu_resource_type)
+enum VirtioGpuResourceType {
+    UNKNOWN = 0;
+    PIPE = 1;
+    BUFFER = 2;
+    COLOR_BUFFER = 3;
+    BLOB = 4;
+}
+// LINT.ThenChange(VirtioGpuResource.h:virtio_gpu_resource_type)
+
+message VirtioGpuResourceCreateArgs {
+    optional uint32 id = 1;
+    optional uint32 target = 2;
+    optional uint32 format = 3;
+    optional uint32 bind = 4;
+    optional uint32 width = 5;
+    optional uint32 height = 6;
+    optional uint32 depth = 7;
+    optional uint32 array_size = 8;
+    optional uint32 last_level = 9;
+    optional uint32 nr_samples = 10;
+    optional uint32 flags = 11;
+}
+
+message VirtioGpuResourceCreateBlobArgs {
+    optional uint32 mem = 1;
+    optional uint32 flags = 2;
+    optional uint32 id = 3;
+    optional uint64 size = 4;
+}
+
+// NOTE: This does not actually save the blob's external memory because the handle
+// or mapping may not be the same across snapshot and restore. This instead saves
+// the info needed to refetch either the descriptor or mapping from
+// `ExternalObjectManager` after a restore.
+message VirtioGpuBlobExternalMemoryInfo {
+    optional uint32 context_id = 1;
+    optional uint32 blob_id = 2;
+}
+
+// LINT.IfChange(virtio_gpu_resource)
+message VirtioGpuResourceSnapshot {
+    optional uint32 id = 1;
+    optional VirtioGpuResourceType type = 2;
+    optional VirtioGpuResourceCreateArgs create_args = 3;
+    optional VirtioGpuResourceCreateBlobArgs create_blob_args = 4;
+    // NOTE: `VirtioGpuResource::iovs` is not saved because the host virtual address
+    // may not be the same across snapshot and restore. VMMs are expected to re-call
+    // `stream_renderer_resource_attach_iov()` for resources with the new guest-memory
+    // host virtual addresses.
+    oneof blob_memory {
+        VirtioGpuRingBlobSnapshot ring_blob = 5;
+        VirtioGpuBlobExternalMemoryInfo external_memory_descriptor = 6;
+        VirtioGpuBlobExternalMemoryInfo external_memory_mapping = 7;
+    }
+    optional uint32 latest_attached_context = 8;
+    repeated uint32 attached_contexts = 9;
+}
+// LINT.ThenChange(VirtioGpuResource.h:virtio_gpu_resource)

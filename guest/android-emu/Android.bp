@@ -1,0 +1,111 @@
+// Copyright 2025 The Android Open Source Project
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expresso or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package {
+    default_applicable_licenses: ["hardware_google_gfxstream_license"],
+}
+
+cc_library_shared {
+    name: "libandroidemu",
+    defaults: [
+        "gfxstream_guest_cc_defaults",
+    ],
+    srcs: [
+        "aemu/base/AlignedBuf.cpp",
+        "aemu/base/Path.cpp",
+        "aemu/base/Pool.cpp",
+        "aemu/base/StringFormat.cpp",
+        "aemu/base/Process.cpp",
+        "aemu/base/synchronization/AndroidMessageChannel.cpp",
+        "aemu/base/threads/AndroidFunctorThread.cpp",
+        "aemu/base/threads/AndroidThreadStore.cpp",
+        "aemu/base/threads/AndroidThread_pthread.cpp",
+        "aemu/base/threads/AndroidWorkPool.cpp",
+        "aemu/base/Tracing.cpp",
+        "android/utils/debug.c",
+    ],
+    shared_libs: [
+        "libcutils",
+        "libutils",
+        "liblog",
+    ],
+    export_include_dirs: [
+        ".",
+    ],
+    cflags: [
+        "-DLOG_TAG=\"androidemu\"",
+        "-Wno-missing-field-initializers",
+        "-fvisibility=default",
+        "-fstrict-aliasing",
+    ],
+}
+
+cc_library_static {
+    name: "libgfxstream_androidemu_static",
+    defaults: [
+        "gfxstream_guest_cc_defaults",
+    ],
+    srcs: [
+        "aemu/base/AlignedBuf.cpp",
+        "aemu/base/Path.cpp",
+        "aemu/base/Pool.cpp",
+        "aemu/base/StringFormat.cpp",
+        "aemu/base/Process.cpp",
+        "aemu/base/synchronization/AndroidMessageChannel.cpp",
+        "aemu/base/threads/AndroidFunctorThread.cpp",
+        "aemu/base/threads/AndroidThreadStore.cpp",
+        "aemu/base/threads/AndroidThread_pthread.cpp",
+        "aemu/base/threads/AndroidWorkPool.cpp",
+        "aemu/base/Tracing.cpp",
+        "android/utils/debug.c",
+    ],
+    shared_libs: [
+        "libcutils",
+        "libutils",
+        "liblog",
+    ],
+    export_include_dirs: [
+        ".",
+    ],
+    cflags: [
+        "-DLOG_TAG=\"androidemu\"",
+        "-Wno-missing-field-initializers",
+        "-fvisibility=default",
+        "-fstrict-aliasing",
+    ],
+}
+
+cc_library_static {
+    name: "libringbuffer",
+    defaults: [
+        "gfxstream_guest_cc_defaults",
+    ],
+    srcs: [
+        "aemu/base/ring_buffer.c",
+    ],
+    shared_libs: [
+        "libcutils",
+        "libutils",
+        "liblog",
+    ],
+    export_include_dirs: [
+        ".",
+    ],
+    cflags: [
+        "-DLOG_TAG=\"androidemu\"",
+        "-Wno-missing-field-initializers",
+        "-fvisibility=default",
+        "-fstrict-aliasing",
+    ],
+}

@@ -1,0 +1,29 @@
+#version 450
+#include "AstcDecompressor.glsl"
+#include "Common.comp"
+
+precision highp int;
+
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
+
+layout(push_constant) uniform ImageFormatBlock {
+    uvec2 blockSize;
+    uint baseLayer;
+    uint smallBlock;  // TODO(gregschlom) Remove this once we remove the old decoder.
+}
+u_pushConstant;
+
+layout(binding = 0, rgba32ui) readonly uniform WITH_TYPE(uimage) srcImage;
+layout(binding = 1, rgba8ui) writeonly uniform WITH_TYPE(uimage) dstImage;
+
+void main() {
+    uvec2 texelPos = gl_GlobalInvocationID.xy;
+    uint layer = u_pushConstant.baseLayer + gl_GlobalInvocationID.z;
+    uvec2 blockPos = texelPos / u_pushConstant.blockSize;
+    uvec2 posInBlock = texelPos % u_pushConstant.blockSize;
+
+    uvec4 astcBlock = imageLoad(srcImage, WITH_TYPE(getPos)(ivec3(blockPos, layer))).wzyx;
+    astcDecoderInitialize(astcBlock, u_pushConstant.blockSize);
+    uvec4 texel = astcDecodeTexel(posInBlock);
+    imageStore(dstImage, WITH_TYPE(getPos)(ivec3(texelPos, layer)), texel);
+}

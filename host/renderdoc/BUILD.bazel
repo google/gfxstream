@@ -1,0 +1,28 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
+cc_library(
+    name = "gfxstream_host_renderdoc",
+    hdrs = glob(["include/**/*.h"]),
+    includes = ["include"],
+    deps = [
+        "//common/logging:gfxstream_common_logging",
+        "//host/library:gfxstream_host_library",
+        "//third_party/renderdoc",
+        "//third_party/vulkan:gfxstream_vulkan_headers",
+    ],
+)
+
+cc_test(
+    name = "gfxstream_host_renderdoc_tests",
+    srcs = [
+        "RenderDoc_unittest.cpp",
+    ],
+    deps = [
+        ":gfxstream_host_renderdoc",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

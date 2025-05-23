@@ -1,0 +1,18 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(
+    default_visibility = ["//:gfxstream"],
+)
+
+cc_library(
+    name = "gfxstream_common_utils_headers",
+    hdrs = glob(["include/**/*.h"]),
+    includes = ["include"],
+)
+
+cc_library(
+    name = "gfxstream_common_utils",
+    srcs = ["Strings.cpp"],
+    copts = ["-fno-exceptions"],
+    deps = [":gfxstream_common_utils_headers"],
+)

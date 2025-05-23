@@ -1,0 +1,60 @@
+package {
+    default_applicable_licenses: ["hardware_google_gfxstream_license"],
+}
+
+cc_library_host_static {
+    name: "libgfxstream_graphics_detector_proto",
+    proto: {
+        export_proto_headers: true,
+        type: "full",
+    },
+    strip: {
+        keep_symbols: true,
+    },
+    srcs: ["GraphicsDetector.proto"],
+}
+
+cc_library_host_static {
+    name: "libgfxstream_graphics_detector",
+    srcs: [
+        "Egl.cpp",
+        "Gles.cpp",
+        "Image.cpp",
+        "Lib.cpp",
+        "GraphicsDetector.cpp",
+        "GraphicsDetectorGl.cpp",
+        "GraphicsDetectorVk.cpp",
+        "GraphicsDetectorVkExternalMemoryHost.cpp",
+        "GraphicsDetectorVkPrecisionQualifiersOnYuvSamplers.cpp",
+        "Subprocess.cpp",
+        "Vulkan.cpp",
+    ],
+    header_libs: [
+        "libgfxstream_thirdparty_vulkan_headers",
+    ],
+    static_libs: [
+        "libgfxstream_graphics_detector_proto",
+        "libprotobuf-cpp-full",
+    ],
+    export_static_lib_headers: [
+        "libgfxstream_graphics_detector_proto",
+    ],
+    local_include_dirs: [
+        ".",
+    ],
+    cflags: ["-O0"],
+}
+
+cc_binary_host {
+    name: "gfxstream_graphics_detector",
+    srcs: [
+        "DetectGraphics.cpp",
+    ],
+    static_libs: [
+        "libgfxstream_graphics_detector_proto",
+        "libgfxstream_graphics_detector",
+        "libprotobuf-cpp-full",
+    ],
+    cflags: ["-O0"],
+    stl: "libc++_static",
+}
