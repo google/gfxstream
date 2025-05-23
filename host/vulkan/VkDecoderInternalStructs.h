@@ -248,88 +248,61 @@ struct PhysicalQueuePendingOps {
     // conditions, but when the virtual queue is active, we have to manually block
     // the submissions until they can be executed safely, without blocking the
     // signalling submissions.
+    struct DeferredSubmitCall {
+        std::vector<VkSubmitInfo> mSubmitInfos;
+        std::vector<VkSubmitInfo2> mSubmitInfo2s;
+        VkFence mFence;
 
-    struct QueueSubmit2 {
-        bool convertFrom(const VkSubmitInfo2& submit) {
-            // TODO(b/379862480): Use deepcopy_VkSubmitInfo2 to support pNext values
-            bool foundAnyPNext = false;
-            if (submit.pNext) {
-                foundAnyPNext = true;
-                return false;
-            }
-
-            mWaitSemaphoreInfos.resize(submit.commandBufferInfoCount);
-            for (uint32_t i = 0; i < submit.commandBufferInfoCount; i++) {
-                if (submit.pWaitSemaphoreInfos[i].pNext) {
-                    foundAnyPNext = true;
-                }
-                mWaitSemaphoreInfos[i] = submit.pWaitSemaphoreInfos[i];
-            }
-
-            mCommandBufferInfos.resize(submit.commandBufferInfoCount);
-            for (uint32_t i = 0; i < submit.commandBufferInfoCount; i++) {
-                if (submit.pCommandBufferInfos[i].pNext) {
-                    foundAnyPNext = true;
-                }
-                mCommandBufferInfos[i] = submit.pCommandBufferInfos[i];
-            }
-
-            mSignalSemaphoreInfos.resize(submit.commandBufferInfoCount);
-            for (uint32_t i = 0; i < submit.commandBufferInfoCount; i++) {
-                if (submit.pSignalSemaphoreInfos[i].pNext) {
-                    foundAnyPNext = true;
-                }
-                mSignalSemaphoreInfos[i] = submit.pSignalSemaphoreInfos[i];
-            }
-
-            if (foundAnyPNext) {
-                return false;
-            }
-
-            mSubmitInfoCopy = submit;
-            mSubmitInfoCopy.pWaitSemaphoreInfos = mWaitSemaphoreInfos.data();
-            mSubmitInfoCopy.pCommandBufferInfos = mCommandBufferInfos.data();
-            mSubmitInfoCopy.pSignalSemaphoreInfos = mSignalSemaphoreInfos.data();
-
+        bool addSubmitInfo(const VkSubmitInfo& submit) {
+            VkSubmitInfo submitInfoCopied;
+            deepcopy_VkSubmitInfo(&mPool, VK_STRUCTURE_TYPE_SUBMIT_INFO, &submit,
+                                  &submitInfoCopied);
+            mSubmitInfos.push_back(submitInfoCopied);
             return true;
         }
 
-        VkSubmitInfo2 mSubmitInfoCopy;
+        bool addSubmitInfo2(const VkSubmitInfo2& submit) {
+            VkSubmitInfo2 submitInfoCopied;
+            deepcopy_VkSubmitInfo2(&mPool, VK_STRUCTURE_TYPE_SUBMIT_INFO_2, &submit,
+                                   &submitInfoCopied);
+            mSubmitInfo2s.push_back(submitInfoCopied);
+            return true;
+        }
 
-        std::vector<VkSemaphoreSubmitInfo> mWaitSemaphoreInfos;
-        std::vector<VkCommandBufferSubmitInfo> mCommandBufferInfos;
-        std::vector<VkSemaphoreSubmitInfo> mSignalSemaphoreInfos;
+        gfxstream::base::BumpPool mPool = gfxstream::base::BumpPool();
     };
 
-    struct DeferredSubmitCall {
-        std::vector<QueueSubmit2> mSubmits;
-        VkFence mFence;
-    };
-
-    std::vector<DeferredSubmitCall> mSubmitCalls;
-
-    VkResult queuePendingSubmission(uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence) {
-        // TODO(b/379862480): VkSubmitInfo is not supported for deferred submissions, this
-        // should not be called until we support VkTimelineSemaphoreSubmitInfo on pNext
-        GFXSTREAM_ERROR("PhysicalQueuePendingOps: Cannot defer queue submissions with 'VkSubmitInfo'");
-        return VK_ERROR_OUT_OF_HOST_MEMORY;
-    }
-
-    VkResult queuePendingSubmission(uint32_t submitCount, const VkSubmitInfo2* pSubmits,
-                                VkFence fence) {
-        PhysicalQueuePendingOps::DeferredSubmitCall deferredCall;
+    VkResult queuePendingSubmission(uint32_t submitCount, const VkSubmitInfo* pSubmits,
+                                    VkFence fence) {
+        auto deferredCall = std::make_unique<PhysicalQueuePendingOps::DeferredSubmitCall>();
         for (uint32_t i = 0; i < submitCount; i++) {
-            PhysicalQueuePendingOps::QueueSubmit2 deferredSubmit;
-            if (!deferredSubmit.convertFrom(pSubmits[i])) {
+            if (!deferredCall->addSubmitInfo(pSubmits[i])) {
                 GFXSTREAM_ERROR("Unsupported submission type detected on virtual queue!");
                 return VK_ERROR_OUT_OF_HOST_MEMORY;
             }
-            deferredCall.mSubmits.push_back(deferredSubmit);
         }
-        deferredCall.mFence = fence;
-        mSubmitCalls.emplace_back(deferredCall);
+        deferredCall->mFence = fence;
+        mSubmitCalls.push_back(std::move(deferredCall));
         return VK_SUCCESS;
     }
+
+    VkResult queuePendingSubmission(uint32_t submitCount, const VkSubmitInfo2* pSubmits,
+                                    VkFence fence) {
+        auto deferredCall = std::make_unique<PhysicalQueuePendingOps::DeferredSubmitCall>();
+        for (uint32_t i = 0; i < submitCount; i++) {
+            if (!deferredCall->addSubmitInfo2(pSubmits[i])) {
+                GFXSTREAM_ERROR("Unsupported submission type detected on virtual queue!");
+                return VK_ERROR_OUT_OF_HOST_MEMORY;
+            }
+        }
+        deferredCall->mFence = fence;
+        mSubmitCalls.push_back(std::move(deferredCall));
+        return VK_SUCCESS;
+    }
+
+    // Using heap allocation for submit calls storage, to ensure that the deep copied vulkan
+    // submit info structures and pointers in them will stay valid after add/erase operations
+    std::vector<std::unique_ptr<DeferredSubmitCall>> mSubmitCalls;
 };
 
 struct QueueInfo {
