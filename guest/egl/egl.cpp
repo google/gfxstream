@@ -479,6 +479,7 @@ EGLBoolean egl_window_surface_t::init()
         if (waitRet < 0) {
             GFXSTREAM_ERROR("Failed to wait for window surface's dequeued buffer.");
             anwHelper->cancelBuffer(nativeWindow, buffer);
+            buffer = nullptr; // cancel buffer releases the ref
         }
 
         syncHelper->close(acquireFenceFd);
