@@ -4,6 +4,50 @@ package(
     default_visibility = ["//:gfxstream"],
 )
 
+VKCEREAL_DEFINES = [
+    "VK_GFXSTREAM_STRUCTURE_TYPE_EXT",
+    "VK_GOOGLE_gfxstream",
+] + select({
+    "@platforms//os:macos": [
+        "VK_USE_PLATFORM_METAL_EXT",
+        "VK_USE_PLATFORM_MACOS_MVK",
+    ],
+    "@platforms//os:windows": [
+        "VK_USE_PLATFORM_WIN32_KHR",
+    ],
+    "@platforms//os:linux": [],
+    "//conditions:default": [],
+})
+
+cc_library(
+    name = "gfxstream_vulkan_cereal_private_deps",
+    hdrs = [
+        "common/goldfish_vk_private_defs.h",
+    ],
+    defines = VKCEREAL_DEFINES,
+    includes = ["common"],
+    deps = [
+        "//third_party/vulkan:gfxstream_vulkan_headers",
+    ],
+)
+
+cc_library(
+    name = "gfxstream_vulkan_cereal_dispatch",
+    srcs = [
+        "common/goldfish_vk_dispatch.cpp",
+    ],
+    hdrs = [
+        "common/goldfish_vk_dispatch.h",
+    ],
+    defines = VKCEREAL_DEFINES,
+    includes = ["common"],
+    deps = [
+        ":gfxstream_vulkan_cereal_private_deps",
+        "//host/vulkan:gfxstream_vulkan_headers",
+        "//third_party/vulkan:gfxstream_vulkan_headers",
+    ],
+)
+
 cc_library(
     name = "gfxstream_vulkan_cereal",
     srcs = [
@@ -14,33 +58,28 @@ cc_library(
         "common/goldfish_vk_reserved_marshaling.cpp",
         "common/goldfish_vk_transform.cpp",
     ],
-    hdrs = glob([
-        "**/*.h",
-    ]),
-    defines = [
-        "VK_GFXSTREAM_STRUCTURE_TYPE_EXT",
-        "VK_GOOGLE_gfxstream",
-    ] + select({
-        "@platforms//os:macos": [
-            "VK_USE_PLATFORM_METAL_EXT",
-            "VK_USE_PLATFORM_MACOS_MVK",
-        ],
-        "@platforms//os:windows": [
-            "VK_USE_PLATFORM_WIN32_KHR",
-        ],
-        "@platforms//os:linux": [],
-        "//conditions:default": [],
-    }),
+    hdrs = [
+        "common/goldfish_vk_deepcopy.h",
+        "common/goldfish_vk_extension_structs.h",
+        "common/goldfish_vk_marshaling.h",
+        "common/goldfish_vk_reserved_marshaling.h",
+        "common/goldfish_vk_transform.h",
+        "common/vk_struct_id.h",
+    ],
+    defines = VKCEREAL_DEFINES,
     includes = ["common"],
     deps = [
+        ":gfxstream_vulkan_cereal_dispatch",
+        ":gfxstream_vulkan_cereal_private_deps",
         "//common/base:gfxstream_common_base",
         "//common/logging:gfxstream_common_logging",
         "//host:gfxstream_host_headers",
         "//host/backend:gfxstream_host_backend",
-        "//host/features:gfxstream_features",
+        "//host/features:gfxstream_host_features",
         "//host/health:gfxstream_host_health",
         "//host/tracing:gfxstream_host_tracing",
         "//host/vulkan:gfxstream_vulkan_headers",
+        "//host/vulkan:gfxstream_vulkan_server_headers",
         "//third_party/vulkan:gfxstream_vulkan_headers",
     ],
 )

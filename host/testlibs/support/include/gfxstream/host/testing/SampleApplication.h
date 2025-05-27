@@ -24,8 +24,8 @@
 #include "RenderThreadInfo.h"
 #include "gfxstream/Compiler.h"
 #include "gfxstream/host/testing/OSWindow.h"
-#include "gl/EmulatedEglContext.h"
-#include "gl/EmulatedEglFenceSync.h"
+#include "EmulatedEglContext.h"
+#include "EmulatedEglFenceSync.h"
 
 namespace gfxstream {
 

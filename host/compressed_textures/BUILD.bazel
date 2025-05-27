@@ -25,6 +25,7 @@ cc_test(
     copts = ["-fno-exceptions"],
     deps = [
         ":gfxstream_host_compressed_textures",
+        "@com_google_googletest//:gtest",
         "@com_google_googletest//:gtest_main",
     ],
 )

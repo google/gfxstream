@@ -5,14 +5,9 @@ package(
 )
 
 cc_library(
-    name = "gfxstream_common_utils_headers",
-    hdrs = glob(["include/**/*.h"]),
-    includes = ["include"],
-)
-
-cc_library(
     name = "gfxstream_common_utils",
     srcs = ["Strings.cpp"],
+    hdrs = glob(["include/**/*.h"]),
     copts = ["-fno-exceptions"],
-    deps = [":gfxstream_common_utils_headers"],
+    includes = ["include"],
 )

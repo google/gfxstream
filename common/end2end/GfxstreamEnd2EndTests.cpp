@@ -20,6 +20,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <drm/drm_fourcc.h>
 
 #include "TestDataUtils.h"
 #include "VirtGpu.h"

@@ -36,7 +36,9 @@ cc_library(
         "-Wl,-rpath,'$$ORIGIN'",
     ],
     deps = [
+        "//common/logging:gfxstream_common_logging",
         "//guest/OpenglCodecCommon:gfxstream_guest_openglcodeccommon",
+        "//guest/android-emu:gfxstream_guest_base",
         "@mesa//:mesa_gfxstream_guest_iostream",
     ],
 )

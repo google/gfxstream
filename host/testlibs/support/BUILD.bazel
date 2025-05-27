@@ -35,9 +35,18 @@ cc_library(
     strip_include_prefix = "include",
     deps = [
         "//common/base:gfxstream_common_base",
+        "//host:gfxstream_backend_headers",
         "//host:gfxstream_backend_static",
         "//host:gfxstream_host_headers",
+        "//host/backend:gfxstream_host_backend",
+        "//host/decoder_common:gfxstream_host_decoder_common",
+        "//host/gl:gfxstream_opengl_server",
         "//host/gl/OpenGLESDispatch:gfxstream_host_openglesdispatch",
+        "//host/gl/OpenGLESDispatch:gfxstream_host_openglesdispatch_headers",
         "//host/testlibs/oswindow:gfxstream_oswindow_test_support",
+        "//third_party/glm",
+        "//third_party/opengl:gfxstream_egl_headers",
+        "//third_party/opengl:gfxstream_gles2_headers",
+        "//third_party/opengl:gfxstream_gles3_headers",
     ],
 )

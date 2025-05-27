@@ -27,7 +27,10 @@ namespace gfxstream {
 namespace base {
 
 Thread::Thread(ThreadFlags flags, int stackSize, std::optional<std::string> nameOpt)
-    : mThread((pthread_t)NULL), mStackSize(stackSize), mFlags(flags), mNameOpt(std::move(nameOpt)) {}
+    : mNameOpt(std::move(nameOpt)),
+      mThread((pthread_t)NULL),
+      mStackSize(stackSize),
+      mFlags(flags) {}
 
 Thread::~Thread() {
     assert(!mStarted || mFinished);

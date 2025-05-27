@@ -19,6 +19,7 @@
 
 #include <GLES/gl.h>
 #include <GLES3/gl3.h>
+typedef const GLubyte* GLconstubyteptr;
 namespace translator {
 namespace gles2 {
 GL_APICALL GLconstubyteptr GL_APIENTRY glGetStringi(GLenum name, GLint index);

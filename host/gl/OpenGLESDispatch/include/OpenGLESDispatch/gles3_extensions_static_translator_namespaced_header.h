@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include <GLES3/gl3.h>
+
 namespace translator {
 namespace gles2 {
 GL_APICALL void GL_APIENTRY glVertexAttribIPointerWithDataSize(GLuint indx, GLint size, GLenum type, GLsizei stride, const GLvoid* ptr, GLsizei dataSize);

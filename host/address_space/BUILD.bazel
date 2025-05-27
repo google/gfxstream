@@ -29,6 +29,8 @@ cc_test(
     ],
     deps = [
         ":gfxstream_host_address_space",
+        "//common/base:gfxstream_common_base",
+        "@com_google_googletest//:gtest",
         "@com_google_googletest//:gtest_main",
     ],
 )

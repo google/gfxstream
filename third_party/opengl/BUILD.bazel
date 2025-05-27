@@ -5,7 +5,77 @@ package(
 )
 
 cc_library(
+    name = "gfxstream_khr_headers",
+    hdrs = [
+        "include/KHR/khrplatform.h",
+    ],
+    includes = ["include"],
+)
+
+cc_library(
     name = "gfxstream_opengl_headers",
-    hdrs = glob(["include/**/*.h"]),
+    hdrs = [
+        "include/GL/GLcorearb.h",
+        "include/GL/gl.h",
+        "include/KHR/khrplatform.h",
+    ],
+    includes = ["include"],
+)
+
+cc_library(
+    name = "gfxstream_egl_headers",
+    hdrs = [
+        "include/EGL/egl.h",
+        "include/EGL/eglext.h",
+        "include/EGL/eglplatform.h",
+        "include/KHR/khrplatform.h",
+    ],
+    includes = ["include"],
+)
+
+cc_library(
+    name = "gfxstream_gles_headers",
+    hdrs = [
+        "include/GLES/gl.h",
+        "include/GLES/glext.h",
+        "include/GLES/glplatform.h",
+        "include/KHR/khrplatform.h",
+    ],
+    includes = ["include"],
+)
+
+cc_library(
+    name = "gfxstream_gles2_headers",
+    hdrs = [
+        "include/GLES2/gl2.h",
+        "include/GLES2/gl2ext.h",
+        "include/GLES2/gl2platform.h",
+        "include/KHR/khrplatform.h",
+    ],
+    includes = ["include"],
+)
+
+cc_library(
+    name = "gfxstream_gles3_headers",
+    hdrs = [
+        "include/GLES2/gl2ext.h",
+        "include/GLES3/gl3.h",
+        "include/GLES3/gl31.h",
+        "include/GLES3/gl32.h",
+        "include/GLES3/gl3platform.h",
+        "include/KHR/khrplatform.h",
+    ],
+    includes = ["include"],
+)
+
+cc_library(
+    name = "gfxstream_glx_headers",
+    hdrs = [
+        "include/GL/glext.h",
+        "include/GL/glx.h",
+        "include/GL/glx_mangle.h",
+        "include/GL/glxext.h",
+        "include/GL/wglext.h",
+    ],
     includes = ["include"],
 )

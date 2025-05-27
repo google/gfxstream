@@ -26,6 +26,7 @@ cc_library(
     hdrs = glob(["include/**/*.h"]),
     includes = ["include"],
     deps = [
+        "//common/base:gfxstream_common_base",
         "//common/logging:gfxstream_common_logging",
         "//common/utils:gfxstream_common_utils",
         "//host:gfxstream_backend_headers",

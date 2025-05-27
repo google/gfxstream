@@ -6,10 +6,37 @@ package(
 
 cc_library(
     name = "gfxstream_backend_headers",
-    hdrs = glob(["include/**/*.h"]),
+    hdrs = [
+        "include/gfxstream/virtio-gpu-gfxstream-renderer.h",
+        "include/gfxstream/virtio-gpu-gfxstream-renderer-unstable.h",
+        "include/render-utils/MediaNative.h",
+        "include/render-utils/RenderChannel.h",
+        "include/render-utils/RenderLib.h",
+        "include/render-utils/Renderer.h",
+        "include/render-utils/address_space_graphics_types.h",
+        "include/render-utils/address_space_operations.h",
+        "include/render-utils/display_operations.h",
+        "include/render-utils/dma_device.h",
+        "include/render-utils/gralloc_enums.h",
+        "include/render-utils/logging_operations.h",
+        "include/render-utils/render_api.h",
+        "include/render-utils/render_api_functions.h",
+        "include/render-utils/render_api_platform_types.h",
+        "include/render-utils/renderer_enums.h",
+        "include/render-utils/small_vector.h",
+        "include/render-utils/snapshot_operations.h",
+        "include/render-utils/stream.h",
+        "include/render-utils/sync_device.h",
+        "include/render-utils/virtio_gpu_ops.h",
+        "include/render-utils/vm_operations.h",
+        "include/render-utils/window_operations.h",
+    ],
     copts = ["-fno-exceptions"],
     includes = ["include"],
     visibility = ["//visibility:public"],
+    deps = [
+        "//host/features:gfxstream_host_features",
+    ],
 )
 
 cc_library(
@@ -20,9 +47,21 @@ cc_library(
     copts = ["-fno-exceptions"],
     includes = ["."],
     deps = [
+        ":gfxstream_backend_headers",
+        "//common/base:gfxstream_common_base",
+        "//common/logging:gfxstream_common_logging",
+        "//host/address_space:gfxstream_host_address_space",
+        "//host/backend:gfxstream_host_backend",
         "//host/health:gfxstream_host_health",
+        "//host/iostream:gfxstream_host_iostream",
+        "//host/renderControl_dec",
         "//host/renderdoc:gfxstream_host_renderdoc",
         "//host/snapshot:gfxstream_host_snapshot",
+        "//host/vulkan:gfxstream_vulkan_server_headers",
+        "//third_party/drm:gfxstream_drm_headers",
+        "//third_party/opengl:gfxstream_egl_headers",
+        "//third_party/opengl:gfxstream_gles2_headers",
+        "//third_party/opengl:gfxstream_gles3_headers",
     ],
 )
 
@@ -51,7 +90,7 @@ objc_library(
     ],
     deps = [
         ":gfxstream_backend_headers",
-        "//third_party/opengl:gfxstream_opengl_headers",
+        "//third_party/opengl:gfxstream_egl_headers",
     ],
 )
 
@@ -84,8 +123,12 @@ cc_library(
         "VsyncThread.cpp",
     ] + select({
         "@platforms//os:macos": [],
-        "@platforms//os:windows": ["NativeSubWindow_win32.cpp"],
-        "@platforms//os:linux": ["NativeSubWindow_x11.cpp"],
+        "@platforms//os:windows": [
+            "NativeSubWindow_win32.cpp",
+        ],
+        "@platforms//os:linux": [
+            "NativeSubWindow_x11.cpp",
+        ],
         "//conditions:default": [],
     }) + glob([
         "*.h",
@@ -115,24 +158,33 @@ cc_library(
         ":gfxstream_backend_headers",
         "//common/base:gfxstream_common_base",
         "//common/logging:gfxstream_common_logging",
+        "//host/address_space:gfxstream_host_address_space",
         "//host/backend:gfxstream_host_backend",
+        "//host/compressed_textures:gfxstream_host_compressed_textures",
         "//host/decoder_common:gfxstream_host_decoder_common",
-        "//host/features:gfxstream_features",
+        "//host/features:gfxstream_host_features",
         "//host/gl:EGL_translator_static",
-        "//host/gl:gfxstream-gl-server",
-        "//host/gl:gl-common-headers",
+        "//host/gl:gfxstream_opengl_server",
+        "//host/gl:gl_common_headers",
         "//host/gl:gl_headers",
         "//host/gl:gles1_dec",
         "//host/gl:gles2_dec",
         "//host/gl/OpenGLESDispatch:gfxstream_host_openglesdispatch",
+        "//host/gl/OpenGLESDispatch:gfxstream_host_openglesdispatch_headers",
         "//host/gl/glestranslator/GLES_CM:GLES_CM_translator_static",
         "//host/health:gfxstream_host_health",
+        "//host/iostream:gfxstream_host_iostream",
+        "//host/library:gfxstream_host_library",
+        "//host/metrics:gfxstream_host_metrics",
         "//host/renderControl_dec",
         "//host/renderdoc:gfxstream_host_renderdoc",
         "//host/snapshot:gfxstream_host_snapshot",
         "//host/tracing:gfxstream_host_tracing",
         "//host/vulkan:gfxstream_vulkan_server",
         "//third_party/drm:gfxstream_drm_headers",
+        "//third_party/opengl:gfxstream_egl_headers",
+        "//third_party/opengl:gfxstream_gles2_headers",
+        "//third_party/vulkan:gfxstream_vulkan_headers",
     ] + select({
         "@platforms//os:macos": [
             ":gfxstream_backend_static-darwin",
@@ -160,8 +212,17 @@ cc_library(
     linkstatic = True,
     visibility = ["//visibility:public"],
     deps = [
+        ":gfxstream_backend_headers",
         ":gfxstream_backend_static",
+        ":gfxstream_host_headers",
+        "//common/base:gfxstream_common_base",
+        "//common/logging:gfxstream_common_logging",
         "//common/utils:gfxstream_common_utils",
+        "//host/address_space:gfxstream_host_address_space",
+        "//host/features:gfxstream_host_features",
+        "//host/metrics:gfxstream_host_metrics",
+        "//host/tracing:gfxstream_host_tracing",
+        "//host/vulkan:gfxstream_vulkan_server",
     ],
 )
 
@@ -175,8 +236,17 @@ cc_binary(
     linkshared = True,
     visibility = ["//visibility:public"],
     deps = [
+        ":gfxstream_backend_headers",
         ":gfxstream_backend_static",
+        ":gfxstream_host_headers",
+        "//common/base:gfxstream_common_base",
+        "//common/logging:gfxstream_common_logging",
         "//common/utils:gfxstream_common_utils",
+        "//host/address_space:gfxstream_host_address_space",
+        "//host/features:gfxstream_host_features",
+        "//host/metrics:gfxstream_host_metrics",
+        "//host/tracing:gfxstream_host_tracing",
+        "//host/vulkan:gfxstream_vulkan_server",
     ],
 )
 
@@ -186,7 +256,12 @@ cc_test(
         "FrameBuffer_unittest.cpp",
     ],
     deps = [
+        ":gfxstream_host_headers",
+        "//common/base:gfxstream_common_base",
+        "//host/backend:gfxstream_host_backend",
+        "//host/testlibs/oswindow:gfxstream_oswindow_test_support",
         "//host/testlibs/support:gfxstream_host_testing_support",
+        "@com_google_googletest//:gtest",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -197,7 +272,9 @@ cc_test(
         "VsyncThread_unittest.cpp",
     ],
     deps = [
+        ":gfxstream_host_headers",
         "//host/testlibs/support:gfxstream_host_testing_support",
+        "@com_google_googletest//:gtest",
         "@com_google_googletest//:gtest_main",
     ],
 )

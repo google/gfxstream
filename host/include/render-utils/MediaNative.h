@@ -15,6 +15,8 @@
 */
 #pragma once
 
+#include <cstdint>
+
 // media decoding related common declaration
 
 extern "C" {

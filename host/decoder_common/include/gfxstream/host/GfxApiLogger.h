@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <stddef.h>
+
 #define OP_gfxApiLoggerBeginCommandExecution 90000
 
 namespace gfxstream {

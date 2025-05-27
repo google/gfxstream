@@ -4,6 +4,8 @@ namespaces translator,gles2
 # Functions common to both GLES 1.x and 2.0
 
 %#include <GLES/gl.h>
+%#include <GLES2/gl2.h>
+
 %// Return types must be single words, see GLDispatch.cpp
 %typedef const GLubyte* GLconstubyteptr;
 

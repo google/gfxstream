@@ -10,4 +10,7 @@ cc_library(
         "include/snapshot/LazySnapshotObj.h",
     ],
     strip_include_prefix = "include",
+    deps = [
+        "//host:gfxstream_backend_headers",
+    ],
 )

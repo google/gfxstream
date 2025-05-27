@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 namespace gfxstream {
 
 // Common base struct representing images (Gl/Vk) that are borrowed

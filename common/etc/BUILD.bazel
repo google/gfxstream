@@ -5,16 +5,11 @@ package(
 )
 
 cc_library(
-    name = "gfxstream_etc_headers",
+    name = "gfxstream_etc",
+    srcs = ["etc.cpp"],
     hdrs = glob([
         "include/**/*.h",
     ]),
-    includes = ["include"],
-)
-
-cc_library(
-    name = "gfxstream_etc",
-    srcs = ["etc.cpp"],
     copts = ["-fno-exceptions"],
-    deps = [":gfxstream_etc_headers"],
+    includes = ["include"],
 )

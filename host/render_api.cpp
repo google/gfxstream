@@ -22,7 +22,7 @@
 
 namespace gfxstream {
 
-RENDER_APICALL RenderLibPtr RENDER_APIENTRY initLibrary() {
+RENDER_API_EXPORT RenderLibPtr initLibrary() {
     return RenderLibPtr(new RenderLibImpl());
 }
 

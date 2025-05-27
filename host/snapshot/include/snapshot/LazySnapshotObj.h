@@ -18,6 +18,8 @@
 
 #include <mutex>
 
+#include "render-utils/stream.h"
+
 namespace gfxstream {
 
 // LazySnapshotObj is a base class for objects that use lazy strategy for
@@ -29,8 +31,6 @@ namespace gfxstream {
 // An example is for texture lazy loading. On load it only reads the data from
 // disk but does not load them into GPU. On restore it performs the heavy-weight
 // GPU data loading.
-
-#include "render-utils/stream.h"
 
 template <class Derived>
 class LazySnapshotObj {

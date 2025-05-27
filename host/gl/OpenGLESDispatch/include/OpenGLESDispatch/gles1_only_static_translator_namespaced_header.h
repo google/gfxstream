@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include <GLES/gl.h>
+
 namespace translator {
 namespace gles1 {
 GL_APICALL void GL_APIENTRY glAlphaFunc(GLenum func, GLclampf ref);
