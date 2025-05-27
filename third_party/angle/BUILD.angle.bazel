@@ -129,8 +129,8 @@ cc_library(
     deps = [
         ":angle_translator_headers",
         ":includes",
-        "@com_google_absl//absl/container:flat_hash_map",
-        "@com_google_absl//absl/container:flat_hash_set",
+        "@abseil-cpp//absl/container:flat_hash_map",
+        "@abseil-cpp//absl/container:flat_hash_set",
     ],
 )
 
@@ -387,8 +387,8 @@ cc_library(
         ":angle_common",
         ":angle_translator_headers",
         ":includes",
-        "@com_google_absl//absl/container:flat_hash_map",
-        "@com_google_absl//absl/container:flat_hash_set",
+        "@abseil-cpp//absl/container:flat_hash_map",
+        "@abseil-cpp//absl/container:flat_hash_set",
     ],
 )
 
@@ -2380,8 +2380,8 @@ cc_library(
         ":angle_vulkan_headers",
         ":libangle_headers",
         ":vulkan",
-        "@com_google_absl//absl/container:flat_hash_map",
-        "@com_google_absl//absl/container:flat_hash_set",
+        "@abseil-cpp//absl/container:flat_hash_map",
+        "@abseil-cpp//absl/container:flat_hash_set",
     ],
     alwayslink = True,
 )

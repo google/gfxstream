@@ -35,7 +35,6 @@ cc_library(
 cc_library(
     name = "gfxstream_common_base_windows_compat",
     srcs = [
-        "src/asprintf.c",
         "src/dirent/dirent.cpp",
         "src/files.cpp",
         "src/msvc-posix.c",
