@@ -47,9 +47,9 @@
 #include "common/goldfish_vk_transform.h"
 #include "gfxstream/BumpPool.h"
 #include "gfxstream/Metrics.h"
+#include "gfxstream/common/logging.h"
 #include "gfxstream/host/Tracing.h"
 #include "gfxstream/host/iostream.h"
-#include "gfxstream/common/logging.h"
 #include "gfxstream/system/System.h"
 #include "goldfish_vk_private_defs.h"
 #define MAX_PACKET_LENGTH (400 * 1024 * 1024)  // 400MB
