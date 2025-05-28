@@ -1,4 +1,4 @@
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test", "objc_library")
 
 package(
     default_visibility = ["//:gfxstream"],
@@ -25,6 +25,24 @@ cc_library(
         ],
         "//conditions:default": [],
     }),
+)
+
+objc_library(
+    name = "gfxstream_common_base_mac",
+    srcs = [
+        "system-native-mac.mm",
+    ],
+    sdk_frameworks = [
+        "IOkit",
+        "AppKit",
+    ],
+    target_compatible_with = [
+        "@platforms//os:macos",
+    ],
+    deps = [
+        ":gfxstream_common_base_headers",
+    ],
+    alwayslink = True,
 )
 
 cc_library(
@@ -78,6 +96,9 @@ cc_library(
     deps = [
         ":gfxstream_common_base_headers",
     ] + select({
+        "@platforms//os:macos": [
+            ":gfxstream_common_base_mac",
+        ],
         "@platforms//os:windows": [
             "//common/base/windows:gfxstream_common_base_windows_compat",
         ],
