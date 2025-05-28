@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <initializer_list>
+#include <iterator>
 #include <memory>
 #include <stddef.h>
 #include <stdlib.h>
