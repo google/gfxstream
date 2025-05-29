@@ -1147,11 +1147,11 @@ GL_APICALL GLuint GL_APIENTRY glCreateShader(GLenum type){
             gfxstream::base::getEnvironmentVariable(
                 "ANDROID_EMUGL_SHADER_PRINT") == "1";
 
+#ifdef USE_ANGLE_SHADER_PARSER
         auto& gl = ctx->dispatcher();
         auto glesMajorVersion = ctx->getMajorVersion();
         auto glesMinorVersion = ctx->getMinorVersion();
 
-#ifdef USE_ANGLE_SHADER_PARSER
         ANGLEShaderParser::BuiltinResourcesEditCallback editCallback =
             [&gl, glesMajorVersion,
              glesMinorVersion](ST_BuiltInResources& res) {

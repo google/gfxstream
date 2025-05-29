@@ -18,7 +18,6 @@
 
 #include <unordered_map>
 
-#include "FrameBuffer.h"
 #include "VkDecoder.h"
 #include "VulkanBoxedHandles.h"
 #include "gfxstream/containers/EntityManager.h"
