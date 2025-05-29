@@ -20,8 +20,8 @@
 #include "gfxstream/common/logging.h"
 #include "gfxstream/host/renderer_operations.h"
 #include "gfxstream/host/window_operations.h"
-#include "gl/DisplayGl.h"
-#include "gl/DisplaySurfaceGl.h"
+#include "DisplayGl.h"
+#include "DisplaySurfaceGl.h"
 
 namespace gfxstream {
 

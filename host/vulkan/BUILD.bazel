@@ -19,6 +19,7 @@ cc_library(
     name = "gfxstream_vulkan_server_headers",
     hdrs = [
         "RenderThreadInfoVk.h",
+        "VkDecoder.h",
         "VkDecoderContext.h",
         "VkDecoderGlobalState.h",
         "VkFormatUtils.h",
@@ -37,10 +38,14 @@ cc_library(
         ":gfxstream_vulkan_headers",
         "//common/base:gfxstream_common_base",
         "//common/logging:gfxstream_common_logging",
+        "//host:gfxstream_backend_headers",
+        "//host/backend:gfxstream_host_backend",
         "//host/decoder_common:gfxstream_host_decoder_common",
         "//host/health:gfxstream_host_health",
         "//host/iostream:gfxstream_host_iostream",
+        "//host/metrics:gfxstream_host_metrics",
         "//host/vulkan/cereal:gfxstream_vulkan_cereal_dispatch",
+        "//host/vulkan/cereal:gfxstream_vulkan_cereal_struct_id",
         "//third_party/vulkan:gfxstream_vulkan_headers",
     ],
 )

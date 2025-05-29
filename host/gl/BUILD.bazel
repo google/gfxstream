@@ -35,6 +35,7 @@ cc_library(
     includes = ["glestranslator/GLcommon/include"],
     deps = [
         "//common/base:gfxstream_common_base",
+        "//common/etc:gfxstream_etc",
         "//common/logging:gfxstream_common_logging",
         "//host:gfxstream_backend_headers",
         "//host/decoder_common:gfxstream_host_decoder_common",
@@ -278,12 +279,28 @@ cc_library(
         "TextureDraw.cpp",
         "TextureResize.cpp",
         "YUVConverter.cpp",
-    ] + glob([
-        "*.h",
-    ]),
+    ],
     hdrs = [
+        "BorrowedImageGl.h",
+        "BufferGl.h",
+        "ColorBufferGl.h",
+        "CompositorGl.h",
+        "ContextHelper.h",
+        "DebugGl.h",
+        "DisplayGl.h",
+        "DisplaySurfaceGl.h",
+        "EmulatedEglConfig.h",
         "EmulatedEglContext.h",
         "EmulatedEglFenceSync.h",
+        "EmulatedEglImage.h",
+        "EmulatedEglWindowSurface.h",
+        "EmulationGl.h",
+        "GLESVersionDetector.h",
+        "ReadbackWorkerGl.h",
+        "RenderThreadInfoGl.h",
+        "TextureDraw.h",
+        "TextureResize.h",
+        "YUVConverter.h",
     ],
     copts = [
         "-fno-exceptions",
@@ -292,6 +309,9 @@ cc_library(
     defines = [
         "GFXSTREAM_ENABLE_HOST_GLES=1",
         "EMUGL_BUILD",
+    ],
+    includes = [
+        ".",
     ],
     deps = [
         ":gfxstream_glsnapshot",

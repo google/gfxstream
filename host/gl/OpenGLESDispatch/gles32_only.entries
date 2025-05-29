@@ -7,9 +7,16 @@ namespaces translator,gles2
 %#include <GLES3/gl3.h>
 %#include <GLES3/gl32.h>
 
+%// The definitions of `GLDEBUGPROC` and `GLDEBUGPROCKHR` are unfortunately both
+%// protected by the same `ifndef GL_KHR_debug` which will cause files which
+%// include both to only have one of the two type definitions. The definition of
+%// GLDEBUGPROC is also different between desktop GL and GLES 3.2. Define our own
+%// typedefs here to work around this issue.
+%typedef void (*GFXSTREAM_GLES32_GLDEBUGPROC)(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,const void *userParam);
+
 void glDebugMessageControl(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint *ids, GLboolean enabled);
 void glDebugMessageInsert(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *buf);
-void glDebugMessageCallback(GLDEBUGPROC callback, const void *userParam);
+void glDebugMessageCallback(GFXSTREAM_GLES32_GLDEBUGPROC callback, const void *userParam);
 GLuint glGetDebugMessageLog(GLuint count, GLsizei bufSize, GLenum *sources, GLenum *types, GLuint *ids, GLenum *severities, GLsizei *lengths, GLchar *messageLog);
 void glPushDebugGroup(GLenum source, GLuint id, GLsizei length, const GLchar* message);
 void glPopDebugGroup(void);

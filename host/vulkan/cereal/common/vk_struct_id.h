@@ -12,12 +12,16 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #pragma once
 
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
 
 #include "goldfish_vk_private_defs.h"
+#include "vk_android_native_buffer_gfxstream.h"
+#include "vulkan_gfxstream.h"
+#include "vulkan_gfxstream_structure_type.h"
 
 template <class T>
 struct vk_get_vk_struct_id;

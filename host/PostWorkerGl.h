@@ -20,8 +20,8 @@
 
 #include "gfxstream/host/display_surface_user.h"
 #include "PostWorker.h"
-#include "gl/DisplayGl.h"
-#include "gl/EmulationGl.h"
+#include "DisplayGl.h"
+#include "EmulationGl.h"
 
 namespace gfxstream {
 

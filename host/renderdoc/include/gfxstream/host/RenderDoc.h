@@ -36,7 +36,7 @@ namespace host {
 
 class RenderDoc {
    public:
-    using RenderDocApi = RENDERDOC_API_1_4_2;
+    using RenderDocApi = RENDERDOC_API_1_4_1;
     static std::unique_ptr<RenderDoc> create(const gfxstream::base::SharedLibrary* renderDocLib) {
         if (!renderDocLib) {
             GFXSTREAM_ERROR("The renderdoc shared library is null.");
@@ -50,7 +50,7 @@ class RenderDoc {
         }
         RenderDocApi* rdocApi = nullptr;
         int ret =
-            RENDERDOC_GetAPI(eRENDERDOC_API_Version_1_4_2, reinterpret_cast<void**>(&rdocApi));
+            RENDERDOC_GetAPI(eRENDERDOC_API_Version_1_4_1, reinterpret_cast<void**>(&rdocApi));
         if (ret != 1 || rdocApi == nullptr) {
             GFXSTREAM_ERROR("Failed to load renderdoc API. %d is returned from RENDERDOC_GetAPI.");
             return nullptr;
