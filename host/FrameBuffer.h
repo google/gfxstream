@@ -29,13 +29,9 @@
 #include "Buffer.h"
 #include "ColorBuffer.h"
 #include "Compositor.h"
-#include "gfxstream/host/display.h"
-#include "gfxstream/host/display_surface.h"
-#include "gfxstream/host/external_object_manager.h"
 #include "Hwc2.h"
 #include "PostCommands.h"
 #include "PostWorker.h"
-#include "ProcessResources.h"
 #include "ReadbackWorker.h"
 #include "VsyncThread.h"
 #include "gfxstream/AsyncResult.h"
@@ -48,7 +44,11 @@
 #include "gfxstream/threads/Thread.h"
 #include "gfxstream/threads/WorkerThread.h"
 #include "gfxstream/host/Features.h"
+#include "gfxstream/host/ProcessResources.h"
 #include "gfxstream/host/RenderDoc.h"
+#include "gfxstream/host/display.h"
+#include "gfxstream/host/display_surface.h"
+#include "gfxstream/host/external_object_manager.h"
 
 #if GFXSTREAM_ENABLE_HOST_GLES
 

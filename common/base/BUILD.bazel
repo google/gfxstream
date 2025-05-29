@@ -6,10 +6,13 @@ package(
 
 cc_library(
     name = "gfxstream_common_base_headers",
-    hdrs = glob([
-        "include/**/*.h",
-        "include/**/*.hpp",
-    ]),
+    hdrs = glob(
+        [
+            "include/**/*.h",
+            "include/**/*.hpp",
+        ],
+        exclude = ["include/gfxstream/testing/**"],
+    ),
     defines = select({
         "@platforms//os:windows": [
             "WIN32_LEAN_AND_MEAN",
@@ -31,7 +34,7 @@ objc_library(
         "system-native-mac.mm",
     ],
     sdk_frameworks = [
-        "IOkit",
+        "IOKit",
         "AppKit",
     ],
     target_compatible_with = [
@@ -70,12 +73,20 @@ cc_library(
             "Thread_pthread.cpp",
         ],
     }),
+    hdrs = glob(
+        [
+            "include/**/*.h",
+            "include/**/*.hpp",
+        ],
+        exclude = ["include/gfxstream/testing/**"],
+    ),
     defines = select({
         "@platforms//os:windows": [
             "WIN32_LEAN_AND_MEAN",
         ],
         "//conditions:default": [],
     }),
+    includes = ["include"],
     linkopts = select({
         "@platforms//os:linux": [
             "-ldl",
@@ -91,6 +102,7 @@ cc_library(
         ],
         "//conditions:default": [],
     }),
+    strip_include_prefix = "include",
     deps = [
         ":gfxstream_common_base_headers",
     ] + select({
@@ -102,6 +114,22 @@ cc_library(
         ],
         "//conditions:default": [],
     }),
+)
+
+cc_library(
+    name = "gfxstream_common_base_testing",
+    testonly = True,
+    hdrs = glob([
+        "include/gfxstream/testing/*.h",
+    ]),
+    includes = [
+        "include",
+    ],
+    deps = [
+        ":gfxstream_common_base",
+        ":gfxstream_common_base_headers",
+        "@com_google_googletest//:gtest",
+    ],
 )
 
 cc_test(
@@ -126,7 +154,9 @@ cc_test(
         "-undefined error",
     ],
     deps = [
-        "gfxstream_common_base",
+        ":gfxstream_common_base",
+        ":gfxstream_common_base_testing",
+        "@com_google_googletest//:gtest",
         "@com_google_googletest//:gtest_main",
     ],
 )

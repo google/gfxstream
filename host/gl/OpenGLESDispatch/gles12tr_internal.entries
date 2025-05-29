@@ -2,6 +2,8 @@
 
 # OpenGL functions that are used only internally by the the GLES1->2 translator
 
+%#include <GLES/gl.h>
+
 %typedef GLvoid* GLvoidptr;
 %typedef const GLubyte* constGLubyte;
 

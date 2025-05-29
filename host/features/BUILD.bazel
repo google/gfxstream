@@ -5,8 +5,9 @@ package(
 )
 
 cc_library(
-    name = "gfxstream_features",
-    srcs = ["Features.cpp"] + glob(["include/**/*.h"]),
+    name = "gfxstream_host_features",
+    srcs = ["Features.cpp"],
+    hdrs = glob(["include/**/*.h"]),
     copts = ["-fno-exceptions"],
     includes = ["include"],
 )

@@ -10,6 +10,7 @@ cc_library(
     copts = ["-fno-exceptions"],
     includes = ["include"],
     deps = [
+        "//common/logging:gfxstream_common_logging",
         "//host:gfxstream_backend_headers",
     ],
 )

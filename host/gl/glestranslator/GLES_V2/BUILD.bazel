@@ -32,8 +32,14 @@ cc_library(
     ],
     includes = ["."],
     deps = [
+        "//common/base:gfxstream_common_base",
+        "//common/logging:gfxstream_common_logging",
+        "//host/backend:gfxstream_host_backend",
         "//host/decoder_common:gfxstream_host_decoder_common",
         "//host/gl:gl_common",
+        "//host/gl:gl_common_headers",
+        "//third_party/opengl:gfxstream_gles2_headers",
+        "//third_party/opengl:gfxstream_gles3_headers",
     ],
     alwayslink = True,
 )

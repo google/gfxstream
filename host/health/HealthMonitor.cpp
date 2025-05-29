@@ -17,9 +17,9 @@
 
 #include <map>
 
-#include "gfxstream/system/System.h"
-#include "gfxstream/testing/TestClock.h"
+#include "gfxstream/TestClock.h"
 #include "gfxstream/common/logging.h"
+#include "gfxstream/system/System.h"
 
 namespace gfxstream {
 

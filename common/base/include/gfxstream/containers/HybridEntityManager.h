@@ -11,13 +11,15 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #pragma once
+
+#include <stdlib.h>
+#include <unordered_map>
 
 #include "gfxstream/containers/Lookup.h"
 #include "gfxstream/containers/EntityManager.h"
 #include "gfxstream/synchronization/Lock.h"
-
-#include <unordered_map>
 
 namespace gfxstream {
 namespace base {

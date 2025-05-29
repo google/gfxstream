@@ -31,12 +31,14 @@ cc_library(
     }),
     visibility = ["//visibility:public"],
     deps = [
+        "//common/base:gfxstream_common_base",
         "//common/logging:gfxstream_common_logging",
         "//host:gfxstream_host_headers",
         "//host/compressed_textures:gfxstream_host_compressed_textures",
         "//host/health:gfxstream_host_health",
-        "//host/vulkan:gfxstream_vulkan_headers",
+        "//host/vulkan:gfxstream_vulkan_server_headers",
         "//host/vulkan/cereal:gfxstream_vulkan_cereal",
+        "//host/vulkan/cereal:gfxstream_vulkan_cereal_dispatch",
         "//third_party/vulkan:gfxstream_vulkan_headers",
     ],
 )

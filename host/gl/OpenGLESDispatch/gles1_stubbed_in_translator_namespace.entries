@@ -67,7 +67,7 @@ void glWeightPointerARB(GLint size, GLenum type, GLsizei stride, const GLvoid* p
 void glBlendFuncSeparate(GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha);
 void glImportMemoryFdEXT(GLuint memory, GLuint64 size, GLenum handleType, GLint fd);
 void glImportMemoryWin32HandleEXT(GLuint memory, GLuint64 size, GLenum handleType, void* handle);
-void glDeleteMemoryObjectsEXT(GLsizei n, const GLuint *memoryObjects); 
+void glDeleteMemoryObjectsEXT(GLsizei n, const GLuint *memoryObjects);
 GLboolean glIsMemoryObjectEXT(GLuint memoryObject);
 void glCreateMemoryObjectsEXT(GLsizei n, GLuint *memoryObjects);
 void glMemoryObjectParameterivEXT(GLuint memoryObject, GLenum pname, const GLint *params);

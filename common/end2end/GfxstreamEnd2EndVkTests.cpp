@@ -2252,11 +2252,11 @@ TEST_P(GfxstreamEnd2EndVkTest, UseDoubleQueuesAndSynchronizeCorrectly) {
     }
 
     // Recreate logical device to get 2 queues
-    const float queuePriority = 1.0f;
+    const float queuePriorities[2] = {1.0f, 1.0f};
     const vkhpp::DeviceQueueCreateInfo deviceQueueCreateInfo = {
         .queueFamilyIndex = graphicsQueueFamilyIndex,
         .queueCount = 2,
-        .pQueuePriorities = &queuePriority,
+        .pQueuePriorities = queuePriorities,
     };
     std::vector<const char*> deviceExtensions = {
         VK_ANDROID_NATIVE_BUFFER_EXTENSION_NAME,

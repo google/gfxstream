@@ -17,6 +17,9 @@
 
 #pragma once
 
+#include <GLES/gl.h>
+#include <GLES/glext.h>
+
 namespace translator {
 namespace gles1 {
 GL_APICALL void GL_APIENTRY glCurrentPaletteMatrixARB(GLint index);
