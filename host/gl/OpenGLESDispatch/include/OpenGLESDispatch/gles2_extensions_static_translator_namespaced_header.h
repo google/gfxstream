@@ -20,6 +20,14 @@
 #include <GLES/gl.h>
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
+
+// The definitions of `GLDEBUGPROC` and `GLDEBUGPROCKHR` are unfortunately both
+// protected by the same `ifndef GL_KHR_debug` which will cause files which
+// include both to only have one of the two type definitions. The definition of
+// GLDEBUGPROC is also different between desktop GL and GLES 3.2. Define our own
+// typedefs here to work around this issue.
+typedef void (GL_APIENTRY *GFXSTREAM_GLES2_GLDEBUGPROCKHR)(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,const void *userParam);
+
 namespace translator {
 namespace gles2 {
 GL_APICALL void GL_APIENTRY glGetShaderPrecisionFormat(GLenum shadertype, GLenum precisiontype, GLint* range, GLint* precision);
@@ -34,7 +42,7 @@ GL_APICALL void GL_APIENTRY glGenVertexArraysOES(GLsizei n, GLuint * arrays);
 GL_APICALL GLboolean GL_APIENTRY glIsVertexArrayOES(GLuint array);
 GL_APICALL void GL_APIENTRY glDebugMessageControlKHR(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint * ids, GLboolean enabled);
 GL_APICALL void GL_APIENTRY glDebugMessageInsertKHR(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * buf);
-GL_APICALL void GL_APIENTRY glDebugMessageCallbackKHR(GLDEBUGPROCKHR callback, const void * userParam);
+GL_APICALL void GL_APIENTRY glDebugMessageCallbackKHR(GFXSTREAM_GLES2_GLDEBUGPROCKHR callback, const void * userParam);
 GL_APICALL GLuint GL_APIENTRY glGetDebugMessageLogKHR(GLuint count, GLsizei bufSize, GLenum * sources, GLenum * types, GLuint * ids, GLenum * severities, GLsizei * lengths, GLchar * messageLog);
 GL_APICALL void GL_APIENTRY glPushDebugGroupKHR(GLenum source, GLuint id, GLsizei length, const GLchar* message);
 GL_APICALL void GL_APIENTRY glPopDebugGroupKHR();

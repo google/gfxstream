@@ -32,6 +32,20 @@ cc_library(
 )
 
 cc_library(
+    name = "gfxstream_vulkan_cereal_struct_id",
+    hdrs = [
+        "common/vk_struct_id.h",
+    ],
+    defines = VKCEREAL_DEFINES,
+    includes = ["common"],
+    deps = [
+        ":gfxstream_vulkan_cereal_private_deps",
+        "//host/vulkan:gfxstream_vulkan_headers",
+        "//third_party/vulkan:gfxstream_vulkan_headers",
+    ],
+)
+
+cc_library(
     name = "gfxstream_vulkan_cereal_dispatch",
     srcs = [
         "common/goldfish_vk_dispatch.cpp",
@@ -71,6 +85,7 @@ cc_library(
     deps = [
         ":gfxstream_vulkan_cereal_dispatch",
         ":gfxstream_vulkan_cereal_private_deps",
+        ":gfxstream_vulkan_cereal_struct_id",
         "//common/base:gfxstream_common_base",
         "//common/logging:gfxstream_common_logging",
         "//host:gfxstream_host_headers",

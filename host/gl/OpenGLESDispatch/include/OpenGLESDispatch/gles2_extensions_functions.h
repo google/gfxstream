@@ -21,6 +21,14 @@
 #include <GLES/gl.h>
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
+
+// The definitions of `GLDEBUGPROC` and `GLDEBUGPROCKHR` are unfortunately both
+// protected by the same `ifndef GL_KHR_debug` which will cause files which
+// include both to only have one of the two type definitions. The definition of
+// GLDEBUGPROC is also different between desktop GL and GLES 3.2. Define our own
+// typedefs here to work around this issue.
+typedef void (GL_APIENTRY *GFXSTREAM_GLES2_GLDEBUGPROCKHR)(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,const void *userParam);
+
 #define LIST_GLES2_EXTENSIONS_FUNCTIONS(X) \
   X(void, glGetShaderPrecisionFormat, (GLenum shadertype, GLenum precisiontype, GLint* range, GLint* precision), (shadertype, precisiontype, range, precision)) \
   X(void, glReleaseShaderCompiler, (), ()) \
@@ -34,7 +42,7 @@
   X(GLboolean, glIsVertexArrayOES, (GLuint array), (array)) \
   X(void, glDebugMessageControlKHR, (GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint * ids, GLboolean enabled), (source, type, severity, count, ids, enabled)) \
   X(void, glDebugMessageInsertKHR, (GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * buf), (source, type, id, severity, length, buf)) \
-  X(void, glDebugMessageCallbackKHR, (GLDEBUGPROCKHR callback, const void * userParam), (callback, userParam)) \
+  X(void, glDebugMessageCallbackKHR, (GFXSTREAM_GLES2_GLDEBUGPROCKHR callback, const void * userParam), (callback, userParam)) \
   X(GLuint, glGetDebugMessageLogKHR, (GLuint count, GLsizei bufSize, GLenum * sources, GLenum * types, GLuint * ids, GLenum * severities, GLsizei * lengths, GLchar * messageLog), (count, bufSize, sources, types, ids, severities, lengths, messageLog)) \
   X(void, glPushDebugGroupKHR, (GLenum source, GLuint id, GLsizei length, const GLchar* message), (source, id, length, message)) \
   X(void, glPopDebugGroupKHR, (), ()) \
