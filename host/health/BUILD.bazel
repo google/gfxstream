@@ -1,4 +1,4 @@
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 package(
     default_visibility = ["//:gfxstream"],
@@ -14,5 +14,17 @@ cc_library(
         "//common/base:gfxstream_common_base",
         "//common/logging:gfxstream_common_logging",
         "//host/metrics:gfxstream_host_metrics",
+    ],
+)
+
+cc_test(
+    name = "gfxstream_host_health_tests",
+    srcs = ["HealthMonitor_unittest.cpp"],
+    deps = [
+        ":gfxstream_host_health",
+        "//common/base:gfxstream_common_base_testing",
+        "//host/metrics:gfxstream_host_metrics",
+        "@com_google_googletest//:gtest",
+        "@com_google_googletest//:gtest_main",
     ],
 )

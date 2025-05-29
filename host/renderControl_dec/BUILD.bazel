@@ -9,11 +9,19 @@ cc_library(
     srcs = [
         "renderControl_dec.cpp",
         "renderControl_server_context.cpp",
-    ] + glob(["*.h"]),
-    hdrs = [],
+    ],
+    hdrs = [
+        "renderControl_dec.h",
+        "renderControl_opcodes.h",
+        "renderControl_server_context.h",
+        "renderControl_server_proc.h",
+        "renderControl_types.h",
+    ],
+    includes = ["."],
     deps = [
+        "//common/logging:gfxstream_common_logging",
         "//host/decoder_common:gfxstream_host_decoder_common",
         "//host/iostream:gfxstream_host_iostream",
-        "//third_party/opengl:gfxstream_opengl_headers",
+        "//third_party/opengl:gfxstream_egl_headers",
     ],
 )

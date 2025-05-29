@@ -16,6 +16,7 @@
 
 #include <memory>
 
+#include "render-utils/address_space_operations.h"
 #include "render-utils/stream.h"
 
 namespace gfxstream {

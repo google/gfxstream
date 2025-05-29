@@ -6,6 +6,8 @@ namespaces translator,gles2
 %#include <GLES/gl.h>
 %#include <GLES3/gl3.h>
 
+%typedef const GLubyte* GLconstubyteptr;
+
 # glGetStringi
 GLconstubyteptr glGetStringi(GLenum name, GLint index);
 

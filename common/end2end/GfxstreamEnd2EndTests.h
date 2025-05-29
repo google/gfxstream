@@ -46,7 +46,6 @@
 
 #include "KumquatInstance.h"
 #include "Sync.h"
-#include "drm_fourcc.h"
 #include "gfxstream/Expected.h"
 #include "gfxstream/guest/ANativeWindow.h"
 #include "gfxstream/guest/GfxStreamGralloc.h"

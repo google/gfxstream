@@ -12,27 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-
 #include "gfxstream/HealthMonitor.h"
 
 #include <chrono>
 #include <limits>
 #include <vector>
 
-#include "gfxstream/testing/TestClock.h"
-#include "gfxstream/Metrics.h"
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
-namespace emugl {
+#include "gfxstream/Metrics.h"
+#include "gfxstream/TestClock.h"
+
+namespace gfxstream {
 
 using gfxstream::base::MetricEventHang;
 using gfxstream::base::MetricEventType;
 using gfxstream::base::MetricEventUnHang;
 using gfxstream::base::MetricsLogger;
 using gfxstream::base::TestClock;
-using emugl::kDefaultIntervalMs;
-using emugl::kDefaultTimeoutMs;
 using ::testing::_;
 using ::testing::AllOf;
 using ::testing::ByMove;
@@ -622,4 +620,4 @@ TEST(HealthMonitorWatchdogTest, ReleaseTest) {
     EXPECT_CALL(monitor, stopMonitoringTask(_)).Times(0);
 }
 
-}  // namespace emugl
+}  // namespace gfxstream

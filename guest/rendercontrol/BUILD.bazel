@@ -28,6 +28,7 @@ cc_library(
     ],
     deps = [
         ":gfxstream_guest_rendercontrol_headers",
+        "//common/logging:gfxstream_common_logging",
         "//guest/OpenglSystemCommon:gfxstream_guest_openglsystemcommon",
     ],
 )

@@ -6,7 +6,9 @@ package(
 
 cc_library(
     name = "gfxstream_host_tracing",
-    srcs = ["Tracing.cpp"] + glob(["include/**/*.h"]),
+    srcs = ["Tracing.cpp"],
+    hdrs = glob(["include/**/*.h"]),
     copts = ["-fno-exceptions"],
     includes = ["include"],
+    strip_include_prefix = "include",
 )

@@ -53,8 +53,10 @@ cc_library(
     ],
     deps = [
         ":gfxstream_guest_glesv2encoder_cc_proto",
+        "//common/logging:gfxstream_common_logging",
         "//guest/OpenglCodecCommon:gfxstream_guest_openglcodeccommon",
         "//guest/android-emu:gfxstream_guest_base",
+        "//third_party/opengl:gfxstream_opengl_headers",
         "@mesa//:mesa_gfxstream_guest_iostream",
     ],
 )

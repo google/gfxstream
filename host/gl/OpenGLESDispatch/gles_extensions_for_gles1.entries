@@ -1,6 +1,8 @@
 !gles_extensions
 namespaces translator,gles1
 
+%#include <GLES/gl.h>
+
 # Common GLES 1.x / 2.0 extension functions
 GLboolean glIsRenderbufferEXT(GLuint renderbuffer);
 void glBindRenderbufferEXT(GLenum target, GLuint renderbuffer);
@@ -41,7 +43,7 @@ void glGetUnsignedBytei_vEXT(GLenum target, GLuint index, GLubyte* data);
 # GL_EXT_memory_object
 void glImportMemoryFdEXT(GLuint memory, GLuint64 size, GLenum handleType, GLint fd);
 void glImportMemoryWin32HandleEXT(GLuint memory, GLuint64 size, GLenum handleType, void* handle);
-void glDeleteMemoryObjectsEXT(GLsizei n, const GLuint *memoryObjects); 
+void glDeleteMemoryObjectsEXT(GLsizei n, const GLuint *memoryObjects);
 GLboolean glIsMemoryObjectEXT(GLuint memoryObject);
 void glCreateMemoryObjectsEXT(GLsizei n, GLuint *memoryObjects);
 void glMemoryObjectParameterivEXT(GLuint memoryObject, GLenum pname, const GLint *params);

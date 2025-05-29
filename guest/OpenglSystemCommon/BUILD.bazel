@@ -35,12 +35,15 @@ cc_library(
         "//guest/GLESv2_enc:gfxstream_guest_glesv2encoder",
         "//guest/GLESv1_enc:gfxstream_guest_glesv1encoder",
         # End-Section
+        "//common/logging:gfxstream_common_logging",
         "//guest/OpenglCodecCommon:gfxstream_guest_openglcodeccommon",
         "//guest/android-emu:gfxstream_guest_ringbuffer",
         "//guest/qemupipe:gfxstream_guest_qemupipe",
         "//guest/renderControl_enc:gfxstream_guest_rendercontrolencoder",
+        "//third_party/android:gfxstream_thirdparty_android_headers",
         "@mesa//:mesa_gfxstream_goldfish_address_space",
         "@mesa//:mesa_gfxstream_guest_android",
+        "@mesa//:mesa_gfxstream_guest_iostream",
         "@mesa//:mesa_gfxstream_guest_platform",
     ],
 )

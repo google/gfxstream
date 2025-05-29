@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include <GLES2/gl2.h>
+
 namespace translator {
 namespace gles2 {
 GL_APICALL GLboolean GL_APIENTRY glIsRenderbufferEXT(GLuint renderbuffer);

@@ -16,6 +16,10 @@
 
 #pragma once
 
+#include <stddef.h>
+
+#include "render-utils/stream.h"
+
 template <class Container>
 void loadContainer(gfxstream::Stream* stream, Container& c) {
     size_t size = (size_t)stream->getBe32();

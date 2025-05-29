@@ -17,8 +17,6 @@
 
 #include "render-utils/render_api_functions.h"
 
-#include <KHR/khrplatform.h>
-
 // All interfaces which can fail return an int, with zero indicating failure
 // and anything else indicating success.
 
@@ -30,18 +28,19 @@ extern "C" {
 
 namespace gfxstream {
 
-// Use KHRONOS_APICALL to control visibility, but do not use KHRONOS_APIENTRY
-// because we don't need the functions to be __stdcall on Win32.
-#define RENDER_APICALL  KHRONOS_APICALL
-#define RENDER_APIENTRY
+#ifdef _WIN32
+#define RENDER_API_EXPORT __declspec(dllexport)
+#else
+#define RENDER_API_EXPORT __attribute__((visibility("default")))
+#endif
 
 #define RENDER_API_DECLARE(return_type, func_name, signature, callargs) \
-    typedef return_type (RENDER_APIENTRY *func_name ## Fn) signature; \
-    RENDER_APICALL return_type RENDER_APIENTRY func_name signature;
+    typedef return_type (*func_name ## Fn) signature; \
+    RENDER_API_EXPORT return_type func_name signature;
 
 LIST_RENDER_API_FUNCTIONS(RENDER_API_DECLARE)
 
-RENDER_APICALL RenderLibPtr RENDER_APIENTRY initLibrary();
+RENDER_API_EXPORT RenderLibPtr initLibrary();
 
 }  // namespace gfxstream
 

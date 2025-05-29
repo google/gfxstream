@@ -1,6 +1,8 @@
 !gles2_only
 namespaces translator,gles2
 
+%#include <GLES2/gl2.h>
+
 # OpenGL functions which are needed ONLY for implementing GLES 2.0
 void glBlendColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
 void glStencilFuncSeparate(GLenum face, GLenum func, GLint ref, GLuint mask);
