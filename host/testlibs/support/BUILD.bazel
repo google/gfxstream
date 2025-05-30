@@ -44,9 +44,11 @@ cc_library(
         "//host/gl/OpenGLESDispatch:gfxstream_host_openglesdispatch",
         "//host/gl/OpenGLESDispatch:gfxstream_host_openglesdispatch_headers",
         "//host/testlibs/oswindow:gfxstream_oswindow_test_support",
+        "//host/vulkan:gfxstream_vulkan_server",
         "//third_party/glm",
         "//third_party/opengl:gfxstream_egl_headers",
         "//third_party/opengl:gfxstream_gles2_headers",
         "//third_party/opengl:gfxstream_gles3_headers",
+        "@com_google_googletest//:gtest",
     ],
 )

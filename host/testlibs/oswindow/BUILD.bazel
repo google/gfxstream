@@ -53,5 +53,6 @@ cc_library(
     strip_include_prefix = "include",
     deps = [
         "//common/logging:gfxstream_common_logging",
+        "//third_party/opengl:gfxstream_egl_headers",
     ],
 )

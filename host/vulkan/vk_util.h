@@ -329,18 +329,16 @@ typedef void* MTLBufferRef;
 namespace vk_util {
 
 inline VkResult waitForVkQueueIdleWithRetry(const VulkanDispatch& vk, VkQueue queue) {
-    using namespace std::chrono_literals;
     constexpr uint32_t retryLimit = 5;
-    constexpr std::chrono::duration waitInterval = 4ms;
+    constexpr auto kWaitInterval = std::chrono::milliseconds(4);
     VkResult res = vk.vkQueueWaitIdle(queue);
     for (uint32_t retryTimes = 1; retryTimes < retryLimit && res == VK_TIMEOUT; retryTimes++) {
         GFXSTREAM_INFO(
             "VK_TIMEOUT returned from vkQueueWaitIdle with %" PRIu32 " attempt. Wait for %" PRIu32
             "ms before another attempt.",
             retryTimes,
-            static_cast<uint32_t>(
-                std::chrono::duration_cast<std::chrono::milliseconds>(waitInterval).count()));
-        std::this_thread::sleep_for(waitInterval);
+            static_cast<uint32_t>(kWaitInterval.count()));
+        std::this_thread::sleep_for(kWaitInterval);
         res = vk.vkQueueWaitIdle(queue);
     }
     return res;

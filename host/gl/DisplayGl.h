@@ -23,8 +23,9 @@
 #include <future>
 
 #include "ColorBuffer.h"
-#include "gfxstream/host/display.h"
 #include "Hwc2.h"
+#include "TextureDraw.h"
+#include "gfxstream/host/display.h"
 
 namespace gfxstream {
 namespace gl {

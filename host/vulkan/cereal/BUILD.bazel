@@ -20,43 +20,20 @@ VKCEREAL_DEFINES = [
 })
 
 cc_library(
-    name = "gfxstream_vulkan_cereal_private_deps",
+    name = "gfxstream_vulkan_cereal_headers",
     hdrs = [
+        "common/goldfish_vk_deepcopy.h",
+        "common/goldfish_vk_dispatch.h",
+        "common/goldfish_vk_extension_structs.h",
         "common/goldfish_vk_private_defs.h",
-    ],
-    defines = VKCEREAL_DEFINES,
-    includes = ["common"],
-    deps = [
-        "//third_party/vulkan:gfxstream_vulkan_headers",
-    ],
-)
-
-cc_library(
-    name = "gfxstream_vulkan_cereal_struct_id",
-    hdrs = [
+        "common/goldfish_vk_transform.h",
         "common/vk_struct_id.h",
     ],
     defines = VKCEREAL_DEFINES,
     includes = ["common"],
     deps = [
-        ":gfxstream_vulkan_cereal_private_deps",
-        "//host/vulkan:gfxstream_vulkan_headers",
-        "//third_party/vulkan:gfxstream_vulkan_headers",
-    ],
-)
-
-cc_library(
-    name = "gfxstream_vulkan_cereal_dispatch",
-    srcs = [
-        "common/goldfish_vk_dispatch.cpp",
-    ],
-    hdrs = [
-        "common/goldfish_vk_dispatch.h",
-    ],
-    defines = VKCEREAL_DEFINES,
-    includes = ["common"],
-    deps = [
-        ":gfxstream_vulkan_cereal_private_deps",
+        "//common/base:gfxstream_common_base",
+        "//common/logging:gfxstream_common_logging",
         "//host/vulkan:gfxstream_vulkan_headers",
         "//third_party/vulkan:gfxstream_vulkan_headers",
     ],
@@ -74,8 +51,10 @@ cc_library(
     ],
     hdrs = [
         "common/goldfish_vk_deepcopy.h",
+        "common/goldfish_vk_dispatch.h",
         "common/goldfish_vk_extension_structs.h",
         "common/goldfish_vk_marshaling.h",
+        "common/goldfish_vk_private_defs.h",
         "common/goldfish_vk_reserved_marshaling.h",
         "common/goldfish_vk_transform.h",
         "common/vk_struct_id.h",
@@ -83,9 +62,6 @@ cc_library(
     defines = VKCEREAL_DEFINES,
     includes = ["common"],
     deps = [
-        ":gfxstream_vulkan_cereal_dispatch",
-        ":gfxstream_vulkan_cereal_private_deps",
-        ":gfxstream_vulkan_cereal_struct_id",
         "//common/base:gfxstream_common_base",
         "//common/logging:gfxstream_common_logging",
         "//host:gfxstream_host_headers",

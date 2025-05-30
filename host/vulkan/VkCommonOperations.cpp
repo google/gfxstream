@@ -870,11 +870,28 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
     const bool useMoltenVK = moltenVKEnabled && moltenVKSupported;
 #endif
 
-    VkInstanceCreateInfo instCi = {
-        VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO, 0, 0, nullptr, 0, nullptr, 0, nullptr,
+    VkApplicationInfo appInfo = {
+        .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+        .pNext = 0,
+        .pApplicationName = "AEMU",
+        .applicationVersion = 1,
+        .pEngineName = "AEMU",
+        .engineVersion = 1,
+        .apiVersion = VK_MAKE_VERSION(1, 0, 0),
     };
 
-    std::unordered_set<const char*> selectedInstanceExtensionNames;
+    VkInstanceCreateInfo instCi = {
+        .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .pApplicationInfo = &appInfo,
+        .enabledLayerCount = 0,
+        .ppEnabledLayerNames = nullptr,
+        .enabledExtensionCount = 0,
+        .ppEnabledExtensionNames = nullptr,
+    };
+
+    std::unordered_set<std::string> selectedInstanceExtensionNames;
 
     const bool debugUtilsSupported =
         extensionsSupported(instanceExts, {VK_EXT_DEBUG_UTILS_EXTENSION_NAME});
@@ -933,16 +950,14 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
     }
 #endif
 
-    std::vector<const char*> selectedInstanceExtensionNames_(selectedInstanceExtensionNames.begin(),
-                                                             selectedInstanceExtensionNames.end());
-    instCi.enabledExtensionCount = static_cast<uint32_t>(selectedInstanceExtensionNames_.size());
-    instCi.ppEnabledExtensionNames = selectedInstanceExtensionNames_.data();
+    std::vector<const char*> selectedInstanceExtensionNamesC;
+    selectedInstanceExtensionNamesC.reserve(selectedInstanceExtensionNames.size());
+    for (const std::string& name : selectedInstanceExtensionNames) {
+        selectedInstanceExtensionNamesC.push_back(name.c_str());
+    }
 
-    VkApplicationInfo appInfo = {
-        VK_STRUCTURE_TYPE_APPLICATION_INFO, 0, "AEMU", 1, "AEMU", 1, VK_MAKE_VERSION(1, 0, 0),
-    };
-
-    instCi.pApplicationInfo = &appInfo;
+    instCi.enabledExtensionCount = static_cast<uint32_t>(selectedInstanceExtensionNamesC.size());
+    instCi.ppEnabledExtensionNames = selectedInstanceExtensionNamesC.data();
 
     // Can we know instance version early?
     if (gvk->vkEnumerateInstanceVersion) {
@@ -1340,57 +1355,61 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
         emulation->mDeviceInfo.graphicsQueueFamilyIndices[0], 1, &priority,
     };
 
-    std::unordered_set<const char*> selectedDeviceExtensionNames_;
+    std::unordered_set<std::string> selectedDeviceExtensionNames;
 
     if (emulation->mDeviceInfo.supportsExternalMemoryImport ||
         emulation->mDeviceInfo.supportsExternalMemoryExport) {
         for (auto extension : externalMemoryDeviceExtNames) {
-            selectedDeviceExtensionNames_.emplace(extension);
+            selectedDeviceExtensionNames.emplace(extension);
         }
     }
 
 #if defined(__linux__)
     if (emulation->mDeviceInfo.supportsDmaBuf) {
-        selectedDeviceExtensionNames_.emplace(VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME);
+        selectedDeviceExtensionNames.emplace(VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME);
     }
 #endif
 
     // We need to always enable swapchain extensions to be able to use this device
     // to do VK_IMAGE_LAYOUT_PRESENT_SRC_KHR transition operations done
     // in releaseColorBufferForGuestUse for the apps using Vulkan swapchain
-    selectedDeviceExtensionNames_.emplace(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+    selectedDeviceExtensionNames.emplace(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
     if (emulation->mFeatures.VulkanNativeSwapchain.enabled) {
         for (auto extension : SwapChainStateVk::getRequiredDeviceExtensions()) {
-            selectedDeviceExtensionNames_.emplace(extension);
+            selectedDeviceExtensionNames.emplace(extension);
         }
     }
 
     if (emulation->mDeviceInfo.hasSamplerYcbcrConversionExtension) {
-        selectedDeviceExtensionNames_.emplace(VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME);
+        selectedDeviceExtensionNames.emplace(VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME);
     }
 
 #if defined(__APPLE__)
     if (useMoltenVK) {
         for (auto extension : moltenVkDeviceExtNames) {
-            selectedDeviceExtensionNames_.emplace(extension);
+            selectedDeviceExtensionNames.emplace(extension);
         }
     }
 #endif
 
     if (emulation->mDeviceInfo.robustness2Features) {
-        selectedDeviceExtensionNames_.emplace(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
+        selectedDeviceExtensionNames.emplace(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
     }
 
-    std::vector<const char*> selectedDeviceExtensionNames(selectedDeviceExtensionNames_.begin(),
-                                                          selectedDeviceExtensionNames_.end());
+    std::vector<const char*> selectedDeviceExtensionNamesC;
+    selectedDeviceExtensionNamesC.reserve(selectedDeviceExtensionNames.size());
+    for (const std::string& name : selectedDeviceExtensionNames) {
+        selectedDeviceExtensionNamesC.push_back(name.c_str());
+    }
 
-    VkDeviceCreateInfo dCi = {};
-    dCi.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    dCi.queueCreateInfoCount = 1;
-    dCi.pQueueCreateInfos = &dqCi;
-    dCi.enabledExtensionCount = static_cast<uint32_t>(selectedDeviceExtensionNames.size());
-    dCi.ppEnabledExtensionNames = selectedDeviceExtensionNames.data();
+    VkDeviceCreateInfo dCi = {
+        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+        .queueCreateInfoCount = 1,
+        .pQueueCreateInfos = &dqCi,
+        .enabledExtensionCount = static_cast<uint32_t>(selectedDeviceExtensionNamesC.size()),
+        .ppEnabledExtensionNames = selectedDeviceExtensionNamesC.data(),
+    };
 
     // Setting up VkDeviceCreateInfo::pNext
     auto deviceCiChain = vk_make_chain_iterator(&dCi);

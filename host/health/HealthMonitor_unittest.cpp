@@ -492,7 +492,7 @@ TEST(HealthMonitorWatchdogBuilderTest, NullPointerCallbackTest) {
     const char message[] = "test message";
     MockFunction<std::unique_ptr<HangAnnotations>()> mockOnHangCallback;
     MockHealthMonitor* monitor = nullptr;
-    WATCHDOG_BUILDER(monitor, "test message")
+    WATCHDOG_BUILDER(monitor, message)
         .setOnHangCallback(mockOnHangCallback.AsStdFunction())
         .build();
     EXPECT_CALL(mockOnHangCallback, Call()).Times(0);

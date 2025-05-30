@@ -105,6 +105,7 @@ target_include_directories(gfxstream-vulkan-server
                            PRIVATE
                            ${GFXSTREAM_REPO_ROOT}
                            ${GFXSTREAM_REPO_ROOT}/host
+                           ${GFXSTREAM_REPO_ROOT}/host/gl
                            ${GFXSTREAM_REPO_ROOT}/host/tracing
                            ${GFXSTREAM_REPO_ROOT}/host/vulkan
                            ${GFXSTREAM_REPO_ROOT}/host/vulkan/cereal/common
