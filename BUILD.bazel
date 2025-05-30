@@ -9,12 +9,17 @@ package_group(
 )
 
 package(
-    default_applicable_licenses = [":license"],
+    default_applicable_licenses = [":gfxstream_license"],
     default_visibility = ["//:gfxstream"],
 )
 
+exports_files(
+    ["LICENSE"],
+    visibility = ["//visibility:public"],
+)
+
 license(
-    name = "license",
+    name = "gfxstream_license",
     license_kinds = [
         ":SPDX-license-identifier-Apache-2.0",
         ":SPDX-license-identifier-BSD",
@@ -47,3 +52,5 @@ license_kind(
     conditions = ["notice"],
     url = "https://spdx.org/licenses/MIT.html",
 )
+
+licenses(["notice"])
