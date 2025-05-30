@@ -35,7 +35,7 @@ extern "C" {
 #endif
 #include "render-utils/Renderer.h"
 #include "render-utils/RenderLib.h"
-#include "vk_util.h"
+#include "VkUtils.h"
 #include "vulkan/VulkanDispatch.h"
 
 using namespace std::literals;

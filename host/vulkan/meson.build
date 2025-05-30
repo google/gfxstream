@@ -32,11 +32,11 @@ files_lib_vulkan_server = files(
   'VkDecoderSnapshotUtils.cpp',
   'VkFormatUtils.cpp',
   'VkReconstruction.cpp',
+  'VkUtils.cpp'
   'VulkanBoxedHandles.cpp',
   'VulkanDispatch.cpp',
   'VulkanHandleMapping.cpp',
   'VulkanStream.cpp',
-  'vk_util.cpp'
 )
 
 vulkan_server_cpp_args = [

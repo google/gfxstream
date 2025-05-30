@@ -49,7 +49,7 @@
 #include "gfxstream/common/logging.h"
 #include "gfxstream/host/address_space_operations.h"
 #include "gfxstream/host/vm_operations.h"
-#include "vk_util.h"
+#include "VkUtils.h"
 #include "vulkan/emulated_textures/AstcTexture.h"
 #include "vulkan/emulated_textures/CompressedImageInfo.h"
 #include "vulkan/emulated_textures/GpuDecompressionPipeline.h"
@@ -923,17 +923,8 @@ class VkDecoderGlobalState::Impl {
             appInfo = *createInfoFiltered.pApplicationInfo;
         }
 
-        // remove VkDebugReportCallbackCreateInfoEXT and
-        // VkDebugUtilsMessengerCreateInfoEXT from the chain.
-        auto* curr = reinterpret_cast<vk_struct_common*>(&createInfoFiltered);
-        while (curr != nullptr) {
-            if (curr->pNext != nullptr &&
-                (curr->pNext->sType == VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT ||
-                 curr->pNext->sType == VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT)) {
-                curr->pNext = curr->pNext->pNext;
-            }
-            curr = curr->pNext;
-        }
+        vk_struct_chain_filter<VkDebugReportCallbackCreateInfoEXT>(&createInfoFiltered);
+        vk_struct_chain_filter<VkDebugUtilsMessengerCreateInfoEXT>(&createInfoFiltered);
 
 #if defined(__APPLE__)
         if (m_vkEmulation->supportsMoltenVk()) {

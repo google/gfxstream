@@ -29,7 +29,7 @@
 #include "gfxstream/ImageUtils.h"
 #include "gfxstream/host/testing/VkTestUtils.h"
 #include "vulkan/VulkanDispatch.h"
-#include "vulkan/vk_util.h"
+#include "vulkan/VkUtils.h"
 
 #ifdef BAZEL_CURRENT_REPOSITORY
 #include "rules_cc/cc/runfiles/runfiles.h"

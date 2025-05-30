@@ -35,7 +35,7 @@
 #include "gfxstream/host/Features.h"
 #include "gfxstream/host/GfxApiLogger.h"
 #include "goldfish_vk_private_defs.h"
-#include "vk_util.h"
+#include "VkUtils.h"
 
 using gfxstream::base::AutoLock;
 using gfxstream::base::Lock;

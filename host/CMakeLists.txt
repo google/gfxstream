@@ -310,8 +310,8 @@ endfunction()
         vulkan/VkDecoderGlobalState_unittest.cpp
         vulkan/VkFormatUtils_unittest.cpp
         vulkan/VkQsriTimeline_unittest.cpp
+        vulkan/VkUtilsTests.cpp
         vulkan/Vulkan_unittest.cpp
-        vulkan/vk_util_unittest.cpp
     )
     target_link_libraries(
         Vulkan_unittests
