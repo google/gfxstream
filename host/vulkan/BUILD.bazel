@@ -41,11 +41,11 @@ cc_library(
         "//host:gfxstream_backend_headers",
         "//host/backend:gfxstream_host_backend",
         "//host/decoder_common:gfxstream_host_decoder_common",
+        "//host/features:gfxstream_host_features",
         "//host/health:gfxstream_host_health",
         "//host/iostream:gfxstream_host_iostream",
         "//host/metrics:gfxstream_host_metrics",
-        "//host/vulkan/cereal:gfxstream_vulkan_cereal_dispatch",
-        "//host/vulkan/cereal:gfxstream_vulkan_cereal_struct_id",
+        "//host/vulkan/cereal:gfxstream_vulkan_cereal_headers",
         "//third_party/vulkan:gfxstream_vulkan_headers",
     ],
 )
@@ -81,9 +81,7 @@ cc_library(
         "VulkanHandleMapping.cpp",
         "VulkanStream.cpp",
         "vk_util.cpp",
-    ] + glob([
-        "**/*.h",
-    ]),
+    ],
     hdrs = [
         "BorrowedImageVk.h",
         "BufferVk.h",
@@ -128,6 +126,7 @@ cc_library(
     copts = [
         "-Wno-return-type-c-linkage",
         "-Wno-extern-c-compat",
+        "-Wno-unused-variable",
     ],
     defines = [
         "VK_GFXSTREAM_STRUCTURE_TYPE_EXT",
@@ -161,7 +160,7 @@ cc_library(
         "//host/compressed_textures:gfxstream_host_compressed_textures",
         "//host/decoder_common:gfxstream_host_decoder_common",
         "//host/features:gfxstream_host_features",
-        "//host/gl:gl_headers",
+        "//host/gl:gfxstream_opengl_server_headers",
         "//host/gl/OpenGLESDispatch:gfxstream_host_openglesdispatch_headers",
         "//host/health:gfxstream_host_health",
         "//host/iostream:gfxstream_host_iostream",
@@ -170,9 +169,8 @@ cc_library(
         "//host/renderdoc:gfxstream_host_renderdoc",
         "//host/tracing:gfxstream_host_tracing",
         "//host/vulkan/cereal:gfxstream_vulkan_cereal",
-        "//host/vulkan/cereal:gfxstream_vulkan_cereal_dispatch",
-        "//host/vulkan/cereal:gfxstream_vulkan_cereal_private_deps",
         "//host/vulkan/emulated_textures:gfxstream_host_vulkan_emulated_textures",
+        "//third_party/android:gfxstream_thirdparty_android_headers",
         "//third_party/glm",
         "//third_party/opengl:gfxstream_gles2_headers",
         "//third_party/opengl:gfxstream_gles3_headers",

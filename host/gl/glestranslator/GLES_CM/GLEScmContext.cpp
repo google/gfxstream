@@ -15,22 +15,26 @@
 */
 
 #include "GLEScmContext.h"
-#include "GLEScmUtils.h"
+
 #include <algorithm>
-#include <GLcommon/GLutils.h>
-#include <GLcommon/GLconversion_macros.h>
+#include <array>
 #include <string.h>
+#include <vector>
+
 #include <GLES/gl.h>
 #include <GLES/glext.h>
-
-#include "gfxstream/synchronization/Lock.h"
-#include "gfxstream/host/stream_utils.h"
-#include "GLEScmValidate.h"
 
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+#include "GLEScmValidate.h"
+#include "GLEScmUtils.h"
+#include "GLcommon/GLutils.h"
+#include "GLcommon/GLconversion_macros.h"
+#include "gfxstream/synchronization/Lock.h"
+#include "gfxstream/host/stream_utils.h"
 
 static GLESVersion s_maxGlesVersion = GLES_1_1;
 
@@ -1668,8 +1672,6 @@ void GLEScmContext::drawTexOES(float x, float y, float z, float width, float hei
             static_cast<float>(x+width), static_cast<float>(y+height), z,
             static_cast<float>(x+width), y, z
         };
-        GLfloat texels[getMaxTexUnits()][4*2];
-        memset((void*)texels, 0, getMaxTexUnits()*4*2*sizeof(GLfloat));
 
         gl.glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
         gl.glPushAttrib(GL_TRANSFORM_BIT);
@@ -1701,7 +1703,7 @@ void GLEScmContext::drawTexOES(float x, float y, float z, float width, float hei
             gl.glDisable(GL_CLIP_PLANE0+i);
 
         int nTexPtrs = 0;
-        for (int i=0;i<getMaxTexUnits();++i) {
+        for (int i = 0; i < getMaxTexUnits(); ++i) {
             if (isTextureUnitEnabled(GL_TEXTURE0+i)) {
                 TextureData * texData = NULL;
                 unsigned int texname = getBindedTexture(GL_TEXTURE0+i,GL_TEXTURE_2D);
@@ -1711,20 +1713,23 @@ void GLEScmContext::drawTexOES(float x, float y, float z, float width, float hei
                         NamedObjectType::TEXTURE, tex);
                 if (objData) {
                     texData = (TextureData*)objData;
+
+                    std::array<GLfloat, 8> texels;
+
                     //calculate texels
-                    texels[i][0] = (float)(texData->crop_rect[0])/(float)(texData->width);
-                    texels[i][1] = (float)(texData->crop_rect[1])/(float)(texData->height);
+                    texels[0] = (float)(texData->crop_rect[0])/(float)(texData->width);
+                    texels[1] = (float)(texData->crop_rect[1])/(float)(texData->height);
 
-                    texels[i][2] = (float)(texData->crop_rect[0])/(float)(texData->width);
-                    texels[i][3] = (float)(texData->crop_rect[3]+texData->crop_rect[1])/(float)(texData->height);
+                    texels[2] = (float)(texData->crop_rect[0])/(float)(texData->width);
+                    texels[3] = (float)(texData->crop_rect[3]+texData->crop_rect[1])/(float)(texData->height);
 
-                    texels[i][4] = (float)(texData->crop_rect[2]+texData->crop_rect[0])/(float)(texData->width);
-                    texels[i][5] = (float)(texData->crop_rect[3]+texData->crop_rect[1])/(float)(texData->height);
+                    texels[4] = (float)(texData->crop_rect[2]+texData->crop_rect[0])/(float)(texData->width);
+                    texels[5] = (float)(texData->crop_rect[3]+texData->crop_rect[1])/(float)(texData->height);
 
-                    texels[i][6] = (float)(texData->crop_rect[2]+texData->crop_rect[0])/(float)(texData->width);
-                    texels[i][7] = (float)(texData->crop_rect[1])/(float)(texData->height);
+                    texels[6] = (float)(texData->crop_rect[2]+texData->crop_rect[0])/(float)(texData->width);
+                    texels[7] = (float)(texData->crop_rect[1])/(float)(texData->height);
 
-                    gl.glTexCoordPointer(2,GL_FLOAT,0,texels[i]);
+                    gl.glTexCoordPointer(2, GL_FLOAT, 0, texels.data());
                     nTexPtrs++;
                 }
             }

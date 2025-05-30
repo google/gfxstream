@@ -259,6 +259,57 @@ cc_library(
 )
 
 cc_library(
+    name = "gfxstream_opengl_server_headers",
+    hdrs = [
+        "BorrowedImageGl.h",
+        "BufferGl.h",
+        "ColorBufferGl.h",
+        "CompositorGl.h",
+        "ContextHelper.h",
+        "DebugGl.h",
+        "DisplayGl.h",
+        "DisplaySurfaceGl.h",
+        "EmulatedEglConfig.h",
+        "EmulatedEglContext.h",
+        "EmulatedEglFenceSync.h",
+        "EmulatedEglImage.h",
+        "EmulatedEglWindowSurface.h",
+        "EmulationGl.h",
+        "GLESVersionDetector.h",
+        "ReadbackWorkerGl.h",
+        "RenderThreadInfoGl.h",
+        "TextureDraw.h",
+        "TextureResize.h",
+        "YUVConverter.h",
+    ],
+    defines = [
+        "GFXSTREAM_ENABLE_HOST_GLES",
+    ],
+    includes = ["."],
+    deps = [
+        ":gfxstream_glsnapshot",
+        ":gl_common_headers",
+        ":gles1_dec",
+        ":gles2_dec",
+        "//common/base:gfxstream_common_base",
+        "//common/logging:gfxstream_common_logging",
+        "//common/utils:gfxstream_common_utils",
+        "//host:gfxstream_backend_headers",
+        "//host:gfxstream_host_headers",
+        "//host/backend:gfxstream_host_backend",
+        "//host/decoder_common:gfxstream_host_decoder_common",
+        "//host/features:gfxstream_host_features",
+        "//host/gl/OpenGLESDispatch:gfxstream_host_openglesdispatch",
+        "//host/gl/OpenGLESDispatch:gfxstream_host_openglesdispatch_headers",
+        "//third_party/opengl:gfxstream_egl_headers",
+        "//third_party/opengl:gfxstream_gles2_headers",
+        "//third_party/opengl:gfxstream_gles3_headers",
+        "//third_party/opengl:gfxstream_gles_headers",
+        "//third_party/opengl:gfxstream_opengl_headers",
+    ],
+)
+
+cc_library(
     name = "gfxstream_opengl_server",
     srcs = [
         "BufferGl.cpp",
@@ -307,7 +358,7 @@ cc_library(
         "-Wno-extern-c-compat",
     ],
     defines = [
-        "GFXSTREAM_ENABLE_HOST_GLES=1",
+        "GFXSTREAM_ENABLE_HOST_GLES",
         "EMUGL_BUILD",
     ],
     includes = [
@@ -334,9 +385,4 @@ cc_library(
         "//third_party/opengl:gfxstream_gles_headers",
         "//third_party/opengl:gfxstream_opengl_headers",
     ],
-)
-
-cc_library(
-    name = "gl_headers",
-    hdrs = glob(["*.h"]),
 )

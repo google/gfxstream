@@ -9,9 +9,12 @@ cc_library(
     hdrs = glob([
         "include/**/*.h",
     ]),
+    includes = [
+        "include",
+    ],
     strip_include_prefix = "include",
     visibility = [
-        "@//:gfxstream",
+        "//:gfxstream",
         "@mesa//:__subpackages__",
     ],
 )

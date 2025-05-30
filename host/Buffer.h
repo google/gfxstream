@@ -22,7 +22,7 @@
 #include "snapshot/LazySnapshotObj.h"
 
 #if GFXSTREAM_ENABLE_HOST_GLES
-#include "gl/BufferGl.h"
+#include "BufferGl.h"
 #endif
 
 namespace gfxstream {
