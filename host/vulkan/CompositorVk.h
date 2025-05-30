@@ -34,7 +34,7 @@
 #include "gfxstream/LruCache.h"
 #include "gfxstream/synchronization/Lock.h"
 #include "goldfish_vk_dispatch.h"
-#include "vulkan/vk_util.h"
+#include "vulkan/VkUtils.h"
 
 namespace gfxstream {
 namespace vk {

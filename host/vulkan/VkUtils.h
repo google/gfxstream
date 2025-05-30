@@ -1,35 +1,25 @@
-/*
- * Copyright © 2025 The Android Open Source Project
- * Copyright © 2017 Intel Corporation
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
- */
-#ifndef VK_UTIL_H
-#define VK_UTIL_H
+// Copyright (C) 2025 The Android Open Source Project
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-/* common inlines and macros for vulkan drivers */
+#pragma once
 
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
+
 #include <vulkan/vulkan.h>
+#include <vulkan/vk_enum_string_helper.h>
 
 #include <chrono>
 #include <functional>
@@ -47,183 +37,45 @@
 #include "gfxstream/common/logging.h"
 #include "vk_fn_info.h"
 #include "vk_struct_id.h"
-#include "vulkan/vk_enum_string_helper.h"
 
 namespace gfxstream {
 namespace vk {
 
-struct vk_struct_common {
-    VkStructureType sType;
-    struct vk_struct_common* pNext;
-};
-
 struct vk_struct_chain_iterator {
-    vk_struct_common* value;
+    VkBaseOutStructure* value;
 };
-
-#define vk_foreach_struct(__iter, __start)                                              \
-    for (struct vk_struct_common* __iter = (struct vk_struct_common*)(__start); __iter; \
-         __iter = __iter->pNext)
-
-#define vk_foreach_struct_const(__iter, __start)                                            \
-    for (const struct vk_struct_common* __iter = (const struct vk_struct_common*)(__start); \
-         __iter; __iter = __iter->pNext)
-
-/**
- * A wrapper for a Vulkan output array. A Vulkan output array is one that
- * follows the convention of the parameters to
- * vkGetPhysicalDeviceQueueFamilyProperties().
- *
- * Example Usage:
- *
- *    VkResult
- *    vkGetPhysicalDeviceQueueFamilyProperties(
- *       VkPhysicalDevice           physicalDevice,
- *       uint32_t*                  pQueueFamilyPropertyCount,
- *       VkQueueFamilyProperties*   pQueueFamilyProperties)
- *    {
- *       VK_OUTARRAY_MAKE(props, pQueueFamilyProperties,
- *                         pQueueFamilyPropertyCount);
- *
- *       vk_outarray_append(&props, p) {
- *          p->queueFlags = ...;
- *          p->queueCount = ...;
- *       }
- *
- *       vk_outarray_append(&props, p) {
- *          p->queueFlags = ...;
- *          p->queueCount = ...;
- *       }
- *
- *       return vk_outarray_status(&props);
- *    }
- */
-struct __vk_outarray {
-    /** May be null. */
-    void* data;
-
-    /**
-     * Capacity, in number of elements. Capacity is unlimited (UINT32_MAX) if
-     * data is null.
-     */
-    uint32_t cap;
-
-    /**
-     * Count of elements successfully written to the array. Every write is
-     * considered successful if data is null.
-     */
-    uint32_t* filled_len;
-
-    /**
-     * Count of elements that would have been written to the array if its
-     * capacity were sufficient. Vulkan functions often return VK_INCOMPLETE
-     * when `*filled_len < wanted_len`.
-     */
-    uint32_t wanted_len;
-};
-
-static inline void __vk_outarray_init(struct __vk_outarray* a, void* data, uint32_t* len) {
-    a->data = data;
-    a->cap = *len;
-    a->filled_len = len;
-    *a->filled_len = 0;
-    a->wanted_len = 0;
-
-    if (a->data == NULL) a->cap = UINT32_MAX;
-}
-
-static inline VkResult __vk_outarray_status(const struct __vk_outarray* a) {
-    if (*a->filled_len < a->wanted_len)
-        return VK_INCOMPLETE;
-    else
-        return VK_SUCCESS;
-}
-
-static inline void* __vk_outarray_next(struct __vk_outarray* a, size_t elem_size) {
-    void* p = NULL;
-
-    a->wanted_len += 1;
-
-    if (*a->filled_len >= a->cap) return NULL;
-
-    if (a->data != NULL) p = ((uint8_t*)a->data) + (*a->filled_len) * elem_size;
-
-    *a->filled_len += 1;
-
-    return p;
-}
-
-#define vk_outarray(elem_t)        \
-    struct {                       \
-        struct __vk_outarray base; \
-        elem_t meta[];             \
-    }
-
-#define vk_outarray_typeof_elem(a) __typeof__((a)->meta[0])
-#define vk_outarray_sizeof_elem(a) sizeof((a)->meta[0])
-
-#define vk_outarray_init(a, data, len) __vk_outarray_init(&(a)->base, (data), (len))
-
-#define VK_OUTARRAY_MAKE(name, data, len)    \
-    vk_outarray(__typeof__((data)[0])) name; \
-    vk_outarray_init(&name, (data), (len))
-
-#define vk_outarray_status(a) __vk_outarray_status(&(a)->base)
-
-#define vk_outarray_next(a) \
-    ((vk_outarray_typeof_elem(a)*)__vk_outarray_next(&(a)->base, vk_outarray_sizeof_elem(a)))
-
-/**
- * Append to a Vulkan output array.
- *
- * This is a block-based macro. For example:
- *
- *    vk_outarray_append(&a, elem) {
- *       elem->foo = ...;
- *       elem->bar = ...;
- *    }
- *
- * The array `a` has type `vk_outarray(elem_t) *`. It is usually declared with
- * VK_OUTARRAY_MAKE(). The variable `elem` is block-scoped and has type
- * `elem_t *`.
- *
- * The macro unconditionally increments the array's `wanted_len`. If the array
- * is not full, then the macro also increment its `filled_len` and then
- * executes the block. When the block is executed, `elem` is non-null and
- * points to the newly appended element.
- */
-#define vk_outarray_append(a, elem) \
-    for (vk_outarray_typeof_elem(a)* elem = vk_outarray_next(a); elem != NULL; elem = NULL)
-
-static inline void* __vk_find_struct(void* start, VkStructureType sType) {
-    vk_foreach_struct(s, start) {
-        if (s->sType == sType) return s;
-    }
-
-    return NULL;
-}
 
 template <class T, class H>
 T* vk_find_struct(H* head) {
     (void)vk_get_vk_struct_id<H>::id;
-    return static_cast<T*>(__vk_find_struct(static_cast<void*>(head), vk_get_vk_struct_id<T>::id));
+
+    constexpr const VkStructureType desired = vk_get_vk_struct_id<T>::id;
+
+    VkBaseOutStructure* vkstruct = reinterpret_cast<VkBaseOutStructure*>(head);
+    while (vkstruct != nullptr) {
+        if (vkstruct->sType == desired) {
+            return reinterpret_cast<T*>(vkstruct);
+        }
+        vkstruct = vkstruct->pNext;
+    }
+    return nullptr;
 }
 
 template <class T, class H>
 const T* vk_find_struct(const H* head) {
     (void)vk_get_vk_struct_id<H>::id;
-    return static_cast<const T*>(__vk_find_struct(const_cast<void*>(static_cast<const void*>(head)),
-                                                  vk_get_vk_struct_id<T>::id));
+
+    constexpr const VkStructureType desired = vk_get_vk_struct_id<T>::id;
+
+    const VkBaseInStructure* vkstruct = reinterpret_cast<const VkBaseInStructure*>(head);
+    while (vkstruct != nullptr) {
+        if (vkstruct->sType == desired) {
+            return reinterpret_cast<const T*>(vkstruct);
+        }
+        vkstruct = vkstruct->pNext;
+    }
+    return nullptr;
 }
-
-uint32_t vk_get_driver_version(void);
-
-uint32_t vk_get_version_override(void);
-
-#define VK_EXT_OFFSET (1000000000UL)
-#define VK_ENUM_EXTENSION(__enum) \
-    ((__enum) >= VK_EXT_OFFSET ? ((((__enum)-VK_EXT_OFFSET) / 1000UL) + 1) : 0)
-#define VK_ENUM_OFFSET(__enum) ((__enum) >= VK_EXT_OFFSET ? ((__enum) % 1000) : (__enum))
 
 template <class T>
 T vk_make_orphan_copy(const T& vk_struct) {
@@ -235,7 +87,7 @@ T vk_make_orphan_copy(const T& vk_struct) {
 template <class T>
 vk_struct_chain_iterator vk_make_chain_iterator(T* vk_struct) {
     (void)vk_get_vk_struct_id<T>::id;
-    vk_struct_chain_iterator result = {reinterpret_cast<vk_struct_common*>(vk_struct)};
+    vk_struct_chain_iterator result = {reinterpret_cast<VkBaseOutStructure*>(vk_struct)};
     return result;
 }
 
@@ -243,12 +95,12 @@ template <class T>
 void vk_append_struct(vk_struct_chain_iterator* i, T* vk_struct) {
     (void)vk_get_vk_struct_id<T>::id;
 
-    vk_struct_common* p = i->value;
+    VkBaseOutStructure* p = i->value;
     if (p->pNext) {
         ::abort();
     }
 
-    p->pNext = reinterpret_cast<vk_struct_common*>(vk_struct);
+    p->pNext = reinterpret_cast<VkBaseOutStructure*>(vk_struct);
     vk_struct->pNext = NULL;
 
     *i = vk_make_chain_iterator(vk_struct);
@@ -258,10 +110,10 @@ void vk_append_struct(vk_struct_chain_iterator* i, T* vk_struct) {
 // a const object to avoid unexpected undefined behavior.
 template <class T, class U, typename = std::enable_if_t<!std::is_const_v<T> && !std::is_const_v<U>>>
 void vk_insert_struct(T& pos, U& nextChain) {
-    vk_struct_common* nextChainTail = reinterpret_cast<vk_struct_common*>(&nextChain);
+    VkBaseOutStructure* nextChainTail = reinterpret_cast<VkBaseOutStructure*>(&nextChain);
     for (; nextChainTail->pNext; nextChainTail = nextChainTail->pNext) {}
 
-    nextChainTail->pNext = reinterpret_cast<vk_struct_common*>(const_cast<void*>(pos.pNext));
+    nextChainTail->pNext = reinterpret_cast<VkBaseOutStructure*>(const_cast<void*>(pos.pNext));
     pos.pNext = &nextChain;
 }
 
@@ -269,12 +121,12 @@ template <class S, class T>
 void vk_struct_chain_remove(S* unwanted, T* vk_struct) {
     if (!unwanted) return;
 
-    vk_foreach_struct(current, vk_struct) {
-        if ((void*)unwanted == current->pNext) {
-            const vk_struct_common* unwanted_as_common =
-                reinterpret_cast<const vk_struct_common*>(unwanted);
-            current->pNext = unwanted_as_common->pNext;
+    VkBaseOutStructure* current = reinterpret_cast<VkBaseOutStructure*>(vk_struct);
+    while (current != nullptr) {
+        if (current->pNext == (void*)unwanted) {
+            current->pNext = reinterpret_cast<const VkBaseOutStructure*>(unwanted)->pNext;
         }
+        current = current->pNext;
     }
 }
 
@@ -282,7 +134,7 @@ template <class TypeToFilter, class H>
 void vk_struct_chain_filter(H* head) {
     (void)vk_get_vk_struct_id<H>::id;
 
-    auto* curr = reinterpret_cast<vk_struct_common*>(head);
+    auto* curr = reinterpret_cast<VkBaseOutStructure*>(head);
     while (curr != nullptr) {
         if (curr->pNext != nullptr && curr->pNext->sType == vk_get_vk_struct_id<TypeToFilter>::id) {
             curr->pNext = curr->pNext->pNext;
@@ -528,5 +380,3 @@ static inline bool vk_descriptor_type_has_image_view(VkDescriptorType type) {
 }  // namespace vk_util
 }  // namespace vk
 }  // namespace gfxstream
-
-#endif /* VK_UTIL_H */

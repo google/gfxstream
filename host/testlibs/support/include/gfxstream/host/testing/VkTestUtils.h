@@ -17,7 +17,7 @@
 
 #include "gfxstream/files/PathUtils.h"
 #include "vulkan/VulkanDispatch.h"
-#include "vulkan/vk_util.h"
+#include "vulkan/VkUtils.h"
 
 namespace gfxstream {
 namespace vk {

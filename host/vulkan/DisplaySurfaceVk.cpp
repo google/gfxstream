@@ -15,7 +15,7 @@
 #include "DisplaySurfaceVk.h"
 
 #include "gfxstream/common/logging.h"
-#include "vk_util.h"
+#include "VkUtils.h"
 
 namespace gfxstream {
 namespace vk {

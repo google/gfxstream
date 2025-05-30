@@ -82,7 +82,6 @@ cc_library_static {
         "PostWorkerVk.cpp",
         "RenderThreadInfoVk.cpp",
         "SwapChainStateVk.cpp",
-        "vk_util.cpp",
         "VkAndroidNativeBuffer.cpp",
         "VkCommonOperations.cpp",
         "VkDecoder.cpp",
@@ -93,6 +92,7 @@ cc_library_static {
         "VkEmulatedPhysicalDeviceQueue.cpp",
         "VkFormatUtils.cpp",
         "VkReconstruction.cpp",
+        "VkUtils.cpp",
         "VulkanBoxedHandles.cpp",
         "VulkanDispatch.cpp",
         "VulkanHandleMapping.cpp",
@@ -229,7 +229,7 @@ cc_test_host {
     name: "gfxstream_vkutil_tests",
     defaults: ["gfxstream_host_cc_defaults"],
     srcs: [
-        "vk_util_unittest.cpp",
+        "VkUtilsTests.cpp",
     ],
     shared_libs: [
         "libbase",

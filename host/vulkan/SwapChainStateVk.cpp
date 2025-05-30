@@ -19,7 +19,7 @@
 
 #include "gfxstream/common/logging.h"
 #include "vulkan/vk_enum_string_helper.h"
-#include "vulkan/vk_util.h"
+#include "vulkan/VkUtils.h"
 
 namespace gfxstream {
 namespace vk {

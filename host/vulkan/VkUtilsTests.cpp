@@ -15,7 +15,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "vk_util.h"
+#include "VkUtils.h"
 
 #include <vulkan/vulkan_core.h>
 
