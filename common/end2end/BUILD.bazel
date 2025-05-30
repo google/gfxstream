@@ -2,6 +2,7 @@ load("@aspect_bazel_lib//lib:copy_to_directory.bzl", "copy_to_directory")
 load("@rules_cc//cc:defs.bzl", "cc_test")
 
 package(
+    default_applicable_licenses = ["//:gfxstream_license"],
     default_visibility = ["//:gfxstream"],
 )
 
