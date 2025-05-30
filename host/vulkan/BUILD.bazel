@@ -121,7 +121,6 @@ cc_library(
         "VulkanHandles.h",
         "VulkanStream.h",
         "vk_fn_info.h",
-        "vk_format_info.h",
         "vk_util.h",
     ],
     copts = [
@@ -171,7 +170,6 @@ cc_library(
         "//host/tracing:gfxstream_host_tracing",
         "//host/vulkan/cereal:gfxstream_vulkan_cereal",
         "//host/vulkan/emulated_textures:gfxstream_host_vulkan_emulated_textures",
-        "//third_party/android:gfxstream_thirdparty_android_headers",
         "//third_party/glm",
         "//third_party/opengl:gfxstream_gles2_headers",
         "//third_party/opengl:gfxstream_gles3_headers",
