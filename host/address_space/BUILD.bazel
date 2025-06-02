@@ -14,7 +14,10 @@ cc_library(
         "sub_allocator.cpp",
     ],
     hdrs = glob(["include/**/*.h"]),
-    copts = ["-fno-exceptions"],
+    copts = select({
+        "@platforms//os:windows": ["/EHs-c-"],
+        "//conditions:default": ["-fno-exceptions"],
+    }),
     strip_include_prefix = "include",
     deps = [
         "//common/base:gfxstream_common_base",

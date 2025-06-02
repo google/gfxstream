@@ -8,7 +8,10 @@ package(
 cc_library(
     name = "gfxstream_host_iostream",
     hdrs = glob(["include/**/*.h"]),
-    copts = ["-fno-exceptions"],
+    copts = select({
+        "@platforms//os:windows": ["/EHs-c-"],
+        "//conditions:default": ["-fno-exceptions"],
+    }),
     includes = ["include"],
     deps = [
         "//common/logging:gfxstream_common_logging",

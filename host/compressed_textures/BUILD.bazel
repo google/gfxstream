@@ -11,7 +11,10 @@ cc_library(
         "AstcCpuDecompressorNoOp.cpp",
     ],
     hdrs = glob(["include/**/*.h"]),
-    copts = ["-fno-exceptions"],
+    copts = select({
+        "@platforms//os:windows": ["/EHs-c-"],
+        "//conditions:default": ["-fno-exceptions"],
+    }),
     strip_include_prefix = "include",
     deps = [
         "//common/etc:gfxstream_etc",
@@ -23,7 +26,10 @@ cc_test(
     srcs = [
         "AstcCpuDecompressor_unittest.cpp",
     ],
-    copts = ["-fno-exceptions"],
+    copts = select({
+        "@platforms//os:windows": ["/EHs-c-"],
+        "//conditions:default": ["-fno-exceptions"],
+    }),
     deps = [
         ":gfxstream_host_compressed_textures",
         "@com_google_googletest//:gtest",
