@@ -559,43 +559,43 @@ VkBufferImageCopy2 CompressedImageInfo::getBufferImageCopy(
 
 // static
 VkImageCopy CompressedImageInfo::getCompressedMipmapsImageCopy(const VkImageCopy& origRegion,
-                                                               const CompressedImageInfo& srcImg,
-                                                               const CompressedImageInfo& dstImg,
-                                                               bool needEmulatedSrc,
-                                                               bool needEmulatedDst) {
+                                                               const CompressedImageInfo* srcImg,
+                                                               const CompressedImageInfo* dstImg) {
+    const bool needEmulatedSrc = (srcImg != nullptr);
+    const bool needEmulatedDst = (dstImg != nullptr);
     VkImageCopy region = origRegion;
     if (needEmulatedSrc) {
         uint32_t mipLevel = region.srcSubresource.mipLevel;
         region.srcSubresource.mipLevel = 0;
-        region.srcOffset.x /= srcImg.mBlock.width;
-        region.srcOffset.y /= srcImg.mBlock.height;
-        region.extent = srcImg.compressedMipmapPortion(region.extent, mipLevel);
+        region.srcOffset.x /= srcImg->mBlock.width;
+        region.srcOffset.y /= srcImg->mBlock.height;
+        region.extent = srcImg->compressedMipmapPortion(region.extent, mipLevel);
     }
     if (needEmulatedDst) {
         region.dstSubresource.mipLevel = 0;
-        region.dstOffset.x /= dstImg.mBlock.width;
-        region.dstOffset.y /= dstImg.mBlock.height;
+        region.dstOffset.x /= dstImg->mBlock.width;
+        region.dstOffset.y /= dstImg->mBlock.height;
     }
     return region;
 }
 
 VkImageCopy2 CompressedImageInfo::getCompressedMipmapsImageCopy(const VkImageCopy2& origRegion,
-                                                                const CompressedImageInfo& srcImg,
-                                                                const CompressedImageInfo& dstImg,
-                                                                bool needEmulatedSrc,
-                                                                bool needEmulatedDst) {
+                                                                const CompressedImageInfo* srcImg,
+                                                                const CompressedImageInfo* dstImg) {
+    const bool needEmulatedSrc = (srcImg != nullptr);
+    const bool needEmulatedDst = (dstImg != nullptr);
     VkImageCopy2 region = origRegion;
     if (needEmulatedSrc) {
         uint32_t mipLevel = region.srcSubresource.mipLevel;
         region.srcSubresource.mipLevel = 0;
-        region.srcOffset.x /= srcImg.mBlock.width;
-        region.srcOffset.y /= srcImg.mBlock.height;
-        region.extent = srcImg.compressedMipmapPortion(region.extent, mipLevel);
+        region.srcOffset.x /= srcImg->mBlock.width;
+        region.srcOffset.y /= srcImg->mBlock.height;
+        region.extent = srcImg->compressedMipmapPortion(region.extent, mipLevel);
     }
     if (needEmulatedDst) {
         region.dstSubresource.mipLevel = 0;
-        region.dstOffset.x /= dstImg.mBlock.width;
-        region.dstOffset.y /= dstImg.mBlock.height;
+        region.dstOffset.x /= dstImg->mBlock.width;
+        region.dstOffset.y /= dstImg->mBlock.height;
     }
     return region;
 }

@@ -1809,8 +1809,8 @@ class VkDecoderGlobalState::Impl {
         // support: to query for additional properties, or if the feature is not enabled,
         // vkGetPhysicalDeviceFormatProperties and vkGetPhysicalDeviceImageFormatProperties can be
         // used to check for supported properties of individual formats as normal.
-        bool emulateTextureEtc2 = needEmulatedEtc2(physicalDevice, vk);
-        bool emulateTextureAstc = needEmulatedAstc(physicalDevice, vk);
+        const bool emulateTextureEtc2 = needEmulatedEtc2(physicalDevice, vk);
+        const bool emulateTextureAstc = needEmulatedAstc(physicalDevice, vk);
         VkPhysicalDeviceFeatures featuresFiltered;
         std::vector<VkPhysicalDeviceFeatures*> featuresToFilter;
 
@@ -2692,13 +2692,12 @@ class VkDecoderGlobalState::Impl {
         }
 
         const bool needDecompression = deviceInfo->needEmulatedDecompression(pCreateInfo->format);
-        CompressedImageInfo cmpInfo =
-            needDecompression
-                ? CompressedImageInfo(device, *pCreateInfo, deviceInfo->decompPipelines.get())
-                : CompressedImageInfo(device);
+        std::unique_ptr<CompressedImageInfo> cmpInfo = nullptr;
         VkImageCreateInfo decompInfo;
         if (needDecompression) {
-            decompInfo = cmpInfo.getOutputCreateInfo(*pCreateInfo);
+            cmpInfo = std::make_unique<CompressedImageInfo>(device, *pCreateInfo,
+                                                            deviceInfo->decompPipelines.get());
+            decompInfo = cmpInfo->getOutputCreateInfo(*pCreateInfo);
             pCreateInfo = &decompInfo;
         }
 
@@ -2733,20 +2732,18 @@ class VkDecoderGlobalState::Impl {
         if (createRes != VK_SUCCESS) return createRes;
 
         if (needDecompression) {
-            cmpInfo.setOutputImage(*pImage);
-            cmpInfo.createCompressedMipmapImages(vk, *pCreateInfo);
+            cmpInfo->setOutputImage(*pImage);
+            cmpInfo->createCompressedMipmapImages(vk, *pCreateInfo);
 
-            if (cmpInfo.isAstc()) {
-                if (deviceInfo->useAstcCpuDecompression) {
-                    cmpInfo.initAstcCpuDecompression(m_vk, mDeviceInfo[device].physicalDevice);
-                }
+            if (deviceInfo->useAstcCpuDecompression && cmpInfo->isAstc()) {
+                cmpInfo->initAstcCpuDecompression(m_vk, mDeviceInfo[device].physicalDevice);
             }
         }
 
         VALIDATE_NEW_HANDLE_INFO_ENTRY(mImageInfo, *pImage);
         auto& imageInfo = mImageInfo[*pImage];
         imageInfo.device = device;
-        imageInfo.cmpInfo = std::move(cmpInfo);
+        imageInfo.compressInfo = std::move(cmpInfo);
         imageInfo.imageCreateInfoShallow = vk_make_orphan_copy(*pCreateInfo);
         imageInfo.layout = pCreateInfo->initialLayout;
         imageInfo.anbInfo = std::move(anbInfo);
@@ -2761,9 +2758,9 @@ class VkDecoderGlobalState::Impl {
     void destroyImageWithExclusiveInfo(VkDevice device, VulkanDispatch* deviceDispatch,
                                        VkImage image, ImageInfo& imageInfo,
                                        const VkAllocationCallbacks* pAllocator) {
-        if (!imageInfo.anbInfo) {
-            imageInfo.cmpInfo.destroy(deviceDispatch);
-            if (image != imageInfo.cmpInfo.outputImage()) {
+        if (!imageInfo.anbInfo && imageInfo.compressInfo) {
+            imageInfo.compressInfo->destroy(deviceDispatch);
+            if (image != imageInfo.compressInfo->outputImage()) {
                 deviceDispatch->vkDestroyImage(device, image, pAllocator);
             }
         }
@@ -2876,15 +2873,11 @@ class VkDecoderGlobalState::Impl {
         }
         imageInfo->memory = memory;
 
-        if (!deviceInfo->emulateTextureEtc2 && !deviceInfo->emulateTextureAstc) {
+        if (!imageInfo->compressInfo) {
             return VK_SUCCESS;
         }
 
-        CompressedImageInfo& cmpInfo = imageInfo->cmpInfo;
-        if (!deviceInfo->needEmulatedDecompression(cmpInfo)) {
-            return VK_SUCCESS;
-        }
-        return cmpInfo.bindCompressedMipmapsMemory(vk, memory, memoryOffset);
+        return imageInfo->compressInfo->bindCompressedMipmapsMemory(vk, memory, memoryOffset);
     }
 
     VkResult on_vkBindImageMemory(gfxstream::base::BumpPool* pool,
@@ -2938,7 +2931,7 @@ class VkDecoderGlobalState::Impl {
                     break;
                 }
 
-                if (deviceInfo->needEmulatedDecompression(imageInfo->cmpInfo)) {
+                if (imageInfo->compressInfo) {
                     needEmulation = true;
                     break;
                 }
@@ -3001,21 +2994,21 @@ class VkDecoderGlobalState::Impl {
         VkImageViewCreateInfo createInfo;
         bool needEmulatedAlpha = false;
         if (deviceInfo->needEmulatedDecompression(pCreateInfo->format)) {
-            if (imageInfo->cmpInfo.outputImage()) {
+            if (imageInfo->compressInfo && imageInfo->compressInfo->outputImage()) {
                 createInfo = *pCreateInfo;
                 createInfo.format = CompressedImageInfo::getOutputFormat(pCreateInfo->format);
                 needEmulatedAlpha = CompressedImageInfo::needEmulatedAlpha(pCreateInfo->format);
-                createInfo.image = imageInfo->cmpInfo.outputImage();
+                createInfo.image = imageInfo->compressInfo->outputImage();
                 pCreateInfo = &createInfo;
             }
-        } else if (deviceInfo->needEmulatedDecompression(imageInfo->cmpInfo)) {
+        } else if (imageInfo->compressInfo) {
             // Image view on the compressed mipmaps
             createInfo = *pCreateInfo;
             createInfo.format =
                 CompressedImageInfo::getCompressedMipmapsFormat(pCreateInfo->format);
             needEmulatedAlpha = false;
-            createInfo.image =
-                imageInfo->cmpInfo.compressedMipmap(pCreateInfo->subresourceRange.baseMipLevel);
+            createInfo.image = imageInfo->compressInfo->compressedMipmap(
+                pCreateInfo->subresourceRange.baseMipLevel);
             createInfo.subresourceRange.baseMipLevel = 0;
             pCreateInfo = &createInfo;
         }
@@ -4658,13 +4651,11 @@ class VkDecoderGlobalState::Impl {
         auto* dstImg = gfxstream::base::find(mImageInfo, dstImage);
         if (!srcImg || !dstImg) return;
 
-        VkDevice device = srcImg->cmpInfo.device();
+        VkDevice device = srcImg->device;
         auto* deviceInfo = gfxstream::base::find(mDeviceInfo, device);
         if (!deviceInfo) return;
 
-        bool needEmulatedSrc = deviceInfo->needEmulatedDecompression(srcImg->cmpInfo);
-        bool needEmulatedDst = deviceInfo->needEmulatedDecompression(dstImg->cmpInfo);
-        if (!needEmulatedSrc && !needEmulatedDst) {
+        if (!srcImg->compressInfo && !dstImg->compressInfo) {
             vk->vkCmdCopyImage(commandBuffer, srcImage, srcImageLayout, dstImage, dstImageLayout,
                                regionCount, pRegions);
             return;
@@ -4672,14 +4663,16 @@ class VkDecoderGlobalState::Impl {
         VkImage srcImageMip = srcImage;
         VkImage dstImageMip = dstImage;
         for (uint32_t r = 0; r < regionCount; r++) {
-            if (needEmulatedSrc) {
-                srcImageMip = srcImg->cmpInfo.compressedMipmap(pRegions[r].srcSubresource.mipLevel);
+            if (srcImg->compressInfo) {
+                srcImageMip =
+                    srcImg->compressInfo->compressedMipmap(pRegions[r].srcSubresource.mipLevel);
             }
-            if (needEmulatedDst) {
-                dstImageMip = dstImg->cmpInfo.compressedMipmap(pRegions[r].dstSubresource.mipLevel);
+            if (dstImg->compressInfo) {
+                dstImageMip =
+                    dstImg->compressInfo->compressedMipmap(pRegions[r].dstSubresource.mipLevel);
             }
             VkImageCopy region = CompressedImageInfo::getCompressedMipmapsImageCopy(
-                pRegions[r], srcImg->cmpInfo, dstImg->cmpInfo, needEmulatedSrc, needEmulatedDst);
+                pRegions[r], srcImg->compressInfo.get(), dstImg->compressInfo.get());
             vk->vkCmdCopyImage(commandBuffer, srcImageMip, srcImageLayout, dstImageMip,
                                dstImageLayout, 1, &region);
         }
@@ -4696,14 +4689,13 @@ class VkDecoderGlobalState::Impl {
         auto* imageInfo = gfxstream::base::find(mImageInfo, srcImage);
         auto* bufferInfo = gfxstream::base::find(mBufferInfo, dstBuffer);
         if (!imageInfo || !bufferInfo) return;
-        auto* deviceInfo = gfxstream::base::find(mDeviceInfo, bufferInfo->device);
-        if (!deviceInfo) return;
-        CompressedImageInfo& cmpInfo = imageInfo->cmpInfo;
-        if (!deviceInfo->needEmulatedDecompression(cmpInfo)) {
+        if (!imageInfo->compressInfo) {
             vk->vkCmdCopyImageToBuffer(commandBuffer, srcImage, srcImageLayout, dstBuffer,
                                        regionCount, pRegions);
             return;
         }
+
+        CompressedImageInfo& cmpInfo = *imageInfo->compressInfo;
         for (uint32_t r = 0; r < regionCount; r++) {
             uint32_t mipLevel = pRegions[r].imageSubresource.mipLevel;
             VkBufferImageCopy region = cmpInfo.getBufferImageCopy(pRegions[r]);
@@ -4723,24 +4715,24 @@ class VkDecoderGlobalState::Impl {
         auto* dstImg = gfxstream::base::find(mImageInfo, pCopyImageInfo->dstImage);
         if (!srcImg || !dstImg) return;
 
-        VkDevice device = srcImg->cmpInfo.device();
+        VkDevice device = srcImg->device;
         auto* deviceInfo = gfxstream::base::find(mDeviceInfo, device);
         if (!deviceInfo) return;
 
-        bool needEmulatedSrc = deviceInfo->needEmulatedDecompression(srcImg->cmpInfo);
-        bool needEmulatedDst = deviceInfo->needEmulatedDecompression(dstImg->cmpInfo);
-        if (!needEmulatedSrc && !needEmulatedDst) {
+        if (!srcImg->compressInfo && !dstImg->compressInfo) {
             vk->vkCmdCopyImage2(commandBuffer, pCopyImageInfo);
             return;
         }
         VkImage srcImageMip = pCopyImageInfo->srcImage;
         VkImage dstImageMip = pCopyImageInfo->dstImage;
         for (uint32_t r = 0; r < pCopyImageInfo->regionCount; r++) {
-            if (needEmulatedSrc) {
-                srcImageMip = srcImg->cmpInfo.compressedMipmap(pCopyImageInfo->pRegions[r].srcSubresource.mipLevel);
+            if (srcImg->compressInfo) {
+                srcImageMip = srcImg->compressInfo->compressedMipmap(
+                    pCopyImageInfo->pRegions[r].srcSubresource.mipLevel);
             }
-            if (needEmulatedDst) {
-                dstImageMip = dstImg->cmpInfo.compressedMipmap(pCopyImageInfo->pRegions[r].dstSubresource.mipLevel);
+            if (dstImg->compressInfo) {
+                dstImageMip = dstImg->compressInfo->compressedMipmap(
+                    pCopyImageInfo->pRegions[r].dstSubresource.mipLevel);
             }
 
             VkCopyImageInfo2 inf2 = *pCopyImageInfo;
@@ -4749,7 +4741,7 @@ class VkDecoderGlobalState::Impl {
             inf2.dstImage = dstImageMip;
 
             VkImageCopy2 region = CompressedImageInfo::getCompressedMipmapsImageCopy(
-                pCopyImageInfo->pRegions[r], srcImg->cmpInfo, dstImg->cmpInfo, needEmulatedSrc, needEmulatedDst);
+                pCopyImageInfo->pRegions[r], srcImg->compressInfo.get(), dstImg->compressInfo.get());
             inf2.pRegions = &region;
 
             vk->vkCmdCopyImage2(commandBuffer, &inf2);
@@ -4766,13 +4758,12 @@ class VkDecoderGlobalState::Impl {
         auto* imageInfo = gfxstream::base::find(mImageInfo, pCopyImageToBufferInfo->srcImage);
         auto* bufferInfo = gfxstream::base::find(mBufferInfo, pCopyImageToBufferInfo->dstBuffer);
         if (!imageInfo || !bufferInfo) return;
-        auto* deviceInfo = gfxstream::base::find(mDeviceInfo, bufferInfo->device);
-        if (!deviceInfo) return;
-        CompressedImageInfo& cmpInfo = imageInfo->cmpInfo;
-        if (!deviceInfo->needEmulatedDecompression(cmpInfo)) {
+        if (!imageInfo->compressInfo) {
             vk->vkCmdCopyImageToBuffer2(commandBuffer, pCopyImageToBufferInfo);
             return;
         }
+
+        CompressedImageInfo& cmpInfo = *imageInfo->compressInfo;
         for (uint32_t r = 0; r < pCopyImageToBufferInfo->regionCount; r++) {
             uint32_t mipLevel = pCopyImageToBufferInfo->pRegions[r].imageSubresource.mipLevel;
             VkBufferImageCopy2 region = cmpInfo.getBufferImageCopy(pCopyImageToBufferInfo->pRegions[r]);
@@ -4796,24 +4787,24 @@ class VkDecoderGlobalState::Impl {
         auto* dstImg = gfxstream::base::find(mImageInfo, pCopyImageInfo->dstImage);
         if (!srcImg || !dstImg) return;
 
-        VkDevice device = srcImg->cmpInfo.device();
+        VkDevice device = srcImg->device;
         auto* deviceInfo = gfxstream::base::find(mDeviceInfo, device);
         if (!deviceInfo) return;
 
-        bool needEmulatedSrc = deviceInfo->needEmulatedDecompression(srcImg->cmpInfo);
-        bool needEmulatedDst = deviceInfo->needEmulatedDecompression(dstImg->cmpInfo);
-        if (!needEmulatedSrc && !needEmulatedDst) {
+        if (!srcImg->compressInfo && !dstImg->compressInfo) {
             vk->vkCmdCopyImage2KHR(commandBuffer, pCopyImageInfo);
             return;
         }
         VkImage srcImageMip = pCopyImageInfo->srcImage;
         VkImage dstImageMip = pCopyImageInfo->dstImage;
         for (uint32_t r = 0; r < pCopyImageInfo->regionCount; r++) {
-            if (needEmulatedSrc) {
-                srcImageMip = srcImg->cmpInfo.compressedMipmap(pCopyImageInfo->pRegions[r].srcSubresource.mipLevel);
+            if (srcImg->compressInfo) {
+                srcImageMip = srcImg->compressInfo->compressedMipmap(
+                    pCopyImageInfo->pRegions[r].srcSubresource.mipLevel);
             }
-            if (needEmulatedDst) {
-                dstImageMip = dstImg->cmpInfo.compressedMipmap(pCopyImageInfo->pRegions[r].dstSubresource.mipLevel);
+            if (dstImg->compressInfo) {
+                dstImageMip = dstImg->compressInfo->compressedMipmap(
+                    pCopyImageInfo->pRegions[r].dstSubresource.mipLevel);
             }
 
             VkCopyImageInfo2KHR inf2 = *pCopyImageInfo;
@@ -4822,7 +4813,7 @@ class VkDecoderGlobalState::Impl {
             inf2.dstImage = dstImageMip;
 
             VkImageCopy2KHR region = CompressedImageInfo::getCompressedMipmapsImageCopy(
-                pCopyImageInfo->pRegions[r], srcImg->cmpInfo, dstImg->cmpInfo, needEmulatedSrc, needEmulatedDst);
+                pCopyImageInfo->pRegions[r], srcImg->compressInfo.get(), dstImg->compressInfo.get());
             inf2.pRegions = &region;
 
             vk->vkCmdCopyImage2KHR(commandBuffer, &inf2);
@@ -4839,13 +4830,12 @@ class VkDecoderGlobalState::Impl {
         auto* imageInfo = gfxstream::base::find(mImageInfo, pCopyImageToBufferInfo->srcImage);
         auto* bufferInfo = gfxstream::base::find(mBufferInfo, pCopyImageToBufferInfo->dstBuffer);
         if (!imageInfo || !bufferInfo) return;
-        auto* deviceInfo = gfxstream::base::find(mDeviceInfo, bufferInfo->device);
-        if (!deviceInfo) return;
-        CompressedImageInfo& cmpInfo = imageInfo->cmpInfo;
-        if (!deviceInfo->needEmulatedDecompression(cmpInfo)) {
+        if (!imageInfo->compressInfo) {
             vk->vkCmdCopyImageToBuffer2KHR(commandBuffer, pCopyImageToBufferInfo);
             return;
         }
+
+        CompressedImageInfo& cmpInfo = *imageInfo->compressInfo;
         for (uint32_t r = 0; r < pCopyImageToBufferInfo->regionCount; r++) {
             uint32_t mipLevel = pCopyImageToBufferInfo->pRegions[r].imageSubresource.mipLevel;
             VkBufferImageCopy2KHR region = cmpInfo.getBufferImageCopy(pCopyImageToBufferInfo->pRegions[r]);
@@ -5009,21 +4999,16 @@ class VkDecoderGlobalState::Impl {
         if (!bufferInfo) {
             return;
         }
-        VkDevice device = bufferInfo->device;
-        auto* deviceInfo = gfxstream::base::find(mDeviceInfo, device);
-        if (!deviceInfo) {
-            return;
-        }
-        if (!deviceInfo->needEmulatedDecompression(imageInfo->cmpInfo)) {
-            vk->vkCmdCopyBufferToImage(commandBuffer, srcBuffer, dstImage, dstImageLayout,
-                                       regionCount, pRegions);
-            return;
-        }
         auto* cmdBufferInfo = gfxstream::base::find(mCommandBufferInfo, commandBuffer);
         if (!cmdBufferInfo) {
             return;
         }
-        CompressedImageInfo& cmpInfo = imageInfo->cmpInfo;
+        if (!imageInfo->compressInfo) {
+            vk->vkCmdCopyBufferToImage(commandBuffer, srcBuffer, dstImage, dstImageLayout,
+                                       regionCount, pRegions);
+            return;
+        }
+        CompressedImageInfo& cmpInfo = *imageInfo->compressInfo;
 
         for (uint32_t r = 0; r < regionCount; r++) {
             uint32_t mipLevel = pRegions[r].imageSubresource.mipLevel;
@@ -5068,15 +5053,15 @@ class VkDecoderGlobalState::Impl {
         if (!deviceInfo) {
             return;
         }
-        if (!deviceInfo->needEmulatedDecompression(imageInfo->cmpInfo)) {
-            vk->vkCmdCopyBufferToImage2(commandBuffer, pCopyBufferToImageInfo);
-            return;
-        }
         auto* cmdBufferInfo = gfxstream::base::find(mCommandBufferInfo, commandBuffer);
         if (!cmdBufferInfo) {
             return;
         }
-        CompressedImageInfo& cmpInfo = imageInfo->cmpInfo;
+        if (!imageInfo->compressInfo) {
+            vk->vkCmdCopyBufferToImage2(commandBuffer, pCopyBufferToImageInfo);
+            return;
+        }
+        CompressedImageInfo& cmpInfo = *imageInfo->compressInfo;
 
         for (uint32_t r = 0; r < pCopyBufferToImageInfo->regionCount; r++) {
             VkCopyBufferToImageInfo2 inf;
@@ -5125,16 +5110,16 @@ class VkDecoderGlobalState::Impl {
         if (!deviceInfo) {
             return;
         }
-        if (!deviceInfo->needEmulatedDecompression(imageInfo->cmpInfo)) {
-            vk->vkCmdCopyBufferToImage2KHR(commandBuffer, pCopyBufferToImageInfo);
-            return;
-        }
         auto* cmdBufferInfo = gfxstream::base::find(mCommandBufferInfo, commandBuffer);
         if (!cmdBufferInfo) {
             return;
         }
-        CompressedImageInfo& cmpInfo = imageInfo->cmpInfo;
+        if (!imageInfo->compressInfo) {
+            vk->vkCmdCopyBufferToImage2KHR(commandBuffer, pCopyBufferToImageInfo);
+            return;
+        }
 
+        CompressedImageInfo& cmpInfo = *imageInfo->compressInfo;
         for (uint32_t r = 0; r < pCopyBufferToImageInfo->regionCount; r++) {
             VkCopyBufferToImageInfo2KHR inf;
             uint32_t mipLevel = pCopyBufferToImageInfo->pRegions[r].imageSubresource.mipLevel;
@@ -5217,14 +5202,15 @@ class VkDecoderGlobalState::Impl {
         CommandBufferInfo* cmdBufferInfo = gfxstream::base::find(mCommandBufferInfo, commandBuffer);
         if (!cmdBufferInfo) return;
 
-        // TODO: update image layout in ImageInfo
         for (uint32_t i = 0; i < imageMemoryBarrierCount; i++) {
             auto* imageInfo = gfxstream::base::find(mImageInfo, getIMBImage(pImageMemoryBarriers[i]));
             if (!imageInfo) {
                 continue;
             }
+            // Update image layout in ImageInfo
             cmdBufferInfo->imageLayouts[getIMBImage(pImageMemoryBarriers[i])] =
                 getIMBNewLayout(pImageMemoryBarriers[i]);
+
             if (!imageInfo->boundColorBuffer.has_value()) {
                 continue;
             }
@@ -5292,13 +5278,19 @@ class VkDecoderGlobalState::Impl {
             auto* imageInfo = gfxstream::base::find(mImageInfo, srcBarrier.image);
 
             // If the image doesn't need GPU decompression, nothing to do.
-            if (!imageInfo || !deviceInfo->needGpuDecompression(imageInfo->cmpInfo)) {
+            bool needGpuDecompression = false;
+            if (imageInfo && imageInfo->compressInfo) {
+                needGpuDecompression =
+                    (!deviceInfo->useAstcCpuDecompression && imageInfo->compressInfo->isAstc());
+            }
+            // If the image doesn't need GPU decompression, nothing to do.
+            if (!needGpuDecompression) {
                 imageBarriers.push_back(srcBarrier);
                 continue;
             }
 
             // Otherwise, decompress the image, if we're going to read from it.
-            needRebind |= imageInfo->cmpInfo.decompressIfNeeded(
+            needRebind |= imageInfo->compressInfo->decompressIfNeeded(
                 vk, commandBuffer, srcStageMask, dstStageMask, srcBarrier, imageBarriers);
         }
 
@@ -8816,17 +8808,12 @@ class VkDecoderGlobalState::Impl {
 
     void updateImageMemorySizeLocked(VkDevice device, VkImage image,
                                      VkMemoryRequirements* pMemoryRequirements) REQUIRES(mMutex) {
-        auto* deviceInfo = gfxstream::base::find(mDeviceInfo, device);
-        if (!deviceInfo->emulateTextureEtc2 && !deviceInfo->emulateTextureAstc) {
-            return;
-        }
         auto* imageInfo = gfxstream::base::find(mImageInfo, image);
-        if (!imageInfo) return;
-        CompressedImageInfo& cmpInfo = imageInfo->cmpInfo;
-        if (!deviceInfo->needEmulatedDecompression(cmpInfo)) {
+        if (!imageInfo || !imageInfo->compressInfo) {
             return;
         }
-        *pMemoryRequirements = cmpInfo.getMemoryRequirements();
+
+        *pMemoryRequirements = imageInfo->compressInfo->getMemoryRequirements();
     }
 
     // Whether the VkInstance associated with this physical device was created by ANGLE

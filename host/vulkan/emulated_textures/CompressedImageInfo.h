@@ -43,13 +43,11 @@ class CompressedImageInfo {
 
     // Returns a VkImageCopy to copy to/from the compressed data
     static VkImageCopy getCompressedMipmapsImageCopy(const VkImageCopy& origRegion,
-                                                     const CompressedImageInfo& srcImg,
-                                                     const CompressedImageInfo& dstImg,
-                                                     bool needEmulatedSrc, bool needEmulatedDst);
+                                                     const CompressedImageInfo* srcImg,
+                                                     const CompressedImageInfo* dstImg);
     static VkImageCopy2 getCompressedMipmapsImageCopy(const VkImageCopy2& origRegion,
-                                                      const CompressedImageInfo& srcImg,
-                                                      const CompressedImageInfo& dstImg,
-                                                      bool needEmulatedSrc, bool needEmulatedDst);
+                                                      const CompressedImageInfo* srcImg,
+                                                      const CompressedImageInfo* dstImg);
 
 
     // Constructors
