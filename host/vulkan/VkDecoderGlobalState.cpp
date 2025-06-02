@@ -969,7 +969,7 @@ class VkDecoderGlobalState::Impl {
             info.enabledExtensionNames.push_back(createInfoFiltered.ppEnabledExtensionNames[i]);
         }
 
-        GFXSTREAM_INFO("Created VkInstance:%p for application:%s engine:%s.", *pInstance,
+        GFXSTREAM_INFO("Created VkInstance:%p for application:'%s' engine:'%s'.", *pInstance,
                        info.applicationName.c_str(), info.engineName.c_str());
 
 #ifdef CONFIG_AEMU
@@ -2082,7 +2082,7 @@ class VkDecoderGlobalState::Impl {
 #endif
 
         GFXSTREAM_INFO(
-            "Created VkDevice:%p for application:%s engine:%s ASTC emulation:%s CPU decoding:%s.",
+            "Created VkDevice:%p for application:'%s' engine:'%s' ASTC emulation:%s CPU decoding:%s.",
             *pDevice, instanceInfo.applicationName.c_str(), instanceInfo.engineName.c_str(),
             deviceInfo.emulateTextureAstc ? "on" : "off",
             deviceInfo.useAstcCpuDecompression ? "on" : "off");
@@ -5371,7 +5371,7 @@ class VkDecoderGlobalState::Impl {
         info->sizeToPage = ((info->size + pageOffset + kPageSize - 1) >> kPageBits) << kPageBits;
 
         if (mLogging) {
-            GFXSTREAM_INFO("%s: map: %p, %p -> [0x%llx 0x%llx]", __func__, info->ptr,
+            GFXSTREAM_VERBOSE("%s: map: %p, %p -> [0x%llx 0x%llx]", __func__, info->ptr,
                            info->pageAlignedHva, (unsigned long long)info->guestPhysAddr,
                            (unsigned long long)info->guestPhysAddr + info->sizeToPage);
         }
@@ -5383,8 +5383,8 @@ class VkDecoderGlobalState::Impl {
 
         get_gfxstream_vm_operations().map_user_memory(gpa, hva, sizeToPage);
 
-        if (mVerbosePrints) {
-            GFXSTREAM_INFO("VERBOSE:%s: registering gpa 0x%llx", __func__, (unsigned long long)gpa);
+        if (mLogging) {
+            GFXSTREAM_VERBOSE("%s: registering gpa 0x%llx", __func__, (unsigned long long)gpa);
         }
 
         if (!mUseOldMemoryCleanupPath) {
@@ -9292,7 +9292,8 @@ class VkDecoderGlobalState::Impl {
         VkInstance instance = objects.instance.key();
         InstanceInfo& instanceInfo = objects.instance.mapped();
         LOG_CALLS_VERBOSE(
-            "destroyInstanceObjects called for instance (app:%s, engine:%s) with %d devices.",
+            "destroyInstanceObjects called for instance (application:'%s', engine:'%s') with %d "
+            "devices.",
             instanceInfo.applicationName.c_str(), instanceInfo.engineName.c_str(),
             objects.devices.size());
 
@@ -9301,7 +9302,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         m_vk->vkDestroyInstance(instance, nullptr);
-        GFXSTREAM_INFO("Destroyed VkInstance:%p for application:%s engine:%s.", instance,
+        GFXSTREAM_INFO("Destroyed VkInstance:%p for application:'%s' engine:'%s'.", instance,
                        instanceInfo.applicationName.c_str(), instanceInfo.engineName.c_str());
 
 #ifdef CONFIG_AEMU
