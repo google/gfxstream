@@ -218,19 +218,9 @@ struct DeviceInfo {
     DeviceOpTrackerPtr deviceOpTracker = nullptr;
     std::optional<uint32_t> virtioGpuContextId;
 
-    // True if this is a compressed image that needs to be decompressed on the GPU (with our
-    // compute shader)
-    bool needGpuDecompression(const CompressedImageInfo& cmpInfo) {
-        return ((cmpInfo.isEtc2() && emulateTextureEtc2) ||
-                (cmpInfo.isAstc() && emulateTextureAstc && !useAstcCpuDecompression));
-    }
-    bool needEmulatedDecompression(const CompressedImageInfo& cmpInfo) {
-        return ((cmpInfo.isEtc2() && emulateTextureEtc2) ||
-                (cmpInfo.isAstc() && emulateTextureAstc));
-    }
     bool needEmulatedDecompression(VkFormat format) {
-        return (gfxstream::vk::isEtc2(format) && emulateTextureEtc2) ||
-               (gfxstream::vk::isAstc(format) && emulateTextureAstc);
+        return (emulateTextureEtc2 && gfxstream::vk::isEtc2(format)) ||
+               (emulateTextureAstc && gfxstream::vk::isAstc(format));
     }
 
 #ifdef _WIN32
@@ -337,7 +327,8 @@ struct ImageInfo {
     VkImage boxed = VK_NULL_HANDLE;
     VkImageCreateInfo imageCreateInfoShallow;
     std::unique_ptr<AndroidNativeBufferInfo> anbInfo;
-    CompressedImageInfo cmpInfo;
+    // Compression info, only valid if texture needs emulated decompression
+    std::unique_ptr<CompressedImageInfo> compressInfo;
     // ColorBuffer, provided via vkAllocateMemory().
     std::optional<HandleType> boundColorBuffer;
     // TODO: might need to use an array of layouts to represent each sub resource
