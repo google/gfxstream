@@ -1,0 +1,22 @@
+name: Gfxstream Presubmit
+
+on:
+  pull_request:
+  push:
+    branches-ignore:
+      - main  # push events to main branch occur after PRs are merged, when the same checks were run
+
+concurrency:
+  # limits the workflow to a single run per branch/PR
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # previous runs are cancelled when a new run is started
+  cancel-in-progress: true
+
+jobs:
+  run-gfxstream-bazel-end2end-tests:
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675 # aka v2
+    - name: Print
+      run: echo "Triggered by a ${{ github.event_name }} event."
