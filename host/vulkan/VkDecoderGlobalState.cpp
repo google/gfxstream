@@ -1212,10 +1212,8 @@ class VkDecoderGlobalState::Impl {
 
         vk->vkGetPhysicalDeviceFeatures(physicalDevice, pFeatures);
 
-        std::lock_guard<std::mutex> lock(mMutex);
-
-        pFeatures->textureCompressionETC2 |= enableEmulatedEtc2Locked(physicalDevice, vk);
-        pFeatures->textureCompressionASTC_LDR |= enableEmulatedAstcLocked(physicalDevice, vk);
+        pFeatures->textureCompressionETC2 |= enableEmulatedEtc2();
+        pFeatures->textureCompressionASTC_LDR |= enableEmulatedAstc();
 
         if (mDisableSparseBindingSupport && pFeatures->sparseBinding) {
             pFeatures->sparseBinding = VK_FALSE;
@@ -1266,9 +1264,9 @@ class VkDecoderGlobalState::Impl {
             vk->vkGetPhysicalDeviceFeatures(physicalDevice, &pFeatures->features);
         }
 
-        pFeatures->features.textureCompressionETC2 |= enableEmulatedEtc2Locked(physicalDevice, vk);
-        pFeatures->features.textureCompressionASTC_LDR |=
-            enableEmulatedAstcLocked(physicalDevice, vk);
+        pFeatures->features.textureCompressionETC2 |= enableEmulatedEtc2();
+        pFeatures->features.textureCompressionASTC_LDR |= enableEmulatedAstc();
+
         VkPhysicalDeviceSamplerYcbcrConversionFeatures* ycbcrFeatures =
             vk_find_struct<VkPhysicalDeviceSamplerYcbcrConversionFeatures>(pFeatures);
         if (ycbcrFeatures != nullptr) {
@@ -8820,40 +8818,15 @@ class VkDecoderGlobalState::Impl {
         *pMemoryRequirements = cmpInfo.getMemoryRequirements();
     }
 
-    // Whether the VkInstance associated with this physical device was created by ANGLE
-    bool isAngleInstanceLocked(VkPhysicalDevice physicalDevice, VulkanDispatch* vk)
-        REQUIRES(mMutex) {
-        auto* physDevInfo = gfxstream::base::find(mPhysdevInfo, physicalDevice);
-        if (!physDevInfo) return false;
-        auto* instanceInfo = gfxstream::base::find(mInstanceInfo, physDevInfo->instance);
-        if (!instanceInfo) return false;
-        return instanceInfo->isAngle;
+    bool enableEmulatedEtc2() const { return m_vkEmulation->isEtc2EmulationEnabled(); }
+
+    bool enableEmulatedAstc() const {
+        return (m_vkEmulation->getAstcLdrEmulationMode() != AstcEmulationMode::Disabled);
     }
 
-    bool enableEmulatedEtc2Locked(VkPhysicalDevice physicalDevice, VulkanDispatch* vk)
-        REQUIRES(mMutex) {
-        if (!m_vkEmulation->isEtc2EmulationEnabled()) return false;
-
-        // Don't enable ETC2 emulation for ANGLE, let it do its own emulation.
-        return !isAngleInstanceLocked(physicalDevice, vk);
-    }
-
-    bool enableEmulatedAstcLocked(VkPhysicalDevice physicalDevice, VulkanDispatch* vk)
-        REQUIRES(mMutex) {
-        if (m_vkEmulation->getAstcLdrEmulationMode() == AstcEmulationMode::Disabled) {
+    bool needEmulatedEtc2(VkPhysicalDevice physicalDevice, VulkanDispatch* vk) {
+        if (!enableEmulatedEtc2()) {
             return false;
-        }
-
-        // Don't enable ASTC emulation for ANGLE, let it do its own emulation.
-        return !isAngleInstanceLocked(physicalDevice, vk);
-    }
-
-    bool needEmulatedEtc2(VkPhysicalDevice physicalDevice, VulkanDispatch* vk) EXCLUDES(mMutex) {
-        {
-            std::lock_guard<std::mutex> lock(mMutex);
-            if (!enableEmulatedEtc2Locked(physicalDevice, vk)) {
-                return false;
-            }
         }
 
         VkPhysicalDeviceFeatures feature;
@@ -8862,12 +8835,10 @@ class VkDecoderGlobalState::Impl {
     }
 
     bool needEmulatedAstc(VkPhysicalDevice physicalDevice, VulkanDispatch* vk) EXCLUDES(mMutex) {
-        {
-            std::lock_guard<std::mutex> lock(mMutex);
-            if (!enableEmulatedAstcLocked(physicalDevice, vk)) {
-                return false;
-            }
+        if (!enableEmulatedAstc()) {
+            return false;
         }
+
         VkPhysicalDeviceFeatures feature;
         vk->vkGetPhysicalDeviceFeatures(physicalDevice, &feature);
         return !feature.textureCompressionASTC_LDR;
