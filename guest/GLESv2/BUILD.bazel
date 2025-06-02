@@ -22,7 +22,7 @@ cc_library(
         "//guest/GLESv2_enc:gfxstream_guest_glesv2encoder",
         "//guest/OpenglSystemCommon:gfxstream_guest_openglsystemcommon",
         "//guest/egl:gfxstream_guest_egl_headers",
-        "//third_party/opengl:gfxstream_opengl_headers",
+        "//third_party/opengl:gfxstream_gles_headers",
     ],
 )
 
