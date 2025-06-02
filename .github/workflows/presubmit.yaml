@@ -1,0 +1,39 @@
+name: Gfxstream Presubmit
+
+on:
+  pull_request:
+  push:
+    branches-ignore:
+      - main  # push events to main branch occur after PRs are merged, when the same checks were run
+
+concurrency:
+  # limits the workflow to a single run per branch/PR
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # previous runs are cancelled when a new run is started
+  cancel-in-progress: true
+
+jobs:
+  run-gfxstream-bazel-end2end-tests:
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675 # aka v2
+    - name: Configure bazel cache
+      uses: bazel-contrib/setup-bazel@4fd964a13a440a8aeb0be47350db2fc640f19ca8 # 0.15.0
+      with:
+        bazelisk-cache: true # Avoid downloading Bazel every time.
+        disk-cache: ${{ github.workflow }} # Store build cache per workflow.
+        repository-cache: true # Share repository cache between workflows.
+    - name: Install bazel
+      run: sudo bash toolchain/bazel/install_bazel.sh
+    - name: Install toolchain dependencies
+      run: sudo bash toolchain/bazel/install_toolchain_dependencies.sh
+    - name: Run unit tests
+      run: |
+        bazel test \
+          --graphics_drivers=gles_angle_vulkan_swiftshader \
+          --test_arg="--gtest_filter=-*MultiThreadedResetCommandBuffer*" \
+          --test_output=streamed \
+          --verbose_failures \
+          common/end2end:gfxstream_end2end_tests
+

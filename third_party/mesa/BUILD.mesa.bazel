@@ -2666,6 +2666,7 @@ cc_library(
     deps = [
         ":mesa_android_stub",
         ":mesa_gfxstream_guest_platform",
+        ":mesa_include_gl",
         ":mesa_util",
     ],
 )
