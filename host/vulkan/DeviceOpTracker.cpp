@@ -117,7 +117,7 @@ void DeviceOpTracker::PollAndProcessGarbage() {
 
             if (pendingGarbage.timepoint < old) {
                 const auto difference = std::chrono::duration_cast<std::chrono::milliseconds>(
-                    pendingGarbage.timepoint - now);
+                    now - pendingGarbage.timepoint);
                 GFXSTREAM_WARNING(
                     "VkDevice:%p had a waitable pending for %d milliseconds. Leaking object.",
                     mDevice, difference.count());
