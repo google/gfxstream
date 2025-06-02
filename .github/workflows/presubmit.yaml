@@ -1,0 +1,34 @@
+name: Gfxstream Presubmit
+
+on:
+  pull_request:
+  push:
+    branches-ignore:
+      - main  # push events to main branch occur after PRs are merged, when the same checks were run
+
+concurrency:
+  # limits the workflow to a single run per branch/PR
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # previous runs are cancelled when a new run is started
+  cancel-in-progress: true
+
+jobs:
+  run-gfxstream-bazel-end2end-tests:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675 # aka v2
+      - name: Install bazel
+        run: bash toolchain/bazel/install_bazel.sh
+      - name: Setup apt
+        run: apt update -y && apt upgrade -y
+      - name: Install dependencies
+        run: apt install -y git clang clang-tidy
+      - name: Run unit tests
+        run: bazel test common/end2end:gfxstream_end2end_tests --graphics_drivers=gles_angle_vulkan_swiftshader --test_arg="--gtest_filter=-*MultiThreadedResetCommandBuffer*"
+      - name: Upload test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gfxstream-bazel-end2end-tests-logs
+          path: bazel-out/k8-fastbuild/testlogs
