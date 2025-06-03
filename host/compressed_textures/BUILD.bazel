@@ -1,4 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("//:build_variables.bzl", "GFXSTREAM_HOST_COPTS", "GFXSTREAM_HOST_DEFINES")
 
 package(
     default_applicable_licenses = ["//:gfxstream_license"],
@@ -11,7 +12,8 @@ cc_library(
         "AstcCpuDecompressorNoOp.cpp",
     ],
     hdrs = glob(["include/**/*.h"]),
-    copts = ["-fno-exceptions"],
+    copts = GFXSTREAM_HOST_COPTS,
+    defines = GFXSTREAM_HOST_DEFINES,
     strip_include_prefix = "include",
     deps = [
         "//common/etc:gfxstream_etc",
@@ -23,7 +25,7 @@ cc_test(
     srcs = [
         "AstcCpuDecompressor_unittest.cpp",
     ],
-    copts = ["-fno-exceptions"],
+    copts = GFXSTREAM_HOST_COPTS,
     deps = [
         ":gfxstream_host_compressed_textures",
         "@com_google_googletest//:gtest",

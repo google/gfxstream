@@ -1,4 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test", "objc_library")
+load("//:build_variables.bzl", "GFXSTREAM_HOST_COPTS", "GFXSTREAM_HOST_DEFINES")
 
 package(
     default_applicable_licenses = ["//:gfxstream_license"],
@@ -32,7 +33,8 @@ cc_library(
         "include/render-utils/vm_operations.h",
         "include/render-utils/window_operations.h",
     ],
-    copts = ["-fno-exceptions"],
+    copts = GFXSTREAM_HOST_COPTS,
+    defines = GFXSTREAM_HOST_DEFINES,
     includes = ["include"],
     visibility = ["//visibility:public"],
     deps = [
@@ -59,7 +61,8 @@ cc_library(
         "SyncThread.h",
         "VsyncThread.h",
     ],
-    copts = ["-fno-exceptions"],
+    copts = GFXSTREAM_HOST_COPTS,
+    defines = GFXSTREAM_HOST_DEFINES,
     includes = ["."],
     deps = [
         ":gfxstream_backend_headers",
@@ -89,14 +92,10 @@ objc_library(
         "NativeSubWindow.h",
         "NativeSubWindow_cocoa.mm",
     ],
-    copts = [
-        "-fno-exceptions",
+    copts = GFXSTREAM_HOST_COPTS + [
         "-Wno-deprecated-declarations",
     ],
-    defines = [
-        "EMUGL_BUILD",
-        "GFXSTREAM_ENABLE_HOST_GLES=1",
-    ],
+    defines = GFXSTREAM_HOST_DEFINES,
     sdk_frameworks = [
         "AppKit",
         "QuartzCore",
@@ -185,21 +184,11 @@ cc_library(
         "VsyncThread.h",
         "virtgpu_gfxstream_protocol.h",
     ],
-    copts = [
+    copts = GFXSTREAM_HOST_COPTS + [
         "-Wno-return-type-c-linkage",
         "-Wno-extern-c-compat",
-        "-fno-exceptions",
     ],
-    defines = [
-        "QEMU_NEXT",
-        "EMUGL_BUILD",
-        "GFXSTREAM_ENABLE_HOST_GLES=1",
-    ] + select({
-        "@platforms//os:windows": [
-            "WIN32_LEAN_AND_MEAN",
-        ],
-        "//conditions:default": [],
-    }),
+    defines = GFXSTREAM_HOST_DEFINES,
     includes = [
         ".",
         "gl",
@@ -250,16 +239,11 @@ cc_library(
         "render_api.cpp",
         "virtio-gpu-gfxstream-renderer.cpp",
     ],
-    copts = [
-        "-fno-exceptions",
+    copts = GFXSTREAM_HOST_COPTS + [
         "-Wno-extern-c-compat",
         "-Wno-return-type-c-linkage",
     ],
-    defines = [
-        "EMUGL_BUILD",
-        "BUILDING_EMUGL_COMMON_SHARED",
-        "WIN32_LEAN_AND_MEAN",
-    ],
+    defines = GFXSTREAM_HOST_DEFINES,
     linkstatic = True,
     visibility = ["//visibility:public"],
     deps = [
@@ -283,7 +267,8 @@ cc_binary(
         "render_api.cpp",
         "virtio-gpu-gfxstream-renderer.cpp",
     ],
-    copts = ["-fno-exceptions"],
+    copts = GFXSTREAM_HOST_COPTS,
+    defines = GFXSTREAM_HOST_DEFINES,
     linkshared = True,
     visibility = ["//visibility:public"],
     deps = [

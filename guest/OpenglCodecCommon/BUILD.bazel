@@ -28,9 +28,9 @@ cc_library(
         "//common/etc:gfxstream_etc",
         "//common/logging:gfxstream_common_logging",
         "//guest/android-emu:gfxstream_guest_base",
-        "//third_party/opengl:gfxstream_gles_headers",
         "//third_party/opengl:gfxstream_gles2_headers",
         "//third_party/opengl:gfxstream_gles3_headers",
+        "//third_party/opengl:gfxstream_gles_headers",
         "@mesa//:mesa_gfxstream_guest_iostream",
     ],
 )
