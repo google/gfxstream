@@ -13,7 +13,10 @@ cc_library(
         "gles1_dec/gles1_server_context.cpp",
     ],
     hdrs = glob(["gles1_dec/*.h"]),
-    copts = ["-fno-exceptions"],
+    copts = select({
+        "@platforms//os:windows": ["/EHs-c-"],
+        "//conditions:default": ["-fno-exceptions"],
+    }),
     defines = ["EMUGL_BUILD"],
     deps = [
         ":gfxstream_glsnapshot",
@@ -32,7 +35,10 @@ cc_library(
 cc_library(
     name = "gl_common_headers",
     hdrs = glob(["glestranslator/GLcommon/include/**/*.h"]),
-    copts = ["-fno-exceptions"],
+    copts = select({
+        "@platforms//os:windows": ["/EHs-c-"],
+        "//conditions:default": ["-fno-exceptions"],
+    }),
     includes = ["glestranslator/GLcommon/include"],
     deps = [
         "//common/base:gfxstream_common_base",
@@ -130,11 +136,13 @@ cc_library(
         "//conditions:default": [],
     }),
     copts = [
-        "-fno-exceptions",
         "-Wno-extern-c-compat",
         "-Wno-inconsistent-missing-override",
         "-Wno-return-type-c-linkage",
-    ],
+    ] + select({
+        "@platforms//os:windows": ["/EHs-c-"],
+        "//conditions:default": ["-fno-exceptions"],
+    }),
     defines = ["EMUGL_BUILD"],
     textual_hdrs = [
         "glestranslator/EGL/ClientAPIExts.in",
@@ -191,8 +199,10 @@ cc_library(
     ],
     copts = [
         "-Wno-extern-c-compat",
-        "-fno-exceptions",
-    ],
+    ] + select({
+        "@platforms//os:windows": ["/EHs-c-"],
+        "//conditions:default": ["-fno-exceptions"],
+    }),
     defines = [
         "EMUGL_BUILD",
         "BUILDING_EMUGL_COMMON_SHARED",
@@ -223,7 +233,10 @@ cc_library(
         "gles2_dec/gles2_server_context.cpp",
     ],
     hdrs = glob(["gles2_dec/*.h"]),
-    copts = ["-fno-exceptions"],
+    copts = select({
+        "@platforms//os:windows": ["/EHs-c-"],
+        "//conditions:default": ["-fno-exceptions"],
+    }),
     defines = ["EMUGL_BUILD"],
     deps = [
         ":gfxstream_glsnapshot",
@@ -245,9 +258,11 @@ cc_library(
     srcs = ["glsnapshot/GLSnapshot.cpp"],
     hdrs = ["glsnapshot/GLSnapshot.h"],
     copts = [
-        "-fno-exceptions",
         "-Wno-extern-c-compat",
-    ],
+    ] + select({
+        "@platforms//os:windows": ["/EHs-c-"],
+        "//conditions:default": ["-fno-exceptions"],
+    }),
     defines = ["EMUGL_BUILD"],
     includes = ["glsnapshot"],
     deps = [
@@ -355,9 +370,11 @@ cc_library(
         "YUVConverter.h",
     ],
     copts = [
-        "-fno-exceptions",
         "-Wno-extern-c-compat",
-    ],
+    ] + select({
+        "@platforms//os:windows": ["/EHs-c-"],
+        "//conditions:default": ["-fno-exceptions"],
+    }),
     defines = [
         "GFXSTREAM_ENABLE_HOST_GLES",
         "EMUGL_BUILD",

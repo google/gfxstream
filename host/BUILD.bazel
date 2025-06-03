@@ -32,7 +32,10 @@ cc_library(
         "include/render-utils/vm_operations.h",
         "include/render-utils/window_operations.h",
     ],
-    copts = ["-fno-exceptions"],
+    copts = select({
+        "@platforms//os:windows": ["/EHs-c-"],
+        "//conditions:default": ["-fno-exceptions"],
+    }),
     includes = ["include"],
     visibility = ["//visibility:public"],
     deps = [
@@ -59,7 +62,10 @@ cc_library(
         "SyncThread.h",
         "VsyncThread.h",
     ],
-    copts = ["-fno-exceptions"],
+    copts = select({
+        "@platforms//os:windows": ["/EHs-c-"],
+        "//conditions:default": ["-fno-exceptions"],
+    }),
     includes = ["."],
     deps = [
         ":gfxstream_backend_headers",
@@ -90,9 +96,11 @@ objc_library(
         "NativeSubWindow_cocoa.mm",
     ],
     copts = [
-        "-fno-exceptions",
         "-Wno-deprecated-declarations",
-    ],
+    ] + select({
+        "@platforms//os:windows": ["/EHs-c-"],
+        "//conditions:default": ["-fno-exceptions"],
+    }),
     defines = [
         "EMUGL_BUILD",
         "GFXSTREAM_ENABLE_HOST_GLES=1",
@@ -188,8 +196,10 @@ cc_library(
     copts = [
         "-Wno-return-type-c-linkage",
         "-Wno-extern-c-compat",
-        "-fno-exceptions",
-    ],
+    ] + select({
+        "@platforms//os:windows": ["/EHs-c-"],
+        "//conditions:default": ["-fno-exceptions"],
+    }),
     defines = [
         "QEMU_NEXT",
         "EMUGL_BUILD",
@@ -251,10 +261,12 @@ cc_library(
         "virtio-gpu-gfxstream-renderer.cpp",
     ],
     copts = [
-        "-fno-exceptions",
         "-Wno-extern-c-compat",
         "-Wno-return-type-c-linkage",
-    ],
+    ] + select({
+        "@platforms//os:windows": ["/EHs-c-"],
+        "//conditions:default": ["-fno-exceptions"],
+    }),
     defines = [
         "EMUGL_BUILD",
         "BUILDING_EMUGL_COMMON_SHARED",
@@ -283,7 +295,10 @@ cc_binary(
         "render_api.cpp",
         "virtio-gpu-gfxstream-renderer.cpp",
     ],
-    copts = ["-fno-exceptions"],
+    copts = select({
+        "@platforms//os:windows": ["/EHs-c-"],
+        "//conditions:default": ["-fno-exceptions"],
+    }),
     linkshared = True,
     visibility = ["//visibility:public"],
     deps = [
