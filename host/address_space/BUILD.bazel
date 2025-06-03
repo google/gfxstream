@@ -1,4 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("//:build_variables.bzl", "GFXSTREAM_HOST_COPTS", "GFXSTREAM_HOST_DEFINES")
 
 package(
     default_applicable_licenses = ["//:gfxstream_license"],
@@ -14,7 +15,8 @@ cc_library(
         "sub_allocator.cpp",
     ],
     hdrs = glob(["include/**/*.h"]),
-    copts = ["-fno-exceptions"],
+    copts = GFXSTREAM_HOST_COPTS,
+    defines = GFXSTREAM_HOST_DEFINES,
     strip_include_prefix = "include",
     deps = [
         "//common/base:gfxstream_common_base",

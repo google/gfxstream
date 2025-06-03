@@ -1,4 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
+load("//:build_variables.bzl", "GFXSTREAM_HOST_COPTS", "GFXSTREAM_HOST_DEFINES")
 
 package(
     default_applicable_licenses = ["//:gfxstream_license"],
@@ -8,7 +9,8 @@ package(
 cc_library(
     name = "gfxstream_host_iostream",
     hdrs = glob(["include/**/*.h"]),
-    copts = ["-fno-exceptions"],
+    copts = GFXSTREAM_HOST_COPTS,
+    defines = GFXSTREAM_HOST_DEFINES,
     includes = ["include"],
     deps = [
         "//common/logging:gfxstream_common_logging",
