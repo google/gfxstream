@@ -21,13 +21,14 @@
 #include <set>
 
 #include "DependencyGraph.h"
-#include "VkSnapshotApiCall.h"
+#include "VkSnapshotHandles.h"
 #include "VulkanHandleMapping.h"
 #include "VulkanHandles.h"
+#include "common/goldfish_vk_marshaling.h"
 #include "gfxstream/HealthMonitor.h"
+#include "gfxstream/containers/EntityManager.h"
 #include "gfxstream/host/GfxApiLogger.h"
 #include "render-utils/stream.h"
-#include "common/goldfish_vk_marshaling.h"
 
 namespace gfxstream {
 namespace vk {
@@ -45,15 +46,12 @@ class VkReconstruction {
 
     enum HandleState { CREATED = 0 };
 
-    VkSnapshotApiCallInfo* createApiCallInfo();
-    void destroyApiCallInfo(VkSnapshotApiCallHandle handle);
-    void destroyApiCallInfoIfUnused(VkSnapshotApiCallInfo* info);
+    VkSnapshotApiCallHandle createApiCallInfo();
+    void destroyApiCallInfoIfUnused(VkSnapshotApiCallHandle apiCallHandle);
 
-    void removeHandleFromApiInfo(VkSnapshotApiCallHandle h, uint64_t toRemove);
+    void removeHandleFromApiInfo(VkSnapshotApiCallHandle apiCallHandle, uint64_t toRemove);
 
-    VkSnapshotApiCallInfo* getApiInfo(VkSnapshotApiCallHandle h);
-
-    void setApiTrace(VkSnapshotApiCallInfo* apiInfo, const uint8_t* traceBegin, size_t traceBytes);
+    void setApiTrace(VkSnapshotApiCallHandle apiCallHandle, const uint8_t* traceBegin, size_t traceBytes);
 
     void dump();
 
@@ -64,9 +62,14 @@ class VkReconstruction {
     void removeDescendantsOfHandle(const uint64_t handle);
 
     void forEachHandleAddApi(const uint64_t* toProcess, uint32_t count,
-                             uint64_t VkSnapshotApiCallHandle, HandleState state = CREATED);
+                             VkSnapshotApiCallHandle apiCallHandle, HandleState state = CREATED);
 
-    void addHandleDependency(const uint64_t* handles, uint32_t count, uint64_t parentHandle,
+    void addApiCallDependencyOnVkObject(VkSnapshotApiCallHandle apiCallHandle, VkObjectHandle object);
+
+    void addHandleDependenciesForApiCallDependencies(VkSnapshotApiCallHandle apiCallHandle, VkObjectHandle child);
+
+    void addHandleDependency(const VkObjectHandle* childHandles, uint32_t childHandlesCount,
+                             VkObjectHandle parentHandle,
                              HandleState childState = CREATED, HandleState parentState = CREATED);
 
     void setCreatedHandlesForApi(VkSnapshotApiCallHandle handle , const uint64_t* created,
@@ -95,9 +98,36 @@ class VkReconstruction {
     // add them to OP_vkCreateDescriptorPool.
     void createExtraHandlesForNextApi(const uint64_t* created, uint32_t count);
 
+    void addOrderedBoxedHandlesCreatedByCall(VkSnapshotApiCallHandle handle,
+                                             const VkObjectHandle* boxedHandles,
+                                             uint32_t boxedHandlesCount);
+
    private:
+    struct VkSnapshotApiCallInfo {
+        VkSnapshotApiCallHandle handle = kInvalidSnapshotApiCallHandle;
+
+        // Raw packet from VkDecoder.
+        std::vector<uint8_t> packet;
+
+        // Book-keeping for which handles were created by this API
+        std::vector<uint64_t> createdHandles;
+        std::vector<uint64_t> depends;
+
+        // Extra boxed handles created for this API call that are not identifiable
+        // solely from the API parameters itself. For example, the extra boxed `VkQueue`s
+        // that are created during `vkCreateDevice()` can not be identified from the
+        // parameters to `vkCreateDevice()`.
+        //
+        // TODO: remove this and require that all of the `new_boxed_*()` take a
+        // `VkSnapshotApiCallInfo` as an argument so the creation order of the boxed
+        // handles in `createdHandles` is guaranteed to match the replay order. For now,
+        // this relies on careful manual ordering.
+        std::vector<uint64_t> extraCreatedHandles;
+    };
+
     std::vector<uint64_t> getOrderedUniqueModifyApis() const;
 
+    using VkSnapshotApiCallManager = gfxstream::base::EntityManager<32, 16, 16, VkSnapshotApiCallInfo>;
     VkSnapshotApiCallManager mApiCallManager;
 
     std::vector<uint8_t> mLoadedTrace;

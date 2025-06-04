@@ -213,9 +213,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
             }
         }
 
-        VkSnapshotApiCallInfo* snapshotApiCallInfo = nullptr;
+        VkSnapshotApiCallHandle snapshotApiCallHandle = kInvalidSnapshotApiCallHandle;
         if (m_snapshotsEnabled) {
-            snapshotApiCallInfo = m_state->snapshot()->createApiCallInfo();
+            snapshotApiCallHandle = m_state->snapshot()->createApiCallInfo();
         }
 
         gfx_logger.recordCommandExecution();
@@ -270,7 +270,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 VkResult vkCreateInstance_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 vkCreateInstance_VkResult_return = m_state->on_vkCreateInstance(
-                    &m_pool, snapshotApiCallInfo, pCreateInfo, pAllocator, pInstance);
+                    &m_pool, snapshotApiCallHandle, pCreateInfo, pAllocator, pInstance);
                 if ((vkCreateInstance_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
                 m_state->on_CheckOutOfMemory(vkCreateInstance_VkResult_return, opcode, context);
@@ -284,7 +284,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCreateInstance(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCreateInstance_VkResult_return, pCreateInfo, pAllocator, pInstance);
                 }
                 vkReadStream->clearPool();
@@ -322,12 +322,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)instance, (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkDestroyInstance(&m_pool, snapshotApiCallInfo, instance,
+                    m_state->on_vkDestroyInstance(&m_pool, snapshotApiCallHandle, instance,
                                                   pAllocator);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkDestroyInstance(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkDestroyInstance(&m_pool, snapshotApiCallHandle, packet,
                                                            packetLen, instance, pAllocator);
                 }
                 vkReadStream->clearPool();
@@ -392,7 +392,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkEnumeratePhysicalDevices_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkEnumeratePhysicalDevices_VkResult_return =
-                        m_state->on_vkEnumeratePhysicalDevices(&m_pool, snapshotApiCallInfo,
+                        m_state->on_vkEnumeratePhysicalDevices(&m_pool, snapshotApiCallHandle,
                                                                instance, pPhysicalDeviceCount,
                                                                pPhysicalDevices);
                 }
@@ -427,7 +427,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkEnumeratePhysicalDevices(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkEnumeratePhysicalDevices_VkResult_return, instance, pPhysicalDeviceCount,
                         pPhysicalDevices);
                 }
@@ -464,7 +464,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pFeatures);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkGetPhysicalDeviceFeatures(&m_pool, snapshotApiCallInfo,
+                    m_state->on_vkGetPhysicalDeviceFeatures(&m_pool, snapshotApiCallHandle,
                                                             physicalDevice, pFeatures);
                 }
                 vkStream->unsetHandleMapping();
@@ -476,8 +476,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                  (VkPhysicalDeviceFeatures*)(pFeatures));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkGetPhysicalDeviceFeatures(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, physicalDevice, pFeatures);
+                    m_state->snapshot()->vkGetPhysicalDeviceFeatures(&m_pool, snapshotApiCallHandle,
+                                                                     packet, packetLen,
+                                                                     physicalDevice, pFeatures);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -517,7 +518,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceFormatProperties(
-                        &m_pool, snapshotApiCallInfo, physicalDevice, format, pFormatProperties);
+                        &m_pool, snapshotApiCallHandle, physicalDevice, format, pFormatProperties);
                 }
                 vkStream->unsetHandleMapping();
                 if (pFormatProperties) {
@@ -529,7 +530,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPhysicalDeviceFormatProperties(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, physicalDevice, format,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, physicalDevice, format,
                         pFormatProperties);
                 }
                 vkReadStream->clearPool();
@@ -589,7 +590,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 if (CC_LIKELY(vk)) {
                     vkGetPhysicalDeviceImageFormatProperties_VkResult_return =
                         m_state->on_vkGetPhysicalDeviceImageFormatProperties(
-                            &m_pool, snapshotApiCallInfo, physicalDevice, format, type, tiling,
+                            &m_pool, snapshotApiCallHandle, physicalDevice, format, type, tiling,
                             usage, flags, pImageFormatProperties);
                 }
                 if ((vkGetPhysicalDeviceImageFormatProperties_VkResult_return) ==
@@ -609,7 +610,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPhysicalDeviceImageFormatProperties(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetPhysicalDeviceImageFormatProperties_VkResult_return, physicalDevice,
                         format, type, tiling, usage, flags, pImageFormatProperties);
                 }
@@ -646,7 +647,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pProperties);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkGetPhysicalDeviceProperties(&m_pool, snapshotApiCallInfo,
+                    m_state->on_vkGetPhysicalDeviceProperties(&m_pool, snapshotApiCallHandle,
                                                               physicalDevice, pProperties);
                 }
                 vkStream->unsetHandleMapping();
@@ -658,9 +659,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                    (VkPhysicalDeviceProperties*)(pProperties));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkGetPhysicalDeviceProperties(&m_pool, snapshotApiCallInfo,
-                                                                       packet, packetLen,
-                                                                       physicalDevice, pProperties);
+                    m_state->snapshot()->vkGetPhysicalDeviceProperties(
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, physicalDevice,
+                        pProperties);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -727,7 +728,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceQueueFamilyProperties(
-                        &m_pool, snapshotApiCallInfo, physicalDevice, pQueueFamilyPropertyCount,
+                        &m_pool, snapshotApiCallHandle, physicalDevice, pQueueFamilyPropertyCount,
                         pQueueFamilyProperties);
                 }
                 vkStream->unsetHandleMapping();
@@ -760,7 +761,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPhysicalDeviceQueueFamilyProperties(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, physicalDevice,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, physicalDevice,
                         pQueueFamilyPropertyCount, pQueueFamilyProperties);
                 }
                 vkReadStream->clearPool();
@@ -799,7 +800,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceMemoryProperties(
-                        &m_pool, snapshotApiCallInfo, physicalDevice, pMemoryProperties);
+                        &m_pool, snapshotApiCallHandle, physicalDevice, pMemoryProperties);
                 }
                 vkStream->unsetHandleMapping();
                 if (pMemoryProperties) {
@@ -812,7 +813,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPhysicalDeviceMemoryProperties(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, physicalDevice,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, physicalDevice,
                         pMemoryProperties);
                 }
                 vkReadStream->clearPool();
@@ -850,7 +851,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetInstanceProcAddr(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetInstanceProcAddr_PFN_vkVoidFunction_return, instance, pName);
                 }
                 vkReadStream->clearPool();
@@ -888,7 +889,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetDeviceProcAddr(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetDeviceProcAddr_PFN_vkVoidFunction_return, device, pName);
                 }
                 vkReadStream->clearPool();
@@ -947,7 +948,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkCreateDevice_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkCreateDevice_VkResult_return =
-                        m_state->on_vkCreateDevice(&m_pool, snapshotApiCallInfo, physicalDevice,
+                        m_state->on_vkCreateDevice(&m_pool, snapshotApiCallHandle, physicalDevice,
                                                    pCreateInfo, pAllocator, pDevice);
                 }
                 if ((vkCreateDevice_VkResult_return) == VK_ERROR_DEVICE_LOST)
@@ -962,7 +963,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkCreateDevice_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCreateDevice(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCreateDevice(&m_pool, snapshotApiCallHandle, packet,
                                                         packetLen, vkCreateDevice_VkResult_return,
                                                         physicalDevice, pCreateInfo, pAllocator,
                                                         pDevice);
@@ -1002,11 +1003,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)device, (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkDestroyDevice(&m_pool, snapshotApiCallInfo, device, pAllocator);
+                    m_state->on_vkDestroyDevice(&m_pool, snapshotApiCallHandle, device, pAllocator);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkDestroyDevice(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkDestroyDevice(&m_pool, snapshotApiCallHandle, packet,
                                                          packetLen, device, pAllocator);
                 }
                 vkReadStream->clearPool();
@@ -1079,7 +1080,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     VK_ERROR_OUT_OF_HOST_MEMORY;
                 vkEnumerateInstanceExtensionProperties_VkResult_return =
                     m_state->on_vkEnumerateInstanceExtensionProperties(
-                        &m_pool, snapshotApiCallInfo, pLayerName, pPropertyCount, pProperties);
+                        &m_pool, snapshotApiCallHandle, pLayerName, pPropertyCount, pProperties);
                 if ((vkEnumerateInstanceExtensionProperties_VkResult_return) ==
                     VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -1117,7 +1118,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkEnumerateInstanceExtensionProperties(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkEnumerateInstanceExtensionProperties_VkResult_return, pLayerName,
                         pPropertyCount, pProperties);
                 }
@@ -1201,7 +1202,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 if (CC_LIKELY(vk)) {
                     vkEnumerateDeviceExtensionProperties_VkResult_return =
                         m_state->on_vkEnumerateDeviceExtensionProperties(
-                            &m_pool, snapshotApiCallInfo, physicalDevice, pLayerName,
+                            &m_pool, snapshotApiCallHandle, physicalDevice, pLayerName,
                             pPropertyCount, pProperties);
                 }
                 if ((vkEnumerateDeviceExtensionProperties_VkResult_return) == VK_ERROR_DEVICE_LOST)
@@ -1240,7 +1241,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkEnumerateDeviceExtensionProperties(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkEnumerateDeviceExtensionProperties_VkResult_return, physicalDevice,
                         pLayerName, pPropertyCount, pProperties);
                 }
@@ -1333,7 +1334,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkEnumerateInstanceLayerProperties(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkEnumerateInstanceLayerProperties_VkResult_return, pPropertyCount,
                         pProperties);
                 }
@@ -1439,7 +1440,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkEnumerateDeviceLayerProperties(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkEnumerateDeviceLayerProperties_VkResult_return, physicalDevice,
                         pPropertyCount, pProperties);
                 }
@@ -1479,7 +1480,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)queueIndex, (unsigned long long)pQueue);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkGetDeviceQueue(&m_pool, snapshotApiCallInfo, device,
+                    m_state->on_vkGetDeviceQueue(&m_pool, snapshotApiCallHandle, device,
                                                  queueFamilyIndex, queueIndex, pQueue);
                 }
                 vkStream->unsetHandleMapping();
@@ -1490,7 +1491,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write((VkQueue*)pQueue, 8 * 1);
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkGetDeviceQueue(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkGetDeviceQueue(&m_pool, snapshotApiCallHandle, packet,
                                                           packetLen, device, queueFamilyIndex,
                                                           queueIndex, pQueue);
                 }
@@ -1537,7 +1538,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkQueueSubmit_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkQueueSubmit_VkResult_return = m_state->on_vkQueueSubmit(
-                        &m_pool, snapshotApiCallInfo, queue, submitCount, pSubmits, fence);
+                        &m_pool, snapshotApiCallHandle, queue, submitCount, pSubmits, fence);
                 }
                 if ((vkQueueSubmit_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -1546,7 +1547,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkQueueSubmit_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkQueueSubmit(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkQueueSubmit(&m_pool, snapshotApiCallHandle, packet,
                                                        packetLen, vkQueueSubmit_VkResult_return,
                                                        queue, submitCount, pSubmits, fence);
                 }
@@ -1574,7 +1575,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkQueueWaitIdle_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkQueueWaitIdle_VkResult_return =
-                        m_state->on_vkQueueWaitIdle(&m_pool, snapshotApiCallInfo, queue);
+                        m_state->on_vkQueueWaitIdle(&m_pool, snapshotApiCallHandle, queue);
                 }
                 if ((vkQueueWaitIdle_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -1583,7 +1584,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkQueueWaitIdle_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkQueueWaitIdle(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkQueueWaitIdle(&m_pool, snapshotApiCallHandle, packet,
                                                          packetLen, vkQueueWaitIdle_VkResult_return,
                                                          queue);
                 }
@@ -1619,7 +1620,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkDeviceWaitIdle_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkDeviceWaitIdle(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkDeviceWaitIdle(&m_pool, snapshotApiCallHandle, packet,
                                                           packetLen,
                                                           vkDeviceWaitIdle_VkResult_return, device);
                 }
@@ -1678,7 +1679,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkAllocateMemory_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkAllocateMemory_VkResult_return = m_state->on_vkAllocateMemory(
-                        &m_pool, snapshotApiCallInfo, device, pAllocateInfo, pAllocator, pMemory);
+                        &m_pool, snapshotApiCallHandle, device, pAllocateInfo, pAllocator, pMemory);
                 }
                 if ((vkAllocateMemory_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -1698,7 +1699,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkAllocateMemory_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkAllocateMemory(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkAllocateMemory(&m_pool, snapshotApiCallHandle, packet,
                                                           packetLen,
                                                           vkAllocateMemory_VkResult_return, device,
                                                           pAllocateInfo, pAllocator, pMemory);
@@ -1748,12 +1749,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkFreeMemory(&m_pool, snapshotApiCallInfo, device, memory,
+                    m_state->on_vkFreeMemory(&m_pool, snapshotApiCallHandle, device, memory,
                                              pAllocator);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkFreeMemory(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkFreeMemory(&m_pool, snapshotApiCallHandle, packet,
                                                       packetLen, device, boxed_memory_preserve,
                                                       pAllocator);
                 }
@@ -1808,8 +1809,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 VkResult vkMapMemory_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
-                    vkMapMemory_VkResult_return = m_state->on_vkMapMemory(
-                        &m_pool, snapshotApiCallInfo, device, memory, offset, size, flags, ppData);
+                    vkMapMemory_VkResult_return =
+                        m_state->on_vkMapMemory(&m_pool, snapshotApiCallHandle, device, memory,
+                                                offset, size, flags, ppData);
                 }
                 if ((vkMapMemory_VkResult_return) == VK_ERROR_DEVICE_LOST) m_state->on_DeviceLost();
                 m_state->on_CheckOutOfMemory(vkMapMemory_VkResult_return, opcode, context);
@@ -1823,7 +1825,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkMapMemory_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkMapMemory(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkMapMemory(&m_pool, snapshotApiCallHandle, packet,
                                                      packetLen, vkMapMemory_VkResult_return, device,
                                                      memory, offset, size, flags, ppData);
                 }
@@ -1852,11 +1854,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)device, (unsigned long long)memory);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkUnmapMemory(&m_pool, snapshotApiCallInfo, device, memory);
+                    m_state->on_vkUnmapMemory(&m_pool, snapshotApiCallHandle, device, memory);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkUnmapMemory(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkUnmapMemory(&m_pool, snapshotApiCallHandle, packet,
                                                        packetLen, device, memory);
                 }
                 vkReadStream->clearPool();
@@ -1951,7 +1953,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkFlushMappedMemoryRanges(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkFlushMappedMemoryRanges_VkResult_return, device, memoryRangeCount,
                         pMemoryRanges);
                 }
@@ -2031,7 +2033,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkInvalidateMappedMemoryRanges(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkInvalidateMappedMemoryRanges_VkResult_return, device, memoryRangeCount,
                         pMemoryRanges);
                 }
@@ -2080,7 +2082,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetDeviceMemoryCommitment(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, memory,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, memory,
                         pCommittedMemoryInBytes);
                 }
                 vkReadStream->clearPool();
@@ -2121,7 +2123,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkBindBufferMemory_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkBindBufferMemory_VkResult_return = m_state->on_vkBindBufferMemory(
-                        &m_pool, snapshotApiCallInfo, device, buffer, memory, memoryOffset);
+                        &m_pool, snapshotApiCallHandle, device, buffer, memory, memoryOffset);
                 }
                 if ((vkBindBufferMemory_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -2131,7 +2133,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkBindBufferMemory(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkBindBufferMemory_VkResult_return, device, buffer, memory, memoryOffset);
                 }
                 vkReadStream->clearPool();
@@ -2171,7 +2173,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkBindImageMemory_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkBindImageMemory_VkResult_return = m_state->on_vkBindImageMemory(
-                        &m_pool, snapshotApiCallInfo, device, image, memory, memoryOffset);
+                        &m_pool, snapshotApiCallHandle, device, image, memory, memoryOffset);
                 }
                 if ((vkBindImageMemory_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -2181,7 +2183,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkBindImageMemory(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkBindImageMemory_VkResult_return, device, image, memory, memoryOffset);
                 }
                 vkReadStream->clearPool();
@@ -2222,8 +2224,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (unsigned long long)pMemoryRequirements);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkGetBufferMemoryRequirements(&m_pool, snapshotApiCallInfo, device,
-                                                              buffer, pMemoryRequirements);
+                    m_state->on_vkGetBufferMemoryRequirements(&m_pool, snapshotApiCallHandle,
+                                                              device, buffer, pMemoryRequirements);
                 }
                 vkStream->unsetHandleMapping();
                 if (pMemoryRequirements) {
@@ -2234,9 +2236,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                              (VkMemoryRequirements*)(pMemoryRequirements));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkGetBufferMemoryRequirements(&m_pool, snapshotApiCallInfo,
-                                                                       packet, packetLen, device,
-                                                                       buffer, pMemoryRequirements);
+                    m_state->snapshot()->vkGetBufferMemoryRequirements(
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, buffer,
+                        pMemoryRequirements);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -2276,7 +2278,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (unsigned long long)pMemoryRequirements);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkGetImageMemoryRequirements(&m_pool, snapshotApiCallInfo, device,
+                    m_state->on_vkGetImageMemoryRequirements(&m_pool, snapshotApiCallHandle, device,
                                                              image, pMemoryRequirements);
                 }
                 vkStream->unsetHandleMapping();
@@ -2288,9 +2290,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                              (VkMemoryRequirements*)(pMemoryRequirements));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkGetImageMemoryRequirements(&m_pool, snapshotApiCallInfo,
-                                                                      packet, packetLen, device,
-                                                                      image, pMemoryRequirements);
+                    m_state->snapshot()->vkGetImageMemoryRequirements(
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, image,
+                        pMemoryRequirements);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -2402,7 +2404,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetImageSparseMemoryRequirements(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, image,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, image,
                         pSparseMemoryRequirementCount, pSparseMemoryRequirements);
                 }
                 vkReadStream->clearPool();
@@ -2485,8 +2487,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceSparseImageFormatProperties(
-                        &m_pool, snapshotApiCallInfo, physicalDevice, format, type, samples, usage,
-                        tiling, pPropertyCount, pProperties);
+                        &m_pool, snapshotApiCallHandle, physicalDevice, format, type, samples,
+                        usage, tiling, pPropertyCount, pProperties);
                 }
                 vkStream->unsetHandleMapping();
                 // WARNING PTR CHECK
@@ -2518,7 +2520,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPhysicalDeviceSparseImageFormatProperties(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, physicalDevice, format,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, physicalDevice, format,
                         type, samples, usage, tiling, pPropertyCount, pProperties);
                 }
                 vkReadStream->clearPool();
@@ -2567,7 +2569,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkQueueBindSparse_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkQueueBindSparse_VkResult_return = m_state->on_vkQueueBindSparse(
-                        &m_pool, snapshotApiCallInfo, queue, bindInfoCount, pBindInfo, fence);
+                        &m_pool, snapshotApiCallHandle, queue, bindInfoCount, pBindInfo, fence);
                 }
                 if ((vkQueueBindSparse_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -2577,7 +2579,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkQueueBindSparse(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkQueueBindSparse_VkResult_return, queue, bindInfoCount, pBindInfo, fence);
                 }
                 vkReadStream->clearPool();
@@ -2634,7 +2636,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkCreateFence_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkCreateFence_VkResult_return = m_state->on_vkCreateFence(
-                        &m_pool, snapshotApiCallInfo, device, pCreateInfo, pAllocator, pFence);
+                        &m_pool, snapshotApiCallHandle, device, pCreateInfo, pAllocator, pFence);
                 }
                 if ((vkCreateFence_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -2652,7 +2654,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkCreateFence_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCreateFence(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCreateFence(&m_pool, snapshotApiCallHandle, packet,
                                                        packetLen, vkCreateFence_VkResult_return,
                                                        device, pCreateInfo, pAllocator, pFence);
                 }
@@ -2700,12 +2702,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkDestroyFence(&m_pool, snapshotApiCallInfo, device, fence,
+                    m_state->on_vkDestroyFence(&m_pool, snapshotApiCallHandle, device, fence,
                                                pAllocator);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkDestroyFence(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkDestroyFence(&m_pool, snapshotApiCallHandle, packet,
                                                         packetLen, device, boxed_fence_preserve,
                                                         pAllocator);
                 }
@@ -2747,7 +2749,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkResetFences_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkResetFences_VkResult_return = m_state->on_vkResetFences(
-                        &m_pool, snapshotApiCallInfo, device, fenceCount, pFences);
+                        &m_pool, snapshotApiCallHandle, device, fenceCount, pFences);
                 }
                 if ((vkResetFences_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -2756,7 +2758,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkResetFences_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkResetFences(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkResetFences(&m_pool, snapshotApiCallHandle, packet,
                                                        packetLen, vkResetFences_VkResult_return,
                                                        device, fenceCount, pFences);
                 }
@@ -2787,7 +2789,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkGetFenceStatus_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkGetFenceStatus_VkResult_return =
-                        m_state->on_vkGetFenceStatus(&m_pool, snapshotApiCallInfo, device, fence);
+                        m_state->on_vkGetFenceStatus(&m_pool, snapshotApiCallHandle, device, fence);
                 }
                 if ((vkGetFenceStatus_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -2797,7 +2799,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetFenceStatus(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetFenceStatus_VkResult_return, device, fence);
                 }
                 vkReadStream->clearPool();
@@ -2848,7 +2850,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkWaitForFences_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkWaitForFences_VkResult_return =
-                        m_state->on_vkWaitForFences(&m_pool, snapshotApiCallInfo, device,
+                        m_state->on_vkWaitForFences(&m_pool, snapshotApiCallHandle, device,
                                                     fenceCount, pFences, waitAll, timeout);
                 }
                 if ((vkWaitForFences_VkResult_return) == VK_ERROR_DEVICE_LOST)
@@ -2858,7 +2860,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkWaitForFences_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkWaitForFences(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkWaitForFences(&m_pool, snapshotApiCallHandle, packet,
                                                          packetLen, vkWaitForFences_VkResult_return,
                                                          device, fenceCount, pFences, waitAll,
                                                          timeout);
@@ -2916,8 +2918,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 VkResult vkCreateSemaphore_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
-                    vkCreateSemaphore_VkResult_return = m_state->on_vkCreateSemaphore(
-                        &m_pool, snapshotApiCallInfo, device, pCreateInfo, pAllocator, pSemaphore);
+                    vkCreateSemaphore_VkResult_return =
+                        m_state->on_vkCreateSemaphore(&m_pool, snapshotApiCallHandle, device,
+                                                      pCreateInfo, pAllocator, pSemaphore);
                 }
                 if ((vkCreateSemaphore_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -2936,7 +2939,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCreateSemaphore(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCreateSemaphore_VkResult_return, device, pCreateInfo, pAllocator,
                         pSemaphore);
                 }
@@ -2985,12 +2988,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)semaphore, (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkDestroySemaphore(&m_pool, snapshotApiCallInfo, device, semaphore,
-                                                   pAllocator);
+                    m_state->on_vkDestroySemaphore(&m_pool, snapshotApiCallHandle, device,
+                                                   semaphore, pAllocator);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkDestroySemaphore(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkDestroySemaphore(&m_pool, snapshotApiCallHandle, packet,
                                                             packetLen, device,
                                                             boxed_semaphore_preserve, pAllocator);
                 }
@@ -3070,7 +3073,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkCreateEvent_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCreateEvent(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCreateEvent(&m_pool, snapshotApiCallHandle, packet,
                                                        packetLen, vkCreateEvent_VkResult_return,
                                                        device, pCreateInfo, pAllocator, pEvent);
                 }
@@ -3124,7 +3127,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkDestroyEvent(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkDestroyEvent(&m_pool, snapshotApiCallHandle, packet,
                                                         packetLen, device, boxed_event_preserve,
                                                         pAllocator);
                 }
@@ -3167,7 +3170,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetEventStatus(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetEventStatus_VkResult_return, device, event);
                 }
                 vkReadStream->clearPool();
@@ -3205,8 +3208,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkSetEvent_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkSetEvent(&m_pool, snapshotApiCallInfo, packet, packetLen,
-                                                    vkSetEvent_VkResult_return, device, event);
+                    m_state->snapshot()->vkSetEvent(&m_pool, snapshotApiCallHandle, packet,
+                                                    packetLen, vkSetEvent_VkResult_return, device,
+                                                    event);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -3244,7 +3248,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkResetEvent_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkResetEvent(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkResetEvent(&m_pool, snapshotApiCallHandle, packet,
                                                       packetLen, vkResetEvent_VkResult_return,
                                                       device, event);
                 }
@@ -3326,7 +3330,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCreateQueryPool(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCreateQueryPool_VkResult_return, device, pCreateInfo, pAllocator,
                         pQueryPool);
                 }
@@ -3381,7 +3385,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkDestroyQueryPool(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkDestroyQueryPool(&m_pool, snapshotApiCallHandle, packet,
                                                             packetLen, device,
                                                             boxed_queryPool_preserve, pAllocator);
                 }
@@ -3456,7 +3460,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetQueryPoolResults(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetQueryPoolResults_VkResult_return, device, queryPool, firstQuery,
                         queryCount, dataSize, pData, stride, flags);
                 }
@@ -3515,7 +3519,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkCreateBuffer_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkCreateBuffer_VkResult_return = m_state->on_vkCreateBuffer(
-                        &m_pool, snapshotApiCallInfo, device, pCreateInfo, pAllocator, pBuffer);
+                        &m_pool, snapshotApiCallHandle, device, pCreateInfo, pAllocator, pBuffer);
                 }
                 if ((vkCreateBuffer_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -3533,7 +3537,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkCreateBuffer_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCreateBuffer(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCreateBuffer(&m_pool, snapshotApiCallHandle, packet,
                                                         packetLen, vkCreateBuffer_VkResult_return,
                                                         device, pCreateInfo, pAllocator, pBuffer);
                 }
@@ -3582,12 +3586,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkDestroyBuffer(&m_pool, snapshotApiCallInfo, device, buffer,
+                    m_state->on_vkDestroyBuffer(&m_pool, snapshotApiCallHandle, device, buffer,
                                                 pAllocator);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkDestroyBuffer(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkDestroyBuffer(&m_pool, snapshotApiCallHandle, packet,
                                                          packetLen, device, boxed_buffer_preserve,
                                                          pAllocator);
                 }
@@ -3670,7 +3674,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCreateBufferView(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCreateBufferView_VkResult_return, device, pCreateInfo, pAllocator, pView);
                 }
                 vkReadStream->clearPool();
@@ -3725,7 +3729,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkDestroyBufferView(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkDestroyBufferView(&m_pool, snapshotApiCallHandle, packet,
                                                              packetLen, device,
                                                              boxed_bufferView_preserve, pAllocator);
                 }
@@ -3785,7 +3789,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkCreateImage_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkCreateImage_VkResult_return = m_state->on_vkCreateImage(
-                        &m_pool, snapshotApiCallInfo, device, pCreateInfo, pAllocator, pImage);
+                        &m_pool, snapshotApiCallHandle, device, pCreateInfo, pAllocator, pImage);
                 }
                 if ((vkCreateImage_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -3803,7 +3807,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkCreateImage_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCreateImage(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCreateImage(&m_pool, snapshotApiCallHandle, packet,
                                                        packetLen, vkCreateImage_VkResult_return,
                                                        device, pCreateInfo, pAllocator, pImage);
                 }
@@ -3851,12 +3855,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkDestroyImage(&m_pool, snapshotApiCallInfo, device, image,
+                    m_state->on_vkDestroyImage(&m_pool, snapshotApiCallHandle, device, image,
                                                pAllocator);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkDestroyImage(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkDestroyImage(&m_pool, snapshotApiCallHandle, packet,
                                                         packetLen, device, boxed_image_preserve,
                                                         pAllocator);
                 }
@@ -3920,7 +3924,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                             (VkSubresourceLayout*)(pLayout));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkGetImageSubresourceLayout(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkGetImageSubresourceLayout(&m_pool, snapshotApiCallHandle,
                                                                      packet, packetLen, device,
                                                                      image, pSubresource, pLayout);
                 }
@@ -3980,7 +3984,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkCreateImageView_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkCreateImageView_VkResult_return = m_state->on_vkCreateImageView(
-                        &m_pool, snapshotApiCallInfo, device, pCreateInfo, pAllocator, pView);
+                        &m_pool, snapshotApiCallHandle, device, pCreateInfo, pAllocator, pView);
                 }
                 if ((vkCreateImageView_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -3999,7 +4003,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCreateImageView(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCreateImageView_VkResult_return, device, pCreateInfo, pAllocator, pView);
                 }
                 vkReadStream->clearPool();
@@ -4047,12 +4051,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)imageView, (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkDestroyImageView(&m_pool, snapshotApiCallInfo, device, imageView,
-                                                   pAllocator);
+                    m_state->on_vkDestroyImageView(&m_pool, snapshotApiCallHandle, device,
+                                                   imageView, pAllocator);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkDestroyImageView(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkDestroyImageView(&m_pool, snapshotApiCallHandle, packet,
                                                             packetLen, device,
                                                             boxed_imageView_preserve, pAllocator);
                 }
@@ -4114,7 +4118,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkCreateShaderModule_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkCreateShaderModule_VkResult_return =
-                        m_state->on_vkCreateShaderModule(&m_pool, snapshotApiCallInfo, device,
+                        m_state->on_vkCreateShaderModule(&m_pool, snapshotApiCallHandle, device,
                                                          pCreateInfo, pAllocator, pShaderModule);
                 }
                 if ((vkCreateShaderModule_VkResult_return) == VK_ERROR_DEVICE_LOST)
@@ -4135,7 +4139,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCreateShaderModule(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCreateShaderModule_VkResult_return, device, pCreateInfo, pAllocator,
                         pShaderModule);
                 }
@@ -4188,13 +4192,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkDestroyShaderModule(&m_pool, snapshotApiCallInfo, device,
+                    m_state->on_vkDestroyShaderModule(&m_pool, snapshotApiCallHandle, device,
                                                       shaderModule, pAllocator);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkDestroyShaderModule(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device,
                         boxed_shaderModule_preserve, pAllocator);
                 }
                 delayed_delete_VkShaderModule(boxed_shaderModule_preserve, unboxed_device, nullptr);
@@ -4255,7 +4259,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkCreatePipelineCache_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkCreatePipelineCache_VkResult_return =
-                        m_state->on_vkCreatePipelineCache(&m_pool, snapshotApiCallInfo, device,
+                        m_state->on_vkCreatePipelineCache(&m_pool, snapshotApiCallHandle, device,
                                                           pCreateInfo, pAllocator, pPipelineCache);
                 }
                 if ((vkCreatePipelineCache_VkResult_return) == VK_ERROR_DEVICE_LOST)
@@ -4277,7 +4281,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCreatePipelineCache(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCreatePipelineCache_VkResult_return, device, pCreateInfo, pAllocator,
                         pPipelineCache);
                 }
@@ -4328,13 +4332,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkDestroyPipelineCache(&m_pool, snapshotApiCallInfo, device,
+                    m_state->on_vkDestroyPipelineCache(&m_pool, snapshotApiCallHandle, device,
                                                        pipelineCache, pAllocator);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkDestroyPipelineCache(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device,
                         boxed_pipelineCache_preserve, pAllocator);
                 }
                 delete_VkPipelineCache(boxed_pipelineCache_preserve);
@@ -4419,7 +4423,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPipelineCacheData(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetPipelineCacheData_VkResult_return, device, pipelineCache, pDataSize,
                         pData);
                 }
@@ -4483,7 +4487,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkMergePipelineCaches(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkMergePipelineCaches_VkResult_return, device, dstCache, srcCacheCount,
                         pSrcCaches);
                 }
@@ -4566,9 +4570,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkCreateGraphicsPipelines_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkCreateGraphicsPipelines_VkResult_return =
-                        m_state->on_vkCreateGraphicsPipelines(&m_pool, snapshotApiCallInfo, device,
-                                                              pipelineCache, createInfoCount,
-                                                              pCreateInfos, pAllocator, pPipelines);
+                        m_state->on_vkCreateGraphicsPipelines(
+                            &m_pool, snapshotApiCallHandle, device, pipelineCache, createInfoCount,
+                            pCreateInfos, pAllocator, pPipelines);
                 }
                 if ((vkCreateGraphicsPipelines_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -4592,7 +4596,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCreateGraphicsPipelines(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCreateGraphicsPipelines_VkResult_return, device, pipelineCache,
                         createInfoCount, pCreateInfos, pAllocator, pPipelines);
                 }
@@ -4675,7 +4679,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkCreateComputePipelines_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkCreateComputePipelines_VkResult_return = m_state->on_vkCreateComputePipelines(
-                        &m_pool, snapshotApiCallInfo, device, pipelineCache, createInfoCount,
+                        &m_pool, snapshotApiCallHandle, device, pipelineCache, createInfoCount,
                         pCreateInfos, pAllocator, pPipelines);
                 }
                 if ((vkCreateComputePipelines_VkResult_return) == VK_ERROR_DEVICE_LOST)
@@ -4700,7 +4704,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCreateComputePipelines(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCreateComputePipelines_VkResult_return, device, pipelineCache,
                         createInfoCount, pCreateInfos, pAllocator, pPipelines);
                 }
@@ -4749,12 +4753,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pipeline, (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkDestroyPipeline(&m_pool, snapshotApiCallInfo, device, pipeline,
+                    m_state->on_vkDestroyPipeline(&m_pool, snapshotApiCallHandle, device, pipeline,
                                                   pAllocator);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkDestroyPipeline(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkDestroyPipeline(&m_pool, snapshotApiCallHandle, packet,
                                                            packetLen, device,
                                                            boxed_pipeline_preserve, pAllocator);
                 }
@@ -4816,7 +4820,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkCreatePipelineLayout_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkCreatePipelineLayout_VkResult_return = m_state->on_vkCreatePipelineLayout(
-                        &m_pool, snapshotApiCallInfo, device, pCreateInfo, pAllocator,
+                        &m_pool, snapshotApiCallHandle, device, pCreateInfo, pAllocator,
                         pPipelineLayout);
                 }
                 if ((vkCreatePipelineLayout_VkResult_return) == VK_ERROR_DEVICE_LOST)
@@ -4838,7 +4842,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCreatePipelineLayout(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCreatePipelineLayout_VkResult_return, device, pCreateInfo, pAllocator,
                         pPipelineLayout);
                 }
@@ -4894,14 +4898,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                                  pAllocator]() {
                     auto m_state = VkDecoderGlobalState::get();
                     if (CC_LIKELY(vk)) {
-                        m_state->on_vkDestroyPipelineLayout(nullptr, nullptr, device,
-                                                            pipelineLayout, pAllocator);
+                        m_state->on_vkDestroyPipelineLayout(nullptr, kInvalidSnapshotApiCallHandle,
+                                                            device, pipelineLayout, pAllocator);
                     }
                 };
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkDestroyPipelineLayout(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device,
                         boxed_pipelineLayout_preserve, pAllocator);
                 }
                 delayed_delete_VkPipelineLayout(boxed_pipelineLayout_preserve, unboxed_device,
@@ -4962,7 +4966,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkCreateSampler_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkCreateSampler_VkResult_return = m_state->on_vkCreateSampler(
-                        &m_pool, snapshotApiCallInfo, device, pCreateInfo, pAllocator, pSampler);
+                        &m_pool, snapshotApiCallHandle, device, pCreateInfo, pAllocator, pSampler);
                 }
                 if ((vkCreateSampler_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -4980,7 +4984,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkCreateSampler_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCreateSampler(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCreateSampler(&m_pool, snapshotApiCallHandle, packet,
                                                          packetLen, vkCreateSampler_VkResult_return,
                                                          device, pCreateInfo, pAllocator, pSampler);
                 }
@@ -5029,12 +5033,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)sampler, (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkDestroySampler(&m_pool, snapshotApiCallInfo, device, sampler,
+                    m_state->on_vkDestroySampler(&m_pool, snapshotApiCallHandle, device, sampler,
                                                  pAllocator);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkDestroySampler(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkDestroySampler(&m_pool, snapshotApiCallHandle, packet,
                                                           packetLen, device, boxed_sampler_preserve,
                                                           pAllocator);
                 }
@@ -5098,7 +5102,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkCreateDescriptorSetLayout_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkCreateDescriptorSetLayout_VkResult_return =
-                        m_state->on_vkCreateDescriptorSetLayout(&m_pool, snapshotApiCallInfo,
+                        m_state->on_vkCreateDescriptorSetLayout(&m_pool, snapshotApiCallHandle,
                                                                 device, pCreateInfo, pAllocator,
                                                                 pSetLayout);
                 }
@@ -5122,7 +5126,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCreateDescriptorSetLayout(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCreateDescriptorSetLayout_VkResult_return, device, pCreateInfo,
                         pAllocator, pSetLayout);
                 }
@@ -5174,13 +5178,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (unsigned long long)descriptorSetLayout, (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkDestroyDescriptorSetLayout(&m_pool, snapshotApiCallInfo, device,
+                    m_state->on_vkDestroyDescriptorSetLayout(&m_pool, snapshotApiCallHandle, device,
                                                              descriptorSetLayout, pAllocator);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkDestroyDescriptorSetLayout(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device,
                         boxed_descriptorSetLayout_preserve, pAllocator);
                 }
                 delete_VkDescriptorSetLayout(boxed_descriptorSetLayout_preserve);
@@ -5241,7 +5245,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkCreateDescriptorPool_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkCreateDescriptorPool_VkResult_return = m_state->on_vkCreateDescriptorPool(
-                        &m_pool, snapshotApiCallInfo, device, pCreateInfo, pAllocator,
+                        &m_pool, snapshotApiCallHandle, device, pCreateInfo, pAllocator,
                         pDescriptorPool);
                 }
                 if ((vkCreateDescriptorPool_VkResult_return) == VK_ERROR_DEVICE_LOST)
@@ -5263,7 +5267,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCreateDescriptorPool(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCreateDescriptorPool_VkResult_return, device, pCreateInfo, pAllocator,
                         pDescriptorPool);
                 }
@@ -5314,13 +5318,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkDestroyDescriptorPool(&m_pool, snapshotApiCallInfo, device,
+                    m_state->on_vkDestroyDescriptorPool(&m_pool, snapshotApiCallHandle, device,
                                                         descriptorPool, pAllocator);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkDestroyDescriptorPool(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device,
                         boxed_descriptorPool_preserve, pAllocator);
                 }
                 delete_VkDescriptorPool(boxed_descriptorPool_preserve);
@@ -5357,7 +5361,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkResetDescriptorPool_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkResetDescriptorPool_VkResult_return = m_state->on_vkResetDescriptorPool(
-                        &m_pool, snapshotApiCallInfo, device, descriptorPool, flags);
+                        &m_pool, snapshotApiCallHandle, device, descriptorPool, flags);
                 }
                 if ((vkResetDescriptorPool_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -5368,7 +5372,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkResetDescriptorPool(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkResetDescriptorPool_VkResult_return, device, descriptorPool, flags);
                 }
                 vkReadStream->clearPool();
@@ -5421,7 +5425,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkAllocateDescriptorSets_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkAllocateDescriptorSets_VkResult_return = m_state->on_vkAllocateDescriptorSets(
-                        &m_pool, snapshotApiCallInfo, device, pAllocateInfo, pDescriptorSets);
+                        &m_pool, snapshotApiCallHandle, device, pAllocateInfo, pDescriptorSets);
                 }
                 if ((vkAllocateDescriptorSets_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -5447,7 +5451,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkAllocateDescriptorSets(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkAllocateDescriptorSets_VkResult_return, device, pAllocateInfo,
                         pDescriptorSets);
                 }
@@ -5514,7 +5518,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkFreeDescriptorSets_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkFreeDescriptorSets_VkResult_return = m_state->on_vkFreeDescriptorSets(
-                        &m_pool, snapshotApiCallInfo, device, descriptorPool, descriptorSetCount,
+                        &m_pool, snapshotApiCallHandle, device, descriptorPool, descriptorSetCount,
                         pDescriptorSets);
                 }
                 if ((vkFreeDescriptorSets_VkResult_return) == VK_ERROR_DEVICE_LOST)
@@ -5525,7 +5529,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkFreeDescriptorSets(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkFreeDescriptorSets_VkResult_return, device, descriptorPool,
                         descriptorSetCount, boxed_pDescriptorSets_preserve);
                 }
@@ -5590,14 +5594,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (unsigned long long)pDescriptorCopies);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkUpdateDescriptorSets(&m_pool, snapshotApiCallInfo, device,
+                    m_state->on_vkUpdateDescriptorSets(&m_pool, snapshotApiCallHandle, device,
                                                        descriptorWriteCount, pDescriptorWrites,
                                                        descriptorCopyCount, pDescriptorCopies);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkUpdateDescriptorSets(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device,
                         descriptorWriteCount, pDescriptorWrites, descriptorCopyCount,
                         pDescriptorCopies);
                 }
@@ -5658,7 +5662,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkCreateFramebuffer_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkCreateFramebuffer_VkResult_return =
-                        m_state->on_vkCreateFramebuffer(&m_pool, snapshotApiCallInfo, device,
+                        m_state->on_vkCreateFramebuffer(&m_pool, snapshotApiCallHandle, device,
                                                         pCreateInfo, pAllocator, pFramebuffer);
                 }
                 if ((vkCreateFramebuffer_VkResult_return) == VK_ERROR_DEVICE_LOST)
@@ -5679,7 +5683,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCreateFramebuffer(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCreateFramebuffer_VkResult_return, device, pCreateInfo, pAllocator,
                         pFramebuffer);
                 }
@@ -5729,13 +5733,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)framebuffer, (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkDestroyFramebuffer(&m_pool, snapshotApiCallInfo, device,
+                    m_state->on_vkDestroyFramebuffer(&m_pool, snapshotApiCallHandle, device,
                                                      framebuffer, pAllocator);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkDestroyFramebuffer(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device,
                         boxed_framebuffer_preserve, pAllocator);
                 }
                 delete_VkFramebuffer(boxed_framebuffer_preserve);
@@ -5795,8 +5799,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 VkResult vkCreateRenderPass_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
-                    vkCreateRenderPass_VkResult_return = m_state->on_vkCreateRenderPass(
-                        &m_pool, snapshotApiCallInfo, device, pCreateInfo, pAllocator, pRenderPass);
+                    vkCreateRenderPass_VkResult_return =
+                        m_state->on_vkCreateRenderPass(&m_pool, snapshotApiCallHandle, device,
+                                                       pCreateInfo, pAllocator, pRenderPass);
                 }
                 if ((vkCreateRenderPass_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -5815,7 +5820,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCreateRenderPass(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCreateRenderPass_VkResult_return, device, pCreateInfo, pAllocator,
                         pRenderPass);
                 }
@@ -5865,12 +5870,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)renderPass, (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkDestroyRenderPass(&m_pool, snapshotApiCallInfo, device,
+                    m_state->on_vkDestroyRenderPass(&m_pool, snapshotApiCallHandle, device,
                                                     renderPass, pAllocator);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkDestroyRenderPass(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkDestroyRenderPass(&m_pool, snapshotApiCallHandle, packet,
                                                              packetLen, device,
                                                              boxed_renderPass_preserve, pAllocator);
                 }
@@ -5924,7 +5929,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (VkExtent2D*)(pGranularity));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkGetRenderAreaGranularity(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkGetRenderAreaGranularity(&m_pool, snapshotApiCallHandle,
                                                                     packet, packetLen, device,
                                                                     renderPass, pGranularity);
                 }
@@ -5985,7 +5990,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkCreateCommandPool_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkCreateCommandPool_VkResult_return =
-                        m_state->on_vkCreateCommandPool(&m_pool, snapshotApiCallInfo, device,
+                        m_state->on_vkCreateCommandPool(&m_pool, snapshotApiCallHandle, device,
                                                         pCreateInfo, pAllocator, pCommandPool);
                 }
                 if ((vkCreateCommandPool_VkResult_return) == VK_ERROR_DEVICE_LOST)
@@ -6006,7 +6011,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCreateCommandPool(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCreateCommandPool_VkResult_return, device, pCreateInfo, pAllocator,
                         pCommandPool);
                 }
@@ -6056,13 +6061,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)commandPool, (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkDestroyCommandPool(&m_pool, snapshotApiCallInfo, device,
+                    m_state->on_vkDestroyCommandPool(&m_pool, snapshotApiCallHandle, device,
                                                      commandPool, pAllocator);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkDestroyCommandPool(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device,
                         boxed_commandPool_preserve, pAllocator);
                 }
                 delete_VkCommandPool(boxed_commandPool_preserve);
@@ -6099,7 +6104,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkResetCommandPool_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkResetCommandPool_VkResult_return = m_state->on_vkResetCommandPool(
-                        &m_pool, snapshotApiCallInfo, device, commandPool, flags);
+                        &m_pool, snapshotApiCallHandle, device, commandPool, flags);
                 }
                 if ((vkResetCommandPool_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -6109,7 +6114,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkResetCommandPool(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkResetCommandPool_VkResult_return, device, commandPool, flags);
                 }
                 vkReadStream->clearPool();
@@ -6162,7 +6167,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkAllocateCommandBuffers_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkAllocateCommandBuffers_VkResult_return = m_state->on_vkAllocateCommandBuffers(
-                        &m_pool, snapshotApiCallInfo, device, pAllocateInfo, pCommandBuffers);
+                        &m_pool, snapshotApiCallHandle, device, pAllocateInfo, pCommandBuffers);
                 }
                 if ((vkAllocateCommandBuffers_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -6184,7 +6189,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkAllocateCommandBuffers(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkAllocateCommandBuffers_VkResult_return, device, pAllocateInfo,
                         pCommandBuffers);
                 }
@@ -6249,14 +6254,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (unsigned long long)pCommandBuffers);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkFreeCommandBuffers(&m_pool, snapshotApiCallInfo, device,
+                    m_state->on_vkFreeCommandBuffers(&m_pool, snapshotApiCallHandle, device,
                                                      commandPool, commandBufferCount,
                                                      pCommandBuffers);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkFreeCommandBuffers(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, commandPool,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, commandPool,
                         commandBufferCount, boxed_pCommandBuffers_preserve);
                 }
                 if (((commandBufferCount))) {
@@ -6297,7 +6302,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkBeginCommandBuffer_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkBeginCommandBuffer_VkResult_return = m_state->on_vkBeginCommandBuffer(
-                        &m_pool, snapshotApiCallInfo, commandBuffer, pBeginInfo, context);
+                        &m_pool, snapshotApiCallHandle, commandBuffer, pBeginInfo, context);
                 }
                 if ((vkBeginCommandBuffer_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -6307,7 +6312,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkBeginCommandBuffer(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkBeginCommandBuffer_VkResult_return, commandBuffer, pBeginInfo);
                 }
                 vkReadStream->clearPool();
@@ -6333,7 +6338,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkEndCommandBuffer_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkEndCommandBuffer_VkResult_return = m_state->on_vkEndCommandBuffer(
-                        &m_pool, snapshotApiCallInfo, commandBuffer, context);
+                        &m_pool, snapshotApiCallHandle, commandBuffer, context);
                 }
                 if ((vkEndCommandBuffer_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -6343,7 +6348,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkEndCommandBuffer(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkEndCommandBuffer_VkResult_return, commandBuffer);
                 }
                 vkReadStream->clearPool();
@@ -6373,7 +6378,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkResetCommandBuffer_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkResetCommandBuffer_VkResult_return = m_state->on_vkResetCommandBuffer(
-                        &m_pool, snapshotApiCallInfo, commandBuffer, flags);
+                        &m_pool, snapshotApiCallHandle, commandBuffer, flags);
                 }
                 if ((vkResetCommandBuffer_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -6383,7 +6388,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkResetCommandBuffer(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkResetCommandBuffer_VkResult_return, commandBuffer, flags);
                 }
                 vkReadStream->clearPool();
@@ -6418,12 +6423,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pipeline);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkCmdBindPipeline(&m_pool, snapshotApiCallInfo, commandBuffer,
+                    m_state->on_vkCmdBindPipeline(&m_pool, snapshotApiCallHandle, commandBuffer,
                                                   pipelineBindPoint, pipeline);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdBindPipeline(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdBindPipeline(&m_pool, snapshotApiCallHandle, packet,
                                                            packetLen, commandBuffer,
                                                            pipelineBindPoint, pipeline);
                 }
@@ -6475,7 +6480,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdSetViewport(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdSetViewport(&m_pool, snapshotApiCallHandle, packet,
                                                           packetLen, commandBuffer, firstViewport,
                                                           viewportCount, pViewports);
                 }
@@ -6526,7 +6531,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdSetScissor(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdSetScissor(&m_pool, snapshotApiCallHandle, packet,
                                                          packetLen, commandBuffer, firstScissor,
                                                          scissorCount, pScissors);
                 }
@@ -6561,7 +6566,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdSetLineWidth(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdSetLineWidth(&m_pool, snapshotApiCallHandle, packet,
                                                            packetLen, commandBuffer, lineWidth);
                 }
                 vkReadStream->clearPool();
@@ -6605,7 +6610,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdSetDepthBias(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         depthBiasConstantFactor, depthBiasClamp, depthBiasSlopeFactor);
                 }
                 vkReadStream->clearPool();
@@ -6639,7 +6644,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdSetBlendConstants(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkCmdSetBlendConstants(&m_pool, snapshotApiCallHandle,
                                                                 packet, packetLen, commandBuffer,
                                                                 blendConstants);
                 }
@@ -6678,7 +6683,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdSetDepthBounds(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdSetDepthBounds(&m_pool, snapshotApiCallHandle, packet,
                                                              packetLen, commandBuffer,
                                                              minDepthBounds, maxDepthBounds);
                 }
@@ -6719,7 +6724,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdSetStencilCompareMask(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer, faceMask,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer, faceMask,
                         compareMask);
                 }
                 vkReadStream->clearPool();
@@ -6757,7 +6762,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdSetStencilWriteMask(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkCmdSetStencilWriteMask(&m_pool, snapshotApiCallHandle,
                                                                   packet, packetLen, commandBuffer,
                                                                   faceMask, writeMask);
                 }
@@ -6796,7 +6801,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdSetStencilReference(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkCmdSetStencilReference(&m_pool, snapshotApiCallHandle,
                                                                   packet, packetLen, commandBuffer,
                                                                   faceMask, reference);
                 }
@@ -6866,15 +6871,15 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (unsigned long long)pDynamicOffsets);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkCmdBindDescriptorSets(&m_pool, snapshotApiCallInfo, commandBuffer,
-                                                        pipelineBindPoint, layout, firstSet,
-                                                        descriptorSetCount, pDescriptorSets,
-                                                        dynamicOffsetCount, pDynamicOffsets);
+                    m_state->on_vkCmdBindDescriptorSets(
+                        &m_pool, snapshotApiCallHandle, commandBuffer, pipelineBindPoint, layout,
+                        firstSet, descriptorSetCount, pDescriptorSets, dynamicOffsetCount,
+                        pDynamicOffsets);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdBindDescriptorSets(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         pipelineBindPoint, layout, firstSet, descriptorSetCount, pDescriptorSets,
                         dynamicOffsetCount, pDynamicOffsets);
                 }
@@ -6918,9 +6923,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdBindIndexBuffer(&m_pool, snapshotApiCallInfo, packet,
-                                                              packetLen, commandBuffer, buffer,
-                                                              offset, indexType);
+                    m_state->snapshot()->vkCmdBindIndexBuffer(&m_pool, snapshotApiCallHandle,
+                                                              packet, packetLen, commandBuffer,
+                                                              buffer, offset, indexType);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -6979,7 +6984,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdBindVertexBuffers(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         firstBinding, bindingCount, pBuffers, pOffsets);
                 }
                 vkReadStream->clearPool();
@@ -7024,9 +7029,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdDraw(&m_pool, snapshotApiCallInfo, packet, packetLen,
-                                                   commandBuffer, vertexCount, instanceCount,
-                                                   firstVertex, firstInstance);
+                    m_state->snapshot()->vkCmdDraw(&m_pool, snapshotApiCallHandle, packet,
+                                                   packetLen, commandBuffer, vertexCount,
+                                                   instanceCount, firstVertex, firstInstance);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -7076,8 +7081,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdDrawIndexed(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer, indexCount,
-                        instanceCount, firstIndex, vertexOffset, firstInstance);
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
+                        indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -7123,7 +7128,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdDrawIndirect(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdDrawIndirect(&m_pool, snapshotApiCallHandle, packet,
                                                            packetLen, commandBuffer, buffer, offset,
                                                            drawCount, stride);
                 }
@@ -7174,7 +7179,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdDrawIndexedIndirect(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer, buffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer, buffer,
                         offset, drawCount, stride);
                 }
                 vkReadStream->clearPool();
@@ -7214,7 +7219,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdDispatch(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdDispatch(&m_pool, snapshotApiCallHandle, packet,
                                                        packetLen, commandBuffer, groupCountX,
                                                        groupCountY, groupCountZ);
                 }
@@ -7254,9 +7259,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdDispatchIndirect(&m_pool, snapshotApiCallInfo, packet,
-                                                               packetLen, commandBuffer, buffer,
-                                                               offset);
+                    m_state->snapshot()->vkCmdDispatchIndirect(&m_pool, snapshotApiCallHandle,
+                                                               packet, packetLen, commandBuffer,
+                                                               buffer, offset);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -7314,7 +7319,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdCopyBuffer(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdCopyBuffer(&m_pool, snapshotApiCallHandle, packet,
                                                          packetLen, commandBuffer, srcBuffer,
                                                          dstBuffer, regionCount, pRegions);
                 }
@@ -7373,14 +7378,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (unsigned long long)pRegions);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkCmdCopyImage(&m_pool, snapshotApiCallInfo, commandBuffer,
+                    m_state->on_vkCmdCopyImage(&m_pool, snapshotApiCallHandle, commandBuffer,
                                                srcImage, srcImageLayout, dstImage, dstImageLayout,
                                                regionCount, pRegions);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdCopyImage(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer, srcImage,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer, srcImage,
                         srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions);
                 }
                 vkReadStream->clearPool();
@@ -7449,7 +7454,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdBlitImage(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer, srcImage,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer, srcImage,
                         srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions, filter);
                 }
                 vkReadStream->clearPool();
@@ -7507,14 +7512,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (unsigned long long)regionCount, (unsigned long long)pRegions);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkCmdCopyBufferToImage(&m_pool, snapshotApiCallInfo, commandBuffer,
-                                                       srcBuffer, dstImage, dstImageLayout,
-                                                       regionCount, pRegions, context);
+                    m_state->on_vkCmdCopyBufferToImage(
+                        &m_pool, snapshotApiCallHandle, commandBuffer, srcBuffer, dstImage,
+                        dstImageLayout, regionCount, pRegions, context);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdCopyBufferToImage(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer, srcBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer, srcBuffer,
                         dstImage, dstImageLayout, regionCount, pRegions);
                 }
                 vkReadStream->clearPool();
@@ -7572,14 +7577,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (unsigned long long)regionCount, (unsigned long long)pRegions);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkCmdCopyImageToBuffer(&m_pool, snapshotApiCallInfo, commandBuffer,
-                                                       srcImage, srcImageLayout, dstBuffer,
-                                                       regionCount, pRegions);
+                    m_state->on_vkCmdCopyImageToBuffer(&m_pool, snapshotApiCallHandle,
+                                                       commandBuffer, srcImage, srcImageLayout,
+                                                       dstBuffer, regionCount, pRegions);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdCopyImageToBuffer(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer, srcImage,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer, srcImage,
                         srcImageLayout, dstBuffer, regionCount, pRegions);
                 }
                 vkReadStream->clearPool();
@@ -7628,7 +7633,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdUpdateBuffer(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdUpdateBuffer(&m_pool, snapshotApiCallHandle, packet,
                                                            packetLen, commandBuffer, dstBuffer,
                                                            dstOffset, dataSize, pData);
                 }
@@ -7676,7 +7681,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdFillBuffer(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdFillBuffer(&m_pool, snapshotApiCallHandle, packet,
                                                          packetLen, commandBuffer, dstBuffer,
                                                          dstOffset, size, data);
                 }
@@ -7745,7 +7750,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdClearColorImage(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer, image,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer, image,
                         imageLayout, pColor, rangeCount, pRanges);
                 }
                 vkReadStream->clearPool();
@@ -7815,7 +7820,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdClearDepthStencilImage(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer, image,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer, image,
                         imageLayout, pDepthStencil, rangeCount, pRanges);
                 }
                 vkReadStream->clearPool();
@@ -7881,7 +7886,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdClearAttachments(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         attachmentCount, pAttachments, rectCount, pRects);
                 }
                 vkReadStream->clearPool();
@@ -7950,7 +7955,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdResolveImage(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer, srcImage,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer, srcImage,
                         srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions);
                 }
                 vkReadStream->clearPool();
@@ -7989,7 +7994,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdSetEvent(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdSetEvent(&m_pool, snapshotApiCallHandle, packet,
                                                        packetLen, commandBuffer, event, stageMask);
                 }
                 vkReadStream->clearPool();
@@ -8029,7 +8034,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdResetEvent(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdResetEvent(&m_pool, snapshotApiCallHandle, packet,
                                                          packetLen, commandBuffer, event,
                                                          stageMask);
                 }
@@ -8149,10 +8154,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdWaitEvents(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer, eventCount,
-                        pEvents, srcStageMask, dstStageMask, memoryBarrierCount, pMemoryBarriers,
-                        bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount,
-                        pImageMemoryBarriers);
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
+                        eventCount, pEvents, srcStageMask, dstStageMask, memoryBarrierCount,
+                        pMemoryBarriers, bufferMemoryBarrierCount, pBufferMemoryBarriers,
+                        imageMemoryBarrierCount, pImageMemoryBarriers);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -8250,7 +8255,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkCmdPipelineBarrier(
-                        &m_pool, snapshotApiCallInfo, commandBuffer, srcStageMask, dstStageMask,
+                        &m_pool, snapshotApiCallHandle, commandBuffer, srcStageMask, dstStageMask,
                         dependencyFlags, memoryBarrierCount, pMemoryBarriers,
                         bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount,
                         pImageMemoryBarriers);
@@ -8258,7 +8263,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdPipelineBarrier(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         srcStageMask, dstStageMask, dependencyFlags, memoryBarrierCount,
                         pMemoryBarriers, bufferMemoryBarrierCount, pBufferMemoryBarriers,
                         imageMemoryBarrierCount, pImageMemoryBarriers);
@@ -8305,7 +8310,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdBeginQuery(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdBeginQuery(&m_pool, snapshotApiCallHandle, packet,
                                                          packetLen, commandBuffer, queryPool, query,
                                                          flags);
                 }
@@ -8345,7 +8350,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdEndQuery(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdEndQuery(&m_pool, snapshotApiCallHandle, packet,
                                                        packetLen, commandBuffer, queryPool, query);
                 }
                 vkReadStream->clearPool();
@@ -8390,7 +8395,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdResetQueryPool(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdResetQueryPool(&m_pool, snapshotApiCallHandle, packet,
                                                              packetLen, commandBuffer, queryPool,
                                                              firstQuery, queryCount);
                 }
@@ -8437,7 +8442,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdWriteTimestamp(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdWriteTimestamp(&m_pool, snapshotApiCallHandle, packet,
                                                              packetLen, commandBuffer,
                                                              pipelineStage, queryPool, query);
                 }
@@ -8501,7 +8506,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdCopyQueryPoolResults(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer, queryPool,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer, queryPool,
                         firstQuery, queryCount, dstBuffer, dstOffset, stride, flags);
                 }
                 vkReadStream->clearPool();
@@ -8556,7 +8561,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdPushConstants(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdPushConstants(&m_pool, snapshotApiCallHandle, packet,
                                                             packetLen, commandBuffer, layout,
                                                             stageFlags, offset, size, pValues);
                 }
@@ -8595,13 +8600,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)contents);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkCmdBeginRenderPass(&m_pool, snapshotApiCallInfo, commandBuffer,
+                    m_state->on_vkCmdBeginRenderPass(&m_pool, snapshotApiCallHandle, commandBuffer,
                                                      pRenderPassBegin, contents);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdBeginRenderPass(&m_pool, snapshotApiCallInfo, packet,
-                                                              packetLen, commandBuffer,
+                    m_state->snapshot()->vkCmdBeginRenderPass(&m_pool, snapshotApiCallHandle,
+                                                              packet, packetLen, commandBuffer,
                                                               pRenderPassBegin, contents);
                 }
                 vkReadStream->clearPool();
@@ -8634,7 +8639,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdNextSubpass(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdNextSubpass(&m_pool, snapshotApiCallHandle, packet,
                                                           packetLen, commandBuffer, contents);
                 }
                 vkReadStream->clearPool();
@@ -8664,7 +8669,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdEndRenderPass(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdEndRenderPass(&m_pool, snapshotApiCallHandle, packet,
                                                             packetLen, commandBuffer);
                 }
                 vkReadStream->clearPool();
@@ -8707,13 +8712,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pCommandBuffers);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkCmdExecuteCommands(&m_pool, snapshotApiCallInfo, commandBuffer,
+                    m_state->on_vkCmdExecuteCommands(&m_pool, snapshotApiCallHandle, commandBuffer,
                                                      commandBufferCount, pCommandBuffers);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdExecuteCommands(&m_pool, snapshotApiCallInfo, packet,
-                                                              packetLen, commandBuffer,
+                    m_state->snapshot()->vkCmdExecuteCommands(&m_pool, snapshotApiCallHandle,
+                                                              packet, packetLen, commandBuffer,
                                                               commandBufferCount, pCommandBuffers);
                 }
                 vkReadStream->clearPool();
@@ -8738,7 +8743,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 VkResult vkEnumerateInstanceVersion_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 vkEnumerateInstanceVersion_VkResult_return = m_state->on_vkEnumerateInstanceVersion(
-                    &m_pool, snapshotApiCallInfo, pApiVersion);
+                    &m_pool, snapshotApiCallHandle, pApiVersion);
                 if ((vkEnumerateInstanceVersion_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
                 m_state->on_CheckOutOfMemory(vkEnumerateInstanceVersion_VkResult_return, opcode,
@@ -8749,7 +8754,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkEnumerateInstanceVersion(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkEnumerateInstanceVersion_VkResult_return, pApiVersion);
                 }
                 vkReadStream->clearPool();
@@ -8793,7 +8798,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkBindBufferMemory2_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkBindBufferMemory2_VkResult_return = m_state->on_vkBindBufferMemory2(
-                        &m_pool, snapshotApiCallInfo, device, bindInfoCount, pBindInfos);
+                        &m_pool, snapshotApiCallHandle, device, bindInfoCount, pBindInfos);
                 }
                 if ((vkBindBufferMemory2_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -8803,7 +8808,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkBindBufferMemory2(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkBindBufferMemory2_VkResult_return, device, bindInfoCount, pBindInfos);
                 }
                 vkReadStream->clearPool();
@@ -8847,7 +8852,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkBindImageMemory2_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkBindImageMemory2_VkResult_return = m_state->on_vkBindImageMemory2(
-                        &m_pool, snapshotApiCallInfo, device, bindInfoCount, pBindInfos);
+                        &m_pool, snapshotApiCallHandle, device, bindInfoCount, pBindInfos);
                 }
                 if ((vkBindImageMemory2_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -8857,7 +8862,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkBindImageMemory2(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkBindImageMemory2_VkResult_return, device, bindInfoCount, pBindInfos);
                 }
                 vkReadStream->clearPool();
@@ -8912,7 +8917,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetDeviceGroupPeerMemoryFeatures(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, heapIndex,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, heapIndex,
                         localDeviceIndex, remoteDeviceIndex, pPeerMemoryFeatures);
                 }
                 vkReadStream->clearPool();
@@ -8946,7 +8951,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdSetDeviceMask(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdSetDeviceMask(&m_pool, snapshotApiCallHandle, packet,
                                                             packetLen, commandBuffer, deviceMask);
                 }
                 vkReadStream->clearPool();
@@ -9001,8 +9006,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdDispatchBase(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer, baseGroupX,
-                        baseGroupY, baseGroupZ, groupCountX, groupCountY, groupCountZ);
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
+                        baseGroupX, baseGroupY, baseGroupZ, groupCountX, groupCountY, groupCountZ);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -9073,7 +9078,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 if (CC_LIKELY(vk)) {
                     vkEnumeratePhysicalDeviceGroups_VkResult_return =
                         m_state->on_vkEnumeratePhysicalDeviceGroups(
-                            &m_pool, snapshotApiCallInfo, instance, pPhysicalDeviceGroupCount,
+                            &m_pool, snapshotApiCallHandle, instance, pPhysicalDeviceGroupCount,
                             pPhysicalDeviceGroupProperties);
                 }
                 if ((vkEnumeratePhysicalDeviceGroups_VkResult_return) == VK_ERROR_DEVICE_LOST)
@@ -9114,7 +9119,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkEnumeratePhysicalDeviceGroups(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkEnumeratePhysicalDeviceGroups_VkResult_return, instance,
                         pPhysicalDeviceGroupCount, pPhysicalDeviceGroupProperties);
                 }
@@ -9160,8 +9165,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (unsigned long long)pMemoryRequirements);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkGetImageMemoryRequirements2(&m_pool, snapshotApiCallInfo, device,
-                                                              pInfo, pMemoryRequirements);
+                    m_state->on_vkGetImageMemoryRequirements2(&m_pool, snapshotApiCallHandle,
+                                                              device, pInfo, pMemoryRequirements);
                 }
                 vkStream->unsetHandleMapping();
                 if (pMemoryRequirements) {
@@ -9172,9 +9177,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                               (VkMemoryRequirements2*)(pMemoryRequirements));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkGetImageMemoryRequirements2(&m_pool, snapshotApiCallInfo,
-                                                                       packet, packetLen, device,
-                                                                       pInfo, pMemoryRequirements);
+                    m_state->snapshot()->vkGetImageMemoryRequirements2(
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, pInfo,
+                        pMemoryRequirements);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -9218,8 +9223,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (unsigned long long)pMemoryRequirements);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkGetBufferMemoryRequirements2(&m_pool, snapshotApiCallInfo, device,
-                                                               pInfo, pMemoryRequirements);
+                    m_state->on_vkGetBufferMemoryRequirements2(&m_pool, snapshotApiCallHandle,
+                                                               device, pInfo, pMemoryRequirements);
                 }
                 vkStream->unsetHandleMapping();
                 if (pMemoryRequirements) {
@@ -9231,7 +9236,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetBufferMemoryRequirements2(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, pInfo,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, pInfo,
                         pMemoryRequirements);
                 }
                 vkReadStream->clearPool();
@@ -9349,7 +9354,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetImageSparseMemoryRequirements2(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, pInfo,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, pInfo,
                         pSparseMemoryRequirementCount, pSparseMemoryRequirements);
                 }
                 vkReadStream->clearPool();
@@ -9385,7 +9390,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pFeatures);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkGetPhysicalDeviceFeatures2(&m_pool, snapshotApiCallInfo,
+                    m_state->on_vkGetPhysicalDeviceFeatures2(&m_pool, snapshotApiCallHandle,
                                                              physicalDevice, pFeatures);
                 }
                 vkStream->unsetHandleMapping();
@@ -9398,7 +9403,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPhysicalDeviceFeatures2(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, physicalDevice, pFeatures);
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, physicalDevice,
+                        pFeatures);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -9433,7 +9439,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pProperties);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkGetPhysicalDeviceProperties2(&m_pool, snapshotApiCallInfo,
+                    m_state->on_vkGetPhysicalDeviceProperties2(&m_pool, snapshotApiCallHandle,
                                                                physicalDevice, pProperties);
                 }
                 vkStream->unsetHandleMapping();
@@ -9446,7 +9452,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPhysicalDeviceProperties2(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, physicalDevice,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, physicalDevice,
                         pProperties);
                 }
                 vkReadStream->clearPool();
@@ -9488,7 +9494,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceFormatProperties2(
-                        &m_pool, snapshotApiCallInfo, physicalDevice, format, pFormatProperties);
+                        &m_pool, snapshotApiCallHandle, physicalDevice, format, pFormatProperties);
                 }
                 vkStream->unsetHandleMapping();
                 if (pFormatProperties) {
@@ -9500,7 +9506,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPhysicalDeviceFormatProperties2(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, physicalDevice, format,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, physicalDevice, format,
                         pFormatProperties);
                 }
                 vkReadStream->clearPool();
@@ -9554,7 +9560,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 if (CC_LIKELY(vk)) {
                     vkGetPhysicalDeviceImageFormatProperties2_VkResult_return =
                         m_state->on_vkGetPhysicalDeviceImageFormatProperties2(
-                            &m_pool, snapshotApiCallInfo, physicalDevice, pImageFormatInfo,
+                            &m_pool, snapshotApiCallHandle, physicalDevice, pImageFormatInfo,
                             pImageFormatProperties);
                 }
                 if ((vkGetPhysicalDeviceImageFormatProperties2_VkResult_return) ==
@@ -9575,7 +9581,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPhysicalDeviceImageFormatProperties2(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetPhysicalDeviceImageFormatProperties2_VkResult_return, physicalDevice,
                         pImageFormatInfo, pImageFormatProperties);
                 }
@@ -9644,7 +9650,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceQueueFamilyProperties2(
-                        &m_pool, snapshotApiCallInfo, physicalDevice, pQueueFamilyPropertyCount,
+                        &m_pool, snapshotApiCallHandle, physicalDevice, pQueueFamilyPropertyCount,
                         pQueueFamilyProperties);
                 }
                 vkStream->unsetHandleMapping();
@@ -9677,7 +9683,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPhysicalDeviceQueueFamilyProperties2(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, physicalDevice,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, physicalDevice,
                         pQueueFamilyPropertyCount, pQueueFamilyProperties);
                 }
                 vkReadStream->clearPool();
@@ -9716,7 +9722,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceMemoryProperties2(
-                        &m_pool, snapshotApiCallInfo, physicalDevice, pMemoryProperties);
+                        &m_pool, snapshotApiCallHandle, physicalDevice, pMemoryProperties);
                 }
                 vkStream->unsetHandleMapping();
                 if (pMemoryProperties) {
@@ -9729,7 +9735,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPhysicalDeviceMemoryProperties2(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, physicalDevice,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, physicalDevice,
                         pMemoryProperties);
                 }
                 vkReadStream->clearPool();
@@ -9805,7 +9811,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceSparseImageFormatProperties2(
-                        &m_pool, snapshotApiCallInfo, physicalDevice, pFormatInfo, pPropertyCount,
+                        &m_pool, snapshotApiCallHandle, physicalDevice, pFormatInfo, pPropertyCount,
                         pProperties);
                 }
                 vkStream->unsetHandleMapping();
@@ -9838,7 +9844,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPhysicalDeviceSparseImageFormatProperties2(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, physicalDevice,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, physicalDevice,
                         pFormatInfo, pPropertyCount, pProperties);
                 }
                 vkReadStream->clearPool();
@@ -9878,7 +9884,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkTrimCommandPool(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkTrimCommandPool(&m_pool, snapshotApiCallHandle, packet,
                                                            packetLen, device, commandPool, flags);
                 }
                 vkReadStream->clearPool();
@@ -9918,8 +9924,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pQueueInfo, (unsigned long long)pQueue);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkGetDeviceQueue2(&m_pool, snapshotApiCallInfo, device, pQueueInfo,
-                                                  pQueue);
+                    m_state->on_vkGetDeviceQueue2(&m_pool, snapshotApiCallHandle, device,
+                                                  pQueueInfo, pQueue);
                 }
                 vkStream->unsetHandleMapping();
                 uint64_t cgen_var_2;
@@ -9929,7 +9935,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write((VkQueue*)pQueue, 8 * 1);
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkGetDeviceQueue2(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkGetDeviceQueue2(&m_pool, snapshotApiCallHandle, packet,
                                                            packetLen, device, pQueueInfo, pQueue);
                 }
                 vkReadStream->clearPool();
@@ -9993,7 +9999,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkCreateSamplerYcbcrConversion_VkResult_return =
-                        m_state->on_vkCreateSamplerYcbcrConversion(&m_pool, snapshotApiCallInfo,
+                        m_state->on_vkCreateSamplerYcbcrConversion(&m_pool, snapshotApiCallHandle,
                                                                    device, pCreateInfo, pAllocator,
                                                                    pYcbcrConversion);
                 }
@@ -10017,7 +10023,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCreateSamplerYcbcrConversion(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCreateSamplerYcbcrConversion_VkResult_return, device, pCreateInfo,
                         pAllocator, pYcbcrConversion);
                 }
@@ -10070,12 +10076,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkDestroySamplerYcbcrConversion(
-                        &m_pool, snapshotApiCallInfo, device, ycbcrConversion, pAllocator);
+                        &m_pool, snapshotApiCallHandle, device, ycbcrConversion, pAllocator);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkDestroySamplerYcbcrConversion(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device,
                         boxed_ycbcrConversion_preserve, pAllocator);
                 }
                 delete_VkSamplerYcbcrConversion(boxed_ycbcrConversion_preserve);
@@ -10143,7 +10149,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 if (CC_LIKELY(vk)) {
                     vkCreateDescriptorUpdateTemplate_VkResult_return =
                         m_state->on_vkCreateDescriptorUpdateTemplate(
-                            &m_pool, snapshotApiCallInfo, device, pCreateInfo, pAllocator,
+                            &m_pool, snapshotApiCallHandle, device, pCreateInfo, pAllocator,
                             pDescriptorUpdateTemplate);
                 }
                 if ((vkCreateDescriptorUpdateTemplate_VkResult_return) == VK_ERROR_DEVICE_LOST)
@@ -10167,7 +10173,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCreateDescriptorUpdateTemplate(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCreateDescriptorUpdateTemplate_VkResult_return, device, pCreateInfo,
                         pAllocator, pDescriptorUpdateTemplate);
                 }
@@ -10222,13 +10228,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkDestroyDescriptorUpdateTemplate(
-                        &m_pool, snapshotApiCallInfo, device, descriptorUpdateTemplate, pAllocator);
+                    m_state->on_vkDestroyDescriptorUpdateTemplate(&m_pool, snapshotApiCallHandle,
+                                                                  device, descriptorUpdateTemplate,
+                                                                  pAllocator);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkDestroyDescriptorUpdateTemplate(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device,
                         boxed_descriptorUpdateTemplate_preserve, pAllocator);
                 }
                 delete_VkDescriptorUpdateTemplate(boxed_descriptorUpdateTemplate_preserve);
@@ -10286,7 +10293,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkUpdateDescriptorSetWithTemplate(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, descriptorSet,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, descriptorSet,
                         descriptorUpdateTemplate, pData);
                 }
                 vkReadStream->clearPool();
@@ -10358,7 +10365,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPhysicalDeviceExternalBufferProperties(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, physicalDevice,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, physicalDevice,
                         pExternalBufferInfo, pExternalBufferProperties);
                 }
                 vkReadStream->clearPool();
@@ -10424,7 +10431,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPhysicalDeviceExternalFenceProperties(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, physicalDevice,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, physicalDevice,
                         pExternalFenceInfo, pExternalFenceProperties);
                 }
                 vkReadStream->clearPool();
@@ -10477,7 +10484,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceExternalSemaphoreProperties(
-                        &m_pool, snapshotApiCallInfo, physicalDevice, pExternalSemaphoreInfo,
+                        &m_pool, snapshotApiCallHandle, physicalDevice, pExternalSemaphoreInfo,
                         pExternalSemaphoreProperties);
                 }
                 vkStream->unsetHandleMapping();
@@ -10491,7 +10498,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPhysicalDeviceExternalSemaphoreProperties(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, physicalDevice,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, physicalDevice,
                         pExternalSemaphoreInfo, pExternalSemaphoreProperties);
                 }
                 vkReadStream->clearPool();
@@ -10551,7 +10558,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetDescriptorSetLayoutSupport(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, pCreateInfo,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, pCreateInfo,
                         pSupport);
                 }
                 vkReadStream->clearPool();
@@ -10612,7 +10619,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdDrawIndirectCount(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer, buffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer, buffer,
                         offset, countBuffer, countBufferOffset, maxDrawCount, stride);
                 }
                 vkReadStream->clearPool();
@@ -10672,7 +10679,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdDrawIndexedIndirectCount(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer, buffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer, buffer,
                         offset, countBuffer, countBufferOffset, maxDrawCount, stride);
                 }
                 vkReadStream->clearPool();
@@ -10731,8 +10738,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 VkResult vkCreateRenderPass2_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
-                    vkCreateRenderPass2_VkResult_return = m_state->on_vkCreateRenderPass2(
-                        &m_pool, snapshotApiCallInfo, device, pCreateInfo, pAllocator, pRenderPass);
+                    vkCreateRenderPass2_VkResult_return =
+                        m_state->on_vkCreateRenderPass2(&m_pool, snapshotApiCallHandle, device,
+                                                        pCreateInfo, pAllocator, pRenderPass);
                 }
                 if ((vkCreateRenderPass2_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -10751,7 +10759,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCreateRenderPass2(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCreateRenderPass2_VkResult_return, device, pCreateInfo, pAllocator,
                         pRenderPass);
                 }
@@ -10796,13 +10804,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pSubpassBeginInfo);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkCmdBeginRenderPass2(&m_pool, snapshotApiCallInfo, commandBuffer,
+                    m_state->on_vkCmdBeginRenderPass2(&m_pool, snapshotApiCallHandle, commandBuffer,
                                                       pRenderPassBegin, pSubpassBeginInfo);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdBeginRenderPass2(&m_pool, snapshotApiCallInfo, packet,
-                                                               packetLen, commandBuffer,
+                    m_state->snapshot()->vkCmdBeginRenderPass2(&m_pool, snapshotApiCallHandle,
+                                                               packet, packetLen, commandBuffer,
                                                                pRenderPassBegin, pSubpassBeginInfo);
                 }
                 vkReadStream->clearPool();
@@ -10853,7 +10861,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdNextSubpass2(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdNextSubpass2(&m_pool, snapshotApiCallHandle, packet,
                                                            packetLen, commandBuffer,
                                                            pSubpassBeginInfo, pSubpassEndInfo);
                 }
@@ -10894,7 +10902,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdEndRenderPass2(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdEndRenderPass2(&m_pool, snapshotApiCallHandle, packet,
                                                              packetLen, commandBuffer,
                                                              pSubpassEndInfo);
                 }
@@ -10938,7 +10946,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkResetQueryPool(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkResetQueryPool(&m_pool, snapshotApiCallHandle, packet,
                                                           packetLen, device, queryPool, firstQuery,
                                                           queryCount);
                 }
@@ -10992,7 +11000,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetSemaphoreCounterValue(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetSemaphoreCounterValue_VkResult_return, device, semaphore, pValue);
                 }
                 vkReadStream->clearPool();
@@ -11032,7 +11040,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkWaitSemaphores_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkWaitSemaphores_VkResult_return = m_state->on_vkWaitSemaphores(
-                        &m_pool, snapshotApiCallInfo, device, pWaitInfo, timeout);
+                        &m_pool, snapshotApiCallHandle, device, pWaitInfo, timeout);
                 }
                 if ((vkWaitSemaphores_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -11042,7 +11050,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkWaitSemaphores(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkWaitSemaphores_VkResult_return, device, pWaitInfo, timeout);
                 }
                 vkReadStream->clearPool();
@@ -11074,7 +11082,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkSignalSemaphore_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkSignalSemaphore_VkResult_return = m_state->on_vkSignalSemaphore(
-                        &m_pool, snapshotApiCallInfo, device, pSignalInfo);
+                        &m_pool, snapshotApiCallHandle, device, pSignalInfo);
                 }
                 if ((vkSignalSemaphore_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -11084,7 +11092,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkSignalSemaphore(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkSignalSemaphore_VkResult_return, device, pSignalInfo);
                 }
                 vkReadStream->clearPool();
@@ -11129,7 +11137,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetBufferDeviceAddress(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetBufferDeviceAddress_VkDeviceAddress_return, device, pInfo);
                 }
                 vkReadStream->clearPool();
@@ -11172,7 +11180,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetBufferOpaqueCaptureAddress(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetBufferOpaqueCaptureAddress_uint64_t_return, device, pInfo);
                 }
                 vkReadStream->clearPool();
@@ -11218,7 +11226,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetDeviceMemoryOpaqueCaptureAddress(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetDeviceMemoryOpaqueCaptureAddress_uint64_t_return, device, pInfo);
                 }
                 vkReadStream->clearPool();
@@ -11327,7 +11335,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPhysicalDeviceToolProperties(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetPhysicalDeviceToolProperties_VkResult_return, physicalDevice,
                         pToolCount, pToolProperties);
                 }
@@ -11413,7 +11421,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCreatePrivateDataSlot(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCreatePrivateDataSlot_VkResult_return, device, pCreateInfo, pAllocator,
                         pPrivateDataSlot);
                 }
@@ -11471,7 +11479,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkDestroyPrivateDataSlot(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device,
                         boxed_privateDataSlot_preserve, pAllocator);
                 }
                 delete_VkPrivateDataSlot(boxed_privateDataSlot_preserve);
@@ -11527,7 +11535,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkSetPrivateData(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkSetPrivateData_VkResult_return, device, objectType, objectHandle,
                         privateDataSlot, data);
                 }
@@ -11581,7 +11589,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write((uint64_t*)pData, sizeof(uint64_t));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkGetPrivateData(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkGetPrivateData(&m_pool, snapshotApiCallHandle, packet,
                                                           packetLen, device, objectType,
                                                           objectHandle, privateDataSlot, pData);
                 }
@@ -11626,7 +11634,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdSetEvent2(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdSetEvent2(&m_pool, snapshotApiCallHandle, packet,
                                                         packetLen, commandBuffer, event,
                                                         pDependencyInfo);
                 }
@@ -11667,7 +11675,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdResetEvent2(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdResetEvent2(&m_pool, snapshotApiCallHandle, packet,
                                                           packetLen, commandBuffer, event,
                                                           stageMask);
                 }
@@ -11730,7 +11738,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdWaitEvents2(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdWaitEvents2(&m_pool, snapshotApiCallHandle, packet,
                                                           packetLen, commandBuffer, eventCount,
                                                           pEvents, pDependencyInfos);
                 }
@@ -11765,13 +11773,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pDependencyInfo);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkCmdPipelineBarrier2(&m_pool, snapshotApiCallInfo, commandBuffer,
+                    m_state->on_vkCmdPipelineBarrier2(&m_pool, snapshotApiCallHandle, commandBuffer,
                                                       pDependencyInfo);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdPipelineBarrier2(&m_pool, snapshotApiCallInfo, packet,
-                                                               packetLen, commandBuffer,
+                    m_state->snapshot()->vkCmdPipelineBarrier2(&m_pool, snapshotApiCallHandle,
+                                                               packet, packetLen, commandBuffer,
                                                                pDependencyInfo);
                 }
                 vkReadStream->clearPool();
@@ -11816,9 +11824,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdWriteTimestamp2(&m_pool, snapshotApiCallInfo, packet,
-                                                              packetLen, commandBuffer, stage,
-                                                              queryPool, query);
+                    m_state->snapshot()->vkCmdWriteTimestamp2(&m_pool, snapshotApiCallHandle,
+                                                              packet, packetLen, commandBuffer,
+                                                              stage, queryPool, query);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -11864,7 +11872,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkQueueSubmit2_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkQueueSubmit2_VkResult_return = m_state->on_vkQueueSubmit2(
-                        &m_pool, snapshotApiCallInfo, queue, submitCount, pSubmits, fence);
+                        &m_pool, snapshotApiCallHandle, queue, submitCount, pSubmits, fence);
                 }
                 if ((vkQueueSubmit2_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -11873,7 +11881,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkQueueSubmit2_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkQueueSubmit2(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkQueueSubmit2(&m_pool, snapshotApiCallHandle, packet,
                                                         packetLen, vkQueueSubmit2_VkResult_return,
                                                         queue, submitCount, pSubmits, fence);
                 }
@@ -11914,7 +11922,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdCopyBuffer2(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdCopyBuffer2(&m_pool, snapshotApiCallHandle, packet,
                                                           packetLen, commandBuffer,
                                                           pCopyBufferInfo);
                 }
@@ -11948,12 +11956,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pCopyImageInfo);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkCmdCopyImage2(&m_pool, snapshotApiCallInfo, commandBuffer,
+                    m_state->on_vkCmdCopyImage2(&m_pool, snapshotApiCallHandle, commandBuffer,
                                                 pCopyImageInfo);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdCopyImage2(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdCopyImage2(&m_pool, snapshotApiCallHandle, packet,
                                                          packetLen, commandBuffer, pCopyImageInfo);
                 }
                 vkReadStream->clearPool();
@@ -11988,12 +11996,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pCopyBufferToImageInfo);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkCmdCopyBufferToImage2(&m_pool, snapshotApiCallInfo, commandBuffer,
-                                                        pCopyBufferToImageInfo, context);
+                    m_state->on_vkCmdCopyBufferToImage2(&m_pool, snapshotApiCallHandle,
+                                                        commandBuffer, pCopyBufferToImageInfo,
+                                                        context);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdCopyBufferToImage2(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkCmdCopyBufferToImage2(&m_pool, snapshotApiCallHandle,
                                                                  packet, packetLen, commandBuffer,
                                                                  pCopyBufferToImageInfo);
                 }
@@ -12029,12 +12038,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pCopyImageToBufferInfo);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkCmdCopyImageToBuffer2(&m_pool, snapshotApiCallInfo, commandBuffer,
-                                                        pCopyImageToBufferInfo);
+                    m_state->on_vkCmdCopyImageToBuffer2(&m_pool, snapshotApiCallHandle,
+                                                        commandBuffer, pCopyImageToBufferInfo);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdCopyImageToBuffer2(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkCmdCopyImageToBuffer2(&m_pool, snapshotApiCallHandle,
                                                                  packet, packetLen, commandBuffer,
                                                                  pCopyImageToBufferInfo);
                 }
@@ -12074,7 +12083,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdBlitImage2(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdBlitImage2(&m_pool, snapshotApiCallHandle, packet,
                                                          packetLen, commandBuffer, pBlitImageInfo);
                 }
                 vkReadStream->clearPool();
@@ -12114,7 +12123,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdResolveImage2(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdResolveImage2(&m_pool, snapshotApiCallHandle, packet,
                                                             packetLen, commandBuffer,
                                                             pResolveImageInfo);
                 }
@@ -12154,7 +12163,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdBeginRendering(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdBeginRendering(&m_pool, snapshotApiCallHandle, packet,
                                                              packetLen, commandBuffer,
                                                              pRenderingInfo);
                 }
@@ -12185,7 +12194,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdEndRendering(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdEndRendering(&m_pool, snapshotApiCallHandle, packet,
                                                            packetLen, commandBuffer);
                 }
                 vkReadStream->clearPool();
@@ -12218,7 +12227,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdSetCullMode(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdSetCullMode(&m_pool, snapshotApiCallHandle, packet,
                                                           packetLen, commandBuffer, cullMode);
                 }
                 vkReadStream->clearPool();
@@ -12252,7 +12261,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdSetFrontFace(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdSetFrontFace(&m_pool, snapshotApiCallHandle, packet,
                                                            packetLen, commandBuffer, frontFace);
                 }
                 vkReadStream->clearPool();
@@ -12287,7 +12296,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdSetPrimitiveTopology(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkCmdSetPrimitiveTopology(&m_pool, snapshotApiCallHandle,
                                                                    packet, packetLen, commandBuffer,
                                                                    primitiveTopology);
                 }
@@ -12335,7 +12344,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdSetViewportWithCount(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkCmdSetViewportWithCount(&m_pool, snapshotApiCallHandle,
                                                                    packet, packetLen, commandBuffer,
                                                                    viewportCount, pViewports);
                 }
@@ -12381,7 +12390,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdSetScissorWithCount(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkCmdSetScissorWithCount(&m_pool, snapshotApiCallHandle,
                                                                   packet, packetLen, commandBuffer,
                                                                   scissorCount, pScissors);
                 }
@@ -12475,7 +12484,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdBindVertexBuffers2(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         firstBinding, bindingCount, pBuffers, pOffsets, pSizes, pStrides);
                 }
                 vkReadStream->clearPool();
@@ -12509,7 +12518,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdSetDepthTestEnable(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkCmdSetDepthTestEnable(&m_pool, snapshotApiCallHandle,
                                                                  packet, packetLen, commandBuffer,
                                                                  depthTestEnable);
                 }
@@ -12544,7 +12553,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdSetDepthWriteEnable(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkCmdSetDepthWriteEnable(&m_pool, snapshotApiCallHandle,
                                                                   packet, packetLen, commandBuffer,
                                                                   depthWriteEnable);
                 }
@@ -12579,7 +12588,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdSetDepthCompareOp(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkCmdSetDepthCompareOp(&m_pool, snapshotApiCallHandle,
                                                                 packet, packetLen, commandBuffer,
                                                                 depthCompareOp);
                 }
@@ -12615,7 +12624,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdSetDepthBoundsTestEnable(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         depthBoundsTestEnable);
                 }
                 vkReadStream->clearPool();
@@ -12649,7 +12658,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdSetStencilTestEnable(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkCmdSetStencilTestEnable(&m_pool, snapshotApiCallHandle,
                                                                    packet, packetLen, commandBuffer,
                                                                    stencilTestEnable);
                 }
@@ -12701,7 +12710,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdSetStencilOp(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdSetStencilOp(&m_pool, snapshotApiCallHandle, packet,
                                                            packetLen, commandBuffer, faceMask,
                                                            failOp, passOp, depthFailOp, compareOp);
                 }
@@ -12738,7 +12747,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdSetRasterizerDiscardEnable(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         rasterizerDiscardEnable);
                 }
                 vkReadStream->clearPool();
@@ -12772,7 +12781,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdSetDepthBiasEnable(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkCmdSetDepthBiasEnable(&m_pool, snapshotApiCallHandle,
                                                                  packet, packetLen, commandBuffer,
                                                                  depthBiasEnable);
                 }
@@ -12809,7 +12818,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdSetPrimitiveRestartEnable(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         primitiveRestartEnable);
                 }
                 vkReadStream->clearPool();
@@ -12869,7 +12878,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetDeviceBufferMemoryRequirements(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, pInfo,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, pInfo,
                         pMemoryRequirements);
                 }
                 vkReadStream->clearPool();
@@ -12915,7 +12924,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetDeviceImageMemoryRequirements(
-                        &m_pool, snapshotApiCallInfo, device, pInfo, pMemoryRequirements);
+                        &m_pool, snapshotApiCallHandle, device, pInfo, pMemoryRequirements);
                 }
                 vkStream->unsetHandleMapping();
                 if (pMemoryRequirements) {
@@ -12927,7 +12936,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetDeviceImageMemoryRequirements(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, pInfo,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, pInfo,
                         pMemoryRequirements);
                 }
                 vkReadStream->clearPool();
@@ -13044,7 +13053,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetDeviceImageSparseMemoryRequirements(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, pInfo,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, pInfo,
                         pSparseMemoryRequirementCount, pSparseMemoryRequirements);
                 }
                 vkReadStream->clearPool();
@@ -13085,7 +13094,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdSetLineStipple(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdSetLineStipple(&m_pool, snapshotApiCallHandle, packet,
                                                              packetLen, commandBuffer,
                                                              lineStippleFactor, lineStipplePattern);
                 }
@@ -13148,7 +13157,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkMapMemory2_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkMapMemory2(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkMapMemory2(&m_pool, snapshotApiCallHandle, packet,
                                                       packetLen, vkMapMemory2_VkResult_return,
                                                       device, pMemoryMapInfo, ppData);
                 }
@@ -13194,7 +13203,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkUnmapMemory2_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkUnmapMemory2(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkUnmapMemory2(&m_pool, snapshotApiCallHandle, packet,
                                                         packetLen, vkUnmapMemory2_VkResult_return,
                                                         device, pMemoryUnmapInfo);
                 }
@@ -13243,9 +13252,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdBindIndexBuffer2(&m_pool, snapshotApiCallInfo, packet,
-                                                               packetLen, commandBuffer, buffer,
-                                                               offset, size, indexType);
+                    m_state->snapshot()->vkCmdBindIndexBuffer2(&m_pool, snapshotApiCallHandle,
+                                                               packet, packetLen, commandBuffer,
+                                                               buffer, offset, size, indexType);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -13301,8 +13310,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetRenderingAreaGranularity(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, pRenderingAreaInfo,
-                        pGranularity);
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device,
+                        pRenderingAreaInfo, pGranularity);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -13360,7 +13369,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetDeviceImageSubresourceLayout(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, pInfo, pLayout);
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, pInfo, pLayout);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -13422,9 +13431,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                              (VkSubresourceLayout2*)(pLayout));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkGetImageSubresourceLayout2(&m_pool, snapshotApiCallInfo,
-                                                                      packet, packetLen, device,
-                                                                      image, pSubresource, pLayout);
+                    m_state->snapshot()->vkGetImageSubresourceLayout2(
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, image,
+                        pSubresource, pLayout);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -13490,7 +13499,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdPushDescriptorSet(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         pipelineBindPoint, layout, set, descriptorWriteCount, pDescriptorWrites);
                 }
                 vkReadStream->clearPool();
@@ -13552,7 +13561,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdPushDescriptorSetWithTemplate(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         descriptorUpdateTemplate, layout, set, pData);
                 }
                 vkReadStream->clearPool();
@@ -13595,7 +13604,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdSetRenderingAttachmentLocations(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         pLocationInfo);
                 }
                 vkReadStream->clearPool();
@@ -13640,7 +13649,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdSetRenderingInputAttachmentIndices(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         pInputAttachmentIndexInfo);
                 }
                 vkReadStream->clearPool();
@@ -13681,7 +13690,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdBindDescriptorSets2(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkCmdBindDescriptorSets2(&m_pool, snapshotApiCallHandle,
                                                                   packet, packetLen, commandBuffer,
                                                                   pBindDescriptorSetsInfo);
                 }
@@ -13722,7 +13731,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdPushConstants2(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdPushConstants2(&m_pool, snapshotApiCallHandle, packet,
                                                              packetLen, commandBuffer,
                                                              pPushConstantsInfo);
                 }
@@ -13764,7 +13773,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdPushDescriptorSet2(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkCmdPushDescriptorSet2(&m_pool, snapshotApiCallHandle,
                                                                  packet, packetLen, commandBuffer,
                                                                  pPushDescriptorSetInfo);
                 }
@@ -13811,7 +13820,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdPushDescriptorSetWithTemplate2(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         pPushDescriptorSetWithTemplateInfo);
                 }
                 vkReadStream->clearPool();
@@ -13859,7 +13868,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCopyMemoryToImage(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCopyMemoryToImage_VkResult_return, device, pCopyMemoryToImageInfo);
                 }
                 vkReadStream->clearPool();
@@ -13907,7 +13916,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCopyImageToMemory(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCopyImageToMemory_VkResult_return, device, pCopyImageToMemoryInfo);
                 }
                 vkReadStream->clearPool();
@@ -13955,7 +13964,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCopyImageToImage(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCopyImageToImage_VkResult_return, device, pCopyImageToImageInfo);
                 }
                 vkReadStream->clearPool();
@@ -14013,7 +14022,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkTransitionImageLayout(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkTransitionImageLayout_VkResult_return, device, transitionCount,
                         pTransitions);
                 }
@@ -14099,7 +14108,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCreateSwapchainKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCreateSwapchainKHR_VkResult_return, device, pCreateInfo, pAllocator,
                         pSwapchain);
                 }
@@ -14156,7 +14165,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkDestroySwapchainKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device,
                         boxed_swapchain_preserve, pAllocator);
                 }
                 delete_VkSwapchainKHR(boxed_swapchain_preserve);
@@ -14257,7 +14266,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetSwapchainImagesKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetSwapchainImagesKHR_VkResult_return, device, swapchain,
                         pSwapchainImageCount, pSwapchainImages);
                 }
@@ -14327,7 +14336,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkAcquireNextImageKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkAcquireNextImageKHR_VkResult_return, device, swapchain, timeout,
                         semaphore, fence, pImageIndex);
                 }
@@ -14361,7 +14370,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkQueuePresentKHR_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkQueuePresentKHR_VkResult_return = m_state->on_vkQueuePresentKHR(
-                        &m_pool, snapshotApiCallInfo, queue, pPresentInfo);
+                        &m_pool, snapshotApiCallHandle, queue, pPresentInfo);
                 }
                 if ((vkQueuePresentKHR_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -14371,7 +14380,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkQueuePresentKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkQueuePresentKHR_VkResult_return, queue, pPresentInfo);
                 }
                 vkReadStream->clearPool();
@@ -14437,7 +14446,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetDeviceGroupPresentCapabilitiesKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return, device,
                         pDeviceGroupPresentCapabilities);
                 }
@@ -14508,7 +14517,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetDeviceGroupSurfacePresentModesKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return, device, surface,
                         pModes);
                 }
@@ -14618,7 +14627,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPhysicalDevicePresentRectanglesKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetPhysicalDevicePresentRectanglesKHR_VkResult_return, physicalDevice,
                         surface, pRectCount, pRects);
                 }
@@ -14675,7 +14684,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkAcquireNextImage2KHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkAcquireNextImage2KHR_VkResult_return, device, pAcquireInfo, pImageIndex);
                 }
                 vkReadStream->clearPool();
@@ -14716,7 +14725,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdBeginRenderingKHR(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkCmdBeginRenderingKHR(&m_pool, snapshotApiCallHandle,
                                                                 packet, packetLen, commandBuffer,
                                                                 pRenderingInfo);
                 }
@@ -14747,8 +14756,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdEndRenderingKHR(&m_pool, snapshotApiCallInfo, packet,
-                                                              packetLen, commandBuffer);
+                    m_state->snapshot()->vkCmdEndRenderingKHR(&m_pool, snapshotApiCallHandle,
+                                                              packet, packetLen, commandBuffer);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -14785,7 +14794,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pFeatures);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkGetPhysicalDeviceFeatures2KHR(&m_pool, snapshotApiCallInfo,
+                    m_state->on_vkGetPhysicalDeviceFeatures2KHR(&m_pool, snapshotApiCallHandle,
                                                                 physicalDevice, pFeatures);
                 }
                 vkStream->unsetHandleMapping();
@@ -14798,7 +14807,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPhysicalDeviceFeatures2KHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, physicalDevice, pFeatures);
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, physicalDevice,
+                        pFeatures);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -14834,7 +14844,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (unsigned long long)pProperties);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkGetPhysicalDeviceProperties2KHR(&m_pool, snapshotApiCallInfo,
+                    m_state->on_vkGetPhysicalDeviceProperties2KHR(&m_pool, snapshotApiCallHandle,
                                                                   physicalDevice, pProperties);
                 }
                 vkStream->unsetHandleMapping();
@@ -14847,7 +14857,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPhysicalDeviceProperties2KHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, physicalDevice,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, physicalDevice,
                         pProperties);
                 }
                 vkReadStream->clearPool();
@@ -14889,7 +14899,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceFormatProperties2KHR(
-                        &m_pool, snapshotApiCallInfo, physicalDevice, format, pFormatProperties);
+                        &m_pool, snapshotApiCallHandle, physicalDevice, format, pFormatProperties);
                 }
                 vkStream->unsetHandleMapping();
                 if (pFormatProperties) {
@@ -14901,7 +14911,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPhysicalDeviceFormatProperties2KHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, physicalDevice, format,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, physicalDevice, format,
                         pFormatProperties);
                 }
                 vkReadStream->clearPool();
@@ -14955,7 +14965,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 if (CC_LIKELY(vk)) {
                     vkGetPhysicalDeviceImageFormatProperties2KHR_VkResult_return =
                         m_state->on_vkGetPhysicalDeviceImageFormatProperties2KHR(
-                            &m_pool, snapshotApiCallInfo, physicalDevice, pImageFormatInfo,
+                            &m_pool, snapshotApiCallHandle, physicalDevice, pImageFormatInfo,
                             pImageFormatProperties);
                 }
                 if ((vkGetPhysicalDeviceImageFormatProperties2KHR_VkResult_return) ==
@@ -14976,7 +14986,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPhysicalDeviceImageFormatProperties2KHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetPhysicalDeviceImageFormatProperties2KHR_VkResult_return,
                         physicalDevice, pImageFormatInfo, pImageFormatProperties);
                 }
@@ -15079,7 +15089,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPhysicalDeviceQueueFamilyProperties2KHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, physicalDevice,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, physicalDevice,
                         pQueueFamilyPropertyCount, pQueueFamilyProperties);
                 }
                 vkReadStream->clearPool();
@@ -15118,7 +15128,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceMemoryProperties2KHR(
-                        &m_pool, snapshotApiCallInfo, physicalDevice, pMemoryProperties);
+                        &m_pool, snapshotApiCallHandle, physicalDevice, pMemoryProperties);
                 }
                 vkStream->unsetHandleMapping();
                 if (pMemoryProperties) {
@@ -15131,7 +15141,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPhysicalDeviceMemoryProperties2KHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, physicalDevice,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, physicalDevice,
                         pMemoryProperties);
                 }
                 vkReadStream->clearPool();
@@ -15208,7 +15218,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
-                        &m_pool, snapshotApiCallInfo, physicalDevice, pFormatInfo, pPropertyCount,
+                        &m_pool, snapshotApiCallHandle, physicalDevice, pFormatInfo, pPropertyCount,
                         pProperties);
                 }
                 vkStream->unsetHandleMapping();
@@ -15241,7 +15251,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, physicalDevice,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, physicalDevice,
                         pFormatInfo, pPropertyCount, pProperties);
                 }
                 vkReadStream->clearPool();
@@ -15283,9 +15293,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkTrimCommandPoolKHR(&m_pool, snapshotApiCallInfo, packet,
-                                                              packetLen, device, commandPool,
-                                                              flags);
+                    m_state->snapshot()->vkTrimCommandPoolKHR(&m_pool, snapshotApiCallHandle,
+                                                              packet, packetLen, device,
+                                                              commandPool, flags);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -15358,7 +15368,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPhysicalDeviceExternalBufferPropertiesKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, physicalDevice,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, physicalDevice,
                         pExternalBufferInfo, pExternalBufferProperties);
                 }
                 vkReadStream->clearPool();
@@ -15414,7 +15424,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
-                        &m_pool, snapshotApiCallInfo, physicalDevice, pExternalSemaphoreInfo,
+                        &m_pool, snapshotApiCallHandle, physicalDevice, pExternalSemaphoreInfo,
                         pExternalSemaphoreProperties);
                 }
                 vkStream->unsetHandleMapping();
@@ -15428,7 +15438,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, physicalDevice,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, physicalDevice,
                         pExternalSemaphoreInfo, pExternalSemaphoreProperties);
                 }
                 vkReadStream->clearPool();
@@ -15466,7 +15476,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkImportSemaphoreFdKHR_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkImportSemaphoreFdKHR_VkResult_return = m_state->on_vkImportSemaphoreFdKHR(
-                        &m_pool, snapshotApiCallInfo, device, pImportSemaphoreFdInfo);
+                        &m_pool, snapshotApiCallHandle, device, pImportSemaphoreFdInfo);
                 }
                 if ((vkImportSemaphoreFdKHR_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -15477,7 +15487,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkImportSemaphoreFdKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkImportSemaphoreFdKHR_VkResult_return, device, pImportSemaphoreFdInfo);
                 }
                 vkReadStream->clearPool();
@@ -15518,7 +15528,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkGetSemaphoreFdKHR_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkGetSemaphoreFdKHR_VkResult_return = m_state->on_vkGetSemaphoreFdKHR(
-                        &m_pool, snapshotApiCallInfo, device, pGetFdInfo, pFd);
+                        &m_pool, snapshotApiCallHandle, device, pGetFdInfo, pFd);
                 }
                 if ((vkGetSemaphoreFdKHR_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -15529,7 +15539,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetSemaphoreFdKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetSemaphoreFdKHR_VkResult_return, device, pGetFdInfo, pFd);
                 }
                 vkReadStream->clearPool();
@@ -15598,7 +15608,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 if (CC_LIKELY(vk)) {
                     vkCreateDescriptorUpdateTemplateKHR_VkResult_return =
                         m_state->on_vkCreateDescriptorUpdateTemplateKHR(
-                            &m_pool, snapshotApiCallInfo, device, pCreateInfo, pAllocator,
+                            &m_pool, snapshotApiCallHandle, device, pCreateInfo, pAllocator,
                             pDescriptorUpdateTemplate);
                 }
                 if ((vkCreateDescriptorUpdateTemplateKHR_VkResult_return) == VK_ERROR_DEVICE_LOST)
@@ -15622,7 +15632,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCreateDescriptorUpdateTemplateKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCreateDescriptorUpdateTemplateKHR_VkResult_return, device, pCreateInfo,
                         pAllocator, pDescriptorUpdateTemplate);
                 }
@@ -15679,12 +15689,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkDestroyDescriptorUpdateTemplateKHR(
-                        &m_pool, snapshotApiCallInfo, device, descriptorUpdateTemplate, pAllocator);
+                        &m_pool, snapshotApiCallHandle, device, descriptorUpdateTemplate,
+                        pAllocator);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkDestroyDescriptorUpdateTemplateKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device,
                         boxed_descriptorUpdateTemplate_preserve, pAllocator);
                 }
                 delete_VkDescriptorUpdateTemplate(boxed_descriptorUpdateTemplate_preserve);
@@ -15742,7 +15753,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkUpdateDescriptorSetWithTemplateKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, descriptorSet,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, descriptorSet,
                         descriptorUpdateTemplate, pData);
                 }
                 vkReadStream->clearPool();
@@ -15803,8 +15814,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 VkResult vkCreateRenderPass2KHR_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
-                    vkCreateRenderPass2KHR_VkResult_return = m_state->on_vkCreateRenderPass2KHR(
-                        &m_pool, snapshotApiCallInfo, device, pCreateInfo, pAllocator, pRenderPass);
+                    vkCreateRenderPass2KHR_VkResult_return =
+                        m_state->on_vkCreateRenderPass2KHR(&m_pool, snapshotApiCallHandle, device,
+                                                           pCreateInfo, pAllocator, pRenderPass);
                 }
                 if ((vkCreateRenderPass2KHR_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -15824,7 +15836,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCreateRenderPass2KHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCreateRenderPass2KHR_VkResult_return, device, pCreateInfo, pAllocator,
                         pRenderPass);
                 }
@@ -15869,14 +15881,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pSubpassBeginInfo);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkCmdBeginRenderPass2KHR(&m_pool, snapshotApiCallInfo,
+                    m_state->on_vkCmdBeginRenderPass2KHR(&m_pool, snapshotApiCallHandle,
                                                          commandBuffer, pRenderPassBegin,
                                                          pSubpassBeginInfo);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdBeginRenderPass2KHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         pRenderPassBegin, pSubpassBeginInfo);
                 }
                 vkReadStream->clearPool();
@@ -15927,8 +15939,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdNextSubpass2KHR(&m_pool, snapshotApiCallInfo, packet,
-                                                              packetLen, commandBuffer,
+                    m_state->snapshot()->vkCmdNextSubpass2KHR(&m_pool, snapshotApiCallHandle,
+                                                              packet, packetLen, commandBuffer,
                                                               pSubpassBeginInfo, pSubpassEndInfo);
                 }
                 vkReadStream->clearPool();
@@ -15968,7 +15980,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdEndRenderPass2KHR(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkCmdEndRenderPass2KHR(&m_pool, snapshotApiCallHandle,
                                                                 packet, packetLen, commandBuffer,
                                                                 pSubpassEndInfo);
                 }
@@ -16037,7 +16049,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPhysicalDeviceExternalFencePropertiesKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, physicalDevice,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, physicalDevice,
                         pExternalFenceInfo, pExternalFenceProperties);
                 }
                 vkReadStream->clearPool();
@@ -16087,7 +16099,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkImportFenceFdKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkImportFenceFdKHR_VkResult_return, device, pImportFenceFdInfo);
                 }
                 vkReadStream->clearPool();
@@ -16140,7 +16152,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkGetFenceFdKHR_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkGetFenceFdKHR(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkGetFenceFdKHR(&m_pool, snapshotApiCallHandle, packet,
                                                          packetLen, vkGetFenceFdKHR_VkResult_return,
                                                          device, pGetFdInfo, pFd);
                 }
@@ -16189,7 +16201,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetImageMemoryRequirements2KHR(
-                        &m_pool, snapshotApiCallInfo, device, pInfo, pMemoryRequirements);
+                        &m_pool, snapshotApiCallHandle, device, pInfo, pMemoryRequirements);
                 }
                 vkStream->unsetHandleMapping();
                 if (pMemoryRequirements) {
@@ -16201,7 +16213,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetImageMemoryRequirements2KHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, pInfo,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, pInfo,
                         pMemoryRequirements);
                 }
                 vkReadStream->clearPool();
@@ -16247,7 +16259,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetBufferMemoryRequirements2KHR(
-                        &m_pool, snapshotApiCallInfo, device, pInfo, pMemoryRequirements);
+                        &m_pool, snapshotApiCallHandle, device, pInfo, pMemoryRequirements);
                 }
                 vkStream->unsetHandleMapping();
                 if (pMemoryRequirements) {
@@ -16259,7 +16271,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetBufferMemoryRequirements2KHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, pInfo,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, pInfo,
                         pMemoryRequirements);
                 }
                 vkReadStream->clearPool();
@@ -16377,7 +16389,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetImageSparseMemoryRequirements2KHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, pInfo,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, pInfo,
                         pSparseMemoryRequirementCount, pSparseMemoryRequirements);
                 }
                 vkReadStream->clearPool();
@@ -16443,9 +16455,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkCreateSamplerYcbcrConversionKHR_VkResult_return =
-                        m_state->on_vkCreateSamplerYcbcrConversionKHR(&m_pool, snapshotApiCallInfo,
-                                                                      device, pCreateInfo,
-                                                                      pAllocator, pYcbcrConversion);
+                        m_state->on_vkCreateSamplerYcbcrConversionKHR(
+                            &m_pool, snapshotApiCallHandle, device, pCreateInfo, pAllocator,
+                            pYcbcrConversion);
                 }
                 if ((vkCreateSamplerYcbcrConversionKHR_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -16468,7 +16480,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCreateSamplerYcbcrConversionKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCreateSamplerYcbcrConversionKHR_VkResult_return, device, pCreateInfo,
                         pAllocator, pYcbcrConversion);
                 }
@@ -16521,12 +16533,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkDestroySamplerYcbcrConversionKHR(
-                        &m_pool, snapshotApiCallInfo, device, ycbcrConversion, pAllocator);
+                        &m_pool, snapshotApiCallHandle, device, ycbcrConversion, pAllocator);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkDestroySamplerYcbcrConversionKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device,
                         boxed_ycbcrConversion_preserve, pAllocator);
                 }
                 delete_VkSamplerYcbcrConversion(boxed_ycbcrConversion_preserve);
@@ -16573,7 +16585,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkBindBufferMemory2KHR_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkBindBufferMemory2KHR_VkResult_return = m_state->on_vkBindBufferMemory2KHR(
-                        &m_pool, snapshotApiCallInfo, device, bindInfoCount, pBindInfos);
+                        &m_pool, snapshotApiCallHandle, device, bindInfoCount, pBindInfos);
                 }
                 if ((vkBindBufferMemory2KHR_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -16584,7 +16596,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkBindBufferMemory2KHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkBindBufferMemory2KHR_VkResult_return, device, bindInfoCount, pBindInfos);
                 }
                 vkReadStream->clearPool();
@@ -16628,7 +16640,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkBindImageMemory2KHR_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkBindImageMemory2KHR_VkResult_return = m_state->on_vkBindImageMemory2KHR(
-                        &m_pool, snapshotApiCallInfo, device, bindInfoCount, pBindInfos);
+                        &m_pool, snapshotApiCallHandle, device, bindInfoCount, pBindInfos);
                 }
                 if ((vkBindImageMemory2KHR_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -16639,7 +16651,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkBindImageMemory2KHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkBindImageMemory2KHR_VkResult_return, device, bindInfoCount, pBindInfos);
                 }
                 vkReadStream->clearPool();
@@ -16701,7 +16713,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetDescriptorSetLayoutSupportKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, pCreateInfo,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, pCreateInfo,
                         pSupport);
                 }
                 vkReadStream->clearPool();
@@ -16748,7 +16760,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetBufferDeviceAddressKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetBufferDeviceAddressKHR_VkDeviceAddress_return, device, pInfo);
                 }
                 vkReadStream->clearPool();
@@ -16793,7 +16805,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetBufferOpaqueCaptureAddressKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetBufferOpaqueCaptureAddressKHR_uint64_t_return, device, pInfo);
                 }
                 vkReadStream->clearPool();
@@ -16839,7 +16851,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetDeviceMemoryOpaqueCaptureAddressKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetDeviceMemoryOpaqueCaptureAddressKHR_uint64_t_return, device, pInfo);
                 }
                 vkReadStream->clearPool();
@@ -16958,7 +16970,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPipelineExecutablePropertiesKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetPipelineExecutablePropertiesKHR_VkResult_return, device, pPipelineInfo,
                         pExecutableCount, pProperties);
                 }
@@ -17076,7 +17088,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPipelineExecutableStatisticsKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetPipelineExecutableStatisticsKHR_VkResult_return, device,
                         pExecutableInfo, pStatisticCount, pStatistics);
                 }
@@ -17208,7 +17220,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPipelineExecutableInternalRepresentationsKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetPipelineExecutableInternalRepresentationsKHR_VkResult_return, device,
                         pExecutableInfo, pInternalRepresentationCount, pInternalRepresentations);
                 }
@@ -17256,7 +17268,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdSetEvent2KHR(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdSetEvent2KHR(&m_pool, snapshotApiCallHandle, packet,
                                                            packetLen, commandBuffer, event,
                                                            pDependencyInfo);
                 }
@@ -17297,7 +17309,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdResetEvent2KHR(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdResetEvent2KHR(&m_pool, snapshotApiCallHandle, packet,
                                                              packetLen, commandBuffer, event,
                                                              stageMask);
                 }
@@ -17360,7 +17372,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdWaitEvents2KHR(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdWaitEvents2KHR(&m_pool, snapshotApiCallHandle, packet,
                                                              packetLen, commandBuffer, eventCount,
                                                              pEvents, pDependencyInfos);
                 }
@@ -17401,7 +17413,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdPipelineBarrier2KHR(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkCmdPipelineBarrier2KHR(&m_pool, snapshotApiCallHandle,
                                                                   packet, packetLen, commandBuffer,
                                                                   pDependencyInfo);
                 }
@@ -17447,7 +17459,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdWriteTimestamp2KHR(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkCmdWriteTimestamp2KHR(&m_pool, snapshotApiCallHandle,
                                                                  packet, packetLen, commandBuffer,
                                                                  stage, queryPool, query);
                 }
@@ -17508,7 +17520,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkQueueSubmit2KHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkQueueSubmit2KHR_VkResult_return, queue, submitCount, pSubmits, fence);
                 }
                 vkReadStream->clearPool();
@@ -17550,7 +17562,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdCopyBuffer2KHR(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdCopyBuffer2KHR(&m_pool, snapshotApiCallHandle, packet,
                                                              packetLen, commandBuffer,
                                                              pCopyBufferInfo);
                 }
@@ -17584,12 +17596,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pCopyImageInfo);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkCmdCopyImage2KHR(&m_pool, snapshotApiCallInfo, commandBuffer,
+                    m_state->on_vkCmdCopyImage2KHR(&m_pool, snapshotApiCallHandle, commandBuffer,
                                                    pCopyImageInfo);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdCopyImage2KHR(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdCopyImage2KHR(&m_pool, snapshotApiCallHandle, packet,
                                                             packetLen, commandBuffer,
                                                             pCopyImageInfo);
                 }
@@ -17625,14 +17637,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pCopyBufferToImageInfo);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkCmdCopyBufferToImage2KHR(&m_pool, snapshotApiCallInfo,
+                    m_state->on_vkCmdCopyBufferToImage2KHR(&m_pool, snapshotApiCallHandle,
                                                            commandBuffer, pCopyBufferToImageInfo,
                                                            context);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdCopyBufferToImage2KHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         pCopyBufferToImageInfo);
                 }
                 vkReadStream->clearPool();
@@ -17667,13 +17679,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pCopyImageToBufferInfo);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkCmdCopyImageToBuffer2KHR(&m_pool, snapshotApiCallInfo,
+                    m_state->on_vkCmdCopyImageToBuffer2KHR(&m_pool, snapshotApiCallHandle,
                                                            commandBuffer, pCopyImageToBufferInfo);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdCopyImageToBuffer2KHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         pCopyImageToBufferInfo);
                 }
                 vkReadStream->clearPool();
@@ -17712,7 +17724,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdBlitImage2KHR(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdBlitImage2KHR(&m_pool, snapshotApiCallHandle, packet,
                                                             packetLen, commandBuffer,
                                                             pBlitImageInfo);
                 }
@@ -17753,8 +17765,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdResolveImage2KHR(&m_pool, snapshotApiCallInfo, packet,
-                                                               packetLen, commandBuffer,
+                    m_state->snapshot()->vkCmdResolveImage2KHR(&m_pool, snapshotApiCallHandle,
+                                                               packet, packetLen, commandBuffer,
                                                                pResolveImageInfo);
                 }
                 vkReadStream->clearPool();
@@ -17817,7 +17829,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetDeviceBufferMemoryRequirementsKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, pInfo,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, pInfo,
                         pMemoryRequirements);
                 }
                 vkReadStream->clearPool();
@@ -17864,7 +17876,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkGetDeviceImageMemoryRequirementsKHR(
-                        &m_pool, snapshotApiCallInfo, device, pInfo, pMemoryRequirements);
+                        &m_pool, snapshotApiCallHandle, device, pInfo, pMemoryRequirements);
                 }
                 vkStream->unsetHandleMapping();
                 if (pMemoryRequirements) {
@@ -17876,7 +17888,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetDeviceImageMemoryRequirementsKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, pInfo,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, pInfo,
                         pMemoryRequirements);
                 }
                 vkReadStream->clearPool();
@@ -17993,7 +18005,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetDeviceImageSparseMemoryRequirementsKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, pInfo,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, pInfo,
                         pSparseMemoryRequirementCount, pSparseMemoryRequirements);
                 }
                 vkReadStream->clearPool();
@@ -18044,7 +18056,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdBindIndexBuffer2KHR(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkCmdBindIndexBuffer2KHR(&m_pool, snapshotApiCallHandle,
                                                                   packet, packetLen, commandBuffer,
                                                                   buffer, offset, size, indexType);
                 }
@@ -18102,8 +18114,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetRenderingAreaGranularityKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, pRenderingAreaInfo,
-                        pGranularity);
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device,
+                        pRenderingAreaInfo, pGranularity);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -18162,7 +18174,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetDeviceImageSubresourceLayoutKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, pInfo, pLayout);
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, pInfo, pLayout);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -18227,7 +18239,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetImageSubresourceLayout2KHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, image,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, image,
                         pSubresource, pLayout);
                 }
                 vkReadStream->clearPool();
@@ -18269,7 +18281,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdSetLineStippleKHR(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         lineStippleFactor, lineStipplePattern);
                 }
                 vkReadStream->clearPool();
@@ -18314,7 +18326,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 if (CC_LIKELY(vk)) {
                     vkGetSwapchainGrallocUsageANDROID_VkResult_return =
                         m_state->on_vkGetSwapchainGrallocUsageANDROID(
-                            &m_pool, snapshotApiCallInfo, device, format, imageUsage, grallocUsage);
+                            &m_pool, snapshotApiCallHandle, device, format, imageUsage,
+                            grallocUsage);
                 }
                 if ((vkGetSwapchainGrallocUsageANDROID_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -18327,7 +18340,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetSwapchainGrallocUsageANDROID(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetSwapchainGrallocUsageANDROID_VkResult_return, device, format,
                         imageUsage, grallocUsage);
                 }
@@ -18375,7 +18388,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkAcquireImageANDROID_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkAcquireImageANDROID_VkResult_return =
-                        m_state->on_vkAcquireImageANDROID(&m_pool, snapshotApiCallInfo, device,
+                        m_state->on_vkAcquireImageANDROID(&m_pool, snapshotApiCallHandle, device,
                                                           image, nativeFenceFd, semaphore, fence);
                 }
                 if ((vkAcquireImageANDROID_VkResult_return) == VK_ERROR_DEVICE_LOST)
@@ -18387,7 +18400,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkAcquireImageANDROID(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkAcquireImageANDROID_VkResult_return, device, image, nativeFenceFd,
                         semaphore, fence);
                 }
@@ -18453,7 +18466,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 if (CC_LIKELY(vk)) {
                     vkQueueSignalReleaseImageANDROID_VkResult_return =
                         m_state->on_vkQueueSignalReleaseImageANDROID(
-                            &m_pool, snapshotApiCallInfo, queue, waitSemaphoreCount,
+                            &m_pool, snapshotApiCallHandle, queue, waitSemaphoreCount,
                             pWaitSemaphores, image, pNativeFenceFd);
                 }
                 if ((vkQueueSignalReleaseImageANDROID_VkResult_return) == VK_ERROR_DEVICE_LOST)
@@ -18467,7 +18480,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkQueueSignalReleaseImageANDROID(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkQueueSignalReleaseImageANDROID_VkResult_return, queue, waitSemaphoreCount,
                         pWaitSemaphores, image, pNativeFenceFd);
                 }
@@ -18523,7 +18536,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 if (CC_LIKELY(vk)) {
                     vkGetSwapchainGrallocUsage2ANDROID_VkResult_return =
                         m_state->on_vkGetSwapchainGrallocUsage2ANDROID(
-                            &m_pool, snapshotApiCallInfo, device, format, imageUsage,
+                            &m_pool, snapshotApiCallHandle, device, format, imageUsage,
                             swapchainImageUsage, grallocConsumerUsage, grallocProducerUsage);
                 }
                 if ((vkGetSwapchainGrallocUsage2ANDROID_VkResult_return) == VK_ERROR_DEVICE_LOST)
@@ -18538,7 +18551,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetSwapchainGrallocUsage2ANDROID(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetSwapchainGrallocUsage2ANDROID_VkResult_return, device, format,
                         imageUsage, swapchainImageUsage, grallocConsumerUsage,
                         grallocProducerUsage);
@@ -18632,7 +18645,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCreateDebugReportCallbackEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCreateDebugReportCallbackEXT_VkResult_return, instance, pCreateInfo,
                         pAllocator, pCallback);
                 }
@@ -18691,7 +18704,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkDestroyDebugReportCallbackEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, instance,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, instance,
                         boxed_callback_preserve, pAllocator);
                 }
                 delete_VkDebugReportCallbackEXT(boxed_callback_preserve);
@@ -18751,7 +18764,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkDebugReportMessageEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, instance, flags,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, instance, flags,
                         objectType, object, location, messageCode, pLayerPrefix, pMessage);
                 }
                 vkReadStream->clearPool();
@@ -18827,7 +18840,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdBindTransformFeedbackBuffersEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         firstBinding, bindingCount, pBuffers, pOffsets, pSizes);
                 }
                 vkReadStream->clearPool();
@@ -18903,7 +18916,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdBeginTransformFeedbackEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         firstCounterBuffer, counterBufferCount, pCounterBuffers,
                         pCounterBufferOffsets);
                 }
@@ -18980,7 +18993,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdEndTransformFeedbackEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         firstCounterBuffer, counterBufferCount, pCounterBuffers,
                         pCounterBufferOffsets);
                 }
@@ -19032,7 +19045,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdBeginQueryIndexedEXT(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkCmdBeginQueryIndexedEXT(&m_pool, snapshotApiCallHandle,
                                                                    packet, packetLen, commandBuffer,
                                                                    queryPool, query, flags, index);
                 }
@@ -19077,7 +19090,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdEndQueryIndexedEXT(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkCmdEndQueryIndexedEXT(&m_pool, snapshotApiCallHandle,
                                                                  packet, packetLen, commandBuffer,
                                                                  queryPool, query, index);
                 }
@@ -19137,7 +19150,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdDrawIndirectByteCountEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         instanceCount, firstInstance, counterBuffer, counterBufferOffset,
                         counterOffset, vertexStride);
                 }
@@ -19189,7 +19202,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkSetDebugUtilsObjectNameEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkSetDebugUtilsObjectNameEXT_VkResult_return, device, pNameInfo);
                 }
                 vkReadStream->clearPool();
@@ -19237,7 +19250,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkSetDebugUtilsObjectTagEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkSetDebugUtilsObjectTagEXT_VkResult_return, device, pTagInfo);
                 }
                 vkReadStream->clearPool();
@@ -19277,7 +19290,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkQueueBeginDebugUtilsLabelEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, queue, pLabelInfo);
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, queue, pLabelInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -19305,8 +19318,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkQueueEndDebugUtilsLabelEXT(&m_pool, snapshotApiCallInfo,
-                                                                      packet, packetLen, queue);
+                    m_state->snapshot()->vkQueueEndDebugUtilsLabelEXT(
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, queue);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -19345,7 +19358,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkQueueInsertDebugUtilsLabelEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, queue, pLabelInfo);
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, queue, pLabelInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -19385,7 +19398,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdBeginDebugUtilsLabelEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer, pLabelInfo);
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
+                        pLabelInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -19415,7 +19429,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdEndDebugUtilsLabelEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer);
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -19455,7 +19469,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdInsertDebugUtilsLabelEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer, pLabelInfo);
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
+                        pLabelInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -19544,7 +19559,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCreateDebugUtilsMessengerEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCreateDebugUtilsMessengerEXT_VkResult_return, instance, pCreateInfo,
                         pAllocator, pMessenger);
                 }
@@ -19603,7 +19618,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkDestroyDebugUtilsMessengerEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, instance,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, instance,
                         boxed_messenger_preserve, pAllocator);
                 }
                 delete_VkDebugUtilsMessengerEXT(boxed_messenger_preserve);
@@ -19655,8 +19670,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkSubmitDebugUtilsMessageEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, instance, messageSeverity,
-                        messageTypes, pCallbackData);
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, instance,
+                        messageSeverity, messageTypes, pCallbackData);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -19726,7 +19741,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetImageDrmFormatModifierPropertiesEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetImageDrmFormatModifierPropertiesEXT_VkResult_return, device, image,
                         pProperties);
                 }
@@ -19802,7 +19817,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetMemoryHostPointerPropertiesEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetMemoryHostPointerPropertiesEXT_VkResult_return, device, handleType,
                         pHostPointer, pMemoryHostPointerProperties);
                 }
@@ -19913,7 +19928,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetPhysicalDeviceToolPropertiesEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetPhysicalDeviceToolPropertiesEXT_VkResult_return, physicalDevice,
                         pToolCount, pToolProperties);
                 }
@@ -19956,7 +19971,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdSetLineStippleEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         lineStippleFactor, lineStipplePattern);
                 }
                 vkReadStream->clearPool();
@@ -19991,7 +20006,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdSetCullModeEXT(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdSetCullModeEXT(&m_pool, snapshotApiCallHandle, packet,
                                                              packetLen, commandBuffer, cullMode);
                 }
                 vkReadStream->clearPool();
@@ -20025,8 +20040,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdSetFrontFaceEXT(&m_pool, snapshotApiCallInfo, packet,
-                                                              packetLen, commandBuffer, frontFace);
+                    m_state->snapshot()->vkCmdSetFrontFaceEXT(&m_pool, snapshotApiCallHandle,
+                                                              packet, packetLen, commandBuffer,
+                                                              frontFace);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -20061,7 +20077,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdSetPrimitiveTopologyEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         primitiveTopology);
                 }
                 vkReadStream->clearPool();
@@ -20110,7 +20126,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdSetViewportWithCountEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         viewportCount, pViewports);
                 }
                 vkReadStream->clearPool();
@@ -20157,7 +20173,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdSetScissorWithCountEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         scissorCount, pScissors);
                 }
                 vkReadStream->clearPool();
@@ -20251,7 +20267,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdBindVertexBuffers2EXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         firstBinding, bindingCount, pBuffers, pOffsets, pSizes, pStrides);
                 }
                 vkReadStream->clearPool();
@@ -20285,7 +20301,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdSetDepthTestEnableEXT(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkCmdSetDepthTestEnableEXT(&m_pool, snapshotApiCallHandle,
                                                                     packet, packetLen,
                                                                     commandBuffer, depthTestEnable);
                 }
@@ -20321,7 +20337,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdSetDepthWriteEnableEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         depthWriteEnable);
                 }
                 vkReadStream->clearPool();
@@ -20355,7 +20371,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdSetDepthCompareOpEXT(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkCmdSetDepthCompareOpEXT(&m_pool, snapshotApiCallHandle,
                                                                    packet, packetLen, commandBuffer,
                                                                    depthCompareOp);
                 }
@@ -20393,7 +20409,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdSetDepthBoundsTestEnableEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         depthBoundsTestEnable);
                 }
                 vkReadStream->clearPool();
@@ -20428,7 +20444,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdSetStencilTestEnableEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         stencilTestEnable);
                 }
                 vkReadStream->clearPool();
@@ -20480,7 +20496,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdSetStencilOpEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer, faceMask,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer, faceMask,
                         failOp, passOp, depthFailOp, compareOp);
                 }
                 vkReadStream->clearPool();
@@ -20531,7 +20547,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCopyMemoryToImageEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCopyMemoryToImageEXT_VkResult_return, device, pCopyMemoryToImageInfo);
                 }
                 vkReadStream->clearPool();
@@ -20580,7 +20596,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCopyImageToMemoryEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCopyImageToMemoryEXT_VkResult_return, device, pCopyImageToMemoryInfo);
                 }
                 vkReadStream->clearPool();
@@ -20629,7 +20645,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCopyImageToImageEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCopyImageToImageEXT_VkResult_return, device, pCopyImageToImageInfo);
                 }
                 vkReadStream->clearPool();
@@ -20687,7 +20703,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkTransitionImageLayoutEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkTransitionImageLayoutEXT_VkResult_return, device, transitionCount,
                         pTransitions);
                 }
@@ -20754,7 +20770,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetImageSubresourceLayout2EXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, image,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, image,
                         pSubresource, pLayout);
                 }
                 vkReadStream->clearPool();
@@ -20805,7 +20821,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkReleaseSwapchainImagesEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkReleaseSwapchainImagesEXT_VkResult_return, device, pReleaseInfo);
                 }
                 vkReadStream->clearPool();
@@ -20885,7 +20901,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCreatePrivateDataSlotEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCreatePrivateDataSlotEXT_VkResult_return, device, pCreateInfo, pAllocator,
                         pPrivateDataSlot);
                 }
@@ -20938,7 +20954,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkDestroyPrivateDataSlotEXT(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkDestroyPrivateDataSlotEXT(&m_pool, snapshotApiCallHandle,
                                                                      packet, packetLen, device,
                                                                      privateDataSlot, pAllocator);
                 }
@@ -20994,7 +21010,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkSetPrivateDataEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkSetPrivateDataEXT_VkResult_return, device, objectType, objectHandle,
                         privateDataSlot, data);
                 }
@@ -21048,7 +21064,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write((uint64_t*)pData, sizeof(uint64_t));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkGetPrivateDataEXT(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkGetPrivateDataEXT(&m_pool, snapshotApiCallHandle, packet,
                                                              packetLen, device, objectType,
                                                              objectHandle, privateDataSlot, pData);
                 }
@@ -21086,7 +21102,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdSetPatchControlPointsEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         patchControlPoints);
                 }
                 vkReadStream->clearPool();
@@ -21123,7 +21139,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdSetRasterizerDiscardEnableEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         rasterizerDiscardEnable);
                 }
                 vkReadStream->clearPool();
@@ -21157,7 +21173,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdSetDepthBiasEnableEXT(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkCmdSetDepthBiasEnableEXT(&m_pool, snapshotApiCallHandle,
                                                                     packet, packetLen,
                                                                     commandBuffer, depthBiasEnable);
                 }
@@ -21191,7 +21207,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkCmdSetLogicOpEXT(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkCmdSetLogicOpEXT(&m_pool, snapshotApiCallHandle, packet,
                                                             packetLen, commandBuffer, logicOp);
                 }
                 vkReadStream->clearPool();
@@ -21228,7 +21244,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdSetPrimitiveRestartEnableEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         primitiveRestartEnable);
                 }
                 vkReadStream->clearPool();
@@ -21274,7 +21290,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCmdSetColorWriteEnableEXT(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         attachmentCount, pColorWriteEnables);
                 }
                 vkReadStream->clearPool();
@@ -21322,8 +21338,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return =
-                        m_state->on_vkMapMemoryIntoAddressSpaceGOOGLE(&m_pool, snapshotApiCallInfo,
-                                                                      device, memory, pAddress);
+                        m_state->on_vkMapMemoryIntoAddressSpaceGOOGLE(
+                            &m_pool, snapshotApiCallHandle, device, memory, pAddress);
                 }
                 if ((vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -21341,7 +21357,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkMapMemoryIntoAddressSpaceGOOGLE(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return, device, memory,
                         pAddress);
                 }
@@ -21495,7 +21511,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
-                        &m_pool, snapshotApiCallInfo, device, descriptorSet,
+                        &m_pool, snapshotApiCallHandle, device, descriptorSet,
                         descriptorUpdateTemplate, imageInfoCount, bufferInfoCount, bufferViewCount,
                         pImageInfoEntryIndices, pBufferInfoEntryIndices, pBufferViewEntryIndices,
                         pImageInfos, pBufferInfos, pBufferViews);
@@ -21503,7 +21519,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, descriptorSet,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, descriptorSet,
                         descriptorUpdateTemplate, imageInfoCount, bufferInfoCount, bufferViewCount,
                         pImageInfoEntryIndices, pBufferInfoEntryIndices, pBufferViewEntryIndices,
                         pImageInfos, pBufferInfos, pBufferViews);
@@ -21539,13 +21555,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pBeginInfo);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkBeginCommandBufferAsyncGOOGLE(&m_pool, snapshotApiCallInfo,
+                    m_state->on_vkBeginCommandBufferAsyncGOOGLE(&m_pool, snapshotApiCallHandle,
                                                                 commandBuffer, pBeginInfo, context);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkBeginCommandBufferAsyncGOOGLE(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer, pBeginInfo);
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
+                        pBeginInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -21568,13 +21585,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    ioStream, (unsigned long long)commandBuffer);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkEndCommandBufferAsyncGOOGLE(&m_pool, snapshotApiCallInfo,
+                    m_state->on_vkEndCommandBufferAsyncGOOGLE(&m_pool, snapshotApiCallHandle,
                                                               commandBuffer, context);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkEndCommandBufferAsyncGOOGLE(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer);
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -21602,13 +21619,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)flags);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkResetCommandBufferAsyncGOOGLE(&m_pool, snapshotApiCallInfo,
+                    m_state->on_vkResetCommandBufferAsyncGOOGLE(&m_pool, snapshotApiCallHandle,
                                                                 commandBuffer, flags);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkResetCommandBufferAsyncGOOGLE(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer, flags);
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer, flags);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -21639,13 +21656,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (unsigned long long)needHostSync, (unsigned long long)sequenceNumber);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkCommandBufferHostSyncGOOGLE(
-                        &m_pool, snapshotApiCallInfo, commandBuffer, needHostSync, sequenceNumber);
+                    m_state->on_vkCommandBufferHostSyncGOOGLE(&m_pool, snapshotApiCallHandle,
+                                                              commandBuffer, needHostSync,
+                                                              sequenceNumber);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCommandBufferHostSyncGOOGLE(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, commandBuffer,
                         needHostSync, sequenceNumber);
                 }
                 vkReadStream->clearPool();
@@ -21719,7 +21737,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 if (CC_LIKELY(vk)) {
                     vkCreateImageWithRequirementsGOOGLE_VkResult_return =
                         m_state->on_vkCreateImageWithRequirementsGOOGLE(
-                            &m_pool, snapshotApiCallInfo, device, pCreateInfo, pAllocator, pImage,
+                            &m_pool, snapshotApiCallHandle, device, pCreateInfo, pAllocator, pImage,
                             pMemoryRequirements);
                 }
                 if ((vkCreateImageWithRequirementsGOOGLE_VkResult_return) == VK_ERROR_DEVICE_LOST)
@@ -21747,7 +21765,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCreateImageWithRequirementsGOOGLE(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCreateImageWithRequirementsGOOGLE_VkResult_return, device, pCreateInfo,
                         pAllocator, pImage, pMemoryRequirements);
                 }
@@ -21822,8 +21840,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 if (CC_LIKELY(vk)) {
                     vkCreateBufferWithRequirementsGOOGLE_VkResult_return =
                         m_state->on_vkCreateBufferWithRequirementsGOOGLE(
-                            &m_pool, snapshotApiCallInfo, device, pCreateInfo, pAllocator, pBuffer,
-                            pMemoryRequirements);
+                            &m_pool, snapshotApiCallHandle, device, pCreateInfo, pAllocator,
+                            pBuffer, pMemoryRequirements);
                 }
                 if ((vkCreateBufferWithRequirementsGOOGLE_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -21850,7 +21868,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCreateBufferWithRequirementsGOOGLE(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkCreateBufferWithRequirementsGOOGLE_VkResult_return, device, pCreateInfo,
                         pAllocator, pBuffer, pMemoryRequirements);
                 }
@@ -21923,7 +21941,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkGetMemoryHostAddressInfoGOOGLE_VkResult_return =
-                        m_state->on_vkGetMemoryHostAddressInfoGOOGLE(&m_pool, snapshotApiCallInfo,
+                        m_state->on_vkGetMemoryHostAddressInfoGOOGLE(&m_pool, snapshotApiCallHandle,
                                                                      device, memory, pAddress,
                                                                      pSize, pHostmemId);
                 }
@@ -21955,7 +21973,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetMemoryHostAddressInfoGOOGLE(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetMemoryHostAddressInfoGOOGLE_VkResult_return, device, memory, pAddress,
                         pSize, pHostmemId);
                 }
@@ -22007,7 +22025,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkFreeMemorySyncGOOGLE_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkFreeMemorySyncGOOGLE_VkResult_return = m_state->on_vkFreeMemorySyncGOOGLE(
-                        &m_pool, snapshotApiCallInfo, device, memory, pAllocator);
+                        &m_pool, snapshotApiCallHandle, device, memory, pAllocator);
                 }
                 if ((vkFreeMemorySyncGOOGLE_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -22018,7 +22036,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkFreeMemorySyncGOOGLE(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkFreeMemorySyncGOOGLE_VkResult_return, device, boxed_memory_preserve,
                         pAllocator);
                 }
@@ -22051,14 +22069,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)sequenceNumber);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkQueueHostSyncGOOGLE(&m_pool, snapshotApiCallInfo, queue,
+                    m_state->on_vkQueueHostSyncGOOGLE(&m_pool, snapshotApiCallHandle, queue,
                                                       needHostSync, sequenceNumber);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkQueueHostSyncGOOGLE(&m_pool, snapshotApiCallInfo, packet,
-                                                               packetLen, queue, needHostSync,
-                                                               sequenceNumber);
+                    m_state->snapshot()->vkQueueHostSyncGOOGLE(&m_pool, snapshotApiCallHandle,
+                                                               packet, packetLen, queue,
+                                                               needHostSync, sequenceNumber);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -22102,12 +22120,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (unsigned long long)pSubmits, (unsigned long long)fence);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkQueueSubmitAsyncGOOGLE(&m_pool, snapshotApiCallInfo, queue,
+                    m_state->on_vkQueueSubmitAsyncGOOGLE(&m_pool, snapshotApiCallHandle, queue,
                                                          submitCount, pSubmits, fence);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkQueueSubmitAsyncGOOGLE(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkQueueSubmitAsyncGOOGLE(&m_pool, snapshotApiCallHandle,
                                                                   packet, packetLen, queue,
                                                                   submitCount, pSubmits, fence);
                 }
@@ -22131,11 +22149,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)queue);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkQueueWaitIdleAsyncGOOGLE(&m_pool, snapshotApiCallInfo, queue);
+                    m_state->on_vkQueueWaitIdleAsyncGOOGLE(&m_pool, snapshotApiCallHandle, queue);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkQueueWaitIdleAsyncGOOGLE(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkQueueWaitIdleAsyncGOOGLE(&m_pool, snapshotApiCallHandle,
                                                                     packet, packetLen, queue);
                 }
                 vkReadStream->clearPool();
@@ -22182,13 +22200,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (unsigned long long)pBindInfo, (unsigned long long)fence);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkQueueBindSparseAsyncGOOGLE(&m_pool, snapshotApiCallInfo, queue,
+                    m_state->on_vkQueueBindSparseAsyncGOOGLE(&m_pool, snapshotApiCallHandle, queue,
                                                              bindInfoCount, pBindInfo, fence);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkQueueBindSparseAsyncGOOGLE(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, queue, bindInfoCount,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, queue, bindInfoCount,
                         pBindInfo, fence);
                 }
                 vkReadStream->clearPool();
@@ -22228,7 +22246,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (unsigned long long)pOffset, (unsigned long long)pRowPitchAlignment);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkGetLinearImageLayoutGOOGLE(&m_pool, snapshotApiCallInfo, device,
+                    m_state->on_vkGetLinearImageLayoutGOOGLE(&m_pool, snapshotApiCallHandle, device,
                                                              format, pOffset, pRowPitchAlignment);
                 }
                 vkStream->unsetHandleMapping();
@@ -22237,7 +22255,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetLinearImageLayoutGOOGLE(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, format, pOffset,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, format, pOffset,
                         pRowPitchAlignment);
                 }
                 vkReadStream->clearPool();
@@ -22284,8 +22302,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (unsigned long long)pOffset, (unsigned long long)pRowPitchAlignment);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkGetLinearImageLayout2GOOGLE(&m_pool, snapshotApiCallInfo, device,
-                                                              pCreateInfo, pOffset,
+                    m_state->on_vkGetLinearImageLayout2GOOGLE(&m_pool, snapshotApiCallHandle,
+                                                              device, pCreateInfo, pOffset,
                                                               pRowPitchAlignment);
                 }
                 vkStream->unsetHandleMapping();
@@ -22294,7 +22312,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetLinearImageLayout2GOOGLE(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, pCreateInfo,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, pCreateInfo,
                         pOffset, pRowPitchAlignment);
                 }
                 vkReadStream->clearPool();
@@ -22335,12 +22353,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 if (m_queueSubmitWithCommandsEnabled)
                     seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkQueueFlushCommandsGOOGLE(&m_pool, snapshotApiCallInfo, queue,
+                    m_state->on_vkQueueFlushCommandsGOOGLE(&m_pool, snapshotApiCallHandle, queue,
                                                            commandBuffer, dataSize, pData, context);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkQueueFlushCommandsGOOGLE(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkQueueFlushCommandsGOOGLE(&m_pool, snapshotApiCallHandle,
                                                                     packet, packetLen, queue,
                                                                     commandBuffer, dataSize, pData);
                 }
@@ -22453,8 +22471,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkQueueCommitDescriptorSetUpdatesGOOGLE(
-                        &m_pool, snapshotApiCallInfo, queue, descriptorPoolCount, pDescriptorPools,
-                        descriptorSetCount, pSetLayouts, pDescriptorSetPoolIds,
+                        &m_pool, snapshotApiCallHandle, queue, descriptorPoolCount,
+                        pDescriptorPools, descriptorSetCount, pSetLayouts, pDescriptorSetPoolIds,
                         pDescriptorSetWhichPool, pDescriptorSetPendingAllocation,
                         pDescriptorWriteStartingIndices, pendingDescriptorWriteCount,
                         pPendingDescriptorWrites);
@@ -22462,11 +22480,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkQueueCommitDescriptorSetUpdatesGOOGLE(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, queue, descriptorPoolCount,
-                        pDescriptorPools, descriptorSetCount, pSetLayouts, pDescriptorSetPoolIds,
-                        pDescriptorSetWhichPool, pDescriptorSetPendingAllocation,
-                        pDescriptorWriteStartingIndices, pendingDescriptorWriteCount,
-                        pPendingDescriptorWrites);
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, queue,
+                        descriptorPoolCount, pDescriptorPools, descriptorSetCount, pSetLayouts,
+                        pDescriptorSetPoolIds, pDescriptorSetWhichPool,
+                        pDescriptorSetPendingAllocation, pDescriptorWriteStartingIndices,
+                        pendingDescriptorWriteCount, pPendingDescriptorWrites);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -22516,7 +22534,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (unsigned long long)pPoolIdCount, (unsigned long long)pPoolIds);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkCollectDescriptorPoolIdsGOOGLE(&m_pool, snapshotApiCallInfo,
+                    m_state->on_vkCollectDescriptorPoolIdsGOOGLE(&m_pool, snapshotApiCallHandle,
                                                                  device, descriptorPool,
                                                                  pPoolIdCount, pPoolIds);
                 }
@@ -22531,7 +22549,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkCollectDescriptorPoolIdsGOOGLE(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, descriptorPool,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, descriptorPool,
                         pPoolIdCount, pPoolIds);
                 }
                 vkReadStream->clearPool();
@@ -22586,14 +22604,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(
-                        &m_pool, snapshotApiCallInfo, queue, waitSemaphoreCount, pWaitSemaphores,
+                        &m_pool, snapshotApiCallHandle, queue, waitSemaphoreCount, pWaitSemaphores,
                         image);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, queue, waitSemaphoreCount,
-                        pWaitSemaphores, image);
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, queue,
+                        waitSemaphoreCount, pWaitSemaphores, image);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -22639,13 +22657,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkQueueFlushCommandsFromAuxMemoryGOOGLE(
-                        &m_pool, snapshotApiCallInfo, queue, commandBuffer, deviceMemory,
+                        &m_pool, snapshotApiCallHandle, queue, commandBuffer, deviceMemory,
                         dataOffset, dataSize, context);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkQueueFlushCommandsFromAuxMemoryGOOGLE(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, queue, commandBuffer,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, queue, commandBuffer,
                         deviceMemory, dataOffset, dataSize);
                 }
                 vkReadStream->clearPool();
@@ -22676,7 +22694,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkGetBlobGOOGLE_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkGetBlobGOOGLE_VkResult_return =
-                        m_state->on_vkGetBlobGOOGLE(&m_pool, snapshotApiCallInfo, device, memory);
+                        m_state->on_vkGetBlobGOOGLE(&m_pool, snapshotApiCallHandle, device, memory);
                 }
                 if ((vkGetBlobGOOGLE_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -22685,7 +22703,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkGetBlobGOOGLE_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkGetBlobGOOGLE(&m_pool, snapshotApiCallInfo, packet,
+                    m_state->snapshot()->vkGetBlobGOOGLE(&m_pool, snapshotApiCallHandle, packet,
                                                          packetLen, vkGetBlobGOOGLE_VkResult_return,
                                                          device, memory);
                 }
@@ -22856,7 +22874,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (CC_LIKELY(vk)) {
                     m_state->on_vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
-                        &m_pool, snapshotApiCallInfo, device, descriptorSet,
+                        &m_pool, snapshotApiCallHandle, device, descriptorSet,
                         descriptorUpdateTemplate, imageInfoCount, bufferInfoCount, bufferViewCount,
                         inlineUniformBlockCount, pImageInfoEntryIndices, pBufferInfoEntryIndices,
                         pBufferViewEntryIndices, pImageInfos, pBufferInfos, pBufferViews,
@@ -22865,7 +22883,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen, device, descriptorSet,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device, descriptorSet,
                         descriptorUpdateTemplate, imageInfoCount, bufferInfoCount, bufferViewCount,
                         inlineUniformBlockCount, pImageInfoEntryIndices, pBufferInfoEntryIndices,
                         pBufferViewEntryIndices, pImageInfos, pBufferInfos, pBufferViews,
@@ -22914,12 +22932,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (unsigned long long)pSubmits, (unsigned long long)fence);
                 }
                 if (CC_LIKELY(vk)) {
-                    m_state->on_vkQueueSubmitAsync2GOOGLE(&m_pool, snapshotApiCallInfo, queue,
+                    m_state->on_vkQueueSubmitAsync2GOOGLE(&m_pool, snapshotApiCallHandle, queue,
                                                           submitCount, pSubmits, fence);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkQueueSubmitAsync2GOOGLE(&m_pool, snapshotApiCallInfo,
+                    m_state->snapshot()->vkQueueSubmitAsync2GOOGLE(&m_pool, snapshotApiCallHandle,
                                                                    packet, packetLen, queue,
                                                                    submitCount, pSubmits, fence);
                 }
@@ -22955,7 +22973,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkGetSemaphoreGOOGLE_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkGetSemaphoreGOOGLE_VkResult_return = m_state->on_vkGetSemaphoreGOOGLE(
-                        &m_pool, snapshotApiCallInfo, device, semaphore, syncId);
+                        &m_pool, snapshotApiCallHandle, device, semaphore, syncId);
                 }
                 if ((vkGetSemaphoreGOOGLE_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -22965,7 +22983,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
                     m_state->snapshot()->vkGetSemaphoreGOOGLE(
-                        &m_pool, snapshotApiCallInfo, packet, packetLen,
+                        &m_pool, snapshotApiCallHandle, packet, packetLen,
                         vkGetSemaphoreGOOGLE_VkResult_return, device, semaphore, syncId);
                 }
                 vkReadStream->clearPool();
@@ -22976,7 +22994,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
 #endif
             default: {
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->destroyApiCallInfoIfUnused(snapshotApiCallInfo);
+                    m_state->snapshot()->destroyApiCallInfoIfUnused(snapshotApiCallHandle);
                 }
 
                 m_pool.freeAll();
@@ -22985,7 +23003,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
         }
 
         if (m_snapshotsEnabled) {
-            m_state->snapshot()->destroyApiCallInfoIfUnused(snapshotApiCallInfo);
+            m_state->snapshot()->destroyApiCallInfoIfUnused(snapshotApiCallHandle);
         }
 
         ptr += packetLen;
