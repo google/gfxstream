@@ -3099,7 +3099,7 @@ bool VkEmulation::readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint3
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
         .pNext = nullptr,
         .srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
-        .dstAccessMask = VK_ACCESS_HOST_READ_BIT,
+        .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
         .oldLayout = currentLayout,
         .newLayout = transferSrcLayout,
         .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
