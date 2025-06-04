@@ -31,7 +31,6 @@ lib_gl_common = static_library(
     inc_common_base,
     inc_common_opengl,
     inc_etc,
-    inc_gfxstream_include,
     inc_gfxstream_server,
     inc_gl_common,
     inc_gl_openglesdispatch,
