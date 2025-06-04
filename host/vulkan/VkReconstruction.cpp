@@ -118,55 +118,38 @@ void VkReconstruction::loadReplayBuffers(gfxstream::Stream* stream,
     DEBUG_RECON("finished unpacking decoder replay buffer");
 }
 
-VkSnapshotApiCallInfo* VkReconstruction::createApiCallInfo() {
+VkSnapshotApiCallHandle VkReconstruction::createApiCallInfo() {
     VkSnapshotApiCallHandle handle = mApiCallManager.add(VkSnapshotApiCallInfo(), 1);
 
     auto* info = mApiCallManager.get(handle);
     info->handle = handle;
-    return info;
+
+    return handle;
 }
 
 void VkReconstruction::removeHandleFromApiInfo(VkSnapshotApiCallHandle h, uint64_t toRemove) {}
 
-void VkReconstruction::destroyApiCallInfo(VkSnapshotApiCallHandle h) {
-    auto item = mApiCallManager.get(h);
-
-    if (!item) return;
-
-    if (!item->createdHandles.empty()) return;
-
-    item->createdHandles.clear();
-
-    mApiCallManager.remove(h);
-    mGraph.removeApiNode(h);
-}
-
-void VkReconstruction::destroyApiCallInfoIfUnused(VkSnapshotApiCallInfo* info) {
+void VkReconstruction::destroyApiCallInfoIfUnused(VkSnapshotApiCallHandle handle) {
+    VkSnapshotApiCallInfo* info = mApiCallManager.get(handle);
     if (!info) return;
-    auto handle = info->handle;
-    auto currentInfo = mApiCallManager.get(handle);
-    if (!currentInfo) return;
 
-    if (currentInfo->packet.empty()) {
+    if (info->packet.empty()) {
         mApiCallManager.remove(handle);
         mGraph.removeApiNode(handle);
         return;
     }
 
     if (!info->extraCreatedHandles.empty()) {
-        currentInfo->createdHandles.insert(currentInfo->createdHandles.end(), info->extraCreatedHandles.begin(),
+        info->createdHandles.insert(info->createdHandles.end(),
+                                    info->extraCreatedHandles.begin(),
                                     info->extraCreatedHandles.end());
         info->extraCreatedHandles.clear();
     }
 }
 
-VkSnapshotApiCallInfo* VkReconstruction::getApiInfo(VkSnapshotApiCallHandle h) {
-    return mApiCallManager.get(h);
-}
-
-void VkReconstruction::setApiTrace(VkSnapshotApiCallInfo* apiInfo, const uint8_t* packet,
+void VkReconstruction::setApiTrace(VkSnapshotApiCallHandle apiCallHandle, const uint8_t* packet,
                                    size_t packetLenBytes) {
-    auto* info = mApiCallManager.get(apiInfo->handle);
+    VkSnapshotApiCallInfo* info = mApiCallManager.get(apiCallHandle);
     if (info && packet && packetLenBytes > 0) {
         info->packet.assign(packet, packet + packetLenBytes);
     }
@@ -202,6 +185,24 @@ void VkReconstruction::removeGrandChildren(const uint64_t handle) {
     mGraph.removeGrandChildren(handle);
 }
 
+void VkReconstruction::addApiCallDependencyOnVkObject(VkSnapshotApiCallHandle handle,
+                                                      VkObjectHandle object) {
+    VkSnapshotApiCallInfo* info = mApiCallManager.get(handle);
+    if (!info) return;
+
+    info->depends.push_back(object);
+}
+
+void VkReconstruction::addHandleDependenciesForApiCallDependencies(VkSnapshotApiCallHandle apiCallHandle,
+                                                                   VkObjectHandle child) {
+    VkSnapshotApiCallInfo* apiCallInfo = mApiCallManager.get(apiCallHandle);
+    if (!apiCallInfo) return;
+
+    for (const VkObjectHandle parent : apiCallInfo->depends) {
+        addHandleDependency(&child, 1, parent);
+    }
+}
+
 void VkReconstruction::addHandleDependency(const uint64_t* handles, uint32_t count,
                                            uint64_t parentHandle, HandleState childState,
                                            HandleState parentState) {
@@ -222,6 +223,18 @@ void VkReconstruction::setCreatedHandlesForApi(uint64_t apiHandle, const uint64_
     if (!item) return;
 
     item->createdHandles.insert(item->createdHandles.end(), created, created + count);
+}
+
+
+void VkReconstruction::addOrderedBoxedHandlesCreatedByCall(VkSnapshotApiCallHandle handle,
+                                            const VkObjectHandle* boxedHandles,
+                                            uint32_t boxedHandlesCount) {
+    VkSnapshotApiCallInfo* info = mApiCallManager.get(handle);
+    if (!info) return;
+
+    info->extraCreatedHandles.insert(info->extraCreatedHandles.end(),
+                                     boxedHandles,
+                                     boxedHandles + boxedHandlesCount);
 }
 
 }  // namespace vk
