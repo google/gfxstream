@@ -67,7 +67,6 @@ lib_vulkan_server = static_library(
     inc_cereal,
     inc_common_base,
     inc_common_utils,
-    inc_gfxstream_include,
     inc_gl_openglesdispatch,
     inc_gl_server,
     inc_glm,

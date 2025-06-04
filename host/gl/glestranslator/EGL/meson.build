@@ -58,7 +58,6 @@ lib_egl_translator = static_library(
     inc_common_opengl,
     inc_common_utils,
     inc_etc,
-    inc_gfxstream_include,
     inc_gfxstream_server,
     inc_gl_common,
     inc_gl_openglesdispatch,
