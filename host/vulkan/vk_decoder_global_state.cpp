@@ -2622,6 +2622,7 @@ class VkDecoderGlobalState::Impl {
 
         // Should happen before destroying fences
         deviceInfo.deviceOpTracker->OnDestroyDevice();
+        deviceInfo.deviceOpTracker.reset();
 
         // Destroy pooled external fences
         auto deviceFences = deviceInfo.externalFencePool->popAll();
@@ -3848,8 +3849,11 @@ class VkDecoderGlobalState::Impl {
             close(semaphoreInfo.externalHandle);
         }
 #endif
+        if (!deviceInfo.deviceOpTracker) {
+            GFXSTREAM_ERROR("%s called after device destroy", __func__);
+        }
 
-        if (semaphoreInfo.latestUse && !IsDone(*semaphoreInfo.latestUse)) {
+        if (deviceInfo.deviceOpTracker && semaphoreInfo.latestUse && !IsDone(*semaphoreInfo.latestUse)) {
             deviceInfo.deviceOpTracker->AddPendingGarbage(*semaphoreInfo.latestUse, semaphore);
             deviceInfo.deviceOpTracker->PollAndProcessGarbage();
         } else {
@@ -4070,7 +4074,11 @@ class VkDecoderGlobalState::Impl {
             return DestroyFenceStatus::kRecycled;
         }
 
-        if (fenceInfo.latestUse && !IsDone(*fenceInfo.latestUse)) {
+        if (!deviceInfo.deviceOpTracker) {
+            GFXSTREAM_ERROR("%s called after device destroy", __func__);
+        }
+
+        if (deviceInfo.deviceOpTracker && fenceInfo.latestUse && !IsDone(*fenceInfo.latestUse)) {
             deviceInfo.deviceOpTracker->AddPendingGarbage(*fenceInfo.latestUse, fence);
             deviceInfo.deviceOpTracker->PollAndProcessGarbage();
         } else {
