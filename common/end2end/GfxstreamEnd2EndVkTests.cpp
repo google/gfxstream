@@ -2123,6 +2123,7 @@ TEST_P(GfxstreamEnd2EndVkTest, MultiThreadedResetCommandBuffer) {
 
             const vkhpp::CommandPoolCreateInfo commandPoolCreateInfo = {
                 .queueFamilyIndex = queueFamilyIndex,
+                .flags = vkhpp::CommandPoolCreateFlagBits::eResetCommandBuffer,
             };
             auto commandPool = device->createCommandPoolUnique(commandPoolCreateInfo).value;
 

@@ -32,7 +32,6 @@ jobs:
       run: |
         bazel test \
           --graphics_drivers=gles_angle_vulkan_swiftshader \
-          --test_arg="--gtest_filter=-*MultiThreadedResetCommandBuffer*" \
           --test_output=streamed \
           --verbose_failures \
           common/end2end:gfxstream_end2end_tests
