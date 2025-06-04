@@ -55,6 +55,7 @@ lib_gl_server = static_library(
     inc_gl_common,
     inc_gl_openglesdispatch,
     inc_gl_snapshot,
+    inc_gl_server,
     inc_host_backend,
     inc_host_decoder_common,
     inc_host_features,
