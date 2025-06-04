@@ -32,7 +32,7 @@ files_lib_vulkan_server = files(
   'VkDecoderSnapshotUtils.cpp',
   'VkFormatUtils.cpp',
   'VkReconstruction.cpp',
-  'VkUtils.cpp'
+  'VkUtils.cpp',
   'VulkanBoxedHandles.cpp',
   'VulkanDispatch.cpp',
   'VulkanHandleMapping.cpp',
@@ -69,6 +69,7 @@ lib_vulkan_server = static_library(
     inc_common_utils,
     inc_gfxstream_include,
     inc_gl_openglesdispatch,
+    inc_gl_server,
     inc_glm,
     inc_host_backend,
     inc_host_compressed_textures,

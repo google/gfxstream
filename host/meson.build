@@ -74,6 +74,7 @@ if use_auto
   use_composer = true
 endif
 
+gfxstream_host_args += '-DGLM_ENABLE_EXPERIMENTAL=1'
 gfxstream_host_args += '-DGFXSTREAM_MESON_BUILD=1'
 gfxstream_host_args += '-DGFXSTREAM_ENABLE_HOST_GLES=@0@'.format(use_gles ? '1' : '0')
 
