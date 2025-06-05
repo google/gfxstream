@@ -105,7 +105,10 @@ bool SetupGraphicsTestEnvironment() {
     }
     const std::filesystem::path driverEgl = *driverEglOpt;
     const std::filesystem::path driverDirectory = driverEgl.parent_path();
-    gfxstream::base::setEnvironmentVariable("LD_LIBRARY_PATH", driverDirectory.string());
+
+    const std::string currentLdLibraryPath = gfxstream::base::getEnvironmentVariable("LD_LIBRARY_PATH");
+    const std::string updatedLdLibraryPath = driverDirectory.string() + ":" + currentLdLibraryPath;
+    gfxstream::base::setEnvironmentVariable("LD_LIBRARY_PATH", updatedLdLibraryPath);
 #else
     GFXSTREAM_INFO("GraphicsTestEnvironment: not changing host EGL/GLES driver configuration.");
 #endif  // defined(GFXSTREAM_TESTING_USE_GLES_ANGLE)

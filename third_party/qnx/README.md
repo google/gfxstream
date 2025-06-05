@@ -2,14 +2,12 @@
 
 Requires QNX SDP to build, with `QNX_TARGET` and `QNX_HOST` environment variables set. Make sure the latest meson is installed.
 
-Build scripts are made available to show how to cross-compile gfxstream and its aemu dependencies. See `./qnx/nto/build-aemu.sh` and `./qnx/nto/build-gfxstream.sh`
+Build scripts are made available to show how to cross-compile gfxstream. See `./qnx/nto/build-gfxstream.sh`
 
     cd ./qnx
     make
 
 Make will navigate to `./qnx/nto/aarch64le` and run the build scripts from there.
-
-The aemu dependency is downloaded to, and built in `./qnx/nto/aarch64le/aemu`.
 
 Gfxstream's build directory is `./qnx/nto/aarch64le/gfxstream`.
 

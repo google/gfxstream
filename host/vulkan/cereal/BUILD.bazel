@@ -1,24 +1,10 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
+load("//:build_variables.bzl", "GFXSTREAM_HOST_COPTS", "GFXSTREAM_HOST_DEFINES")
 
 package(
     default_applicable_licenses = ["//:gfxstream_license"],
     default_visibility = ["//:gfxstream"],
 )
-
-VKCEREAL_DEFINES = [
-    "VK_GFXSTREAM_STRUCTURE_TYPE_EXT",
-    "VK_GOOGLE_gfxstream",
-] + select({
-    "@platforms//os:macos": [
-        "VK_USE_PLATFORM_METAL_EXT",
-        "VK_USE_PLATFORM_MACOS_MVK",
-    ],
-    "@platforms//os:windows": [
-        "VK_USE_PLATFORM_WIN32_KHR",
-    ],
-    "@platforms//os:linux": [],
-    "//conditions:default": [],
-})
 
 cc_library(
     name = "gfxstream_vulkan_cereal_headers",
@@ -30,7 +16,8 @@ cc_library(
         "common/goldfish_vk_transform.h",
         "common/vk_struct_id.h",
     ],
-    defines = VKCEREAL_DEFINES,
+    copts = GFXSTREAM_HOST_COPTS,
+    defines = GFXSTREAM_HOST_DEFINES,
     includes = ["common"],
     deps = [
         "//common/base:gfxstream_common_base",
@@ -60,7 +47,8 @@ cc_library(
         "common/goldfish_vk_transform.h",
         "common/vk_struct_id.h",
     ],
-    defines = VKCEREAL_DEFINES,
+    copts = GFXSTREAM_HOST_COPTS,
+    defines = GFXSTREAM_HOST_DEFINES,
     includes = ["common"],
     deps = [
         "//common/base:gfxstream_common_base",

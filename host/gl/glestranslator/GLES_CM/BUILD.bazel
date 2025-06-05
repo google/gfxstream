@@ -1,4 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
+load("//:build_variables.bzl", "GFXSTREAM_HOST_COPTS", "GFXSTREAM_HOST_DEFINES")
 
 package(
     default_applicable_licenses = ["//:gfxstream_license"],
@@ -14,9 +15,10 @@ cc_library(
         "GLEScmUtils.cpp",
         "GLEScmValidate.cpp",
     ] + glob(["*.h"]),
-    copts = [
+    copts = GFXSTREAM_HOST_COPTS + [
         "-Wno-extern-c-compat",
     ],
+    defines = GFXSTREAM_HOST_DEFINES,
     deps = [
         "//common/base:gfxstream_common_base",
         "//common/logging:gfxstream_common_logging",
