@@ -5317,7 +5317,7 @@ class VkDecoderGlobalState::Impl {
             bool needGpuDecompression = false;
             if (imageInfo && imageInfo->compressInfo) {
                 needGpuDecompression =
-                    (!deviceInfo->useAstcCpuDecompression && imageInfo->compressInfo->isAstc());
+                    !imageInfo->compressInfo->isAstc() || !deviceInfo->useAstcCpuDecompression;
             }
             // If the image doesn't need GPU decompression, nothing to do.
             if (!needGpuDecompression) {
