@@ -4107,8 +4107,10 @@ class VkDecoderGlobalState::Impl {
 
         std::lock_guard<std::mutex> lock(mMutex);
 
-        auto allocValidationRes = validateDescriptorSetAllocLocked(pAllocateInfo);
-        if (allocValidationRes != VK_SUCCESS) return allocValidationRes;
+        if (m_vkEmulation->getFeatures().VulkanBatchedDescriptorSetUpdate.enabled) {
+            auto allocValidationRes = validateDescriptorSetAllocLocked(pAllocateInfo);
+            if (allocValidationRes != VK_SUCCESS) return allocValidationRes;
+        }
 
         auto res = vk->vkAllocateDescriptorSets(device, pAllocateInfo, pDescriptorSets);
 
