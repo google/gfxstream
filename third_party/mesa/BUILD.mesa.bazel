@@ -941,7 +941,12 @@ cc_library(
         "src/util/blake3/blake3_dispatch.c",
         "src/util/blake3/blake3_impl.h",
         "src/util/blake3/blake3_portable.c",
-    ],
+    ] + select({
+        "@platforms//cpu:aarch64": [
+            "src/util/blake3/blake3_neon.c"
+        ],
+        "//conditions:default": [],
+    }),
     hdrs = [
         "src/util/blake3/blake3.h",
     ],
