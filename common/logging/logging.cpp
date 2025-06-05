@@ -22,6 +22,7 @@
 #include <cstring>
 #include <sstream>
 #include <filesystem>
+#include <vector>
 
 #ifdef __ANDROID__
 #include <android/log.h>
