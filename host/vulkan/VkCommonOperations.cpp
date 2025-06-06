@@ -2463,7 +2463,7 @@ uint32_t VkEmulation::getValidMemoryTypeIndex(uint32_t requiredMemoryTypeBits,
 // pNext, sharingMode, queueFamilyIndexCount, pQueueFamilyIndices, and initialLayout won't be
 // filled.
 std::unique_ptr<VkImageCreateInfo> VkEmulation::generateColorBufferVkImageCreateInfoLocked(
-    VkFormat format, uint32_t width, uint32_t height, VkImageTiling tiling) {
+    VkFormat format, uint32_t width, uint32_t height, VkImageTiling tiling, uint32_t mipLevels) {
     const VkEmulation::ImageSupportInfo* maybeImageSupportInfo = nullptr;
     for (const auto& supportInfo : mImageSupportInfo) {
         if (supportInfo.format == format && supportInfo.supported) {
@@ -2510,7 +2510,7 @@ std::unique_ptr<VkImageCreateInfo> VkEmulation::generateColorBufferVkImageCreate
                 .height = height,
                 .depth = 1,
             },
-        .mipLevels = 1,
+        .mipLevels = mipLevels,
         .arrayLayers = 1,
         .samples = VK_SAMPLE_COUNT_1_BIT,
         .tiling = tiling,
@@ -2527,9 +2527,9 @@ std::unique_ptr<VkImageCreateInfo> VkEmulation::generateColorBufferVkImageCreate
 }
 
 std::unique_ptr<VkImageCreateInfo> VkEmulation::generateColorBufferVkImageCreateInfo(
-    VkFormat format, uint32_t width, uint32_t height, VkImageTiling tiling) {
+    VkFormat format, uint32_t width, uint32_t height, VkImageTiling tiling, uint32_t mipLevels) {
     std::lock_guard<std::mutex> lock(mMutex);
-    return generateColorBufferVkImageCreateInfoLocked(format, width, height, tiling);
+    return generateColorBufferVkImageCreateInfoLocked(format, width, height, tiling, mipLevels);
 }
 
 bool VkEmulation::updateMemReqsForExtMem(std::optional<ExternalHandleInfo> extMemHandleInfo,
@@ -2585,7 +2585,7 @@ bool VkEmulation::updateMemReqsForExtMem(std::optional<ExternalHandleInfo> extMe
 bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum internalFormat,
                                             FrameworkFormat frameworkFormat,
                                             uint32_t colorBufferHandle, bool vulkanOnly,
-                                            uint32_t memoryProperty) {
+                                            uint32_t memoryProperty, uint32_t mipLevels) {
     if (!isFormatVulkanCompatible(internalFormat)) {
         GFXSTREAM_ERROR("Failed to create Vk ColorBuffer: format:%d not compatible.",
                         internalFormat);
@@ -2656,7 +2656,7 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height, GLe
                                ? VK_IMAGE_TILING_LINEAR
                                : VK_IMAGE_TILING_OPTIMAL;
     std::unique_ptr<VkImageCreateInfo> imageCi = generateColorBufferVkImageCreateInfoLocked(
-        vkFormat, infoPtr->width, infoPtr->height, tiling);
+        vkFormat, infoPtr->width, infoPtr->height, tiling, mipLevels);
     // pNext will be filled later.
     if (imageCi == nullptr) {
         // it can happen if the format is not supported
@@ -2908,7 +2908,7 @@ bool VkEmulation::isFormatSupported(GLenum format) {
 
 bool VkEmulation::createVkColorBuffer(uint32_t width, uint32_t height, GLenum internalFormat,
                                       FrameworkFormat frameworkFormat, uint32_t colorBufferHandle,
-                                      bool vulkanOnly, uint32_t memoryProperty) {
+                                      bool vulkanOnly, uint32_t memoryProperty, uint32_t mipLevels) {
     std::lock_guard<std::mutex> lock(mMutex);
     auto infoPtr = gfxstream::base::find(mColorBuffers, colorBufferHandle);
     if (infoPtr) {
@@ -2917,7 +2917,7 @@ bool VkEmulation::createVkColorBuffer(uint32_t width, uint32_t height, GLenum in
     }
 
     return createVkColorBufferLocked(width, height, internalFormat, frameworkFormat,
-                                     colorBufferHandle, vulkanOnly, memoryProperty);
+                                     colorBufferHandle, vulkanOnly, memoryProperty, mipLevels);
 }
 
 std::optional<VkEmulation::VkColorBufferMemoryExport> VkEmulation::exportColorBufferMemory(
@@ -4353,10 +4353,12 @@ std::optional<RepresentativeColorBufferMemoryTypeInfo>
 VkEmulation::findRepresentativeColorBufferMemoryTypeIndexLocked() {
     constexpr const uint32_t kArbitraryWidth = 64;
     constexpr const uint32_t kArbitraryHeight = 64;
+    constexpr const uint32_t kArbitraryMipLevels = 1;
     constexpr const uint32_t kArbitraryHandle = std::numeric_limits<uint32_t>::max();
     if (!createVkColorBufferLocked(kArbitraryWidth, kArbitraryHeight, GL_RGBA8,
                                    FrameworkFormat::FRAMEWORK_FORMAT_GL_COMPATIBLE,
-                                   kArbitraryHandle, true, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) {
+                                   kArbitraryHandle, true, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                                   kArbitraryMipLevels)) {
         GFXSTREAM_ERROR("Failed to setup memory type index test ColorBuffer.");
         return std::nullopt;
     }

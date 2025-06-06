@@ -163,9 +163,10 @@ std::unique_ptr<ColorBuffer::Impl> ColorBuffer::Impl::create(
     if (emulationVk) {
         const bool vulkanOnly = colorBuffer->mColorBufferGl == nullptr;
         const uint32_t memoryProperty = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+        const uint32_t mipLevels = 1;
         colorBuffer->mColorBufferVk =
             vk::ColorBufferVk::create(*emulationVk, handle, width, height, format, frameworkFormat,
-                                      vulkanOnly, memoryProperty, stream);
+                                      vulkanOnly, memoryProperty, stream, mipLevels);
         if (!colorBuffer->mColorBufferVk) {
             if (emulationGl) {
                 // Historically, ColorBufferVk setup was deferred until the first actual Vulkan

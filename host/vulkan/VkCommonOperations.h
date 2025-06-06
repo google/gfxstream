@@ -195,13 +195,14 @@ class VkEmulation {
     std::unique_ptr<VkImageCreateInfo> generateColorBufferVkImageCreateInfo(VkFormat format,
                                                                             uint32_t width,
                                                                             uint32_t height,
-                                                                            VkImageTiling tiling);
+                                                                            VkImageTiling tiling,
+                                                                            uint32_t mipLevels);
 
     bool isFormatSupported(GLenum format);
 
     bool createVkColorBuffer(uint32_t width, uint32_t height, GLenum format,
                              FrameworkFormat frameworkFormat, uint32_t colorBufferHandle,
-                             bool vulkanOnly, uint32_t memoryProperty);
+                             bool vulkanOnly, uint32_t memoryProperty, uint32_t mipLevels);
 
     bool teardownVkColorBuffer(uint32_t colorBufferHandle);
 
@@ -488,14 +489,17 @@ class VkEmulation {
 
     bool getColorBufferAllocationInfoLocked(uint32_t colorBufferHandle, VkDeviceSize* outSize,
                                             uint32_t* outMemoryTypeIndex,
-                                            bool* outMemoryIsDedicatedAlloc, void** outMappedPtr) REQUIRES(mMutex);
+                                            bool* outMemoryIsDedicatedAlloc, void** outMappedPtr)
+        REQUIRES(mMutex);
 
     std::unique_ptr<VkImageCreateInfo> generateColorBufferVkImageCreateInfoLocked(
-        VkFormat format, uint32_t width, uint32_t height, VkImageTiling tiling) REQUIRES(mMutex);
+        VkFormat format, uint32_t width, uint32_t height, VkImageTiling tiling, uint32_t mipLevels)
+        REQUIRES(mMutex);
 
     bool createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum internalFormat,
                                    FrameworkFormat frameworkFormat, uint32_t colorBufferHandle,
-                                   bool vulkanOnly, uint32_t memoryProperty) REQUIRES(mMutex);
+                                   bool vulkanOnly, uint32_t memoryProperty, uint32_t mipLevels)
+        REQUIRES(mMutex);
 
     bool teardownVkColorBufferLocked(uint32_t colorBufferHandle) REQUIRES(mMutex);
 

@@ -9014,7 +9014,7 @@ class VkDecoderGlobalState::Impl {
                 // parameters.
                 colorBufferVkImageCi = m_vkEmulation->generateColorBufferVkImageCreateInfo(
                     resolvedFormat, imageCreateInfo.extent.width, imageCreateInfo.extent.height,
-                    imageCreateInfo.tiling);
+                    imageCreateInfo.tiling, imageCreateInfo.mipLevels);
                 importSourceDebug = "AHardwareBuffer";
             } else if (pNativeBufferANDROID) {
                 // For native buffer binding, we can query the creation parameters from handle.
@@ -9090,7 +9090,8 @@ class VkDecoderGlobalState::Impl {
             imageCreateInfo.usage |= colorBufferVkImageCi->usage;
             // For the AndroidHardwareBuffer binding case VkImageCreateInfo::sharingMode isn't
             // filled in generateColorBufferVkImageCreateInfo, and
-            // VkImageCreateInfo::{format,extent::{width, height}, tiling} are guaranteed to match.
+            // VkImageCreateInfo::{format,extent::{width, height}, tiling, mipLevels} are guaranteed
+            // to match.
             if (importAndroidHardwareBuffer) {
                 continue;
             }
