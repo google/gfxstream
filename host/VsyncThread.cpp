@@ -17,11 +17,8 @@
 
 namespace gfxstream {
 
-VsyncThread::VsyncThread(uint64_t vsyncPeriodNs) :
-    mPeriodNs(vsyncPeriodNs),
-    mThread([this] { threadFunc(); }) {
-    mThread.start();
-}
+VsyncThread::VsyncThread(uint64_t vsyncPeriodNs)
+    : mPeriodNs(vsyncPeriodNs), mThread([this] { threadFunc(); }) {}
 
 VsyncThread::~VsyncThread() {
     exit();
@@ -37,7 +34,7 @@ void VsyncThread::setPeriod(uint64_t newPeriod) {
 
 void VsyncThread::exit() {
     mChannel.send({ CommandType::Exit });
-    mThread.wait();
+    mThread.join();
 }
 
 void VsyncThread::threadFunc() {

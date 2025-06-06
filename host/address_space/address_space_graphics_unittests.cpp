@@ -12,36 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <gtest/gtest.h>                                     // for Message
-#include <stdint.h>                                          // for uint32_t
-#include <stdio.h>                                           // for printf
-#include <string.h>                                          // for size_t
-#include <sys/types.h>                                       // for ssize_t
-#include <algorithm>                                         // for uniform_...
-#include <functional>                                        // for __base
-#include <random>                                            // for default_...
-#include <vector>                                            // for vector
+#include <gtest/gtest.h>
 
-#include "aemu/base/ring_buffer.h"                        // for ring_buf...
-#include "aemu/base/threads/FunctorThread.h"              // for FunctorT...
-#include "host-common/GraphicsAgentFactory.h"                                 // for getConso...
-#include "host-common/AddressSpaceService.h"           // for AddressS...
-#include "host-common/address_space_device.hpp"        // for goldfish...
-#include "host-common/address_space_graphics.h"        // for AddressS...
-#include "host-common/address_space_graphics_types.h"  // for asg_context
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/types.h>
+
+#include <algorithm>
+#include <functional>
+#include <random>
+#include <thread>
+#include <vector>
+
+#include "aemu/base/ring_buffer.h"
+#include "host-common/AddressSpaceService.h"
+#include "host-common/GraphicsAgentFactory.h"
+#include "host-common/address_space_device.hpp"
+#include "host-common/address_space_graphics.h"
+#include "host-common/address_space_graphics_types.h"
+#include "host-common/globals.h"
 #include "host-common/testing/MockGraphicsAgentFactory.h"
-#include "testing/HostAddressSpace.h"  // for HostAddr...
-#include "host-common/globals.h"                                 // for android_hw
+#include "testing/HostAddressSpace.h"
 
 namespace android {
 namespace base {
 class Stream;
 }  // namespace base
 }  // namespace android
-
-using android::base::FunctorThread;
-
-
 
 namespace android {
 namespace emulation {
@@ -366,26 +364,17 @@ public:
 
     class Consumer {
     public:
-        Consumer(struct asg_context context,
-                 ConsumerCallbacks callbacks) :
-            mContext(context),
-            mCallbacks(callbacks),
-            mThread([this] { threadFunc(); }) {
-            mThread.start();
-        }
+     Consumer(struct asg_context context, ConsumerCallbacks callbacks)
+         : mContext(context), mCallbacks(callbacks), mThread([this] { threadFunc(); }) {}
 
-        ~Consumer() {
-            mThread.wait();
-        }
+     ~Consumer() { mThread.join(); }
 
-        void setRoundTrip(bool enabled,
-                          uint32_t toHostBytes = 0,
-                          uint32_t fromHostBytes = 0) {
-            mRoundTripEnabled = enabled;
-            if (mRoundTripEnabled) {
-                mToHostBytes = toHostBytes;
-                mFromHostBytes = fromHostBytes;
-            }
+     void setRoundTrip(bool enabled, uint32_t toHostBytes = 0, uint32_t fromHostBytes = 0) {
+         mRoundTripEnabled = enabled;
+         if (mRoundTripEnabled) {
+             mToHostBytes = toHostBytes;
+             mFromHostBytes = fromHostBytes;
+         }
         }
 
         void handleRoundTrip() {
@@ -541,7 +530,7 @@ public:
 
         struct asg_context mContext;
         ConsumerCallbacks mCallbacks;
-        FunctorThread mThread;
+        std::thread mThread;
         std::vector<char> mReadBuffer;
         std::vector<char> mWriteBuffer;
         size_t mReadPos = 0;

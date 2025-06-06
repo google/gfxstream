@@ -15,7 +15,6 @@ cc_library_static {
         "AlignedBuf.cpp",
         "CpuTime.cpp",
         "FileUtils.cpp",
-        "FunctorThread.cpp",
         "MessageChannel.cpp",
         "PathUtils.cpp",
         "SharedMemory_posix.cpp",

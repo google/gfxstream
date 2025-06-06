@@ -11,16 +11,16 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+#include <gtest/gtest.h>
+
 #include "gfxstream/host/ring_buffer.h"
 
 #include <errno.h>
+
 #include <random>
+#include <thread>
 
-#include <gtest/gtest.h>
-
-#include "gfxstream/threads/FunctorThread.h"
 #include "gfxstream/system/System.h"
-
 
 #ifdef _MSC_VER
 #include "gfxstream/msvc.h"
@@ -97,8 +97,7 @@ TEST(ring_buffer, ProduceConsume) {
     EXPECT_EQ(elements, result);
 }
 
-// General function to pass to FunctorThread to read/write
-// data completely to/from a ring buffer.
+// General function to read/write data completely to/from a ring buffer in a separate thread.
 static void writeTest(ring_buffer* r, const uint8_t* data, size_t stepSize, size_t numSteps) {
     size_t stepsWritten = 0;
     size_t bytes = stepSize * numSteps;
@@ -177,18 +176,13 @@ TEST(ring_buffer, ProduceConsumeMultiThread) {
     ring_buffer r;
     ring_buffer_init(&r);
 
-    FunctorThread producer([&r, &elements]() {
-        writeTest(&r, (uint8_t*)elements.data(), 1, kNumElts);
-    });
+    std::thread producer(
+        [&r, &elements]() { writeTest(&r, (uint8_t*)elements.data(), 1, kNumElts); });
 
-    FunctorThread consumer([&r, &result]() {
-        readTest(&r, (uint8_t*)result.data(), 1, kNumElts);
-    });
+    std::thread consumer([&r, &result]() { readTest(&r, (uint8_t*)result.data(), 1, kNumElts); });
 
-    producer.start();
-    consumer.start();
-
-    consumer.wait();
+    producer.join();
+    consumer.join();
 
     EXPECT_EQ(elements, result);
 }
@@ -222,18 +216,16 @@ TEST(ring_buffer, DISABLED_ProduceConsumeMultiThreadVaryingStepSize) {
         ring_buffer r;
         ring_buffer_init(&r);
 
-        FunctorThread producer([&r, &elements, stepSize, numSteps]() {
+        std::thread producer([&r, &elements, stepSize, numSteps]() {
             writeTest(&r, (uint8_t*)elements.data(), stepSize, numSteps);
         });
 
-        FunctorThread consumer([&r, &result, stepSize, numSteps]() {
+        std::thread consumer([&r, &result, stepSize, numSteps]() {
             readTest(&r, (uint8_t*)result.data(), stepSize, numSteps);
         });
 
-        producer.start();
-        consumer.start();
-
-        consumer.wait();
+        producer.join();
+        consumer.join();
 
         EXPECT_EQ(elements, result);
     }
@@ -339,18 +331,16 @@ TEST(ring_buffer, ProduceConsumeMultiThreadVaryingStepSizeWithView) {
         ring_buffer_view v;
         ring_buffer_view_init(&r, &v, buf.data(), buf.size());
 
-        FunctorThread producer([&r, &v, &elements, stepSize, numSteps]() {
+        std::thread producer([&r, &v, &elements, stepSize, numSteps]() {
             viewWriteTest(&r, &v, (uint8_t*)elements.data(), stepSize, numSteps);
         });
 
-        FunctorThread consumer([&r, &v, &result, stepSize, numSteps]() {
+        std::thread consumer([&r, &v, &result, stepSize, numSteps]() {
             viewReadTest(&r, &v, (uint8_t*)result.data(), stepSize, numSteps);
         });
 
-        producer.start();
-        consumer.start();
-
-        consumer.wait();
+        producer.join();
+        consumer.join();
 
         EXPECT_EQ(elements, result);
     }
@@ -403,18 +393,15 @@ TEST(ring_buffer, FullReadWrite) {
         ring_buffer_view v;
         ring_buffer_view_init(&r, &v, buf.data(), buf.size());
 
-        FunctorThread producer([&r, &v, &elements]() {
+        std::thread producer([&r, &v, &elements]() {
             ring_buffer_write_fully(&r, &v, elements.data(), elements.size());
         });
 
-        FunctorThread consumer([&r, &v, &result]() {
-            ring_buffer_read_fully(&r, &v, result.data(), result.size());
-        });
+        std::thread consumer(
+            [&r, &v, &result]() { ring_buffer_read_fully(&r, &v, result.data(), result.size()); });
 
-        producer.start();
-        consumer.start();
-
-        consumer.wait();
+        producer.join();
+        consumer.join();
 
         EXPECT_EQ(elements, result);
     }
@@ -449,7 +436,7 @@ TEST(ring_buffer, DISABLED_ProducerDrivenSync) {
     size_t read = 0;
     const size_t totalTestLength = kNumElts * 64;
 
-    FunctorThread consumer([&r, &result, &read]() {
+    std::thread consumer([&r, &result, &read]() {
         while (read < totalTestLength) {
             if (ring_buffer_wait_read(&r, nullptr, 1, 1)) {
                 ring_buffer_read_fully(
@@ -470,9 +457,7 @@ TEST(ring_buffer, DISABLED_ProducerDrivenSync) {
         }
     });
 
-    consumer.start();
-
-    FunctorThread producer([&r, &elements]() {
+    std::thread producer([&r, &elements]() {
         size_t written = 0;
         while (written < totalTestLength) {
             if (!ring_buffer_producer_acquire(&r)) {
@@ -491,8 +476,8 @@ TEST(ring_buffer, DISABLED_ProducerDrivenSync) {
         }
     });
 
-    producer.start();
-    consumer.wait();
+    producer.join();
+    consumer.join();
 
     EXPECT_EQ(elements, result);
 }
@@ -533,17 +518,15 @@ TEST(ring_buffer, SpeedTest) {
 
         uint64_t start_us = gfxstream::base::getHighResTimeUs();
 
-        FunctorThread producer([&r, &v, &elements]() {
+        std::thread producer([&r, &v, &elements]() {
             ring_buffer_write_fully(&r, &v, elements.data(), elements.size());
         });
 
-        FunctorThread consumer([&r, &v, &result]() {
-            ring_buffer_read_fully(&r, &v, result.data(), result.size());
-        });
+        std::thread consumer(
+            [&r, &v, &result]() { ring_buffer_read_fully(&r, &v, result.data(), result.size()); });
 
-        producer.start();
-        consumer.start();
-        consumer.wait();
+        producer.join();
+        consumer.join();
 
         uint64_t end_us = gfxstream::base::getHighResTimeUs();
 
