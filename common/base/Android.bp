@@ -28,6 +28,14 @@ cc_library_static {
             cppflags: [
                 "-DHAVE_MEMFD_CREATE",
             ],
+            srcs: [
+                "UdmabufCreator_linux.cpp",
+            ],
+        },
+        host: {
+            srcs: [
+                "UdmabufCreator_stub.cpp",
+            ],
         },
     },
     export_include_dirs: [

@@ -16,6 +16,13 @@ files_lib_common_base = files(
     'Thread_pthread.cpp',
 )
 
+
+if cc.has_header('linux/udmabuf.h')
+  files_lib_common_base += files('UdmabufCreator_linux.cpp')
+else
+  files_lib_common_base += files('UdmabufCreator_stub.cpp')
+endif
+
 lib_common_base = static_library(
   'common_base',
   files_lib_common_base,

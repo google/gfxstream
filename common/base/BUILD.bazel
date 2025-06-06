@@ -57,6 +57,7 @@ cc_library(
         "StringFormat.cpp",
         "System.cpp",
         "Tracing.cpp",
+        "UdmabufCreator_stub.cpp",
     ] + select({
         "@platforms//os:windows": [
             "SharedMemory_win32.cpp",

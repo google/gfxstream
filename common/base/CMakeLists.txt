@@ -52,6 +52,7 @@ set(gfxstream_common_base_srcs
     StringFormat.cpp
     System.cpp
     Tracing.cpp
+    UdmabufCreator_stub.cpp
     )
 
 set(gfxstream_common_base_posix_srcs
