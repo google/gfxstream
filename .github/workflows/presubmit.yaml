@@ -30,6 +30,11 @@ jobs:
       run: sudo bash toolchain/bazel/install_toolchain_dependencies.sh
     - name: Install runtime dependencies
       run: sudo apt-get install -y libvulkan1
+    - name: Build
+      run: |
+        bazel build ... \
+          --graphics_drivers=gles_angle_vulkan_swiftshader \
+          --verbose_failures
     - name: Run unit tests
       run: |
         bazel test \
@@ -55,11 +60,17 @@ jobs:
       run: sudo bash toolchain/bazel/install_toolchain_dependencies.sh
     - name: Install runtime dependencies
       run: sudo apt-get install -y libvulkan1
+    - name: Build
+      run: |
+        bazel build ... \
+          --graphics_drivers=gles_angle_vulkan_swiftshader \
+          --verbose_failures
     - name: Run unit tests
       run: |
         bazel test \
           --graphics_drivers=gles_angle_vulkan_swiftshader \
           --test_output=streamed \
+          --test_timeout=5400 \
           --verbose_failures \
           common/end2end:gfxstream_end2end_tests
 
