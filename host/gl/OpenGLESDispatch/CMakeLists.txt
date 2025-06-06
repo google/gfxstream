@@ -25,6 +25,7 @@ add_library(
 target_link_libraries(
     gfxstream_openglesdispatch.headers
     INTERFACE
+    gfxstream_host_backend.headers
     gfxstream_opengl_headers)
 target_include_directories(
     gfxstream_openglesdispatch.headers
@@ -53,6 +54,7 @@ target_link_libraries(
     gfxstream_openglesdispatch.headers
     gles1_dec
     gles2_dec
+    gfxstream_host_backend
     gfxstream_host_decoder_common
     PRIVATE
     EGL_translator_static)

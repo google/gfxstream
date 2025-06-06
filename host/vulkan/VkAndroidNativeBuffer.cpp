@@ -18,7 +18,6 @@
 
 #include "FrameBuffer.h"
 #include "GrallocDefs.h"
-#include "SyncThread.h"
 #include "VkCommonOperations.h"
 #include "VulkanDispatch.h"
 #include "cereal/common/goldfish_vk_deepcopy.h"

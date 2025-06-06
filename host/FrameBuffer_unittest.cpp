@@ -42,7 +42,6 @@ namespace {
 
 using gfxstream::host::StdioStream;
 using gl::EGLDispatch;
-using gl::EmulatedEglConfigList;
 using gl::GLESApi_3_0;
 using gl::LazyLoadedEGLDispatch;
 using gl::LazyLoadedGLESv2Dispatch;
@@ -345,8 +344,13 @@ TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_FormatChange) {
 
 // Tests obtaining EGL configs from FrameBuffer.
 TEST_F(FrameBufferTest, Configs) {
-    const EmulatedEglConfigList* configs = mFb->getConfigs();
-    EXPECT_GE(configs->size(), (size_t)0);
+    EGLint numConfigs = 0;
+    EGLint numAttribs = 0;
+    mFb->getNumConfigs(&numConfigs, &numAttribs);
+    EXPECT_GE(numConfigs, 0);
+
+    std::vector<GLuint> buffer((numConfigs + 1) * numAttribs, 0);
+    mFb->getConfigs(buffer.size(), buffer.data());
 }
 
 // Tests creating GL context from FrameBuffer.

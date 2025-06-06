@@ -28,7 +28,6 @@
 #include "DebugUtilsHelper.h"
 #include "DeviceLostHelper.h"
 #include "DisplayVk.h"
-#include "gfxstream/host/external_object_manager.h"
 #include "FrameworkFormats.h"
 #include "gfxstream/Optional.h"
 #include "gfxstream/ThreadAnnotations.h"
@@ -36,6 +35,8 @@
 #include "gfxstream/host/Features.h"
 #include "gfxstream/host/GfxApiLogger.h"
 #include "gfxstream/host/RenderDoc.h"
+#include "gfxstream/host/external_object_manager.h"
+#include "gfxstream/host/vk_enums.h"
 #include "goldfish_vk_private_defs.h"
 
 #if defined(_WIN32)
@@ -165,17 +166,8 @@ class VkEmulation {
 
     const VkPhysicalDeviceProperties getPhysicalDeviceProperties() const;
 
-    struct RepresentativeColorBufferMemoryTypeInfo {
-        // The host memory type index used for Buffer/ColorBuffer allocations.
-        uint32_t hostMemoryTypeIndex;
-
-        // The guest memory type index that will be returned to guest processes querying
-        // the memory type index of host AHardwareBuffer/ColorBuffer allocations. This may
-        // point to an emulated memory type so that the host can control which memory flags are
-        // exposed to the guest (i.e. hide VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT from the guest).
-        uint32_t guestMemoryTypeIndex;
-    };
-    RepresentativeColorBufferMemoryTypeInfo getRepresentativeColorBufferMemoryTypeInfo() const;
+    host::RepresentativeColorBufferMemoryTypeInfo getRepresentativeColorBufferMemoryTypeInfo()
+        const;
 
     void onVkDeviceLost();
 
@@ -404,7 +396,7 @@ class VkEmulation {
    private:
     VkEmulation() = default;
 
-    std::optional<RepresentativeColorBufferMemoryTypeInfo>
+    std::optional<host::RepresentativeColorBufferMemoryTypeInfo>
     findRepresentativeColorBufferMemoryTypeIndexLocked() REQUIRES(mMutex);
 
     struct ImageSupportInfo {
@@ -524,7 +516,8 @@ class VkEmulation {
 
     gfxstream::host::FeatureSet mFeatures;
 
-    RepresentativeColorBufferMemoryTypeInfo mRepresentativeColorBufferMemoryTypeInfo;
+    gfxstream::host::RepresentativeColorBufferMemoryTypeInfo
+        mRepresentativeColorBufferMemoryTypeInfo;
 
     // Whether to use deferred command submission.
     bool mUseDeferredCommands = false;
