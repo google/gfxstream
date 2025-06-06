@@ -21,6 +21,7 @@
 namespace gfxstream {
 namespace base {
 namespace {
+
 TEST(WorkerThread, TheReturnedFutureFromEnqueueShouldBeReadyWhenTheWorkerStops) {
     struct Item {};
     WorkerThread<Item> worker([](Item&&) { return WorkerProcessingResult::Stop; });
@@ -36,6 +37,7 @@ TEST(WorkerThread, TheReturnedFutureFromEnqueueShouldBeReadyBeforeTheWorkerStart
     EXPECT_EQ(worker.enqueue(Item{}).wait_for(std::chrono::milliseconds(0)),
               std::future_status::ready);
 }
+
 }  // namespace
 }  // namespace base
 }  // namespace android

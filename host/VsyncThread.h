@@ -13,11 +13,12 @@
 // limitations under the License.
 #pragma once
 
-#include "gfxstream/threads/FunctorThread.h"
-#include "gfxstream/synchronization/MessageChannel.h"
-
 #include <inttypes.h>
+
 #include <functional>
+#include <thread>
+
+#include "gfxstream/synchronization/MessageChannel.h"
 
 namespace gfxstream {
 
@@ -30,7 +31,7 @@ namespace gfxstream {
 // properly schedule presents
 // 2.
 class VsyncThread {
-public:
+   public:
     using Count = uint64_t;
     using VsyncTask = std::function<void(Count)>;
     VsyncThread(uint64_t vsyncPeriod);
@@ -73,7 +74,7 @@ private:
     uint64_t mCount = 0;
     bool mExiting = false;
     gfxstream::base::MessageChannel<VsyncThreadCommand, 128> mChannel;
-    gfxstream::base::FunctorThread mThread;
+    std::thread mThread;
 };
 
 }  // namespace gfxstream

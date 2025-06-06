@@ -7,7 +7,6 @@ files_lib_common_base = files(
     'AlignedBuf.cpp',
     'CpuTime.cpp',
     'FileUtils.cpp',
-    'FunctorThread.cpp',
     'MessageChannel.cpp',
     'PathUtils.cpp',
     'SharedMemory_posix.cpp',

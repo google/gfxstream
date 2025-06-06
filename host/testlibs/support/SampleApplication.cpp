@@ -14,28 +14,28 @@
 
 #include "gfxstream/host/testing/SampleApplication.h"
 
-#include "FrameBuffer.h"
-#include "OpenGLESDispatch/OpenGLDispatchLoader.h"
-#include "RenderThreadInfo.h"
-#include "gfxstream/synchronization/MessageChannel.h"
-#include "gfxstream/host/renderer_operations.h"
-#include "gfxstream/host/testing/ShaderUtils.h"
-#include "gfxstream/host/testing/OSWindow.h"
-#include "gfxstream/synchronization/ConditionVariable.h"
-#include "gfxstream/synchronization/Lock.h"
-#include "gfxstream/system/System.h"
-#include "gfxstream/threads/FunctorThread.h"
-#include "render-utils/render_api_platform_types.h"
-
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <GLES3/gl3.h>
+
+#include <thread>
+
+#include "FrameBuffer.h"
+#include "OpenGLESDispatch/OpenGLDispatchLoader.h"
+#include "RenderThreadInfo.h"
+#include "gfxstream/host/renderer_operations.h"
+#include "gfxstream/host/testing/OSWindow.h"
+#include "gfxstream/host/testing/ShaderUtils.h"
+#include "gfxstream/synchronization/ConditionVariable.h"
+#include "gfxstream/synchronization/Lock.h"
+#include "gfxstream/synchronization/MessageChannel.h"
+#include "gfxstream/system/System.h"
+#include "render-utils/render_api_platform_types.h"
 
 namespace gfxstream {
 
 using gfxstream::base::AutoLock;
 using gfxstream::base::ConditionVariable;
-using gfxstream::base::FunctorThread;
 using gfxstream::base::Lock;
 using gfxstream::base::MessageChannel;
 using gl::EmulatedEglFenceSync;
@@ -123,25 +123,22 @@ OSWindow* createOrGetTestWindow(int xoffset, int yoffset, int width, int height)
 
 class Vsync {
 public:
-    Vsync(int refreshRate = 60) :
-        mRefreshRate(refreshRate),
-        mRefreshIntervalUs(1000000ULL / mRefreshRate),
-        mThread([this] {
-            while (true) {
-                if (mShouldStop) return 0;
-                gfxstream::base::sleepUs(mRefreshIntervalUs);
-                AutoLock lock(mLock);
-                mSync = 1;
-                mCv.signal();
-            }
-            return 0;
-        }) {
-        mThread.start();
-    }
+ Vsync(int refreshRate = 60)
+     : mRefreshRate(refreshRate), mRefreshIntervalUs(1000000ULL / mRefreshRate), mThread([this] {
+           while (true) {
+               if (mShouldStop) return 0;
+               gfxstream::base::sleepUs(mRefreshIntervalUs);
+               AutoLock lock(mLock);
+               mSync = 1;
+               mCv.signal();
+           }
+           return 0;
+       }) {}
 
-    ~Vsync() {
-        mShouldStop = true;
-    }
+ ~Vsync() {
+     mShouldStop = true;
+     mThread.join();
+ }
 
     void waitUntilNextVsync() {
         AutoLock lock(mLock);
@@ -160,7 +157,7 @@ private:
     Lock mLock;
     ConditionVariable mCv;
 
-    FunctorThread mThread;
+    std::thread mThread;
 };
 
 // app -> SF queue: separate storage, bindTexture blits
@@ -483,7 +480,7 @@ void SampleApplication::surfaceFlingerComposerLoop() {
         hwc2sfQueue.queueBuffer(ColorBufferQueue::Item(hwcColorBuffers[i], nullptr));
     }
 
-    FunctorThread appThread([&]() {
+    std::thread appThread([&]() {
         RenderThreadInfo* tInfo = new RenderThreadInfo;
         unsigned int appContext = mFb->createEmulatedEglContext(0, 0, GLESApi_3_0);
         unsigned int appSurface = mFb->createEmulatedEglWindowSurface(0, mWidth, mHeight);
@@ -493,7 +490,10 @@ void SampleApplication::surfaceFlingerComposerLoop() {
 
         sf2appQueue.dequeueBuffer(&sfItem);
         mFb->setEmulatedEglWindowSurfaceColorBuffer(appSurface, sfItem.colorBuffer);
-        if (sfItem.sync) { sfItem.sync->wait(EGL_FOREVER_KHR); sfItem.sync->decRef(); }
+        if (sfItem.sync) {
+            sfItem.sync->wait(EGL_FOREVER_KHR);
+            sfItem.sync->decRef();
+        }
 
         this->initialize();
 
@@ -504,13 +504,16 @@ void SampleApplication::surfaceFlingerComposerLoop() {
 
             sf2appQueue.dequeueBuffer(&sfItem);
             mFb->setEmulatedEglWindowSurfaceColorBuffer(appSurface, sfItem.colorBuffer);
-            if (sfItem.sync) { sfItem.sync->wait(EGL_FOREVER_KHR); sfItem.sync->decRef(); }
+            if (sfItem.sync) {
+                sfItem.sync->wait(EGL_FOREVER_KHR);
+                sfItem.sync->decRef();
+            }
         }
 
         delete tInfo;
     });
 
-    FunctorThread sfThread([&]() {
+    std::thread sfThread([&]() {
         if (mIsCompose) {
             drawWorkerWithCompose(app2sfQueue, sf2appQueue);
         }
@@ -518,9 +521,6 @@ void SampleApplication::surfaceFlingerComposerLoop() {
             drawWorker(app2sfQueue, sf2appQueue, sf2hwcQueue, hwc2sfQueue);
         }
     });
-
-    sfThread.start();
-    appThread.start();
 
     Vsync vsync(mRefreshRate);
     ColorBufferQueue::Item sfItem = {};
@@ -537,8 +537,8 @@ void SampleApplication::surfaceFlingerComposerLoop() {
         }
     }
 
-    appThread.wait();
-    sfThread.wait();
+    appThread.join();
+    sfThread.join();
 }
 
 void SampleApplication::drawOnce() {
