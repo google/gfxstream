@@ -580,7 +580,7 @@ void VirtioGpuFrontend::fillCaps(uint32_t set, void* caps) {
 
             auto* fb = gfxstream::FrameBuffer::getFB();
             if (fb->hasEmulationVk()) {
-                const auto info = fb->getEmulationVk().getRepresentativeColorBufferMemoryTypeInfo();
+                const auto info = fb->getRepresentativeColorBufferMemoryTypeInfo();
                 capset->colorBufferMemoryIndex = info.guestMemoryTypeIndex;
                 capset->deferredMapping = 1;
             }

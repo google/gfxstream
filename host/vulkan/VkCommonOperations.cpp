@@ -60,6 +60,7 @@ using gfxstream::base::kNullopt;
 using gfxstream::base::Optional;
 using gfxstream::base::StaticLock;
 using gfxstream::base::StaticMap;
+using gfxstream::host::RepresentativeColorBufferMemoryTypeInfo;
 
 constexpr size_t kPageBits = 12;
 constexpr size_t kPageSize = 1u << kPageBits;
@@ -1872,8 +1873,8 @@ const VkPhysicalDeviceProperties VkEmulation::getPhysicalDeviceProperties() cons
     return mDeviceInfo.physdevProps;
 }
 
-VkEmulation::RepresentativeColorBufferMemoryTypeInfo
-VkEmulation::getRepresentativeColorBufferMemoryTypeInfo() const {
+RepresentativeColorBufferMemoryTypeInfo VkEmulation::getRepresentativeColorBufferMemoryTypeInfo()
+    const {
     return mRepresentativeColorBufferMemoryTypeInfo;
 }
 
@@ -4298,7 +4299,7 @@ std::unique_ptr<BorrowedImageInfoVk> VkEmulation::borrowColorBufferForDisplay(
     return compositorInfo;
 }
 
-std::optional<VkEmulation::RepresentativeColorBufferMemoryTypeInfo>
+std::optional<RepresentativeColorBufferMemoryTypeInfo>
 VkEmulation::findRepresentativeColorBufferMemoryTypeIndexLocked() {
     constexpr const uint32_t kArbitraryWidth = 64;
     constexpr const uint32_t kArbitraryHeight = 64;
@@ -4326,7 +4327,7 @@ VkEmulation::findRepresentativeColorBufferMemoryTypeIndexLocked() {
                                                   mFeatures);
     uint32_t guestMemoryTypeIndex = helper.getGuestColorBufferMemoryTypeIndex();
 
-    return VkEmulation::RepresentativeColorBufferMemoryTypeInfo{
+    return RepresentativeColorBufferMemoryTypeInfo{
         .hostMemoryTypeIndex = hostMemoryTypeIndex,
         .guestMemoryTypeIndex = guestMemoryTypeIndex,
     };

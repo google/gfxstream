@@ -30,9 +30,7 @@
 #include "Compositor.h"
 #include "CompositorGl.h"
 #include "ContextHelper.h"
-#include "gfxstream/host/display.h"
 #include "DisplayGl.h"
-#include "gfxstream/host/display_surface.h"
 #include "EmulatedEglConfig.h"
 #include "EmulatedEglContext.h"
 #include "EmulatedEglFenceSync.h"
@@ -42,8 +40,11 @@
 #include "OpenGLESDispatch/GLESv2Dispatch.h"
 #include "ReadbackWorkerGl.h"
 #include "TextureDraw.h"
-#include "render-utils/stream.h"
 #include "gfxstream/host/Features.h"
+#include "gfxstream/host/display.h"
+#include "gfxstream/host/display_surface.h"
+#include "gfxstream/host/gl_enums.h"
+#include "render-utils/stream.h"
 
 #define EGL_NO_CONFIG ((EGLConfig)0)
 
@@ -64,6 +65,9 @@ class EmulationGl {
 
     const EGLDispatch* getEglDispatch();
     const GLESv2Dispatch* getGles2Dispatch();
+
+    std::string getEglString(EGLenum name);
+    std::string getGlString(EGLenum name);
 
     GLESDispatchMaxVersion getGlesMaxDispatchVersion() const;
 

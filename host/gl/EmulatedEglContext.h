@@ -16,27 +16,19 @@
 
 #pragma once
 
+#include <EGL/egl.h>
+
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
 
-#include <EGL/egl.h>
-
-#include "gfxstream/host/GLDecoderContextData.h"
 #include "Handle.h"
+#include "gfxstream/host/GLDecoderContextData.h"
+#include "gfxstream/host/gl_enums.h"
 #include "render-utils/stream.h"
 
 namespace gfxstream {
 namespace gl {
-
-// Tracks all the possible OpenGL ES API versions.
-enum GLESApi {
-    GLESApi_CM = 1,
-    GLESApi_2 = 2,
-    GLESApi_3_0 = 3,
-    GLESApi_3_1 = 4,
-    GLESApi_3_2 = 5,
-};
 
 // A class used to model a guest EGLContext. This simply wraps a host
 // EGLContext, associated with an GLDecoderContextData instance that is
@@ -48,32 +40,29 @@ class EmulatedEglContext {
     // |config| is the host EGLConfig to use.
     // |sharedContext| is either EGL_NO_CONTEXT of a host EGLContext handle.
     // |version| specifies the GLES version as a GLESApi.
-    static std::unique_ptr<EmulatedEglContext> create(EGLDisplay display,
-                                                      EGLConfig config,
-                                                      EGLContext sharedContext,
-                                                      HandleType hndl,
-                                                      GLESApi = GLESApi_CM);
+   static std::unique_ptr<EmulatedEglContext> create(EGLDisplay display, EGLConfig config,
+                                                     EGLContext sharedContext, HandleType hndl,
+                                                     GLESApi api = GLESApi_CM);
 
-    // Destructor.
-    ~EmulatedEglContext();
+   // Destructor.
+   ~EmulatedEglContext();
 
-    // Retrieve host EGLContext value.
-    EGLContext getEGLContext() const { return mContext; }
+   // Retrieve host EGLContext value.
+   EGLContext getEGLContext() const { return mContext; }
 
-    // Return the GLES version it is trying to emulate in this context.
-    // This can be different from the underlying version when using
-    // GLES12Translator.
-    GLESApi clientVersion() const;
+   // Return the GLES version it is trying to emulate in this context.
+   // This can be different from the underlying version when using
+   // GLES12Translator.
+   GLESApi clientVersion() const;
 
-    // Retrieve GLDecoderContextData instance reference for this
-    // EmulatedEglContext instance.
-    GLDecoderContextData& decoderContextData() { return mContextData; }
+   // Retrieve GLDecoderContextData instance reference for this
+   // EmulatedEglContext instance.
+   GLDecoderContextData& decoderContextData() { return mContextData; }
 
-    HandleType getHndl() const { return mHndl; }
+   HandleType getHndl() const { return mHndl; }
 
-    void onSave(gfxstream::Stream* stream);
-    static std::unique_ptr<EmulatedEglContext> onLoad(gfxstream::Stream* stream,
-                                                      EGLDisplay display);
+   void onSave(gfxstream::Stream* stream);
+   static std::unique_ptr<EmulatedEglContext> onLoad(gfxstream::Stream* stream, EGLDisplay display);
   private:
     EmulatedEglContext(EGLDisplay display,
                        EGLContext context,

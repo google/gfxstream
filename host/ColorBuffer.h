@@ -14,22 +14,18 @@
 
 #pragma once
 
+#include <GLES3/gl3.h>
+
 #include <memory>
 
-#include "gfxstream/host/borrowed_image.h"
-#include "gfxstream/host/external_object_manager.h"
 #include "FrameworkFormats.h"
 #include "Handle.h"
 #include "Hwc2.h"
-#include "render-utils/stream.h"
+#include "gfxstream/host/borrowed_image.h"
+#include "gfxstream/host/external_object_manager.h"
 #include "render-utils/Renderer.h"
+#include "render-utils/stream.h"
 #include "snapshot/LazySnapshotObj.h"
-
-#if GFXSTREAM_ENABLE_HOST_GLES
-#include "gl/ColorBufferGl.h"
-#else
-#include "GlesCompat.h"
-#endif
 
 namespace gfxstream {
 namespace gl {
@@ -39,7 +35,6 @@ class EmulationGl;
 
 namespace gfxstream {
 namespace vk {
-class ColorBufferVk;
 class VkEmulation;
 }  // namespace vk
 }  // namespace gfxstream
@@ -60,11 +55,11 @@ class ColorBuffer : public LazySnapshotObj<ColorBuffer> {
     void onSave(gfxstream::Stream* stream);
     void restore();
 
-    HandleType getHndl() const { return mHandle; }
-    uint32_t getWidth() const { return mWidth; }
-    uint32_t getHeight() const { return mHeight; }
-    GLenum getFormat() const { return mFormat; }
-    FrameworkFormat getFrameworkFormat() const { return mFrameworkFormat; }
+    HandleType getHndl() const;
+    uint32_t getWidth() const;
+    uint32_t getHeight() const;
+    GLenum getFormat() const;
+    FrameworkFormat getFrameworkFormat() const;
 
     void readToBytes(int x, int y, int width, int height, GLenum pixelsFormat, GLenum pixelsType,
                      void* outPixels, uint64_t outPixelsSize);
@@ -112,27 +107,10 @@ class ColorBuffer : public LazySnapshotObj<ColorBuffer> {
 #endif
 
    private:
-    ColorBuffer(HandleType, uint32_t width, uint32_t height, GLenum format,
-                FrameworkFormat frameworkFormat);
+    ColorBuffer() = default;
 
-    const HandleType mHandle;
-    const uint32_t mWidth;
-    const uint32_t mHeight;
-    const GLenum mFormat;
-    const FrameworkFormat mFrameworkFormat;
-
-#if GFXSTREAM_ENABLE_HOST_GLES
-    // If GL emulation is enabled.
-    std::unique_ptr<gl::ColorBufferGl> mColorBufferGl;
-#else
-    std::unique_ptr<uint32_t> mColorBufferGl = nullptr;
-#endif
-
-    // If Vk emulation is enabled.
-    std::unique_ptr<vk::ColorBufferVk> mColorBufferVk;
-
-    bool mGlAndVkAreSharingExternalMemory = false;
-    bool mGlTexDirty = false;
+    class Impl;
+    std::unique_ptr<Impl> mImpl;
 };
 
 typedef std::shared_ptr<ColorBuffer> ColorBufferPtr;

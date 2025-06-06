@@ -610,11 +610,7 @@ void RenderWindow::setTranslation(float px, float py) {
 
 void RenderWindow::setScreenMask(int width, int height, const unsigned char* rgbaData) {
     if (FrameBuffer* fb = FrameBuffer::getFB()) {
-#if GFXSTREAM_ENABLE_HOST_GLES
-        if (fb->hasEmulationGl()) {
-            fb->getTextureDraw()->setScreenMask(width, height, rgbaData);
-        }
-#endif
+        fb->setScreenMask(width, height, rgbaData);
     }
 }
 
