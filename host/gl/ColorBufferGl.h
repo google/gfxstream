@@ -16,24 +16,24 @@
 
 #pragma once
 
-#include <memory>
-#include <unordered_map>
-#include <unordered_set>
-
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <GLES/gl.h>
 #include <GLES3/gl3.h>
 
+#include <memory>
+#include <unordered_map>
+#include <unordered_set>
+
 #include "ContextHelper.h"
 #include "FrameworkFormats.h"
 #include "Handle.h"
 #include "Hwc2.h"
-#include "render-utils/stream.h"
-#include "gfxstream/ManagedDescriptor.hpp"
+#include "gfxstream/ManagedDescriptor.h"
 #include "gfxstream/host/Features.h"
 #include "gfxstream/host/borrowed_image.h"
 #include "render-utils/Renderer.h"
+#include "render-utils/stream.h"
 
 // From ANGLE "src/common/angleutils.h"
 #define GL_BGR10_A2_ANGLEX 0x6AF9
