@@ -24,9 +24,9 @@ std::unique_ptr<ColorBufferVk> ColorBufferVk::create(VkEmulation& vkEmulation, u
                                                      uint32_t width, uint32_t height, GLenum format,
                                                      FrameworkFormat frameworkFormat,
                                                      bool vulkanOnly, uint32_t memoryProperty,
-                                                     gfxstream::Stream* stream) {
+                                                     gfxstream::Stream* stream, uint32_t mipLevels) {
     if (!vkEmulation.createVkColorBuffer(width, height, format, frameworkFormat, handle, vulkanOnly,
-                                         memoryProperty)) {
+                                         memoryProperty, mipLevels)) {
         GFXSTREAM_DEBUG("Failed to create ColorBufferVk:%d", handle);
         return nullptr;
     }

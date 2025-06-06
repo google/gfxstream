@@ -33,7 +33,8 @@ class ColorBufferVk {
                                                  uint32_t width, uint32_t height, GLenum format,
                                                  FrameworkFormat frameworkFormat, bool vulkanOnly,
                                                  uint32_t memoryProperty,
-                                                 gfxstream::Stream* stream = nullptr);
+                                                 gfxstream::Stream* stream,
+                                                 uint32_t mipLevels);
 
     ~ColorBufferVk();
 

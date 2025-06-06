@@ -477,17 +477,19 @@ TEST_F(VulkanFrameBufferTest, VkColorBufferWithoutMemoryProperties) {
     // Create a color buffer without any memory properties restriction.
     EXPECT_TRUE(vkEmulation.createVkColorBuffer(mWidth, mHeight, GL_RGBA,
                                                 FRAMEWORK_FORMAT_GL_COMPATIBLE,
-                                                kArbitraryColorBufferHandle, true, /* vulkanOnly */
-                                                0 /* memoryProperty */
-                                                ));
+                                                kArbitraryColorBufferHandle,
+                                                true /* vulkanOnly */,
+                                                0 /* memoryProperty */,
+                                                1 /* mipLevels */));
     EXPECT_TRUE(vkEmulation.teardownVkColorBuffer(kArbitraryColorBufferHandle));
 }
 
 TEST_F(VulkanFrameBufferTest, VkColorBufferWithMemoryPropertyFlags) {
     auto& vkEmulation = mFb->getEmulationVk();
 
-    VkMemoryPropertyFlags kTargetMemoryPropertyFlags =
+    const VkMemoryPropertyFlags kTargetMemoryPropertyFlags =
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+    const uint32_t kMipLevels = 1;
 
     // Create a Vulkan image with the same dimension and usage as
     // the color buffer, to get a possible memory type index.
@@ -546,7 +548,8 @@ TEST_F(VulkanFrameBufferTest, VkColorBufferWithMemoryPropertyFlags) {
     EXPECT_TRUE(vkEmulation.createVkColorBuffer(mWidth, mHeight, GL_RGBA,
                                                 FRAMEWORK_FORMAT_GL_COMPATIBLE,
                                                 kArbitraryColorBufferHandle, true, /* vulkanOnly */
-                                                static_cast<uint32_t>(kTargetMemoryPropertyFlags)));
+                                                static_cast<uint32_t>(kTargetMemoryPropertyFlags),
+                                                kMipLevels));
 
     uint32_t allocatedTypeIndex = 0u;
     EXPECT_TRUE(vkEmulation.getColorBufferAllocationInfo(kArbitraryColorBufferHandle, nullptr,
