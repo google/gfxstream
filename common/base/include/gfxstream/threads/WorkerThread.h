@@ -14,16 +14,16 @@
 
 #pragma once
 
+#include <condition_variable>
 #include <functional>
 #include <future>
+#include <mutex>
 #include <optional>
+#include <thread>
 #include <utility>
 #include <vector>
 
-#include "gfxstream/Compiler.h"
-#include "gfxstream/synchronization/ConditionVariable.h"
-#include "gfxstream/threads/FunctorThread.h"
-#include "gfxstream/synchronization/Lock.h"
+#include "gfxstream/ThreadAnnotations.h"
 
 //
 // WorkerThread<Item> encapsulates an asynchronous processing queue for objects
@@ -65,46 +65,49 @@ enum class WorkerProcessingResult { Continue, Stop };
 
 template <class Item>
 class WorkerThread {
-    DISALLOW_COPY_AND_ASSIGN(WorkerThread);
-
-public:
+  public:
     using Result = WorkerProcessingResult;
     // A function that's called for each enqueued item in a separate thread.
     using Processor = std::function<Result(Item&&)>;
 
-    WorkerThread(Processor&& processor)
-        : mProcessor(std::move(processor)), mThread([this]() { worker(); }) {
-        mQueue.reserve(10);
+    WorkerThread(Processor&& processor) : mProcessor(std::move(processor)) { mQueue.reserve(10); }
+
+    WorkerThread(const WorkerThread&) = delete;
+    WorkerThread& operator=(const WorkerThread&) = delete;
+
+    ~WorkerThread() {
+        join();
     }
-    ~WorkerThread() { join(); }
 
     // Starts the worker thread.
     bool start() {
-        bool expectedStarted = false;
-        if (!mStarted.compare_exchange_strong(expectedStarted, true)) {
-            return true;
-        }
-        if (!mThread.start()) {
-            AutoLock lock(mLock);
-            setFinishedAndDrainTasks();
-            return false;
+        std::lock_guard<std::mutex> lock(mThreadMutex);
+        if (!mThread) {
+            mThread.emplace([this]() { ThreadLoop(); });
         }
         return true;
     }
+
     // Waits for all enqueue()'d items to finish or the worker stops.
     void waitQueuedItems() {
         // Enqueue an empty sync command.
         std::future<void> completeFuture = enqueueImpl(Command());
         completeFuture.wait();
     }
-    // Waits for worker thread to complete.
-    void join() { mThread.wait(); }
 
     // Moves the |item| into internal queue for processing. If the command is enqueued after the
     // stop command is enqueued or before start() returns, the returned future will also be ready
     // without processing the command.
     std::future<void> enqueue(Item&& item) {
         return enqueueImpl(Command(std::move(item)));
+    }
+
+    void join() {
+        std::lock_guard<std::mutex> lock(mThreadMutex);
+        if (mThread) {
+            mThread->join();
+            mThread.reset();
+        }
     }
 
    private:
@@ -120,41 +123,48 @@ public:
     };
 
     std::future<void> enqueueImpl(Command command) {
-        base::AutoLock lock(mLock);
-        // We don't enqueue any new items if mFinished is set to true.
-        if (!mStarted || mFinished) {
+        std::lock_guard<std::mutex> lock(mMutex);
+
+        // Do not enqueue any new items if exiting.
+        if (mExiting) {
             command.mCompletedPromise.set_value();
             return command.mCompletedPromise.get_future();
         }
 
         std::future<void> res = command.mCompletedPromise.get_future();
         mQueue.emplace_back(std::move(command));
-        mCv.signalAndUnlock(&lock);
+        mCv.notify_one();
         return res;
     }
 
-    void worker() {
+    void ThreadLoop() {
         std::vector<Command> todo;
         todo.reserve(10);
         for (;;) {
             {
-                base::AutoLock lock(mLock);
-                while (mQueue.empty()) {
-                    mCv.wait(&lock);
-                }
+                std::unique_lock<std::mutex> lock(mMutex);
+                mCv.wait(lock, [this]{ return !mQueue.empty(); });
                 todo.swap(mQueue);
             }
 
             bool shouldStop = false;
             for (Command& item : todo) {
                 if (!shouldStop && item.mWorkItem) {
-                    // Normal work item
                     shouldStop = mProcessor(std::move(item.mWorkItem.value())) == Result::Stop;
                 }
                 item.mCompletedPromise.set_value();
             }
+
             if (shouldStop) {
-                setFinishedAndDrainTasks();
+                std::lock_guard<std::mutex> lock(mMutex);
+
+                mExiting = true;
+
+                // Signal pending tasks as if they are completed.
+                for (Command& item : mQueue) {
+                    item.mCompletedPromise.set_value();
+                }
+
                 return;
             }
 
@@ -162,26 +172,15 @@ public:
         }
     }
 
-    void setFinishedAndDrainTasks() {
-        base::AutoLock lock(mLock);
-        // Set mFinished so that no new tasks will be enqueued.
-        mFinished = true;
-        // Signal pending tasks as if they are completed.
-        for (Command& item : mQueue) {
-            item.mCompletedPromise.set_value();
-        }
-        return;
-    }
-
     Processor mProcessor;
-    base::FunctorThread mThread;
-    std::vector<Command> mQueue;
-    base::Lock mLock;
-    base::ConditionVariable mCv;
 
-    std::atomic_bool mStarted = false;
-    // Must be accessd after grabbing the lock.
-    bool mFinished = false;
+    std::mutex mThreadMutex;
+    std::optional<std::thread> mThread GUARDED_BY(mThreadMutex);
+
+    std::mutex mMutex;
+    std::condition_variable mCv GUARDED_BY(mMutex);
+    std::vector<Command> mQueue GUARDED_BY(mMutex);
+    bool mExiting GUARDED_BY(mMutex) = false;
 };
 
 }  // namespace base

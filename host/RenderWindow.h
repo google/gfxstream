@@ -15,12 +15,13 @@
 #ifndef ANDROID_EMUGL_LIBRENDER_RENDER_WINDOW_H
 #define ANDROID_EMUGL_LIBRENDER_RENDER_WINDOW_H
 
-#include "render-utils/render_api.h"
+#include <optional>
+#include <thread>
 
-#include "gfxstream/synchronization/MessageChannel.h"
-#include "gfxstream/threads/FunctorThread.h"
-#include "gfxstream/threads/Thread.h"
 #include "gfxstream/host/Features.h"
+#include "gfxstream/synchronization/MessageChannel.h"
+#include "gfxstream/threads/Thread.h"
+#include "render-utils/render_api.h"
 
 namespace gfxstream {
 
@@ -50,7 +51,7 @@ struct RenderWindowMessage;
 //  6) Call repaint() to force a repaint().
 //
 class RenderWindow {
-public:
+   public:
     // Create new instance. |width| and |height| are the dimensions of the
     // emulated accelerated framebuffer. |use_thread| can be true to force
     // the use of a separate thread, which might be required on some platforms
@@ -151,7 +152,8 @@ public:
     void setVsyncHz(int vsyncHz);
     void setDisplayConfigs(int configId, int w, int h, int dpiX, int dpiY);
     void setDisplayActiveConfig(int configId);
-private:
+
+   private:
     bool processMessage(const RenderWindowMessage& msg);
     bool useThread() const { return mThread != nullptr; }
 
@@ -165,7 +167,7 @@ private:
         Repost, Sync
     };
     gfxstream::base::MessageChannel<RepostCommand, 10> mRepostCommands;
-    gfxstream::base::FunctorThread mRepostThread;
+    std::optional<std::thread> mRepostThread;
 
     bool mPaused = false;
 };

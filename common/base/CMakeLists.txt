@@ -47,7 +47,6 @@ set(gfxstream_common_base_srcs
     AlignedBuf.cpp
     CpuTime.cpp
     FileUtils.cpp
-    FunctorThread.cpp
     MessageChannel.cpp
     PathUtils.cpp
     StringFormat.cpp

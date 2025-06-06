@@ -421,30 +421,24 @@ private:
 
 }  // namespace
 
-RenderWindow::RenderWindow(int width,
-                           int height,
-                           const gfxstream::host::FeatureSet& features,
-                           bool use_thread,
-                           bool use_sub_window,
-                           bool egl2egl)
-    : mRepostThread([this] {
-          while (auto cmd = mRepostCommands.receive()) {
-              if (*cmd == RepostCommand::Sync) {
-                  continue;
-              } else if (*cmd == RepostCommand::Repost &&
-                         !mPaused) {
-                  GFXSTREAM_DEBUG("Reposting thread dequeueing a CMD_REPAINT");
-                  RenderWindowMessage msg = {CMD_REPAINT};
-                  (void)msg.process();
-              }
-          }
-      }) {
+RenderWindow::RenderWindow(int width, int height, const gfxstream::host::FeatureSet& features,
+                           bool use_thread, bool use_sub_window, bool egl2egl) {
     if (use_thread) {
         mChannel = new RenderWindowChannel();
         mThread = new RenderWindowThread(mChannel);
         mThread->start();
     } else {
-        mRepostThread.start();
+        mRepostThread.emplace([this] {
+            while (auto cmd = mRepostCommands.receive()) {
+                if (*cmd == RepostCommand::Sync) {
+                    continue;
+                } else if (*cmd == RepostCommand::Repost && !mPaused) {
+                    GFXSTREAM_DEBUG("Reposting thread dequeueing a CMD_REPAINT");
+                    RenderWindowMessage msg = {CMD_REPAINT};
+                    (void)msg.process();
+                }
+            }
+        });
     }
     RenderWindowMessage msg = {};
     msg.cmd = CMD_INITIALIZE;
@@ -470,7 +464,7 @@ RenderWindow::~RenderWindow() {
         delete mThread;
         delete mChannel;
     } else {
-        mRepostThread.wait();
+        mRepostThread->join();
     }
 }
 
