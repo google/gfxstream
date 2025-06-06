@@ -78,18 +78,19 @@
 namespace gfxstream {
 namespace vk {
 
+using gfxstream::ExternalObjectManager;
+using gfxstream::VulkanInfo;
 using gfxstream::base::AutoLock;
-using gfxstream::base::Lock;
 using gfxstream::base::DescriptorType;
+using gfxstream::base::Lock;
 using gfxstream::base::MetricEventBadPacketLength;
 using gfxstream::base::MetricEventDuplicateSequenceNum;
 using gfxstream::base::MetricEventVulkanOutOfMemory;
 using gfxstream::base::Optional;
 using gfxstream::base::SharedMemory;
 using gfxstream::base::StaticLock;
+using gfxstream::base::UdmabufCreator;
 using gfxstream::host::GfxApiLogger;
-using gfxstream::ExternalObjectManager;
-using gfxstream::VulkanInfo;
 
 // Blob mem
 #define STREAM_BLOB_MEM_GUEST 1
@@ -5851,7 +5852,8 @@ class VkDecoderGlobalState::Impl {
                 return VK_ERROR_OUT_OF_DEVICE_MEMORY;
 
 #endif
-            } else if (m_vkEmulation->getFeatures().SystemBlob.enabled) {
+            } else if (m_vkEmulation->getFeatures().SystemBlob.enabled ||
+                       m_vkEmulation->getFeatures().VulkanAllocateHostVisibleAsUdmabuf.enabled) {
                 // Ensure size is page-aligned.
                 VkDeviceSize alignedSize = ALIGN(localAllocInfo.allocationSize, kPageSizeforBlob);
                 if (alignedSize != localAllocInfo.allocationSize) {
@@ -5860,30 +5862,70 @@ class VkDecoderGlobalState::Impl {
                                     static_cast<unsigned long long>(alignedSize));
                 }
                 localAllocInfo.allocationSize = alignedSize;
-                sharedMemory = SharedMemory("shared-memory-vk-" + std::to_string(sUniqueShmemId++),
-                                            localAllocInfo.allocationSize);
-                int ret = sharedMemory->create(0600);
-                if (ret) {
-                    GFXSTREAM_ERROR("Failed to create system-blob host-visible memory, error: %d",
-                                    ret);
-                    return VK_ERROR_OUT_OF_HOST_MEMORY;
+                auto memory = SharedMemory("shared-memory-vk-" + std::to_string(sUniqueShmemId++),
+                                           localAllocInfo.allocationSize);
+
+                if (m_vkEmulation->getFeatures().VulkanAllocateHostVisibleAsUdmabuf.enabled) {
+                    // 0755 = user read write
+                    int ret = memory.createNoMapping(0755);
+                    if (ret) {
+                        GFXSTREAM_ERROR("Failed to create shared memory, error: %d", ret);
+                        return VK_ERROR_OUT_OF_HOST_MEMORY;
+                    }
+
+                    auto creator = m_vkEmulation->getUdmabufCreator();
+                    if (!creator) {
+                        GFXSTREAM_ERROR("Failed to get OS handle manager");
+                        return VK_ERROR_OUT_OF_HOST_MEMORY;
+                    }
+
+                    auto descriptor = creator->handleFromSharedMemory(memory);
+                    if (!descriptor.has_value()) {
+                        GFXSTREAM_ERROR("Failed to create handle from shared memory");
+                        return VK_ERROR_OUT_OF_HOST_MEMORY;
+                    }
+
+                    // Import operation takes ownership of descriptor
+#if defined(__linux__)
+                    if (!m_vkEmulation->supportsDmaBuf() || !deviceHasDmabufExt) {
+                        GFXSTREAM_ERROR("dmabuf not supported");
+                        return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+                    }
+
+                    importFdInfo.fd = descriptor.value();
+                    importFdInfo.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
+                    vk_append_struct(&structChainIter, &importFdInfo);
+#else
+                    GFXSTREAM_ERROR("Import from shared memory should not work here");
+                    return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+#endif
+                } else if (m_vkEmulation->getFeatures().SystemBlob.enabled) {
+                    int ret = memory.create(0600);
+                    if (ret) {
+                        GFXSTREAM_ERROR(
+                            "Failed to create system-blob host-visible memory, error: %d", ret);
+                        return VK_ERROR_OUT_OF_HOST_MEMORY;
+                    }
+                    mappedPtr = memory.get();
+                    int mappedPtrAlignment =
+                        reinterpret_cast<uintptr_t>(mappedPtr) % kPageSizeforBlob;
+                    if (mappedPtrAlignment != 0) {
+                        GFXSTREAM_ERROR(
+                            "Warning: Mapped shared memory pointer is not aligned to page size, "
+                            "alignment "
+                            "is: %d",
+                            mappedPtrAlignment);
+                    }
+                    importHostInfo = {
+                        .sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT,
+                        .pNext = NULL,
+                        .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT,
+                        .pHostPointer = mappedPtr,
+                    };
+                    vk_append_struct(&structChainIter, &*importHostInfo);
                 }
-                mappedPtr = sharedMemory->get();
-                int mappedPtrAlignment = reinterpret_cast<uintptr_t>(mappedPtr) % kPageSizeforBlob;
-                if (mappedPtrAlignment != 0) {
-                    GFXSTREAM_ERROR(
-                        "Warning: Mapped shared memory pointer is not aligned to page size, "
-                        "alignment "
-                        "is: %d",
-                        mappedPtrAlignment);
-                }
-                importHostInfo = {
-                    .sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT,
-                    .pNext = NULL,
-                    .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT,
-                    .pHostPointer = mappedPtr,
-                };
-                vk_append_struct(&structChainIter, &*importHostInfo);
+
+                sharedMemory = std::make_optional<SharedMemory>(std::move(memory));
             } else if (m_vkEmulation->getFeatures().ExternalBlob.enabled) {
                 VkExternalMemoryHandleTypeFlags handleTypes;
 
@@ -6379,7 +6421,9 @@ class VkDecoderGlobalState::Impl {
 
         hostBlobId = (info->blobId && !hostBlobId) ? info->blobId : hostBlobId;
 
-        if (m_vkEmulation->getFeatures().SystemBlob.enabled && info->sharedMemory.has_value()) {
+        if ((m_vkEmulation->getFeatures().SystemBlob.enabled ||
+             m_vkEmulation->getFeatures().VulkanAllocateHostVisibleAsUdmabuf.enabled) &&
+            info->sharedMemory.has_value()) {
             // We transfer ownership of the shared memory handle to the descriptor info.
             // The memory itself is destroyed only when all processes unmap / release their
             // handles.

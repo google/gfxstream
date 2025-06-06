@@ -60,6 +60,7 @@ using gfxstream::base::kNullopt;
 using gfxstream::base::Optional;
 using gfxstream::base::StaticLock;
 using gfxstream::base::StaticMap;
+using gfxstream::base::UdmabufCreator;
 using gfxstream::host::RepresentativeColorBufferMemoryTypeInfo;
 
 constexpr size_t kPageBits = 12;
@@ -1707,6 +1708,14 @@ void VkEmulation::initFeatures(Features features) {
         "and guest memory type index :%d",
         mRepresentativeColorBufferMemoryTypeInfo.hostMemoryTypeIndex,
         mRepresentativeColorBufferMemoryTypeInfo.guestMemoryTypeIndex);
+
+    if (mFeatures.VulkanAllocateHostVisibleAsUdmabuf.enabled) {
+        mUdmabufCreator = std::make_unique<UdmabufCreator>();
+        if (!mUdmabufCreator->init()) {
+            mUdmabufCreator = nullptr;
+            GFXSTREAM_FATAL("udmabuf failed to initialize");
+        }
+    }
 }
 
 VkEmulation::~VkEmulation() {
@@ -1714,6 +1723,7 @@ VkEmulation::~VkEmulation() {
 
     mCompositorVk.reset();
     mDisplayVk.reset();
+    mUdmabufCreator.reset();
 
     mStaging.destroy(mDvk, mDevice);
 
@@ -1809,6 +1819,8 @@ gfxstream::host::RenderDocWithMultipleVkInstances* VkEmulation::getRenderDoc() {
 Compositor* VkEmulation::getCompositor() { return mCompositorVk.get(); }
 
 DisplayVk* VkEmulation::getDisplay() { return mDisplayVk.get(); }
+
+UdmabufCreator* VkEmulation::getUdmabufCreator() { return mUdmabufCreator.get(); }
 
 VkInstance VkEmulation::getInstance() { return mInstance; }
 

@@ -329,6 +329,11 @@ struct FeatureSet {
         "all created devices. (e.g. VK_EXT_robustness2)",
         &map,
     };
+    FeatureInfo VulkanAllocateHostVisibleAsUdmabuf = {
+        "VulkanAllocateHostVisibleAsUdmabuf",
+        "If enabled, backs blob memory via udmabuf that can be used with vkImportMemory",
+        &map,
+    };
 };
 
 #define GFXSTREAM_SET_FEATURE_ON_CONDITION(set, feature, condition) \
