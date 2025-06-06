@@ -15,7 +15,6 @@ lib_glescm_translator = static_library(
   cpp_args: gfxstream_host_args,
   include_directories: [
     inc_common_base,
-    inc_common_opengl,
     inc_etc,
     inc_gfxstream_server,
     inc_gl_common,
