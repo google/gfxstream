@@ -19,6 +19,7 @@
 #include "FrameBuffer.h"
 #include "GrallocDefs.h"
 #include "VkCommonOperations.h"
+#include "VkFormatUtils.h"
 #include "VulkanDispatch.h"
 #include "cereal/common/goldfish_vk_deepcopy.h"
 #include "cereal/common/goldfish_vk_extension_structs.h"
@@ -880,25 +881,15 @@ VkResult AndroidNativeBufferInfo::on_vkQueueSignalReleaseImageANDROID(
         vk->vkInvalidateMappedMemoryRanges(mDevice, 1, &toInvalidate);
 
         // Copy to from staging buffer to color buffer
-        uint32_t bpp = 4; /* format always rgba8...not */
-        switch (mVkFormat) {
-            case VK_FORMAT_R5G6B5_UNORM_PACK16:
-                bpp = 2;
-                break;
-            case VK_FORMAT_R8G8B8_UNORM:
-                bpp = 3;
-                break;
-            case VK_FORMAT_R8G8B8A8_UNORM:
-            case VK_FORMAT_B8G8R8A8_UNORM:
-                bpp = 4;
-                break;
-            default:
-                GFXSTREAM_WARNING("%s: Unhandled format: %s [%d]", __func__,
-                                  string_VkFormat(mVkFormat), mVkFormat);
-        }
         const void* bytes = mMappedStagingPtr;
-        const size_t bytesSize = bpp * mExtent.width * mExtent.height;
-        emu->getCallbacks().flushColorBufferFromBytes(mColorBufferHandle, bytes, bytesSize);
+        const uint32_t bytesPerPixel = getBytesPerPixel(mVkFormat);
+        if (bytesPerPixel == 0) {
+            GFXSTREAM_ERROR("%s: Cannot flush color buffer, unknown format: %s [%d]",
+                            string_VkFormat(mVkFormat), mVkFormat);
+        } else {
+            const size_t bytesSize = bytesPerPixel * mExtent.width * mExtent.height;
+            emu->getCallbacks().flushColorBufferFromBytes(mColorBufferHandle, bytes, bytesSize);
+        }
 
         mQsriTimeline->signalNextPresentAndPoll();
     }
