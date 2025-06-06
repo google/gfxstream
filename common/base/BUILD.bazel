@@ -82,6 +82,9 @@ cc_library(
         "@platforms//os:windows": [
             "WIN32_LEAN_AND_MEAN",
         ],
+        "@platforms//os:linux": [
+            "HAVE_MEMFD_CREATE",
+        ],
         "//conditions:default": [],
     }),
     includes = ["include"],

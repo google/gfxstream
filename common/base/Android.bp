@@ -23,6 +23,13 @@ cc_library_static {
         "Tracing.cpp",
         "Thread_pthread.cpp",
     ],
+    target: {
+        android: {
+            cppflags: [
+                "-DHAVE_MEMFD_CREATE",
+            ],
+        },
+    },
     export_include_dirs: [
         "include",
     ],

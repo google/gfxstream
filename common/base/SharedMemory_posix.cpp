@@ -15,46 +15,21 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include "gfxstream/EintrWrapper.h"
-#include "gfxstream/memory/SharedMemory.h"
+#include "gfxstream/Macros.h"
 #include "gfxstream/files/PathUtils.h"
+#include "gfxstream/memory/SharedMemory.h"
 #ifndef _MSC_VER
 #include <unistd.h>
 #endif
 
 namespace gfxstream {
 namespace base {
-namespace {
 
-#ifndef __NR_memfd_create
-#if __aarch64__
-#define __NR_memfd_create 279
-#elif __arm__
-#define __NR_memfd_create 279
-#elif __powerpc64__
-#define __NR_memfd_create 360
-#elif __i386__
-#define	 __NR_memfd_create 356
-#elif __x86_64__
-#define __NR_memfd_create 319
-#endif
-#endif
-
-int memfd_create_wrapper(const char *name, unsigned int flags) {
-#if defined(HAVE_MEMFD_CREATE)
-	return memfd_create(name, flags);
-#elif defined(__NR_memfd_create)
-	return syscall(__NR_memfd_create, name, flags);
-#else
-	return -1;
-#endif
-}
-
-}  // namespace
-
-
-SharedMemory::SharedMemory(const std::string& name, size_t size) : mSize(size) {
+SharedMemory::SharedMemory(const std::string& name, size_t size) {
+    mSize = ALIGN(size, getpagesize());
     const std::string& kFileUri = "file://";
     if (name.find(kFileUri, 0) == 0) {
         mShareType = ShareType::FILE_BACKED;
@@ -118,8 +93,8 @@ int SharedMemory::openInternal(int oflag, int mode, bool doMapping) {
     int err = 0;
     struct stat sb;
     if (mShareType == ShareType::SHARED_MEMORY) {
-#if !defined(__BIONIC__)
-        mFd = memfd_create_wrapper(mName.c_str(), FD_CLOEXEC);
+#if defined(HAVE_MEMFD_CREATE)
+        mFd = memfd_create(mName.c_str(), MFD_CLOEXEC | MFD_ALLOW_SEALING);
 #else
         return ENOTTY;
 #endif
@@ -151,6 +126,14 @@ int SharedMemory::openInternal(int oflag, int mode, bool doMapping) {
             close();
             return err;
         }
+
+#if defined(HAVE_MEMFD_CREATE)
+        if (fcntl(mFd, F_ADD_SEALS, F_SEAL_SEAL | F_SEAL_SHRINK | F_SEAL_GROW) == -1) {
+            err = -errno;
+            close();
+            return err;
+        }
+#endif
     }
 
     if (doMapping) {
