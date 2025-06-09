@@ -2748,10 +2748,13 @@ class VkDecoderGlobalState::Impl {
     void destroyImageWithExclusiveInfo(VkDevice device, VulkanDispatch* deviceDispatch,
                                        VkImage image, ImageInfo& imageInfo,
                                        const VkAllocationCallbacks* pAllocator) {
-        if (!imageInfo.anbInfo && imageInfo.compressInfo) {
-            imageInfo.compressInfo->destroy(deviceDispatch);
-            if (image != imageInfo.compressInfo->outputImage()) {
+        if (!imageInfo.anbInfo) {
+            if (!imageInfo.compressInfo || image != imageInfo.compressInfo->outputImage()) {
                 deviceDispatch->vkDestroyImage(device, image, pAllocator);
+            }
+            if (imageInfo.compressInfo) {
+                imageInfo.compressInfo->destroy(deviceDispatch);
+                imageInfo.compressInfo.reset();
             }
         }
 
