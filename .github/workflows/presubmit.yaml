@@ -73,4 +73,20 @@ jobs:
           --test_timeout=5400 \
           --verbose_failures \
           common/end2end:gfxstream_end2end_tests
+  run-gfxstream-meson-build:
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675 # aka v2
+    - name: Install toolchain dependencies
+      run: sudo bash toolchain/meson/install_toolchain_dependencies.sh
+    - name: Configure Build
+      run: |
+        meson setup \
+          -Ddefault_library=static \
+          -Dgfxstream-build=host \
+          build
+    - name: Build
+      run: |
+        meson compile -C build
 
