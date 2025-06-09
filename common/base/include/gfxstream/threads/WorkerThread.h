@@ -143,7 +143,11 @@ class WorkerThread {
         for (;;) {
             {
                 std::unique_lock<std::mutex> lock(mMutex);
-                mCv.wait(lock, [this]{ return !mQueue.empty(); });
+                ScopedLockAssertion lockAssertion(mMutex);
+                mCv.wait(lock, [this]{
+                    ScopedLockAssertion lockAssertion(mMutex);
+                    return !mQueue.empty();
+                });
                 todo.swap(mQueue);
             }
 
