@@ -1,4 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
+load("//:build_variables.bzl", "GFXSTREAM_HOST_COPTS", "GFXSTREAM_HOST_DEFINES")
 
 package(
     default_applicable_licenses = ["//:gfxstream_license"],
@@ -15,10 +16,8 @@ cc_library(
         "include/OpenGLESDispatch/OpenGLDispatchLoader.h",
         "include/OpenGLESDispatch/StaticDispatch.h",
     ],
-    copts = select({
-        "@platforms//os:windows": ["/EHs-c-"],
-        "//conditions:default": ["-fno-exceptions"],
-    }),
+    copts = GFXSTREAM_HOST_COPTS,
+    defines = GFXSTREAM_HOST_DEFINES,
     includes = ["include"],
     textual_hdrs = [
         "include/OpenGLESDispatch/gldefs.h",
@@ -74,13 +73,10 @@ cc_library(
         "gles1_stubbed_in_translator_namespace.cpp",
         "gles2_stubbed_in_translator_namespace.cpp",
     ],
-    copts = [
+    copts = GFXSTREAM_HOST_COPTS + [
         "-Wno-extern-c-compat",
-    ] + select({
-        "@platforms//os:windows": ["/EHs-c-"],
-        "//conditions:default": ["-fno-exceptions"],
-    }),
-    defines = ["EMUGL_BUILD"],
+    ],
+    defines = GFXSTREAM_HOST_DEFINES,
     deps = [
         ":gfxstream_host_openglesdispatch_headers",
         "//host/decoder_common:gfxstream_host_decoder_common",

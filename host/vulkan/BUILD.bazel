@@ -1,4 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("//:build_variables.bzl", "GFXSTREAM_HOST_COPTS", "GFXSTREAM_HOST_DEFINES")
 
 package(
     default_applicable_licenses = ["//:gfxstream_license"],
@@ -7,6 +8,8 @@ package(
 
 cc_library(
     name = "gfxstream_vulkan_headers",
+    copts = GFXSTREAM_HOST_COPTS,
+    defines = GFXSTREAM_HOST_DEFINES,
     includes = ["."],
     textual_hdrs = [
         "vk_android_native_buffer_gfxstream.h",
@@ -34,6 +37,8 @@ cc_library(
         "VulkanStream.h",
         "vk_fn_info.h",
     ],
+    copts = GFXSTREAM_HOST_COPTS,
+    defines = GFXSTREAM_HOST_DEFINES,
     includes = ["."],
     deps = [
         ":gfxstream_vulkan_headers",
@@ -123,25 +128,12 @@ cc_library(
         "VulkanStream.h",
         "vk_fn_info.h",
     ],
-    copts = [
+    copts = GFXSTREAM_HOST_COPTS + [
         "-Wno-return-type-c-linkage",
         "-Wno-extern-c-compat",
         "-Wno-unused-variable",
     ],
-    defines = [
-        "VK_GFXSTREAM_STRUCTURE_TYPE_EXT",
-        "EMUGL_BUILD",
-        "BUILDING_EMUGL_COMMON_SHARED",
-        "GFXSTREAM_ENABLE_HOST_GLES=1",
-    ] + select({
-        "@platforms//os:macos": [
-            "VK_USE_PLATFORM_METAL_EXT",
-            "VK_USE_PLATFORM_MACOS_MVK",
-        ],
-        "@platforms//os:windows": ["VK_USE_PLATFORM_WIN32_KHR"],
-        "@platforms//os:linux": [],
-        "//conditions:default": [],
-    }),
+    defines = GFXSTREAM_HOST_DEFINES,
     includes = [
         ".",
         "cereal",

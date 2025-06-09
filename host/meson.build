@@ -74,6 +74,7 @@ if use_auto
   use_composer = true
 endif
 
+gfxstream_host_args += '-DGLM_ENABLE_EXPERIMENTAL=1'
 gfxstream_host_args += '-DGFXSTREAM_MESON_BUILD=1'
 gfxstream_host_args += '-DGFXSTREAM_ENABLE_HOST_GLES=@0@'.format(use_gles ? '1' : '0')
 
@@ -91,13 +92,8 @@ inc_common_opengl = include_directories('../third_party/opengl/include')
 inc_drm_headers = include_directories('../third_party/drm/include')
 
 inc_root = include_directories('../')
-inc_gfxstream_include = []
 # Included by all host component builds. Leave empty for future build updates.
 inc_include = include_directories()
-
-if host_machine.system() == 'qnx'
-  inc_gfxstream_include = [inc_qnx_headers, inc_gfxstream_include]
-endif
 
 if use_vulkan
   inc_vulkan_headers = include_directories('../third_party/vulkan/include')
@@ -140,7 +136,6 @@ inc_gfxstream_backend = [
   inc_common_opengl,
   inc_common_utils,
   inc_drm_headers,
-  inc_gfxstream_include,
   inc_glm,
   inc_host_address_space,
   inc_host_backend,

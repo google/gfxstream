@@ -23,7 +23,6 @@ lib_host_decoder_common = static_library(
   include_directories: [
     inc_common_base,
     inc_common_opengl,
-    inc_gfxstream_include,
     inc_host_decoder_common,
     inc_host_include,
     inc_host_library,

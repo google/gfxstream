@@ -1,6 +1,3 @@
-# There is a copy of this file at http://google3/play/games/battlestar/build/gfxstream/.clang-format
-# for the AyeAye presubmit check. If you change this file, please also change the location above.
-
 BasedOnStyle: Google
 IndentWidth: 4
 ColumnLimit: 100
