@@ -50,7 +50,6 @@ if host_machine.system() == 'qnx'
   qnx_gles2_dep = declare_dependency(include_directories: inc_qnx_headers, dependencies: [qnx_gles2_lib])
 
 else
-  dl_dep = dependency('dl')
   thread_dep = dependency('threads')
   gfxstream_host_args += '-DGFXSTREAM_UNSTABLE_VULKAN_EXTERNAL_SYNC=1'
   gfxstream_host_args += '-DGFXSTREAM_UNSTABLE_VULKAN_DMABUF_WINSYS=1'
@@ -264,7 +263,6 @@ link_args_gfxstream_backend = ''
 
 if host_machine.system() == 'linux'
   deps_gfxstream_backend += [
-    dl_dep,
     thread_dep,
   ]
   link_args_gfxstream_backend = '-Wl,-lpthread,-lrt'
