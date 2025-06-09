@@ -23,7 +23,6 @@
 #include <vector>
 
 #include "FrameBuffer.h"
-#include "gfxstream/host/graphics_driver_lock.h"
 #include "RenderThreadInfoVk.h"
 #include "TrivialStream.h"
 #include "VkAndroidNativeBuffer.h"
@@ -34,27 +33,29 @@
 #include "VkDecoderSnapshotUtils.h"
 #include "VkEmulatedPhysicalDeviceMemory.h"
 #include "VkEmulatedPhysicalDeviceQueue.h"
+#include "VkUtils.h"
 #include "VulkanBoxedHandles.h"
 #include "VulkanDispatch.h"
 #include "VulkanStream.h"
-#include "render-utils/stream.h"
 #include "common/goldfish_vk_deepcopy.h"
 #include "common/goldfish_vk_dispatch.h"
 #include "common/goldfish_vk_marshaling.h"
 #include "common/goldfish_vk_reserved_marshaling.h"
-#include "gfxstream/host/AstcCpuDecompressor.h"
+#include "gfxstream/Macros.h"
+#include "gfxstream/common/logging.h"
 #include "gfxstream/containers/Lookup.h"
+#include "gfxstream/host/AstcCpuDecompressor.h"
 #include "gfxstream/host/RenderDoc.h"
 #include "gfxstream/host/Tracing.h"
-#include "gfxstream/common/logging.h"
 #include "gfxstream/host/address_space_operations.h"
+#include "gfxstream/host/graphics_driver_lock.h"
 #include "gfxstream/host/vm_operations.h"
-#include "VkUtils.h"
+#include "render-utils/stream.h"
+#include "vulkan/VkFormatUtils.h"
 #include "vulkan/emulated_textures/AstcTexture.h"
 #include "vulkan/emulated_textures/CompressedImageInfo.h"
 #include "vulkan/emulated_textures/GpuDecompressionPipeline.h"
 #include "vulkan/vk_enum_string_helper.h"
-#include "vulkan/VkFormatUtils.h"
 #include "vulkan/vulkan_core.h"
 #ifndef _WIN32
 #include <unistd.h>
@@ -89,18 +90,6 @@ using gfxstream::base::StaticLock;
 using gfxstream::host::GfxApiLogger;
 using gfxstream::ExternalObjectManager;
 using gfxstream::VulkanInfo;
-
-// TODO(b/261477138): Move to a shared definition
-#define __ALIGN_MASK(x, mask) (((x) + (mask)) & ~(mask))
-#define __ALIGN(x, a) __ALIGN_MASK(x, (__typeof__(x))(a)-1)
-
-#define VKDGS_DEBUG 0
-
-#if VKDGS_DEBUG
-#define VKDGS_LOG(fmt, ...) INFO
-#else
-#define VKDGS_LOG(fmt, ...)
-#endif
 
 // Blob mem
 #define STREAM_BLOB_MEM_GUEST 1
@@ -5843,7 +5832,7 @@ class VkDecoderGlobalState::Impl {
         if (isExport && hostVisible) {
             if (m_vkEmulation->getFeatures().SystemBlob.enabled) {
                 // Ensure size is page-aligned.
-                VkDeviceSize alignedSize = __ALIGN(localAllocInfo.allocationSize, kPageSizeforBlob);
+                VkDeviceSize alignedSize = ALIGN(localAllocInfo.allocationSize, kPageSizeforBlob);
                 if (alignedSize != localAllocInfo.allocationSize) {
                     GFXSTREAM_ERROR("Warning: Aligning allocation size from %llu to %llu",
                                     static_cast<unsigned long long>(localAllocInfo.allocationSize),
@@ -5914,7 +5903,7 @@ class VkDecoderGlobalState::Impl {
                 }
                 VkDeviceSize alignmentSize =
                     m_vkEmulation->externalMemoryHostProperties().minImportedHostPointerAlignment;
-                VkDeviceSize alignedSize = __ALIGN(localAllocInfo.allocationSize, alignmentSize);
+                VkDeviceSize alignedSize = ALIGN(localAllocInfo.allocationSize, alignmentSize);
                 localAllocInfo.allocationSize = alignedSize;
                 privateMemory =
                     std::make_shared<PrivateMemory>(alignmentSize, localAllocInfo.allocationSize);
@@ -8710,7 +8699,7 @@ class VkDecoderGlobalState::Impl {
 
         result = enumerateDeviceExtensionProperties(vk, physicalDevice, nullptr, properties);
         if (result != VK_SUCCESS) {
-            VKDGS_LOG("failed to enumerate device extensions");
+            GFXSTREAM_ERROR("failed to enumerate device extensions");
             return res;
         }
 
