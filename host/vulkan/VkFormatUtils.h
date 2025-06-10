@@ -166,6 +166,20 @@ namespace vk {
     f(VK_FORMAT_R12X4G12X4_UNORM_2PACK16, 4)           \
     f(VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16, 8)
 
+
+constexpr uint32_t getBytesPerPixel(VkFormat format) {
+#define VK_FORMAT_BPP(format, bpp) case (format): return (bpp);
+    switch(format) {
+        LIST_VK_FORMATS_LINEAR(VK_FORMAT_BPP)
+    default:
+        // TODO: add all formats under VkFormat
+        GFXSTREAM_ERROR("%s: Unhandled format: %s [%d]",
+                        __func__, string_VkFormat(format), format);
+    }
+#undef VK_FORMAT_BPP
+    return 0;  // Return zero for proper error handling from the caller
+}
+
 constexpr bool isEtc2(VkFormat format) {
     switch (format) {
         case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:
