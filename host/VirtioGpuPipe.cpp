@@ -62,7 +62,9 @@ int VirtioGpuProcessPipe::TransferToHost(const char* data, size_t dataSize) {
         return -EINVAL;
     }
 
-    const int32_t confirmation = *((const int32_t*)data);
+    int32_t confirmation = 0;
+    std::memcpy(&confirmation, data, sizeof(confirmation));
+
     if (confirmation != 100) {
         GFXSTREAM_FATAL("Unexpected confirmation for VirtioGpuProcessPipe:%" PRIu64 " received:%d",
                         mUniqueId, confirmation);
