@@ -16,6 +16,10 @@ jobs:
   run-gfxstream-bazel-end2end-tests:
     runs-on: ubuntu-22.04
     steps:
+    - name: Free disk space
+      uses: jlumbroso/free-disk-space@v1.3.1
+      with:
+        tool-cache: true
     - name: Checkout repository
       uses: actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675 # aka v2
     - name: Configure bazel cache
@@ -46,6 +50,10 @@ jobs:
   run-gfxstream-bazel-end2end-tests-arm:
     runs-on: ubuntu-22.04-arm
     steps:
+    - name: Free disk space
+      uses: jlumbroso/free-disk-space@v1.3.1
+      with:
+        tool-cache: true
     - name: Checkout repository
       uses: actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675 # aka v2
     - name: Configure bazel cache
@@ -76,6 +84,10 @@ jobs:
   run-gfxstream-meson-build:
     runs-on: ubuntu-22.04
     steps:
+    - name: Free disk space
+      uses: jlumbroso/free-disk-space@v1.3.1
+      with:
+        tool-cache: true
     - name: Checkout repository
       uses: actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675 # aka v2
     - name: Install toolchain dependencies
