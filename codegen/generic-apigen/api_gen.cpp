@@ -1074,8 +1074,12 @@ int ApiGen::genDecoderImpl(const std::string& filename) {
     }
     fprintf(fp,
             "\twhile (end - ptr >= 8) {\n\
-\t\tuint32_t opcode = *(uint32_t *)ptr;\n\
-\t\tuint32_t packetLen = *(uint32_t *)(ptr + 4);\n\
+\t\tuint32_t opcode;\n\
+\t\tstd::memcpy(&opcode, ptr, sizeof(uint32_t));\n\
+\n\
+\t\tuint32_t packetLen;\n\
+\t\tstd::memcpy(&packetLen, ptr + 4, sizeof(uint32_t));\n\
+\n\
 \t\tif (end - ptr < packetLen) return ptr - (unsigned char*)buf;\n");
     if (changesChecksum) {
         fprintf(fp,
