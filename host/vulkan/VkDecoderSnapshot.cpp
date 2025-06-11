@@ -2839,6 +2839,7 @@ class VkDecoderSnapshot::Impl {
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)(&handle), 1);
         mReconstruction.setApiTrace(apiCallHandle, apiCallPacket, apiCallPacketSize);
+        mReconstruction.removeDescendantsOfHandle((uint64_t)(uintptr_t)commandBuffer);
         mReconstruction.addHandleDependency((const uint64_t*)(&handle), 1,
                                             (uint64_t)(uintptr_t)commandBuffer);
         // Track that `handle` depends on previously tracked dependencies (e.g. the handle for this
