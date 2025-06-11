@@ -32,6 +32,7 @@
 
 #include "VkDecoder.h"
 
+#include <cstring>
 #include <functional>
 #include <optional>
 #include <unordered_map>
@@ -128,8 +129,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
     const unsigned char* const end = (const unsigned char*)buf + len;
     while (end - ptr >= 8) {
         const uint8_t* packet = (const uint8_t*)ptr;
-        uint32_t opcode = *(uint32_t*)ptr;
-        uint32_t packetLen = *(uint32_t*)(ptr + 4);
+        uint32_t opcode;
+        std::memcpy(&opcode, ptr, sizeof(uint32_t));
+
+        uint32_t packetLen;
+        std::memcpy(&packetLen, ptr + 4, sizeof(uint32_t));
 
         // packetLen should be at least 8 (op code and packet length) and should not be excessively
         // large
