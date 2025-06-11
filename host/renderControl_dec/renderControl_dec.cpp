@@ -42,8 +42,12 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 	unsigned char *ptr = (unsigned char *)buf;
 	const unsigned char* const end = (const unsigned char*)buf + len;
 	while (end - ptr >= 8) {
-		uint32_t opcode = *(uint32_t *)ptr;
-		uint32_t packetLen = *(uint32_t *)(ptr + 4);
+		uint32_t opcode;
+		std::memcpy(&opcode, ptr, sizeof(uint32_t));
+
+		uint32_t packetLen;
+		std::memcpy(&packetLen, ptr + 4, sizeof(uint32_t));
+
 		if (end - ptr < packetLen) return ptr - (unsigned char*)buf;
         // Do this on every iteration, as some commands may change the checksum
         // calculation parameters.
