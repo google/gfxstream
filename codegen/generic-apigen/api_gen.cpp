@@ -1025,6 +1025,7 @@ int ApiGen::genDecoderImpl(const std::string& filename) {
 
     fprintf(fp, "#include \"%s_dec.h\"\n", m_basename.c_str());
     fprintf(fp, "\n");
+    fprintf(fp, "#include <cstring>\n");
     fprintf(fp, "#include <stdio.h>\n");
     fprintf(fp, "#include <string.h>\n");
     fprintf(fp, "\n");
@@ -1129,12 +1130,13 @@ int ApiGen::genDecoderImpl(const std::string& filename) {
         for (int pass = PASS_FIRST; pass < PASS_LAST; pass++) {
 #if INSTRUMENT_TIMING_HOST
             if (pass == PASS_FunctionCall) {
+
                 fprintf(fp, "\t\t\tclock_gettime(CLOCK_REALTIME, &ts2);\n");
             }
 #endif
+
             if (pass == PASS_FunctionCall && !e->retval().isVoid() && !e->retval().isPointer()) {
-                fprintf(fp, "\t\t\t*(%s *)(&tmpBuf[%s]) = ", retvalType.c_str(),
-                        totalTmpBuffOffset.c_str());
+                fprintf(fp, "\t\t\t%s function_call_retval = ", retvalType.c_str());
             }
 
             if (pass == PASS_FunctionCall) {
@@ -1358,6 +1360,11 @@ int ApiGen::genDecoderImpl(const std::string& filename) {
                 fprintf(fp, ");\n");
 
                 if (pass == PASS_FunctionCall) {
+                    if (!e->retval().isVoid() && !e->retval().isPointer()) {
+                        fprintf(fp, "\t\t\tstd::memcpy(&tmpBuf[%s], &function_call_retval, sizeof(%s));\n",
+                                totalTmpBuffOffset.c_str(), retvalType.c_str());
+                    }
+
                     // unlock all dma buffers that have been passed
                     for (size_t j = 0; j < evars.size(); j++) {
                         Var* v = &evars[j];
