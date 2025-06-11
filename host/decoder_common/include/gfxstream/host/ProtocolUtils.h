@@ -17,6 +17,7 @@
 #include "gfxstream/Tracing.h"
 
 #include <assert.h>
+#include <cstring>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -58,7 +59,9 @@ struct UnpackerT {
     static T unpack(const void* ptr) {
         static_assert(sizeof(T) == sizeof(S),
                       "Bad input arguments, have to be of the same size");
-        return *(const T*)ptr;
+        S sized;
+        std::memcpy(&sized, ptr, sizeof(S));
+        return static_cast<T>(sized);
     }
 };
 
@@ -72,7 +75,9 @@ struct UnpackerT<T*, S> {
 template <>
 struct UnpackerT<ssize_t, uint32_t> {
     static ssize_t unpack(const void* ptr) {
-        return (ssize_t)*(const int32_t*)ptr;
+        int32_t sized;
+        std::memcpy(&sized, ptr, sizeof(int32_t));
+        return static_cast<ssize_t>(sized);
     }
 };
 
