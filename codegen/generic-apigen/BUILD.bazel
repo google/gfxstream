@@ -1,0 +1,52 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+
+package(
+    default_applicable_licenses = ["//:gfxstream_license"],
+    default_visibility = ["//:gfxstream"],
+)
+
+cc_library(
+    name = "apigen",
+    srcs = [
+        "api_gen.cpp",
+        "entry_point.cpp",
+        "parser.cpp",
+        "str_utils.cpp",
+        "type_factory.cpp",
+    ],
+    hdrs = [
+        "api_gen.h",
+        "entry_point.h",
+        "errors.h",
+        "parser.h",
+        "str_utils.h",
+        "type_factory.h",
+        "var.h",
+        "var_type.h",
+    ],
+    deps = [
+        "//common/base:gfxstream_common_base",
+    ],
+)
+
+cc_test(
+    name = "parser_test",
+    srcs = [
+        "parser_tests.cpp",
+    ],
+    deps = [
+        ":apigen",
+        "@com_google_googletest//:gtest",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_binary(
+    name = "gfxstream_generic_apigen",
+    srcs = [
+        "main.cpp",
+    ],
+    deps = [
+        ":apigen",
+    ],
+)
