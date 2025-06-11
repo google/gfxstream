@@ -13,12 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef _ERRORS_H_
-#define _ERRORS_H_
+#ifndef STR_UTILS_H_
+#define STR_UTILS_H_
 
-#define BAD_USAGE -1
-#define BAD_SPEC_FILE -2
-#define BAD_TYPES_FILE -3
-#define BAD_ATTRIBUTES_FILE -4
+#include <sstream>
+#include <string>
+
+#define WHITESPACE " \t\n"
+
+std::string trim(const std::string& str);
+std::string getNextToken(const std::string& str, size_t pos, size_t* last,
+                         const std::string& delim);
+template <class T>
+std::string inline toString(const T& t) {
+    std::stringstream ss;
+    ss << t;
+    return ss.str();
+}
 
 #endif

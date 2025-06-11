@@ -13,12 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef _ERRORS_H_
-#define _ERRORS_H_
+#ifndef __TYPE__FACTORY__H__
+#define __TYPE__FACTORY__H__
 
-#define BAD_USAGE -1
-#define BAD_SPEC_FILE -2
-#define BAD_TYPES_FILE -3
-#define BAD_ATTRIBUTES_FILE -4
+#include <string>
 
+#include "var_type.h"
+
+class TypeFactory {
+   public:
+    static TypeFactory* instance() {
+        if (m_instance == NULL) {
+            m_instance = new TypeFactory;
+        }
+        return m_instance;
+    }
+    const VarType* getVarTypeByName(const std::string& type);
+    int initFromFile(const std::string& filename);
+
+   private:
+    static TypeFactory* m_instance;
+    void initBaseTypes();
+    TypeFactory() {}
+};
 #endif
