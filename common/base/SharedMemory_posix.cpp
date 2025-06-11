@@ -25,6 +25,20 @@
 #include <unistd.h>
 #endif
 
+#ifndef __NR_memfd_create
+#if __aarch64__
+#define __NR_memfd_create 279
+#elif __arm__
+#define __NR_memfd_create 279
+#elif __powerpc64__
+#define __NR_memfd_create 360
+#elif __i386__
+#define         __NR_memfd_create 356
+#elif __x86_64__
+#define __NR_memfd_create 319
+#endif
+#endif
+
 namespace gfxstream {
 namespace base {
 
@@ -96,7 +110,7 @@ int SharedMemory::openInternal(int oflag, int mode, bool doMapping) {
 #if defined(HAVE_MEMFD_CREATE)
         mFd = memfd_create(mName.c_str(), MFD_CLOEXEC | MFD_ALLOW_SEALING);
 #else
-        return ENOTTY;
+        mFd = syscall(__NR_memfd_create, mName.c_str(), FD_CLOEXEC);
 #endif
     } else {
         mFd = ::open(mName.c_str(), oflag, mode);
