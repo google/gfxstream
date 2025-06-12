@@ -1157,7 +1157,15 @@ class VkDecoderSnapshot::Impl {
                                 VkSnapshotApiCallHandle apiCallHandle, const uint8_t* apiCallPacket,
                                 size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
                                 VkImage srcImage, VkImageLayout srcImageLayout, VkBuffer dstBuffer,
-                                uint32_t regionCount, const VkBufferImageCopy* pRegions) {}
+                                uint32_t regionCount, const VkBufferImageCopy* pRegions) {
+        std::lock_guard<std::mutex> lock(mReconstructionMutex);
+        mReconstruction.addApiCallDependencyOnVkObject(
+            apiCallHandle,
+            (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkImage(srcImage));
+        mReconstruction.addApiCallDependencyOnVkObject(
+            apiCallHandle,
+            (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkBuffer(dstBuffer));
+    }
     void vkCmdUpdateBuffer(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle,
                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                            VkCommandBuffer commandBuffer, VkBuffer dstBuffer,
