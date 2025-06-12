@@ -17,6 +17,9 @@
 #include "gfxstream/Optional.h"
 
 #include <string>
+#ifdef __MINGW64__
+#include <cstdint>
+#endif // __MINGW64__
 
 namespace gfxstream {
 

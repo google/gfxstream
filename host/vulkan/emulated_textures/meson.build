@@ -11,6 +11,10 @@ emulated_texture_args = [
   '-DVK_GFXSTREAM_STRUCTURE_TYPE_EXT'
 ]
 
+if host_machine.system() == 'windows'
+  emulated_texture_args += '-DVK_USE_PLATFORM_WIN32_KHR'
+endif
+
 lib_emulated_textures = static_library(
   'emulated_textures',
   files_emulated_textures,

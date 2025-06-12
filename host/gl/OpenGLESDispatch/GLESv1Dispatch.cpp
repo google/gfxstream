@@ -112,7 +112,11 @@ static return_type gles1_dummy_##func_name signature { \
 bool gles1_dispatch_init(GLESv1Dispatch* dispatch_table) {
     if (dispatch_table->initialized) return true;
 
+#ifdef __MINGW64__
+//link error
+#else
     LIST_GLES1_FUNCTIONS(ASSIGN_GLES1_STATIC, ASSIGN_GLES1_STATIC);
+#endif // __MINGW64__
 
     dispatch_table->initialized = true;
     return true;

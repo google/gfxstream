@@ -39,10 +39,18 @@ EGLDispatch s_egl;
 bool init_egl_dispatch() {
     if (s_egl.initialized) return true;
 
+#ifdef __MINGW64__
+//link error
+#else
     LIST_RENDER_EGL_FUNCTIONS(RENDER_EGL_LOAD_FIELD_STATIC)
+#endif // __MINGW64__
     LIST_RENDER_EGL_FUNCTIONS(RENDER_EGL_LOAD_FIELD_WITH_EGL)
+#ifdef __MINGW64__
+//link error
+#else
     LIST_RENDER_EGL_EXTENSIONS_FUNCTIONS(RENDER_EGL_LOAD_OPTIONAL_FIELD_STATIC)
     LIST_RENDER_EGL_SNAPSHOT_FUNCTIONS(RENDER_EGL_LOAD_FIELD_STATIC)
+#endif // __MINGW64__
 
     s_egl.initialized = true;
     return true;

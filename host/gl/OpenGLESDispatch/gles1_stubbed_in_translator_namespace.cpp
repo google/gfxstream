@@ -17,7 +17,10 @@
 
 #include <GLES/gl.h>
 #include <GL/GLcorearb.h>
-#define GL_APICALL KHRONOS_APICALL
+#include <GLES/glplatform.h>
+#ifdef __MINGW64__
+#define GL_APICALL KHRONOS_APICALL inline
+#endif // __MINGW64__
 namespace translator {
 namespace gles1 {
 GL_APICALL void GL_APIENTRY glClipPlane(GLenum, const GLdouble *) { return; }
