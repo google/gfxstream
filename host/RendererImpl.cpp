@@ -134,8 +134,7 @@ bool RendererImpl::initialize(int width, int height, const gfxstream::host::Feat
     std::unique_ptr<RenderWindow> renderWindow(new RenderWindow(
             width, height, features, kUseSubwindowThread, useSubWindow, egl2egl));
     if (!renderWindow) {
-        GFXSTREAM_ERROR("Could not create rendering window class\n");
-        GFXSTREAM_DEBUG("Could not create rendering window class");
+        GFXSTREAM_ERROR("Could not create rendering window class");
         return false;
     }
     if (!renderWindow->isValid()) {
