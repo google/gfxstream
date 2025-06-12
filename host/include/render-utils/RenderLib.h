@@ -95,7 +95,7 @@ public:
     // There might be only one renderer.
     virtual RendererPtr initRenderer(int width, int height,
                                      const gfxstream::host::FeatureSet& features,
-                                     bool useSubWindow, bool egl2egl) = 0;
+                                     bool useSubWindow) = 0;
 
     virtual OnLastColorBufferRef getOnLastColorBufferRef() = 0;
 };

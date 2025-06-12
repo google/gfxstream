@@ -79,7 +79,7 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
     // setPostCallback() instead to retrieve the content.
     // Returns true on success, false otherwise.
     static bool initialize(int width, int height, const gfxstream::host::FeatureSet& features,
-                           bool useSubWindow, bool egl2egl);
+                           bool useSubWindow);
 
     // Finalize the instance.
     static void finalize();

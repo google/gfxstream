@@ -153,8 +153,7 @@ typedef std::unordered_map<uint64_t, CallbackMap> ProcOwnedCleanupCallbacks;
 class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<FrameBufferChangeEvent> {
    public:
     static std::unique_ptr<Impl> Create(FrameBuffer* framebuffer, uint32_t width, uint32_t height,
-                                        const FeatureSet& features, bool useSubWindow,
-                                        bool egl2egl);
+                                        const FeatureSet& features, bool useSubWindow);
 
     Impl(const Impl&) = delete;
     Impl& operator=(const Impl&) = delete;
@@ -893,7 +892,7 @@ void MaybeIncreaseFileDescriptorSoftLimit() {
 std::unique_ptr<FrameBuffer::Impl> FrameBuffer::Impl::Create(FrameBuffer* framebuffer,
                                                              uint32_t width, uint32_t height,
                                                              const FeatureSet& features,
-                                                             bool useSubWindow, bool egl2egl) {
+                                                             bool useSubWindow) {
     GFXSTREAM_DEBUG("FrameBuffer::Impl::initialize");
 
     std::unique_ptr<Impl> impl(new Impl(framebuffer, width, height, features, useSubWindow));
@@ -1003,7 +1002,7 @@ std::unique_ptr<FrameBuffer::Impl> FrameBuffer::Impl::Create(FrameBuffer* frameb
     // Do not initialize GL emulation if the guest is using ANGLE.
     if (!impl->m_features.GuestVulkanOnly.enabled) {
         impl->m_emulationGl =
-            EmulationGl::create(width, height, impl->m_features, useSubWindow, egl2egl);
+            EmulationGl::create(width, height, impl->m_features, useSubWindow);
         if (!impl->m_emulationGl) {
             GFXSTREAM_ERROR("Failed to initialize GL emulation.");
             return nullptr;
@@ -4569,8 +4568,7 @@ FrameBuffer::Impl::getRepresentativeColorBufferMemoryTypeInfo() const {
 FrameBuffer::~FrameBuffer() = default;
 
 /*static*/
-bool FrameBuffer::initialize(int width, int height, const FeatureSet& features, bool useSubWindow,
-                             bool egl2egl) {
+bool FrameBuffer::initialize(int width, int height, const FeatureSet& features, bool useSubWindow) {
     GFXSTREAM_DEBUG("FrameBuffer::initialize()");
 
     if (sFrameBuffer) {
@@ -4580,7 +4578,7 @@ bool FrameBuffer::initialize(int width, int height, const FeatureSet& features, 
     std::unique_ptr<FrameBuffer> framebuffer(new FrameBuffer());
 
     framebuffer->mImpl = FrameBuffer::Impl::Create(framebuffer.get(), width, height, features,
-                                                   useSubWindow, egl2egl);
+                                                   useSubWindow);
     if (!framebuffer->mImpl) {
         GFXSTREAM_ERROR("Failed to initialize FrameBuffer().");
         return false;

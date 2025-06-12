@@ -64,6 +64,11 @@ struct FeatureSet {
         "to compose and post frame buffers.",
         &map,
     };
+    FeatureInfo EglOnEgl = {
+        "EglOnEgl",
+        "If enabled, the GLES translator will layer on the host's EGL.",
+        &map,
+    };
     FeatureInfo ExternalBlob = {
         "ExternalBlob",
         "If enabled, virtio gpu blob resources will be allocated with external "

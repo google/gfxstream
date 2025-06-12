@@ -291,6 +291,7 @@ cc_test(
         ":gfxstream_backend_static",
         "//common/base:gfxstream_common_base",
         "//host/backend:gfxstream_host_backend",
+        "//host/features:gfxstream_host_features",
         "//host/testlibs/oswindow:gfxstream_oswindow_test_support",
         "//host/testlibs/support:gfxstream_host_testing_support",
         "@com_google_googletest//:gtest",
