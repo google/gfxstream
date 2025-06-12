@@ -59,9 +59,9 @@ struct UnpackerT {
     static T unpack(const void* ptr) {
         static_assert(sizeof(T) == sizeof(S),
                       "Bad input arguments, have to be of the same size");
-        S sized;
-        std::memcpy(&sized, ptr, sizeof(S));
-        return static_cast<T>(sized);
+        T ret;
+        std::memcpy(&ret, ptr, sizeof(T));
+        return ret;
     }
 };
 
