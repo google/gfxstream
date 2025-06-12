@@ -57,8 +57,7 @@ class RenderLibImpl final : public RenderLib {
     virtual RendererPtr initRenderer(int width,
                                      int height,
                                      const gfxstream::host::FeatureSet& features,
-                                     bool useSubWindow,
-                                     bool egl2egl) override;
+                                     bool useSubWindow) override;
 
     OnLastColorBufferRef getOnLastColorBufferRef() override;
 

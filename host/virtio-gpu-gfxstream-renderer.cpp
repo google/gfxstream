@@ -56,8 +56,17 @@ static VirtioGpuFrontend* sFrontend() {
 std::optional<gfxstream::host::FeatureSet>
 ParseGfxstreamFeatures(const int rendererFlags,
                         const std::string& rendererFeatures) {
-    gfxstream::host::FeatureSet features;
+    if (gfxstream::base::getEnvironmentVariable("ANDROID_GFXSTREAM_EGL") == "1") {
+        gfxstream::base::setEnvironmentVariable("ANDROID_EGL_ON_EGL", "1");
+        gfxstream::base::setEnvironmentVariable("ANDROID_EMUGL_VERBOSE", "1");
+    }
+    gfxstream::base::setEnvironmentVariable("ANDROID_EMU_HEADLESS", "1");
 
+    gfxstream::host::FeatureSet features;
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(
+        &features, EglOnEgl,
+        rendererFlags & STREAM_RENDERER_FLAGS_USE_EGL_BIT ||
+        gfxstream::base::getEnvironmentVariable("ANDROID_EGL_ON_EGL") == "1");
     GFXSTREAM_SET_FEATURE_ON_CONDITION(&features, VulkanExternalSync,
                                        rendererFlags & STREAM_RENDERER_FLAGS_VULKAN_EXTERNAL_SYNC);
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
@@ -233,25 +242,12 @@ RendererPtr InitRenderer(uint32_t displayWidth,
     GFXSTREAM_DEBUG("Initializing renderer with width:%u height:%u renderer-flags:0x%x",
                     displayWidth, displayHeight, rendererFlags);
 
-    if (gfxstream::base::getEnvironmentVariable("ANDROID_GFXSTREAM_EGL") == "1") {
-        gfxstream::base::setEnvironmentVariable("ANDROID_EGL_ON_EGL", "1");
-        gfxstream::base::setEnvironmentVariable("ANDROID_EMUGL_VERBOSE", "1");
-    }
-    gfxstream::base::setEnvironmentVariable("ANDROID_EMU_HEADLESS", "1");
-
-    const bool egl2eglByEnv = gfxstream::base::getEnvironmentVariable("ANDROID_EGL_ON_EGL") == "1";
-    const bool egl2eglByFlag = rendererFlags & STREAM_RENDERER_FLAGS_USE_EGL_BIT;
-    const bool enableEgl2egl = egl2eglByFlag || egl2eglByEnv;
-    if (enableEgl2egl) {
-        gfxstream::base::setEnvironmentVariable("ANDROID_EGL_ON_EGL", "1");
-    }
-
     gfxstream::vk::vkDispatch(false /* don't use test ICD */);
 
     static gfxstream::RenderLibPtr sRendererLibrary = gfxstream::initLibrary();
     MaybeConfigureRenderer(*sRendererLibrary);
 
-    RendererPtr renderer = sRendererLibrary->initRenderer(displayWidth, displayHeight, features, true, enableEgl2egl);
+    RendererPtr renderer = sRendererLibrary->initRenderer(displayWidth, displayHeight, features, true);
     if (!renderer) {
         GFXSTREAM_ERROR("Failed to initialize renderer.");
         return nullptr;

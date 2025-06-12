@@ -44,6 +44,7 @@ cc_library(
         "//host:gfxstream_host_headers",
         "//host/backend:gfxstream_host_backend",
         "//host/decoder_common:gfxstream_host_decoder_common",
+        "//host/features:gfxstream_host_features",
         "//host/gl:gfxstream_opengl_server",
         "//host/gl/OpenGLESDispatch:gfxstream_host_openglesdispatch",
         "//host/gl/OpenGLESDispatch:gfxstream_host_openglesdispatch_headers",
