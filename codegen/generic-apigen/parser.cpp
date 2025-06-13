@@ -1,19 +1,19 @@
 /*
-* Copyright 2014 The Android Open Source Project
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
-#include "Parser.h"
+ * Copyright 2014 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+#include "parser.h"
 
 #include <vector>
 
@@ -26,8 +26,7 @@
 //
 // Example: 'const char**foo' -> ['const', 'char', '*', '*', 'foo']
 //
-static bool parseTypeTokens(const std::string& input,
-                            std::vector<std::string>* out,
+static bool parseTypeTokens(const std::string& input, std::vector<std::string>* out,
                             std::string* error) {
     out->clear();
     size_t pos = 0U;
@@ -92,8 +91,7 @@ static bool parseTypeTokens(const std::string& input,
 
 // Given |tokens|, an input vector of strings, join the first |count| items
 // into a normalized type string, and return it.
-static std::string buildTypeString(const std::vector<std::string>& tokens,
-                                   size_t count) {
+static std::string buildTypeString(const std::vector<std::string>& tokens, size_t count) {
     std::string result;
 
     for (size_t n = 0; n < count; ++n) {
@@ -106,7 +104,6 @@ static std::string buildTypeString(const std::vector<std::string>& tokens,
     return result;
 }
 
-
 std::string normalizeTypeDeclaration(const std::string& input) {
     std::vector<std::string> tokens;
     if (!parseTypeTokens(input, &tokens, NULL)) {
@@ -115,9 +112,7 @@ std::string normalizeTypeDeclaration(const std::string& input) {
     return buildTypeString(tokens, tokens.size());
 }
 
-bool parseTypeDeclaration(const std::string& input,
-                          std::string* typeName,
-                          std::string* error) {
+bool parseTypeDeclaration(const std::string& input, std::string* typeName, std::string* error) {
     // The type name can be made of several tokens, e.g. 'unsigned int'
     // use an array to store them, and a count variable. Each item can be
     // one of '*', 'const' or a type name component (e.g. 'struct', 'unsigned')
@@ -143,11 +138,8 @@ bool parseTypeDeclaration(const std::string& input,
     return true;
 }
 
-
-bool parseParameterDeclaration(const std::string& param,
-                               std::string* typeName,
-                               std::string* variableName,
-                               std::string* error) {
+bool parseParameterDeclaration(const std::string& param, std::string* typeName,
+                               std::string* variableName, std::string* error) {
     std::vector<std::string> tokens;
 
     if (!parseTypeTokens(param, &tokens, error)) {

@@ -23,7 +23,6 @@
 #include <limits>
 #include <memory>
 
-#include "gfxstream/host/ChecksumCalculatorThreadInfo.h"
 #include "FrameBuffer.h"
 #include "GLESVersionDetector.h"
 #include "OpenGLESDispatch/DispatchTables.h"
@@ -33,12 +32,14 @@
 #include "RenderThreadInfoVk.h"
 #include "SyncThread.h"
 #include "gfxstream/Tracing.h"
-#include "gfxstream/host/AstcCpuDecompressor.h"
 #include "gfxstream/common/logging.h"
+#include "gfxstream/host/AstcCpuDecompressor.h"
+#include "gfxstream/host/ChecksumCalculatorThreadInfo.h"
+#include "gfxstream/host/Tracing.h"
+#include "gfxstream/host/gl_enums.h"
 #include "gfxstream/host/guest_operations.h"
 #include "gfxstream/host/renderer_operations.h"
 #include "gfxstream/host/sync_device.h"
-#include "gfxstream/host/Tracing.h"
 #include "vulkan/VkCommonOperations.h"
 #include "vulkan/VkDecoderGlobalState.h"
 
@@ -275,33 +276,24 @@ static GLint rcGetRendererVersion()
 
 static EGLint rcGetEGLVersion(EGLint* major, EGLint* minor)
 {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         return EGL_FALSE;
     }
-    fb->getEmulationGl().getEglVersion(major, minor);
-
-    return EGL_TRUE;
+    return fb->getEglVersion(major, minor);
 }
 
 static EGLint rcQueryEGLString(EGLenum name, void* buffer, EGLint bufferSize)
 {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
         return 0;
     }
 
-    const char* str = gl::s_egl.eglQueryString(fb->getDisplay(), name);
-    if (!str) {
+    const std::string eglStr = fb->getEglString(name);
+    if (eglStr.empty()) {
         return 0;
-    }
-
-    std::string eglStr(str);
-    if ((fb->getMaxGLESVersion() >= GLES_DISPATCH_MAX_VERSION_3_0) &&
-        fb->getFeatures().GlesDynamicVersion.enabled &&
-        eglStr.find("EGL_KHR_create_context") == std::string::npos) {
-        eglStr += "EGL_KHR_create_context ";
     }
 
     int len = eglStr.size() + 1;
@@ -431,38 +423,17 @@ void removeExtension(std::string& currExts, const std::string& toRemove) {
 }
 
 static EGLint rcGetGLString(EGLenum name, void* buffer, EGLint bufferSize) {
-    RenderThreadInfoGl* const tInfo = RenderThreadInfoGl::get();
-
-    // whatever we end up returning,
-    // it will have a terminating \0,
-    // so account for it here.
-    std::string glStr;
-
-    if (tInfo && tInfo->currContext.get()) {
-        const char *str = nullptr;
-        if (tInfo->currContext->clientVersion() > GLESApi_CM) {
-            str = (const char*)gl::s_gles2.glGetString(name);
-        }
-        else {
-            str = (const char*)gl::s_gles1.glGetString(name);
-        }
-        if (str) {
-            glStr += str;
-        }
-    }
-
     FrameBuffer* fb = FrameBuffer::getFB();
 
-    const gfxstream::host::FeatureSet& features = fb->getFeatures();
+    std::string glStr;
 
-    // We add the maximum supported GL protocol number into GL_EXTENSIONS
-
-    // filter extensions by name to match guest-side support
-    GLESDispatchMaxVersion maxVersion = fb->getMaxGLESVersion();
-    if (name == GL_EXTENSIONS) {
-        glStr = gl::filterExtensionsBasedOnMaxVersion(features, maxVersion, glStr);
+    if (fb->hasEmulationGl()) {
+        glStr = fb->getGlString(name);
     }
 
+    GLESDispatchMaxVersion maxVersion = fb->getMaxGlesVersion();
+
+    const gfxstream::host::FeatureSet& features = fb->getFeatures();
     bool isChecksumEnabled = features.GlPipeChecksum.enabled;
     bool asyncSwapEnabled = shouldEnableAsyncSwap(features);
     bool virtioGpuNativeSyncEnabled = features.VirtioGpuNativeSync.enabled;
@@ -653,10 +624,7 @@ static EGLint rcGetGLString(EGLenum name, void* buffer, EGLint bufferSize) {
         }
 
         // ASTC LDR compressed texture support.
-        const std::string& glExtensions =
-            FrameBuffer::getFB()->hasEmulationGl()
-                ? FrameBuffer::getFB()->getEmulationGl().getGlesExtensionsString()
-                : "<no GL emulation>";
+        const std::string& glExtensions = FrameBuffer::getFB()->getGlesExtensionsString();
         const bool hasNativeAstc =
             glExtensions.find("GL_KHR_texture_compression_astc_ldr") != std::string::npos;
         const bool hasAstcDecompressor = vk::AstcCpuDecompressor::get().available();
@@ -718,9 +686,10 @@ static EGLint rcGetGLString(EGLenum name, void* buffer, EGLint bufferSize) {
 
 static EGLint rcGetNumConfigs(uint32_t* p_numAttribs)
 {
-    int numConfigs = 0, numAttribs = 0;
+    int numConfigs = 0;
+    int numAttribs = 0;
 
-    FrameBuffer::getFB()->getConfigs()->getPackInfo(&numConfigs, &numAttribs);
+    FrameBuffer::getFB()->getNumConfigs(&numConfigs, &numAttribs);
     if (p_numAttribs) {
         *p_numAttribs = static_cast<uint32_t>(numAttribs);
     }
@@ -729,8 +698,7 @@ static EGLint rcGetNumConfigs(uint32_t* p_numAttribs)
 
 static EGLint rcGetConfigs(uint32_t bufSize, GLuint* buffer)
 {
-    GLuint bufferSize = (GLuint)bufSize;
-    return FrameBuffer::getFB()->getConfigs()->packConfigs(bufferSize, buffer);
+    return FrameBuffer::getFB()->getConfigs(bufSize, buffer);
 }
 
 static EGLint rcChooseConfig(EGLint *attribs,
@@ -738,7 +706,7 @@ static EGLint rcChooseConfig(EGLint *attribs,
                              uint32_t *configs,
                              uint32_t configs_size)
 {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
         return 0;
@@ -752,13 +720,12 @@ static EGLint rcChooseConfig(EGLint *attribs,
         }
     }
 
-    return fb->getConfigs()->chooseConfig(
-            attribs, (EGLint*)configs, (EGLint)configs_size);
+    return fb->chooseConfig(attribs, (EGLint*)configs, (EGLint)configs_size);
 }
 
 static EGLint rcGetFBParam(EGLint param)
 {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
         return 0;
@@ -769,7 +736,7 @@ static EGLint rcGetFBParam(EGLint param)
 static uint32_t rcCreateContext(uint32_t config,
                                 uint32_t share, uint32_t glVersion)
 {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
         return 0;
@@ -781,7 +748,7 @@ static uint32_t rcCreateContext(uint32_t config,
 
 static void rcDestroyContext(uint32_t context)
 {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         return;
     }
@@ -792,7 +759,7 @@ static void rcDestroyContext(uint32_t context)
 static uint32_t rcCreateWindowSurface(uint32_t config,
                                       uint32_t width, uint32_t height)
 {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
         return 0;
@@ -803,7 +770,7 @@ static uint32_t rcCreateWindowSurface(uint32_t config,
 
 static void rcDestroyWindowSurface(uint32_t windowSurface)
 {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GFXSTREAM_VERBOSE("%s: framebuffer cannot be found!", __func__);
         return;
@@ -815,7 +782,7 @@ static void rcDestroyWindowSurface(uint32_t windowSurface)
 static uint32_t rcCreateColorBuffer(uint32_t width,
                                     uint32_t height, GLenum internalFormat)
 {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
         return 0;
@@ -829,7 +796,7 @@ static uint32_t rcCreateColorBufferDMA(uint32_t width,
                                        uint32_t height, GLenum internalFormat,
                                        int frameworkFormat)
 {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
         return 0;
@@ -841,7 +808,7 @@ static uint32_t rcCreateColorBufferDMA(uint32_t width,
 
 static int rcOpenColorBuffer2(uint32_t colorbuffer)
 {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
         return -1;
@@ -856,7 +823,7 @@ static void rcOpenColorBuffer(uint32_t colorbuffer)
 
 static void rcCloseColorBuffer(uint32_t colorbuffer)
 {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GFXSTREAM_VERBOSE("%s: framebuffer cannot be found!", __func__);
         return;
@@ -870,7 +837,7 @@ static int rcFlushWindowColorBuffer(uint32_t windowSurface)
     GrallocSyncPostLock lock(*sGrallocSync());
     GRSYNC_DPRINT("lock gralloc cb lock {");
 
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GRSYNC_DPRINT("unlock gralloc cb lock");
         return -1;
@@ -924,7 +891,7 @@ static void rcFlushWindowColorBufferAsync(uint32_t windowSurface)
 static void rcSetWindowColorBuffer(uint32_t windowSurface,
                                    uint32_t colorBuffer)
 {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         return;
     }
@@ -934,7 +901,7 @@ static void rcSetWindowColorBuffer(uint32_t windowSurface,
 static EGLint rcMakeCurrent(uint32_t context,
                             uint32_t drawSurf, uint32_t readSurf)
 {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         return EGL_FALSE;
     }
@@ -946,7 +913,7 @@ static EGLint rcMakeCurrent(uint32_t context,
 
 static void rcFBPost(uint32_t colorBuffer)
 {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         return;
     }
@@ -961,7 +928,7 @@ static void rcFBSetSwapInterval(EGLint interval)
 
 static void rcBindTexture(uint32_t colorBuffer)
 {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         return;
     }
@@ -974,7 +941,7 @@ static void rcBindTexture(uint32_t colorBuffer)
 
 static void rcBindRenderbuffer(uint32_t colorBuffer)
 {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         return;
     }
@@ -1000,7 +967,7 @@ static void rcReadColorBuffer(uint32_t colorBuffer,
                               GLint width, GLint height,
                               GLenum format, GLenum type, void* pixels)
 {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         return;
     }
@@ -1013,7 +980,7 @@ static int rcUpdateColorBuffer(uint32_t colorBuffer,
                                GLint width, GLint height,
                                GLenum format, GLenum type, void* pixels)
 {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
 
     if (!fb) {
         GRSYNC_DPRINT("unlock gralloc cb lock");
@@ -1035,7 +1002,7 @@ static int rcUpdateColorBufferDMA(uint32_t colorBuffer,
                                   GLenum format, GLenum type,
                                   void* pixels, uint32_t pixels_size)
 {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
 
     if (!fb) {
         GRSYNC_DPRINT("unlock gralloc cb lock");
@@ -1054,7 +1021,7 @@ static int rcUpdateColorBufferDMA(uint32_t colorBuffer,
 
 static uint32_t rcCreateClientImage(uint32_t context, EGLenum target, GLuint buffer)
 {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
         return 0;
@@ -1065,7 +1032,7 @@ static uint32_t rcCreateClientImage(uint32_t context, EGLenum target, GLuint buf
 
 static int rcDestroyClientImage(uint32_t image)
 {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GFXSTREAM_VERBOSE("%s: framebuffer cannot be found!", __func__);
         return 0;
@@ -1099,7 +1066,7 @@ static void rcTriggerWait(uint64_t eglsync_ptr,
         SyncThread::get()->triggerWaitVkQsri(reinterpret_cast<VkImage>(eglsync_ptr), timeline);
     } else {
         EmulatedEglFenceSync* fenceSync = EmulatedEglFenceSync::getFromHandle(eglsync_ptr);
-        FrameBuffer *fb = FrameBuffer::getFB();
+        FrameBuffer* fb = FrameBuffer::getFB();
         if (fb && fenceSync && fenceSync->isCompositionFence()) {
             fb->scheduleVsyncTask([eglsync_ptr, fenceSync, timeline](uint64_t) {
                 (void)eglsync_ptr;
@@ -1163,7 +1130,7 @@ static EGLint rcClientWaitSyncKHR(uint64_t handle,
         GFXSTREAM_FATAL("Render thread GL not available.");
     }
 
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
 
     EGLSYNC_DPRINT("handle=0x%lx flags=0x%x timeout=%" PRIu64,
                 handle, flags, timeout);
@@ -1199,7 +1166,7 @@ static void rcWaitSyncKHR(uint64_t handle,
         GFXSTREAM_FATAL("Render thread GL not available.");
     }
 
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
 
     EGLSYNC_DPRINT("handle=0x%lx flags=0x%x", handle, flags);
 
@@ -1252,7 +1219,7 @@ static int rcCompose(uint32_t bufferSize, void* buffer) {
     RenderThreadInfo *tInfo = RenderThreadInfo::get();
     if (tInfo) tInfo->m_isCompositionThread = true;
 
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
         return -1;
@@ -1264,7 +1231,7 @@ static int rcComposeWithoutPost(uint32_t bufferSize, void* buffer) {
     RenderThreadInfo *tInfo = RenderThreadInfo::get();
     if (tInfo) tInfo->m_isCompositionThread = true;
 
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
         return -1;
@@ -1273,7 +1240,7 @@ static int rcComposeWithoutPost(uint32_t bufferSize, void* buffer) {
 }
 
 static int rcCreateDisplay(uint32_t* displayId) {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
         return -1;
@@ -1285,7 +1252,7 @@ static int rcCreateDisplay(uint32_t* displayId) {
 }
 
 static int rcCreateDisplayById(uint32_t displayId) {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
         return -1;
@@ -1295,7 +1262,7 @@ static int rcCreateDisplayById(uint32_t displayId) {
 }
 
 static int rcDestroyDisplay(uint32_t displayId) {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
         return -1;
@@ -1305,7 +1272,7 @@ static int rcDestroyDisplay(uint32_t displayId) {
 }
 
 static int rcSetDisplayColorBuffer(uint32_t displayId, uint32_t colorBuffer) {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
         return -1;
@@ -1315,7 +1282,7 @@ static int rcSetDisplayColorBuffer(uint32_t displayId, uint32_t colorBuffer) {
 }
 
 static int rcGetDisplayColorBuffer(uint32_t displayId, uint32_t* colorBuffer) {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
         return -1;
@@ -1325,7 +1292,7 @@ static int rcGetDisplayColorBuffer(uint32_t displayId, uint32_t* colorBuffer) {
 }
 
 static int rcGetColorBufferDisplay(uint32_t colorBuffer, uint32_t* displayId) {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
         return -1;
@@ -1339,7 +1306,7 @@ static int rcGetDisplayPose(uint32_t displayId,
                             int32_t* y,
                             uint32_t* w,
                             uint32_t* h) {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
         return -1;
@@ -1353,7 +1320,7 @@ static int rcSetDisplayPose(uint32_t displayId,
                             int32_t y,
                             uint32_t w,
                             uint32_t h) {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
         return -1;
@@ -1368,7 +1335,7 @@ static int rcSetDisplayPoseDpi(uint32_t displayId,
                                uint32_t w,
                                uint32_t h,
                                uint32_t dpi) {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
         return -1;
@@ -1382,7 +1349,7 @@ static void rcReadColorBufferYUV(uint32_t colorBuffer,
                                 GLint width, GLint height,
                                 void* pixels, uint32_t pixels_size)
 {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         return;
     }
@@ -1399,7 +1366,7 @@ static int rcIsSyncSignaled(uint64_t handle) {
 static void rcCreateColorBufferWithHandle(
     uint32_t width, uint32_t height, GLenum internalFormat, uint32_t handle)
 {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
 
     if (!fb) {
         return;
@@ -1436,11 +1403,13 @@ static int rcSetColorBufferVulkanMode2(uint32_t colorBuffer, uint32_t mode,
 #define VULKAN_MODE_VULKAN_ONLY 1
 
     FrameBuffer* fb = FrameBuffer::getFB();
+
     if (!fb->hasEmulationVk()) {
         GFXSTREAM_ERROR("VkEmulation not enabled.");
         return -1;
     }
-    if (!fb->getEmulationVk().setColorBufferVulkanMode(colorBuffer, mode)) {
+
+    if (!fb->setColorBufferVulkanMode(colorBuffer, mode)) {
         GFXSTREAM_ERROR("Failed to set ColorBuffer vulkan mode.");
         return -1;
     }
@@ -1455,11 +1424,13 @@ static int rcSetColorBufferVulkanMode(uint32_t colorBuffer, uint32_t mode) {
 
 static int32_t rcMapGpaToBufferHandle(uint32_t bufferHandle, uint64_t gpa) {
     FrameBuffer* fb = FrameBuffer::getFB();
+
     if (!fb->hasEmulationVk()) {
         GFXSTREAM_ERROR("VkEmulation not enabled.");
         return -1;
     }
-    if (fb->getEmulationVk().mapGpaToBufferHandle(bufferHandle, gpa) < 0) {
+
+    if (fb->mapGpaToBufferHandle(bufferHandle, gpa) < 0) {
         GFXSTREAM_ERROR("Failed to map gpa %" PRIx64 " to buffer handle 0x%x.", gpa, bufferHandle);
         return -1;
     }
@@ -1470,11 +1441,13 @@ static int32_t rcMapGpaToBufferHandle2(uint32_t bufferHandle,
                                        uint64_t gpa,
                                        uint64_t size) {
     FrameBuffer* fb = FrameBuffer::getFB();
+
     if (!fb->hasEmulationVk()) {
         GFXSTREAM_ERROR("VkEmulation not enabled.");
         return -1;
     }
-    if (fb->getEmulationVk().mapGpaToBufferHandle(bufferHandle, gpa, size) < 0) {
+
+    if (fb->mapGpaToBufferHandle(bufferHandle, gpa, size) < 0) {
         GFXSTREAM_ERROR("Failed to map gpa %" PRIx64 " to buffer handle 0x%x.", gpa, bufferHandle);
         return -1;
     }
@@ -1518,7 +1491,7 @@ static void rcComposeAsyncWithoutPost(uint32_t bufferSize, void* buffer) {
     RenderThreadInfo *tInfo = RenderThreadInfo::get();
     if (tInfo) tInfo->m_isCompositionThread = true;
 
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         return;
     }
@@ -1536,7 +1509,7 @@ static int rcReadColorBufferDMA(uint32_t colorBuffer,
                                 GLint width, GLint height,
                                 GLenum format, GLenum type, void* pixels, uint32_t pixels_size)
 {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
         return -1;
@@ -1547,7 +1520,7 @@ static int rcReadColorBufferDMA(uint32_t colorBuffer,
 }
 
 static int rcGetFBDisplayConfigsCount() {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
         return -1;
@@ -1556,7 +1529,7 @@ static int rcGetFBDisplayConfigsCount() {
 }
 
 static int rcGetFBDisplayConfigsParam(int configId, GLint param) {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
         return -1;
@@ -1565,7 +1538,7 @@ static int rcGetFBDisplayConfigsParam(int configId, GLint param) {
 }
 
 static int rcGetFBDisplayActiveConfig() {
-    FrameBuffer *fb = FrameBuffer::getFB();
+    FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
         return -1;

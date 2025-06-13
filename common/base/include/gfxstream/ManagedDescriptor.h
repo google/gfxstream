@@ -17,7 +17,7 @@
 #include <optional>
 #ifdef _WIN32
 #include <windows.h>
-#elif defined(__APPLE__) || defined(__linux__)
+#elif defined(__APPLE__) || defined(__linux__) || defined(__QNX__)
 #include <unistd.h>
 #endif
 
@@ -29,7 +29,7 @@ struct PlatformTraitWin32 {
     using DescriptorType = HANDLE;
     void closeDescriptor(DescriptorType handle) { CloseHandle(handle); }
 };
-#elif defined(__APPLE__) || defined(__linux__)
+#elif defined(__APPLE__) || defined(__linux__) || defined(__QNX__)
 struct PlatformTraitUnixLike {
     using DescriptorType = int;
     void closeDescriptor(DescriptorType handle) { close(handle); }
@@ -100,7 +100,7 @@ class ManagedDescriptorBase {
 #ifdef _WIN32
 using DescriptorType = DescriptorTypeBase<internal::PlatformTraitWin32>;
 using ManagedDescriptor = ManagedDescriptorBase<internal::PlatformTraitWin32>;
-#elif defined(__APPLE__) || defined(__linux__)
+#elif defined(__APPLE__) || defined(__linux__) || defined(__QNX__)
 using DescriptorType = DescriptorTypeBase<internal::PlatformTraitUnixLike>;
 using ManagedDescriptor = ManagedDescriptorBase<internal::PlatformTraitUnixLike>;
 #endif

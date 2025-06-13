@@ -19,7 +19,6 @@
 #include "DisplayVk.h"
 
 #include "BorrowedImageVk.h"
-#include "RenderThreadInfo.h"
 #include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/host/testing/SampleApplication.h"
 #include "gfxstream/host/testing/OSWindow.h"

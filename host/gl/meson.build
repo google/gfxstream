@@ -48,7 +48,6 @@ lib_gl_server = static_library(
   include_directories: [
     inc_common_base,
     inc_common_logging,
-    inc_common_opengl,
     inc_common_utils,
     inc_gfxstream_server,
     inc_gl_common,

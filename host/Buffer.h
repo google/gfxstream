@@ -21,10 +21,6 @@
 #include "render-utils/stream.h"
 #include "snapshot/LazySnapshotObj.h"
 
-#if GFXSTREAM_ENABLE_HOST_GLES
-#include "BufferGl.h"
-#endif
-
 namespace gfxstream {
 namespace gl {
 class EmulationGl;
@@ -33,7 +29,6 @@ class EmulationGl;
 
 namespace gfxstream {
 namespace vk {
-class BufferVk;
 class VkEmulation;
 }  // namespace vk
 }  // namespace gfxstream
@@ -53,26 +48,18 @@ class Buffer : public LazySnapshotObj<Buffer> {
     void onSave(gfxstream::Stream* stream);
     void restore();
 
-    HandleType getHndl() const { return mHandle; }
-    uint64_t getSize() const { return mSize; }
+    HandleType getHndl() const;
+    uint64_t getSize() const;
 
     void readToBytes(uint64_t offset, uint64_t size, void* outBytes);
     bool updateFromBytes(uint64_t offset, uint64_t size, const void* bytes);
     std::optional<BlobDescriptorInfo> exportBlob();
 
    private:
-    Buffer(HandleType handle, uint64_t size);
+    Buffer() = default;
 
-    const HandleType mHandle;
-    const uint64_t mSize;
-
-#if GFXSTREAM_ENABLE_HOST_GLES
-    // If GL emulation is enabled.
-    std::unique_ptr<gl::BufferGl> mBufferGl;
-#endif
-
-    // If Vk emulation is enabled.
-    std::unique_ptr<vk::BufferVk> mBufferVk;
+    class Impl;
+    std::unique_ptr<Impl> mImpl;
 };
 
 typedef std::shared_ptr<Buffer> BufferPtr;
