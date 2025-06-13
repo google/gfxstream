@@ -926,11 +926,13 @@ class VkDecoderSnapshot::Impl {
             (const uint64_t*)pFramebuffer, 1,
             (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkRenderPass(
                 pCreateInfo->renderPass));
-        for (uint32_t i = 0; i < pCreateInfo->attachmentCount; ++i) {
-            mReconstruction.addHandleDependency(
-                (const uint64_t*)pFramebuffer, 1,
-                (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkImageView(
-                    pCreateInfo->pAttachments[i]));
+        if ((pCreateInfo->flags & VK_FRAMEBUFFER_CREATE_IMAGELESS_BIT) == 0) {
+            for (uint32_t i = 0; i < pCreateInfo->attachmentCount; ++i) {
+                mReconstruction.addHandleDependency(
+                    (const uint64_t*)pFramebuffer, 1,
+                    (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkImageView(
+                        pCreateInfo->pAttachments[i]));
+            }
         }
         mReconstruction.setApiTrace(apiCallHandle, apiCallPacket, apiCallPacketSize);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pFramebuffer, 1, apiCallHandle,
