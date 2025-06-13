@@ -17,6 +17,8 @@
 
 #include <sstream>
 
+#include <processthreadsapi.h>
+
 #include "gfxstream/threads/Thread.h"
 #include "gfxstream/system/Win32UnicodeString.h"
 
@@ -55,9 +57,6 @@ bool Thread::start() {
         if (!mNameOpt->empty() && name.size() == 0) {
             return ret;
         }
-#ifdef __MINGW64__
-
-#else
         HRESULT res = SetThreadDescription(mThread, name.c_str());
         if (FAILED(res)) {
             std::stringstream ss;
@@ -76,7 +75,6 @@ bool Thread::start() {
             }
             ss << ".";
         }
-#endif // __MINGW64__
     }
     return ret;
 }

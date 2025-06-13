@@ -38,19 +38,15 @@
 #include <mach/mach.h>
 #endif  // __APPLE__
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__MINGW64_)
 // #include "gfxstream/msvc.h"
 // #include <dirent.h>
+#include <sys/resource.h>
 #else
 #include <time.h>
 #include <sys/time.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#ifdef __MINGW64__
-
-#else
-#include <sys/resource.h>
-#endif // __MINGW64__
 #include <unistd.h>
 #endif
 
