@@ -17,6 +17,8 @@ cereal_cpp_args = [
 
 if host_machine.system() == 'qnx'
   cereal_cpp_args += '-DVK_USE_PLATFORM_SCREEN_QNX'
+elif host_machine.system() == 'windows'
+  cereal_cpp_args += '-DVK_USE_PLATFORM_WIN32_KHR'
 endif
 
 lib_vulkan_cereal = static_library(

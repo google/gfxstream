@@ -17,6 +17,8 @@
 
 #include <sstream>
 
+#include <processthreadsapi.h>
+
 #include "gfxstream/threads/Thread.h"
 #include "gfxstream/system/Win32UnicodeString.h"
 
