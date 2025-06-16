@@ -370,12 +370,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pPhysicalDevices) {
                     vkReadStream->alloc((void**)&pPhysicalDevices,
-                                        (*(pPhysicalDeviceCount)) * sizeof(VkPhysicalDevice));
-                    if ((*(pPhysicalDeviceCount))) {
+                                        (*pPhysicalDeviceCount) * sizeof(VkPhysicalDevice));
+                    if ((*pPhysicalDeviceCount)) {
                         uint8_t* cgen_var_2_0_ptr = (uint8_t*)(*readStreamPtrPtr);
-                        *readStreamPtrPtr += 8 * (*(pPhysicalDeviceCount));
+                        *readStreamPtrPtr += 8 * (*pPhysicalDeviceCount);
                         if (pPhysicalDeviceCount) {
-                            for (uint32_t k = 0; k < (*(pPhysicalDeviceCount)); ++k) {
+                            for (uint32_t k = 0; k < (*pPhysicalDeviceCount); ++k) {
                                 uint64_t tmpval;
                                 memcpy(&tmpval, cgen_var_2_0_ptr + k * 8, sizeof(uint64_t));
                                 *(((VkPhysicalDevice*)pPhysicalDevices) + k) =
@@ -415,16 +415,16 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 uint64_t cgen_var_4 = (uint64_t)(uintptr_t)pPhysicalDevices;
                 vkStream->putBe64(cgen_var_4);
                 if (pPhysicalDevices) {
-                    if ((*(pPhysicalDeviceCount))) {
+                    if ((*pPhysicalDeviceCount)) {
                         uint64_t* cgen_var_4_0;
-                        vkStream->alloc((void**)&cgen_var_4_0, (*(pPhysicalDeviceCount)) * 8);
+                        vkStream->alloc((void**)&cgen_var_4_0, (*pPhysicalDeviceCount) * 8);
                         static_assert(
                             8 == sizeof(VkPhysicalDevice),
                             "handle map overwrite requires VkPhysicalDevice to be 8 bytes long");
                         vkStream->handleMapping()->mapHandles_VkPhysicalDevice(
-                            (VkPhysicalDevice*)pPhysicalDevices, (*(pPhysicalDeviceCount)));
+                            (VkPhysicalDevice*)pPhysicalDevices, (*pPhysicalDeviceCount));
                         vkStream->write((VkPhysicalDevice*)pPhysicalDevices,
-                                        8 * (*(pPhysicalDeviceCount)));
+                                        8 * (*pPhysicalDeviceCount));
                     }
                 }
                 vkStream->write(&vkEnumeratePhysicalDevices_VkResult_return, sizeof(VkResult));
@@ -706,8 +706,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 if (pQueueFamilyProperties) {
                     vkReadStream->alloc(
                         (void**)&pQueueFamilyProperties,
-                        (*(pQueueFamilyPropertyCount)) * sizeof(VkQueueFamilyProperties));
-                    for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i) {
+                        (*pQueueFamilyPropertyCount) * sizeof(VkQueueFamilyProperties));
+                    for (uint32_t i = 0; i < (uint32_t)(*pQueueFamilyPropertyCount); ++i) {
                         reservedunmarshal_VkQueueFamilyProperties(
                             vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                             (VkQueueFamilyProperties*)(pQueueFamilyProperties + i),
@@ -716,7 +716,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pQueueFamilyPropertyCount) {
                     if (pQueueFamilyProperties) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pQueueFamilyPropertyCount); ++i) {
                             transform_tohost_VkQueueFamilyProperties(
                                 m_state, (VkQueueFamilyProperties*)(pQueueFamilyProperties + i));
                         }
@@ -744,7 +744,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pQueueFamilyPropertyCount) {
                     if (pQueueFamilyProperties) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pQueueFamilyPropertyCount); ++i) {
                             transform_fromhost_VkQueueFamilyProperties(
                                 m_state, (VkQueueFamilyProperties*)(pQueueFamilyProperties + i));
                         }
@@ -755,7 +755,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->putBe64(cgen_var_4);
                 if (pQueueFamilyProperties) {
                     if (pQueueFamilyPropertyCount) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pQueueFamilyPropertyCount); ++i) {
                             marshal_VkQueueFamilyProperties(
                                 vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                 (VkQueueFamilyProperties*)(pQueueFamilyProperties + i));
@@ -1058,8 +1058,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pProperties) {
                     vkReadStream->alloc((void**)&pProperties,
-                                        (*(pPropertyCount)) * sizeof(VkExtensionProperties));
-                    for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
+                                        (*pPropertyCount) * sizeof(VkExtensionProperties));
+                    for (uint32_t i = 0; i < (uint32_t)(*pPropertyCount); ++i) {
                         reservedunmarshal_VkExtensionProperties(
                             vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                             (VkExtensionProperties*)(pProperties + i), readStreamPtrPtr);
@@ -1067,7 +1067,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pPropertyCount) {
                     if (pProperties) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pPropertyCount); ++i) {
                             transform_tohost_VkExtensionProperties(
                                 m_state, (VkExtensionProperties*)(pProperties + i));
                         }
@@ -1099,7 +1099,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pPropertyCount) {
                     if (pProperties) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pPropertyCount); ++i) {
                             transform_fromhost_VkExtensionProperties(
                                 m_state, (VkExtensionProperties*)(pProperties + i));
                         }
@@ -1110,7 +1110,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->putBe64(cgen_var_3);
                 if (pProperties) {
                     if (pPropertyCount) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pPropertyCount); ++i) {
                             marshal_VkExtensionProperties(
                                 vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                 (VkExtensionProperties*)(pProperties + i));
@@ -1178,8 +1178,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pProperties) {
                     vkReadStream->alloc((void**)&pProperties,
-                                        (*(pPropertyCount)) * sizeof(VkExtensionProperties));
-                    for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
+                                        (*pPropertyCount) * sizeof(VkExtensionProperties));
+                    for (uint32_t i = 0; i < (uint32_t)(*pPropertyCount); ++i) {
                         reservedunmarshal_VkExtensionProperties(
                             vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                             (VkExtensionProperties*)(pProperties + i), readStreamPtrPtr);
@@ -1187,7 +1187,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pPropertyCount) {
                     if (pProperties) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pPropertyCount); ++i) {
                             transform_tohost_VkExtensionProperties(
                                 m_state, (VkExtensionProperties*)(pProperties + i));
                         }
@@ -1222,7 +1222,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pPropertyCount) {
                     if (pProperties) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pPropertyCount); ++i) {
                             transform_fromhost_VkExtensionProperties(
                                 m_state, (VkExtensionProperties*)(pProperties + i));
                         }
@@ -1233,7 +1233,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->putBe64(cgen_var_4);
                 if (pProperties) {
                     if (pPropertyCount) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pPropertyCount); ++i) {
                             marshal_VkExtensionProperties(
                                 vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                 (VkExtensionProperties*)(pProperties + i));
@@ -1278,8 +1278,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pProperties) {
                     vkReadStream->alloc((void**)&pProperties,
-                                        (*(pPropertyCount)) * sizeof(VkLayerProperties));
-                    for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
+                                        (*pPropertyCount) * sizeof(VkLayerProperties));
+                    for (uint32_t i = 0; i < (uint32_t)(*pPropertyCount); ++i) {
                         reservedunmarshal_VkLayerProperties(
                             vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                             (VkLayerProperties*)(pProperties + i), readStreamPtrPtr);
@@ -1287,7 +1287,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pPropertyCount) {
                     if (pProperties) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pPropertyCount); ++i) {
                             transform_tohost_VkLayerProperties(
                                 m_state, (VkLayerProperties*)(pProperties + i));
                         }
@@ -1316,7 +1316,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pPropertyCount) {
                     if (pProperties) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pPropertyCount); ++i) {
                             transform_fromhost_VkLayerProperties(
                                 m_state, (VkLayerProperties*)(pProperties + i));
                         }
@@ -1327,7 +1327,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->putBe64(cgen_var_3);
                 if (pProperties) {
                     if (pPropertyCount) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pPropertyCount); ++i) {
                             marshal_VkLayerProperties(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                       (VkLayerProperties*)(pProperties + i));
                         }
@@ -1381,8 +1381,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pProperties) {
                     vkReadStream->alloc((void**)&pProperties,
-                                        (*(pPropertyCount)) * sizeof(VkLayerProperties));
-                    for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
+                                        (*pPropertyCount) * sizeof(VkLayerProperties));
+                    for (uint32_t i = 0; i < (uint32_t)(*pPropertyCount); ++i) {
                         reservedunmarshal_VkLayerProperties(
                             vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                             (VkLayerProperties*)(pProperties + i), readStreamPtrPtr);
@@ -1390,7 +1390,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pPropertyCount) {
                     if (pProperties) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pPropertyCount); ++i) {
                             transform_tohost_VkLayerProperties(
                                 m_state, (VkLayerProperties*)(pProperties + i));
                         }
@@ -1422,7 +1422,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pPropertyCount) {
                     if (pProperties) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pPropertyCount); ++i) {
                             transform_fromhost_VkLayerProperties(
                                 m_state, (VkLayerProperties*)(pProperties + i));
                         }
@@ -1433,7 +1433,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->putBe64(cgen_var_4);
                 if (pProperties) {
                     if (pPropertyCount) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pPropertyCount); ++i) {
                             marshal_VkLayerProperties(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                       (VkLayerProperties*)(pProperties + i));
                         }
@@ -1518,9 +1518,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto vk = dispatch_VkQueue(queue);
                 memcpy((uint32_t*)&submitCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc((void**)&pSubmits,
-                                    ((submitCount)) * sizeof(const VkSubmitInfo));
-                for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i) {
+                vkReadStream->alloc((void**)&pSubmits, submitCount * sizeof(const VkSubmitInfo));
+                for (uint32_t i = 0; i < (uint32_t)submitCount; ++i) {
                     reservedunmarshal_VkSubmitInfo(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                    (VkSubmitInfo*)(pSubmits + i), readStreamPtrPtr);
                 }
@@ -1529,7 +1528,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 1 * 8;
                 *(VkFence*)&fence = (VkFence)unbox_VkFence((VkFence)(*&cgen_var_1));
                 if (pSubmits) {
-                    for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)submitCount; ++i) {
                         transform_tohost_VkSubmitInfo(m_state, (VkSubmitInfo*)(pSubmits + i));
                     }
                 }
@@ -1887,14 +1886,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&memoryRangeCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pMemoryRanges,
-                                    ((memoryRangeCount)) * sizeof(const VkMappedMemoryRange));
-                for (uint32_t i = 0; i < (uint32_t)((memoryRangeCount)); ++i) {
+                                    memoryRangeCount * sizeof(const VkMappedMemoryRange));
+                for (uint32_t i = 0; i < (uint32_t)memoryRangeCount; ++i) {
                     reservedunmarshal_VkMappedMemoryRange(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                           (VkMappedMemoryRange*)(pMemoryRanges + i),
                                                           readStreamPtrPtr);
                 }
                 if (pMemoryRanges) {
-                    for (uint32_t i = 0; i < (uint32_t)((memoryRangeCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)memoryRangeCount; ++i) {
                         transform_tohost_VkMappedMemoryRange(
                             m_state, (VkMappedMemoryRange*)(pMemoryRanges + i));
                     }
@@ -1983,14 +1982,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&memoryRangeCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pMemoryRanges,
-                                    ((memoryRangeCount)) * sizeof(const VkMappedMemoryRange));
-                for (uint32_t i = 0; i < (uint32_t)((memoryRangeCount)); ++i) {
+                                    memoryRangeCount * sizeof(const VkMappedMemoryRange));
+                for (uint32_t i = 0; i < (uint32_t)memoryRangeCount; ++i) {
                     reservedunmarshal_VkMappedMemoryRange(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                           (VkMappedMemoryRange*)(pMemoryRanges + i),
                                                           readStreamPtrPtr);
                 }
                 if (pMemoryRanges) {
-                    for (uint32_t i = 0; i < (uint32_t)((memoryRangeCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)memoryRangeCount; ++i) {
                         transform_tohost_VkMappedMemoryRange(
                             m_state, (VkMappedMemoryRange*)(pMemoryRanges + i));
                     }
@@ -2342,10 +2341,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 gfxstream::Stream::fromBe64((uint8_t*)&pSparseMemoryRequirements);
                 *readStreamPtrPtr += 8;
                 if (pSparseMemoryRequirements) {
-                    vkReadStream->alloc((void**)&pSparseMemoryRequirements,
-                                        (*(pSparseMemoryRequirementCount)) *
-                                            sizeof(VkSparseImageMemoryRequirements));
-                    for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i) {
+                    vkReadStream->alloc(
+                        (void**)&pSparseMemoryRequirements,
+                        (*pSparseMemoryRequirementCount) * sizeof(VkSparseImageMemoryRequirements));
+                    for (uint32_t i = 0; i < (uint32_t)(*pSparseMemoryRequirementCount); ++i) {
                         reservedunmarshal_VkSparseImageMemoryRequirements(
                             vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                             (VkSparseImageMemoryRequirements*)(pSparseMemoryRequirements + i),
@@ -2354,8 +2353,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pSparseMemoryRequirementCount) {
                     if (pSparseMemoryRequirements) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount));
-                             ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pSparseMemoryRequirementCount); ++i) {
                             transform_tohost_VkSparseImageMemoryRequirements(
                                 m_state,
                                 (VkSparseImageMemoryRequirements*)(pSparseMemoryRequirements + i));
@@ -2384,8 +2382,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pSparseMemoryRequirementCount) {
                     if (pSparseMemoryRequirements) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount));
-                             ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pSparseMemoryRequirementCount); ++i) {
                             transform_fromhost_VkSparseImageMemoryRequirements(
                                 m_state,
                                 (VkSparseImageMemoryRequirements*)(pSparseMemoryRequirements + i));
@@ -2397,8 +2394,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->putBe64(cgen_var_5);
                 if (pSparseMemoryRequirements) {
                     if (pSparseMemoryRequirementCount) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount));
-                             ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pSparseMemoryRequirementCount); ++i) {
                             marshal_VkSparseImageMemoryRequirements(
                                 vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                 (VkSparseImageMemoryRequirements*)(pSparseMemoryRequirements + i));
@@ -2463,10 +2459,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 gfxstream::Stream::fromBe64((uint8_t*)&pProperties);
                 *readStreamPtrPtr += 8;
                 if (pProperties) {
-                    vkReadStream->alloc(
-                        (void**)&pProperties,
-                        (*(pPropertyCount)) * sizeof(VkSparseImageFormatProperties));
-                    for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
+                    vkReadStream->alloc((void**)&pProperties,
+                                        (*pPropertyCount) * sizeof(VkSparseImageFormatProperties));
+                    for (uint32_t i = 0; i < (uint32_t)(*pPropertyCount); ++i) {
                         reservedunmarshal_VkSparseImageFormatProperties(
                             vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                             (VkSparseImageFormatProperties*)(pProperties + i), readStreamPtrPtr);
@@ -2474,7 +2469,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pPropertyCount) {
                     if (pProperties) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pPropertyCount); ++i) {
                             transform_tohost_VkSparseImageFormatProperties(
                                 m_state, (VkSparseImageFormatProperties*)(pProperties + i));
                         }
@@ -2503,7 +2498,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pPropertyCount) {
                     if (pProperties) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pPropertyCount); ++i) {
                             transform_fromhost_VkSparseImageFormatProperties(
                                 m_state, (VkSparseImageFormatProperties*)(pProperties + i));
                         }
@@ -2514,7 +2509,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->putBe64(cgen_var_4);
                 if (pProperties) {
                     if (pPropertyCount) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pPropertyCount); ++i) {
                             marshal_VkSparseImageFormatProperties(
                                 vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                 (VkSparseImageFormatProperties*)(pProperties + i));
@@ -2548,8 +2543,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&bindInfoCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pBindInfo,
-                                    ((bindInfoCount)) * sizeof(const VkBindSparseInfo));
-                for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i) {
+                                    bindInfoCount * sizeof(const VkBindSparseInfo));
+                for (uint32_t i = 0; i < (uint32_t)bindInfoCount; ++i) {
                     reservedunmarshal_VkBindSparseInfo(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                        (VkBindSparseInfo*)(pBindInfo + i),
                                                        readStreamPtrPtr);
@@ -2559,7 +2554,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 1 * 8;
                 *(VkFence*)&fence = (VkFence)unbox_VkFence((VkFence)(*&cgen_var_1));
                 if (pBindInfo) {
-                    for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)bindInfoCount; ++i) {
                         transform_tohost_VkBindSparseInfo(m_state,
                                                           (VkBindSparseInfo*)(pBindInfo + i));
                     }
@@ -2734,11 +2729,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto vk = dispatch_VkDevice(device);
                 memcpy((uint32_t*)&fenceCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc((void**)&pFences, ((fenceCount)) * sizeof(const VkFence));
-                if (((fenceCount))) {
+                vkReadStream->alloc((void**)&pFences, fenceCount * sizeof(const VkFence));
+                if (fenceCount) {
                     uint8_t* cgen_var_1_ptr = (uint8_t*)(*readStreamPtrPtr);
-                    *readStreamPtrPtr += 8 * ((fenceCount));
-                    for (uint32_t k = 0; k < ((fenceCount)); ++k) {
+                    *readStreamPtrPtr += 8 * fenceCount;
+                    for (uint32_t k = 0; k < fenceCount; ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                         *(((VkFence*)pFences) + k) =
@@ -2827,11 +2822,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto vk = dispatch_VkDevice(device);
                 memcpy((uint32_t*)&fenceCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc((void**)&pFences, ((fenceCount)) * sizeof(const VkFence));
-                if (((fenceCount))) {
+                vkReadStream->alloc((void**)&pFences, fenceCount * sizeof(const VkFence));
+                if (fenceCount) {
                     uint8_t* cgen_var_1_ptr = (uint8_t*)(*readStreamPtrPtr);
-                    *readStreamPtrPtr += 8 * ((fenceCount));
-                    for (uint32_t k = 0; k < ((fenceCount)); ++k) {
+                    *readStreamPtrPtr += 8 * fenceCount;
+                    for (uint32_t k = 0; k < fenceCount; ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                         *(((VkFence*)pFences) + k) =
@@ -3432,10 +3427,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 // Begin manual dispatchable handle unboxing for pData;
                 vkReadStream->unsetHandleMapping();
-                vkReadStream->alloc((void**)&pData, ((dataSize)) * sizeof(uint8_t));
-                if (((dataSize)) > 0) {
-                    memcpy((void*)pData, *readStreamPtrPtr, ((dataSize)) * sizeof(uint8_t));
-                    *readStreamPtrPtr += ((dataSize)) * sizeof(uint8_t);
+                vkReadStream->alloc((void**)&pData, dataSize * sizeof(uint8_t));
+                if (dataSize > 0) {
+                    memcpy((void*)pData, *readStreamPtrPtr, dataSize * sizeof(uint8_t));
+                    *readStreamPtrPtr += dataSize * sizeof(uint8_t);
                 }
                 memcpy((VkDeviceSize*)&stride, *readStreamPtrPtr, sizeof(VkDeviceSize));
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
@@ -3461,7 +3456,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 m_state->on_CheckOutOfMemory(vkGetQueryPoolResults_VkResult_return, opcode,
                                              context);
                 vkStream->unsetHandleMapping();
-                vkStream->write((void*)pData, ((dataSize)) * sizeof(uint8_t));
+                vkStream->write((void*)pData, dataSize * sizeof(uint8_t));
                 vkStream->write(&vkGetQueryPoolResults_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
@@ -4392,10 +4387,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 gfxstream::Stream::fromBe64((uint8_t*)&pData);
                 *readStreamPtrPtr += 8;
                 if (pData) {
-                    vkReadStream->alloc((void**)&pData, (*(pDataSize)) * sizeof(uint8_t));
-                    if ((*(pDataSize)) > 0) {
-                        memcpy((void*)pData, *readStreamPtrPtr, (*(pDataSize)) * sizeof(uint8_t));
-                        *readStreamPtrPtr += (*(pDataSize)) * sizeof(uint8_t);
+                    vkReadStream->alloc((void**)&pData, (*pDataSize) * sizeof(uint8_t));
+                    if ((*pDataSize) > 0) {
+                        memcpy((void*)pData, *readStreamPtrPtr, (*pDataSize) * sizeof(uint8_t));
+                        *readStreamPtrPtr += (*pDataSize) * sizeof(uint8_t);
                     }
                 }
                 if (m_logCalls) {
@@ -4425,7 +4420,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 uint64_t cgen_var_5 = (uint64_t)(uintptr_t)pData;
                 vkStream->putBe64(cgen_var_5);
                 if (pData) {
-                    vkStream->write((void*)pData, (*(pDataSize)) * sizeof(uint8_t));
+                    vkStream->write((void*)pData, (*pDataSize) * sizeof(uint8_t));
                 }
                 vkStream->write(&vkGetPipelineCacheData_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
@@ -4463,11 +4458,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&srcCacheCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pSrcCaches,
-                                    ((srcCacheCount)) * sizeof(const VkPipelineCache));
-                if (((srcCacheCount))) {
+                                    srcCacheCount * sizeof(const VkPipelineCache));
+                if (srcCacheCount) {
                     uint8_t* cgen_var_2_ptr = (uint8_t*)(*readStreamPtrPtr);
-                    *readStreamPtrPtr += 8 * ((srcCacheCount));
-                    for (uint32_t k = 0; k < ((srcCacheCount)); ++k) {
+                    *readStreamPtrPtr += 8 * srcCacheCount;
+                    for (uint32_t k = 0; k < srcCacheCount; ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_2_ptr + k * 8, sizeof(uint64_t));
                         *(((VkPipelineCache*)pSrcCaches) + k) =
@@ -4526,10 +4521,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     (VkPipelineCache)unbox_VkPipelineCache((VkPipelineCache)(*&cgen_var_1));
                 memcpy((uint32_t*)&createInfoCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc(
-                    (void**)&pCreateInfos,
-                    ((createInfoCount)) * sizeof(const VkGraphicsPipelineCreateInfo));
-                for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i) {
+                vkReadStream->alloc((void**)&pCreateInfos,
+                                    createInfoCount * sizeof(const VkGraphicsPipelineCreateInfo));
+                for (uint32_t i = 0; i < (uint32_t)createInfoCount; ++i) {
                     reservedunmarshal_VkGraphicsPipelineCreateInfo(
                         vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                         (VkGraphicsPipelineCreateInfo*)(pCreateInfos + i), readStreamPtrPtr);
@@ -4546,11 +4540,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 // Begin manual dispatchable handle unboxing for pPipelines;
                 vkReadStream->unsetHandleMapping();
-                vkReadStream->alloc((void**)&pPipelines, ((createInfoCount)) * sizeof(VkPipeline));
-                if (((createInfoCount))) {
+                vkReadStream->alloc((void**)&pPipelines, createInfoCount * sizeof(VkPipeline));
+                if (createInfoCount) {
                     uint8_t* cgen_var_3_ptr = (uint8_t*)(*readStreamPtrPtr);
-                    *readStreamPtrPtr += 8 * ((createInfoCount));
-                    for (uint32_t k = 0; k < ((createInfoCount)); ++k) {
+                    *readStreamPtrPtr += 8 * createInfoCount;
+                    for (uint32_t k = 0; k < createInfoCount; ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_3_ptr + k * 8, sizeof(uint64_t));
                         *(((VkPipeline*)pPipelines) + k) =
@@ -4558,7 +4552,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (pCreateInfos) {
-                    for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)createInfoCount; ++i) {
                         transform_tohost_VkGraphicsPipelineCreateInfo(
                             m_state, (VkGraphicsPipelineCreateInfo*)(pCreateInfos + i));
                     }
@@ -4589,14 +4583,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 // Begin manual non dispatchable handle create for pPipelines;
                 vkStream->unsetHandleMapping();
-                if (((createInfoCount))) {
+                if (createInfoCount) {
                     uint64_t* cgen_var_4;
-                    vkStream->alloc((void**)&cgen_var_4, ((createInfoCount)) * 8);
+                    vkStream->alloc((void**)&cgen_var_4, createInfoCount * 8);
                     static_assert(8 == sizeof(VkPipeline),
                                   "handle map overwrite requires VkPipeline to be 8 bytes long");
                     vkStream->handleMapping()->mapHandles_VkPipeline((VkPipeline*)pPipelines,
-                                                                     ((createInfoCount)));
-                    vkStream->write((VkPipeline*)pPipelines, 8 * ((createInfoCount)));
+                                                                     createInfoCount);
+                    vkStream->write((VkPipeline*)pPipelines, 8 * createInfoCount);
                 }
                 // Begin manual non dispatchable handle create for pPipelines;
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
@@ -4635,10 +4629,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     (VkPipelineCache)unbox_VkPipelineCache((VkPipelineCache)(*&cgen_var_1));
                 memcpy((uint32_t*)&createInfoCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc(
-                    (void**)&pCreateInfos,
-                    ((createInfoCount)) * sizeof(const VkComputePipelineCreateInfo));
-                for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i) {
+                vkReadStream->alloc((void**)&pCreateInfos,
+                                    createInfoCount * sizeof(const VkComputePipelineCreateInfo));
+                for (uint32_t i = 0; i < (uint32_t)createInfoCount; ++i) {
                     reservedunmarshal_VkComputePipelineCreateInfo(
                         vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                         (VkComputePipelineCreateInfo*)(pCreateInfos + i), readStreamPtrPtr);
@@ -4655,11 +4648,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 // Begin manual dispatchable handle unboxing for pPipelines;
                 vkReadStream->unsetHandleMapping();
-                vkReadStream->alloc((void**)&pPipelines, ((createInfoCount)) * sizeof(VkPipeline));
-                if (((createInfoCount))) {
+                vkReadStream->alloc((void**)&pPipelines, createInfoCount * sizeof(VkPipeline));
+                if (createInfoCount) {
                     uint8_t* cgen_var_3_ptr = (uint8_t*)(*readStreamPtrPtr);
-                    *readStreamPtrPtr += 8 * ((createInfoCount));
-                    for (uint32_t k = 0; k < ((createInfoCount)); ++k) {
+                    *readStreamPtrPtr += 8 * createInfoCount;
+                    for (uint32_t k = 0; k < createInfoCount; ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_3_ptr + k * 8, sizeof(uint64_t));
                         *(((VkPipeline*)pPipelines) + k) =
@@ -4667,7 +4660,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (pCreateInfos) {
-                    for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)createInfoCount; ++i) {
                         transform_tohost_VkComputePipelineCreateInfo(
                             m_state, (VkComputePipelineCreateInfo*)(pCreateInfos + i));
                     }
@@ -4697,14 +4690,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 // Begin manual non dispatchable handle create for pPipelines;
                 vkStream->unsetHandleMapping();
-                if (((createInfoCount))) {
+                if (createInfoCount) {
                     uint64_t* cgen_var_4;
-                    vkStream->alloc((void**)&cgen_var_4, ((createInfoCount)) * 8);
+                    vkStream->alloc((void**)&cgen_var_4, createInfoCount * 8);
                     static_assert(8 == sizeof(VkPipeline),
                                   "handle map overwrite requires VkPipeline to be 8 bytes long");
                     vkStream->handleMapping()->mapHandles_VkPipeline((VkPipeline*)pPipelines,
-                                                                     ((createInfoCount)));
-                    vkStream->write((VkPipeline*)pPipelines, 8 * ((createInfoCount)));
+                                                                     createInfoCount);
+                    vkStream->write((VkPipeline*)pPipelines, 8 * createInfoCount);
                 }
                 // Begin manual non dispatchable handle create for pPipelines;
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
@@ -5491,18 +5484,18 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 // Begin manual non dispatchable handle destroy unboxing for pDescriptorSets;
                 VkDescriptorSet* boxed_pDescriptorSets_preserve;
                 vkReadStream->alloc((void**)&boxed_pDescriptorSets_preserve,
-                                    ((descriptorSetCount)) * sizeof(VkDescriptorSet));
+                                    descriptorSetCount * sizeof(VkDescriptorSet));
                 // WARNING PTR CHECK
                 memcpy((VkDescriptorSet**)&pDescriptorSets, (*readStreamPtrPtr), 8);
                 gfxstream::Stream::fromBe64((uint8_t*)&pDescriptorSets);
                 *readStreamPtrPtr += 8;
                 if (pDescriptorSets) {
                     vkReadStream->alloc((void**)&pDescriptorSets,
-                                        ((descriptorSetCount)) * sizeof(const VkDescriptorSet));
-                    if (((descriptorSetCount))) {
+                                        descriptorSetCount * sizeof(const VkDescriptorSet));
+                    if (descriptorSetCount) {
                         uint8_t* cgen_var_2_0_ptr = (uint8_t*)(*readStreamPtrPtr);
-                        *readStreamPtrPtr += 8 * ((descriptorSetCount));
-                        for (uint32_t k = 0; k < ((descriptorSetCount)); ++k) {
+                        *readStreamPtrPtr += 8 * descriptorSetCount;
+                        for (uint32_t k = 0; k < descriptorSetCount; ++k) {
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_2_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkDescriptorSet*)pDescriptorSets) + k) =
@@ -5511,7 +5504,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         }
                     }
                 }
-                for (uint32_t i = 0; i < ((descriptorSetCount)); ++i) {
+                for (uint32_t i = 0; i < descriptorSetCount; ++i) {
                     boxed_pDescriptorSets_preserve[i] = pDescriptorSets[i];
                     ((VkDescriptorSet*)(pDescriptorSets))[i] =
                         try_unbox_VkDescriptorSet(pDescriptorSets[i]);
@@ -5564,8 +5557,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&descriptorWriteCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pDescriptorWrites,
-                                    ((descriptorWriteCount)) * sizeof(const VkWriteDescriptorSet));
-                for (uint32_t i = 0; i < (uint32_t)((descriptorWriteCount)); ++i) {
+                                    descriptorWriteCount * sizeof(const VkWriteDescriptorSet));
+                for (uint32_t i = 0; i < (uint32_t)descriptorWriteCount; ++i) {
                     reservedunmarshal_VkWriteDescriptorSet(
                         vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                         (VkWriteDescriptorSet*)(pDescriptorWrites + i), readStreamPtrPtr);
@@ -5573,20 +5566,20 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&descriptorCopyCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pDescriptorCopies,
-                                    ((descriptorCopyCount)) * sizeof(const VkCopyDescriptorSet));
-                for (uint32_t i = 0; i < (uint32_t)((descriptorCopyCount)); ++i) {
+                                    descriptorCopyCount * sizeof(const VkCopyDescriptorSet));
+                for (uint32_t i = 0; i < (uint32_t)descriptorCopyCount; ++i) {
                     reservedunmarshal_VkCopyDescriptorSet(
                         vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                         (VkCopyDescriptorSet*)(pDescriptorCopies + i), readStreamPtrPtr);
                 }
                 if (pDescriptorWrites) {
-                    for (uint32_t i = 0; i < (uint32_t)((descriptorWriteCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)descriptorWriteCount; ++i) {
                         transform_tohost_VkWriteDescriptorSet(
                             m_state, (VkWriteDescriptorSet*)(pDescriptorWrites + i));
                     }
                 }
                 if (pDescriptorCopies) {
-                    for (uint32_t i = 0; i < (uint32_t)((descriptorCopyCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)descriptorCopyCount; ++i) {
                         transform_tohost_VkCopyDescriptorSet(
                             m_state, (VkCopyDescriptorSet*)(pDescriptorCopies + i));
                     }
@@ -6229,18 +6222,18 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 // Begin manual non dispatchable handle destroy unboxing for pCommandBuffers;
                 VkCommandBuffer* boxed_pCommandBuffers_preserve;
                 vkReadStream->alloc((void**)&boxed_pCommandBuffers_preserve,
-                                    ((commandBufferCount)) * sizeof(VkCommandBuffer));
+                                    commandBufferCount * sizeof(VkCommandBuffer));
                 // WARNING PTR CHECK
                 memcpy((VkCommandBuffer**)&pCommandBuffers, (*readStreamPtrPtr), 8);
                 gfxstream::Stream::fromBe64((uint8_t*)&pCommandBuffers);
                 *readStreamPtrPtr += 8;
                 if (pCommandBuffers) {
                     vkReadStream->alloc((void**)&pCommandBuffers,
-                                        ((commandBufferCount)) * sizeof(const VkCommandBuffer));
-                    if (((commandBufferCount))) {
+                                        commandBufferCount * sizeof(const VkCommandBuffer));
+                    if (commandBufferCount) {
                         uint8_t* cgen_var_2_0_ptr = (uint8_t*)(*readStreamPtrPtr);
-                        *readStreamPtrPtr += 8 * ((commandBufferCount));
-                        for (uint32_t k = 0; k < ((commandBufferCount)); ++k) {
+                        *readStreamPtrPtr += 8 * commandBufferCount;
+                        for (uint32_t k = 0; k < commandBufferCount; ++k) {
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_2_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkCommandBuffer*)pCommandBuffers) + k) =
@@ -6249,7 +6242,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         }
                     }
                 }
-                for (uint32_t i = 0; i < ((commandBufferCount)); ++i) {
+                for (uint32_t i = 0; i < commandBufferCount; ++i) {
                     boxed_pCommandBuffers_preserve[i] = pCommandBuffers[i];
                     ((VkCommandBuffer*)(pCommandBuffers))[i] =
                         try_unbox_VkCommandBuffer(pCommandBuffers[i]);
@@ -6272,8 +6265,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         &m_pool, snapshotApiCallHandle, packet, packetLen, device, commandPool,
                         commandBufferCount, boxed_pCommandBuffers_preserve);
                 }
-                if (((commandBufferCount))) {
-                    for (uint32_t i = 0; i < ((commandBufferCount)); ++i) {
+                if (commandBufferCount) {
+                    for (uint32_t i = 0; i < commandBufferCount; ++i) {
                         delete_VkCommandBuffer(boxed_pCommandBuffers_preserve[i]);
                     }
                 }
@@ -6465,14 +6458,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += sizeof(uint32_t);
                 memcpy((uint32_t*)&viewportCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc((void**)&pViewports,
-                                    ((viewportCount)) * sizeof(const VkViewport));
-                for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i) {
+                vkReadStream->alloc((void**)&pViewports, viewportCount * sizeof(const VkViewport));
+                for (uint32_t i = 0; i < (uint32_t)viewportCount; ++i) {
                     reservedunmarshal_VkViewport(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                  (VkViewport*)(pViewports + i), readStreamPtrPtr);
                 }
                 if (pViewports) {
-                    for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)viewportCount; ++i) {
                         transform_tohost_VkViewport(m_state, (VkViewport*)(pViewports + i));
                     }
                 }
@@ -6517,13 +6509,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += sizeof(uint32_t);
                 memcpy((uint32_t*)&scissorCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc((void**)&pScissors, ((scissorCount)) * sizeof(const VkRect2D));
-                for (uint32_t i = 0; i < (uint32_t)((scissorCount)); ++i) {
+                vkReadStream->alloc((void**)&pScissors, scissorCount * sizeof(const VkRect2D));
+                for (uint32_t i = 0; i < (uint32_t)scissorCount; ++i) {
                     reservedunmarshal_VkRect2D(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                (VkRect2D*)(pScissors + i), readStreamPtrPtr);
                 }
                 if (pScissors) {
-                    for (uint32_t i = 0; i < (uint32_t)((scissorCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)scissorCount; ++i) {
                         transform_tohost_VkRect2D(m_state, (VkRect2D*)(pScissors + i));
                     }
                 }
@@ -6849,11 +6841,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&descriptorSetCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pDescriptorSets,
-                                    ((descriptorSetCount)) * sizeof(const VkDescriptorSet));
-                if (((descriptorSetCount))) {
+                                    descriptorSetCount * sizeof(const VkDescriptorSet));
+                if (descriptorSetCount) {
                     uint8_t* cgen_var_2_ptr = (uint8_t*)(*readStreamPtrPtr);
-                    *readStreamPtrPtr += 8 * ((descriptorSetCount));
-                    for (uint32_t k = 0; k < ((descriptorSetCount)); ++k) {
+                    *readStreamPtrPtr += 8 * descriptorSetCount;
+                    for (uint32_t k = 0; k < descriptorSetCount; ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_2_ptr + k * 8, sizeof(uint64_t));
                         *(((VkDescriptorSet*)pDescriptorSets) + k) =
@@ -6864,11 +6856,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&dynamicOffsetCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pDynamicOffsets,
-                                    ((dynamicOffsetCount)) * sizeof(const uint32_t));
-                if (((dynamicOffsetCount)) > 0) {
+                                    dynamicOffsetCount * sizeof(const uint32_t));
+                if (dynamicOffsetCount > 0) {
                     memcpy((uint32_t*)pDynamicOffsets, *readStreamPtrPtr,
-                           ((dynamicOffsetCount)) * sizeof(const uint32_t));
-                    *readStreamPtrPtr += ((dynamicOffsetCount)) * sizeof(const uint32_t);
+                           dynamicOffsetCount * sizeof(const uint32_t));
+                    *readStreamPtrPtr += dynamicOffsetCount * sizeof(const uint32_t);
                 }
                 if (m_logCalls) {
                     GFXSTREAM_INFO(
@@ -6963,23 +6955,22 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += sizeof(uint32_t);
                 memcpy((uint32_t*)&bindingCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc((void**)&pBuffers, ((bindingCount)) * sizeof(const VkBuffer));
-                if (((bindingCount))) {
+                vkReadStream->alloc((void**)&pBuffers, bindingCount * sizeof(const VkBuffer));
+                if (bindingCount) {
                     uint8_t* cgen_var_1_ptr = (uint8_t*)(*readStreamPtrPtr);
-                    *readStreamPtrPtr += 8 * ((bindingCount));
-                    for (uint32_t k = 0; k < ((bindingCount)); ++k) {
+                    *readStreamPtrPtr += 8 * bindingCount;
+                    for (uint32_t k = 0; k < bindingCount; ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                         *(((VkBuffer*)pBuffers) + k) =
                             tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval) : VK_NULL_HANDLE;
                     }
                 }
-                vkReadStream->alloc((void**)&pOffsets,
-                                    ((bindingCount)) * sizeof(const VkDeviceSize));
-                if (((bindingCount)) > 0) {
+                vkReadStream->alloc((void**)&pOffsets, bindingCount * sizeof(const VkDeviceSize));
+                if (bindingCount > 0) {
                     memcpy((VkDeviceSize*)pOffsets, *readStreamPtrPtr,
-                           ((bindingCount)) * sizeof(const VkDeviceSize));
-                    *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                           bindingCount * sizeof(const VkDeviceSize));
+                    *readStreamPtrPtr += bindingCount * sizeof(const VkDeviceSize);
                 }
                 if (m_logCalls) {
                     GFXSTREAM_INFO(
@@ -7307,14 +7298,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *(VkBuffer*)&dstBuffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_2));
                 memcpy((uint32_t*)&regionCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc((void**)&pRegions,
-                                    ((regionCount)) * sizeof(const VkBufferCopy));
-                for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i) {
+                vkReadStream->alloc((void**)&pRegions, regionCount * sizeof(const VkBufferCopy));
+                for (uint32_t i = 0; i < (uint32_t)regionCount; ++i) {
                     reservedunmarshal_VkBufferCopy(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                    (VkBufferCopy*)(pRegions + i), readStreamPtrPtr);
                 }
                 if (pRegions) {
-                    for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)regionCount; ++i) {
                         transform_tohost_VkBufferCopy(m_state, (VkBufferCopy*)(pRegions + i));
                     }
                 }
@@ -7370,13 +7360,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += sizeof(VkImageLayout);
                 memcpy((uint32_t*)&regionCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc((void**)&pRegions, ((regionCount)) * sizeof(const VkImageCopy));
-                for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i) {
+                vkReadStream->alloc((void**)&pRegions, regionCount * sizeof(const VkImageCopy));
+                for (uint32_t i = 0; i < (uint32_t)regionCount; ++i) {
                     reservedunmarshal_VkImageCopy(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                   (VkImageCopy*)(pRegions + i), readStreamPtrPtr);
                 }
                 if (pRegions) {
-                    for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)regionCount; ++i) {
                         transform_tohost_VkImageCopy(m_state, (VkImageCopy*)(pRegions + i));
                     }
                 }
@@ -7438,15 +7428,15 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += sizeof(VkImageLayout);
                 memcpy((uint32_t*)&regionCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc((void**)&pRegions, ((regionCount)) * sizeof(const VkImageBlit));
-                for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i) {
+                vkReadStream->alloc((void**)&pRegions, regionCount * sizeof(const VkImageBlit));
+                for (uint32_t i = 0; i < (uint32_t)regionCount; ++i) {
                     reservedunmarshal_VkImageBlit(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                   (VkImageBlit*)(pRegions + i), readStreamPtrPtr);
                 }
                 memcpy((VkFilter*)&filter, *readStreamPtrPtr, sizeof(VkFilter));
                 *readStreamPtrPtr += sizeof(VkFilter);
                 if (pRegions) {
-                    for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)regionCount; ++i) {
                         transform_tohost_VkImageBlit(m_state, (VkImageBlit*)(pRegions + i));
                     }
                 }
@@ -7503,14 +7493,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&regionCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pRegions,
-                                    ((regionCount)) * sizeof(const VkBufferImageCopy));
-                for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i) {
+                                    regionCount * sizeof(const VkBufferImageCopy));
+                for (uint32_t i = 0; i < (uint32_t)regionCount; ++i) {
                     reservedunmarshal_VkBufferImageCopy(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                         (VkBufferImageCopy*)(pRegions + i),
                                                         readStreamPtrPtr);
                 }
                 if (pRegions) {
-                    for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)regionCount; ++i) {
                         transform_tohost_VkBufferImageCopy(m_state,
                                                            (VkBufferImageCopy*)(pRegions + i));
                     }
@@ -7568,14 +7558,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&regionCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pRegions,
-                                    ((regionCount)) * sizeof(const VkBufferImageCopy));
-                for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i) {
+                                    regionCount * sizeof(const VkBufferImageCopy));
+                for (uint32_t i = 0; i < (uint32_t)regionCount; ++i) {
                     reservedunmarshal_VkBufferImageCopy(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                         (VkBufferImageCopy*)(pRegions + i),
                                                         readStreamPtrPtr);
                 }
                 if (pRegions) {
-                    for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)regionCount; ++i) {
                         transform_tohost_VkBufferImageCopy(m_state,
                                                            (VkBufferImageCopy*)(pRegions + i));
                     }
@@ -7629,10 +7619,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
                 memcpy((VkDeviceSize*)&dataSize, *readStreamPtrPtr, sizeof(VkDeviceSize));
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
-                vkReadStream->alloc((void**)&pData, ((dataSize)) * sizeof(const uint8_t));
-                if (((dataSize)) > 0) {
-                    memcpy((void*)pData, *readStreamPtrPtr, ((dataSize)) * sizeof(const uint8_t));
-                    *readStreamPtrPtr += ((dataSize)) * sizeof(const uint8_t);
+                vkReadStream->alloc((void**)&pData, dataSize * sizeof(const uint8_t));
+                if (dataSize > 0) {
+                    memcpy((void*)pData, *readStreamPtrPtr, dataSize * sizeof(const uint8_t));
+                    *readStreamPtrPtr += dataSize * sizeof(const uint8_t);
                 }
                 if (m_logCalls) {
                     GFXSTREAM_INFO(
@@ -7734,8 +7724,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&rangeCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pRanges,
-                                    ((rangeCount)) * sizeof(const VkImageSubresourceRange));
-                for (uint32_t i = 0; i < (uint32_t)((rangeCount)); ++i) {
+                                    rangeCount * sizeof(const VkImageSubresourceRange));
+                for (uint32_t i = 0; i < (uint32_t)rangeCount; ++i) {
                     reservedunmarshal_VkImageSubresourceRange(
                         vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                         (VkImageSubresourceRange*)(pRanges + i), readStreamPtrPtr);
@@ -7744,7 +7734,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     transform_tohost_VkClearColorValue(m_state, (VkClearColorValue*)(pColor));
                 }
                 if (pRanges) {
-                    for (uint32_t i = 0; i < (uint32_t)((rangeCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)rangeCount; ++i) {
                         transform_tohost_VkImageSubresourceRange(
                             m_state, (VkImageSubresourceRange*)(pRanges + i));
                     }
@@ -7803,8 +7793,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&rangeCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pRanges,
-                                    ((rangeCount)) * sizeof(const VkImageSubresourceRange));
-                for (uint32_t i = 0; i < (uint32_t)((rangeCount)); ++i) {
+                                    rangeCount * sizeof(const VkImageSubresourceRange));
+                for (uint32_t i = 0; i < (uint32_t)rangeCount; ++i) {
                     reservedunmarshal_VkImageSubresourceRange(
                         vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                         (VkImageSubresourceRange*)(pRanges + i), readStreamPtrPtr);
@@ -7814,7 +7804,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         m_state, (VkClearDepthStencilValue*)(pDepthStencil));
                 }
                 if (pRanges) {
-                    for (uint32_t i = 0; i < (uint32_t)((rangeCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)rangeCount; ++i) {
                         transform_tohost_VkImageSubresourceRange(
                             m_state, (VkImageSubresourceRange*)(pRanges + i));
                     }
@@ -7862,27 +7852,27 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&attachmentCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pAttachments,
-                                    ((attachmentCount)) * sizeof(const VkClearAttachment));
-                for (uint32_t i = 0; i < (uint32_t)((attachmentCount)); ++i) {
+                                    attachmentCount * sizeof(const VkClearAttachment));
+                for (uint32_t i = 0; i < (uint32_t)attachmentCount; ++i) {
                     reservedunmarshal_VkClearAttachment(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                         (VkClearAttachment*)(pAttachments + i),
                                                         readStreamPtrPtr);
                 }
                 memcpy((uint32_t*)&rectCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc((void**)&pRects, ((rectCount)) * sizeof(const VkClearRect));
-                for (uint32_t i = 0; i < (uint32_t)((rectCount)); ++i) {
+                vkReadStream->alloc((void**)&pRects, rectCount * sizeof(const VkClearRect));
+                for (uint32_t i = 0; i < (uint32_t)rectCount; ++i) {
                     reservedunmarshal_VkClearRect(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                   (VkClearRect*)(pRects + i), readStreamPtrPtr);
                 }
                 if (pAttachments) {
-                    for (uint32_t i = 0; i < (uint32_t)((attachmentCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)attachmentCount; ++i) {
                         transform_tohost_VkClearAttachment(m_state,
                                                            (VkClearAttachment*)(pAttachments + i));
                     }
                 }
                 if (pRects) {
-                    for (uint32_t i = 0; i < (uint32_t)((rectCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)rectCount; ++i) {
                         transform_tohost_VkClearRect(m_state, (VkClearRect*)(pRects + i));
                     }
                 }
@@ -7941,15 +7931,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += sizeof(VkImageLayout);
                 memcpy((uint32_t*)&regionCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc((void**)&pRegions,
-                                    ((regionCount)) * sizeof(const VkImageResolve));
-                for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i) {
+                vkReadStream->alloc((void**)&pRegions, regionCount * sizeof(const VkImageResolve));
+                for (uint32_t i = 0; i < (uint32_t)regionCount; ++i) {
                     reservedunmarshal_VkImageResolve(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                      (VkImageResolve*)(pRegions + i),
                                                      readStreamPtrPtr);
                 }
                 if (pRegions) {
-                    for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)regionCount; ++i) {
                         transform_tohost_VkImageResolve(m_state, (VkImageResolve*)(pRegions + i));
                     }
                 }
@@ -8082,11 +8071,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 // End manual dispatchable handle unboxing for commandBuffer;
                 memcpy((uint32_t*)&eventCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc((void**)&pEvents, ((eventCount)) * sizeof(const VkEvent));
-                if (((eventCount))) {
+                vkReadStream->alloc((void**)&pEvents, eventCount * sizeof(const VkEvent));
+                if (eventCount) {
                     uint8_t* cgen_var_1_ptr = (uint8_t*)(*readStreamPtrPtr);
-                    *readStreamPtrPtr += 8 * ((eventCount));
-                    for (uint32_t k = 0; k < ((eventCount)); ++k) {
+                    *readStreamPtrPtr += 8 * eventCount;
+                    for (uint32_t k = 0; k < eventCount; ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                         *(((VkEvent*)pEvents) + k) =
@@ -8102,46 +8091,44 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&memoryBarrierCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pMemoryBarriers,
-                                    ((memoryBarrierCount)) * sizeof(const VkMemoryBarrier));
-                for (uint32_t i = 0; i < (uint32_t)((memoryBarrierCount)); ++i) {
+                                    memoryBarrierCount * sizeof(const VkMemoryBarrier));
+                for (uint32_t i = 0; i < (uint32_t)memoryBarrierCount; ++i) {
                     reservedunmarshal_VkMemoryBarrier(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                       (VkMemoryBarrier*)(pMemoryBarriers + i),
                                                       readStreamPtrPtr);
                 }
                 memcpy((uint32_t*)&bufferMemoryBarrierCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc(
-                    (void**)&pBufferMemoryBarriers,
-                    ((bufferMemoryBarrierCount)) * sizeof(const VkBufferMemoryBarrier));
-                for (uint32_t i = 0; i < (uint32_t)((bufferMemoryBarrierCount)); ++i) {
+                vkReadStream->alloc((void**)&pBufferMemoryBarriers,
+                                    bufferMemoryBarrierCount * sizeof(const VkBufferMemoryBarrier));
+                for (uint32_t i = 0; i < (uint32_t)bufferMemoryBarrierCount; ++i) {
                     reservedunmarshal_VkBufferMemoryBarrier(
                         vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                         (VkBufferMemoryBarrier*)(pBufferMemoryBarriers + i), readStreamPtrPtr);
                 }
                 memcpy((uint32_t*)&imageMemoryBarrierCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc(
-                    (void**)&pImageMemoryBarriers,
-                    ((imageMemoryBarrierCount)) * sizeof(const VkImageMemoryBarrier));
-                for (uint32_t i = 0; i < (uint32_t)((imageMemoryBarrierCount)); ++i) {
+                vkReadStream->alloc((void**)&pImageMemoryBarriers,
+                                    imageMemoryBarrierCount * sizeof(const VkImageMemoryBarrier));
+                for (uint32_t i = 0; i < (uint32_t)imageMemoryBarrierCount; ++i) {
                     reservedunmarshal_VkImageMemoryBarrier(
                         vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                         (VkImageMemoryBarrier*)(pImageMemoryBarriers + i), readStreamPtrPtr);
                 }
                 if (pMemoryBarriers) {
-                    for (uint32_t i = 0; i < (uint32_t)((memoryBarrierCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)memoryBarrierCount; ++i) {
                         transform_tohost_VkMemoryBarrier(m_state,
                                                          (VkMemoryBarrier*)(pMemoryBarriers + i));
                     }
                 }
                 if (pBufferMemoryBarriers) {
-                    for (uint32_t i = 0; i < (uint32_t)((bufferMemoryBarrierCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)bufferMemoryBarrierCount; ++i) {
                         transform_tohost_VkBufferMemoryBarrier(
                             m_state, (VkBufferMemoryBarrier*)(pBufferMemoryBarriers + i));
                     }
                 }
                 if (pImageMemoryBarriers) {
-                    for (uint32_t i = 0; i < (uint32_t)((imageMemoryBarrierCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)imageMemoryBarrierCount; ++i) {
                         transform_tohost_VkImageMemoryBarrier(
                             m_state, (VkImageMemoryBarrier*)(pImageMemoryBarriers + i));
                     }
@@ -8210,46 +8197,44 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&memoryBarrierCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pMemoryBarriers,
-                                    ((memoryBarrierCount)) * sizeof(const VkMemoryBarrier));
-                for (uint32_t i = 0; i < (uint32_t)((memoryBarrierCount)); ++i) {
+                                    memoryBarrierCount * sizeof(const VkMemoryBarrier));
+                for (uint32_t i = 0; i < (uint32_t)memoryBarrierCount; ++i) {
                     reservedunmarshal_VkMemoryBarrier(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                       (VkMemoryBarrier*)(pMemoryBarriers + i),
                                                       readStreamPtrPtr);
                 }
                 memcpy((uint32_t*)&bufferMemoryBarrierCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc(
-                    (void**)&pBufferMemoryBarriers,
-                    ((bufferMemoryBarrierCount)) * sizeof(const VkBufferMemoryBarrier));
-                for (uint32_t i = 0; i < (uint32_t)((bufferMemoryBarrierCount)); ++i) {
+                vkReadStream->alloc((void**)&pBufferMemoryBarriers,
+                                    bufferMemoryBarrierCount * sizeof(const VkBufferMemoryBarrier));
+                for (uint32_t i = 0; i < (uint32_t)bufferMemoryBarrierCount; ++i) {
                     reservedunmarshal_VkBufferMemoryBarrier(
                         vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                         (VkBufferMemoryBarrier*)(pBufferMemoryBarriers + i), readStreamPtrPtr);
                 }
                 memcpy((uint32_t*)&imageMemoryBarrierCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc(
-                    (void**)&pImageMemoryBarriers,
-                    ((imageMemoryBarrierCount)) * sizeof(const VkImageMemoryBarrier));
-                for (uint32_t i = 0; i < (uint32_t)((imageMemoryBarrierCount)); ++i) {
+                vkReadStream->alloc((void**)&pImageMemoryBarriers,
+                                    imageMemoryBarrierCount * sizeof(const VkImageMemoryBarrier));
+                for (uint32_t i = 0; i < (uint32_t)imageMemoryBarrierCount; ++i) {
                     reservedunmarshal_VkImageMemoryBarrier(
                         vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                         (VkImageMemoryBarrier*)(pImageMemoryBarriers + i), readStreamPtrPtr);
                 }
                 if (pMemoryBarriers) {
-                    for (uint32_t i = 0; i < (uint32_t)((memoryBarrierCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)memoryBarrierCount; ++i) {
                         transform_tohost_VkMemoryBarrier(m_state,
                                                          (VkMemoryBarrier*)(pMemoryBarriers + i));
                     }
                 }
                 if (pBufferMemoryBarriers) {
-                    for (uint32_t i = 0; i < (uint32_t)((bufferMemoryBarrierCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)bufferMemoryBarrierCount; ++i) {
                         transform_tohost_VkBufferMemoryBarrier(
                             m_state, (VkBufferMemoryBarrier*)(pBufferMemoryBarriers + i));
                     }
                 }
                 if (pImageMemoryBarriers) {
-                    for (uint32_t i = 0; i < (uint32_t)((imageMemoryBarrierCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)imageMemoryBarrierCount; ++i) {
                         transform_tohost_VkImageMemoryBarrier(
                             m_state, (VkImageMemoryBarrier*)(pImageMemoryBarriers + i));
                     }
@@ -8558,10 +8543,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += sizeof(uint32_t);
                 memcpy((uint32_t*)&size, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc((void**)&pValues, ((size)) * sizeof(const uint8_t));
-                if (((size)) > 0) {
-                    memcpy((void*)pValues, *readStreamPtrPtr, ((size)) * sizeof(const uint8_t));
-                    *readStreamPtrPtr += ((size)) * sizeof(const uint8_t);
+                vkReadStream->alloc((void**)&pValues, size * sizeof(const uint8_t));
+                if (size > 0) {
+                    memcpy((void*)pValues, *readStreamPtrPtr, size * sizeof(const uint8_t));
+                    *readStreamPtrPtr += size * sizeof(const uint8_t);
                 }
                 if (m_logCalls) {
                     GFXSTREAM_INFO(
@@ -8709,11 +8694,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&commandBufferCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pCommandBuffers,
-                                    ((commandBufferCount)) * sizeof(const VkCommandBuffer));
-                if (((commandBufferCount))) {
+                                    commandBufferCount * sizeof(const VkCommandBuffer));
+                if (commandBufferCount) {
                     uint8_t* cgen_var_1_ptr = (uint8_t*)(*readStreamPtrPtr);
-                    *readStreamPtrPtr += 8 * ((commandBufferCount));
-                    for (uint32_t k = 0; k < ((commandBufferCount)); ++k) {
+                    *readStreamPtrPtr += 8 * commandBufferCount;
+                    for (uint32_t k = 0; k < commandBufferCount; ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                         *(((VkCommandBuffer*)pCommandBuffers) + k) =
@@ -8793,14 +8778,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&bindInfoCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pBindInfos,
-                                    ((bindInfoCount)) * sizeof(const VkBindBufferMemoryInfo));
-                for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i) {
+                                    bindInfoCount * sizeof(const VkBindBufferMemoryInfo));
+                for (uint32_t i = 0; i < (uint32_t)bindInfoCount; ++i) {
                     reservedunmarshal_VkBindBufferMemoryInfo(
                         vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                         (VkBindBufferMemoryInfo*)(pBindInfos + i), readStreamPtrPtr);
                 }
                 if (pBindInfos) {
-                    for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)bindInfoCount; ++i) {
                         transform_tohost_VkBindBufferMemoryInfo(
                             m_state, (VkBindBufferMemoryInfo*)(pBindInfos + i));
                     }
@@ -8847,14 +8832,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&bindInfoCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pBindInfos,
-                                    ((bindInfoCount)) * sizeof(const VkBindImageMemoryInfo));
-                for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i) {
+                                    bindInfoCount * sizeof(const VkBindImageMemoryInfo));
+                for (uint32_t i = 0; i < (uint32_t)bindInfoCount; ++i) {
                     reservedunmarshal_VkBindImageMemoryInfo(
                         vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                         (VkBindImageMemoryInfo*)(pBindInfos + i), readStreamPtrPtr);
                 }
                 if (pBindInfos) {
-                    for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)bindInfoCount; ++i) {
                         transform_tohost_VkBindImageMemoryInfo(
                             m_state, (VkBindImageMemoryInfo*)(pBindInfos + i));
                     }
@@ -9064,8 +9049,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 if (pPhysicalDeviceGroupProperties) {
                     vkReadStream->alloc(
                         (void**)&pPhysicalDeviceGroupProperties,
-                        (*(pPhysicalDeviceGroupCount)) * sizeof(VkPhysicalDeviceGroupProperties));
-                    for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i) {
+                        (*pPhysicalDeviceGroupCount) * sizeof(VkPhysicalDeviceGroupProperties));
+                    for (uint32_t i = 0; i < (uint32_t)(*pPhysicalDeviceGroupCount); ++i) {
                         reservedunmarshal_VkPhysicalDeviceGroupProperties(
                             vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                             (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i),
@@ -9074,7 +9059,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pPhysicalDeviceGroupCount) {
                     if (pPhysicalDeviceGroupProperties) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pPhysicalDeviceGroupCount); ++i) {
                             transform_tohost_VkPhysicalDeviceGroupProperties(
                                 m_state,
                                 (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties +
@@ -9110,7 +9095,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pPhysicalDeviceGroupCount) {
                     if (pPhysicalDeviceGroupProperties) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pPhysicalDeviceGroupCount); ++i) {
                             transform_fromhost_VkPhysicalDeviceGroupProperties(
                                 m_state,
                                 (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties +
@@ -9123,7 +9108,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->putBe64(cgen_var_4);
                 if (pPhysicalDeviceGroupProperties) {
                     if (pPhysicalDeviceGroupCount) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pPhysicalDeviceGroupCount); ++i) {
                             marshal_VkPhysicalDeviceGroupProperties(
                                 vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                 (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties +
@@ -9301,9 +9286,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pSparseMemoryRequirements) {
                     vkReadStream->alloc((void**)&pSparseMemoryRequirements,
-                                        (*(pSparseMemoryRequirementCount)) *
+                                        (*pSparseMemoryRequirementCount) *
                                             sizeof(VkSparseImageMemoryRequirements2));
-                    for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)(*pSparseMemoryRequirementCount); ++i) {
                         reservedunmarshal_VkSparseImageMemoryRequirements2(
                             vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                             (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i),
@@ -9316,8 +9301,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pSparseMemoryRequirementCount) {
                     if (pSparseMemoryRequirements) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount));
-                             ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pSparseMemoryRequirementCount); ++i) {
                             transform_tohost_VkSparseImageMemoryRequirements2(
                                 m_state,
                                 (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
@@ -9346,8 +9330,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pSparseMemoryRequirementCount) {
                     if (pSparseMemoryRequirements) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount));
-                             ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pSparseMemoryRequirementCount); ++i) {
                             transform_fromhost_VkSparseImageMemoryRequirements2(
                                 m_state,
                                 (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
@@ -9359,8 +9342,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->putBe64(cgen_var_4);
                 if (pSparseMemoryRequirements) {
                     if (pSparseMemoryRequirementCount) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount));
-                             ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pSparseMemoryRequirementCount); ++i) {
                             marshal_VkSparseImageMemoryRequirements2(
                                 vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                 (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
@@ -9640,8 +9622,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 if (pQueueFamilyProperties) {
                     vkReadStream->alloc(
                         (void**)&pQueueFamilyProperties,
-                        (*(pQueueFamilyPropertyCount)) * sizeof(VkQueueFamilyProperties2));
-                    for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i) {
+                        (*pQueueFamilyPropertyCount) * sizeof(VkQueueFamilyProperties2));
+                    for (uint32_t i = 0; i < (uint32_t)(*pQueueFamilyPropertyCount); ++i) {
                         reservedunmarshal_VkQueueFamilyProperties2(
                             vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                             (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i),
@@ -9650,7 +9632,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pQueueFamilyPropertyCount) {
                     if (pQueueFamilyProperties) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pQueueFamilyPropertyCount); ++i) {
                             transform_tohost_VkQueueFamilyProperties2(
                                 m_state, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i));
                         }
@@ -9678,7 +9660,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pQueueFamilyPropertyCount) {
                     if (pQueueFamilyProperties) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pQueueFamilyPropertyCount); ++i) {
                             transform_fromhost_VkQueueFamilyProperties2(
                                 m_state, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i));
                         }
@@ -9689,7 +9671,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->putBe64(cgen_var_4);
                 if (pQueueFamilyProperties) {
                     if (pQueueFamilyPropertyCount) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pQueueFamilyPropertyCount); ++i) {
                             marshal_VkQueueFamilyProperties2(
                                 vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                 (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i));
@@ -9796,10 +9778,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 gfxstream::Stream::fromBe64((uint8_t*)&pProperties);
                 *readStreamPtrPtr += 8;
                 if (pProperties) {
-                    vkReadStream->alloc(
-                        (void**)&pProperties,
-                        (*(pPropertyCount)) * sizeof(VkSparseImageFormatProperties2));
-                    for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
+                    vkReadStream->alloc((void**)&pProperties,
+                                        (*pPropertyCount) * sizeof(VkSparseImageFormatProperties2));
+                    for (uint32_t i = 0; i < (uint32_t)(*pPropertyCount); ++i) {
                         reservedunmarshal_VkSparseImageFormatProperties2(
                             vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                             (VkSparseImageFormatProperties2*)(pProperties + i), readStreamPtrPtr);
@@ -9811,7 +9792,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pPropertyCount) {
                     if (pProperties) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pPropertyCount); ++i) {
                             transform_tohost_VkSparseImageFormatProperties2(
                                 m_state, (VkSparseImageFormatProperties2*)(pProperties + i));
                         }
@@ -9839,7 +9820,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pPropertyCount) {
                     if (pProperties) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pPropertyCount); ++i) {
                             transform_fromhost_VkSparseImageFormatProperties2(
                                 m_state, (VkSparseImageFormatProperties2*)(pProperties + i));
                         }
@@ -9850,7 +9831,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->putBe64(cgen_var_4);
                 if (pProperties) {
                     if (pPropertyCount) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pPropertyCount); ++i) {
                             marshal_VkSparseImageFormatProperties2(
                                 vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                 (VkSparseImageFormatProperties2*)(pProperties + i));
@@ -11286,8 +11267,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pToolProperties) {
                     vkReadStream->alloc((void**)&pToolProperties,
-                                        (*(pToolCount)) * sizeof(VkPhysicalDeviceToolProperties));
-                    for (uint32_t i = 0; i < (uint32_t)(*(pToolCount)); ++i) {
+                                        (*pToolCount) * sizeof(VkPhysicalDeviceToolProperties));
+                    for (uint32_t i = 0; i < (uint32_t)(*pToolCount); ++i) {
                         reservedunmarshal_VkPhysicalDeviceToolProperties(
                             vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                             (VkPhysicalDeviceToolProperties*)(pToolProperties + i),
@@ -11296,7 +11277,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pToolCount) {
                     if (pToolProperties) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pToolCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pToolCount); ++i) {
                             transform_tohost_VkPhysicalDeviceToolProperties(
                                 m_state, (VkPhysicalDeviceToolProperties*)(pToolProperties + i));
                         }
@@ -11328,7 +11309,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pToolCount) {
                     if (pToolProperties) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pToolCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pToolCount); ++i) {
                             transform_fromhost_VkPhysicalDeviceToolProperties(
                                 m_state, (VkPhysicalDeviceToolProperties*)(pToolProperties + i));
                         }
@@ -11339,7 +11320,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->putBe64(cgen_var_4);
                 if (pToolProperties) {
                     if (pToolCount) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pToolCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pToolCount); ++i) {
                             marshal_VkPhysicalDeviceToolProperties(
                                 vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                 (VkPhysicalDeviceToolProperties*)(pToolProperties + i));
@@ -11718,11 +11699,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 // End manual dispatchable handle unboxing for commandBuffer;
                 memcpy((uint32_t*)&eventCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc((void**)&pEvents, ((eventCount)) * sizeof(const VkEvent));
-                if (((eventCount))) {
+                vkReadStream->alloc((void**)&pEvents, eventCount * sizeof(const VkEvent));
+                if (eventCount) {
                     uint8_t* cgen_var_1_ptr = (uint8_t*)(*readStreamPtrPtr);
-                    *readStreamPtrPtr += 8 * ((eventCount));
-                    for (uint32_t k = 0; k < ((eventCount)); ++k) {
+                    *readStreamPtrPtr += 8 * eventCount;
+                    for (uint32_t k = 0; k < eventCount; ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                         *(((VkEvent*)pEvents) + k) =
@@ -11730,14 +11711,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 vkReadStream->alloc((void**)&pDependencyInfos,
-                                    ((eventCount)) * sizeof(const VkDependencyInfo));
-                for (uint32_t i = 0; i < (uint32_t)((eventCount)); ++i) {
+                                    eventCount * sizeof(const VkDependencyInfo));
+                for (uint32_t i = 0; i < (uint32_t)eventCount; ++i) {
                     reservedunmarshal_VkDependencyInfo(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                        (VkDependencyInfo*)(pDependencyInfos + i),
                                                        readStreamPtrPtr);
                 }
                 if (pDependencyInfos) {
-                    for (uint32_t i = 0; i < (uint32_t)((eventCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)eventCount; ++i) {
                         transform_tohost_VkDependencyInfo(
                             m_state, (VkDependencyInfo*)(pDependencyInfos + i));
                     }
@@ -11863,9 +11844,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto vk = dispatch_VkQueue(queue);
                 memcpy((uint32_t*)&submitCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc((void**)&pSubmits,
-                                    ((submitCount)) * sizeof(const VkSubmitInfo2));
-                for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i) {
+                vkReadStream->alloc((void**)&pSubmits, submitCount * sizeof(const VkSubmitInfo2));
+                for (uint32_t i = 0; i < (uint32_t)submitCount; ++i) {
                     reservedunmarshal_VkSubmitInfo2(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                     (VkSubmitInfo2*)(pSubmits + i),
                                                     readStreamPtrPtr);
@@ -11875,7 +11855,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 1 * 8;
                 *(VkFence*)&fence = (VkFence)unbox_VkFence((VkFence)(*&cgen_var_1));
                 if (pSubmits) {
-                    for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)submitCount; ++i) {
                         transform_tohost_VkSubmitInfo2(m_state, (VkSubmitInfo2*)(pSubmits + i));
                     }
                 }
@@ -12338,14 +12318,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 // End manual dispatchable handle unboxing for commandBuffer;
                 memcpy((uint32_t*)&viewportCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc((void**)&pViewports,
-                                    ((viewportCount)) * sizeof(const VkViewport));
-                for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i) {
+                vkReadStream->alloc((void**)&pViewports, viewportCount * sizeof(const VkViewport));
+                for (uint32_t i = 0; i < (uint32_t)viewportCount; ++i) {
                     reservedunmarshal_VkViewport(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                  (VkViewport*)(pViewports + i), readStreamPtrPtr);
                 }
                 if (pViewports) {
-                    for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)viewportCount; ++i) {
                         transform_tohost_VkViewport(m_state, (VkViewport*)(pViewports + i));
                     }
                 }
@@ -12386,13 +12365,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 // End manual dispatchable handle unboxing for commandBuffer;
                 memcpy((uint32_t*)&scissorCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc((void**)&pScissors, ((scissorCount)) * sizeof(const VkRect2D));
-                for (uint32_t i = 0; i < (uint32_t)((scissorCount)); ++i) {
+                vkReadStream->alloc((void**)&pScissors, scissorCount * sizeof(const VkRect2D));
+                for (uint32_t i = 0; i < (uint32_t)scissorCount; ++i) {
                     reservedunmarshal_VkRect2D(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                (VkRect2D*)(pScissors + i), readStreamPtrPtr);
                 }
                 if (pScissors) {
-                    for (uint32_t i = 0; i < (uint32_t)((scissorCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)scissorCount; ++i) {
                         transform_tohost_VkRect2D(m_state, (VkRect2D*)(pScissors + i));
                     }
                 }
@@ -12443,12 +12422,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 gfxstream::Stream::fromBe64((uint8_t*)&pBuffers);
                 *readStreamPtrPtr += 8;
                 if (pBuffers) {
-                    vkReadStream->alloc((void**)&pBuffers,
-                                        ((bindingCount)) * sizeof(const VkBuffer));
-                    if (((bindingCount))) {
+                    vkReadStream->alloc((void**)&pBuffers, bindingCount * sizeof(const VkBuffer));
+                    if (bindingCount) {
                         uint8_t* cgen_var_1_0_ptr = (uint8_t*)(*readStreamPtrPtr);
-                        *readStreamPtrPtr += 8 * ((bindingCount));
-                        for (uint32_t k = 0; k < ((bindingCount)); ++k) {
+                        *readStreamPtrPtr += 8 * bindingCount;
+                        for (uint32_t k = 0; k < bindingCount; ++k) {
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_1_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkBuffer*)pBuffers) + k) =
@@ -12457,24 +12435,22 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         }
                     }
                 }
-                vkReadStream->alloc((void**)&pOffsets,
-                                    ((bindingCount)) * sizeof(const VkDeviceSize));
-                if (((bindingCount)) > 0) {
+                vkReadStream->alloc((void**)&pOffsets, bindingCount * sizeof(const VkDeviceSize));
+                if (bindingCount > 0) {
                     memcpy((VkDeviceSize*)pOffsets, *readStreamPtrPtr,
-                           ((bindingCount)) * sizeof(const VkDeviceSize));
-                    *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                           bindingCount * sizeof(const VkDeviceSize));
+                    *readStreamPtrPtr += bindingCount * sizeof(const VkDeviceSize);
                 }
                 // WARNING PTR CHECK
                 memcpy((VkDeviceSize**)&pSizes, (*readStreamPtrPtr), 8);
                 gfxstream::Stream::fromBe64((uint8_t*)&pSizes);
                 *readStreamPtrPtr += 8;
                 if (pSizes) {
-                    vkReadStream->alloc((void**)&pSizes,
-                                        ((bindingCount)) * sizeof(const VkDeviceSize));
-                    if (((bindingCount)) > 0) {
+                    vkReadStream->alloc((void**)&pSizes, bindingCount * sizeof(const VkDeviceSize));
+                    if (bindingCount > 0) {
                         memcpy((VkDeviceSize*)pSizes, *readStreamPtrPtr,
-                               ((bindingCount)) * sizeof(const VkDeviceSize));
-                        *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                               bindingCount * sizeof(const VkDeviceSize));
+                        *readStreamPtrPtr += bindingCount * sizeof(const VkDeviceSize);
                     }
                 }
                 // WARNING PTR CHECK
@@ -12483,11 +12459,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pStrides) {
                     vkReadStream->alloc((void**)&pStrides,
-                                        ((bindingCount)) * sizeof(const VkDeviceSize));
-                    if (((bindingCount)) > 0) {
+                                        bindingCount * sizeof(const VkDeviceSize));
+                    if (bindingCount > 0) {
                         memcpy((VkDeviceSize*)pStrides, *readStreamPtrPtr,
-                               ((bindingCount)) * sizeof(const VkDeviceSize));
-                        *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                               bindingCount * sizeof(const VkDeviceSize));
+                        *readStreamPtrPtr += bindingCount * sizeof(const VkDeviceSize);
                     }
                 }
                 if (m_logCalls) {
@@ -13006,9 +12982,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pSparseMemoryRequirements) {
                     vkReadStream->alloc((void**)&pSparseMemoryRequirements,
-                                        (*(pSparseMemoryRequirementCount)) *
+                                        (*pSparseMemoryRequirementCount) *
                                             sizeof(VkSparseImageMemoryRequirements2));
-                    for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)(*pSparseMemoryRequirementCount); ++i) {
                         reservedunmarshal_VkSparseImageMemoryRequirements2(
                             vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                             (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i),
@@ -13021,8 +12997,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pSparseMemoryRequirementCount) {
                     if (pSparseMemoryRequirements) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount));
-                             ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pSparseMemoryRequirementCount); ++i) {
                             transform_tohost_VkSparseImageMemoryRequirements2(
                                 m_state,
                                 (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
@@ -13051,8 +13026,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pSparseMemoryRequirementCount) {
                     if (pSparseMemoryRequirements) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount));
-                             ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pSparseMemoryRequirementCount); ++i) {
                             transform_fromhost_VkSparseImageMemoryRequirements2(
                                 m_state,
                                 (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
@@ -13064,8 +13038,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->putBe64(cgen_var_4);
                 if (pSparseMemoryRequirements) {
                     if (pSparseMemoryRequirementCount) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount));
-                             ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pSparseMemoryRequirementCount); ++i) {
                             marshal_VkSparseImageMemoryRequirements2(
                                 vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                 (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
@@ -13493,14 +13466,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&descriptorWriteCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pDescriptorWrites,
-                                    ((descriptorWriteCount)) * sizeof(const VkWriteDescriptorSet));
-                for (uint32_t i = 0; i < (uint32_t)((descriptorWriteCount)); ++i) {
+                                    descriptorWriteCount * sizeof(const VkWriteDescriptorSet));
+                for (uint32_t i = 0; i < (uint32_t)descriptorWriteCount; ++i) {
                     reservedunmarshal_VkWriteDescriptorSet(
                         vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                         (VkWriteDescriptorSet*)(pDescriptorWrites + i), readStreamPtrPtr);
                 }
                 if (pDescriptorWrites) {
-                    for (uint32_t i = 0; i < (uint32_t)((descriptorWriteCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)descriptorWriteCount; ++i) {
                         transform_tohost_VkWriteDescriptorSet(
                             m_state, (VkWriteDescriptorSet*)(pDescriptorWrites + i));
                     }
@@ -14012,14 +13985,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc(
                     (void**)&pTransitions,
-                    ((transitionCount)) * sizeof(const VkHostImageLayoutTransitionInfo));
-                for (uint32_t i = 0; i < (uint32_t)((transitionCount)); ++i) {
+                    transitionCount * sizeof(const VkHostImageLayoutTransitionInfo));
+                for (uint32_t i = 0; i < (uint32_t)transitionCount; ++i) {
                     reservedunmarshal_VkHostImageLayoutTransitionInfo(
                         vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                         (VkHostImageLayoutTransitionInfo*)(pTransitions + i), readStreamPtrPtr);
                 }
                 if (pTransitions) {
-                    for (uint32_t i = 0; i < (uint32_t)((transitionCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)transitionCount; ++i) {
                         transform_tohost_VkHostImageLayoutTransitionInfo(
                             m_state, (VkHostImageLayoutTransitionInfo*)(pTransitions + i));
                     }
@@ -14235,12 +14208,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pSwapchainImages) {
                     vkReadStream->alloc((void**)&pSwapchainImages,
-                                        (*(pSwapchainImageCount)) * sizeof(VkImage));
-                    if ((*(pSwapchainImageCount))) {
+                                        (*pSwapchainImageCount) * sizeof(VkImage));
+                    if ((*pSwapchainImageCount)) {
                         uint8_t* cgen_var_3_0_ptr = (uint8_t*)(*readStreamPtrPtr);
-                        *readStreamPtrPtr += 8 * (*(pSwapchainImageCount));
+                        *readStreamPtrPtr += 8 * (*pSwapchainImageCount);
                         if (pSwapchainImageCount) {
-                            for (uint32_t k = 0; k < (*(pSwapchainImageCount)); ++k) {
+                            for (uint32_t k = 0; k < (*pSwapchainImageCount); ++k) {
                                 uint64_t tmpval;
                                 memcpy(&tmpval, cgen_var_3_0_ptr + k * 8, sizeof(uint64_t));
                                 *(((VkImage*)pSwapchainImages) + k) =
@@ -14276,12 +14249,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 uint64_t cgen_var_5 = (uint64_t)(uintptr_t)pSwapchainImages;
                 vkStream->putBe64(cgen_var_5);
                 if (pSwapchainImages) {
-                    if ((*(pSwapchainImageCount))) {
+                    if ((*pSwapchainImageCount)) {
                         uint64_t* cgen_var_5_0;
-                        vkStream->alloc((void**)&cgen_var_5_0, (*(pSwapchainImageCount)) * 8);
+                        vkStream->alloc((void**)&cgen_var_5_0, (*pSwapchainImageCount) * 8);
                         vkStream->handleMapping()->mapHandles_VkImage_u64(
-                            pSwapchainImages, cgen_var_5_0, (*(pSwapchainImageCount)));
-                        vkStream->write((uint64_t*)cgen_var_5_0, (*(pSwapchainImageCount)) * 8);
+                            pSwapchainImages, cgen_var_5_0, (*pSwapchainImageCount));
+                        vkStream->write((uint64_t*)cgen_var_5_0, (*pSwapchainImageCount) * 8);
                     }
                 }
                 vkStream->write(&vkGetSwapchainImagesKHR_VkResult_return, sizeof(VkResult));
@@ -14587,15 +14560,15 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 gfxstream::Stream::fromBe64((uint8_t*)&pRects);
                 *readStreamPtrPtr += 8;
                 if (pRects) {
-                    vkReadStream->alloc((void**)&pRects, (*(pRectCount)) * sizeof(VkRect2D));
-                    for (uint32_t i = 0; i < (uint32_t)(*(pRectCount)); ++i) {
+                    vkReadStream->alloc((void**)&pRects, (*pRectCount) * sizeof(VkRect2D));
+                    for (uint32_t i = 0; i < (uint32_t)(*pRectCount); ++i) {
                         reservedunmarshal_VkRect2D(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                    (VkRect2D*)(pRects + i), readStreamPtrPtr);
                     }
                 }
                 if (pRectCount) {
                     if (pRects) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pRectCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pRectCount); ++i) {
                             transform_tohost_VkRect2D(m_state, (VkRect2D*)(pRects + i));
                         }
                     }
@@ -14628,7 +14601,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pRectCount) {
                     if (pRects) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pRectCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pRectCount); ++i) {
                             transform_fromhost_VkRect2D(m_state, (VkRect2D*)(pRects + i));
                         }
                     }
@@ -14638,7 +14611,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->putBe64(cgen_var_5);
                 if (pRects) {
                     if (pRectCount) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pRectCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pRectCount); ++i) {
                             marshal_VkRect2D(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                              (VkRect2D*)(pRects + i));
                         }
@@ -15053,8 +15026,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 if (pQueueFamilyProperties) {
                     vkReadStream->alloc(
                         (void**)&pQueueFamilyProperties,
-                        (*(pQueueFamilyPropertyCount)) * sizeof(VkQueueFamilyProperties2));
-                    for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i) {
+                        (*pQueueFamilyPropertyCount) * sizeof(VkQueueFamilyProperties2));
+                    for (uint32_t i = 0; i < (uint32_t)(*pQueueFamilyPropertyCount); ++i) {
                         reservedunmarshal_VkQueueFamilyProperties2(
                             vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                             (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i),
@@ -15063,7 +15036,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pQueueFamilyPropertyCount) {
                     if (pQueueFamilyProperties) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pQueueFamilyPropertyCount); ++i) {
                             transform_tohost_VkQueueFamilyProperties2(
                                 m_state, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i));
                         }
@@ -15090,7 +15063,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pQueueFamilyPropertyCount) {
                     if (pQueueFamilyProperties) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pQueueFamilyPropertyCount); ++i) {
                             transform_fromhost_VkQueueFamilyProperties2(
                                 m_state, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i));
                         }
@@ -15101,7 +15074,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->putBe64(cgen_var_4);
                 if (pQueueFamilyProperties) {
                     if (pQueueFamilyPropertyCount) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pQueueFamilyPropertyCount); ++i) {
                             marshal_VkQueueFamilyProperties2(
                                 vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                 (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i));
@@ -15209,10 +15182,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 gfxstream::Stream::fromBe64((uint8_t*)&pProperties);
                 *readStreamPtrPtr += 8;
                 if (pProperties) {
-                    vkReadStream->alloc(
-                        (void**)&pProperties,
-                        (*(pPropertyCount)) * sizeof(VkSparseImageFormatProperties2));
-                    for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
+                    vkReadStream->alloc((void**)&pProperties,
+                                        (*pPropertyCount) * sizeof(VkSparseImageFormatProperties2));
+                    for (uint32_t i = 0; i < (uint32_t)(*pPropertyCount); ++i) {
                         reservedunmarshal_VkSparseImageFormatProperties2(
                             vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                             (VkSparseImageFormatProperties2*)(pProperties + i), readStreamPtrPtr);
@@ -15224,7 +15196,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pPropertyCount) {
                     if (pProperties) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pPropertyCount); ++i) {
                             transform_tohost_VkSparseImageFormatProperties2(
                                 m_state, (VkSparseImageFormatProperties2*)(pProperties + i));
                         }
@@ -15252,7 +15224,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pPropertyCount) {
                     if (pProperties) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pPropertyCount); ++i) {
                             transform_fromhost_VkSparseImageFormatProperties2(
                                 m_state, (VkSparseImageFormatProperties2*)(pProperties + i));
                         }
@@ -15263,7 +15235,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->putBe64(cgen_var_4);
                 if (pProperties) {
                     if (pPropertyCount) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pPropertyCount); ++i) {
                             marshal_VkSparseImageFormatProperties2(
                                 vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                 (VkSparseImageFormatProperties2*)(pProperties + i));
@@ -16342,9 +16314,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pSparseMemoryRequirements) {
                     vkReadStream->alloc((void**)&pSparseMemoryRequirements,
-                                        (*(pSparseMemoryRequirementCount)) *
+                                        (*pSparseMemoryRequirementCount) *
                                             sizeof(VkSparseImageMemoryRequirements2));
-                    for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)(*pSparseMemoryRequirementCount); ++i) {
                         reservedunmarshal_VkSparseImageMemoryRequirements2(
                             vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                             (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i),
@@ -16357,8 +16329,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pSparseMemoryRequirementCount) {
                     if (pSparseMemoryRequirements) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount));
-                             ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pSparseMemoryRequirementCount); ++i) {
                             transform_tohost_VkSparseImageMemoryRequirements2(
                                 m_state,
                                 (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
@@ -16387,8 +16358,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pSparseMemoryRequirementCount) {
                     if (pSparseMemoryRequirements) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount));
-                             ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pSparseMemoryRequirementCount); ++i) {
                             transform_fromhost_VkSparseImageMemoryRequirements2(
                                 m_state,
                                 (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
@@ -16400,8 +16370,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->putBe64(cgen_var_4);
                 if (pSparseMemoryRequirements) {
                     if (pSparseMemoryRequirementCount) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount));
-                             ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pSparseMemoryRequirementCount); ++i) {
                             marshal_VkSparseImageMemoryRequirements2(
                                 vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                 (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
@@ -16586,14 +16555,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&bindInfoCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pBindInfos,
-                                    ((bindInfoCount)) * sizeof(const VkBindBufferMemoryInfo));
-                for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i) {
+                                    bindInfoCount * sizeof(const VkBindBufferMemoryInfo));
+                for (uint32_t i = 0; i < (uint32_t)bindInfoCount; ++i) {
                     reservedunmarshal_VkBindBufferMemoryInfo(
                         vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                         (VkBindBufferMemoryInfo*)(pBindInfos + i), readStreamPtrPtr);
                 }
                 if (pBindInfos) {
-                    for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)bindInfoCount; ++i) {
                         transform_tohost_VkBindBufferMemoryInfo(
                             m_state, (VkBindBufferMemoryInfo*)(pBindInfos + i));
                     }
@@ -16641,14 +16610,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&bindInfoCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pBindInfos,
-                                    ((bindInfoCount)) * sizeof(const VkBindImageMemoryInfo));
-                for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i) {
+                                    bindInfoCount * sizeof(const VkBindImageMemoryInfo));
+                for (uint32_t i = 0; i < (uint32_t)bindInfoCount; ++i) {
                     reservedunmarshal_VkBindImageMemoryInfo(
                         vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                         (VkBindImageMemoryInfo*)(pBindInfos + i), readStreamPtrPtr);
                 }
                 if (pBindInfos) {
-                    for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)bindInfoCount; ++i) {
                         transform_tohost_VkBindImageMemoryInfo(
                             m_state, (VkBindImageMemoryInfo*)(pBindInfos + i));
                     }
@@ -16922,8 +16891,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 if (pProperties) {
                     vkReadStream->alloc(
                         (void**)&pProperties,
-                        (*(pExecutableCount)) * sizeof(VkPipelineExecutablePropertiesKHR));
-                    for (uint32_t i = 0; i < (uint32_t)(*(pExecutableCount)); ++i) {
+                        (*pExecutableCount) * sizeof(VkPipelineExecutablePropertiesKHR));
+                    for (uint32_t i = 0; i < (uint32_t)(*pExecutableCount); ++i) {
                         reservedunmarshal_VkPipelineExecutablePropertiesKHR(
                             vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                             (VkPipelineExecutablePropertiesKHR*)(pProperties + i),
@@ -16936,7 +16905,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pExecutableCount) {
                     if (pProperties) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pExecutableCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pExecutableCount); ++i) {
                             transform_tohost_VkPipelineExecutablePropertiesKHR(
                                 m_state, (VkPipelineExecutablePropertiesKHR*)(pProperties + i));
                         }
@@ -16969,7 +16938,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pExecutableCount) {
                     if (pProperties) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pExecutableCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pExecutableCount); ++i) {
                             transform_fromhost_VkPipelineExecutablePropertiesKHR(
                                 m_state, (VkPipelineExecutablePropertiesKHR*)(pProperties + i));
                         }
@@ -16980,7 +16949,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->putBe64(cgen_var_4);
                 if (pProperties) {
                     if (pExecutableCount) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pExecutableCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pExecutableCount); ++i) {
                             marshal_VkPipelineExecutablePropertiesKHR(
                                 vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                 (VkPipelineExecutablePropertiesKHR*)(pProperties + i));
@@ -17041,8 +17010,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 if (pStatistics) {
                     vkReadStream->alloc(
                         (void**)&pStatistics,
-                        (*(pStatisticCount)) * sizeof(VkPipelineExecutableStatisticKHR));
-                    for (uint32_t i = 0; i < (uint32_t)(*(pStatisticCount)); ++i) {
+                        (*pStatisticCount) * sizeof(VkPipelineExecutableStatisticKHR));
+                    for (uint32_t i = 0; i < (uint32_t)(*pStatisticCount); ++i) {
                         reservedunmarshal_VkPipelineExecutableStatisticKHR(
                             vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                             (VkPipelineExecutableStatisticKHR*)(pStatistics + i), readStreamPtrPtr);
@@ -17054,7 +17023,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pStatisticCount) {
                     if (pStatistics) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pStatisticCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pStatisticCount); ++i) {
                             transform_tohost_VkPipelineExecutableStatisticKHR(
                                 m_state, (VkPipelineExecutableStatisticKHR*)(pStatistics + i));
                         }
@@ -17087,7 +17056,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pStatisticCount) {
                     if (pStatistics) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pStatisticCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pStatisticCount); ++i) {
                             transform_fromhost_VkPipelineExecutableStatisticKHR(
                                 m_state, (VkPipelineExecutableStatisticKHR*)(pStatistics + i));
                         }
@@ -17098,7 +17067,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->putBe64(cgen_var_4);
                 if (pStatistics) {
                     if (pStatisticCount) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pStatisticCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pStatisticCount); ++i) {
                             marshal_VkPipelineExecutableStatisticKHR(
                                 vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                 (VkPipelineExecutableStatisticKHR*)(pStatistics + i));
@@ -17161,9 +17130,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pInternalRepresentations) {
                     vkReadStream->alloc((void**)&pInternalRepresentations,
-                                        (*(pInternalRepresentationCount)) *
+                                        (*pInternalRepresentationCount) *
                                             sizeof(VkPipelineExecutableInternalRepresentationKHR));
-                    for (uint32_t i = 0; i < (uint32_t)(*(pInternalRepresentationCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)(*pInternalRepresentationCount); ++i) {
                         reservedunmarshal_VkPipelineExecutableInternalRepresentationKHR(
                             vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                             (VkPipelineExecutableInternalRepresentationKHR*)(pInternalRepresentations +
@@ -17177,7 +17146,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pInternalRepresentationCount) {
                     if (pInternalRepresentations) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pInternalRepresentationCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pInternalRepresentationCount); ++i) {
                             transform_tohost_VkPipelineExecutableInternalRepresentationKHR(
                                 m_state,
                                 (VkPipelineExecutableInternalRepresentationKHR*)(pInternalRepresentations +
@@ -17216,7 +17185,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pInternalRepresentationCount) {
                     if (pInternalRepresentations) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pInternalRepresentationCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pInternalRepresentationCount); ++i) {
                             transform_fromhost_VkPipelineExecutableInternalRepresentationKHR(
                                 m_state,
                                 (VkPipelineExecutableInternalRepresentationKHR*)(pInternalRepresentations +
@@ -17229,7 +17198,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->putBe64(cgen_var_4);
                 if (pInternalRepresentations) {
                     if (pInternalRepresentationCount) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pInternalRepresentationCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pInternalRepresentationCount); ++i) {
                             marshal_VkPipelineExecutableInternalRepresentationKHR(
                                 vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                 (VkPipelineExecutableInternalRepresentationKHR*)(pInternalRepresentations +
@@ -17358,11 +17327,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 // End manual dispatchable handle unboxing for commandBuffer;
                 memcpy((uint32_t*)&eventCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc((void**)&pEvents, ((eventCount)) * sizeof(const VkEvent));
-                if (((eventCount))) {
+                vkReadStream->alloc((void**)&pEvents, eventCount * sizeof(const VkEvent));
+                if (eventCount) {
                     uint8_t* cgen_var_1_ptr = (uint8_t*)(*readStreamPtrPtr);
-                    *readStreamPtrPtr += 8 * ((eventCount));
-                    for (uint32_t k = 0; k < ((eventCount)); ++k) {
+                    *readStreamPtrPtr += 8 * eventCount;
+                    for (uint32_t k = 0; k < eventCount; ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                         *(((VkEvent*)pEvents) + k) =
@@ -17370,14 +17339,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 vkReadStream->alloc((void**)&pDependencyInfos,
-                                    ((eventCount)) * sizeof(const VkDependencyInfo));
-                for (uint32_t i = 0; i < (uint32_t)((eventCount)); ++i) {
+                                    eventCount * sizeof(const VkDependencyInfo));
+                for (uint32_t i = 0; i < (uint32_t)eventCount; ++i) {
                     reservedunmarshal_VkDependencyInfo(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                        (VkDependencyInfo*)(pDependencyInfos + i),
                                                        readStreamPtrPtr);
                 }
                 if (pDependencyInfos) {
-                    for (uint32_t i = 0; i < (uint32_t)((eventCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)eventCount; ++i) {
                         transform_tohost_VkDependencyInfo(
                             m_state, (VkDependencyInfo*)(pDependencyInfos + i));
                     }
@@ -17507,9 +17476,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 // End manual dispatchable handle unboxing for queue;
                 memcpy((uint32_t*)&submitCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc((void**)&pSubmits,
-                                    ((submitCount)) * sizeof(const VkSubmitInfo2));
-                for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i) {
+                vkReadStream->alloc((void**)&pSubmits, submitCount * sizeof(const VkSubmitInfo2));
+                for (uint32_t i = 0; i < (uint32_t)submitCount; ++i) {
                     reservedunmarshal_VkSubmitInfo2(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                     (VkSubmitInfo2*)(pSubmits + i),
                                                     readStreamPtrPtr);
@@ -17519,7 +17487,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 1 * 8;
                 *(VkFence*)&fence = (VkFence)unbox_VkFence((VkFence)(*&cgen_var_1));
                 if (pSubmits) {
-                    for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)submitCount; ++i) {
                         transform_tohost_VkSubmitInfo2(m_state, (VkSubmitInfo2*)(pSubmits + i));
                     }
                 }
@@ -17958,9 +17926,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pSparseMemoryRequirements) {
                     vkReadStream->alloc((void**)&pSparseMemoryRequirements,
-                                        (*(pSparseMemoryRequirementCount)) *
+                                        (*pSparseMemoryRequirementCount) *
                                             sizeof(VkSparseImageMemoryRequirements2));
-                    for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)(*pSparseMemoryRequirementCount); ++i) {
                         reservedunmarshal_VkSparseImageMemoryRequirements2(
                             vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                             (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i),
@@ -17973,8 +17941,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pSparseMemoryRequirementCount) {
                     if (pSparseMemoryRequirements) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount));
-                             ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pSparseMemoryRequirementCount); ++i) {
                             transform_tohost_VkSparseImageMemoryRequirements2(
                                 m_state,
                                 (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
@@ -18003,8 +17970,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pSparseMemoryRequirementCount) {
                     if (pSparseMemoryRequirements) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount));
-                             ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pSparseMemoryRequirementCount); ++i) {
                             transform_fromhost_VkSparseImageMemoryRequirements2(
                                 m_state,
                                 (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
@@ -18016,8 +17982,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->putBe64(cgen_var_4);
                 if (pSparseMemoryRequirements) {
                     if (pSparseMemoryRequirementCount) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount));
-                             ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pSparseMemoryRequirementCount); ++i) {
                             marshal_VkSparseImageMemoryRequirements2(
                                 vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                 (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
@@ -18453,11 +18418,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pWaitSemaphores) {
                     vkReadStream->alloc((void**)&pWaitSemaphores,
-                                        ((waitSemaphoreCount)) * sizeof(const VkSemaphore));
-                    if (((waitSemaphoreCount))) {
+                                        waitSemaphoreCount * sizeof(const VkSemaphore));
+                    if (waitSemaphoreCount) {
                         uint8_t* cgen_var_1_0_ptr = (uint8_t*)(*readStreamPtrPtr);
-                        *readStreamPtrPtr += 8 * ((waitSemaphoreCount));
-                        for (uint32_t k = 0; k < ((waitSemaphoreCount)); ++k) {
+                        *readStreamPtrPtr += 8 * waitSemaphoreCount;
+                        for (uint32_t k = 0; k < waitSemaphoreCount; ++k) {
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_1_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkSemaphore*)pWaitSemaphores) + k) =
@@ -18818,35 +18783,33 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += sizeof(uint32_t);
                 memcpy((uint32_t*)&bindingCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc((void**)&pBuffers, ((bindingCount)) * sizeof(const VkBuffer));
-                if (((bindingCount))) {
+                vkReadStream->alloc((void**)&pBuffers, bindingCount * sizeof(const VkBuffer));
+                if (bindingCount) {
                     uint8_t* cgen_var_1_ptr = (uint8_t*)(*readStreamPtrPtr);
-                    *readStreamPtrPtr += 8 * ((bindingCount));
-                    for (uint32_t k = 0; k < ((bindingCount)); ++k) {
+                    *readStreamPtrPtr += 8 * bindingCount;
+                    for (uint32_t k = 0; k < bindingCount; ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                         *(((VkBuffer*)pBuffers) + k) =
                             tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval) : VK_NULL_HANDLE;
                     }
                 }
-                vkReadStream->alloc((void**)&pOffsets,
-                                    ((bindingCount)) * sizeof(const VkDeviceSize));
-                if (((bindingCount)) > 0) {
+                vkReadStream->alloc((void**)&pOffsets, bindingCount * sizeof(const VkDeviceSize));
+                if (bindingCount > 0) {
                     memcpy((VkDeviceSize*)pOffsets, *readStreamPtrPtr,
-                           ((bindingCount)) * sizeof(const VkDeviceSize));
-                    *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                           bindingCount * sizeof(const VkDeviceSize));
+                    *readStreamPtrPtr += bindingCount * sizeof(const VkDeviceSize);
                 }
                 // WARNING PTR CHECK
                 memcpy((VkDeviceSize**)&pSizes, (*readStreamPtrPtr), 8);
                 gfxstream::Stream::fromBe64((uint8_t*)&pSizes);
                 *readStreamPtrPtr += 8;
                 if (pSizes) {
-                    vkReadStream->alloc((void**)&pSizes,
-                                        ((bindingCount)) * sizeof(const VkDeviceSize));
-                    if (((bindingCount)) > 0) {
+                    vkReadStream->alloc((void**)&pSizes, bindingCount * sizeof(const VkDeviceSize));
+                    if (bindingCount > 0) {
                         memcpy((VkDeviceSize*)pSizes, *readStreamPtrPtr,
-                               ((bindingCount)) * sizeof(const VkDeviceSize));
-                        *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                               bindingCount * sizeof(const VkDeviceSize));
+                        *readStreamPtrPtr += bindingCount * sizeof(const VkDeviceSize);
                     }
                 }
                 if (m_logCalls) {
@@ -18901,11 +18864,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pCounterBuffers) {
                     vkReadStream->alloc((void**)&pCounterBuffers,
-                                        ((counterBufferCount)) * sizeof(const VkBuffer));
-                    if (((counterBufferCount))) {
+                                        counterBufferCount * sizeof(const VkBuffer));
+                    if (counterBufferCount) {
                         uint8_t* cgen_var_1_0_ptr = (uint8_t*)(*readStreamPtrPtr);
-                        *readStreamPtrPtr += 8 * ((counterBufferCount));
-                        for (uint32_t k = 0; k < ((counterBufferCount)); ++k) {
+                        *readStreamPtrPtr += 8 * counterBufferCount;
+                        for (uint32_t k = 0; k < counterBufferCount; ++k) {
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_1_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkBuffer*)pCounterBuffers) + k) =
@@ -18920,11 +18883,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pCounterBufferOffsets) {
                     vkReadStream->alloc((void**)&pCounterBufferOffsets,
-                                        ((counterBufferCount)) * sizeof(const VkDeviceSize));
-                    if (((counterBufferCount)) > 0) {
+                                        counterBufferCount * sizeof(const VkDeviceSize));
+                    if (counterBufferCount > 0) {
                         memcpy((VkDeviceSize*)pCounterBufferOffsets, *readStreamPtrPtr,
-                               ((counterBufferCount)) * sizeof(const VkDeviceSize));
-                        *readStreamPtrPtr += ((counterBufferCount)) * sizeof(const VkDeviceSize);
+                               counterBufferCount * sizeof(const VkDeviceSize));
+                        *readStreamPtrPtr += counterBufferCount * sizeof(const VkDeviceSize);
                     }
                 }
                 if (m_logCalls) {
@@ -18980,11 +18943,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pCounterBuffers) {
                     vkReadStream->alloc((void**)&pCounterBuffers,
-                                        ((counterBufferCount)) * sizeof(const VkBuffer));
-                    if (((counterBufferCount))) {
+                                        counterBufferCount * sizeof(const VkBuffer));
+                    if (counterBufferCount) {
                         uint8_t* cgen_var_1_0_ptr = (uint8_t*)(*readStreamPtrPtr);
-                        *readStreamPtrPtr += 8 * ((counterBufferCount));
-                        for (uint32_t k = 0; k < ((counterBufferCount)); ++k) {
+                        *readStreamPtrPtr += 8 * counterBufferCount;
+                        for (uint32_t k = 0; k < counterBufferCount; ++k) {
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_1_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkBuffer*)pCounterBuffers) + k) =
@@ -18999,11 +18962,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pCounterBufferOffsets) {
                     vkReadStream->alloc((void**)&pCounterBufferOffsets,
-                                        ((counterBufferCount)) * sizeof(const VkDeviceSize));
-                    if (((counterBufferCount)) > 0) {
+                                        counterBufferCount * sizeof(const VkDeviceSize));
+                    if (counterBufferCount > 0) {
                         memcpy((VkDeviceSize*)pCounterBufferOffsets, *readStreamPtrPtr,
-                               ((counterBufferCount)) * sizeof(const VkDeviceSize));
-                        *readStreamPtrPtr += ((counterBufferCount)) * sizeof(const VkDeviceSize);
+                               counterBufferCount * sizeof(const VkDeviceSize));
+                        *readStreamPtrPtr += counterBufferCount * sizeof(const VkDeviceSize);
                     }
                 }
                 if (m_logCalls) {
@@ -19892,8 +19855,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pToolProperties) {
                     vkReadStream->alloc((void**)&pToolProperties,
-                                        (*(pToolCount)) * sizeof(VkPhysicalDeviceToolProperties));
-                    for (uint32_t i = 0; i < (uint32_t)(*(pToolCount)); ++i) {
+                                        (*pToolCount) * sizeof(VkPhysicalDeviceToolProperties));
+                    for (uint32_t i = 0; i < (uint32_t)(*pToolCount); ++i) {
                         reservedunmarshal_VkPhysicalDeviceToolProperties(
                             vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                             (VkPhysicalDeviceToolProperties*)(pToolProperties + i),
@@ -19902,7 +19865,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pToolCount) {
                     if (pToolProperties) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pToolCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pToolCount); ++i) {
                             transform_tohost_VkPhysicalDeviceToolProperties(
                                 m_state, (VkPhysicalDeviceToolProperties*)(pToolProperties + i));
                         }
@@ -19935,7 +19898,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 if (pToolCount) {
                     if (pToolProperties) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pToolCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pToolCount); ++i) {
                             transform_fromhost_VkPhysicalDeviceToolProperties(
                                 m_state, (VkPhysicalDeviceToolProperties*)(pToolProperties + i));
                         }
@@ -19946,7 +19909,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->putBe64(cgen_var_4);
                 if (pToolProperties) {
                     if (pToolCount) {
-                        for (uint32_t i = 0; i < (uint32_t)(*(pToolCount)); ++i) {
+                        for (uint32_t i = 0; i < (uint32_t)(*pToolCount); ++i) {
                             marshal_VkPhysicalDeviceToolProperties(
                                 vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                 (VkPhysicalDeviceToolProperties*)(pToolProperties + i));
@@ -20132,14 +20095,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 // End manual dispatchable handle unboxing for commandBuffer;
                 memcpy((uint32_t*)&viewportCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc((void**)&pViewports,
-                                    ((viewportCount)) * sizeof(const VkViewport));
-                for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i) {
+                vkReadStream->alloc((void**)&pViewports, viewportCount * sizeof(const VkViewport));
+                for (uint32_t i = 0; i < (uint32_t)viewportCount; ++i) {
                     reservedunmarshal_VkViewport(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                  (VkViewport*)(pViewports + i), readStreamPtrPtr);
                 }
                 if (pViewports) {
-                    for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)viewportCount; ++i) {
                         transform_tohost_VkViewport(m_state, (VkViewport*)(pViewports + i));
                     }
                 }
@@ -20181,13 +20143,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 // End manual dispatchable handle unboxing for commandBuffer;
                 memcpy((uint32_t*)&scissorCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc((void**)&pScissors, ((scissorCount)) * sizeof(const VkRect2D));
-                for (uint32_t i = 0; i < (uint32_t)((scissorCount)); ++i) {
+                vkReadStream->alloc((void**)&pScissors, scissorCount * sizeof(const VkRect2D));
+                for (uint32_t i = 0; i < (uint32_t)scissorCount; ++i) {
                     reservedunmarshal_VkRect2D(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                (VkRect2D*)(pScissors + i), readStreamPtrPtr);
                 }
                 if (pScissors) {
-                    for (uint32_t i = 0; i < (uint32_t)((scissorCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)scissorCount; ++i) {
                         transform_tohost_VkRect2D(m_state, (VkRect2D*)(pScissors + i));
                     }
                 }
@@ -20239,12 +20201,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 gfxstream::Stream::fromBe64((uint8_t*)&pBuffers);
                 *readStreamPtrPtr += 8;
                 if (pBuffers) {
-                    vkReadStream->alloc((void**)&pBuffers,
-                                        ((bindingCount)) * sizeof(const VkBuffer));
-                    if (((bindingCount))) {
+                    vkReadStream->alloc((void**)&pBuffers, bindingCount * sizeof(const VkBuffer));
+                    if (bindingCount) {
                         uint8_t* cgen_var_1_0_ptr = (uint8_t*)(*readStreamPtrPtr);
-                        *readStreamPtrPtr += 8 * ((bindingCount));
-                        for (uint32_t k = 0; k < ((bindingCount)); ++k) {
+                        *readStreamPtrPtr += 8 * bindingCount;
+                        for (uint32_t k = 0; k < bindingCount; ++k) {
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_1_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkBuffer*)pBuffers) + k) =
@@ -20253,24 +20214,22 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         }
                     }
                 }
-                vkReadStream->alloc((void**)&pOffsets,
-                                    ((bindingCount)) * sizeof(const VkDeviceSize));
-                if (((bindingCount)) > 0) {
+                vkReadStream->alloc((void**)&pOffsets, bindingCount * sizeof(const VkDeviceSize));
+                if (bindingCount > 0) {
                     memcpy((VkDeviceSize*)pOffsets, *readStreamPtrPtr,
-                           ((bindingCount)) * sizeof(const VkDeviceSize));
-                    *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                           bindingCount * sizeof(const VkDeviceSize));
+                    *readStreamPtrPtr += bindingCount * sizeof(const VkDeviceSize);
                 }
                 // WARNING PTR CHECK
                 memcpy((VkDeviceSize**)&pSizes, (*readStreamPtrPtr), 8);
                 gfxstream::Stream::fromBe64((uint8_t*)&pSizes);
                 *readStreamPtrPtr += 8;
                 if (pSizes) {
-                    vkReadStream->alloc((void**)&pSizes,
-                                        ((bindingCount)) * sizeof(const VkDeviceSize));
-                    if (((bindingCount)) > 0) {
+                    vkReadStream->alloc((void**)&pSizes, bindingCount * sizeof(const VkDeviceSize));
+                    if (bindingCount > 0) {
                         memcpy((VkDeviceSize*)pSizes, *readStreamPtrPtr,
-                               ((bindingCount)) * sizeof(const VkDeviceSize));
-                        *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                               bindingCount * sizeof(const VkDeviceSize));
+                        *readStreamPtrPtr += bindingCount * sizeof(const VkDeviceSize);
                     }
                 }
                 // WARNING PTR CHECK
@@ -20279,11 +20238,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pStrides) {
                     vkReadStream->alloc((void**)&pStrides,
-                                        ((bindingCount)) * sizeof(const VkDeviceSize));
-                    if (((bindingCount)) > 0) {
+                                        bindingCount * sizeof(const VkDeviceSize));
+                    if (bindingCount > 0) {
                         memcpy((VkDeviceSize*)pStrides, *readStreamPtrPtr,
-                               ((bindingCount)) * sizeof(const VkDeviceSize));
-                        *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                               bindingCount * sizeof(const VkDeviceSize));
+                        *readStreamPtrPtr += bindingCount * sizeof(const VkDeviceSize);
                     }
                 }
                 if (m_logCalls) {
@@ -20707,14 +20666,14 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc(
                     (void**)&pTransitions,
-                    ((transitionCount)) * sizeof(const VkHostImageLayoutTransitionInfo));
-                for (uint32_t i = 0; i < (uint32_t)((transitionCount)); ++i) {
+                    transitionCount * sizeof(const VkHostImageLayoutTransitionInfo));
+                for (uint32_t i = 0; i < (uint32_t)transitionCount; ++i) {
                     reservedunmarshal_VkHostImageLayoutTransitionInfo(
                         vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                         (VkHostImageLayoutTransitionInfo*)(pTransitions + i), readStreamPtrPtr);
                 }
                 if (pTransitions) {
-                    for (uint32_t i = 0; i < (uint32_t)((transitionCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)transitionCount; ++i) {
                         transform_tohost_VkHostImageLayoutTransitionInfo(
                             m_state, (VkHostImageLayoutTransitionInfo*)(pTransitions + i));
                     }
@@ -21308,11 +21267,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&attachmentCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pColorWriteEnables,
-                                    ((attachmentCount)) * sizeof(const VkBool32));
-                if (((attachmentCount)) > 0) {
+                                    attachmentCount * sizeof(const VkBool32));
+                if (attachmentCount > 0) {
                     memcpy((VkBool32*)pColorWriteEnables, *readStreamPtrPtr,
-                           ((attachmentCount)) * sizeof(const VkBool32));
-                    *readStreamPtrPtr += ((attachmentCount)) * sizeof(const VkBool32);
+                           attachmentCount * sizeof(const VkBool32));
+                    *readStreamPtrPtr += attachmentCount * sizeof(const VkBool32);
                 }
                 if (m_logCalls) {
                     GFXSTREAM_INFO(
@@ -21448,11 +21407,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pImageInfoEntryIndices) {
                     vkReadStream->alloc((void**)&pImageInfoEntryIndices,
-                                        ((imageInfoCount)) * sizeof(const uint32_t));
-                    if (((imageInfoCount)) > 0) {
+                                        imageInfoCount * sizeof(const uint32_t));
+                    if (imageInfoCount > 0) {
                         memcpy((uint32_t*)pImageInfoEntryIndices, *readStreamPtrPtr,
-                               ((imageInfoCount)) * sizeof(const uint32_t));
-                        *readStreamPtrPtr += ((imageInfoCount)) * sizeof(const uint32_t);
+                               imageInfoCount * sizeof(const uint32_t));
+                        *readStreamPtrPtr += imageInfoCount * sizeof(const uint32_t);
                     }
                 }
                 // WARNING PTR CHECK
@@ -21461,11 +21420,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pBufferInfoEntryIndices) {
                     vkReadStream->alloc((void**)&pBufferInfoEntryIndices,
-                                        ((bufferInfoCount)) * sizeof(const uint32_t));
-                    if (((bufferInfoCount)) > 0) {
+                                        bufferInfoCount * sizeof(const uint32_t));
+                    if (bufferInfoCount > 0) {
                         memcpy((uint32_t*)pBufferInfoEntryIndices, *readStreamPtrPtr,
-                               ((bufferInfoCount)) * sizeof(const uint32_t));
-                        *readStreamPtrPtr += ((bufferInfoCount)) * sizeof(const uint32_t);
+                               bufferInfoCount * sizeof(const uint32_t));
+                        *readStreamPtrPtr += bufferInfoCount * sizeof(const uint32_t);
                     }
                 }
                 // WARNING PTR CHECK
@@ -21474,11 +21433,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pBufferViewEntryIndices) {
                     vkReadStream->alloc((void**)&pBufferViewEntryIndices,
-                                        ((bufferViewCount)) * sizeof(const uint32_t));
-                    if (((bufferViewCount)) > 0) {
+                                        bufferViewCount * sizeof(const uint32_t));
+                    if (bufferViewCount > 0) {
                         memcpy((uint32_t*)pBufferViewEntryIndices, *readStreamPtrPtr,
-                               ((bufferViewCount)) * sizeof(const uint32_t));
-                        *readStreamPtrPtr += ((bufferViewCount)) * sizeof(const uint32_t);
+                               bufferViewCount * sizeof(const uint32_t));
+                        *readStreamPtrPtr += bufferViewCount * sizeof(const uint32_t);
                     }
                 }
                 // WARNING PTR CHECK
@@ -21487,8 +21446,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pImageInfos) {
                     vkReadStream->alloc((void**)&pImageInfos,
-                                        ((imageInfoCount)) * sizeof(const VkDescriptorImageInfo));
-                    for (uint32_t i = 0; i < (uint32_t)((imageInfoCount)); ++i) {
+                                        imageInfoCount * sizeof(const VkDescriptorImageInfo));
+                    for (uint32_t i = 0; i < (uint32_t)imageInfoCount; ++i) {
                         reservedunmarshal_VkDescriptorImageInfo(
                             vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                             (VkDescriptorImageInfo*)(pImageInfos + i), readStreamPtrPtr);
@@ -21500,8 +21459,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pBufferInfos) {
                     vkReadStream->alloc((void**)&pBufferInfos,
-                                        ((bufferInfoCount)) * sizeof(const VkDescriptorBufferInfo));
-                    for (uint32_t i = 0; i < (uint32_t)((bufferInfoCount)); ++i) {
+                                        bufferInfoCount * sizeof(const VkDescriptorBufferInfo));
+                    for (uint32_t i = 0; i < (uint32_t)bufferInfoCount; ++i) {
                         reservedunmarshal_VkDescriptorBufferInfo(
                             vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                             (VkDescriptorBufferInfo*)(pBufferInfos + i), readStreamPtrPtr);
@@ -21513,11 +21472,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pBufferViews) {
                     vkReadStream->alloc((void**)&pBufferViews,
-                                        ((bufferViewCount)) * sizeof(const VkBufferView));
-                    if (((bufferViewCount))) {
+                                        bufferViewCount * sizeof(const VkBufferView));
+                    if (bufferViewCount) {
                         uint8_t* cgen_var_8_0_ptr = (uint8_t*)(*readStreamPtrPtr);
-                        *readStreamPtrPtr += 8 * ((bufferViewCount));
-                        for (uint32_t k = 0; k < ((bufferViewCount)); ++k) {
+                        *readStreamPtrPtr += 8 * bufferViewCount;
+                        for (uint32_t k = 0; k < bufferViewCount; ++k) {
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_8_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkBufferView*)pBufferViews) + k) =
@@ -21527,13 +21486,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 if (pImageInfos) {
-                    for (uint32_t i = 0; i < (uint32_t)((imageInfoCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)imageInfoCount; ++i) {
                         transform_tohost_VkDescriptorImageInfo(
                             m_state, (VkDescriptorImageInfo*)(pImageInfos + i));
                     }
                 }
                 if (pBufferInfos) {
-                    for (uint32_t i = 0; i < (uint32_t)((bufferInfoCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)bufferInfoCount; ++i) {
                         transform_tohost_VkDescriptorBufferInfo(
                             m_state, (VkDescriptorBufferInfo*)(pBufferInfos + i));
                     }
@@ -22142,9 +22101,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto vk = dispatch_VkQueue(queue);
                 memcpy((uint32_t*)&submitCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc((void**)&pSubmits,
-                                    ((submitCount)) * sizeof(const VkSubmitInfo));
-                for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i) {
+                vkReadStream->alloc((void**)&pSubmits, submitCount * sizeof(const VkSubmitInfo));
+                for (uint32_t i = 0; i < (uint32_t)submitCount; ++i) {
                     reservedunmarshal_VkSubmitInfo(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                    (VkSubmitInfo*)(pSubmits + i), readStreamPtrPtr);
                 }
@@ -22153,7 +22111,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 1 * 8;
                 *(VkFence*)&fence = (VkFence)unbox_VkFence((VkFence)(*&cgen_var_1));
                 if (pSubmits) {
-                    for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)submitCount; ++i) {
                         transform_tohost_VkSubmitInfo(m_state, (VkSubmitInfo*)(pSubmits + i));
                     }
                 }
@@ -22221,8 +22179,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&bindInfoCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pBindInfo,
-                                    ((bindInfoCount)) * sizeof(const VkBindSparseInfo));
-                for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i) {
+                                    bindInfoCount * sizeof(const VkBindSparseInfo));
+                for (uint32_t i = 0; i < (uint32_t)bindInfoCount; ++i) {
                     reservedunmarshal_VkBindSparseInfo(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                        (VkBindSparseInfo*)(pBindInfo + i),
                                                        readStreamPtrPtr);
@@ -22232,7 +22190,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 1 * 8;
                 *(VkFence*)&fence = (VkFence)unbox_VkFence((VkFence)(*&cgen_var_1));
                 if (pBindInfo) {
-                    for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)bindInfoCount; ++i) {
                         transform_tohost_VkBindSparseInfo(m_state,
                                                           (VkBindSparseInfo*)(pBindInfo + i));
                     }
@@ -22385,10 +22343,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_1));
                 memcpy((VkDeviceSize*)&dataSize, *readStreamPtrPtr, sizeof(VkDeviceSize));
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
-                vkReadStream->alloc((void**)&pData, ((dataSize)) * sizeof(const uint8_t));
-                if (((dataSize)) > 0) {
-                    memcpy((void*)pData, *readStreamPtrPtr, ((dataSize)) * sizeof(const uint8_t));
-                    *readStreamPtrPtr += ((dataSize)) * sizeof(const uint8_t);
+                vkReadStream->alloc((void**)&pData, dataSize * sizeof(const uint8_t));
+                if (dataSize > 0) {
+                    memcpy((void*)pData, *readStreamPtrPtr, dataSize * sizeof(const uint8_t));
+                    *readStreamPtrPtr += dataSize * sizeof(const uint8_t);
                 }
                 if (m_logCalls) {
                     GFXSTREAM_INFO(
@@ -22434,11 +22392,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&descriptorPoolCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pDescriptorPools,
-                                    ((descriptorPoolCount)) * sizeof(const VkDescriptorPool));
-                if (((descriptorPoolCount))) {
+                                    descriptorPoolCount * sizeof(const VkDescriptorPool));
+                if (descriptorPoolCount) {
                     uint8_t* cgen_var_1_ptr = (uint8_t*)(*readStreamPtrPtr);
-                    *readStreamPtrPtr += 8 * ((descriptorPoolCount));
-                    for (uint32_t k = 0; k < ((descriptorPoolCount)); ++k) {
+                    *readStreamPtrPtr += 8 * descriptorPoolCount;
+                    for (uint32_t k = 0; k < descriptorPoolCount; ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                         *(((VkDescriptorPool*)pDescriptorPools) + k) =
@@ -22450,11 +22408,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint32_t*)&descriptorSetCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pSetLayouts,
-                                    ((descriptorSetCount)) * sizeof(const VkDescriptorSetLayout));
-                if (((descriptorSetCount))) {
+                                    descriptorSetCount * sizeof(const VkDescriptorSetLayout));
+                if (descriptorSetCount) {
                     uint8_t* cgen_var_2_ptr = (uint8_t*)(*readStreamPtrPtr);
-                    *readStreamPtrPtr += 8 * ((descriptorSetCount));
-                    for (uint32_t k = 0; k < ((descriptorSetCount)); ++k) {
+                    *readStreamPtrPtr += 8 * descriptorSetCount;
+                    for (uint32_t k = 0; k < descriptorSetCount; ++k) {
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_2_ptr + k * 8, sizeof(uint64_t));
                         *(((VkDescriptorSetLayout*)pSetLayouts) + k) =
@@ -22464,46 +22422,46 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 vkReadStream->alloc((void**)&pDescriptorSetPoolIds,
-                                    ((descriptorSetCount)) * sizeof(const uint64_t));
-                if (((descriptorSetCount)) > 0) {
+                                    descriptorSetCount * sizeof(const uint64_t));
+                if (descriptorSetCount > 0) {
                     memcpy((uint64_t*)pDescriptorSetPoolIds, *readStreamPtrPtr,
-                           ((descriptorSetCount)) * sizeof(const uint64_t));
-                    *readStreamPtrPtr += ((descriptorSetCount)) * sizeof(const uint64_t);
+                           descriptorSetCount * sizeof(const uint64_t));
+                    *readStreamPtrPtr += descriptorSetCount * sizeof(const uint64_t);
                 }
                 vkReadStream->alloc((void**)&pDescriptorSetWhichPool,
-                                    ((descriptorSetCount)) * sizeof(const uint32_t));
-                if (((descriptorSetCount)) > 0) {
+                                    descriptorSetCount * sizeof(const uint32_t));
+                if (descriptorSetCount > 0) {
                     memcpy((uint32_t*)pDescriptorSetWhichPool, *readStreamPtrPtr,
-                           ((descriptorSetCount)) * sizeof(const uint32_t));
-                    *readStreamPtrPtr += ((descriptorSetCount)) * sizeof(const uint32_t);
+                           descriptorSetCount * sizeof(const uint32_t));
+                    *readStreamPtrPtr += descriptorSetCount * sizeof(const uint32_t);
                 }
                 vkReadStream->alloc((void**)&pDescriptorSetPendingAllocation,
-                                    ((descriptorSetCount)) * sizeof(const uint32_t));
-                if (((descriptorSetCount)) > 0) {
+                                    descriptorSetCount * sizeof(const uint32_t));
+                if (descriptorSetCount > 0) {
                     memcpy((uint32_t*)pDescriptorSetPendingAllocation, *readStreamPtrPtr,
-                           ((descriptorSetCount)) * sizeof(const uint32_t));
-                    *readStreamPtrPtr += ((descriptorSetCount)) * sizeof(const uint32_t);
+                           descriptorSetCount * sizeof(const uint32_t));
+                    *readStreamPtrPtr += descriptorSetCount * sizeof(const uint32_t);
                 }
                 vkReadStream->alloc((void**)&pDescriptorWriteStartingIndices,
-                                    ((descriptorSetCount)) * sizeof(const uint32_t));
-                if (((descriptorSetCount)) > 0) {
+                                    descriptorSetCount * sizeof(const uint32_t));
+                if (descriptorSetCount > 0) {
                     memcpy((uint32_t*)pDescriptorWriteStartingIndices, *readStreamPtrPtr,
-                           ((descriptorSetCount)) * sizeof(const uint32_t));
-                    *readStreamPtrPtr += ((descriptorSetCount)) * sizeof(const uint32_t);
+                           descriptorSetCount * sizeof(const uint32_t));
+                    *readStreamPtrPtr += descriptorSetCount * sizeof(const uint32_t);
                 }
                 memcpy((uint32_t*)&pendingDescriptorWriteCount, *readStreamPtrPtr,
                        sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc(
                     (void**)&pPendingDescriptorWrites,
-                    ((pendingDescriptorWriteCount)) * sizeof(const VkWriteDescriptorSet));
-                for (uint32_t i = 0; i < (uint32_t)((pendingDescriptorWriteCount)); ++i) {
+                    pendingDescriptorWriteCount * sizeof(const VkWriteDescriptorSet));
+                for (uint32_t i = 0; i < (uint32_t)pendingDescriptorWriteCount; ++i) {
                     reservedunmarshal_VkWriteDescriptorSet(
                         vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                         (VkWriteDescriptorSet*)(pPendingDescriptorWrites + i), readStreamPtrPtr);
                 }
                 if (pPendingDescriptorWrites) {
-                    for (uint32_t i = 0; i < (uint32_t)((pendingDescriptorWriteCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)pendingDescriptorWriteCount; ++i) {
                         transform_tohost_VkWriteDescriptorSet(
                             m_state, (VkWriteDescriptorSet*)(pPendingDescriptorWrites + i));
                     }
@@ -22575,11 +22533,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 gfxstream::Stream::fromBe64((uint8_t*)&pPoolIds);
                 *readStreamPtrPtr += 8;
                 if (pPoolIds) {
-                    vkReadStream->alloc((void**)&pPoolIds, (*(pPoolIdCount)) * sizeof(uint64_t));
-                    if ((*(pPoolIdCount)) > 0) {
+                    vkReadStream->alloc((void**)&pPoolIds, (*pPoolIdCount) * sizeof(uint64_t));
+                    if ((*pPoolIdCount) > 0) {
                         memcpy((uint64_t*)pPoolIds, *readStreamPtrPtr,
-                               (*(pPoolIdCount)) * sizeof(uint64_t));
-                        *readStreamPtrPtr += (*(pPoolIdCount)) * sizeof(uint64_t);
+                               (*pPoolIdCount) * sizeof(uint64_t));
+                        *readStreamPtrPtr += (*pPoolIdCount) * sizeof(uint64_t);
                     }
                 }
                 if (m_logCalls) {
@@ -22600,7 +22558,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 uint64_t cgen_var_3 = (uint64_t)(uintptr_t)pPoolIds;
                 vkStream->putBe64(cgen_var_3);
                 if (pPoolIds) {
-                    vkStream->write((uint64_t*)pPoolIds, (*(pPoolIdCount)) * sizeof(uint64_t));
+                    vkStream->write((uint64_t*)pPoolIds, (*pPoolIdCount) * sizeof(uint64_t));
                 }
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
@@ -22634,11 +22592,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pWaitSemaphores) {
                     vkReadStream->alloc((void**)&pWaitSemaphores,
-                                        ((waitSemaphoreCount)) * sizeof(const VkSemaphore));
-                    if (((waitSemaphoreCount))) {
+                                        waitSemaphoreCount * sizeof(const VkSemaphore));
+                    if (waitSemaphoreCount) {
                         uint8_t* cgen_var_1_0_ptr = (uint8_t*)(*readStreamPtrPtr);
-                        *readStreamPtrPtr += 8 * ((waitSemaphoreCount));
-                        for (uint32_t k = 0; k < ((waitSemaphoreCount)); ++k) {
+                        *readStreamPtrPtr += 8 * waitSemaphoreCount;
+                        for (uint32_t k = 0; k < waitSemaphoreCount; ++k) {
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_1_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkSemaphore*)pWaitSemaphores) + k) =
@@ -22816,11 +22774,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pImageInfoEntryIndices) {
                     vkReadStream->alloc((void**)&pImageInfoEntryIndices,
-                                        ((imageInfoCount)) * sizeof(const uint32_t));
-                    if (((imageInfoCount)) > 0) {
+                                        imageInfoCount * sizeof(const uint32_t));
+                    if (imageInfoCount > 0) {
                         memcpy((uint32_t*)pImageInfoEntryIndices, *readStreamPtrPtr,
-                               ((imageInfoCount)) * sizeof(const uint32_t));
-                        *readStreamPtrPtr += ((imageInfoCount)) * sizeof(const uint32_t);
+                               imageInfoCount * sizeof(const uint32_t));
+                        *readStreamPtrPtr += imageInfoCount * sizeof(const uint32_t);
                     }
                 }
                 // WARNING PTR CHECK
@@ -22829,11 +22787,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pBufferInfoEntryIndices) {
                     vkReadStream->alloc((void**)&pBufferInfoEntryIndices,
-                                        ((bufferInfoCount)) * sizeof(const uint32_t));
-                    if (((bufferInfoCount)) > 0) {
+                                        bufferInfoCount * sizeof(const uint32_t));
+                    if (bufferInfoCount > 0) {
                         memcpy((uint32_t*)pBufferInfoEntryIndices, *readStreamPtrPtr,
-                               ((bufferInfoCount)) * sizeof(const uint32_t));
-                        *readStreamPtrPtr += ((bufferInfoCount)) * sizeof(const uint32_t);
+                               bufferInfoCount * sizeof(const uint32_t));
+                        *readStreamPtrPtr += bufferInfoCount * sizeof(const uint32_t);
                     }
                 }
                 // WARNING PTR CHECK
@@ -22842,11 +22800,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pBufferViewEntryIndices) {
                     vkReadStream->alloc((void**)&pBufferViewEntryIndices,
-                                        ((bufferViewCount)) * sizeof(const uint32_t));
-                    if (((bufferViewCount)) > 0) {
+                                        bufferViewCount * sizeof(const uint32_t));
+                    if (bufferViewCount > 0) {
                         memcpy((uint32_t*)pBufferViewEntryIndices, *readStreamPtrPtr,
-                               ((bufferViewCount)) * sizeof(const uint32_t));
-                        *readStreamPtrPtr += ((bufferViewCount)) * sizeof(const uint32_t);
+                               bufferViewCount * sizeof(const uint32_t));
+                        *readStreamPtrPtr += bufferViewCount * sizeof(const uint32_t);
                     }
                 }
                 // WARNING PTR CHECK
@@ -22855,8 +22813,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pImageInfos) {
                     vkReadStream->alloc((void**)&pImageInfos,
-                                        ((imageInfoCount)) * sizeof(const VkDescriptorImageInfo));
-                    for (uint32_t i = 0; i < (uint32_t)((imageInfoCount)); ++i) {
+                                        imageInfoCount * sizeof(const VkDescriptorImageInfo));
+                    for (uint32_t i = 0; i < (uint32_t)imageInfoCount; ++i) {
                         reservedunmarshal_VkDescriptorImageInfo(
                             vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                             (VkDescriptorImageInfo*)(pImageInfos + i), readStreamPtrPtr);
@@ -22868,8 +22826,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pBufferInfos) {
                     vkReadStream->alloc((void**)&pBufferInfos,
-                                        ((bufferInfoCount)) * sizeof(const VkDescriptorBufferInfo));
-                    for (uint32_t i = 0; i < (uint32_t)((bufferInfoCount)); ++i) {
+                                        bufferInfoCount * sizeof(const VkDescriptorBufferInfo));
+                    for (uint32_t i = 0; i < (uint32_t)bufferInfoCount; ++i) {
                         reservedunmarshal_VkDescriptorBufferInfo(
                             vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                             (VkDescriptorBufferInfo*)(pBufferInfos + i), readStreamPtrPtr);
@@ -22881,11 +22839,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pBufferViews) {
                     vkReadStream->alloc((void**)&pBufferViews,
-                                        ((bufferViewCount)) * sizeof(const VkBufferView));
-                    if (((bufferViewCount))) {
+                                        bufferViewCount * sizeof(const VkBufferView));
+                    if (bufferViewCount) {
                         uint8_t* cgen_var_8_0_ptr = (uint8_t*)(*readStreamPtrPtr);
-                        *readStreamPtrPtr += 8 * ((bufferViewCount));
-                        for (uint32_t k = 0; k < ((bufferViewCount)); ++k) {
+                        *readStreamPtrPtr += 8 * bufferViewCount;
+                        for (uint32_t k = 0; k < bufferViewCount; ++k) {
                             uint64_t tmpval;
                             memcpy(&tmpval, cgen_var_8_0_ptr + k * 8, sizeof(uint64_t));
                             *(((VkBufferView*)pBufferViews) + k) =
@@ -22900,21 +22858,21 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 8;
                 if (pInlineUniformBlockData) {
                     vkReadStream->alloc((void**)&pInlineUniformBlockData,
-                                        ((inlineUniformBlockCount)) * sizeof(const uint8_t));
-                    if (((inlineUniformBlockCount)) > 0) {
+                                        inlineUniformBlockCount * sizeof(const uint8_t));
+                    if (inlineUniformBlockCount > 0) {
                         memcpy((uint8_t*)pInlineUniformBlockData, *readStreamPtrPtr,
-                               ((inlineUniformBlockCount)) * sizeof(const uint8_t));
-                        *readStreamPtrPtr += ((inlineUniformBlockCount)) * sizeof(const uint8_t);
+                               inlineUniformBlockCount * sizeof(const uint8_t));
+                        *readStreamPtrPtr += inlineUniformBlockCount * sizeof(const uint8_t);
                     }
                 }
                 if (pImageInfos) {
-                    for (uint32_t i = 0; i < (uint32_t)((imageInfoCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)imageInfoCount; ++i) {
                         transform_tohost_VkDescriptorImageInfo(
                             m_state, (VkDescriptorImageInfo*)(pImageInfos + i));
                     }
                 }
                 if (pBufferInfos) {
-                    for (uint32_t i = 0; i < (uint32_t)((bufferInfoCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)bufferInfoCount; ++i) {
                         transform_tohost_VkDescriptorBufferInfo(
                             m_state, (VkDescriptorBufferInfo*)(pBufferInfos + i));
                     }
@@ -22973,9 +22931,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 auto vk = dispatch_VkQueue(queue);
                 memcpy((uint32_t*)&submitCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vkReadStream->alloc((void**)&pSubmits,
-                                    ((submitCount)) * sizeof(const VkSubmitInfo2));
-                for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i) {
+                vkReadStream->alloc((void**)&pSubmits, submitCount * sizeof(const VkSubmitInfo2));
+                for (uint32_t i = 0; i < (uint32_t)submitCount; ++i) {
                     reservedunmarshal_VkSubmitInfo2(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                     (VkSubmitInfo2*)(pSubmits + i),
                                                     readStreamPtrPtr);
@@ -22985,7 +22942,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 1 * 8;
                 *(VkFence*)&fence = (VkFence)unbox_VkFence((VkFence)(*&cgen_var_1));
                 if (pSubmits) {
-                    for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i) {
+                    for (uint32_t i = 0; i < (uint32_t)submitCount; ++i) {
                         transform_tohost_VkSubmitInfo2(m_state, (VkSubmitInfo2*)(pSubmits + i));
                     }
                 }
