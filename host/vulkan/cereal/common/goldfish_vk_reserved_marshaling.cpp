@@ -976,9 +976,11 @@ void reservedunmarshal_VkDeviceQueueCreateInfo(VulkanStream* vkStream, VkStructu
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pQueuePriorities,
                     forUnmarshaling->queueCount * sizeof(const float));
-    memcpy((float*)forUnmarshaling->pQueuePriorities, *ptr,
-           forUnmarshaling->queueCount * sizeof(const float));
-    *ptr += forUnmarshaling->queueCount * sizeof(const float);
+    if (forUnmarshaling->queueCount > 0) {
+        memcpy((float*)forUnmarshaling->pQueuePriorities, *ptr,
+               forUnmarshaling->queueCount * sizeof(const float));
+        *ptr += forUnmarshaling->queueCount * sizeof(const float);
+    }
 }
 
 void reservedunmarshal_VkDeviceCreateInfo(VulkanStream* vkStream, VkStructureType rootType,
@@ -1100,9 +1102,11 @@ void reservedunmarshal_VkSubmitInfo(VulkanStream* vkStream, VkStructureType root
     }
     vkStream->alloc((void**)&forUnmarshaling->pWaitDstStageMask,
                     forUnmarshaling->waitSemaphoreCount * sizeof(const VkPipelineStageFlags));
-    memcpy((VkPipelineStageFlags*)forUnmarshaling->pWaitDstStageMask, *ptr,
-           forUnmarshaling->waitSemaphoreCount * sizeof(const VkPipelineStageFlags));
-    *ptr += forUnmarshaling->waitSemaphoreCount * sizeof(const VkPipelineStageFlags);
+    if (forUnmarshaling->waitSemaphoreCount > 0) {
+        memcpy((VkPipelineStageFlags*)forUnmarshaling->pWaitDstStageMask, *ptr,
+               forUnmarshaling->waitSemaphoreCount * sizeof(const VkPipelineStageFlags));
+        *ptr += forUnmarshaling->waitSemaphoreCount * sizeof(const VkPipelineStageFlags);
+    }
     memcpy((uint32_t*)&forUnmarshaling->commandBufferCount, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pCommandBuffers,
@@ -1589,9 +1593,11 @@ void reservedunmarshal_VkBufferCreateInfo(VulkanStream* vkStream, VkStructureTyp
     if (forUnmarshaling->pQueueFamilyIndices) {
         vkStream->alloc((void**)&forUnmarshaling->pQueueFamilyIndices,
                         forUnmarshaling->queueFamilyIndexCount * sizeof(const uint32_t));
-        memcpy((uint32_t*)forUnmarshaling->pQueueFamilyIndices, *ptr,
-               forUnmarshaling->queueFamilyIndexCount * sizeof(const uint32_t));
-        *ptr += forUnmarshaling->queueFamilyIndexCount * sizeof(const uint32_t);
+        if (forUnmarshaling->queueFamilyIndexCount > 0) {
+            memcpy((uint32_t*)forUnmarshaling->pQueueFamilyIndices, *ptr,
+                   forUnmarshaling->queueFamilyIndexCount * sizeof(const uint32_t));
+            *ptr += forUnmarshaling->queueFamilyIndexCount * sizeof(const uint32_t);
+        }
     }
 }
 
@@ -1687,9 +1693,11 @@ void reservedunmarshal_VkImageCreateInfo(VulkanStream* vkStream, VkStructureType
     if (forUnmarshaling->pQueueFamilyIndices) {
         vkStream->alloc((void**)&forUnmarshaling->pQueueFamilyIndices,
                         forUnmarshaling->queueFamilyIndexCount * sizeof(const uint32_t));
-        memcpy((uint32_t*)forUnmarshaling->pQueueFamilyIndices, *ptr,
-               forUnmarshaling->queueFamilyIndexCount * sizeof(const uint32_t));
-        *ptr += forUnmarshaling->queueFamilyIndexCount * sizeof(const uint32_t);
+        if (forUnmarshaling->queueFamilyIndexCount > 0) {
+            memcpy((uint32_t*)forUnmarshaling->pQueueFamilyIndices, *ptr,
+                   forUnmarshaling->queueFamilyIndexCount * sizeof(const uint32_t));
+            *ptr += forUnmarshaling->queueFamilyIndexCount * sizeof(const uint32_t);
+        }
     }
     memcpy((VkImageLayout*)&forUnmarshaling->initialLayout, *ptr, sizeof(VkImageLayout));
     *ptr += sizeof(VkImageLayout);
@@ -1795,9 +1803,11 @@ void reservedunmarshal_VkShaderModuleCreateInfo(VulkanStream* vkStream, VkStruct
     *ptr += 8;
     vkStream->alloc((void**)&forUnmarshaling->pCode,
                     (forUnmarshaling->codeSize / 4) * sizeof(const uint32_t));
-    memcpy((uint32_t*)forUnmarshaling->pCode, *ptr,
-           (forUnmarshaling->codeSize / 4) * sizeof(const uint32_t));
-    *ptr += (forUnmarshaling->codeSize / 4) * sizeof(const uint32_t);
+    if ((forUnmarshaling->codeSize / 4) > 0) {
+        memcpy((uint32_t*)forUnmarshaling->pCode, *ptr,
+               (forUnmarshaling->codeSize / 4) * sizeof(const uint32_t));
+        *ptr += (forUnmarshaling->codeSize / 4) * sizeof(const uint32_t);
+    }
 }
 
 void reservedunmarshal_VkPipelineCacheCreateInfo(VulkanStream* vkStream, VkStructureType rootType,
@@ -1833,9 +1843,11 @@ void reservedunmarshal_VkPipelineCacheCreateInfo(VulkanStream* vkStream, VkStruc
     *ptr += 8;
     vkStream->alloc((void**)&forUnmarshaling->pInitialData,
                     forUnmarshaling->initialDataSize * sizeof(const uint8_t));
-    memcpy((void*)forUnmarshaling->pInitialData, *ptr,
-           forUnmarshaling->initialDataSize * sizeof(const uint8_t));
-    *ptr += forUnmarshaling->initialDataSize * sizeof(const uint8_t);
+    if (forUnmarshaling->initialDataSize > 0) {
+        memcpy((void*)forUnmarshaling->pInitialData, *ptr,
+               forUnmarshaling->initialDataSize * sizeof(const uint8_t));
+        *ptr += forUnmarshaling->initialDataSize * sizeof(const uint8_t);
+    }
 }
 
 void reservedunmarshal_VkSpecializationMapEntry(VulkanStream* vkStream, VkStructureType rootType,
@@ -1865,8 +1877,11 @@ void reservedunmarshal_VkSpecializationInfo(VulkanStream* vkStream, VkStructureT
     *ptr += 8;
     vkStream->alloc((void**)&forUnmarshaling->pData,
                     forUnmarshaling->dataSize * sizeof(const uint8_t));
-    memcpy((void*)forUnmarshaling->pData, *ptr, forUnmarshaling->dataSize * sizeof(const uint8_t));
-    *ptr += forUnmarshaling->dataSize * sizeof(const uint8_t);
+    if (forUnmarshaling->dataSize > 0) {
+        memcpy((void*)forUnmarshaling->pData, *ptr,
+               forUnmarshaling->dataSize * sizeof(const uint8_t));
+        *ptr += forUnmarshaling->dataSize * sizeof(const uint8_t);
+    }
 }
 
 void reservedunmarshal_VkPipelineShaderStageCreateInfo(
@@ -2269,9 +2284,13 @@ void reservedunmarshal_VkPipelineMultisampleStateCreateInfo(
         vkStream->alloc(
             (void**)&forUnmarshaling->pSampleMask,
             (((forUnmarshaling->rasterizationSamples) + 31) / 32) * sizeof(const VkSampleMask));
-        memcpy((VkSampleMask*)forUnmarshaling->pSampleMask, *ptr,
-               (((forUnmarshaling->rasterizationSamples) + 31) / 32) * sizeof(const VkSampleMask));
-        *ptr += (((forUnmarshaling->rasterizationSamples) + 31) / 32) * sizeof(const VkSampleMask);
+        if ((((forUnmarshaling->rasterizationSamples) + 31) / 32) > 0) {
+            memcpy(
+                (VkSampleMask*)forUnmarshaling->pSampleMask, *ptr,
+                (((forUnmarshaling->rasterizationSamples) + 31) / 32) * sizeof(const VkSampleMask));
+            *ptr +=
+                (((forUnmarshaling->rasterizationSamples) + 31) / 32) * sizeof(const VkSampleMask);
+        }
     }
     memcpy((VkBool32*)&forUnmarshaling->alphaToCoverageEnable, *ptr, sizeof(VkBool32));
     *ptr += sizeof(VkBool32);
@@ -2445,9 +2464,11 @@ void reservedunmarshal_VkPipelineDynamicStateCreateInfo(
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pDynamicStates,
                     forUnmarshaling->dynamicStateCount * sizeof(const VkDynamicState));
-    memcpy((VkDynamicState*)forUnmarshaling->pDynamicStates, *ptr,
-           forUnmarshaling->dynamicStateCount * sizeof(const VkDynamicState));
-    *ptr += forUnmarshaling->dynamicStateCount * sizeof(const VkDynamicState);
+    if (forUnmarshaling->dynamicStateCount > 0) {
+        memcpy((VkDynamicState*)forUnmarshaling->pDynamicStates, *ptr,
+               forUnmarshaling->dynamicStateCount * sizeof(const VkDynamicState));
+        *ptr += forUnmarshaling->dynamicStateCount * sizeof(const VkDynamicState);
+    }
 }
 
 void reservedunmarshal_VkGraphicsPipelineCreateInfo(VulkanStream* vkStream,
@@ -3289,9 +3310,11 @@ void reservedunmarshal_VkSubpassDescription(VulkanStream* vkStream, VkStructureT
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pPreserveAttachments,
                     forUnmarshaling->preserveAttachmentCount * sizeof(const uint32_t));
-    memcpy((uint32_t*)forUnmarshaling->pPreserveAttachments, *ptr,
-           forUnmarshaling->preserveAttachmentCount * sizeof(const uint32_t));
-    *ptr += forUnmarshaling->preserveAttachmentCount * sizeof(const uint32_t);
+    if (forUnmarshaling->preserveAttachmentCount > 0) {
+        memcpy((uint32_t*)forUnmarshaling->pPreserveAttachments, *ptr,
+               forUnmarshaling->preserveAttachmentCount * sizeof(const uint32_t));
+        *ptr += forUnmarshaling->preserveAttachmentCount * sizeof(const uint32_t);
+    }
 }
 
 void reservedunmarshal_VkSubpassDependency(VulkanStream* vkStream, VkStructureType rootType,
@@ -4040,23 +4063,29 @@ void reservedunmarshal_VkDeviceGroupSubmitInfo(VulkanStream* vkStream, VkStructu
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pWaitSemaphoreDeviceIndices,
                     forUnmarshaling->waitSemaphoreCount * sizeof(const uint32_t));
-    memcpy((uint32_t*)forUnmarshaling->pWaitSemaphoreDeviceIndices, *ptr,
-           forUnmarshaling->waitSemaphoreCount * sizeof(const uint32_t));
-    *ptr += forUnmarshaling->waitSemaphoreCount * sizeof(const uint32_t);
+    if (forUnmarshaling->waitSemaphoreCount > 0) {
+        memcpy((uint32_t*)forUnmarshaling->pWaitSemaphoreDeviceIndices, *ptr,
+               forUnmarshaling->waitSemaphoreCount * sizeof(const uint32_t));
+        *ptr += forUnmarshaling->waitSemaphoreCount * sizeof(const uint32_t);
+    }
     memcpy((uint32_t*)&forUnmarshaling->commandBufferCount, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pCommandBufferDeviceMasks,
                     forUnmarshaling->commandBufferCount * sizeof(const uint32_t));
-    memcpy((uint32_t*)forUnmarshaling->pCommandBufferDeviceMasks, *ptr,
-           forUnmarshaling->commandBufferCount * sizeof(const uint32_t));
-    *ptr += forUnmarshaling->commandBufferCount * sizeof(const uint32_t);
+    if (forUnmarshaling->commandBufferCount > 0) {
+        memcpy((uint32_t*)forUnmarshaling->pCommandBufferDeviceMasks, *ptr,
+               forUnmarshaling->commandBufferCount * sizeof(const uint32_t));
+        *ptr += forUnmarshaling->commandBufferCount * sizeof(const uint32_t);
+    }
     memcpy((uint32_t*)&forUnmarshaling->signalSemaphoreCount, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pSignalSemaphoreDeviceIndices,
                     forUnmarshaling->signalSemaphoreCount * sizeof(const uint32_t));
-    memcpy((uint32_t*)forUnmarshaling->pSignalSemaphoreDeviceIndices, *ptr,
-           forUnmarshaling->signalSemaphoreCount * sizeof(const uint32_t));
-    *ptr += forUnmarshaling->signalSemaphoreCount * sizeof(const uint32_t);
+    if (forUnmarshaling->signalSemaphoreCount > 0) {
+        memcpy((uint32_t*)forUnmarshaling->pSignalSemaphoreDeviceIndices, *ptr,
+               forUnmarshaling->signalSemaphoreCount * sizeof(const uint32_t));
+        *ptr += forUnmarshaling->signalSemaphoreCount * sizeof(const uint32_t);
+    }
 }
 
 void reservedunmarshal_VkDeviceGroupBindSparseInfo(VulkanStream* vkStream, VkStructureType rootType,
@@ -4119,9 +4148,11 @@ void reservedunmarshal_VkBindBufferMemoryDeviceGroupInfo(
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pDeviceIndices,
                     forUnmarshaling->deviceIndexCount * sizeof(const uint32_t));
-    memcpy((uint32_t*)forUnmarshaling->pDeviceIndices, *ptr,
-           forUnmarshaling->deviceIndexCount * sizeof(const uint32_t));
-    *ptr += forUnmarshaling->deviceIndexCount * sizeof(const uint32_t);
+    if (forUnmarshaling->deviceIndexCount > 0) {
+        memcpy((uint32_t*)forUnmarshaling->pDeviceIndices, *ptr,
+               forUnmarshaling->deviceIndexCount * sizeof(const uint32_t));
+        *ptr += forUnmarshaling->deviceIndexCount * sizeof(const uint32_t);
+    }
 }
 
 void reservedunmarshal_VkBindImageMemoryDeviceGroupInfo(
@@ -4153,9 +4184,11 @@ void reservedunmarshal_VkBindImageMemoryDeviceGroupInfo(
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pDeviceIndices,
                     forUnmarshaling->deviceIndexCount * sizeof(const uint32_t));
-    memcpy((uint32_t*)forUnmarshaling->pDeviceIndices, *ptr,
-           forUnmarshaling->deviceIndexCount * sizeof(const uint32_t));
-    *ptr += forUnmarshaling->deviceIndexCount * sizeof(const uint32_t);
+    if (forUnmarshaling->deviceIndexCount > 0) {
+        memcpy((uint32_t*)forUnmarshaling->pDeviceIndices, *ptr,
+               forUnmarshaling->deviceIndexCount * sizeof(const uint32_t));
+        *ptr += forUnmarshaling->deviceIndexCount * sizeof(const uint32_t);
+    }
     memcpy((uint32_t*)&forUnmarshaling->splitInstanceBindRegionCount, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pSplitInstanceBindRegions,
@@ -4842,23 +4875,29 @@ void reservedunmarshal_VkRenderPassMultiviewCreateInfo(
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pViewMasks,
                     forUnmarshaling->subpassCount * sizeof(const uint32_t));
-    memcpy((uint32_t*)forUnmarshaling->pViewMasks, *ptr,
-           forUnmarshaling->subpassCount * sizeof(const uint32_t));
-    *ptr += forUnmarshaling->subpassCount * sizeof(const uint32_t);
+    if (forUnmarshaling->subpassCount > 0) {
+        memcpy((uint32_t*)forUnmarshaling->pViewMasks, *ptr,
+               forUnmarshaling->subpassCount * sizeof(const uint32_t));
+        *ptr += forUnmarshaling->subpassCount * sizeof(const uint32_t);
+    }
     memcpy((uint32_t*)&forUnmarshaling->dependencyCount, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pViewOffsets,
                     forUnmarshaling->dependencyCount * sizeof(const int32_t));
-    memcpy((int32_t*)forUnmarshaling->pViewOffsets, *ptr,
-           forUnmarshaling->dependencyCount * sizeof(const int32_t));
-    *ptr += forUnmarshaling->dependencyCount * sizeof(const int32_t);
+    if (forUnmarshaling->dependencyCount > 0) {
+        memcpy((int32_t*)forUnmarshaling->pViewOffsets, *ptr,
+               forUnmarshaling->dependencyCount * sizeof(const int32_t));
+        *ptr += forUnmarshaling->dependencyCount * sizeof(const int32_t);
+    }
     memcpy((uint32_t*)&forUnmarshaling->correlationMaskCount, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pCorrelationMasks,
                     forUnmarshaling->correlationMaskCount * sizeof(const uint32_t));
-    memcpy((uint32_t*)forUnmarshaling->pCorrelationMasks, *ptr,
-           forUnmarshaling->correlationMaskCount * sizeof(const uint32_t));
-    *ptr += forUnmarshaling->correlationMaskCount * sizeof(const uint32_t);
+    if (forUnmarshaling->correlationMaskCount > 0) {
+        memcpy((uint32_t*)forUnmarshaling->pCorrelationMasks, *ptr,
+               forUnmarshaling->correlationMaskCount * sizeof(const uint32_t));
+        *ptr += forUnmarshaling->correlationMaskCount * sizeof(const uint32_t);
+    }
 }
 
 void reservedunmarshal_VkPhysicalDeviceMultiviewFeatures(
@@ -6354,9 +6393,11 @@ void reservedunmarshal_VkImageFormatListCreateInfo(VulkanStream* vkStream, VkStr
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pViewFormats,
                     forUnmarshaling->viewFormatCount * sizeof(const VkFormat));
-    memcpy((VkFormat*)forUnmarshaling->pViewFormats, *ptr,
-           forUnmarshaling->viewFormatCount * sizeof(const VkFormat));
-    *ptr += forUnmarshaling->viewFormatCount * sizeof(const VkFormat);
+    if (forUnmarshaling->viewFormatCount > 0) {
+        memcpy((VkFormat*)forUnmarshaling->pViewFormats, *ptr,
+               forUnmarshaling->viewFormatCount * sizeof(const VkFormat));
+        *ptr += forUnmarshaling->viewFormatCount * sizeof(const VkFormat);
+    }
 }
 
 void reservedunmarshal_VkAttachmentDescription2(VulkanStream* vkStream, VkStructureType rootType,
@@ -6519,9 +6560,11 @@ void reservedunmarshal_VkSubpassDescription2(VulkanStream* vkStream, VkStructure
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pPreserveAttachments,
                     forUnmarshaling->preserveAttachmentCount * sizeof(const uint32_t));
-    memcpy((uint32_t*)forUnmarshaling->pPreserveAttachments, *ptr,
-           forUnmarshaling->preserveAttachmentCount * sizeof(const uint32_t));
-    *ptr += forUnmarshaling->preserveAttachmentCount * sizeof(const uint32_t);
+    if (forUnmarshaling->preserveAttachmentCount > 0) {
+        memcpy((uint32_t*)forUnmarshaling->pPreserveAttachments, *ptr,
+               forUnmarshaling->preserveAttachmentCount * sizeof(const uint32_t));
+        *ptr += forUnmarshaling->preserveAttachmentCount * sizeof(const uint32_t);
+    }
 }
 
 void reservedunmarshal_VkSubpassDependency2(VulkanStream* vkStream, VkStructureType rootType,
@@ -6625,9 +6668,11 @@ void reservedunmarshal_VkRenderPassCreateInfo2(VulkanStream* vkStream, VkStructu
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pCorrelatedViewMasks,
                     forUnmarshaling->correlatedViewMaskCount * sizeof(const uint32_t));
-    memcpy((uint32_t*)forUnmarshaling->pCorrelatedViewMasks, *ptr,
-           forUnmarshaling->correlatedViewMaskCount * sizeof(const uint32_t));
-    *ptr += forUnmarshaling->correlatedViewMaskCount * sizeof(const uint32_t);
+    if (forUnmarshaling->correlatedViewMaskCount > 0) {
+        memcpy((uint32_t*)forUnmarshaling->pCorrelatedViewMasks, *ptr,
+               forUnmarshaling->correlatedViewMaskCount * sizeof(const uint32_t));
+        *ptr += forUnmarshaling->correlatedViewMaskCount * sizeof(const uint32_t);
+    }
 }
 
 void reservedunmarshal_VkSubpassBeginInfo(VulkanStream* vkStream, VkStructureType rootType,
@@ -6914,9 +6959,11 @@ void reservedunmarshal_VkDescriptorSetLayoutBindingFlagsCreateInfo(
     if (forUnmarshaling->pBindingFlags) {
         vkStream->alloc((void**)&forUnmarshaling->pBindingFlags,
                         forUnmarshaling->bindingCount * sizeof(const VkDescriptorBindingFlags));
-        memcpy((VkDescriptorBindingFlags*)forUnmarshaling->pBindingFlags, *ptr,
-               forUnmarshaling->bindingCount * sizeof(const VkDescriptorBindingFlags));
-        *ptr += forUnmarshaling->bindingCount * sizeof(const VkDescriptorBindingFlags);
+        if (forUnmarshaling->bindingCount > 0) {
+            memcpy((VkDescriptorBindingFlags*)forUnmarshaling->pBindingFlags, *ptr,
+                   forUnmarshaling->bindingCount * sizeof(const VkDescriptorBindingFlags));
+            *ptr += forUnmarshaling->bindingCount * sizeof(const VkDescriptorBindingFlags);
+        }
     }
 }
 
@@ -7128,9 +7175,11 @@ void reservedunmarshal_VkDescriptorSetVariableDescriptorCountAllocateInfo(
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pDescriptorCounts,
                     forUnmarshaling->descriptorSetCount * sizeof(const uint32_t));
-    memcpy((uint32_t*)forUnmarshaling->pDescriptorCounts, *ptr,
-           forUnmarshaling->descriptorSetCount * sizeof(const uint32_t));
-    *ptr += forUnmarshaling->descriptorSetCount * sizeof(const uint32_t);
+    if (forUnmarshaling->descriptorSetCount > 0) {
+        memcpy((uint32_t*)forUnmarshaling->pDescriptorCounts, *ptr,
+               forUnmarshaling->descriptorSetCount * sizeof(const uint32_t));
+        *ptr += forUnmarshaling->descriptorSetCount * sizeof(const uint32_t);
+    }
 }
 
 void reservedunmarshal_VkDescriptorSetVariableDescriptorCountLayoutSupport(
@@ -7465,9 +7514,11 @@ void reservedunmarshal_VkFramebufferAttachmentImageInfo(
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pViewFormats,
                     forUnmarshaling->viewFormatCount * sizeof(const VkFormat));
-    memcpy((VkFormat*)forUnmarshaling->pViewFormats, *ptr,
-           forUnmarshaling->viewFormatCount * sizeof(const VkFormat));
-    *ptr += forUnmarshaling->viewFormatCount * sizeof(const VkFormat);
+    if (forUnmarshaling->viewFormatCount > 0) {
+        memcpy((VkFormat*)forUnmarshaling->pViewFormats, *ptr,
+               forUnmarshaling->viewFormatCount * sizeof(const VkFormat));
+        *ptr += forUnmarshaling->viewFormatCount * sizeof(const VkFormat);
+    }
 }
 
 void reservedunmarshal_VkFramebufferAttachmentsCreateInfo(
@@ -7851,9 +7902,11 @@ void reservedunmarshal_VkTimelineSemaphoreSubmitInfo(VulkanStream* vkStream,
     if (forUnmarshaling->pWaitSemaphoreValues) {
         vkStream->alloc((void**)&forUnmarshaling->pWaitSemaphoreValues,
                         forUnmarshaling->waitSemaphoreValueCount * sizeof(const uint64_t));
-        memcpy((uint64_t*)forUnmarshaling->pWaitSemaphoreValues, *ptr,
-               forUnmarshaling->waitSemaphoreValueCount * sizeof(const uint64_t));
-        *ptr += forUnmarshaling->waitSemaphoreValueCount * sizeof(const uint64_t);
+        if (forUnmarshaling->waitSemaphoreValueCount > 0) {
+            memcpy((uint64_t*)forUnmarshaling->pWaitSemaphoreValues, *ptr,
+                   forUnmarshaling->waitSemaphoreValueCount * sizeof(const uint64_t));
+            *ptr += forUnmarshaling->waitSemaphoreValueCount * sizeof(const uint64_t);
+        }
     }
     memcpy((uint32_t*)&forUnmarshaling->signalSemaphoreValueCount, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
@@ -7864,9 +7917,11 @@ void reservedunmarshal_VkTimelineSemaphoreSubmitInfo(VulkanStream* vkStream,
     if (forUnmarshaling->pSignalSemaphoreValues) {
         vkStream->alloc((void**)&forUnmarshaling->pSignalSemaphoreValues,
                         forUnmarshaling->signalSemaphoreValueCount * sizeof(const uint64_t));
-        memcpy((uint64_t*)forUnmarshaling->pSignalSemaphoreValues, *ptr,
-               forUnmarshaling->signalSemaphoreValueCount * sizeof(const uint64_t));
-        *ptr += forUnmarshaling->signalSemaphoreValueCount * sizeof(const uint64_t);
+        if (forUnmarshaling->signalSemaphoreValueCount > 0) {
+            memcpy((uint64_t*)forUnmarshaling->pSignalSemaphoreValues, *ptr,
+                   forUnmarshaling->signalSemaphoreValueCount * sizeof(const uint64_t));
+            *ptr += forUnmarshaling->signalSemaphoreValueCount * sizeof(const uint64_t);
+        }
     }
 }
 
@@ -7914,9 +7969,11 @@ void reservedunmarshal_VkSemaphoreWaitInfo(VulkanStream* vkStream, VkStructureTy
     }
     vkStream->alloc((void**)&forUnmarshaling->pValues,
                     forUnmarshaling->semaphoreCount * sizeof(const uint64_t));
-    memcpy((uint64_t*)forUnmarshaling->pValues, *ptr,
-           forUnmarshaling->semaphoreCount * sizeof(const uint64_t));
-    *ptr += forUnmarshaling->semaphoreCount * sizeof(const uint64_t);
+    if (forUnmarshaling->semaphoreCount > 0) {
+        memcpy((uint64_t*)forUnmarshaling->pValues, *ptr,
+               forUnmarshaling->semaphoreCount * sizeof(const uint64_t));
+        *ptr += forUnmarshaling->semaphoreCount * sizeof(const uint64_t);
+    }
 }
 
 void reservedunmarshal_VkSemaphoreSignalInfo(VulkanStream* vkStream, VkStructureType rootType,
@@ -9662,8 +9719,11 @@ void reservedunmarshal_VkWriteDescriptorSetInlineUniformBlock(
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pData,
                     forUnmarshaling->dataSize * sizeof(const uint8_t));
-    memcpy((void*)forUnmarshaling->pData, *ptr, forUnmarshaling->dataSize * sizeof(const uint8_t));
-    *ptr += forUnmarshaling->dataSize * sizeof(const uint8_t);
+    if (forUnmarshaling->dataSize > 0) {
+        memcpy((void*)forUnmarshaling->pData, *ptr,
+               forUnmarshaling->dataSize * sizeof(const uint8_t));
+        *ptr += forUnmarshaling->dataSize * sizeof(const uint8_t);
+    }
 }
 
 void reservedunmarshal_VkDescriptorPoolInlineUniformBlockCreateInfo(
@@ -9876,9 +9936,11 @@ void reservedunmarshal_VkPipelineRenderingCreateInfo(VulkanStream* vkStream,
     if (forUnmarshaling->pColorAttachmentFormats) {
         vkStream->alloc((void**)&forUnmarshaling->pColorAttachmentFormats,
                         forUnmarshaling->colorAttachmentCount * sizeof(const VkFormat));
-        memcpy((VkFormat*)forUnmarshaling->pColorAttachmentFormats, *ptr,
-               forUnmarshaling->colorAttachmentCount * sizeof(const VkFormat));
-        *ptr += forUnmarshaling->colorAttachmentCount * sizeof(const VkFormat);
+        if (forUnmarshaling->colorAttachmentCount > 0) {
+            memcpy((VkFormat*)forUnmarshaling->pColorAttachmentFormats, *ptr,
+                   forUnmarshaling->colorAttachmentCount * sizeof(const VkFormat));
+            *ptr += forUnmarshaling->colorAttachmentCount * sizeof(const VkFormat);
+        }
     }
     memcpy((VkFormat*)&forUnmarshaling->depthAttachmentFormat, *ptr, sizeof(VkFormat));
     *ptr += sizeof(VkFormat);
@@ -9948,9 +10010,11 @@ void reservedunmarshal_VkCommandBufferInheritanceRenderingInfo(
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pColorAttachmentFormats,
                     forUnmarshaling->colorAttachmentCount * sizeof(const VkFormat));
-    memcpy((VkFormat*)forUnmarshaling->pColorAttachmentFormats, *ptr,
-           forUnmarshaling->colorAttachmentCount * sizeof(const VkFormat));
-    *ptr += forUnmarshaling->colorAttachmentCount * sizeof(const VkFormat);
+    if (forUnmarshaling->colorAttachmentCount > 0) {
+        memcpy((VkFormat*)forUnmarshaling->pColorAttachmentFormats, *ptr,
+               forUnmarshaling->colorAttachmentCount * sizeof(const VkFormat));
+        *ptr += forUnmarshaling->colorAttachmentCount * sizeof(const VkFormat);
+    }
     memcpy((VkFormat*)&forUnmarshaling->depthAttachmentFormat, *ptr, sizeof(VkFormat));
     *ptr += sizeof(VkFormat);
     memcpy((VkFormat*)&forUnmarshaling->stencilAttachmentFormat, *ptr, sizeof(VkFormat));
@@ -10472,9 +10536,11 @@ void reservedunmarshal_VkPhysicalDeviceVulkan14Properties(
     if (forUnmarshaling->pCopySrcLayouts) {
         vkStream->alloc((void**)&forUnmarshaling->pCopySrcLayouts,
                         forUnmarshaling->copySrcLayoutCount * sizeof(VkImageLayout));
-        memcpy((VkImageLayout*)forUnmarshaling->pCopySrcLayouts, *ptr,
-               forUnmarshaling->copySrcLayoutCount * sizeof(VkImageLayout));
-        *ptr += forUnmarshaling->copySrcLayoutCount * sizeof(VkImageLayout);
+        if (forUnmarshaling->copySrcLayoutCount > 0) {
+            memcpy((VkImageLayout*)forUnmarshaling->pCopySrcLayouts, *ptr,
+                   forUnmarshaling->copySrcLayoutCount * sizeof(VkImageLayout));
+            *ptr += forUnmarshaling->copySrcLayoutCount * sizeof(VkImageLayout);
+        }
     }
     memcpy((uint32_t*)&forUnmarshaling->copyDstLayoutCount, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
@@ -10485,9 +10551,11 @@ void reservedunmarshal_VkPhysicalDeviceVulkan14Properties(
     if (forUnmarshaling->pCopyDstLayouts) {
         vkStream->alloc((void**)&forUnmarshaling->pCopyDstLayouts,
                         forUnmarshaling->copyDstLayoutCount * sizeof(VkImageLayout));
-        memcpy((VkImageLayout*)forUnmarshaling->pCopyDstLayouts, *ptr,
-               forUnmarshaling->copyDstLayoutCount * sizeof(VkImageLayout));
-        *ptr += forUnmarshaling->copyDstLayoutCount * sizeof(VkImageLayout);
+        if (forUnmarshaling->copyDstLayoutCount > 0) {
+            memcpy((VkImageLayout*)forUnmarshaling->pCopyDstLayouts, *ptr,
+                   forUnmarshaling->copyDstLayoutCount * sizeof(VkImageLayout));
+            *ptr += forUnmarshaling->copyDstLayoutCount * sizeof(VkImageLayout);
+        }
     }
     memcpy((uint8_t*)forUnmarshaling->optimalTilingLayoutUUID, *ptr,
            VK_UUID_SIZE * sizeof(uint8_t));
@@ -11095,9 +11163,11 @@ void reservedunmarshal_VkRenderingAreaInfo(VulkanStream* vkStream, VkStructureTy
     if (forUnmarshaling->pColorAttachmentFormats) {
         vkStream->alloc((void**)&forUnmarshaling->pColorAttachmentFormats,
                         forUnmarshaling->colorAttachmentCount * sizeof(const VkFormat));
-        memcpy((VkFormat*)forUnmarshaling->pColorAttachmentFormats, *ptr,
-               forUnmarshaling->colorAttachmentCount * sizeof(const VkFormat));
-        *ptr += forUnmarshaling->colorAttachmentCount * sizeof(const VkFormat);
+        if (forUnmarshaling->colorAttachmentCount > 0) {
+            memcpy((VkFormat*)forUnmarshaling->pColorAttachmentFormats, *ptr,
+                   forUnmarshaling->colorAttachmentCount * sizeof(const VkFormat));
+            *ptr += forUnmarshaling->colorAttachmentCount * sizeof(const VkFormat);
+        }
     }
     memcpy((VkFormat*)&forUnmarshaling->depthAttachmentFormat, *ptr, sizeof(VkFormat));
     *ptr += sizeof(VkFormat);
@@ -11346,9 +11416,11 @@ void reservedunmarshal_VkRenderingAttachmentLocationInfo(
     if (forUnmarshaling->pColorAttachmentLocations) {
         vkStream->alloc((void**)&forUnmarshaling->pColorAttachmentLocations,
                         forUnmarshaling->colorAttachmentCount * sizeof(const uint32_t));
-        memcpy((uint32_t*)forUnmarshaling->pColorAttachmentLocations, *ptr,
-               forUnmarshaling->colorAttachmentCount * sizeof(const uint32_t));
-        *ptr += forUnmarshaling->colorAttachmentCount * sizeof(const uint32_t);
+        if (forUnmarshaling->colorAttachmentCount > 0) {
+            memcpy((uint32_t*)forUnmarshaling->pColorAttachmentLocations, *ptr,
+                   forUnmarshaling->colorAttachmentCount * sizeof(const uint32_t));
+            *ptr += forUnmarshaling->colorAttachmentCount * sizeof(const uint32_t);
+        }
     }
 }
 
@@ -11386,9 +11458,11 @@ void reservedunmarshal_VkRenderingInputAttachmentIndexInfo(
     if (forUnmarshaling->pColorAttachmentInputIndices) {
         vkStream->alloc((void**)&forUnmarshaling->pColorAttachmentInputIndices,
                         forUnmarshaling->colorAttachmentCount * sizeof(const uint32_t));
-        memcpy((uint32_t*)forUnmarshaling->pColorAttachmentInputIndices, *ptr,
-               forUnmarshaling->colorAttachmentCount * sizeof(const uint32_t));
-        *ptr += forUnmarshaling->colorAttachmentCount * sizeof(const uint32_t);
+        if (forUnmarshaling->colorAttachmentCount > 0) {
+            memcpy((uint32_t*)forUnmarshaling->pColorAttachmentInputIndices, *ptr,
+                   forUnmarshaling->colorAttachmentCount * sizeof(const uint32_t));
+            *ptr += forUnmarshaling->colorAttachmentCount * sizeof(const uint32_t);
+        }
     }
     // WARNING PTR CHECK
     memcpy((uint32_t**)&forUnmarshaling->pDepthInputAttachmentIndex, (*ptr), 8);
@@ -11568,9 +11642,11 @@ void reservedunmarshal_VkBindDescriptorSetsInfo(VulkanStream* vkStream, VkStruct
     if (forUnmarshaling->pDynamicOffsets) {
         vkStream->alloc((void**)&forUnmarshaling->pDynamicOffsets,
                         forUnmarshaling->dynamicOffsetCount * sizeof(const uint32_t));
-        memcpy((uint32_t*)forUnmarshaling->pDynamicOffsets, *ptr,
-               forUnmarshaling->dynamicOffsetCount * sizeof(const uint32_t));
-        *ptr += forUnmarshaling->dynamicOffsetCount * sizeof(const uint32_t);
+        if (forUnmarshaling->dynamicOffsetCount > 0) {
+            memcpy((uint32_t*)forUnmarshaling->pDynamicOffsets, *ptr,
+                   forUnmarshaling->dynamicOffsetCount * sizeof(const uint32_t));
+            *ptr += forUnmarshaling->dynamicOffsetCount * sizeof(const uint32_t);
+        }
     }
 }
 
@@ -11611,8 +11687,11 @@ void reservedunmarshal_VkPushConstantsInfo(VulkanStream* vkStream, VkStructureTy
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pValues,
                     forUnmarshaling->size * sizeof(const uint8_t));
-    memcpy((void*)forUnmarshaling->pValues, *ptr, forUnmarshaling->size * sizeof(const uint8_t));
-    *ptr += forUnmarshaling->size * sizeof(const uint8_t);
+    if (forUnmarshaling->size > 0) {
+        memcpy((void*)forUnmarshaling->pValues, *ptr,
+               forUnmarshaling->size * sizeof(const uint8_t));
+        *ptr += forUnmarshaling->size * sizeof(const uint8_t);
+    }
 }
 
 void reservedunmarshal_VkPushDescriptorSetInfo(VulkanStream* vkStream, VkStructureType rootType,
@@ -11902,9 +11981,11 @@ void reservedunmarshal_VkPhysicalDeviceHostImageCopyProperties(
     if (forUnmarshaling->pCopySrcLayouts) {
         vkStream->alloc((void**)&forUnmarshaling->pCopySrcLayouts,
                         forUnmarshaling->copySrcLayoutCount * sizeof(VkImageLayout));
-        memcpy((VkImageLayout*)forUnmarshaling->pCopySrcLayouts, *ptr,
-               forUnmarshaling->copySrcLayoutCount * sizeof(VkImageLayout));
-        *ptr += forUnmarshaling->copySrcLayoutCount * sizeof(VkImageLayout);
+        if (forUnmarshaling->copySrcLayoutCount > 0) {
+            memcpy((VkImageLayout*)forUnmarshaling->pCopySrcLayouts, *ptr,
+                   forUnmarshaling->copySrcLayoutCount * sizeof(VkImageLayout));
+            *ptr += forUnmarshaling->copySrcLayoutCount * sizeof(VkImageLayout);
+        }
     }
     memcpy((uint32_t*)&forUnmarshaling->copyDstLayoutCount, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
@@ -11915,9 +11996,11 @@ void reservedunmarshal_VkPhysicalDeviceHostImageCopyProperties(
     if (forUnmarshaling->pCopyDstLayouts) {
         vkStream->alloc((void**)&forUnmarshaling->pCopyDstLayouts,
                         forUnmarshaling->copyDstLayoutCount * sizeof(VkImageLayout));
-        memcpy((VkImageLayout*)forUnmarshaling->pCopyDstLayouts, *ptr,
-               forUnmarshaling->copyDstLayoutCount * sizeof(VkImageLayout));
-        *ptr += forUnmarshaling->copyDstLayoutCount * sizeof(VkImageLayout);
+        if (forUnmarshaling->copyDstLayoutCount > 0) {
+            memcpy((VkImageLayout*)forUnmarshaling->pCopyDstLayouts, *ptr,
+                   forUnmarshaling->copyDstLayoutCount * sizeof(VkImageLayout));
+            *ptr += forUnmarshaling->copyDstLayoutCount * sizeof(VkImageLayout);
+        }
     }
     memcpy((uint8_t*)forUnmarshaling->optimalTilingLayoutUUID, *ptr,
            VK_UUID_SIZE * sizeof(uint8_t));
@@ -12294,9 +12377,11 @@ void reservedunmarshal_VkSwapchainCreateInfoKHR(VulkanStream* vkStream, VkStruct
     if (forUnmarshaling->pQueueFamilyIndices) {
         vkStream->alloc((void**)&forUnmarshaling->pQueueFamilyIndices,
                         forUnmarshaling->queueFamilyIndexCount * sizeof(const uint32_t));
-        memcpy((uint32_t*)forUnmarshaling->pQueueFamilyIndices, *ptr,
-               forUnmarshaling->queueFamilyIndexCount * sizeof(const uint32_t));
-        *ptr += forUnmarshaling->queueFamilyIndexCount * sizeof(const uint32_t);
+        if (forUnmarshaling->queueFamilyIndexCount > 0) {
+            memcpy((uint32_t*)forUnmarshaling->pQueueFamilyIndices, *ptr,
+                   forUnmarshaling->queueFamilyIndexCount * sizeof(const uint32_t));
+            *ptr += forUnmarshaling->queueFamilyIndexCount * sizeof(const uint32_t);
+        }
     }
     memcpy((VkSurfaceTransformFlagBitsKHR*)&forUnmarshaling->preTransform, *ptr,
            sizeof(VkSurfaceTransformFlagBitsKHR));
@@ -12374,9 +12459,11 @@ void reservedunmarshal_VkPresentInfoKHR(VulkanStream* vkStream, VkStructureType 
     }
     vkStream->alloc((void**)&forUnmarshaling->pImageIndices,
                     forUnmarshaling->swapchainCount * sizeof(const uint32_t));
-    memcpy((uint32_t*)forUnmarshaling->pImageIndices, *ptr,
-           forUnmarshaling->swapchainCount * sizeof(const uint32_t));
-    *ptr += forUnmarshaling->swapchainCount * sizeof(const uint32_t);
+    if (forUnmarshaling->swapchainCount > 0) {
+        memcpy((uint32_t*)forUnmarshaling->pImageIndices, *ptr,
+               forUnmarshaling->swapchainCount * sizeof(const uint32_t));
+        *ptr += forUnmarshaling->swapchainCount * sizeof(const uint32_t);
+    }
     // WARNING PTR CHECK
     memcpy((VkResult**)&forUnmarshaling->pResults, (*ptr), 8);
     gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pResults);
@@ -12384,9 +12471,11 @@ void reservedunmarshal_VkPresentInfoKHR(VulkanStream* vkStream, VkStructureType 
     if (forUnmarshaling->pResults) {
         vkStream->alloc((void**)&forUnmarshaling->pResults,
                         forUnmarshaling->swapchainCount * sizeof(VkResult));
-        memcpy((VkResult*)forUnmarshaling->pResults, *ptr,
-               forUnmarshaling->swapchainCount * sizeof(VkResult));
-        *ptr += forUnmarshaling->swapchainCount * sizeof(VkResult);
+        if (forUnmarshaling->swapchainCount > 0) {
+            memcpy((VkResult*)forUnmarshaling->pResults, *ptr,
+                   forUnmarshaling->swapchainCount * sizeof(VkResult));
+            *ptr += forUnmarshaling->swapchainCount * sizeof(VkResult);
+        }
     }
 }
 
@@ -12564,9 +12653,11 @@ void reservedunmarshal_VkDeviceGroupPresentInfoKHR(VulkanStream* vkStream, VkStr
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pDeviceMasks,
                     forUnmarshaling->swapchainCount * sizeof(const uint32_t));
-    memcpy((uint32_t*)forUnmarshaling->pDeviceMasks, *ptr,
-           forUnmarshaling->swapchainCount * sizeof(const uint32_t));
-    *ptr += forUnmarshaling->swapchainCount * sizeof(const uint32_t);
+    if (forUnmarshaling->swapchainCount > 0) {
+        memcpy((uint32_t*)forUnmarshaling->pDeviceMasks, *ptr,
+               forUnmarshaling->swapchainCount * sizeof(const uint32_t));
+        *ptr += forUnmarshaling->swapchainCount * sizeof(const uint32_t);
+    }
     memcpy((VkDeviceGroupPresentModeFlagBitsKHR*)&forUnmarshaling->mode, *ptr,
            sizeof(VkDeviceGroupPresentModeFlagBitsKHR));
     *ptr += sizeof(VkDeviceGroupPresentModeFlagBitsKHR);
@@ -13034,8 +13125,11 @@ void reservedunmarshal_VkPipelineExecutableInternalRepresentationKHR(
     if (forUnmarshaling->pData) {
         vkStream->alloc((void**)&forUnmarshaling->pData,
                         forUnmarshaling->dataSize * sizeof(uint8_t));
-        memcpy((void*)forUnmarshaling->pData, *ptr, forUnmarshaling->dataSize * sizeof(uint8_t));
-        *ptr += forUnmarshaling->dataSize * sizeof(uint8_t);
+        if (forUnmarshaling->dataSize > 0) {
+            memcpy((void*)forUnmarshaling->pData, *ptr,
+                   forUnmarshaling->dataSize * sizeof(uint8_t));
+            *ptr += forUnmarshaling->dataSize * sizeof(uint8_t);
+        }
     }
 }
 
@@ -13658,8 +13752,11 @@ void reservedunmarshal_VkDebugUtilsObjectTagInfoEXT(VulkanStream* vkStream,
     *ptr += 8;
     vkStream->alloc((void**)&forUnmarshaling->pTag,
                     forUnmarshaling->tagSize * sizeof(const uint8_t));
-    memcpy((void*)forUnmarshaling->pTag, *ptr, forUnmarshaling->tagSize * sizeof(const uint8_t));
-    *ptr += forUnmarshaling->tagSize * sizeof(const uint8_t);
+    if (forUnmarshaling->tagSize > 0) {
+        memcpy((void*)forUnmarshaling->pTag, *ptr,
+               forUnmarshaling->tagSize * sizeof(const uint8_t));
+        *ptr += forUnmarshaling->tagSize * sizeof(const uint8_t);
+    }
 }
 
 #endif
@@ -13760,9 +13857,11 @@ void reservedunmarshal_VkPhysicalDeviceImageDrmFormatModifierInfoEXT(
     if (forUnmarshaling->pQueueFamilyIndices) {
         vkStream->alloc((void**)&forUnmarshaling->pQueueFamilyIndices,
                         forUnmarshaling->queueFamilyIndexCount * sizeof(const uint32_t));
-        memcpy((uint32_t*)forUnmarshaling->pQueueFamilyIndices, *ptr,
-               forUnmarshaling->queueFamilyIndexCount * sizeof(const uint32_t));
-        *ptr += forUnmarshaling->queueFamilyIndexCount * sizeof(const uint32_t);
+        if (forUnmarshaling->queueFamilyIndexCount > 0) {
+            memcpy((uint32_t*)forUnmarshaling->pQueueFamilyIndices, *ptr,
+                   forUnmarshaling->queueFamilyIndexCount * sizeof(const uint32_t));
+            *ptr += forUnmarshaling->queueFamilyIndexCount * sizeof(const uint32_t);
+        }
     }
 }
 
@@ -13795,9 +13894,11 @@ void reservedunmarshal_VkImageDrmFormatModifierListCreateInfoEXT(
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pDrmFormatModifiers,
                     forUnmarshaling->drmFormatModifierCount * sizeof(const uint64_t));
-    memcpy((uint64_t*)forUnmarshaling->pDrmFormatModifiers, *ptr,
-           forUnmarshaling->drmFormatModifierCount * sizeof(const uint64_t));
-    *ptr += forUnmarshaling->drmFormatModifierCount * sizeof(const uint64_t);
+    if (forUnmarshaling->drmFormatModifierCount > 0) {
+        memcpy((uint64_t*)forUnmarshaling->pDrmFormatModifiers, *ptr,
+               forUnmarshaling->drmFormatModifierCount * sizeof(const uint64_t));
+        *ptr += forUnmarshaling->drmFormatModifierCount * sizeof(const uint64_t);
+    }
 }
 
 void reservedunmarshal_VkImageDrmFormatModifierExplicitCreateInfoEXT(
@@ -14218,21 +14319,25 @@ void reservedunmarshal_VkValidationFeaturesEXT(VulkanStream* vkStream, VkStructu
     vkStream->alloc((void**)&forUnmarshaling->pEnabledValidationFeatures,
                     forUnmarshaling->enabledValidationFeatureCount *
                         sizeof(const VkValidationFeatureEnableEXT));
-    memcpy((VkValidationFeatureEnableEXT*)forUnmarshaling->pEnabledValidationFeatures, *ptr,
-           forUnmarshaling->enabledValidationFeatureCount *
-               sizeof(const VkValidationFeatureEnableEXT));
-    *ptr +=
-        forUnmarshaling->enabledValidationFeatureCount * sizeof(const VkValidationFeatureEnableEXT);
+    if (forUnmarshaling->enabledValidationFeatureCount > 0) {
+        memcpy((VkValidationFeatureEnableEXT*)forUnmarshaling->pEnabledValidationFeatures, *ptr,
+               forUnmarshaling->enabledValidationFeatureCount *
+                   sizeof(const VkValidationFeatureEnableEXT));
+        *ptr += forUnmarshaling->enabledValidationFeatureCount *
+                sizeof(const VkValidationFeatureEnableEXT);
+    }
     memcpy((uint32_t*)&forUnmarshaling->disabledValidationFeatureCount, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pDisabledValidationFeatures,
                     forUnmarshaling->disabledValidationFeatureCount *
                         sizeof(const VkValidationFeatureDisableEXT));
-    memcpy((VkValidationFeatureDisableEXT*)forUnmarshaling->pDisabledValidationFeatures, *ptr,
-           forUnmarshaling->disabledValidationFeatureCount *
-               sizeof(const VkValidationFeatureDisableEXT));
-    *ptr += forUnmarshaling->disabledValidationFeatureCount *
-            sizeof(const VkValidationFeatureDisableEXT);
+    if (forUnmarshaling->disabledValidationFeatureCount > 0) {
+        memcpy((VkValidationFeatureDisableEXT*)forUnmarshaling->pDisabledValidationFeatures, *ptr,
+               forUnmarshaling->disabledValidationFeatureCount *
+                   sizeof(const VkValidationFeatureDisableEXT));
+        *ptr += forUnmarshaling->disabledValidationFeatureCount *
+                sizeof(const VkValidationFeatureDisableEXT);
+    }
 }
 
 #endif
@@ -14471,9 +14576,11 @@ void reservedunmarshal_VkSwapchainPresentModesCreateInfoEXT(
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pPresentModes,
                     forUnmarshaling->presentModeCount * sizeof(const VkPresentModeKHR));
-    memcpy((VkPresentModeKHR*)forUnmarshaling->pPresentModes, *ptr,
-           forUnmarshaling->presentModeCount * sizeof(const VkPresentModeKHR));
-    *ptr += forUnmarshaling->presentModeCount * sizeof(const VkPresentModeKHR);
+    if (forUnmarshaling->presentModeCount > 0) {
+        memcpy((VkPresentModeKHR*)forUnmarshaling->pPresentModes, *ptr,
+               forUnmarshaling->presentModeCount * sizeof(const VkPresentModeKHR));
+        *ptr += forUnmarshaling->presentModeCount * sizeof(const VkPresentModeKHR);
+    }
 }
 
 void reservedunmarshal_VkSwapchainPresentModeInfoEXT(VulkanStream* vkStream,
@@ -14506,9 +14613,11 @@ void reservedunmarshal_VkSwapchainPresentModeInfoEXT(VulkanStream* vkStream,
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pPresentModes,
                     forUnmarshaling->swapchainCount * sizeof(const VkPresentModeKHR));
-    memcpy((VkPresentModeKHR*)forUnmarshaling->pPresentModes, *ptr,
-           forUnmarshaling->swapchainCount * sizeof(const VkPresentModeKHR));
-    *ptr += forUnmarshaling->swapchainCount * sizeof(const VkPresentModeKHR);
+    if (forUnmarshaling->swapchainCount > 0) {
+        memcpy((VkPresentModeKHR*)forUnmarshaling->pPresentModes, *ptr,
+               forUnmarshaling->swapchainCount * sizeof(const VkPresentModeKHR));
+        *ptr += forUnmarshaling->swapchainCount * sizeof(const VkPresentModeKHR);
+    }
 }
 
 void reservedunmarshal_VkSwapchainPresentScalingCreateInfoEXT(
@@ -14581,9 +14690,11 @@ void reservedunmarshal_VkReleaseSwapchainImagesInfoEXT(
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pImageIndices,
                     forUnmarshaling->imageIndexCount * sizeof(const uint32_t));
-    memcpy((uint32_t*)forUnmarshaling->pImageIndices, *ptr,
-           forUnmarshaling->imageIndexCount * sizeof(const uint32_t));
-    *ptr += forUnmarshaling->imageIndexCount * sizeof(const uint32_t);
+    if (forUnmarshaling->imageIndexCount > 0) {
+        memcpy((uint32_t*)forUnmarshaling->pImageIndices, *ptr,
+               forUnmarshaling->imageIndexCount * sizeof(const uint32_t));
+        *ptr += forUnmarshaling->imageIndexCount * sizeof(const uint32_t);
+    }
 }
 
 #endif
@@ -15082,11 +15193,13 @@ void reservedunmarshal_VkImageCompressionControlEXT(VulkanStream* vkStream,
         vkStream->alloc((void**)&forUnmarshaling->pFixedRateFlags,
                         forUnmarshaling->compressionControlPlaneCount *
                             sizeof(VkImageCompressionFixedRateFlagsEXT));
-        memcpy((VkImageCompressionFixedRateFlagsEXT*)forUnmarshaling->pFixedRateFlags, *ptr,
-               forUnmarshaling->compressionControlPlaneCount *
-                   sizeof(VkImageCompressionFixedRateFlagsEXT));
-        *ptr += forUnmarshaling->compressionControlPlaneCount *
-                sizeof(VkImageCompressionFixedRateFlagsEXT);
+        if (forUnmarshaling->compressionControlPlaneCount > 0) {
+            memcpy((VkImageCompressionFixedRateFlagsEXT*)forUnmarshaling->pFixedRateFlags, *ptr,
+                   forUnmarshaling->compressionControlPlaneCount *
+                       sizeof(VkImageCompressionFixedRateFlagsEXT));
+            *ptr += forUnmarshaling->compressionControlPlaneCount *
+                    sizeof(VkImageCompressionFixedRateFlagsEXT);
+        }
     }
 }
 
@@ -15285,9 +15398,11 @@ void reservedunmarshal_VkPipelineColorWriteCreateInfoEXT(
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pColorWriteEnables,
                     forUnmarshaling->attachmentCount * sizeof(const VkBool32));
-    memcpy((VkBool32*)forUnmarshaling->pColorWriteEnables, *ptr,
-           forUnmarshaling->attachmentCount * sizeof(const VkBool32));
-    *ptr += forUnmarshaling->attachmentCount * sizeof(const VkBool32);
+    if (forUnmarshaling->attachmentCount > 0) {
+        memcpy((VkBool32*)forUnmarshaling->pColorWriteEnables, *ptr,
+               forUnmarshaling->attachmentCount * sizeof(const VkBool32));
+        *ptr += forUnmarshaling->attachmentCount * sizeof(const VkBool32);
+    }
 }
 
 #endif

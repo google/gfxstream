@@ -420,9 +420,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                     readStream->alloc((void**)&pDynamicOffsets,
                                       ((dynamicOffsetCount)) * sizeof(const uint32_t));
                 }
-                memcpy((uint32_t*)pDynamicOffsets, *readStreamPtrPtr,
-                       ((dynamicOffsetCount)) * sizeof(const uint32_t));
-                *readStreamPtrPtr += ((dynamicOffsetCount)) * sizeof(const uint32_t);
+                if (((dynamicOffsetCount)) > 0) {
+                    memcpy((uint32_t*)pDynamicOffsets, *readStreamPtrPtr,
+                           ((dynamicOffsetCount)) * sizeof(const uint32_t));
+                    *readStreamPtrPtr += ((dynamicOffsetCount)) * sizeof(const uint32_t);
+                }
                 if (CC_LIKELY(vk)) {
                     this->on_vkCmdBindDescriptorSets(
                         pool, snapshotApiCallHandle, (VkCommandBuffer)(boxed_dispatchHandle),
@@ -497,9 +499,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                     readStream->alloc((void**)&pOffsets,
                                       ((bindingCount)) * sizeof(const VkDeviceSize));
                 }
-                memcpy((VkDeviceSize*)pOffsets, *readStreamPtrPtr,
-                       ((bindingCount)) * sizeof(const VkDeviceSize));
-                *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                if (((bindingCount)) > 0) {
+                    memcpy((VkDeviceSize*)pOffsets, *readStreamPtrPtr,
+                           ((bindingCount)) * sizeof(const VkDeviceSize));
+                    *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdBindVertexBuffers((VkCommandBuffer)dispatchHandle, firstBinding,
                                                bindingCount, pBuffers, pOffsets);
@@ -941,8 +945,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 } else {
                     readStream->alloc((void**)&pData, ((dataSize)) * sizeof(const uint8_t));
                 }
-                memcpy((void*)pData, *readStreamPtrPtr, ((dataSize)) * sizeof(const uint8_t));
-                *readStreamPtrPtr += ((dataSize)) * sizeof(const uint8_t);
+                if (((dataSize)) > 0) {
+                    memcpy((void*)pData, *readStreamPtrPtr, ((dataSize)) * sizeof(const uint8_t));
+                    *readStreamPtrPtr += ((dataSize)) * sizeof(const uint8_t);
+                }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdUpdateBuffer((VkCommandBuffer)dispatchHandle, dstBuffer, dstOffset,
                                           dataSize, pData);
@@ -1627,8 +1633,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 } else {
                     readStream->alloc((void**)&pValues, ((size)) * sizeof(const uint8_t));
                 }
-                memcpy((void*)pValues, *readStreamPtrPtr, ((size)) * sizeof(const uint8_t));
-                *readStreamPtrPtr += ((size)) * sizeof(const uint8_t);
+                if (((size)) > 0) {
+                    memcpy((void*)pValues, *readStreamPtrPtr, ((size)) * sizeof(const uint8_t));
+                    *readStreamPtrPtr += ((size)) * sizeof(const uint8_t);
+                }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdPushConstants((VkCommandBuffer)dispatchHandle, layout, stageFlags,
                                            offset, size, pValues);
@@ -2454,9 +2462,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                     readStream->alloc((void**)&pOffsets,
                                       ((bindingCount)) * sizeof(const VkDeviceSize));
                 }
-                memcpy((VkDeviceSize*)pOffsets, *readStreamPtrPtr,
-                       ((bindingCount)) * sizeof(const VkDeviceSize));
-                *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                if (((bindingCount)) > 0) {
+                    memcpy((VkDeviceSize*)pOffsets, *readStreamPtrPtr,
+                           ((bindingCount)) * sizeof(const VkDeviceSize));
+                    *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                }
                 // WARNING PTR CHECK
                 memcpy((VkDeviceSize**)&pSizes, (*readStreamPtrPtr), 8);
                 gfxstream::Stream::fromBe64((uint8_t*)&pSizes);
@@ -2468,9 +2478,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                         readStream->alloc((void**)&pSizes,
                                           ((bindingCount)) * sizeof(const VkDeviceSize));
                     }
-                    memcpy((VkDeviceSize*)pSizes, *readStreamPtrPtr,
-                           ((bindingCount)) * sizeof(const VkDeviceSize));
-                    *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                    if (((bindingCount)) > 0) {
+                        memcpy((VkDeviceSize*)pSizes, *readStreamPtrPtr,
+                               ((bindingCount)) * sizeof(const VkDeviceSize));
+                        *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                    }
                 }
                 // WARNING PTR CHECK
                 memcpy((VkDeviceSize**)&pStrides, (*readStreamPtrPtr), 8);
@@ -2483,9 +2495,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                         readStream->alloc((void**)&pStrides,
                                           ((bindingCount)) * sizeof(const VkDeviceSize));
                     }
-                    memcpy((VkDeviceSize*)pStrides, *readStreamPtrPtr,
-                           ((bindingCount)) * sizeof(const VkDeviceSize));
-                    *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                    if (((bindingCount)) > 0) {
+                        memcpy((VkDeviceSize*)pStrides, *readStreamPtrPtr,
+                               ((bindingCount)) * sizeof(const VkDeviceSize));
+                        *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                    }
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdBindVertexBuffers2((VkCommandBuffer)dispatchHandle, firstBinding,
@@ -3481,9 +3495,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                     readStream->alloc((void**)&pOffsets,
                                       ((bindingCount)) * sizeof(const VkDeviceSize));
                 }
-                memcpy((VkDeviceSize*)pOffsets, *readStreamPtrPtr,
-                       ((bindingCount)) * sizeof(const VkDeviceSize));
-                *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                if (((bindingCount)) > 0) {
+                    memcpy((VkDeviceSize*)pOffsets, *readStreamPtrPtr,
+                           ((bindingCount)) * sizeof(const VkDeviceSize));
+                    *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                }
                 // WARNING PTR CHECK
                 memcpy((VkDeviceSize**)&pSizes, (*readStreamPtrPtr), 8);
                 gfxstream::Stream::fromBe64((uint8_t*)&pSizes);
@@ -3495,9 +3511,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                         readStream->alloc((void**)&pSizes,
                                           ((bindingCount)) * sizeof(const VkDeviceSize));
                     }
-                    memcpy((VkDeviceSize*)pSizes, *readStreamPtrPtr,
-                           ((bindingCount)) * sizeof(const VkDeviceSize));
-                    *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                    if (((bindingCount)) > 0) {
+                        memcpy((VkDeviceSize*)pSizes, *readStreamPtrPtr,
+                               ((bindingCount)) * sizeof(const VkDeviceSize));
+                        *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                    }
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdBindTransformFeedbackBuffersEXT((VkCommandBuffer)dispatchHandle,
@@ -3559,9 +3577,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                         readStream->alloc((void**)&pCounterBufferOffsets,
                                           ((counterBufferCount)) * sizeof(const VkDeviceSize));
                     }
-                    memcpy((VkDeviceSize*)pCounterBufferOffsets, *readStreamPtrPtr,
-                           ((counterBufferCount)) * sizeof(const VkDeviceSize));
-                    *readStreamPtrPtr += ((counterBufferCount)) * sizeof(const VkDeviceSize);
+                    if (((counterBufferCount)) > 0) {
+                        memcpy((VkDeviceSize*)pCounterBufferOffsets, *readStreamPtrPtr,
+                               ((counterBufferCount)) * sizeof(const VkDeviceSize));
+                        *readStreamPtrPtr += ((counterBufferCount)) * sizeof(const VkDeviceSize);
+                    }
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdBeginTransformFeedbackEXT((VkCommandBuffer)dispatchHandle,
@@ -3623,9 +3643,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                         readStream->alloc((void**)&pCounterBufferOffsets,
                                           ((counterBufferCount)) * sizeof(const VkDeviceSize));
                     }
-                    memcpy((VkDeviceSize*)pCounterBufferOffsets, *readStreamPtrPtr,
-                           ((counterBufferCount)) * sizeof(const VkDeviceSize));
-                    *readStreamPtrPtr += ((counterBufferCount)) * sizeof(const VkDeviceSize);
+                    if (((counterBufferCount)) > 0) {
+                        memcpy((VkDeviceSize*)pCounterBufferOffsets, *readStreamPtrPtr,
+                               ((counterBufferCount)) * sizeof(const VkDeviceSize));
+                        *readStreamPtrPtr += ((counterBufferCount)) * sizeof(const VkDeviceSize);
+                    }
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdEndTransformFeedbackEXT((VkCommandBuffer)dispatchHandle,
@@ -3983,9 +4005,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                     readStream->alloc((void**)&pOffsets,
                                       ((bindingCount)) * sizeof(const VkDeviceSize));
                 }
-                memcpy((VkDeviceSize*)pOffsets, *readStreamPtrPtr,
-                       ((bindingCount)) * sizeof(const VkDeviceSize));
-                *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                if (((bindingCount)) > 0) {
+                    memcpy((VkDeviceSize*)pOffsets, *readStreamPtrPtr,
+                           ((bindingCount)) * sizeof(const VkDeviceSize));
+                    *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                }
                 // WARNING PTR CHECK
                 memcpy((VkDeviceSize**)&pSizes, (*readStreamPtrPtr), 8);
                 gfxstream::Stream::fromBe64((uint8_t*)&pSizes);
@@ -3997,9 +4021,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                         readStream->alloc((void**)&pSizes,
                                           ((bindingCount)) * sizeof(const VkDeviceSize));
                     }
-                    memcpy((VkDeviceSize*)pSizes, *readStreamPtrPtr,
-                           ((bindingCount)) * sizeof(const VkDeviceSize));
-                    *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                    if (((bindingCount)) > 0) {
+                        memcpy((VkDeviceSize*)pSizes, *readStreamPtrPtr,
+                               ((bindingCount)) * sizeof(const VkDeviceSize));
+                        *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                    }
                 }
                 // WARNING PTR CHECK
                 memcpy((VkDeviceSize**)&pStrides, (*readStreamPtrPtr), 8);
@@ -4012,9 +4038,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                         readStream->alloc((void**)&pStrides,
                                           ((bindingCount)) * sizeof(const VkDeviceSize));
                     }
-                    memcpy((VkDeviceSize*)pStrides, *readStreamPtrPtr,
-                           ((bindingCount)) * sizeof(const VkDeviceSize));
-                    *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                    if (((bindingCount)) > 0) {
+                        memcpy((VkDeviceSize*)pStrides, *readStreamPtrPtr,
+                               ((bindingCount)) * sizeof(const VkDeviceSize));
+                        *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
+                    }
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdBindVertexBuffers2EXT((VkCommandBuffer)dispatchHandle, firstBinding,
@@ -4246,9 +4274,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                     readStream->alloc((void**)&pColorWriteEnables,
                                       ((attachmentCount)) * sizeof(const VkBool32));
                 }
-                memcpy((VkBool32*)pColorWriteEnables, *readStreamPtrPtr,
-                       ((attachmentCount)) * sizeof(const VkBool32));
-                *readStreamPtrPtr += ((attachmentCount)) * sizeof(const VkBool32);
+                if (((attachmentCount)) > 0) {
+                    memcpy((VkBool32*)pColorWriteEnables, *readStreamPtrPtr,
+                           ((attachmentCount)) * sizeof(const VkBool32));
+                    *readStreamPtrPtr += ((attachmentCount)) * sizeof(const VkBool32);
+                }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetColorWriteEnableEXT((VkCommandBuffer)dispatchHandle,
                                                     attachmentCount, pColorWriteEnables);
