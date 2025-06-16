@@ -327,7 +327,6 @@ public:
     }
 
 private:
-    bool mVerbose = false;
     EGLDisplay mDisplay = EGL_NO_DISPLAY;
     EglOsEglDispatcher mDispatcher;
     bool mHeadless = false;
@@ -341,8 +340,6 @@ private:
 };
 
 EglOsEglDisplay::EglOsEglDisplay(bool nullEgl) {
-    mVerbose = gfxstream::base::getEnvironmentVariable("ANDROID_EMUGL_VERBOSE") == "1";
-
     if (nullEgl) {
 #ifdef EGL_ANGLE_platform_angle
         const EGLAttrib attr[] = {
@@ -356,10 +353,10 @@ EglOsEglDisplay::EglOsEglDisplay(bool nullEgl) {
             attr);
 
         if (mDisplay == EGL_NO_DISPLAY) {
-            fprintf(stderr, "%s: no display found that supports null backend\n", __func__);
+            GFXSTREAM_ERROR("%s: no display found that supports null backend", __func__);
         }
 #else
-        fprintf(stderr, "EGL Null display not compiled, falling back to default display\n");
+        GFXSTREAM_ERROR("EGL Null display not compiled, falling back to default display");
 #endif
     } else if (gfxstream::base::getEnvironmentVariable("ANDROID_EMUGL_EXPERIMENTAL_FAST_PATH") == "1") {
 #ifdef EGL_ANGLE_platform_angle
@@ -376,7 +373,7 @@ EglOsEglDisplay::EglOsEglDisplay(bool nullEgl) {
             attr);
 
         if (mDisplay == EGL_NO_DISPLAY) {
-            fprintf(stderr, "%s: no display found that supports the requested extensions\n", __func__);
+            GFXSTREAM_ERROR("%s: no display found that supports the requested extensions", __func__);
         }
 #endif
     }
@@ -389,9 +386,7 @@ EglOsEglDisplay::EglOsEglDisplay(bool nullEgl) {
     auto clientExts = mDispatcher.eglQueryString(mDisplay, EGL_EXTENSIONS);
     auto vendor = mDispatcher.eglQueryString(mDisplay, EGL_VENDOR);
 
-    if (mVerbose) {
-        fprintf(stderr, "%s: client exts: [%s]\n", __func__, clientExts);
-    }
+    GFXSTREAM_VERBOSE("%s: client exts: [%s]", __func__, clientExts);
 
     if (clientExts) {
         mClientExts = clientExts;
@@ -534,9 +529,7 @@ void EglOsEglDisplay::queryConfigs(int renderableType,
                                 &numConfigs);
     CHECK_EGL_ERR
 
-    if (mVerbose) {
-        fprintf(stderr, "%s: num configs: %d\n", __func__, numConfigs);
-    }
+    GFXSTREAM_VERBOSE("%s: num configs: %d", __func__, numConfigs);
 
     for (int i = 0; i < numConfigs; i++) {
         const EGLConfig cfg = configs.get()[i];
