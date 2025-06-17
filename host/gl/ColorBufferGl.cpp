@@ -458,15 +458,20 @@ static void convertRgbaToRgbPixels(void* dst, const void* src, uint32_t w, uint3
             *(dstBytes++) = ((pixel >> 16) & 0xff);
         }
     } else if (p_type == GL_UNSIGNED_SHORT_5_6_5) {
+        // A8B8G8R8 TO R5G6B5
+        // Check validity with
+        // testBasicBufferImportAndRenderingExternalFormat[AHARDWAREBUFFER_FORMAT_R5G6B5_UNORM]
         uint16_t* dstPixel = reinterpret_cast<uint16_t*>(dst);
         for (size_t i = 0; i < pixelCount; ++i) {
-            uint32_t pixel = *(srcPixels++);
-            uint16_t r5 = (uint16_t) std::round(((pixel & 0xff) / 255.0) * 31);
-            pixel = pixel >> 8;
-            uint16_t g6 = (uint16_t) std::round(((pixel & 0xff) / 255.0) * 63);
-            pixel = pixel >> 8;
-            uint16_t b5 = (uint16_t) std::round(((pixel & 0xff) / 255.0) * 31);
-            *(dstPixel++) = (r5 << 11) | (g6 << 5) | b5;
+            const uint32_t pixel = *(srcPixels++);
+            // uint16_t r5 = (uint16_t)((pixel & 0xff) >> 3);
+            // uint16_t g6 = (uint16_t)(((pixel >> 8) & 0xff) >> 2);
+            // uint16_t b5 = (uint16_t) (((pixel >> 16) & 0xff) >> 3);
+            // *(dstPixel++) = (r5 << 11) | (g6 << 5) | b5;
+            *(dstPixel++) =
+                ((pixel & 0xf8) << 8) // r5 (upper 5-bits of r8 channel) shifted to upper bits 11-15
+                | ((pixel & 0xfc00) >> 5)  // g6 (upper 6-bits of g8 channel) shifted to bits 5-10
+                | ((pixel & 0xf80000) >> 19); // b5 (upper 5-bits of b8 channel) shifted to bits 0-4
         }
     }
 }
@@ -490,13 +495,44 @@ bool ColorBufferGl::readPixels(int x, int y, int width, int height, GLenum p_for
         GLint prevAlignment = 0;
         s_gles2.glGetIntegerv(GL_PACK_ALIGNMENT, &prevAlignment);
         s_gles2.glPixelStorei(GL_PACK_ALIGNMENT, 1);
-        if ((p_format == GL_RGB || p_format == GL_RGB8) &&
-            (p_type == GL_UNSIGNED_BYTE || p_type == GL_UNSIGNED_SHORT_5_6_5)) {
-            // GL_RGB reads fail with SwiftShader.
-            std::vector<uint8_t> tmpPixels(width * height * 4);
-            s_gles2.glReadPixels(x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, tmpPixels.data());
-            convertRgbaToRgbPixels(pixels, tmpPixels.data(), width, height, p_type);
+
+        // Desktop OpenGL drivers should support many different readback formats/types, but
+        // GLES drivers (swiftshader) are only required to support GL_RGBA/GL_RGBA_INTEGER and
+        // type of GL_UNSIGNED_BYTE, GL_UNSIGNED_INT, GL_INT, or GL_FLOAT. GLES drivers can also
+        // provide another additional format/type, which we can obtain by querying
+        // GL_IMPLEMENTATION_COLOR_READ_FORMAT/GL_IMPLEMENTATION_COLOR_READ_TYPE.
+        bool isSwiftshader =
+                (get_gfxstream_renderer() == SELECTED_RENDERER_SWIFTSHADER_INDIRECT ||
+                 get_gfxstream_renderer() == SELECTED_RENDERER_ANGLE_INDIRECT);
+        if (isSwiftshader) {
+            GLint supportedFormat = GL_RGBA;
+            GLint supportedType = GL_UNSIGNED_BYTE;
+            s_gles2.glGetIntegerv(GL_IMPLEMENTATION_COLOR_READ_FORMAT, &supportedFormat);
+            s_gles2.glGetIntegerv(GL_IMPLEMENTATION_COLOR_READ_TYPE, &supportedType);
+            bool isGlesSupportedCombo = (p_format == GL_RGBA || p_format == GL_RGBA_INTEGER) &&
+                (p_type == GL_UNSIGNED_BYTE || p_type == GL_UNSIGNED_INT || p_type == GL_INT ||
+                 p_type == GL_FLOAT);
+
+            if (isGlesSupportedCombo ||
+                (supportedFormat == (GLint)p_format && supportedType == (GLint)p_type)) {
+                s_gles2.glReadPixels(x, y, width, height, p_format, p_type, pixels);
+            } else {
+                // Swiftshader only supports RGBA readback. We try our best here to support
+                // conversions from RGBA to some commonly requested formats.
+                if ((p_format == GL_RGB || p_format == GL_RGB8) &&
+                    (p_type == GL_UNSIGNED_BYTE || p_type == GL_UNSIGNED_SHORT_5_6_5)) {
+                    std::vector<uint8_t> tmpPixels(width * height * 4);
+                    s_gles2.glReadPixels(
+                        x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, tmpPixels.data());
+                    convertRgbaToRgbPixels(pixels, tmpPixels.data(), width, height, p_type);
+                } else {
+                    GFXSTREAM_ERROR("UNIMPLEMENTED: GLES driver doesn't support readback for "
+                        "(format=0x%x type=0x%x) and no software conversion implemented.",
+                        p_format, p_type);
+                }
+            }
         } else {
+            // Desktop GL drivers should support most readback formats/types.
             s_gles2.glReadPixels(x, y, width, height, p_format, p_type, pixels);
         }
         s_gles2.glPixelStorei(GL_PACK_ALIGNMENT, prevAlignment);
