@@ -22,7 +22,7 @@
 #include <utility>
 
 #include "gfxstream/Compiler.h"
-#include "gfxstream/ManagedDescriptor.hpp"
+#include "gfxstream/ManagedDescriptor.h"
 #include "gfxstream/ThreadAnnotations.h"
 
 // A global mapping from opaque host memory IDs to host virtual

@@ -10,7 +10,6 @@ cc_library(
     hdrs = glob(
         [
             "include/**/*.h",
-            "include/**/*.hpp",
         ],
         exclude = ["include/gfxstream/testing/**"],
     ),
@@ -76,7 +75,6 @@ cc_library(
     hdrs = glob(
         [
             "include/**/*.h",
-            "include/**/*.hpp",
         ],
         exclude = ["include/gfxstream/testing/**"],
     ),

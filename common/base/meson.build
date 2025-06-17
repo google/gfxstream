@@ -19,5 +19,6 @@ files_lib_common_base = files(
 lib_common_base = static_library(
   'common_base',
   files_lib_common_base,
+  cpp_args: gfxstream_host_args,
   include_directories: [inc_common_base]
 )

@@ -16,6 +16,7 @@
 #include "RenderThread.h"
 
 #include <assert.h>
+#include <cstring>
 #include <string.h>
 #ifndef _WIN32
 #include <unistd.h>
@@ -372,8 +373,8 @@ intptr_t RenderThread::main() {
         // Let's make sure we read enough data for at least some processing.
         uint32_t packetSize;
         if (readBuf.validData() >= 8) {
-            // We know that packet size is the second int32_t from the start.
-            packetSize = *(uint32_t*)(readBuf.buf() + 4);
+            // We know that packet size is the second uint32_t from the start.
+            std::memcpy(&packetSize, readBuf.buf() + 4, sizeof(uint32_t));
             if (!packetSize) {
                 // Emulator will get live-stuck here if packet size is read to be zero;
                 // crash right away so we can see these events.

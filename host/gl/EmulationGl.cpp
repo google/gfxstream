@@ -570,6 +570,42 @@ const GLESv2Dispatch* EmulationGl::getGles2Dispatch() {
     return &s_gles2;
 }
 
+std::string EmulationGl::getEglString(EGLenum name) {
+    const char* str = s_egl.eglQueryString(mEglDisplay, name);
+    if (!str) {
+        return "";
+    }
+
+    std::string eglStr(str);
+    if ((mGlesDispatchMaxVersion >= GLES_DISPATCH_MAX_VERSION_3_0) &&
+        mFeatures.GlesDynamicVersion.enabled &&
+        eglStr.find("EGL_KHR_create_context") == std::string::npos) {
+        eglStr += "EGL_KHR_create_context ";
+    }
+
+    return eglStr;
+}
+
+std::string EmulationGl::getGlString(EGLenum name) {
+    std::string str;
+
+    RenderThreadInfoGl* const tInfo = RenderThreadInfoGl::get();
+    if (tInfo && tInfo->currContext.get()) {
+        if (tInfo->currContext->clientVersion() > GLESApi_CM) {
+            str = (const char*)s_gles2.glGetString(name);
+        } else {
+            str = (const char*)s_gles1.glGetString(name);
+        }
+    }
+
+    // Filter extensions by name to match guest-side support
+    if (name == GL_EXTENSIONS) {
+        str = gl::filterExtensionsBasedOnMaxVersion(mFeatures, mGlesDispatchMaxVersion, str);
+    }
+
+    return str;
+}
+
 GLESDispatchMaxVersion EmulationGl::getGlesMaxDispatchVersion() const {
     return mGlesDispatchMaxVersion;
 }

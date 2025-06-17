@@ -15,7 +15,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "gfxstream/ManagedDescriptor.hpp"
+#include "gfxstream/ManagedDescriptor.h"
 
 namespace gfxstream {
 namespace base {
@@ -101,9 +101,18 @@ TEST(ManagedDescriptorTest, ShouldCloseOnceIfMoved) {
         EXPECT_CALL(platformTrait, closeDescriptor(rawDescriptor)).Times(1);
         {
             ManagedDescriptorForTesting descriptor(rawDescriptor, platformTrait);
+// Self moves are discouraged but want to test that it still works:
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wself-move"
+#endif
             descriptor = std::move(descriptor);
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
         }
     }
+
     {
         PlatformTraitTest::DescriptorType anotherRawDescriptor = 2871;
         EXPECT_CALL(platformTrait, closeDescriptor(rawDescriptor)).Times(1);
@@ -118,4 +127,4 @@ TEST(ManagedDescriptorTest, ShouldCloseOnceIfMoved) {
 
 }  // namespace
 }  // namespace base
-}  // namespace android
+}  // namespace gfxstream

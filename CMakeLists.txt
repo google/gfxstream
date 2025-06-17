@@ -163,7 +163,6 @@ set(EXTRA_SUBDIR_TEST_INCLUDE_FILES)
 
 add_subdirectory(third_party)
 add_subdirectory(common)
-add_subdirectory(codegen)
 add_subdirectory(host)
 
 if (ENABLE_VKCEREAL_TESTS)

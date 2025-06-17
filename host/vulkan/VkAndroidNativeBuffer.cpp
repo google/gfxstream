@@ -18,7 +18,6 @@
 
 #include "FrameBuffer.h"
 #include "GrallocDefs.h"
-#include "SyncThread.h"
 #include "VkCommonOperations.h"
 #include "VkFormatUtils.h"
 #include "VulkanDispatch.h"

@@ -85,18 +85,16 @@ void RenderThreadInfoGl::onSave(Stream* stream) {
 bool RenderThreadInfoGl::onLoad(Stream* stream) {
     FrameBuffer* fb = FrameBuffer::getFB();
     assert(fb);
+
     HandleType ctxHndl = stream->getBe32();
     HandleType drawSurf = stream->getBe32();
     HandleType readSurf = stream->getBe32();
+
     currContextHandleFromLoad = ctxHndl;
     currDrawSurfHandleFromLoad = drawSurf;
     currReadSurfHandleFromLoad = readSurf;
 
-    fb->lock();
-    currContext = fb->getContext_locked(ctxHndl);
-    currDrawSurf = fb->getWindowSurface_locked(drawSurf);
-    currReadSurf = fb->getWindowSurface_locked(readSurf);
-    fb->unlock();
+    fb->postLoadRenderThreadContextSurfacePtrs();
 
     loadCollection(stream, &m_contextSet, [](Stream* stream) {
         return stream->getBe32();
@@ -117,11 +115,7 @@ void RenderThreadInfoGl::postLoadRefreshCurrentContextSurfacePtrs() {
     FrameBuffer* fb = FrameBuffer::getFB();
     assert(fb);
 
-    fb->lock();
-    currContext = fb->getContext_locked(currContextHandleFromLoad);
-    currDrawSurf = fb->getWindowSurface_locked(currDrawSurfHandleFromLoad);
-    currReadSurf = fb->getWindowSurface_locked(currReadSurfHandleFromLoad);
-    fb->unlock();
+    fb->postLoadRenderThreadContextSurfacePtrs();
 
     const HandleType ctx = currContext ? currContext->getHndl() : 0;
     const HandleType draw = currDrawSurf ? currDrawSurf->getHndl() : 0;

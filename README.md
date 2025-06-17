@@ -120,7 +120,7 @@ studio and build the `gfxstream_backend` target.
 
 ### Regenerating GLES/RenderControl code
 
-First, build `build/gfxstream-generic-apigen`. Then run:
+Run:
 
 ```
 scripts/generate-apigen-source.sh
