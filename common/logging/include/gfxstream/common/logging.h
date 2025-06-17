@@ -23,6 +23,7 @@
 namespace gfxstream {
 namespace host {
 
+// Must be in sync with gfxstream_logging_level
 enum class LogLevel : uint32_t {
     kFatal = 1,
     kError = 2,

@@ -29,7 +29,9 @@ class RenderLibImpl final : public RenderLib {
     virtual void setRenderer(SelectedRenderer renderer) override;
     virtual void setGuestAndroidApiLevel(int api) override;
     virtual void getGlesVersion(int* maj, int* min) override;
+
     virtual void setLogger(gfxstream_log_callback_t callback) override;
+    virtual void setLogLevel(gfxstream_logging_level level) override;
 
     virtual void setSyncDevice(gfxstream_sync_create_timeline_t,
                                gfxstream_sync_create_fence_t,
