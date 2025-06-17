@@ -126,6 +126,7 @@ cc_defaults {
             cflags: ["-DANDROID_API_LEVEL=%d"],
         },
     },
+    vendor_available: true,
     host_supported: true,
     apex_available: [
         "//apex_available:platform",
@@ -150,6 +151,7 @@ cc_defaults {
             "-DVK_USE_PLATFORM_ANDROID_KHR",
         ],
     }),
+    vendor_available: false,
     vendor: true,
 }
 
