@@ -14288,6 +14288,41 @@ void reservedunmarshal_VkRenderingFragmentDensityMapAttachmentInfoEXT(
 }
 
 #endif
+#ifdef VK_EXT_memory_budget
+void reservedunmarshal_VkPhysicalDeviceMemoryBudgetPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMemoryBudgetPropertiesEXT* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkDeviceSize*)forUnmarshaling->heapBudget, *ptr,
+           VK_MAX_MEMORY_HEAPS * sizeof(VkDeviceSize));
+    *ptr += VK_MAX_MEMORY_HEAPS * sizeof(VkDeviceSize);
+    memcpy((VkDeviceSize*)forUnmarshaling->heapUsage, *ptr,
+           VK_MAX_MEMORY_HEAPS * sizeof(VkDeviceSize));
+    *ptr += VK_MAX_MEMORY_HEAPS * sizeof(VkDeviceSize);
+}
+
+#endif
 #ifdef VK_EXT_validation_features
 void reservedunmarshal_VkValidationFeaturesEXT(VulkanStream* vkStream, VkStructureType rootType,
                                                VkValidationFeaturesEXT* forUnmarshaling,
@@ -16809,6 +16844,15 @@ void reservedunmarshal_extension_struct(VulkanStream* vkStream, VkStructureType 
                 vkStream, rootType,
                 reinterpret_cast<VkRenderingFragmentDensityMapAttachmentInfoEXT*>(
                     structExtension_out),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_memory_budget
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_BUDGET_PROPERTIES_EXT: {
+            reservedunmarshal_VkPhysicalDeviceMemoryBudgetPropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceMemoryBudgetPropertiesEXT*>(structExtension_out),
                 ptr);
             break;
         }
