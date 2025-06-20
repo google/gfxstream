@@ -2669,12 +2669,6 @@ class VkDecoderGlobalState::Impl {
             return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
 
-        if (deviceInfo->imageFormats.find(pCreateInfo->format) == deviceInfo->imageFormats.end()) {
-            GFXSTREAM_DEBUG("gfxstream_texture_format_manifest: %s [%d]",
-                            string_VkFormat(pCreateInfo->format), pCreateInfo->format);
-            deviceInfo->imageFormats.insert(pCreateInfo->format);
-        }
-
         const bool needDecompression = deviceInfo->needEmulatedDecompression(pCreateInfo->format);
         std::unique_ptr<CompressedImageInfo> cmpInfo = nullptr;
         VkImageCreateInfo decompInfo;
