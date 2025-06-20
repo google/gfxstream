@@ -213,7 +213,6 @@ struct DeviceInfo {
     VkDevice boxed = nullptr;
     DebugUtilsHelper debugUtilsHelper = DebugUtilsHelper::withUtilsDisabled();
     std::unique_ptr<ExternalFencePool<VulkanDispatch>> externalFencePool = nullptr;
-    std::set<VkFormat> imageFormats = {};  // image formats used on this device
     std::unique_ptr<GpuDecompressionPipelineManager> decompPipelines = nullptr;
     DeviceOpTrackerPtr deviceOpTracker = nullptr;
     std::optional<uint32_t> virtioGpuContextId;
