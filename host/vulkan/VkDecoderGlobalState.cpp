@@ -2071,8 +2071,8 @@ class VkDecoderGlobalState::Impl {
 #endif
 
         GFXSTREAM_INFO(
-            "Created VkDevice:%p for application:'%s' engine:'%s' ASTC emulation:%s CPU decoding:%s.",
-            *pDevice, instanceInfo.applicationName.c_str(), instanceInfo.engineName.c_str(),
+            "Created VkDevice:%p for application:'%s' instance:%p. ASTC emulation:%s CPU decoding:%s.",
+            *pDevice, instanceInfo.applicationName.c_str(), physicalDeviceInfo.instance,
             deviceInfo.emulateTextureAstc ? "on" : "off",
             deviceInfo.useAstcCpuDecompression ? "on" : "off");
 
@@ -2450,7 +2450,10 @@ class VkDecoderGlobalState::Impl {
 
     void destroyDeviceLocked(VkDevice device, const VkAllocationCallbacks* pAllocator) REQUIRES(mMutex) {
         auto deviceInfoIt = mDeviceInfo.find(device);
-        if (deviceInfoIt == mDeviceInfo.end()) return;
+        if (deviceInfoIt == mDeviceInfo.end()) {
+            GFXSTREAM_WARNING("Could not find device:%p to destroy", device);
+            return;
+        }
 
         InstanceObjects::DeviceObjects deviceObjects;
         deviceObjects.device = mDeviceInfo.extract(deviceInfoIt);
@@ -2717,7 +2720,7 @@ class VkDecoderGlobalState::Impl {
             cmpInfo->createCompressedMipmapImages(vk, *pCreateInfo);
 
             if (deviceInfo->useAstcCpuDecompression && cmpInfo->isAstc()) {
-                cmpInfo->initAstcCpuDecompression(m_vk, mDeviceInfo[device].physicalDevice);
+                cmpInfo->initAstcCpuDecompression(m_vk, deviceInfo->physicalDevice);
             }
         }
 
@@ -9194,18 +9197,21 @@ class VkDecoderGlobalState::Impl {
         extractInfosWithDeviceInto(device, mShaderModuleInfo, deviceObjects.shaderModules);
     }
 
-    void extractInstanceAndDependenciesLocked(VkInstance instance, InstanceObjects& objects) REQUIRES(mMutex) {
+    void extractInstanceAndDependenciesLocked(VkInstance instance, InstanceObjects& objects)
+        REQUIRES(mMutex) {
         auto instanceInfoIt = mInstanceInfo.find(instance);
         if (instanceInfoIt == mInstanceInfo.end()) return;
 
         objects.instance = mInstanceInfo.extract(instanceInfoIt);
 
-        for (auto it = mDeviceInfo.begin(); it != mDeviceInfo.end(); it++) {
-            VkDevice device = it->first;
-            auto* physDevInfo = gfxstream::base::find(mPhysdevInfo, it->second.physicalDevice);
+        for (auto it = mDeviceInfo.begin(); it != mDeviceInfo.end();) {
+            // "Extracting a node invalidates only the iterators to the extracted element ..."
+            auto current = it++;
+            VkDevice device = current->first;
+            auto* physDevInfo = gfxstream::base::find(mPhysdevInfo, current->second.physicalDevice);
             if (physDevInfo && physDevInfo->instance == instance) {
                 InstanceObjects::DeviceObjects& deviceObjects = objects.devices.emplace_back();
-                deviceObjects.device = mDeviceInfo.extract(it);
+                deviceObjects.device = mDeviceInfo.extract(current);
                 extractDeviceAndDependenciesLocked(device, deviceObjects);
             }
         }
@@ -9216,8 +9222,7 @@ class VkDecoderGlobalState::Impl {
             if (physDevInfo.instance == instance) {
                 delete_VkPhysicalDevice(mPhysdevInfo[physicalDevice].boxed);
                 it = mPhysdevInfo.erase(it);
-            }
-            else{
+            } else {
                 // Only increment if not erased
                 it++;
             }
