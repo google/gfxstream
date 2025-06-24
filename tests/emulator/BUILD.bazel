@@ -1,0 +1,62 @@
+load("test_defs.bzl", "cuttlefish_gfxstream_deqp_test")
+
+# NOTE_FOR_ANDROID16_RELEASE:
+#
+# Ideally, the below tests would use:
+#
+#   cuttlefish_fetch_args = [
+#       "--default_build=aosp-android-latest-release/aosp_cf_x86_64_only_phone-userdebug",
+#   ],
+#
+# ... but aosp/3703317 is effectively not available from a fetch currently
+# so instead use a prebuilt.
+#
+# To run locally, build Cuttlefish from the Android16 release with:
+#
+#   * `mkdir <my android16-release repo path>
+#   * `cd <my android16-release repo path>
+#   * `repo init -u https://android.googlesource.com/platform/manifest -b android16-release`
+#   * `repo sync`
+#   * Cherry-pick https://android-review.googlesource.com/c/3703317
+#   * `source build/envsetup.sh`
+#   * `lunch aosp_cf_x86_64_only_phone-aosp_current-userdebug`
+#   * `m`
+#
+# and then launch the test(s) with:
+#
+#   `bazel test tests/emulator:gfxstream_cuttlefish_deqp_smoke --cuttlefish-prebuilt-directory-path=<my android16-release repo path>`
+
+# See NOTE_FOR_ANDROID16_RELEASE above for how to run locally:
+cuttlefish_gfxstream_deqp_test(
+    name = "gfxstream_cuttlefish_deqp_smoke",
+
+    # Launch Cuttlefish with: (see `cvd create --help`):
+    cuttlefish_create_args = [
+        "--gpu_mode=gfxstream_guest_angle_host_swiftshader",
+    ],
+    # Run dEQP via CTS:
+    deqp_include_patterns = [
+        "dEQP-VK.api.smoke*",
+    ],
+)
+
+# See NOTE_FOR_ANDROID16_RELEASE above for how to run locally:
+cuttlefish_gfxstream_deqp_test(
+    name = "gfxstream_cuttlefish_deqp_presubmit",
+    # Launch Cuttlefish with: (see `cvd create --help`):
+    cuttlefish_create_args = [
+        "--gpu_mode=gfxstream_guest_angle_host_swiftshader",
+    ],
+    deqp_include_patterns = [
+        "dEQP-EGL.functional.create_surface.*",
+        "dEQP-EGL.functional.image.create#gles2_android_native*",
+        "dEQP-GLES2.functional.draw.draw_elements.*",
+        "dEQP-GLES3.functional.draw.draw_elements.*",
+        "dEQP-VK.api.external.memory.android_hardware_buffer.*",
+        "dEQP-VK.api.smoke*",
+        # TODO: Expand this to android_hardware_buffer.* after failures fixed.
+        #"dEQP-VK.api.external.memory.android_hardware_buffer.dedicated.image*",
+        #"dEQP-VK.api.external.memory.android_hardware_buffer.image_formats*",
+        #"dEQP-VK.api.external.memory.android_hardware_buffer.suballocated.image*",
+    ],
+)
