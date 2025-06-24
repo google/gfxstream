@@ -614,7 +614,7 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
     bool postImplSync(HandleType p_colorbuffer, bool needLockAndBind = true, bool repaint = false);
     void setGuestPostedAFrame() {
         m_guestPostedAFrame = true;
-        fireEvent({FrameBufferChange::FrameReady, mFrameNumber++});
+        m_framebuffer->fireEvent({FrameBufferChange::FrameReady, mFrameNumber++});
     }
     HandleType createColorBufferWithResourceHandleLocked(int p_width, int p_height,
                                                          GLenum p_internalFormat,
