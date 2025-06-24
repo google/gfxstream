@@ -585,7 +585,8 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
     RepresentativeColorBufferMemoryTypeInfo getRepresentativeColorBufferMemoryTypeInfo() const;
 
    private:
-    Impl(int p_width, int p_height, const FeatureSet& features, bool useSubWindow);
+    Impl(FrameBuffer* framebuffer, int p_width, int p_height, const FeatureSet& features,
+         bool useSubWindow);
 
     // Requires the caller to hold the m_colorBufferMapLock until the new handle is inserted into of
     // the object handle maps.
@@ -628,6 +629,7 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
 
     std::future<void> blockPostWorker(std::future<void> continueSignal);
 
+    FrameBuffer* m_framebuffer = nullptr;
     gfxstream::host::FeatureSet m_features;
     int m_x = 0;
     int m_y = 0;
@@ -892,7 +894,7 @@ std::unique_ptr<FrameBuffer::Impl> FrameBuffer::Impl::Create(FrameBuffer* frameb
                                                              bool useSubWindow, bool egl2egl) {
     GFXSTREAM_DEBUG("FrameBuffer::Impl::initialize");
 
-    std::unique_ptr<Impl> impl(new Impl(width, height, features, useSubWindow));
+    std::unique_ptr<Impl> impl(new Impl(framebuffer, width, height, features, useSubWindow));
     if (!impl) {
         GFXSTREAM_ERROR("Failed to allocate FrameBuffer::Impl.");
         return nullptr;
@@ -1169,9 +1171,10 @@ std::unique_ptr<FrameBuffer::Impl> FrameBuffer::Impl::Create(FrameBuffer* frameb
     return impl;
 }
 
-FrameBuffer::Impl::Impl(int p_width, int p_height, const gfxstream::host::FeatureSet& features,
-                        bool useSubWindow)
-    : m_features(features),
+FrameBuffer::Impl::Impl(FrameBuffer* framebuffer, int p_width, int p_height,
+                        const gfxstream::host::FeatureSet& features, bool useSubWindow)
+    : m_framebuffer(framebuffer),
+      m_features(features),
       m_framebufferWidth(p_width),
       m_framebufferHeight(p_height),
       m_windowWidth(p_width),
@@ -1531,7 +1534,7 @@ bool FrameBuffer::Impl::setupSubWindow(FBNativeWindowType p_window, int wx, int 
 
         if (!hideWindow) {
             m_subWin = createSubWindow(p_window, m_x, m_y, m_windowWidth, m_windowHeight, dpr,
-                                       subWindowRepaint, this, hideWindow);
+                                       subWindowRepaint, m_framebuffer, hideWindow);
         }
         if (m_subWin) {
             m_nativeWindow = p_window;
