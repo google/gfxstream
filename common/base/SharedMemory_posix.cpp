@@ -116,7 +116,7 @@ int SharedMemory::openInternal(int oflag, int mode, bool doMapping) {
         mFd = ::open(mName.c_str(), oflag, mode);
         // Make sure the file can hold at least mSize bytes..
         struct stat stat;
-        if (!fstat(mFd, &stat) && stat.st_size < mSize) {
+        if (!fstat(mFd, &stat) && static_cast<size_t>(stat.st_size) < mSize) {
             err = ftruncate(mFd, mSize);
         }
     }
@@ -135,7 +135,7 @@ int SharedMemory::openInternal(int oflag, int mode, bool doMapping) {
 
         // Only increase size, as we don't want to yank away memory
         // from another process.
-        if (mSize > sb.st_size && HANDLE_EINTR(ftruncate(mFd, mSize)) == -1) {
+        if (mSize > static_cast<size_t>(sb.st_size) && HANDLE_EINTR(ftruncate(mFd, mSize)) == -1) {
             err = -errno;
             close();
             return err;

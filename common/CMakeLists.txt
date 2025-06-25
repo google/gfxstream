@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+add_subdirectory(logging)
+
 add_subdirectory(base)
 add_subdirectory(detector)
 add_subdirectory(etc)
-add_subdirectory(logging)
 add_subdirectory(image)
 add_subdirectory(testenv)
 add_subdirectory(utils)
