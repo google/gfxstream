@@ -30,7 +30,6 @@
 
 namespace gfxstream {
 namespace host {
-namespace impl {
 namespace {
 
 GfxstreamLogCallback DefaultLogCallback() {
@@ -85,10 +84,18 @@ GfxstreamLogCallback DefaultLogCallback() {
     };
 }
 
+std::string GetBasename(const char* file) {
+    const std::filesystem::path full = std::filesystem::path(file);
+    const std::filesystem::path base = full.filename();
+    return base.string();
+}
+
 LogLevel sLogLevel = GFXSTREAM_DEFAULT_LOG_LEVEL;
 GfxstreamLogCallback sLogCallback = DefaultLogCallback();
 
 }  // namespace
+
+namespace impl {
 
 void GfxstreamLog(LogLevel level, const char* file, int line, const char* function,
                   const char* format, ...) {
@@ -121,14 +128,16 @@ void GfxstreamLog(LogLevel level, const char* file, int line, const char* functi
 
 std::string GetDefaultFormattedLog(LogLevel, const char* file, int line, const char*,
                                    const char* message) {
+    const std::string fileBasename = GetBasename(file);
+
     std::stringstream ss;
-    ss << "[" << std::filesystem::path(file).filename().string() << "(" << line << ")] " << message;
+    ss << "[" << fileBasename << "(" << line << ")] " << message;
     return ss.str();
 }
 
-void SetGfxstreamLogCallback(GfxstreamLogCallback callback) { impl::sLogCallback = callback; }
+void SetGfxstreamLogCallback(GfxstreamLogCallback callback) { sLogCallback = callback; }
 
-void SetGfxstreamLogLevel(LogLevel level) { impl::sLogLevel = level; }
+void SetGfxstreamLogLevel(LogLevel level) { sLogLevel = level; }
 
 }  // namespace host
 }  // namespace gfxstream
