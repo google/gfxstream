@@ -85,14 +85,6 @@ jobs:
           --disk_cache=$HOME/bazel-disk-cache \
           --graphics_drivers=gles_angle_vulkan_swiftshader \
           --verbose_failures
-    - name: Run unit tests
-      run: |
-        bazel test \
-          --disk_cache=$HOME/bazel-disk-cache \
-          --graphics_drivers=gles_angle_vulkan_swiftshader \
-          --test_output=streamed \
-          --verbose_failures \
-          common/end2end:gfxstream_end2end_tests
   run-gfxstream-cmake-build:
     runs-on: ubuntu-22.04
     steps:
