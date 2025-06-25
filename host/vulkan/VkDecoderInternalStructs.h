@@ -143,6 +143,11 @@ private:
     void* mAddr{nullptr};
 };
 
+struct BoundMemoryRange {
+   VkDeviceSize offset;
+   VkDeviceSize size;
+};
+
 // We always map the whole size on host.
 // This makes it much easier to implement
 // the memory map API.
@@ -176,6 +181,7 @@ struct MemoryInfo {
     std::optional<HandleType> boundBuffer;
     // ColorBuffer, provided via vkAllocateMemory().
     std::optional<HandleType> boundColorBuffer;
+    std::unordered_map<VkBuffer, BoundMemoryRange> bufferMemoryRanges;
 };
 
 struct InstanceInfo {

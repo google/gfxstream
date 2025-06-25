@@ -196,7 +196,7 @@ cc_test_host {
     },
 }
 
-// Run with `atest --host gfxstream_vkguestmemoryutils_tests`
+// Run with `atest --host gfxstream_vkemulatedphysicaldevicememory_tests`
 cc_test_host {
     name: "gfxstream_vkemulatedphysicaldevicememory_tests",
     defaults: ["gfxstream_host_cc_defaults"],

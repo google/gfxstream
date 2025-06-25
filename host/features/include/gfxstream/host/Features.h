@@ -329,6 +329,12 @@ struct FeatureSet {
         "all created devices. (e.g. VK_EXT_robustness2)",
         &map,
     };
+    FeatureInfo VulkanDisableCoherentMemoryAndEmulate = {
+        "VulkanDisableCoherentMemoryAndEmulate",
+        "If enabled, cached memory is reported as coherent memory to the guest and the host "
+        "performs additional `vkFlushMappedMemoryRanges()` calls during queue submits to emulate.",
+        &map,
+    };
 };
 
 #define GFXSTREAM_SET_FEATURE_ON_CONDITION(set, feature, condition) \
