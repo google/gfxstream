@@ -127,7 +127,6 @@ static int address_space_allocator_find_available_block_at_offset(
     uint64_t offset)
 {
     int index = -1;
-    uint64_t size_at_index = 0;
     int i;
 
     if (n_blocks <= 0) {
@@ -144,7 +143,6 @@ static int address_space_allocator_find_available_block_at_offset(
             offset >= block->offset &&
             offset < block->offset + this_size) {
             index = i;
-            size_at_index = this_size;
             return index;
         }
     }
@@ -279,7 +277,7 @@ address_space_allocator_split_block_at_offset(
 
     /*   size = 5, i = 1
      *   [ 0 | 1 |  2  |  3  | 4 ]  =>  [ 0 | 1 | new |  new(for slop)  | 2    | 3 | 4]
-     *         i  (i+1) (i+2)                 i  (i+1) (i+2)              (i+3) 
+     *         i  (i+1) (i+2)                 i  (i+1) (i+2)              (i+3)
      */
     memmove(&blocks[i + 2 + new_block_index_offset], &blocks[i + 1],
             sizeof(struct address_block) * (allocator->size - i - 1));

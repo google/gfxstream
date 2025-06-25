@@ -119,6 +119,7 @@ target_link_libraries(
     gfxstream_common_base
     PUBLIC
     gfxstream_common_base.headers
+    gfxstream_common_logging
     PRIVATE
     ${gfxstream_common_base_platform_deps})
 
