@@ -2528,6 +2528,14 @@ class VkDecoderGlobalState::Impl {
         return result;
     }
 
+    void unbindFromBufferLocked(MemoryInfo* memoryInfo, VkBuffer buffer) {
+        memoryInfo->bufferMemoryRanges.erase(buffer);
+    }
+
+    void bindToBufferLocked(MemoryInfo* memoryInfo, VkBuffer buffer, VkDeviceSize offset, VkDeviceSize size) {
+        memoryInfo->bufferMemoryRanges[buffer] = {offset, size};
+    }
+
     void destroyBufferWithExclusiveInfo(VkDevice device, VulkanDispatch* deviceDispatch,
                                         VkBuffer buffer, BufferInfo& bufferInfo,
                                         const VkAllocationCallbacks* pAllocator) {
@@ -2541,6 +2549,10 @@ class VkDecoderGlobalState::Impl {
         auto& bufferInfo = bufferInfoIt->second;
 
         destroyBufferWithExclusiveInfo(device, deviceDispatch, buffer, bufferInfo, pAllocator);
+        auto* memoryInfo = gfxstream::base::find(mMemoryInfo, bufferInfo.memory);
+        if (memoryInfo && m_vkEmulation->getFeatures().VulkanDisableCoherentMemoryAndEmulate.enabled) {
+            unbindFromBufferLocked(memoryInfo, buffer);
+        }
 
         mBufferInfo.erase(buffer);
     }
@@ -2566,7 +2578,14 @@ class VkDecoderGlobalState::Impl {
         bufferInfo->memoryOffset = memoryOffset;
 
         auto* memoryInfo = gfxstream::base::find(mMemoryInfo, memory);
-        if (memoryInfo && memoryInfo->boundBuffer) {
+        if (!memoryInfo) {
+            GFXSTREAM_WARNING("Failed to find VkDeviceMemory:%p", memory);
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
+        }
+        if (m_vkEmulation->getFeatures().VulkanDisableCoherentMemoryAndEmulate.enabled) {
+            bindToBufferLocked(memoryInfo, buffer, memoryOffset, bufferInfo->size);
+        }
+        if (memoryInfo->boundBuffer) {
             auto* deviceInfo = gfxstream::base::find(mDeviceInfo, device);
             if (deviceInfo) {
                 deviceInfo->debugUtilsHelper.addDebugLabel(buffer, "Buffer:%d",
@@ -6945,6 +6964,38 @@ class VkDecoderGlobalState::Impl {
 
         for (HandleType cb : acquiredColorBuffers) {
             m_vkEmulation->getCallbacks().invalidateColorBuffer(cb);
+        }
+
+        if (m_vkEmulation->getFeatures().VulkanDisableCoherentMemoryAndEmulate.enabled) {
+            std::lock_guard<std::mutex> lock(mMutex);
+            for (auto& it: mMemoryInfo) {
+                auto pMemory = it.first;
+                auto& mappedData = it.second;
+                if (mappedData.device != device) {
+                    continue;
+                }
+                // TODO(b/424729656): this logic should run only for emulated memory
+                if (!mappedData.virtioGpuMapped) {
+                    continue;
+                }
+                if (mappedData.bufferMemoryRanges.empty()) {
+                    continue;
+                }
+                std::vector<VkMappedMemoryRange> ranges;
+                ranges.reserve(mappedData.bufferMemoryRanges.size());
+                for (const auto& pair : mappedData.bufferMemoryRanges) {
+                    ranges.push_back({
+                        .sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
+                        .pNext = nullptr,
+                        .memory = pMemory,
+                        .offset = pair.second.offset,
+                        .size = pair.second.size,
+                    });
+                }
+                // TODO(b/424729656): Invalidate might be necessary around a fence.
+                vk->vkFlushMappedMemoryRanges(device, static_cast<uint32_t>(ranges.size()),
+                                                ranges.data());
+            }
         }
 
         VkFence usedFence = fence;

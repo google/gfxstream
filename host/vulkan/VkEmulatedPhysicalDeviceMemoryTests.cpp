@@ -258,7 +258,90 @@ TEST(VkGuestMemoryUtilsTest, VulkanAllocateDeviceMemoryOnly) {
     EXPECT_THAT(actualGuestMemoryProperties,
                 EqsVkPhysicalDeviceMemoryProperties(expectedGuestMemoryProperties));
 }
+TEST(VkGuestMemoryUtilsTest, VulkanDisableCoherentMemoryAndEmulate) {
+    const VkPhysicalDeviceMemoryProperties hostMemoryProperties = {
+        .memoryTypeCount = 4,
+        .memoryTypes =
+            {
+                {
+                    .propertyFlags = VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
+                    .heapIndex = 0,
+                },
+                {
+                    .propertyFlags = VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                    .heapIndex = 0,
+                },
+                {
+                    .propertyFlags =
+                        VK_MEMORY_PROPERTY_HOST_CACHED_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                    .heapIndex = 0,
+                },
+                {
+                    .propertyFlags =
+                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                    .heapIndex = 1,
+                },
+            },
+        .memoryHeapCount = 2,
+        .memoryHeaps =
+            {
+                {
+                    .size = 0x1000000,
+                    .flags = 0,
+                },
+                {
+                    .size = 0x200000,
+                    .flags = VK_MEMORY_HEAP_DEVICE_LOCAL_BIT,
+                },
+            },
+    };
 
+    gfxstream::host::FeatureSet features;
+    features.VulkanDisableCoherentMemoryAndEmulate.enabled = true;
+
+    EmulatedPhysicalDeviceMemoryProperties helper(hostMemoryProperties, 1, features);
+
+    const VkPhysicalDeviceMemoryProperties expectedGuestMemoryProperties = {
+        .memoryTypeCount = 4,
+        .memoryTypes =
+            {
+                {
+                    .propertyFlags =
+                        VK_MEMORY_PROPERTY_HOST_CACHED_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                    .heapIndex = 0,
+                },
+                {
+                    .propertyFlags = 0,
+                    .heapIndex = 0,
+                },
+                {
+                    .propertyFlags =
+                        VK_MEMORY_PROPERTY_HOST_CACHED_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                    .heapIndex = 0,
+                },
+                {
+                    .propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                    .heapIndex = 1,
+                },
+            },
+        .memoryHeapCount = 2,
+        .memoryHeaps =
+            {
+                {
+                    .size = 0x1000000,
+                    .flags = 0,
+                },
+                {
+                    .size = 0x200000,
+                    .flags = VK_MEMORY_HEAP_DEVICE_LOCAL_BIT,
+                },
+            },
+    };
+
+    const auto actualGuestMemoryProperties = helper.getGuestMemoryProperties();
+    EXPECT_THAT(actualGuestMemoryProperties,
+                EqsVkPhysicalDeviceMemoryProperties(expectedGuestMemoryProperties));
+}
 }  // namespace
 }  // namespace vk
 }  // namespace gfxstream
