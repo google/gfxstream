@@ -38,9 +38,11 @@
 #include <mach/mach.h>
 #endif  // __APPLE__
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__MINGW64__)
 // #include "gfxstream/msvc.h"
 // #include <dirent.h>
+#include <sys/stat.h>
+#include <sys/time.h>
 #else
 #include <time.h>
 #include <sys/time.h>
@@ -48,7 +50,7 @@
 #include <sys/types.h>
 #include <sys/resource.h>
 #include <unistd.h>
-#endif
+#endif // defined(_MSC_VER) || defined(__MINGW64__)
 
 #include <string.h>
 
@@ -352,7 +354,7 @@ std::string getProgramDirectoryFromPlatform() {
     } else {
         res.assign("<unknown-application-dir>");
     }
-#elif defined(_WIN32)
+#elif defined(_WIN32) || defined(__MINGW64__)
     Win32UnicodeString appDir(PATH_MAX);
     int len = GetModuleFileNameW(0, appDir.data(), appDir.size());
     res.assign("<unknown-application-dir>");

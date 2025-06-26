@@ -30,8 +30,11 @@ SharedMemory::SharedMemory(const std::string& name, size_t size) : mSize(size) {
         const Win32UnicodeString srcUri(name);
         WCHAR path[MAX_PATH];
         DWORD cPath = MAX_PATH;
+#if !defined(__MINGW64__)
+//link error
         auto HR = PathCreateFromUrlW(srcUri.c_str(), path, &cPath, NULL);
         assert(HR == S_OK);
+#endif // !defined(__MINGW64__)
         const Win32UnicodeString destPath(path);
         mName = PathUtils::recompose(PathUtils::decompose(destPath.toString()));
         mShareType = ShareType::FILE_BACKED;

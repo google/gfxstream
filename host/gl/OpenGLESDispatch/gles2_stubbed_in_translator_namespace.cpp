@@ -17,6 +17,10 @@
 
 #include <GLES2/gl2.h>
 #include <GL/GLcorearb.h>
+#ifdef __MINGW64__
+#include <GLES2/gl2platform.h>
+#define GL_APICALL KHRONOS_APICALL inline
+#endif // __MINGW64__
 namespace translator {
 namespace gles2 {
 GL_APICALL void GL_APIENTRY glClearDepth(GLclampd) { return; }
