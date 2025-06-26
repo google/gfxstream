@@ -202,6 +202,13 @@ if (LINUX)
     target_link_options(gfxstream_backend PRIVATE "LINKER:--build-id=sha1")
 endif()
 
+# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=90050
+if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
+    target_link_libraries(
+        gfxstream_backend
+        PUBLIC
+        -lstdc++fs)
+endif()
 
 if(CONFIG_AEMU)
     android_install_shared_library(TARGET gfxstream_backend)

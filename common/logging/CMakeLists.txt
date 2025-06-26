@@ -20,3 +20,11 @@ target_include_directories(
     gfxstream_common_logging
     PUBLIC
     include)
+
+# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=90050
+if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
+    target_link_libraries(
+        gfxstream_common_logging
+        PUBLIC
+        -lstdc++fs)
+endif()
