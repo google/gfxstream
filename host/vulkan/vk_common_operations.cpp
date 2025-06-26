@@ -3469,20 +3469,6 @@ MTLResource_id VkEmulation::getColorBufferMetalMemoryHandle(uint32_t colorBuffer
 
     return infoPtr->memory.externalMetalHandle;
 }
-
-// TODO(b/351765838): Temporary function for MoltenVK
-VkImage VkEmulation::getColorBufferVkImage(uint32_t colorBufferHandle) {
-    std::lock_guard<std::mutex> lock(mMutex);
-
-    auto infoPtr = gfxstream::base::find(mColorBuffers, colorBufferHandle);
-
-    if (!infoPtr) {
-        // Color buffer not found; this is usually OK.
-        return nullptr;
-    }
-
-    return infoPtr->image;
-}
 #endif  // __APPLE__
 
 bool VkEmulation::setColorBufferVulkanMode(uint32_t colorBuffer, uint32_t vulkanMode) {

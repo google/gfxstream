@@ -5825,20 +5825,6 @@ class VkDecoderGlobalState::Impl {
                 // Use metal object extension on host-vulkan mode for color buffer import,
                 // other paths on MacOS will use FD handles
                 if (m_vkEmulation->supportsExternalMemoryMetal()) {
-                    if (dedicatedAllocInfoPtr == nullptr || localDedicatedAllocInfo.image == VK_NULL_HANDLE) {
-                        // TODO(b/351765838): This should not happen, but somehow the guest
-                        // is not providing us the necessary information for video rendering.
-                        localDedicatedAllocInfo = {
-                            .sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO,
-                            .pNext = nullptr,
-                            .image =
-                                m_vkEmulation->getColorBufferVkImage(importCbInfoPtr->colorBuffer),
-                            .buffer = VK_NULL_HANDLE,
-                        };
-
-                        shouldUseDedicatedAllocInfo = true;
-                    }
-
                     MTLResource_id cbExtMemoryHandle =
                         m_vkEmulation->getColorBufferMetalMemoryHandle(
                             importCbInfoPtr->colorBuffer);

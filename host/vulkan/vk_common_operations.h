@@ -348,7 +348,6 @@ class VkEmulation {
     std::optional<ExternalHandleInfo> dupColorBufferExtMemoryHandle(uint32_t colorBufferHandle);
 #ifdef __APPLE__
     MTLResource_id getColorBufferMetalMemoryHandle(uint32_t colorBufferHandle);
-    VkImage getColorBufferVkImage(uint32_t colorBufferHandle);
 #endif
 
     struct VkColorBufferMemoryExport {
