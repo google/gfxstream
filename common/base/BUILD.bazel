@@ -25,7 +25,9 @@ cc_library(
             "//common/base/windows:gfxstream_common_base_windows_compat_hdrs",
         ],
         "//conditions:default": [],
-    }),
+    }) + [
+        "//common/logging:gfxstream_common_logging",
+    ],
 )
 
 objc_library(
