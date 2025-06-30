@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-py scripts/glsl-shader-to-spv-c-array.py \
-    stream-servers/vulkan/Compositor.vert \
-    stream-servers/vulkan/CompositorVertexShader.h \
+python3 scripts/glsl-shader-to-spv.py \
+    host/vulkan/Compositor.vert \
+    host/vulkan/CompositorVertexShader.h \
     compositorVertexShader
 
-py scripts/glsl-shader-to-spv-c-array.py \
-    stream-servers/vulkan/Compositor.frag \
-    stream-servers/vulkan/CompositorFragmentShader.h \
+python3 scripts/glsl-shader-to-spv.py \
+    host/vulkan/Compositor.frag \
+    host/vulkan/CompositorFragmentShader.h \
     compositorFragmentShader
