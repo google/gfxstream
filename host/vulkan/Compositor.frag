@@ -19,6 +19,7 @@ layout(binding = 0) uniform sampler2D texSampler;
 layout(binding = 1) uniform UniformBufferObject {
     mat4 posTransform;
     mat4 texcoordTransform;
+    mat4 colorTransform;
     uvec4 mode;
     vec4 alpha;
     vec4 color;
@@ -30,10 +31,13 @@ layout(location = 0) out vec4 outColor;
 
 void main() {
     if (ubo.mode.x == 2) {
+        // HWC2_COMPOSITION_DEVICE
         outColor = ubo.alpha * texture(texSampler, fragTexCoord);
     } else if (ubo.mode.x == 3) {
+        // HWC2_COMPOSITION_SOLID_COLOR
         outColor = ubo.alpha * ubo.color;
     } else {
         outColor = vec4(0.0, 1.0, 0.0, 1.0);
     }
+    outColor = ubo.colorTransform * outColor;
 }

@@ -102,14 +102,25 @@ const char kFragmentShaderSource[] =
     "uniform float alpha;\n"
     "uniform int composeMode;\n"
     "uniform vec4 color ;\n"
+    "uniform mat4 colorTransform;\n"
 
     "void main(void) {\n"
+    "  vec4 outColor;\n"
     "  if (composeMode == kComposeModeDevice) {\n"
-    "    gl_FragColor = alpha * texture2D(tex, outCoord);\n"
+    "    outColor = alpha * texture2D(tex, outCoord);\n"
     "  } else {\n"
-    "    gl_FragColor = alpha * color;\n"
+    "    outColor = alpha * color;\n"
     "  }\n"
+    "  outColor = colorTransform * outColor;\n"
+    "  gl_FragColor = outColor;\n"
     "}\n";
+
+static const GLfloat kIdentityMatrix[16] = {
+    1.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 1.0f, 0.0f,
+    0.0f, 0.0f, 0.0f, 1.0f,
+};
 
 // Hard-coded arrays of vertex information.
 struct Vertex {
@@ -231,6 +242,7 @@ TextureDraw::TextureDraw()
     mScaleSlot = s_gles2.glGetUniformLocation(mProgram, "scale");
     mTranslationSlot = s_gles2.glGetUniformLocation(mProgram, "translation");
     mTextureSlot = s_gles2.glGetUniformLocation(mProgram, "tex");
+    mColorTransform = s_gles2.glGetUniformLocation(mProgram, "colorTransform");
 
     // set default uniform values
     s_gles2.glUniform1f(mAlpha, 1.0);
@@ -239,6 +251,7 @@ TextureDraw::TextureDraw()
     s_gles2.glUniform2f(mScaleSlot, 1.0, 1.0);
     s_gles2.glUniform2f(mCoordTranslation, 0.0, 0.0);
     s_gles2.glUniform2f(mCoordScale, 1.0, 1.0);
+    s_gles2.glUniformMatrix4fv(mColorTransform, 1, GL_FALSE, kIdentityMatrix);
 
 #if 0
     printf("SLOTS position=%d inCoord=%d texture=%d translation=%d\n",
@@ -609,6 +622,9 @@ void TextureDraw::drawLayer(const ComposeLayer& layer, int frameWidth, int frame
 
     s_gles2.glUniform1f(mAlpha, layer.alpha);
 
+    //TODO(b/420586022): Support color transformation on host composition
+    s_gles2.glUniformMatrix4fv(mColorTransform, 1, GL_FALSE, kIdentityMatrix);
+
     float edges[4];
     edges[0] = 1 - 2.0 * (frameWidth - layer.displayFrame.left)/frameWidth;
     edges[1] = 1 - 2.0 * (frameHeight - layer.displayFrame.top)/frameHeight;
@@ -678,6 +694,7 @@ void TextureDraw::drawLayer(const ComposeLayer& layer, int frameWidth, int frame
 // Do Post right after drawing each layer, so keep using this program
 void TextureDraw::cleanupForDrawLayer() {
     s_gles2.glUniform1f(mAlpha, 1.0);
+    s_gles2.glUniformMatrix4fv(mColorTransform, 1, GL_FALSE, kIdentityMatrix);
     s_gles2.glUniform1i(mComposeMode, HWC2_COMPOSITION_DEVICE);
     s_gles2.glUniform2f(mTranslationSlot, 0.0, 0.0);
     s_gles2.glUniform2f(mScaleSlot, 1.0, 1.0);
