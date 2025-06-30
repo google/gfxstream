@@ -209,10 +209,8 @@ CompositorVk::~CompositorVk() {
 }
 
 void CompositorVk::setUpGraphicsPipeline() {
-    const std::vector<uint32_t> vertSpvBuff(CompositorVkShader::compositorVertexShader,
-                                            std::end(CompositorVkShader::compositorVertexShader));
-    const std::vector<uint32_t> fragSpvBuff(CompositorVkShader::compositorFragmentShader,
-                                            std::end(CompositorVkShader::compositorFragmentShader));
+    const std::vector<uint32_t> vertSpvBuff = CompositorVkShader::compositorVertexShader;
+    const std::vector<uint32_t> fragSpvBuff = CompositorVkShader::compositorFragmentShader;
     const auto vertShaderMod = createShaderModule(m_vk, m_vkDevice, vertSpvBuff);
     const auto fragShaderMod = createShaderModule(m_vk, m_vkDevice, fragSpvBuff);
 
