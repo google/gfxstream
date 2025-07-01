@@ -335,6 +335,11 @@ struct FeatureSet {
         "performs additional `vkFlushMappedMemoryRanges()` calls during queue submits to emulate.",
         &map,
     };
+    FeatureInfo VulkanAllocateHostVisibleAsUdmabuf = {
+        "VulkanAllocateHostVisibleAsUdmabuf",
+        "If enabled, backs blob memory via udmabuf that can be used with vkImportMemory",
+        &map,
+    };
 };
 
 #define GFXSTREAM_SET_FEATURE_ON_CONDITION(set, feature, condition) \

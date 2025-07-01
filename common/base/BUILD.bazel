@@ -25,7 +25,9 @@ cc_library(
             "//common/base/windows:gfxstream_common_base_windows_compat_hdrs",
         ],
         "//conditions:default": [],
-    }),
+    }) + [
+        "//common/logging:gfxstream_common_logging",
+    ],
 )
 
 objc_library(
@@ -57,6 +59,7 @@ cc_library(
         "StringFormat.cpp",
         "System.cpp",
         "Tracing.cpp",
+        "UdmabufCreator_stub.cpp",
     ] + select({
         "@platforms//os:windows": [
             "SharedMemory_win32.cpp",

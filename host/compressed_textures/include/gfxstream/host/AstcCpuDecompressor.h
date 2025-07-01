@@ -15,6 +15,7 @@
 
 #include <memory>
 #include <string>
+#include <cstdint>
 
 namespace gfxstream {
 namespace vk {

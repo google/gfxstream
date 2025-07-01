@@ -24,12 +24,13 @@ extern "C" {
 #include "FrameBuffer.h"
 #include "VirtioGpuFrontend.h"
 #include "gfxstream/Metrics.h"
-#include "gfxstream/system/System.h"
 #include "gfxstream/Strings.h"
+#include "gfxstream/common/logging.h"
 #include "gfxstream/host/Features.h"
 #include "gfxstream/host/Tracing.h"
 #include "gfxstream/host/address_space_graphics.h"
-#include "gfxstream/common/logging.h"
+#include "gfxstream/memory/UdmabufCreator.h"
+#include "gfxstream/system/System.h"
 #ifdef CONFIG_AEMU
 #include "host-common/opengles.h"
 #endif
@@ -115,6 +116,10 @@ ParseGfxstreamFeatures(const int rendererFlags,
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
         &features, VulkanSnapshots,
         gfxstream::base::getEnvironmentVariable("ANDROID_GFXSTREAM_CAPTURE_VK_SNAPSHOT") == "1");
+
+    // b:423003060
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(&features, VulkanAllocateHostVisibleAsUdmabuf,
+                                       gfxstream::base::IsAndroidKernel6_6());
 
     for (const std::string& rendererFeature : gfxstream::Split(rendererFeatures, ",")) {
         if (rendererFeature.empty()) continue;
