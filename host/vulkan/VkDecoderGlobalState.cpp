@@ -6968,6 +6968,7 @@ class VkDecoderGlobalState::Impl {
 
         if (m_vkEmulation->getFeatures().VulkanDisableCoherentMemoryAndEmulate.enabled) {
             std::lock_guard<std::mutex> lock(mMutex);
+            std::vector<VkMappedMemoryRange> memoryRangesToFlush;
             for (auto& it: mMemoryInfo) {
                 auto pMemory = it.first;
                 auto& mappedData = it.second;
@@ -6981,10 +6982,8 @@ class VkDecoderGlobalState::Impl {
                 if (mappedData.bufferMemoryRanges.empty()) {
                     continue;
                 }
-                std::vector<VkMappedMemoryRange> ranges;
-                ranges.reserve(mappedData.bufferMemoryRanges.size());
                 for (const auto& pair : mappedData.bufferMemoryRanges) {
-                    ranges.push_back({
+                    memoryRangesToFlush.push_back({
                         .sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
                         .pNext = nullptr,
                         .memory = pMemory,
@@ -6992,9 +6991,12 @@ class VkDecoderGlobalState::Impl {
                         .size = pair.second.size,
                     });
                 }
+            }
+
+            if (!memoryRangesToFlush.empty()) {
                 // TODO(b/424729656): Invalidate might be necessary around a fence.
-                vk->vkFlushMappedMemoryRanges(device, static_cast<uint32_t>(ranges.size()),
-                                                ranges.data());
+                vk->vkFlushMappedMemoryRanges(device, static_cast<uint32_t>(memoryRangesToFlush.size()),
+                                              memoryRangesToFlush.data());
             }
         }
 
