@@ -81,7 +81,10 @@ def main():
         target_file.write(header)
 
         for source_file_line in source_file_lines:
-            target_file.write("// " + source_file_line)
+            if(source_file_line != '\n'):
+                target_file.write("// " + source_file_line)
+            else:
+                target_file.write("//\n")
 
         target_file.write("\n\n")
 
