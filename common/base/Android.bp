@@ -5,12 +5,7 @@ package {
 
 cc_library_static {
     name: "libgfxstream_common_base",
-    host_supported: true,
-    vendor_available: true,
-    cflags: [
-        "-Wno-unused-parameter",
-        "-Wno-reorder-ctor",
-    ],
+    defaults: ["gfxstream_defaults"],
     srcs: [
         "AlignedBuf.cpp",
         "CpuTime.cpp",
@@ -42,7 +37,10 @@ cc_library_static {
         "include",
     ],
     static_libs: [
-        "liblz4",
+        "libgfxstream_common_logging",
+    ],
+    export_static_lib_headers: [
+        "libgfxstream_common_logging",
     ],
     apex_available: [
         "//apex_available:platform",

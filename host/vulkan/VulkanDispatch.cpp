@@ -23,19 +23,18 @@
 using gfxstream::base::AutoLock;
 using gfxstream::base::Lock;
 using gfxstream::base::pj;
+using gfxstream::base::pathExists;
 
 namespace gfxstream {
 namespace vk {
 
 static std::string icdJsonNameToProgramAndLauncherPaths(const std::string& icdFilename) {
     std::string suffix = pj({"lib64", "vulkan", icdFilename});
-#if defined(_WIN32)
-    const char* sep = ";";
-#else
-    const char* sep = ":";
-#endif
-    return pj({gfxstream::base::getProgramDirectory(), suffix}) + sep +
-           pj({gfxstream::base::getLauncherDirectory(), suffix});
+    std::string fullpath = pj({gfxstream::base::getProgramDirectory(), suffix});
+    if (!pathExists(fullpath.c_str())) {
+        fullpath = pj({gfxstream::base::getLauncherDirectory(), suffix});
+    }
+    return fullpath;
 }
 
 static void setIcdPaths(const std::string& icdFilename) {

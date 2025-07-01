@@ -112,17 +112,16 @@ class VkDecoderSnapshot::Impl {
         if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pPhysicalDevices create
-        mReconstruction.addHandles((const uint64_t*)pPhysicalDevices, (*(pPhysicalDeviceCount)));
+        mReconstruction.addHandles((const uint64_t*)pPhysicalDevices, (*pPhysicalDeviceCount));
         mReconstruction.addHandleDependency((const uint64_t*)pPhysicalDevices,
-                                            (*(pPhysicalDeviceCount)),
-                                            (uint64_t)(uintptr_t)instance);
+                                            (*pPhysicalDeviceCount), (uint64_t)(uintptr_t)instance);
         mReconstruction.setApiTrace(apiCallHandle, apiCallPacket, apiCallPacketSize);
         if (pPhysicalDeviceCount) {
             mReconstruction.forEachHandleAddApi((const uint64_t*)pPhysicalDevices,
-                                                (*(pPhysicalDeviceCount)), apiCallHandle,
+                                                (*pPhysicalDeviceCount), apiCallHandle,
                                                 VkReconstruction::CREATED);
             mReconstruction.setCreatedHandlesForApi(
-                apiCallHandle, (const uint64_t*)pPhysicalDevices, (*(pPhysicalDeviceCount)));
+                apiCallHandle, (const uint64_t*)pPhysicalDevices, (*pPhysicalDeviceCount));
         }
     }
     void vkGetPhysicalDeviceFeatures(gfxstream::base::BumpPool* pool,
@@ -653,8 +652,8 @@ class VkDecoderSnapshot::Impl {
         if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pPipelines create
-        mReconstruction.addHandles((const uint64_t*)pPipelines, ((createInfoCount)));
-        mReconstruction.addHandleDependency((const uint64_t*)pPipelines, ((createInfoCount)),
+        mReconstruction.addHandles((const uint64_t*)pPipelines, createInfoCount);
+        mReconstruction.addHandleDependency((const uint64_t*)pPipelines, createInfoCount,
                                             (uint64_t)(uintptr_t)device);
         for (uint32_t i = 0; i < createInfoCount; ++i) {
             for (uint32_t j = 0; j < pCreateInfos[i].stageCount; ++j) {
@@ -669,10 +668,10 @@ class VkDecoderSnapshot::Impl {
                     pCreateInfos[i].renderPass));
         }
         mReconstruction.setApiTrace(apiCallHandle, apiCallPacket, apiCallPacketSize);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pPipelines, ((createInfoCount)),
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pPipelines, createInfoCount,
                                             apiCallHandle, VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pPipelines,
-                                                ((createInfoCount)));
+                                                createInfoCount);
     }
     void vkCreateComputePipelines(gfxstream::base::BumpPool* pool,
                                   VkSnapshotApiCallHandle apiCallHandle,
@@ -685,14 +684,14 @@ class VkDecoderSnapshot::Impl {
         if (input_result != VK_SUCCESS) return;
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pPipelines create
-        mReconstruction.addHandles((const uint64_t*)pPipelines, ((createInfoCount)));
-        mReconstruction.addHandleDependency((const uint64_t*)pPipelines, ((createInfoCount)),
+        mReconstruction.addHandles((const uint64_t*)pPipelines, createInfoCount);
+        mReconstruction.addHandleDependency((const uint64_t*)pPipelines, createInfoCount,
                                             (uint64_t)(uintptr_t)device);
         mReconstruction.setApiTrace(apiCallHandle, apiCallPacket, apiCallPacketSize);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pPipelines, ((createInfoCount)),
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pPipelines, createInfoCount,
                                             apiCallHandle, VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pPipelines,
-                                                ((createInfoCount)));
+                                                createInfoCount);
     }
     void vkDestroyPipeline(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle,
                            const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDevice device,
@@ -844,8 +843,7 @@ class VkDecoderSnapshot::Impl {
                               const VkDescriptorSet* pDescriptorSets) {
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pDescriptorSets destroy
-        mReconstruction.removeHandles((const uint64_t*)pDescriptorSets, ((descriptorSetCount)),
-                                      true);
+        mReconstruction.removeHandles((const uint64_t*)pDescriptorSets, descriptorSetCount, true);
     }
     void vkUpdateDescriptorSets(gfxstream::base::BumpPool* pool,
                                 VkSnapshotApiCallHandle apiCallHandle, const uint8_t* apiCallPacket,
@@ -1040,8 +1038,7 @@ class VkDecoderSnapshot::Impl {
                               uint32_t commandBufferCount, const VkCommandBuffer* pCommandBuffers) {
         std::lock_guard<std::mutex> lock(mReconstructionMutex);
         // pCommandBuffers destroy
-        mReconstruction.removeHandles((const uint64_t*)pCommandBuffers, ((commandBufferCount)),
-                                      true);
+        mReconstruction.removeHandles((const uint64_t*)pCommandBuffers, commandBufferCount, true);
     }
     void vkBeginCommandBuffer(gfxstream::base::BumpPool* pool,
                               VkSnapshotApiCallHandle apiCallHandle, const uint8_t* apiCallPacket,

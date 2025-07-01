@@ -2014,6 +2014,12 @@ DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPipelineShaderStageRequiredSubgroupSiz
                       reservedunmarshal_VkPipelineShaderStageRequiredSubgroupSizeCreateInfoEXT)
 
 #endif
+#ifdef VK_EXT_memory_budget
+void reservedunmarshal_VkPhysicalDeviceMemoryBudgetPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMemoryBudgetPropertiesEXT* forUnmarshaling, uint8_t** ptr);
+
+#endif
 #ifdef VK_EXT_tooling_info
 DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceToolProperties,
                       reservedunmarshal_VkPhysicalDeviceToolPropertiesEXT)

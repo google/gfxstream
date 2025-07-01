@@ -25,7 +25,9 @@ cc_library(
             "//common/base/windows:gfxstream_common_base_windows_compat_hdrs",
         ],
         "//conditions:default": [],
-    }),
+    }) + [
+        "//common/logging:gfxstream_common_logging",
+    ],
 )
 
 objc_library(
@@ -104,6 +106,7 @@ cc_library(
     strip_include_prefix = "include",
     deps = [
         ":gfxstream_common_base_headers",
+        "//common/logging:gfxstream_common_logging",
     ] + select({
         "@platforms//os:macos": [
             ":gfxstream_common_base_mac",

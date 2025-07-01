@@ -2032,6 +2032,13 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkPipelineShaderStageRequiredSubgroupSizeCreateIn
                       deepcopy_VkPipelineShaderStageRequiredSubgroupSizeCreateInfoEXT)
 
 #endif
+#ifdef VK_EXT_memory_budget
+void deepcopy_VkPhysicalDeviceMemoryBudgetPropertiesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceMemoryBudgetPropertiesEXT* from,
+    VkPhysicalDeviceMemoryBudgetPropertiesEXT* to);
+
+#endif
 #ifdef VK_EXT_tooling_info
 DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceToolProperties,
                       deepcopy_VkPhysicalDeviceToolPropertiesEXT)

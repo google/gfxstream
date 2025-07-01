@@ -18,6 +18,8 @@
 #include <utility>     // for move
 #include <vector>      // for vector
 
+#include "gfxstream/common/logging.h"
+
 namespace gfxstream {
 namespace base {
 
@@ -36,11 +38,17 @@ class EventNotificationSupport {
     // A listener that can be registered that cannot be removed.
     // This listener will live for the lifetime of the object.
     void registerOnce(EventListener listener) {
+        if (!listener) {
+            GFXSTREAM_FATAL("EventNotificationSupport: Attempted to register an invalid (empty) non-removable listener.");
+        }
         std::lock_guard<std::mutex> lock(mStreamLock);
-        mNonRemovableListeners.push_back(listener);
+        mNonRemovableListeners.push_back(std::move(listener));
     }
 
     void addListener(EventListener* listener) {
+        if (!listener || !(*listener)) {
+            GFXSTREAM_FATAL("EventNotificationSupport: Attempted to register an invalid (null pointer or empty) listener.");
+        }
         std::lock_guard<std::mutex> lock(mStreamLock);
         mListeners.push_back(listener);
     }
@@ -59,11 +67,12 @@ class EventNotificationSupport {
    protected:
     void fireEvent(EventObject evt) {
         std::lock_guard<std::mutex> lock(mStreamLock);
-        for (const auto& listener : mListeners) {
-            (*listener)(evt);
+        // Listeners are validated at registration time.
+        for (const auto& listenerPtr : mListeners) {
+            (*listenerPtr)(evt);
         }
-        for (const auto& listener : mNonRemovableListeners) {
-            listener(evt);
+        for (const auto& listenerFn : mNonRemovableListeners) {
+            listenerFn(evt);
         }
     }
 
@@ -82,6 +91,9 @@ class RaiiEventListener {
 
     RaiiEventListener(Source* src, EventListener listener)
         : mSource(src), mListener(std::move(listener)) {
+        if (!mListener) {
+            GFXSTREAM_FATAL("RaiiEventListener: Attempted to construct with an invalid (empty) listener.");
+        }
         mSource->addListener(&mListener);
     }
 

@@ -13,6 +13,7 @@ cc_library(
     hdrs = [
         "include/gfxstream/common/logging.h",
     ],
+    includes = ["include"],
     linkstatic = True,
     strip_include_prefix = "include",
 )
