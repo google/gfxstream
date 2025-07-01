@@ -70,6 +70,17 @@ EmulatedPhysicalDeviceMemoryProperties::EmulatedPhysicalDeviceMemoryProperties(
         }
     }
 
+    // Let cached memory pretend as coherent on the guest side.
+    if (features.VulkanDisableCoherentMemoryAndEmulate.enabled) {
+        for (uint32_t i = 0; i < mGuestMemoryProperties.memoryTypeCount; i++) {
+            if (mGuestMemoryProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT) {
+                mGuestMemoryProperties.memoryTypes[i].propertyFlags |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+            } else {
+                mGuestMemoryProperties.memoryTypes[i].propertyFlags &= ~(VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+            }
+        }
+    }
+
     // If enabled, reserve an additional memory type for AHB backed buffers and images
     // so that the host can control its memory properties. This ensures that the guest
     // only sees `VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT` and will not try to map the
