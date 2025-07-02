@@ -125,3 +125,28 @@ jobs:
     - name: Build
       run: |
         meson compile -C build
+  run-gfxstream-meson-build-windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - name: Checkout current PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: |
+            git
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-toolchain
+            mingw-w64-ucrt-x86_64-python
+            mingw-w64-ucrt-x86_64-meson
+            mingw-w64-ucrt-x86_64-headers-git
+      - name: Configure Build
+        run: meson setup build
+      - name: Build
+        run: meson compile -C build

@@ -2,7 +2,15 @@
 
 %#include <GLES/gl.h>
 %#include <GL/GLcorearb.h>
+
+
+%#ifdef __MINGW64__
+%#include <GLES/glplatform.h>
+%#define GL_APICALL KHRONOS_APICALL inline
+%#else
 %#define GL_APICALL KHRONOS_APICALL
+%#endif // __MINGW64__
+
 
 namespaces translator,gles1
 void glClipPlane(GLenum plane, const GLdouble *equation);
