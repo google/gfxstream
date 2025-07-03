@@ -72,9 +72,6 @@ std::shared_future<void> PostWorkerGl::postImpl(ColorBuffer* cb) {
         // requires frequent rebinds.
         setupContext();
     }
-    std::shared_future<void> completedFuture = std::async(std::launch::deferred, [] {}).share();
-    completedFuture.wait();
-
     DisplayGl::Post post = {};
 
     ComposeLayer postLayerOptions = {
