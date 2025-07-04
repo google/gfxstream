@@ -49,8 +49,7 @@ void RenderLibImpl::setLogger(gfxstream_log_callback_t callback) {
 
     // Set log level based on env vars
     std::optional<gfxstream_logging_level> logLevel;
-    if (gfxstream::base::getEnvironmentVariable("GFXSTREAM_LOG_VERBOSE") ==
-        "1") {  // TODO0: set from qemu side with -verbose
+    if (gfxstream::base::getEnvironmentVariable("GFXSTREAM_LOG_VERBOSE") == "1") {
         logLevel = GFXSTREAM_LOGGING_LEVEL_VERBOSE;
     } else {
         const char* ENVVAR_GFXSTREAM_LOG_LEVEL = "GFXSTREAM_LOG_LEVEL";

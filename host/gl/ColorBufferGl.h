@@ -163,12 +163,12 @@ class ColorBufferGl {
     // Post this ColorBuffer to the host native sub-window.
     // |rotation| is the rotation angle in degrees, clockwise in the GL
     // coordinate space.
-    bool post(GLuint tex, float rotation, float dx, float dy);
+    bool post(GLuint tex, float rotation, float dx, float dy, const float* colorTransform);
     // Post this ColorBufferGl to the host native sub-window and apply
     // the device screen overlay (if there is one).
     // |rotation| is the rotation angle in degrees, clockwise in the GL
     // coordinate space.
-    bool postViewportScaledWithOverlay(float rotation, float dx, float dy);
+    bool postViewportScaledWithOverlay(float rotation, float dx, float dy, const float* colorTransform);
 
     // Bind the current context's EGL_TEXTURE_2D texture to this ColorBufferGl's
     // EGLImage. This is intended to implement glEGLImageTargetTexture2DOES()

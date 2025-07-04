@@ -103,7 +103,8 @@ class ColorBuffer : public LazySnapshotObj<ColorBuffer> {
     bool glOpReadContents(size_t* outNumBytes, void* outContents);
     bool glOpIsFastBlitSupported() const;
     void glOpPostLayer(const ComposeLayer& l, int frameWidth, int frameHeight);
-    void glOpPostViewportScaledWithOverlay(float rotation, float dx, float dy);
+    void glOpPostViewportScaledWithOverlay(float rotation, float dx, float dy,
+                                           const float* colorTransform);
 #endif
 
    private:

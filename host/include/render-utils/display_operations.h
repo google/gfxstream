@@ -49,6 +49,11 @@ typedef int (*gfxstream_multi_display_get_display_pose_t)(uint32_t displayId, in
 typedef int (*gfxstream_multi_display_set_display_pose_t)(uint32_t displayId, int32_t x, int32_t y,
                                                           uint32_t w, uint32_t h, uint32_t dpi);
 
+typedef int (*gfxstream_multi_display_set_color_transform_matrix_t)(uint32_t displayId,
+                                                                     const float outColorMatrix[16]);
+typedef int (*gfxstream_multi_display_get_color_transform_matrix_t)(uint32_t displayId,
+                                                                     float outColorMatrix[16]);
+
 typedef struct gfxstream_multi_display_ops {
     gfxstream_multi_display_is_multi_display_enabled_t is_multi_display_enabled;
     gfxstream_multi_display_is_multi_display_window_t is_multi_window;
@@ -70,4 +75,7 @@ typedef struct gfxstream_multi_display_ops {
 
     gfxstream_multi_display_get_display_pose_t get_display_pose;
     gfxstream_multi_display_set_display_pose_t set_display_pose;
+
+    gfxstream_multi_display_get_color_transform_matrix_t get_color_transform_matrix;
+    gfxstream_multi_display_set_color_transform_matrix_t set_color_transform_matrix;
 } gfxstream_multi_display_ops;
