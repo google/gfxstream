@@ -356,6 +356,8 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
     int getDisplayPose(uint32_t displayId, int32_t* x, int32_t* y, uint32_t* w, uint32_t* h);
     int setDisplayPose(uint32_t displayId, int32_t x, int32_t y, uint32_t w, uint32_t h,
                        uint32_t dpi = 0);
+    int getDisplayColorTransform(uint32_t displayId, float outColorTransform[16]);
+    int setDisplayColorTransform(uint32_t displayId, const float colorTransform[16]);
     void getCombinedDisplaySize(int* w, int* h);
 
     HandleType getLastPostedColorBuffer() { return m_lastPostedColorBuffer; }
@@ -3307,6 +3309,17 @@ int FrameBuffer::Impl::setDisplayPose(uint32_t displayId, int32_t x, int32_t y, 
     return get_gfxstream_multi_display_operations().set_display_pose(displayId, x, y, w, h, dpi);
 }
 
+int FrameBuffer::Impl::getDisplayColorTransform(uint32_t displayId, float outColorTransform[16]) {
+    return get_gfxstream_multi_display_operations().get_color_transform_matrix(displayId,
+                                                                               outColorTransform);
+}
+
+int FrameBuffer::Impl::setDisplayColorTransform(uint32_t displayId,
+                                                const float colorTransform[16]) {
+    return get_gfxstream_multi_display_operations().set_color_transform_matrix(displayId,
+                                                                               colorTransform);
+}
+
 void FrameBuffer::Impl::sweepColorBuffersLocked() {
     HandleType handleToDestroy = 0;
     while (mOutstandingColorBufferDestroys.tryReceive(&handleToDestroy)) {
@@ -4871,6 +4884,14 @@ int FrameBuffer::getDisplayPose(uint32_t displayId, int32_t* x, int32_t* y, uint
 int FrameBuffer::setDisplayPose(uint32_t displayId, int32_t x, int32_t y, uint32_t w, uint32_t h,
                                 uint32_t dpi) {
     return mImpl->setDisplayPose(displayId, x, y, w, h, dpi);
+}
+
+int FrameBuffer::getDisplayColorTransform(uint32_t displayId, float outColorTransform[16]) {
+    return mImpl->getDisplayColorTransform(displayId, outColorTransform);
+}
+
+int FrameBuffer::setDisplayColorTransform(uint32_t displayId, const float colorTransform[16]) {
+    return mImpl->setDisplayColorTransform(displayId, colorTransform);
 }
 
 HandleType FrameBuffer::getLastPostedColorBuffer() { return mImpl->getLastPostedColorBuffer(); }

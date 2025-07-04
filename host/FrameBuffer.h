@@ -384,6 +384,8 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
                        uint32_t* h);
     int setDisplayPose(uint32_t displayId, int32_t x, int32_t y, uint32_t w, uint32_t h,
                        uint32_t dpi = 0);
+    int getDisplayColorTransform(uint32_t displayId, float outColorTransform[16]);
+    int setDisplayColorTransform(uint32_t displayId, const float colorTransform[16]);
     struct DisplayInfo {
         uint32_t cb;
         int32_t pos_x;

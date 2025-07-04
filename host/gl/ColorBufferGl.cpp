@@ -934,7 +934,7 @@ bool ColorBufferGl::blitFromCurrentReadBuffer() {
         s_gles2.glViewport(0, 0, m_width, m_height);
 
         // render m_blitTex
-        m_textureDraw->draw(m_blitTex, 0., 0, 0);
+        m_textureDraw->draw(m_blitTex, 0., 0, 0, nullptr);
 
         // Restore previous viewport.
         s_gles2.glViewport(vport[0], vport[1], vport[2], vport[3]);
@@ -1013,16 +1013,19 @@ void ColorBufferGl::waitSync(bool debug) {
     }
 }
 
-bool ColorBufferGl::post(GLuint tex, float rotation, float dx, float dy) {
+bool ColorBufferGl::post(GLuint tex, float rotation, float dx, float dy,
+                         const float* colorTransform) {
     // NOTE: Do not call m_helper->setupContext() here!
     waitSync();
-    return m_textureDraw->draw(tex, rotation, dx, dy);
+    return m_textureDraw->draw(tex, rotation, dx, dy, colorTransform);
 }
 
-bool ColorBufferGl::postViewportScaledWithOverlay(float rotation, float dx, float dy) {
+bool ColorBufferGl::postViewportScaledWithOverlay(float rotation, float dx, float dy,
+                                                  const float* colorTransform) {
     // NOTE: Do not call m_helper->setupContext() here!
     waitSync();
-    return m_textureDraw->drawWithOverlay(getViewportScaledTexture(), rotation, dx, dy);
+    return m_textureDraw->drawWithOverlay(getViewportScaledTexture(), rotation, dx, dy,
+                                          colorTransform);
 }
 
 void ColorBufferGl::readback(unsigned char* img, bool readbackBgra) {

@@ -14,6 +14,7 @@
 
 #include "gfxstream/host/display_operations.h"
 
+#include <cstring>
 #include <map>
 
 #include "gfxstream/common/logging.h"
@@ -29,6 +30,11 @@ static constexpr uint32_t kDeveloperDisplayIdBegin = 6;
 static constexpr uint32_t kMaxDisplays = 11;
 static constexpr uint32_t kInvalidDisplayId = 0xFFFFFFAB;
 
+struct DisplayColorTransform {
+    float mat[16];
+    DisplayColorTransform() : mat{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1} {}
+};
+
 struct DisplayInfo {
     int32_t pos_x = 0 ;
     int32_t pos_y = 0;
@@ -41,6 +47,7 @@ struct DisplayInfo {
     uint32_t cb = 0;
     int32_t rotation = 0;
     bool enabled = false;
+    DisplayColorTransform colorTransform;
 };
 
 std::map<uint32_t, DisplayInfo> sDisplayInfos;
@@ -262,6 +269,28 @@ int DefaultGfxstreamMultiDisplaySetDisplayPose(uint32_t id,
     return 0;
 }
 
+int DefaultGfxstreamWindowGetColorTransform(uint32_t id, float outColorMatrix[16]) {
+    auto it = sDisplayInfos.find(id);
+    if (it == sDisplayInfos.end()) {
+        GFXSTREAM_ERROR("Failed to get display color transform: cannot find display %d", id);
+        return -1;
+    }
+    DisplayInfo& info = it->second;
+    std::memcpy(outColorMatrix, info.colorTransform.mat, sizeof(info.colorTransform.mat));
+    return 0;
+}
+
+int DefaultGfxstreamWindowSetColorTransform(uint32_t id, const float colorMatrix[16]) {
+    auto it = sDisplayInfos.find(id);
+    if (it == sDisplayInfos.end()) {
+        GFXSTREAM_ERROR("Failed to set display color transform: cannot find display %d", id);
+        return -1;
+    }
+    DisplayInfo& info = it->second;
+    std::memcpy(info.colorTransform.mat, colorMatrix, sizeof(info.colorTransform.mat));
+    return 0;
+}
+
 gfxstream_multi_display_ops sGfxstreamMultiDisplayOps = {
     .is_multi_display_enabled = DefaultGfxstreamMultiDisplayIsMultiDisplayEnabled,
     .is_multi_window = DefaultGfxstreamMultiDisplayIsMultiDisplayWindow,
@@ -276,6 +305,8 @@ gfxstream_multi_display_ops sGfxstreamMultiDisplayOps = {
     .get_color_buffer_display = DefaultGfxstreamMultiDisplayGetColorBufferDisplay,
     .get_display_pose = DefaultGfxstreamMultiDisplayGetDisplayPose,
     .set_display_pose = DefaultGfxstreamMultiDisplaySetDisplayPose,
+    .get_color_transform_matrix = DefaultGfxstreamWindowGetColorTransform,
+    .set_color_transform_matrix = DefaultGfxstreamWindowSetColorTransform,
 };
 
 }  // namespace
