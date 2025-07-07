@@ -94,6 +94,8 @@ struct renderControl_client_context_t {
 	rcGetFBDisplayActiveConfig_client_proc_t rcGetFBDisplayActiveConfig;
 	rcSetProcessMetadata_client_proc_t rcSetProcessMetadata;
 	rcGetHostExtensionsString_client_proc_t rcGetHostExtensionsString;
+	rcGetDisplayColorTransform_client_proc_t rcGetDisplayColorTransform;
+	rcSetDisplayColorTransform_client_proc_t rcSetDisplayColorTransform;
 	virtual ~renderControl_client_context_t() {}
 
 	typedef renderControl_client_context_t *CONTEXT_ACCESSOR_TYPE(void);

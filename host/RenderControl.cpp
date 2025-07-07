@@ -1338,6 +1338,28 @@ static int rcSetDisplayPose(uint32_t displayId,
     return fb->setDisplayPose(displayId, x, y, w, h);
 }
 
+static int rcGetDisplayColorTransform(uint32_t displayId,
+                            mat4x4_ptr outColorTransform) {
+    FrameBuffer* fb = FrameBuffer::getFB();
+    if (!fb) {
+        GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
+        return -1;
+    }
+
+    return fb->getDisplayColorTransform(displayId, reinterpret_cast<float*>(outColorTransform));
+}
+
+static int rcSetDisplayColorTransform(uint32_t displayId,
+                            const mat4x4_ptr colorTransform) {
+    FrameBuffer* fb = FrameBuffer::getFB();
+    if (!fb) {
+        GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
+        return -1;
+    }
+
+    return fb->setDisplayColorTransform(displayId, reinterpret_cast<const float*>(colorTransform));
+}
+
 static int rcSetDisplayPoseDpi(uint32_t displayId,
                                int32_t x,
                                int32_t y,
@@ -1618,6 +1640,8 @@ void initRenderControlContext(renderControl_decoder_context_t *dec)
     dec->rcGetColorBufferDisplay = rcGetColorBufferDisplay;
     dec->rcGetDisplayPose = rcGetDisplayPose;
     dec->rcSetDisplayPose = rcSetDisplayPose;
+    dec->rcGetDisplayColorTransform = rcGetDisplayColorTransform;
+    dec->rcSetDisplayColorTransform = rcSetDisplayColorTransform;
     dec->rcSetColorBufferVulkanMode = rcSetColorBufferVulkanMode;
     dec->rcReadColorBufferYUV = rcReadColorBufferYUV;
     dec->rcIsSyncSignaled = rcIsSyncSignaled;

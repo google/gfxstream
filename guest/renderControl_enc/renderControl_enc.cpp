@@ -2781,6 +2781,94 @@ int rcGetHostExtensionsString_enc(void *self , uint32_t bufferSize, void* buffer
 	return retval;
 }
 
+int rcGetDisplayColorTransform_enc(void *self , uint32_t displayId, mat4x4_ptr outColorTransformMatrix)
+{
+	ENCODER_DEBUG_LOG("rcGetDisplayColorTransform(displayId:0x%08x, outColorTransformMatrix:%d)", displayId, outColorTransformMatrix);
+	AEMU_SCOPED_TRACE("rcGetDisplayColorTransform encode");
+
+	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	const unsigned int __size_outColorTransformMatrix = 512;
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 4 + __size_outColorTransformMatrix + 1*4;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_rcGetDisplayColorTransform;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &displayId, 4); ptr += 4;
+	memcpy(ptr, &__size_outColorTransformMatrix, 4); ptr += 4;
+	memcpy(ptr, outColorTransformMatrix, __size_outColorTransformMatrix);ptr += __size_outColorTransformMatrix;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+
+	int retval;
+	stream->readback(&retval, 4);
+	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
+	if (useChecksum) {
+		unsigned char *checksumBufPtr = NULL;
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
+		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
+		stream->readback(checksumBufPtr, checksumSize);
+		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
+			GFXSTREAM_FATAL("rcGetDisplayColorTransform: GL communication error, please report this issue to b.android.com.\n");
+		}
+	}
+	return retval;
+}
+
+int rcSetDisplayColorTransform_enc(void *self , uint32_t displayId, const mat4x4_ptr colorTransformMatrix)
+{
+	ENCODER_DEBUG_LOG("rcSetDisplayColorTransform(displayId:0x%08x, colorTransformMatrix:%d)", displayId, colorTransformMatrix);
+	AEMU_SCOPED_TRACE("rcSetDisplayColorTransform encode");
+
+	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	gfxstream::guest::ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	const unsigned int __size_colorTransformMatrix = 512;
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 4 + __size_colorTransformMatrix + 1*4;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_rcSetDisplayColorTransform;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &displayId, 4); ptr += 4;
+	memcpy(ptr, &__size_colorTransformMatrix, 4); ptr += 4;
+	memcpy(ptr, colorTransformMatrix, __size_colorTransformMatrix);ptr += __size_colorTransformMatrix;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+
+	int retval;
+	stream->readback(&retval, 4);
+	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
+	if (useChecksum) {
+		unsigned char *checksumBufPtr = NULL;
+		unsigned char checksumBuf[gfxstream::guest::ChecksumCalculator::kMaxChecksumSize];
+		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
+		stream->readback(checksumBufPtr, checksumSize);
+		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
+			GFXSTREAM_FATAL("rcSetDisplayColorTransform: GL communication error, please report this issue to b.android.com.\n");
+		}
+	}
+	return retval;
+}
+
 }  // namespace
 
 renderControl_encoder_context_t::renderControl_encoder_context_t(IOStream *stream, ChecksumCalculator *checksumCalculator)
@@ -2858,5 +2946,7 @@ renderControl_encoder_context_t::renderControl_encoder_context_t(IOStream *strea
 	this->rcGetFBDisplayActiveConfig = &rcGetFBDisplayActiveConfig_enc;
 	this->rcSetProcessMetadata = &rcSetProcessMetadata_enc;
 	this->rcGetHostExtensionsString = &rcGetHostExtensionsString_enc;
+	this->rcGetDisplayColorTransform = &rcGetDisplayColorTransform_enc;
+	this->rcSetDisplayColorTransform = &rcSetDisplayColorTransform_enc;
 }
 

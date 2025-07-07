@@ -19,3 +19,5 @@
 #include "gfxstream/host/glUtils.h"
 
 using RenderControlByte = char;
+
+typedef float* mat4x4_ptr;
