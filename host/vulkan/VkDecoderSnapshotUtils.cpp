@@ -15,8 +15,9 @@
 #include "vulkan/VkDecoderSnapshotUtils.h"
 
 #include "VkCommonOperations.h"
-#include "gfxstream/common/logging.h"
 #include "VkUtils.h"
+#include "VulkanBoxedHandles.h"
+#include "gfxstream/common/logging.h"
 
 namespace gfxstream {
 namespace vk {
@@ -605,6 +606,44 @@ void saveBufferContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkBuff
     dispatch->vkUnmapMemory(stateBlock->device, readbackMemory);
     dispatch->vkDestroyBuffer(stateBlock->device, readbackBuffer, nullptr);
     dispatch->vkFreeMemory(stateBlock->device, readbackMemory, nullptr);
+    dispatch->vkFreeCommandBuffers(stateBlock->device, stateBlock->commandPool, 1, &commandBuffer);
+}
+
+void setEventInQueue(StateBlock* stateBlock, VkEvent event, uint64_t eventflags) {
+    VulkanDispatch* dispatch = stateBlock->deviceDispatch;
+    VkCommandBufferAllocateInfo allocInfo{
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+        .commandPool = stateBlock->commandPool,
+        .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+        .commandBufferCount = 1,
+    };
+    VkCommandBuffer commandBuffer;
+    VK_CHECK(dispatch->vkAllocateCommandBuffers(stateBlock->device, &allocInfo, &commandBuffer));
+    VkFenceCreateInfo fenceCreateInfo{
+        .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+    };
+    VkFence fence;
+    VK_CHECK(dispatch->vkCreateFence(stateBlock->device, &fenceCreateInfo, nullptr, &fence));
+    VkCommandBufferBeginInfo beginInfo{
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+    };
+    if (dispatch->vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
+        GFXSTREAM_FATAL("Failed to start command buffer on snapshot load");
+    }
+    dispatch->vkCmdSetEvent(commandBuffer, event, eventflags);
+    VkSubmitInfo submitInfo = {
+        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        .commandBufferCount = 1,
+        .pCommandBuffers = &commandBuffer,
+    };
+    VK_CHECK(dispatch->vkEndCommandBuffer(commandBuffer));
+    VK_CHECK(dispatch->vkQueueSubmit(stateBlock->queue, 1, &submitInfo, fence));
+    VK_CHECK(dispatch->vkWaitForFences(stateBlock->device, 1, &fence, VK_TRUE, 3000000000L));
+    VK_CHECK(dispatch->vkResetFences(stateBlock->device, 1, &fence));
+    GFXSTREAM_DEBUG("load in queue 0x%llx: event 0x%llx", (unsigned long long)(stateBlock->queue),
+                    (unsigned long long)event);
+
+    dispatch->vkDestroyFence(stateBlock->device, fence, nullptr);
     dispatch->vkFreeCommandBuffers(stateBlock->device, stateBlock->commandPool, 1, &commandBuffer);
 }
 
