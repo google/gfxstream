@@ -44,6 +44,8 @@ void TypeFactory::initBaseTypes() {
     ADD_TYPE("int", 32, "%d", false);
     ADD_TYPE("float", 32, "%d", false);
     ADD_TYPE("short", 16, "%d", false);
+    ADD_TYPE("const mat4x4_ptr", 512, "%d", true);
+    ADD_TYPE("mat4x4_ptr", 512, "%d", true);
 }
 
 int TypeFactory::initFromFile(const std::string& filename) {
@@ -127,7 +129,7 @@ int TypeFactory::initFromFile(const std::string& filename) {
 
         if (getVarTypeByName(name)->id() != 0) {
             fprintf(stderr,
-                    "Warining: %d : type %s is already known, definition in line %d is taken\n", lc,
+                    "Warning: %d : type %s is already known, definition in line %d is taken\n", lc,
                     name.c_str(), lc);
         }
         g_varMap.insert(std::pair<std::string, VarType>(

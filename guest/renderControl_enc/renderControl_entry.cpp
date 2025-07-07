@@ -89,6 +89,8 @@ extern "C" {
 	int rcGetFBDisplayActiveConfig();
 	void rcSetProcessMetadata(char* key, RenderControlByte* valuePtr, uint32_t valueSize);
 	int rcGetHostExtensionsString(uint32_t bufferSize, void* buffer);
+	int rcGetDisplayColorTransform(uint32_t displayId, mat4x4_ptr outColorTransformMatrix);
+	int rcSetDisplayColorTransform(uint32_t displayId, const mat4x4_ptr colorTransformMatrix);
 };
 
 #ifndef GET_CONTEXT
@@ -515,5 +517,17 @@ int rcGetHostExtensionsString(uint32_t bufferSize, void* buffer)
 {
 	GET_CONTEXT;
 	return ctx->rcGetHostExtensionsString(ctx, bufferSize, buffer);
+}
+
+int rcGetDisplayColorTransform(uint32_t displayId, mat4x4_ptr outColorTransformMatrix)
+{
+	GET_CONTEXT;
+	return ctx->rcGetDisplayColorTransform(ctx, displayId, outColorTransformMatrix);
+}
+
+int rcSetDisplayColorTransform(uint32_t displayId, const mat4x4_ptr colorTransformMatrix)
+{
+	GET_CONTEXT;
+	return ctx->rcSetDisplayColorTransform(ctx, displayId, colorTransformMatrix);
 }
 

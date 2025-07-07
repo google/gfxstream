@@ -87,7 +87,9 @@
 #define OP_rcGetFBDisplayActiveConfig 					10067
 #define OP_rcSetProcessMetadata 					10068
 #define OP_rcGetHostExtensionsString 					10069
-#define OP_last 					10070
+#define OP_rcGetDisplayColorTransform 					10070
+#define OP_rcSetDisplayColorTransform 					10071
+#define OP_last 					10072
 
 
 #endif
