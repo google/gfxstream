@@ -1214,7 +1214,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                        sizeof(VkPipelineStageFlags));
                 *readStreamPtrPtr += sizeof(VkPipelineStageFlags);
                 if (CC_LIKELY(vk)) {
-                    vk->vkCmdSetEvent((VkCommandBuffer)dispatchHandle, event, stageMask);
+                    this->on_vkCmdSetEvent(pool, snapshotApiCallHandle,
+                                           (VkCommandBuffer)(boxed_dispatchHandle), event,
+                                           stageMask);
                 }
                 if (snapshotsEnabled()) {
                     this->snapshot()->vkCmdSetEvent(pool, snapshotApiCallHandle, nullptr, 0,
@@ -1236,7 +1238,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                        sizeof(VkPipelineStageFlags));
                 *readStreamPtrPtr += sizeof(VkPipelineStageFlags);
                 if (CC_LIKELY(vk)) {
-                    vk->vkCmdResetEvent((VkCommandBuffer)dispatchHandle, event, stageMask);
+                    this->on_vkCmdResetEvent(pool, snapshotApiCallHandle,
+                                             (VkCommandBuffer)(boxed_dispatchHandle), event,
+                                             stageMask);
                 }
                 if (snapshotsEnabled()) {
                     this->snapshot()->vkCmdResetEvent(pool, snapshotApiCallHandle, nullptr, 0,

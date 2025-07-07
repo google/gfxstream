@@ -32,6 +32,9 @@ void loadImageContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkImage
                       const ImageInfo* imageInfo);
 void saveBufferContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkBuffer buffer,
                        const BufferInfo* bufferInfo);
+
+void setEventInQueue(StateBlock* stateBlock, VkEvent event, uint64_t eventflags);
+
 void loadBufferContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkBuffer buffer,
                        const BufferInfo* bufferInfo);
 }  // namespace vk
