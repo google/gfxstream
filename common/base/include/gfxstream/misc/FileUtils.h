@@ -17,6 +17,7 @@
 #include "gfxstream/Optional.h"
 
 #include <string>
+#include <cstdint>
 
 namespace gfxstream {
 

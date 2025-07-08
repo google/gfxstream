@@ -48,6 +48,11 @@ vulkan_server_cpp_args = [
   '-Wno-uninitialized',
   '-DVK_GFXSTREAM_STRUCTURE_TYPE_EXT',
 ]
+if host_machine.system() == 'windows'
+  vulkan_server_cpp_args += '-DVK_USE_PLATFORM_WIN32_KHR'
+  vulkan_server_cpp_args += '-Wa,-mbig-obj'
+endif
+
 
 # Shouldn't these be defined by standard Vulkan headers?
 if host_machine.system() == 'darwin'

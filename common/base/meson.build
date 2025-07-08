@@ -9,11 +9,9 @@ files_lib_common_base = files(
     'FileUtils.cpp',
     'MessageChannel.cpp',
     'PathUtils.cpp',
-    'SharedMemory_posix.cpp',
     'StringFormat.cpp',
     'System.cpp',
     'Tracing.cpp',
-    'Thread_pthread.cpp',
 )
 
 
@@ -23,9 +21,21 @@ else
   files_lib_common_base += files('UdmabufCreator_stub.cpp')
 endif
 
+common_base_deps = []
+
+if host_machine.system() == 'windows'
+  files_lib_common_base += 'SharedMemory_win32.cpp'
+  files_lib_common_base += 'Thread_win32.cpp'
+  files_lib_common_base += 'Win32UnicodeString.cpp'
+else
+  files_lib_common_base += 'SharedMemory_posix.cpp'
+  files_lib_common_base += 'Thread_pthread.cpp'
+endif
+
 lib_common_base = static_library(
   'common_base',
   files_lib_common_base,
+  dependencies: common_base_deps, 
   cpp_args: gfxstream_host_args,
   include_directories: [
     inc_common_base,
