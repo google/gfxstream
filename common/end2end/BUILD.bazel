@@ -62,6 +62,7 @@ cc_test(
     data = [
         ":gfxstream_end2end_testdata",
     ],
+    cxxopts = ["-std=c++20"],
     defines = [
         "ANDROID",
         "VK_USE_PLATFORM_ANDROID_KHR",
