@@ -2432,7 +2432,7 @@ TEST_P(GfxstreamEnd2EndVkTest, GetFenceStatusOnExternalFence) {
         .fd = qsriSyncFd,
     };
     auto importResult = device->importFenceFdKHR(&importFenceInfo);
-    ASSERT_THAT(qsriResult, Eq(VK_SUCCESS));
+    ASSERT_THAT(importResult, IsVkSuccess());
 
     const auto kMaxTimeout = std::chrono::seconds(10);
 
