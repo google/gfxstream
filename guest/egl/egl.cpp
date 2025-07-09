@@ -1175,7 +1175,7 @@ EGLBoolean eglChooseConfig(EGLDisplay dpy, const EGLint *attrib_list, EGLConfig 
         attrib_list = backup_attribs;
     }
 
-    uint32_t* tempConfigs[config_size];
+    uint32_t* tempConfigs = new uint32_t[config_size];
     DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_FALSE);
     *num_config = rcEnc->rcChooseConfig(rcEnc, (EGLint*)attrib_list,
             attribs_size * sizeof(EGLint), (uint32_t*)tempConfigs, config_size);
@@ -1187,6 +1187,7 @@ EGLBoolean eglChooseConfig(EGLDisplay dpy, const EGLint *attrib_list, EGLConfig 
             case EGL_BAD_ATTRIBUTE:
                 setErrorReturn(EGL_BAD_ATTRIBUTE, EGL_FALSE);
             default:
+                delete [] tempConfigs;
                 return EGL_FALSE;
         }
     }
@@ -1198,7 +1199,7 @@ EGLBoolean eglChooseConfig(EGLDisplay dpy, const EGLint *attrib_list, EGLConfig 
             configs[i] = guestConfig;
         }
     }
-
+    delete [] tempConfigs;
     return EGL_TRUE;
 }
 
