@@ -285,6 +285,7 @@ cc_test(
     srcs = [
         "FrameBuffer_unittest.cpp",
     ],
+    copts = GFXSTREAM_HOST_COPTS,
     deps = [
         ":gfxstream_backend_static",
         "//common/base:gfxstream_common_base",
@@ -301,6 +302,7 @@ cc_test(
     srcs = [
         "VsyncThread_unittest.cpp",
     ],
+    copts = GFXSTREAM_HOST_COPTS,
     deps = [
         ":gfxstream_backend_static",
         "//host/testlibs/support:gfxstream_host_testing_support",
