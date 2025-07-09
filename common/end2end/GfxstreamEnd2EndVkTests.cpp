@@ -70,18 +70,21 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
         const vkhpp::ImageCreateInfo imageCreateInfo = {
             .pNext = &imageNativeBufferInfo,
             .imageType = vkhpp::ImageType::e2D,
-            .extent.width = width,
-            .extent.height = height,
-            .extent.depth = 1,
+            .format = vkhpp::Format::eR8G8B8A8Unorm,
+            .extent =
+                {
+                    .width = width,
+                    .height = height,
+                    .depth = 1,
+                },
             .mipLevels = 1,
             .arrayLayers = 1,
-            .format = vkhpp::Format::eR8G8B8A8Unorm,
+            .samples = vkhpp::SampleCountFlagBits::e1,
             .tiling = vkhpp::ImageTiling::eOptimal,
-            .initialLayout = vkhpp::ImageLayout::eUndefined,
             .usage = vkhpp::ImageUsageFlagBits::eSampled | vkhpp::ImageUsageFlagBits::eTransferDst |
                      vkhpp::ImageUsageFlagBits::eTransferSrc,
             .sharingMode = vkhpp::SharingMode::eExclusive,
-            .samples = vkhpp::SampleCountFlagBits::e1,
+            .initialLayout = vkhpp::ImageLayout::eUndefined,
         };
         auto image = device->createImageUnique(imageCreateInfo).value;
 
@@ -551,8 +554,8 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
         }));
 
         return ImageWithMemory{
-            .image = std::move(image),
             .imageMemory = std::move(imageMemory),
+            .image = std::move(image),
             .imageView = std::move(imageView),
         };
     }
@@ -1150,9 +1153,9 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
 
         std::vector<vkhpp::WriteDescriptorSet> descriptorSetWrites;
         vkhpp::DescriptorImageInfo descriptorImageInfo = {
+            .sampler = *ahbImage.imageSampler,
             .imageView = *ahbImage.imageView,
             .imageLayout = vkhpp::ImageLayout::eShaderReadOnlyOptimal,
-            .sampler = *ahbImage.imageSampler,
         };
         descriptorSetWrites.emplace_back(vkhpp::WriteDescriptorSet{
             .dstSet = *descriptorSet0.ds,
@@ -1267,19 +1270,22 @@ TEST_P(GfxstreamEnd2EndVkTest, ImportAHB) {
     const vkhpp::ImageCreateInfo imageCreateInfo = {
         .pNext = &imageNativeBufferInfo,
         .imageType = vkhpp::ImageType::e2D,
-        .extent.width = width,
-        .extent.height = height,
-        .extent.depth = 1,
+        .format = vkhpp::Format::eR8G8B8A8Unorm,
+        .extent =
+            {
+                .width = width,
+                .height = height,
+                .depth = 1,
+            },
         .mipLevels = 1,
         .arrayLayers = 1,
-        .format = vkhpp::Format::eR8G8B8A8Unorm,
+        .samples = vkhpp::SampleCountFlagBits::e1,
         .tiling = vkhpp::ImageTiling::eOptimal,
-        .initialLayout = vkhpp::ImageLayout::eUndefined,
         .usage = vkhpp::ImageUsageFlagBits::eSampled |
                  vkhpp::ImageUsageFlagBits::eTransferDst |
                  vkhpp::ImageUsageFlagBits::eTransferSrc,
         .sharingMode = vkhpp::SharingMode::eExclusive,
-        .samples = vkhpp::SampleCountFlagBits::e1,
+        .initialLayout = vkhpp::ImageLayout::eUndefined,
     };
     auto image = device->createImageUnique(imageCreateInfo).value;
 
@@ -1331,8 +1337,8 @@ TEST_P(GfxstreamEnd2EndVkTest, ImportAHB) {
     ASSERT_THAT(stagingBufferMemory, IsValidHandle());
 
     const vkhpp::CommandBufferAllocateInfo commandBufferAllocateInfo = {
-        .level = vkhpp::CommandBufferLevel::ePrimary,
         .commandPool = *commandPool,
+        .level = vkhpp::CommandBufferLevel::ePrimary,
         .commandBufferCount = 1,
     };
     auto commandBuffers = device->allocateCommandBuffersUnique(commandBufferAllocateInfo).value;
@@ -1386,19 +1392,22 @@ TEST_P(GfxstreamEnd2EndVkTest, DeferredImportAHB) {
     const vkhpp::ImageCreateInfo imageCreateInfo = {
         .pNext = nullptr,
         .imageType = vkhpp::ImageType::e2D,
-        .extent.width = width,
-        .extent.height = height,
-        .extent.depth = 1,
+        .format = vkhpp::Format::eR8G8B8A8Unorm,
+        .extent =
+            {
+                .width = width,
+                .height = height,
+                .depth = 1,
+            },
         .mipLevels = 1,
         .arrayLayers = 1,
-        .format = vkhpp::Format::eR8G8B8A8Unorm,
+        .samples = vkhpp::SampleCountFlagBits::e1,
         .tiling = vkhpp::ImageTiling::eOptimal,
-        .initialLayout = vkhpp::ImageLayout::eUndefined,
         .usage = vkhpp::ImageUsageFlagBits::eSampled |
                  vkhpp::ImageUsageFlagBits::eTransferDst |
                  vkhpp::ImageUsageFlagBits::eTransferSrc,
         .sharingMode = vkhpp::SharingMode::eExclusive,
-        .samples = vkhpp::SampleCountFlagBits::e1,
+        .initialLayout = vkhpp::ImageLayout::eUndefined,
     };
     auto image = device->createImageUnique(imageCreateInfo).value;
 
@@ -1848,8 +1857,8 @@ TEST_P(GfxstreamEnd2EndVkTest, DeviceCreateWithDeviceGroup) {
     };
     const vkhpp::DeviceCreateInfo deviceCreateInfo = {
         .pNext = &deviceGroupDeviceCreateInfo,
-        .pQueueCreateInfos = &deviceQueueCreateInfo,
         .queueCreateInfoCount = 1,
+        .pQueueCreateInfos = &deviceQueueCreateInfo,
     };
     auto device2 = GFXSTREAM_ASSERT_VKHPP_RV(physicalDevice.createDeviceUnique(deviceCreateInfo));
     ASSERT_THAT(device2, IsValidHandle());
@@ -2122,14 +2131,14 @@ TEST_P(GfxstreamEnd2EndVkTest, MultiThreadedResetCommandBuffer) {
             }
 
             const vkhpp::CommandPoolCreateInfo commandPoolCreateInfo = {
-                .queueFamilyIndex = queueFamilyIndex,
                 .flags = vkhpp::CommandPoolCreateFlagBits::eResetCommandBuffer,
+                .queueFamilyIndex = queueFamilyIndex,
             };
             auto commandPool = device->createCommandPoolUnique(commandPoolCreateInfo).value;
 
             const vkhpp::CommandBufferAllocateInfo commandBufferAllocateInfo = {
-                .level = vkhpp::CommandBufferLevel::ePrimary,
                 .commandPool = *commandPool,
+                .level = vkhpp::CommandBufferLevel::ePrimary,
                 .commandBufferCount = 1,
             };
             auto commandBuffers = device->allocateCommandBuffersUnique(commandBufferAllocateInfo).value;
@@ -2265,8 +2274,8 @@ TEST_P(GfxstreamEnd2EndVkTest, UseDoubleQueuesAndSynchronizeCorrectly) {
     };
     const vkhpp::DeviceCreateInfo deviceCreateInfo = {
         .pNext = nullptr,
-        .pQueueCreateInfos = &deviceQueueCreateInfo,
         .queueCreateInfoCount = 1,
+        .pQueueCreateInfos = &deviceQueueCreateInfo,
         .enabledLayerCount = 0,
         .ppEnabledLayerNames = nullptr,
         .enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size()),
@@ -2322,11 +2331,11 @@ TEST_P(GfxstreamEnd2EndVkTest, UseDoubleQueuesAndSynchronizeCorrectly) {
                                          .pSignalSemaphores = &*semaphore};
 
     const vkhpp::PipelineStageFlags waitStage = vkhpp::PipelineStageFlagBits::eTransfer;
-    vkhpp::SubmitInfo submitInfoCopy = {.commandBufferCount = 1,
-                                        .pCommandBuffers = &*commandBufferCopy,
-                                        .waitSemaphoreCount = 1,
+    vkhpp::SubmitInfo submitInfoCopy = {.waitSemaphoreCount = 1,
                                         .pWaitSemaphores = &*semaphore,
-                                        .pWaitDstStageMask = &waitStage};
+                                        .pWaitDstStageMask = &waitStage,
+                                        .commandBufferCount = 1,
+                                        .pCommandBuffers = &*commandBufferCopy};
     const vkhpp::CommandBufferBeginInfo commandBufferBeginInfo = {
         .flags = vkhpp::CommandBufferUsageFlagBits::eOneTimeSubmit,
     };
@@ -2382,18 +2391,21 @@ TEST_P(GfxstreamEnd2EndVkTest, GetFenceStatusOnExternalFence) {
     const vkhpp::ImageCreateInfo imageCreateInfo = {
         .pNext = &imageNativeBufferInfo,
         .imageType = vkhpp::ImageType::e2D,
-        .extent.width = width,
-        .extent.height = height,
-        .extent.depth = 1,
+        .format = vkhpp::Format::eR8G8B8A8Unorm,
+        .extent =
+            {
+                .width = width,
+                .height = height,
+                .depth = 1,
+            },
         .mipLevels = 1,
         .arrayLayers = 1,
-        .format = vkhpp::Format::eR8G8B8A8Unorm,
+        .samples = vkhpp::SampleCountFlagBits::e1,
         .tiling = vkhpp::ImageTiling::eOptimal,
-        .initialLayout = vkhpp::ImageLayout::eUndefined,
         .usage = vkhpp::ImageUsageFlagBits::eSampled | vkhpp::ImageUsageFlagBits::eTransferDst |
                  vkhpp::ImageUsageFlagBits::eTransferSrc,
         .sharingMode = vkhpp::SharingMode::eExclusive,
-        .samples = vkhpp::SampleCountFlagBits::e1,
+        .initialLayout = vkhpp::ImageLayout::eUndefined,
     };
     auto image = device->createImageUnique(imageCreateInfo).value;
 

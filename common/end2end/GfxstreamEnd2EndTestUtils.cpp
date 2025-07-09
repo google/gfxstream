@@ -85,8 +85,8 @@ void readImageData(vkhpp::Image image, uint32_t width, uint32_t height,
     auto commandPool = device->createCommandPoolUnique(commandPoolCreateInfo).value;
     ASSERT_THAT(commandPool, IsValidHandle());
     const vkhpp::CommandBufferAllocateInfo commandBufferAllocateInfo = {
-        .level = vkhpp::CommandBufferLevel::ePrimary,
         .commandPool = *commandPool,
+        .level = vkhpp::CommandBufferLevel::ePrimary,
         .commandBufferCount = 1,
     };
     auto readbackCommandBuffers =
