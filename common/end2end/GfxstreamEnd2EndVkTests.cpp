@@ -2450,8 +2450,8 @@ TEST_P(GfxstreamEnd2EndVkTest, GetFenceStatusOnExternalFence) {
     }
 }
 
-INSTANTIATE_TEST_CASE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndVkTest,
-                        ::testing::ValuesIn(GenerateTestCases()), &GetTestName);
+INSTANTIATE_TEST_SUITE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndVkTest,
+                         ::testing::ValuesIn(GenerateTestCases()), &GetTestName);
 
 }  // namespace
 }  // namespace tests
