@@ -424,8 +424,8 @@ struct egl_window_surface_t : public egl_surface_t {
 
     virtual ~egl_window_surface_t();
 
-    virtual void       setSwapInterval(int interval);
-    virtual EGLBoolean swapBuffers();
+    virtual void       setSwapInterval(int interval) override;
+    virtual EGLBoolean swapBuffers() override;
 
     virtual     void        setCollectingTimestamps(EGLint collect)
         override { collectingTimestamps = (collect == EGL_TRUE) ? true : false; }
@@ -797,8 +797,8 @@ struct egl_pbuffer_surface_t : public egl_surface_t {
 
     virtual ~egl_pbuffer_surface_t();
 
-    virtual void       setSwapInterval(int interval) { (void)interval; }
-    virtual EGLBoolean swapBuffers() { return EGL_TRUE; }
+    virtual void       setSwapInterval(int interval) override { (void)interval; }
+    virtual EGLBoolean swapBuffers() override { return EGL_TRUE; }
 
     uint32_t getRcColorBuffer() { return rcColorBuffer; }
 
