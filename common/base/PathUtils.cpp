@@ -407,7 +407,7 @@ static int GetWin32Mode(int mode) {
 
 bool pathExists(const char* path) {
 #ifdef _WIN32
-    return _waccess(win32Path(path).c_str(), GetWin32Mode(F_OK));
+    return 0 == _waccess(win32Path(path).c_str(), GetWin32Mode(F_OK));
 #else
     return 0 == access(path, F_OK);
 #endif
