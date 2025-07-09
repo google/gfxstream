@@ -695,6 +695,14 @@ class VkDecoderGlobalState {
         const VkDescriptorImageInfo* pImageInfos, const VkDescriptorBufferInfo* pBufferInfos,
         const VkBufferView* pBufferViews, const uint8_t* pInlineUniformBlockData);
 
+    void on_vkCmdSetEvent(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle,
+                          VkCommandBuffer commandBuffer, VkEvent event,
+                          VkPipelineStageFlags stageMask);
+
+    void on_vkCmdResetEvent(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle,
+                            VkCommandBuffer commandBuffer, VkEvent event,
+                            VkPipelineStageFlags stageMask);
+
     VkResult on_vkBeginCommandBuffer(gfxstream::base::BumpPool* pool,
                                      VkSnapshotApiCallHandle apiCallHandle,
                                      VkCommandBuffer commandBuffer,
@@ -774,6 +782,20 @@ class VkDecoderGlobalState {
                                      VkCommandBuffer commandBuffer,
                                      const VkRenderPassBeginInfo* pRenderPassBegin,
                                      const VkSubpassBeginInfo* pSubpassBeginInfo);
+
+    VkResult on_vkCreateEvent(gfxstream::base::BumpPool* pool,
+                              VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+                              const VkEventCreateInfo* pCreateInfo,
+                              const VkAllocationCallbacks* pAllocator, VkEvent* pEvent);
+
+    void on_vkDestroyEvent(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle,
+                           VkDevice device, VkEvent event, const VkAllocationCallbacks* pAllocator);
+
+    VkResult on_vkSetEvent(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle,
+                           VkDevice device, VkEvent event);
+
+    VkResult on_vkResetEvent(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle,
+                             VkDevice device, VkEvent event);
 
     VkResult on_vkCreateFramebuffer(gfxstream::base::BumpPool* pool,
                                     VkSnapshotApiCallHandle apiCallHandle, VkDevice device,

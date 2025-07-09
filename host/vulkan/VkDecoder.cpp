@@ -3008,14 +3008,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 const VkEventCreateInfo* pCreateInfo;
                 const VkAllocationCallbacks* pAllocator;
                 VkEvent* pEvent;
-                // Begin non wrapped dispatchable handle unboxing for device;
+                // Begin global wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
-                auto unboxed_device = unbox_VkDevice(device);
                 auto vk = dispatch_VkDevice(device);
-                // End manual dispatchable handle unboxing for device;
                 vkReadStream->alloc((void**)&pCreateInfo, sizeof(const VkEventCreateInfo));
                 reservedunmarshal_VkEventCreateInfo(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                     (VkEventCreateInfo*)(pCreateInfo),
@@ -3052,22 +3050,21 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 VkResult vkCreateEvent_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
-                    vkCreateEvent_VkResult_return =
-                        vk->vkCreateEvent(unboxed_device, pCreateInfo, pAllocator, pEvent);
+                    vkCreateEvent_VkResult_return = m_state->on_vkCreateEvent(
+                        &m_pool, snapshotApiCallHandle, device, pCreateInfo, pAllocator, pEvent);
                 }
                 if ((vkCreateEvent_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
                 m_state->on_CheckOutOfMemory(vkCreateEvent_VkResult_return, opcode, context);
                 vkStream->unsetHandleMapping();
-                // Begin auto non dispatchable handle create for pEvent;
-                if (vkCreateEvent_VkResult_return == VK_SUCCESS)
-                    vkStream->setHandleMapping(&m_boxedHandleCreateMapping);
+                // Begin manual non dispatchable handle create for pEvent;
+                vkStream->unsetHandleMapping();
                 uint64_t cgen_var_3;
                 static_assert(8 == sizeof(VkEvent),
                               "handle map overwrite requires VkEvent to be 8 bytes long");
                 vkStream->handleMapping()->mapHandles_VkEvent((VkEvent*)pEvent, 1);
                 vkStream->write((VkEvent*)pEvent, 8 * 1);
-                // Begin auto non dispatchable handle create for pEvent;
+                // Begin manual non dispatchable handle create for pEvent;
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreateEvent_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
@@ -3086,14 +3083,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkDevice device;
                 VkEvent event;
                 const VkAllocationCallbacks* pAllocator;
-                // Begin non wrapped dispatchable handle unboxing for device;
+                // Begin global wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
-                auto unboxed_device = unbox_VkDevice(device);
                 auto vk = dispatch_VkDevice(device);
-                // End manual dispatchable handle unboxing for device;
                 // Begin manual non dispatchable handle destroy unboxing for event;
                 VkEvent boxed_event_preserve;
                 uint64_t cgen_var_1;
@@ -3122,7 +3117,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
-                    vk->vkDestroyEvent(unboxed_device, event, pAllocator);
+                    m_state->on_vkDestroyEvent(&m_pool, snapshotApiCallHandle, device, event,
+                                               pAllocator);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
@@ -3181,14 +3177,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY, "VkDecoder vkSetEvent");
                 VkDevice device;
                 VkEvent event;
-                // Begin non wrapped dispatchable handle unboxing for device;
+                // Begin global wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
-                auto unboxed_device = unbox_VkDevice(device);
                 auto vk = dispatch_VkDevice(device);
-                // End manual dispatchable handle unboxing for device;
                 uint64_t cgen_var_1;
                 memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
@@ -3199,7 +3193,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 VkResult vkSetEvent_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
-                    vkSetEvent_VkResult_return = vk->vkSetEvent(unboxed_device, event);
+                    vkSetEvent_VkResult_return =
+                        m_state->on_vkSetEvent(&m_pool, snapshotApiCallHandle, device, event);
                 }
                 if ((vkSetEvent_VkResult_return) == VK_ERROR_DEVICE_LOST) m_state->on_DeviceLost();
                 m_state->on_CheckOutOfMemory(vkSetEvent_VkResult_return, opcode, context);
@@ -3220,14 +3215,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY, "VkDecoder vkResetEvent");
                 VkDevice device;
                 VkEvent event;
-                // Begin non wrapped dispatchable handle unboxing for device;
+                // Begin global wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
-                auto unboxed_device = unbox_VkDevice(device);
                 auto vk = dispatch_VkDevice(device);
-                // End manual dispatchable handle unboxing for device;
                 uint64_t cgen_var_1;
                 memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
@@ -3238,7 +3231,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 VkResult vkResetEvent_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
-                    vkResetEvent_VkResult_return = vk->vkResetEvent(unboxed_device, event);
+                    vkResetEvent_VkResult_return =
+                        m_state->on_vkResetEvent(&m_pool, snapshotApiCallHandle, device, event);
                 }
                 if ((vkResetEvent_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
