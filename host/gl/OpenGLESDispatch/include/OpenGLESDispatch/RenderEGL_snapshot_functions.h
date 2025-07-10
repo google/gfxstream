@@ -19,7 +19,7 @@
 #define RENDER_EGL_SNAPSHOT_FUNCTIONS_H
 
 #include <EGL/egl.h>
-
+#include <EGL/eglext.h>
 #define LIST_RENDER_EGL_SNAPSHOT_FUNCTIONS(X) \
   X(EGLConfig, eglLoadConfig, (EGLDisplay display, EGLStreamKHR stream)) \
   X(EGLContext, eglLoadContext, (EGLDisplay display, const EGLint * attrib_list, EGLStreamKHR stream)) \

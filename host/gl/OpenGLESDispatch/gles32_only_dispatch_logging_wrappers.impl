@@ -25,7 +25,7 @@ void glDebugMessageInsert_dispatchLoggingWrapper(GLenum source, GLenum type, GLu
 	GLDispatch::glDebugMessageInsert_underlying(source, type, id, severity, length, buf);
 }
 
-void glDebugMessageCallback_dispatchLoggingWrapper(GLDEBUGPROC callback, const void * userParam) {
+void glDebugMessageCallback_dispatchLoggingWrapper(GFXSTREAM_GLES32_GLDEBUGPROC callback, const void * userParam) {
 	DISPATCH_DEBUG_LOG("glDebugMessageCallback(callback:%p, userParam:%p)", callback, userParam);
 	GLDispatch::glDebugMessageCallback_underlying(callback, userParam);
 }
