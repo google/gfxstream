@@ -196,7 +196,7 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
             }
 
             auto rendernodeFd = stream->getRendernodeFd();
-            auto device = VirtGpuDevice::getInstance(capset);
+            /* auto device = */ VirtGpuDevice::getInstance(capset);
             con->m_stream = stream;
             con->m_rendernodeFd = rendernodeFd;
             break;
