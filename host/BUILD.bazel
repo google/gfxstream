@@ -178,8 +178,9 @@ cc_library(
         "virtgpu_gfxstream_protocol.h",
     ],
     copts = GFXSTREAM_HOST_COPTS + [
-        "-Wno-return-type-c-linkage",
         "-Wno-extern-c-compat",
+        "-Wno-return-type-c-linkage",
+        "-Wno-unused-private-field",
     ],
     defines = GFXSTREAM_HOST_DEFINES,
     includes = [
