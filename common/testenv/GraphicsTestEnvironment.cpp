@@ -30,6 +30,7 @@ namespace gfxstream {
 namespace testing {
 namespace {
 
+#if defined(GFXSTREAM_TESTING_USE_GLES_ANGLE)
 std::optional<std::filesystem::path> GetGraphicsDriverPath(const std::string& basename) {
 #if defined(BAZEL_CURRENT_REPOSITORY)
     // https://github.com/bazelbuild/rules_cc/blob/main/cc/runfiles/runfiles.h
@@ -63,6 +64,7 @@ std::optional<std::filesystem::path> GetGraphicsDriverPath(const std::string& ba
     return std::nullopt;
 #endif  // defined(BAZEL_CURRENT_REPOSITORY)
 }
+#endif  // defined(GFXSTREAM_TESTING_USE_GLES_ANGLE)
 
 }  // namespace
 
