@@ -793,6 +793,20 @@ TEST_F(FrameBufferTest, SetMultiDisplayPosition) {
     EXPECT_EQ(0, mFb->destroyDisplay(id));
 }
 
+TEST_F(FrameBufferTest, SetMultiDisplayColorTransform) {
+    uint32_t id = FrameBuffer::s_invalidIdMultiDisplay;
+    mFb->createDisplay(&id);
+    EXPECT_NE((uint32_t)0, id);
+    const float colorTransform[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+    EXPECT_EQ(0, mFb->setDisplayColorTransform(id, colorTransform));
+    float colorTransformReadback[16] = {};
+    EXPECT_EQ(0, mFb->getDisplayColorTransform(id, colorTransformReadback));
+    for (int i = 0; i < 16; i++) {
+        EXPECT_EQ(colorTransform[i], colorTransformReadback[i]);
+    }
+    EXPECT_EQ(0, mFb->destroyDisplay(id));
+}
+
 TEST_F(FrameBufferTest, ComposeMultiDisplay) {
     LazyLoadedGLESv2Dispatch::get();
 

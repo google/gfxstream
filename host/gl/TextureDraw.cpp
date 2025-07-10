@@ -198,6 +198,7 @@ TextureDraw::TextureDraw()
       mScaleSlot(-1),
       mTextureSlot(-1),
       mTranslationSlot(-1),
+      mColorTransform(-1),
       mMaskTexture(0),
       mMaskTextureWidth(0),
       mMaskTextureHeight(0),
@@ -283,7 +284,8 @@ TextureDraw::TextureDraw()
 }
 
 bool TextureDraw::drawImpl(GLuint texture, float rotation,
-                           float dx, float dy, bool wantOverlay) {
+                           float dx, float dy, bool wantOverlay,
+                           const float* colorTransform) {
     if (!mProgram) {
         GFXSTREAM_ERROR("%s: no program\n", __FUNCTION__);
         return false;
@@ -346,6 +348,12 @@ bool TextureDraw::drawImpl(GLuint texture, float rotation,
 
     // setup the |translation| uniform value.
     s_gles2.glUniform2f(mTranslationSlot, dx, dy);
+
+    if (colorTransform) {
+        s_gles2.glUniformMatrix4fv(mColorTransform, 1, GL_FALSE, colorTransform);
+    } else {
+        s_gles2.glUniformMatrix4fv(mColorTransform, 1, GL_FALSE, kIdentityMatrix);
+    }
 
 #ifdef DEBUG_TEXTURE_DRAW
     // Validate program, just to be sure.
