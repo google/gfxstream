@@ -176,22 +176,22 @@ TEST_P(GfxstreamEnd2EndCompositionTest, BasicCompositionBGRA) {
     GFXSTREAM_ASSERT(CompareAHBWithGolden(resultAhb, "256x256_golden_basic_composition.png"));
 }
 
-INSTANTIATE_TEST_CASE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndCompositionTest,
-                        ::testing::ValuesIn({
-                            TestParams{
-                                .with_gl = true,
-                                .with_vk = false,
-                            },
-                            TestParams{
-                                .with_gl = true,
-                                .with_vk = true,
-                            },
-                            TestParams{
-                                .with_gl = false,
-                                .with_vk = true,
-                            },
-                        }),
-                        &GetTestName);
+INSTANTIATE_TEST_SUITE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndCompositionTest,
+                         ::testing::ValuesIn({
+                             TestParams{
+                                 .with_gl = true,
+                                 .with_vk = false,
+                             },
+                             TestParams{
+                                 .with_gl = true,
+                                 .with_vk = true,
+                             },
+                             TestParams{
+                                 .with_gl = false,
+                                 .with_vk = true,
+                             },
+                         }),
+                         &GetTestName);
 
 }  // namespace
 }  // namespace tests

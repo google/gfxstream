@@ -826,6 +826,8 @@ bool ProgramData::getLinkStatus() const {
     return LinkStatus;
 }
 
+#ifdef USE_ANGLE_SHADER_PARSER
+
 static const char kDifferentPrecisionErr[] =
     "specified with different precision in different shaders.";
 static const char kDifferentTypeErr[] =
@@ -853,8 +855,6 @@ static const char* sQualifierString(ValidationQualifier q) {
     }
     return kUnknownQualifier;
 }
-
-#ifdef USE_ANGLE_SHADER_PARSER
 
 static bool sVarCheck(ProgramData* pData,
                       ValidationQualifier qualifier,

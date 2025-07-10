@@ -34,6 +34,8 @@ namespace gfxstream {
 namespace gl {
 namespace {
 
+#ifdef ENABLE_GFXSTREAM_DEBUG
+
 static void EGLAPIENTRY EglDebugCallback(EGLenum error,
                                          const char *command,
                                          EGLint messageType,
@@ -52,6 +54,8 @@ static void GL_APIENTRY GlDebugCallback(GLenum source,
                                         const void *userParam) {
     GFXSTREAM_DEBUG("message:%s", message);
 }
+
+#endif // ENABLE_GFXSTREAM_DEBUG
 
 static const GLint kGles2ContextAttribsESOrGLCompat[] = {
     EGL_CONTEXT_CLIENT_VERSION, 2,  //

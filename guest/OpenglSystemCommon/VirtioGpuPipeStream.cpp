@@ -26,9 +26,6 @@
 
 static const size_t kTransferBufferSize = (1048576);
 
-static const size_t kReadSize = 512 * 1024;
-static const size_t kWriteOffset = kReadSize;
-
 VirtioGpuPipeStream::VirtioGpuPipeStream(size_t bufSize, int32_t descriptor)
     : IOStream(bufSize),
       m_fd(descriptor),

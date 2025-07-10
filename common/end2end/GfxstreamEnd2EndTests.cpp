@@ -601,8 +601,8 @@ GfxstreamEnd2EndTest::SetUpTypicalVkTestEnvironment(const TypicalVkTestEnvironme
     }
     const vkhpp::DeviceCreateInfo deviceCreateInfo = {
         .pNext = opts.deviceCreateInfoPNext ? *opts.deviceCreateInfoPNext : nullptr,
-        .pQueueCreateInfos = &deviceQueueCreateInfo,
         .queueCreateInfoCount = 1,
+        .pQueueCreateInfos = &deviceQueueCreateInfo,
         .enabledLayerCount = 0,
         .ppEnabledLayerNames = nullptr,
         .enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size()),
@@ -637,8 +637,6 @@ Result<Image> GfxstreamEnd2EndTest::LoadImage(const std::string& basename) {
 
     Image image;
 
-    uint32_t sourceWidth = 0;
-    uint32_t sourceHeight = 0;
     std::vector<uint32_t> sourcePixels;
     if (!LoadRGBAFromPng(filepath, &image.width, &image.height, &image.pixels)) {
         return gfxstream::unexpected("Failed to load " + filepath + " as RGBA PNG.");

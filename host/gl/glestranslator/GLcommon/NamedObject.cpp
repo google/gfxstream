@@ -20,10 +20,6 @@
 #include "GLcommon/ObjectNameSpace.h"
 #include "gfxstream/synchronization/Lock.h"
 
-static constexpr int toIndex(NamedObjectType type) {
-    return static_cast<int>(type);
-}
-
 NamedObject::NamedObject(GenNameInfo genNameInfo,
                          GlobalNameSpace *globalNameSpace) {
     // We need a global mutex from globalNameSpace
