@@ -20,7 +20,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "stream-servers/vulkan/testing/VulkanTestHelper.h"
+#include "host/vulkan/testing/VulkanTestHelper.h"
 
 namespace goldfish_vk::testing {
 namespace {

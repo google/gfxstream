@@ -19,11 +19,11 @@ This is a map of all gfxstream opcodes back to their string names.
 
 Currently, this was manually generated from the following files:
 
-GfxApiLogger:  http://source/android/device/generic/vulkan-cereal/utils/include/utils/GfxApiLogger.h
-Vulkan:        http://source/play-internal/battlestar/aosp/device/generic/vulkan-cereal/stream-servers/vulkan/cereal/common/goldfish_vk_marshaling.h
-RenderControl: http://source/play-internal/battlestar/aosp/device/generic/vulkan-cereal/stream-servers/renderControl_dec/renderControl_opcodes.h
-GLES1:         http://source/android/device/generic/vulkan-cereal/stream-servers/gles1_dec/gles1_opcodes.h
-GLES2:         http://source/android/device/generic/vulkan-cereal/stream-servers/gles2_dec/gles2_opcodes.h
+GfxApiLogger:  host/decoder_common/include/gfxstream/host/GfxApiLogger.h
+Vulkan:        host/vulkan/cereal/common/goldfish_vk_marshaling.h
+RenderControl: host/renderControl_dec/renderControl_opcodes.h
+GLES1:         host/gl/gles1_dec/gles1_opcodes.h
+GLES2:         host/gl/gles2_dec/gles2_opcodes.h
 
 TODO(gregschlom): Consider auto-generating this file in the future.
 """
@@ -31,12 +31,12 @@ TODO(gregschlom): Consider auto-generating this file in the future.
 opcodes = {
     ###############################################################################################
     # GfxApiLogger opcodes for logging additional information
-    # http://source/android/device/generic/vulkan-cereal/utils/include/utils/GfxApiLogger.h
+    # host/decoder_common/include/gfxstream/host/GfxApiLogger.h
     ###############################################################################################
     90000: "OP_gfxApiLoggerBeginCommandExecution",
     ###############################################################################################
     # Vulkan opcodes
-    # http://source/play-internal/battlestar/aosp/device/generic/vulkan-cereal/stream-servers/vulkan/cereal/common/goldfish_vk_marshaling.h
+    # host/decoder_common/include/gfxstream/host/GfxApiLogger.h
     ###############################################################################################
     20000: "OP_vkCreateInstance",
     20001: "OP_vkDestroyInstance",
@@ -509,7 +509,7 @@ opcodes = {
 
     ###############################################################################################
     # Render Control opcodes
-    # http://source/play-internal/battlestar/aosp/device/generic/vulkan-cereal/stream-servers/renderControl_dec/renderControl_opcodes.h
+    # host/renderControl_dec/renderControl_opcodes.h
     ###############################################################################################
     10000: "OP_rcGetRendererVersion",
     10001: "OP_rcGetEGLVersion",
@@ -579,7 +579,7 @@ opcodes = {
 
     ###############################################################################################
     # GLES1 opcodes
-    # http://source/android/device/generic/vulkan-cereal/stream-servers/gles1_dec/gles1_opcodes.h
+    # host/gl/gles1_dec/gles1_opcodes.h
     ###############################################################################################
     1024: "OP_glAlphaFunc",
     1025: "OP_glClearColor",
@@ -877,7 +877,7 @@ opcodes = {
 
     ###############################################################################################
     # GLES2 opcodes
-    # http://source/android/device/generic/vulkan-cereal/stream-servers/gles2_dec/gles2_opcodes.h
+    # host/gl/gles2_dec/gles2_opcodes.h
     ###############################################################################################
     2048: "OP_glActiveTexture",
     2049: "OP_glAttachShader",
