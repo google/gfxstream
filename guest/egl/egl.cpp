@@ -316,9 +316,9 @@ struct app_time_metric_t {
 
         // Log/reset once every second
         if(now - lastLogTime > 1000000000) {
-            float avgMs = ns2ms(totalAppTime) / numSamples;
-            float minMs = ns2ms(minAppTime);
-            float maxMs = ns2ms(maxAppTime);
+            //float avgMs = ns2ms(totalAppTime) / numSamples;
+            //float minMs = ns2ms(minAppTime);
+            //float maxMs = ns2ms(maxAppTime);
             totalAppTime = 0;
             minAppTime = 0;
             maxAppTime = 0;
