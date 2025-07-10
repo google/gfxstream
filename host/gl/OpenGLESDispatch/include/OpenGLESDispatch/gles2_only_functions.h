@@ -18,6 +18,7 @@
 #ifndef GLES2_ONLY_FUNCTIONS_H
 #define GLES2_ONLY_FUNCTIONS_H
 
+#include <GLES2/gl2.h>
 #define LIST_GLES2_ONLY_FUNCTIONS(X) \
   X(void, glBlendColor, (GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha), (red, green, blue, alpha)) \
   X(void, glStencilFuncSeparate, (GLenum face, GLenum func, GLint ref, GLuint mask), (face, func, ref, mask)) \

@@ -75,7 +75,7 @@ void glDebugMessageInsertKHR_dispatchLoggingWrapper(GLenum source, GLenum type, 
 	GLDispatch::glDebugMessageInsertKHR_underlying(source, type, id, severity, length, buf);
 }
 
-void glDebugMessageCallbackKHR_dispatchLoggingWrapper(GLDEBUGPROCKHR callback, const void * userParam) {
+void glDebugMessageCallbackKHR_dispatchLoggingWrapper(GFXSTREAM_GLES2_GLDEBUGPROCKHR callback, const void * userParam) {
 	DISPATCH_DEBUG_LOG("glDebugMessageCallbackKHR(callback:%p, userParam:%p)", callback, userParam);
 	GLDispatch::glDebugMessageCallbackKHR_underlying(callback, userParam);
 }

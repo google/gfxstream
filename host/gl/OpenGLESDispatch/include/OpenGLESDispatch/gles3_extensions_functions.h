@@ -18,6 +18,7 @@
 #ifndef GLES3_EXTENSIONS_FUNCTIONS_H
 #define GLES3_EXTENSIONS_FUNCTIONS_H
 
+#include <GLES3/gl3.h>
 #define LIST_GLES3_EXTENSIONS_FUNCTIONS(X) \
   X(void, glVertexAttribIPointerWithDataSize, (GLuint indx, GLint size, GLenum type, GLsizei stride, const GLvoid* ptr, GLsizei dataSize), (indx, size, type, stride, ptr, dataSize)) \
   X(void, glPrimitiveRestartIndex, (GLuint index), (index)) \

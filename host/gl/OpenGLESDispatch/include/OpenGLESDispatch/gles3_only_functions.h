@@ -20,6 +20,7 @@
 
 #include <GLES/gl.h>
 #include <GLES3/gl3.h>
+typedef const GLubyte* GLconstubyteptr;
 #define LIST_GLES3_ONLY_FUNCTIONS(X) \
   X(GLconstubyteptr, glGetStringi, (GLenum name, GLint index), (name, index)) \
   X(void, glGenVertexArrays, (GLsizei n, GLuint* arrays), (n, arrays)) \

@@ -18,6 +18,8 @@
 #ifndef GLES1_EXTENSIONS_FUNCTIONS_H
 #define GLES1_EXTENSIONS_FUNCTIONS_H
 
+#include <GLES/gl.h>
+#include <GLES/glext.h>
 #define LIST_GLES1_EXTENSIONS_FUNCTIONS(X) \
   X(void, glCurrentPaletteMatrixARB, (GLint index), (index)) \
   X(void, glMatrixIndexuivARB, (GLint size, GLuint * indices), (size, indices)) \

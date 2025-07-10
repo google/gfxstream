@@ -19,7 +19,6 @@
 
 #include <GLES/gl.h>
 #include <GLES2/gl2.h>
-
 // Return types must be single words, see GLDispatch.cpp
 typedef const GLubyte* GLconstubyteptr;
 namespace translator {

@@ -19,7 +19,6 @@
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
-
 namespace translator {
 namespace egl {
 EGLAPI EGLConfig EGLAPIENTRY eglLoadConfig(EGLDisplay display, EGLStreamKHR stream);
