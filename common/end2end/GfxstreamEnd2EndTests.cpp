@@ -637,8 +637,6 @@ Result<Image> GfxstreamEnd2EndTest::LoadImage(const std::string& basename) {
 
     Image image;
 
-    uint32_t sourceWidth = 0;
-    uint32_t sourceHeight = 0;
     std::vector<uint32_t> sourcePixels;
     if (!LoadRGBAFromPng(filepath, &image.width, &image.height, &image.pixels)) {
         return gfxstream::unexpected("Failed to load " + filepath + " as RGBA PNG.");

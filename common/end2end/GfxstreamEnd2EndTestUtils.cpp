@@ -46,7 +46,6 @@ uint32_t getMemoryType(const vkhpp::PhysicalDevice& physicalDevice,
 void readImageData(vkhpp::Image image, uint32_t width, uint32_t height,
                    vkhpp::ImageLayout currentLayout, void* dst, uint64_t dstSize,
                    const GfxstreamEnd2EndTest::TypicalVkTestEnvironment& testEnvironment) {
-    auto& instance = testEnvironment.instance;
     auto& physicalDevice = testEnvironment.physicalDevice;
     auto& device = testEnvironment.device;
     auto& queue = testEnvironment.queue;
