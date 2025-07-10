@@ -70,8 +70,6 @@ public:
 
 #define STREAM_BUFFER_SIZE  (4*1024*1024)
 
-constexpr const auto kEglProp = "ro.hardware.egl";
-
 static HostConnectionType getConnectionTypeFromProperty(enum VirtGpuCapset capset) {
 #if defined(__Fuchsia__) || defined(LINUX_GUEST_BUILD)
     return HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE;
@@ -105,7 +103,7 @@ static HostConnectionType getConnectionTypeFromProperty(enum VirtGpuCapset capse
     if (transport == "virtio-gpu-asg" || transport == "virtio-gpu-pipe") {
         std::string egl;
 #if defined(__ANDROID__)
-        egl = android::base::GetProperty(kEglProp, "");
+        egl = android::base::GetProperty("ro.hardware.egl", "");
 #endif
         // ANGLE doesn't work well without ASG, particularly if HostComposer uses a pipe
         // transport and VK uses ASG.
