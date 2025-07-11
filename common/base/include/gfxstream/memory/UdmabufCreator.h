@@ -26,6 +26,7 @@ namespace gfxstream {
 namespace base {
 
 bool IsAndroidKernel6_6();
+bool HasUdmabufDevice();
 
 class UdmabufCreator {
    public:

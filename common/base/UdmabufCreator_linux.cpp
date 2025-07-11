@@ -74,6 +74,8 @@ bool IsAndroidKernel6_6() {
     return true;
 }
 
+bool HasUdmabufDevice() { return access("/dev/udmabuf", F_OK) == 0; }
+
 UdmabufCreator::UdmabufCreator() {}
 
 UdmabufCreator::~UdmabufCreator() {}

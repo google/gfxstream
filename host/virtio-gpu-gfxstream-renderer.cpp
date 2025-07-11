@@ -57,9 +57,7 @@ std::optional<gfxstream::host::FeatureSet>
 ParseGfxstreamFeatures(const int rendererFlags,
                         const std::string& rendererFeatures) {
     gfxstream::host::FeatureSet features;
-    GFXSTREAM_SET_FEATURE_ON_CONDITION(
-        &features, ExternalBlob,
-        rendererFlags & STREAM_RENDERER_FLAGS_USE_EXTERNAL_BLOB);
+
     GFXSTREAM_SET_FEATURE_ON_CONDITION(&features, VulkanExternalSync,
                                        rendererFlags & STREAM_RENDERER_FLAGS_VULKAN_EXTERNAL_SYNC);
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
@@ -116,10 +114,14 @@ ParseGfxstreamFeatures(const int rendererFlags,
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
         &features, VulkanSnapshots,
         gfxstream::base::getEnvironmentVariable("ANDROID_GFXSTREAM_CAPTURE_VK_SNAPSHOT") == "1");
-
     // b:423003060
-    GFXSTREAM_SET_FEATURE_ON_CONDITION(&features, VulkanAllocateHostVisibleAsUdmabuf,
-                                       gfxstream::base::IsAndroidKernel6_6());
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(
+        &features, VulkanAllocateHostVisibleAsUdmabuf,
+        gfxstream::base::IsAndroidKernel6_6() && gfxstream::base::HasUdmabufDevice());
+    // udmabuf requires ExternalBlob feature.
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(&features, ExternalBlob,
+                                       rendererFlags & STREAM_RENDERER_FLAGS_USE_EXTERNAL_BLOB ||
+                                           features.VulkanAllocateHostVisibleAsUdmabuf.enabled);
 
     for (const std::string& rendererFeature : gfxstream::Split(rendererFeatures, ",")) {
         if (rendererFeature.empty()) continue;

@@ -19,6 +19,8 @@ namespace base {
 
 bool IsAndroidKernel6_6() { return false; }
 
+bool HasUdmabufDevice() { return false; }
+
 UdmabufCreator::UdmabufCreator() {}
 
 UdmabufCreator::~UdmabufCreator() {}
