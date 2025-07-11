@@ -1674,20 +1674,20 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbExternalOesTextureBlitProgramBinary) {
     }
 }
 
-INSTANTIATE_TEST_CASE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndGlTest,
-                        ::testing::ValuesIn({
-                            TestParams{
-                                .with_gl = true,
-                                .with_vk = false,
-                                .with_features = {"GlProgramBinaryLinkStatus"},
-                            },
-                            TestParams{
-                                .with_gl = true,
-                                .with_vk = true,
-                                .with_features = {"GlProgramBinaryLinkStatus"},
-                            },
-                        }),
-                        &GetTestName);
+INSTANTIATE_TEST_SUITE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndGlTest,
+                         ::testing::ValuesIn({
+                             TestParams{
+                                 .with_gl = true,
+                                 .with_vk = false,
+                                 .with_features = {"GlProgramBinaryLinkStatus"},
+                             },
+                             TestParams{
+                                 .with_gl = true,
+                                 .with_vk = true,
+                                 .with_features = {"GlProgramBinaryLinkStatus"},
+                             },
+                         }),
+                         &GetTestName);
 
 }  // namespace
 }  // namespace tests

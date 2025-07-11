@@ -2,7 +2,14 @@
 """
 Common build configuration definitions.
 """
-GFXSTREAM_HOST_COPTS = [
+GFXSTREAM_COMMON_COPTS = [
+] + select({
+    "//conditions:default": [
+        "-Wno-thread-safety-analysis",
+        "-Wno-thread-safety-attributes",
+    ],
+})
+GFXSTREAM_HOST_COPTS = GFXSTREAM_COMMON_COPTS + [
 ] + select({
     "@platforms//os:windows": [
         "/EHs-c-",

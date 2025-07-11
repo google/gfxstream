@@ -172,7 +172,7 @@ bool eglDisplay::initialize(EGLClient_eglInterface *eglIface)
         }
 
         uint32_t nInts = m_numConfigAttribs * (m_numConfigs + 1);
-        EGLint tmp_buf[nInts];
+        EGLint *tmp_buf = new EGLint[nInts];
 
         m_configs = new EGLint[nInts-m_numConfigAttribs];
 
@@ -195,6 +195,7 @@ bool eglDisplay::initialize(EGLClient_eglInterface *eglIface)
 
         memcpy(m_configs, tmp_buf + m_numConfigAttribs,
                m_numConfigs*m_numConfigAttribs*sizeof(EGLint));
+        delete [] tmp_buf;
 
         m_initialized = true;
     }

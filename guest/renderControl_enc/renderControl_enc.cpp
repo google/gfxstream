@@ -38,11 +38,6 @@ using gfxstream::guest::IOStream;
 
 namespace {
 
-void enc_unsupported()
-{
-	GFXSTREAM_ERROR("Function is unsupported\n");
-}
-
 GLint rcGetRendererVersion_enc(void *self )
 {
 	ENCODER_DEBUG_LOG("rcGetRendererVersion()");

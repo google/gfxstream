@@ -15,8 +15,6 @@
 #endif
 #include "aemu/base/Process.h"
 
-constexpr const auto kEglProp = "ro.hardware.egl";
-
 static uint64_t sProcUID = 0;
 static std::mutex sNeedInitMutex;
 static bool sNeedInit = true;
@@ -55,7 +53,7 @@ GfxStreamTransportType renderControlGetTransport() {
     if (transport == "virtio-gpu-asg" || transport == "virtio-gpu-pipe") {
         std::string egl;
 #if defined(__ANDROID__)
-        egl = android::base::GetProperty(kEglProp, "");
+        egl = android::base::GetProperty("ro.hardware.egl", "");
 #endif
         return GFXSTREAM_TRANSPORT_VIRTIO_GPU_ADDRESS_SPACE;
     }

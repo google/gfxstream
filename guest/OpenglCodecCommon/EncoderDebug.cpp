@@ -24,10 +24,15 @@
 
 namespace {
 
-bool encoderShouldLog() {
 #if defined(ENABLE_ENCODER_DEBUG_LOGGING_FOR_ALL_APPS)
+
+bool encoderShouldLog() {
     return true;
+}
+
 #elif defined(ENABLE_ENCODER_DEBUG_LOGGING_FOR_APP)
+
+bool encoderShouldLog() {
     static const bool sEnabled = []() {
         std::ifstream cmdlineStream("/proc/self/cmdline");
         const std::string cmdline((std::istreambuf_iterator<char>(cmdlineStream)),
@@ -42,10 +47,9 @@ bool encoderShouldLog() {
         }
     }();
     return sEnabled;
-#else
-    return false;
-#endif
 }
+
+#endif
 
 }  // namespace
 

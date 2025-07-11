@@ -72,7 +72,6 @@ private:
 
     uint64_t mPeriodNs = 0;
     uint64_t mCount = 0;
-    bool mExiting = false;
     gfxstream::base::MessageChannel<VsyncThreadCommand, 128> mChannel;
     std::thread mThread;
 };

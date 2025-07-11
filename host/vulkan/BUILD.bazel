@@ -175,6 +175,7 @@ cc_test(
     srcs = [
         "CompositorVk_unittest.cpp",
     ],
+    copts = GFXSTREAM_HOST_COPTS,
     data = [
         "testdata/256x256_android.png",
         "testdata/256x256_android_with_transparency.png",
@@ -221,6 +222,7 @@ cc_test(
     srcs = [
         "DisplayVk_unittest.cpp",
     ],
+    copts = GFXSTREAM_HOST_COPTS,
     deps = [
         ":gfxstream_vulkan_server",
         "//common/base:gfxstream_common_base",
