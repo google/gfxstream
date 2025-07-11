@@ -153,6 +153,16 @@ void DeviceOpTracker::OnDestroyDevice() {
     PollAndProcessGarbage();
 
     {
+        std::lock_guard<std::mutex> pollFunctionsLock(mPollFunctionsMutex);
+        if (mPollFunctions.size()) {
+            // Should not keep polling fences after the device is destroyed
+            GFXSTREAM_WARNING("VkDevice:%p has %d pending polling functions.", mDevice,
+                                mPollFunctions.size());
+            mPollFunctions.clear();
+        }
+    }
+
+    {
         std::lock_guard<std::mutex> lock(mPendingGarbageMutex);
         if (!mPendingGarbage.empty()) {
             GFXSTREAM_WARNING("VkDevice:%p has %d leaking garbage objects on destruction.", mDevice,
