@@ -99,7 +99,13 @@ bool EntryPoint::parse(unsigned int lc, const std::string& str) {
                 varname = oss.str();
             }
 
-            m_vars.push_back(Var(varname, v, std::string(""), Var::POINTER_IN, "", "", ""));
+            // Custom handling of data length for the matrix data types
+            std::string lenExpression = "";
+            if (vartype == "mat4x4_ptr" || vartype == "const mat4x4_ptr") {
+                lenExpression = "512";
+            }
+
+            m_vars.push_back(Var(varname, v, lenExpression, Var::POINTER_IN, "", "", ""));
         }
         pos = last + 1;
     }

@@ -1520,6 +1520,52 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			gfxstream::base::endTrace();
 			break;
 		}
+		case OP_rcGetDisplayColorTransform: {
+			gfxstream::base::beginTrace("rcGetDisplayColorTransform decode");
+			uint32_t var_displayId = Unpack<uint32_t,uint32_t>(ptr + 8);
+			uint32_t size_outColorTransformMatrix __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
+			InputBuffer inptr_outColorTransformMatrix(ptr + 8 + 4 + 4, size_outColorTransformMatrix);
+			if (useChecksum) {
+				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4 + 4 + size_outColorTransformMatrix, ptr + 8 + 4 + 4 + size_outColorTransformMatrix, checksumSize,
+					"renderControl_decoder_context_t::decode, OP_rcGetDisplayColorTransform: GL checksumCalculator failure\n");
+			}
+			size_t totalTmpSize = sizeof(int);
+			totalTmpSize += checksumSize;
+			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
+			DECODER_DEBUG_LOG("renderControl(%p): rcGetDisplayColorTransform(displayId:0x%08x outColorTransformMatrix:%p(%u) )", stream, var_displayId, (mat4x4_ptr)(inptr_outColorTransformMatrix.get()), size_outColorTransformMatrix);
+			int function_call_retval = 			this->rcGetDisplayColorTransform(var_displayId, (mat4x4_ptr)(inptr_outColorTransformMatrix.get()));
+			std::memcpy(&tmpBuf[0], &function_call_retval, sizeof(int));
+			if (useChecksum) {
+				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
+			}
+			stream->flush();
+			SET_LASTCALL("rcGetDisplayColorTransform");
+			gfxstream::base::endTrace();
+			break;
+		}
+		case OP_rcSetDisplayColorTransform: {
+			gfxstream::base::beginTrace("rcSetDisplayColorTransform decode");
+			uint32_t var_displayId = Unpack<uint32_t,uint32_t>(ptr + 8);
+			uint32_t size_colorTransformMatrix __attribute__((unused)) = Unpack<uint32_t,uint32_t>(ptr + 8 + 4);
+			InputBuffer inptr_colorTransformMatrix(ptr + 8 + 4 + 4, size_colorTransformMatrix);
+			if (useChecksum) {
+				ChecksumCalculatorThreadInfo::validOrDie(checksumCalc, ptr, 8 + 4 + 4 + size_colorTransformMatrix, ptr + 8 + 4 + 4 + size_colorTransformMatrix, checksumSize,
+					"renderControl_decoder_context_t::decode, OP_rcSetDisplayColorTransform: GL checksumCalculator failure\n");
+			}
+			size_t totalTmpSize = sizeof(int);
+			totalTmpSize += checksumSize;
+			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
+			DECODER_DEBUG_LOG("renderControl(%p): rcSetDisplayColorTransform(displayId:0x%08x colorTransformMatrix:%p(%u) )", stream, var_displayId, (const mat4x4_ptr)(inptr_colorTransformMatrix.get()), size_colorTransformMatrix);
+			int function_call_retval = 			this->rcSetDisplayColorTransform(var_displayId, (const mat4x4_ptr)(inptr_colorTransformMatrix.get()));
+			std::memcpy(&tmpBuf[0], &function_call_retval, sizeof(int));
+			if (useChecksum) {
+				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
+			}
+			stream->flush();
+			SET_LASTCALL("rcSetDisplayColorTransform");
+			gfxstream::base::endTrace();
+			break;
+		}
 		default:
 			return ptr - (unsigned char*)buf;
 		} //switch

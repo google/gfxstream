@@ -94,6 +94,8 @@ int renderControl_server_context_t::initDispatchByName(void *(*getProc)(const ch
 	rcGetFBDisplayActiveConfig = (rcGetFBDisplayActiveConfig_server_proc_t) getProc("rcGetFBDisplayActiveConfig", userData);
 	rcSetProcessMetadata = (rcSetProcessMetadata_server_proc_t) getProc("rcSetProcessMetadata", userData);
 	rcGetHostExtensionsString = (rcGetHostExtensionsString_server_proc_t) getProc("rcGetHostExtensionsString", userData);
+	rcGetDisplayColorTransform = (rcGetDisplayColorTransform_server_proc_t) getProc("rcGetDisplayColorTransform", userData);
+	rcSetDisplayColorTransform = (rcSetDisplayColorTransform_server_proc_t) getProc("rcSetDisplayColorTransform", userData);
 	return 0;
 }
 

@@ -28,3 +28,5 @@
 #define FB_MAX_SWAP_INTERVAL 7
 
 using RenderControlByte = char;
+
+typedef float* mat4x4_ptr;

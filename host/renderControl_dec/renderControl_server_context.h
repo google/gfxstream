@@ -94,6 +94,8 @@ struct renderControl_server_context_t {
 	rcGetFBDisplayActiveConfig_server_proc_t rcGetFBDisplayActiveConfig;
 	rcSetProcessMetadata_server_proc_t rcSetProcessMetadata;
 	rcGetHostExtensionsString_server_proc_t rcGetHostExtensionsString;
+	rcGetDisplayColorTransform_server_proc_t rcGetDisplayColorTransform;
+	rcSetDisplayColorTransform_server_proc_t rcSetDisplayColorTransform;
 	virtual ~renderControl_server_context_t() {}
 	int initDispatchByName( void *(*getProc)(const char *name, void *userData), void *userData);
 };

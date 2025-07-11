@@ -96,6 +96,8 @@ typedef int (renderControl_APIENTRY *rcGetFBDisplayConfigsParam_server_proc_t) (
 typedef int (renderControl_APIENTRY *rcGetFBDisplayActiveConfig_server_proc_t) ();
 typedef void (renderControl_APIENTRY *rcSetProcessMetadata_server_proc_t) (char*, RenderControlByte*, uint32_t);
 typedef int (renderControl_APIENTRY *rcGetHostExtensionsString_server_proc_t) (uint32_t, void*);
+typedef int (renderControl_APIENTRY *rcGetDisplayColorTransform_server_proc_t) (uint32_t, mat4x4_ptr);
+typedef int (renderControl_APIENTRY *rcSetDisplayColorTransform_server_proc_t) (uint32_t, const mat4x4_ptr);
 
 
 #endif
