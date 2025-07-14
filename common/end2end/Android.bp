@@ -30,7 +30,7 @@ cc_test_host {
         "TestDataUtils.cpp",
     ],
     header_libs: [
-        "virtgpu_kumquat_ffi_headers",
+        "virtgpu_kumquat_ffi_headers_mesa3d",
         "gfxstream_headers",
         "libgfxstream_guest_rendercontrol_headers",
         "libgfxstream_host_openglesdispatch_headers",
