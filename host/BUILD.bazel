@@ -181,7 +181,7 @@ cc_library(
         "-Wno-return-type-c-linkage",
         "-Wno-unused-private-field",
     ],
-    defines = GFXSTREAM_HOST_DEFINES,
+    defines = GFXSTREAM_HOST_DEFINES + ["QEMU_NEXT"],
     includes = [
         ".",
         "gl",
