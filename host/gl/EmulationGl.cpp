@@ -207,7 +207,7 @@ static std::optional<EGLConfig> getEmulationEglConfig(EGLDisplay display, bool a
 
 std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height,
                                                  const gfxstream::host::FeatureSet& features,
-                                                 bool allowWindowSurface, bool egl2egl) {
+                                                 bool allowWindowSurface) {
     // Loads the glestranslator function pointers.
     if (!LazyLoadedEGLDispatch::get()) {
         GFXSTREAM_ERROR("Failed to load EGL dispatch.");
@@ -223,9 +223,8 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
     }
 
     if (s_egl.eglUseOsEglApi) {
-        s_egl.eglUseOsEglApi(egl2egl, EGL_FALSE);
+        s_egl.eglUseOsEglApi(features.EglOnEgl.enabled, EGL_FALSE);
     }
-
 
     std::unique_ptr<EmulationGl> emulationGl(new EmulationGl());
 

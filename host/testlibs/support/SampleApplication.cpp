@@ -23,6 +23,7 @@
 #include "FrameBuffer.h"
 #include "OpenGLESDispatch/OpenGLDispatchLoader.h"
 #include "RenderThreadInfo.h"
+#include "gfxstream/host/Features.h"
 #include "gfxstream/host/renderer_operations.h"
 #include "gfxstream/host/testing/OSWindow.h"
 #include "gfxstream/host/testing/ShaderUtils.h"
@@ -38,6 +39,7 @@ using gfxstream::base::AutoLock;
 using gfxstream::base::ConditionVariable;
 using gfxstream::base::Lock;
 using gfxstream::base::MessageChannel;
+using gfxstream::host::FeatureSet;
 using gl::EmulatedEglFenceSync;
 using gl::GLESApi;
 using gl::GLESApi_3_0;
@@ -244,10 +246,10 @@ SampleApplication::SampleApplication(int windowWidth, int windowHeight, int refr
     mWindow = createOrGetTestWindow(mXOffset, mYOffset, mWidth, mHeight);
     mUseSubWindow = mWindow != nullptr;
 
-    FrameBuffer::initialize(
-            mWidth, mHeight, {},
-            mUseSubWindow,
-            !useHostGpu /* egl2egl */);
+    FeatureSet features = {};
+    features.EglOnEgl.enabled = !useHostGpu;
+
+    FrameBuffer::initialize(mWidth, mHeight, features, mUseSubWindow);
     mFb = FrameBuffer::getFB();
 
     if (mUseSubWindow) {

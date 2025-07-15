@@ -64,7 +64,7 @@ class RenderWindow {
     // Note that this call doesn't display anything, it just initializes
     // the library, use setupSubWindow() to display something.
     RenderWindow(int width, int height, const gfxstream::host::FeatureSet& features,
-                 bool use_thread, bool use_sub_window, bool egl2egl);
+                 bool use_thread, bool use_sub_window);
 
     // Destructor. This will automatically call removeSubWindow() is needed.
     ~RenderWindow();
