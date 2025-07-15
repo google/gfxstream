@@ -23,6 +23,7 @@
 #include <xf86drm.h>
 
 #include <atomic>
+#include <vector>
 
 #ifdef __ANDROID__
 #include <cutils/properties.h>
@@ -1175,10 +1176,13 @@ EGLBoolean eglChooseConfig(EGLDisplay dpy, const EGLint *attrib_list, EGLConfig 
         attrib_list = backup_attribs;
     }
 
-    uint32_t* tempConfigs = new uint32_t[config_size];
     DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_FALSE);
+
+    std::vector<uint32_t> tempConfigs;
+    tempConfigs.resize(config_size, 0);
+
     *num_config = rcEnc->rcChooseConfig(rcEnc, (EGLint*)attrib_list,
-            attribs_size * sizeof(EGLint), (uint32_t*)tempConfigs, config_size);
+            attribs_size * sizeof(EGLint), tempConfigs.data(), config_size);
 
     if (*num_config < 0) {
         EGLint err = -(*num_config);
@@ -1187,7 +1191,6 @@ EGLBoolean eglChooseConfig(EGLDisplay dpy, const EGLint *attrib_list, EGLConfig 
             case EGL_BAD_ATTRIBUTE:
                 setErrorReturn(EGL_BAD_ATTRIBUTE, EGL_FALSE);
             default:
-                delete [] tempConfigs;
                 return EGL_FALSE;
         }
     }
@@ -1195,11 +1198,10 @@ EGLBoolean eglChooseConfig(EGLDisplay dpy, const EGLint *attrib_list, EGLConfig 
     if (configs!=NULL) {
         EGLint i=0;
         for (i=0;i<(*num_config);i++) {
-            EGLConfig guestConfig = s_display.getConfigAtIndex(*((uint32_t*)tempConfigs+i));
+            EGLConfig guestConfig = s_display.getConfigAtIndex(tempConfigs[i]);
             configs[i] = guestConfig;
         }
     }
-    delete [] tempConfigs;
     return EGL_TRUE;
 }
 
