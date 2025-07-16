@@ -23,4 +23,4 @@ counterparts:
 
 Encoder path: `$GOLDFISH_OPENGL/system/magma_enc`
 
-Decoder path: `$VULKAN_CEREAL/stream-servers/magma`
+Decoder path: `$VULKAN_CEREAL/host/magma`
