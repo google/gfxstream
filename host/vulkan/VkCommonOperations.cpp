@@ -3990,6 +3990,12 @@ VkExternalMemoryHandleTypeFlags VkEmulation::transformExternalMemoryHandleTypeFl
         res |= getDefaultExternalMemoryHandleType();
     }
 
+    // Replace guest QNX Screen buffer bits with host's default external memory bits
+    if (bits & VK_EXTERNAL_MEMORY_HANDLE_TYPE_SCREEN_BUFFER_BIT_QNX) {
+        res &= ~VK_EXTERNAL_MEMORY_HANDLE_TYPE_SCREEN_BUFFER_BIT_QNX;
+        res |= getDefaultExternalMemoryHandleType();
+    }
+
     // If the host does not support dmabuf, replace guest Linux DMA_BUF bits with
     // the host's default external memory bits,
     if (!mDeviceInfo.supportsDmaBuf && (bits & VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT)) {

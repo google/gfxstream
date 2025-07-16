@@ -8762,7 +8762,8 @@ class VkDecoderGlobalState::Impl {
 
 #define GUEST_EXTERNAL_MEMORY_HANDLE_TYPES                                \
     (VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID | \
-     VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA)
+     VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA | \
+     VK_EXTERNAL_MEMORY_HANDLE_TYPE_SCREEN_BUFFER_BIT_QNX)
 
     // Transforms
     // If adding a new transform here, please check if it needs to be used in VkDecoderTestDispatch
