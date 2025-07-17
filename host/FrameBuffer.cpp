@@ -895,6 +895,8 @@ std::unique_ptr<FrameBuffer::Impl> FrameBuffer::Impl::Create(FrameBuffer* frameb
                                                              bool useSubWindow) {
     GFXSTREAM_DEBUG("FrameBuffer::Impl::initialize");
 
+    gfxstream::host::InitializeTracing();
+
     std::unique_ptr<Impl> impl(new Impl(framebuffer, width, height, features, useSubWindow));
     if (!impl) {
         GFXSTREAM_ERROR("Failed to allocate FrameBuffer::Impl.");
