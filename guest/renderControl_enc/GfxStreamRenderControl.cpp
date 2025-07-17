@@ -114,6 +114,7 @@ int32_t renderControlInit(GfxStreamConnectionManager* mgr, void* vkInfo) {
         rcEnc->queryAndSetVulkanAsyncQsri();
         rcEnc->queryAndSetReadColorBufferDma();
         rcEnc->queryAndSetHWCMultiConfigs();
+        rcEnc->queryAndSetHWCColorTransform();
         rcEnc->queryAndSetVulkanAuxCommandBufferMemory();
         rcEnc->queryVersion();
 

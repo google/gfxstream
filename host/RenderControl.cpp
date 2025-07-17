@@ -256,6 +256,9 @@ static const char* kReadColorBufferDma = "ANDROID_EMU_read_color_buffer_dma";
 // Multiple display configs
 static const char* kHWCMultiConfigs= "ANDROID_EMU_hwc_multi_configs";
 
+// HWC color transform support
+static const char kHWCColorTransform[] = "ANDROID_EMU_hwc_color_transform";
+
 static constexpr const uint64_t kInvalidPUID = std::numeric_limits<uint64_t>::max();
 
 static void rcTriggerWait(uint64_t glsync_ptr,
@@ -466,6 +469,7 @@ static EGLint rcGetGLString(EGLenum name, void* buffer, EGLint bufferSize) {
     bool vulkanAsyncQsri = shouldEnableVulkanAsyncQsri(features);
     bool readColorBufferDma = directMemEnabled && hasSharedSlotsHostMemoryAllocatorEnabled;
     bool hwcMultiConfigs = features.HwcMultiConfigs.enabled;
+    bool hwcColorTransform = true;  // To ensure old host emulators won't advertise the support
 
     if (isChecksumEnabled && name == GL_EXTENSIONS) {
         glStr += ChecksumCalculatorThreadInfo::getMaxVersionString();
@@ -606,6 +610,11 @@ static EGLint rcGetGLString(EGLenum name, void* buffer, EGLint bufferSize) {
 
     if (hwcMultiConfigs && name == GL_EXTENSIONS) {
         glStr += kHWCMultiConfigs;
+        glStr += " ";
+    }
+
+    if (hwcColorTransform && name == GL_EXTENSIONS) {
+        glStr += kHWCColorTransform;
         glStr += " ";
     }
 

@@ -141,6 +141,9 @@ static const char kReadColorBufferDma[] = "ANDROID_EMU_read_color_buffer_dma";
 // HWC multiple display configs
 static const char kHWCMultiConfigs[] = "ANDROID_EMU_hwc_multi_configs";
 
+// HWC color transform support
+static const char kHWCColorTransform[] = "ANDROID_EMU_hwc_color_transform";
+
 // Vulkan auxiliary command memory
 static const char kVulkanAuxCommandMemory[] = "ANDROID_EMU_vulkan_aux_command_memory";
 
@@ -174,6 +177,7 @@ struct EmulatorFeatureInfo {
         hasVulkanAsyncQsri(false),
         hasReadColorBufferDma(false),
         hasHWCMultiConfigs(false),
+        hasHWCColorTransform(false),
         hasVulkanAuxCommandMemory(false)
     { }
 
@@ -203,6 +207,7 @@ struct EmulatorFeatureInfo {
     bool hasVulkanAsyncQsri;
     bool hasReadColorBufferDma;
     bool hasHWCMultiConfigs;
+    bool hasHWCColorTransform;
     bool hasVulkanAuxCommandMemory; // This feature tracks if vulkan command buffers should be stored in an auxiliary shared memory
 };
 
