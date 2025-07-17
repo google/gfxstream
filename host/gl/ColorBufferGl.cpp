@@ -195,6 +195,12 @@ static bool sGetFormatParameters(GLint* internalFormat,
             *bytesPerPixel = 1;
             *sizedInternalFormat = GL_R8;
             return true;
+        case GL_R16_EXT:
+            *texFormat = GL_RED;
+            *pixelType = GL_UNSIGNED_SHORT;
+            *bytesPerPixel = 2;
+            *sizedInternalFormat = GL_R16_EXT;
+            return true;
         case GL_RG8:
         case GL_RG:
             *texFormat = GL_RG;
