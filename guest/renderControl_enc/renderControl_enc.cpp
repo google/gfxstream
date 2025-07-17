@@ -38,6 +38,11 @@ using gfxstream::guest::IOStream;
 
 namespace {
 
+void enc_unsupported()
+{
+	GFXSTREAM_ERROR("Function is unsupported\n");
+}
+
 GLint rcGetRendererVersion_enc(void *self )
 {
 	ENCODER_DEBUG_LOG("rcGetRendererVersion()");
@@ -2783,7 +2788,7 @@ int rcGetHostExtensionsString_enc(void *self , uint32_t bufferSize, void* buffer
 
 int rcGetDisplayColorTransform_enc(void *self , uint32_t displayId, mat4x4_ptr outColorTransformMatrix)
 {
-	ENCODER_DEBUG_LOG("rcGetDisplayColorTransform(displayId:0x%08x, outColorTransformMatrix:%d)", displayId, outColorTransformMatrix);
+	ENCODER_DEBUG_LOG("rcGetDisplayColorTransform(displayId:0x%08x, outColorTransformMatrix:%p)", displayId, outColorTransformMatrix);
 	AEMU_SCOPED_TRACE("rcGetDisplayColorTransform encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
@@ -2827,7 +2832,7 @@ int rcGetDisplayColorTransform_enc(void *self , uint32_t displayId, mat4x4_ptr o
 
 int rcSetDisplayColorTransform_enc(void *self , uint32_t displayId, const mat4x4_ptr colorTransformMatrix)
 {
-	ENCODER_DEBUG_LOG("rcSetDisplayColorTransform(displayId:0x%08x, colorTransformMatrix:%d)", displayId, colorTransformMatrix);
+	ENCODER_DEBUG_LOG("rcSetDisplayColorTransform(displayId:0x%08x, colorTransformMatrix:%p)", displayId, colorTransformMatrix);
 	AEMU_SCOPED_TRACE("rcSetDisplayColorTransform encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;

@@ -79,14 +79,14 @@ void SetGfxstreamLogLevel(LogLevel level);
 
 // #define ENABLE_DECODER_LOG 1
 #if defined(ENABLE_DECODER_LOG)
-#define DECODER_DEBUG_LOG(fmt, ...) GFXSTREAM_LOG(fmt, ##__VA_ARGS__)
+#define DECODER_DEBUG_LOG(fmt, ...) GFXSTREAM_INFO(fmt, ##__VA_ARGS__)
 #else
 #define DECODER_DEBUG_LOG(...) ((void)0)
 #endif
 
 // #define ENABLE_DISPATCH_LOG 1
 #if defined(ENABLE_DISPATCH_LOG)
-#define DISPATCH_DEBUG_LOG(fmt, ...) GFXSTREAM_LOG(fmt, ##__VA_ARGS__)
+#define DISPATCH_DEBUG_LOG(fmt, ...) GFXSTREAM_INFO(fmt, ##__VA_ARGS__)
 #else
 #define DISPATCH_DEBUG_LOG(...) ((void)0)
 #endif

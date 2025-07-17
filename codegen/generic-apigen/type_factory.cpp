@@ -44,8 +44,8 @@ void TypeFactory::initBaseTypes() {
     ADD_TYPE("int", 32, "%d", false);
     ADD_TYPE("float", 32, "%d", false);
     ADD_TYPE("short", 16, "%d", false);
-    ADD_TYPE("const mat4x4_ptr", 512, "%d", true);
-    ADD_TYPE("mat4x4_ptr", 512, "%d", true);
+    ADD_TYPE("const mat4x4_ptr", 512, "%p", true);
+    ADD_TYPE("mat4x4_ptr", 512, "%p", true);
 }
 
 int TypeFactory::initFromFile(const std::string& filename) {
