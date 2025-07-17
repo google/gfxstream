@@ -38,6 +38,7 @@ target_include_directories(
     ${GFXSTREAM_REPO_ROOT}
     ${GFXSTREAM_REPO_ROOT}/host
     ${GFXSTREAM_REPO_ROOT}/host/gfxstream_host_decoder_common
+    ${GFXSTREAM_REPO_ROOT}/host/gl
     ${GFXSTREAM_REPO_ROOT}/host/gl/glestranslator/GLcommon/include)
 target_link_libraries(
     GLcommon
