@@ -285,6 +285,13 @@ void ExtendedRCEncoderContext::queryAndSetHWCMultiConfigs() {
     }
 }
 
+void ExtendedRCEncoderContext::queryAndSetHWCColorTransform() {
+    std::string hostExtensions = queryHostExtensions();
+    if (hostExtensions.find(kHWCColorTransform) != std::string::npos) {
+        this->featureInfo()->hasHWCColorTransform = true;
+    }
+}
+
 void ExtendedRCEncoderContext::queryAndSetVulkanAuxCommandBufferMemory() {
     std::string hostExtensions = queryHostExtensions();
     this->featureInfo()->hasVulkanAuxCommandMemory =

@@ -354,6 +354,7 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         rcEnc->queryAndSetVulkanAsyncQsri();
         rcEnc->queryAndSetReadColorBufferDma();
         rcEnc->queryAndSetHWCMultiConfigs();
+        rcEnc->queryAndSetHWCColorTransform();
         rcEnc->queryAndSetVulkanAuxCommandBufferMemory();
         rcEnc->queryVersion();
 
