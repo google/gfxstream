@@ -3384,7 +3384,7 @@ bool VkEmulation::updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, u
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
         .pNext = nullptr,
         .srcAccessMask = 0,
-        .dstAccessMask = VK_ACCESS_HOST_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT,
+        .dstAccessMask = VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT,
         .oldLayout = currentLayout,
         .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
@@ -3401,21 +3401,21 @@ bool VkEmulation::updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, u
     };
 
     vk->vkCmdPipelineBarrier(mCommandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                             VK_PIPELINE_STAGE_HOST_BIT, 0, 0, nullptr, 0, nullptr, 1,
+                             VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1,
                              &toTransferDstImageBarrier);
 
     // Copy from staging buffer to color buffer image
     vk->vkCmdCopyBufferToImage(mCommandBuffer, mStaging.mBuffer, colorBufferInfo->image,
-                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, bufferImageCopies.size(),
+                               toTransferDstImageBarrier.newLayout, bufferImageCopies.size(),
                                bufferImageCopies.data());
 
     if (colorBufferInfo->currentLayout != VK_IMAGE_LAYOUT_UNDEFINED) {
         const VkImageMemoryBarrier toCurrentLayoutImageBarrier = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .pNext = nullptr,
-            .srcAccessMask = VK_ACCESS_HOST_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
+            .srcAccessMask = toTransferDstImageBarrier.dstAccessMask,
             .dstAccessMask = VK_ACCESS_NONE_KHR,
-            .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            .oldLayout = toTransferDstImageBarrier.newLayout,
             .newLayout = colorBufferInfo->currentLayout,
             .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
@@ -3429,11 +3429,11 @@ bool VkEmulation::updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, u
                     .layerCount = 1,
                 },
         };
-        vk->vkCmdPipelineBarrier(mCommandBuffer, VK_PIPELINE_STAGE_HOST_BIT,
+        vk->vkCmdPipelineBarrier(mCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
                                  VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1,
                                  &toCurrentLayoutImageBarrier);
     } else {
-        colorBufferInfo->currentLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        colorBufferInfo->currentLayout = toTransferDstImageBarrier.newLayout;
     }
 
     mDebugUtilsHelper.cmdEndDebugLabel(mCommandBuffer);
