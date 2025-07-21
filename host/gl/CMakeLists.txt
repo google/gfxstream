@@ -37,6 +37,7 @@ add_library(gfxstream-gl-server
             EmulatedEglWindowSurface.cpp
             EmulationGl.cpp
             GLESVersionDetector.cpp
+            PixelReadFormats.cpp
             ReadbackWorkerGl.cpp
             RenderThreadInfoGl.cpp
             TextureDraw.cpp

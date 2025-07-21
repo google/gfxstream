@@ -38,6 +38,7 @@
 #include "EmulatedEglWindowSurface.h"
 #include "OpenGLESDispatch/EGLDispatch.h"
 #include "OpenGLESDispatch/GLESv2Dispatch.h"
+#include "PixelReadFormats.h"
 #include "ReadbackWorkerGl.h"
 #include "TextureDraw.h"
 #include "gfxstream/host/Features.h"
@@ -194,6 +195,8 @@ class EmulationGl {
    std::unique_ptr<ReadbackWorkerGl> mReadbackWorkerGl;
 
    std::unique_ptr<TextureDraw> mTextureDraw;
+
+   PixelReadFormats mPixelReadFormats;
 
    uint32_t mWidth = 0;
    uint32_t mHeight = 0;

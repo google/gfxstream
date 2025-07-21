@@ -29,6 +29,7 @@
 #include "FrameworkFormats.h"
 #include "Handle.h"
 #include "Hwc2.h"
+#include "PixelReadFormats.h"
 #include "gfxstream/ManagedDescriptor.h"
 #include "gfxstream/host/Features.h"
 #include "gfxstream/host/borrowed_image.h"
@@ -95,7 +96,8 @@ class ColorBufferGl {
                                                  FrameworkFormat frameworkFormat, HandleType handle,
                                                  ContextHelper* helper, TextureDraw* textureDraw,
                                                  bool fastBlitSupported,
-                                                 const gfxstream::host::FeatureSet& features);
+                                                 const gfxstream::host::FeatureSet& features,
+                                                 PixelReadFormats& pixelReadFormats);
 
     // Sometimes things happen and we need to reformat the GL texture
     // used. This function replaces the format of the underlying texture
@@ -193,10 +195,11 @@ class ColorBufferGl {
     void readbackAsync(GLuint buffer, bool readbackBgra = false);
 
     void onSave(gfxstream::Stream* stream);
-    static std::unique_ptr<ColorBufferGl> onLoad(gfxstream::Stream* stream,
-                                                 EGLDisplay p_display, ContextHelper* helper,
-                                                 TextureDraw* textureDraw, bool fastBlitSupported,
-                                                 const gfxstream::host::FeatureSet& features);
+    static std::unique_ptr<ColorBufferGl> onLoad(gfxstream::Stream* stream, EGLDisplay p_display,
+                                                 ContextHelper* helper, TextureDraw* textureDraw,
+                                                 bool fastBlitSupported,
+                                                 const gfxstream::host::FeatureSet& features,
+                                                 PixelReadFormats& pixelReadFormats);
 
     HandleType getHndl() const;
 
@@ -226,7 +229,7 @@ class ColorBufferGl {
 
 private:
  ColorBufferGl(EGLDisplay display, HandleType hndl, GLuint width, GLuint height,
-               ContextHelper* helper, TextureDraw* textureDraw);
+               ContextHelper* helper, TextureDraw* textureDraw, PixelReadFormats& pixelReadFormats);
 
 private:
     GLuint m_tex = 0;
@@ -259,6 +262,7 @@ private:
     ContextHelper* m_helper = nullptr;
     TextureDraw* m_textureDraw = nullptr;
     TextureResize* m_resizer = nullptr;
+    PixelReadFormats& m_pixelReadFormats;
     FrameworkFormat m_frameworkFormat;
     bool m_yuv420888ToNv21 = false;
     GLuint m_yuv_conversion_fbo = 0;  // FBO to offscreen-convert YUV to RGB

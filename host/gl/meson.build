@@ -34,6 +34,7 @@ files_lib_gl_server = files(
   'EmulatedEglWindowSurface.cpp',
   'EmulationGl.cpp',
   'GLESVersionDetector.cpp',
+  'PixelReadFormats.cpp',
   'ReadbackWorkerGl.cpp',
   'RenderThreadInfoGl.cpp',
   'TextureDraw.cpp',

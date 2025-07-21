@@ -33,6 +33,7 @@ cc_library_static {
         "EmulatedEglWindowSurface.cpp",
         "EmulationGl.cpp",
         "GLESVersionDetector.cpp",
+        "PixelReadFormats.cpp",
         "ReadbackWorkerGl.cpp",
         "RenderThreadInfoGl.cpp",
         "TextureDraw.cpp",
