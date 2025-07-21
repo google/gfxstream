@@ -79,7 +79,7 @@ void unbindFbo() {
     s_gles2.glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-}
+}  // namespace
 
 static GLenum sGetUnsizedColorBufferFormat(GLenum format) {
     switch (format) {
@@ -248,13 +248,11 @@ static bool sGetFormatParameters(GLint* internalFormat,
 }
 
 // static
-std::unique_ptr<ColorBufferGl> ColorBufferGl::create(EGLDisplay p_display, int p_width,
-                                                     int p_height, GLint p_internalFormat,
-                                                     FrameworkFormat p_frameworkFormat,
-                                                     HandleType hndl, ContextHelper* helper,
-                                                     TextureDraw* textureDraw,
-                                                     bool fastBlitSupported,
-                                                     const gfxstream::host::FeatureSet& features) {
+std::unique_ptr<ColorBufferGl> ColorBufferGl::create(
+    EGLDisplay p_display, int p_width, int p_height, GLint p_internalFormat,
+    FrameworkFormat p_frameworkFormat, HandleType hndl, ContextHelper* helper,
+    TextureDraw* textureDraw, bool fastBlitSupported, const gfxstream::host::FeatureSet& features,
+    PixelReadFormats& pixelReadFormats) {
     GLenum texFormat = 0;
     GLenum pixelType = GL_UNSIGNED_BYTE;
     int bytesPerPixel = 4;
@@ -271,8 +269,8 @@ std::unique_ptr<ColorBufferGl> ColorBufferGl::create(EGLDisplay p_display, int p
             * p_height;
 
     // This constructor is private, so std::make_unique can't be used.
-    std::unique_ptr<ColorBufferGl> cb{
-        new ColorBufferGl(p_display, hndl, p_width, p_height, helper, textureDraw)};
+    std::unique_ptr<ColorBufferGl> cb{new ColorBufferGl(p_display, hndl, p_width, p_height, helper,
+                                                        textureDraw, pixelReadFormats)};
     cb->m_internalFormat = p_internalFormat;
     cb->m_sizedInternalFormat = p_sizedInternalFormat;
     cb->m_format = texFormat;
@@ -400,12 +398,14 @@ std::unique_ptr<ColorBufferGl> ColorBufferGl::create(EGLDisplay p_display, int p
 }
 
 ColorBufferGl::ColorBufferGl(EGLDisplay display, HandleType hndl, GLuint width, GLuint height,
-                             ContextHelper* helper, TextureDraw* textureDraw)
+                             ContextHelper* helper, TextureDraw* textureDraw,
+                             PixelReadFormats& pixelReadFormats)
     : m_width(width),
       m_height(height),
       m_display(display),
       m_helper(helper),
       m_textureDraw(textureDraw),
+      m_pixelReadFormats(pixelReadFormats),
       mHndl(hndl) {}
 
 ColorBufferGl::~ColorBufferGl() {
@@ -496,57 +496,37 @@ bool ColorBufferGl::readPixels(int x, int y, int width, int height, GLenum p_for
 
     waitSync();
 
-    if (bindFbo(&m_fbo, m_tex, m_needFboReattach)) {
-        m_needFboReattach = false;
-        GLint prevAlignment = 0;
-        s_gles2.glGetIntegerv(GL_PACK_ALIGNMENT, &prevAlignment);
-        s_gles2.glPixelStorei(GL_PACK_ALIGNMENT, 1);
-
-        // Desktop OpenGL drivers should support many different readback formats/types, but
-        // GLES drivers (swiftshader) are only required to support GL_RGBA/GL_RGBA_INTEGER and
-        // type of GL_UNSIGNED_BYTE, GL_UNSIGNED_INT, GL_INT, or GL_FLOAT. GLES drivers can also
-        // provide another additional format/type, which we can obtain by querying
-        // GL_IMPLEMENTATION_COLOR_READ_FORMAT/GL_IMPLEMENTATION_COLOR_READ_TYPE.
-        bool isSwiftshader =
-                (get_gfxstream_renderer() == SELECTED_RENDERER_SWIFTSHADER_INDIRECT ||
-                 get_gfxstream_renderer() == SELECTED_RENDERER_ANGLE_INDIRECT);
-        if (isSwiftshader) {
-            GLint supportedFormat = GL_RGBA;
-            GLint supportedType = GL_UNSIGNED_BYTE;
-            s_gles2.glGetIntegerv(GL_IMPLEMENTATION_COLOR_READ_FORMAT, &supportedFormat);
-            s_gles2.glGetIntegerv(GL_IMPLEMENTATION_COLOR_READ_TYPE, &supportedType);
-            bool isGlesSupportedCombo = (p_format == GL_RGBA || p_format == GL_RGBA_INTEGER) &&
-                (p_type == GL_UNSIGNED_BYTE || p_type == GL_UNSIGNED_INT || p_type == GL_INT ||
-                 p_type == GL_FLOAT);
-
-            if (isGlesSupportedCombo ||
-                (supportedFormat == (GLint)p_format && supportedType == (GLint)p_type)) {
-                s_gles2.glReadPixels(x, y, width, height, p_format, p_type, pixels);
-            } else {
-                // Swiftshader only supports RGBA readback. We try our best here to support
-                // conversions from RGBA to some commonly requested formats.
-                if ((p_format == GL_RGB || p_format == GL_RGB8) &&
-                    (p_type == GL_UNSIGNED_BYTE || p_type == GL_UNSIGNED_SHORT_5_6_5)) {
-                    std::vector<uint8_t> tmpPixels(width * height * 4);
-                    s_gles2.glReadPixels(
-                        x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, tmpPixels.data());
-                    convertRgbaToRgbPixels(pixels, tmpPixels.data(), width, height, p_type);
-                } else {
-                    GFXSTREAM_ERROR("UNIMPLEMENTED: GLES driver doesn't support readback for "
-                        "(format=0x%x type=0x%x) and no software conversion implemented.",
-                        p_format, p_type);
-                }
-            }
-        } else {
-            // Desktop GL drivers should support most readback formats/types.
-            s_gles2.glReadPixels(x, y, width, height, p_format, p_type, pixels);
-        }
-        s_gles2.glPixelStorei(GL_PACK_ALIGNMENT, prevAlignment);
-        unbindFbo();
-        return true;
+    if (!bindFbo(&m_fbo, m_tex, m_needFboReattach)) {
+        return false;
     }
 
-    return false;
+    m_needFboReattach = false;
+    GLint prevAlignment = 0;
+    bool res = true;
+    s_gles2.glGetIntegerv(GL_PACK_ALIGNMENT, &prevAlignment);
+    s_gles2.glPixelStorei(GL_PACK_ALIGNMENT, 1);
+
+    if (m_pixelReadFormats.isSupported(m_internalFormat, m_format, m_type, p_format, p_type)) {
+        s_gles2.glReadPixels(x, y, width, height, p_format, p_type, pixels);
+    } else {
+        // Software readback. All GL drivers support RGBA readback. We try our best here to
+        // support conversions from RGBA to some commonly requested formats.
+        if ((p_format == GL_RGB || p_format == GL_RGB8) &&
+            (p_type == GL_UNSIGNED_BYTE || p_type == GL_UNSIGNED_SHORT_5_6_5)) {
+            std::vector<uint8_t> tmpPixels(width * height * 4);
+            s_gles2.glReadPixels(x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, tmpPixels.data());
+            convertRgbaToRgbPixels(pixels, tmpPixels.data(), width, height, p_type);
+        } else {
+            GFXSTREAM_ERROR(
+                "UNIMPLEMENTED: GLES driver doesn't support readback for "
+                "(format=0x%x type=0x%x) and no software conversion implemented.",
+                p_format, p_type);
+            res = false;
+        }
+    }
+    s_gles2.glPixelStorei(GL_PACK_ALIGNMENT, prevAlignment);
+    unbindFbo();
+    return res;
 }
 
 bool ColorBufferGl::readPixelsScaled(int width, int height, GLenum p_format, GLenum p_type,
@@ -1091,7 +1071,8 @@ std::unique_ptr<ColorBufferGl> ColorBufferGl::onLoad(gfxstream::Stream* stream,
                                                      EGLDisplay p_display, ContextHelper* helper,
                                                      TextureDraw* textureDraw,
                                                      bool fastBlitSupported,
-                                                     const gfxstream::host::FeatureSet& features) {
+                                                     const gfxstream::host::FeatureSet& features,
+                                                     PixelReadFormats& pixelReadFormats) {
     HandleType hndl = static_cast<HandleType>(stream->getBe32());
     GLuint width = static_cast<GLuint>(stream->getBe32());
     GLuint height = static_cast<GLuint>(stream->getBe32());
@@ -1103,11 +1084,11 @@ std::unique_ptr<ColorBufferGl> ColorBufferGl::onLoad(gfxstream::Stream* stream,
     uint32_t needFormatCheck = stream->getBe32();
 
     if (!eglImage) {
-        return create(p_display, width, height, internalFormat, frameworkFormat,
-                      hndl, helper, textureDraw, fastBlitSupported, features);
+        return create(p_display, width, height, internalFormat, frameworkFormat, hndl, helper,
+                      textureDraw, fastBlitSupported, features, pixelReadFormats);
     }
     std::unique_ptr<ColorBufferGl> cb(
-        new ColorBufferGl(p_display, hndl, width, height, helper, textureDraw));
+        new ColorBufferGl(p_display, hndl, width, height, helper, textureDraw, pixelReadFormats));
     cb->m_eglImage = eglImage;
     cb->m_blitEGLImage = blitEGLImage;
     assert(eglImage && blitEGLImage);

@@ -26,9 +26,10 @@
 #include "OpenGLESDispatch/GLESv2Dispatch.h"
 #include "OpenGLESDispatch/OpenGLDispatchLoader.h"
 #include "RenderThreadInfoGl.h"
-#include "gfxstream/misc/StringUtils.h"
+#include "gfxstream/ThreadAnnotations.h"
 #include "gfxstream/common/logging.h"
 #include "gfxstream/host/renderer_operations.h"
+#include "gfxstream/misc/StringUtils.h"
 
 namespace gfxstream {
 namespace gl {
@@ -705,12 +706,13 @@ std::unique_ptr<ColorBufferGl> EmulationGl::createColorBuffer(uint32_t width, ui
                                                               HandleType handle) {
     return ColorBufferGl::create(mEglDisplay, width, height, internalFormat, frameworkFormat,
                                  handle, getColorBufferContextHelper(), mTextureDraw.get(),
-                                 isFastBlitSupported(), mFeatures);
+                                 isFastBlitSupported(), mFeatures, mPixelReadFormats);
 }
 
 std::unique_ptr<ColorBufferGl> EmulationGl::loadColorBuffer(gfxstream::Stream* stream) {
     return ColorBufferGl::onLoad(stream, mEglDisplay, getColorBufferContextHelper(),
-                                 mTextureDraw.get(), isFastBlitSupported(), mFeatures);
+                                 mTextureDraw.get(), isFastBlitSupported(), mFeatures,
+                                 mPixelReadFormats);
 }
 
 std::unique_ptr<EmulatedEglContext> EmulationGl::createEmulatedEglContext(
