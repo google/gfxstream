@@ -2582,6 +2582,18 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height, GLe
         return false;
     }
 
+    // Requesting invalid texture sizes can crash some drivers, early out to gracefully handle
+    // the errors and avoid total emulator crash.
+    if (width > mDeviceInfo.physdevProps.limits.maxFramebufferWidth ||
+        height > mDeviceInfo.physdevProps.limits.maxFramebufferHeight) {
+        GFXSTREAM_ERROR(
+            "%s: Cannot create color buffer(%u) with size '%u x %u', driver limits: '%u x %u'",
+            __func__, colorBufferHandle, width, height,
+            mDeviceInfo.physdevProps.limits.maxFramebufferWidth,
+            mDeviceInfo.physdevProps.limits.maxFramebufferHeight);
+        return false;
+    }
+
     VkEmulation::ColorBufferInfo res;
 
     res.handle = colorBufferHandle;
