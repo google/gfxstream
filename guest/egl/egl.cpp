@@ -536,13 +536,9 @@ egl_window_surface_t::~egl_window_surface_t() {
     }
 
     auto* anwHelper = hostCon->anwHelper();
-
-    // NOTE: Gfxstream does not own a reference to any previously dequeued
-    // `ANativeWindowBuffer`s. The `ANativeWindow` (i.e. the `Surface` from
-    // libgui) owns those references and buffers. The `ANativeWindowBuffer`s
-    // may have already been destroyed during surface disconnect so do not
-    // attempt to `cancelBuffer(buffer)`.
-
+    if (buffer) {
+        anwHelper->cancelBuffer(nativeWindow, buffer);
+    }
     anwHelper->release(nativeWindow);
 }
 
