@@ -7086,13 +7086,10 @@ class VkDecoderGlobalState::Impl {
                 if (mappedData.device != device) {
                     continue;
                 }
-                // TODO(b/424729656): this logic should run only for emulated memory
-                if (!mappedData.virtioGpuMapped) {
-                    continue;
-                }
                 if (mappedData.bufferMemoryRanges.empty()) {
                     continue;
                 }
+                // TODO(b/424729656): this logic should run only for emulated memory
                 for (const auto& pair : mappedData.bufferMemoryRanges) {
                     memoryRangesToFlush.push_back({
                         .sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
