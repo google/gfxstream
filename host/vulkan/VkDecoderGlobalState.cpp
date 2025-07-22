@@ -5708,9 +5708,9 @@ class VkDecoderGlobalState::Impl {
                 bool opaqueFd = true;
 
 #if defined(__APPLE__)
-                // Use metal object extension on MoltenVK mode for color buffer import,
-                // non-moltenVK path on MacOS will use FD handles
-                if (m_vkEmulation->supportsMoltenVk()) {
+                // Use metal object extension on host-vulkan mode for color buffer import,
+                // other paths on MacOS will use FD handles
+                if (m_vkEmulation->supportsExternalMemoryMetal()) {
                     if (dedicatedAllocInfoPtr == nullptr || localDedicatedAllocInfo.image == VK_NULL_HANDLE) {
                         // TODO(b/351765838): This should not happen, but somehow the guest
                         // is not providing us the necessary information for video rendering.
@@ -5802,7 +5802,7 @@ class VkDecoderGlobalState::Impl {
 
             bool opaqueFd = true;
 #ifdef __APPLE__
-            if (m_vkEmulation->supportsMoltenVk()) {
+            if (m_vkEmulation->supportsExternalMemoryMetal()) {
                 MTLResource_id bufferMetalMemoryHandle =
                     m_vkEmulation->getBufferMetalMemoryHandle(importBufferInfoPtr->buffer);
 
@@ -6057,7 +6057,7 @@ class VkDecoderGlobalState::Impl {
                 VkExternalMemoryHandleTypeFlags handleTypes;
 
 #if defined(__APPLE__)
-                if (m_vkEmulation->supportsMoltenVk()) {
+                if (m_vkEmulation->supportsExternalMemoryMetal()) {
                     // Using a different handle type when in MoltenVK mode
                     handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLHEAP_BIT_EXT;
                 } else {
@@ -6559,8 +6559,8 @@ class VkDecoderGlobalState::Impl {
                 STREAM_HANDLE_TYPE_MEM_SHM, info->caching, std::nullopt);
         } else if (m_vkEmulation->getFeatures().ExternalBlob.enabled) {
 #ifdef __APPLE__
-            if (m_vkEmulation->supportsMoltenVk()) {
-                GFXSTREAM_FATAL("ExternalBlob feature is not supported with MoltenVK");
+            if (m_vkEmulation->supportsExternalMemoryMetal()) {
+                GFXSTREAM_FATAL("ExternalBlob feature is not supported with external memory metal");
             }
 #endif
 
@@ -9098,9 +9098,11 @@ class VkDecoderGlobalState::Impl {
         if (m_vkEmulation->supportsMoltenVk()) {
             hostAlwaysDeviceExtensions.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
             hostAlwaysDeviceExtensions.push_back(VK_EXT_METAL_OBJECTS_EXTENSION_NAME);
+        }
+        if (m_vkEmulation->supportsExternalMemoryMetal()) {
             hostAlwaysDeviceExtensions.push_back(VK_EXT_EXTERNAL_MEMORY_METAL_EXTENSION_NAME);
         } else {
-            // Non-MoltenVK path, use memory_fd
+            // Use memory_fd if external memory metal is not supported (software rendering path)
             hostAlwaysDeviceExtensions.push_back(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME);
         }
 #endif
