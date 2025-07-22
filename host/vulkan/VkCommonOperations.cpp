@@ -284,7 +284,7 @@ VkExternalMemoryHandleTypeFlagBits VkEmulation::getDefaultExternalMemoryHandleTy
 #else
 
 #if defined(__APPLE__)
-    if (mInstanceSupportsMoltenVK) {
+    if (mInstanceSupportsExternalMemoryMetal) {
         return VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLHEAP_BIT_EXT;
     }
 #endif
@@ -842,6 +842,8 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
     std::vector<const char*> moltenVkDeviceExtNames = {
         VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME,
         VK_EXT_METAL_OBJECTS_EXTENSION_NAME,
+    };
+    std::vector<const char*> externalMemoryMetalDeviceExtNames = {
         VK_EXT_EXTERNAL_MEMORY_METAL_EXTENSION_NAME,
     };
 #endif
@@ -863,13 +865,15 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
     bool surfaceSupported = extensionsSupported(instanceExts, surfaceInstanceExtNames);
 #if defined(__APPLE__)
     const std::string vulkanIcd = gfxstream::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD");
-    const bool moltenVKEnabled = (vulkanIcd == "moltenvk");
+    const bool moltenVKRequested = (vulkanIcd == "moltenvk");
+    const bool useExternalMemoryMetal = moltenVKRequested || (vulkanIcd == "kosmickrisp");
     const bool moltenVKSupported = extensionsSupported(instanceExts, moltenVkInstanceExtNames);
-    if (moltenVKEnabled && !moltenVKSupported) {
+    if (moltenVKRequested && !moltenVKSupported) {
         // This might happen if the user manually changes moltenvk ICD library
-        GFXSTREAM_FATAL("MoltenVK requested, but the required extensions are not supported.");
+        // Just a warning to enable a later version without or other drivers without portability
+        GFXSTREAM_WARNING("MoltenVK requested, but the required extensions are not supported.");
     }
-    const bool useMoltenVK = moltenVKEnabled && moltenVKSupported;
+    const bool useMoltenVK = moltenVKRequested && moltenVKSupported;
 #endif
 
     VkApplicationInfo appInfo = {
@@ -1043,6 +1047,7 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
     emulation->mInstanceSupportsSurface = surfaceSupported;
 #if defined(__APPLE__)
     emulation->mInstanceSupportsMoltenVK = useMoltenVK;
+    emulation->mInstanceSupportsExternalMemoryMetal = useExternalMemoryMetal;
 #endif
 
     if (emulation->mInstanceSupportsGetPhysicalDeviceProperties2) {
@@ -1064,7 +1069,7 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
     }
 
 #if defined(__APPLE__)
-    if (emulation->mInstanceSupportsMoltenVK) {
+    if (emulation->mInstanceSupportsExternalMemoryMetal) {
         // Enable some specific extensions on MacOS when moltenVK is used.
         externalMemoryDeviceExtNames.push_back(VK_EXT_METAL_OBJECTS_EXTENSION_NAME);
         externalMemoryDeviceExtNames.push_back(VK_EXT_EXTERNAL_MEMORY_METAL_EXTENSION_NAME);
@@ -1113,6 +1118,10 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
 #if defined(__APPLE__)
         if (useMoltenVK && !extensionsSupported(deviceExts, moltenVkDeviceExtNames)) {
             GFXSTREAM_ERROR("MoltenVK enabled but necessary device extensions are not supported.");
+            return nullptr;
+        }
+        if (useExternalMemoryMetal && !extensionsSupported(deviceExts, externalMemoryMetalDeviceExtNames)) {
+            GFXSTREAM_ERROR("Host Vulkan driver is requested, but necessary device extensions are not supported.");
             return nullptr;
         }
 #endif
@@ -1393,6 +1402,11 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
             selectedDeviceExtensionNames.emplace(extension);
         }
     }
+    if (useExternalMemoryMetal) {
+        for (auto extension : externalMemoryMetalDeviceExtNames) {
+            selectedDeviceExtensionNames.emplace(extension);
+        }
+    }
 #endif
 
     if (emulation->mDeviceInfo.robustness2Features) {
@@ -1541,7 +1555,7 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
             return nullptr;
         }
 #else
-        if (emulation->mInstanceSupportsMoltenVK) {
+        if (emulation->mInstanceSupportsExternalMemoryMetal) {
             // We'll use vkGetMemoryMetalHandleEXT, no need to save into getMemoryHandleFunc
             emulation->mDeviceInfo.getMemoryHandleFunc = nullptr;
             if (!dvk->vkGetDeviceProcAddr(emulation->mDevice, "vkGetMemoryMetalHandleEXT")) {
@@ -1765,6 +1779,8 @@ bool VkEmulation::supportsExternalFenceCapabilities() const {
 bool VkEmulation::supportsSurfaces() const { return mInstanceSupportsSurface; }
 
 bool VkEmulation::supportsMoltenVk() const { return mInstanceSupportsMoltenVK; }
+
+bool VkEmulation::supportsExternalMemoryMetal() const { return mInstanceSupportsExternalMemoryMetal; }
 
 bool VkEmulation::supportsPhysicalDeviceIDProperties() const {
     return mInstanceSupportsPhysicalDeviceIDProperties;
