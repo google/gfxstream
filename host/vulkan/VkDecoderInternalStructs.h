@@ -424,8 +424,40 @@ struct SemaphoreInfo {
     // the waitable that tracking that host operation.
     std::optional<DeviceOpWaitable> latestUse;
 
+    bool isSignaled{false};        // only valid for binary semaphore
     uint64_t lastSignalValue = 0;  // Only valid when the virtual queue feature is enabled
     bool isTimelineSemaphore = false;
+
+    void onQueueSubmissionSignal() {
+        // From
+        // https://registry.khronos.org/vulkan/specs/latest/html/vkspec.html#synchronization-semaphores-signaling
+        //
+        //    When a batch is submitted to a queue via a queue submission and it
+        //    includes semaphores to be signaled, ... and defines semaphore
+        //    signal operations which set the semaphores to the signaled state.
+        //
+        // Track that here for snapshot handling:
+        if (!isTimelineSemaphore) {
+            isSignaled = true;
+        }
+    }
+
+    void onQueueSubmissionWait() {
+        // From
+        // https://registry.khronos.org/vulkan/specs/latest/html/vkspec.html#synchronization-semaphores-waiting
+        //
+        //    When a batch is submitted to a queue via a queue submission, and
+        //    it includes semaphores to be waited on, ... and defines semaphore
+        //    wait operations.
+        //
+        //    Such semaphore wait operations set the semaphores created with a
+        //    VkSemaphoreType of VK_SEMAPHORE_TYPE_BINARY to the unsignaled state.
+        //
+        // Track that here for snapshot handling:
+        if (!isTimelineSemaphore) {
+            isSignaled = false;
+        }
+    }
 };
 
 struct DescriptorSetLayoutInfo {

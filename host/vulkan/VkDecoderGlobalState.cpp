@@ -300,6 +300,7 @@ class VkDecoderGlobalState::Impl {
             releaseSnapshotStateBlock(&stateBlock);
         }
     }
+
     void saveEvents(gfxstream::Stream* stream) REQUIRES(mMutex) {
         uint32_t sz = 0;
         for (const auto& [event, eventInfo] : mEventInfo) {
@@ -315,6 +316,36 @@ class VkDecoderGlobalState::Impl {
                 stream->putBe64(eventInfo.flags);
                 stream->putBe32(eventInfo.isFromHost ? 1 : 0);
             }
+        }
+    }
+
+    void saveSemaphores(gfxstream::Stream* stream) REQUIRES(mMutex) {
+        uint32_t sz = 0;
+        for (const auto& [semaphore, semaphoreInfo] : mSemaphoreInfo) {
+            if (semaphoreInfo.isSignaled) {
+                ++sz;
+            }
+        }
+        stream->putBe32(sz);
+        for (const auto& [semaphore, semaphoreInfo] : mSemaphoreInfo) {
+            if (semaphoreInfo.isSignaled) {
+                stream->putBe64(reinterpret_cast<uint64_t>(semaphoreInfo.boxed));
+            }
+        }
+    }
+
+    void loadSemaphores(gfxstream::Stream* stream) REQUIRES(mMutex) {
+        const uint32_t sz = stream->getBe32();
+        for (uint32_t i = 0; i < sz; ++i) {
+            const VkSemaphore boxed_semaphore = reinterpret_cast<VkSemaphore>(stream->getBe64());
+            const VkSemaphore unboxed_semaphore = unbox_VkSemaphore(boxed_semaphore);
+
+            SemaphoreInfo& semaphoreInfo = mSemaphoreInfo[unboxed_semaphore];
+            semaphoreInfo.isSignaled = true;
+
+            StateBlock stateBlock = createSnapshotStateBlock(semaphoreInfo.device);
+            signalSemaphore(&stateBlock, unboxed_semaphore);
+            releaseSnapshotStateBlock(&stateBlock);
         }
     }
 
@@ -672,6 +703,9 @@ class VkDecoderGlobalState::Impl {
         // Events
         saveEvents(stream);
 
+        // Semaphores
+        saveSemaphores(stream);
+
         mSnapshotState = SnapshotState::Normal;
         GFXSTREAM_DEBUG("VulkanSnapshots save (end)");
     }
@@ -943,6 +977,10 @@ class VkDecoderGlobalState::Impl {
 
             // Events
             loadEvents(stream);
+
+            // semaphores
+            loadSemaphores(stream);
+
             mSnapshotLoadBoxedInstance2ContextId.clear();
             mSnapshotState = SnapshotState::Normal;
         }
@@ -6440,6 +6478,14 @@ class VkDecoderGlobalState::Impl {
             auto semaphoreInfo = gfxstream::base::find(mSemaphoreInfo, semaphore);
             if (semaphoreInfo != nullptr) {
                 semaphoreInfo->latestUse = aniCompletedWaitable;
+		// From https://source.android.com/docs/core/graphics/implement-vulkan#acquire_image
+		//
+		//    vkAcquireImageANDROID() is called during vkAcquireNextImageKHR to import a
+		//    native fence into the VkSemaphore and VkFence objects ...
+		//
+		//    This call puts the VkSemaphore and VkFence into the same pending state as if
+		// signaled by vkQueueSubmit ...
+                semaphoreInfo->onQueueSubmissionSignal();
             }
         }
         if (fence != VK_NULL_HANDLE) {
@@ -6491,6 +6537,22 @@ class VkDecoderGlobalState::Impl {
                                         VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
         }
 
+        if (snapshotsEnabled()) {
+            for (uint32_t j = 0; j < waitSemaphoreCount; j++) {
+                auto unboxed_semaphore = pWaitSemaphores[j];
+                auto semaphoreInfoIt = mSemaphoreInfo.find(unboxed_semaphore);
+                if (semaphoreInfoIt == mSemaphoreInfo.end()) {
+                    GFXSTREAM_ERROR("Failed to find VkSemaphore:%p", unboxed_semaphore);
+                    return VK_ERROR_VALIDATION_FAILED_EXT;
+                }
+                auto& semaphoreInfo = semaphoreInfoIt->second;
+                if (semaphoreInfo.isTimelineSemaphore) {
+                    // timeline semaphore is not handled yet
+                    continue;
+                }
+                semaphoreInfo.onQueueSubmissionWait();
+            }
+        }
         return anbInfo->on_vkQueueSignalReleaseImageANDROID(
             m_vkEmulation, vk, queueInfo->queueFamilyIndex, queue, queueInfo->queueMutex.get(),
             waitSemaphoreCount, pWaitSemaphores, pNativeFenceFd);
@@ -7264,6 +7326,39 @@ class VkDecoderGlobalState::Impl {
                 for (uint32_t j = 0; j < cmdCount; ++j) {
                     auto commandBuffer = getCommandBuffer(pSubmits[i], i);
                     processEventsForSubmittedCommandBuffer(queue, commandBuffer);
+                }
+            }
+
+            std::lock_guard<std::mutex> lock(mMutex);
+            for (uint32_t i = 0; i < submitCount; i++) {
+                const auto& s = pSubmits[i];
+                for (uint32_t j = 0; j < getWaitSemaphoreCount(s); j++) {
+                    auto unboxed_semaphore = getWaitSemaphore(s, j);
+                    auto semaphoreInfoIt = mSemaphoreInfo.find(unboxed_semaphore);
+                    if (semaphoreInfoIt == mSemaphoreInfo.end()) {
+                        GFXSTREAM_ERROR("Failed to find VkSemaphore:%p", unboxed_semaphore);
+                        return VK_ERROR_VALIDATION_FAILED_EXT;
+                    }
+                    auto& semaphoreInfo = semaphoreInfoIt->second;
+                    if (semaphoreInfo.isTimelineSemaphore) {
+                        // timeline semaphore is not handled yet
+                        continue;
+                    }
+                    semaphoreInfo.onQueueSubmissionWait();
+                }
+                for (uint32_t j = 0; j < getSignalSemaphoreCount(s); j++) {
+                    auto unboxed_semaphore = getSignalSemaphore(s, j);
+                    auto semaphoreInfoIt = mSemaphoreInfo.find(unboxed_semaphore);
+                    if (semaphoreInfoIt == mSemaphoreInfo.end()) {
+                        GFXSTREAM_ERROR("Failed to find VkSemaphore:%p", unboxed_semaphore);
+                        return VK_ERROR_VALIDATION_FAILED_EXT;
+                    }
+                    auto& semaphoreInfo = semaphoreInfoIt->second;
+                    if (semaphoreInfo.isTimelineSemaphore) {
+                        // timeline semaphore is not handled yet
+                        continue;
+                    }
+                    semaphoreInfo.onQueueSubmissionSignal();
                 }
             }
         }
@@ -8251,6 +8346,24 @@ class VkDecoderGlobalState::Impl {
         // with vkQueueSignalReleaseImageANDROID
         auto queue = unbox_VkQueue(boxed_queue);
         auto vk = dispatch_VkQueue(boxed_queue);
+
+        if (snapshotsEnabled()) {
+            std::lock_guard<std::mutex> lock(mMutex);
+            for (uint32_t j = 0; j < pPresentInfo->waitSemaphoreCount; j++) {
+                auto unboxed_semaphore = pPresentInfo->pWaitSemaphores[j];
+                auto semaphoreInfoIt = mSemaphoreInfo.find(unboxed_semaphore);
+                if (semaphoreInfoIt == mSemaphoreInfo.end()) {
+                    GFXSTREAM_ERROR("Failed to find VkSemaphore:%p", unboxed_semaphore);
+                    return VK_ERROR_VALIDATION_FAILED_EXT;
+                }
+                auto& semaphoreInfo = semaphoreInfoIt->second;
+                if (semaphoreInfo.isTimelineSemaphore) {
+                    // timeline semaphore is not handled yet
+                    continue;
+                }
+                semaphoreInfo.onQueueSubmissionWait();
+            }
+        }
 
         return vk->vkQueuePresentKHR(queue, pPresentInfo);
     }

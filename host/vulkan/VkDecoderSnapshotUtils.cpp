@@ -647,6 +647,26 @@ void setEventInQueue(StateBlock* stateBlock, VkEvent event, uint64_t eventflags)
     dispatch->vkFreeCommandBuffers(stateBlock->device, stateBlock->commandPool, 1, &commandBuffer);
 }
 
+void signalSemaphore(StateBlock* stateBlock, VkSemaphore unboxed_semaphore) {
+    VulkanDispatch* dispatch = stateBlock->deviceDispatch;
+    VkFence fence;
+    VkFenceCreateInfo fenceCreateInfo{
+        .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+    };
+    VK_CHECK(dispatch->vkCreateFence(stateBlock->device, &fenceCreateInfo, nullptr, &fence));
+    VkSubmitInfo submitInfo = {
+        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        .commandBufferCount = 0,
+        .pCommandBuffers = nullptr,
+        .signalSemaphoreCount = 1,
+        .pSignalSemaphores = &unboxed_semaphore,
+    };
+    VK_CHECK(dispatch->vkQueueSubmit(stateBlock->queue, 1, &submitInfo, fence));
+    VK_CHECK(dispatch->vkWaitForFences(stateBlock->device, 1, &fence, VK_TRUE, 3000000000L));
+    VK_CHECK(dispatch->vkResetFences(stateBlock->device, 1, &fence));
+    dispatch->vkDestroyFence(stateBlock->device, fence, nullptr);
+}
+
 void loadBufferContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkBuffer buffer,
                        const BufferInfo* bufferInfo) {
     VkBufferUsageFlags requiredUsages =
