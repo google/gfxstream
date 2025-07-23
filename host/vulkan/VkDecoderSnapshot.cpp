@@ -851,63 +851,7 @@ class VkDecoderSnapshot::Impl {
                                 uint32_t descriptorWriteCount,
                                 const VkWriteDescriptorSet* pDescriptorWrites,
                                 uint32_t descriptorCopyCount,
-                                const VkCopyDescriptorSet* pDescriptorCopies) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        // pDescriptorWrites action
-        VkDecoderGlobalState* m_state = VkDecoderGlobalState::get();
-        if (m_state->batchedDescriptorSetUpdateEnabled()) {
-            return;
-        }
-        uint64_t handle = m_state->newGlobalVkGenericHandle(Tag_VkUpdateDescriptorSets);
-        mReconstruction.addHandles((const uint64_t*)(&handle), 1);
-        mReconstruction.setApiTrace(apiCallHandle, apiCallPacket, apiCallPacketSize);
-        mReconstruction.addHandleDependency((const uint64_t*)(&handle), 1,
-                                            (uint64_t)(uintptr_t)device);
-        for (uint32_t i = 0; i < descriptorWriteCount; ++i) {
-            mReconstruction.addHandleDependency(
-                (const uint64_t*)(&handle), 1,
-                (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkDescriptorSet(
-                    pDescriptorWrites[i].dstSet));
-            for (uint32_t j = 0; j < pDescriptorWrites[i].descriptorCount; ++j) {
-                if ((pDescriptorWrites[i].pImageInfo)) {
-                    if (pDescriptorWrites[i].descriptorType ==
-                        VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) {
-                        mReconstruction.addHandleDependency(
-                            (const uint64_t*)(&handle), 1,
-                            (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkSampler(
-                                pDescriptorWrites[i].pImageInfo[j].sampler));
-                        mReconstruction.addHandleDependency(
-                            (const uint64_t*)(&handle), 1,
-                            (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkImageView(
-                                pDescriptorWrites[i].pImageInfo[j].imageView));
-                    }
-                    if (pDescriptorWrites[i].pImageInfo[j].imageView) {
-                        mReconstruction.addHandleDependency(
-                            (const uint64_t*)(&handle), 1,
-                            (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkImageView(
-                                pDescriptorWrites[i].pImageInfo[j].imageView));
-                    }
-                    if (pDescriptorWrites[i].descriptorType == VK_DESCRIPTOR_TYPE_SAMPLER) {
-                        mReconstruction.addHandleDependency(
-                            (const uint64_t*)(&handle), 1,
-                            (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkSampler(
-                                pDescriptorWrites[i].pImageInfo[j].sampler));
-                    }
-                }
-                if (pDescriptorWrites[i].pBufferInfo) {
-                    if (pDescriptorWrites[i].descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) {
-                        mReconstruction.addHandleDependency(
-                            (const uint64_t*)(&handle), 1,
-                            (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkBuffer(
-                                pDescriptorWrites[i].pBufferInfo[j].buffer));
-                    }
-                }
-            }
-        }
-        mReconstruction.forEachHandleAddApi((const uint64_t*)(&handle), 1, apiCallHandle,
-                                            VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)(&handle), 1);
-    }
+                                const VkCopyDescriptorSet* pDescriptorCopies) {}
     void vkCreateFramebuffer(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle,
                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                              VkResult input_result, VkDevice device,
