@@ -76,7 +76,7 @@ if host_machine.system() == 'qnx'
 elif host_machine.system() == 'linux'
   thread_dep = dependency('threads')
   gfxstream_host_args += '-DGFXSTREAM_UNSTABLE_VULKAN_EXTERNAL_SYNC=1'
-  gfxstream_host_args += '-DGFXSTREAM_UNSTABLE_VULKAN_DMABUF_WINSYS=1'
+  gfxstream_host_args += '-DGFXSTREAM_UNSTABLE_VULKAN_BLOB_COLOR_BUFFER=1'
   gfxstream_host_args += '-DHAVE_MEMFD_CREATE=1'
 else
   thread_dep = dependency('threads')
