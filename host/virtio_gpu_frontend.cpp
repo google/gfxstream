@@ -591,7 +591,7 @@ void VirtioGpuFrontend::fillCaps(uint32_t set, void* caps) {
             capset->noRenderControlEnc = 1;
             capset->blobAlignment = mPageSize;
 
-#if GFXSTREAM_UNSTABLE_VULKAN_DMABUF_WINSYS
+#if GFXSTREAM_UNSTABLE_VULKAN_BLOB_COLOR_BUFFER
             capset->alwaysBlob = 1;
 #endif
 
