@@ -287,7 +287,11 @@ std::optional<VirtioGpuResource> VirtioGpuResource::Create(
     } else if (features.ExternalBlob.enabled) {
         if (createBlobArgs->blob_mem == STREAM_BLOB_MEM_GUEST &&
             (createBlobArgs->blob_flags & STREAM_BLOB_FLAG_CREATE_GUEST_HANDLE)) {
-#if defined(__linux__) || defined(__QNX__)
+#if defined(__ANDROID__)
+            ExternalObjectManager::get()->addBlobDescriptorInfo(
+                contextId, createBlobArgs->blob_id, handle->os_handle, handle->handle_type, 0,
+                std::nullopt);
+#elif defined(__linux__) || defined(__QNX__)
             ManagedDescriptor managedHandle(handle->os_handle);
             ExternalObjectManager::get()->addBlobDescriptorInfo(
                 contextId, createBlobArgs->blob_id, std::move(managedHandle), handle->handle_type,
@@ -812,7 +816,9 @@ int VirtioGpuResource::ExportBlob(struct stream_renderer_handle* outHandle) {
         return 0;
     } else if (std::holds_alternative<ExternalMemoryInfo>(*mBlobMemory)) {
         auto& memory = std::get<ExternalMemoryInfo>(*mBlobMemory);
-
+#ifdef __ANDROID__
+        auto rawDescriptor = memory->descriptorInfo.handle;
+#else
         auto rawDescriptorOpt = memory->descriptorInfo.descriptor.release();
         if (!rawDescriptorOpt) {
             GFXSTREAM_ERROR("failed to export blob for resource %u: failed to get raw handle.",
@@ -820,7 +826,7 @@ int VirtioGpuResource::ExportBlob(struct stream_renderer_handle* outHandle) {
             return -EINVAL;
         }
         auto rawDescriptor = *rawDescriptorOpt;
-
+#endif
 #ifdef _WIN32
         outHandle->os_handle = static_cast<int64_t>(reinterpret_cast<intptr_t>(rawDescriptor));
 #else

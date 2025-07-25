@@ -85,7 +85,11 @@ std::optional<BlobDescriptorInfo> ColorBufferVk::exportBlob() {
         return BlobDescriptorInfo{
             .descriptorInfo =
                 {
+#if defined(__ANDROID__)
+                    .handle = info->handleInfo.handle,
+#else
                     .descriptor = info->handleInfo.toManagedDescriptor(),
+#endif
                     .streamHandleType = info->handleInfo.streamHandleType,
                 },
             .caching = 0,

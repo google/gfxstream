@@ -55,7 +55,11 @@ std::optional<BlobDescriptorInfo> BufferVk::exportBlob() {
     return BlobDescriptorInfo{
         .descriptorInfo =
             {
+#if defined(__ANDROID__)
+                .handle = dupHandleInfo->handle,
+#else
                 .descriptor = dupHandleInfo->toManagedDescriptor(),
+#endif
                 .streamHandleType = dupHandleInfo->streamHandleType,
             },
         .caching = 0,
