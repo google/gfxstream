@@ -45,7 +45,7 @@ std::filesystem::path GetTestDataPath(const std::string& basename) {
         return "";
     }
     const std::vector<std::string> possiblePaths = {
-        std::string("_main/common/end2end/gfxstream_end2end_testdata/") + basename,
+        std::string("_main/tests/end2end/gfxstream_end2end_testdata/") + basename,
     };
     for (const std::string& possiblePath : possiblePaths) {
         const std::string path = sRunfiles->Rlocation(possiblePath);
