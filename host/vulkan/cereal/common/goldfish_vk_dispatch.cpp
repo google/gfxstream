@@ -696,6 +696,14 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
     out->vkCmdInsertDebugUtilsLabelEXT =
         (PFN_vkCmdInsertDebugUtilsLabelEXT)dlSymFunc(lib, "vkCmdInsertDebugUtilsLabelEXT");
 #endif
+#ifdef VK_ANDROID_external_memory_android_hardware_buffer
+    out->vkGetAndroidHardwareBufferPropertiesANDROID =
+        (PFN_vkGetAndroidHardwareBufferPropertiesANDROID)dlSymFunc(
+            lib, "vkGetAndroidHardwareBufferPropertiesANDROID");
+    out->vkGetMemoryAndroidHardwareBufferANDROID =
+        (PFN_vkGetMemoryAndroidHardwareBufferANDROID)dlSymFunc(
+            lib, "vkGetMemoryAndroidHardwareBufferANDROID");
+#endif
 #ifdef VK_EXT_image_drm_format_modifier
     out->vkGetImageDrmFormatModifierPropertiesEXT =
         (PFN_vkGetImageDrmFormatModifierPropertiesEXT)dlSymFunc(
@@ -1720,6 +1728,14 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
     out->vkCmdInsertDebugUtilsLabelEXT =
         (PFN_vkCmdInsertDebugUtilsLabelEXT)vk->vkGetInstanceProcAddr(
             instance, "vkCmdInsertDebugUtilsLabelEXT");
+#endif
+#ifdef VK_ANDROID_external_memory_android_hardware_buffer
+    out->vkGetAndroidHardwareBufferPropertiesANDROID =
+        (PFN_vkGetAndroidHardwareBufferPropertiesANDROID)vk->vkGetInstanceProcAddr(
+            instance, "vkGetAndroidHardwareBufferPropertiesANDROID");
+    out->vkGetMemoryAndroidHardwareBufferANDROID =
+        (PFN_vkGetMemoryAndroidHardwareBufferANDROID)vk->vkGetInstanceProcAddr(
+            instance, "vkGetMemoryAndroidHardwareBufferANDROID");
 #endif
 #ifdef VK_EXT_image_drm_format_modifier
     out->vkGetImageDrmFormatModifierPropertiesEXT =
@@ -2755,6 +2771,14 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
         device, "vkCmdEndDebugUtilsLabelEXT");
     out->vkCmdInsertDebugUtilsLabelEXT = (PFN_vkCmdInsertDebugUtilsLabelEXT)vk->vkGetDeviceProcAddr(
         device, "vkCmdInsertDebugUtilsLabelEXT");
+#endif
+#ifdef VK_ANDROID_external_memory_android_hardware_buffer
+    out->vkGetAndroidHardwareBufferPropertiesANDROID =
+        (PFN_vkGetAndroidHardwareBufferPropertiesANDROID)vk->vkGetDeviceProcAddr(
+            device, "vkGetAndroidHardwareBufferPropertiesANDROID");
+    out->vkGetMemoryAndroidHardwareBufferANDROID =
+        (PFN_vkGetMemoryAndroidHardwareBufferANDROID)vk->vkGetDeviceProcAddr(
+            device, "vkGetMemoryAndroidHardwareBufferANDROID");
 #endif
 #ifdef VK_EXT_image_drm_format_modifier
     out->vkGetImageDrmFormatModifierPropertiesEXT =

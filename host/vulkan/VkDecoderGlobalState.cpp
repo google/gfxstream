@@ -61,6 +61,10 @@
 #include <unistd.h>
 #endif
 
+#ifdef __ANDROID__
+#include <vndk/hardware_buffer.h>
+#endif
+
 #ifdef __APPLE__
 #include <CoreFoundation/CoreFoundation.h>
 #include <vulkan/vulkan_beta.h> // for MoltenVK portability extensions
@@ -2007,6 +2011,10 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
+#if defined(__ANDROID__)
+        updatedDeviceExtensions.push_back("VK_ANDROID_external_memory_android_hardware_buffer");
+#endif
+
         const auto r2features = m_vkEmulation->getRobustness2Features();
         const bool forceEnableRobustness =
             r2features &&
@@ -2235,6 +2243,14 @@ class VkDecoderGlobalState::Impl {
         // Use vkGetMemoryWin32HandleKHR
         deviceInfo.getMemoryHandleFunc = reinterpret_cast<PFN_vkGetMemoryWin32HandleKHR>(
             vk->vkGetDeviceProcAddr(*pDevice, "vkGetMemoryWin32HandleKHR"));
+        if (!deviceInfo.getMemoryHandleFunc) {
+            return VK_ERROR_INITIALIZATION_FAILED;
+        }
+#elif defined(__ANDROID__)
+        // Use vkGetMemoryAndroidHardwareBufferANDROID
+        deviceInfo.getMemoryHandleFunc =
+            reinterpret_cast<PFN_vkGetMemoryAndroidHardwareBufferANDROID>(
+                vk->vkGetDeviceProcAddr(*pDevice, "vkGetMemoryAndroidHardwareBufferANDROID"));
         if (!deviceInfo.getMemoryHandleFunc) {
             return VK_ERROR_INITIALIZATION_FAILED;
         }
@@ -5786,7 +5802,13 @@ class VkDecoderGlobalState::Impl {
             nullptr,
         };
 #endif
-
+#if defined(__ANDROID__)
+        VkImportAndroidHardwareBufferInfoANDROID importInfo = {
+            .sType = VK_STRUCTURE_TYPE_IMPORT_ANDROID_HARDWARE_BUFFER_INFO_ANDROID,
+            .pNext = nullptr,
+            .buffer = nullptr,
+        };
+#endif
         VkImportMemoryFdInfoKHR importFdInfo{
             VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR,
             0,
@@ -5899,6 +5921,10 @@ class VkDecoderGlobalState::Impl {
                             dupHandleInfo->streamHandleType);
                         return VK_ERROR_OUT_OF_DEVICE_MEMORY;
                     }
+#elif defined(__ANDROID__)
+                    importInfo.buffer = static_cast<AHardwareBuffer*>(
+                        reinterpret_cast<void*>(dupHandleInfo->handle));
+                    vk_append_struct(&structChainIter, &importInfo);
 #else
                     importFdInfo.fd = dupHandleInfo->getFd();
                     vk_append_struct(&structChainIter, &importFdInfo);
@@ -5979,7 +6005,7 @@ class VkDecoderGlobalState::Impl {
                         dupHandleInfo->streamHandleType);
                     return VK_ERROR_OUT_OF_DEVICE_MEMORY;
                 }
-#else
+#elif !defined(__ANDROID__)
                 importFdInfo.fd = dupHandleInfo->getFd();
                 vk_append_struct(&structChainIter, &importFdInfo);
 #endif
@@ -6065,6 +6091,10 @@ class VkDecoderGlobalState::Impl {
         if (emulateHostVisible) {
             if (createBlobInfoPtr && createBlobInfoPtr->blobMem == STREAM_BLOB_MEM_GUEST &&
                 (createBlobInfoPtr->blobFlags & STREAM_BLOB_FLAG_CREATE_GUEST_HANDLE)) {
+#if defined(__ANDROID__)
+                // Android host does not use dmabuf
+                (void)virtioGpuContextId; // suppress warning
+#elif defined(__linux__)
                 DescriptorType rawDescriptor;
                 auto descriptorInfoOpt = ExternalObjectManager::get()->removeBlobDescriptorInfo(
                     virtioGpuContextId, createBlobInfoPtr->blobId);
@@ -6082,7 +6112,6 @@ class VkDecoderGlobalState::Impl {
                     return VK_ERROR_OUT_OF_DEVICE_MEMORY;
                 }
 
-#if defined(__linux__)
                 if (!m_vkEmulation->supportsDmaBuf() || !deviceHasDmabufExt) {
                     GFXSTREAM_ERROR("dmabuf not supported");
                     return VK_ERROR_OUT_OF_DEVICE_MEMORY;
@@ -6738,8 +6767,13 @@ class VkDecoderGlobalState::Impl {
                 return VK_ERROR_OUT_OF_HOST_MEMORY;
             }
             auto& exportedMemory = *exportedMemoryOpt;
+#ifdef __ANDROID__
+            auto& descriptor = exportedMemory.handle;
+#else
+            auto& descriptor = exportedMemory.descriptor;
+#endif
             ExternalObjectManager::get()->addBlobDescriptorInfo(
-                virtioGpuContextId, hostBlobId, std::move(exportedMemory.descriptor),
+                virtioGpuContextId, hostBlobId, std::move(descriptor),
                 exportedMemory.streamHandleType, info->caching,
                 std::optional<VulkanInfo>(vulkanInfo));
         } else if (!info->needUnmap) {
@@ -9480,12 +9514,25 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    std::optional<GenericDescriptorInfo> exportMemoryHandle(struct DeviceInfo* deviceInfo,
-                                                            VulkanDispatch* vk, VkDevice device,
-                                                            VkDeviceMemory memory) {
-        GenericDescriptorInfo ret;
+    std::optional<BlobDescriptorType> exportMemoryHandle(struct DeviceInfo* deviceInfo,
+                                                         VulkanDispatch* vk, VkDevice device,
+                                                         VkDeviceMemory memory) {
+        BlobDescriptorType ret;
 
-#if defined(__unix__)
+#if defined(__ANDROID__)
+        VkMemoryGetAndroidHardwareBufferInfoANDROID getAhbInfo = {
+            .sType = VK_STRUCTURE_TYPE_MEMORY_GET_ANDROID_HARDWARE_BUFFER_INFO_ANDROID,
+            .pNext = nullptr,
+            .memory = memory,
+        };
+        ret.streamHandleType = STREAM_HANDLE_TYPE_MEM_AHB;
+        AHardwareBuffer* exportHandle;
+        if (deviceInfo->getMemoryHandleFunc(device, &getAhbInfo, &exportHandle) != VK_SUCCESS) {
+            return std::nullopt;
+        };
+
+        ret.handle = reinterpret_cast<ExternalHandleType>(exportHandle);
+#elif defined(__unix__)
         VkMemoryGetFdInfoKHR memoryGetFdInfo = {
             .sType = VK_STRUCTURE_TYPE_MEMORY_GET_FD_INFO_KHR,
             .pNext = nullptr,

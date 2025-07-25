@@ -112,6 +112,12 @@ static std::optional<ExternalHandleInfo> dupExternalMemory(std::optional<Externa
     }
     // TODO(aruby@blackberry.com): Support dup-ing for OPAQUE_FD or DMABUF types on QNX
     return std::nullopt;
+#elif defined(__ANDROID__)
+    // Android uses AHardwareBuffer* which is not required to dup
+    return ExternalHandleInfo{
+        .handle = handleInfo->handle,
+        .streamHandleType = handleInfo->streamHandleType,
+    };
 #else
     // TODO(aruby@blackberry.com): Check handleType?
     return ExternalHandleInfo{
@@ -2109,6 +2115,7 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
     validHandle = (VK_SUCCESS == exportRes) && (NULL != exportHandle);
     info->handleInfo = ExternalHandleInfo{
         .handle = reinterpret_cast<ExternalHandleType>(exportHandle),
+        .streamHandleType = STREAM_HANDLE_TYPE_MEM_AHB,
     };
 #else
 
@@ -2187,6 +2194,8 @@ void VkEmulation::freeExternalMemoryLocked(VulkanDispatch* vk,
     if (info->handleInfo) {
 #ifdef _WIN32
         CloseHandle(static_cast<HANDLE>(reinterpret_cast<void*>(info->handleInfo->handle)));
+#elif defined(__ANDROID__)
+        AHardwareBuffer_release(static_cast<AHardwareBuffer*>(reinterpret_cast<void*>(info->handleInfo->handle)));
 #else
         switch (info->handleInfo->streamHandleType) {
             case STREAM_HANDLE_TYPE_MEM_OPAQUE_FD:
