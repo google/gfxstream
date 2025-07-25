@@ -81,11 +81,18 @@ static const GLint kGles3ContextAttribsCoreGL[] = {
 };
 
 static bool validateGles2Context(EGLDisplay display) {
-    const GLint configAttribs[] = {
-        EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
-        EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-        EGL_NONE,
-    };
+    const GLint configAttribs[] = {// Request at least 8 bits for Red/Green/Blue
+                                   EGL_RED_SIZE,
+                                   8,
+                                   EGL_GREEN_SIZE,
+                                   8,
+                                   EGL_BLUE_SIZE,
+                                   8,
+                                   EGL_SURFACE_TYPE,
+                                   EGL_PBUFFER_BIT,
+                                   EGL_RENDERABLE_TYPE,
+                                   EGL_OPENGL_ES2_BIT,
+                                   EGL_NONE};
 
     EGLint numConfigs = 0;
     EGLConfig config;
@@ -370,27 +377,6 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
         /*height=*/1,
         std::move(pbufferSurfaceGl));
 
-    emulationGl->mEmulatedEglConfigs =
-        std::make_unique<EmulatedEglConfigList>(emulationGl->mEglDisplay,
-                                                emulationGl->mGlesDispatchMaxVersion,
-                                                emulationGl->mFeatures);
-    if (emulationGl->mEmulatedEglConfigs->empty()) {
-        GFXSTREAM_ERROR("Failed to initialize emulated configs.");
-        return nullptr;
-    }
-
-    const bool hasEsOrEs2Context =
-        std::any_of(emulationGl->mEmulatedEglConfigs->begin(),
-                    emulationGl->mEmulatedEglConfigs->end(),
-                    [](const EmulatedEglConfig& config) {
-                        const GLint renderableType = config.getRenderableType();
-                        return renderableType & (EGL_OPENGL_ES_BIT | EGL_OPENGL_ES2_BIT);
-                    });
-    if (!hasEsOrEs2Context) {
-        GFXSTREAM_ERROR("Failed to find any usable guest EGL configs.");
-        return nullptr;
-    }
-
     RecursiveScopedContextBind contextBind(pbufferSurfaceGlPtr->getContextHelper());
     if (!contextBind.isOk()) {
         GFXSTREAM_ERROR("Failed to make pbuffer context and surface current");
@@ -449,6 +435,25 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
     emulationGl->mGlesRenderer = (const char*)s_gles2.glGetString(GL_RENDERER);
     emulationGl->mGlesVersion = (const char*)s_gles2.glGetString(GL_VERSION);
     emulationGl->mGlesExtensions = (const char*)s_gles2.glGetString(GL_EXTENSIONS);
+
+    emulationGl->mEmulatedEglConfigs = std::make_unique<EmulatedEglConfigList>(
+        emulationGl->mEglDisplay, emulationGl->mGlesDispatchMaxVersion, emulationGl->mFeatures,
+        emulationGl->mGlesVendor);
+    if (emulationGl->mEmulatedEglConfigs->empty()) {
+        GFXSTREAM_ERROR("Failed to initialize emulated configs.");
+        return nullptr;
+    }
+
+    const bool hasEsOrEs2Context =
+        std::any_of(emulationGl->mEmulatedEglConfigs->begin(),
+                    emulationGl->mEmulatedEglConfigs->end(), [](const EmulatedEglConfig& config) {
+                        const GLint renderableType = config.getRenderableType();
+                        return renderableType & (EGL_OPENGL_ES_BIT | EGL_OPENGL_ES2_BIT);
+                    });
+    if (!hasEsOrEs2Context) {
+        GFXSTREAM_ERROR("Failed to find any usable guest EGL configs.");
+        return nullptr;
+    }
 
     s_gles2.glGetError();
     GLint numDeviceUuids = 0;

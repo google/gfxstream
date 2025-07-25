@@ -107,53 +107,51 @@ class EmulatedEglConfigList {
     //
     // After construction, call empty() to check if there are items.
     // An empty list means there was an error during construction.
-    explicit EmulatedEglConfigList(EGLDisplay display,
-                                   GLESDispatchMaxVersion dispatchMaxVersion,
-                                   const gfxstream::host::FeatureSet& features);
+   explicit EmulatedEglConfigList(EGLDisplay display, GLESDispatchMaxVersion dispatchMaxVersion,
+                                  const gfxstream::host::FeatureSet& features,
+                                  const std::string& gpuVendor);
 
-    // Return true iff the list is empty. true means there was an error
-    // during construction.
-    bool empty() const { return mConfigs.empty(); }
+   // Return true iff the list is empty. true means there was an error
+   // during construction.
+   bool empty() const { return mConfigs.empty(); }
 
-    // Return the number of EmulatedEglConfig instances in the list.
-    // Each instance is identified by a number from 0 to N-1,
-    // where N is the result of this function.
-    size_t size() const { return mConfigs.size(); }
+   // Return the number of EmulatedEglConfig instances in the list.
+   // Each instance is identified by a number from 0 to N-1,
+   // where N is the result of this function.
+   size_t size() const { return mConfigs.size(); }
 
-    // Retrieve the EmulatedEglConfig instance associated with |guestId|,
-    // which must be an integer between 0 and |size() - 1|. Returns
-    // NULL in case of failure.
-    const EmulatedEglConfig* get(int guestId) const;
+   // Retrieve the EmulatedEglConfig instance associated with |guestId|,
+   // which must be an integer between 0 and |size() - 1|. Returns
+   // NULL in case of failure.
+   const EmulatedEglConfig* get(int guestId) const;
 
-    std::vector<EmulatedEglConfig>::const_iterator begin() const { return mConfigs.begin(); }
-    std::vector<EmulatedEglConfig>::const_iterator end() const { return mConfigs.end(); }
+   std::vector<EmulatedEglConfig>::const_iterator begin() const { return mConfigs.begin(); }
+   std::vector<EmulatedEglConfig>::const_iterator end() const { return mConfigs.end(); }
 
-    // Use |attribs| a list of EGL attribute name/values terminated by
-    // EGL_NONE, to select a set of matching EmulatedEglConfig instances.
-    //
-    // On success, returns the number of matching instances.
-    // If |configs| is not NULL, it will be populated with the guest IDs
-    // of the matched EmulatedEglConfig instances.
-    //
-    // |configsSize| is the number of entries in the |configs| array. The
-    // function will never write more than |configsSize| entries into
-    // |configsSize|.
-    EGLint chooseConfig(const EGLint* attribs,
-                        EGLint* configs,
-                        EGLint configsSize) const;
+   // Use |attribs| a list of EGL attribute name/values terminated by
+   // EGL_NONE, to select a set of matching EmulatedEglConfig instances.
+   //
+   // On success, returns the number of matching instances.
+   // If |configs| is not NULL, it will be populated with the guest IDs
+   // of the matched EmulatedEglConfig instances.
+   //
+   // |configsSize| is the number of entries in the |configs| array. The
+   // function will never write more than |configsSize| entries into
+   // |configsSize|.
+   EGLint chooseConfig(const EGLint* attribs, EGLint* configs, EGLint configsSize) const;
 
-    // Retrieve information that can be sent to the guest before packed
-    // config list information. If |numConfigs| is NULL, then |*numConfigs|
-    // will be set on return to the number of config instances.
-    // If |numAttribs| is not NULL, then |*numAttribs| will be set on return
-    // to the number of attribute values cached by each EmulatedEglConfig instance.
-    void getPackInfo(EGLint* mumConfigs, EGLint* numAttribs) const;
+   // Retrieve information that can be sent to the guest before packed
+   // config list information. If |numConfigs| is NULL, then |*numConfigs|
+   // will be set on return to the number of config instances.
+   // If |numAttribs| is not NULL, then |*numAttribs| will be set on return
+   // to the number of attribute values cached by each EmulatedEglConfig instance.
+   void getPackInfo(EGLint* mumConfigs, EGLint* numAttribs) const;
 
-    // Write the full list information into an array of EGLuint items.
-    // |buffer| is the output buffer that will receive the data.
-    // |bufferByteSize| is the buffer size in bytes.
-    // On success, this returns
-    EGLint packConfigs(GLuint bufferByteSize, GLuint* buffer) const;
+   // Write the full list information into an array of EGLuint items.
+   // |buffer| is the output buffer that will receive the data.
+   // |bufferByteSize| is the buffer size in bytes.
+   // On success, this returns
+   EGLint packConfigs(GLuint bufferByteSize, GLuint* buffer) const;
 
   private:
     EmulatedEglConfigList(const EmulatedEglConfigList& other) = delete;
@@ -162,6 +160,7 @@ class EmulatedEglConfigList {
     EGLDisplay mDisplay = 0;
     GLESDispatchMaxVersion mGlesDispatchMaxVersion;
     bool mGlesDynamicVersion = false;
+    const std::string mGpuVendor;
 };
 
 }  // namespace gl

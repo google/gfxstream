@@ -72,7 +72,7 @@ const GLuint kConfigAttributes[] = {
 const size_t kConfigAttributesLen =
         sizeof(kConfigAttributes) / sizeof(kConfigAttributes[0]);
 
-bool isCompatibleHostConfig(EGLConfig config, EGLDisplay display) {
+bool isCompatibleHostConfig(EGLConfig config, EGLDisplay display, const std::string& gpuVendor) {
     // Filter out configs which do not support pbuffers, since they
     // are used to implement window surfaces.
     EGLint surfaceType;
@@ -99,6 +99,15 @@ bool isCompatibleHostConfig(EGLConfig config, EGLDisplay display) {
         return false;
     }
 
+#ifdef __linux__
+    if (gpuVendor.find("Intel") != std::string::npos) {
+        if (redSize < 8 || greenSize < 8 || blueSize < 8) {
+            GFXSTREAM_WARNING("Skip R%dG%dB%d support on %s", redSize, greenSize, blueSize,
+                              gpuVendor.c_str());
+            return false;
+        }
+    }
+#endif
     return true;
 }
 
@@ -134,12 +143,13 @@ EmulatedEglConfig::EmulatedEglConfig(EGLint guestConfig,
     }
 }
 
-EmulatedEglConfigList::EmulatedEglConfigList(EGLDisplay display,
-                                             GLESDispatchMaxVersion version,
-                                             const gfxstream::host::FeatureSet& features)
-        : mDisplay(display),
-          mGlesDispatchMaxVersion(version),
-          mGlesDynamicVersion(features.GlesDynamicVersion.enabled) {
+EmulatedEglConfigList::EmulatedEglConfigList(EGLDisplay display, GLESDispatchMaxVersion version,
+                                             const gfxstream::host::FeatureSet& features,
+                                             const std::string& gpuVendor)
+    : mDisplay(display),
+      mGlesDispatchMaxVersion(version),
+      mGlesDynamicVersion(features.GlesDynamicVersion.enabled),
+      mGpuVendor(gpuVendor) {
     if (display == EGL_NO_DISPLAY) {
         GFXSTREAM_ERROR("Invalid display value %p (EGL_NO_DISPLAY).", (void*)display);
         return;
@@ -155,7 +165,7 @@ EmulatedEglConfigList::EmulatedEglConfigList(EGLDisplay display,
 
     for (EGLConfig hostConfig : hostConfigs) {
         // Filter out configs that are not compatible with our implementation.
-        if (!isCompatibleHostConfig(hostConfig, display)) {
+        if (!isCompatibleHostConfig(hostConfig, display, mGpuVendor)) {
             continue;
         }
 
@@ -252,7 +262,7 @@ int EmulatedEglConfigList::chooseConfig(const EGLint* attribs,
             break;
         }
         // Skip incompatible host configs.
-        if (!isCompatibleHostConfig(matchedConfigs[n], mDisplay)) {
+        if (!isCompatibleHostConfig(matchedConfigs[n], mDisplay, mGpuVendor)) {
             continue;
         }
         // Find the EmulatedEglConfig with the same EGL_CONFIG_ID
