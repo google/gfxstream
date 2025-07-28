@@ -1,5 +1,10 @@
 load("test_defs.bzl", "cuttlefish_gfxstream_deqp_test")
 
+package(
+    default_applicable_licenses = ["//:gfxstream_license"],
+    default_visibility = ["//:gfxstream"],
+)
+
 # NOTE_FOR_ANDROID16_RELEASE:
 #
 # Ideally, the below tests would use:
