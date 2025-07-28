@@ -29,7 +29,7 @@ copy_to_directory(
     include_external_repositories = ["*"],
     # Effectively, all of the "prefixes" to flatten.
     root_paths = [
-        "common/end2end/testdata",
+        "tests/end2end/testdata",
         "guest/egl",
         "guest/GLESv1",
         "guest/GLESv1_enc",

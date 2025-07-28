@@ -147,7 +147,7 @@ bazel test ...
 or
 
 ```
-bazel test common/end2end:gfxstream_end2end_tests
+bazel test tests/end2end:gfxstream_end2end_tests
 ```
 
 #### Soong
