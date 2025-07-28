@@ -1,4 +1,4 @@
-load("test_defs.bzl", "cuttlefish_gfxstream_deqp_test")
+load("test_defs.bzl", "cuttlefish_gfxstream_cts_test", "cuttlefish_gfxstream_deqp_test")
 
 package(
     default_applicable_licenses = ["//:gfxstream_license"],
@@ -33,8 +33,7 @@ package(
 
 # See NOTE_FOR_ANDROID16_RELEASE above for how to run locally:
 cuttlefish_gfxstream_deqp_test(
-    name = "gfxstream_cuttlefish_deqp_smoke",
-
+    name = "gfxstream_guest_angle_host_swiftshader_deqp_smoke",
     # Launch Cuttlefish with: (see `cvd create --help`):
     cuttlefish_create_args = [
         "--gpu_mode=gfxstream_guest_angle_host_swiftshader",
@@ -43,11 +42,12 @@ cuttlefish_gfxstream_deqp_test(
     deqp_include_patterns = [
         "dEQP-VK.api.smoke*",
     ],
+    size = "medium",
 )
 
 # See NOTE_FOR_ANDROID16_RELEASE above for how to run locally:
 cuttlefish_gfxstream_deqp_test(
-    name = "gfxstream_cuttlefish_deqp_presubmit",
+    name = "gfxstream_guest_angle_host_swiftshader_deqp_presubmit",
     # Launch Cuttlefish with: (see `cvd create --help`):
     cuttlefish_create_args = [
         "--gpu_mode=gfxstream_guest_angle_host_swiftshader",
@@ -64,4 +64,33 @@ cuttlefish_gfxstream_deqp_test(
         #"dEQP-VK.api.external.memory.android_hardware_buffer.image_formats*",
         #"dEQP-VK.api.external.memory.android_hardware_buffer.suballocated.image*",
     ],
+    size = "large",
+)
+
+# See NOTE_FOR_ANDROID16_RELEASE above for how to run locally:
+cuttlefish_gfxstream_cts_test(
+    name = "gfxstream_guest_angle_host_swiftshader_cts_graphics_tests",
+    # Run CTS with `--include-filter=<>`:
+    cts_include_patterns = [
+        "CtsGraphicsTestCases",
+    ],
+    # Launch Cuttlefish with: (see `cvd create --help`):
+    cuttlefish_create_args = [
+        "--gpu_mode=gfxstream_guest_angle_host_swiftshader",
+    ],
+    size = "enormous",
+)
+
+# See NOTE_FOR_ANDROID16_RELEASE above for how to run locally:
+cuttlefish_gfxstream_cts_test(
+    name = "gfxstream_guest_angle_host_swiftshader_cts_native_hardware_tests",
+    # Run CTS with `--include-filter=<>`:
+    cts_include_patterns = [
+        "CtsNativeHardwareTestCases",
+    ],
+    # Launch Cuttlefish with: (see `cvd create --help`):
+    cuttlefish_create_args = [
+        "--gpu_mode=gfxstream_guest_angle_host_swiftshader",
+    ],
+    size = "large",
 )
