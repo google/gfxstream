@@ -6,7 +6,8 @@ set -e
 set -x
 
 # Parse command line flags:
-CTS_ARGS=""
+XTS_ARGS=""
+XTS_TYPE=""
 CUTTLEFISH_CREATE_ARGS=""
 CUTTLEFISH_FETCH_ARGS=""
 CUTTLEFISH_PREBUILT_DIRECTORY_PATH=""
@@ -14,9 +15,6 @@ GFXSTREAM_LIBRARY_PATH=""
 XML_CONVERTER_PATH=""
 for arg in "$@"; do
   case "${arg}" in
-    --cts-args=*)
-      CTS_ARGS="${arg#*=}"
-      ;;
     --cuttlefish-create-args=*)
       CUTTLEFISH_CREATE_ARGS="${arg#*=}"
       ;;
@@ -32,17 +30,18 @@ for arg in "$@"; do
     --xml-test-result-converter-path=*)
       XML_CONVERTER_PATH="${arg#*=}"
       ;;
+    --xts-args=*)
+      XTS_ARGS="${arg#*=}"
+      ;;
+    --xts-type=*)
+      XTS_TYPE="${arg#*=}"
+      ;;
     *)
       echo "Unknown flag: ${arg}" >&2
       exit 1
       ;;
   esac
 done
-
-if [ -z "${CTS_ARGS}" ]; then
-  echo "Missing required --cts-args flag."
-  exit 1
-fi
 if [ -z "${CUTTLEFISH_CREATE_ARGS}" ]; then
   echo "Missing required ----cuttlefish-create-args flag."
   exit 1
@@ -59,18 +58,27 @@ if [ -z "${XML_CONVERTER_PATH}" ]; then
   echo "Missing required --xml-test-result-converter-path flag."
   exit 1
 fi
+if [ -z "${XTS_ARGS}" ]; then
+  echo "Missing required --cts-args flag."
+  exit 1
+fi
+if [ -z "${XTS_TYPE}" ]; then
+  echo "Missing required --xts-type flag."
+  exit 1
+fi
 
 # Validating command line flags:
 CUTTLEFISH_PREBUILT_DIRECTORY_PATH="$(realpath ${CUTTLEFISH_PREBUILT_DIRECTORY_PATH})"
 GFXSTREAM_LIBRARY_PATH="$(realpath ${GFXSTREAM_LIBRARY_PATH})"
 XML_CONVERTER_PATH="$(realpath ${XML_CONVERTER_PATH})"
 echo "Parsed command line args:"
-echo "  * CTS_ARGS: ${CTS_ARGS}"
 echo "  * CUTTLEFISH_CREATE_ARGS: ${CUTTLEFISH_CONFIG_FILENAME}"
 echo "  * CUTTLEFISH_FETCH_ARGS: ${CUTTLEFISH_FETCH_ARGS}"
 echo "  * CUTTLEFISH_PREBUILT_DIRECTORY_PATH: ${CUTTLEFISH_PREBUILT_DIRECTORY_PATH}"
 echo "  * GFXSTREAM_LIBRARY_PATH: ${GFXSTREAM_LIBRARY_PATH}"
 echo "  * XML_CONVERTER_PATH: ${XML_CONVERTER_PATH}"
+echo "  * XTS_ARGS: ${XTS_ARGS}"
+echo "  * XTS_TYPE: ${XTS_TYPE}"
 
 if [[ -n "${CUTTLEFISH_PREBUILT_DIRECTORY_PATH}" ]]; then
   if [ ! -d "${CUTTLEFISH_PREBUILT_DIRECTORY_PATH}" ]; then
@@ -86,46 +94,83 @@ fi
 RUN_DIRECTORY="$(pwd)"
 
 # Files to keep track of and save to the final test results directory:
-CTS_LOG_FILE="${RUN_DIRECTORY}/cts_logs.txt"
 CVD_CREATE_LOG_FILE="${RUN_DIRECTORY}/cvd_create_logs.txt"
 CVD_FETCH_LOG_FILE="${RUN_DIRECTORY}/cvd_fetch_logs.txt"
+XTS_LOG_FILE="${RUN_DIRECTORY}/cts_logs.txt"
+
 
 echo "$(date +'%Y-%m-%dT%H:%M:%S%z')"
-echo "Attempting to locate Android CTS..."
-CTS_LATEST_URL="https://dl.google.com/dl/android/cts/android-cts-16_r1-linux_x86-x86.zip"
-CTS_DIRECTORY=""
-CTS_DIRECTORY_POSSIBILITIES=(
-  "/home/kbuilder/android-cts"
-  "/tmp/android-cts"
-)
-for possible_directory in "${CTS_DIRECTORY_POSSIBILITIES[@]}"; do
-  echo "Checking ${possible_directory} ..."
-  if [ -d "${possible_directory}" ]; then
-    if [ -f "${possible_directory}/android-cts/tools/cts-tradefed" ]; then
-      echo "Found Android CTS in ${possible_directory}!"
-      CTS_DIRECTORY="${possible_directory}"
-      break
+echo "Attempting to locate Android ${XTS_TYPE}..."
+XTS_DIRECTORY=""
+XTS_LATEST_RESULTS_DIRECTORY=""
+XTS_RUNNER=""
+if [ "${XTS_TYPE}" == "cts" ]; then
+  CTS_LATEST_URL="https://dl.google.com/dl/android/cts/android-cts-16_r1-linux_x86-x86.zip"
+  CTS_DIRECTORY_POSSIBILITIES=(
+    "/home/kbuilder/android-cts"
+    "/tmp/android-cts"
+  )
+  for possible_directory in "${CTS_DIRECTORY_POSSIBILITIES[@]}"; do
+    echo "Checking ${possible_directory} ..."
+    if [ -d "${possible_directory}" ]; then
+      if [ -f "${possible_directory}/android-cts/tools/cts-tradefed" ]; then
+        echo "Found Android CTS in ${possible_directory}!"
+        XTS_DIRECTORY="${possible_directory}"
+        break
+      else
+        echo "${possible_directory} exists but does not contain cts-tradefed..."
+        exit 1
+      fi
     else
-      echo "${possible_directory} exists but does not contain cts-tradefed..."
-      exit 1
+      echo "${possible_directory} does not exist..."
     fi
-  else
-    echo "${possible_directory} does not exist..."
+  done
+  if [ -z "${XTS_DIRECTORY}" ]; then
+    echo "$(date +'%Y-%m-%dT%H:%M:%S%z')"
+    echo "Android CTS directory not found. Downloading Android CTS..."
+    XTS_DIRECTORY="/tmp/android-cts"
+    mkdir "${XTS_DIRECTORY}"
+    wget "${CTS_LATEST_URL}" -p "${XTS_DIRECTORY}"
+    unzip "${XTS_DIRECTORY}/*.zip"
+    rm "${XTS_DIRECTORY}/*.zip"
+    echo "Android CTS now available in ${XTS_DIRECTORY}."
   fi
-done
-if [ -z "${CTS_DIRECTORY}" ]; then
-  echo "$(date +'%Y-%m-%dT%H:%M:%S%z')"
-  echo "Android CTS directory not found. Downloading Android CTS..."
-  CTS_DIRECTORY="/tmp/android-cts"
-  mkdir "${CTS_DIRECTORY}"
-  wget "${CTS_LATEST_URL}" -p "${CTS_DIRECTORY}"
-  unzip "${CTS_DIRECTORY}/*.zip"
-  rm "${CTS_DIRECTORY}/*.zip"
-  echo "Android CTS now available in ${CTS_DIRECTORY}."
+  XTS_LATEST_RESULTS_DIRECTORY="${XTS_DIRECTORY}/android-cts/results/latest"
+  XTS_RUNNER="./android-cts/tools/cts-tradefed"
+elif [ "${XTS_TYPE}" == "vts" ]; then
+  VTS_DIRECTORY_POSSIBILITIES=(
+    "/home/kbuilder/android-vts"
+    "/tmp/android-vts"
+  )
+  for possible_directory in "${VTS_DIRECTORY_POSSIBILITIES[@]}"; do
+    echo "Checking ${possible_directory} ..."
+    if [ -d "${possible_directory}" ]; then
+      if [ -f "${possible_directory}/android-vts/tools/vts-tradefed" ]; then
+        echo "Found Android VTS in ${possible_directory}!"
+        XTS_DIRECTORY="${possible_directory}"
+        break
+      else
+        echo "${possible_directory} exists but does not contain vts-tradefed..."
+        exit 1
+      fi
+    else
+      echo "${possible_directory} does not exist..."
+    fi
+  done
+  if [ -z "${XTS_DIRECTORY}" ]; then
+    echo "$(date +'%Y-%m-%dT%H:%M:%S%z')"
+    echo "Android VTS directory not found. Please build Android XTS locally."
+    exit 1
+  fi
+  XTS_LATEST_RESULTS_DIRECTORY="${XTS_DIRECTORY}/android-vts/results/latest"
+  XTS_RUNNER="./android-vts/tools/vts-tradefed"
+else
+  echo "Unsupported XTS type: ${XTS_TYPE}. Failure."
+  exit 1
 fi
 
-CTS_LATEST_RESULT_XML="${CTS_DIRECTORY}/android-cts/results/latest/test_result.xml"
-CTS_LATEST_RESULT_CONVERTED_XML="${CTS_DIRECTORY}/android-cts/results/latest/test.xml"
+XTS_LATEST_RESULT_XML="${XTS_LATEST_RESULTS_DIRECTORY}/test_result.xml"
+XTS_LATEST_RESULT_CONVERTED_XML="${XTS_LATEST_RESULTS_DIRECTORY}/test.xml"
 
 function collect_logs_and_cleanup() {
     echo "Collecting logs and cleaning up..."
@@ -135,7 +180,7 @@ function collect_logs_and_cleanup() {
 
     if [[ -n "${TEST_UNDECLARED_OUTPUTS_DIR}" ]] && [[ -d "${TEST_UNDECLARED_OUTPUTS_DIR}" ]]; then
         echo "Copying CTS log to test output directory..."
-        cp "${CTS_LOG_FILE}" "${TEST_UNDECLARED_OUTPUTS_DIR}"
+        cp "${XTS_LOG_FILE}" "${TEST_UNDECLARED_OUTPUTS_DIR}"
 
         echo "Copying CVD log to test output directory..."
         cp "${CVD_CREATE_LOG_FILE}" "${TEST_UNDECLARED_OUTPUTS_DIR}"
@@ -172,7 +217,7 @@ function collect_logs_and_cleanup() {
 
     if [[ -n "${XML_OUTPUT_FILE}" ]]; then
         echo "Copying converted XML results for Bazel consumption..."
-        cp "${CTS_LATEST_RESULT_CONVERTED_XML}" "${XML_OUTPUT_FILE}"
+        cp "${XTS_LATEST_RESULT_CONVERTED_XML}" "${XML_OUTPUT_FILE}"
         echo "Copied!"
     fi
 
@@ -223,33 +268,33 @@ cvd create \
 
 echo "Cuttlefish device created!"
 
-# Run CTS
+# Run XTS
 echo "$(date +'%Y-%m-%dT%H:%M:%S%z')"
-echo "Running CTS..."
-cd "${CTS_DIRECTORY}"
+echo "Running ${XTS_TYPE}..."
+cd "${XTS_DIRECTORY}"
 HOME="$(pwd)" \
-./android-cts/tools/cts-tradefed run commandAndExit cts-dev \
+${XTS_RUNNER} run commandAndExit ${XTS_TYPE} \
     --log-level-display=INFO \
-    ${CTS_ARGS} \
-    2>&1 | tee "${CTS_LOG_FILE}"
-echo "Finished running CTS!"
+    ${XTS_ARGS} \
+    2>&1 | tee "${XTS_LOG_FILE}"
+echo "Finished running ${XTS_TYPE}!"
 
 # Convert results to Bazel friendly format:
 echo "$(date +'%Y-%m-%dT%H:%M:%S%z')"
-echo "Converting CTS test result output to Bazel XML format..."
+echo "Converting ${XTS_TYPE} test result output to Bazel XML format..."
 python3 ${XML_CONVERTER_PATH} \
-    --input_xml_file="${CTS_LATEST_RESULT_XML}" \
-    --output_xml_file="${CTS_LATEST_RESULT_CONVERTED_XML}"
+    --input_xml_file="${XTS_LATEST_RESULT_XML}" \
+    --output_xml_file="${XTS_LATEST_RESULT_CONVERTED_XML}"
 echo "Converted!"
 
 # Determine exit code:
 echo "$(date +'%Y-%m-%dT%H:%M:%S%z')"
-echo "Checking if any CTS tests failed..."
-failures=$(cat ${CTS_LATEST_RESULT_CONVERTED_XML} | grep "<testsuites" | grep -E -o "failures=\"[0-9]+\"")
+echo "Checking if any ${XTS_TYPE} tests failed..."
+failures=$(cat ${XTS_LATEST_RESULT_CONVERTED_XML} | grep "<testsuites" | grep -E -o "failures=\"[0-9]+\"")
 if [ "${failures}" = "failures=\"0\"" ]; then
-  echo "CTS passed!"
+  echo "${XTS_TYPE} passed!"
   exit 0
 else
-  echo "CTS had failures!"
+  echo "${XTS_TYPE} had failures!"
   exit 1
 fi

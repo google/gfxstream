@@ -17,7 +17,7 @@ function gather_test_results() {
   # Copy test outputs to the original directory used by kokoro.
   OUTPUT_DIRECTORY="${RUN_DIRECTORY}"
 
-  for d in "${REPO_DIRECTORY}"/bazel-testlogs/tests/emulator/*; do
+  for d in "${REPO_DIRECTORY}"/bazel-testlogs/tests/cuttlefish/*; do
     dir="${OUTPUT_DIRECTORY}/$(basename "$d")"
     mkdir -p "${dir}"
     cp "${d}/test.log" "${dir}/sponge_log.log"
