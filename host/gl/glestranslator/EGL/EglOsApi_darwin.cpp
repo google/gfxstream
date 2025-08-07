@@ -413,16 +413,10 @@ private:
     MacGlLibrary mGlLib;
 };
 
-static MacEngine* sHostEngine = nullptr;
-
 }  // namespace
 
-
 // static
-EglOS::Engine* EglOS::Engine::getHostInstance() {
-    if (!sHostEngine) {
-        sHostEngine = new MacEngine();
-    }
-    return sHostEngine;
+EglOS::Engine* EglOS::Engine::createHostInstance() {
+    return new MacEngine();
 }
 

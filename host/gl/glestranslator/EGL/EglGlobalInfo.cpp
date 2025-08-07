@@ -73,7 +73,7 @@ EglGlobalInfo::EglGlobalInfo(bool nullEgl) {
     if (sEgl2Egl) {
         m_engine = EglOS::getEgl2EglHostInstance(nullEgl);
     } else {
-        m_engine = EglOS::Engine::getHostInstance();
+        m_engine = EglOS::Engine::createHostInstance();
     }
 #endif
     m_display = m_engine->getDefaultDisplay();
@@ -83,6 +83,7 @@ EglGlobalInfo::~EglGlobalInfo() {
     for (size_t n = 0; n < m_displays.size(); ++n) {
         delete m_displays[n];
     }
+    delete m_engine;
 }
 
 EglDisplay* EglGlobalInfo::addDisplay(EGLNativeDisplayType dpy,
