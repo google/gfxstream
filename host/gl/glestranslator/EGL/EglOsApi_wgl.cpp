@@ -1324,14 +1324,9 @@ WinEngine::WinEngine() :
     GFXSTREAM_DEBUG("%s: Dispatch initialized\n", __FUNCTION__);
 }
 
-static WinEngine* sHostEngine() {
-    static WinEngine* e = new WinEngine;
-    return e;
-}
-
 }  // namespace
 
 // static
-EglOS::Engine* EglOS::Engine::getHostInstance() {
-    return sHostEngine();
+EglOS::Engine* EglOS::Engine::createHostInstance() {
+    return new WinEngine;
 }

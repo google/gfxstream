@@ -35,7 +35,7 @@ namespace EglOS {
 // desktop GL library (or equivalent) that is being used by our EGL
 // and GLES translation libraries.
 
-// Use EglOS::Engine::getHostInstance() to retrieve an instance of the
+// Use EglOS::Engine::createHostInstance() to retrieve an instance of the
 // EglOS::Engine interface that matches the host display system.
 //
 // Alternate renderers (e.g. software-based Mesa) can also implement
@@ -248,7 +248,7 @@ public:
 
     // Retrieve the implementation for the current host. This can be called
     // multiple times, and will initialize the engine on first call.
-    static Engine* getHostInstance();
+    static Engine* createHostInstance();
 };
 
 // getEgl2EglHostInstance returns a host instance that is used to mount
