@@ -2831,6 +2831,48 @@ class VkDecoderGlobalState::Impl {
             return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
 
+#ifdef __APPLE__
+        {
+            auto physicalDevice = deviceInfo->physicalDevice;
+            auto* physdevInfo = gfxstream::base::find(mPhysdevInfo, physicalDevice);
+            if (!physdevInfo) {
+                GFXSTREAM_ERROR("vkCreateImage: Could not find physical device info.");
+                return VK_ERROR_OUT_OF_HOST_MEMORY;
+            }
+
+            auto* instanceInfo = gfxstream::base::find(mInstanceInfo, physdevInfo->instance);
+            if (!instanceInfo) {
+                GFXSTREAM_ERROR("vkCreateImage: Could not find instance info.");
+                return VK_ERROR_OUT_OF_HOST_MEMORY;
+            }
+
+            auto ivk = dispatch_VkInstance(instanceInfo->boxed);
+            VkImageFormatProperties imageFormatProperties;
+            VkResult res = ivk->vkGetPhysicalDeviceImageFormatProperties(
+                physicalDevice, pCreateInfo->format, pCreateInfo->imageType, pCreateInfo->tiling,
+                pCreateInfo->usage, pCreateInfo->flags, &imageFormatProperties);
+
+            if (res != VK_SUCCESS) {
+                GFXSTREAM_WARNING(
+                    "vkCreateImage: vkGetPhysicalDeviceImageFormatProperties failed with %s",
+                    string_VkResult(res));
+                return res;
+            }
+
+            if (pCreateInfo->extent.width > imageFormatProperties.maxExtent.width ||
+                pCreateInfo->extent.height > imageFormatProperties.maxExtent.height ||
+                pCreateInfo->extent.depth > imageFormatProperties.maxExtent.depth) {
+                GFXSTREAM_WARNING(
+                    "vkCreateImage: requested image dimensions (%u x %u x %u) "
+                    "exceeds device limits (%u x %u x %u).",
+                    pCreateInfo->extent.width, pCreateInfo->extent.height,
+                    pCreateInfo->extent.depth, imageFormatProperties.maxExtent.width,
+                    imageFormatProperties.maxExtent.height, imageFormatProperties.maxExtent.depth);
+                return VK_ERROR_FORMAT_NOT_SUPPORTED;
+            }
+        }
+#endif
+
         const bool needDecompression = deviceInfo->needEmulatedDecompression(pCreateInfo->format);
         std::unique_ptr<CompressedImageInfo> cmpInfo = nullptr;
         VkImageCreateInfo decompInfo;
