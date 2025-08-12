@@ -62,7 +62,7 @@ std::filesystem::path GetTestDataPath(const std::string& basename) {
         currentPath / basename,
         currentPath / "testdata" / basename,
     };
-    for (const std::string& possiblePath : possiblePaths) {
+    for (const std::string possiblePath : possiblePaths) {
         if (std::filesystem::exists(possiblePath)) {
             return possiblePath;
         }
