@@ -51,13 +51,17 @@ std::optional<HostMemInfo> ExternalObjectManager::removeMapping(uint32_t ctxId, 
 }
 
 void ExternalObjectManager::addBlobDescriptorInfo(uint32_t ctxId, uint64_t blobId,
-                                                  ManagedDescriptor descriptor,
+                                                  BlobDescriptorValueType descriptor,
                                                   uint32_t streamHandleType, uint32_t caching,
                                                   std::optional<VulkanInfo> vulkanInfoOpt) {
     struct BlobDescriptorInfo info = {
         .descriptorInfo =
             {
+#if defined(__ANDROID__)
+                .handle = descriptor,
+#else
                 .descriptor = std::move(descriptor),
+#endif
                 .streamHandleType = streamHandleType,
             },
         .caching = caching,

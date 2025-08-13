@@ -52,6 +52,7 @@ namespace gfxstream {
 #define STREAM_HANDLE_TYPE_MEM_OPAQUE_WIN32 0x3
 #define STREAM_HANDLE_TYPE_MEM_SHM 0x4
 #define STREAM_HANDLE_TYPE_MEM_ZIRCON 0x5
+#define STREAM_HANDLE_TYPE_MEM_AHB 0x6
 
 #define STREAM_HANDLE_TYPE_SIGNAL_OPAQUE_FD 0x10
 #define STREAM_HANDLE_TYPE_SIGNAL_SYNC_FD 0x20
@@ -76,8 +77,11 @@ struct ExternalHandleInfo {
     ManagedDescriptor toManagedDescriptor() const {
         return ManagedDescriptor(static_cast<DescriptorType>(handle));
     }
+// Android uses AHardwareBuffer* for external handle type, which is not a fd.
+#if !defined(__ANDROID__)
     int getFd() const { return static_cast<int>(handle); }
     ExternalHandleType dupFd() const { return static_cast<ExternalHandleType>(dup(getFd())); }
+#endif
 #endif
 };
 
@@ -99,8 +103,19 @@ struct VulkanInfo {
     uint8_t driverUUID[16];
 };
 
+#if defined(__ANDROID__)
+typedef ExternalHandleInfo BlobDescriptorType;
+#else
+typedef GenericDescriptorInfo BlobDescriptorType;
+#endif
+
+#if defined(__ANDROID__)
+typedef ExternalHandleType BlobDescriptorValueType;
+#else
+typedef ManagedDescriptor BlobDescriptorValueType;
+#endif
 struct BlobDescriptorInfo {
-    GenericDescriptorInfo descriptorInfo;
+    BlobDescriptorType descriptorInfo;
     uint32_t caching;
     std::optional<VulkanInfo> vulkanInfoOpt;
 };
@@ -116,7 +131,7 @@ class ExternalObjectManager {
     void addMapping(uint32_t ctx_id, uint64_t blobId, void* addr, uint32_t caching);
     std::optional<HostMemInfo> removeMapping(uint32_t ctx_id, uint64_t blobId);
 
-    void addBlobDescriptorInfo(uint32_t ctx_id, uint64_t blobId, ManagedDescriptor descriptor,
+    void addBlobDescriptorInfo(uint32_t ctx_id, uint64_t blobId, BlobDescriptorValueType descriptor,
                                uint32_t streamHandleType, uint32_t caching,
                                std::optional<VulkanInfo> vulkanInfoOpt);
     std::optional<BlobDescriptorInfo> removeBlobDescriptorInfo(uint32_t ctx_id, uint64_t blobId);
