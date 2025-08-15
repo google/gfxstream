@@ -2882,7 +2882,7 @@ class VkDecoderGlobalState::Impl {
             return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
 
-#ifdef __APPLE__
+        //TODO(b/438924843) this is probably not optimal as it might slow down image creation a bit.
         {
             auto physicalDevice = deviceInfo->physicalDevice;
             auto* physdevInfo = gfxstream::base::find(mPhysdevInfo, physicalDevice);
@@ -2919,10 +2919,9 @@ class VkDecoderGlobalState::Impl {
                     pCreateInfo->extent.width, pCreateInfo->extent.height,
                     pCreateInfo->extent.depth, imageFormatProperties.maxExtent.width,
                     imageFormatProperties.maxExtent.height, imageFormatProperties.maxExtent.depth);
-                return VK_ERROR_FORMAT_NOT_SUPPORTED;
+                return VK_ERROR_VALIDATION_FAILED_EXT;
             }
         }
-#endif
 
         const bool needDecompression = deviceInfo->needEmulatedDecompression(pCreateInfo->format);
         std::unique_ptr<CompressedImageInfo> cmpInfo = nullptr;
