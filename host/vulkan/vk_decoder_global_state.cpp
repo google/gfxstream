@@ -2921,7 +2921,7 @@ class VkDecoderGlobalState::Impl {
                     pCreateInfo->extent.width, pCreateInfo->extent.height,
                     pCreateInfo->extent.depth, imageFormatProperties.maxExtent.width,
                     imageFormatProperties.maxExtent.height, imageFormatProperties.maxExtent.depth);
-                return VK_ERROR_FORMAT_NOT_SUPPORTED;
+                return VK_ERROR_VALIDATION_FAILED_EXT;
             }
         }
 #endif
