@@ -97,9 +97,11 @@ static bool sTryContextCreation(EGLDisplay dpy, GLESDispatchMaxVersion ver) {
 GLESDispatchMaxVersion calcMaxVersionFromDispatch(const gfxstream::host::FeatureSet& features,
                                                   EGLDisplay dpy) {
     // TODO: 3.1 is the highest
-    // b/360208429: CTS conformance for OpenGL ES 3.1
     GLESDispatchMaxVersion maxVersion =
        GLES_DISPATCH_MAX_VERSION_3_1;
+
+    // TODO: CTS conformance for OpenGL ES 3.1
+    bool playStoreImage = features.PlayStoreImage.enabled;
 
     if (get_gfxstream_renderer() == SELECTED_RENDERER_HOST
         || get_gfxstream_renderer() == SELECTED_RENDERER_SWIFTSHADER_INDIRECT
@@ -110,12 +112,19 @@ GLESDispatchMaxVersion calcMaxVersionFromDispatch(const gfxstream::host::Feature
                 (GLESDispatchMaxVersion)s_egl.eglGetMaxGLESVersion(dpy);
         }
     } else {
-        if (!sTryContextCreation(dpy, GLES_DISPATCH_MAX_VERSION_3_1)) {
+        if (playStoreImage ||
+            !sTryContextCreation(dpy, GLES_DISPATCH_MAX_VERSION_3_1)) {
             maxVersion = GLES_DISPATCH_MAX_VERSION_3_0;
             if (!sTryContextCreation(dpy, GLES_DISPATCH_MAX_VERSION_3_0)) {
                 maxVersion = GLES_DISPATCH_MAX_VERSION_2;
             }
         }
+    }
+
+    if (playStoreImage) {
+        maxVersion =
+            std::min(maxVersion,
+                     GLES_DISPATCH_MAX_VERSION_3_0);
     }
 
     int maj = 2; int min = 0;
