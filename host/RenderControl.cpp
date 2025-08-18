@@ -434,8 +434,6 @@ static EGLint rcGetGLString(EGLenum name, void* buffer, EGLint bufferSize) {
         glStr = fb->getGlString(name);
     }
 
-    GLESDispatchMaxVersion maxVersion = fb->getMaxGlesVersion();
-
     const gfxstream::host::FeatureSet& features = fb->getFeatures();
     bool isChecksumEnabled = features.GlPipeChecksum.enabled;
     bool asyncSwapEnabled = shouldEnableAsyncSwap(features);
@@ -620,29 +618,32 @@ static EGLint rcGetGLString(EGLenum name, void* buffer, EGLint bufferSize) {
 
     if (name == GL_EXTENSIONS) {
         GLESDispatchMaxVersion guestExtVer = GLES_DISPATCH_MAX_VERSION_2;
-        if (features.GlesDynamicVersion.enabled) {
-            // If the image is in ES 3 mode, add GL_OES_EGL_image_external_essl3 for better Skia support.
-            glStr += "GL_OES_EGL_image_external_essl3 ";
-            guestExtVer = maxVersion;
-        }
+        if (fb->hasEmulationGl()) {
+            GLESDispatchMaxVersion maxVersion = fb->getMaxGlesVersion();
+            if (features.GlesDynamicVersion.enabled) {
+                // If the image is in ES 3 mode, add GL_OES_EGL_image_external_essl3 for better Skia support.
+                glStr += "GL_OES_EGL_image_external_essl3 ";
+                guestExtVer = maxVersion;
+            }
 
-        // If we have a GLES3 implementation, add the corresponding
-        // GLESv2 extensions as well.
-        if (maxVersion > GLES_DISPATCH_MAX_VERSION_2) {
-            glStr += "GL_OES_vertex_array_object ";
-        }
+            // If we have a GLES3 implementation, add the corresponding
+            // GLESv2 extensions as well.
+            if (maxVersion > GLES_DISPATCH_MAX_VERSION_2) {
+                glStr += "GL_OES_vertex_array_object ";
+            }
 
-        // ASTC LDR compressed texture support.
-        const std::string& glExtensions = FrameBuffer::getFB()->getGlesExtensionsString();
-        const bool hasNativeAstc =
-            glExtensions.find("GL_KHR_texture_compression_astc_ldr") != std::string::npos;
-        const bool hasAstcDecompressor = vk::AstcCpuDecompressor::get().available();
-        if (hasNativeAstc || hasAstcDecompressor) {
-            glStr += "GL_KHR_texture_compression_astc_ldr ";
-        } else {
-            RENDERCONTROL_DPRINT(
-                "rcGetGLString: ASTC not supported. CPU decompressor? %d. GL extensions: %s",
-                hasAstcDecompressor, glExtensions.c_str());
+            // ASTC LDR compressed texture support.
+            const std::string& glExtensions = fb->getGlesExtensionsString();
+            const bool hasNativeAstc =
+                glExtensions.find("GL_KHR_texture_compression_astc_ldr") != std::string::npos;
+            const bool hasAstcDecompressor = vk::AstcCpuDecompressor::get().available();
+            if (hasNativeAstc || hasAstcDecompressor) {
+                glStr += "GL_KHR_texture_compression_astc_ldr ";
+            } else {
+                RENDERCONTROL_DPRINT(
+                    "rcGetGLString: ASTC not supported. CPU decompressor? %d. GL extensions: %s",
+                    hasAstcDecompressor, glExtensions.c_str());
+            }
         }
 
         // Host side tracing support.
@@ -660,7 +661,8 @@ static EGLint rcGetGLString(EGLenum name, void* buffer, EGLint bufferSize) {
     }
 
     if (name == GL_VERSION) {
-        if (features.GlesDynamicVersion.enabled) {
+        if (fb->hasEmulationGl() && features.GlesDynamicVersion.enabled) {
+            GLESDispatchMaxVersion maxVersion = fb->getMaxGlesVersion();
             switch (maxVersion) {
             // Underlying GLES implmentation's max version string
             // is allowed to be higher than the version of the request
@@ -695,10 +697,15 @@ static EGLint rcGetGLString(EGLenum name, void* buffer, EGLint bufferSize) {
 
 static EGLint rcGetNumConfigs(uint32_t* p_numAttribs)
 {
+    FrameBuffer* fb = FrameBuffer::getFB();
+    if (!fb) {
+        GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
+        return 0;
+    }
     int numConfigs = 0;
     int numAttribs = 0;
 
-    FrameBuffer::getFB()->getNumConfigs(&numConfigs, &numAttribs);
+    fb->getNumConfigs(&numConfigs, &numAttribs);
     if (p_numAttribs) {
         *p_numAttribs = static_cast<uint32_t>(numAttribs);
     }
@@ -707,7 +714,12 @@ static EGLint rcGetNumConfigs(uint32_t* p_numAttribs)
 
 static EGLint rcGetConfigs(uint32_t bufSize, GLuint* buffer)
 {
-    return FrameBuffer::getFB()->getConfigs(bufSize, buffer);
+    FrameBuffer* fb = FrameBuffer::getFB();
+    if (!fb) {
+        GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
+        return 0;
+    }
+    return fb->getConfigs(bufSize, buffer);
 }
 
 static EGLint rcChooseConfig(EGLint *attribs,
@@ -1589,7 +1601,7 @@ static void rcSetProcessMetadata(char* key, RenderControlByte* valuePtr, uint32_
 }
 
 static int rcGetHostExtensionsString(uint32_t bufferSize, void* buffer) {
-    // TODO(b/233939967): split off host extensions from GL extensions.
+    // TODO(b/389646068): split off host extensions from GL extensions.
     return rcGetGLString(GL_EXTENSIONS, buffer, bufferSize);
 }
 
