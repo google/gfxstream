@@ -54,16 +54,16 @@ EmulatedEglImage::~EmulatedEglImage() {
     destroy();
 }
 
-EGLBoolean EmulatedEglImage::destroy() {
+bool EmulatedEglImage::destroy() {
     if (mEglImage) {
         EGLBoolean ret = s_egl.eglDestroyImageKHR(mEglDisplay, mEglImage);
         if (!ret) {
             GFXSTREAM_ERROR("Failed to destroy EGL image.");
         }
         mEglImage = EGL_NO_IMAGE_KHR;
-        return ret;
+        return (ret == EGL_TRUE);
     }
-    return EGL_TRUE;
+    return true;
 }
 
 }  // namespace gl

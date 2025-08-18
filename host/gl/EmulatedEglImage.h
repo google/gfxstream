@@ -37,7 +37,7 @@ class EmulatedEglImage {
 
     ~EmulatedEglImage();
 
-    EGLBoolean destroy();
+    bool destroy();
 
     HandleType getHandle() const { return mHandle; }
 
