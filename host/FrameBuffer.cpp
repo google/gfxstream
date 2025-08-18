@@ -422,15 +422,6 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
     EGLint getConfigs(uint32_t bufferSize, GLuint* buffer);
     EGLint chooseConfig(EGLint* attribs, EGLint* configs, EGLint configsSize);
 
-    // Retrieve the GL strings of the underlying EGL/GLES implementation.
-    // On return, |*vendor|, |*renderer| and |*version| will point to strings
-    // that are owned by the instance (and must not be freed by the caller).
-    void getGLStrings(const char** vendor, const char** renderer, const char** version) const {
-        *vendor = m_graphicsAdapterVendor.c_str();
-        *renderer = m_graphicsAdapterName.c_str();
-        *version = m_graphicsApiVersion.c_str();
-    }
-
     // Create a new EmulatedEglContext instance for this display instance.
     // |p_config| is the index of one of the configs returned by getConfigs().
     // |p_share| is either EGL_NO_CONTEXT or the handle of a shared context.
@@ -580,6 +571,16 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
     const gl::EGLDispatch* getEglDispatch();
     const gl::GLESv2Dispatch* getGles2Dispatch();
 #endif
+
+    // Retrieve the vendor info strings for the GPU driver used for the emulation.
+    // On return, |*vendor|, |*renderer| and |*version| will point to strings
+    // that are owned by the instance (and must not be freed by the caller).
+    // Uses Vulkan emulation's device info when EGL/GLES emulation is not enabled.
+    void getDeviceInfo(const char** vendor, const char** renderer, const char** version) const {
+        *vendor = m_graphicsAdapterVendor.c_str();
+        *renderer = m_graphicsAdapterName.c_str();
+        *version = m_graphicsApiVersion.c_str();
+    }
 
     const gfxstream::host::FeatureSet& getFeatures() const { return m_features; }
 
@@ -1048,8 +1049,8 @@ std::unique_ptr<FrameBuffer::Impl> FrameBuffer::Impl::Create(FrameBuffer* frameb
         impl->m_graphicsApiVersion = impl->m_emulationVk->getGpuVersionString();
         impl->m_graphicsApiExtensions = impl->m_emulationVk->getInstanceExtensionsString();
         impl->m_graphicsDeviceExtensions = impl->m_emulationVk->getDeviceExtensionsString();
-    } else if (impl->m_emulationGl) {
 #if GFXSTREAM_ENABLE_HOST_GLES
+    } else if (impl->m_emulationGl) {
         impl->m_graphicsAdapterVendor = impl->m_emulationGl->getGlesVendor();
         impl->m_graphicsAdapterName = impl->m_emulationGl->getGlesRenderer();
         impl->m_graphicsApiVersion = impl->m_emulationGl->getGlesVersionString();
@@ -5026,9 +5027,9 @@ EGLint FrameBuffer::chooseConfig(EGLint* attribs, EGLint* configs, EGLint config
     return mImpl->chooseConfig(attribs, configs, configsSize);
 }
 
-void FrameBuffer::getGLStrings(const char** vendor, const char** renderer,
+void FrameBuffer::getDeviceInfo(const char** vendor, const char** renderer,
                                const char** version) const {
-    mImpl->getGLStrings(vendor, renderer, version);
+    mImpl->getDeviceInfo(vendor, renderer, version);
 }
 
 HandleType FrameBuffer::createEmulatedEglContext(int p_config, HandleType p_share,
