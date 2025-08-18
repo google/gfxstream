@@ -561,7 +561,7 @@ bool SampleApplication::isSwANGLE() {
     const char* vendor;
     const char* renderer;
     const char* version;
-    mFb->getGLStrings(&vendor, &renderer, &version);
+    mFb->getDeviceInfo(&vendor, &renderer, &version);
     return strstr(renderer, "ANGLE") && strstr(renderer, "SwiftShader");
 }
 

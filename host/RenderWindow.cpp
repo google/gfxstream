@@ -491,15 +491,11 @@ bool RenderWindow::getHardwareStrings(const char** vendor,
         return false;
     }
 
-#if GFXSTREAM_ENABLE_HOST_GLES
-    fb->getGLStrings(vendor, renderer, version);
+    fb->getDeviceInfo(vendor, renderer, version);
     D("Exiting vendor=[%s] renderer=[%s] version=[%s]\n",
       *vendor, *renderer, *version);
 
     return true;
-#else
-    return false;
-#endif
 }
 
 void RenderWindow::setPostCallback(Renderer::OnPostCallback onPost, void* onPostContext,
