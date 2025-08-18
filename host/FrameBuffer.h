@@ -472,11 +472,6 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
     EGLint getConfigs(uint32_t bufferSize, GLuint* buffer);
     EGLint chooseConfig(EGLint* attribs, EGLint* configs, EGLint configsSize);
 
-    // Retrieve the GL strings of the underlying EGL/GLES implementation.
-    // On return, |*vendor|, |*renderer| and |*version| will point to strings
-    // that are owned by the instance (and must not be freed by the caller).
-    void getGLStrings(const char** vendor, const char** renderer, const char** version) const;
-
     // Create a new EmulatedEglContext instance for this display instance.
     // |p_config| is the index of one of the configs returned by getConfigs().
     // |p_share| is either EGL_NO_CONTEXT or the handle of a shared context.
@@ -603,6 +598,11 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
     const void* getEglDispatch();
     const void* getGles2Dispatch();
 #endif  // GFXSTREAM_ENABLE_HOST_GLES
+
+    // Retrieve the vendor info strings for the GPU driver used.
+    // On return, |*vendor|, |*renderer| and |*version| will point to strings
+    // that are owned by the instance (and must not be freed by the caller).
+    void getDeviceInfo(const char** vendor, const char** renderer, const char** version) const;
 
     const gfxstream::host::FeatureSet& getFeatures() const;
 
