@@ -133,7 +133,7 @@ class RenderWindow {
     void setTranslation(float px, float py);
 
     // Receive a screen mask and pass it to TextureDraw
-    void setScreenMask(int width, int height, const unsigned char* rgbaData);
+    void setScreenMask(int width, int height, const uint8_t* rgbaData);
 
     // Force a repaint of the whole content into the sub-window.
     void repaint();

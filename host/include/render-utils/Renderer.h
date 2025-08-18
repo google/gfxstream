@@ -237,7 +237,7 @@ class Renderer {
     //    device screen to mask that screen
     virtual void setScreenMask(int width,
                                int height,
-                               const unsigned char* rgbaData) = 0;
+                               const uint8_t* rgbaData) = 0;
 
     // setMultiDisplay
     //    add/modify/del multi-display window

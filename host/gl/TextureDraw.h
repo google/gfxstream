@@ -58,7 +58,7 @@ public:
         return drawImpl(texture, rotationDegrees, dx, dy, true, colorTransform);
     }
 
-    void setScreenMask(int width, int height, const unsigned char* rgbaData);
+    void setScreenMask(int width, int height, const uint8_t* rgbaData);
     void drawLayer(const ComposeLayer& l, int frameWidth, int frameHeight,
                    int cbWidth, int cbHeight, GLuint texture);
     void prepareForDrawLayer();

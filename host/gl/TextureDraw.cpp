@@ -504,7 +504,7 @@ TextureDraw::~TextureDraw() {
     }
 }
 
-void TextureDraw::setScreenMask(int width, int height, const unsigned char* rgbaData) {
+void TextureDraw::setScreenMask(int width, int height, const uint8_t* rgbaData) {
     gfxstream::base::AutoLock lock(mMaskLock);
     if (width <= 0 || height <= 0 || rgbaData == nullptr) {
         mMaskIsValid = false;

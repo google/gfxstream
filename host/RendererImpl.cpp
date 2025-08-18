@@ -541,7 +541,7 @@ void RendererImpl::resetGuestPostedAFrame() {
     }
 }
 
-void RendererImpl::setScreenMask(int width, int height, const unsigned char* rgbaData) {
+void RendererImpl::setScreenMask(int width, int height, const uint8_t* rgbaData) {
     assert(mRenderWindow);
     mRenderWindow->setScreenMask(width, height, rgbaData);
 }
