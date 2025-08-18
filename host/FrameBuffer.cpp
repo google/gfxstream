@@ -3705,7 +3705,7 @@ std::string FrameBuffer::Impl::getGlString(EGLenum name) {
 }
 
 GLESDispatchMaxVersion FrameBuffer::Impl::getMaxGlesVersion() {
-    ENSURE_GL_EMULATION_VALUE(GLES_DISPATCH_MAX_VERSION_2); //TODO0: this should not be called!
+    ENSURE_GL_EMULATION_VALUE(GLES_DISPATCH_MAX_VERSION_2);
     return m_emulationGl->getGlesMaxDispatchVersion();
 }
 
