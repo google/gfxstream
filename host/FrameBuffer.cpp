@@ -313,7 +313,7 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
     float getPy() const { return m_py; }
     int getZrot() const { return m_zRot; }
 
-    void setScreenMask(int width, int height, const unsigned char* rgbaData);
+    void setScreenMask(int width, int height, const uint8_t* rgbaData);
 
     void registerVulkanInstance(uint64_t id, const char* appName) const;
     void unregisterVulkanInstance(uint64_t id) const;
@@ -3582,7 +3582,7 @@ HandleType FrameBuffer::Impl::getEmulatedEglWindowSurfaceColorBufferHandle(Handl
     return it->second;
 }
 
-void FrameBuffer::Impl::setScreenMask(int width, int height, const unsigned char* rgbaData) {
+void FrameBuffer::Impl::setScreenMask(int width, int height, const uint8_t* rgbaData) {
     ENSURE_GL_EMULATION_VOID();
     m_emulationGl->mTextureDraw->setScreenMask(width, height, rgbaData);
 }
@@ -4758,7 +4758,7 @@ float FrameBuffer::getPy() const { return mImpl->getPy(); }
 
 int FrameBuffer::getZrot() const { return mImpl->getZrot(); }
 
-void FrameBuffer::setScreenMask(int width, int height, const unsigned char* rgbaData) {
+void FrameBuffer::setScreenMask(int width, int height, const uint8_t* rgbaData) {
     mImpl->setScreenMask(width, height, rgbaData);
 }
 

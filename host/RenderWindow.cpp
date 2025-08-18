@@ -574,7 +574,7 @@ void RenderWindow::setTranslation(float px, float py) {
     D("Exiting");
 }
 
-void RenderWindow::setScreenMask(int width, int height, const unsigned char* rgbaData) {
+void RenderWindow::setScreenMask(int width, int height, const uint8_t* rgbaData) {
     if (FrameBuffer* fb = FrameBuffer::getFB()) {
         fb->setScreenMask(width, height, rgbaData);
     }

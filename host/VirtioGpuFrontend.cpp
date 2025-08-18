@@ -958,7 +958,7 @@ void VirtioGpuFrontend::setupWindow(void* nativeWindowHandle,
 
 void VirtioGpuFrontend::setScreenMask(int width,
                                       int height,
-                                      const unsigned char* rgbaData) {
+                                      const uint8_t* rgbaData) {
     if (!mRenderer) {
         GFXSTREAM_ERROR("Failed to set screen mask: renderer not available.");
         return;

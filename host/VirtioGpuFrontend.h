@@ -121,7 +121,7 @@ class VirtioGpuFrontend {
 
     void setScreenMask(int width,
                        int height,
-                       const unsigned char* rgbaData);
+                       const uint8_t* rgbaData);
 
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
     int snapshot(const char* directory);

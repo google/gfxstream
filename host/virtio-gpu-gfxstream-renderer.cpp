@@ -879,7 +879,7 @@ VG_EXPORT void stream_renderer_teardown() {
 }
 
 VG_EXPORT void gfxstream_backend_set_screen_mask(int width, int height,
-                                                 const unsigned char* rgbaData) {
+                                                 const uint8_t* rgbaData) {
     sFrontend()->setScreenMask(width, height, rgbaData);
 }
 
