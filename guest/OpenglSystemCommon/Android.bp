@@ -81,6 +81,7 @@ cc_defaults {
     static_libs: [
         "mesa_goldfish_address_space",
         "libgfxstream_common_logging",
+        "libperfetto_client_experimental",
         "libringbuffer",
         "libqemupipe.gfxstream",
     ],
