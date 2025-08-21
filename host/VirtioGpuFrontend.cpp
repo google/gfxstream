@@ -645,6 +645,9 @@ void VirtioGpuFrontend::fillCaps(uint32_t set, void* caps) {
                 set_virgl_format_supported(capset->virglSupportedFormats, possibleFormat.format,
                                            supported);
             }
+
+            capset->hasTraceAsyncCommand = 1;
+
             break;
         }
         case VIRTGPU_CAPSET_GFXSTREAM_GLES: {
