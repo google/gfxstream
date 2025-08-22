@@ -81,6 +81,37 @@ EmulatedPhysicalDeviceMemoryProperties::EmulatedPhysicalDeviceMemoryProperties(
         }
     }
 
+    if (features.VulkanEnsureCachedCoherentMemoryAvailable.enabled) {
+        /* Some app layers (i.e. Angle) require *some* coherent-cached memory to be
+         *  available. To ensure compatiblity these guest layers, when coherent-cached
+         *  memory type is unavailable, append the cached bit to the first coherent
+         *  memory type available. Note that in this scenario, there is no potential
+         *  functional downside to marking one of the host-coherent as cached, aside
+         *  from the guest layer believing there will be some performance benefit to
+         *  using this particular memory.
+         */
+        bool hasCoherentCached = false;
+        uint32_t firstCoherent = VK_MAX_MEMORY_TYPES;
+        for (uint32_t i = 0; i < mGuestMemoryProperties.memoryTypeCount; i++) {
+            const VkMemoryPropertyFlags flags = mGuestMemoryProperties.memoryTypes[i].propertyFlags;
+            const bool coherent = flags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+            const bool cached = flags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+            if (coherent) {
+                if (firstCoherent == VK_MAX_MEMORY_TYPES) firstCoherent = i;
+                if (cached) hasCoherentCached = true;
+            }
+        }
+
+        if (!hasCoherentCached) {
+            if (firstCoherent == VK_MAX_MEMORY_TYPES) {
+                GFXSTREAM_FATAL(
+                    "Unexpected memoryTypes error -- no available host-coherent memory.");
+            }
+            mGuestMemoryProperties.memoryTypes[firstCoherent].propertyFlags |=
+                VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+        }
+    }
+
     // If enabled, reserve an additional memory type for AHB backed buffers and images
     // so that the host can control its memory properties. This ensures that the guest
     // only sees `VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT` and will not try to map the

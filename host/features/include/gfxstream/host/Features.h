@@ -345,6 +345,16 @@ struct FeatureSet {
         "If enabled, backs blob memory via udmabuf that can be used with vkImportMemory",
         &map,
     };
+    FeatureInfo VulkanEnsureCachedCoherentMemoryAvailable = {
+        "VulkanEnsureCachedCoherentMemoryAvailable",
+        "If enabled, ensures that the at least one memory type that is both cached and coherent is "
+        "advertised to the guest. In the absence of any cached-coherent memory reported by host "
+        "driver, the first available "
+        "coherent memoryType will also be marked as cached before, being advertised to the guest. "
+        "This provides some "
+        "app-compatiblity for common graphics layers in the guest.",
+        &map,
+    };
 };
 
 #define GFXSTREAM_SET_FEATURE_ON_CONDITION(set, feature, condition) \

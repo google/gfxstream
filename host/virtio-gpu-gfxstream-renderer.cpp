@@ -131,6 +131,7 @@ ParseGfxstreamFeatures(const int rendererFlags,
     GFXSTREAM_SET_FEATURE_ON_CONDITION(&features, ExternalBlob,
                                        rendererFlags & STREAM_RENDERER_FLAGS_USE_EXTERNAL_BLOB ||
                                            features.VulkanAllocateHostVisibleAsUdmabuf.enabled);
+    GFXSTREAM_SET_FEATURE_ON_CONDITION(&features, VulkanEnsureCachedCoherentMemoryAvailable, true);
 
     for (const std::string& rendererFeature : gfxstream::Split(rendererFeatures, ",")) {
         if (rendererFeature.empty()) continue;
