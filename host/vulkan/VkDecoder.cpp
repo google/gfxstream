@@ -23013,8 +23013,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint64_t*)&id, *readStreamPtrPtr, sizeof(uint64_t));
                 *readStreamPtrPtr += sizeof(uint64_t);
                 if (m_logCalls) {
-                    fprintf(stderr, "stream %p: call vkTraceAsyncGOOGLE 0x%llx \n", ioStream,
-                            (unsigned long long)id);
+                    GFXSTREAM_INFO("stream %p: call vkTraceAsyncGOOGLE 0x%llx ", ioStream,
+                                   (unsigned long long)id);
                 }
                 m_state->on_vkTraceAsyncGOOGLE(&m_pool, snapshotApiCallHandle, id);
                 vkStream->unsetHandleMapping();
