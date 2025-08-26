@@ -5,6 +5,7 @@ inc_host_health = include_directories('include')
 
 files_lib_host_health = files(
   'HealthMonitor.cpp',
+  'TestClock.cpp',
 )
 
 lib_host_health = static_library(

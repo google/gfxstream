@@ -8,7 +8,10 @@ package(
 
 cc_library(
     name = "gfxstream_host_health",
-    srcs = ["HealthMonitor.cpp"],
+    srcs = [
+        "HealthMonitor.cpp",
+        "TestClock.cpp",
+    ],
     hdrs = glob(["include/**/*.h"]),
     copts = GFXSTREAM_HOST_COPTS,
     defines = GFXSTREAM_HOST_DEFINES,
