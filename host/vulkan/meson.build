@@ -49,14 +49,13 @@ vulkan_server_cpp_args = [
   '-DVK_GFXSTREAM_STRUCTURE_TYPE_EXT',
 ]
 if host_machine.system() == 'windows'
-  vulkan_server_cpp_args += '-DVK_USE_PLATFORM_WIN32_KHR'
   vulkan_server_cpp_args += '-Wa,-mbig-obj'
 endif
 
 
-# Shouldn't these be defined by standard Vulkan headers?
 if host_machine.system() == 'darwin'
   vulkan_server_cpp_args += '-DVK_USE_PLATFORM_METAL_EXT'
+  vulkan_server_cpp_args += '-DVK_USE_PLATFORM_MACOS_MVK'
 elif host_machine.system() == 'windows'
   vulkan_server_cpp_args += '-DVK_USE_PLATFORM_WIN32_KHR'
 elif host_machine.system() == 'qnx'
