@@ -6941,6 +6941,14 @@ void VkDecoderSnapshot::vkGetSemaphoreGOOGLE(gfxstream::base::BumpPool* pool,
                                 device, semaphore, syncId);
 }
 #endif
+#ifdef VK_GOOGLE_gfxstream
+void VkDecoderSnapshot::vkTraceAsyncGOOGLE(gfxstream::base::BumpPool* pool,
+                                           VkSnapshotApiCallHandle apiCallHandle,
+                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                           uint64_t id) {
+    mImpl->vkTraceAsyncGOOGLE(pool, apiCallHandle, apiCallPacket, apiCallPacketSize, id);
+}
+#endif
 
 }  // namespace vk
 }  // namespace gfxstream

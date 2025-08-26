@@ -475,6 +475,9 @@ struct VulkanDispatch {
     PFN_vkCmdEndQueryIndexedEXT vkCmdEndQueryIndexedEXT;
     PFN_vkCmdDrawIndirectByteCountEXT vkCmdDrawIndirectByteCountEXT;
 #endif
+#ifdef VK_MVK_macos_surface
+    PFN_vkCreateMacOSSurfaceMVK vkCreateMacOSSurfaceMVK;
+#endif
 #ifdef VK_EXT_debug_utils
     PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT;
     PFN_vkSetDebugUtilsObjectTagEXT vkSetDebugUtilsObjectTagEXT;
