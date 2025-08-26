@@ -75,9 +75,26 @@ EGLNativeWindowType createSubWindow(FBNativeWindowType p_window,
     int cocoa_y = (int)content_rect.size.height - (y + height);
     NSRect contentRect = NSMakeRect(x, cocoa_y, width, height);
 
-    NSView *glView = NULL;
+    // Enable views with metal backing when hardware acceleration is enabled, as it should provide
+    // better performance and can be necessary for vulkan swapchain creation.
+    bool useMetalView = false;
     const char* angle_default_platform = getenv("ANGLE_DEFAULT_PLATFORM");
-    if (angle_default_platform && 0 == strcmp("metal", angle_default_platform)) {
+    const char* emuVulkanICD = getenv("ANDROID_EMU_VK_ICD");
+    if (angle_default_platform && emuVulkanICD) {
+        if (0 == strcmp("metal", angle_default_platform)) {
+            // legacy behavior
+            useMetalView = true;
+        } else if ((0 == strcmp("swiftshader", emuVulkanICD)) ||
+                   (0 == strcmp("lavapipe", emuVulkanICD))) {
+            // Do not enable metal views when using software rendering
+            useMetalView = false;
+        } else {
+            useMetalView = true;
+        }
+    }
+
+    NSView* glView = NULL;
+    if (useMetalView) {
         glView = [[EmuGLViewWithMetal alloc] initWithFrame:contentRect];
     } else {
         glView = [[EmuGLView alloc] initWithFrame:contentRect];
