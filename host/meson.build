@@ -153,6 +153,9 @@ gfxstream_backend_cpp_args = [
 
 if host_machine.system() == 'windows'
   gfxstream_backend_cpp_args += '-DVK_USE_PLATFORM_WIN32_KHR'
+elif host_machine.system() == 'darwin'
+  gfxstream_backend_cpp_args += '-DVK_USE_PLATFORM_METAL_EXT'
+  gfxstream_backend_cpp_args += '-DVK_USE_PLATFORM_MACOS_MVK'
 endif
 
 deps_gfxstream_backend = []
