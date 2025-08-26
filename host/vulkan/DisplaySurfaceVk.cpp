@@ -24,7 +24,7 @@ std::unique_ptr<DisplaySurfaceVk> DisplaySurfaceVk::create(const VulkanDispatch&
                                                            VkInstance instance,
                                                            FBNativeWindowType window) {
     VkSurfaceKHR surface = VK_NULL_HANDLE;
-#ifdef _WIN32
+#ifdef VK_USE_PLATFORM_WIN32_KHR
     const VkWin32SurfaceCreateInfoKHR surfaceCi = {
         .sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
         .pNext = nullptr,
@@ -33,6 +33,14 @@ std::unique_ptr<DisplaySurfaceVk> DisplaySurfaceVk::create(const VulkanDispatch&
         .hwnd = window,
     };
     VK_CHECK(vk.vkCreateWin32SurfaceKHR(instance, &surfaceCi, nullptr, &surface));
+#elif defined(VK_USE_PLATFORM_MACOS_MVK)
+    const VkMacOSSurfaceCreateInfoMVK surfaceCi = {
+        .sType = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK,
+        .pNext = nullptr,
+        .flags = 0,
+        .pView = window,
+    };
+    VK_CHECK(vk.vkCreateMacOSSurfaceMVK(instance, &surfaceCi, nullptr, &surface));
 #else
     GFXSTREAM_FATAL("Unimplemented.");
 #endif
