@@ -17,6 +17,8 @@
 set -e
 set -o
 
+apt-get update
+
 apt-get install -y clang
 apt-get install -y clang-tidy
 

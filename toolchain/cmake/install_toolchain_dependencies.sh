@@ -16,6 +16,8 @@
 
 set -e
 
+apt-get update
+
 apt-get install -y clang
 apt-get install -y clang-tidy
 apt-get install -y libtinfo5
