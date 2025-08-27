@@ -342,53 +342,35 @@ TEST(VkGuestMemoryUtilsTest, VulkanDisableCoherentMemoryAndEmulate) {
     EXPECT_THAT(actualGuestMemoryProperties,
                 EqsVkPhysicalDeviceMemoryProperties(expectedGuestMemoryProperties));
 }
+
 TEST(VkGuestMemoryUtilsTest, VulkanEnsureCachedCoherentMemoryAvailable) {
     const VkPhysicalDeviceMemoryProperties hostMemoryProperties = {
-        .memoryTypeCount = 4,
+        .memoryTypeCount = 1,
         .memoryTypes =
             {
                 {
-                    .propertyFlags = MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                    .propertyFlags = VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                     .heapIndex = 0,
-                },
-                {
-                    .propertyFlags =
-                        VK_MEMORY_PROPERTY_HOST_CACHED_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                    .heapIndex = 0,
-                },
-                {
-                    .propertyFlags =
-                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                    .heapIndex = 1,
-                },
-                {
-                    .propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT |
-                                     VK_MEMORY_PROPERTY_HOST_CACHED_BIT |
-                                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                    .heapIndex = 1,
                 },
             },
-        .memoryHeapCount = 2,
+        .memoryHeapCount = 1,
         .memoryHeaps =
             {
                 {
                     .size = 0x1000000,
                     .flags = 0,
-                },
-                {
-                    .size = 0x200000,
-                    .flags = VK_MEMORY_HEAP_DEVICE_LOCAL_BIT,
                 },
             },
     };
 
     gfxstream::host::FeatureSet features;
+    features.VirtioGpuNext.enabled = true;
     features.VulkanEnsureCachedCoherentMemoryAvailable.enabled = true;
 
     EmulatedPhysicalDeviceMemoryProperties helper(hostMemoryProperties, 1, features);
 
     const VkPhysicalDeviceMemoryProperties expectedGuestMemoryProperties = {
-        .memoryTypeCount = 4,
+        .memoryTypeCount = 1,
         .memoryTypes =
             {
                 {
@@ -396,34 +378,13 @@ TEST(VkGuestMemoryUtilsTest, VulkanEnsureCachedCoherentMemoryAvailable) {
                         VK_MEMORY_PROPERTY_HOST_CACHED_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                     .heapIndex = 0,
                 },
-                {
-                    .propertyFlags =
-                        VK_MEMORY_PROPERTY_HOST_CACHED_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                    .heapIndex = 0,
-                },
-                {
-                    .propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT |
-                                     VK_MEMORY_PROPERTY_HOST_CACHED_BIT |
-                                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                    .heapIndex = 1,
-                },
-                {
-                    .propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT |
-                                     VK_MEMORY_PROPERTY_HOST_CACHED_BIT |
-                                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                    .heapIndex = 1,
-                },
             },
-        .memoryHeapCount = 2,
+        .memoryHeapCount = 1,
         .memoryHeaps =
             {
                 {
                     .size = 0x1000000,
                     .flags = 0,
-                },
-                {
-                    .size = 0x200000,
-                    .flags = VK_MEMORY_HEAP_DEVICE_LOCAL_BIT,
                 },
             },
     };

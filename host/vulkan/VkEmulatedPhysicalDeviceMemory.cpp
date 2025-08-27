@@ -97,8 +97,12 @@ EmulatedPhysicalDeviceMemoryProperties::EmulatedPhysicalDeviceMemoryProperties(
             const bool coherent = flags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
             const bool cached = flags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
             if (coherent) {
-                if (firstCoherent == VK_MAX_MEMORY_TYPES) firstCoherent = i;
-                if (cached) hasCoherentCached = true;
+                if (firstCoherent == VK_MAX_MEMORY_TYPES) {
+                    firstCoherent = i;
+                }
+                if (cached) {
+                    hasCoherentCached = true;
+                }
             }
         }
 
