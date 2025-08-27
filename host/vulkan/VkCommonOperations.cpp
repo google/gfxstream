@@ -302,26 +302,24 @@ VkExternalMemoryHandleTypeFlagBits VkEmulation::getDefaultExternalMemoryHandleTy
 #endif
 }
 
-static bool extensionsSupported(const std::vector<VkExtensionProperties>& currentProps,
-                                const std::vector<const char*>& wantedExtNames) {
-    std::vector<bool> foundExts(wantedExtNames.size(), false);
-
+static bool extensionSupported(const std::vector<VkExtensionProperties>& currentProps,
+                               const char* wantedExtName) {
     for (uint32_t i = 0; i < currentProps.size(); ++i) {
-        for (size_t j = 0; j < wantedExtNames.size(); ++j) {
-            if (!strcmp(wantedExtNames[j], currentProps[i].extensionName)) {
-                foundExts[j] = true;
-            }
+        if (!strcmp(wantedExtName, currentProps[i].extensionName)) {
+            return true;
         }
     }
+    return false;
+}
 
+static bool extensionsSupported(const std::vector<VkExtensionProperties>& currentProps,
+                                const std::vector<const char*>& wantedExtNames) {
     for (size_t i = 0; i < wantedExtNames.size(); ++i) {
-        bool found = foundExts[i];
-        if (!found) {
+        if (!extensionSupported(currentProps, wantedExtNames[i])) {
             GFXSTREAM_DEBUG("%s not found, bailing.", wantedExtNames[i]);
             return false;
         }
     }
-
     return true;
 }
 
@@ -900,7 +898,7 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
     std::unordered_set<std::string> selectedInstanceExtensionNames;
 
     const bool debugUtilsSupported =
-        extensionsSupported(instanceExts, {VK_EXT_DEBUG_UTILS_EXTENSION_NAME});
+        extensionSupported(instanceExts, VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     const bool debugUtilsRequested = emulation->mFeatures.VulkanDebugUtils.enabled;
     const bool debugUtilsAvailableAndRequested = debugUtilsSupported && debugUtilsRequested;
     if (debugUtilsAvailableAndRequested) {
@@ -985,6 +983,12 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
     VkResult res = gvk->vkCreateInstance(&instCi, nullptr, &emulation->mInstance);
     if (res != VK_SUCCESS) {
         GFXSTREAM_ERROR("Failed to create Vulkan instance. Error %s.", string_VkResult(res));
+        if (res == VK_ERROR_EXTENSION_NOT_PRESENT) {
+            for (const char* ext : selectedInstanceExtensionNamesC) {
+                GFXSTREAM_ERROR("%s - %sSUPPORTED", ext,
+                                (extensionSupported(instanceExts, ext) ? "" : "UN"));
+            }
+        }
         return nullptr;
     }
 
