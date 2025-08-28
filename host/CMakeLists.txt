@@ -163,8 +163,7 @@ target_compile_options(
     PRIVATE
     -Wall
     -Wextra
-    # TODO: renable
-    # -Werror
+    -Werror
     -Wno-missing-field-initializers
     -Wno-unused-parameter
     -Wno-unused-private-field
