@@ -22,9 +22,10 @@ add_library(OpenglRender_vulkan_cereal
 target_compile_definitions(OpenglRender_vulkan_cereal PRIVATE -DVK_GOOGLE_gfxstream)
 if (WIN32)
     target_compile_definitions(OpenglRender_vulkan_cereal PRIVATE -DVK_USE_PLATFORM_WIN32_KHR)
-endif()
-if (APPLE)
+elseif (APPLE)
     target_compile_definitions(OpenglRender_vulkan_cereal PRIVATE -DVK_USE_PLATFORM_MACOS_MVK -DVK_USE_PLATFORM_METAL_EXT)
+elseif(UNIX)
+    target_compile_definitions(OpenglRender_vulkan_cereal PRIVATE -DVK_USE_PLATFORM_XCB_KHR)
 endif()
 target_link_libraries(
     OpenglRender_vulkan_cereal

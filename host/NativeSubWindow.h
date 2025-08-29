@@ -70,6 +70,8 @@ int moveSubWindow(FBNativeWindowType p_parent_window,
                   int height,
                   float dpr);
 
+void* getNativeDisplay();
+
 #ifdef __cplusplus
 }
 #endif

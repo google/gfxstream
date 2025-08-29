@@ -22,6 +22,8 @@ elif host_machine.system() == 'windows'
 elif host_machine.system() == 'darwin'
   cereal_cpp_args += '-DVK_USE_PLATFORM_METAL_EXT'
   cereal_cpp_args += '-DVK_USE_PLATFORM_MACOS_MVK'
+elif host_machine.system() == 'linux'
+  cereal_cpp_args += '-DVK_USE_PLATFORM_XCB_KHR'
 endif
 
 lib_vulkan_cereal = static_library(

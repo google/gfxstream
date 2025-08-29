@@ -60,6 +60,8 @@ elif host_machine.system() == 'windows'
   vulkan_server_cpp_args += '-DVK_USE_PLATFORM_WIN32_KHR'
 elif host_machine.system() == 'qnx'
   vulkan_server_cpp_args += '-DVK_USE_PLATFORM_SCREEN_QNX'
+elif host_machine.system() == 'linux'
+  vulkan_server_cpp_args += '-DVK_USE_PLATFORM_XCB_KHR'
 endif
 
 lib_vulkan_server = static_library(
