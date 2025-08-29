@@ -17,6 +17,11 @@
 #include "VkUtils.h"
 #include "gfxstream/common/logging.h"
 
+#if defined(VK_USE_PLATFORM_XCB_KHR)
+#include "NativeSubWindow.h"
+#include "gfxstream/host/X11Support.h"
+#endif
+
 namespace gfxstream {
 namespace vk {
 
@@ -50,6 +55,25 @@ std::unique_ptr<DisplaySurfaceVk> DisplaySurfaceVk::create(const VulkanDispatch&
         GFXSTREAM_FATAL("Vulkan driver do not support display surfaces!");
     }
     VK_CHECK(vk.vkCreateMacOSSurfaceMVK(instance, &surfaceCi, nullptr, &surface));
+#elif defined(VK_USE_PLATFORM_XCB_KHR)
+    auto x11 = getX11Api();
+
+    Display* display = static_cast<Display*>(getNativeDisplay());
+    xcb_connection_t* connection = x11 ? x11->XGetXCBConnection(display) : nullptr;
+    if (connection == NULL) {
+        GFXSTREAM_ERROR("Could not get a compatible window connection!");
+        return nullptr; // return, as a call with nullptr can cause emulator crashes
+    }
+    const VkXcbSurfaceCreateInfoKHR surfaceCi = {
+        .sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR,
+        .pNext = nullptr,
+        .connection = connection,
+        .window = window,
+    };
+    if (vk.vkCreateXcbSurfaceKHR == nullptr) {
+        GFXSTREAM_FATAL("Vulkan driver do not support display surfaces!");
+    }
+    VK_CHECK(vk.vkCreateXcbSurfaceKHR(instance, &surfaceCi, nullptr, &surface));
 #else
     GFXSTREAM_FATAL("Unimplemented.");
 #endif

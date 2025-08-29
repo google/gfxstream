@@ -97,3 +97,8 @@ int moveSubWindow(FBNativeWindowType p_parent_window,
                           TRUE);
     return ret;
 }
+
+void* getNativeDisplay() {
+    fprintf(stderr, "%s: Unimplemented\n", __func__);
+    return nullptr;
+}
