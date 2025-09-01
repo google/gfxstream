@@ -57,14 +57,6 @@ PostWorkerGl::PostWorkerGl(bool mainThreadPostingOnly, FrameBuffer* fb, Composit
     }
 }
 
-void PostWorkerGl::screenshot(ColorBuffer* cb, int screenwidth, int screenheight, GLenum format,
-                              GLenum type, int skinRotation, void* pixels, Rect rect) {
-    // See b/292237104.
-    mFb->lock();
-    cb->readToBytesScaled(screenwidth, screenheight, format, type, skinRotation, rect, pixels);
-    mFb->unlock();
-}
-
 std::shared_future<void> PostWorkerGl::postImpl(ColorBuffer* cb) {
     if (!mContextBound || m_mainThreadPostingOnly) {
         // This might happen on headless mode
