@@ -273,7 +273,31 @@ void ColorBuffer::Impl::readToBytesScaled(int pixelsWidth, int pixelsHeight, GLe
     }
 #endif
 
-    GFXSTREAM_FATAL("Unimplemented");
+    if (mColorBufferVk) {
+        // TODO(b/389646068): support snipping and calculate the buffer size for any format here
+        if (rect.pos.x != 0 || rect.pos.y != 0 ||
+            (rect.size.w != 0 && rect.size.w != pixelsWidth) ||
+            (rect.size.h != 0 && rect.size.h != pixelsHeight)) {
+            GFXSTREAM_ERROR(
+                "Readback snipping is not supported for Vulkan ColorBuffers. "
+                "(Requested: %dx%d, %dx%d)",
+                rect.pos.x, rect.pos.y, rect.size.w, rect.size.h);
+            return;
+        }
+        if ((pixelsFormat != GL_RGBA && pixelsFormat != GL_RGB) ||
+            (pixelsType != GL_UNSIGNED_BYTE)) {
+            GFXSTREAM_ERROR(
+                "Readback is not supported for Vulkan ColorBuffer with format: 0x%x type: %d. ",
+                pixelsFormat, pixelsType);
+            return;
+        }
+        const int bpp = (pixelsFormat == GL_RGB) ? 3 : 4;
+        const uint64_t outPixelsSize = bpp * pixelsWidth * pixelsHeight;
+        mColorBufferVk->readToBytes(0, 0, pixelsWidth, pixelsHeight, outPixels, outPixelsSize);
+        return;
+    }
+
+    GFXSTREAM_FATAL("%s: Unimplemented", __func__);
 }
 
 void ColorBuffer::Impl::readYuvToBytes(int x, int y, int width, int height, void* outPixels,
@@ -372,7 +396,7 @@ std::unique_ptr<BorrowedImageInfo> ColorBuffer::Impl::borrowForComposition(UsedA
             return mColorBufferVk->borrowForComposition(isTarget);
         }
     }
-    GFXSTREAM_FATAL("Unimplemented");
+    GFXSTREAM_FATAL("%s: Unimplemented", __func__);
     return nullptr;
 }
 
@@ -393,7 +417,7 @@ std::unique_ptr<BorrowedImageInfo> ColorBuffer::Impl::borrowForDisplay(UsedApi a
             return mColorBufferVk->borrowForDisplay();
         }
     }
-    GFXSTREAM_FATAL("Unimplemented");
+    GFXSTREAM_FATAL("%s: Unimplemented", __func__);
     return nullptr;
 }
 
