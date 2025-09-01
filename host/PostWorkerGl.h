@@ -37,9 +37,6 @@ class PostWorkerGl : public PostWorker, public DisplaySurfaceUser {
     PostWorkerGl(bool mainThreadPostingOnly, FrameBuffer* fb, Compositor* compositor,
                  gl::DisplayGl* displayGl, gl::EmulationGl* emulationGl);
 
-    void screenshot(ColorBuffer* cb, int screenwidth, int screenheight, GLenum format, GLenum type,
-                    int skinRotation, void* pixels, Rect rect) override;
-
    protected:
     std::shared_future<void> postImpl(ColorBuffer* cb) override;
     void viewportImpl(int width, int height) override;

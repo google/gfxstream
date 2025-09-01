@@ -50,6 +50,7 @@ class DisplayVk : public gfxstream::Display {
     PostResult post(const BorrowedImageInfo* info);
 
     void drainQueues();
+    void clear();
 
    protected:
     void bindToSurfaceImpl(gfxstream::DisplaySurface* surface) override;

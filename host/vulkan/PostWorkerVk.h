@@ -30,9 +30,6 @@ class PostWorkerVk : public PostWorker {
    public:
     PostWorkerVk(FrameBuffer* fb, Compositor* compositor, vk::DisplayVk* displayGl);
 
-    void screenshot(ColorBuffer* cb, int screenwidth, int screenheight, GLenum format, GLenum type,
-                    int skinRotation, void* pixels, Rect rect) override;
-
    protected:
     std::shared_future<void> postImpl(ColorBuffer* cb) override;
     void viewportImpl(int width, int height) override;
