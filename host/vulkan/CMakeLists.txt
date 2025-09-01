@@ -90,8 +90,7 @@ target_compile_options(gfxstream-vulkan-server
     PRIVATE
     -Wall
     -Wextra
-    # TODO: renable
-    #-Werror
+    -Werror
     -Wno-missing-field-initializers
     -Wno-unused-parameter
     -Wno-unused-private-field
