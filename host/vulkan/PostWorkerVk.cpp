@@ -45,15 +45,12 @@ std::shared_future<void> PostWorkerVk::postImpl(ColorBuffer* cb) {
     return completedFuture;
 }
 
-void PostWorkerVk::screenshot(ColorBuffer* cb, int width, int height, GLenum format, GLenum type,
-                              int rotation, void* pixels, Rect rect) {
-    GFXSTREAM_FATAL("Screenshot not supported with native Vulkan swapchain enabled.");
+void PostWorkerVk::viewportImpl(int width, int height) {
+    GFXSTREAM_ERROR("PostWorker with Vulkan doesn't support viewport");
 }
 
-void PostWorkerVk::viewportImpl(int width, int height) {}
-
 void PostWorkerVk::clearImpl() {
-    GFXSTREAM_FATAL("PostWorker with Vulkan doesn't support clear");
+    m_displayVk->clear();
 }
 
 void PostWorkerVk::exitImpl() {}
