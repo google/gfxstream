@@ -109,6 +109,10 @@ void DisplayVk::drainQueues() {
     }
 }
 
+void DisplayVk::clear() {
+    GFXSTREAM_FATAL("DisplayVk::%s: Unimplemented", __func__);
+}
+
 void DisplayVk::bindToSurfaceImpl(gfxstream::DisplaySurface* surface) {
     m_needToRecreateSwapChain = true;
 }
