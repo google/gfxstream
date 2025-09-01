@@ -6055,9 +6055,10 @@ class VkDecoderGlobalState::Impl {
                 importFdInfo.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
                 vk_append_struct(&structChainIter, &importFdInfo);
 #else
+                (void)virtioGpuContextId;  // suppress warnings
+                (void)deviceHasDmabufExt;
                 GFXSTREAM_ERROR("Guest Handle flow should not work here");
                 return VK_ERROR_OUT_OF_DEVICE_MEMORY;
-
 #endif
             } else if (m_vkEmulation->getFeatures().SystemBlob.enabled ||
                        m_vkEmulation->getFeatures().VulkanAllocateHostVisibleAsUdmabuf.enabled) {
