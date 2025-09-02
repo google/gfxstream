@@ -1080,11 +1080,15 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
 
 #if defined(__APPLE__)
     if (emulation->mInstanceSupportsExternalMemoryMetal) {
-        // Enable some specific extensions on MacOS when moltenVK is used.
-        externalMemoryDeviceExtNames.push_back(VK_EXT_METAL_OBJECTS_EXTENSION_NAME);
+        // Enable some specific extensions on MacOS when ExternalMemoryMetal is used.
         externalMemoryDeviceExtNames.push_back(VK_EXT_EXTERNAL_MEMORY_METAL_EXTENSION_NAME);
+        if (emulation->mInstanceSupportsMoltenVK) {
+            // TODO(b/433496880) Check if this extension is also needed also with kosmickrisp path
+            externalMemoryDeviceExtNames.push_back(VK_EXT_METAL_OBJECTS_EXTENSION_NAME);
+        }
     } else {
-        // When MoltenVK is not used(e.g. SwiftShader), use memory fd extension for external memory.
+        // When ExternalMemoryMetal is not used(e.g. SwiftShader), use memory fd extension for
+        // external memory.
         externalMemoryDeviceExtNames.push_back(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME);
     }
 #endif
@@ -1958,12 +1962,6 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
     auto allocInfoChain = vk_make_chain_iterator(&allocInfo);
 
     if (mDeviceInfo.supportsExternalMemoryExport) {
-#ifdef __APPLE__
-        if (mInstanceSupportsMoltenVK) {
-            // Change handle type for metal resources
-            exportAi.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLHEAP_BIT_EXT;
-        }
-#endif
         if (mDeviceInfo.supportsDmaBuf) {
             exportAi.handleTypes |= VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
         }
@@ -2088,7 +2086,7 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
 
     bool opaqueFd = true;
 #if defined(__APPLE__)
-    if (mInstanceSupportsMoltenVK) {
+    if (mInstanceSupportsExternalMemoryMetal) {
         opaqueFd = false;
         info->externalMetalHandle = getMtlResourceFromVkDeviceMemory(vk, info->memory);
         validHandle = (nullptr != info->externalMetalHandle);
@@ -2222,7 +2220,7 @@ bool VkEmulation::importExternalMemory(VulkanDispatch* vk, VkDevice targetDevice
     VkImportMemoryMetalHandleInfoEXT importInfoMetalInfo = {
         VK_STRUCTURE_TYPE_IMPORT_MEMORY_METAL_HANDLE_INFO_EXT, dedicatedAllocInfoPtr,
         VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLHEAP_BIT_EXT, nullptr};
-    if (mInstanceSupportsMoltenVK) {
+    if (mInstanceSupportsExternalMemoryMetal) {
         importInfoMetalInfo.handle = info->externalMetalHandle;
         importInfoPtr = &importInfoMetalInfo;
     }
@@ -2659,7 +2657,7 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height, GLe
         static_cast<VkExternalMemoryHandleTypeFlags>(getDefaultExternalMemoryHandleType()),
     };
 #if defined(__APPLE__)
-    if (mInstanceSupportsMoltenVK) {
+    if (mInstanceSupportsExternalMemoryMetal) {
         // Using a different handle type when in MoltenVK mode
         extImageCi.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLHEAP_BIT_EXT;
     }
@@ -2715,7 +2713,7 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height, GLe
         }
 #if defined(__APPLE_)
         // importExtMemoryHandleToVkColorBuffer is not supported with MoltenVK
-        if (mInstanceSupportsMoltenVK) {
+        if (mInstanceSupportsExternalMemoryMetal) {
             GFXSTREAM_WARNING("extMemhandleInfo import in ColorBuffer creation is unexpected.");
             infoPtr->memory.externalMetalHandle = nullptr;
         }
@@ -4004,7 +4002,7 @@ VkExternalMemoryHandleTypeFlags VkEmulation::transformExternalMemoryHandleTypeFl
 
     VkExternalMemoryHandleTypeFlagBits handleTypeUsed = getDefaultExternalMemoryHandleType();
 #if defined(__APPLE__)
-    if (mInstanceSupportsMoltenVK) {
+    if (mInstanceSupportsExternalMemoryMetal) {
         // Using a different handle type when in MoltenVK mode
         handleTypeUsed = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLHEAP_BIT_EXT;
     }

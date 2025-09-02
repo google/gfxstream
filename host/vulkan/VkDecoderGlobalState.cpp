@@ -1892,7 +1892,7 @@ class VkDecoderGlobalState::Impl {
 
         bool shouldPassthrough = !m_vkEmulation->isYcbcrEmulationEnabled();
 #if defined(__APPLE__)
-        shouldPassthrough = shouldPassthrough && !m_vkEmulation->supportsMoltenVk();
+        shouldPassthrough = shouldPassthrough && !m_vkEmulation->supportsExternalMemoryMetal();
 #endif
         if (shouldPassthrough) {
             return vk->vkEnumerateDeviceExtensionProperties(physicalDevice, pLayerName,
@@ -1910,8 +1910,10 @@ class VkDecoderGlobalState::Impl {
 
 #if defined(__APPLE__) && defined(VK_MVK_moltenvk)
         // Guest will check for VK_MVK_moltenvk extension for enabling AHB support
-        if (m_vkEmulation->supportsMoltenVk() &&
+        if (m_vkEmulation->supportsExternalMemoryMetal() &&
             !hasDeviceExtension(properties, VK_MVK_MOLTENVK_EXTENSION_NAME)) {
+            // TODO(b/433496880): make sure any relevant guest image will check external memory
+            // metal instead
             VkExtensionProperties mvk_props;
             strncpy(mvk_props.extensionName, VK_MVK_MOLTENVK_EXTENSION_NAME,
                     sizeof(mvk_props.extensionName));
