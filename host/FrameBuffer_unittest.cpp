@@ -618,8 +618,6 @@ TEST_F(FrameBufferTest, DrawCallRate) {
 
     auto cpuTimeStart = gfxstream::base::cpuTime();
 
-fprintf(stderr, "%s: transform loc %d\n", __func__, transformLoc);
-
     while (drawCount < kDrawCallLimit) {
         gl->glUniformMatrix4fv(transformLoc, 1, GL_FALSE, matrix);
         gl->glBindBuffer(GL_ARRAY_BUFFER, buffer);

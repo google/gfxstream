@@ -63,7 +63,7 @@ using gl::RenderThreadInfoGl;
 #define RENDERCONTROL_DPRINT(...)         \
     do {                                  \
         if (DEBUG) {                      \
-            fprintf(stderr, __VA_ARGS__); \
+            GFXSTREAM_INFO(__VA_ARGS__);  \
         }                                 \
     } while (0)
 
