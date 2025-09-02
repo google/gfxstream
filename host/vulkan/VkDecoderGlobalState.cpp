@@ -8723,6 +8723,20 @@ class VkDecoderGlobalState::Impl {
                 (VkSamplerYcbcrConversion)((uintptr_t)0xffff0000ull));
             return VK_SUCCESS;
         }
+
+        if (pCreateInfo->pNext == nullptr && pCreateInfo->format == VK_FORMAT_UNDEFINED) {
+            // At this point we should have removed any external format structures on pNext for this
+            // call, and the format must be valid. Creating conversion objects with invalid formats
+            // might succeed on the driver call, but will cause crashes when used in descriptor set
+            // layouts.
+            // VUID-VkSamplerYcbcrConversionCreateInfo-format-04061 If an external format
+            // conversion is not being created, format must represent unsigned normalized values
+            // (i.e. the format must be a UNORM format)
+            GFXSTREAM_ERROR("%s: Invalid format provided: %s", __func__,
+                            string_VkFormat(pCreateInfo->format));
+            return VK_ERROR_VALIDATION_FAILED_EXT;
+        }
+
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
         VkResult res =
