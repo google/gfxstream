@@ -37,10 +37,13 @@ void saveBuffer(Stream* stream, const std::vector<T>& buffer) {
 
 template <class T, class = gfxstream::base::enable_if<std::is_standard_layout<T>>>
 bool loadBuffer(Stream* stream, std::vector<T>* buffer) {
-    auto len = stream->getBe32();
+    uint32_t len = stream->getBe32();
     buffer->resize(len);
-    int ret = (int)stream->read(buffer->data(), len * sizeof(T));
-    return ret == len * sizeof(T);
+    ssize_t ret = stream->read(buffer->data(), len * sizeof(T));
+    if (ret < 0) {
+        return false;
+    }
+    return static_cast<size_t>(ret) == static_cast<size_t>(len * sizeof(T));
 }
 
 template <class Container,
@@ -53,11 +56,14 @@ void saveBuffer(Stream* stream, const Container& buffer) {
 template <class Container,
           class = gfxstream::base::enable_if<std::is_standard_layout<typename Container::value_type>>>
 bool loadBuffer(Stream* stream, Container* buffer) {
-    auto len = stream->getBe32();
+    uint32_t len = stream->getBe32();
     buffer->clear();
     buffer->resize_noinit(len);
-    int ret = (int)stream->read(buffer->data(), len * sizeof(typename Container::value_type));
-    return ret == len * sizeof(typename Container::value_type);
+    ssize_t ret = stream->read(buffer->data(), len * sizeof(typename Container::value_type));
+    if (ret < 0) {
+        return false;
+    }
+    return static_cast<size_t>(ret) == static_cast<size_t>(len * sizeof(typename Container::value_type));
 }
 
 template <class T, class SaveFunc>
@@ -76,13 +82,13 @@ void saveBuffer(Stream* stream, const T* buffer, size_t numElts) {
 
 template <class T>
 void loadBufferPtr(Stream* stream, T* out) {
-    auto len = stream->getBe32();
+    uint32_t len = stream->getBe32();
     stream->read(out, len * sizeof(T));
 }
 
 template <class T, class LoadFunc>
 void loadBuffer(Stream* stream, std::vector<T>* buffer, LoadFunc&& loader) {
-    auto len = stream->getBe32();
+    uint32_t len = stream->getBe32();
     buffer->clear();
     buffer->reserve(len);
     for (uint32_t i = 0; i < len; i++) {
@@ -100,8 +106,8 @@ void saveCollection(Stream* stream, const Collection& c, SaveFunc&& saver) {
 
 template <class Collection, class LoadFunc>
 void loadCollection(Stream* stream, Collection* c, LoadFunc&& loader) {
-    const int size = stream->getBe32();
-    for (int i = 0; i < size; ++i) {
+    const uint32_t size = stream->getBe32();
+    for (uint32_t i = 0; i < size; ++i) {
         c->emplace(loader(stream));
     }
 }

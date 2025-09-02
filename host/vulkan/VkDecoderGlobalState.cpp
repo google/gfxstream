@@ -8663,7 +8663,7 @@ class VkDecoderGlobalState::Impl {
             uint64_t poolId = pDescriptorSetPoolIds[i];
             uint32_t whichPool = pDescriptorSetWhichPool[i];
             uint32_t pendingAlloc = pDescriptorSetPendingAllocation[i];
-            bool didAllocThisTime;
+            bool didAllocThisTime = false;
             setsToUpdate[i] = getOrAllocateDescriptorSetFromPoolAndIdLocked(
                 vk, device, pDescriptorPools[whichPool], pDescriptorSetLayouts[i], poolId,
                 pendingAlloc, &didAllocThisTime);
