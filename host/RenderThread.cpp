@@ -347,23 +347,6 @@ intptr_t RenderThread::main() {
     auto stats_t0 = gfxstream::base::getHighResTimeUs() / 1000;
     bool benchmarkEnabled = getBenchmarkEnabledFromEnv();
 
-    //
-    // open dump file if RENDER_DUMP_DIR is defined
-    //
-    const char* dump_dir = getenv("RENDERER_DUMP_DIR");
-    FILE* dumpFP = nullptr;
-    if (dump_dir) {
-        // size_t bsize = strlen(dump_dir) + 32;
-        // char* fname = new char[bsize];
-        // snprintf(fname, bsize, "%s" PATH_SEP "stream_%p", dump_dir, this);
-        // dumpFP = android_fopen(fname, "wb");
-        // if (!dumpFP) {
-        //     fprintf(stderr, "Warning: stream dump failed to open file %s\n",
-        //             fname);
-        // }
-        // delete[] fname;
-    }
-
     GfxApiLogger gfxLogger;
     auto& metricsLogger = FrameBuffer::getFB()->getMetricsLogger();
 
@@ -429,15 +412,6 @@ intptr_t RenderThread::main() {
                 stats_progressTimeUs = 0;
                 stats_totalBytes = 0;
             }
-        }
-
-        //
-        // dump stream to file if needed
-        //
-        if (dumpFP) {
-            int skip = readBuf.validData() - stat;
-            fwrite(readBuf.buf() + skip, 1, readBuf.validData() - skip, dumpFP);
-            fflush(dumpFP);
         }
 
         bool progress = false;
@@ -576,10 +550,6 @@ intptr_t RenderThread::main() {
             }
 #endif
         } while (progress);
-    }
-
-    if (dumpFP) {
-        fclose(dumpFP);
     }
 
 #if GFXSTREAM_ENABLE_HOST_GLES
