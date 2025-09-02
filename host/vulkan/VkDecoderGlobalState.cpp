@@ -9489,7 +9489,7 @@ class VkDecoderGlobalState::Impl {
         return std::nullopt;
 #endif
 
-        return std::move(ret);
+        return ret;
     }
 
     void getSupportedSemaphoreHandleTypes(VulkanDispatch* vk, VkPhysicalDevice physicalDevice,
