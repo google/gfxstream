@@ -95,6 +95,8 @@ static const std::unordered_map<std::string, std::string> sAliasExtra = {
 
 // Define dummy functions, only for non-extensions.
 
+#define CLEAR_GL_FUNC(return_type, func_name, signature, args) func_name = nullptr;
+
 #define RETURN_void return
 #define RETURN_GLboolean return GL_FALSE
 #define RETURN_GLint return 0
@@ -180,6 +182,22 @@ bool GLDispatch::isInitialized() const {
 
 GLESVersion GLDispatch::getGLESVersion() const {
     return m_version;
+}
+
+void GLDispatch::clearDispatchFuncs() {
+    // those functions are class static member, need to
+    // clear each explicitly
+    LIST_GLES_COMMON_FUNCTIONS(CLEAR_GL_FUNC)
+    LIST_GLES_EXTENSIONS_FUNCTIONS(CLEAR_GL_FUNC)
+    LIST_GLES1_ONLY_FUNCTIONS(CLEAR_GL_FUNC)
+    LIST_GLES1_EXTENSIONS_FUNCTIONS(CLEAR_GL_FUNC)
+    LIST_GLES2_ONLY_FUNCTIONS(CLEAR_GL_FUNC)
+    LIST_GLES2_EXTENSIONS_FUNCTIONS(CLEAR_GL_FUNC)
+    LIST_GLES3_ONLY_FUNCTIONS(CLEAR_GL_FUNC)
+    LIST_GLES3_EXTENSIONS_FUNCTIONS(CLEAR_GL_FUNC)
+    LIST_GLES31_ONLY_FUNCTIONS(CLEAR_GL_FUNC)
+    glGetTexImage = nullptr;
+    m_isLoaded = false;
 }
 
 void GLDispatch::dispatchFuncs(GLESVersion version, GlLibrary* glLib, EGLGetProcAddressFunc eglGPA) {

@@ -56,6 +56,10 @@ public:
     GLDispatch();
 
     bool isInitialized() const;
+    // set all the static member variables (gl/egl function ptrs) to null
+    // necessary when max gles version changed
+    void clearDispatchFuncs();
+
     void dispatchFuncs(GLESVersion version, GlLibrary* glLib, EGLGetProcAddressFunc eglGPA);
     GLESVersion getGLESVersion() const;
 
