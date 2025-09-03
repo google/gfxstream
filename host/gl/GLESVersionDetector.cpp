@@ -16,13 +16,14 @@
 
 #include "GLESVersionDetector.h"
 
+#include <algorithm>
+
 #include "OpenGLESDispatch/EGLDispatch.h"
 #include "gfxstream/Strings.h"
+#include "gfxstream/host/driver_info.h"
 #include "gfxstream/host/renderer_operations.h"
 #include "gfxstream/misc/StringUtils.h"
 #include "gfxstream/system/System.h"
-
-#include <algorithm>
 
 namespace gfxstream {
 namespace gl {
@@ -100,9 +101,6 @@ GLESDispatchMaxVersion calcMaxVersionFromDispatch(const gfxstream::host::Feature
     GLESDispatchMaxVersion maxVersion =
        GLES_DISPATCH_MAX_VERSION_3_1;
 
-    // TODO: CTS conformance for OpenGL ES 3.1
-    bool playStoreImage = features.PlayStoreImage.enabled;
-
     if (get_gfxstream_renderer() == SELECTED_RENDERER_HOST
         || get_gfxstream_renderer() == SELECTED_RENDERER_SWIFTSHADER_INDIRECT
         || get_gfxstream_renderer() == SELECTED_RENDERER_ANGLE_INDIRECT
@@ -112,8 +110,7 @@ GLESDispatchMaxVersion calcMaxVersionFromDispatch(const gfxstream::host::Feature
                 (GLESDispatchMaxVersion)s_egl.eglGetMaxGLESVersion(dpy);
         }
     } else {
-        if (playStoreImage ||
-            !sTryContextCreation(dpy, GLES_DISPATCH_MAX_VERSION_3_1)) {
+        if (!sTryContextCreation(dpy, GLES_DISPATCH_MAX_VERSION_3_1)) {
             maxVersion = GLES_DISPATCH_MAX_VERSION_3_0;
             if (!sTryContextCreation(dpy, GLES_DISPATCH_MAX_VERSION_3_0)) {
                 maxVersion = GLES_DISPATCH_MAX_VERSION_2;
@@ -121,27 +118,6 @@ GLESDispatchMaxVersion calcMaxVersionFromDispatch(const gfxstream::host::Feature
         }
     }
 
-    if (playStoreImage) {
-        maxVersion =
-            std::min(maxVersion,
-                     GLES_DISPATCH_MAX_VERSION_3_0);
-    }
-
-    int maj = 2; int min = 0;
-    switch (maxVersion) {
-        case GLES_DISPATCH_MAX_VERSION_2:
-            maj = 2; min = 0; break;
-        case GLES_DISPATCH_MAX_VERSION_3_0:
-            maj = 3; min = 0; break;
-        case GLES_DISPATCH_MAX_VERSION_3_1:
-            maj = 3; min = 1; break;
-        case GLES_DISPATCH_MAX_VERSION_3_2:
-            maj = 3; min = 2; break;
-        default:
-            break;
-    }
-
-    set_gfxstream_gles_version(maj, min);
     return maxVersion;
 }
 

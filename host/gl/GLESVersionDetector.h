@@ -15,14 +15,14 @@
 */
 #pragma once
 
-#include "OpenGLESDispatch/GLESv2Dispatch.h"
-
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
 #include <string>
 
+#include "OpenGLESDispatch/GLESv2Dispatch.h"
 #include "gfxstream/host/Features.h"
+#include "gfxstream/host/driver_info.h"
 
 namespace gfxstream {
 namespace gl {
