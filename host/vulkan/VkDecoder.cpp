@@ -1915,11 +1915,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                 m_prevSeqno = m_prevSeqno.value() - 1;
                             }
                             return ptr - (unsigned char*)buf;
-                            ;
                         }
-                        auto range = pMemoryRanges[i];
                         auto memory = pMemoryRanges[i].memory;
-                        auto size = pMemoryRanges[i].size;
                         auto offset = pMemoryRanges[i].offset;
                         uint64_t readStream = 0;
                         memcpy(&readStream, *readStreamPtrPtr, sizeof(uint64_t));
@@ -1933,7 +1930,6 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                 m_prevSeqno = m_prevSeqno.value() - 1;
                             }
                             return ptr - (unsigned char*)buf;
-                            ;
                         }
                         sizeLeft -= readStream;
                         uint8_t* targetRange = hostPtr + offset;
