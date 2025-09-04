@@ -342,6 +342,57 @@ TEST(VkGuestMemoryUtilsTest, VulkanDisableCoherentMemoryAndEmulate) {
     EXPECT_THAT(actualGuestMemoryProperties,
                 EqsVkPhysicalDeviceMemoryProperties(expectedGuestMemoryProperties));
 }
+
+TEST(VkGuestMemoryUtilsTest, VulkanEnsureCachedCoherentMemoryAvailable) {
+    const VkPhysicalDeviceMemoryProperties hostMemoryProperties = {
+        .memoryTypeCount = 1,
+        .memoryTypes =
+            {
+                {
+                    .propertyFlags = VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                    .heapIndex = 0,
+                },
+            },
+        .memoryHeapCount = 1,
+        .memoryHeaps =
+            {
+                {
+                    .size = 0x1000000,
+                    .flags = 0,
+                },
+            },
+    };
+
+    gfxstream::host::FeatureSet features;
+    features.VirtioGpuNext.enabled = true;
+    features.VulkanEnsureCachedCoherentMemoryAvailable.enabled = true;
+
+    EmulatedPhysicalDeviceMemoryProperties helper(hostMemoryProperties, 1, features);
+
+    const VkPhysicalDeviceMemoryProperties expectedGuestMemoryProperties = {
+        .memoryTypeCount = 1,
+        .memoryTypes =
+            {
+                {
+                    .propertyFlags =
+                        VK_MEMORY_PROPERTY_HOST_CACHED_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                    .heapIndex = 0,
+                },
+            },
+        .memoryHeapCount = 1,
+        .memoryHeaps =
+            {
+                {
+                    .size = 0x1000000,
+                    .flags = 0,
+                },
+            },
+    };
+
+    const auto actualGuestMemoryProperties = helper.getGuestMemoryProperties();
+    EXPECT_THAT(actualGuestMemoryProperties,
+                EqsVkPhysicalDeviceMemoryProperties(expectedGuestMemoryProperties));
+}
 }  // namespace
 }  // namespace vk
 }  // namespace gfxstream

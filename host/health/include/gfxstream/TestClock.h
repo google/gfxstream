@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #pragma once
 
 #include <chrono>
@@ -28,17 +29,11 @@ class TestClock {
     using time_point = std::chrono::time_point<TestClock>;
     const bool is_steady = false;
 
-    static time_point now() { return time_point(duration(getInternalTime())); }
+    static time_point now();
 
-    static void advance(double secondsPassed) { getInternalTime() += secondsPassed; }
+    static void advance(double secondsPassed);
 
-    static void reset() { getInternalTime() = 0.0; }
-
-   private:
-    static double& getInternalTime() {
-        static double internalTime = 0.0;
-        return internalTime;
-    }
+    static void reset();
 };
 
 }  // namespace base
