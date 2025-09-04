@@ -34,6 +34,9 @@ static std::string icdJsonNameToProgramAndLauncherPaths(const std::string& icdFi
     if (!pathExists(fullpath.c_str())) {
         fullpath = pj({gfxstream::base::getLauncherDirectory(), suffix});
     }
+    if (!pathExists(fullpath.c_str())) {
+        fullpath = pj({gfxstream::base::getLauncherDirectory(), "lib", "qemu", suffix});
+    }
     return fullpath;
 }
 
