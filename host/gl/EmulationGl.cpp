@@ -21,6 +21,7 @@
 
 #include "DisplaySurfaceGl.h"
 #include "GLESVersionDetector.h"
+#include "GLcommon/GLEScontext.h"
 #include "OpenGLESDispatch/DispatchTables.h"
 #include "OpenGLESDispatch/EGLDispatch.h"
 #include "OpenGLESDispatch/GLESv2Dispatch.h"
@@ -28,6 +29,7 @@
 #include "RenderThreadInfoGl.h"
 #include "gfxstream/ThreadAnnotations.h"
 #include "gfxstream/common/logging.h"
+#include "gfxstream/host/driver_info.h"
 #include "gfxstream/host/renderer_operations.h"
 #include "gfxstream/misc/StringUtils.h"
 
@@ -80,7 +82,7 @@ static const GLint kGles3ContextAttribsCoreGL[] = {
     EGL_NONE,                                                                      //
 };
 
-static bool validateGles2Context(EGLDisplay display) {
+static bool validateGles2Context(EGLDisplay display, gfxstream::host::GpuVendor& gpuVendor) {
     const GLint configAttribs[] = {// Request at least 8 bits for Red/Green/Blue
                                    EGL_RED_SIZE,
                                    8,
@@ -133,6 +135,11 @@ static bool validateGles2Context(EGLDisplay display) {
     }
 
     const char* extensions = (const char*)s_gles2.glGetString(GL_EXTENSIONS);
+    const char* c_gpuVendorName = (const char*)s_gles2.glGetString(GL_VENDOR);
+    if (c_gpuVendorName) {
+        std::string gpuVendorName = c_gpuVendorName;
+        gpuVendor = gfxstream::host::GetGpuVendor(gpuVendorName);
+    }
     if (extensions == nullptr) {
         GFXSTREAM_ERROR("Failed to query GLES 2.x context extensions.");
         s_egl.eglDestroySurface(display, surface);
@@ -306,23 +313,68 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
         return nullptr;
     }
 
-    emulationGl->mGlesDispatchMaxVersion
-        = calcMaxVersionFromDispatch(emulationGl->mFeatures, emulationGl->mEglDisplay);
-    if (s_egl.eglSetMaxGLESVersion) {
-        // eglSetMaxGLESVersion must be called before any context binding
-        // because it changes how we initialize the dispatcher table.
-        s_egl.eglSetMaxGLESVersion(emulationGl->mGlesDispatchMaxVersion);
-    }
+    gfxstream::host::GpuVendor gpuVendor{gfxstream::host::GpuVendor::kUnknown};
+    auto ChooseGlesVersionAndPopulateDispatch =
+        [&](GLESDispatchMaxVersion maxAllowedVersion) -> bool {
+        GLEScontext::dispatcher().clearDispatchFuncs();
+        auto maxVersion =
+            calcMaxVersionFromDispatch(emulationGl->mFeatures, emulationGl->mEglDisplay);
+        if (maxVersion > maxAllowedVersion) {
+            maxVersion = maxAllowedVersion;
+        }
+        int major = 2;
+        int minor = 0;
+        switch (maxVersion) {
+            case GLES_DISPATCH_MAX_VERSION_2:
+                major = 2;
+                minor = 0;
+                break;
+            case GLES_DISPATCH_MAX_VERSION_3_0:
+                major = 3;
+                minor = 0;
+                break;
+            case GLES_DISPATCH_MAX_VERSION_3_1:
+                major = 3;
+                minor = 1;
+                break;
+            case GLES_DISPATCH_MAX_VERSION_3_2:
+                major = 3;
+                minor = 2;
+                break;
+            default:
+                break;
+        }
 
-    int glesVersionMajor;
-    int glesVersionMinor;
-    get_gfxstream_gles_version(&glesVersionMajor, &glesVersionMinor);
-    emulationGl->mGlesVersionMajor = glesVersionMajor;
-    emulationGl->mGlesVersionMinor = glesVersionMinor;
+        set_gfxstream_gles_version(major, minor);
+        emulationGl->mGlesDispatchMaxVersion = maxVersion;
+        if (s_egl.eglSetMaxGLESVersion) {
+            // eglSetMaxGLESVersion must be called before any context binding
+            // because it changes how we initialize the dispatcher table.
+            s_egl.eglSetMaxGLESVersion(emulationGl->mGlesDispatchMaxVersion);
+        }
 
-    if (!validateGles2Context(emulationGl->mEglDisplay)) {
-        GFXSTREAM_ERROR("Failed to validate creating GLES 2.x context.");
+        emulationGl->mGlesVersionMajor = major;
+        emulationGl->mGlesVersionMinor = minor;
+
+        if (!validateGles2Context(emulationGl->mEglDisplay, gpuVendor)) {
+            GFXSTREAM_ERROR("Failed to validate creating GLES 2.x context.");
+            return false;
+        }
+        return true;
+    };
+
+    if (!ChooseGlesVersionAndPopulateDispatch(GLES_DISPATCH_MAX_VERSION_3_2)) {
         return nullptr;
+    }
+    if (emulationGl->mGlesDispatchMaxVersion > GLES_DISPATCH_MAX_VERSION_3_0) {
+        if (gpuVendor == gfxstream::host::GpuVendor::kIntel) {
+            // BUG: 435712974
+            // Intel gpu driver has crashes when guest is running
+            // gles 3.1. so we have to cap the max gles to 3.0
+            if (!ChooseGlesVersionAndPopulateDispatch(GLES_DISPATCH_MAX_VERSION_3_0)) {
+                return nullptr;
+            }
+        }
     }
 
     // TODO (b/207426737): Remove the Imagination-specific workaround.
