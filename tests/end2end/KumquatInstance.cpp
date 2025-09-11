@@ -29,7 +29,7 @@ namespace tests {
 KumquatInstance::KumquatInstance() {}
 
 void KumquatInstance::SetUp(bool withGl, bool withVk, std::string features) {
-    const std::string kumquatCommand = GetTestDataPath("kumquat").string();
+    const std::string kumquatCommand = GetTestDataPath("kumquat_virtio").string();
     const std::string renderer_features = "--renderer-features=" + features;
 
     std::string capset_names = "--capset-names=";
