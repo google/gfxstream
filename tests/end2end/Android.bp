@@ -36,7 +36,7 @@ cc_test_host {
         "libgfxstream_host_openglesdispatch_headers",
     ],
     data: [
-        "//external/crosvm:kumquat",
+        "//external/rust/rutabaga_gfx:kumquat_virtio",
         "testdata/256x256_android.png",
         "testdata/256x256_android_with_transparency.png",
         "testdata/256x256_golden_basic_composition.png",

@@ -110,7 +110,7 @@ rust_binary(
     srcs = glob([
         "rutabaga_gfx/kumquat/server/src/**/*.rs",
     ]),
-    binary_name = "kumquat",
+    binary_name = "kumquat_virtio",
     features = [
         "gfxstream",
     ],
