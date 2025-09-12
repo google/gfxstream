@@ -157,8 +157,9 @@ std::unique_ptr<CompositorVk> CompositorVk::create(
         new CompositorVk(vk, vkDevice, vkPhysicalDevice, vkQueue, queueLock, queueFamilyIndex,
                          maxFramesInFlight, ycbcrSamplerPool, debugUtils));
     res->setUpCommandPool();
-    res->setUpSampler();
-    res->setUpGraphicsPipeline();
+    res->setUpPerSamplerResources();
+    res->setUpRenderPasses();
+    res->setUpGraphicsPipelines();
     res->setUpVertexBuffers();
     res->setUpUniformBuffers();
     res->setUpDescriptorSets();
@@ -173,8 +174,7 @@ CompositorVk::CompositorVk(const VulkanDispatch& vk, VkDevice vkDevice,
                            VkPhysicalDevice vkPhysicalDevice, VkQueue vkQueue,
                            std::shared_ptr<gfxstream::base::Lock> queueLock,
                            uint32_t queueFamilyIndex, uint32_t maxFramesInFlight,
-                           vk_util::YcbcrSamplerPool* ycbcrPool,
-                           DebugUtilsHelper debugUtilsHelper)
+                           vk_util::YcbcrSamplerPool* ycbcrPool, DebugUtilsHelper debugUtilsHelper)
     : CompositorVkBase(vk, vkDevice, vkPhysicalDevice, vkQueue, queueLock, queueFamilyIndex,
                        maxFramesInFlight, ycbcrPool, debugUtilsHelper),
       m_maxFramesInFlight(maxFramesInFlight),
@@ -204,25 +204,31 @@ CompositorVk::~CompositorVk() {
     m_vk.vkDestroyBuffer(m_vkDevice, m_vertexVkBuffer, nullptr);
     m_vk.vkFreeMemory(m_vkDevice, m_indexVkDeviceMemory, nullptr);
     m_vk.vkDestroyBuffer(m_vkDevice, m_indexVkBuffer, nullptr);
-    for (auto& [_, formatResources] : m_formatResources) {
-        m_vk.vkDestroyPipeline(m_vkDevice, formatResources.m_graphicsVkPipeline, nullptr);
-        m_vk.vkDestroyRenderPass(m_vkDevice, formatResources.m_vkRenderPass, nullptr);
+    for (auto& iter : m_vkGraphicsVkPipelines) {
+        m_vk.vkDestroyPipeline(m_vkDevice, iter.second, nullptr);
     }
-    m_vk.vkDestroyPipelineLayout(m_vkDevice, m_vkPipelineLayout, nullptr);
-    m_vk.vkDestroySampler(m_vkDevice, m_vkSampler, nullptr);
-    m_vk.vkDestroyDescriptorSetLayout(m_vkDevice, m_vkDescriptorSetLayout, nullptr);
+    for (auto& iter : m_vkRenderPasses) {
+        m_vk.vkDestroyRenderPass(m_vkDevice, iter.second, nullptr);
+    }
+    for (auto& iter : m_perSamplerRes) {
+        m_vk.vkDestroyPipelineLayout(m_vkDevice, iter.second.m_vkPipelineLayout, nullptr);
+        m_vk.vkDestroyDescriptorSetLayout(m_vkDevice, iter.second.m_vkDescriptorSetLayout, nullptr);
+    }
+    m_vk.vkDestroySampler(m_vkDevice, m_defaultSampler, nullptr);
     m_vk.vkDestroyCommandPool(m_vkDevice, m_vkCommandPool, nullptr);
     for (PerFrameResources& frameResources : m_frameResources) {
         m_vk.vkDestroyFence(m_vkDevice, frameResources.m_vkFence, nullptr);
     }
 }
 
-void CompositorVk::setUpGraphicsPipeline() {
-    const std::vector<uint32_t> vertSpvBuff = CompositorVkShader::compositorVertexShader;
-    const std::vector<uint32_t> fragSpvBuff = CompositorVkShader::compositorFragmentShader;
-    const auto vertShaderMod = createShaderModule(m_vk, m_vkDevice, vertSpvBuff);
-    const auto fragShaderMod = createShaderModule(m_vk, m_vkDevice, fragSpvBuff);
-
+void CompositorVk::setUpGraphicsPipeline(const VkShaderModule vertShaderMod,
+                                         const VkShaderModule fragShaderMod,
+                                         const VkFormat samplerFormat,
+                                         const VkSampler immutableSampler) {
+    if (m_perSamplerRes.find(samplerFormat) == m_perSamplerRes.end()) {
+        GFXSTREAM_FATAL("%s: Unknown sampler format (%s), for pipeline creation", __func__,
+                        string_VkFormat(samplerFormat));
+    }
     const VkPipelineShaderStageCreateInfo shaderStageCis[2] = {
         VkPipelineShaderStageCreateInfo{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
@@ -316,43 +322,59 @@ void CompositorVk::setUpGraphicsPipeline() {
         .pDynamicStates = dynamicStates,
     };
 
-    const VkDescriptorSetLayoutBinding layoutBindings[2] = {
-        VkDescriptorSetLayoutBinding{
-            .binding = 0,
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-            .pImmutableSamplers = &m_vkSampler,
-        },
-        VkDescriptorSetLayoutBinding{
-            .binding = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-            .pImmutableSamplers = nullptr,
-        },
+    VkGraphicsPipelineCreateInfo graphicsPipelineCi = {
+        .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+        .stageCount = static_cast<uint32_t>(std::size(shaderStageCis)),
+        .pStages = shaderStageCis,
+        .pVertexInputState = &vertexInputStateCi,
+        .pInputAssemblyState = &inputAssemblyStateCi,
+        .pViewportState = &viewportStateCi,
+        .pRasterizationState = &rasterizerStateCi,
+        .pMultisampleState = &multisampleStateCi,
+        .pDepthStencilState = nullptr,
+        .pColorBlendState = &colorBlendStateCi,
+        .pDynamicState = &dynamicStateCi,
+        .layout = m_perSamplerRes[samplerFormat].m_vkPipelineLayout,
+        .renderPass = VK_NULL_HANDLE,  // to be filled below
+        .subpass = 0,
+        .basePipelineHandle = VK_NULL_HANDLE,
+        .basePipelineIndex = -1,
     };
 
-    const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCi = {
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .bindingCount = static_cast<uint32_t>(std::size(layoutBindings)),
-        .pBindings = layoutBindings,
-    };
-    VK_CHECK(m_vk.vkCreateDescriptorSetLayout(m_vkDevice, &descriptorSetLayoutCi, nullptr,
-                                              &m_vkDescriptorSetLayout));
+    for (VkFormat renderTargetFormat : kRenderTargetFormats) {
+        graphicsPipelineCi.renderPass = m_vkRenderPasses[renderTargetFormat];
 
-    const VkPipelineLayoutCreateInfo pipelineLayoutCi = {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-        .setLayoutCount = 1,
-        .pSetLayouts = &m_vkDescriptorSetLayout,
-        .pushConstantRangeCount = 0,
-    };
+        VkPipeline pipeline = VK_NULL_HANDLE;
+        VK_CHECK(m_vk.vkCreateGraphicsPipelines(m_vkDevice, VK_NULL_HANDLE, 1, &graphicsPipelineCi,
+                                                nullptr, &pipeline));
 
-    VK_CHECK(
-        m_vk.vkCreatePipelineLayout(m_vkDevice, &pipelineLayoutCi, nullptr, &m_vkPipelineLayout));
+        GraphicsPipelineKey key = {renderTargetFormat, samplerFormat};
+        m_vkGraphicsVkPipelines[key] = pipeline;
+    }
+}
 
+void CompositorVk::setUpGraphicsPipelines() {
+    const std::vector<uint32_t> vertSpvBuff = CompositorVkShader::compositorVertexShader;
+    const std::vector<uint32_t> fragSpvBuff = CompositorVkShader::compositorFragmentShader;
+    const auto vertShaderMod = createShaderModule(m_vk, m_vkDevice, vertSpvBuff);
+    const auto fragShaderMod = createShaderModule(m_vk, m_vkDevice, fragSpvBuff);
+
+    setUpGraphicsPipeline(vertShaderMod, fragShaderMod, VK_FORMAT_UNDEFINED, m_defaultSampler);
+
+    // TODO(b/389646068): Current descriptor management in the compositor doesn't allow on demand
+    // format addition and this exploits a pre-warmed sampler pool to support ycbcr format. We need
+    // to get it running on-demand to be able to support other formats
+    std::vector<VkFormat> yCbCrFormats = m_ycbcrSamplerPool->getAllFormats();
+    for (auto format : yCbCrFormats) {
+        VkSampler sampler = m_ycbcrSamplerPool->getSampler(format);
+        setUpGraphicsPipeline(vertShaderMod, fragShaderMod, format, sampler);
+    }
+
+    m_vk.vkDestroyShaderModule(m_vkDevice, vertShaderMod, nullptr);
+    m_vk.vkDestroyShaderModule(m_vkDevice, fragShaderMod, nullptr);
+}
+
+void CompositorVk::setUpRenderPasses() {
     VkAttachmentDescription colorAttachment = {
         .format = VK_FORMAT_UNDEFINED,
         .samples = VK_SAMPLE_COUNT_1_BIT,
@@ -398,45 +420,14 @@ void CompositorVk::setUpGraphicsPipeline() {
         .pDependencies = &subpassDependency,
     };
 
-    VkGraphicsPipelineCreateInfo graphicsPipelineCi = {
-        .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-        .stageCount = static_cast<uint32_t>(std::size(shaderStageCis)),
-        .pStages = shaderStageCis,
-        .pVertexInputState = &vertexInputStateCi,
-        .pInputAssemblyState = &inputAssemblyStateCi,
-        .pViewportState = &viewportStateCi,
-        .pRasterizationState = &rasterizerStateCi,
-        .pMultisampleState = &multisampleStateCi,
-        .pDepthStencilState = nullptr,
-        .pColorBlendState = &colorBlendStateCi,
-        .pDynamicState = &dynamicStateCi,
-        .layout = m_vkPipelineLayout,
-        .renderPass = VK_NULL_HANDLE,
-        .subpass = 0,
-        .basePipelineHandle = VK_NULL_HANDLE,
-        .basePipelineIndex = -1,
-    };
-
     for (VkFormat renderTargetFormat : kRenderTargetFormats) {
         colorAttachment.format = renderTargetFormat;
 
         VkRenderPass renderPass = VK_NULL_HANDLE;
         VK_CHECK(m_vk.vkCreateRenderPass(m_vkDevice, &renderPassCi, nullptr, &renderPass));
 
-        graphicsPipelineCi.renderPass = renderPass;
-
-        VkPipeline pipeline = VK_NULL_HANDLE;
-        VK_CHECK(m_vk.vkCreateGraphicsPipelines(m_vkDevice, VK_NULL_HANDLE, 1, &graphicsPipelineCi,
-                                                nullptr, &pipeline));
-
-        m_formatResources[renderTargetFormat] = PerFormatResources{
-            .m_vkRenderPass = renderPass,
-            .m_graphicsVkPipeline = pipeline,
-        };
+        m_vkRenderPasses[renderTargetFormat] = renderPass;
     }
-
-    m_vk.vkDestroyShaderModule(m_vkDevice, vertShaderMod, nullptr);
-    m_vk.vkDestroyShaderModule(m_vkDevice, fragShaderMod, nullptr);
 }
 
 void CompositorVk::setUpVertexBuffers() {
@@ -475,43 +466,47 @@ void CompositorVk::setUpDescriptorSets() {
         descriptorSetsPerFrame * descriptorsOfEachTypePerSet;
     const uint32_t descriptorsOfEachTypeTotal = descriptorsOfEachTypePerFrame * m_maxFramesInFlight;
 
+    const uint32_t numLayouts = m_perSamplerRes.size();
+
+    // TODO(b/389646068): *2 should not be necessary for image samplers but
+    // some drivers are throwing VK_ERROR_OUT_OF_POOL_MEMORY errors.
     const VkDescriptorPoolSize descriptorPoolSizes[2] = {
         VkDescriptorPoolSize{
             .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = descriptorsOfEachTypeTotal,
+            .descriptorCount = descriptorsOfEachTypeTotal * numLayouts * 2,
         },
         VkDescriptorPoolSize{
             .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .descriptorCount = descriptorsOfEachTypeTotal,
+            .descriptorCount = descriptorsOfEachTypeTotal * numLayouts,
         }};
     const VkDescriptorPoolCreateInfo descriptorPoolCi = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
         .flags = 0,
-        .maxSets = descriptorSetsTotal,
+        .maxSets = descriptorSetsTotal * numLayouts,
         .poolSizeCount = static_cast<uint32_t>(std::size(descriptorPoolSizes)),
         .pPoolSizes = descriptorPoolSizes,
     };
     VK_CHECK(
         m_vk.vkCreateDescriptorPool(m_vkDevice, &descriptorPoolCi, nullptr, &m_vkDescriptorPool));
 
-    const std::vector<VkDescriptorSetLayout> frameDescriptorSetLayouts(descriptorSetsPerFrame,
-                                                                       m_vkDescriptorSetLayout);
-    const VkDescriptorSetAllocateInfo frameDescriptorSetAllocInfo = {
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-        .descriptorPool = m_vkDescriptorPool,
-        .descriptorSetCount = descriptorSetsPerFrame,
-        .pSetLayouts = frameDescriptorSetLayouts.data(),
-    };
-
     VkDeviceSize uniformBufferOffset = 0;
-    for (uint32_t frameIndex = 0; frameIndex < m_maxFramesInFlight; ++frameIndex) {
-        PerFrameResources& frameResources = m_frameResources[frameIndex];
-        frameResources.m_layerDescriptorSets.resize(descriptorSetsPerFrame);
+    auto allocateFrameDescriptorSetsForLayout = [&](VkDescriptorSetLayout layout) {
+        const std::vector<VkDescriptorSetLayout> frameDescriptorSetLayouts(descriptorSetsPerFrame,
+                                                                           layout);
+        const VkDescriptorSetAllocateInfo frameDescriptorSetAllocInfo = {
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+            .descriptorPool = m_vkDescriptorPool,
+            .descriptorSetCount = descriptorSetsPerFrame,
+            .pSetLayouts = frameDescriptorSetLayouts.data(),
+        };
+        std::vector<VkDescriptorSet> frameDescriptorSets;
+        frameDescriptorSets.resize(descriptorSetsPerFrame);
 
         VK_CHECK(m_vk.vkAllocateDescriptorSets(m_vkDevice, &frameDescriptorSetAllocInfo,
-                                               frameResources.m_layerDescriptorSets.data()));
+                                               frameDescriptorSets.data()));
 
-        for (uint32_t layerIndex = 0; layerIndex < kMaxLayersPerFrame; ++layerIndex) {
+        // TODO(b/389646068): combine descriptor updates
+        for (uint32_t layerIndex = 0; layerIndex < descriptorSetsPerFrame; ++layerIndex) {
             const VkDescriptorBufferInfo bufferInfo = {
                 .buffer = m_uniformStorage.m_vkBuffer,
                 .offset = uniformBufferOffset,
@@ -519,7 +514,7 @@ void CompositorVk::setUpDescriptorSets() {
             };
             const VkWriteDescriptorSet descriptorSetWrite = {
                 .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                .dstSet = frameResources.m_layerDescriptorSets[layerIndex],
+                .dstSet = frameDescriptorSets[layerIndex],
                 .dstBinding = 1,
                 .dstArrayElement = 0,
                 .descriptorCount = 1,
@@ -529,6 +524,18 @@ void CompositorVk::setUpDescriptorSets() {
             m_vk.vkUpdateDescriptorSets(m_vkDevice, 1, &descriptorSetWrite, 0, nullptr);
 
             uniformBufferOffset += m_uniformStorage.m_stride;
+        }
+
+        return frameDescriptorSets;
+    };
+
+    for (uint32_t frameIndex = 0; frameIndex < m_maxFramesInFlight; ++frameIndex) {
+        PerFrameResources& frameResources =
+            *const_cast<PerFrameResources*>(&m_frameResources[frameIndex]);
+
+        for (const auto& [format, res] : m_perSamplerRes) {
+            frameResources.m_layerDescriptorSets[format] =
+                allocateFrameDescriptorSetsForLayout(res.m_vkDescriptorSetLayout);
         }
     }
 }
@@ -757,7 +764,11 @@ void CompositorVk::setUpUniformBuffers() {
     const VkDeviceSize alignment = physicalDeviceProperties.limits.minUniformBufferOffsetAlignment;
     m_uniformStorage.m_stride = ((sizeof(UniformBufferBinding) - 1) / alignment + 1) * alignment;
 
-    VkDeviceSize size = m_uniformStorage.m_stride * m_maxFramesInFlight * kMaxLayersPerFrame;
+    // TODO(b/389646068): Revise uniform buffer and descriptor management system to allocating per
+    // layout here
+    const uint32_t numLayouts = m_perSamplerRes.size();
+    VkDeviceSize size =
+        m_uniformStorage.m_stride * m_maxFramesInFlight * kMaxLayersPerFrame * numLayouts;
     auto maybeBuffer =
         createBuffer(size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT |
@@ -779,15 +790,62 @@ void CompositorVk::setUpUniformBuffers() {
     uint8_t* data = reinterpret_cast<uint8_t*>(mapped);
     for (uint32_t frameIndex = 0; frameIndex < m_maxFramesInFlight; ++frameIndex) {
         PerFrameResources& frameResources = m_frameResources[frameIndex];
-        for (uint32_t layerIndex = 0; layerIndex < kMaxLayersPerFrame; ++layerIndex) {
-            auto* layerUboStorage = reinterpret_cast<UniformBufferBinding*>(data);
-            frameResources.m_layerUboStorages.push_back(layerUboStorage);
-            data += m_uniformStorage.m_stride;
+        for (const auto& [format, res] : m_perSamplerRes) {
+            frameResources.m_layerUboStorages[format].resize(kMaxLayersPerFrame);
+            for (uint32_t layerIndex = 0; layerIndex < kMaxLayersPerFrame; ++layerIndex) {
+                auto* layerUboStorage = reinterpret_cast<UniformBufferBinding*>(data);
+                frameResources.m_layerUboStorages[format][layerIndex] = layerUboStorage;
+                data += m_uniformStorage.m_stride;
+            }
         }
     }
 }
 
-void CompositorVk::setUpSampler() {
+void CompositorVk::setUpPerSamplerResources() {
+    auto createSamplerResources = [](const VulkanDispatch& m_vk, VkDevice device, VkFormat format,
+                                     VkSampler sampler) {
+        PerSamplerResources ret = {};
+        const VkDescriptorSetLayoutBinding layoutBindings[2] = {
+            VkDescriptorSetLayoutBinding{
+                .binding = 0,
+                .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                .descriptorCount = 1,
+                .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+                .pImmutableSamplers = &sampler,
+            },
+            VkDescriptorSetLayoutBinding{
+                .binding = 1,
+                .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                .descriptorCount = 1,
+                .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                .pImmutableSamplers = nullptr,
+            },
+        };
+
+        const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCi = {
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .bindingCount = static_cast<uint32_t>(std::size(layoutBindings)),
+            .pBindings = layoutBindings,
+        };
+
+        VK_CHECK(m_vk.vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCi, nullptr,
+                                                  &ret.m_vkDescriptorSetLayout));
+
+        const VkPipelineLayoutCreateInfo pipelineLayoutCi = {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+            .setLayoutCount = 1,
+            .pSetLayouts = &ret.m_vkDescriptorSetLayout,
+            .pushConstantRangeCount = 0,
+        };
+
+        VK_CHECK(m_vk.vkCreatePipelineLayout(device, &pipelineLayoutCi, nullptr,
+                                             &ret.m_vkPipelineLayout));
+
+        return ret;
+    };
+
     // The texture coordinate transformation matrices for flip/rotate/etc
     // currently depends on this being repeat.
     constexpr const VkSamplerAddressMode kSamplerMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
@@ -810,7 +868,16 @@ void CompositorVk::setUpSampler() {
         .borderColor = VK_BORDER_COLOR_INT_TRANSPARENT_BLACK,
         .unnormalizedCoordinates = VK_FALSE,
     };
-    VK_CHECK(m_vk.vkCreateSampler(m_vkDevice, &samplerCi, nullptr, &m_vkSampler));
+
+    VK_CHECK(m_vk.vkCreateSampler(m_vkDevice, &samplerCi, nullptr, &m_defaultSampler));
+    m_perSamplerRes[VK_FORMAT_UNDEFINED] =
+        createSamplerResources(m_vk, m_vkDevice, VK_FORMAT_UNDEFINED, m_defaultSampler);
+
+    std::vector<VkFormat> yCbCrFormats = m_ycbcrSamplerPool->getAllFormats();
+    for (VkFormat format : yCbCrFormats) {
+        VkSampler sampler = m_ycbcrSamplerPool->getSampler(format);
+        m_perSamplerRes[format] = createSamplerResources(m_vk, m_vkDevice, format, sampler);
+    }
 }
 
 // Create a VkBuffer and a bound VkDeviceMemory. When the specified memory type
@@ -898,16 +965,18 @@ CompositorVk::RenderTarget* CompositorVk::getOrCreateRenderTargetInfo(
         return renderTargetPtr->get();
     }
 
-    auto formatResourcesIt = m_formatResources.find(imageInfo.imageCreateInfo.format);
-    if (formatResourcesIt == m_formatResources.end()) {
+    auto renderPassIt = m_vkRenderPasses.find(imageInfo.imageCreateInfo.format);
+    if (renderPassIt == m_vkRenderPasses.end()) {
+        GFXSTREAM_WARNING("%s: Unknown render target format for resources: %s [%d]", __func__,
+                          string_VkFormat(imageInfo.imageCreateInfo.format),
+                          imageInfo.imageCreateInfo.format);
         return nullptr;
     }
-    auto& formatResources = formatResourcesIt->second;
 
     auto* renderTarget =
         new RenderTarget(m_vk, m_vkDevice, imageInfo.image, imageInfo.imageView,
                          imageInfo.imageCreateInfo.extent.width,
-                         imageInfo.imageCreateInfo.extent.height, formatResources.m_vkRenderPass);
+                         imageInfo.imageCreateInfo.extent.height, renderPassIt->second);
 
     m_renderTargetCache.set(imageInfo.id, std::unique_ptr<RenderTarget>(renderTarget));
 
@@ -945,7 +1014,9 @@ bool CompositorVk::canCompositeTo(const VkImageCreateInfo& imageCi) {
         return false;
     }
 
-    if (m_formatResources.find(imageCi.format) == m_formatResources.end()) {
+    // Check the validity of the pipeline with default image sampler
+    if (m_vkGraphicsVkPipelines.find(GraphicsPipelineKey{imageCi.format, VK_FORMAT_UNDEFINED}) ==
+        m_vkGraphicsVkPipelines.end()) {
         GFXSTREAM_ERROR(
             "The format of the image, %s, is not supported by the CompositorVk as the render "
             "target.",
@@ -957,15 +1028,16 @@ bool CompositorVk::canCompositeTo(const VkImageCreateInfo& imageCi) {
 
 void CompositorVk::buildCompositionVk(const CompositionRequest& compositionRequest,
                                       CompositionVk* compositionVk) {
-    const BorrowedImageInfoVk* targetImage = getInfoOrAbort(compositionRequest.target);
-
-    auto formatResourcesIt = m_formatResources.find(targetImage->imageCreateInfo.format);
-    if (formatResourcesIt == m_formatResources.end()) {
-        const std::string formatString = string_VkFormat(targetImage->imageCreateInfo.format);
-        GFXSTREAM_FATAL("CompositorVk did not find format resources for VkFormat:%s",
-                        formatString.c_str());
+    if (compositionRequest.target.get() == nullptr) {
+        GFXSTREAM_ERROR("invalid target!");
+        return;
     }
-    const auto& formatResources = formatResourcesIt->second;
+    const BorrowedImageInfoVk* targetImage = getInfoOrAbort(compositionRequest.target);
+    auto renderPassIt = m_vkRenderPasses.find(targetImage->imageCreateInfo.format);
+    if (renderPassIt == m_vkRenderPasses.end()) {
+        GFXSTREAM_FATAL("CompositorVk failed to find renderpass resources with format:%s",
+                        string_VkFormat(targetImage->imageCreateInfo.format));
+    }
 
     RenderTarget* targetImageRenderTarget = getOrCreateRenderTargetInfo(*targetImage);
 
@@ -973,9 +1045,8 @@ void CompositorVk::buildCompositionVk(const CompositionRequest& compositionReque
     const uint32_t targetHeight = targetImage->height;
 
     compositionVk->targetImage = targetImage;
-    compositionVk->targetRenderPass = formatResources.m_vkRenderPass;
+    compositionVk->targetRenderPass = renderPassIt->second;
     compositionVk->targetFramebuffer = targetImageRenderTarget->m_vkFramebuffer;
-    compositionVk->pipeline = formatResources.m_graphicsVkPipeline;
 
     for (const CompositionRequestLayer& layer : compositionRequest.layers) {
         uint32_t sourceImageWidth = 0;
@@ -985,7 +1056,7 @@ void CompositorVk::buildCompositionVk(const CompositionRequest& compositionReque
         if (layer.props.composeMode == HWC2_COMPOSITION_SOLID_COLOR) {
             sourceImageWidth = targetWidth;
             sourceImageHeight = targetHeight;
-        } else {
+        } else if (layer.source) {
             sourceImage = getInfoOrAbort(layer.source);
             if (!canCompositeFrom(sourceImage->imageCreateInfo)) {
                 continue;
@@ -993,6 +1064,10 @@ void CompositorVk::buildCompositionVk(const CompositionRequest& compositionReque
 
             sourceImageWidth = sourceImage->width;
             sourceImageHeight = sourceImage->height;
+        } else {
+            GFXSTREAM_ERROR("%s: Invalid layer with compose mode %d", __func__,
+                            layer.props.composeMode);
+            continue;
         }
 
         // Calculate the posTransform and the texcoordTransform needed in the
@@ -1079,9 +1154,11 @@ void CompositorVk::buildCompositionVk(const CompositionRequest& compositionReque
                     },
             };
 
+        VkFormat pipelineSamplerFormat = VK_FORMAT_UNDEFINED;  // Undefined means non-ycbcr
         if (layer.props.composeMode == HWC2_COMPOSITION_SOLID_COLOR) {
             descriptorSetContents.binding0.sampledImageId = 0;
             descriptorSetContents.binding0.sampledImageView = m_defaultImage.m_vkImageView;
+            descriptorSetContents.binding0.pipelineSamplerFormat = VK_FORMAT_UNDEFINED;
             descriptorSetContents.binding1.color =
                 glm::vec4(static_cast<float>(layer.props.color.r) / 255.0f,
                           static_cast<float>(layer.props.color.g) / 255.0f,
@@ -1092,12 +1169,30 @@ void CompositorVk::buildCompositionVk(const CompositionRequest& compositionReque
             if (sourceImage == nullptr) {
                 GFXSTREAM_FATAL("CompositorVk failed to find sourceImage.");
             }
+            // Check source image's format and use correct pipeline sampler format
+            // if it requires ycbcr conversion.
+            VkFormat sourceFormat = sourceImage->imageCreateInfo.format;
+            if (m_perSamplerRes.find(sourceFormat) != m_perSamplerRes.end()) {
+                pipelineSamplerFormat = sourceFormat;
+            }
             descriptorSetContents.binding0.sampledImageId = sourceImage->id;
             descriptorSetContents.binding0.sampledImageView = sourceImage->imageView;
+            descriptorSetContents.binding0.pipelineSamplerFormat = pipelineSamplerFormat;
             compositionVk->layersSourceImages.emplace_back(sourceImage);
         }
 
+        auto pipelineIt = m_vkGraphicsVkPipelines.find(
+            GraphicsPipelineKey{targetImage->imageCreateInfo.format, pipelineSamplerFormat});
+        if (pipelineIt == m_vkGraphicsVkPipelines.end()) {
+            GFXSTREAM_FATAL(
+                "CompositorVk failed to find pipeline resources for target:%s sampler:%s",
+                string_VkFormat(targetImage->imageCreateInfo.format),
+                string_VkFormat(pipelineSamplerFormat));
+        }
+
         compositionVk->layersDescriptorSets.descriptorSets.emplace_back(descriptorSetContents);
+        compositionVk->layersPipelines.emplace_back(pipelineIt->second);
+        compositionVk->layerSourceSamplerFormats.emplace_back(pipelineSamplerFormat);
     }
 }
 
@@ -1209,7 +1304,10 @@ CompositorVk::CompositionFinishedWaitable CompositorVk::compose(
     };
     m_vk.vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    m_vk.vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, compositionVk.pipeline);
+    const VkDeviceSize offsets[] = {0};
+    m_vk.vkCmdBindVertexBuffers(commandBuffer, 0, 1, &m_vertexVkBuffer, offsets);
+
+    m_vk.vkCmdBindIndexBuffer(commandBuffer, m_indexVkBuffer, 0, VK_INDEX_TYPE_UINT16);
 
     const VkRect2D scissor = {
         .offset =
@@ -1223,8 +1321,6 @@ CompositorVk::CompositionFinishedWaitable CompositorVk::compose(
                 .height = compositionVk.targetImage->imageCreateInfo.extent.height,
             },
     };
-    m_vk.vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
     const VkViewport viewport = {
         .x = 0.0f,
         .y = 0.0f,
@@ -1233,22 +1329,31 @@ CompositorVk::CompositionFinishedWaitable CompositorVk::compose(
         .minDepth = 0.0f,
         .maxDepth = 1.0f,
     };
-    m_vk.vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-
-    const VkDeviceSize offsets[] = {0};
-    m_vk.vkCmdBindVertexBuffers(commandBuffer, 0, 1, &m_vertexVkBuffer, offsets);
-
-    m_vk.vkCmdBindIndexBuffer(commandBuffer, m_indexVkBuffer, 0, VK_INDEX_TYPE_UINT16);
 
     const uint32_t numLayers = compositionVk.layersDescriptorSets.descriptorSets.size();
+    VkPipeline lastPipeline = VK_NULL_HANDLE;
     for (uint32_t layerIndex = 0; layerIndex < numLayers; ++layerIndex) {
         m_debugUtilsHelper.cmdBeginDebugLabel(commandBuffer, "CompositorVk compose layer:%d",
                                               layerIndex);
 
-        VkDescriptorSet layerDescriptorSet = frameResources->m_layerDescriptorSets[layerIndex];
+        VkPipeline pipelineToUse = compositionVk.layersPipelines[layerIndex];
+        if (lastPipeline != pipelineToUse) {
+            m_vk.vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineToUse);
+            lastPipeline = pipelineToUse;
+
+            m_vk.vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+            m_vk.vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+        }
+
+        VkFormat pipelineSamplerFormat = compositionVk.layerSourceSamplerFormats[layerIndex];
+
+        VkPipelineLayout layerPipelineLayout =
+            m_perSamplerRes[pipelineSamplerFormat].m_vkPipelineLayout;
+        VkDescriptorSet layerDescriptorSet =
+            frameResources->m_layerDescriptorSets[pipelineSamplerFormat][layerIndex];
 
         m_vk.vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                     m_vkPipelineLayout,
+                                     layerPipelineLayout,
                                      /*firstSet=*/0,
                                      /*descriptorSetCount=*/1, &layerDescriptorSet,
                                      /*dynamicOffsetCount=*/0,
@@ -1374,6 +1479,7 @@ bool operator==(const CompositorVkBase::DescriptorSetContents& lhs,
                 const CompositorVkBase::DescriptorSetContents& rhs) {
     return std::tie(lhs.binding0.sampledImageId,     //
                     lhs.binding0.sampledImageView,   //
+                    lhs.binding0.pipelineSamplerFormat, //
                     lhs.binding1.mode,               //
                     lhs.binding1.alpha,              //
                     lhs.binding1.color,              //
@@ -1383,6 +1489,7 @@ bool operator==(const CompositorVkBase::DescriptorSetContents& lhs,
            ==                                        //
            std::tie(rhs.binding0.sampledImageId,     //
                     rhs.binding0.sampledImageView,   //
+                    rhs.binding0.pipelineSamplerFormat, //
                     rhs.binding1.mode,               //
                     rhs.binding1.alpha,              //
                     rhs.binding1.color,              //
@@ -1416,6 +1523,8 @@ void CompositorVk::updateDescriptorSetsIfChanged(
     for (uint32_t layerIndex = 0; layerIndex < numRequestedLayers; ++layerIndex) {
         const DescriptorSetContents& layerDescriptorSetContents =
             descriptorSetsContents.descriptorSets[layerIndex];
+        const VkFormat pipelineSamplerFormat =
+            layerDescriptorSetContents.binding0.pipelineSamplerFormat;
 
         descriptorImageInfos[layerIndex] = VkDescriptorImageInfo{
             // Empty as we only use immutable samplers.
@@ -1426,7 +1535,7 @@ void CompositorVk::updateDescriptorSetsIfChanged(
 
         descriptorWrites.emplace_back(VkWriteDescriptorSet{
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstSet = frameResources->m_layerDescriptorSets[layerIndex],
+            .dstSet = frameResources->m_layerDescriptorSets[pipelineSamplerFormat][layerIndex],
             .dstBinding = 0,
             .dstArrayElement = 0,
             .descriptorCount = 1,
@@ -1434,7 +1543,8 @@ void CompositorVk::updateDescriptorSetsIfChanged(
             .pImageInfo = &descriptorImageInfos[layerIndex],
         });
 
-        UniformBufferBinding* layerUboStorage = frameResources->m_layerUboStorages[layerIndex];
+        UniformBufferBinding* layerUboStorage =
+            frameResources->m_layerUboStorages[pipelineSamplerFormat][layerIndex];
         *layerUboStorage = layerDescriptorSetContents.binding1;
     }
 
