@@ -360,8 +360,7 @@ void GlobalNameSpace::onSave(gfxstream::Stream* stream,
             });
     clearTextureMap();
 #if SNAPSHOT_PROFILE > 1
-    printf("Dirty texture saved %d, clean texture saved %d\n",
-            dirtyTexs, cleanTexs);
+    GFXSTREAM_INFO("Dirty texture saved %d, clean texture saved %d\n", dirtyTexs, cleanTexs);
 #endif // SNAPSHOT_PROFILE > 1
 }
 

@@ -255,7 +255,7 @@ TextureDraw::TextureDraw()
     s_gles2.glUniformMatrix4fv(mColorTransform, 1, GL_FALSE, kIdentityMatrix);
 
 #if 0
-    printf("SLOTS position=%d inCoord=%d texture=%d translation=%d\n",
+    GFXSTREAM_INFO("SLOTS position=%d inCoord=%d texture=%d translation=%d\n",
           mPositionSlot, mInCoordSlot, mTextureSlot, mTranslationSlot);
 #endif
 

@@ -266,7 +266,7 @@ static bool sDebugPrintShaders = false;
 
 #define SHADER_DEBUG_PRINT(fmt,...) \
     if (sDebugPrintShaders) { \
-        printf("shader_debug: %s: " fmt "\n", __func__, ##__VA_ARGS__); \
+        GFXSTREAM_INFO("shader_debug: %s: " fmt "\n", __func__, ##__VA_ARGS__); \
     } \
 
 static void initGLESx(bool isGles2Gles) {
@@ -4603,8 +4603,8 @@ glTestHostDriverPerformance(GLuint count,
 
     auto cpuTimeStart = gfxstream::base::cpuTime();
 
-fprintf(stderr, "%s: transform loc %d\n", __func__, transformLoc);
-fprintf(stderr, "%s: begin count %d\n", __func__, count);
+    GFXSTREAM_INFO("%s: transform loc %d\n", __func__, transformLoc);
+    GFXSTREAM_INFO("%s: begin count %d\n", __func__, count);
     while (drawCount < count) {
         gl->glUniformMatrix4fv(transformLoc, 1, GL_FALSE, matrix);
         gl->glBindBuffer(GL_ARRAY_BUFFER, buffer);
@@ -4622,7 +4622,7 @@ fprintf(stderr, "%s: begin count %d\n", __func__, count);
     float ms = (*duration_us) / 1000.0f;
     float sec = (*duration_us) / 1000000.0f;
 
-    printf("Drew %u times in %f ms. Rate: %f Hz\n", count, ms, count / sec);
+    GFXSTREAM_INFO("Drew %u times in %f ms. Rate: %f Hz\n", count, ms, count / sec);
 
     gl->glBindBuffer(GL_ARRAY_BUFFER, 0);
     gl->glUseProgram(0);

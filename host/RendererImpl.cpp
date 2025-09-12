@@ -143,7 +143,7 @@ bool RendererImpl::initialize(int width, int height, const gfxstream::host::Feat
     }
 
     mRenderWindow = std::move(renderWindow);
-    GFXSTREAM_DEBUG("OpenGL renderer initialized successfully");
+    GFXSTREAM_DEBUG("Renderer initialized successfully");
 
     // This render thread won't do anything but will only preload resources
     // for the real threads to start faster.
@@ -389,11 +389,8 @@ bool RendererImpl::load(gfxstream::Stream* stream,
 #endif
     waitForProcessCleanup();
 #ifdef SNAPSHOT_PROFILE
-    printf("Previous session cleanup time: %lld ms\n",
-           (long long)(gfxstream::base::System::get()
-                               ->getUnixTimeUs() -
-                       startTime) /
-                   1000);
+    GFXSTREAM_INFO("Previous session cleanup time: %lld ms\n",
+                   (long long)(gfxstream::base::System::get()->getUnixTimeUs() - startTime) / 1000);
 #endif
 
     mStopped = stream->getByte();
