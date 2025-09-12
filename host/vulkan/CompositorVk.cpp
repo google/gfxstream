@@ -20,10 +20,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <optional>
 
-#include "gfxstream/host/Tracing.h"
 #include "gfxstream/common/logging.h"
-#include "vulkan/vk_enum_string_helper.h"
+#include "gfxstream/host/Tracing.h"
 #include "vulkan/VkUtils.h"
+#include "vulkan/vk_enum_string_helper.h"
 
 namespace gfxstream {
 namespace vk {
@@ -42,6 +42,11 @@ constexpr const VkImageLayout kSourceImageFinalLayoutUsed =
 
 constexpr const VkImageLayout kTargetImageInitialLayoutUsed = VK_IMAGE_LAYOUT_UNDEFINED;
 constexpr const VkImageLayout kTargetImageFinalLayoutUsed = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+
+static const VkFormat kRenderTargetFormats[2] = {
+    VK_FORMAT_R8G8B8A8_UNORM,
+    VK_FORMAT_B8G8R8A8_UNORM,
+};
 
 const BorrowedImageInfoVk* getInfoOrAbort(const std::unique_ptr<BorrowedImageInfo>& info) {
     auto imageVk = static_cast<const BorrowedImageInfoVk*>(info.get());
@@ -118,9 +123,10 @@ CompositorVk::RenderTarget::RenderTarget(const VulkanDispatch& vk, VkDevice vkDe
       m_width(width),
       m_height(height) {
     if (vkImageView == VK_NULL_HANDLE) {
-        GFXSTREAM_FATAL("CompositorVk found empty image view handle when creating RenderTarget. "
-                        "VkImage:%p w:%" PRIu32 " h:%" PRIu32,
-                        m_vkImage, m_width, m_height);
+        GFXSTREAM_FATAL(
+            "CompositorVk found empty image view handle when creating RenderTarget. "
+            "VkImage:%p w:%" PRIu32 " h:%" PRIu32,
+            m_vkImage, m_width, m_height);
     }
 
     const VkFramebufferCreateInfo framebufferCi = {
@@ -145,10 +151,11 @@ CompositorVk::RenderTarget::~RenderTarget() {
 std::unique_ptr<CompositorVk> CompositorVk::create(
     const VulkanDispatch& vk, VkDevice vkDevice, VkPhysicalDevice vkPhysicalDevice, VkQueue vkQueue,
     std::shared_ptr<gfxstream::base::Lock> queueLock, uint32_t queueFamilyIndex,
-    uint32_t maxFramesInFlight, DebugUtilsHelper debugUtils) {
-    auto res = std::unique_ptr<CompositorVk>(new CompositorVk(vk, vkDevice, vkPhysicalDevice,
-                                                              vkQueue, queueLock, queueFamilyIndex,
-                                                              maxFramesInFlight, debugUtils));
+    uint32_t maxFramesInFlight, vk_util::YcbcrSamplerPool* ycbcrSamplerPool,
+    DebugUtilsHelper debugUtils) {
+    auto res = std::unique_ptr<CompositorVk>(
+        new CompositorVk(vk, vkDevice, vkPhysicalDevice, vkQueue, queueLock, queueFamilyIndex,
+                         maxFramesInFlight, ycbcrSamplerPool, debugUtils));
     res->setUpCommandPool();
     res->setUpSampler();
     res->setUpGraphicsPipeline();
@@ -158,6 +165,7 @@ std::unique_ptr<CompositorVk> CompositorVk::create(
     res->setUpFences();
     res->setUpDefaultImage();
     res->setUpFrameResourceFutures();
+    GFXSTREAM_INFO("Created CompositorVk");
     return res;
 }
 
@@ -165,9 +173,10 @@ CompositorVk::CompositorVk(const VulkanDispatch& vk, VkDevice vkDevice,
                            VkPhysicalDevice vkPhysicalDevice, VkQueue vkQueue,
                            std::shared_ptr<gfxstream::base::Lock> queueLock,
                            uint32_t queueFamilyIndex, uint32_t maxFramesInFlight,
+                           vk_util::YcbcrSamplerPool* ycbcrPool,
                            DebugUtilsHelper debugUtilsHelper)
     : CompositorVkBase(vk, vkDevice, vkPhysicalDevice, vkQueue, queueLock, queueFamilyIndex,
-                       maxFramesInFlight, debugUtilsHelper),
+                       maxFramesInFlight, ycbcrPool, debugUtilsHelper),
       m_maxFramesInFlight(maxFramesInFlight),
       m_renderTargetCache(k_renderTargetCacheSize) {}
 
@@ -408,10 +417,6 @@ void CompositorVk::setUpGraphicsPipeline() {
         .basePipelineIndex = -1,
     };
 
-    const std::vector<VkFormat> kRenderTargetFormats = {
-        VK_FORMAT_R8G8B8A8_UNORM,
-        VK_FORMAT_B8G8R8A8_UNORM,
-    };
     for (VkFormat renderTargetFormat : kRenderTargetFormats) {
         colorAttachment.format = renderTargetFormat;
 
@@ -838,7 +843,7 @@ std::optional<std::tuple<VkBuffer, VkDeviceMemory>> CompositorVk::createBuffer(
     };
     VkDeviceMemory resMemory;
     VK_CHECK_MEMALLOC(m_vk.vkAllocateMemory(m_vkDevice, &memAllocInfo, nullptr, &resMemory),
-                    memAllocInfo);
+                      memAllocInfo);
     VK_CHECK(m_vk.vkBindBufferMemory(m_vkDevice, resBuffer, resMemory, 0));
     return std::make_tuple(resBuffer, resMemory);
 }
@@ -1050,27 +1055,29 @@ void CompositorVk::buildCompositionVk(const CompositionRequest& compositionReque
                 break;
         }
 
-        DescriptorSetContents descriptorSetContents = {
-            .binding1 =
-                {
-                    .positionTransform =
-                        glm::translate(glm::mat4(1.0f),
-                                       glm::vec3(posTranslateX, posTranslateY, 0.0f)) *
-                        glm::scale(glm::mat4(1.0f), glm::vec3(posScaleX, posScaleY, 1.0f)),
-                    .texCoordTransform =
-                        glm::translate(glm::mat4(1.0f),
-                                       glm::vec3(texCoordTranslateX, texCoordTranslateY, 0.0f)) *
-                        glm::scale(glm::mat4(1.0f),
-                                   glm::vec3(texCoordScaleX, texCoordScaleY, 1.0f)) *
-                        glm::rotate(glm::mat4(1.0f), texcoordRotation, glm::vec3(0.0f, 0.0f, 1.0f)),
-                    //TODO(b/420586022): Support color transformation on host composition
-                    .colorTransform = glm::mat4(1.0f),
-                    .mode = glm::uvec4(static_cast<uint32_t>(layer.props.composeMode), 0, 0, 0),
-                    .alpha =
-                        glm::vec4(layer.props.alpha, layer.props.alpha, layer.props.alpha,
-                                  layer.props.alpha),
-                },
-        };
+        DescriptorSetContents descriptorSetContents =
+            {
+                .binding1 =
+                    {
+                        .positionTransform =
+                            glm::translate(glm::mat4(1.0f),
+                                           glm::vec3(posTranslateX, posTranslateY, 0.0f)) *
+                            glm::scale(glm::mat4(1.0f), glm::vec3(posScaleX, posScaleY, 1.0f)),
+                        .texCoordTransform =
+                            glm::translate(glm::mat4(1.0f), glm::vec3(texCoordTranslateX,
+                                                                      texCoordTranslateY, 0.0f)) *
+                            glm::scale(glm::mat4(1.0f),
+                                       glm::vec3(texCoordScaleX, texCoordScaleY, 1.0f)) *
+                            glm::rotate(glm::mat4(1.0f), texcoordRotation,
+                                        glm::vec3(0.0f, 0.0f, 1.0f)),
+                        // TODO(b/420586022): Support color transformation on host composition
+                        .colorTransform = glm::mat4(1.0f),
+                        .mode = glm::uvec4(static_cast<uint32_t>(layer.props.composeMode), 0, 0, 0),
+                        .alpha =
+                            glm::vec4(layer.props.alpha, layer.props.alpha, layer.props.alpha,
+                                      layer.props.alpha),
+                    },
+            };
 
         if (layer.props.composeMode == HWC2_COMPOSITION_SOLID_COLOR) {
             descriptorSetContents.binding0.sampledImageId = 0;
@@ -1373,7 +1380,7 @@ bool operator==(const CompositorVkBase::DescriptorSetContents& lhs,
                     lhs.binding1.positionTransform,  //
                     lhs.binding1.texCoordTransform,  //
                     lhs.binding1.colorTransform)     //
-                     ==                              //
+           ==                                        //
            std::tie(rhs.binding0.sampledImageId,     //
                     rhs.binding0.sampledImageView,   //
                     rhs.binding1.mode,               //
