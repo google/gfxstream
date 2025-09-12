@@ -44,6 +44,7 @@ using namespace std::literals;
 using gfxstream::MetricsLogger;
 using gfxstream::host::LogLevel;
 using gfxstream::host::VirtioGpuFrontend;
+using gfxstream::Renderer;
 using gfxstream::RendererPtr;
 
 namespace {
@@ -254,37 +255,76 @@ RendererPtr InitRenderer(uint32_t displayWidth,
         return nullptr;
     }
 
-    // TODO: move this into a proper function in address_space_device_control_ops.
+    // Avoid holding an owning reference in order to not block renderer shutdown.
+    std::weak_ptr<Renderer> rendererWeak = renderer;
     gfxstream::host::AddressSpaceGraphicsContext::setConsumer(
         gfxstream::ConsumerInterface{
-            .create = [renderer](const gfxstream::AsgConsumerCreateInfo& info, gfxstream::Stream* loadStream) {
-                return renderer->addressSpaceGraphicsConsumerCreate(info, loadStream);
+            .create = [rendererWeak](const gfxstream::AsgConsumerCreateInfo& info,
+                                     gfxstream::Stream* loadStream) -> gfxstream::ConsumerHandle {
+                if (auto renderer = rendererWeak.lock()) {
+                    return renderer->addressSpaceGraphicsConsumerCreate(info, loadStream);
+                } else {
+                    GFXSTREAM_WARNING("Renderer unavailable. Already shutting down?");
+                    return nullptr;
+                }
             },
-            .destroy = [renderer](void* consumer) {
-                renderer->addressSpaceGraphicsConsumerDestroy(consumer);
+            .destroy = [rendererWeak](void* consumer) {
+                if (auto renderer = rendererWeak.lock()) {
+                    renderer->addressSpaceGraphicsConsumerDestroy(consumer);
+                } else {
+                    GFXSTREAM_WARNING("Renderer unavailable. Already shutting down?");
+                }
             },
-            .preSave = [renderer](void* consumer) {
-                renderer->addressSpaceGraphicsConsumerPreSave(consumer);
+            .preSave = [rendererWeak](void* consumer) {
+                if (auto renderer = rendererWeak.lock()) {
+                    renderer->addressSpaceGraphicsConsumerPreSave(consumer);
+                } else {
+                    GFXSTREAM_WARNING("Renderer unavailable. Already shutting down?");
+                }
             },
-            .globalPreSave = [renderer]() {
-                renderer->pauseAllPreSave();
+            .globalPreSave = [rendererWeak]() {
+                if (auto renderer = rendererWeak.lock()) {
+                    renderer->pauseAllPreSave();
+                } else {
+                    GFXSTREAM_WARNING("Renderer unavailable. Already shutting down?");
+                }
             },
-            .save = [renderer](void* consumer, gfxstream::Stream* stream) {
-                renderer->addressSpaceGraphicsConsumerSave(consumer, stream);
+            .save = [rendererWeak](void* consumer, gfxstream::Stream* stream) {
+                if (auto renderer = rendererWeak.lock()) {
+                    renderer->addressSpaceGraphicsConsumerSave(consumer, stream);
+                } else {
+                    GFXSTREAM_WARNING("Renderer unavailable. Already shutting down?");
+                }
             },
-            .globalPostSave = [renderer]() {
-                renderer->resumeAll();
+            .globalPostSave = [rendererWeak]() {
+                if (auto renderer = rendererWeak.lock()) {
+                    renderer->resumeAll();
+                } else {
+                    GFXSTREAM_WARNING("Renderer unavailable. Already shutting down?");
+                }
             },
-            .postSave = [renderer](void* consumer) {
-                renderer->addressSpaceGraphicsConsumerPostSave(consumer);
+            .postSave = [rendererWeak](void* consumer) {
+                if (auto renderer = rendererWeak.lock()) {
+                    renderer->addressSpaceGraphicsConsumerPostSave(consumer);
+                } else {
+                    GFXSTREAM_WARNING("Renderer unavailable. Already shutting down?");
+                }
             },
-            .postLoad = [renderer](void* consumer) {
-                renderer->addressSpaceGraphicsConsumerRegisterPostLoadRenderThread(consumer);
+            .postLoad = [rendererWeak](void* consumer) {
+                if (auto renderer = rendererWeak.lock()) {
+                    renderer->addressSpaceGraphicsConsumerRegisterPostLoadRenderThread(consumer);
+                } else {
+                    GFXSTREAM_WARNING("Renderer unavailable. Already shutting down?");
+                }
             },
-            .globalPreLoad = [renderer]() {
+            .globalPreLoad = []() {
             },
-            .reloadRingConfig = [renderer](void* consumer) {
-                renderer->addressSpaceGraphicsConsumerReloadRingConfig(consumer);
+            .reloadRingConfig = [rendererWeak](void* consumer) {
+                if (auto renderer = rendererWeak.lock()) {
+                    renderer->addressSpaceGraphicsConsumerReloadRingConfig(consumer);
+                } else {
+                    GFXSTREAM_WARNING("Renderer unavailable. Already shutting down?");
+                }
             },
         });
 
@@ -873,8 +913,8 @@ VG_EXPORT void gfxstream_backend_setup_window(void* native_window_handle, int32_
 }
 
 VG_EXPORT void stream_renderer_teardown() {
+    GFXSTREAM_INFO("Gfxstream shutting down.");
     sFrontend()->teardown();
-
     GFXSTREAM_INFO("Gfxstream shut down completed!");
 }
 
