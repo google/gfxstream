@@ -17,10 +17,10 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#include <vulkan/vulkan.h>
 #include <vulkan/vk_enum_string_helper.h>
+#include <vulkan/vulkan.h>
 
+#include <array>
 #include <chrono>
 #include <functional>
 #include <memory>
@@ -33,8 +33,8 @@
 
 #include "VkDecoderContext.h"
 #include "VulkanDispatch.h"
-#include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/common/logging.h"
+#include "gfxstream/synchronization/Lock.h"
 #include "vk_fn_info.h"
 #include "vk_struct_id.h"
 
@@ -310,6 +310,7 @@ class RunSingleTimeCommand : public U {
         self.m_vk.vkFreeCommandBuffers(self.m_vkDevice, self.m_vkCommandPool, 1, &cmdBuff);
     }
 };
+
 template <class T, class U = CrtpBase>
 class RecordImageLayoutTransformCommands : public U {
    protected:
@@ -376,6 +377,29 @@ static inline bool vk_descriptor_type_has_image_view(VkDescriptorType type) {
             return false;
     }
 }
+
+class YcbcrSamplerPool {
+   public:
+    YcbcrSamplerPool() : mDvk(nullptr), mDevice(VK_NULL_HANDLE) {}
+    bool init(const VulkanDispatch* vk, VkDevice device);
+    void destroy();
+
+    VkSamplerYcbcrConversion getConversion(VkFormat format);
+    VkSampler getSampler(VkFormat format);
+
+   private:
+    struct YCbCrSamplerInfo {
+        VkSamplerYcbcrConversion conversion;
+        VkSampler sampler;
+    };
+
+    bool getOrCreateSamplerInfo(VkFormat format, YCbCrSamplerInfo* outInfo);
+
+    std::mutex mMutex;
+    std::unordered_map<VkFormat, YCbCrSamplerInfo> m_ycbcrSamplers GUARDED_BY(mMutex);
+    const VulkanDispatch* mDvk;
+    VkDevice mDevice;
+};
 
 }  // namespace vk_util
 }  // namespace vk

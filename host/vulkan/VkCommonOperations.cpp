@@ -1665,6 +1665,12 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
 
     emulation->mTransferQueueCommandBufferPool.resize(0);
 
+    if (emulation->mDeviceInfo.supportsSamplerYcbcrConversion) {
+        if (!emulation->mYcbcrSamplerPool.init(dvk, emulation->mDevice)) {
+            GFXSTREAM_ERROR("Failed: Could create ycbcr sampler pool for Vulkan emulation");
+        }
+    }
+
     return emulation;
 }
 
@@ -1742,6 +1748,8 @@ VkEmulation::~VkEmulation() {
     mCompositorVk.reset();
     mDisplayVk.reset();
     mUdmabufCreator.reset();
+
+    mYcbcrSamplerPool.destroy();
 
     mStaging.destroy(mDvk, mDevice);
 
@@ -2813,39 +2821,16 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height, GLe
 
     VkSamplerYcbcrConversionInfo ycbcrInfo = {VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_INFO,
                                               nullptr, VK_NULL_HANDLE};
-    const bool addConversion = formatRequiresYcbcrConversion(imageVkFormat);
+    bool addConversion = formatRequiresYcbcrConversion(imageVkFormat);
     if (addConversion) {
-        if (!mDeviceInfo.supportsSamplerYcbcrConversion) {
-            GFXSTREAM_ERROR(
-                "VkFormat: %d requires conversion, but device does not have required extension "
-                " for conversion (%s)",
-                imageVkFormat, VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME);
-            return false;
+        ycbcrInfo.conversion = mYcbcrSamplerPool.getConversion(imageVkFormat);
+        if (ycbcrInfo.conversion == VK_NULL_HANDLE) {
+            // We intentionally do no fail color buffer creation on this error, as
+            // the image view and the conversion may be unused.
+            GFXSTREAM_ERROR("Could not get ycbcr conversion object for VkFormat: %s [%d]",
+                            string_VkFormat(imageVkFormat), imageVkFormat);
+            addConversion = false;
         }
-        VkSamplerYcbcrConversionCreateInfo ycbcrCreateInfo = {
-            VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_CREATE_INFO,
-            nullptr,
-            imageVkFormat,
-            VK_SAMPLER_YCBCR_MODEL_CONVERSION_RGB_IDENTITY,
-            VK_SAMPLER_YCBCR_RANGE_ITU_FULL,
-            {VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY,
-             VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY},
-            VK_CHROMA_LOCATION_MIDPOINT,
-            VK_CHROMA_LOCATION_MIDPOINT,
-            VK_FILTER_NEAREST,
-            VK_FALSE};
-
-        createRes = vk->vkCreateSamplerYcbcrConversion(mDevice, &ycbcrCreateInfo, nullptr,
-                                                       &infoPtr->ycbcrConversion);
-        if (createRes != VK_SUCCESS) {
-            GFXSTREAM_DEBUG(
-                "Failed to create Vulkan ycbcrConversion for ColorBuffer %d with format %s [%d], "
-                "Error: %s",
-                colorBufferHandle, string_VkFormat(imageVkFormat), imageVkFormat,
-                string_VkResult(createRes));
-            return false;
-        }
-        ycbcrInfo.conversion = infoPtr->ycbcrConversion;
     }
 
     const VkImageViewCreateInfo imageViewCi = {
@@ -2979,9 +2964,6 @@ bool VkEmulation::teardownVkColorBufferLocked(uint32_t colorBufferHandle) {
             VK_CHECK(vk->vkQueueWaitIdle(mQueue));
         }
         vk->vkDestroyImageView(mDevice, info.imageView, nullptr);
-        if (mDeviceInfo.hasSamplerYcbcrConversionExtension) {
-            vk->vkDestroySamplerYcbcrConversion(mDevice, info.ycbcrConversion, nullptr);
-        }
         vk->vkDestroyImage(mDevice, info.image, nullptr);
         freeExternalMemoryLocked(vk, &info.memory);
     }
