@@ -1710,7 +1710,7 @@ void VkEmulation::initFeatures(Features features) {
             GFXSTREAM_ERROR("Reset VkEmulation::compositorVk.");
         }
         mCompositorVk = CompositorVk::create(*mIvk, mDevice, mPhysicalDevice, mQueue, mQueueLock,
-                                             mQueueFamilyIndex, 3, mDebugUtilsHelper);
+                                             mQueueFamilyIndex, 3, &mYcbcrSamplerPool, mDebugUtilsHelper);
     }
 
     if (features.useVulkanNativeSwapchain) {
