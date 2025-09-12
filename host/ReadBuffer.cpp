@@ -131,7 +131,7 @@ void ReadBuffer::onLoad(gfxstream::Stream* stream) {
 }
 
 void ReadBuffer::printStats() {
-    printf("ReadBuffer::%s: tail move time %f ms\n", __func__,
+    GFXSTREAM_INFO("ReadBuffer::%s: tail move time %f ms\n", __func__,
             (float)m_tailMoveTimeUs / 1000.0f);
     m_tailMoveTimeUs = 0;
 }

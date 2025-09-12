@@ -30,7 +30,7 @@
 #define SAVEABLE_TEXTURE_DEBUG 0
 
 #if SAVEABLE_TEXTURE_DEBUG
-#define D(fmt,...) printf("%s:%d " fmt "\n", __func__, __LINE__, ##__VA_ARGS__);
+#define D(fmt,...) GFXSTREAM_DEBUG("%s:%d " fmt "\n", __func__, __LINE__, ##__VA_ARGS__);
 #else
 #define D(fmt,...)
 #endif
