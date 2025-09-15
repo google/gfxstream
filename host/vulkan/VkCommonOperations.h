@@ -28,6 +28,7 @@
 #include "DebugUtilsHelper.h"
 #include "DeviceLostHelper.h"
 #include "DisplayVk.h"
+#include "VkUtils.h"
 #include "FrameworkFormats.h"
 #include "gfxstream/Optional.h"
 #include "gfxstream/ThreadAnnotations.h"
@@ -304,7 +305,6 @@ class VkEmulation {
 
         VkImage image = VK_NULL_HANDLE;
         VkImageView imageView = VK_NULL_HANDLE;
-        VkSamplerYcbcrConversion ycbcrConversion = VK_NULL_HANDLE;
         VkImageCreateInfo imageCreateInfoShallow = {};
 
         VkImageLayout currentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -605,6 +605,8 @@ class VkEmulation {
     VkFence mCommandBufferFence = VK_NULL_HANDLE;
 
     std::vector<ImageSupportInfo> mImageSupportInfo;
+
+    vk_util::YcbcrSamplerPool mYcbcrSamplerPool;
 
     // 128 mb staging buffer (really, just a few 4K frames or one 4k HDR frame)
     // ought to be big enough for anybody!
