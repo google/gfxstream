@@ -3583,6 +3583,20 @@ HandleType FrameBuffer::Impl::getEmulatedEglWindowSurfaceColorBufferHandle(Handl
 }
 
 void FrameBuffer::Impl::setScreenMask(int width, int height, const uint8_t* rgbaData) {
+    if (m_useVulkanComposition) {
+        if (!m_emulationVk) {
+            GFXSTREAM_FATAL("%s:%d - VK emulation is not enabled.", __func__, __LINE__);
+            return;
+        }
+        if (rgbaData) {
+            // TODO(b/442394091): Screenmask image is not supported in vulkan composition
+            GFXSTREAM_ERROR("%s:%d - Screenmask image is not supported in vulkan composition.",
+                            __func__, __LINE__);
+            return;
+        }
+        return;
+    }
+
     ENSURE_GL_EMULATION_VOID();
     m_emulationGl->mTextureDraw->setScreenMask(width, height, rgbaData);
 }
@@ -3895,10 +3909,10 @@ void FrameBuffer::Impl::createEmulatedEglFenceSync(EGLenum type, int destroyWhen
 
     if (!m_emulationGl) {
         // Avoid spamming the logs
-        // TODO(b/389646068): avoid calls to this function in GuestAngle mode
+        // TODO(b/442393728): avoid calls to this function in GuestAngle mode
         static bool logged_once = false;
-        if(!logged_once) {
-            GFXSTREAM_ERROR("%s !GL", __PRETTY_FUNCTION__);
+        if (!logged_once) {
+            GFXSTREAM_WARNING("%s is called in vulkan-only mode.", __PRETTY_FUNCTION__);
             logged_once = true;
         }
         return;
