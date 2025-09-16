@@ -2866,6 +2866,9 @@ class VkDecoderGlobalState::Impl {
         }
 
 #ifdef __APPLE__
+        // TODO(b/438924843) this is probably not optimal as it might slow down image creation a
+        // bit. Not validating the dimensions seems to be only fatal on macOS, and can create false
+        // positives on desktop GPUs with the format's support, so it's only checked on macOS.
         {
             auto physicalDevice = deviceInfo->physicalDevice;
             auto* physdevInfo = gfxstream::base::find(mPhysdevInfo, physicalDevice);
@@ -2890,7 +2893,7 @@ class VkDecoderGlobalState::Impl {
                 GFXSTREAM_WARNING(
                     "vkCreateImage: vkGetPhysicalDeviceImageFormatProperties failed with %s",
                     string_VkResult(res));
-                return res;
+                return VK_ERROR_VALIDATION_FAILED_EXT;
             }
 
             if (pCreateInfo->extent.width > imageFormatProperties.maxExtent.width ||
