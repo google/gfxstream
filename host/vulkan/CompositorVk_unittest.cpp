@@ -120,6 +120,8 @@ class CompositorVkTest : public ::testing::Test {
         ASSERT_NE(m_compositorVkQueue, VK_NULL_HANDLE);
 
         m_compositorVkQueueLock = std::make_shared<gfxstream::base::Lock>();
+
+        m_YcbcrSamplerPool.init(k_vk, m_vkDevice);
     }
 
     void TearDown() override {
@@ -137,7 +139,9 @@ class CompositorVkTest : public ::testing::Test {
     std::unique_ptr<CompositorVk> createCompositor() {
         return CompositorVk::create(*k_vk, m_vkDevice, m_vkPhysicalDevice, m_compositorVkQueue,
                                     m_compositorVkQueueLock, m_compositorQueueFamilyIndex,
-                                    /*maxFramesInFlight=*/3);
+                                    /*maxFramesInFlight=*/3,
+                                    &m_YcbcrSamplerPool,
+                                    DebugUtilsHelper::withUtilsDisabled());
     }
 
     template <typename SourceOrTargetImage>
@@ -316,6 +320,7 @@ class CompositorVkTest : public ::testing::Test {
     VkCommandPool m_vkCommandPool = VK_NULL_HANDLE;
     VkQueue m_compositorVkQueue = VK_NULL_HANDLE;
     std::shared_ptr<gfxstream::base::Lock> m_compositorVkQueueLock;
+    vk_util::YcbcrSamplerPool m_YcbcrSamplerPool;
 
    private:
     void createInstance() {

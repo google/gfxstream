@@ -26,12 +26,12 @@
 #include <unordered_map>
 #include <vector>
 
-#include "gfxstream/host/borrowed_image.h"
 #include "BorrowedImageVk.h"
 #include "Compositor.h"
 #include "DebugUtilsHelper.h"
 #include "Hwc2.h"
 #include "gfxstream/LruCache.h"
+#include "gfxstream/host/borrowed_image.h"
 #include "gfxstream/synchronization/Lock.h"
 #include "goldfish_vk_dispatch.h"
 #include "vulkan/VkUtils.h"
@@ -56,6 +56,7 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
     const VkPhysicalDevice m_vkPhysicalDevice;
     const VkQueue m_vkQueue;
     const uint32_t m_queueFamilyIndex;
+    vk_util::YcbcrSamplerPool* m_ycbcrSamplerPool;
     const DebugUtilsHelper m_debugUtilsHelper;
     std::shared_ptr<gfxstream::base::Lock> m_vkQueueLock;
     VkDescriptorSetLayout m_vkDescriptorSetLayout;
@@ -138,12 +139,14 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
                               VkPhysicalDevice physicalDevice, VkQueue queue,
                               std::shared_ptr<gfxstream::base::Lock> queueLock,
                               uint32_t queueFamilyIndex, uint32_t maxFramesInFlight,
+                              vk_util::YcbcrSamplerPool* ycbcrPool,
                               DebugUtilsHelper debugUtils)
         : m_vk(vk),
           m_vkDevice(device),
           m_vkPhysicalDevice(physicalDevice),
           m_vkQueue(queue),
           m_queueFamilyIndex(queueFamilyIndex),
+          m_ycbcrSamplerPool(ycbcrPool),
           m_debugUtilsHelper(debugUtils),
           m_vkQueueLock(queueLock),
           m_vkDescriptorSetLayout(VK_NULL_HANDLE),
@@ -162,8 +165,9 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
    public:
     static std::unique_ptr<CompositorVk> create(
         const VulkanDispatch& vk, VkDevice vkDevice, VkPhysicalDevice vkPhysicalDevice,
-        VkQueue vkQueue, std::shared_ptr<gfxstream::base::Lock> queueLock, uint32_t queueFamilyIndex,
-        uint32_t maxFramesInFlight,
+        VkQueue vkQueue, std::shared_ptr<gfxstream::base::Lock> queueLock,
+        uint32_t queueFamilyIndex, uint32_t maxFramesInFlight,
+        vk_util::YcbcrSamplerPool* ycbcrPool,
         DebugUtilsHelper debugUtils = DebugUtilsHelper::withUtilsDisabled());
 
     ~CompositorVk();
@@ -178,8 +182,9 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
 
    private:
     explicit CompositorVk(const VulkanDispatch&, VkDevice, VkPhysicalDevice, VkQueue,
-                          std::shared_ptr<gfxstream::base::Lock> queueLock, uint32_t queueFamilyIndex,
-                          uint32_t maxFramesInFlight, DebugUtilsHelper debugUtils);
+                          std::shared_ptr<gfxstream::base::Lock> queueLock,
+                          uint32_t queueFamilyIndex, uint32_t maxFramesInFlight,
+                          vk_util::YcbcrSamplerPool* ycbcrPool, DebugUtilsHelper debugUtils);
 
     void setUpGraphicsPipeline();
     void setUpVertexBuffers();
