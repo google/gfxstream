@@ -83,7 +83,7 @@ void YcbcrSamplerPool::destroy() {
 
 VkSamplerYcbcrConversion YcbcrSamplerPool::getConversion(VkFormat format) {
     YCbCrSamplerInfo info;
-    if ( getOrCreateSamplerInfo(format, &info) ) {
+    if (getOrCreateSamplerInfo(format, &info)) {
         return info.conversion;
     }
     return VK_NULL_HANDLE;
@@ -91,10 +91,20 @@ VkSamplerYcbcrConversion YcbcrSamplerPool::getConversion(VkFormat format) {
 
 VkSampler YcbcrSamplerPool::getSampler(VkFormat format) {
     YCbCrSamplerInfo info;
-    if ( getOrCreateSamplerInfo(format, &info) ) {
+    if (getOrCreateSamplerInfo(format, &info)) {
         return info.sampler;
     }
     return VK_NULL_HANDLE;
+}
+
+std::vector<VkFormat> YcbcrSamplerPool::getAllFormats() const {
+    std::vector<VkFormat> ret;
+    std::lock_guard<std::mutex> lock(mMutex);
+    ret.reserve(m_ycbcrSamplers.size());
+    for (auto iter : m_ycbcrSamplers) {
+        ret.push_back(iter.first);
+    }
+    return ret;
 }
 
 bool YcbcrSamplerPool::getOrCreateSamplerInfo(VkFormat format, YCbCrSamplerInfo* outInfo) {

@@ -59,21 +59,43 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
     vk_util::YcbcrSamplerPool* m_ycbcrSamplerPool;
     const DebugUtilsHelper m_debugUtilsHelper;
     std::shared_ptr<gfxstream::base::Lock> m_vkQueueLock;
-    VkDescriptorSetLayout m_vkDescriptorSetLayout;
-    VkPipelineLayout m_vkPipelineLayout;
-    struct PerFormatResources {
-        VkRenderPass m_vkRenderPass = VK_NULL_HANDLE;
-        VkPipeline m_graphicsVkPipeline = VK_NULL_HANDLE;
+
+    std::unordered_map<VkFormat /*rendertarget format*/, VkRenderPass> m_vkRenderPasses;
+
+    struct GraphicsPipelineKey {
+        VkFormat rtFormat;
+        VkFormat samplerFormat;
+
+        bool operator==(const GraphicsPipelineKey& other) const {
+            return rtFormat == other.rtFormat && samplerFormat == other.samplerFormat;
+        }
     };
-    std::unordered_map<VkFormat, PerFormatResources> m_formatResources;
+    struct GraphicsPipelineHash {
+        std::size_t operator()(const GraphicsPipelineKey& k) const {
+            std::size_t h1 = std::hash<int>{}(k.rtFormat);
+            std::size_t h2 = std::hash<int>{}(k.samplerFormat);
+            return h1 ^ (h2 << 1);
+        }
+    };
+    std::unordered_map<GraphicsPipelineKey, VkPipeline, GraphicsPipelineHash>
+        m_vkGraphicsVkPipelines;
+
     VkBuffer m_vertexVkBuffer;
     VkDeviceMemory m_vertexVkDeviceMemory;
     VkBuffer m_indexVkBuffer;
     VkDeviceMemory m_indexVkDeviceMemory;
     VkDescriptorPool m_vkDescriptorPool;
     VkCommandPool m_vkCommandPool;
-    // TODO: create additional VkSampler-s for YCbCr layers.
-    VkSampler m_vkSampler;
+    VkSampler m_defaultSampler;
+
+    struct PerSamplerResources {
+        VkDescriptorSetLayout m_vkDescriptorSetLayout = VK_NULL_HANDLE;
+        VkPipelineLayout m_vkPipelineLayout = VK_NULL_HANDLE;
+    };
+
+    // Holds per-sampler objects, key is VK_FORMAT_UNDEFINED for default (i.e. non-ycbcr) samplers.
+    std::unordered_map<VkFormat /*sampler format*/, PerSamplerResources> m_perSamplerRes;
+
     // Unused image that is solely used to occupy the sampled image binding
     // when compositing a solid color layer.
     struct DefaultImage {
@@ -95,6 +117,7 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
         // that the VkImageView is recycled across different images (b/322998473).
         uint32_t sampledImageId = 0;
         VkImageView sampledImageView = VK_NULL_HANDLE;
+        VkFormat pipelineSamplerFormat = VK_FORMAT_UNDEFINED;
     };
 
     // Keep in sync with vulkan/Compositor.vert.
@@ -126,10 +149,12 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
     struct PerFrameResources {
         VkFence m_vkFence = VK_NULL_HANDLE;
         VkCommandBuffer m_vkCommandBuffer = VK_NULL_HANDLE;
-        std::vector<VkDescriptorSet> m_layerDescriptorSets;
+        std::unordered_map<VkFormat /*pipelineSamplerFormat*/, std::vector<VkDescriptorSet>>
+            m_layerDescriptorSets;
         // Pointers into the underlying uniform buffer storage for the uniform
         // buffer of part of each descriptor set for each layer.
-        std::vector<UniformBufferBinding*> m_layerUboStorages;
+        std::unordered_map<VkFormat /*pipelineSamplerFormat*/, std::vector<UniformBufferBinding*>>
+            m_layerUboStorages;
         std::optional<FrameDescriptorSetsContents> m_vkDescriptorSetsContents;
     };
     std::vector<PerFrameResources> m_frameResources;
@@ -139,8 +164,7 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
                               VkPhysicalDevice physicalDevice, VkQueue queue,
                               std::shared_ptr<gfxstream::base::Lock> queueLock,
                               uint32_t queueFamilyIndex, uint32_t maxFramesInFlight,
-                              vk_util::YcbcrSamplerPool* ycbcrPool,
-                              DebugUtilsHelper debugUtils)
+                              vk_util::YcbcrSamplerPool* ycbcrPool, DebugUtilsHelper debugUtils)
         : m_vk(vk),
           m_vkDevice(device),
           m_vkPhysicalDevice(physicalDevice),
@@ -149,15 +173,13 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
           m_ycbcrSamplerPool(ycbcrPool),
           m_debugUtilsHelper(debugUtils),
           m_vkQueueLock(queueLock),
-          m_vkDescriptorSetLayout(VK_NULL_HANDLE),
-          m_vkPipelineLayout(VK_NULL_HANDLE),
           m_vertexVkBuffer(VK_NULL_HANDLE),
           m_vertexVkDeviceMemory(VK_NULL_HANDLE),
           m_indexVkBuffer(VK_NULL_HANDLE),
           m_indexVkDeviceMemory(VK_NULL_HANDLE),
           m_vkDescriptorPool(VK_NULL_HANDLE),
           m_vkCommandPool(VK_NULL_HANDLE),
-          m_vkSampler(VK_NULL_HANDLE),
+          m_defaultSampler(VK_NULL_HANDLE),
           m_frameResources(maxFramesInFlight) {}
 };
 
@@ -166,8 +188,7 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
     static std::unique_ptr<CompositorVk> create(
         const VulkanDispatch& vk, VkDevice vkDevice, VkPhysicalDevice vkPhysicalDevice,
         VkQueue vkQueue, std::shared_ptr<gfxstream::base::Lock> queueLock,
-        uint32_t queueFamilyIndex, uint32_t maxFramesInFlight,
-        vk_util::YcbcrSamplerPool* ycbcrPool,
+        uint32_t queueFamilyIndex, uint32_t maxFramesInFlight, vk_util::YcbcrSamplerPool* ycbcrPool,
         DebugUtilsHelper debugUtils = DebugUtilsHelper::withUtilsDisabled());
 
     ~CompositorVk();
@@ -186,9 +207,13 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
                           uint32_t queueFamilyIndex, uint32_t maxFramesInFlight,
                           vk_util::YcbcrSamplerPool* ycbcrPool, DebugUtilsHelper debugUtils);
 
-    void setUpGraphicsPipeline();
+    void setUpGraphicsPipeline(const VkShaderModule vertShaderMod,
+                               const VkShaderModule fragShaderMod, const VkFormat samplerFormat,
+                               const VkSampler immutableSampler);
+    void setUpRenderPasses();
+    void setUpGraphicsPipelines();
     void setUpVertexBuffers();
-    void setUpSampler();
+    void setUpPerSamplerResources();
     void setUpDescriptorSets();
     void setUpUniformBuffers();
     void setUpCommandPool();
@@ -228,7 +253,8 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
         const BorrowedImageInfoVk* targetImage = nullptr;
         VkRenderPass targetRenderPass = VK_NULL_HANDLE;
         VkFramebuffer targetFramebuffer = VK_NULL_HANDLE;
-        VkPipeline pipeline = VK_NULL_HANDLE;
+        std::vector<VkPipeline> layersPipelines;
+        std::vector<VkFormat> layerSourceSamplerFormats;
         std::vector<const BorrowedImageInfoVk*> layersSourceImages;
         FrameDescriptorSetsContents layersDescriptorSets;
     };

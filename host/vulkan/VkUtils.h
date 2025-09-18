@@ -386,6 +386,7 @@ class YcbcrSamplerPool {
 
     VkSamplerYcbcrConversion getConversion(VkFormat format);
     VkSampler getSampler(VkFormat format);
+    std::vector<VkFormat> getAllFormats() const;
 
    private:
     struct YCbCrSamplerInfo {
@@ -395,7 +396,7 @@ class YcbcrSamplerPool {
 
     bool getOrCreateSamplerInfo(VkFormat format, YCbCrSamplerInfo* outInfo);
 
-    std::mutex mMutex;
+    mutable std::mutex mMutex;
     std::unordered_map<VkFormat, YCbCrSamplerInfo> m_ycbcrSamplers GUARDED_BY(mMutex);
     const VulkanDispatch* mDvk;
     VkDevice mDevice;
