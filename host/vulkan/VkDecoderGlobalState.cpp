@@ -2212,6 +2212,32 @@ class VkDecoderGlobalState::Impl {
             return result;
         }
 
+#if defined(_WIN32) || defined(__linux__) || defined(__ANDROID__)
+#ifdef _WIN32
+        const char* memoryFuncName = "vkGetMemoryWin32HandleKHR";
+        auto deviceGetMemoryHandleFunc = reinterpret_cast<PFN_vkGetMemoryWin32HandleKHR>(
+            vk->vkGetDeviceProcAddr(*pDevice, memoryFuncName));
+#elif defined(__ANDROID__)
+        const char* memoryFuncName = "vkGetMemoryAndroidHardwareBufferANDROID";
+        auto deviceGetMemoryHandleFunc =
+            reinterpret_cast<PFN_vkGetMemoryAndroidHardwareBufferANDROID>(
+                vk->vkGetDeviceProcAddr(*pDevice, memoryFuncName));
+#else
+        const char* memoryFuncName = "vkGetMemoryFdKHR";
+        auto deviceGetMemoryHandleFunc = reinterpret_cast<PFN_vkGetMemoryFdKHR>(
+            vk->vkGetDeviceProcAddr(*pDevice, memoryFuncName));
+#endif
+
+        if (!deviceGetMemoryHandleFunc) {
+            // This is not an error at this stage, because VkEmulation should also be checking if
+            // the extensions are supported while initializing the emulation and disable external
+            // memory workflows. So any related functions should not be called.
+            GFXSTREAM_VERBOSE("%s: Cannot find device procedure: %s", __func__, memoryFuncName);
+        }
+#else
+        auto deviceGetMemoryHandleFunc = nullptr;
+#endif
+
         auto physicalDeviceInfoIt = mPhysdevInfo.find(physicalDevice);
         if (physicalDeviceInfoIt == mPhysdevInfo.end()) return VK_ERROR_INITIALIZATION_FAILED;
         auto& physicalDeviceInfo = physicalDeviceInfoIt->second;
@@ -2221,6 +2247,8 @@ class VkDecoderGlobalState::Impl {
         auto& instanceInfo = instanceInfoIt->second;
 
         // Fill out information about the logical device here.
+        // Do not error out after this point, as it may lead to issues when cleaning up
+        // the device handles created later on.
         VALIDATE_NEW_HANDLE_INFO_ENTRY(mDeviceInfo, *pDevice);
         auto& deviceInfo = mDeviceInfo[*pDevice];
         deviceInfo.physicalDevice = physicalDevice;
@@ -2238,30 +2266,7 @@ class VkDecoderGlobalState::Impl {
             static_cast<VkExternalFenceHandleTypeFlagBits>(supportedFenceHandleTypes);
         deviceInfo.externalFenceInfo.supportedBinarySemaphoreHandleTypes =
             static_cast<VkExternalSemaphoreHandleTypeFlagBits>(supportedBinarySemaphoreHandleTypes);
-
-#ifdef _WIN32
-        // Use vkGetMemoryWin32HandleKHR
-        deviceInfo.getMemoryHandleFunc = reinterpret_cast<PFN_vkGetMemoryWin32HandleKHR>(
-            vk->vkGetDeviceProcAddr(*pDevice, "vkGetMemoryWin32HandleKHR"));
-        if (!deviceInfo.getMemoryHandleFunc) {
-            return VK_ERROR_INITIALIZATION_FAILED;
-        }
-#elif defined(__ANDROID__)
-        // Use vkGetMemoryAndroidHardwareBufferANDROID
-        deviceInfo.getMemoryHandleFunc =
-            reinterpret_cast<PFN_vkGetMemoryAndroidHardwareBufferANDROID>(
-                vk->vkGetDeviceProcAddr(*pDevice, "vkGetMemoryAndroidHardwareBufferANDROID"));
-        if (!deviceInfo.getMemoryHandleFunc) {
-            return VK_ERROR_INITIALIZATION_FAILED;
-        }
-#elif __linux__
-        // Use vkGetMemoryFdKHR
-        deviceInfo.getMemoryHandleFunc = reinterpret_cast<PFN_vkGetMemoryFdKHR>(
-            vk->vkGetDeviceProcAddr(*pDevice, "vkGetMemoryFdKHR"));
-        if (!deviceInfo.getMemoryHandleFunc) {
-            return VK_ERROR_INITIALIZATION_FAILED;
-        }
-#endif
+        deviceInfo.getMemoryHandleFunc = deviceGetMemoryHandleFunc;
 
         GFXSTREAM_INFO(
             "Created VkDevice:%p for application:'%s' instance:%p. ASTC emulation:%s CPU decoding:%s.",
@@ -2283,6 +2288,11 @@ class VkDecoderGlobalState::Impl {
 
         VulkanDispatch* dispatch = dispatch_VkDevice(boxedDevice);
         init_vulkan_dispatch_from_device(vk, *pDevice, dispatch);
+
+        if (mLogging) {
+            GFXSTREAM_INFO("%s: init vulkan dispatch from device (end)", __func__);
+        }
+
         if (m_vkEmulation->debugUtilsEnabled()) {
             deviceInfo.debugUtilsHelper = DebugUtilsHelper::withUtilsEnabled(*pDevice, dispatch);
         }
@@ -2291,10 +2301,6 @@ class VkDecoderGlobalState::Impl {
             std::make_unique<ExternalFencePool<VulkanDispatch>>(dispatch, *pDevice);
 
         deviceInfo.deviceOpTracker = std::make_shared<DeviceOpTracker>(*pDevice, dispatch);
-
-        if (mLogging) {
-            GFXSTREAM_INFO("%s: init vulkan dispatch from device (end)", __func__);
-        }
 
         deviceInfo.boxed = boxedDevice;
 
@@ -9517,8 +9523,12 @@ class VkDecoderGlobalState::Impl {
     std::optional<BlobDescriptorType> exportMemoryHandle(struct DeviceInfo* deviceInfo,
                                                          VulkanDispatch* vk, VkDevice device,
                                                          VkDeviceMemory memory) {
-        BlobDescriptorType ret;
+        if (!deviceInfo->getMemoryHandleFunc) {
+            GFXSTREAM_ERROR("%s: External memory function not supported.", __func__);
+            return std::nullopt;
+        }
 
+        BlobDescriptorType ret;
 #if defined(__ANDROID__)
         VkMemoryGetAndroidHardwareBufferInfoANDROID getAhbInfo = {
             .sType = VK_STRUCTURE_TYPE_MEMORY_GET_ANDROID_HARDWARE_BUFFER_INFO_ANDROID,
@@ -9529,7 +9539,7 @@ class VkDecoderGlobalState::Impl {
         AHardwareBuffer* exportHandle;
         if (deviceInfo->getMemoryHandleFunc(device, &getAhbInfo, &exportHandle) != VK_SUCCESS) {
             return std::nullopt;
-        };
+        }
 
         ret.handle = reinterpret_cast<ExternalHandleType>(exportHandle);
 #elif defined(__unix__)
@@ -9551,7 +9561,7 @@ class VkDecoderGlobalState::Impl {
         int fd = -1;
         if (deviceInfo->getMemoryHandleFunc(device, &memoryGetFdInfo, &fd) != VK_SUCCESS) {
             return std::nullopt;
-        };
+        }
 
         ret.descriptor = ManagedDescriptor(fd);
 
