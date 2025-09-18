@@ -1666,7 +1666,8 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
     emulation->mTransferQueueCommandBufferPool.resize(0);
 
     if (emulation->mDeviceInfo.supportsSamplerYcbcrConversion) {
-        if (!emulation->mYcbcrSamplerPool.init(dvk, emulation->mDevice)) {
+        if (!emulation->mYcbcrSamplerPool.init(ivk, dvk, emulation->mPhysicalDevice,
+                                               emulation->mDevice)) {
             GFXSTREAM_ERROR("Failed: Could create ycbcr sampler pool for Vulkan emulation");
         }
     }
