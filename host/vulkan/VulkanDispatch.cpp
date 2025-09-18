@@ -289,6 +289,16 @@ void VulkanDispatchImpl::initialize(bool forTesting) {
     mForTesting = forTesting;
     initIcdPaths(mForTesting);
 
+    // In verbose logging mode, also enable vulkan loader error and warning messages
+    gfxstream::host::LogLevel logLevel = gfxstream::host::GetGfxstreamLogLevel();
+    if (logLevel >= gfxstream::host::LogLevel::kVerbose) {
+        // Set the env var only if the user didn't set it already
+        if (gfxstream::base::getEnvironmentVariable("VK_LOADER_DEBUG").empty()) {
+            GFXSTREAM_VERBOSE("Enabling error messages from vulkan loader");
+            gfxstream::base::setEnvironmentVariable("VK_LOADER_DEBUG", "error,warn");
+        }
+    }
+
     init_vulkan_dispatch_from_system_loader(sVulkanDispatchDlOpen, sVulkanDispatchDlSym,
                                             &mDispatch);
 
