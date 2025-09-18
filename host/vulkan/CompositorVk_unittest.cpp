@@ -121,7 +121,7 @@ class CompositorVkTest : public ::testing::Test {
 
         m_compositorVkQueueLock = std::make_shared<gfxstream::base::Lock>();
 
-        m_YcbcrSamplerPool.init(k_vk, m_vkDevice);
+        m_YcbcrSamplerPool.init(k_vk, k_vk, m_vkPhysicalDevice, m_vkDevice);
     }
 
     void TearDown() override {
