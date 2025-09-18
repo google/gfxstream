@@ -157,8 +157,8 @@ bool YcbcrSamplerPool::getOrCreateSamplerInfo(VkFormat format, YCbCrSamplerInfo*
     const VkSamplerCreateInfo samplerInfo = {
         .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
         .pNext = &conversionInfo,
-        .magFilter = VK_FILTER_LINEAR,
-        .minFilter = VK_FILTER_LINEAR,
+        .magFilter = VK_FILTER_NEAREST,
+        .minFilter = VK_FILTER_NEAREST,
         .mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST,
         .addressModeU = kYcbcrSamplerMode,
         .addressModeV = kYcbcrSamplerMode,
