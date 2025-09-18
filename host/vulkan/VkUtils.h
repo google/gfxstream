@@ -111,7 +111,8 @@ void vk_append_struct(vk_struct_chain_iterator* i, T* vk_struct) {
 template <class T, class U, typename = std::enable_if_t<!std::is_const_v<T> && !std::is_const_v<U>>>
 void vk_insert_struct(T& pos, U& nextChain) {
     VkBaseOutStructure* nextChainTail = reinterpret_cast<VkBaseOutStructure*>(&nextChain);
-    for (; nextChainTail->pNext; nextChainTail = nextChainTail->pNext) {}
+    for (; nextChainTail->pNext; nextChainTail = nextChainTail->pNext) {
+    }
 
     nextChainTail->pNext = reinterpret_cast<VkBaseOutStructure*>(const_cast<void*>(pos.pNext));
     pos.pNext = &nextChain;
@@ -185,11 +186,9 @@ inline VkResult waitForVkQueueIdleWithRetry(const VulkanDispatch& vk, VkQueue qu
     constexpr auto kWaitInterval = std::chrono::milliseconds(4);
     VkResult res = vk.vkQueueWaitIdle(queue);
     for (uint32_t retryTimes = 1; retryTimes < retryLimit && res == VK_TIMEOUT; retryTimes++) {
-        GFXSTREAM_INFO(
-            "VK_TIMEOUT returned from vkQueueWaitIdle with %" PRIu32 " attempt. Wait for %" PRIu32
-            "ms before another attempt.",
-            retryTimes,
-            static_cast<uint32_t>(kWaitInterval.count()));
+        GFXSTREAM_INFO("VK_TIMEOUT returned from vkQueueWaitIdle with %" PRIu32
+                       " attempt. Wait for %" PRIu32 "ms before another attempt.",
+                       retryTimes, static_cast<uint32_t>(kWaitInterval.count()));
         std::this_thread::sleep_for(kWaitInterval);
         res = vk.vkQueueWaitIdle(queue);
     }
@@ -380,8 +379,9 @@ static inline bool vk_descriptor_type_has_image_view(VkDescriptorType type) {
 
 class YcbcrSamplerPool {
    public:
-    YcbcrSamplerPool() : mDvk(nullptr), mDevice(VK_NULL_HANDLE) {}
-    bool init(const VulkanDispatch* vk, VkDevice device);
+    YcbcrSamplerPool() : mDvk(nullptr), mPhysicalDevice(VK_NULL_HANDLE), mDevice(VK_NULL_HANDLE) {}
+    bool init(const VulkanDispatch* ivk, const VulkanDispatch* dvk, VkPhysicalDevice physicalDevice,
+              VkDevice device);
     void destroy();
 
     VkSamplerYcbcrConversion getConversion(VkFormat format);
@@ -399,6 +399,8 @@ class YcbcrSamplerPool {
     mutable std::mutex mMutex;
     std::unordered_map<VkFormat, YCbCrSamplerInfo> m_ycbcrSamplers GUARDED_BY(mMutex);
     const VulkanDispatch* mDvk;
+    const VulkanDispatch* mIvk;
+    VkPhysicalDevice mPhysicalDevice;
     VkDevice mDevice;
 };
 
