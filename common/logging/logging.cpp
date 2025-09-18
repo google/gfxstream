@@ -138,6 +138,7 @@ std::string GetDefaultFormattedLog(LogLevel, const char* file, int line, const c
 void SetGfxstreamLogCallback(GfxstreamLogCallback callback) { sLogCallback = callback; }
 
 void SetGfxstreamLogLevel(LogLevel level) { sLogLevel = level; }
+LogLevel GetGfxstreamLogLevel() { return sLogLevel; }
 
 }  // namespace host
 }  // namespace gfxstream
