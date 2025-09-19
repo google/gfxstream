@@ -15,6 +15,7 @@ copy_to_directory(
         "testdata/256x256_android.png",
         "testdata/256x256_android_with_transparency.png",
         "testdata/256x256_golden_basic_composition.png",
+        "testdata/256x256_golden_basic_yv12.png",
         "//guest/GLESv1:gfxstream_guest_glesv1",
         "//guest/GLESv1_enc:gfxstream_guest_glesv1encoder_shared",
         "//guest/GLESv2:gfxstream_guest_glesv2",
@@ -59,10 +60,10 @@ cc_test(
     ] + glob([
         "shaders/**/*.h",
     ]),
+    cxxopts = ["-std=c++20"],
     data = [
         ":gfxstream_end2end_testdata",
     ],
-    cxxopts = ["-std=c++20"],
     defines = [
         "ANDROID",
         "VK_USE_PLATFORM_ANDROID_KHR",
