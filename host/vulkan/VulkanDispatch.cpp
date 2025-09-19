@@ -28,6 +28,33 @@ using gfxstream::base::pathExists;
 namespace gfxstream {
 namespace vk {
 
+// Function to check if the current process is running with full elevated rights
+bool processInHighIntegrityMode() {
+    bool highIntegrity = false;
+#ifdef _WIN32
+    // Check high integrity mode (e.g. admin mode), see is_high_integrity in Vulkan Loader
+    HANDLE processHandle = GetCurrentProcess();
+    HANDLE processToken = NULL;
+    if (!OpenProcessToken(processHandle, TOKEN_QUERY | TOKEN_QUERY_SOURCE, &processToken)) {
+        return false;
+    }
+    uint8_t labelBuffer[SECURITY_MAX_SID_SIZE + sizeof(DWORD)];
+    DWORD bufferSize = 0;
+    if (GetTokenInformation(processToken, TokenIntegrityLevel, labelBuffer, sizeof(labelBuffer),
+                            &bufferSize) != 0) {
+        const TOKEN_MANDATORY_LABEL* mandatoryLabel = (const TOKEN_MANDATORY_LABEL*)labelBuffer;
+        const DWORD subAuthorityCount = *GetSidSubAuthorityCount(mandatoryLabel->Label.Sid);
+        const DWORD integrityLevel =
+            *GetSidSubAuthority(mandatoryLabel->Label.Sid, subAuthorityCount - 1);
+
+        highIntegrity = (integrityLevel >= SECURITY_MANDATORY_HIGH_RID);
+    }
+    CloseHandle(processToken);
+#endif
+
+    return highIntegrity;
+}
+
 static std::string icdJsonNameToProgramAndLauncherPaths(const std::string& icdFilename) {
     std::string suffix = pj({"lib64", "vulkan", icdFilename});
     std::string fullpath = pj({gfxstream::base::getProgramDirectory(), suffix});
@@ -53,6 +80,14 @@ static void initIcdPaths(bool forTesting) {
     if (androidIcd == "") {
         // Rely on user to set VK_DRIVER_FILES
         return;
+    }
+
+    // In high integrity mode (e.g. admin mode on windows), loader won't be able to read the
+    // environment variables. TODO(b/446119531) Load the driver dlls directly in this case.
+    const bool highIntegrityMode = processInHighIntegrityMode();
+    if (highIntegrityMode) {
+        GFXSTREAM_ERROR("%s: Vulkan ICD selection is not supported with elevated permissions.",
+                        __func__);
     }
 
     if (forTesting) {
