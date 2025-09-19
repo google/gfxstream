@@ -379,7 +379,8 @@ static inline bool vk_descriptor_type_has_image_view(VkDescriptorType type) {
 
 class YcbcrSamplerPool {
    public:
-    YcbcrSamplerPool() : mDvk(nullptr), mPhysicalDevice(VK_NULL_HANDLE), mDevice(VK_NULL_HANDLE) {}
+    YcbcrSamplerPool()
+        : mDvk(nullptr), mIvk(nullptr), mPhysicalDevice(VK_NULL_HANDLE), mDevice(VK_NULL_HANDLE) {}
     bool init(const VulkanDispatch* ivk, const VulkanDispatch* dvk, VkPhysicalDevice physicalDevice,
               VkDevice device);
     void destroy();

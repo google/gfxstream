@@ -458,10 +458,8 @@ void main() {
 TEST_P(GfxstreamEnd2EndGlTest, ProgramBinaryWithAHB) {
     const uint32_t width = 2;
     const uint32_t height = 2;
-    auto ahb = GFXSTREAM_ASSERT(ScopedAHardwareBuffer::Allocate(
-        *mGralloc, width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
-
-    GFXSTREAM_ASSERT(FillAhb(ahb, PixelR8G8B8A8(0, 0, 128, 255)));
+    const PixelR8G8B8A8 color = PixelR8G8B8A8(0, 0, 128, 255);
+    auto ahb = GFXSTREAM_ASSERT(CreateAHBWithColor(width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM, color));
 
     const EGLint ahbImageAttribs[] = {
         // clang-format off
@@ -745,11 +743,8 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbTextureUploadAndReadback) {
     const auto uploadPixel = PixelR8G8B8A8(55, 66, 77, 88);
     const auto uploadPixels = Fill(width, height, uploadPixel);
 
-    auto ahb = GFXSTREAM_ASSERT(ScopedAHardwareBuffer::Allocate(
-        *mGralloc, width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
-
     // Initialize AHB with `lockPixel`
-    GFXSTREAM_ASSERT(FillAhb(ahb, lockPixel));
+    auto ahb = GFXSTREAM_ASSERT(CreateAHBWithColor(width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM, lockPixel));
 
     // Update AHB with `uploadPixel` via texture upload:
     {
@@ -851,11 +846,8 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbTextureUploadAndBlit) {
     const auto uploadPixel = PixelR8G8B8A8(55, 66, 77, 88);
     const auto uploadPixels = Fill(width, height, uploadPixel);
 
-    auto ahb = GFXSTREAM_ASSERT(ScopedAHardwareBuffer::Allocate(
-        *mGralloc, width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
-
     // Initialize AHB with `lockPixel`
-    GFXSTREAM_ASSERT(FillAhb(ahb, lockPixel));
+    auto ahb = GFXSTREAM_ASSERT(CreateAHBWithColor(width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM, lockPixel));
 
     // Update AHB with `uploadPixel` via texture upload:
     {
@@ -1255,8 +1247,8 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbTextureUploadAndExternalOesBlit) {
     const auto uploadPixel = PixelR8G8B8A8(55, 66, 77, 88);
     const auto uploadPixels = Fill(width, height, uploadPixel);
 
-    auto ahb = GFXSTREAM_ASSERT(ScopedAHardwareBuffer::Allocate(
-        *mGralloc, width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
+    // Initialize AHB with `lockPixel`
+    auto ahb = GFXSTREAM_ASSERT(CreateAHBWithColor(width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM, lockPixel));
 
     const EGLint ahbImageAttribs[] = {
         // clang-format off
@@ -1264,9 +1256,6 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbTextureUploadAndExternalOesBlit) {
         EGL_NONE,
         // clang-format on
     };
-
-    // Initialize AHB with `lockPixel`
-    GFXSTREAM_ASSERT(FillAhb(ahb, lockPixel));
 
     // Update AHB with `uploadPixel` via texture upload:
     {
@@ -1413,8 +1402,8 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbExternalOesTextureBlit) {
 
     const auto lockPixel = PixelR8G8B8A8(11, 22, 33, 44);
 
-    auto ahb = GFXSTREAM_ASSERT(ScopedAHardwareBuffer::Allocate(
-        *mGralloc, width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
+    // Initialize AHB with `lockPixel`
+    auto ahb = GFXSTREAM_ASSERT(CreateAHBWithColor(width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM, lockPixel));
 
     const EGLint ahbImageAttribs[] = {
         // clang-format off
@@ -1422,9 +1411,6 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbExternalOesTextureBlit) {
         EGL_NONE,
         // clang-format on
     };
-
-    // Initialize AHB with `lockPixel`
-    GFXSTREAM_ASSERT(FillAhb(ahb, lockPixel));
 
     // Blit from AHB to an additional framebuffer and readback:
     {
@@ -1550,8 +1536,8 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbExternalOesTextureBlitProgramBinary) {
 
     const auto lockPixel = PixelR8G8B8A8(11, 22, 33, 44);
 
-    auto ahb = GFXSTREAM_ASSERT(ScopedAHardwareBuffer::Allocate(
-        *mGralloc, width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
+    // Initialize AHB with `lockPixel`
+    auto ahb = GFXSTREAM_ASSERT(CreateAHBWithColor(width, height, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM, lockPixel));
 
     const EGLint ahbImageAttribs[] = {
         // clang-format off
@@ -1559,9 +1545,6 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbExternalOesTextureBlitProgramBinary) {
         EGL_NONE,
         // clang-format on
     };
-
-    // Initialize AHB with `lockPixel`
-    GFXSTREAM_ASSERT(FillAhb(ahb, lockPixel));
 
     // Setup blit program:
     GLenum programBinaryFormat = GL_NONE;
