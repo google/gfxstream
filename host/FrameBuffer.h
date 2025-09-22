@@ -335,6 +335,7 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
     int getZrot() const;
 
     void setScreenMask(int width, int height, const uint8_t* rgbaData);
+    void setScreenBackground(int width, int height, const uint8_t* rgbaData);
 
     void registerVulkanInstance(uint64_t id, const char* appName) const;
     void unregisterVulkanInstance(uint64_t id) const;

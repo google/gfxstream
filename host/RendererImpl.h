@@ -80,6 +80,7 @@ public:
     void resetGuestPostedAFrame() final;
 
     void setScreenMask(int width, int height, const uint8_t* rgbaData) final;
+    void setScreenBackground(int width, int height, const uint8_t* rgbaData) final;
     void setMultiDisplay(uint32_t id,
                          int32_t x,
                          int32_t y,

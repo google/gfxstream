@@ -238,6 +238,12 @@ class Renderer {
     virtual void setScreenMask(int width,
                                int height,
                                const uint8_t* rgbaData) = 0;
+    // setScreenBackground -
+    //    provide the image that should be rendered as the
+    //    device background.
+    virtual void setScreenBackground(int width,
+                               int height,
+                               const uint8_t* rgbaData) = 0;
 
     // setMultiDisplay
     //    add/modify/del multi-display window

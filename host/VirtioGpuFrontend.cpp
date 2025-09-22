@@ -967,6 +967,15 @@ void VirtioGpuFrontend::setScreenMask(int width,
     mRenderer->setScreenMask(width, height, rgbaData);
 }
 
+void VirtioGpuFrontend::setScreenBackground(int width, int height, const uint8_t* rgbaData) {
+    if (!mRenderer) {
+        GFXSTREAM_ERROR("Failed to set screen mask: renderer not available.");
+        return;
+    }
+
+    mRenderer->setScreenBackground(width, height, rgbaData);
+}
+
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
 
 static constexpr const char kSnapshotBasenameAsg[] = "gfxstream_asg.bin";

@@ -923,6 +923,11 @@ VG_EXPORT void gfxstream_backend_set_screen_mask(int width, int height,
     sFrontend()->setScreenMask(width, height, rgbaData);
 }
 
+VG_EXPORT void gfxstream_backend_set_screen_background(int width, int height,
+                                                       const uint8_t* rgbaData) {
+    sFrontend()->setScreenBackground(width, height, rgbaData);
+}
+
 static_assert(sizeof(struct stream_renderer_device_id) == 32,
               "stream_renderer_device_id must be 32 bytes");
 static_assert(offsetof(struct stream_renderer_device_id, device_uuid) == 0,

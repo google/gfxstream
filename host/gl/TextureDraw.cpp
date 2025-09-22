@@ -275,6 +275,11 @@ TextureDraw::TextureDraw()
     s_gles2.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     mMaskLayer.create();
+    mBackgroundLayer.create();
+    mBackgroundOffset[0] = 0.0f;
+    mBackgroundOffset[1] = 0.0f;
+    mBackgroundSize[0] = 1.0f;
+    mBackgroundSize[1] = 1.0f;
 }
 
 bool TextureDraw::drawImpl(GLuint texture, float rotation,
@@ -378,8 +383,33 @@ bool TextureDraw::drawImpl(GLuint texture, float rotation,
     s_gles2.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     s_gles2.glClear(GL_COLOR_BUFFER_BIT);
 
+    bool drawBackground = wantOverlay && mBackgroundLayer.mIsValid;
+
+    if (drawBackground) {
+        s_gles2.glDisable(GL_BLEND);
+
+        GLfloat prevCoordTranslation[2];
+        GLfloat prevCoordScale[2];
+        s_gles2.glGetUniformfv(mProgram, mCoordTranslation, prevCoordTranslation);
+        s_gles2.glGetUniformfv(mProgram, mCoordScale, prevCoordScale);
+
+        s_gles2.glUniform2f(mCoordTranslation, mBackgroundOffset[0], mBackgroundOffset[1]);
+        s_gles2.glUniform2f(mCoordScale, mBackgroundSize[0], mBackgroundSize[1]);
+
+        mBackgroundLayer.draw(mProgram, mScaleSlot, indexShift);
+
+        // reset previous values
+        s_gles2.glUniform2f(mCoordTranslation, prevCoordTranslation[0], prevCoordTranslation[1]);
+        s_gles2.glUniform2f(mCoordScale, prevCoordScale[0], prevCoordScale[1]);
+    }
+
     s_gles2.glEnable(GL_BLEND);
-    s_gles2.glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
+    if (drawBackground) {
+        s_gles2.glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
+    }else {
+        s_gles2.glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    }
 
     // setup the |texture| and uniform values.
     s_gles2.glActiveTexture(GL_TEXTURE0);
@@ -437,6 +467,10 @@ TextureDraw::~TextureDraw() {
 
 void TextureDraw::setScreenMask(int width, int height, const uint8_t* rgbaData) {
     mMaskLayer.update(width, height, rgbaData);
+}
+
+void TextureDraw::setScreenBackground(int width, int height, const uint8_t* rgbaData) {
+    mBackgroundLayer.update(width, height, rgbaData);
 }
 
 void TextureDraw::preDrawLayer() {
@@ -634,6 +668,14 @@ TextureDraw::TexturedLayer::TexturedLayer()
 bool TextureDraw::TexturedLayer::create() {
     // Create a texture handle for use with an overlay mask
     s_gles2.glGenTextures(1, &mTexture);
+
+#ifdef DEBUG_TEXTURE_DRAW
+    GLenum err = s_gles2.glGetError();
+    if (err != GL_NO_ERROR) {
+        GFXSTREAM_ERROR("TexturedLayer::%s: Could not create layer texture error=0x%x\n",
+                        __FUNCTION__, err);
+    }
+#endif
 
     return true;
 }
