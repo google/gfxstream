@@ -115,41 +115,40 @@ static void initIcdPaths(bool forTesting) {
             }
             gfxstream::base::setEnvironmentVariable("ANDROID_EMU_VK_ICD", "moltenvk");
             setIcdPaths("MoltenVK_icd.json");
+            // Configure MoltenVK library with environment variables
+            // 0: No logging.
+            // 1: Log errors only.
+            // 2: Log errors and warning messages.
+            // 3: Log errors, warnings and informational messages.
+            // 4: Log errors, warnings, infos and debug messages.
+            const bool verboseLogs =
+                (gfxstream::base::getEnvironmentVariable("ANDROID_EMUGL_VERBOSE") == "1");
+            const char* logLevelValue = verboseLogs ? "4" : "1";
+            gfxstream::base::setEnvironmentVariable("MVK_CONFIG_LOG_LEVEL", logLevelValue);
+
+            //  Limit MoltenVK to use single queue, as some older ANGLE versions
+            //  expect this for -guest-angle to work.
+            //  0: Limit Vulkan to a single queue, with no explicit semaphore
+            //  synchronization, and use Metal's implicit guarantees that all operations
+            //  submitted to a queue will give the same result as if they had been run in
+            //  submission order.
+            gfxstream::base::setEnvironmentVariable("MVK_CONFIG_VK_SEMAPHORE_SUPPORT_STYLE", "0");
+
+            // TODO(b/364055067)
+            // MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS is not working correctly
+            gfxstream::base::setEnvironmentVariable("MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS", "0");
+
+            // MVK_CONFIG_USE_MTLHEAP is required for VK_EXT_external_memory_metal
+            gfxstream::base::setEnvironmentVariable("MVK_CONFIG_USE_MTLHEAP", "1");
+
+            // TODO(b/351765838): VVL won't work with MoltenVK due to the current
+            //  way of external memory handling, add it into disable list to
+            //  avoid users enabling it implicitly (i.e. via vkconfig).
+            //  It can be enabled with VK_LOADER_LAYERS_ALLOW=VK_LAYER_KHRONOS_validation
+            GFXSTREAM_INFO("Vulkan Validation Layers won't be enabled with MoltenVK");
+            gfxstream::base::setEnvironmentVariable("VK_LOADER_LAYERS_DISABLE",
+                                                    "VK_LAYER_KHRONOS_validation");
         }
-
-        // Configure MoltenVK library with environment variables
-        // 0: No logging.
-        // 1: Log errors only.
-        // 2: Log errors and warning messages.
-        // 3: Log errors, warnings and informational messages.
-        // 4: Log errors, warnings, infos and debug messages.
-        const bool verboseLogs =
-            (gfxstream::base::getEnvironmentVariable("ANDROID_EMUGL_VERBOSE") == "1");
-        const char* logLevelValue = verboseLogs ? "4" : "1";
-        gfxstream::base::setEnvironmentVariable("MVK_CONFIG_LOG_LEVEL", logLevelValue);
-
-        //  Limit MoltenVK to use single queue, as some older ANGLE versions
-        //  expect this for -guest-angle to work.
-        //  0: Limit Vulkan to a single queue, with no explicit semaphore
-        //  synchronization, and use Metal's implicit guarantees that all operations
-        //  submitted to a queue will give the same result as if they had been run in
-        //  submission order.
-        gfxstream::base::setEnvironmentVariable("MVK_CONFIG_VK_SEMAPHORE_SUPPORT_STYLE", "0");
-
-        // TODO(b/364055067)
-        // MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS is not working correctly
-        gfxstream::base::setEnvironmentVariable("MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS", "0");
-
-        // MVK_CONFIG_USE_MTLHEAP is required for VK_EXT_external_memory_metal
-        gfxstream::base::setEnvironmentVariable("MVK_CONFIG_USE_MTLHEAP", "1");
-
-        // TODO(b/351765838): VVL won't work with MoltenVK due to the current
-        //  way of external memory handling, add it into disable list to
-        //  avoid users enabling it implicitly (i.e. via vkconfig).
-        //  It can be enabled with VK_LOADER_LAYERS_ALLOW=VK_LAYER_KHRONOS_validation
-        GFXSTREAM_INFO("Vulkan Validation Layers won't be enabled with MoltenVK");
-        gfxstream::base::setEnvironmentVariable("VK_LOADER_LAYERS_DISABLE",
-                                              "VK_LAYER_KHRONOS_validation");
 #else
         // By default, on other platforms, just use whatever the system
         // is packing.
