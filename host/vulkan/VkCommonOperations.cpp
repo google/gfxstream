@@ -982,7 +982,7 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
         }
     }
 
-    GFXSTREAM_DEBUG("Creating instance, asking for version %d.%d.%d ...",
+    GFXSTREAM_DEBUG("Creating an instance, asking for version %d.%d.%d ...",
                     VK_VERSION_MAJOR(appInfo.apiVersion), VK_VERSION_MINOR(appInfo.apiVersion),
                     VK_VERSION_PATCH(appInfo.apiVersion));
 
@@ -1095,7 +1095,7 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
     ivk->vkEnumeratePhysicalDevices(emulation->mInstance, &physicalDeviceCount,
                                     physicalDevices.data());
 
-    GFXSTREAM_DEBUG("Found %d Vulkan physical devices.", physicalDeviceCount);
+    GFXSTREAM_DEBUG("Found %d Vulkan physical device(s).", physicalDeviceCount);
 
     if (physicalDeviceCount == 0) {
         GFXSTREAM_FATAL("No physical devices available.");
