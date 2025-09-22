@@ -59,6 +59,7 @@ public:
     }
 
     void setScreenMask(int width, int height, const uint8_t* rgbaData);
+    void setScreenBackground(int width, int height, const uint8_t* rgbaData);
     void drawLayer(const ComposeLayer& l, int frameWidth, int frameHeight,
                    int cbWidth, int cbHeight, GLuint texture);
     void prepareForDrawLayer();
@@ -112,6 +113,9 @@ public:
     };
 
     TexturedLayer mMaskLayer;
+    TexturedLayer mBackgroundLayer;
+    float mBackgroundOffset[2];
+    float mBackgroundSize[2];
 };
 
 }  // namespace gl

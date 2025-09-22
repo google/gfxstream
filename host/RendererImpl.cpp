@@ -543,6 +543,11 @@ void RendererImpl::setScreenMask(int width, int height, const uint8_t* rgbaData)
     mRenderWindow->setScreenMask(width, height, rgbaData);
 }
 
+void RendererImpl::setScreenBackground(int width, int height, const uint8_t* rgbaData) {
+    assert(mRenderWindow);
+    mRenderWindow->setScreenBackground(width, height, rgbaData);
+}
+
 void RendererImpl::onGuestGraphicsProcessCreate(uint64_t puid) {
     FrameBuffer::getFB()->createGraphicsProcessResources(puid);
 }

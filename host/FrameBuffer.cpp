@@ -314,6 +314,7 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
     int getZrot() const { return m_zRot; }
 
     void setScreenMask(int width, int height, const uint8_t* rgbaData);
+    void setScreenBackground(int width, int height, const uint8_t* rgbaData);
 
     void registerVulkanInstance(uint64_t id, const char* appName) const;
     void unregisterVulkanInstance(uint64_t id) const;
@@ -3601,6 +3602,11 @@ void FrameBuffer::Impl::setScreenMask(int width, int height, const uint8_t* rgba
     m_emulationGl->mTextureDraw->setScreenMask(width, height, rgbaData);
 }
 
+void FrameBuffer::Impl::setScreenBackground(int width, int height, const uint8_t* rgbaData) {
+    ENSURE_GL_EMULATION_VOID();
+    m_emulationGl->mTextureDraw->setScreenBackground(width, height, rgbaData);
+}
+
 #ifdef CONFIG_AEMU
 void FrameBuffer::Impl::registerVulkanInstance(uint64_t id, const char* appName) const {
     auto* tInfo = RenderThreadInfo::get();
@@ -4774,6 +4780,10 @@ int FrameBuffer::getZrot() const { return mImpl->getZrot(); }
 
 void FrameBuffer::setScreenMask(int width, int height, const uint8_t* rgbaData) {
     mImpl->setScreenMask(width, height, rgbaData);
+}
+
+void FrameBuffer::setScreenBackground(int width, int height, const uint8_t* rgbaData) {
+    mImpl->setScreenBackground(width, height, rgbaData);
 }
 
 #ifdef CONFIG_AEMU
