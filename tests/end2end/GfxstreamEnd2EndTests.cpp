@@ -711,6 +711,7 @@ Result<Ok> GfxstreamEnd2EndTest::FillAhb(ScopedAHardwareBuffer& ahb, PixelR8G8B8
         const Gralloc::LockedPlane& uPlane = planes[1];
         const Gralloc::LockedPlane& vPlane = planes[2];
 
+        // TODO(b/389646068): overwrites the color? ensure YUV formats work correctly in tests
         colorY = 178;
         colorU = 171;
         colorV = 0;
@@ -749,6 +750,18 @@ Result<ScopedAHardwareBuffer> GfxstreamEnd2EndTest::CreateAHBFromImage(
         std::memcpy(ahbPixels, image.pixels.data(), image.pixels.size() * sizeof(uint32_t));
         ahb.Unlock();
     }
+
+    return std::move(ahb);
+}
+
+Result<ScopedAHardwareBuffer> GfxstreamEnd2EndTest::CreateAHBWithColor(const uint32_t width,
+                                                                       const uint32_t height,
+                                                                       const uint32_t ahbFormat,
+                                                                       const PixelR8G8B8A8& color) {
+    auto ahb =
+        GFXSTREAM_EXPECT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height, ahbFormat));
+
+    GFXSTREAM_EXPECT(FillAhb(ahb, color));
 
     return std::move(ahb);
 }
