@@ -86,20 +86,32 @@ public:
     GLuint mIndexBuffer;
     GLuint mColorTransform;
 
-    gfxstream::base::Lock mMaskLock;
-    GLuint mMaskTexture;
-    int    mMaskWidth;
-    int    mMaskHeight;
-    // The size of the mMaskPixels. If the new mask is smaller than this size, we won't
-    // allocate new memory for mMaskPixels.
-    int    mMaskTextureWidth;
-    int    mMaskTextureHeight;
-    bool   mHaveNewMask;
-    bool   mMaskIsValid;
-    bool mShouldReallocateTexture;
-    // The size of mMaskPixels are always of size mMaskWidth * mMaskHeight * 4 bytes
-    std::vector<unsigned char> mMaskPixels;
-    bool   mBlendResetNeeded = false;
+    struct TexturedLayer {
+        std::mutex mMutex;
+        std::vector<unsigned char> mPixelData GUARDED_BY(mMutex);
+        int mWidth;
+        int mHeight;
+
+        GLuint mTexture;
+        int mTextureWidth;
+        int mTextureHeight;
+        bool mTextureDirty;
+        bool mIsValid;
+        bool mShouldReallocateTexture;
+
+        TexturedLayer();
+
+        bool create();
+        void update(int width, int height, const uint8_t* rgbaData);
+
+        void destroy();
+
+        bool preDraw();
+
+        void draw(GLuint program, GLint scaleSlot, intptr_t indexShift);
+    };
+
+    TexturedLayer mMaskLayer;
 };
 
 }  // namespace gl
