@@ -14,8 +14,8 @@
 
 #include "DisplaySurfaceVk.h"
 
-#include "gfxstream/common/logging.h"
 #include "VkUtils.h"
+#include "gfxstream/common/logging.h"
 
 namespace gfxstream {
 namespace vk {
@@ -23,6 +23,7 @@ namespace vk {
 std::unique_ptr<DisplaySurfaceVk> DisplaySurfaceVk::create(const VulkanDispatch& vk,
                                                            VkInstance instance,
                                                            FBNativeWindowType window) {
+    GFXSTREAM_VERBOSE("Creating display surface");
     VkSurfaceKHR surface = VK_NULL_HANDLE;
 #ifdef VK_USE_PLATFORM_WIN32_KHR
     const VkWin32SurfaceCreateInfoKHR surfaceCi = {
@@ -32,6 +33,9 @@ std::unique_ptr<DisplaySurfaceVk> DisplaySurfaceVk::create(const VulkanDispatch&
         .hinstance = GetModuleHandle(nullptr),
         .hwnd = window,
     };
+    if (vk.vkCreateWin32SurfaceKHR == nullptr) {
+        GFXSTREAM_FATAL("Vulkan driver do not support display surfaces!");
+    }
     VK_CHECK(vk.vkCreateWin32SurfaceKHR(instance, &surfaceCi, nullptr, &surface));
 #elif defined(VK_USE_PLATFORM_MACOS_MVK)
     const VkMacOSSurfaceCreateInfoMVK surfaceCi = {
@@ -40,6 +44,11 @@ std::unique_ptr<DisplaySurfaceVk> DisplaySurfaceVk::create(const VulkanDispatch&
         .flags = 0,
         .pView = window,
     };
+    // TODO(b/389646068): add precondition for enabling vulkan composition path, and handle this
+    // case more gracefully without crashing the emulator
+    if (vk.vkCreateMacOSSurfaceMVK == nullptr) {
+        GFXSTREAM_FATAL("Vulkan driver do not support display surfaces!");
+    }
     VK_CHECK(vk.vkCreateMacOSSurfaceMVK(instance, &surfaceCi, nullptr, &surface));
 #else
     GFXSTREAM_FATAL("Unimplemented.");
@@ -48,6 +57,7 @@ std::unique_ptr<DisplaySurfaceVk> DisplaySurfaceVk::create(const VulkanDispatch&
         GFXSTREAM_FATAL("No VkSurfaceKHR created?");
     }
 
+    GFXSTREAM_VERBOSE("Created native vulkan surface");
     return std::unique_ptr<DisplaySurfaceVk>(new DisplaySurfaceVk(vk, instance, surface));
 }
 
