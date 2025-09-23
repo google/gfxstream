@@ -98,7 +98,7 @@ static void initIcdPaths(bool forTesting) {
     }
     if (androidIcd == "lavapipe") {
         GFXSTREAM_INFO("%s: ICD set to 'lavapipe', using Lavapipe ICD", __func__);
-        setIcdPaths("lvp_icd.x86_64.json");
+        setIcdPaths("lvp_icd.json");
     } else if (androidIcd == "swiftshader") {
         GFXSTREAM_INFO("%s: ICD set to 'swiftshader', using Swiftshader ICD", __func__);
         setIcdPaths("vk_swiftshader_icd.json");
