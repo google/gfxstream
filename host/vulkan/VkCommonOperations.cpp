@@ -1204,6 +1204,7 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
 
             deviceInfos[i].driverVendor = driverVendor;
             deviceInfos[i].driverVersion = driverVersion;
+            deviceInfos[i].driverInfo = driverProps.driverInfo;
         }
 
 // TODO(aruby@qnx.com): Remove once dmabuf extension support has been flushed out on QNX
@@ -1914,6 +1915,27 @@ std::string VkEmulation::getDeviceExtensionsString() const {
         builder << deviceExtension.extensionName;
     }
     return builder.str();
+}
+
+void VkEmulation::getVulkanEmulationDeviceInfo(char** device_name, char** driver_info,
+                                               uint32_t* driver_version, uint32_t* api_version,
+                                               uint32_t* vendor_id, uint32_t* device_id,
+                                               uint32_t* device_type, uint64_t* device_memory) {
+    *driver_version = mDeviceInfo.physdevProps.driverVersion;
+    *api_version = mDeviceInfo.physdevProps.apiVersion;
+    *vendor_id = mDeviceInfo.physdevProps.vendorID;
+    *device_id = mDeviceInfo.physdevProps.deviceID;
+    *device_type = mDeviceInfo.physdevProps.deviceType;
+
+    *device_name = strdup(mDeviceInfo.physdevProps.deviceName);
+    *driver_info = strdup(mDeviceInfo.driverInfo.c_str());
+
+    *device_memory = 0;
+    for (uint32_t i = 0; i < mDeviceInfo.memProps.memoryHeapCount; ++i) {
+        if (mDeviceInfo.memProps.memoryHeaps[i].flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT) {
+            *device_memory += mDeviceInfo.memProps.memoryHeaps[i].size;
+        }
+    }
 }
 
 const VkPhysicalDeviceProperties VkEmulation::getPhysicalDeviceProperties() const {

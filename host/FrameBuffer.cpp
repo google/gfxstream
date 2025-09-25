@@ -590,6 +590,16 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
         *version = m_graphicsApiVersion.c_str();
     }
 
+    void getVulkanEmulationDeviceInfo(char** device_name, char** driver_info,
+                                      uint32_t* driver_version, uint32_t* api_version,
+                                      uint32_t* vendor_id, uint32_t* device_id,
+                                      uint32_t* device_type, uint64_t* device_memory) {
+        assert(m_emulationVk);
+        m_emulationVk->getVulkanEmulationDeviceInfo(device_name, driver_info, driver_version,
+                                                    api_version, vendor_id, device_id, device_type,
+                                                    device_memory);
+    }
+
     const gfxstream::host::FeatureSet& getFeatures() const { return m_features; }
 
     RepresentativeColorBufferMemoryTypeInfo getRepresentativeColorBufferMemoryTypeInfo() const;
@@ -5110,6 +5120,11 @@ void FrameBuffer::destroyYUVTextures(uint32_t type, uint32_t count, uint32_t* te
 void FrameBuffer::updateYUVTextures(uint32_t type, uint32_t* textures, void* privData, void* func) {
     mImpl->updateYUVTextures(type, textures, privData, func);
 }
+
+void FrameBuffer::getVulkanEmulationDeviceInfo(char** device_name, char** driver_info, uint32_t* driver_version, uint32_t* api_version, uint32_t* vendor_id, uint32_t* device_id, uint32_t* device_type, uint64_t* device_memory) {
+    mImpl->getVulkanEmulationDeviceInfo(device_name, driver_info, driver_version, api_version, vendor_id, device_id, device_type, device_memory);
+}
+
 
 void FrameBuffer::swapTexturesAndUpdateColorBuffer(uint32_t colorBufferHandle, int x, int y,
                                                    int width, int height, uint32_t format,

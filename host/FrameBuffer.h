@@ -604,6 +604,10 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
     // On return, |*vendor|, |*renderer| and |*version| will point to strings
     // that are owned by the instance (and must not be freed by the caller).
     void getDeviceInfo(const char** vendor, const char** renderer, const char** version) const;
+    void getVulkanEmulationDeviceInfo(char** device_name, char** driver_info,
+                                      uint32_t* driver_version, uint32_t* api_version,
+                                      uint32_t* vendor_id, uint32_t* device_id,
+                                      uint32_t* device_type, uint64_t* device_memory);
 
     const gfxstream::host::FeatureSet& getFeatures() const;
 
