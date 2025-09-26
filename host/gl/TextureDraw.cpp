@@ -383,7 +383,7 @@ bool TextureDraw::drawImpl(GLuint texture, float rotation,
     s_gles2.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     s_gles2.glClear(GL_COLOR_BUFFER_BIT);
 
-    bool drawBackground = wantOverlay && mBackgroundLayer.mIsValid;
+    const bool drawBackground = wantOverlay && mBackgroundLayer.preDraw();
 
     if (drawBackground) {
         s_gles2.glDisable(GL_BLEND);
@@ -718,6 +718,9 @@ bool TextureDraw::TexturedLayer::preDraw() {
 
         s_gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         s_gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        s_gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        s_gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         if (mShouldReallocateTexture) {
             mTextureWidth = mWidth;
