@@ -119,9 +119,8 @@ class VirtioGpuFrontend {
                      int32_t framebufferWidth,
                      int32_t framebufferHeight);
 
-    void setScreenMask(int width,
-                       int height,
-                       const uint8_t* rgbaData);
+    void setScreenMask(int width, int height, const uint8_t* rgbaData);
+    void setScreenBackground(int width, int height, const uint8_t* rgbaData);
 
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
     int snapshot(const char* directory);

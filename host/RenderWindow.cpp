@@ -580,6 +580,12 @@ void RenderWindow::setScreenMask(int width, int height, const uint8_t* rgbaData)
     }
 }
 
+void RenderWindow::setScreenBackground(int width, int height, const uint8_t* rgbaData) {
+    if (FrameBuffer* fb = FrameBuffer::getFB()) {
+        fb->setScreenBackground(width, height, rgbaData);
+    }
+}
+
 void RenderWindow::repaint() {
     D("Entering");
     RenderWindowMessage msg = {};

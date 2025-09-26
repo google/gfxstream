@@ -135,6 +135,9 @@ class RenderWindow {
     // Receive a screen mask and pass it to TextureDraw
     void setScreenMask(int width, int height, const uint8_t* rgbaData);
 
+    // Receive a background and pass it to TextureDraw
+    void setScreenBackground(int width, int height, const uint8_t* rgbaData);
+
     // Force a repaint of the whole content into the sub-window.
     void repaint();
 
