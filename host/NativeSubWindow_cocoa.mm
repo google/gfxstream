@@ -36,8 +36,12 @@
 
 @end
 
-@interface EmuGLViewWithMetal : NSView {
-} @end
+@interface EmuGLViewWithMetal : NSView
+
+- (CAMetalLayer *)getMetalLayer;
+
+@end
+
 
 @implementation EmuGLViewWithMetal
 
@@ -54,6 +58,11 @@
     return layer;
   }
 
+  - (CAMetalLayer *)getMetalLayer {
+      // The 'layer' property on NSView returns a CALayer. We can safely cast it
+      // to CAMetalLayer because we configured the view to use it.
+      return (CAMetalLayer *)self.layer;
+  }
 @end
 
 EGLNativeWindowType createSubWindow(FBNativeWindowType p_window,
@@ -158,4 +167,14 @@ int moveSubWindow(FBNativeWindowType p_parent_window,
 void* getNativeDisplay() {
     fprintf(stderr, "%s: Unimplemented\n", __func__);
     return nullptr;
+}
+
+// Retrieve metal layer from the view, to create a swapchain surface
+// To be used with VK_EXT_metal_surface
+void* getMetalLayerFromView(void* view) {
+    EmuGLViewWithMetal* metalView = (EmuGLViewWithMetal*)view;
+    if (!metalView) {
+        return nil;
+    }
+    return [metalView getMetalLayer];
 }
