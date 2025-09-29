@@ -170,6 +170,10 @@ class VkEmulation {
     std::string getGpuVersionString() const;
     std::string getInstanceExtensionsString() const;
     std::string getDeviceExtensionsString() const;
+    void getVulkanEmulationDeviceInfo(char** device_name, char** driver_info,
+                                      uint32_t* driver_version, uint32_t* api_version,
+                                      uint32_t* vendor_id, uint32_t* device_id,
+                                      uint32_t* device_type, uint64_t* device_memory);
 
     const VkPhysicalDeviceProperties getPhysicalDeviceProperties() const;
 
@@ -464,6 +468,7 @@ class VkEmulation {
 
         std::string driverVendor;
         std::string driverVersion;
+        std::string driverInfo;
 
         PFN_vkGetImageMemoryRequirements2KHR getImageMemoryRequirements2Func = nullptr;
         PFN_vkGetBufferMemoryRequirements2KHR getBufferMemoryRequirements2Func = nullptr;
