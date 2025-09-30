@@ -49,11 +49,11 @@ EGLNativeWindowType createSubWindow(FBNativeWindowType p_window,
                                     void* repaint_callback_param,
                                     int hideWindow) {
     auto x11 = getX11Api();
-   // The call to this function is protected by a lock
-   // in FrameBuffer so it is safe to check and initialize s_display here
-   if (!s_display) {
-       s_display = x11->XOpenDisplay(NULL);
-   }
+    // The call to this function is protected by a lock
+    // in FrameBuffer so it is safe to check and initialize s_display here
+    if (!s_display) {
+        s_display = x11->XOpenDisplay(NULL);
+    }
 
     XSetWindowAttributes wa;
     wa.event_mask = StructureNotifyMask;
@@ -134,4 +134,8 @@ int moveSubWindow(FBNativeWindowType p_parent_window,
     x11->XIfEvent(s_display, &e, WaitForConfigureNotify, (char *)p_sub_window);
 
     return ret;
+}
+
+void* getNativeDisplay() {
+    return s_display;
 }

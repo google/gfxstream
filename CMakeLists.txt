@@ -110,6 +110,7 @@ elseif(QNX)
 elseif(UNIX)
     # Use X11 version of EGL platform specific definitions.
     add_compile_definitions(USE_X11)
+    add_compile_definitions(VK_USE_PLATFORM_XCB_KHR)
 elseif(WIN32)
     add_compile_definitions(VK_USE_PLATFORM_WIN32_KHR)
 endif()

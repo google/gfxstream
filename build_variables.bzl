@@ -1,4 +1,3 @@
-
 """
 Common build configuration definitions.
 """
@@ -28,6 +27,9 @@ GFXSTREAM_HOST_VK_DEFINES = [
     ],
     "@platforms//os:windows": [
         "VK_USE_PLATFORM_WIN32_KHR",
+    ],
+    "@platforms//os:linux": [
+        "VK_USE_PLATFORM_XCB_KHR",
     ],
     "//conditions:default": [],
 })

@@ -16,6 +16,8 @@ if host_machine.system() == 'windows'
 elif host_machine.system() == 'darwin'
   emulated_texture_args += '-DVK_USE_PLATFORM_METAL_EXT'
   emulated_texture_args += '-DVK_USE_PLATFORM_MACOS_MVK'
+elif host_machine.system() == 'linux'
+  emulated_texture_args += '-DVK_USE_PLATFORM_XCB_KHR'
 endif
 
 lib_emulated_textures = static_library(

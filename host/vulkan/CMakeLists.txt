@@ -81,6 +81,8 @@ elseif (APPLE)
 target_compile_definitions(gfxstream-vulkan-server PRIVATE -DVK_USE_PLATFORM_METAL_EXT -DVK_USE_PLATFORM_MACOS_MVK)
 elseif (QNX)
 target_compile_definitions(gfxstream-vulkan-server PRIVATE -DVK_USE_PLATFORM_SCREEN_QNX)
+elseif (UNIX)
+target_compile_definitions(gfxstream-vulkan-server PRIVATE -DVK_USE_PLATFORM_XCB_KHR)
 endif()
 
 if (NOT MSVC)

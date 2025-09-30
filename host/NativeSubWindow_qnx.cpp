@@ -127,3 +127,8 @@ int moveSubWindow(FBNativeWindowType p_parent_window, EGLNativeWindowType p_sub_
     }
     return screen_flush_context(get_screen_context(), 0) == EOK;
 }
+
+void* getNativeDisplay() {
+    fprintf(stderr, "%s: Unimplemented\n", __func__);
+    return nullptr;
+}

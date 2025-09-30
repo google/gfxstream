@@ -19,6 +19,10 @@
 
 #include "gfxstream/export.h"
 
+// This dispatch table combines x11 and XGetXCBConnection functions in here.
+// Forward declare xcb connection type to avoid including the header.
+struct xcb_connection_t;
+
 // GLX
 #define LIST_GLX_FUNCS(f) \
     f(glXQueryVersion) \
@@ -60,6 +64,7 @@ f( void, glXSwapBuffers, (Display *dpy, GLXDrawable drawable )) \
     f(XSetErrorHandler) \
     f(XCreatePixmap) \
     f(XFreePixmap) \
+    f(XGetXCBConnection) \
 
 #define LIST_XLIB_FUNCTYPES(f) \
 f( Display*, XOpenDisplay, (_Xconst char*)) \
@@ -136,6 +141,7 @@ f( int, XSync, (Display*, Bool)) \
 f( XErrorHandler, XSetErrorHandler, (XErrorHandler)) \
 f( Pixmap, XCreatePixmap, (Display*, Drawable, unsigned int, unsigned int, unsigned int)) \
 f( void, XFreePixmap, (Display*, Pixmap)) \
+f( xcb_connection_t*, XGetXCBConnection, (Display*)) \
 
 #define DECLARE_FUNCTION_TYPEDEF(rettype, name, args) \
     typedef rettype (*name##_t)args;
