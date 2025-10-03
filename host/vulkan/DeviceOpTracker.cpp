@@ -85,8 +85,7 @@ void DeviceOpTracker::PollAndProcessGarbage() {
                 return (pollingFunc.timepoint < old);
             });
         if (numOldFuncs > kSizeLoggingThreshold) {
-            //TODO(b/382028853): should be a warning
-            GFXSTREAM_DEBUG(
+            GFXSTREAM_WARNING(
                 "VkDevice:%p has %d pending waitables, %d taking more than %d milliseconds.",
                 mDevice, mPollFunctions.size(), numOldFuncs,
                 std::chrono::duration_cast<std::chrono::milliseconds>(kSizeLoggingTimeThreshold));
