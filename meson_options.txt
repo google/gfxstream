@@ -704,7 +704,6 @@ option(
   choices : [
     'gles',
     'vulkan',
-    'magma',
     'composer',
     'auto',
   ],

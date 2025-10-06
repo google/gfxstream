@@ -43,27 +43,10 @@ cc_library_headers {
         "host/include",
     ],
     header_libs: [
-        "gfxstream_magma_headers",
         "libgfxstream_thirdparty_vulkan_headers",
     ],
     export_header_lib_headers: [
-        "gfxstream_magma_headers",
         "libgfxstream_thirdparty_vulkan_headers",
-    ],
-    apex_available: [
-        "//apex_available:platform",
-        "com.android.virt",
-    ],
-}
-
-cc_library_headers {
-    name: "gfxstream_magma_headers",
-    vendor_available: true,
-    host_supported: true,
-    export_include_dirs: [
-        "third_party/fuchsia/magma/include",
-        // TODO(b/274956288): use consistent header paths
-        "third_party/fuchsia/magma/include/lib",
     ],
     apex_available: [
         "//apex_available:platform",
