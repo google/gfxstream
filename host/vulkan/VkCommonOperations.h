@@ -28,6 +28,7 @@
 #include "DebugUtilsHelper.h"
 #include "DeviceLostHelper.h"
 #include "DisplayVk.h"
+#include "ExternalMemory.h"
 #include "VkUtils.h"
 #include "FrameworkFormats.h"
 #include "gfxstream/Optional.h"
@@ -116,7 +117,6 @@ class VkEmulation {
     bool supportsExternalFenceCapabilities() const;
     bool supportsSurfaces() const;
     bool supportsMoltenVk() const;
-    bool supportsExternalMemoryMetal() const;
 
     bool supportsGetPhysicalDeviceProperties2() const;
 
@@ -183,6 +183,10 @@ class VkEmulation {
     void onVkDeviceLost();
 
     VkExternalMemoryHandleTypeFlagBits getDefaultExternalMemoryHandleType();
+    void appendExternalMemoryModeDeviceExtensions(std::vector<const char*>& outDeviceExtensions);
+    ExternalMemory::Mode getExternalMemoryMode() const;
+    bool supportsExternalMemoryMetal() { return (getExternalMemoryMode() == ExternalMemory::Mode::Metal); }
+    bool supportsExternalMemory() { return (getExternalMemoryMode() != ExternalMemory::Mode::Unknown); }
 
     std::unique_ptr<gfxstream::DisplaySurface> createDisplaySurface(FBNativeWindowType window,
                                                                     uint32_t width,
@@ -465,6 +469,7 @@ class VkEmulation {
         VkPhysicalDeviceMemoryProperties memProps;
         VkPhysicalDeviceIDPropertiesKHR idProps;
         VkPhysicalDeviceExternalMemoryHostPropertiesEXT externalMemoryHostProps;
+        ExternalMemory::Mode externalMemoryMode = ExternalMemory::Mode::Unknown;
 
         std::string driverVendor;
         std::string driverVersion;
@@ -571,10 +576,8 @@ class VkEmulation {
     bool mInstanceSupportsSurface = false;
 #if defined(__APPLE__)
     bool mInstanceSupportsMoltenVK = false;
-    bool mInstanceSupportsExternalMemoryMetal = false;
 #else
     static const bool mInstanceSupportsMoltenVK = false;
-    static const bool mInstanceSupportsExternalMemoryMetal = false;
 #endif
 
     PFN_vkGetPhysicalDeviceImageFormatProperties2KHR mGetImageFormatProperties2Func = nullptr;

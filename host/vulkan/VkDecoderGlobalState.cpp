@@ -6177,21 +6177,8 @@ class VkDecoderGlobalState::Impl {
 
                 sharedMemory = std::make_optional<SharedMemory>(std::move(memory));
             } else if (m_vkEmulation->getFeatures().ExternalBlob.enabled) {
-                VkExternalMemoryHandleTypeFlags handleTypes;
-
-#if defined(__APPLE__)
-                if (m_vkEmulation->supportsExternalMemoryMetal()) {
-                    // Using a different handle type when in MoltenVK mode
-                    handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLHEAP_BIT_EXT;
-                } else {
-                    handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
-                }
-#elif defined(_WIN32)
-                handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT;
-#elif defined(__unix__)
-                handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
-#endif
-
+                VkExternalMemoryHandleTypeFlags handleTypes =
+                    m_vkEmulation->getDefaultExternalMemoryHandleType();
 #ifdef __linux__
                 if (m_vkEmulation->supportsDmaBuf() && deviceHasDmabufExt) {
                     handleTypes |= VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
@@ -9290,30 +9277,17 @@ class VkDecoderGlobalState::Impl {
             // available.
             VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME,
 #ifdef _WIN32
-            VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME,
             VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME,
-#elif defined(__QNX__)
-            VK_QNX_EXTERNAL_MEMORY_SCREEN_BUFFER_EXTENSION_NAME,
-            // EXT_queue_family_foreign is an extension dependency of
-            // VK_QNX_external_memory_screen_buffer
-            VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME,
-            VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME,
-#elif __unix__
-            VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME,
+#elif defined(__QNX__) || defined(__unix__)
             VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME,
 #endif
         };
 
+        m_vkEmulation->appendExternalMemoryModeDeviceExtensions(hostAlwaysDeviceExtensions);
+
 #if defined(__APPLE__)
         if (m_vkEmulation->supportsMoltenVk()) {
             hostAlwaysDeviceExtensions.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
-            hostAlwaysDeviceExtensions.push_back(VK_EXT_METAL_OBJECTS_EXTENSION_NAME);
-        }
-        if (m_vkEmulation->supportsExternalMemoryMetal()) {
-            hostAlwaysDeviceExtensions.push_back(VK_EXT_EXTERNAL_MEMORY_METAL_EXTENSION_NAME);
-        } else {
-            // Use memory_fd if external memory metal is not supported (software rendering path)
-            hostAlwaysDeviceExtensions.push_back(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME);
         }
 #endif
 
@@ -9483,62 +9457,98 @@ class VkDecoderGlobalState::Impl {
                                                          VulkanDispatch* vk, VkDevice device,
                                                          VkDeviceMemory memory) {
         BlobDescriptorType ret;
-#if defined(__ANDROID__)
-        VkMemoryGetAndroidHardwareBufferInfoANDROID getAhbInfo = {
-            .sType = VK_STRUCTURE_TYPE_MEMORY_GET_ANDROID_HARDWARE_BUFFER_INFO_ANDROID,
-            .pNext = nullptr,
-            .memory = memory,
-        };
-        ret.streamHandleType = STREAM_HANDLE_TYPE_MEM_AHB;
-        AHardwareBuffer* exportHandle;
-        if (vk->vkGetMemoryAndroidHardwareBufferANDROID(device, &getAhbInfo, &exportHandle) !=
-            VK_SUCCESS) {
-            return std::nullopt;
-        }
 
-        ret.handle = reinterpret_cast<ExternalHandleType>(exportHandle);
-#elif defined(__unix__)
-        VkMemoryGetFdInfoKHR memoryGetFdInfo = {
-            .sType = VK_STRUCTURE_TYPE_MEMORY_GET_FD_INFO_KHR,
-            .pNext = nullptr,
-            .memory = memory,
-            .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
-        };
-        ret.streamHandleType = STREAM_HANDLE_TYPE_MEM_OPAQUE_FD;
+        const auto extMemMode = m_vkEmulation->getExternalMemoryMode();
+        switch (extMemMode) {
+#if defined(__unix__) && !defined(__ANDROID__)
+            case ExternalMemory::Mode::OpaqueFd: {
+                if (!vk->vkGetMemoryFdKHR) {
+                    GFXSTREAM_ERROR("%s: External memory function not supported.", __func__);
+                    return std::nullopt;
+                }
+                VkMemoryGetFdInfoKHR memoryGetFdInfo = {
+                    .sType = VK_STRUCTURE_TYPE_MEMORY_GET_FD_INFO_KHR,
+                    .pNext = nullptr,
+                    .memory = memory,
+                    .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
+                };
+                ret.streamHandleType = STREAM_HANDLE_TYPE_MEM_OPAQUE_FD;
 
 #if defined(__linux__)
-        if (m_vkEmulation->supportsDmaBuf()) {
-            memoryGetFdInfo.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
-            ret.streamHandleType = STREAM_HANDLE_TYPE_MEM_DMABUF;
-        }
+                if (m_vkEmulation->supportsDmaBuf()) {
+                    memoryGetFdInfo.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
+                    ret.streamHandleType = STREAM_HANDLE_TYPE_MEM_DMABUF;
+                }
 #endif
 
-        int fd = -1;
-        if (vk->vkGetMemoryFdKHR(device, &memoryGetFdInfo, &fd) != VK_SUCCESS) {
-            return std::nullopt;
-        }
+                int fd = -1;
+                VkResult res = vk->vkGetMemoryFdKHR(device, &memoryGetFdInfo, &fd);
+                if (res != VK_SUCCESS) {
+                    GFXSTREAM_INFO("%s: vkGetMemoryFdKHR failed: %s", __func__,
+                                   string_VkResult(res));
+                    return std::nullopt;
+                }
 
-        ret.descriptor = ManagedDescriptor(fd);
-
-#elif defined(_WIN32)
-        VkMemoryGetWin32HandleInfoKHR memoryGetHandleInfo = {
-            .sType = VK_STRUCTURE_TYPE_MEMORY_GET_WIN32_HANDLE_INFO_KHR,
-            .pNext = nullptr,
-            .memory = memory,
-            .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT,
-        };
-        ret.streamHandleType = STREAM_HANDLE_TYPE_MEM_OPAQUE_WIN32;
-
-        HANDLE handle;
-        if (vk->vkGetMemoryWin32HandleKHR(device, &memoryGetHandleInfo, &handle) != VK_SUCCESS) {
-            return std::nullopt;
-        }
-
-        ret.descriptor = ManagedDescriptor(handle);
-#else
-        GFXSTREAM_ERROR("Unsupported external memory handle type.");
-        return std::nullopt;
+                ret.descriptor = ManagedDescriptor(fd);
+                break;
+            }
 #endif
+#ifdef _WIN32
+            case ExternalMemory::Mode::OpaqueWin32: {
+                if (!vk->vkGetMemoryWin32HandleKHR) {
+                    GFXSTREAM_ERROR("%s: External memory function not supported.", __func__);
+                    return std::nullopt;
+                }
+                VkMemoryGetWin32HandleInfoKHR memoryGetHandleInfo = {
+                    .sType = VK_STRUCTURE_TYPE_MEMORY_GET_WIN32_HANDLE_INFO_KHR,
+                    .pNext = nullptr,
+                    .memory = memory,
+                    .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT,
+                };
+                ret.streamHandleType = STREAM_HANDLE_TYPE_MEM_OPAQUE_WIN32;
+
+                HANDLE handle;
+                VkResult res = vk->vkGetMemoryWin32HandleKHR(device, &memoryGetHandleInfo, &handle);
+                if (res != VK_SUCCESS) {
+                    GFXSTREAM_INFO("%s: vkGetMemoryWin32HandleKHR failed: %s", __func__,
+                                   string_VkResult(res));
+                    return std::nullopt;
+                }
+
+                ret.descriptor = ManagedDescriptor(handle);
+                break;
+            }
+#endif
+#ifdef __ANDROID__
+            case ExternalMemory::Mode::AndroidAHB: {
+                if (!vk->vkGetMemoryAndroidHardwareBufferANDROID) {
+                    GFXSTREAM_ERROR("%s: External memory function not supported.", __func__);
+                    return std::nullopt;
+                }
+                VkMemoryGetAndroidHardwareBufferInfoANDROID getAhbInfo = {
+                    .sType = VK_STRUCTURE_TYPE_MEMORY_GET_ANDROID_HARDWARE_BUFFER_INFO_ANDROID,
+                    .pNext = nullptr,
+                    .memory = memory,
+                };
+                ret.streamHandleType = STREAM_HANDLE_TYPE_MEM_AHB;
+
+                AHardwareBuffer* exportHandle;
+                VkResult res =
+                    vk->vkGetMemoryAndroidHardwareBufferANDROID(device, &getAhbInfo, &exportHandle);
+                if (res != VK_SUCCESS) {
+                    GFXSTREAM_INFO("%s: vkGetMemoryAndroidHardwareBufferANDROID failed: %s",
+                                   __func__, string_VkResult(res));
+                    return std::nullopt;
+                }
+
+                ret.handle = reinterpret_cast<ExternalHandleType>(exportHandle);
+                break;
+            }
+#endif
+            default:
+                GFXSTREAM_ERROR("%s: Unsupported external memory mode: %d", __func__, extMemMode);
+                return std::nullopt;
+        }
 
         return ret;
     }

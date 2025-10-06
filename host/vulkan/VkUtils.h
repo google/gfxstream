@@ -166,9 +166,6 @@ void vk_struct_chain_filter(H* head) {
         }                                                                                   \
     } while (0)
 
-typedef void* MTLTextureRef;
-typedef void* MTLBufferRef;
-
 namespace vk_util {
 
 inline VkResult waitForVkQueueIdleWithRetry(const VulkanDispatch& vk, VkQueue queue) {
@@ -209,6 +206,12 @@ class CallbacksWrapper {
 
 std::optional<uint32_t> findMemoryType(const VulkanDispatch* ivk, VkPhysicalDevice physicalDevice,
                                        uint32_t typeFilter, VkMemoryPropertyFlags properties);
+
+bool extensionSupported(const std::vector<VkExtensionProperties>& currentProps,
+                               const char* wantedExtName);
+
+bool extensionsSupported(const std::vector<VkExtensionProperties>& currentProps,
+                                const std::vector<const char*>& wantedExtNames);
 
 void setVkCheckCallbacks(std::unique_ptr<VkCheckCallbacks>);
 const CallbacksWrapper<VkCheckCallbacks>& getVkCheckCallbacks();

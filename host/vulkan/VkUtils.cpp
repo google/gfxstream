@@ -16,6 +16,8 @@
 
 #include "VkUtils.h"
 
+#include <cstring>
+
 namespace gfxstream {
 namespace vk {
 namespace vk_util {
@@ -44,6 +46,27 @@ std::optional<uint32_t> findMemoryType(const VulkanDispatch* ivk, VkPhysicalDevi
         }
     }
     return std::nullopt;
+}
+
+bool extensionSupported(const std::vector<VkExtensionProperties>& currentProps,
+                        const char* wantedExtName) {
+    for (uint32_t i = 0; i < currentProps.size(); ++i) {
+        if (!strcmp(wantedExtName, currentProps[i].extensionName)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool extensionsSupported(const std::vector<VkExtensionProperties>& currentProps,
+                         const std::vector<const char*>& wantedExtNames) {
+    for (size_t i = 0; i < wantedExtNames.size(); ++i) {
+        if (!extensionSupported(currentProps, wantedExtNames[i])) {
+            GFXSTREAM_DEBUG("%s not found, bailing.", wantedExtNames[i]);
+            return false;
+        }
+    }
+    return true;
 }
 
 bool YcbcrSamplerPool::init(const VulkanDispatch* ivk, const VulkanDispatch* dvk,
