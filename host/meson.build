@@ -11,10 +11,8 @@ inc_host_include = include_directories('include')
 
 inc_gl_common = include_directories('gl/glestranslator/GLcommon/include')
 
-subdir('metrics')
 subdir('features')
 subdir('iostream')
-subdir('health')
 subdir('library')
 subdir('tracing')
 subdir('renderdoc')
@@ -32,12 +30,10 @@ inc_gfxstream_backend = [
   inc_host_address_space,
   inc_host_backend,
   inc_host_features,
-  inc_host_health,
   inc_host_include,
   inc_host_iostream,
   inc_host_library,
   inc_common_logging,
-  inc_host_metrics,
   inc_host_renderdoc,
   inc_host_snapshot,
   inc_host_tracing,
@@ -53,11 +49,9 @@ link_gfxstream_backend = [
   lib_host_address_space,
   lib_host_backend,
   lib_host_features,
-  lib_host_health,
   lib_host_iostream,
   lib_host_library,
   lib_common_logging,
-  lib_host_metrics,
   lib_host_snapshot,
   lib_host_tracing,
 ]

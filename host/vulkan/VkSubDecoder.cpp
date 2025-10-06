@@ -37,7 +37,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                  VkSnapshotApiCallHandle snapshotApiCallHandle, void* boxed_dispatchHandle,
                  void* dispatchHandle, VkDeviceSize subDecodeDataSize, const void* pSubDecodeData,
                  const VkDecoderContext& context) {
-    auto& metricsLogger = *context.metricsLogger;
     uint32_t count = 0;
     unsigned char* buf = (unsigned char*)pSubDecodeData;
     gfxstream::base::BumpPool* pool = readStream->pool();
@@ -52,7 +51,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
         // large
         if (packetLen < 8 || packetLen > MAX_PACKET_LENGTH) {
             GFXSTREAM_WARNING("Bad packet length %d detected, subdecode may fail", packetLen);
-            metricsLogger.logMetricEvent(MetricEventBadPacketLength{.len = packetLen});
         }
 
         if (end - ptr < packetLen) return ptr - (unsigned char*)buf;
@@ -82,7 +80,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 }
                 if ((vkBeginCommandBuffer_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     this->on_DeviceLost();
-                this->on_CheckOutOfMemory(vkBeginCommandBuffer_VkResult_return, opcode, context);
                 if (snapshotsEnabled()) {
                     this->snapshot()->vkBeginCommandBuffer(pool, snapshotApiCallHandle, nullptr, 0,
                                                            vkBeginCommandBuffer_VkResult_return,
@@ -102,7 +99,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 }
                 if ((vkEndCommandBuffer_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     this->on_DeviceLost();
-                this->on_CheckOutOfMemory(vkEndCommandBuffer_VkResult_return, opcode, context);
                 if (snapshotsEnabled()) {
                     this->snapshot()->vkEndCommandBuffer(pool, snapshotApiCallHandle, nullptr, 0,
                                                          vkEndCommandBuffer_VkResult_return,
@@ -125,7 +121,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 }
                 if ((vkResetCommandBuffer_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     this->on_DeviceLost();
-                this->on_CheckOutOfMemory(vkResetCommandBuffer_VkResult_return, opcode, context);
                 if (snapshotsEnabled()) {
                     this->snapshot()->vkResetCommandBuffer(pool, snapshotApiCallHandle, nullptr, 0,
                                                            vkResetCommandBuffer_VkResult_return,

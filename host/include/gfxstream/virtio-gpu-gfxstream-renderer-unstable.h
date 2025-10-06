@@ -50,34 +50,9 @@ struct stream_renderer_param_host_visible_memory_mask {
 // Enables the host to control which GPU is used for rendering.
 #define STREAM_RENDERER_PARAM_RENDERING_GPU 9
 
-// External callbacks for tracking metrics.
-// Separating each function to a parameter allows new functions to be added later.
-#define STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT 1024
-typedef void (*stream_renderer_param_metrics_callback_add_instant_event)(int64_t event_code);
-
-#define STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_DESCRIPTOR 1025
-typedef void (*stream_renderer_param_metrics_callback_add_instant_event_with_descriptor)(
-    int64_t event_code, int64_t descriptor);
-
-#define STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_METRIC 1026
-typedef void (*stream_renderer_param_metrics_callback_add_instant_event_with_metric)(
-    int64_t event_code, int64_t metric_value);
-
-#define STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_VULKAN_OUT_OF_MEMORY_EVENT 1027
-typedef void (*stream_renderer_param_metrics_callback_add_vulkan_out_of_memory_event)(
-    int64_t result_code, uint32_t op_code, const char* function, uint32_t line,
-    uint64_t allocation_size, bool is_host_side_result, bool is_allocation);
-
 // STREAM_RENDERER_PARAM_RENDERER_FEATURES: stream_renderer_param::value is a pointer to a null
 // terminated string of the form "<feature1 name>:[enabled|disabled],<feature 2 ...>".
 #define STREAM_RENDERER_PARAM_RENDERER_FEATURES 11
-
-#define STREAM_RENDERER_PARAM_METRICS_CALLBACK_SET_ANNOTATION 1028
-typedef void (*stream_renderer_param_metrics_callback_set_annotation)(const char* key,
-                                                                      const char* value);
-
-#define STREAM_RENDERER_PARAM_METRICS_CALLBACK_ABORT 1029
-typedef void (*stream_renderer_param_metrics_callback_abort)();
 
 VG_EXPORT void gfxstream_backend_setup_window(void* native_window_handle, int32_t window_x,
                                               int32_t window_y, int32_t window_width,

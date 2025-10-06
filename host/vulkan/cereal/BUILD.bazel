@@ -56,7 +56,6 @@ cc_library(
         "//host:gfxstream_host_headers",
         "//host/backend:gfxstream_host_backend",
         "//host/features:gfxstream_host_features",
-        "//host/health:gfxstream_host_health",
         "//host/tracing:gfxstream_host_tracing",
         "//host/vulkan:gfxstream_vulkan_headers",
         "//host/vulkan:gfxstream_vulkan_server_headers",

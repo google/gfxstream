@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #include <gtest/gtest.h>
 
 #include "CompositorVk.h"
@@ -25,11 +24,12 @@
 #include <optional>
 
 #include "BorrowedImageVk.h"
-#include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/ImageUtils.h"
 #include "gfxstream/host/testing/VkTestUtils.h"
-#include "vulkan/VulkanDispatch.h"
+#include "gfxstream/synchronization/Lock.h"
+#include "gfxstream/system/System.h"
 #include "vulkan/VkUtils.h"
+#include "vulkan/VulkanDispatch.h"
 
 #ifdef BAZEL_CURRENT_REPOSITORY
 #include "rules_cc/cc/runfiles/runfiles.h"

@@ -37,8 +37,6 @@
 #include "VsyncThread.h"
 #include "gfxstream/AsyncResult.h"
 #include "gfxstream/EventNotificationSupport.h"
-#include "gfxstream/HealthMonitor.h"
-#include "gfxstream/Metrics.h"
 #include "gfxstream/host/ProcessResources.h"
 #include "gfxstream/host/borrowed_image.h"
 #include "gfxstream/host/external_object_manager.h"
@@ -414,12 +412,7 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
                                                                        bool colorBufferIsTarget);
     std::unique_ptr<BorrowedImageInfo> borrowColorBufferForDisplay(uint32_t colorBufferHandle);
 
-    HealthMonitor<>* getHealthMonitor();
-    MetricsLogger& getMetricsLogger();
-
     void logVulkanDeviceLost();
-    void logVulkanOutOfMemory(VkResult result, const char* function, int line,
-                              std::optional<uint64_t> allocationSize = std::nullopt);
 
     void setVsyncHz(int vsyncHz);
     void scheduleVsyncTask(VsyncThread::VsyncTask task);

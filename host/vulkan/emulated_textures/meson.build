@@ -29,10 +29,8 @@ lib_emulated_textures = static_library(
     inc_common_base,
     inc_host_compressed_textures,
     inc_host_decoder_common,
-    inc_host_health,
     inc_host_include,
     inc_common_logging,
-    inc_host_metrics,
     inc_include,
     inc_root,
     inc_stream_servers,
@@ -42,8 +40,6 @@ lib_emulated_textures = static_library(
   link_with: [
     lib_common_base,
     lib_host_compressed_textures,
-    lib_host_health,
     lib_common_logging,
-    lib_host_metrics,
   ],
 )

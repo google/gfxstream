@@ -62,7 +62,6 @@ target_link_libraries(gfxstream-vulkan-server PUBLIC
         gfxstream_features
         gfxstream_host_backend
         gfxstream_host_compressed_textures
-        gfxstream_host_health
         gfxstream_host_iostream
         gfxstream_host_library
         gfxstream_host_renderdoc

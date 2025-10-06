@@ -32,10 +32,8 @@
 #endif
 #include "RenderThreadInfo.h"
 #include "VkDecoderContext.h"
-#include "gfxstream/host/ChecksumCalculatorThreadInfo.h"
-#include "gfxstream/HealthMonitor.h"
-#include "gfxstream/Metrics.h"
 #include "gfxstream/common/logging.h"
+#include "gfxstream/host/ChecksumCalculatorThreadInfo.h"
 #include "gfxstream/host/stream_utils.h"
 #include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/synchronization/MessageChannel.h"
@@ -45,7 +43,6 @@
 namespace gfxstream {
 
 using gfxstream::base::AutoLock;
-using gfxstream::base::EventHangMetadata;
 using gfxstream::host::GfxApiLogger;
 using vk::VkDecoderContext;
 
@@ -348,7 +345,6 @@ intptr_t RenderThread::main() {
     bool benchmarkEnabled = getBenchmarkEnabledFromEnv();
 
     GfxApiLogger gfxLogger;
-    auto& metricsLogger = FrameBuffer::getFB()->getMetricsLogger();
 
     const ProcessResources* processResources = nullptr;
     bool anyProgress = false;
@@ -418,30 +414,11 @@ intptr_t RenderThread::main() {
         anyProgress = false;
         do {
             anyProgress |= progress;
-            std::unique_ptr<EventHangMetadata::HangAnnotations> renderThreadData =
-                std::make_unique<EventHangMetadata::HangAnnotations>();
 
             const char* contextName = nullptr;
             if (mNameOpt) {
                 contextName = (*mNameOpt).c_str();
             }
-
-            auto* healthMonitor = FrameBuffer::getFB()->getHealthMonitor();
-            if (healthMonitor) {
-                if (contextName) {
-                    renderThreadData->insert(
-                        {{"renderthread_guest_process", contextName}});
-                }
-                if (readBuf.validData() >= 4) {
-                    renderThreadData->insert(
-                        {{"first_opcode", std::to_string(*(uint32_t*)readBuf.buf())},
-                         {"buffer_length", std::to_string(readBuf.validData())}});
-                }
-            }
-            auto watchdog = WATCHDOG_BUILDER(healthMonitor, "RenderThread decode operation")
-                                .setHangType(EventHangMetadata::HangType::kRenderThread)
-                                .setAnnotations(std::move(renderThreadData))
-                                .build();
 
             if (!tInfo->m_puid) {
                 tInfo->m_puid = mContextId;
@@ -467,8 +444,6 @@ intptr_t RenderThread::main() {
                 VkDecoderContext context = {
                     .processName = contextName,
                     .gfxApiLogger = &gfxLogger,
-                    .healthMonitor = FrameBuffer::getFB()->getHealthMonitor(),
-                    .metricsLogger = &metricsLogger,
                     .shouldExit = &(tInfo->m_shouldExit),
                 };
                 last = tInfo->m_vkInfo->m_vkDec.decode(readBuf.buf(), readBuf.validData(), ioStream,

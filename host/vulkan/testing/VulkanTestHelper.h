@@ -17,8 +17,6 @@
 #include "VkDecoderGlobalState.h"
 #include "VulkanDispatch.h"
 #include "gfxstream/BumpPool.h"
-#include "gfxstream/HealthMonitor.h"
-#include "gfxstream/Metrics.h"
 #include "gfxstream/host/GfxApiLogger.h"
 #include "vulkan/VkCommonOperations.h"
 #include "vulkan/VkDecoderContext.h"

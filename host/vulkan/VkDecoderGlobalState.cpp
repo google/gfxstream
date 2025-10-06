@@ -87,9 +87,6 @@ using gfxstream::VulkanInfo;
 using gfxstream::base::AutoLock;
 using gfxstream::base::DescriptorType;
 using gfxstream::base::Lock;
-using gfxstream::base::MetricEventBadPacketLength;
-using gfxstream::base::MetricEventDuplicateSequenceNum;
-using gfxstream::base::MetricEventVulkanOutOfMemory;
 using gfxstream::base::Optional;
 using gfxstream::base::SharedMemory;
 using gfxstream::base::StaticLock;
@@ -732,8 +729,7 @@ class VkDecoderGlobalState::Impl {
         GFXSTREAM_DEBUG("VulkanSnapshots save (end)");
     }
 
-    void load(gfxstream::Stream* stream, GfxApiLogger& gfxLogger,
-              HealthMonitor<>* healthMonitor) {
+    void load(gfxstream::Stream* stream, GfxApiLogger& gfxLogger) {
         // assume that we already destroyed all instances
         // from FrameBuffer's onLoad method.
         GFXSTREAM_DEBUG("VulkanSnapshots load (begin)");
@@ -791,7 +787,6 @@ class VkDecoderGlobalState::Impl {
             VkDecoderContext context = {
                 .processName = nullptr,
                 .gfxApiLogger = &gfxLogger,
-                .healthMonitor = healthMonitor,
             };
             decoderForLoading.decode(decoderReplayBuffer.data(), decoderReplayBuffer.size(),
                                      &trivialStream, resources.get(), context);
@@ -8863,17 +8858,6 @@ class VkDecoderGlobalState::Impl {
         GFXSTREAM_FATAL("Encountered device lost.");
     }
 
-    void on_CheckOutOfMemory(VkResult result, uint32_t opCode, const VkDecoderContext& context,
-                             std::optional<uint64_t> allocationSize = std::nullopt) {
-        if (result == VK_ERROR_OUT_OF_HOST_MEMORY || result == VK_ERROR_OUT_OF_DEVICE_MEMORY ||
-            result == VK_ERROR_OUT_OF_POOL_MEMORY) {
-            context.metricsLogger->logMetricEvent(
-                MetricEventVulkanOutOfMemory{.vkResultCode = result,
-                                             .opCode = std::make_optional(opCode),
-                                             .allocationSize = allocationSize});
-        }
-    }
-
     VkResult waitForFences(VkDevice unboxed_device, VulkanDispatch* vk, uint32_t fenceCount,
                            const VkFence* pFences, VkBool32 waitAll, uint64_t timeout, bool checkWaitState) {
         if (!fenceCount) {
@@ -10359,9 +10343,8 @@ bool VkDecoderGlobalState::vkCleanupEnabled() const { return mImpl->vkCleanupEna
 
 void VkDecoderGlobalState::save(gfxstream::Stream* stream) { mImpl->save(stream); }
 
-void VkDecoderGlobalState::load(gfxstream::Stream* stream, GfxApiLogger& gfxLogger,
-                                HealthMonitor<>* healthMonitor) {
-    mImpl->load(stream, gfxLogger, healthMonitor);
+void VkDecoderGlobalState::load(gfxstream::Stream* stream, GfxApiLogger& gfxLogger) {
+    mImpl->load(stream, gfxLogger);
 }
 
 VkResult VkDecoderGlobalState::on_vkEnumerateInstanceVersion(gfxstream::base::BumpPool* pool,
@@ -11713,12 +11696,6 @@ VkResult VkDecoderGlobalState::on_vkEnumeratePhysicalDeviceGroupsKHR(
 }
 
 void VkDecoderGlobalState::on_DeviceLost() { mImpl->on_DeviceLost(); }
-
-void VkDecoderGlobalState::on_CheckOutOfMemory(VkResult result, uint32_t opCode,
-                                               const VkDecoderContext& context,
-                                               std::optional<uint64_t> allocationSize) {
-    mImpl->on_CheckOutOfMemory(result, opCode, context, allocationSize);
-}
 
 VkResult VkDecoderGlobalState::waitForFence(VkFence boxed_fence, uint64_t timeout) {
     VkFence fence = unbox_VkFence(boxed_fence);

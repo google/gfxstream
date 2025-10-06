@@ -23,10 +23,8 @@ target_include_directories(
 add_subdirectory(address_space)
 add_subdirectory(backend)
 add_subdirectory(features)
-add_subdirectory(health)
 add_subdirectory(iostream)
 add_subdirectory(library)
-add_subdirectory(metrics)
 add_subdirectory(snapshot)
 add_subdirectory(tracing)
 add_subdirectory(decoder_common)
@@ -42,7 +40,6 @@ target_link_libraries(
     INTERFACE
     gfxstream_features.headers
     gfxstream_host_decoder_common
-    gfxstream_host_health
     gfxstream_host_snapshot.headers
     gfxstream_host_renderdoc
     )
@@ -122,10 +119,8 @@ target_link_libraries(
         gfxstream_host_address_space
         gfxstream_host_backend
         gfxstream_host_decoder_common
-        gfxstream_host_health
         gfxstream_host_iostream
         gfxstream_host_library
-        gfxstream_host_metrics
         gfxstream_host_renderdoc
         gfxstream_host_snapshot.headers
         gfxstream_host_tracing
@@ -326,6 +321,7 @@ endfunction()
         gfxstream_host_testing_support
         gfxstream_host_testing_oswindow_support
         gfxstream_backend_static
+        gfxstream_common_base
         gfxstream-vulkan-server
         gtest
         gtest_main

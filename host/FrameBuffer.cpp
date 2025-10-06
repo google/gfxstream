@@ -43,7 +43,6 @@
 #include "NativeSubWindow.h"
 #include "RenderThreadInfo.h"
 #include "SyncThread.h"
-#include "gfxstream/Metrics.h"
 #include "gfxstream/SharedLibrary.h"
 #include "gfxstream/Tracing.h"
 #include "gfxstream/common/logging.h"
@@ -68,8 +67,6 @@ namespace {
 
 using gfxstream::Stream;
 using gfxstream::base::AutoLock;
-using gfxstream::base::CreateMetricsLogger;
-using gfxstream::base::MetricEventVulkanOutOfMemory;
 using gfxstream::base::SharedLibrary;
 using gfxstream::base::WorkerProcessingResult;
 using gfxstream::gl::GLESApi;
@@ -377,14 +374,7 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
     std::unique_ptr<BorrowedImageInfo> borrowColorBufferForComposition(uint32_t colorBufferHandle,
                                                                        bool colorBufferIsTarget);
     std::unique_ptr<BorrowedImageInfo> borrowColorBufferForDisplay(uint32_t colorBufferHandle);
-
-    HealthMonitor<>* getHealthMonitor() { return m_healthMonitor.get(); }
-
-    MetricsLogger& getMetricsLogger() { return *m_logger; }
-
     void logVulkanDeviceLost();
-    void logVulkanOutOfMemory(VkResult result, const char* function, int line,
-                              std::optional<uint64_t> allocationSize = std::nullopt);
 
     void setVsyncHz(int vsyncHz);
     void scheduleVsyncTask(VsyncThread::VsyncTask task);
@@ -804,12 +794,6 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
     using VkUuid = std::array<uint8_t, VK_UUID_SIZE>;
     VkUuid m_vulkanUUID{};
 
-    // Tracks platform EGL contexts that have been handed out to other users,
-    // indexed by underlying native EGL context object.
-
-    std::unique_ptr<MetricsLogger> m_logger;
-    std::unique_ptr<HealthMonitor<>> m_healthMonitor;
-
     int m_vsyncHz = 60;
 
     // Vsync thread.
@@ -1184,7 +1168,7 @@ std::unique_ptr<FrameBuffer::Impl> FrameBuffer::Impl::Create(FrameBuffer* frameb
     // swapchain, then don't initialize SyncThread worker threads with EGL
     // contexts.
     SyncThread::initialize(
-        /* hasGL */ impl->m_emulationGl != nullptr, impl->getHealthMonitor());
+        /* hasGL */ impl->m_emulationGl != nullptr);
 
     // Start the vsync thread
     const uint64_t kOneSecondNs = 1000000000ULL;
@@ -1210,9 +1194,7 @@ FrameBuffer::Impl::Impl(FrameBuffer* framebuffer, int p_width, int p_height,
       m_refCountPipeEnabled(features.RefCountPipe.enabled),
       m_noDelayCloseColorBufferEnabled(features.NoDelayCloseColorBuffer.enabled ||
                                        features.Minigbm.enabled),
-      m_postThread([this](Post&& post) { return postWorkerFunc(post); }),
-      m_logger(CreateMetricsLogger()),
-      m_healthMonitor(CreateHealthMonitor(*m_logger)) {
+      m_postThread([this](Post&& post) { return postWorkerFunc(post); }) {
     mDisplayActiveConfigId = 0;
     mDisplayConfigs[0] = {p_width, p_height, 160, 160};
     uint32_t displayId = 0;
@@ -1308,13 +1290,6 @@ WorkerProcessingResult FrameBuffer::Impl::sendReadbackWorkerCmd(const Readback& 
 }
 
 WorkerProcessingResult FrameBuffer::Impl::postWorkerFunc(Post& post) {
-    auto annotations = std::make_unique<EventHangMetadata::HangAnnotations>();
-    if (m_healthMonitor)
-        annotations->insert(
-            {"Post command opcode", std::to_string(static_cast<uint64_t>(post.cmd))});
-    auto watchdog = WATCHDOG_BUILDER(m_healthMonitor.get(), "PostWorker main function")
-                        .setAnnotations(std::move(annotations))
-                        .build();
     switch (post.cmd) {
         case PostCmd::Post: {
             // We wrap the callback like this to workaround a bug in the MS STL implementation.
@@ -1521,26 +1496,13 @@ bool FrameBuffer::Impl::setupSubWindow(FBNativeWindowType p_window, int wx, int 
     std::future<void> postWorkerContinueSignalFuture;
     std::tie(postWorkerContinueSignal, postWorkerContinueSignalFuture) = ScopedPromise::create();
     {
-        auto watchdog =
-            WATCHDOG_BUILDER(m_healthMonitor.get(), "Wait for other tasks on PostWorker")
-                .setTimeoutMs(6000)
-                .build();
         blockPostWorker(std::move(postWorkerContinueSignalFuture)).wait();
     }
     if (m_displayVk) {
-        auto watchdog = WATCHDOG_BUILDER(m_healthMonitor.get(), "Draining the VkQueue")
-                            .setTimeoutMs(6000)
-                            .build();
         m_displayVk->drainQueues();
     }
-    auto lockWatchdog =
-        WATCHDOG_BUILDER(m_healthMonitor.get(), "Wait for the FrameBuffer global lock").build();
-    auto lockWatchdogId = lockWatchdog->release();
-    AutoLock mutex(m_lock);
-    if (lockWatchdogId.has_value()) {
-        m_healthMonitor->stopMonitoringTask(lockWatchdogId.value());
-    }
 
+    AutoLock mutex(m_lock);
     if (deleteExisting) {
         removeSubWindow_locked();
     }
@@ -1610,7 +1572,6 @@ bool FrameBuffer::Impl::setupSubWindow(FBNativeWindowType p_window, int wx, int 
         }
     }
 
-    auto watchdog = WATCHDOG_BUILDER(m_healthMonitor.get(), "Updating subwindow state").build();
     // At this point, if the subwindow doesn't exist, it is because it either
     // couldn't be created
     // in the first place or the EGLSurface couldn't be created.
@@ -1627,8 +1588,6 @@ bool FrameBuffer::Impl::setupSubWindow(FBNativeWindowType p_window, int wx, int 
             m_windowHeight = wh;
 
             {
-                auto moveWatchdog =
-                    WATCHDOG_BUILDER(m_healthMonitor.get(), "Moving subwindow").build();
                 success = moveSubWindow(m_nativeWindow, m_subWin, m_x, m_y, m_windowWidth,
                                         m_windowHeight, dpr);
             }
@@ -3209,7 +3168,7 @@ bool FrameBuffer::Impl::onLoad(Stream* stream, const ITextureLoaderPtr& textureL
     if (m_features.VulkanSnapshots.enabled && vk::VkDecoderGlobalState::get()) {
         lock.unlock();
         GfxApiLogger gfxLogger;
-        vk::VkDecoderGlobalState::get()->load(stream, gfxLogger, m_healthMonitor.get());
+        vk::VkDecoderGlobalState::get()->load(stream, gfxLogger);
         lock.lock();
     }
 
@@ -3419,15 +3378,7 @@ void FrameBuffer::Impl::logVulkanDeviceLost() {
     m_emulationVk->onVkDeviceLost();
 }
 
-void FrameBuffer::Impl::logVulkanOutOfMemory(VkResult result, const char* function, int line,
-                                             std::optional<uint64_t> allocationSize) {
-    m_logger->logMetricEvent(MetricEventVulkanOutOfMemory{
-        .vkResultCode = result,
-        .function = function,
-        .line = std::make_optional(line),
-        .allocationSize = allocationSize,
-    });
-}
+void FrameBuffer::logVulkanDeviceLost() { mImpl->logVulkanDeviceLost(); }
 
 void FrameBuffer::Impl::setVsyncHz(int vsyncHz) {
     const uint64_t kOneSecondNs = 1000000000ULL;
@@ -4895,17 +4846,6 @@ std::unique_ptr<BorrowedImageInfo> FrameBuffer::borrowColorBufferForComposition(
 std::unique_ptr<BorrowedImageInfo> FrameBuffer::borrowColorBufferForDisplay(
     uint32_t colorBufferHandle) {
     return mImpl->borrowColorBufferForDisplay(colorBufferHandle);
-}
-
-HealthMonitor<>* FrameBuffer::getHealthMonitor() { return mImpl->getHealthMonitor(); }
-
-MetricsLogger& FrameBuffer::getMetricsLogger() { return mImpl->getMetricsLogger(); }
-
-void FrameBuffer::logVulkanDeviceLost() { mImpl->logVulkanDeviceLost(); }
-
-void FrameBuffer::logVulkanOutOfMemory(VkResult result, const char* function, int line,
-                                       std::optional<uint64_t> allocationSize) {
-    mImpl->logVulkanOutOfMemory(result, function, line, allocationSize);
 }
 
 void FrameBuffer::setVsyncHz(int vsyncHz) { mImpl->setVsyncHz(vsyncHz); }
