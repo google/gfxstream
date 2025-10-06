@@ -17,6 +17,7 @@ files_lib_vulkan_server = files(
   'DeviceLostHelper.cpp',
   'DeviceOpTracker.cpp',
   'DisplayVk.cpp',
+  'ExternalMemory.cpp',
   'DisplaySurfaceVk.cpp',
   'PostWorkerVk.cpp',
   'DebugUtilsHelper.cpp',

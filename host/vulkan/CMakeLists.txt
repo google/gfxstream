@@ -29,6 +29,7 @@ add_library(gfxstream-vulkan-server
             DeviceLostHelper.cpp
             DeviceOpTracker.cpp
             DisplayVk.cpp
+            ExternalMemory.cpp
             DisplaySurfaceVk.cpp
             DebugUtilsHelper.cpp
             PostWorkerVk.cpp

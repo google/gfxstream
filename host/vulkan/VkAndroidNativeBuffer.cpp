@@ -215,12 +215,6 @@ std::unique_ptr<AndroidNativeBufferInfo> AndroidNativeBufferInfo::create(
             0,
             static_cast<VkExternalMemoryHandleTypeFlags>(emu->getDefaultExternalMemoryHandleType()),
         };
-#if defined(__APPLE__)
-        if (emu->supportsExternalMemoryMetal()) {
-            // Change handle type requested to metal handle
-            extImageCi.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLHEAP_BIT_EXT;
-        }
-#endif
         vk_insert_struct(createImageCi, extImageCi);
 
         VkResult createResult =
