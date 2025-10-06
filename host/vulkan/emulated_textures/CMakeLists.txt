@@ -26,7 +26,6 @@ target_link_libraries(
     gfxstream_vulkan_headers
     gfxstream_host_compressed_textures
     gfxstream_common_logging
-    gfxstream_host_health
     )
 
 target_include_directories(

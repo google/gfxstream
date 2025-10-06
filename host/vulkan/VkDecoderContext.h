@@ -15,10 +15,9 @@
 
 #pragma once
 
+#include <atomic>
 #include <memory>
 
-#include "gfxstream/HealthMonitor.h"
-#include "gfxstream/Metrics.h"
 #include "gfxstream/host/GfxApiLogger.h"
 
 namespace gfxstream {
@@ -27,8 +26,6 @@ namespace vk {
 struct VkDecoderContext {
     const char* processName = nullptr;
     host::GfxApiLogger* gfxApiLogger = nullptr;
-    HealthMonitor<>* healthMonitor = nullptr;
-    MetricsLogger* metricsLogger = nullptr;
     std::atomic_bool* shouldExit = nullptr;
 };
 

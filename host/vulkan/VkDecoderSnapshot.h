@@ -35,7 +35,6 @@
 #include <memory>
 
 #include "VkSnapshotHandles.h"
-#include "gfxstream/HealthMonitor.h"
 #include "gfxstream/host/GfxApiLogger.h"
 #include "goldfish_vk_private_defs.h"
 #include "vk_android_native_buffer_gfxstream.h"

@@ -144,36 +144,26 @@ void vk_struct_chain_filter(H* head) {
     }
 }
 
-#define VK_CHECK(x)                                                                             \
-    do {                                                                                        \
-        VkResult err = x;                                                                       \
-        if (err != VK_SUCCESS) {                                                                \
-            if (err == VK_ERROR_DEVICE_LOST) {                                                  \
-                vk_util::getVkCheckCallbacks().callIfExists(                                    \
-                    &vk_util::VkCheckCallbacks::onVkErrorDeviceLost);                           \
-            }                                                                                   \
-            if (err == VK_ERROR_OUT_OF_HOST_MEMORY || err == VK_ERROR_OUT_OF_DEVICE_MEMORY ||   \
-                err == VK_ERROR_OUT_OF_POOL_MEMORY) {                                           \
-                vk_util::getVkCheckCallbacks().callIfExists(                                    \
-                    &vk_util::VkCheckCallbacks::onVkErrorOutOfMemory, err, __func__, __LINE__); \
-            }                                                                                   \
-            const std::string errString = string_VkResult(err);                                 \
-            GFXSTREAM_FATAL("VK_CHECK(" #x ") failed with %s", errString.c_str());              \
-        }                                                                                       \
+#define VK_CHECK(x)                                                                \
+    do {                                                                           \
+        VkResult err = x;                                                          \
+        if (err != VK_SUCCESS) {                                                   \
+            if (err == VK_ERROR_DEVICE_LOST) {                                     \
+                vk_util::getVkCheckCallbacks().callIfExists(                       \
+                    &vk_util::VkCheckCallbacks::onVkErrorDeviceLost);              \
+            }                                                                      \
+            const std::string errString = string_VkResult(err);                    \
+            GFXSTREAM_FATAL("VK_CHECK(" #x ") failed with %s", errString.c_str()); \
+        }                                                                          \
     } while (0)
 
-#define VK_CHECK_MEMALLOC(x, allocateInfo)                                                       \
-    do {                                                                                         \
-        VkResult err = x;                                                                        \
-        if (err != VK_SUCCESS) {                                                                 \
-            if (err == VK_ERROR_OUT_OF_HOST_MEMORY || err == VK_ERROR_OUT_OF_DEVICE_MEMORY) {    \
-                vk_util::getVkCheckCallbacks().callIfExists(                                     \
-                    &vk_util::VkCheckCallbacks::onVkErrorOutOfMemoryOnAllocation, err, __func__, \
-                    __LINE__, allocateInfo.allocationSize);                                      \
-            }                                                                                    \
-            const std::string errString = string_VkResult(err);                                  \
-            GFXSTREAM_FATAL("VK_CHECK_MEMALLOC(" #x ") failed with %s", errString.c_str());      \
-        }                                                                                        \
+#define VK_CHECK_MEMALLOC(x, allocateInfo)                                                  \
+    do {                                                                                    \
+        VkResult err = x;                                                                   \
+        if (err != VK_SUCCESS) {                                                            \
+            const std::string errString = string_VkResult(err);                             \
+            GFXSTREAM_FATAL("VK_CHECK_MEMALLOC(" #x ") failed with %s", errString.c_str()); \
+        }                                                                                   \
     } while (0)
 
 typedef void* MTLTextureRef;
@@ -197,8 +187,6 @@ inline VkResult waitForVkQueueIdleWithRetry(const VulkanDispatch& vk, VkQueue qu
 
 typedef struct {
     std::function<void()> onVkErrorDeviceLost;
-    std::function<void(VkResult, const char*, int)> onVkErrorOutOfMemory;
-    std::function<void(VkResult, const char*, int, uint64_t)> onVkErrorOutOfMemoryOnAllocation;
 } VkCheckCallbacks;
 
 template <class T>

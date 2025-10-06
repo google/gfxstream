@@ -20,7 +20,6 @@
 #include <optional>
 #include <vector>
 
-#include "gfxstream/HealthMonitor.h"
 #include "gfxstream/common/logging.h"
 #include "vulkan/VkUtils.h"
 
@@ -160,14 +159,12 @@ void AstcTexture::destroyVkBuffer() {
     }
 }
 
-template<typename T>
+template <typename T>
 void AstcTexture::on_vkCmdCopyBufferToImageImpl(VkCommandBuffer commandBuffer, uint8_t* srcAstcData,
-                                            size_t astcDataSize, VkImage dstImage,
-                                            VkImageLayout dstImageLayout, uint32_t regionCount,
-                                            const T* pRegions,
-                                            const VkDecoderContext& context) {
-    auto watchdog =
-        WATCHDOG_BUILDER(context.healthMonitor, "AstcTexture::on_vkCmdCopyBufferToImageImpl").build();
+                                                size_t astcDataSize, VkImage dstImage,
+                                                VkImageLayout dstImageLayout, uint32_t regionCount,
+                                                const T* pRegions,
+                                                const VkDecoderContext& context) {
     auto start_time = std::chrono::steady_clock::now();
     mSuccess = false;
     size_t decompSize = 0;  // How many bytes we need to hold the decompressed data

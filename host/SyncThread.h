@@ -29,7 +29,6 @@
 #include <string>
 #include <type_traits>
 
-#include "gfxstream/HealthMonitor.h"
 #include "gfxstream/Optional.h"
 #include "gfxstream/synchronization/ConditionVariable.h"
 #include "gfxstream/synchronization/Lock.h"
@@ -51,7 +50,7 @@ class SyncThread : public gfxstream::base::Thread {
     // - constructor: start up the sync worker threads for a given context.
     // The initialization of the sync threads is nonblocking.
     // - Triggers a |SyncThreadCmd| with op code |SYNC_THREAD_EGL_INIT|
-    SyncThread(bool hasGl, HealthMonitor<>* healthMonitor);
+    SyncThread(bool hasGl);
     ~SyncThread();
 
     // |triggerWaitVk|: async wait with a given VkFence object.
@@ -102,7 +101,7 @@ class SyncThread : public gfxstream::base::Thread {
     void cleanup();
 
     // Initialize the global sync thread.
-    static void initialize(bool hasGl, HealthMonitor<>* healthMonitor);
+    static void initialize(bool hasGl);
 
     // Obtains the global sync thread.
     static SyncThread* get();
@@ -150,8 +149,6 @@ class SyncThread : public gfxstream::base::Thread {
     gfxstream::base::ConditionVariable mCv;
     ThreadPool mWorkerThreadPool;
     bool mHasGl;
-
-    HealthMonitor<>* mHealthMonitor;
 };
 
 }  // namespace gfxstream

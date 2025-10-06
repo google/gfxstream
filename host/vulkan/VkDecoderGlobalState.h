@@ -25,17 +25,16 @@
 #include "VkDecoderContext.h"
 #include "VkQsriTimeline.h"
 #include "VkSnapshotHandles.h"
+#include "VkUtils.h"
 #include "VulkanBoxedHandles.h"
 #include "VulkanDispatch.h"
 #include "VulkanHandleMapping.h"
-#include "gfxstream/AsyncResult.h"
-#include "gfxstream/HealthMonitor.h"
-#include "gfxstream/synchronization/Lock.h"
 #include "cereal/common/goldfish_vk_transform.h"
+#include "gfxstream/AsyncResult.h"
 #include "gfxstream/host/Features.h"
 #include "gfxstream/host/GfxApiLogger.h"
+#include "gfxstream/synchronization/Lock.h"
 #include "goldfish_vk_private_defs.h"
-#include "VkUtils.h"
 
 using gfxstream::base::AutoLock;
 using gfxstream::base::Lock;
@@ -89,9 +88,7 @@ class VkDecoderGlobalState {
     bool vkCleanupEnabled() const;
 
     void save(gfxstream::Stream* stream);
-    void load(gfxstream::Stream* stream,
-              gfxstream::host::GfxApiLogger& gfxLogger,
-              HealthMonitor<>* healthMonitor);
+    void load(gfxstream::Stream* stream, gfxstream::host::GfxApiLogger& gfxLogger);
 
     VkResult on_vkEnumerateInstanceVersion(gfxstream::base::BumpPool* pool,
                                            VkSnapshotApiCallHandle apiCallHandle,
@@ -908,9 +905,6 @@ class VkDecoderGlobalState {
         VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties);
 
     void on_DeviceLost();
-
-    void on_CheckOutOfMemory(VkResult result, uint32_t opCode, const VkDecoderContext& context,
-                             std::optional<uint64_t> allocationSize = std::nullopt);
 
     // Fence waits
     VkResult waitForFence(VkFence boxed_fence, uint64_t timeout);

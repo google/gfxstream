@@ -25,7 +25,6 @@
 #include "VulkanHandleMapping.h"
 #include "VulkanHandles.h"
 #include "common/goldfish_vk_marshaling.h"
-#include "gfxstream/HealthMonitor.h"
 #include "gfxstream/containers/EntityManager.h"
 #include "gfxstream/host/GfxApiLogger.h"
 #include "render-utils/stream.h"

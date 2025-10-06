@@ -23,12 +23,6 @@ cc_library_headers {
     export_include_dirs: [
         "include",
     ],
-    static_libs: [
-        "libgfxstream_host_health",
-    ],
-    export_static_lib_headers: [
-        "libgfxstream_host_health",
-    ],
 }
 
 cc_library_host_static {
@@ -67,11 +61,9 @@ gfxstream_backend_static_deps = [
     "libgfxstream_host_gles2_dec",
     "libgfxstream_host_glestranslator_glcommon",
     "libgfxstream_host_glsnapshot",
-    "libgfxstream_host_health",
     "libgfxstream_host_iostream",
     "libgfxstream_host_library",
     "libgfxstream_common_logging",
-    "libgfxstream_host_metrics",
     "libgfxstream_host_openglesdispatch",
     "libgfxstream_host_rendercontrol_dec",
     "libgfxstream_host_renderdoc",
@@ -121,7 +113,6 @@ cc_defaults {
         "libgfxstream_host_backend",
         "libgfxstream_host_decoder_common",
         "libgfxstream_host_features",
-        "libgfxstream_host_health",
         "libgfxstream_host_renderdoc",
         "libgfxstream_host_snapshot",
         "libgfxstream_host_tracing",

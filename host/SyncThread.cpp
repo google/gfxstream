@@ -20,7 +20,6 @@
 #include "OpenGLESDispatch/OpenGLDispatchLoader.h"
 #endif
 
-#include "gfxstream/Metrics.h"
 #include "gfxstream/system/System.h"
 #include "gfxstream/threads/Thread.h"
 #include "gfxstream/host/Tracing.h"
@@ -33,8 +32,6 @@
 #include <memory>
 
 namespace gfxstream {
-
-using gfxstream::base::EventHangMetadata;
 
 #if GFXSTREAM_ENABLE_HOST_GLES
 using gl::EGLDispatch;
@@ -74,10 +71,10 @@ class GlobalSyncThread {
 public:
     GlobalSyncThread() = default;
 
-    void initialize(bool hasGl, HealthMonitor<>* healthMonitor) {
+    void initialize(bool hasGl) {
         AutoLock mutex(mLock);
         SYNC_THREAD_CHECK(!mSyncThread);
-        mSyncThread = std::make_unique<SyncThread>(hasGl, healthMonitor);
+        mSyncThread = std::make_unique<SyncThread>(hasGl);
     }
     SyncThread* syncThreadPtr() {
         AutoLock mutex(mLock);
@@ -104,14 +101,13 @@ static GlobalSyncThread* sGlobalSyncThread() {
 static const uint32_t kTimelineInterval = 1;
 static const uint64_t kDefaultTimeoutNsecs = 5ULL * 1000ULL * 1000ULL * 1000ULL;
 
-SyncThread::SyncThread(bool hasGl, HealthMonitor<>* healthMonitor)
+SyncThread::SyncThread(bool hasGl)
     : gfxstream::base::Thread(gfxstream::base::ThreadFlags::MaskSignals, 512 * 1024),
       mWorkerThreadPool(kNumWorkerThreads,
                         [this](Command&& command, ThreadPool::WorkerId id) {
                             doSyncThreadCmd(std::move(command), id);
                         }),
-      mHasGl(hasGl),
-      mHealthMonitor(healthMonitor) {
+      mHasGl(hasGl) {
     this->start();
     mWorkerThreadPool.start();
 #if GFXSTREAM_ENABLE_HOST_GLES
@@ -421,10 +417,6 @@ void SyncThread::doSyncThreadCmd(Command&& command, WorkerId workerId) {
     std::unique_ptr<std::unordered_map<std::string, std::string>> syncThreadData =
         std::make_unique<std::unordered_map<std::string, std::string>>();
     syncThreadData->insert({{"syncthread_cmd_desc", command.mDescription}});
-    auto watchdog = WATCHDOG_BUILDER(mHealthMonitor, "SyncThread task execution")
-                        .setHangType(EventHangMetadata::HangType::kSyncThread)
-                        .setAnnotations(std::move(syncThreadData))
-                        .build();
     command.mTask(workerId);
 }
 
@@ -461,9 +453,7 @@ SyncThread* SyncThread::get() {
     return res;
 }
 
-void SyncThread::initialize(bool hasGl, HealthMonitor<>* healthMonitor) {
-    sGlobalSyncThread()->initialize(hasGl, healthMonitor);
-}
+void SyncThread::initialize(bool hasGl) { sGlobalSyncThread()->initialize(hasGl); }
 
 void SyncThread::destroy() { sGlobalSyncThread()->destroy(); }
 

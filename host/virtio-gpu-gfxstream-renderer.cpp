@@ -23,7 +23,6 @@ extern "C" {
 
 #include "FrameBuffer.h"
 #include "VirtioGpuFrontend.h"
-#include "gfxstream/Metrics.h"
 #include "gfxstream/Strings.h"
 #include "gfxstream/common/logging.h"
 #include "gfxstream/host/Features.h"
@@ -41,7 +40,6 @@ extern "C" {
 
 using namespace std::literals;
 
-using gfxstream::MetricsLogger;
 using gfxstream::host::LogLevel;
 using gfxstream::host::VirtioGpuFrontend;
 using gfxstream::Renderer;
@@ -631,16 +629,7 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
         {STREAM_RENDERER_PARAM_WIN0_HEIGHT, "WIN0_HEIGHT"},
         {STREAM_RENDERER_PARAM_DEBUG_CALLBACK, "DEBUG_CALLBACK"},
         {STREAM_RENDERER_SKIP_OPENGLES_INIT, "SKIP_OPENGLES_INIT"},
-        {STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT,
-         "METRICS_CALLBACK_ADD_INSTANT_EVENT"},
-        {STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_DESCRIPTOR,
-         "METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_DESCRIPTOR"},
-        {STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_METRIC,
-         "METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_METRIC"},
-        {STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_VULKAN_OUT_OF_MEMORY_EVENT,
-         "METRICS_CALLBACK_ADD_VULKAN_OUT_OF_MEMORY_EVENT"},
-        {STREAM_RENDERER_PARAM_METRICS_CALLBACK_SET_ANNOTATION, "METRICS_CALLBACK_SET_ANNOTATION"},
-        {STREAM_RENDERER_PARAM_METRICS_CALLBACK_ABORT, "METRICS_CALLBACK_ABORT"}};
+    };
 
     // Print full values for these parameters:
     // Values here must not be pointers (e.g. callback functions), to avoid potentially identifying
@@ -725,46 +714,9 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
                 rendererInitializedExternally = static_cast<bool>(param.value);
                 break;
             }
-            case STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT: {
-                MetricsLogger::add_instant_event_callback =
-                    reinterpret_cast<stream_renderer_param_metrics_callback_add_instant_event>(
-                        static_cast<uintptr_t>(param.value));
-                break;
-            }
-            case STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_DESCRIPTOR: {
-                MetricsLogger::add_instant_event_with_descriptor_callback = reinterpret_cast<
-                    stream_renderer_param_metrics_callback_add_instant_event_with_descriptor>(
-                    static_cast<uintptr_t>(param.value));
-                break;
-            }
-            case STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_METRIC: {
-                MetricsLogger::add_instant_event_with_metric_callback = reinterpret_cast<
-                    stream_renderer_param_metrics_callback_add_instant_event_with_metric>(
-                    static_cast<uintptr_t>(param.value));
-                break;
-            }
-            case STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_VULKAN_OUT_OF_MEMORY_EVENT: {
-                MetricsLogger::add_vulkan_out_of_memory_event = reinterpret_cast<
-                    stream_renderer_param_metrics_callback_add_vulkan_out_of_memory_event>(
-                    static_cast<uintptr_t>(param.value));
-                break;
-            }
             case STREAM_RENDERER_PARAM_RENDERER_FEATURES: {
                 renderer_features_str =
                     std::string(reinterpret_cast<const char*>(static_cast<uintptr_t>(param.value)));
-                break;
-            }
-            case STREAM_RENDERER_PARAM_METRICS_CALLBACK_SET_ANNOTATION: {
-                MetricsLogger::set_crash_annotation_callback =
-                    reinterpret_cast<stream_renderer_param_metrics_callback_set_annotation>(
-                        static_cast<uintptr_t>(param.value));
-                break;
-            }
-            case STREAM_RENDERER_PARAM_METRICS_CALLBACK_ABORT: {
-                GFXSTREAM_FATAL(
-                    "Deprecated STREAM_RENDERER_PARAM_METRICS_CALLBACK_ABORT. "
-                    "Use STREAM_RENDERER_PARAM_DEBUG_CALLBACK instead which includes "
-                    "fatal logs.");
                 break;
             }
             default: {
@@ -867,27 +819,7 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
                         }
                         fb->logVulkanDeviceLost();
                     },
-                .onVkErrorOutOfMemory =
-                    [](VkResult result, const char* function, int line) {
-                        auto fb = gfxstream::FrameBuffer::getFB();
-                        if (!fb) {
-                            GFXSTREAM_ERROR(
-                                "FrameBuffer not yet initialized. Dropping out of memory event");
-                            return;
-                        }
-                        fb->logVulkanOutOfMemory(result, function, line);
-                    },
-                .onVkErrorOutOfMemoryOnAllocation =
-                    [](VkResult result, const char* function, int line,
-                       std::optional<uint64_t> allocationSize) {
-                        auto fb = gfxstream::FrameBuffer::getFB();
-                        if (!fb) {
-                            GFXSTREAM_ERROR(
-                                "FrameBuffer not yet initialized. Dropping out of memory event");
-                            return;
-                        }
-                        fb->logVulkanOutOfMemory(result, function, line, allocationSize);
-                    }}));
+            }));
 
     GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY, "stream_renderer_init()");
 
