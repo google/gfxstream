@@ -32,6 +32,7 @@
 #include "gfxstream/host/backend_callbacks.h"
 #include "gfxstream/host/external_object_manager.h"
 #include "gfxstream/host/features.h"
+#include "gfxstream/host/gfxstream_format.h"
 #include "gfxstream/host/GfxApiLogger.h"
 #include "gfxstream/host/RenderDoc.h"
 #include "gfxstream/host/vk_enums.h"
@@ -212,10 +213,9 @@ class VkEmulation {
                                                                             VkImageTiling tiling,
                                                                             uint32_t mipLevels);
 
-    bool isFormatSupported(GLenum format);
+    bool isFormatSupported(GfxstreamFormat format);
 
-    bool createVkColorBuffer(uint32_t width, uint32_t height, GLenum format,
-                             FrameworkFormat frameworkFormat, uint32_t colorBufferHandle,
+    bool createVkColorBuffer(uint32_t width, uint32_t height, GfxstreamFormat format, uint32_t colorBufferHandle,
                              bool vulkanOnly, uint32_t memoryProperty, uint32_t mipLevels);
 
     bool teardownVkColorBuffer(uint32_t colorBufferHandle);
@@ -311,14 +311,14 @@ class VkEmulation {
         ExternalMemoryInfo memory;
 
         uint32_t handle;
-
-        /* Set in create(), before initialize() */
         uint32_t width;
         uint32_t height;
-        GLenum internalFormat;
+        GfxstreamFormat format;
+        // May be different than `format` if the host Vulkan driver does not
+        // directly support `format` (e.g. emulating RGB888 with RGBA8888).
+        GfxstreamFormat internalFormat;
+
         uint32_t memoryProperty;
-        int frameworkFormat;
-        int frameworkStride;
         bool initialized = false;
 
         VkImage image = VK_NULL_HANDLE;
@@ -495,8 +495,6 @@ class VkEmulation {
 
     int getSelectedGpuIndex(const std::vector<DeviceSupportInfo>& deviceInfos);
 
-    bool isFormatVulkanCompatible(GLenum internalFormat);
-
     bool getColorBufferAllocationInfoLocked(uint32_t colorBufferHandle, VkDeviceSize* outSize,
                                             uint32_t* outMemoryTypeIndex,
                                             bool* outMemoryIsDedicatedAlloc, void** outMappedPtr)
@@ -506,8 +504,11 @@ class VkEmulation {
         VkFormat format, uint32_t width, uint32_t height, VkImageTiling tiling, uint32_t mipLevels)
         REQUIRES(mMutex);
 
-    bool createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum internalFormat,
-                                   FrameworkFormat frameworkFormat, uint32_t colorBufferHandle,
+    std::optional<GfxstreamFormat> GetInternalFormatLocked(GfxstreamFormat format)
+        REQUIRES(mMutex);
+
+    bool createVkColorBufferLocked(uint32_t width, uint32_t height, GfxstreamFormat format,
+                                   uint32_t colorBufferHandle,
                                    bool vulkanOnly, uint32_t memoryProperty, uint32_t mipLevels)
         REQUIRES(mMutex);
 

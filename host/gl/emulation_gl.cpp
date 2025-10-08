@@ -38,6 +38,8 @@ namespace host {
 namespace gl {
 namespace {
 
+using gfxstream::host::GfxstreamFormat;
+
 #ifdef ENABLE_GFXSTREAM_DEBUG
 
 static void EGLAPIENTRY EglDebugCallback(EGLenum error,
@@ -744,10 +746,13 @@ std::unique_ptr<BufferGl> EmulationGl::loadBuffer(gfxstream::Stream* stream) {
     return BufferGl::onLoad(stream, getColorBufferContextHelper());
 }
 
-bool EmulationGl::isFormatSupported(GLenum format) {
-    const std::vector<GLenum> kUnhandledFormats = {
-        GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT24, GL_DEPTH24_STENCIL8,
-        GL_DEPTH_COMPONENT32F, GL_DEPTH32F_STENCIL8
+bool EmulationGl::isFormatSupported(GfxstreamFormat format) {
+    const std::vector<GfxstreamFormat> kUnhandledFormats = {
+        GfxstreamFormat::D16_UNORM,
+        GfxstreamFormat::D24_UNORM,
+        GfxstreamFormat::D24_UNORM_S8_UINT,
+        GfxstreamFormat::D32_FLOAT,
+        GfxstreamFormat::D32_FLOAT_S8_UINT,
     };
 
     if (std::find(kUnhandledFormats.begin(), kUnhandledFormats.end(), format) !=
@@ -759,10 +764,9 @@ bool EmulationGl::isFormatSupported(GLenum format) {
 }
 
 std::unique_ptr<ColorBufferGl> EmulationGl::createColorBuffer(uint32_t width, uint32_t height,
-                                                              GLenum internalFormat,
-                                                              FrameworkFormat frameworkFormat,
+                                                              GfxstreamFormat format,
                                                               HandleType handle) {
-    return ColorBufferGl::create(mEglDisplay, width, height, internalFormat, frameworkFormat,
+    return ColorBufferGl::create(mEglDisplay, width, height, format,
                                  handle, getColorBufferContextHelper(), mTextureDraw.get(),
                                  isFastBlitSupported(), mFeatures, mPixelReadFormats);
 }

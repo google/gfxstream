@@ -22,11 +22,11 @@ namespace vk {
 
 /*static*/
 std::unique_ptr<ColorBufferVk> ColorBufferVk::create(VkEmulation& vkEmulation, uint32_t handle,
-                                                     uint32_t width, uint32_t height, GLenum format,
-                                                     FrameworkFormat frameworkFormat,
+                                                     uint32_t width, uint32_t height,
+                                                     GfxstreamFormat format,
                                                      bool vulkanOnly, uint32_t memoryProperty,
                                                      gfxstream::Stream* stream, uint32_t mipLevels) {
-    if (!vkEmulation.createVkColorBuffer(width, height, format, frameworkFormat, handle, vulkanOnly,
+    if (!vkEmulation.createVkColorBuffer(width, height, format, handle, vulkanOnly,
                                          memoryProperty, mipLevels)) {
         GFXSTREAM_DEBUG("Failed to create ColorBufferVk:%d", handle);
         return nullptr;

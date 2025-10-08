@@ -32,14 +32,12 @@
 #include "gl/yuv_converter.h"
 #include "gfxstream/host/renderer_operations.h"
 
-#define DEBUG_CB_FBO 0
-
-using gfxstream::base::ManagedDescriptor;
-
 namespace gfxstream {
 namespace host {
 namespace gl {
 namespace {
+
+using gfxstream::base::ManagedDescriptor;
 
 // Lazily create and bind a framebuffer object to the current host context.
 // |fbo| is the address of the framebuffer object name.
@@ -62,17 +60,6 @@ bool bindFbo(GLuint* fbo, GLuint tex, bool ensureTextureAttached) {
     s_gles2.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0_OES,
                                    GL_TEXTURE_2D, tex, 0);
 
-#if DEBUG_CB_FBO
-    GLenum status = s_gles2.glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if (status != GL_FRAMEBUFFER_COMPLETE_OES) {
-        GFXSTREAM_ERROR("ColorBufferGl::bindFbo: FBO not complete: %#x\n", status);
-        s_gles2.glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        s_gles2.glDeleteFramebuffers(1, fbo);
-        *fbo = 0;
-        return false;
-    }
-#endif
-
     return true;
 }
 
@@ -80,204 +67,253 @@ void unbindFbo() {
     s_gles2.glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-}  // namespace
-
-static GLenum sGetUnsizedColorBufferFormat(GLenum format) {
+std::optional<GLenum> GetSizedInternalFormat(GfxstreamFormat format) {
     switch (format) {
-        case GL_R8:
-            return GL_RED;
-        case GL_RG8:
-            return GL_RG;
-        case GL_RGB8:
-        case GL_RGB565:
-        case GL_RGB16F:
-            return GL_RGB;
-        case GL_RGBA8:
-        case GL_RGB5_A1_OES:
-        case GL_RGBA4_OES:
-        case GL_UNSIGNED_INT_10_10_10_2_OES:
-        case GL_RGB10_A2:
-        case GL_RGBA16F:
-            return GL_RGBA;
-        case GL_BGRA8_EXT:
-        case GL_BGR10_A2_ANGLEX:
-            return GL_BGRA_EXT;
-        default: // already unsized
-            return format;
-    }
-}
-
-static bool sGetFormatParameters(GLint* internalFormat,
-                                 GLenum* texFormat,
-                                 GLenum* pixelType,
-                                 int* bytesPerPixel,
-                                 GLint* sizedInternalFormat,
-                                 bool* isBlob) {
-    if (!internalFormat) {
-        fprintf(stderr, "%s: error: internal format not provided\n", __func__);
-        return false;
-    }
-
-    *isBlob = false;
-
-    switch (*internalFormat) {
-        case GL_RGB:
-        case GL_RGB8:
-            *texFormat = GL_RGB;
-            *pixelType = GL_UNSIGNED_BYTE;
-            *bytesPerPixel = 3;
-            *sizedInternalFormat = GL_RGB8;
-            return true;
-        case GL_RGB565_OES:
-            *texFormat = GL_RGB;
-            *pixelType = GL_UNSIGNED_SHORT_5_6_5;
-            *bytesPerPixel = 2;
-            *sizedInternalFormat = GL_RGB565;
-            return true;
-        case GL_RGBA:
-        case GL_RGBA8:
-        case GL_RGB5_A1_OES:
-        case GL_RGBA4_OES:
-            *texFormat = GL_RGBA;
-            *pixelType = GL_UNSIGNED_BYTE;
-            *bytesPerPixel = 4;
-            *sizedInternalFormat = GL_RGBA8;
-            return true;
-        case GL_UNSIGNED_INT_10_10_10_2_OES:
-            *texFormat = GL_RGBA;
-            *pixelType = GL_UNSIGNED_SHORT;
-            *bytesPerPixel = 4;
-            *sizedInternalFormat = GL_UNSIGNED_INT_10_10_10_2_OES;
-            return true;
-        case GL_RGB10_A2:
-            *texFormat = GL_RGBA;
-            *pixelType = GL_UNSIGNED_INT_2_10_10_10_REV;
-            *bytesPerPixel = 4;
-            *sizedInternalFormat = GL_RGB10_A2;
-            return true;
-        case GL_RGB16F:
-            *texFormat = GL_RGB;
-            *pixelType = GL_HALF_FLOAT;
-            *bytesPerPixel = 6;
-            *sizedInternalFormat = GL_RGB16F;
-            return true;
-        case GL_RGBA16F:
-            *texFormat = GL_RGBA;
-            *pixelType = GL_HALF_FLOAT;
-            *bytesPerPixel = 8;
-            *sizedInternalFormat = GL_RGBA16F;
-            return true;
-        case GL_LUMINANCE:
-            *texFormat = GL_LUMINANCE;
-            *pixelType = GL_UNSIGNED_BYTE;
-            *bytesPerPixel = 1;
-            *sizedInternalFormat = GL_R8;
-            *isBlob = true;
-            return true;
-        case GL_BGRA_EXT:
-            *texFormat = GL_BGRA_EXT;
-            *pixelType = GL_UNSIGNED_BYTE;
-            *bytesPerPixel = 4;
-            *sizedInternalFormat = GL_BGRA8_EXT;
-            return true;
-        case GL_BGR10_A2_ANGLEX:
-            *texFormat = GL_RGBA;
-            *pixelType = GL_UNSIGNED_INT_2_10_10_10_REV;
-            *bytesPerPixel = 4;
-            *internalFormat = GL_RGB10_A2_EXT;
-            // GL_BGR10_A2_ANGLEX is actually not a valid GL format. We should
-            // replace it with a normal GL internal format instead.
-            *sizedInternalFormat = GL_BGR10_A2_ANGLEX;
-            return true;
-        case GL_R8:
-        case GL_RED:
-            *texFormat = GL_RED;
-            *pixelType = GL_UNSIGNED_BYTE;
-            *bytesPerPixel = 1;
-            *sizedInternalFormat = GL_R8;
-            return true;
-        case GL_R16_EXT:
-            *texFormat = GL_RED;
-            *pixelType = GL_UNSIGNED_SHORT;
-            *bytesPerPixel = 2;
-            *sizedInternalFormat = GL_R16_EXT;
-            return true;
-        case GL_RG8:
-        case GL_RG:
-            *texFormat = GL_RG;
-            *pixelType = GL_UNSIGNED_BYTE;
-            *bytesPerPixel = 2;
-            *sizedInternalFormat = GL_RG8;
-            return true;
-        case GL_DEPTH_COMPONENT:
-        case GL_DEPTH_COMPONENT16:
-            *texFormat = GL_DEPTH_COMPONENT;
-            *pixelType = GL_UNSIGNED_SHORT;
-            *bytesPerPixel = 2;
-            *sizedInternalFormat = GL_DEPTH_COMPONENT16;
-            return true;
-        case GL_DEPTH_COMPONENT24:
-            *texFormat = GL_DEPTH_COMPONENT;
-            *pixelType = GL_UNSIGNED_INT;
-            *bytesPerPixel = 4;
-            *sizedInternalFormat = GL_DEPTH_COMPONENT24;
-            return true;
-        case GL_DEPTH_COMPONENT32F:
-            *texFormat = GL_DEPTH_COMPONENT;
-            *pixelType = GL_FLOAT;
-            *bytesPerPixel = 4;
-            *sizedInternalFormat = GL_DEPTH_COMPONENT32F;
-            return true;
-        case GL_DEPTH_STENCIL:
-        case GL_DEPTH24_STENCIL8:
-            *texFormat = GL_DEPTH_STENCIL;
-            *pixelType = GL_UNSIGNED_INT_24_8;
-            *bytesPerPixel = 4;
-            *sizedInternalFormat = GL_DEPTH24_STENCIL8;
-            return true;
-        case GL_DEPTH32F_STENCIL8:
-            *texFormat = GL_DEPTH_STENCIL;
-            *pixelType = GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
-            *bytesPerPixel = 8;
-            *sizedInternalFormat = GL_DEPTH32F_STENCIL8;
-            return true;
+        case GfxstreamFormat::B4G4R4A4_UNORM:
+            return GL_RGBA8;
+        case GfxstreamFormat::B5G5R5A1_UNORM:
+            return GL_RGBA8;
+        case GfxstreamFormat::B8G8R8A8_UNORM:
+            return GL_BGRA8_EXT;
+        case GfxstreamFormat::BLOB:
+            return GL_R8;
+        case GfxstreamFormat::D16_UNORM:
+            return GL_DEPTH_COMPONENT16;
+        case GfxstreamFormat::D24_UNORM_S8_UINT:
+            return GL_DEPTH24_STENCIL8;
+        case GfxstreamFormat::D24_UNORM:
+            return GL_DEPTH_COMPONENT24;
+        case GfxstreamFormat::D32_FLOAT_S8_UINT:
+            return GL_DEPTH32F_STENCIL8;
+        case GfxstreamFormat::D32_FLOAT:
+            return GL_DEPTH_COMPONENT32F;
+        case GfxstreamFormat::NV12:
+            return std::nullopt;
+        case GfxstreamFormat::NV21:
+            return std::nullopt;
+        case GfxstreamFormat::P010:
+            return std::nullopt;
+        case GfxstreamFormat::R10G10B10A2_UNORM:
+            return GL_RGB10_A2;
+        case GfxstreamFormat::R16_UNORM:
+            return GL_R16_EXT;
+        case GfxstreamFormat::R16G16B16_FLOAT:
+            return GL_RGB16F;
+        case GfxstreamFormat::R16G16B16A16_FLOAT:
+            return GL_RGBA16F;
+        case GfxstreamFormat::R5G6B5_UNORM:
+            return GL_RGB565;
+        case GfxstreamFormat::R8_UNORM:
+            return GL_R8;
+        case GfxstreamFormat::R8G8_UNORM:
+            return GL_RG8;
+        case GfxstreamFormat::R8G8B8_UNORM:
+            return GL_RGB8;
+        case GfxstreamFormat::R8G8B8A8_UNORM:
+            return GL_RGBA8;
+        case GfxstreamFormat::R8G8B8X8_UNORM:
+            return GL_RGBA8;
+        case GfxstreamFormat::S8_UINT:
+            return std::nullopt;
+        case GfxstreamFormat::UNKNOWN:
+            return std::nullopt;
+        case GfxstreamFormat::YV21:
+            return std::nullopt;
+        case GfxstreamFormat::YV12:
+            return std::nullopt;
         default:
-            fprintf(stderr, "%s: Unknown format 0x%x\n", __func__,
-                    *internalFormat);
-            return false;
+            return std::nullopt;
     }
 }
+
+std::optional<GLenum> GetPixelComponents(GfxstreamFormat format) {
+    switch (format) {
+        case GfxstreamFormat::B4G4R4A4_UNORM:
+            return GL_RGBA;
+        case GfxstreamFormat::B5G5R5A1_UNORM:
+            return GL_RGBA;
+        case GfxstreamFormat::B8G8R8A8_UNORM:
+            return GL_BGRA_EXT;
+        case GfxstreamFormat::BLOB:
+            return GL_RED;
+        case GfxstreamFormat::D16_UNORM:
+            return GL_DEPTH_COMPONENT;
+        case GfxstreamFormat::D24_UNORM_S8_UINT:
+            return GL_DEPTH_STENCIL;
+        case GfxstreamFormat::D24_UNORM:
+            return GL_DEPTH_COMPONENT;
+        case GfxstreamFormat::D32_FLOAT_S8_UINT:
+            return GL_DEPTH_STENCIL;
+        case GfxstreamFormat::D32_FLOAT:
+            return GL_DEPTH_COMPONENT;
+        case GfxstreamFormat::NV12:
+            return std::nullopt;
+        case GfxstreamFormat::NV21:
+            return std::nullopt;
+        case GfxstreamFormat::P010:
+            return std::nullopt;
+        case GfxstreamFormat::R10G10B10A2_UNORM:
+            return GL_RGBA;
+        case GfxstreamFormat::R16_UNORM:
+            return GL_RED;
+        case GfxstreamFormat::R16G16B16_FLOAT:
+            return GL_RGB;
+        case GfxstreamFormat::R16G16B16A16_FLOAT:
+            return GL_RGBA;
+        case GfxstreamFormat::R5G6B5_UNORM:
+            return GL_RGB;
+        case GfxstreamFormat::R8_UNORM:
+            return GL_RED;
+        case GfxstreamFormat::R8G8_UNORM:
+            return GL_RG;
+        case GfxstreamFormat::R8G8B8_UNORM:
+            return GL_RGB;
+        case GfxstreamFormat::R8G8B8A8_UNORM:
+            return GL_RGBA;
+        case GfxstreamFormat::R8G8B8X8_UNORM:
+            return GL_RGBA;
+        case GfxstreamFormat::S8_UINT:
+            return GL_STENCIL_INDEX;
+        case GfxstreamFormat::UNKNOWN:
+            return std::nullopt;
+        case GfxstreamFormat::YV21:
+            return std::nullopt;
+        case GfxstreamFormat::YV12:
+            return std::nullopt;
+        default:
+            return std::nullopt;
+    }
+}
+
+std::optional<GLenum> GetPixelDataType(GfxstreamFormat format) {
+    switch (format) {
+        case GfxstreamFormat::B4G4R4A4_UNORM:
+            return GL_UNSIGNED_SHORT_4_4_4_4;
+        case GfxstreamFormat::B5G5R5A1_UNORM:
+            return GL_UNSIGNED_SHORT_5_5_5_1;
+        case GfxstreamFormat::B8G8R8A8_UNORM:
+            return GL_UNSIGNED_BYTE;
+        case GfxstreamFormat::BLOB:
+            return GL_UNSIGNED_BYTE;
+        case GfxstreamFormat::D16_UNORM:
+            return GL_UNSIGNED_SHORT;
+        case GfxstreamFormat::D24_UNORM_S8_UINT:
+            return GL_UNSIGNED_INT_24_8;
+        case GfxstreamFormat::D24_UNORM:
+            return GL_UNSIGNED_INT_24_8;
+        case GfxstreamFormat::D32_FLOAT_S8_UINT:
+            return GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
+        case GfxstreamFormat::D32_FLOAT:
+            return GL_FLOAT;
+        case GfxstreamFormat::NV12:
+            return std::nullopt;
+        case GfxstreamFormat::NV21:
+            return std::nullopt;
+        case GfxstreamFormat::P010:
+            return std::nullopt;
+        case GfxstreamFormat::R10G10B10A2_UNORM:
+            return GL_UNSIGNED_INT_2_10_10_10_REV;
+        case GfxstreamFormat::R16_UNORM:
+            return GL_UNSIGNED_SHORT;
+        case GfxstreamFormat::R16G16B16_FLOAT:
+            return GL_HALF_FLOAT;
+        case GfxstreamFormat::R16G16B16A16_FLOAT:
+            return GL_HALF_FLOAT;
+        case GfxstreamFormat::R5G6B5_UNORM:
+            return GL_UNSIGNED_SHORT_5_6_5;
+        case GfxstreamFormat::R8_UNORM:
+            return GL_UNSIGNED_BYTE;
+        case GfxstreamFormat::R8G8_UNORM:
+            return GL_UNSIGNED_BYTE;
+        case GfxstreamFormat::R8G8B8_UNORM:
+            return GL_UNSIGNED_BYTE;
+        case GfxstreamFormat::R8G8B8A8_UNORM:
+            return GL_UNSIGNED_BYTE;
+        case GfxstreamFormat::R8G8B8X8_UNORM:
+            return GL_UNSIGNED_BYTE;
+        case GfxstreamFormat::S8_UINT:
+            return GL_UNSIGNED_INT_24_8;
+        case GfxstreamFormat::UNKNOWN:
+            return std::nullopt;
+        case GfxstreamFormat::YV21:
+            return std::nullopt;
+        case GfxstreamFormat::YV12:
+            return std::nullopt;
+        default:
+            return std::nullopt;
+    }
+}
+
+struct FormatOpenglParams {
+    // Used for texture specification (e.g. `glTexImage2D()`).
+    GLint internalFormat;
+    GLenum pixelDataComponents;
+    GLenum pixelDataType;
+    int bpp = 0;
+};
+
+std::optional<FormatOpenglParams> GetFormatOpenglParameters(GfxstreamFormat format) {
+    // YUV formats are handled by internally having an RGBA texture and
+    // performing additional conversions when performing transfers.
+    if (IsYuvFormat(format)) {
+        return GetFormatOpenglParameters(GfxstreamFormat::R8G8B8A8_UNORM);
+    }
+
+    auto internalFormatOpt = GetSizedInternalFormat(format);
+    if (!internalFormatOpt) {
+        return std::nullopt;
+    }
+    const GLint internalFormat = *internalFormatOpt;
+
+    auto pixelDataComponentsOpt = GetPixelComponents(format);
+    if (!pixelDataComponentsOpt) {
+        return std::nullopt;
+    }
+    const GLenum pixelDataComponents = *pixelDataComponentsOpt;
+
+    auto pixelDataTypeOpt = GetPixelDataType(format);
+    if (!pixelDataTypeOpt) {
+        return std::nullopt;
+    }
+    const GLenum pixelDataType = *pixelDataTypeOpt;
+
+    auto bppOpt = GetBpp(format);
+    if (!bppOpt) {
+        return std::nullopt;
+    }
+    const int bpp = *bppOpt;
+
+    return FormatOpenglParams{
+        .internalFormat = internalFormat,
+        .pixelDataComponents = pixelDataComponents,
+        .pixelDataType = pixelDataType,
+        .bpp = bpp,
+    };
+}
+
+}  // namespace
 
 // static
 std::unique_ptr<ColorBufferGl> ColorBufferGl::create(
-    EGLDisplay p_display, int p_width, int p_height, GLint p_internalFormat,
-    FrameworkFormat p_frameworkFormat, HandleType hndl, ContextHelper* helper,
-    TextureDraw* textureDraw, bool fastBlitSupported, const gfxstream::host::FeatureSet& features,
-    PixelReadFormats& pixelReadFormats) {
-    GLenum texFormat = 0;
-    GLenum pixelType = GL_UNSIGNED_BYTE;
-    int bytesPerPixel = 4;
-    GLint p_sizedInternalFormat = GL_RGBA8;
-    bool isBlob = false;;
-
-    if (!sGetFormatParameters(&p_internalFormat, &texFormat, &pixelType,
-                              &bytesPerPixel, &p_sizedInternalFormat,
-                              &isBlob)) {
-        GFXSTREAM_ERROR("ColorBufferGl::create invalid format 0x%x", p_internalFormat);
+        EGLDisplay p_display, int p_width, int p_height,
+        gfxstream::host::GfxstreamFormat format, HandleType hndl, ContextHelper* helper,
+        TextureDraw* textureDraw, bool fastBlitSupported, const gfxstream::host::FeatureSet& features,
+        PixelReadFormats& pixelReadFormats) {
+    auto formatOpenglParamsOpt = GetFormatOpenglParameters(format);
+    if (!formatOpenglParamsOpt) {
+        const std::string formatString = ToString(format);
+        GFXSTREAM_ERROR("ColorBufferGl::create(format:%s) unsupported.", formatString.c_str());
         return nullptr;
     }
-    const unsigned long bufsize = ((unsigned long)bytesPerPixel) * p_width
-            * p_height;
+    FormatOpenglParams& formatOpenglParams = *formatOpenglParamsOpt;
+
+    const unsigned long bufsize = ((unsigned long)formatOpenglParams.bpp) * p_width * p_height;
 
     // This constructor is private, so std::make_unique can't be used.
     std::unique_ptr<ColorBufferGl> cb{new ColorBufferGl(p_display, hndl, p_width, p_height, helper,
                                                         textureDraw, pixelReadFormats)};
-    cb->m_internalFormat = p_internalFormat;
-    cb->m_sizedInternalFormat = p_sizedInternalFormat;
-    cb->m_format = texFormat;
-    cb->m_type = pixelType;
-    cb->m_frameworkFormat = p_frameworkFormat;
-    cb->m_yuv420888ToNv21 = features.Yuv420888ToNv21.enabled;
+
+    cb->m_format = format;
     cb->m_fastBlitSupported = fastBlitSupported;
     cb->m_numBytes = (size_t)bufsize;
 
@@ -294,16 +330,21 @@ std::unique_ptr<ColorBufferGl> ColorBufferGl::create(
 
     s_gles2.glGenTextures(1, &cb->m_tex);
     s_gles2.glBindTexture(GL_TEXTURE_2D, cb->m_tex);
-
-    s_gles2.glTexImage2D(GL_TEXTURE_2D, 0, p_internalFormat, p_width, p_height,
-                         0, texFormat, pixelType, nullptr);
-
+    s_gles2.glTexImage2D(GL_TEXTURE_2D,
+                         /*level=*/0,
+                         /*internalFormat=*/formatOpenglParams.internalFormat,
+                         p_width,
+                         p_height,
+                         /*border=*/0,
+                         formatOpenglParams.pixelDataComponents,
+                         formatOpenglParams.pixelDataType,
+                         /*pixel data=*/nullptr);
     s_gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     s_gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     s_gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     s_gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     // Swizzle B/R channel for BGR10_A2 images.
-    if (p_sizedInternalFormat == GL_BGR10_A2_ANGLEX) {
+    if (format == GfxstreamFormat::B10G10R10A2_UNORM) {
         s_gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_B, GL_RED);
         s_gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_R, GL_BLUE);
         cb->m_BRSwizzle = true;
@@ -314,15 +355,21 @@ std::unique_ptr<ColorBufferGl> ColorBufferGl::create(
     //
     s_gles2.glGenTextures(1, &cb->m_blitTex);
     s_gles2.glBindTexture(GL_TEXTURE_2D, cb->m_blitTex);
-    s_gles2.glTexImage2D(GL_TEXTURE_2D, 0, p_internalFormat, p_width, p_height,
-                         0, texFormat, pixelType, NULL);
-
+    s_gles2.glTexImage2D(GL_TEXTURE_2D,
+                         /*level=*/0,
+                         /*internalFormat=*/formatOpenglParams.internalFormat,
+                         p_width,
+                         p_height,
+                         /*border=*/0,
+                         formatOpenglParams.pixelDataComponents,
+                         formatOpenglParams.pixelDataType,
+                         /*pixel data=*/nullptr);
     s_gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     s_gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     s_gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     s_gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     // Swizzle B/R channel for BGR10_A2 images.
-    if (p_sizedInternalFormat == GL_BGR10_A2_ANGLEX) {
+    if (format == GfxstreamFormat::B10G10R10A2_UNORM) {
         s_gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_B, GL_RED);
         s_gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_R, GL_BLUE);
         cb->m_BRSwizzle = true;
@@ -334,13 +381,8 @@ std::unique_ptr<ColorBufferGl> ColorBufferGl::create(
 
     cb->m_resizer = new TextureResize(p_width, p_height);
 
-    switch (cb->m_frameworkFormat) {
-        case FRAMEWORK_FORMAT_GL_COMPATIBLE:
-            break;
-        default: // Any YUV format
-            cb->m_yuv_converter.reset(
-                    new YUVConverter(p_width, p_height, cb->m_frameworkFormat, cb->m_yuv420888ToNv21));
-            break;
+    if (IsYuvFormat(format)) {
+        cb->m_yuv_converter.reset(new YUVConverter(p_width, p_height, format));
     }
 
     // desktop GL only: use GL_UNSIGNED_INT_8_8_8_8_REV for faster readback.
@@ -371,7 +413,7 @@ std::unique_ptr<ColorBufferGl> ColorBufferGl::create(
                 // Assume nativePixmap is compatible with ColorBufferGl's current dimensions and
                 // internal format.
                 EGLBoolean setInfoRes = s_egl.eglSetImageInfoANDROID(
-                    p_display, cb->m_eglImage, cb->m_width, cb->m_height, cb->m_internalFormat);
+                    p_display, cb->m_eglImage, cb->m_width, cb->m_height, formatOpenglParams.internalFormat);
                 if (EGL_TRUE != setInfoRes) {
                     GFXSTREAM_ERROR("ColorBufferGl::create(): Failed to set image info");
                     return nullptr;
@@ -379,11 +421,14 @@ std::unique_ptr<ColorBufferGl> ColorBufferGl::create(
 
                 s_gles2.glBindTexture(GL_TEXTURE_2D, cb->m_tex);
                 s_gles2.glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, (GLeglImageOES)cb->m_eglImage);
-            } break;
-            default:
-                GFXSTREAM_ERROR("ColorBufferGl::create -- external memory info was provided, but ",
-                                p_internalFormat);
+                break;
+            }
+            default: {
+                const std::string formatString = ToString(format);
+                GFXSTREAM_ERROR("ColorBufferGl::create -- external memory info was provided, but %s",
+                                formatString.c_str());
                 return nullptr;
+            }
         }
     } else {
         cb->m_eglImage =
@@ -451,12 +496,11 @@ ColorBufferGl::~ColorBufferGl() {
 }
 
 
-static void convertRgbaToRgbPixels(void* dst, const void* src, uint32_t w, uint32_t h,
-                                   GLenum p_type) {
+static void convertRgbaToRgbPixels(void* dst, const void* src, uint32_t w, uint32_t h, GfxstreamFormat format) {
     const size_t pixelCount = w * h;
     const uint32_t* srcPixels = reinterpret_cast<const uint32_t*>(src);
 
-    if (p_type == GL_UNSIGNED_BYTE) {
+    if (format == GfxstreamFormat::R8G8B8_UNORM) {
         uint8_t* dstBytes = reinterpret_cast<uint8_t*>(dst);
         for (size_t i = 0; i < pixelCount; ++i) {
             const uint32_t pixel = *(srcPixels++);
@@ -464,7 +508,7 @@ static void convertRgbaToRgbPixels(void* dst, const void* src, uint32_t w, uint3
             *(dstBytes++) = ((pixel >> 8) & 0xff);
             *(dstBytes++) = ((pixel >> 16) & 0xff);
         }
-    } else if (p_type == GL_UNSIGNED_SHORT_5_6_5) {
+    } else if (format == GfxstreamFormat::R5G6B5_UNORM) {
         // A8B8G8R8 TO R5G6B5
         // Check validity with
         // testBasicBufferImportAndRenderingExternalFormat[AHARDWAREBUFFER_FORMAT_R5G6B5_UNORM]
@@ -483,7 +527,32 @@ static void convertRgbaToRgbPixels(void* dst, const void* src, uint32_t w, uint3
     }
 }
 
-bool ColorBufferGl::readPixels(int x, int y, int width, int height, GLenum p_format, GLenum p_type,
+bool ColorBufferGl::isReadbackToFormatSupported(GfxstreamFormat outputFormat) {
+    auto colorBufferParamsOpt = GetFormatOpenglParameters(m_format);
+    if (!colorBufferParamsOpt) {
+        const std::string formatString = ToString(m_format);
+        GFXSTREAM_ERROR("ColorBufferGl::create(format:%s) unsupported.", formatString.c_str());
+        return false;
+    }
+    const FormatOpenglParams& colorBufferParams = *colorBufferParamsOpt;
+
+    auto outputParamsOpt = GetFormatOpenglParameters(m_format);
+    if (!outputParamsOpt) {
+        const std::string formatString = ToString(m_format);
+        GFXSTREAM_ERROR("ColorBufferGl::create(format:%s) unsupported.", formatString.c_str());
+        return false;
+    }
+    const FormatOpenglParams& outputParams = *outputParamsOpt;
+
+    return m_pixelReadFormats.isSupported(
+        colorBufferParams.internalFormat,
+        colorBufferParams.pixelDataComponents,
+        colorBufferParams.pixelDataType,
+        outputParams.pixelDataComponents,
+        outputParams.pixelDataType);
+}
+
+bool ColorBufferGl::readPixels(int x, int y, int width, int height, GfxstreamFormat pixelFormat,
                                void* pixels) {
     RecursiveScopedContextBind context(m_helper);
     if (!context.isOk()) {
@@ -493,7 +562,21 @@ bool ColorBufferGl::readPixels(int x, int y, int width, int height, GLenum p_for
     GL_SCOPED_DEBUG_GROUP("ColorBufferGl::readPixels(handle:%d fbo:%d tex:%d)", mHndl, m_fbo,
                           m_tex);
 
-    p_format = sGetUnsizedColorBufferFormat(p_format);
+    auto pixelDataComponentsOpt = GetPixelComponents(pixelFormat);
+    if (!pixelDataComponentsOpt) {
+        const std::string formatString = ToString(pixelFormat);
+        GFXSTREAM_ERROR("Unsupported format %s", formatString.c_str());
+        return false;
+    }
+    const GLenum pixelDataComponents = *pixelDataComponentsOpt;
+
+    auto pixelDataTypeOpt = GetPixelDataType(pixelFormat);
+    if (!pixelDataTypeOpt) {
+        const std::string formatString = ToString(pixelFormat);
+        GFXSTREAM_ERROR("Unsupported format %s", formatString.c_str());
+        return false;
+    }
+    const GLenum pixelDataType = *pixelDataTypeOpt;
 
     waitSync();
 
@@ -507,21 +590,21 @@ bool ColorBufferGl::readPixels(int x, int y, int width, int height, GLenum p_for
     s_gles2.glGetIntegerv(GL_PACK_ALIGNMENT, &prevAlignment);
     s_gles2.glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
-    if (m_pixelReadFormats.isSupported(m_internalFormat, m_format, m_type, p_format, p_type)) {
-        s_gles2.glReadPixels(x, y, width, height, p_format, p_type, pixels);
+    if (isReadbackToFormatSupported(pixelFormat)) {
+        s_gles2.glReadPixels(x, y, width, height, pixelDataComponents, pixelDataType, pixels);
     } else {
         // Software readback. All GL drivers support RGBA readback. We try our best here to
         // support conversions from RGBA to some commonly requested formats.
-        if ((p_format == GL_RGB || p_format == GL_RGB8) &&
-            (p_type == GL_UNSIGNED_BYTE || p_type == GL_UNSIGNED_SHORT_5_6_5)) {
+        if (pixelFormat == GfxstreamFormat::R5G6B5_UNORM ||
+            pixelFormat == GfxstreamFormat::R8G8B8_UNORM) {
             std::vector<uint8_t> tmpPixels(width * height * 4);
             s_gles2.glReadPixels(x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, tmpPixels.data());
-            convertRgbaToRgbPixels(pixels, tmpPixels.data(), width, height, p_type);
+            convertRgbaToRgbPixels(pixels, tmpPixels.data(), width, height, pixelFormat);
         } else {
             GFXSTREAM_ERROR(
                 "UNIMPLEMENTED: GLES driver doesn't support readback for "
-                "(format=0x%x type=0x%x) and no software conversion implemented.",
-                p_format, p_type);
+                "(components=0x%x type=0x%x) and no software conversion implemented.",
+                pixelDataComponents, pixelDataType);
             res = false;
         }
     }
@@ -530,8 +613,9 @@ bool ColorBufferGl::readPixels(int x, int y, int width, int height, GLenum p_for
     return res;
 }
 
-bool ColorBufferGl::readPixelsScaled(int width, int height, GLenum p_format, GLenum p_type,
-                                     int rotation, Rect rect, void* pixels) {
+bool ColorBufferGl::readPixelsScaled(int width, int height,
+                                     int rotation, Rect rect,
+                                     GfxstreamFormat pixelsFormat, void* pixels) {
     RecursiveScopedContextBind context(m_helper);
     if (!context.isOk()) {
         return false;
@@ -547,7 +631,22 @@ bool ColorBufferGl::readPixelsScaled(int width, int height, GLenum p_format, GLe
             rect.pos.x, rect.pos.y, rect.size.w, rect.size.h);
         return false;
     }
-    p_format = sGetUnsizedColorBufferFormat(p_format);
+
+    auto pixelDataComponentsOpt = GetPixelComponents(pixelsFormat);
+    if (!pixelDataComponentsOpt) {
+        const std::string formatString = ToString(pixelsFormat);
+        GFXSTREAM_ERROR("Unsupported format %s", formatString.c_str());
+        return false;
+    }
+    GLenum pixelDataComponents = *pixelDataComponentsOpt;
+
+    auto pixelDataTypeOpt = GetPixelDataType(pixelsFormat);
+    if (!pixelDataTypeOpt) {
+        const std::string formatString = ToString(pixelsFormat);
+        GFXSTREAM_ERROR("Unsupported format %s", formatString.c_str());
+        return false;
+    }
+    const GLenum pixelDataType = *pixelDataTypeOpt;
 
     waitSync();
     GLuint tex = m_resizer->update(m_tex, width, height, rotation);
@@ -560,24 +659,23 @@ bool ColorBufferGl::readPixelsScaled(int width, int height, GLenum p_format, GLe
         // In fact, the spec only require RGBA8888 format support. Supports for
         // other formats are optional.
         bool needConvert4To3Channel =
-                p_format == GL_RGB && p_type == GL_UNSIGNED_BYTE &&
+                pixelDataComponents == GL_RGB && pixelDataType == GL_UNSIGNED_BYTE &&
                 (get_gfxstream_renderer() == SELECTED_RENDERER_SWIFTSHADER_INDIRECT ||
                     get_gfxstream_renderer() == SELECTED_RENDERER_ANGLE_INDIRECT);
         std::vector<uint8_t> tmpPixels;
         void* readPixelsDst = pixels;
         if (needConvert4To3Channel) {
             tmpPixels.resize(width * height * 4);
-            p_format = GL_RGBA;
+            pixelDataComponents = GL_RGBA;
             readPixelsDst = tmpPixels.data();
         }
         if (useSnipping) {
             s_gles2.glReadPixels(rect.pos.x, rect.pos.y, rect.size.w,
-                                 rect.size.h, p_format, p_type, readPixelsDst);
+                                 rect.size.h, pixelDataComponents, pixelDataType, readPixelsDst);
             width = rect.size.w;
             height = rect.size.h;
         } else {
-            s_gles2.glReadPixels(0, 0, width, height, p_format, p_type,
-                                 readPixelsDst);
+            s_gles2.glReadPixels(0, 0, width, height, pixelDataComponents, pixelDataType, readPixelsDst);
         }
         if (needConvert4To3Channel) {
             uint8_t* src = tmpPixels.data();
@@ -611,56 +709,31 @@ bool ColorBufferGl::readPixelsYUVCached(int x, int y, int width, int height, voi
         return false;
     }
 
-#if DEBUG_CB_FBO
-    fprintf(stderr, "%s %d request width %d height %d\n", __func__, __LINE__,
-            width, height);
-    memset(pixels, 0x00, pixels_size);
-    assert(m_yuv_converter.get());
-#endif
-
     m_yuv_converter->readPixels((uint8_t*)pixels, pixels_size);
 
     return true;
 }
 
-void ColorBufferGl::reformat(GLint internalformat, GLenum type) {
-    GLenum texFormat = internalformat;
-    GLenum pixelType = GL_UNSIGNED_BYTE;
-    GLint sizedInternalFormat = GL_RGBA8;
-    int bpp = 4;
-    bool isBlob = false;
-    if (!sGetFormatParameters(&internalformat, &texFormat, &pixelType, &bpp,
-                              &sizedInternalFormat, &isBlob)) {
-        fprintf(stderr, "%s: WARNING: reformat failed. internal format: 0x%x\n",
-                __func__, internalformat);
+void ColorBufferGl::reformat(GfxstreamFormat format) {
+    auto formatOpenglParamsOpt = GetFormatOpenglParameters(format);
+    if (!formatOpenglParamsOpt) {
+        const std::string formatString = ToString(format);
+        GFXSTREAM_ERROR("Unsupported format:%s.", formatString.c_str());
+        return;
     }
-
-    // BUG: 143607546
-    //
-    // During reformatting, sGetFormatParameters can be too
-    // opinionated and override the guest's intended choice for the
-    // pixel type.  If the guest wanted GL_UNSIGNED_SHORT_5_6_5 as
-    // the pixel type, and the incoming internal format is not
-    // explicitly sized, sGetFormatParameters will pick a default of
-    // GL_UNSIGNED BYTE, which goes against guest expectations.
-    //
-    // This happens only on older API levels where gralloc.cpp in
-    // goldfish-opengl communicated HAL_PIXEL_FORMAT_RGB_565 as GL
-    // format GL_RGB, pixel type GL_UNSIGNED_SHORT_5_6_5.  Newer
-    // system images communicate HAL_PIXEL_FORMAT_RGB_565 as GL
-    // format GL_RGB565, which allows sGetFormatParameters to work
-    // correctly.
-    if (pixelType != type) {
-        pixelType = type;
-    }
+    const FormatOpenglParams& formatOpenglParams = *formatOpenglParamsOpt;
 
     s_gles2.glBindTexture(GL_TEXTURE_2D, m_tex);
-    s_gles2.glTexImage2D(GL_TEXTURE_2D, 0, internalformat, m_width, m_height,
-                         0, texFormat, pixelType, nullptr);
+    s_gles2.glTexImage2D(GL_TEXTURE_2D, 0,
+                         formatOpenglParams.internalFormat, m_width, m_height,
+                         0, formatOpenglParams.pixelDataComponents,
+                         formatOpenglParams.pixelDataType, nullptr);
 
     s_gles2.glBindTexture(GL_TEXTURE_2D, m_blitTex);
-    s_gles2.glTexImage2D(GL_TEXTURE_2D, 0, internalformat, m_width, m_height,
-                         0, texFormat, pixelType, nullptr);
+    s_gles2.glTexImage2D(GL_TEXTURE_2D, 0,
+                         formatOpenglParams.internalFormat, m_width, m_height,
+                         0, formatOpenglParams.pixelDataComponents,
+                         formatOpenglParams.pixelDataType, nullptr);
 
     // EGL images need to be recreated because the EGL_KHR_image_base spec
     // states that respecifying an image (i.e. glTexImage2D) will generally
@@ -677,68 +750,71 @@ void ColorBufferGl::reformat(GLint internalformat, GLenum type) {
 
     s_gles2.glBindTexture(GL_TEXTURE_2D, 0);
 
-    m_internalFormat = internalformat;
-    m_format = texFormat;
-    m_type = pixelType;
-    m_sizedInternalFormat = sizedInternalFormat;
-
-    m_numBytes = bpp * m_width * m_height;
+    m_format = format;
+    m_numBytes = formatOpenglParams.bpp * m_width * m_height;
 }
 
-void ColorBufferGl::swapYUVTextures(FrameworkFormat type, uint32_t* textures, void* metadata) {
-    if (type == FrameworkFormat::FRAMEWORK_FORMAT_NV12) {
-        m_yuv_converter->swapTextures(type, textures, metadata);
-    } else {
-        fprintf(stderr,
-                "%s: ERROR: format other than NV12 is not supported: 0x%x\n",
-                __func__, type);
+void ColorBufferGl::swapYUVTextures(GfxstreamFormat format, uint32_t* textures) {
+    if (format == GfxstreamFormat::NV12) {
+        m_yuv_converter->swapTextures(format, textures);
+        return;
     }
+
+    const std::string formatString = ToString(format);
+    GFXSTREAM_ERROR("Unsupported format %s", formatString.c_str());
 }
 
-bool ColorBufferGl::subUpdate(int x, int y, int width, int height, GLenum p_format, GLenum p_type,
-                              const void* pixels, void* metadata) {
-    return subUpdateFromFrameworkFormat(x, y, width, height, m_frameworkFormat, p_format, p_type,
-                                        pixels, metadata);
-}
-
-bool ColorBufferGl::subUpdateFromFrameworkFormat(int x, int y, int width, int height,
-                                                 FrameworkFormat fwkFormat, GLenum p_format,
-                                                 GLenum p_type, const void* pixels,
-                                                 void* metadata) {
-    const GLenum p_unsizedFormat = sGetUnsizedColorBufferFormat(p_format);
+bool ColorBufferGl::subUpdate(int x, int y, int width, int height,
+                              GfxstreamFormat pixelsFormat, const void* pixels,
+                              void* metadata) {
     RecursiveScopedContextBind context(m_helper);
     if (!context.isOk()) {
         return false;
     }
 
-    GL_SCOPED_DEBUG_GROUP("ColorBufferGl::subUpdate(handle:%d fbo:%d tex:%d)", mHndl, m_fbo, m_tex);
+    const bool isYuvColorBuffer = IsYuvFormat(m_format);
 
     if (m_needFormatCheck) {
-        if (p_type != m_type || p_unsizedFormat != m_format) {
-            reformat((GLint)p_unsizedFormat, p_type);
+        if (!isYuvColorBuffer && m_format != pixelsFormat) {
+            reformat(pixelsFormat);
         }
         m_needFormatCheck = false;
     }
 
-    if (m_frameworkFormat != FRAMEWORK_FORMAT_GL_COMPATIBLE || fwkFormat != m_frameworkFormat) {
-        assert(m_yuv_converter.get());
-
-        // This FBO will convert the YUV frame to RGB
-        // and render it to |m_tex|.
+    if (isYuvColorBuffer) {
+        // This FBO will convert the YUV frame to RGB and render it to |m_tex|.
         bindFbo(&m_yuv_conversion_fbo, m_tex, m_needFboReattach);
-        m_yuv_converter->drawConvertFromFormat(fwkFormat, x, y, width, height, (char*)pixels,
-                                               metadata);
+
+        // NOTE: using `m_format` seems incorrect but this might preserve some
+        // historical behavior. See the
+        //
+        // * CreateOpenUpdateCloseColorBuffer_ReadNV12
+        // * CreateOpenUpdateCloseColorBuffer_ReadNV12TOYUV420
+        // * CreateOpenUpdateCloseColorBuffer_ReadYUV420
+        // * CreateOpenUpdateCloseColorBuffer_ReadYV12
+        //
+        // tests which seem to sometimes upload RGB data and sometimes upload
+        // YUV data.
+        m_yuv_converter->drawConvertFromFormat(m_format, x, y, width, height, (char*)pixels, metadata);
+
         unbindFbo();
 
         // |m_tex| still needs to be bound afterwards
         s_gles2.glBindTexture(GL_TEXTURE_2D, m_tex);
-
     } else {
+        auto formatOpenglParamsOpt = GetFormatOpenglParameters(pixelsFormat);
+        if (!formatOpenglParamsOpt) {
+            const std::string formatString = ToString(pixelsFormat);
+            GFXSTREAM_ERROR("Unsupported format:%s.", formatString.c_str());
+            return false;
+        }
+        const FormatOpenglParams& formatOpenglParams = *formatOpenglParamsOpt;
+
         s_gles2.glBindTexture(GL_TEXTURE_2D, m_tex);
         s_gles2.glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-        s_gles2.glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, p_unsizedFormat,
-                                p_type, pixels);
+        s_gles2.glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height,
+                                formatOpenglParams.pixelDataComponents,
+                                formatOpenglParams.pixelDataType, pixels);
     }
 
     if (m_fastBlitSupported) {
@@ -750,7 +826,7 @@ bool ColorBufferGl::subUpdateFromFrameworkFormat(int x, int y, int width, int he
 }
 
 bool ColorBufferGl::replaceContents(const void* newContents, size_t numBytes) {
-    return subUpdate(0, 0, m_width, m_height, m_format, m_type, newContents);
+    return subUpdate(0, 0, m_width, m_height, m_format, newContents);
 }
 
 bool ColorBufferGl::readContents(size_t* numBytes, void* pixels) {
@@ -766,7 +842,7 @@ bool ColorBufferGl::readContents(size_t* numBytes, void* pixels) {
         if (!pixels) {
             return true;
         }
-        return readPixels(0, 0, m_width, m_height, m_format, m_type, pixels);
+        return readPixels(0, 0, m_width, m_height, m_format, pixels);
     }
 }
 
@@ -1059,8 +1135,7 @@ void ColorBufferGl::onSave(gfxstream::Stream* stream) {
     stream->putBe32(getHndl());
     stream->putBe32(static_cast<uint32_t>(m_width));
     stream->putBe32(static_cast<uint32_t>(m_height));
-    stream->putBe32(static_cast<uint32_t>(m_internalFormat));
-    stream->putBe32(static_cast<uint32_t>(m_frameworkFormat));
+    stream->putBe32(static_cast<uint32_t>(m_format));
     // for debug
     assert(m_eglImage && m_blitEGLImage);
     stream->putBe32(reinterpret_cast<uintptr_t>(m_eglImage));
@@ -1077,15 +1152,14 @@ std::unique_ptr<ColorBufferGl> ColorBufferGl::onLoad(gfxstream::Stream* stream,
     HandleType hndl = static_cast<HandleType>(stream->getBe32());
     GLuint width = static_cast<GLuint>(stream->getBe32());
     GLuint height = static_cast<GLuint>(stream->getBe32());
-    GLenum internalFormat = static_cast<GLenum>(stream->getBe32());
-    FrameworkFormat frameworkFormat =
-            static_cast<FrameworkFormat>(stream->getBe32());
+    GfxstreamFormat format = static_cast<GfxstreamFormat>(stream->getBe32());
+
     EGLImageKHR eglImage = reinterpret_cast<EGLImageKHR>(stream->getBe32());
     EGLImageKHR blitEGLImage = reinterpret_cast<EGLImageKHR>(stream->getBe32());
     uint32_t needFormatCheck = stream->getBe32();
 
     if (!eglImage) {
-        return create(p_display, width, height, internalFormat, frameworkFormat, hndl, helper,
+        return create(p_display, width, height, format, hndl, helper,
                       textureDraw, fastBlitSupported, features, pixelReadFormats);
     }
     std::unique_ptr<ColorBufferGl> cb(
@@ -1093,23 +1167,20 @@ std::unique_ptr<ColorBufferGl> ColorBufferGl::onLoad(gfxstream::Stream* stream,
     cb->m_eglImage = eglImage;
     cb->m_blitEGLImage = blitEGLImage;
     assert(eglImage && blitEGLImage);
-    cb->m_internalFormat = internalFormat;
-    cb->m_frameworkFormat = frameworkFormat;
+    cb->m_format = format;
     cb->m_fastBlitSupported = fastBlitSupported;
     cb->m_needFormatCheck = needFormatCheck;
 
-    GLenum texFormat;
-    GLenum pixelType;
-    int bytesPerPixel = 1;
-    GLint sizedInternalFormat;
-    bool isBlob;
-    sGetFormatParameters(&cb->m_internalFormat, &texFormat, &pixelType, &bytesPerPixel,
-                         &sizedInternalFormat, &isBlob);
-    cb->m_type = pixelType;
-    cb->m_format = texFormat;
-    cb->m_sizedInternalFormat = sizedInternalFormat;
+    auto formatOpenglParamsOpt = GetFormatOpenglParameters(format);
+    if (!formatOpenglParamsOpt) {
+        const std::string formatString = ToString(format);
+        GFXSTREAM_ERROR("ColorBufferGl::create(format:%s) unsupported.", formatString.c_str());
+        return nullptr;
+    }
+    FormatOpenglParams& formatOpenglParams = *formatOpenglParamsOpt;
+
     // TODO: set m_BRSwizzle properly
-    cb->m_numBytes = ((unsigned long)bytesPerPixel) * width * height;
+    cb->m_numBytes = ((unsigned long)formatOpenglParams.bpp) * width * height;
     return cb;
 }
 
@@ -1124,13 +1195,8 @@ void ColorBufferGl::restore() {
     s_gles2.glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, m_blitEGLImage);
 
     m_resizer = new TextureResize(m_width, m_height);
-    switch (m_frameworkFormat) {
-        case FRAMEWORK_FORMAT_GL_COMPATIBLE:
-            break;
-        default: // any YUV format
-            m_yuv_converter.reset(
-                    new YUVConverter(m_width, m_height, m_frameworkFormat, m_yuv420888ToNv21));
-            break;
+    if (IsYuvFormat(m_format)) {
+        m_yuv_converter.reset(new YUVConverter(m_width, m_height, m_format));
     }
 }
 
@@ -1208,24 +1274,28 @@ bool ColorBufferGl::importMemory(ManagedDescriptor externalDescriptor, uint64_t 
 
     // HOST needed because we do not expose this to guest
     s_gles2.glTexParameteriHOST(GL_TEXTURE_2D, GL_TEXTURE_TILING_EXT, glTiling);
-
     s_gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     s_gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     s_gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     s_gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    if (m_sizedInternalFormat == GL_BGRA8_EXT ||
-        m_sizedInternalFormat == GL_BGR10_A2_ANGLEX) {
-        GLint internalFormat = m_sizedInternalFormat == GL_BGRA8_EXT
-                                       ? GL_RGBA8
-                                       : GL_RGB10_A2_EXT;
-        s_gles2.glTexStorageMem2DEXT(GL_TEXTURE_2D, 1, internalFormat, m_width,
-                                     m_height, m_memoryObject, 0);
+    auto formatOpenglParamsOpt = GetFormatOpenglParameters(m_format);
+    if (!formatOpenglParamsOpt) {
+        const std::string formatString = ToString(m_format);
+        GFXSTREAM_ERROR("Unsupported format:%s.", formatString.c_str());
+        return false;
+    }
+    const FormatOpenglParams& formatOpenglParams = *formatOpenglParamsOpt;
+
+    s_gles2.glTexStorageMem2DEXT(GL_TEXTURE_2D, 1, formatOpenglParams.internalFormat,
+                                 m_width, m_height, m_memoryObject, 0);
+
+    if (m_format == GfxstreamFormat::B8G8R8A8_UNORM ||
+        m_format == GfxstreamFormat::B10G10R10A2_UNORM) {
         s_gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_B, GL_RED);
         s_gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_R, GL_BLUE);
         m_BRSwizzle = true;
     } else {
-        s_gles2.glTexStorageMem2DEXT(GL_TEXTURE_2D, 1, m_sizedInternalFormat, m_width, m_height, m_memoryObject, 0);
         m_BRSwizzle = false;
     }
 
@@ -1247,8 +1317,15 @@ bool ColorBufferGl::importEglNativePixmap(void* pixmap, bool preserveContent) {
     }
 
     // Assume pixmap is compatible with ColorBufferGl's current dimensions and internal format.
-    EGLBoolean setInfoRes = s_egl.eglSetImageInfoANDROID(m_display, image, m_width, m_height, m_internalFormat);
+    auto internalFormatOpt = GetSizedInternalFormat(m_format);
+    if (!internalFormatOpt) {
+        const std::string formatString = ToString(m_format);
+        GFXSTREAM_ERROR("Unsupported format:%s.", formatString.c_str());
+        return false;
+    }
+    const GLint internalFormat = *internalFormatOpt;
 
+    EGLBoolean setInfoRes = s_egl.eglSetImageInfoANDROID(m_display, image, m_width, m_height, internalFormat);
     if (EGL_TRUE != setInfoRes) {
         fprintf(stderr, "%s: error: failed to set image info\n", __func__);
         s_egl.eglDestroyImageKHR(m_display, image);

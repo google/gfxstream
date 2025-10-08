@@ -58,7 +58,7 @@ bool GLESvalidate::pixelOp(GLenum format,GLenum type) {
 }
 
 bool GLESvalidate::pixelFrmt(GLEScontext* ctx ,GLenum format) {
-    if (ctx && ctx->getCaps()->GL_EXT_TEXTURE_FORMAT_BGRA8888 && format == GL_BGRA_EXT)
+    if (ctx && ctx->getCaps()->GL_EXT_TEXTURE_FORMAT_BGRA8888 && (format == GL_BGRA_EXT || format == GL_BGRA8_EXT))
       return true;
     if (ctx && ctx->getCaps()->GL_EXT_PACKED_DEPTH_STENCIL && format == GL_DEPTH_STENCIL_OES)
       return true;
@@ -129,7 +129,7 @@ bool GLESvalidate::textureTargetEx(GLenum target) {
     case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_OES:
     case GL_TEXTURE_2D:
       return true;
-    } 
+    }
     return false;
 }
 

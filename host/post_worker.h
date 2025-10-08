@@ -25,8 +25,8 @@
 #include "hwc2.h"
 #include "post_commands.h"
 #include "gfxstream/Compiler.h"
-#include "gfxstream/synchronization/Lock.h"
-#include "gfxstream/synchronization/MessageChannel.h"
+#include "gfxstream/host/gfxstream_format.h"
+
 
 namespace gfxstream {
 namespace host {
@@ -60,8 +60,8 @@ class PostWorker {
     void clear();
 
     // screenshot: readbacks emulator display image to a buffer
-    void screenshot(ColorBuffer* cb, int screenwidth, int screenheight, GLenum format,
-                GLenum type, int skinRotation, void* outPixels, Rect rect);
+    void screenshot(ColorBuffer* cb, int screenwidth, int screenheight, int skinRotation,
+                    GfxstreamFormat pixelsFormat, void* outPixels, Rect rect);
 
     // The block task will set the scheduledSignal promise when the task is scheduled, and wait
     // until continueSignal is ready before completes.

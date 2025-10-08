@@ -37,6 +37,7 @@
 #include "gfxstream/host/ChecksumCalculatorThreadInfo.h"
 #include "gfxstream/host/tracing.h"
 #include "gfxstream/host/gl_enums.h"
+#include "gfxstream/host/gfxstream_format.h"
 #include "gfxstream/host/guest_operations.h"
 #include "gfxstream/host/renderer_operations.h"
 #include "gfxstream/host/sync_device.h"
@@ -802,7 +803,8 @@ static void rcDestroyWindowSurface(uint32_t windowSurface)
 }
 
 static uint32_t rcCreateColorBuffer(uint32_t width,
-                                    uint32_t height, GLenum internalFormat)
+                                    uint32_t height,
+                                    GLenum internalFormat)
 {
     FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
@@ -810,8 +812,8 @@ static uint32_t rcCreateColorBuffer(uint32_t width,
         return 0;
     }
 
-    return fb->createColorBuffer(width, height, internalFormat,
-                                 FRAMEWORK_FORMAT_GL_COMPATIBLE);
+    return fb->createColorBufferDeprecated(width, height, internalFormat,
+                                           FRAMEWORK_FORMAT_GL_COMPATIBLE);
 }
 
 static uint32_t rcCreateColorBufferDMA(uint32_t width,
@@ -824,8 +826,8 @@ static uint32_t rcCreateColorBufferDMA(uint32_t width,
         return 0;
     }
 
-    return fb->createColorBuffer(width, height, internalFormat,
-                                 (FrameworkFormat)frameworkFormat);
+    return fb->createColorBufferDeprecated(width, height, internalFormat,
+                                           (FrameworkFormat)frameworkFormat);
 }
 
 static int rcOpenColorBuffer2(uint32_t colorbuffer)
@@ -994,7 +996,7 @@ static void rcReadColorBuffer(uint32_t colorBuffer,
         return;
     }
 
-    fb->readColorBuffer(colorBuffer, x, y, width, height, format, type, pixels);
+    fb->readColorBufferDeprecated(colorBuffer, x, y, width, height, format, type, pixels);
 }
 
 static int rcUpdateColorBuffer(uint32_t colorBuffer,
@@ -1010,7 +1012,7 @@ static int rcUpdateColorBuffer(uint32_t colorBuffer,
         return -1;
     }
 
-    fb->updateColorBuffer(colorBuffer, x, y, width, height, format, type, pixels);
+    fb->updateColorBufferDeprecated(colorBuffer, x, y, width, height, format, type, pixels);
 
     GRSYNC_DPRINT("unlock gralloc cb lock");
     sGrallocSync()->unlockColorBufferPrepare();
@@ -1032,8 +1034,8 @@ static int rcUpdateColorBufferDMA(uint32_t colorBuffer,
         return -1;
     }
 
-    fb->updateColorBuffer(colorBuffer, x, y, width, height,
-                          format, type, pixels);
+    fb->updateColorBufferDeprecated(colorBuffer, x, y, width, height,
+                                    format, type, pixels);
 
     GRSYNC_DPRINT("unlock gralloc cb lock");
     sGrallocSync()->unlockColorBufferPrepare();
@@ -1416,8 +1418,8 @@ static void rcCreateColorBufferWithHandle(
         return;
     }
 
-    fb->createColorBufferWithResourceHandle(width, height, internalFormat,
-                                            FRAMEWORK_FORMAT_GL_COMPATIBLE, handle);
+    fb->createColorBufferWithResourceHandleDeprecated(
+        width, height, internalFormat, FRAMEWORK_FORMAT_GL_COMPATIBLE, handle);
 }
 
 static uint32_t rcCreateBuffer2(uint64_t size, uint32_t memoryProperty) {
@@ -1551,7 +1553,8 @@ static void rcDestroySyncKHRAsync(uint64_t handle) {
 static int rcReadColorBufferDMA(uint32_t colorBuffer,
                                 GLint x, GLint y,
                                 GLint width, GLint height,
-                                GLenum format, GLenum type, void* pixels, uint32_t pixels_size)
+                                GLenum format, GLenum type, void* pixels,
+                                uint32_t pixels_size)
 {
     FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
@@ -1559,7 +1562,8 @@ static int rcReadColorBufferDMA(uint32_t colorBuffer,
         return -1;
     }
 
-    fb->readColorBuffer(colorBuffer, x, y, width, height, format, type, pixels, pixels_size);
+    fb->readColorBufferDeprecated(colorBuffer, x, y, width, height, format,
+                                  type, pixels, pixels_size);
     return 0;
 }
 

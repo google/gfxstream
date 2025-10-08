@@ -19,7 +19,7 @@
 
 #include "gfxstream/host/borrowed_image.h"
 #include "gfxstream/host/external_object_manager.h"
-#include "host/framework_formats.h"
+#include "gfxstream/host/gfxstream_format.h"
 #include "render-utils/stream.h"
 
 namespace gfxstream {
@@ -31,8 +31,8 @@ class VkEmulation;
 class ColorBufferVk {
    public:
     static std::unique_ptr<ColorBufferVk> create(VkEmulation& emulationVk, uint32_t handle,
-                                                 uint32_t width, uint32_t height, GLenum format,
-                                                 FrameworkFormat frameworkFormat, bool vulkanOnly,
+                                                 uint32_t width, uint32_t height,
+                                                 GfxstreamFormat format, bool vulkanOnly,
                                                  uint32_t memoryProperty,
                                                  gfxstream::Stream* stream,
                                                  uint32_t mipLevels);

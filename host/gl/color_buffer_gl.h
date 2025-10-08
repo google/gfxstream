@@ -26,13 +26,13 @@
 #include <unordered_set>
 
 #include "context_helper.h"
-#include "framework_formats.h"
 #include "handle.h"
 #include "hwc2.h"
 #include "pixel_read_formats.h"
 #include "gfxstream/ManagedDescriptor.h"
 #include "gfxstream/host/features.h"
 #include "gfxstream/host/borrowed_image.h"
+#include "gfxstream/host/gfxstream_format.h"
 #include "render-utils/Renderer.h"
 #include "render-utils/stream.h"
 
@@ -80,21 +80,14 @@ class ColorBufferGl {
     // Create a new ColorBufferGl instance.
     // |display| is the host EGLDisplay handle.
     // |width| and |height| are the buffer's dimensions in pixels.
-    // |internalFormat| is the internal OpenGL pixel format to use, valid
-    // values
     // are: GL_RGB, GL_RGB565, GL_RGBA, GL_RGB5_A1_OES and GL_RGBA4_OES.
     // Implementation is free to use something else though.
-    // |frameworkFormat| specifies the original format of the guest
-    // color buffer so that we know how to convert to |internalFormat|,
-    // if necessary (otherwise, frameworkFormat ==
-    // FRAMEWORK_FORMAT_GL_COMPATIBLE).
     // It is assumed underlying EGL has EGL_KHR_gl_texture_2D_image.
     // Returns NULL on failure.
     // |fastBlitSupported|: whether or not this ColorBufferGl can be
     // blitted and posted to swapchain without context switches.
     static std::unique_ptr<ColorBufferGl> create(EGLDisplay display, int width, int height,
-                                                 GLint internalFormat,
-                                                 FrameworkFormat frameworkFormat, HandleType handle,
+                                                 GfxstreamFormat format, HandleType handle,
                                                  ContextHelper* helper, TextureDraw* textureDraw,
                                                  bool fastBlitSupported,
                                                  const gfxstream::host::FeatureSet& features,
@@ -103,7 +96,7 @@ class ColorBufferGl {
     // Sometimes things happen and we need to reformat the GL texture
     // used. This function replaces the format of the underlying texture
     // with the internalformat specified.
-    void reformat(GLint internalformat, GLenum type);
+    void reformat(GfxstreamFormat format);
 
     // Destructor.
     ~ColorBufferGl();
@@ -117,14 +110,13 @@ class ColorBufferGl {
                     int y,
                     int width,
                     int height,
-                    GLenum p_format,
-                    GLenum p_type,
+                    GfxstreamFormat pixelsFormat,
                     void* pixels);
     // Read the ColorBuffer instance's pixel values by first scaling
     // to the size of width x height, then clipping a |rect| from the
     // screen defined by width x height.
-    bool readPixelsScaled(int width, int height, GLenum p_format, GLenum p_type, int skinRotation,
-                          Rect rect, void* pixels);
+    bool readPixelsScaled(int width, int height, int skinRotation,
+                          Rect rect, GfxstreamFormat pixelsFormat, void* pixels);
 
     // Read cached YUV pixel values into host memory.
     bool readPixelsYUVCached(int x,
@@ -134,18 +126,16 @@ class ColorBufferGl {
                              void* pixels,
                              uint32_t pixels_size);
 
-    void swapYUVTextures(FrameworkFormat texture_type, GLuint* textures, void* metadata = nullptr);
+    void swapYUVTextures(GfxstreamFormat texture_type, GLuint* textures);
 
     // Update the ColorBufferGl instance's pixel values from host memory.
     // |p_format / p_type| are the desired OpenGL color buffer format
     // and data type.
     // Otherwise, subUpdate() will explicitly convert |pixels|
     // to be in |p_format|.
-    bool subUpdate(int x, int y, int width, int height, GLenum p_format, GLenum p_type,
+    bool subUpdate(int x, int y, int width, int height,
+                   GfxstreamFormat pixelsFormat,
                    const void* pixels, void* metadata = nullptr);
-    bool subUpdateFromFrameworkFormat(int x, int y, int width, int height,
-                                      FrameworkFormat fwkFormat, GLenum p_format, GLenum p_type,
-                                      const void* pixels, void* metadata = nullptr);
 
     // Completely replaces contents, assuming that |pixels| is a buffer
     // that is allocated and filled with the same format.
@@ -223,25 +213,26 @@ class ColorBufferGl {
     void waitSync(bool debug = false);
     void setDisplay(uint32_t displayId) { m_displayId = displayId; }
     uint32_t getDisplay() { return m_displayId; }
-    FrameworkFormat getFrameworkFormat() { return m_frameworkFormat; }
+    GfxstreamFormat getFormat() { return m_format; }
 
- public:
+  public:
     void restore();
 
-private:
- ColorBufferGl(EGLDisplay display, HandleType hndl, GLuint width, GLuint height,
-               ContextHelper* helper, TextureDraw* textureDraw, PixelReadFormats& pixelReadFormats);
+  private:
+    ColorBufferGl(EGLDisplay display, HandleType hndl, GLuint width, GLuint height,
+                  ContextHelper* helper, TextureDraw* textureDraw, PixelReadFormats& pixelReadFormats);
 
-private:
+    bool isReadbackToFormatSupported(GfxstreamFormat outputFormat);
+
+    const GLuint m_width = 0;
+    const GLuint m_height = 0;
+    GfxstreamFormat m_format;
+
     GLuint m_tex = 0;
     GLuint m_blitTex = 0;
     EGLImageKHR m_eglImage = nullptr;
     EGLImageKHR m_blitEGLImage = nullptr;
-    const GLuint m_width = 0;
-    const GLuint m_height = 0;
     GLuint m_fbo = 0;
-    GLint m_internalFormat = 0;
-    GLint m_sizedInternalFormat = 0;
 
     // This is helpful for bindFbo which may skip too many steps after the egl
     // image is replaced.
@@ -250,22 +241,13 @@ private:
     // |m_format| and |m_type| are for reformatting purposes only
     // to work around bugs in the guest. No need to snapshot those.
     bool m_needFormatCheck = true;
-    GLenum m_format = 0; // TODO: Currently we treat m_internalFormat same as
-                         // m_format, but if underlying drivers can take it,
-                         // it may be a better idea to distinguish them, with
-                         // m_internalFormat as an explicitly sized format; then
-                         // guest can specify everything in terms of explicitly
-                         // sized internal formats and things will get less
-                         // ambiguous.
-    GLenum m_type = 0;
 
     EGLDisplay m_display = nullptr;
     ContextHelper* m_helper = nullptr;
     TextureDraw* m_textureDraw = nullptr;
     TextureResize* m_resizer = nullptr;
     PixelReadFormats& m_pixelReadFormats;
-    FrameworkFormat m_frameworkFormat;
-    bool m_yuv420888ToNv21 = false;
+
     GLuint m_yuv_conversion_fbo = 0;  // FBO to offscreen-convert YUV to RGB
     GLuint m_scaleRotationFbo = 0;  // FBO to read scaled rotation pixels
     std::unique_ptr<YUVConverter> m_yuv_converter;

@@ -66,7 +66,7 @@ public:
 
             mFb->closeColorBuffer(mColorBuffer);
             mColorBuffer = mFb->createColorBuffer(
-                    mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE);
+                    mWidth, mHeight, GfxstreamFormat::R8G8B8A8_UNORM);
             mFb->setEmulatedEglWindowSurfaceColorBuffer(mSurface, mColorBuffer);
         }
     }
@@ -160,7 +160,7 @@ public:
 
         mFb->readColorBuffer(
             mColorBuffer, 0, 0, mWidth, mHeight,
-            GL_RGBA, GL_UNSIGNED_BYTE, forRead.data());
+            GfxstreamFormat::R8G8B8A8_UNORM, forRead.data());
 
         EXPECT_TRUE(
             ImageMatches(mWidth, mHeight, 4, mWidth, targetBuffer.data(), forRead.data()));

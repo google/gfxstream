@@ -44,6 +44,7 @@
 #include "gfxstream/host/features.h"
 #include "gfxstream/host/display.h"
 #include "gfxstream/host/display_surface.h"
+#include "gfxstream/host/gfxstream_format.h"
 #include "gfxstream/host/gl_enums.h"
 #include "render-utils/stream.h"
 
@@ -113,11 +114,10 @@ class EmulationGl {
 
     std::unique_ptr<BufferGl> loadBuffer(Stream* stream);
 
-    bool isFormatSupported(GLenum format);
+    bool isFormatSupported(GfxstreamFormat format);
 
     std::unique_ptr<ColorBufferGl> createColorBuffer(uint32_t width, uint32_t height,
-                                                     GLenum internalFormat,
-                                                     FrameworkFormat frameworkFormat,
+                                                     GfxstreamFormat format,
                                                      HandleType handle);
 
     std::unique_ptr<ColorBufferGl> loadColorBuffer(Stream* stream);

@@ -48,6 +48,7 @@ cc_test(
     srcs = [
         "gfxstream_end2end_composition_tests.cpp",
         "gfxstream_end2end_gl_tests.cpp",
+        "gfxstream_end2end_gralloc_tests.cpp",
         "gfxstream_end2end_test_utils.cpp",
         "gfxstream_end2end_test_utils.h",
         "gfxstream_end2end_tests.cpp",

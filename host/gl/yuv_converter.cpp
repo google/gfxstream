@@ -30,241 +30,133 @@ namespace gfxstream {
 namespace host {
 namespace gl {
 
-#define YUV_CONVERTER_DEBUG 0
-
-#if YUV_CONVERTER_DEBUG
-#define YUV_DEBUG_LOG(fmt, ...)                                                        \
-    fprintf(stderr, "yuv-converter: %s %s:%d " fmt "\n", __FILE__, __func__, __LINE__, \
-            ##__VA_ARGS__);
-#else
-#define YUV_DEBUG_LOG(fmt, ...)
-#endif
-
-bool isInterleaved(FrameworkFormat format, bool yuv420888ToNv21) {
+GLint getGlTextureFormat(GfxstreamFormat format, YuvPlane plane) {
     switch (format) {
-    case FRAMEWORK_FORMAT_NV12:
-    case FRAMEWORK_FORMAT_P010:
-        return true;
-    case FRAMEWORK_FORMAT_YUV_420_888:
-        return yuv420888ToNv21;
-    case FRAMEWORK_FORMAT_YV12:
-        return false;
-    default:
-        GFXSTREAM_FATAL("Invalid for format:%d", format);
-        return false;
+        case GfxstreamFormat::YV12:
+        case GfxstreamFormat::YV21: {
+            switch (plane) {
+                case YuvPlane::Y:
+                case YuvPlane::U:
+                case YuvPlane::V:
+                    return GL_R8;
+                default:
+                    GFXSTREAM_FATAL("Invalid plane for format:%d", format);
+                    return 0;
+            }
+        }
+        case GfxstreamFormat::NV12:
+        case GfxstreamFormat::NV21: {
+            switch (plane) {
+                case YuvPlane::Y:
+                    return GL_R8;
+                case YuvPlane::UV:
+                    return GL_RG8;
+                default:
+                    GFXSTREAM_FATAL("Invalid plane for format:%d", format);
+                    return 0;
+            }
+        }
+        case GfxstreamFormat::P010: {
+            switch (plane) {
+                case YuvPlane::Y:
+                    return GL_R16UI;
+                case YuvPlane::UV:
+                    return GL_RG16UI;
+                default:
+                    GFXSTREAM_FATAL("Invalid plane for format:%d", format);
+                    return 0;
+            }
+        }
+        default: {
+            GFXSTREAM_FATAL("Invalid format:%d", format);
+            return 0;
+        }
     }
 }
 
-enum class YUVInterleaveDirection {
-    VU = 0,
-    UV = 1,
-};
-
-YUVInterleaveDirection getInterleaveDirection(FrameworkFormat format, bool yuv420888ToNv21) {
-    if (!isInterleaved(format, yuv420888ToNv21)) {
-        GFXSTREAM_FATAL("Format:%d not interleaved", format);
-    }
-
+GLenum getGlPixelFormat(GfxstreamFormat format, YuvPlane plane) {
     switch (format) {
-    case FRAMEWORK_FORMAT_NV12:
-    case FRAMEWORK_FORMAT_P010:
-        return YUVInterleaveDirection::UV;
-    case FRAMEWORK_FORMAT_YUV_420_888:
-        if (yuv420888ToNv21) {
-            return YUVInterleaveDirection::VU;
-        }
-        GFXSTREAM_FATAL("Format:%d not interleaved", format);
-        return YUVInterleaveDirection::UV;
-    case FRAMEWORK_FORMAT_YV12:
-    default:
-        GFXSTREAM_FATAL("Format:%d not interleaved", format);
-        return YUVInterleaveDirection::UV;
-    }
-}
-
-GLint getGlTextureFormat(FrameworkFormat format, bool yuv420888ToNv21, YUVPlane plane) {
-    switch (format) {
-    case FRAMEWORK_FORMAT_YV12:
-        switch (plane) {
-        case YUVPlane::Y:
-        case YUVPlane::U:
-        case YUVPlane::V:
-            return GL_R8;
-        case YUVPlane::UV:
-            GFXSTREAM_FATAL("Invalid plane for format:%d", format);
-            return 0;
-        }
-    case FRAMEWORK_FORMAT_YUV_420_888:
-        if (yuv420888ToNv21) {
+        case GfxstreamFormat::YV12:
+        case GfxstreamFormat::YV21: {
             switch (plane) {
-            case YUVPlane::Y:
-                return GL_R8;
-            case YUVPlane::UV:
-                return GL_RG8;
-            case YUVPlane::U:
-            case YUVPlane::V:
-                GFXSTREAM_FATAL("Invalid plane for format:%d", format);
-                return 0;
-            }
-        } else {
-            switch (plane) {
-            case YUVPlane::Y:
-            case YUVPlane::U:
-            case YUVPlane::V:
-                return GL_R8;
-            case YUVPlane::UV:
-                GFXSTREAM_FATAL("Invalid plane for format:%d", format);
-                return 0;
+                case YuvPlane::Y:
+                case YuvPlane::U:
+                case YuvPlane::V:
+                    return GL_RED;
+                default:
+                    GFXSTREAM_FATAL("Invalid plane for format:%d", format);
+                    return 0;
             }
         }
-    case FRAMEWORK_FORMAT_NV12:
-        switch (plane) {
-        case YUVPlane::Y:
-            return GL_R8;
-        case YUVPlane::UV:
-            return GL_RG8;
-        case YUVPlane::U:
-        case YUVPlane::V:
-            GFXSTREAM_FATAL("Invalid plane for format:%d", format);
+        case GfxstreamFormat::NV12:
+        case GfxstreamFormat::NV21: {
+            switch (plane) {
+                case YuvPlane::Y:
+                    return GL_RED;
+                case YuvPlane::UV:
+                    return GL_RG;
+                default:
+                    GFXSTREAM_FATAL("Invalid plane for format:%d", format);
+                    return 0;
+            }
+        }
+        case GfxstreamFormat::P010: {
+            switch (plane) {
+                case YuvPlane::Y:
+                    return GL_RED_INTEGER;
+                case YuvPlane::UV:
+                    return GL_RG_INTEGER;
+                default:
+                    GFXSTREAM_FATAL("Invalid plane for format:%d", format);
+                    return 0;
+            }
+        }
+        default: {
+            GFXSTREAM_FATAL("Invalid format:%d", format);
             return 0;
         }
-    case FRAMEWORK_FORMAT_P010:
-        switch (plane) {
-        case YUVPlane::Y:
-            return GL_R16UI;
-        case YUVPlane::UV:
-            return GL_RG16UI;
-        case YUVPlane::U:
-        case YUVPlane::V:
-            GFXSTREAM_FATAL("Invalid plane for format:%d", format);
-            return 0;
-        }
-    default:
-        GFXSTREAM_FATAL("Invalid format:%d", format);
-        return 0;
     }
 }
 
-GLenum getGlPixelFormat(FrameworkFormat format, bool yuv420888ToNv21, YUVPlane plane) {
+GLsizei getGlPixelType(GfxstreamFormat format, YuvPlane plane) {
     switch (format) {
-    case FRAMEWORK_FORMAT_YV12:
-        switch (plane) {
-        case YUVPlane::Y:
-        case YUVPlane::U:
-        case YUVPlane::V:
-            return GL_RED;
-        case YUVPlane::UV:
-            GFXSTREAM_FATAL("Invalid plane for format:%d", format);
-            return 0;
-        }
-    case FRAMEWORK_FORMAT_YUV_420_888:
-        if (yuv420888ToNv21) {
+        case GfxstreamFormat::YV12:
+        case GfxstreamFormat::YV21: {
             switch (plane) {
-            case YUVPlane::Y:
-                return GL_RED;
-            case YUVPlane::UV:
-                return GL_RG;
-            case YUVPlane::U:
-            case YUVPlane::V:
-                GFXSTREAM_FATAL("Invalid plane for format:%d", format);
-                return 0;
-            }
-        } else {
-            switch (plane) {
-            case YUVPlane::Y:
-            case YUVPlane::U:
-            case YUVPlane::V:
-                return GL_RED;
-            case YUVPlane::UV:
-                GFXSTREAM_FATAL("Invalid plane for format:%d", format);
-                return 0;
+                case YuvPlane::Y:
+                case YuvPlane::U:
+                case YuvPlane::V:
+                    return GL_UNSIGNED_BYTE;
+                default:
+                    GFXSTREAM_FATAL("Invalid plane for format:%d", format);
+                    return 0;
             }
         }
-    case FRAMEWORK_FORMAT_NV12:
-        switch (plane) {
-        case YUVPlane::Y:
-            return GL_RED;
-        case YUVPlane::UV:
-            return GL_RG;
-        case YUVPlane::U:
-        case YUVPlane::V:
-            GFXSTREAM_FATAL("Invalid plane for format:%d", format);
-            return 0;
-        }
-    case FRAMEWORK_FORMAT_P010:
-        switch (plane) {
-        case YUVPlane::Y:
-            return GL_RED_INTEGER;
-        case YUVPlane::UV:
-            return GL_RG_INTEGER;
-        case YUVPlane::U:
-        case YUVPlane::V:
-            GFXSTREAM_FATAL("Invalid plane for format:%d", format);
-            return 0;
-        }
-    default:
-        GFXSTREAM_FATAL("Invalid format:%d", format);
-        return 0;
-    }
-}
-
-GLsizei getGlPixelType(FrameworkFormat format, bool yuv420888ToNv21, YUVPlane plane) {
-    switch (format) {
-    case FRAMEWORK_FORMAT_YV12:
-        switch (plane) {
-        case YUVPlane::Y:
-        case YUVPlane::U:
-        case YUVPlane::V:
-            return GL_UNSIGNED_BYTE;
-        case YUVPlane::UV:
-            GFXSTREAM_FATAL("Invalid plane for format:%d", format);
-            return 0;
-        }
-    case FRAMEWORK_FORMAT_YUV_420_888:
-        if (yuv420888ToNv21) {
+        case GfxstreamFormat::NV12:
+        case GfxstreamFormat::NV21: {
             switch (plane) {
-            case YUVPlane::Y:
-            case YUVPlane::UV:
-                return GL_UNSIGNED_BYTE;
-            case YUVPlane::U:
-            case YUVPlane::V:
-                GFXSTREAM_FATAL("Invalid plane for format:%d", format);
-                return 0;
-            }
-        } else {
-            switch (plane) {
-            case YUVPlane::Y:
-            case YUVPlane::U:
-            case YUVPlane::V:
-                return GL_UNSIGNED_BYTE;
-            case YUVPlane::UV:
-                GFXSTREAM_FATAL("Invalid plane for format:%d", format);
-                return 0;
+                case YuvPlane::Y:
+                case YuvPlane::UV:
+                    return GL_UNSIGNED_BYTE;
+                default:
+                    GFXSTREAM_FATAL("Invalid plane for format:%d", format);
+                    return 0;
             }
         }
-    case FRAMEWORK_FORMAT_NV12:
-        switch (plane) {
-        case YUVPlane::Y:
-        case YUVPlane::UV:
-            return GL_UNSIGNED_BYTE;
-        case YUVPlane::U:
-        case YUVPlane::V:
-            GFXSTREAM_FATAL("Invalid plane for format:%d", format);
+        case GfxstreamFormat::P010: {
+            switch (plane) {
+                case YuvPlane::Y:
+                case YuvPlane::UV:
+                    return GL_UNSIGNED_SHORT;
+                default:
+                    GFXSTREAM_FATAL("Invalid plane for format:%d", format);
+                    return 0;
+            }
+        }
+        default: {
+            GFXSTREAM_FATAL("Invalid format:%d", format);
             return 0;
         }
-    case FRAMEWORK_FORMAT_P010:
-        switch (plane) {
-        case YUVPlane::Y:
-        case YUVPlane::UV:
-            return GL_UNSIGNED_SHORT;
-        case YUVPlane::U:
-        case YUVPlane::V:
-            GFXSTREAM_FATAL("Invalid plane for format:%d", format);
-            return 0;
-        }
-    default:
-        GFXSTREAM_FATAL("Invalid format:%d", format);
-        return 0;
     }
 }
 
@@ -306,8 +198,7 @@ inline uint32_t alignToPower2(uint32_t val, uint32_t align) {
 // |vOffsetBytes|: offset into |yv12| of the start of the V component
 static void getYUVOffsets(int width,
                           int height,
-                          FrameworkFormat format,
-                          bool yuv420888ToNv21,
+                          GfxstreamFormat format,
                           uint32_t* yWidth,
                           uint32_t* yHeight,
                           uint32_t* yOffsetBytes,
@@ -324,7 +215,7 @@ static void getYUVOffsets(int width,
                           uint32_t* vStridePixels,
                           uint32_t* vStrideBytes) {
     switch (format) {
-        case FRAMEWORK_FORMAT_YV12: {
+        case GfxstreamFormat::YV12: {
             *yWidth = width;
             *yHeight = height;
             *yOffsetBytes = 0;
@@ -348,47 +239,27 @@ static void getYUVOffsets(int width,
             *uStrideBytes = *uStridePixels;
             break;
         }
-        case FRAMEWORK_FORMAT_YUV_420_888: {
-            if (yuv420888ToNv21) {
-                *yWidth = width;
-                *yHeight = height;
-                *yOffsetBytes = 0;
-                *yStridePixels = width;
-                *yStrideBytes = *yStridePixels;
+        case GfxstreamFormat::YV21: {
+            *yWidth = width;
+            *yHeight = height;
+            *yOffsetBytes = 0;
+            *yStridePixels = width;
+            *yStrideBytes = *yStridePixels;
 
-                *vWidth = width / 2;
-                *vHeight = height / 2;
-                *vOffsetBytes = (*yStrideBytes) * (*yHeight);
-                *vStridePixels = (*yStridePixels) / 2;
-                *vStrideBytes = (*vStridePixels);
+            *uWidth = width / 2;
+            *uHeight = height / 2;
+            *uOffsetBytes = (*yStrideBytes) * (*yHeight);
+            *uStridePixels = (*yStridePixels) / 2;
+            *uStrideBytes = *uStridePixels;
 
-                *uWidth = width / 2;
-                *uHeight = height / 2;
-                *uOffsetBytes = (*vOffsetBytes) + 1;
-                *uStridePixels = (*yStridePixels) / 2;
-                *uStrideBytes = *uStridePixels;
-            } else {
-                *yWidth = width;
-                *yHeight = height;
-                *yOffsetBytes = 0;
-                *yStridePixels = width;
-                *yStrideBytes = *yStridePixels;
-
-                *uWidth = width / 2;
-                *uHeight = height / 2;
-                *uOffsetBytes = (*yStrideBytes) * (*yHeight);
-                *uStridePixels = (*yStridePixels) / 2;
-                *uStrideBytes = *uStridePixels;
-
-                *vWidth = width / 2;
-                *vHeight = height / 2;
-                *vOffsetBytes = (*uOffsetBytes) + ((*uStrideBytes) * (*uHeight));
-                *vStridePixels = (*yStridePixels) / 2;
-                *vStrideBytes = (*vStridePixels);
-            }
+            *vWidth = width / 2;
+            *vHeight = height / 2;
+            *vOffsetBytes = (*uOffsetBytes) + ((*uStrideBytes) * (*uHeight));
+            *vStridePixels = (*yStridePixels) / 2;
+            *vStrideBytes = (*vStridePixels);
             break;
         }
-        case FRAMEWORK_FORMAT_NV12: {
+        case GfxstreamFormat::NV12: {
             *yWidth = width;
             *yHeight = height;
             *yOffsetBytes = 0;
@@ -408,7 +279,7 @@ static void getYUVOffsets(int width,
             *vStrideBytes = (*vStridePixels);
             break;
         }
-        case FRAMEWORK_FORMAT_P010: {
+        case GfxstreamFormat::P010: {
             *yWidth = width;
             *yHeight = height;
             *yOffsetBytes = 0;
@@ -428,10 +299,6 @@ static void getYUVOffsets(int width,
             *vStrideBytes = (*vStridePixels)  * /*bytes per pixel=*/2;
             break;
         }
-        case FRAMEWORK_FORMAT_GL_COMPATIBLE: {
-            GFXSTREAM_FATAL("Input not a YUV format! (FRAMEWORK_FORMAT_GL_COMPATIBLE)");
-            break;
-        }
         default: {
             GFXSTREAM_FATAL("Unknown format: 0x%x", format);
             break;
@@ -445,12 +312,9 @@ static void getYUVOffsets(int width,
 void YUVConverter::createYUVGLTex(GLenum textureUnit,
                                   GLsizei width,
                                   GLsizei height,
-                                  FrameworkFormat format,
-                                  bool yuv420888ToNv21,
-                                  YUVPlane plane,
+                                  GfxstreamFormat format,
+                                  YuvPlane plane,
                                   GLuint* outTextureName) {
-    YUV_DEBUG_LOG("w:%d h:%d format:%d plane:%d", width, height, format, plane);
-
     s_gles2.glActiveTexture(textureUnit);
     s_gles2.glGenTextures(1, outTextureName);
     s_gles2.glBindTexture(GL_TEXTURE_2D, *outTextureName);
@@ -459,18 +323,16 @@ void YUVConverter::createYUVGLTex(GLenum textureUnit,
     GLint unprevAlignment = 0;
     s_gles2.glGetIntegerv(GL_UNPACK_ALIGNMENT, &unprevAlignment);
     s_gles2.glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    const GLint textureFormat = getGlTextureFormat(format, yuv420888ToNv21, plane);
-    const GLenum pixelFormat = getGlPixelFormat(format, yuv420888ToNv21, plane);
-    const GLenum pixelType = getGlPixelType(format, yuv420888ToNv21, plane);
+    const GLint textureFormat = getGlTextureFormat(format, plane);
+    const GLenum pixelFormat = getGlPixelFormat(format, plane);
+    const GLenum pixelType = getGlPixelType(format, plane);
     s_gles2.glTexImage2D(GL_TEXTURE_2D, 0, textureFormat, width, height, 0, pixelFormat, pixelType, NULL);
     s_gles2.glPixelStorei(GL_UNPACK_ALIGNMENT, unprevAlignment);
     s_gles2.glActiveTexture(GL_TEXTURE0);
 }
 
-static void readYUVTex(GLuint tex, FrameworkFormat format, bool yuv420888ToNv21,
-                       YUVPlane plane, void* pixels, uint32_t pixelsStride) {
-    YUV_DEBUG_LOG("format%d plane:%d pixels:%p", format, plane, pixels);
-
+static void readYUVTex(GLuint tex, GfxstreamFormat format,
+                       YuvPlane plane, void* pixels, uint32_t pixelsStride) {
     GLuint prevTexture = 0;
     s_gles2.glGetIntegerv(GL_TEXTURE_BINDING_2D, (GLint*)&prevTexture);
     s_gles2.glBindTexture(GL_TEXTURE_2D, tex);
@@ -481,12 +343,10 @@ static void readYUVTex(GLuint tex, FrameworkFormat format, bool yuv420888ToNv21,
     s_gles2.glGetIntegerv(GL_PACK_ROW_LENGTH, &prevStride);
     s_gles2.glPixelStorei(GL_PACK_ROW_LENGTH, pixelsStride);
 
-    const GLenum pixelFormat = getGlPixelFormat(format, yuv420888ToNv21, plane);
-    const GLenum pixelType = getGlPixelType(format, yuv420888ToNv21,plane);
+    const GLenum pixelFormat = getGlPixelFormat(format, plane);
+    const GLenum pixelType = getGlPixelType(format,plane);
     if (s_gles2.glGetTexImage) {
         s_gles2.glGetTexImage(GL_TEXTURE_2D, 0, pixelFormat, pixelType, pixels);
-    } else {
-        YUV_DEBUG_LOG("empty glGetTexImage");
     }
 
     s_gles2.glPixelStorei(GL_PACK_ROW_LENGTH, prevStride);
@@ -504,14 +364,11 @@ static void subUpdateYUVGLTex(GLenum texture_unit,
                               int y,
                               int width,
                               int height,
-                              FrameworkFormat format,
-                              bool yuv420888ToNv21,
-                              YUVPlane plane,
+                              GfxstreamFormat format,
+                              YuvPlane plane,
                               const void* pixels) {
-    YUV_DEBUG_LOG("x:%d y:%d w:%d h:%d format:%d plane:%d", x, y, width, height, format, plane);
-
-    const GLenum pixelFormat = getGlPixelFormat(format, yuv420888ToNv21, plane);
-    const GLenum pixelType = getGlPixelType(format, yuv420888ToNv21, plane);
+    const GLenum pixelFormat = getGlPixelFormat(format, plane);
+    const GLenum pixelType = getGlPixelType(format, plane);
 
     s_gles2.glActiveTexture(texture_unit);
     s_gles2.glBindTexture(GL_TEXTURE_2D, tex);
@@ -546,10 +403,8 @@ bool YUVConverter::checkAndUpdateColorAspectsChanged(void* metadata) {
 }
 
 void YUVConverter::createYUVGLShader() {
-    YUV_DEBUG_LOG("format:%d", mFormat);
-
     // P010 needs uint samplers.
-    if (mFormat == FRAMEWORK_FORMAT_P010 && !mHasGlsl3Support) {
+    if (mFormat == GfxstreamFormat::P010 && !mHasGlsl3Support) {
         return;
     }
 
@@ -690,14 +545,14 @@ void main(void) {
     std::string vertShaderSource(kVertShader);
     std::string fragShaderSource;
 
-    if (mFormat == FRAMEWORK_FORMAT_P010) {
+    if (mFormat == GfxstreamFormat::P010) {
         fragShaderSource += kFragShaderVersion3;
         fragShaderSource += kFragShaderBeginVersion3;
     } else {
         fragShaderSource += kFragShaderBegin;
     }
 
-    if (mFormat == FRAMEWORK_FORMAT_P010) {
+    if (mFormat == GfxstreamFormat::P010) {
         fragShaderSource += kSamplerUniformsUint;
     } else {
         fragShaderSource += kSamplerUniforms;
@@ -706,26 +561,36 @@ void main(void) {
     fragShaderSource += kFragShaderMainBegin;
 
     switch (mFormat) {
-    case FRAMEWORK_FORMAT_NV12:
-    case FRAMEWORK_FORMAT_YUV_420_888:
-    case FRAMEWORK_FORMAT_YV12:
-        fragShaderSource += kSampleY;
-        if (isInterleaved(mFormat, mYuv420888ToNv21)) {
-            if (getInterleaveDirection(mFormat, mYuv420888ToNv21) == YUVInterleaveDirection::UV) {
-                fragShaderSource += kSampleInterleavedUV;
+        case GfxstreamFormat::NV12:
+        case GfxstreamFormat::NV21:
+        case GfxstreamFormat::YV12:
+        case GfxstreamFormat::YV21: {
+            fragShaderSource += kSampleY;
+            if (IsInterleavedChromaYuvFormat(mFormat)) {
+                auto chromaOrderingOpt = GetYuvChromaOrdering(mFormat);
+                if (!chromaOrderingOpt) {
+                    const std::string formatString = ToString(mFormat);
+                    GFXSTREAM_FATAL("Failed to get chroma ordering for format %s", formatString.c_str());
+                }
+                auto chromaOrdering = *chromaOrderingOpt;
+                if (chromaOrdering == YuvChromaOrdering::UV) {
+                    fragShaderSource += kSampleInterleavedUV;
+                } else {
+                    fragShaderSource += kSampleInterleavedVU;
+                }
             } else {
-                fragShaderSource += kSampleInterleavedVU;
+                fragShaderSource += kSampleUV;
             }
-        } else {
-            fragShaderSource += kSampleUV;
+            break;
         }
-        break;
-    case FRAMEWORK_FORMAT_P010:
-        fragShaderSource += kSampleP010;
-        break;
-    default:
-        GFXSTREAM_FATAL("%s: invalid format:%d", __FUNCTION__, mFormat);
-        return;
+        case GfxstreamFormat::P010: {
+            fragShaderSource += kSampleP010;
+            break;
+        }
+        default: {
+            GFXSTREAM_FATAL("%s: invalid format:%d", __FUNCTION__, mFormat);
+            return;
+        }
     }
 
     if (mColorRange == 1 && mColorPrimaries == 4) {
@@ -736,13 +601,11 @@ void main(void) {
         fragShaderSource += kFragShaderMain_2_4_3;
     }
 
-    if (mFormat == FRAMEWORK_FORMAT_P010) {
+    if (mFormat == GfxstreamFormat::P010) {
         fragShaderSource += kFragShaderMainEndVersion3;
     } else {
         fragShaderSource += kFragShaderMainEnd;
     }
-
-    YUV_DEBUG_LOG("format:%d vert-source:%s frag-source:%s", mFormat, vertShaderSource.c_str(), fragShaderSource.c_str());
 
     const GLchar* const vertShaderSourceChars = vertShaderSource.c_str();
     const GLchar* const fragShaderSourceChars = fragShaderSource.c_str();
@@ -860,39 +723,36 @@ static void doYUVConversionDraw(GLuint program,
 
 // initialize(): allocate GPU memory for YUV components,
 // and create shaders and vertex data.
-YUVConverter::YUVConverter(int width, int height, FrameworkFormat format, bool yuv420888ToNv21)
+YUVConverter::YUVConverter(int width, int height, GfxstreamFormat format)
     : mWidth(width),
       mHeight(height),
       mFormat(format),
-      mColorBufferFormat(format),
-      mYuv420888ToNv21(yuv420888ToNv21) {}
+      mColorBufferFormat(format) {}
 
-void YUVConverter::init(int width, int height, FrameworkFormat format) {
-    YUV_DEBUG_LOG("w:%d h:%d format:%d", width, height, format);
-
+void YUVConverter::init(int width, int height, GfxstreamFormat format) {
     uint32_t yWidth, yHeight = 0, yOffsetBytes, yStridePixels = 0, yStrideBytes;
     uint32_t uWidth, uHeight = 0, uOffsetBytes, uStridePixels = 0, uStrideBytes;
     uint32_t vWidth, vHeight = 0, vOffsetBytes, vStridePixels = 0, vStrideBytes;
-    getYUVOffsets(width, height, mFormat, mYuv420888ToNv21,
+    getYUVOffsets(width, height, mFormat,
                   &yWidth, &yHeight, &yOffsetBytes, &yStridePixels, &yStrideBytes,
                   &uWidth, &uHeight, &uOffsetBytes, &uStridePixels, &uStrideBytes,
                   &vWidth, &vHeight, &vOffsetBytes, &vStridePixels, &vStrideBytes);
     mWidth = width;
     mHeight = height;
     if (!mTextureY) {
-        createYUVGLTex(GL_TEXTURE0, yStridePixels, yHeight, mFormat, mYuv420888ToNv21, YUVPlane::Y, &mTextureY);
+        createYUVGLTex(GL_TEXTURE0, yStridePixels, yHeight, mFormat, YuvPlane::Y, &mTextureY);
     }
-    if (isInterleaved(mFormat, mYuv420888ToNv21)) {
+    if (IsInterleavedChromaYuvFormat(mFormat)) {
         if (!mTextureU) {
-            createYUVGLTex(GL_TEXTURE1, uStridePixels, uHeight, mFormat, mYuv420888ToNv21, YUVPlane::UV, &mTextureU);
+            createYUVGLTex(GL_TEXTURE1, uStridePixels, uHeight, mFormat, YuvPlane::UV, &mTextureU);
             mTextureV = mTextureU;
         }
     } else {
         if (!mTextureU) {
-            createYUVGLTex(GL_TEXTURE1, uStridePixels, uHeight, mFormat, mYuv420888ToNv21, YUVPlane::U, &mTextureU);
+            createYUVGLTex(GL_TEXTURE1, uStridePixels, uHeight, mFormat, YuvPlane::U, &mTextureU);
         }
         if (!mTextureV) {
-            createYUVGLTex(GL_TEXTURE2, vStridePixels, vHeight, mFormat, mYuv420888ToNv21, YUVPlane::V, &mTextureV);
+            createYUVGLTex(GL_TEXTURE2, vStridePixels, vHeight, mFormat, YuvPlane::V, &mTextureV);
         }
     }
 
@@ -900,7 +760,6 @@ void YUVConverter::init(int width, int height, FrameworkFormat format) {
     int glesMinor;
     get_gfxstream_gles_version(&glesMajor, &glesMinor);
     mHasGlsl3Support = glesMajor >= 3;
-    YUV_DEBUG_LOG("YUVConverter has GLSL ES 3 support:%s (major:%d minor:%d", (mHasGlsl3Support ? "yes" : "no"), glesMajor, glesMinor);
 
     createYUVGLShader();
     createYUVGLFullscreenQuad();
@@ -925,44 +784,41 @@ void YUVConverter::restoreGLState() {
 }
 
 uint32_t YUVConverter::getDataSize() {
-    uint32_t align = (mFormat == FRAMEWORK_FORMAT_YV12) ? 16 : 1;
+    uint32_t align = (mFormat == GfxstreamFormat::YV12) ? 16 : 1;
     uint32_t yStrideBytes = (mWidth + (align - 1)) & ~(align - 1);
     uint32_t uvStride = (yStrideBytes / 2 + (align - 1)) & ~(align - 1);
     uint32_t uvHeight = mHeight / 2;
     uint32_t dataSize = yStrideBytes * mHeight + 2 * (uvHeight * uvStride);
-    YUV_DEBUG_LOG("w:%d h:%d format:%d has data size:%d", mWidth, mHeight, mFormat, dataSize);
     return dataSize;
 }
 
 void YUVConverter::readPixels(uint8_t* pixels, uint32_t pixels_size) {
-    YUV_DEBUG_LOG("w:%d h:%d format:%d pixels:%p pixels-size:%d", mWidth, mHeight, mFormat, pixels, pixels_size);
-
     uint32_t yWidth, yHeight, yOffsetBytes, yStridePixels, yStrideBytes;
     uint32_t uWidth, uHeight, uOffsetBytes, uStridePixels, uStrideBytes;
     uint32_t vWidth, vHeight, vOffsetBytes, vStridePixels, vStrideBytes;
-    getYUVOffsets(mWidth, mHeight, mFormat, mYuv420888ToNv21,
+    getYUVOffsets(mWidth, mHeight, mFormat,
                   &yWidth, &yHeight, &yOffsetBytes, &yStridePixels, &yStrideBytes,
                   &uWidth, &uHeight, &uOffsetBytes, &uStridePixels, &uStrideBytes,
                   &vWidth, &vHeight, &vOffsetBytes, &vStridePixels, &vStrideBytes);
 
-    if (isInterleaved(mFormat, mYuv420888ToNv21)) {
-        readYUVTex(mTextureV, mFormat, mYuv420888ToNv21, YUVPlane::UV, pixels + std::min(uOffsetBytes, vOffsetBytes),
+    if (IsInterleavedChromaYuvFormat(mFormat)) {
+        readYUVTex(mTextureV, mFormat, YuvPlane::UV, pixels + std::min(uOffsetBytes, vOffsetBytes),
                    uStridePixels);
     } else {
-        readYUVTex(mTextureU, mFormat, mYuv420888ToNv21, YUVPlane::U, pixels + uOffsetBytes, uStridePixels);
-        readYUVTex(mTextureV, mFormat, mYuv420888ToNv21, YUVPlane::V, pixels + vOffsetBytes, vStridePixels);
+        readYUVTex(mTextureU, mFormat, YuvPlane::U, pixels + uOffsetBytes, uStridePixels);
+        readYUVTex(mTextureV, mFormat, YuvPlane::V, pixels + vOffsetBytes, vStridePixels);
     }
 
-    if (mFormat == FRAMEWORK_FORMAT_NV12 && mColorBufferFormat == FRAMEWORK_FORMAT_YUV_420_888) {
+    if (mFormat == GfxstreamFormat::NV12 && mColorBufferFormat == GfxstreamFormat::YV21) {
         NV12ToYUV420PlanarInPlaceConvert(mWidth, mHeight, pixels, pixels);
     }
 
     // Read the Y plane last because so that we can use it as a scratch space.
-    readYUVTex(mTextureY, mFormat, mYuv420888ToNv21, YUVPlane::Y, pixels + yOffsetBytes, yStridePixels);
+    readYUVTex(mTextureY, mFormat, YuvPlane::Y, pixels + yOffsetBytes, yStridePixels);
 }
 
-void YUVConverter::swapTextures(FrameworkFormat format, GLuint* textures, void* metadata) {
-    if (isInterleaved(format, mYuv420888ToNv21)) {
+void YUVConverter::swapTextures(GfxstreamFormat format, GLuint* textures, void* metadata) {
+    if (IsInterleavedChromaYuvFormat(format)) {
         std::swap(textures[0], mTextureY);
         std::swap(textures[1], mTextureU);
         mTextureV = mTextureU;
@@ -992,7 +848,7 @@ void YUVConverter::drawConvert(int x, int y, int width, int height, const char* 
     drawConvertFromFormat(mFormat, x, y, width, height, pixels);
 }
 
-void YUVConverter::drawConvertFromFormat(FrameworkFormat format, int x, int y, int width,
+void YUVConverter::drawConvertFromFormat(GfxstreamFormat format, int x, int y, int width,
                                          int height, const char* pixels, void* metadata) {
     saveGLState();
     const bool needToUpdateConversionShader = checkAndUpdateColorAspectsChanged(metadata);
@@ -1007,15 +863,12 @@ void YUVConverter::drawConvertFromFormat(FrameworkFormat format, int x, int y, i
     if (initNeeded) {
         if (uploadFormatChanged) {
             mFormat = format;
-            // TODO: missing cherry-picks, put it back
-            // b/264928117
-            //mCbFormat = format;
             reset();
         }
         init(width, height, mFormat);
     }
 
-    if (mFormat == FRAMEWORK_FORMAT_P010 && !mHasGlsl3Support) {
+    if (mFormat == GfxstreamFormat::P010 && !mHasGlsl3Support) {
         // TODO: perhaps fallback to just software conversion.
         return;
     }
@@ -1023,20 +876,10 @@ void YUVConverter::drawConvertFromFormat(FrameworkFormat format, int x, int y, i
     uint32_t yWidth = 0, yHeight = 0, yOffsetBytes, yStridePixels = 0, yStrideBytes;
     uint32_t uWidth = 0, uHeight = 0, uOffsetBytes, uStridePixels = 0, uStrideBytes;
     uint32_t vWidth = 0, vHeight = 0, vOffsetBytes, vStridePixels = 0, vStrideBytes;
-    getYUVOffsets(width, height, mFormat, mYuv420888ToNv21,
+    getYUVOffsets(width, height, mFormat,
                   &yWidth, &yHeight, &yOffsetBytes, &yStridePixels, &yStrideBytes,
                   &uWidth, &uHeight, &uOffsetBytes, &uStridePixels, &uStrideBytes,
                   &vWidth, &vHeight, &vOffsetBytes, &vStridePixels, &vStrideBytes);
-
-    YUV_DEBUG_LOG("Updating YUV textures for drawConvert() "
-                  "x:%d y:%d width:%d height:%d "
-                  "yWidth:%d yHeight:%d yOffsetBytes:%d yStridePixels:%d yStrideBytes:%d "
-                  "uWidth:%d uHeight:%d uOffsetBytes:%d uStridePixels:%d uStrideBytes:%d "
-                  "vWidth:%d vHeight:%d vOffsetBytes:%d vStridePixels:%d vStrideBytes:%d ",
-                  x, y, width, height,
-                  yWidth, yHeight, yOffsetBytes, yStridePixels, yStrideBytes,
-                  uWidth, uHeight, uOffsetBytes, uStridePixels, uStrideBytes,
-                  vWidth, vHeight, vOffsetBytes, vStridePixels, vStrideBytes);
 
     s_gles2.glViewport(x, y, width, height);
 
@@ -1046,18 +889,18 @@ void YUVConverter::drawConvertFromFormat(FrameworkFormat format, int x, int y, i
                   static_cast<float>(uStridePixels));
 
     if (pixels) {
-        subUpdateYUVGLTex(GL_TEXTURE0, mTextureY, x, y, yStridePixels, yHeight, mFormat, mYuv420888ToNv21, YUVPlane::Y, pixels + yOffsetBytes);
-        if (isInterleaved(mFormat, mYuv420888ToNv21)) {
-            subUpdateYUVGLTex(GL_TEXTURE1, mTextureU, x, y, uStridePixels, uHeight, mFormat, mYuv420888ToNv21, YUVPlane::UV, pixels + std::min(uOffsetBytes, vOffsetBytes));
+        subUpdateYUVGLTex(GL_TEXTURE0, mTextureY, x, y, yStridePixels, yHeight, mFormat, YuvPlane::Y, pixels + yOffsetBytes);
+        if (IsInterleavedChromaYuvFormat(mFormat)) {
+            subUpdateYUVGLTex(GL_TEXTURE1, mTextureU, x, y, uStridePixels, uHeight, mFormat, YuvPlane::UV, pixels + std::min(uOffsetBytes, vOffsetBytes));
         } else {
-            subUpdateYUVGLTex(GL_TEXTURE1, mTextureU, x, y, uStridePixels, uHeight, mFormat, mYuv420888ToNv21, YUVPlane::U, pixels + uOffsetBytes);
-            subUpdateYUVGLTex(GL_TEXTURE2, mTextureV, x, y, vStridePixels, vHeight, mFormat, mYuv420888ToNv21, YUVPlane::V, pixels + vOffsetBytes);
+            subUpdateYUVGLTex(GL_TEXTURE1, mTextureU, x, y, uStridePixels, uHeight, mFormat, YuvPlane::U, pixels + uOffsetBytes);
+            subUpdateYUVGLTex(GL_TEXTURE2, mTextureV, x, y, vStridePixels, vHeight, mFormat, YuvPlane::V, pixels + vOffsetBytes);
         }
     } else {
         // special case: draw from texture, only support NV12 for now
         // as cuvid's native format is NV12.
         // TODO: add more formats if there are such needs in the future.
-        assert(mFormat == FRAMEWORK_FORMAT_NV12);
+        assert(mFormat == GfxstreamFormat::NV12);
     }
 
     s_gles2.glActiveTexture(GL_TEXTURE0);
@@ -1086,18 +929,19 @@ void YUVConverter::drawConvertFromFormat(FrameworkFormat format, int x, int y, i
 void YUVConverter::updateCutoffs(float yWidth, float yStridePixels,
                                  float uvWidth, float uvStridePixels) {
     switch (mFormat) {
-    case FRAMEWORK_FORMAT_YV12:
-        mYWidthCutoff = yWidth / yStridePixels;
-        mUVWidthCutoff = uvWidth / uvStridePixels;
-        break;
-    case FRAMEWORK_FORMAT_NV12:
-    case FRAMEWORK_FORMAT_P010:
-    case FRAMEWORK_FORMAT_YUV_420_888:
-        mYWidthCutoff = 1.0f;
-        mUVWidthCutoff = 1.0f;
-        break;
-    case FRAMEWORK_FORMAT_GL_COMPATIBLE:
-        GFXSTREAM_FATAL("Input not a YUV format!");
+        case GfxstreamFormat::YV12:
+        case GfxstreamFormat::YV21:
+            mYWidthCutoff = yWidth / yStridePixels;
+            mUVWidthCutoff = uvWidth / uvStridePixels;
+            break;
+        case GfxstreamFormat::NV12:
+        case GfxstreamFormat::NV21:
+        case GfxstreamFormat::P010:
+            mYWidthCutoff = 1.0f;
+            mUVWidthCutoff = 1.0f;
+            break;
+        default:
+            GFXSTREAM_FATAL("Input not a YUV format!");
     }
 }
 
@@ -1106,7 +950,7 @@ void YUVConverter::reset() {
     if (mQuadVertexBuffer) s_gles2.glDeleteBuffers(1, &mQuadVertexBuffer);
     if (mProgram) s_gles2.glDeleteProgram(mProgram);
     if (mTextureY) s_gles2.glDeleteTextures(1, &mTextureY);
-    if (isInterleaved(mFormat, mYuv420888ToNv21)) {
+    if (IsInterleavedChromaYuvFormat(mFormat)) {
         if (mTextureU) s_gles2.glDeleteTextures(1, &mTextureU);
     } else {
         if (mTextureU) s_gles2.glDeleteTextures(1, &mTextureU);

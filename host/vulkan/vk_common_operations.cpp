@@ -36,7 +36,6 @@
 #include "gfxstream/containers/StaticMap.h"
 #include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/system/System.h"
-#include "common/goldfish_vk_dispatch.h"
 #include "gfxstream/common/logging.h"
 #include "gfxstream/host/vm_operations.h"
 
@@ -63,6 +62,7 @@ using gfxstream::base::Optional;
 using gfxstream::base::StaticLock;
 using gfxstream::base::StaticMap;
 using gfxstream::base::UdmabufCreator;
+using gfxstream::host::GfxstreamFormat;
 using gfxstream::host::RepresentativeColorBufferMemoryTypeInfo;
 
 constexpr size_t kPageBits = 12;
@@ -2348,86 +2348,6 @@ bool VkEmulation::importExternalMemory(VulkanDispatch* vk, VkDevice targetDevice
     return true;
 }
 
-// From ANGLE "src/common/angleutils.h"
-#define GL_BGR10_A2_ANGLEX 0x6AF9
-
-static VkFormat glFormat2VkFormat(GLint internalFormat) {
-    switch (internalFormat) {
-        case GL_R8:
-        case GL_LUMINANCE:
-            return VK_FORMAT_R8_UNORM;
-        case GL_RGB:
-        case GL_RGB8:
-            // b/281550953
-            // RGB8 is not supported on many vulkan drivers.
-            // Try RGBA8 instead.
-            // Note: updateColorBufferFromBytesLocked() performs channel conversion for this case.
-            return VK_FORMAT_R8G8B8A8_UNORM;
-        case GL_RGB565:
-            return VK_FORMAT_R5G6B5_UNORM_PACK16;
-        case GL_RGB16F:
-            return VK_FORMAT_R16G16B16_SFLOAT;
-        case GL_RGBA:
-        case GL_RGBA8:
-            return VK_FORMAT_R8G8B8A8_UNORM;
-        case GL_RGB5_A1_OES:
-            return VK_FORMAT_A1R5G5B5_UNORM_PACK16;
-        case GL_RGBA4_OES: {
-            // TODO: add R4G4B4A4 support to lavapipe, and check support programmatically
-            const bool lavapipe =
-                (gfxstream::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD").compare("lavapipe") ==
-                 0);
-            if (lavapipe) {
-                // RGBA4 is not supported on lavapipe, use more widely available BGRA4 instead.
-                // Note: updateColorBufferFromBytesLocked() performs channel conversion for this
-                // case.
-                return VK_FORMAT_B4G4R4A4_UNORM_PACK16;
-            }
-            return VK_FORMAT_R4G4B4A4_UNORM_PACK16;
-        }
-        case GL_RGB10_A2:
-        case GL_UNSIGNED_INT_10_10_10_2_OES:
-            return VK_FORMAT_A2R10G10B10_UNORM_PACK32;
-        case GL_BGR10_A2_ANGLEX:
-            return VK_FORMAT_A2B10G10R10_UNORM_PACK32;
-        case GL_RGBA16F:
-            return VK_FORMAT_R16G16B16A16_SFLOAT;
-        case GL_BGRA_EXT:
-        case GL_BGRA8_EXT:
-            return VK_FORMAT_B8G8R8A8_UNORM;
-        case GL_R16_EXT:
-            return VK_FORMAT_R16_UNORM;
-        case GL_RG8_EXT:
-            return VK_FORMAT_R8G8_UNORM;
-        case GL_DEPTH_COMPONENT16:
-            return VK_FORMAT_D16_UNORM;
-        case GL_DEPTH_COMPONENT24:
-            return VK_FORMAT_X8_D24_UNORM_PACK32;
-        case GL_DEPTH24_STENCIL8:
-            return VK_FORMAT_D24_UNORM_S8_UINT;
-        case GL_DEPTH_COMPONENT32F:
-            return VK_FORMAT_D32_SFLOAT;
-        case GL_DEPTH32F_STENCIL8:
-            return VK_FORMAT_D32_SFLOAT_S8_UINT;
-        default:
-            GFXSTREAM_ERROR("Unhandled format %d, falling back to VK_FORMAT_R8G8B8A8_UNORM",
-                            internalFormat);
-            return VK_FORMAT_R8G8B8A8_UNORM;
-    }
-};
-
-bool VkEmulation::isFormatVulkanCompatible(GLenum internalFormat) {
-    VkFormat vkFormat = glFormat2VkFormat(internalFormat);
-
-    for (const auto& supportInfo : mImageSupportInfo) {
-        if (supportInfo.format == vkFormat && supportInfo.supported) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 bool VkEmulation::getColorBufferShareInfo(uint32_t colorBufferHandle, bool* glExported,
                                           bool* externalMemoryCompatible) {
     std::lock_guard<std::mutex> lock(mMutex);
@@ -2638,6 +2558,39 @@ bool VkEmulation::updateMemReqsForExtMem(std::optional<ExternalHandleInfo> extMe
     return true;
 }
 
+std::optional<GfxstreamFormat>
+VkEmulation::GetInternalFormatLocked(GfxstreamFormat format) {
+    // TODO: This should probably check for format support via
+    // vkGetPhysicalDeviceFormatProperties() instead of just
+    // making assumptions...
+
+    if (format == GfxstreamFormat::R8G8B8_UNORM) {
+        // b/281550953
+        // RGB8 is not supported on many vulkan drivers.
+        // Try RGBA8 instead.
+        // Note: updateColorBufferFromBytesLocked() performs channel conversion for this case.
+        return GfxstreamFormat::R8G8B8A8_UNORM;
+    }
+
+    if (format == GfxstreamFormat::R4G4B4A4_UNORM) {
+        // TODO: add R4G4B4A4 support to lavapipe, and check support programmatically
+        const bool lavapipe =
+            (gfxstream::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD").compare("lavapipe") ==
+                0);
+        if (lavapipe) {
+            // RGBA4 is not supported on lavapipe, use more widely available BGRA4 instead.
+            // Note: updateColorBufferFromBytesLocked() performs channel conversion for this
+            // case.
+            return GfxstreamFormat::B4G4R4A4_UNORM;
+        } else {
+            return format;
+        }
+    }
+
+    return format;
+}
+
+
 // TODO(liyl): Currently we can only specify required memoryProperty
 // and initial layout for a color buffer.
 //
@@ -2654,15 +2607,24 @@ bool VkEmulation::updateMemReqsForExtMem(std::optional<ExternalHandleInfo> extMe
 // buffers of one type index for image and one type index for buffer
 // to begin with, via filtering from the host.
 
-bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum internalFormat,
-                                            FrameworkFormat frameworkFormat,
+bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height,
+                                            GfxstreamFormat format,
                                             uint32_t colorBufferHandle, bool vulkanOnly,
                                             uint32_t memoryProperty, uint32_t mipLevels) {
-    if (!isFormatVulkanCompatible(internalFormat)) {
-        GFXSTREAM_ERROR("Failed to create Vk ColorBuffer: format:%d not compatible.",
-                        internalFormat);
+    auto internalFormatOpt = GetInternalFormatLocked(format);
+    if (!internalFormatOpt) {
+        const std::string formatString = ToString(format);
+        GFXSTREAM_ERROR("Unsupported format %s.", formatString.c_str());
+    }
+    const GfxstreamFormat internalFormat = *internalFormatOpt;
+
+    auto vkFormatOpt = ToVkFormat(internalFormat);
+    if (!vkFormatOpt) {
+        const std::string internalFormatString = ToString(internalFormat);
+        GFXSTREAM_ERROR("Unsupported internal format %s.", internalFormatString.c_str());
         return false;
     }
+    const VkFormat vkFormat = *vkFormatOpt;
 
     // Check the ExternalObjectManager for an external memory handle provided for import
     auto extMemHandleInfo =
@@ -2691,10 +2653,9 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height, GLe
     res.handle = colorBufferHandle;
     res.width = width;
     res.height = height;
-    res.memoryProperty = memoryProperty;
+    res.format = format;
     res.internalFormat = internalFormat;
-    res.frameworkFormat = frameworkFormat;
-    res.frameworkStride = 0;
+    res.memoryProperty = memoryProperty;
 
     if (vulkanOnly) {
         res.vulkanMode = VkEmulation::VulkanMode::VulkanOnly;
@@ -2702,27 +2663,6 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height, GLe
 
     mColorBuffers[colorBufferHandle] = res;
     auto infoPtr = &mColorBuffers[colorBufferHandle];
-
-    VkFormat vkFormat;
-    switch (infoPtr->frameworkFormat) {
-        case FrameworkFormat::FRAMEWORK_FORMAT_GL_COMPATIBLE:
-            vkFormat = glFormat2VkFormat(infoPtr->internalFormat);
-            break;
-        case FrameworkFormat::FRAMEWORK_FORMAT_NV12:
-            vkFormat = VK_FORMAT_G8_B8R8_2PLANE_420_UNORM;
-            break;
-        case FrameworkFormat::FRAMEWORK_FORMAT_P010:
-            vkFormat = VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16;
-            break;
-        case FrameworkFormat::FRAMEWORK_FORMAT_YV12:
-        case FrameworkFormat::FRAMEWORK_FORMAT_YUV_420_888:
-            vkFormat = VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM;
-            break;
-        default:
-            GFXSTREAM_ERROR("WARNING: unhandled framework format %d\n", infoPtr->frameworkFormat);
-            vkFormat = glFormat2VkFormat(infoPtr->internalFormat);
-            break;
-    }
 
     VkImageTiling tiling = (infoPtr->memoryProperty & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
                                ? VK_IMAGE_TILING_LINEAR
@@ -2927,8 +2867,13 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height, GLe
     return true;
 }
 
-bool VkEmulation::isFormatSupported(GLenum format) {
-    VkFormat vkFormat = glFormat2VkFormat(format);
+bool VkEmulation::isFormatSupported(GfxstreamFormat format) {
+    std::optional<VkFormat> vkFormatOpt = ToVkFormat(format);
+    if (!vkFormatOpt) {
+        return false;
+    }
+    const VkFormat vkFormat = *vkFormatOpt;
+
     bool supported = !formatIsDepthOrStencil(vkFormat);
     // TODO(b/356603558): add proper Vulkan querying, for now preserve existing assumption
     if (!supported) {
@@ -2946,8 +2891,8 @@ bool VkEmulation::isFormatSupported(GLenum format) {
     return supported;
 }
 
-bool VkEmulation::createVkColorBuffer(uint32_t width, uint32_t height, GLenum internalFormat,
-                                      FrameworkFormat frameworkFormat, uint32_t colorBufferHandle,
+bool VkEmulation::createVkColorBuffer(uint32_t width, uint32_t height, GfxstreamFormat format,
+                                      uint32_t colorBufferHandle,
                                       bool vulkanOnly, uint32_t memoryProperty, uint32_t mipLevels) {
     std::lock_guard<std::mutex> lock(mMutex);
     auto infoPtr = gfxstream::base::find(mColorBuffers, colorBufferHandle);
@@ -2956,7 +2901,7 @@ bool VkEmulation::createVkColorBuffer(uint32_t width, uint32_t height, GLenum in
         return false;
     }
 
-    return createVkColorBufferLocked(width, height, internalFormat, frameworkFormat,
+    return createVkColorBufferLocked(width, height, format,
                                      colorBufferHandle, vulkanOnly, memoryProperty, mipLevels);
 }
 
@@ -2975,10 +2920,6 @@ std::optional<VkEmulation::VkColorBufferMemoryExport> VkEmulation::exportColorBu
 
     if ((info->vulkanMode != VkEmulation::VulkanMode::VulkanOnly) &&
         !mDeviceInfo.glInteropSupported) {
-        return std::nullopt;
-    }
-
-    if (info->frameworkFormat != FRAMEWORK_FORMAT_GL_COMPATIBLE) {
         return std::nullopt;
     }
 
@@ -3053,7 +2994,7 @@ bool VkEmulation::colorBufferNeedsUpdateBetweenGlAndVk(
     }
 
     // YUV formats require extra conversions.
-    if (colorBufferInfo.frameworkFormat != FrameworkFormat::FRAMEWORK_FORMAT_GL_COMPATIBLE) {
+    if (IsYuvFormat(colorBufferInfo.format)) {
         return true;
     }
 
@@ -3386,31 +3327,48 @@ bool VkEmulation::updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, u
                         colorBufferHandle, dstBufferSize, stagingBufferSize);
         return false;
     }
-    const bool isRGBA4onBGRA4 = (colorBufferInfo->internalFormat == GL_RGBA4_OES) &&
-                          (creationFormat == VK_FORMAT_B4G4R4A4_UNORM_PACK16);
-    const bool isThreeByteRgb =
-        (colorBufferInfo->internalFormat == GL_RGB || colorBufferInfo->internalFormat == GL_RGB8);
-    const size_t expectedInputSize = (isThreeByteRgb ? dstBufferSize / 4 * 3 : dstBufferSize);
 
-    if (inputPixelsSize != 0 && inputPixelsSize != expectedInputSize) {
-        GFXSTREAM_ERROR(
-            "Unexpected contents size when trying to update ColorBuffer:%d, "
-            "provided:%zu expected:%zu",
-            colorBufferHandle, inputPixelsSize, expectedInputSize);
-        return false;
-    }
-
-    // Copy the data into the staging memory first, then use vkCmdCopyBufferToImage
-    // to update the color buffer image.
-    auto* stagingBufferPtr = mStaging.mMappedPtr;
-    if (isThreeByteRgb) {
-        // Convert RGB to RGBA, since only for these types glFormat2VkFormat() makes
-        // an incompatible choice of 4-byte backing VK_FORMAT_R8G8B8A8_UNORM.
-        // b/281550953
-        convertRgbToRgbaPixels(stagingBufferPtr, pixels, w, h);
-    } else if(isRGBA4onBGRA4) {
-        convertRgba4ToBGRA4Pixels(stagingBufferPtr, pixels, w, h);
+    // Copy the data into the staging memory first.
+    void* stagingBufferPtr = mStaging.mMappedPtr;
+    if (colorBufferInfo->format != colorBufferInfo->internalFormat) {
+        if (colorBufferInfo->format == GfxstreamFormat::R4G4B4A4_UNORM &&
+            colorBufferInfo->internalFormat == GfxstreamFormat::B4G4R4A4_UNORM) {
+            const size_t expectedInputSize = dstBufferSize;
+            if (inputPixelsSize != 0 && inputPixelsSize != expectedInputSize) {
+                GFXSTREAM_ERROR(
+                    "Unexpected contents size when trying to update ColorBuffer:%d, "
+                    "provided:%zu expected:%zu",
+                    colorBufferHandle, inputPixelsSize, expectedInputSize);
+                return false;
+            }
+            convertRgba4ToBGRA4Pixels(stagingBufferPtr, pixels, w, h);
+        } else if (colorBufferInfo->format == GfxstreamFormat::R8G8B8_UNORM &&
+                   colorBufferInfo->internalFormat == GfxstreamFormat::R8G8B8A8_UNORM) {
+            const size_t expectedInputSize = dstBufferSize / 4 * 3;
+            if (inputPixelsSize != 0 && inputPixelsSize != expectedInputSize) {
+                GFXSTREAM_ERROR(
+                    "Unexpected contents size when trying to update ColorBuffer:%d, "
+                    "provided:%zu expected:%zu",
+                    colorBufferHandle, inputPixelsSize, expectedInputSize);
+                return false;
+            }
+            convertRgbToRgbaPixels(stagingBufferPtr, pixels, w, h);
+        } else {
+            const std::string formatString = ToString(colorBufferInfo->format);
+            const std::string internalFormatString = ToString(colorBufferInfo->internalFormat);
+            GFXSTREAM_ERROR("Unsupported conversion for format %s emulation with format %s",
+                            formatString.c_str(), internalFormatString.c_str());
+            return false;
+        }
     } else {
+        const size_t expectedInputSize = dstBufferSize;
+        if (inputPixelsSize != 0 && inputPixelsSize != expectedInputSize) {
+            GFXSTREAM_ERROR(
+                "Unexpected contents size when trying to update ColorBuffer:%d, "
+                "provided:%zu expected:%zu",
+                colorBufferHandle, inputPixelsSize, expectedInputSize);
+            return false;
+        }
         std::memcpy(stagingBufferPtr, pixels, dstBufferSize);
     }
 
@@ -4405,8 +4363,8 @@ VkEmulation::findRepresentativeColorBufferMemoryTypeIndexLocked() {
     constexpr const uint32_t kArbitraryHeight = 64;
     constexpr const uint32_t kArbitraryMipLevels = 1;
     constexpr const uint32_t kArbitraryHandle = std::numeric_limits<uint32_t>::max();
-    if (!createVkColorBufferLocked(kArbitraryWidth, kArbitraryHeight, GL_RGBA8,
-                                   FrameworkFormat::FRAMEWORK_FORMAT_GL_COMPATIBLE,
+    if (!createVkColorBufferLocked(kArbitraryWidth, kArbitraryHeight,
+                                   GfxstreamFormat::R8G8B8A8_UNORM,
                                    kArbitraryHandle, true, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                                    kArbitraryMipLevels)) {
         GFXSTREAM_ERROR("Failed to setup memory type index test ColorBuffer.");

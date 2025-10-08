@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "gfxstream/common/logging.h"
+#include "gfxstream/host/gfxstream_format.h"
 #include "vulkan/vk_enum_string_helper.h"
 
 namespace gfxstream {
@@ -379,6 +380,8 @@ constexpr bool formatRequiresSamplerYcbcrConversion(VkFormat format) {
             return false;
     }
 }
+
+std::optional<VkFormat> ToVkFormat(gfxstream::host::GfxstreamFormat format);
 
 // Returns the size in bytes needed to copy an image with the given format,
 // width, and height to a staging buffer and the VkBufferImageCopy-s needed

@@ -130,11 +130,11 @@ void PostWorker::clear() {
     runTask(std::packaged_task<void()>([this] { clearImpl(); }));
 }
 
-void PostWorker::screenshot(ColorBuffer* cb, int screenwidth, int screenheight, GLenum format,
-                            GLenum type, int skinRotation, void* outPixels, Rect rect) {
+void PostWorker::screenshot(ColorBuffer* cb, int screenwidth, int screenheight, int skinRotation,
+                            GfxstreamFormat pixelsFormat, void* outPixels, Rect rect) {
     // See b/292237104.
     mFb->lock();
-    cb->readToBytesScaled(screenwidth, screenheight, format, type, skinRotation, rect, outPixels);
+    cb->readToBytesScaled(screenwidth, screenheight, skinRotation, rect, pixelsFormat, outPixels);
     mFb->unlock();
 }
 

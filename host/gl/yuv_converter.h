@@ -23,18 +23,11 @@
 #include <cstring>
 #include <vector>
 
-#include "framework_formats.h"
+#include "gfxstream/host/gfxstream_format.h"
 
 namespace gfxstream {
 namespace host {
 namespace gl {
-
-enum class YUVPlane : int {
-    Y = 0,
-    U = 1,
-    V = 2,
-    UV = 3,
-};
 
 // The purpose of YUVConverter is to use
 // OpenGL shaders to convert YUV images to RGB
@@ -57,18 +50,17 @@ enum class YUVPlane : int {
 //    of the framebuffer object. Or, if you want the results
 //    on the CPU, call glReadPixels() after the call to drawConvert().
 class YUVConverter {
-public:
+  public:
     // call ctor when creating a gralloc buffer
     // with YUV format
-    YUVConverter(int width, int height, FrameworkFormat format,
-                 bool yuv420888ToNv21);
+    YUVConverter(int width, int height, GfxstreamFormat format);
     // destroy when ColorBuffer is destroyed
     ~YUVConverter();
     // call when gralloc_unlock updates
     // the host color buffer
     // (rcUpdateColorBuffer)
     void drawConvert(int x, int y, int width, int height, const char* pixels);
-    void drawConvertFromFormat(FrameworkFormat format, int x, int y, int width, int height,
+    void drawConvertFromFormat(GfxstreamFormat format, int x, int y, int width, int height,
                                const char* pixels, void* metadata = nullptr);
 
     uint32_t getDataSize();
@@ -76,18 +68,17 @@ public:
     // if size mismatches, will read nothing.
     void readPixels(uint8_t* pixels, uint32_t pixels_size);
 
-    void swapTextures(FrameworkFormat type, GLuint* textures, void* metadata = nullptr);
+    void swapTextures(GfxstreamFormat format, GLuint* textures, void* metadata = nullptr);
 
     // public so other classes can call
     static void createYUVGLTex(GLenum textureUnit,
                                GLsizei width,
                                GLsizei height,
-                               FrameworkFormat format,
-                               bool yuv420888ToNv21,
-                               YUVPlane plane,
+                               GfxstreamFormat format,
+                               YuvPlane plane,
                                GLuint* outTextureName);
 private:
-    void init(int w, int h, FrameworkFormat format);
+    void init(int w, int h, GfxstreamFormat format);
     void reset();
 
     void createYUVGLShader();
@@ -99,9 +90,9 @@ private:
 
     int mWidth = 0;
     int mHeight = 0;
-    FrameworkFormat mFormat;
+    GfxstreamFormat mFormat;
     // colorbuffer w/h/format, could be different
-    FrameworkFormat mColorBufferFormat;
+    GfxstreamFormat mColorBufferFormat;
     // We need the following GL objects:
     GLuint mProgram = 0;
     GLuint mQuadVertexBuffer = 0;
@@ -121,7 +112,6 @@ private:
     float mYWidthCutoff = 1.0;
     float mUVWidthCutoff = 1.0;
     bool mHasGlsl3Support = false;
-    bool mYuv420888ToNv21 = false;
 
     // YUVConverter can end up being used
     // in a TextureDraw / subwindow context, and subsequently

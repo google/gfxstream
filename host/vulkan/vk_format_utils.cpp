@@ -16,12 +16,13 @@
 
 #include <unordered_map>
 
+#include "gfxstream/common/logging.h"
+#include "gfxstream/host/gfxstream_format.h"
+#include "vulkan/vk_enum_string_helper.h"
+
 namespace gfxstream {
 namespace host {
 namespace vk {
-#include "gfxstream/common/logging.h"
-#include "vulkan/vk_enum_string_helper.h"
-
 namespace {
 
 struct FormatPlaneLayout {
@@ -130,6 +131,65 @@ inline uint32_t alignToPower2(uint32_t val, uint32_t align) {
 }
 
 }  // namespace
+
+std::optional<VkFormat> ToVkFormat(GfxstreamFormat format) {
+    switch (format) {
+        case GfxstreamFormat::B4G4R4A4_UNORM:
+            return VK_FORMAT_B4G4R4A4_UNORM_PACK16;
+        case GfxstreamFormat::B5G5R5A1_UNORM:
+            return VK_FORMAT_B5G5R5A1_UNORM_PACK16;
+        case GfxstreamFormat::B8G8R8A8_UNORM:
+            return VK_FORMAT_B8G8R8A8_UNORM;
+        case GfxstreamFormat::BLOB:
+            return VK_FORMAT_R8_UNORM;
+        case GfxstreamFormat::D16_UNORM:
+            return VK_FORMAT_D16_UNORM;
+        case GfxstreamFormat::D24_UNORM_S8_UINT:
+            return VK_FORMAT_D24_UNORM_S8_UINT;
+        case GfxstreamFormat::D24_UNORM:
+            return VK_FORMAT_X8_D24_UNORM_PACK32;
+        case GfxstreamFormat::D32_FLOAT_S8_UINT:
+            return VK_FORMAT_D32_SFLOAT_S8_UINT;
+        case GfxstreamFormat::D32_FLOAT:
+            return VK_FORMAT_D32_SFLOAT;
+        case GfxstreamFormat::NV12:
+            return VK_FORMAT_G8_B8R8_2PLANE_420_UNORM;
+        case GfxstreamFormat::NV21:
+            return VK_FORMAT_G8_B8R8_2PLANE_420_UNORM;
+        case GfxstreamFormat::P010:
+            return VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16;
+        case GfxstreamFormat::R10G10B10A2_UNORM:
+            return VK_FORMAT_A2B10G10R10_UNORM_PACK32;
+        case GfxstreamFormat::R16_UNORM:
+            return VK_FORMAT_R16_UNORM;
+        case GfxstreamFormat::R16G16B16_FLOAT:
+            return VK_FORMAT_R16G16B16_SFLOAT;
+        case GfxstreamFormat::R16G16B16A16_FLOAT:
+            return VK_FORMAT_R16G16B16A16_SFLOAT;
+        case GfxstreamFormat::R5G6B5_UNORM:
+            return VK_FORMAT_R5G6B5_UNORM_PACK16;
+        case GfxstreamFormat::R8_UNORM:
+            return VK_FORMAT_R8_UNORM;
+        case GfxstreamFormat::R8G8_UNORM:
+            return VK_FORMAT_R8G8_UNORM;
+        case GfxstreamFormat::R8G8B8_UNORM:
+            return VK_FORMAT_R8G8B8_UNORM;
+        case GfxstreamFormat::R8G8B8A8_UNORM:
+            return VK_FORMAT_R8G8B8A8_UNORM;
+        case GfxstreamFormat::R8G8B8X8_UNORM:
+            return VK_FORMAT_R8G8B8A8_UNORM;
+        case GfxstreamFormat::S8_UINT:
+            return VK_FORMAT_S8_UINT;
+        case GfxstreamFormat::UNKNOWN:
+            return std::nullopt;
+        case GfxstreamFormat::YV21:
+            return VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM;
+        case GfxstreamFormat::YV12:
+            return VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM;
+        default:
+            return std::nullopt;
+    }
+}
 
 const FormatPlaneLayouts* getFormatPlaneLayouts(VkFormat format) {
     const auto& formatPlaneLayoutsMap = getFormatPlaneLayoutsMap();

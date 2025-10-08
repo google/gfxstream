@@ -41,6 +41,7 @@
 #include "gfxstream/host/borrowed_image.h"
 #include "gfxstream/host/external_object_manager.h"
 #include "gfxstream/host/gl_enums.h"
+#include "gfxstream/host/gfxstream_format.h"
 #include "gfxstream/host/vk_enums.h"
 #include "render-utils/Renderer.h"
 #include "render-utils/render_api.h"
@@ -131,25 +132,32 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
                          bool useBgraReadback = false);
 
     // Tests and reports if the host supports the format through the allocator
-    bool isFormatSupported(GLenum format);
+    bool isFormatSupported(GfxstreamFormat format);
 
     // Create a new ColorBuffer instance from this display instance.
     // |p_width| and |p_height| are its dimensions in pixels.
-    // |p_internalFormat| is the OpenGL format of this color buffer.
-    // |p_frameworkFormat| describes the Android frameework format of this
     // color buffer, if differing from |p_internalFormat|.
     // See ColorBuffer::create() for
     // list of valid values. Note that ColorBuffer instances are reference-
     // counted. Use openColorBuffer / closeColorBuffer to operate on the
     // internal count.
-    HandleType createColorBuffer(int p_width, int p_height,
-                                 GLenum p_internalFormat,
-                                 FrameworkFormat p_frameworkFormat);
+    HandleType createColorBuffer(int p_width, int p_height, GfxstreamFormat format);
+
+    HandleType createColorBufferDeprecated(int width, int height,
+                                           GLenum internalFormat,
+                                           FrameworkFormat frameworkFormat);
+
     // Variant of createColorBuffer except with a particular
     // handle already assigned. This is for use with
     // virtio-gpu's RESOURCE_CREATE ioctl.
-    void createColorBufferWithResourceHandle(int p_width, int p_height, GLenum p_internalFormat,
-                                             FrameworkFormat p_frameworkFormat, HandleType handle);
+    void createColorBufferWithResourceHandle(int p_width, int p_height,
+                                             GfxstreamFormat format,
+                                             HandleType handle);
+
+    void createColorBufferWithResourceHandleDeprecated(int width, int height,
+                                                       GLenum internalFormat,
+                                                       FrameworkFormat frameworkFormat,
+                                                       HandleType handle);
 
     // Create a new data Buffer instance from this display instance.
     // The buffer will be backed by a VkBuffer and VkDeviceMemory (if Vulkan
@@ -206,14 +214,11 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
     // with the pixel data.
     // |outPixelsSize| is the size of buffer
     void readColorBuffer(HandleType p_colorbuffer, int x, int y, int width, int height,
-                         GLenum format, GLenum type, void* pixels, uint64_t outPixelsSize);
-
-    // Old, unsafe version for backwards compatibility
-    void readColorBuffer(HandleType p_colorbuffer, int x, int y, int width, int height,
-                         GLenum format, GLenum type, void* pixels) {
-        return readColorBuffer(p_colorbuffer, x, y, width, height, format, type, pixels,
-                               std::numeric_limits<uint64_t>::max());
-    }
+                         GfxstreamFormat pixelsFormat, void* pixels,
+                         uint64_t outPixelsSize = std::numeric_limits<uint64_t>::max());
+    void readColorBufferDeprecated(HandleType p_colorbuffer, int x, int y, int width,
+                                   int height, GLenum format, GLenum type,
+                                   void* pixels, uint64_t outPixelsSize = std::numeric_limits<uint64_t>::max());
 
     // Read the content of a given YUV420_888 ColorBuffer into client memory.
     // |p_colorbuffer| is the ColorBuffer's handle value. Similar
@@ -240,23 +245,18 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
     // |x|, |y|, |width| and |height| are the position and dimensions of
     // a rectangle whose pixel values will be transfered to the GPU
     // |format| indicates the format of the OpenGL buffer, e.g. GL_RGB or
-    // GL_RGBA. |frameworkFormat| indicates the format of the pixel data; if
-    // FRAMEWORK_FORMAT_GL_COMPATIBLE, |format| (OpenGL format) is used.
-    // Otherwise, explicit conversion to |format| is needed.
+    // GL_RGBA.
     // |type| is the type of pixel data, e.g. GL_UNSIGNED_BYTE.
     // |pixels| is the address of a buffer containing the new pixel data.
     // Returns true on success, false otherwise.
     bool updateColorBuffer(HandleType p_colorbuffer, int x, int y, int width,
-                           int height, GLenum format, GLenum type,
-                           void* pixels);
-    bool updateColorBufferFromFrameworkFormat(HandleType p_colorbuffer, int x, int y, int width,
-                                              int height, FrameworkFormat fwkFormat, GLenum format,
-                                              GLenum type, void* pixels, void* metadata = nullptr);
-
-    bool getColorBufferInfo(HandleType p_colorbuffer, int* width, int* height,
-                            GLint* internalformat,
-                            FrameworkFormat* frameworkFormat = nullptr);
-    bool getBufferInfo(HandleType p_buffer, int* size);
+                           int height, GfxstreamFormat pixelFormat, void* pixels);
+    bool updateColorBufferDeprecated(HandleType p_colorbuffer, int x, int y, int width,
+                                     int height, GLenum format, GLenum type,
+                                     void* pixels);
+    bool updateColorBufferDeprecated(HandleType p_colorbuffer, int x, int y, int width,
+                                     int height, GLenum format, FrameworkFormat frameworkFormat,
+                                     void* pixels);
 
     // Display the content of a given ColorBuffer into the framebuffer's
     // sub-window. |p_colorbuffer| is a handle value.
@@ -576,7 +576,7 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
     void updateYUVTextures(uint32_t type, uint32_t* textures, void* privData, void* func);
     void swapTexturesAndUpdateColorBuffer(uint32_t colorbufferhandle, int x, int y, int width,
                                           int height, uint32_t format, uint32_t type,
-                                          uint32_t texture_type, uint32_t* textures);
+                                          uint32_t texturesFormat, uint32_t* textures);
 
     // Reads back the raw color buffer to |pixels|
     // if |pixels| is not null.

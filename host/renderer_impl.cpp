@@ -576,7 +576,7 @@ static struct AndroidVirtioGpuOps sVirtioGpuOps = {
         },
     .create_color_buffer_with_handle =
         [](uint32_t width, uint32_t height, uint32_t format, uint32_t fwkFormat, uint32_t handle) {
-            FrameBuffer::getFB()->createColorBufferWithResourceHandle(
+            FrameBuffer::getFB()->createColorBufferWithResourceHandleDeprecated(
                 width, height, (GLenum)format, (FrameworkFormat)fwkFormat, handle);
         },
     .open_color_buffer = [](uint32_t handle) { FrameBuffer::getFB()->openColorBuffer(handle); },
@@ -589,8 +589,8 @@ static struct AndroidVirtioGpuOps sVirtioGpuOps = {
     .update_color_buffer =
         [](uint32_t handle, int x, int y, int width, int height, uint32_t format, uint32_t type,
            void* pixels) {
-            FrameBuffer::getFB()->updateColorBuffer(handle, x, y, width, height, format, type,
-                                                    pixels);
+            FrameBuffer::getFB()->updateColorBufferDeprecated(handle, x, y, width, height, format, type,
+                                                              pixels);
         },
     .read_buffer =
         [](uint32_t handle, uint64_t offset, uint64_t size, void* bytes) {
@@ -599,14 +599,14 @@ static struct AndroidVirtioGpuOps sVirtioGpuOps = {
     .read_color_buffer =
         [](uint32_t handle, int x, int y, int width, int height, uint32_t format, uint32_t type,
            void* pixels) {
-            FrameBuffer::getFB()->readColorBuffer(handle, x, y, width, height, format, type,
-                                                  pixels);
+            FrameBuffer::getFB()->readColorBufferDeprecated(handle, x, y, width, height, format, type,
+                                                            pixels);
         },
     .read_color_buffer2 =
         [](uint32_t handle, int x, int y, int width, int height, uint32_t format, uint32_t type,
            void* pixels, uint64_t pixels_size) {
-            FrameBuffer::getFB()->readColorBuffer(handle, x, y, width, height, format, type,
-                                                  pixels, pixels_size);
+            FrameBuffer::getFB()->readColorBufferDeprecated(handle, x, y, width, height, format, type,
+                                                            pixels, pixels_size);
         },
     .read_color_buffer_yuv =
         [](uint32_t handle, int x, int y, int width, int height, void* pixels,
@@ -667,10 +667,9 @@ static struct AndroidVirtioGpuOps sVirtioGpuOps = {
         },
     .update_color_buffer_from_framework_format =
         [](uint32_t handle, int x, int y, int width, int height, uint32_t fwkFormat,
-           uint32_t format, uint32_t type, void* pixels, void* pMetadata) {
-            FrameBuffer::getFB()->updateColorBufferFromFrameworkFormat(
-                handle, x, y, width, height, (FrameworkFormat)fwkFormat, format, type, pixels,
-                pMetadata);
+           uint32_t format, uint32_t type, void* pixels, void*) {
+            FrameBuffer::getFB()->updateColorBufferDeprecated(
+                handle, x, y, width, height, format, (FrameworkFormat)fwkFormat, pixels);
         },
 };
 

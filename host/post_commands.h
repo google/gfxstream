@@ -14,14 +14,13 @@
 
 #pragma once
 
-#include <GLES2/gl2.h>
-
 #include <functional>
 #include <future>
 #include <memory>
 #include <vector>
 
 #include "handle.h"
+#include "gfxstream/host/gfxstream_format.h"
 #include "render-utils/Renderer.h"
 
 namespace gfxstream {
@@ -65,9 +64,8 @@ struct Post {
             ColorBuffer* cb;
             int screenwidth;
             int screenheight;
-            GLenum format;
-            GLenum type;
             int rotation;
+            GfxstreamFormat pixelsFormat;
             void* pixels;
             Rect rect;
         } screenshot;

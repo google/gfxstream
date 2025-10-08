@@ -21,6 +21,7 @@
 
 namespace gfxstream {
 namespace host {
+namespace {
 
 using gfxstream::base::DescriptorType;
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
@@ -28,8 +29,6 @@ using gfxstream::host::snapshot::VirtioGpuResourceCreateArgs;
 using gfxstream::host::snapshot::VirtioGpuResourceCreateBlobArgs;
 using gfxstream::host::snapshot::VirtioGpuResourceSnapshot;
 #endif
-
-namespace {
 
 enum pipe_texture_target {
     PIPE_BUFFER,
@@ -145,10 +144,14 @@ std::optional<VirtioGpuResource> VirtioGpuResource::Create(
         FrameBuffer::getFB()->createBufferWithResourceHandle(args->width * args->height,
                                                              args->handle);
     } else if (resourceType == VirtioGpuResourceType::COLOR_BUFFER) {
-        const uint32_t glformat = virgl_format_to_gl(args->format);
-        const auto fwkformat = (FrameworkFormat)virgl_format_to_fwk_format(args->format);
-        FrameBuffer::getFB()->createColorBufferWithResourceHandle(
-            args->width, args->height, glformat, fwkformat, args->handle);
+        auto formatOpt = ToGfxstreamFormat(args->format);
+        if (!formatOpt) {
+            GFXSTREAM_ERROR("Failed to create resource: unsupported format %d", args->format);
+            return std::nullopt;
+        }
+        auto format = *formatOpt;
+
+        FrameBuffer::getFB()->createColorBufferWithResourceHandle(args->width, args->height, format, args->handle);
         FrameBuffer::getFB()->setGuestManagedColorBufferLifetime(true /* guest manages lifetime */);
         FrameBuffer::getFB()->openColorBuffer(args->handle);
     } else {
@@ -216,11 +219,17 @@ std::optional<VirtioGpuResource> VirtioGpuResource::Create(
                         .handle = import_handle->os_handle,
                         .streamHandleType = import_handle->handle_type,
                     });
-    const uint32_t glformat = virgl_format_to_gl(internal_create_args.format);
-    const auto fwkformat =
-        (FrameworkFormat)virgl_format_to_fwk_format(internal_create_args.format);
+
+    auto formatOpt = ToGfxstreamFormat(internal_create_args.format);
+    if (!formatOpt) {
+        GFXSTREAM_ERROR("Failed to create resource with import_handle: unsupported format %d",
+                        internal_create_args.format);
+        return std::nullopt;
+    }
+    auto format = *formatOpt;
+
     FrameBuffer::getFB()->createColorBufferWithResourceHandle(
-        internal_create_args.width, internal_create_args.height, glformat, fwkformat,
+        internal_create_args.width, internal_create_args.height, format,
         internal_create_args.handle);
     FrameBuffer::getFB()->setGuestManagedColorBufferLifetime(true /* guest manages lifetime */);
     FrameBuffer::getFB()->openColorBuffer(internal_create_args.handle);
@@ -654,18 +663,22 @@ int VirtioGpuResource::ReadFromColorBufferToLinear(uint64_t offset, stream_rende
         return -EINVAL;
     }
 
-    auto glformat = virgl_format_to_gl(mCreateArgs->format);
-    auto gltype = gl_format_to_natural_type(glformat);
+    auto formatOpt = ToGfxstreamFormat(mCreateArgs->format);
+    if (!formatOpt) {
+        GFXSTREAM_ERROR("Failed to transfer: unsupported format %d", mCreateArgs->format);
+        return -EINVAL;
+    }
+    auto format = *formatOpt;
 
     // We always xfer the whole thing again from GL
     // since it's fiddly to calc / copy-out subregions
-    if (virgl_format_is_yuv(mCreateArgs->format)) {
+    if (IsYuvFormat(format)) {
         FrameBuffer::getFB()->readColorBufferYUV(mCreateArgs->handle, 0, 0, mCreateArgs->width,
                                                  mCreateArgs->height, mLinear.data(),
                                                  mLinear.size());
     } else {
         FrameBuffer::getFB()->readColorBuffer(mCreateArgs->handle, 0, 0, mCreateArgs->width,
-                                              mCreateArgs->height, glformat, gltype,
+                                              mCreateArgs->height, format,
                                               mLinear.data());
     }
 
@@ -683,13 +696,17 @@ int VirtioGpuResource::WriteToColorBufferFromLinear(uint64_t offset, stream_rend
         return -EINVAL;
     }
 
-    auto glformat = virgl_format_to_gl(mCreateArgs->format);
-    auto gltype = gl_format_to_natural_type(glformat);
+    auto formatOpt = ToGfxstreamFormat(mCreateArgs->format);
+    if (!formatOpt) {
+        GFXSTREAM_ERROR("Failed to transfer: unsupported format %d", mCreateArgs->format);
+        return -EINVAL;
+    }
+    auto format = *formatOpt;
 
     // We always xfer the whole thing again to GL
     // since it's fiddly to calc / copy-out subregions
     FrameBuffer::getFB()->updateColorBuffer(mCreateArgs->handle, 0, 0, mCreateArgs->width,
-                                            mCreateArgs->height, glformat, gltype, mLinear.data());
+                                            mCreateArgs->height, format, mLinear.data());
     return 0;
 }
 
@@ -732,13 +749,11 @@ int VirtioGpuResource::TransferWithIov(uint64_t offset, const stream_renderer_bo
     }
 
     size_t linearBase =
-        virgl_format_to_linear_base(mCreateArgs->format, mCreateArgs->width, mCreateArgs->height,
-                                    box->x, box->y, box->w, box->h);
+        GetTransferOffset(mCreateArgs->format, mCreateArgs->width, mCreateArgs->height,
+                          box->x, box->y, box->w, box->h);
     size_t start = linearBase;
-    // height - 1 in order to treat the (w * bpp) row specially
-    // (i.e., the last row does not occupy the full stride)
     size_t length =
-        virgl_format_to_total_xfer_len(mCreateArgs->format, mCreateArgs->width, mCreateArgs->height,
+        GetTransferSize(mCreateArgs->format, mCreateArgs->width, mCreateArgs->height,
                                        box->x, box->y, box->w, box->h);
     size_t end = start + length;
 
