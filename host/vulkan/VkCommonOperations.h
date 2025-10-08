@@ -470,17 +470,6 @@ class VkEmulation {
         std::string driverVersion;
         std::string driverInfo;
 
-        PFN_vkGetImageMemoryRequirements2KHR getImageMemoryRequirements2Func = nullptr;
-        PFN_vkGetBufferMemoryRequirements2KHR getBufferMemoryRequirements2Func = nullptr;
-
-#ifdef _WIN32
-        PFN_vkGetMemoryWin32HandleKHR getMemoryHandleFunc = nullptr;
-#elif defined(__ANDROID__)
-        PFN_vkGetMemoryAndroidHardwareBufferANDROID getMemoryHandleFunc = nullptr;
-#else
-        PFN_vkGetMemoryFdKHR getMemoryHandleFunc = nullptr;
-#endif
-
         // Set only if requested and supported
         std::optional<VkPhysicalDeviceRobustness2FeaturesEXT> robustness2Features;
     };

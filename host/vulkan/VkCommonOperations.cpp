@@ -1530,61 +1530,6 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
         }
     }
 
-    if (emulation->mDeviceInfo.supportsExternalMemoryImport) {
-        emulation->mDeviceInfo.getImageMemoryRequirements2Func =
-            reinterpret_cast<PFN_vkGetImageMemoryRequirements2KHR>(
-                dvk->vkGetDeviceProcAddr(emulation->mDevice, "vkGetImageMemoryRequirements2KHR"));
-        if (!emulation->mDeviceInfo.getImageMemoryRequirements2Func) {
-            GFXSTREAM_ERROR("Cannot find vkGetImageMemoryRequirements2KHR.");
-            return nullptr;
-        }
-        emulation->mDeviceInfo.getBufferMemoryRequirements2Func =
-            reinterpret_cast<PFN_vkGetBufferMemoryRequirements2KHR>(
-                dvk->vkGetDeviceProcAddr(emulation->mDevice, "vkGetBufferMemoryRequirements2KHR"));
-        if (!emulation->mDeviceInfo.getBufferMemoryRequirements2Func) {
-            GFXSTREAM_ERROR("Cannot find vkGetBufferMemoryRequirements2KHR");
-            return nullptr;
-        }
-    }
-    if (emulation->mDeviceInfo.supportsExternalMemoryExport) {
-#ifdef _WIN32
-        // Use vkGetMemoryWin32HandleKHR
-        emulation->mDeviceInfo.getMemoryHandleFunc =
-            reinterpret_cast<PFN_vkGetMemoryWin32HandleKHR>(
-                dvk->vkGetDeviceProcAddr(emulation->mDevice, "vkGetMemoryWin32HandleKHR"));
-        if (!emulation->mDeviceInfo.getMemoryHandleFunc) {
-            GFXSTREAM_ERROR("Cannot find vkGetMemoryWin32HandleKHR");
-            return nullptr;
-        }
-#elif defined(__ANDROID__)
-        // Use vkGetMemoryAndroidHardwareBufferANDROID
-        emulation->mDeviceInfo.getMemoryHandleFunc =
-            reinterpret_cast<PFN_vkGetMemoryAndroidHardwareBufferANDROID>(
-                dvk->vkGetDeviceProcAddr(emulation->mDevice, "vkGetMemoryAndroidHardwareBufferANDROID"));
-        if (!emulation->mDeviceInfo.getMemoryHandleFunc) {
-            GFXSTREAM_ERROR("Cannot find vkGetMemoryAndroidHardwareBufferANDROID");
-            return nullptr;
-        }
-#else
-        if (emulation->mInstanceSupportsExternalMemoryMetal) {
-            // We'll use vkGetMemoryMetalHandleEXT, no need to save into getMemoryHandleFunc
-            emulation->mDeviceInfo.getMemoryHandleFunc = nullptr;
-            if (!dvk->vkGetDeviceProcAddr(emulation->mDevice, "vkGetMemoryMetalHandleEXT")) {
-                GFXSTREAM_ERROR("Cannot find vkGetMemoryMetalHandleEXT");
-                return nullptr;
-            }
-        } else {
-            // Use vkGetMemoryFdKHR
-            emulation->mDeviceInfo.getMemoryHandleFunc = reinterpret_cast<PFN_vkGetMemoryFdKHR>(
-                dvk->vkGetDeviceProcAddr(emulation->mDevice, "vkGetMemoryFdKHR"));
-            if (!emulation->mDeviceInfo.getMemoryHandleFunc) {
-                GFXSTREAM_ERROR("Cannot find vkGetMemoryFdKHR");
-                return nullptr;
-            }
-        }
-#endif
-    }
-
     GFXSTREAM_DEBUG("Vulkan logical device created and extension functions obtained.");
 
     emulation->mQueueLock = std::make_shared<gfxstream::base::Lock>();
@@ -2119,7 +2064,7 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
     };
 
     HANDLE exportHandle = NULL;
-    exportRes = mDeviceInfo.getMemoryHandleFunc(mDevice, &getWin32HandleInfo, &exportHandle);
+    exportRes = vk->vkGetMemoryWin32HandleKHR(mDevice, &getWin32HandleInfo, &exportHandle);
     validHandle = (VK_SUCCESS == exportRes) && (NULL != exportHandle);
     info->handleInfo = ExternalHandleInfo{
         .handle = reinterpret_cast<ExternalHandleType>(exportHandle),
@@ -2132,7 +2077,7 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
         .memory = info->memory,
     };
     AHardwareBuffer* exportHandle = static_cast<AHardwareBuffer*>(reinterpret_cast<void*>(info->handleInfo->handle));
-    exportRes = mDeviceInfo.getMemoryHandleFunc(
+    exportRes = vk->vkGetMemoryAndroidHardwareBufferANDROID(
         mDevice, &getAhbInfo, &exportHandle);
     validHandle = (VK_SUCCESS == exportRes) && (NULL != exportHandle);
     info->handleInfo = ExternalHandleInfo{
@@ -2172,7 +2117,7 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
             vkHandleType,
         };
         int exportFd = -1;
-        exportRes = mDeviceInfo.getMemoryHandleFunc(mDevice, &getFdInfo, &exportFd);
+        exportRes = vk->vkGetMemoryFdKHR(mDevice, &getFdInfo, &exportFd);
         validHandle = (VK_SUCCESS == exportRes) && (-1 != exportFd);
         info->handleInfo = ExternalHandleInfo{
             .handle = exportFd,
