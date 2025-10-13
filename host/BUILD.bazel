@@ -191,6 +191,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":gfxstream_backend_headers",
+        ":gfxstream_host_headers",
         "//common/base:gfxstream_common_base",
         "//common/logging:gfxstream_common_logging",
         "//host/address_space:gfxstream_host_address_space",
