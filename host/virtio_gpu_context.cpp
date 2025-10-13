@@ -94,7 +94,7 @@ std::optional<SyncDescriptorInfo> VirtioGpuContext::TakeSync() {
 
     auto info = std::move(*mLatestSync);
     mLatestSync.reset();
-    return std::move(info);
+    return info;
 }
 
 int VirtioGpuContext::CreateAddressSpaceGraphicsInstance(
