@@ -27,6 +27,7 @@
 #include "render-utils/stream.h"
 
 namespace gfxstream {
+namespace host {
 
 // Values corresponding to the result of BufferQueue operations.
 // |Ok| means everything went well.
@@ -273,4 +274,5 @@ private:
     DISALLOW_COPY_ASSIGN_AND_MOVE(BufferQueue);
 };
 
+}  // namespace host
 }  // namespace gfxstream

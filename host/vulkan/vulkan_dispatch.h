@@ -16,10 +16,12 @@
 #include "goldfish_vk_dispatch.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 VulkanDispatch* vkDispatch(bool forTesting = false);
 bool vkDispatchValid(const VulkanDispatch* vk);
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

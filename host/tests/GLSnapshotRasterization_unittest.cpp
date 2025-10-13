@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 namespace {
 
@@ -105,4 +106,5 @@ TEST_F(SnapshotGlPolygonOffsetTest, SetPolygonOffset) {
 
 }  // namespace
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

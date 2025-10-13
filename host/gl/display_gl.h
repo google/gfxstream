@@ -28,9 +28,10 @@
 #include "gfxstream/host/display.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
-class DisplayGl : public gfxstream::Display {
+class DisplayGl : public Display {
   public:
     DisplayGl(TextureDraw* textureDraw): mTextureDraw(textureDraw) {}
     ~DisplayGl() {}
@@ -68,8 +69,8 @@ class DisplayGl : public gfxstream::Display {
 
     void setupContext();
   protected:
-    void bindToSurfaceImpl(gfxstream::DisplaySurface* surface) override {}
-    void surfaceUpdated(gfxstream::DisplaySurface* surface) override {}
+    void bindToSurfaceImpl(DisplaySurface* surface) override {}
+    void surfaceUpdated(DisplaySurface* surface) override {}
     void unbindFromSurfaceImpl() override {}
 
   private:
@@ -80,4 +81,5 @@ class DisplayGl : public gfxstream::Display {
 };
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

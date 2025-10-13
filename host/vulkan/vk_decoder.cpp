@@ -59,6 +59,7 @@
 #define CC_UNLIKELY(exp) (__builtin_expect(!!(exp), false))
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 class VkDecoder::Impl {
@@ -22815,4 +22816,5 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
 }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

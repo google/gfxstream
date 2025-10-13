@@ -24,13 +24,12 @@
 #include "host/gl/emulation_gl.h"
 
 namespace gfxstream {
-
-class RecursiveScopedContextBind;
-
+namespace host {
 namespace gl {
+
 class DisplayGl;
 class EmulationGl;
-}  // namespace gl
+class RecursiveScopedContextBind;
 
 class PostWorkerGl : public PostWorker, public DisplaySurfaceUser {
    public:
@@ -44,8 +43,8 @@ class PostWorkerGl : public PostWorker, public DisplaySurfaceUser {
     void exitImpl() override;
     std::shared_future<void> composeImpl(const FlatComposeRequest& composeRequest) override;
 
-    void bindToSurfaceImpl(gfxstream::DisplaySurface* surface) override {}
-    void surfaceUpdated(gfxstream::DisplaySurface* surface) override {}
+    void bindToSurfaceImpl(DisplaySurface* surface) override {}
+    void surfaceUpdated(DisplaySurface* surface) override {}
     void unbindFromSurfaceImpl() override {}
 
    private:
@@ -61,8 +60,10 @@ class PostWorkerGl : public PostWorker, public DisplaySurfaceUser {
     int m_viewportHeight = 0;
 
     bool mContextBound = false;
-    std::unique_ptr<gfxstream::DisplaySurface> mFakeWindowSurface = nullptr;
+    std::unique_ptr<DisplaySurface> mFakeWindowSurface = nullptr;
     gl::EmulationGl* mEmulationGl;
 };
 
+}  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

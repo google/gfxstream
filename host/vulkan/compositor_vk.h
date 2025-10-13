@@ -38,6 +38,7 @@
 #include "vulkan/vk_utils.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 // We do see a composition requests with 33 layers. (b/365603234)
@@ -302,6 +303,7 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
 };
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream
 
 #endif /* COMPOSITOR_VK_H */

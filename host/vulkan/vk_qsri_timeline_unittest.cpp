@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 namespace {
 using ::testing::InSequence;
@@ -55,4 +56,5 @@ TEST(VkQsriTImelineTest, registerCallbackFirstSignalLater) {
 
 }  // namespace
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

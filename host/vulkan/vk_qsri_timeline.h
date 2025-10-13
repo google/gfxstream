@@ -25,6 +25,7 @@
 #include "gfxstream/common/logging.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 class VkQsriTimeline {
@@ -79,6 +80,7 @@ class VkQsriTimeline {
 };
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream
 
 #endif  // VK_QSRI_TIMELINE_H

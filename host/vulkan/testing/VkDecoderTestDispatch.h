@@ -21,6 +21,7 @@
 #include "vulkan_boxed_handles.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 namespace testing {
 
@@ -325,4 +326,5 @@ class VkDecoderTestDispatch {
 
 }  // namespace testing
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

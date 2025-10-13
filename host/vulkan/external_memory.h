@@ -19,6 +19,7 @@
 #include <vector>
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 // Class to encapsulate external memory related functionalities
@@ -41,4 +42,5 @@ class ExternalMemory {
 };
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

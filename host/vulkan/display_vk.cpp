@@ -23,12 +23,8 @@
 #include "vulkan/vk_enum_string_helper.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
-
-using gfxstream::vk::formatIsDepthOrStencil;
-using gfxstream::vk::formatIsSInt;
-using gfxstream::vk::formatIsUInt;
-using gfxstream::vk::formatRequiresSamplerYcbcrConversion;
 
 #define ERR_ONCE(fmt, ...)              \
     do {                                             \
@@ -114,11 +110,11 @@ void DisplayVk::clear() {
     ERR_ONCE("DisplayVk::%s: Unimplemented", __func__);
 }
 
-void DisplayVk::bindToSurfaceImpl(gfxstream::DisplaySurface* surface) {
+void DisplayVk::bindToSurfaceImpl(DisplaySurface* surface) {
     m_needToRecreateSwapChain = true;
 }
 
-void DisplayVk::surfaceUpdated(gfxstream::DisplaySurface* surface) {
+void DisplayVk::surfaceUpdated(DisplaySurface* surface) {
     m_needToRecreateSwapChain = true;
 }
 
@@ -768,4 +764,5 @@ DisplayVk::ImageBorrowResource::ImageBorrowResource(const VulkanDispatch& vk, Vk
       m_vkCommandPool(commandPool) {}
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

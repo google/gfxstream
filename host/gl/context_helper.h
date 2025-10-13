@@ -15,12 +15,8 @@
 #pragma once
 
 namespace gfxstream {
+namespace host {
 namespace gl {
-class TextureDraw;
-}  // namespace gl
-}  // namespace gfxstream
-
-namespace gfxstream {
 
 // ContextHelper interface class used during Buffer and ColorBuffer
 // operations. This is introduced to remove coupling from the FrameBuffer
@@ -67,4 +63,6 @@ class RecursiveScopedContextBind {
     bool mIsBound = false;
 };
 
+}  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

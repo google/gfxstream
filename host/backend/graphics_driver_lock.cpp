@@ -19,9 +19,11 @@ gfxstream::base::Lock* sLock = new gfxstream::base::Lock();
 }
 
 namespace gfxstream {
+namespace host {
 
 gfxstream::base::Lock* graphicsDriverLock() {
     return sLock;
 }
 
+}  // namespace host
 }  // namespace gfxstream

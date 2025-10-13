@@ -24,6 +24,7 @@
 #include "GLSnapshot.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 typedef void (gles2_APIENTRY *glVertexAttribPointerWithDataSize_server_proc_t) (GLuint, GLint, GLenum, GLboolean, GLsizei, const GLvoid*, GLsizei);
@@ -275,6 +276,7 @@ private:
 };
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream
 
 #endif

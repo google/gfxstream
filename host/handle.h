@@ -18,9 +18,11 @@
 #include <unordered_set>
 
 namespace gfxstream {
+namespace host {
 
 using HandleType = uint32_t;
 using ThreadContextSet = std::unordered_set<HandleType>;
 using WindowSurfaceSet = std::unordered_set<HandleType>;
 
+}  // namespace host
 }  // namespace gfxstream

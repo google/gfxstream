@@ -37,7 +37,7 @@ GLUniformDesc::GLUniformDesc(gfxstream::Stream* stream) {
     mCount = stream->getBe32();
     mTranspose = stream->getByte();
     mType = stream->getBe32();
-    loadBuffer(stream, &mVal);
+    gfxstream::host::loadBuffer(stream, &mVal);
     mGuestName = stream->getString();
 }
 
@@ -45,7 +45,7 @@ void GLUniformDesc::onSave(gfxstream::Stream* stream) const {
     stream->putBe32(mCount);
     stream->putByte(mTranspose);
     stream->putBe32(mType);
-    saveBuffer(stream, mVal);
+    gfxstream::host::saveBuffer(stream, mVal);
     stream->putString(mGuestName);
 }
 
@@ -84,15 +84,15 @@ ProgramData::ProgramData(gfxstream::Stream* stream) :
                 GLuint loc = stream->getBe32();
                 return std::make_pair(std::move(attrib), loc);
             };
-    loadCollection(stream, &boundAttribLocs, loadAttribLocs);
-    loadCollection(stream, &linkedAttribLocs, loadAttribLocs);
+    gfxstream::host::loadCollection(stream, &boundAttribLocs, loadAttribLocs);
+    gfxstream::host::loadCollection(stream, &linkedAttribLocs, loadAttribLocs);
 
-    loadCollection(stream, &uniforms, [](gfxstream::Stream* stream) {
+    gfxstream::host::loadCollection(stream, &uniforms, [](gfxstream::Stream* stream) {
        GLuint loc = stream->getBe32();
        GLUniformDesc desc(stream);
        return std::make_pair(loc, std::move(desc));
     });
-    loadCollection(stream, &mUniformBlockBinding,
+    gfxstream::host::loadCollection(stream, &mUniformBlockBinding,
             [](gfxstream::Stream* stream) {
                 GLuint block = stream->getBe32();
                 GLuint binding = stream->getBe32();
@@ -120,7 +120,7 @@ ProgramData::ProgramData(gfxstream::Stream* stream) :
 
     mGlesMajorVersion = stream->getByte();
     mGlesMinorVersion = stream->getByte();
-    loadCollection(stream, &mUniNameToGuestLoc,
+    gfxstream::host::loadCollection(stream, &mUniNameToGuestLoc,
             [](gfxstream::Stream* stream) {
         std::string name = stream->getString();
         int loc = stream->getBe32();
@@ -299,8 +299,8 @@ void ProgramData::onSave(gfxstream::Stream* stream, unsigned int globalName) con
                 stream->putString(attribLoc.first);
                 stream->putBe32(attribLoc.second);
             };
-    saveCollection(stream, boundAttribLocs, saveAttribLocs);
-    saveCollection(stream, linkedAttribLocs, saveAttribLocs);
+    gfxstream::host::saveCollection(stream, boundAttribLocs, saveAttribLocs);
+    gfxstream::host::saveCollection(stream, linkedAttribLocs, saveAttribLocs);
 
     auto saveUniform = [](gfxstream::Stream* stream,
                 const std::pair<const GLuint, GLUniformDesc>& uniform) {
@@ -320,8 +320,8 @@ void ProgramData::onSave(gfxstream::Stream* stream, unsigned int globalName) con
             }
         };
     if (needRestore()) {
-        saveCollection(stream, uniforms, saveUniform);
-        saveCollection(stream, mUniformBlockBinding, saveUniformBlock);
+        gfxstream::host::saveCollection(stream, uniforms, saveUniform);
+        gfxstream::host::saveCollection(stream, mUniformBlockBinding, saveUniformBlock);
         saveTransformFeedbacks(stream, mTransformFeedbacks);
         stream->putBe32(mTransformFeedbackBufferMode);
     } else {
@@ -337,8 +337,8 @@ void ProgramData::onSave(gfxstream::Stream* stream, unsigned int globalName) con
                     (GLint*)&mTransformFeedbackBufferMode);
         }
 
-        saveCollection(stream, uniformsOnSave, saveUniform);
-        saveCollection(stream, uniformBlocks, saveUniformBlock);
+        gfxstream::host::saveCollection(stream, uniformsOnSave, saveUniform);
+        gfxstream::host::saveCollection(stream, uniformBlocks, saveUniformBlock);
         saveTransformFeedbacks(stream, transformFeedbacks);
         stream->putBe32(mTransformFeedbackBufferMode);
     }
@@ -361,7 +361,7 @@ void ProgramData::onSave(gfxstream::Stream* stream, unsigned int globalName) con
 
     stream->putByte(mGlesMajorVersion);
     stream->putByte(mGlesMinorVersion);
-    saveCollection(stream, mUniNameToGuestLoc, [](gfxstream::Stream* stream,
+    gfxstream::host::saveCollection(stream, mUniNameToGuestLoc, [](gfxstream::Stream* stream,
                 const std::pair<std::string, int>& uniNameLoc) {
         stream->putString(uniNameLoc.first);
         stream->putBe32(uniNameLoc.second);

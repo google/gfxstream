@@ -37,9 +37,10 @@
 // frame in a host window.
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
-class DisplayVk : public gfxstream::Display {
+class DisplayVk : public Display {
    public:
     DisplayVk(const VulkanDispatch&, VkPhysicalDevice, uint32_t swapChainQueueFamilyIndex,
               uint32_t compositorQueueFamilyIndex, VkDevice, VkQueue compositorVkQueue,
@@ -53,8 +54,8 @@ class DisplayVk : public gfxstream::Display {
     void clear();
 
    protected:
-    void bindToSurfaceImpl(gfxstream::DisplaySurface* surface) override;
-    void surfaceUpdated(gfxstream::DisplaySurface* surface) override;
+    void bindToSurfaceImpl(DisplaySurface* surface) override;
+    void surfaceUpdated(DisplaySurface* surface) override;
     void unbindFromSurfaceImpl() override;
 
    private:
@@ -131,6 +132,7 @@ class DisplayVk : public gfxstream::Display {
 };
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream
 
 #endif

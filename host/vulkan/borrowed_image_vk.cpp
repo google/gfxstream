@@ -15,6 +15,7 @@
 #include "borrowed_image_vk.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 void addNeededBarriersToUseBorrowedImage(
@@ -116,4 +117,5 @@ void addNeededBarriersToUseBorrowedImage(
 }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

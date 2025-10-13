@@ -32,6 +32,7 @@
 #endif
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 namespace snapshot {
 
@@ -144,4 +145,5 @@ GLuint GLSnapshotState::getProgramName(GLuint name) {
 
 }  // namespace snapshot
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

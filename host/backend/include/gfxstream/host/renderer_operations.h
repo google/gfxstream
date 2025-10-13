@@ -15,6 +15,7 @@
 #include "render-utils/renderer_enums.h"
 
 namespace gfxstream {
+namespace host {
 
 void set_gfxstream_renderer(SelectedRenderer renderer);
 SelectedRenderer get_gfxstream_renderer();
@@ -26,4 +27,5 @@ void set_gfxstream_should_skip_draw(bool skip);
 bool get_gfxstream_should_skip_draw();
 
 
+}  // namespace host
 }  // namespace gfxstream

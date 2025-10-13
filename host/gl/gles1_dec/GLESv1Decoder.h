@@ -22,6 +22,7 @@
 #include "gfxstream/SharedLibrary.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 typedef void (gles1_APIENTRY *glColorPointerWithDataSize_server_proc_t) (GLint, GLenum, GLsizei, const GLvoid*, GLsizei);
@@ -96,6 +97,7 @@ private:
 };
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream
 
 #endif

@@ -26,6 +26,7 @@
 #include "vulkan/vk_utils.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 namespace CompositorVkShader {
@@ -1555,4 +1556,5 @@ void CompositorVk::updateDescriptorSetsIfChanged(
 }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

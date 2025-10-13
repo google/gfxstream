@@ -20,6 +20,8 @@
 #include "vulkan/display_vk.h"
 
 namespace gfxstream {
+namespace host {
+namespace vk {
 
 PostWorkerVk::PostWorkerVk(FrameBuffer* fb, Compositor* compositor, vk::DisplayVk* displayVk)
     : PostWorker(false, fb, compositor), m_displayVk(displayVk) {}
@@ -55,4 +57,6 @@ void PostWorkerVk::clearImpl() {
 
 void PostWorkerVk::exitImpl() {}
 
+}  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

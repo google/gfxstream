@@ -17,6 +17,7 @@
 #include "gfxstream/common/logging.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 static thread_local RenderThreadInfoVk* tlThreadInfo = nullptr;
@@ -42,4 +43,5 @@ bool RenderThreadInfoVk::onLoad(gfxstream::Stream* stream) {
 }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

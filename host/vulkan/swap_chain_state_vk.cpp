@@ -22,6 +22,7 @@
 #include "vulkan/vk_utils.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 namespace {
 
@@ -306,4 +307,5 @@ const std::vector<VkImageView>& SwapChainStateVk::getVkImageViews() const { retu
 VkSwapchainKHR SwapChainStateVk::getSwapChain() const { return m_vkSwapChain; }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

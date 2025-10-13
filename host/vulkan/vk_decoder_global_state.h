@@ -48,6 +48,7 @@ class Stream;
 }  // namespace android
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 class VkDecoderSnapshot;
@@ -964,4 +965,5 @@ class VkDecoderGlobalState {
 };
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

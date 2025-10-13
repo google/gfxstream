@@ -15,6 +15,7 @@
 #pragma once
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 // Tracks all the possible OpenGL ES API versions.
@@ -38,4 +39,5 @@ enum GLESDispatchMaxVersion {
 };
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

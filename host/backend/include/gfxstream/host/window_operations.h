@@ -17,8 +17,10 @@
 #include "render-utils/window_operations.h"
 
 namespace gfxstream {
+namespace host {
 
 void set_gfxstream_window_operations(const gfxstream_window_ops& ops);
 const gfxstream_window_ops& get_gfxstream_window_operations();
 
+}  // namespace host
 }  // namespace gfxstream

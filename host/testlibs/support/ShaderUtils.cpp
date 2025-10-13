@@ -40,6 +40,7 @@ using gfxstream::base::pj;
 #define E(fmt,...) fprintf(stderr, "%s: " fmt "\n", __func__, ##__VA_ARGS__);
 
 namespace gfxstream {
+namespace host {
 
 GLuint compileShader(GLenum shaderType, const char* src) {
     auto gl = gl::LazyLoadedGLESv2Dispatch::get();
@@ -178,4 +179,5 @@ GLint compileAndLinkShaderProgram(const char* vshaderSrc, const char* fshaderSrc
 //     return buffer;
 // }
 
+}  // namespace host
 }  // namespace gfxstream

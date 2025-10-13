@@ -24,6 +24,7 @@
 #include "vulkan/vk_utils.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 namespace {
 
@@ -291,4 +292,5 @@ void AstcTexture::on_vkCmdCopyBufferToImage2(VkCommandBuffer commandBuffer, uint
 }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

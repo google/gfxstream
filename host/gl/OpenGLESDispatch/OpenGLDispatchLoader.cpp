@@ -17,6 +17,7 @@
 #include "OpenGLESDispatch/DispatchTables.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 GLESv1Dispatch s_gles1;
@@ -80,4 +81,5 @@ const EGLDispatch* LazyLoadedEGLDispatch::get() {
 LazyLoadedEGLDispatch::LazyLoadedEGLDispatch() { mValid = init_egl_dispatch(); }
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

@@ -20,6 +20,7 @@
 #include "vulkan/vk_enum_string_helper.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 namespace {
@@ -335,4 +336,5 @@ GpuDecompressionPipelineManager::~GpuDecompressionPipelineManager() {
 }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

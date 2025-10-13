@@ -17,6 +17,7 @@
 #include "gfxstream/common/logging.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 namespace testing {
 namespace {
@@ -346,4 +347,5 @@ void VulkanTestHelper::transitionImageLayout(VkCommandBuffer cmdBuf, VkImage ima
 
 }  // namespace testing
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

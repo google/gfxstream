@@ -19,6 +19,7 @@
 #include <memory>
 
 namespace gfxstream {
+namespace host {
 
 // An IOStream instance that can be used by the host RenderThread to
 // wrap a RenderChannelImpl channel.
@@ -48,4 +49,5 @@ private:
     size_t mReadBufferLeft = 0;
 };
 
+}  // namespace host
 }  // namespace gfxstream

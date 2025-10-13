@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <gtest/gtest.h>
+#include "swap_chain_state_vk.h"
 
-#include "SwapChainStateVk.h"
+#include <gtest/gtest.h>
 
 #include "gfxstream/host/testing/SampleApplication.h"
 #include "gfxstream/host/testing/OSWindow.h"
 #include "vulkan/vulkan_dispatch.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 namespace {
 
@@ -194,4 +195,5 @@ TEST_F(SwapChainStateVkTest, init) {
 
 }  // namespace
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

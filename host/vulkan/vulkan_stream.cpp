@@ -21,6 +21,7 @@
 #include "gfxstream/BumpPool.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 VulkanStream::VulkanStream(IOStream* stream, const gfxstream::host::FeatureSet& features) : mStream(stream) {
@@ -195,4 +196,5 @@ ssize_t VulkanMemReadingStream::write(const void* buffer, size_t size) {
 }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

@@ -32,6 +32,7 @@
 #include "gfxstream/synchronization/Lock.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 using gfxstream::base::AutoLock;
@@ -409,7 +410,7 @@ void GLESv2Decoder::s_glMapBufferRangeDMA(void* self, GLenum target, GLintptr of
     // Check if this is a read or write request and not an invalidate one.
     if ((access & (GL_MAP_READ_BIT | GL_MAP_WRITE_BIT)) &&
         !(access & (GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT))) {
-        void* guest_buffer = gfxstream::g_gfxstream_dma_get_host_addr(paddr);
+        void* guest_buffer = gfxstream::host::g_gfxstream_dma_get_host_addr(paddr);
         void* gpu_ptr = ctx->glMapBufferRange(target, offset, length, access);
 
         // map failed, no need to copy or unmap
@@ -436,7 +437,7 @@ void GLESv2Decoder::s_glUnmapBufferDMA(void* self, GLenum target, GLintptr offse
             // guest can flush 0 in some cases
             return;
         }
-        void* guest_buffer = gfxstream::g_gfxstream_dma_get_host_addr(paddr);
+        void* guest_buffer = gfxstream::host::g_gfxstream_dma_get_host_addr(paddr);
         void* gpu_ptr = ctx->glMapBufferRange(target, offset, length, access);
         if (!gpu_ptr) {
             fprintf(stderr, "%s: could not get host gpu pointer!\n", __FUNCTION__);
@@ -1067,4 +1068,5 @@ SNAPSHOT_PROGRAM_CALL_RET(GLint, glGetProgramResourceLocation, (void* self, GLui
 SNAPSHOT_PROGRAM_CALL(glGetProgramResourceName, (void* self,  GLuint program, GLenum programInterface, GLuint index, GLsizei bufSize, GLsizei* length, char* name), (program, programInterface, index, bufSize, length, name))
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

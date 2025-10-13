@@ -16,6 +16,7 @@
 #include <utility>
 
 namespace gfxstream {
+namespace host {
 
 static ExternalObjectManager* sMapping() {
     static ExternalObjectManager* s = new ExternalObjectManager;
@@ -133,4 +134,5 @@ std::optional<ExternalHandleInfo> ExternalObjectManager::removeResourceExternalH
     return std::nullopt;
 }
 
+}  // namespace host
 }  // namespace gfxstream

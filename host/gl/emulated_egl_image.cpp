@@ -21,6 +21,7 @@
 #include "gfxstream/common/logging.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 /*static*/
@@ -67,4 +68,5 @@ bool EmulatedEglImage::destroy() {
 }
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

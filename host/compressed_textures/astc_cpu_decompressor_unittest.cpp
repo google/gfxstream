@@ -17,6 +17,7 @@
 #include "gfxstream/host/astc_cpu_decompressor.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 namespace {
 
@@ -75,4 +76,5 @@ TEST(AstcCpuDecompressor, getStatusStringAlwaysNonNull) {
 
 }  // namespace
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

@@ -26,6 +26,7 @@
 #include "framework_formats.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 enum class YUVPlane : int {
@@ -148,4 +149,5 @@ private:
 };
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

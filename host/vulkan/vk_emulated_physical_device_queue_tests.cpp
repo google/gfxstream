@@ -24,6 +24,7 @@
 #include "gfxstream/host/features.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 namespace {
 
@@ -99,4 +100,5 @@ TEST(VkGuestQueueUtilsTest, VulkanVirtualQueue) {
 
 }  // namespace
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

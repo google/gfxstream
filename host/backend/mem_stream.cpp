@@ -21,6 +21,7 @@
 #include "gfxstream/host/stream_utils.h"
 
 namespace gfxstream {
+namespace host {
 
 MemStream::MemStream(int reserveSize) {
     mData.reserve(reserveSize);
@@ -79,4 +80,5 @@ void loadStream(Stream* stream, MemStream* memStream) {
     memStream->load(stream);
 }
 
+}  // namespace host
 }  // namespace gfxstream

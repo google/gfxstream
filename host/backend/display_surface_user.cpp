@@ -19,6 +19,7 @@
 #include "gfxstream/common/logging.h"
 
 namespace gfxstream {
+namespace host {
 
 DisplaySurfaceUser::~DisplaySurfaceUser() {
     if (mBoundSurface != nullptr) {
@@ -46,4 +47,5 @@ void DisplaySurfaceUser::unbindFromSurface() {
     }
 }
 
+}  // namespace host
 }  // namespace gfxstream

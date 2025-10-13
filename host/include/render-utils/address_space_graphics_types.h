@@ -92,7 +92,7 @@ struct AsgConsumerCreateInfo {
 using ConsumerHandle = void*;
 
 using ConsumerCreateCallback =
-    std::function<ConsumerHandle(const AsgConsumerCreateInfo& info, gfxstream::Stream*)>;
+    std::function<ConsumerHandle(const AsgConsumerCreateInfo& info, Stream*)>;
 
 using ConsumerDestroyCallback =
     std::function<void(ConsumerHandle)>;
@@ -104,7 +104,7 @@ using ConsumerGlobalPreSaveCallback =
     std::function<void()>;
 
 using ConsumerSaveCallback =
-    std::function<void(ConsumerHandle, gfxstream::Stream*)>;
+    std::function<void(ConsumerHandle, Stream*)>;
 
 using ConsumerGlobalPostSaveCallback =
     std::function<void()>;

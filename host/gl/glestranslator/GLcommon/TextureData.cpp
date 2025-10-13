@@ -46,7 +46,7 @@ TextureData::TextureData(gfxstream::Stream* stream) : ObjectData(stream) {
     texStorageLevels = stream->getBe32();
     stream->getBe32(); // deprecated mipmap level
     globalName = stream->getBe32();
-    loadCollection(stream, &m_texParam, [](gfxstream::Stream* stream) {
+    gfxstream::host::loadCollection(stream, &m_texParam, [](gfxstream::Stream* stream) {
         GLenum item = stream->getBe32();
         GLint val = stream->getBe32();
         return std::make_pair(item, val);
@@ -74,7 +74,7 @@ void TextureData::onSave(gfxstream::Stream* stream, unsigned int overrideGlobalN
     stream->putBe32(texStorageLevels);
     stream->putBe32(0); // deprecated mipmap level
     stream->putBe32(overrideGlobalName);
-    saveCollection(stream, m_texParam,
+    gfxstream::host::saveCollection(stream, m_texParam,
                    [](gfxstream::Stream* stream,
                       const std::pair<const GLenum, GLint>& texParam) {
                        stream->putBe32(texParam.first);

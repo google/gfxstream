@@ -19,6 +19,7 @@
 #include <GLES3/gl31.h>
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 GLuint createBuffer(const GLESv2Dispatch* gl, GlBufferData data);
@@ -39,4 +40,5 @@ std::vector<GLubyte> getTextureImageData(const GLESv2Dispatch* gl,
                                          GLenum type);
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

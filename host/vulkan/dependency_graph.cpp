@@ -18,6 +18,7 @@
 #include "vulkan_boxed_handles.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 #define DEBUG_RECONSTRUCTION 0
@@ -217,4 +218,5 @@ void DependencyGraph::addDep(NodeId child_id, NodeId parent_id) {
 }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

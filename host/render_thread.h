@@ -29,6 +29,7 @@
 #include "render-utils/stream.h"
 
 namespace gfxstream {
+namespace host {
 
 class RenderChannelImpl;
 
@@ -119,4 +120,5 @@ class RenderThread : public gfxstream::base::Thread {
     bool mNeedReloadProcessResources = false;
 };
 
+}  // namespace host
 }  // namespace gfxstream

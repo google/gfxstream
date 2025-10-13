@@ -23,6 +23,7 @@
 #include "vulkan/vk_common_operations.h"
 
 namespace gfxstream {
+namespace host {
 
 class Buffer::Impl : public LazySnapshotObj<Buffer::Impl> {
    public:
@@ -218,4 +219,5 @@ bool Buffer::updateFromBytes(uint64_t offset, uint64_t size, const void* bytes) 
 
 std::optional<BlobDescriptorInfo> Buffer::exportBlob() { return mImpl->exportBlob(); }
 
+}  // namespace host
 }  // namespace gfxstream

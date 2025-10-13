@@ -23,6 +23,7 @@
 #include "gfxstream/host/testing/GLSnapshotTesting.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 static constexpr const GLenum kNoError = GL_NO_ERROR;
@@ -111,4 +112,5 @@ std::vector<GLubyte> getTextureImageData(const GLESv2Dispatch* gl,
 }
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

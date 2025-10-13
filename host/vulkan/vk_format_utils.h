@@ -21,6 +21,7 @@
 #include "vulkan/vk_enum_string_helper.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 // Header library that captures common patterns when working with
@@ -387,5 +388,6 @@ bool getFormatTransferInfo(VkFormat format, uint32_t width, uint32_t height,
                            std::vector<VkBufferImageCopy>* outBufferImageCopies);
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream
 

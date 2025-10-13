@@ -20,6 +20,7 @@
 #include "gfxstream/common/logging.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 namespace {
 
@@ -231,4 +232,5 @@ DeviceOpWaitable DeviceOpBuilder::OnQueueSubmittedWithFence(VkFence fence) {
 }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

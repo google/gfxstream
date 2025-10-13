@@ -34,6 +34,7 @@
 #include "goldfish_vk_private_defs.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 struct VulkanDispatch;
@@ -180,4 +181,5 @@ void getGralloc1Usage(VkFormat format, VkImageUsageFlags imageUsage,
                       uint64_t* consumerUsage_out, uint64_t* producerUsage_out);
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

@@ -22,6 +22,7 @@
 #include "gfxstream/common/logging.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 /*static*/ DebugUtilsHelper DebugUtilsHelper::withUtilsDisabled() {
@@ -93,4 +94,5 @@ void DebugUtilsHelper::cmdEndDebugLabel(VkCommandBuffer commandBuffer) const {
 }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

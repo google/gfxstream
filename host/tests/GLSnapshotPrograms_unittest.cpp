@@ -21,6 +21,7 @@
 #include <string>
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 namespace {
 
@@ -418,4 +419,5 @@ TEST_F(SnapshotGlProgramTest, UseProgramAndUniforms) {
 
 }  // namespace
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

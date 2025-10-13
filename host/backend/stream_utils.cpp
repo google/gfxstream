@@ -15,6 +15,7 @@
 #include "gfxstream/host/stream_utils.h"
 
 namespace gfxstream {
+namespace host {
 
 void saveBufferRaw(Stream* stream, char* buffer, uint32_t len) {
     stream->putBe32(len);
@@ -43,4 +44,5 @@ std::vector<std::string> loadStringArray(Stream* stream) {
     return res;
 }
 
+}  // namespace host
 }  // namespace gfxstream

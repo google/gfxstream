@@ -22,6 +22,7 @@
 #include "vulkan/vulkan.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 struct ShaderData {
@@ -127,4 +128,5 @@ class GpuDecompressionPipelineManager {
 };
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

@@ -383,10 +383,12 @@ void RingStream::type3Read(
 }
 
 void* RingStream::getDmaForReading(uint64_t guest_paddr) {
-    return gfxstream::g_gfxstream_dma_get_host_addr(guest_paddr);
+    return gfxstream::host::g_gfxstream_dma_get_host_addr(guest_paddr);
 }
 
-void RingStream::unlockDma(uint64_t guest_paddr) { gfxstream::g_gfxstream_dma_unlock(guest_paddr); }
+void RingStream::unlockDma(uint64_t guest_paddr) {
+    gfxstream::host::g_gfxstream_dma_unlock(guest_paddr);
+}
 
 int RingStream::writeFully(const void* buf, size_t len) {
     void* dstBuf = alloc(len);
@@ -405,7 +407,7 @@ void RingStream::onSave(gfxstream::Stream* stream) {
     stream->write(mReadBuffer.data() + mReadBuffer.size() - mReadBufferLeft,
                   mReadBufferLeft);
 
-    gfxstream::saveBuffer(stream, mWriteBuffer);
+    gfxstream::host::saveBuffer(stream, mWriteBuffer);
 
     stream->putBe32(mUnavailableReadCount);
 
@@ -413,10 +415,10 @@ void RingStream::onSave(gfxstream::Stream* stream) {
 }
 
 unsigned char* RingStream::onLoad(gfxstream::Stream* stream) {
-    gfxstream::loadBuffer(stream, &mReadBuffer);
+    gfxstream::host::loadBuffer(stream, &mReadBuffer);
     mReadBufferLeft = mReadBuffer.size();
 
-    gfxstream::loadBuffer(stream, &mWriteBuffer);
+    gfxstream::host::loadBuffer(stream, &mWriteBuffer);
 
     mUnavailableReadCount = stream->getBe32();
 

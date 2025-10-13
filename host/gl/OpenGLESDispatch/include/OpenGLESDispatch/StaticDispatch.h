@@ -18,10 +18,12 @@
 // Returns functions from s_gles2/s_gles1, for use with static Translator.
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 void* gles2_dispatch_get_proc_func_static(const char* name);
 void* gles1_dispatch_get_proc_func_static(const char* name);
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

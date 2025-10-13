@@ -21,6 +21,7 @@
 #include <vector>
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 class DependencyGraph {
@@ -93,4 +94,5 @@ class DependencyGraph {
 };
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

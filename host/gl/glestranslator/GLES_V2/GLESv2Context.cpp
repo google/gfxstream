@@ -166,7 +166,7 @@ GLESv2Context::GLESv2Context(int maj, int min, GlobalNameSpace* globalNameSpace,
         }
         m_att0NeedsDisable = stream->getByte();
         m_useProgram = stream->getBe32();
-        gfxstream::loadCollection(stream, &m_bindSampler,
+        gfxstream::host::loadCollection(stream, &m_bindSampler,
                 [](gfxstream::Stream* stream) {
                     GLuint idx = stream->getBe32();
                     GLuint val = stream->getBe32();
@@ -209,7 +209,7 @@ void GLESv2Context::onSave(gfxstream::Stream* stream) const {
     stream->write(m_att0Array.get(), sizeof(GLfloat) * 4 * m_att0ArrayLength);
     stream->putByte(m_att0NeedsDisable);
     stream->putBe32(m_useProgram);
-    gfxstream::saveCollection(stream, m_bindSampler,
+    gfxstream::host::saveCollection(stream, m_bindSampler,
             [](gfxstream::Stream* stream,
                 const std::pair<const GLenum, GLuint>& item) {
                 stream->putBe32(item.first);

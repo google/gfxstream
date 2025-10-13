@@ -15,6 +15,7 @@
 #include "gfxstream/host/sync_device.h"
 
 namespace gfxstream {
+namespace host {
 namespace {
 
 static uint64_t DefaultGfxstreamSyncCreateTimeline() {
@@ -68,4 +69,5 @@ void set_gfxstream_sync_device_exists(gfxstream_sync_device_exists_t f) {
     gfxstream_sync_device_exists = f;
 }
 
+}  // namespace host
 }  // namespace gfxstream

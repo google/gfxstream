@@ -32,6 +32,7 @@
 #include <memory>
 
 namespace gfxstream {
+namespace host {
 
 #if GFXSTREAM_ENABLE_HOST_GLES
 using gl::EGLDispatch;
@@ -457,4 +458,5 @@ void SyncThread::initialize(bool hasGl) { sGlobalSyncThread()->initialize(hasGl)
 
 void SyncThread::destroy() { sGlobalSyncThread()->destroy(); }
 
+}  // namespace host
 }  // namespace gfxstream

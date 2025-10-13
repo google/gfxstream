@@ -15,6 +15,7 @@
 #include "gfxstream/host/window_operations.h"
 
 namespace gfxstream {
+namespace host {
 namespace {
 
 bool DefaultGfxstreamWindowIsCurrentThreadUiThread() { return false; } 
@@ -45,4 +46,5 @@ const gfxstream_window_ops& get_gfxstream_window_operations() {
     return sGfxstreamWindowOps;
 }
 
+}  // namespace host
 }  // namespace gfxstream

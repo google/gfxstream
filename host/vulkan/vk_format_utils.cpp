@@ -17,6 +17,7 @@
 #include <unordered_map>
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 #include "gfxstream/common/logging.h"
 #include "vulkan/vk_enum_string_helper.h"
@@ -198,4 +199,5 @@ bool getFormatTransferInfo(VkFormat format, uint32_t width, uint32_t height,
 }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

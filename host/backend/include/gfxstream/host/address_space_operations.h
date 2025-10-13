@@ -17,8 +17,10 @@
 #include "render-utils/address_space_operations.h"
 
 namespace gfxstream {
+namespace host {
 
 void set_gfxstream_address_space_ops(const address_space_device_control_ops& ops);
 const address_space_device_control_ops& get_gfxstream_address_space_ops();
 
-}  // namespace
+}  // namespace host
+}  // namespace gfxstream

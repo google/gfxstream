@@ -40,6 +40,7 @@ using gfxstream::base::Allocator;
 using gfxstream::base::BumpPool;
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 #ifdef VK_VERSION_1_0
@@ -2313,4 +2314,5 @@ void deepcopy_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
 
 #endif
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

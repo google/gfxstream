@@ -55,6 +55,7 @@ typedef int VK_EXT_SYNC_HANDLE;
 #endif
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 using gfxstream::base::UdmabufCreator;
@@ -188,7 +189,7 @@ class VkEmulation {
     bool supportsExternalMemoryMetal() { return (getExternalMemoryMode() == ExternalMemory::Mode::Metal); }
     bool supportsExternalMemory() { return (getExternalMemoryMode() != ExternalMemory::Mode::Unknown); }
 
-    std::unique_ptr<gfxstream::DisplaySurface> createDisplaySurface(FBNativeWindowType window,
+    std::unique_ptr<DisplaySurface> createDisplaySurface(FBNativeWindowType window,
                                                                     uint32_t width,
                                                                     uint32_t height);
 
@@ -680,4 +681,5 @@ class VkEmulation {
 };
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

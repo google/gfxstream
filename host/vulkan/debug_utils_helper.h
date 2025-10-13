@@ -19,6 +19,7 @@
 #include "goldfish_vk_dispatch.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 class DebugUtilsHelper {
@@ -87,4 +88,5 @@ class DebugUtilsHelper {
 };
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

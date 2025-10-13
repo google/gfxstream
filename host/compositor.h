@@ -22,6 +22,7 @@
 #include "hwc2.h"
 
 namespace gfxstream {
+namespace host {
 
 //  Thread hostile and should only be called from the same single thread.
 class Compositor {
@@ -45,4 +46,5 @@ class Compositor {
     virtual void onImageDestroyed(uint32_t imageId) {}
 };
 
+}  // namespace host
 }  // namespace gfxstream

@@ -19,6 +19,7 @@
 #include "gfxstream/host/iostream.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 class TrivialStream : public IOStream {
@@ -65,4 +66,5 @@ class TrivialStream : public IOStream {
 };
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

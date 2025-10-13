@@ -39,6 +39,7 @@
 #endif
 
 namespace gfxstream {
+namespace host {
 namespace {
 
 using gfxstream::host::FeatureSet;
@@ -868,4 +869,5 @@ TEST_F(FrameBufferTest, ComposeMultiDisplay) {
 }
 
 }  // namespace
+}  // namespace host
 }  // namespace gfxstream

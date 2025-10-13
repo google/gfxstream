@@ -18,6 +18,7 @@
 #include <cstdint>
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 // This class is responsible for decompressing ASTC textures on the CPU.
@@ -55,4 +56,5 @@ class AstcCpuDecompressor {
 };
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

@@ -26,6 +26,7 @@
 #include "texture_draw.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 class CompositorGl : public Compositor {
@@ -43,4 +44,5 @@ class CompositorGl : public Compositor {
 };
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

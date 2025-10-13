@@ -25,6 +25,7 @@
 #include "gfxstream/host/features.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 // A class used to model an EGL config that is exposed to the guest.
@@ -164,4 +165,5 @@ class EmulatedEglConfigList {
 };
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

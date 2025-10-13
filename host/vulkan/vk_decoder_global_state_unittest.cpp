@@ -20,6 +20,7 @@
 #include "gfxstream/testing/TestUtils.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 namespace {
 using ::testing::_;
@@ -145,4 +146,5 @@ TEST_F(VkDecoderGlobalStateExternalFenceDeathTest, undestroyedFences) {
 
 }  // namespace
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

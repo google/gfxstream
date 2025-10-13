@@ -25,6 +25,7 @@
 #include "vulkan/vulkan.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 class CompressedImageInfo {
@@ -184,4 +185,5 @@ class CompressedImageInfo {
 };
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

@@ -29,6 +29,7 @@
 #include "gfxstream/synchronization/MessageChannel.h"
 
 namespace gfxstream {
+namespace host {
 class ColorBuffer;
 class FrameBuffer;
 struct RenderThreadInfo;
@@ -95,4 +96,5 @@ class PostWorker {
     DISALLOW_COPY_AND_ASSIGN(PostWorker);
 };
 
+}  // namespace host
 }  // namespace gfxstream

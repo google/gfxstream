@@ -21,6 +21,7 @@
 #include <vector>
 
 namespace gfxstream {
+namespace host {
 
 GLuint compileShader(GLenum shaderType, const char* src);
 GLint compileAndLinkShaderProgram(const char* vshaderSrc, const char* fshaderSrc);
@@ -31,4 +32,5 @@ gfxstream::base::Optional<std::string> compileSpirvFromGLSL(
 
 gfxstream::base::Optional<std::vector<char>> readSpirv(const char* path);
 
+}  // namespace host
 }  // namespace gfxstream

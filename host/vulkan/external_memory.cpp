@@ -17,6 +17,7 @@
 #include "vk_utils.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 const char* ExternalMemory::to_string(const ExternalMemory::Mode mode) {
@@ -135,4 +136,5 @@ void ExternalMemory::getDeviceExtensionsForMode(const ExternalMemory::Mode mode,
 }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

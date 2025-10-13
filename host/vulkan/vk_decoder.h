@@ -50,6 +50,7 @@ class IOStream;
 }  // namespace gfxstream
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 class VkDecoder {
@@ -66,4 +67,5 @@ class VkDecoder {
 };
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

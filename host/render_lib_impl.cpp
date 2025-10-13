@@ -27,6 +27,7 @@
 #include "gfxstream/host/window_operations.h"
 
 namespace gfxstream {
+namespace host {
 
 void RenderLibImpl::setRenderer(SelectedRenderer renderer) {
     set_gfxstream_renderer(renderer);
@@ -162,4 +163,5 @@ OnLastColorBufferRef RenderLibImpl::getOnLastColorBufferRef() {
     };
 }
 
+}  // namespace host
 }  // namespace gfxstream

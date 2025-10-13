@@ -24,6 +24,7 @@
 #include "gfxstream/host/borrowed_image.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 struct BorrowedImageInfoGl : public BorrowedImageInfo {
@@ -35,4 +36,5 @@ struct BorrowedImageInfoGl : public BorrowedImageInfo {
 };
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

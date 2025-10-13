@@ -25,6 +25,7 @@
 #include "gfxstream/host/features.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 // Used to determine maximum supported GLES version.
@@ -38,4 +39,5 @@ std::string filterExtensionsBasedOnMaxVersion(const gfxstream::host::FeatureSet&
                                               GLESDispatchMaxVersion ver, const std::string& exts);
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

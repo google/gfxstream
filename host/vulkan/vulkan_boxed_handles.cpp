@@ -18,6 +18,7 @@
 #include "vk_decoder_internal_structs.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 namespace {
 
@@ -1691,4 +1692,5 @@ void set_boxed_non_dispatchable_VkValidationCacheEXT(VkValidationCacheEXT boxed,
 }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

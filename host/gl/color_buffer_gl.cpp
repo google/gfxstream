@@ -37,6 +37,7 @@
 using gfxstream::base::ManagedDescriptor;
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 namespace {
 
@@ -1289,4 +1290,5 @@ std::unique_ptr<BorrowedImageInfo> ColorBufferGl::getBorrowedImageInfo() {
 }
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

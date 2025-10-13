@@ -42,6 +42,7 @@
 #include "vulkan/vk_common_operations.h"
 
 namespace gfxstream {
+namespace host {
 
 using gfxstream::base::AutoLock;
 using gfxstream::host::GfxApiLogger;
@@ -545,4 +546,5 @@ intptr_t RenderThread::main() {
     return 0;
 }
 
+}  // namespace host
 }  // namespace gfxstream

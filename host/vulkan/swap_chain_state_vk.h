@@ -25,6 +25,7 @@
 #include "goldfish_vk_dispatch.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 struct SwapchainCreateInfoWrapper {
@@ -87,6 +88,7 @@ class SwapChainStateVk {
 };
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream
 
 #endif

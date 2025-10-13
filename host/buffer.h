@@ -22,18 +22,23 @@
 #include "snapshot/LazySnapshotObj.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 class EmulationGl;
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 class VkEmulation;
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream
 
 namespace gfxstream {
+namespace host {
 
 class Buffer : public LazySnapshotObj<Buffer> {
    public:
@@ -43,9 +48,9 @@ class Buffer : public LazySnapshotObj<Buffer> {
 
     static std::shared_ptr<Buffer> onLoad(gl::EmulationGl* emulationGl,
                                           vk::VkEmulation* emulationVk,
-                                          gfxstream::Stream* stream);
+                                          Stream* stream);
 
-    void onSave(gfxstream::Stream* stream);
+    void onSave(Stream* stream);
     void restore();
 
     HandleType getHndl() const;
@@ -64,4 +69,5 @@ class Buffer : public LazySnapshotObj<Buffer> {
 
 typedef std::shared_ptr<Buffer> BufferPtr;
 
+}  // namespace host
 }  // namespace gfxstream

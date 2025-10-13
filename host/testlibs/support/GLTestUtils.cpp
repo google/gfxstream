@@ -17,6 +17,7 @@
 using gfxstream::AlignedBuf;
 
 namespace gfxstream {
+namespace host {
 
 testing::AssertionResult RowMatches(int rowIndex, size_t rowBytes,
                                     unsigned char* expected, unsigned char* actual) {
@@ -624,4 +625,5 @@ const char* getEnumString(GLenum v) {
     }
 }
 
+}  // namespace host
 }  // namespace gfxstream

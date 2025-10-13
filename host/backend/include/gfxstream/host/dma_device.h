@@ -17,6 +17,7 @@
 #include "render-utils/dma_device.h"
 
 namespace gfxstream {
+namespace host {
 
 extern gfxstream_dma_get_host_addr_t g_gfxstream_dma_get_host_addr;
 extern gfxstream_dma_unlock_t g_gfxstream_dma_unlock;
@@ -24,4 +25,5 @@ extern gfxstream_dma_unlock_t g_gfxstream_dma_unlock;
 void set_gfxstream_dma_get_host_addr(gfxstream_dma_get_host_addr_t);
 void set_gfxstream_dma_unlock(gfxstream_dma_unlock_t);
 
+}  // namespace host
 }  // namespace gfxstream

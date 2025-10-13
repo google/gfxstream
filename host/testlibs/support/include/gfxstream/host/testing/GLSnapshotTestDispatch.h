@@ -21,6 +21,7 @@
 #include "gfxstream/host/testing/InMemoryTextureSaverLoader.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 // Global dispatch object with functions overridden for snapshot testing
@@ -65,9 +66,10 @@ protected:
 
     int mLoadCount = 0;
 
-    std::unique_ptr<gfxstream::MemStream> mStream;
+    std::unique_ptr<MemStream> mStream;
     std::shared_ptr<InMemoryTextureSaverLoader> mTextureSaverLoader;
 };
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

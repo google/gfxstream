@@ -21,6 +21,7 @@
 #include <vector>
 
 namespace gfxstream {
+namespace host {
 
 /* Copied from Android source */
 
@@ -122,6 +123,7 @@ typedef struct FlatComposeRequest {
 std::unique_ptr<FlatComposeRequest> ToFlatComposeRequest(const ComposeDevice* in);
 std::unique_ptr<FlatComposeRequest> ToFlatComposeRequest(const ComposeDevice_v2* in);
 
+}  // namespace host
 }  // namespace gfxstream
 
 #endif

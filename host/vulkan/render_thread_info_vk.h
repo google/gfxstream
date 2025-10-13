@@ -21,6 +21,7 @@
 #include "render-utils/stream.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 struct RenderThreadInfoVk {
@@ -43,4 +44,5 @@ struct RenderThreadInfoVk {
 };
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

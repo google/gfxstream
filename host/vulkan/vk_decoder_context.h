@@ -21,6 +21,7 @@
 #include "gfxstream/host/GfxApiLogger.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 struct VkDecoderContext {
@@ -30,4 +31,5 @@ struct VkDecoderContext {
 };
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

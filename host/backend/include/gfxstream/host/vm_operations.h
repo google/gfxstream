@@ -17,8 +17,10 @@
 #include "render-utils/vm_operations.h"
 
 namespace gfxstream {
+namespace host {
 
 void set_gfxstream_vm_operations(const gfxstream_vm_ops& ops);
 const gfxstream_vm_ops& get_gfxstream_vm_operations();
 
+}  // namespace host
 }  // namespace gfxstream

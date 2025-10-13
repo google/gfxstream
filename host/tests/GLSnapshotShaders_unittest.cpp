@@ -19,6 +19,7 @@
 #include <string>
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 namespace {
 
@@ -246,4 +247,5 @@ TEST_F(SnapshotGlFragmentShaderTest, CompileFail) {
 
 }  // namespace
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

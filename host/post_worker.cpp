@@ -28,6 +28,7 @@
 #include "vulkan/vk_common_operations.h"
 
 namespace gfxstream {
+namespace host {
 
 PostWorker::PostWorker(bool mainThreadPostingOnly, FrameBuffer* fb, Compositor* compositor)
     : mFb(fb),
@@ -179,4 +180,5 @@ bool PostWorker::isComposeTargetReady(uint32_t targetHandle) {
     return false;
 }
 
+}  // namespace host
 }  // namespace gfxstream

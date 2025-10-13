@@ -21,6 +21,7 @@
 #include "gfxstream/common/logging.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 void DeviceLostHelper::enableWithNvidiaDeviceDiagnosticCheckpoints() { mEnabled = true; }
@@ -196,4 +197,5 @@ void DeviceLostHelper::onDeviceLost() {
 }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

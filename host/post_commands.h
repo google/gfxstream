@@ -25,6 +25,7 @@
 #include "render-utils/Renderer.h"
 
 namespace gfxstream {
+namespace host {
 
 class ColorBuffer;
 
@@ -73,4 +74,5 @@ struct Post {
     };
 };
 
+}  // namespace host
 }  // namespace gfxstream

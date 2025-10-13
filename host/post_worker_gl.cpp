@@ -24,13 +24,9 @@
 #include "host/gl/display_surface_gl.h"
 
 namespace gfxstream {
-
+namespace host {
+namespace gl {
 namespace {
-
-using gl::DisplayGl;
-using gl::DisplaySurfaceGl;
-using gl::EmulationGl;
-using gl::s_egl;
 
 hwc_transform_t getTransformFromRotation(int rotation) {
     switch (static_cast<int>(rotation / 90)) {
@@ -310,4 +306,6 @@ void PostWorkerGl::exitImpl() {
     mContextBound = false;
 }
 
+}  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

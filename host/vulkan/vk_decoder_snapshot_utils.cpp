@@ -20,6 +20,7 @@
 #include "gfxstream/common/logging.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 namespace {
@@ -773,4 +774,5 @@ void loadBufferContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkBuff
 }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

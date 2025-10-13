@@ -19,6 +19,7 @@
 #include "gfxstream/host/iostream.h"
 
 namespace gfxstream {
+namespace host {
 
 class ReadBuffer {
 public:
@@ -45,4 +46,5 @@ private:
     size_t m_neededFreeTailSize = 0;
 };
 
+}  // namespace host
 }  // namespace gfxstream

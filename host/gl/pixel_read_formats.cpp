@@ -26,6 +26,7 @@
 #include "gfxstream/common/logging.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 bool PixelReadFormats::isSupported(GLenum internalFormat, GLenum texFormat, GLenum texType,
@@ -136,4 +137,5 @@ bool PixelReadFormats::isSupported(GLenum internalFormat, GLenum texFormat, GLen
 }
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

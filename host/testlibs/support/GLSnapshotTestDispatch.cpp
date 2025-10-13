@@ -24,6 +24,7 @@
 #include "render-utils/snapshot_operations.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 static SnapshotTestDispatch* sSnapshotTestDispatch() {
@@ -58,7 +59,7 @@ void SnapshotTestDispatch::saveSnapshot() {
     }
 
 
-    mStream = std::make_unique<gfxstream::MemStream>();
+    mStream = std::make_unique<MemStream>();
     mTextureSaverLoader = std::make_shared<InMemoryTextureSaverLoader>();
 
     fb->onSave(mStream.get(), mTextureSaverLoader);
@@ -81,7 +82,7 @@ void SnapshotTestDispatch::loadSnapshot() {
     // unbind so load will destroy previous objects
     fb->bindContext(0, 0, 0);
 
-    gfxstream::MemStream loadStream(gfxstream::MemStream::Buffer(mStream->buffer()));
+    MemStream loadStream(MemStream::Buffer(mStream->buffer()));
 
     fb->onLoad(&loadStream, mTextureSaverLoader);
 
@@ -161,4 +162,5 @@ void SnapshotTestDispatch::testDraw(std::function<void()> doDraw) {
 }
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

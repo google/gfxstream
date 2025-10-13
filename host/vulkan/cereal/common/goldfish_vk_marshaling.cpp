@@ -38,6 +38,7 @@
 #include "goldfish_vk_private_defs.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 void marshal_extension_struct(VulkanStream* vkStream, VkStructureType rootType,
@@ -24329,4 +24330,5 @@ const char* api_opcode_to_string(const uint32_t opcode) {
 }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

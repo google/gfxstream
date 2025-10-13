@@ -15,6 +15,7 @@
 #include "gfxstream/host/dma_device.h"
 
 namespace gfxstream {
+namespace host {
 namespace {
 
 static void* DefaultGfxstreamGetHostAddr(uint64_t) {
@@ -36,4 +37,5 @@ void set_gfxstream_dma_unlock(gfxstream_dma_unlock_t f) {
     g_gfxstream_dma_unlock = f;
 }
 
+}  // namespace host
 }  // namespace gfxstream

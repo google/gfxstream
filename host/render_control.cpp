@@ -44,6 +44,7 @@
 #include "vulkan/vk_decoder_global_state.h"
 
 namespace gfxstream {
+namespace host {
 
 using gfxstream::base::AutoLock;
 using gfxstream::base::Lock;
@@ -1681,4 +1682,5 @@ void initRenderControlContext(renderControl_decoder_context_t *dec)
     dec->rcGetHostExtensionsString = rcGetHostExtensionsString;
 }
 
+}  // namespace host
 }  // namespace gfxstream

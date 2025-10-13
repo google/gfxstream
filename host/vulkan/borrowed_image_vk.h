@@ -21,6 +21,7 @@
 #include "goldfish_vk_dispatch.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 struct BorrowedImageInfoVk : public BorrowedImageInfo {
@@ -63,4 +64,5 @@ void addNeededBarriersToUseBorrowedImage(
     std::vector<VkImageMemoryBarrier>* postUseQueueTransferBarriers);
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

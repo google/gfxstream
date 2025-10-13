@@ -39,6 +39,7 @@
 #include "vk_struct_id.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 struct vk_struct_chain_iterator {
@@ -398,4 +399,5 @@ class YcbcrSamplerPool {
 
 }  // namespace vk_util
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

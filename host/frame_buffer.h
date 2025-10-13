@@ -57,6 +57,7 @@
 #define FB_MAX_SWAP_INTERVAL 7
 
 namespace gfxstream {
+namespace host {
 
 // The FrameBuffer class holds the global state of the emulation library on
 // top of the underlying EGL/GLES implementation. It should probably be
@@ -76,7 +77,7 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
     // own sub-windows. If false, this means the caller will use
     // setPostCallback() instead to retrieve the content.
     // Returns true on success, false otherwise.
-    static bool initialize(int width, int height, const gfxstream::host::FeatureSet& features,
+    static bool initialize(int width, int height, const FeatureSet& features,
                            bool useSubWindow);
 
     // Finalize the instance.
@@ -316,9 +317,9 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
     AsyncResult composeWithCallback(uint32_t bufferSize, void* buffer,
                              Post::CompletionCallback callback);
 
-    void onSave(gfxstream::Stream* stream,
+    void onSave(Stream* stream,
                 const ITextureSaverPtr& textureSaver);
-    bool onLoad(gfxstream::Stream* stream,
+    bool onLoad(Stream* stream,
                 const ITextureLoaderPtr& textureLoader);
 
     // lock and unlock handles (EmulatedEglContext, ColorBuffer, EmulatedEglWindowSurface)
@@ -602,9 +603,9 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
                                       uint32_t* vendor_id, uint32_t* device_id,
                                       uint32_t* device_type, uint64_t* device_memory);
 
-    const gfxstream::host::FeatureSet& getFeatures() const;
+    const FeatureSet& getFeatures() const;
 
-    host::RepresentativeColorBufferMemoryTypeInfo getRepresentativeColorBufferMemoryTypeInfo()
+    RepresentativeColorBufferMemoryTypeInfo getRepresentativeColorBufferMemoryTypeInfo()
         const;
 
    private:
@@ -614,4 +615,5 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
     std::unique_ptr<Impl> mImpl;
 };
 
+}  // namespace host
 }  // namespace gfxstream

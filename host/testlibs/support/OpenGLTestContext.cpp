@@ -18,6 +18,7 @@
 #include "gfxstream/host/testing/SampleApplication.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 static bool sDisplayNeedsInit = true;
@@ -148,4 +149,5 @@ void GLTest::TearDown() {
 }
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

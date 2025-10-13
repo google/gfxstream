@@ -21,6 +21,7 @@
 #include "gfxstream/host/testing/OSWindow.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 namespace {
 
@@ -96,4 +97,5 @@ TYPED_TEST(SnapshotGlRenderingSampleTest, SnapshotDrawLoop) {
 
 }  // namespace
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

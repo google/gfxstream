@@ -18,6 +18,7 @@
 #include <memory>
 
 namespace gfxstream {
+namespace host {
 
 class RenderLibImpl final : public RenderLib {
   public:
@@ -65,4 +66,5 @@ class RenderLibImpl final : public RenderLib {
     std::weak_ptr<Renderer> mRenderer;
 };
 
+}  // namespace host
 }  // namespace gfxstream

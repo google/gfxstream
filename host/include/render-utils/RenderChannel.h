@@ -115,7 +115,7 @@ class RenderChannel {
     virtual void stop() = 0;
 
     // Callback function when snapshotting the virtual machine.
-    virtual void onSave(gfxstream::Stream* stream) = 0;
+    virtual void onSave(Stream* stream) = 0;
 
   protected:
     ~RenderChannel() = default;

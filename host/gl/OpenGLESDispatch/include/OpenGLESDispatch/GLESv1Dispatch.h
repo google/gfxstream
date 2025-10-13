@@ -27,6 +27,7 @@
 #include <stdint.h>
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 // Define function pointer types.
@@ -57,4 +58,5 @@ void* gles1_dispatch_get_proc_func(const char* name, void* userData);
 void gles1_unimplemented();
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

@@ -27,6 +27,7 @@
 #include "gfxstream/synchronization/Lock.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 #define DEFINE_BOXED_HANDLE_TYPE_TAG(type) Tag_##type,
@@ -155,4 +156,5 @@ GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_DISPATCHABLE_HANDLE_API_
 GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_NON_DISPATCHABLE_HANDLE_API_DECL)
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

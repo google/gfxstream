@@ -21,6 +21,7 @@
 #include "render-utils/stream.h"
 
 namespace gfxstream {
+namespace host {
 
 //
 // Save/load operations for different types.
@@ -115,4 +116,5 @@ void loadCollection(Stream* stream, Collection* c, LoadFunc&& loader) {
 void saveStringArray(Stream* stream, const char* const* strings, uint32_t count);
 std::vector<std::string> loadStringArray(Stream* stream);
 
+}  // namespace host
 }  // namespace gfxstream

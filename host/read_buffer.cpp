@@ -24,6 +24,7 @@
 #include "gfxstream/common/logging.h"
 
 namespace gfxstream {
+namespace host {
 
 ReadBuffer::ReadBuffer(size_t bufsize) {
     m_size = bufsize;
@@ -135,4 +136,5 @@ void ReadBuffer::printStats() {
             (float)m_tailMoveTimeUs / 1000.0f);
     m_tailMoveTimeUs = 0;
 }
+}  // namespace host
 }  // namespace gfxstream

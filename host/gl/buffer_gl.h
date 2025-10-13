@@ -26,6 +26,7 @@
 #include "render-utils/stream.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 class BufferGl {
@@ -60,4 +61,5 @@ class BufferGl {
 };
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

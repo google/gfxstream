@@ -15,6 +15,7 @@
 #include "hwc2.h"
 
 namespace gfxstream {
+namespace host {
 
 std::unique_ptr<FlatComposeRequest> ToFlatComposeRequest(
         const ComposeDevice* composeRequest) {
@@ -38,4 +39,5 @@ std::unique_ptr<FlatComposeRequest> ToFlatComposeRequest(
     return flatComposeRequest;
 }
 
+}  // namespace host
 }  // namespace gfxstream

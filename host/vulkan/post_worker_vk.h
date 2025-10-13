@@ -21,10 +21,10 @@
 #include "host/post_worker.h"
 
 namespace gfxstream {
-
+namespace host {
 namespace vk {
+
 class DisplayVk;
-}  // namespace vk
 
 class PostWorkerVk : public PostWorker {
    public:
@@ -43,7 +43,9 @@ class PostWorkerVk : public PostWorker {
     // The implementation for Vulkan native swapchain. Only initialized when
     // useVulkan is set when calling FrameBuffer::initialize(). PostWorker
     // doesn't take the ownership of this DisplayVk object.
-    vk::DisplayVk* const m_displayVk;
+    DisplayVk* const m_displayVk;
 };
 
+}  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

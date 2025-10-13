@@ -18,6 +18,7 @@
 #include "gfxstream/common/logging.h"
 
 namespace gfxstream {
+namespace host {
 
 DisplaySurface::DisplaySurface(uint32_t width,
                                uint32_t height,
@@ -63,4 +64,5 @@ void DisplaySurface::unregisterUser(DisplaySurfaceUser* user) {
     mBoundUsers.erase(user);
 }
 
+}  // namespace host
 }  // namespace gfxstream

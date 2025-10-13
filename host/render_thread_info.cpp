@@ -23,6 +23,7 @@
 #include <unordered_set>
 
 namespace gfxstream {
+namespace host {
 
 using gfxstream::base::AutoLock;
 using gfxstream::Stream;
@@ -131,4 +132,5 @@ void RenderThreadInfo::postLoadRefreshCurrentContextSurfacePtrs() {
 #endif
 }
 
+}  // namespace host
 }  // namespace gfxstream

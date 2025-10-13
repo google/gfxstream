@@ -19,6 +19,7 @@
 #include "OpenGLESDispatch/GLESv2Dispatch.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 // Helper classes to hold global EGLDispatch, GLESv1Dispatch and GLESv2Dispatch
@@ -61,4 +62,5 @@ private:
 };
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

@@ -22,6 +22,7 @@
 #include "vk_utils.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 std::unique_ptr<DisplaySurfaceVk> DisplaySurfaceVk::create(const VulkanDispatch& vk,
@@ -111,4 +112,5 @@ DisplaySurfaceVk::~DisplaySurfaceVk() {
 }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

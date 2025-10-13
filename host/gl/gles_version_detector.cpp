@@ -26,6 +26,7 @@
 #include "gfxstream/system/System.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 using gfxstream::HasExtension;
@@ -228,4 +229,5 @@ std::string filterExtensionsBasedOnMaxVersion(const gfxstream::host::FeatureSet&
 }
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

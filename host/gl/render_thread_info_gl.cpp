@@ -25,6 +25,7 @@
 #include "gfxstream/host/stream_utils.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 using gfxstream::base::AutoLock;
@@ -124,4 +125,5 @@ void RenderThreadInfoGl::postLoadRefreshCurrentContextSurfacePtrs() {
 }
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

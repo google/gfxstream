@@ -22,9 +22,10 @@
 #include "goldfish_vk_dispatch.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
-class DisplaySurfaceVk : public gfxstream::DisplaySurfaceImpl {
+class DisplaySurfaceVk : public DisplaySurfaceImpl {
   public:
    static std::unique_ptr<DisplaySurfaceVk> create(const VulkanDispatch& vk, VkInstance vkInstance,
                                                    FBNativeWindowType window);
@@ -42,4 +43,5 @@ class DisplaySurfaceVk : public gfxstream::DisplaySurfaceImpl {
 };
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

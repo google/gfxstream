@@ -19,6 +19,7 @@
 #include "gfxstream/host/display_surface_user.h"
 
 namespace gfxstream {
+namespace host {
 
 class Display : public DisplaySurfaceUser {
   public:
@@ -30,4 +31,5 @@ class Display : public DisplaySurfaceUser {
     // TODO(b/233939967): move post()/viewport()/clear() interface here.
 };
 
+}  // namespace host
 }  // namespace gfxstream

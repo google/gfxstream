@@ -26,6 +26,7 @@ extern "C" {
 #include "OpenGLESDispatch/RenderEGL_snapshot_static_translator_namespaced_header.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 // This header is used to define the EGLDispatch structure that contains
@@ -67,4 +68,5 @@ bool init_egl_dispatch();
 extern EGLDispatch s_egl;
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

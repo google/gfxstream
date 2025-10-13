@@ -26,6 +26,7 @@
 #include "gl/color_buffer_gl.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 ReadbackWorkerGl::TrackedDisplay::TrackedDisplay(uint32_t displayId, uint32_t w, uint32_t h)
@@ -238,4 +239,5 @@ void ReadbackWorkerGl::getPixels(uint32_t displayId, void* buf, uint32_t bytes) 
 }
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

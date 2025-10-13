@@ -23,6 +23,7 @@
 #include "gfxstream/common/logging.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 std::unique_ptr<EmulatedEglContext> EmulatedEglContext::create(
@@ -122,4 +123,5 @@ GLESApi EmulatedEglContext::clientVersion() const {
 }
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

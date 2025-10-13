@@ -30,6 +30,7 @@
 #include "render-utils/stream.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 class VkReconstruction {
@@ -135,4 +136,5 @@ class VkReconstruction {
 };
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

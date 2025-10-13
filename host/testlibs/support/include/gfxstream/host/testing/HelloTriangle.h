@@ -23,6 +23,7 @@
 #include "gfxstream/system/System.h"
 
 namespace gfxstream {
+namespace host {
 
 class HelloTriangle : public SampleApplication {
 protected:
@@ -39,4 +40,5 @@ private:
     float mTime = 0.0f;
 };
 
+}  // namespace host
 }  // namespace gfxstream

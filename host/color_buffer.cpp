@@ -23,6 +23,7 @@
 #include "vulkan/vk_common_operations.h"
 
 namespace gfxstream {
+namespace host {
 namespace {
 
 using gl::ColorBufferGl;
@@ -819,4 +820,5 @@ void ColorBuffer::glOpPostViewportScaledWithOverlay(float rotation, float dx, fl
 
 #endif
 
+}  // namespace host
 }  // namespace gfxstream

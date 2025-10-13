@@ -27,6 +27,7 @@
 #include "gfxstream/synchronization/Lock.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 // The EmulatedEglFenceSync class wraps actual EGLSyncKHR objects
@@ -164,4 +165,5 @@ class EmulatedEglFenceSync {
 };
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

@@ -28,6 +28,7 @@
 #endif
 
 namespace gfxstream {
+namespace host {
 
 #define DEBUG 0
 
@@ -668,4 +669,5 @@ bool RenderWindow::processMessage(const RenderWindowMessage& msg) {
     }
 }
 
+}  // namespace host
 }  // namespace gfxstream

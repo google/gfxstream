@@ -26,6 +26,7 @@
 #include <unordered_map>
 
 namespace gfxstream {
+namespace host {
 
 // The purpose of StalePtrRegistry is to track integers corresponding to
 // host-side pointers that may be invalidated after snapshots.
@@ -143,4 +144,5 @@ private:
     DISALLOW_COPY_AND_ASSIGN(StalePtrRegistry);
 };
 
+}  // namespace host
 }  // namespace gfxstream

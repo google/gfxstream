@@ -26,6 +26,7 @@
 #include "render-utils/snapshot_operations.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 static constexpr const GLenum kNoError = GL_NO_ERROR;
@@ -282,14 +283,13 @@ void SnapshotTest::doSnapshot(std::function<void()> preloadCheck = [] {}) {
     std::shared_ptr<InMemoryTextureSaverLoader> textureSaverLoader =
         std::make_shared<InMemoryTextureSaverLoader>();
 
-    gfxstream::MemStream saveStream;
+    MemStream saveStream;
     saveSnapshot(&saveStream, textureSaverLoader);
 
     preloadReset();
     preloadCheck();
 
-    gfxstream::MemStream loadStream(
-        gfxstream::MemStream::Buffer(saveStream.buffer()));
+    MemStream loadStream(MemStream::Buffer(saveStream.buffer()));
     loadSnapshot(&loadStream, textureSaverLoader);
 
     EXPECT_NE(m_context, EGL_NO_CONTEXT);
@@ -325,4 +325,5 @@ void SnapshotPreserveTest::doCheckedSnapshot() {
 }
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

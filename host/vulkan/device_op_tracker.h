@@ -28,6 +28,7 @@
 #include "gfxstream/ThreadAnnotations.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 class DeviceOpTracker;
@@ -122,4 +123,5 @@ class DeviceOpBuilder {
 };
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

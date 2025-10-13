@@ -25,6 +25,7 @@
 #define DEFAULT_GLES_V2_LIB EMUGL_LIBNAME("GLES_V2_translator")
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 // An unimplemented function which prints out an error message.
@@ -69,4 +70,5 @@ void *gles2_dispatch_get_proc_func(const char *name, void *userData)
 }
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

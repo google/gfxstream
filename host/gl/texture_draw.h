@@ -25,6 +25,7 @@
 #include "gfxstream/synchronization/Lock.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 // Helper class used to draw a simple texture to the current framebuffer.
@@ -120,6 +121,7 @@ public:
 };
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream
 
 #endif  // TEXTURE_DRAW_H

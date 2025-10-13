@@ -22,13 +22,13 @@
 SamplerData::SamplerData(gfxstream::Stream* stream)
     : ObjectData(stream) {
     if (stream) {
-        gfxstream::loadCollection(stream, &mParamis,
+        gfxstream::host::loadCollection(stream, &mParamis,
                 [](gfxstream::Stream* stream) {
                     GLuint idx = stream->getBe32();
                     GLuint val = stream->getBe32();
                     return std::make_pair(idx, val);
                 });
-        gfxstream::loadCollection(stream, &mParamfs,
+        gfxstream::host::loadCollection(stream, &mParamfs,
                 [](gfxstream::Stream* stream) {
                     GLuint idx = stream->getBe32();
                     GLfloat val = stream->getFloat();
@@ -39,13 +39,13 @@ SamplerData::SamplerData(gfxstream::Stream* stream)
 
 void SamplerData::onSave(gfxstream::Stream* stream, unsigned int globalName) const {
     ObjectData::onSave(stream, globalName);
-    gfxstream::saveCollection(stream, mParamis,
+    gfxstream::host::saveCollection(stream, mParamis,
             [](gfxstream::Stream* stream,
                 const std::pair<const GLenum, GLuint>& item) {
                 stream->putBe32(item.first);
                 stream->putBe32(item.second);
             });
-    gfxstream::saveCollection(stream, mParamfs,
+    gfxstream::host::saveCollection(stream, mParamfs,
             [](gfxstream::Stream* stream,
                 const std::pair<const GLenum, GLfloat>& item) {
                 stream->putBe32(item.first);

@@ -33,6 +33,7 @@
 #endif
 
 namespace gfxstream {
+namespace host {
 
 // kUseSubwindowThread is used to determine whether the RenderWindow should use
 // a separate thread to manage its subwindow GL/GLES context.
@@ -729,4 +730,5 @@ bool RendererImpl::getShouldSkipDraw() const {
     return get_gfxstream_should_skip_draw();
 }
 
+}  // namespace host
 }  // namespace gfxstream

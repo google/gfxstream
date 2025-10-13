@@ -22,6 +22,7 @@
 #include "gfxstream/host/testing/ShaderUtils.h"
 
 namespace gfxstream {
+namespace host {
 
 void HelloTriangle::initialize() {
     constexpr char vshaderSrc[] = R"(#version 300 es
@@ -95,4 +96,5 @@ void HelloTriangle::draw() {
     mTime += 0.05f;
 }
 
+}  // namespace host
 }  // namespace gfxstream

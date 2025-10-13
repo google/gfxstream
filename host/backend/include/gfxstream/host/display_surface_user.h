@@ -18,6 +18,7 @@
 #include <mutex>
 
 namespace gfxstream {
+namespace host {
 
 class DisplaySurface;
 class DisplaySurfaceUser;
@@ -48,4 +49,5 @@ class DisplaySurfaceUser {
     DisplaySurface* mBoundSurface = nullptr;
 };
 
+}  // namespace host
 }  // namespace gfxstream

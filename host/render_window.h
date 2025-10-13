@@ -24,6 +24,7 @@
 #include "render-utils/render_api.h"
 
 namespace gfxstream {
+namespace host {
 
 class RenderWindowChannel;
 struct RenderWindowMessage;
@@ -179,6 +180,7 @@ class RenderWindow {
     bool mPaused = false;
 };
 
+}  // namespace host
 }  // namespace gfxstream
 
 #endif  // ANDROID_EMUGL_LIBRENDER_RENDER_WINDOW_H

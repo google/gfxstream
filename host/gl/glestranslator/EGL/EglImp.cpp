@@ -53,7 +53,7 @@
 #define MAJOR          1
 #define MINOR          4
 
-using gfxstream::graphicsDriverLock;
+using gfxstream::host::graphicsDriverLock;
 
 //declarations
 
@@ -1418,7 +1418,7 @@ EGLAPI EGLImageKHR EGLAPIENTRY eglCreateImageKHR(EGLDisplay display, EGLContext 
                 current += 2;
             }
         }
-        gfxstream::get_gfxstream_vm_operations().set_skip_snapshot_save(true);
+        gfxstream::host::get_gfxstream_vm_operations().set_skip_snapshot_save(true);
         return dpy->addImageKHR(img);
     }
 

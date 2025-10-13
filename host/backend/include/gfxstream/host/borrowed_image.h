@@ -17,6 +17,7 @@
 #include <stdint.h>
 
 namespace gfxstream {
+namespace host {
 
 // Common base struct representing images (Gl/Vk) that are borrowed
 // by server components (e.g. CompositorGl, CompositorVk, DisplayVk)
@@ -29,4 +30,5 @@ struct BorrowedImageInfo {
     uint32_t height = 0;
 };
 
+}  // namespace host
 }  // namespace gfxstream

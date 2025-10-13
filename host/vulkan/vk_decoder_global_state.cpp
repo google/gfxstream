@@ -80,10 +80,9 @@
 #define DEBUG_TIMELINE_SEMAPHORES 0
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
-using gfxstream::ExternalObjectManager;
-using gfxstream::VulkanInfo;
 using gfxstream::base::AutoLock;
 using gfxstream::base::DescriptorType;
 using gfxstream::base::Lock;
@@ -2511,7 +2510,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         const VkFormat format = pInfo->pCreateInfo->format;
-        bool needDecompression = gfxstream::vk::isEtc2(format) || gfxstream::vk::isAstc(format);
+        bool needDecompression = isEtc2(format) || isAstc(format);
         if (!needDecompression) {
             // No modifications needed
             return;
@@ -9640,8 +9639,8 @@ class VkDecoderGlobalState::Impl {
 
     bool isEmulatedCompressedTexture(VkFormat format, VkPhysicalDevice physicalDevice,
                                      VulkanDispatch* vk) EXCLUDES(mMutex) {
-        return (gfxstream::vk::isEtc2(format) && needEmulatedEtc2(physicalDevice, vk)) ||
-               (gfxstream::vk::isAstc(format) && needEmulatedAstc(physicalDevice, vk));
+        return (isEtc2(format) && needEmulatedEtc2(physicalDevice, vk)) ||
+               (isAstc(format) && needEmulatedAstc(physicalDevice, vk));
     }
 
     static const VkFormatFeatureFlags kEmulatedTextureBufferFeatureMask =
@@ -11768,4 +11767,5 @@ VkDecoderSnapshot* VkDecoderGlobalState::snapshot() { return mImpl->snapshot(); 
 LIST_TRANSFORMED_TYPES(DEFINE_TRANSFORMED_TYPE_IMPL)
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

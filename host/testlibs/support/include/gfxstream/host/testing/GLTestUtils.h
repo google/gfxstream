@@ -22,6 +22,7 @@
 #include <gtest/gtest.h>
 
 namespace gfxstream {
+namespace host {
 
 using TestTexture = gfxstream::AlignedBuf<uint8_t, 4>;
 
@@ -45,4 +46,5 @@ TestTexture createTestTextureRGBA8888SingleColor(int width, int height, float r,
 // Return the name associated with |v| as a string.
 const char* getEnumString(GLenum v);
 
+}  // namespace host
 }  // namespace gfxstream

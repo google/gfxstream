@@ -33,6 +33,7 @@
 #include "render-utils/Renderer.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 #define MAX_FACTOR_POWER 4
@@ -625,4 +626,5 @@ TextureResize::GenericResizer::~GenericResizer() {
 }
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

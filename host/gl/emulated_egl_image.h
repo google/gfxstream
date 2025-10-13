@@ -26,6 +26,7 @@
 #include "handle.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 class EmulatedEglImage {
@@ -56,4 +57,5 @@ typedef std::unordered_map<HandleType, EmulatedEglImagePtr> EmulatedEglImageMap;
 typedef std::unordered_set<HandleType> EmulatedEglImageSet;
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

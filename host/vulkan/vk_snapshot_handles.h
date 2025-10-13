@@ -19,6 +19,7 @@
 
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 using VkSnapshotApiCallHandle = uint64_t;
@@ -28,4 +29,5 @@ using VkObjectHandle = uint64_t;
 static constexpr const VkObjectHandle kInvalidObjectHandle = 0;
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

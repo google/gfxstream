@@ -19,6 +19,7 @@
 #include <cstring>
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 namespace vk_util {
 namespace {
@@ -239,4 +240,5 @@ bool YcbcrSamplerPool::getOrCreateSamplerInfo(VkFormat format, YCbCrSamplerInfo*
 
 }  // namespace vk_util
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

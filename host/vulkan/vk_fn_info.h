@@ -21,6 +21,7 @@
 #include <tuple>
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 namespace vk_util {
 namespace vk_fn_info {
@@ -46,6 +47,7 @@ REGISTER_VK_FN_INFO(GetPhysicalDeviceFeatures2,
 }  // namespace vk_fn_info
 }  // namespace vk_util
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream
 
 #endif /* VK_FN_INFO_H */

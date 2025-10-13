@@ -17,8 +17,10 @@
 #include "render-utils/display_operations.h"
 
 namespace gfxstream {
+namespace host {
 
 void set_gfxstream_multi_display_operations(const gfxstream_multi_display_ops& ops);
 const gfxstream_multi_display_ops& get_gfxstream_multi_display_operations();
 
+}  // namespace host
 }  // namespace gfxstream

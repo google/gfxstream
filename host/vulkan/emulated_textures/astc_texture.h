@@ -19,6 +19,7 @@
 #include "vulkan/vulkan.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 // Holds the resources necessary to perform CPU ASTC decompression of a single texture.
@@ -71,4 +72,5 @@ class AstcTexture {
 };
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

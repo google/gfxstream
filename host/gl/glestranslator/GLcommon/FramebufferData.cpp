@@ -92,7 +92,7 @@ FramebufferData::FramebufferData(gfxstream::Stream* stream) :
     m_dirty = stream->getByte();
     m_hasBeenBound = stream->getByte();
     m_hasDrawBuffers = stream->getByte();
-    gfxstream::loadBuffer(stream, &m_drawBuffers);
+    gfxstream::host::loadBuffer(stream, &m_drawBuffers);
     m_readBuffer = stream->getBe32();
 }
 
@@ -121,7 +121,7 @@ void FramebufferData::onSave(gfxstream::Stream* stream, unsigned int globalName)
     stream->putByte(m_dirty);
     stream->putByte(m_hasBeenBound);
     stream->putByte(m_hasDrawBuffers);
-    gfxstream::saveBuffer(stream, m_drawBuffers);
+    gfxstream::host::saveBuffer(stream, m_drawBuffers);
     stream->putBe32(m_readBuffer);
 }
 

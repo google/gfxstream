@@ -21,6 +21,7 @@
 #include "gfxstream/host/features.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 // A physical device may have memory types that are not desirable or are not
@@ -68,4 +69,5 @@ class EmulatedPhysicalDeviceMemoryProperties {
 };
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

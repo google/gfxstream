@@ -28,18 +28,23 @@
 #include "snapshot/LazySnapshotObj.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 class EmulationGl;
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 class VkEmulation;
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream
 
 namespace gfxstream {
+namespace host {
 
 class ColorBuffer : public LazySnapshotObj<ColorBuffer> {
    public:
@@ -47,12 +52,12 @@ class ColorBuffer : public LazySnapshotObj<ColorBuffer> {
                                                vk::VkEmulation* emulationVk, uint32_t width,
                                                uint32_t height, GLenum format,
                                                FrameworkFormat frameworkFormat, HandleType handle,
-                                               gfxstream::Stream* stream = nullptr);
+                                               Stream* stream = nullptr);
 
     static std::shared_ptr<ColorBuffer> onLoad(gl::EmulationGl* emulationGl,
                                                vk::VkEmulation* emulationVk,
-                                               gfxstream::Stream* stream);
-    void onSave(gfxstream::Stream* stream);
+                                               Stream* stream);
+    void onSave(Stream* stream);
     void restore();
 
     HandleType getHndl() const;
@@ -133,4 +138,5 @@ struct ColorBufferRef {
 typedef std::unordered_map<HandleType, ColorBufferRef> ColorBufferMap;
 typedef std::unordered_multiset<HandleType> ColorBufferSet;
 
+}  // namespace host
 }  // namespace gfxstream

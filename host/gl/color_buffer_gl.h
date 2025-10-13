@@ -68,6 +68,7 @@
 // As an additional twist.
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 class TextureDraw;
@@ -289,4 +290,5 @@ private:
 typedef std::shared_ptr<ColorBufferGl> ColorBufferGlPtr;
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

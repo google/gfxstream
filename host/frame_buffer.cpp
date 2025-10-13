@@ -63,41 +63,43 @@
 #include "vulkan/vk_decoder_global_state.h"
 
 namespace gfxstream {
+namespace host {
 namespace {
 
 using gfxstream::Stream;
 using gfxstream::base::AutoLock;
 using gfxstream::base::SharedLibrary;
 using gfxstream::base::WorkerProcessingResult;
-using gfxstream::gl::GLESApi;
-using gfxstream::gl::GLESApi_2;
-using gfxstream::gl::GLESApi_CM;
-using gfxstream::host::FeatureSet;
-using gfxstream::host::GfxApiLogger;
-using gfxstream::host::RepresentativeColorBufferMemoryTypeInfo;
+using gfxstream::host::gl::GLESApi;
+using gfxstream::host::gl::GLESApi_2;
+using gfxstream::host::gl::GLESApi_CM;
 #if GFXSTREAM_ENABLE_HOST_GLES
-using gfxstream::gl::DisplaySurfaceGl;
-using gfxstream::gl::EmulatedEglConfig;
-using gfxstream::gl::EmulatedEglConfigList;
-using gfxstream::gl::EmulatedEglContext;
-using gfxstream::gl::EmulatedEglContextMap;
-using gfxstream::gl::EmulatedEglContextPtr;
-using gfxstream::gl::EmulatedEglFenceSync;
-using gfxstream::gl::EmulatedEglWindowSurface;
-using gfxstream::gl::EmulatedEglWindowSurfaceMap;
-using gfxstream::gl::EmulatedEglWindowSurfacePtr;
-using gfxstream::gl::EmulationGl;
-using gfxstream::gl::GLES_DISPATCH_MAX_VERSION_2;
-using gfxstream::gl::GLESDispatchMaxVersion;
-using gfxstream::gl::RenderThreadInfoGl;
-using gfxstream::gl::s_egl;
-using gfxstream::gl::s_gles2;
-using gfxstream::gl::TextureDraw;
-using gfxstream::gl::YUVConverter;
-using gfxstream::gl::YUVPlane;
+using gfxstream::host::gl::ContextHelper;
+using gfxstream::host::gl::DisplaySurfaceGl;
+using gfxstream::host::gl::EmulatedEglConfig;
+using gfxstream::host::gl::EmulatedEglConfigList;
+using gfxstream::host::gl::EmulatedEglContext;
+using gfxstream::host::gl::EmulatedEglContextMap;
+using gfxstream::host::gl::EmulatedEglContextPtr;
+using gfxstream::host::gl::EmulatedEglFenceSync;
+using gfxstream::host::gl::EmulatedEglWindowSurface;
+using gfxstream::host::gl::EmulatedEglWindowSurfaceMap;
+using gfxstream::host::gl::EmulatedEglWindowSurfacePtr;
+using gfxstream::host::gl::EmulationGl;
+using gfxstream::host::gl::GLES_DISPATCH_MAX_VERSION_2;
+using gfxstream::host::gl::GLESDispatchMaxVersion;
+using gfxstream::host::gl::PostWorkerGl;
+using gfxstream::host::gl::RecursiveScopedContextBind;
+using gfxstream::host::gl::RenderThreadInfoGl;
+using gfxstream::host::gl::s_egl;
+using gfxstream::host::gl::s_gles2;
+using gfxstream::host::gl::TextureDraw;
+using gfxstream::host::gl::YUVConverter;
+using gfxstream::host::gl::YUVPlane;
 #endif
-using gfxstream::vk::AstcEmulationMode;
-using gfxstream::vk::VkEmulation;
+using gfxstream::host::vk::AstcEmulationMode;
+using gfxstream::host::vk::VkEmulation;
+using gfxstream::host::vk::PostWorkerVk;
 
 // Utility functions to handle missing emulationGl without crashing.
 // It'll log the function name for better debugging of the cases where
@@ -5096,4 +5098,5 @@ RepresentativeColorBufferMemoryTypeInfo FrameBuffer::getRepresentativeColorBuffe
     return mImpl->getRepresentativeColorBufferMemoryTypeInfo();
 }
 
+}  // namespace host
 }  // namespace gfxstream

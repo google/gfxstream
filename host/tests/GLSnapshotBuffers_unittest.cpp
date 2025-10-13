@@ -21,6 +21,7 @@
 #include <map>
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 namespace {
 
@@ -147,4 +148,5 @@ TEST_F(SnapshotGlBufferObjectsTest, BindArrayAndElementBuffers) {
 
 }  // namespace
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

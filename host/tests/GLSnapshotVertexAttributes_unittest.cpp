@@ -21,6 +21,7 @@
 #include <algorithm>
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 namespace {
 
@@ -306,4 +307,5 @@ TEST_F(SnapshotGlVertexAttribBufferTest, AttachArrayBuffer) {
 
 }  // namespace
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

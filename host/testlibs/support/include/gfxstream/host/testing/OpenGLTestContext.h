@@ -29,6 +29,7 @@
 #include <GLES3/gl31.h>
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 // Dimensions for test surface
@@ -67,4 +68,5 @@ class GLTest : public ::testing::Test {
     } while (0)
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

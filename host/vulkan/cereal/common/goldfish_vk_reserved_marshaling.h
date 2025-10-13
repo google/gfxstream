@@ -39,6 +39,7 @@
 #include "vulkan_stream.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 #ifdef VK_VERSION_1_0
@@ -2287,4 +2288,5 @@ void reservedunmarshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesE
 
 #endif
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

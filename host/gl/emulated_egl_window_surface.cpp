@@ -28,6 +28,7 @@
 #include "gfxstream/common/logging.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 EmulatedEglWindowSurface::EmulatedEglWindowSurface(EGLDisplay display,
@@ -253,4 +254,5 @@ std::unique_ptr<EmulatedEglWindowSurface> EmulatedEglWindowSurface::onLoad(
 }
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

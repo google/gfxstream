@@ -50,16 +50,19 @@
 #define EGL_NO_CONFIG ((EGLConfig)0)
 
 namespace gfxstream {
+namespace host {
 class FrameBuffer;
+}  // namespace host
 }  // namespace gfxstream
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 class EmulationGl {
    public:
     static std::unique_ptr<EmulationGl> create(uint32_t width, uint32_t height,
-                                               const gfxstream::host::FeatureSet& features,
+                                               const FeatureSet& features,
                                                bool allowWindowSurface);
 
     ~EmulationGl();
@@ -108,7 +111,7 @@ class EmulationGl {
 
     std::unique_ptr<BufferGl> createBuffer(uint64_t size, HandleType handle);
 
-    std::unique_ptr<BufferGl> loadBuffer(gfxstream::Stream* stream);
+    std::unique_ptr<BufferGl> loadBuffer(Stream* stream);
 
     bool isFormatSupported(GLenum format);
 
@@ -117,7 +120,7 @@ class EmulationGl {
                                                      FrameworkFormat frameworkFormat,
                                                      HandleType handle);
 
-    std::unique_ptr<ColorBufferGl> loadColorBuffer(gfxstream::Stream* stream);
+    std::unique_ptr<ColorBufferGl> loadColorBuffer(Stream* stream);
 
     std::unique_ptr<EmulatedEglContext> createEmulatedEglContext(
         uint32_t emulatedEglConfigIndex,
@@ -126,7 +129,7 @@ class EmulationGl {
         HandleType handle);
 
     std::unique_ptr<EmulatedEglContext> loadEmulatedEglContext(
-        gfxstream::Stream* stream);
+        Stream* stream);
 
     std::unique_ptr<EmulatedEglFenceSync> createEmulatedEglFenceSync(
         EGLenum type,
@@ -144,21 +147,21 @@ class EmulationGl {
         HandleType handle);
 
     std::unique_ptr<EmulatedEglWindowSurface> loadEmulatedEglWindowSurface(
-        gfxstream::Stream* stream,
+        Stream* stream,
         const ColorBufferMap& colorBuffers,
         const EmulatedEglContextMap& contexts);
 
-    std::unique_ptr<gfxstream::DisplaySurface> createFakeWindowSurface();
+    std::unique_ptr<DisplaySurface> createFakeWindowSurface();
 
    private:
     // TODO(b/233939967): Remove this after fully transitioning to EmulationGl.
-   friend class gfxstream::FrameBuffer;
+   friend class ::gfxstream::host::FrameBuffer;
 
    EmulationGl() = default;
 
    ContextHelper* getColorBufferContextHelper();
 
-   gfxstream::host::FeatureSet mFeatures;
+   FeatureSet mFeatures;
 
    EGLDisplay mEglDisplay = EGL_NO_DISPLAY;
    EGLint mEglVersionMajor = 0;
@@ -171,10 +174,10 @@ class EmulationGl {
    EGLContext mEglContext = EGL_NO_CONTEXT;
 
    // Used for ColorBuffer ops.
-   std::unique_ptr<gfxstream::DisplaySurface> mPbufferSurface;
+   std::unique_ptr<DisplaySurface> mPbufferSurface;
 
    // Used for Composition and Display ops.
-   std::unique_ptr<gfxstream::DisplaySurface> mWindowSurface;
+   std::unique_ptr<DisplaySurface> mWindowSurface;
 
    GLint mGlesVersionMajor = 0;
    GLint mGlesVersionMinor = 0;
@@ -203,4 +206,5 @@ class EmulationGl {
 };
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

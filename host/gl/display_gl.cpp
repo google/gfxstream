@@ -22,6 +22,7 @@
 #include "gfxstream/host/display_operations.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 namespace {
 
@@ -105,4 +106,5 @@ void DisplayGl::clear() {
 }
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

@@ -20,6 +20,7 @@
 #include "gfxstream/common/logging.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 std::string formatString(const char* format, ...);
@@ -37,4 +38,5 @@ class ScopedDebugGroup {
 #endif
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

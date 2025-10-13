@@ -29,6 +29,7 @@
 #include "gl/emulated_egl_context.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 // A class used to model a guest-side window surface. The implementation
@@ -128,4 +129,5 @@ typedef std::unordered_map<HandleType, std::pair<EmulatedEglWindowSurfacePtr, Ha
 typedef std::unordered_set<HandleType> EmulatedEglWindowSurfaceSet;
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

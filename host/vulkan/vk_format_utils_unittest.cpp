@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 namespace {
 
@@ -260,5 +261,6 @@ TEST(VkFormatUtilsTest, GetTransferInfoYV12OrYV21) {
 
 }  // namespace
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream
 

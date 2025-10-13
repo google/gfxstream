@@ -22,6 +22,7 @@
 #include "gfxstream/host/features.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 class EmulatedPhysicalDeviceQueueProperties {
@@ -43,4 +44,5 @@ class EmulatedPhysicalDeviceQueueProperties {
 };
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

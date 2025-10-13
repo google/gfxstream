@@ -15,6 +15,7 @@
 #include "gfxstream/host/renderer_operations.h"
 
 namespace gfxstream {
+namespace host {
 namespace {
 
 static SelectedRenderer sRenderer = SELECTED_RENDERER_HOST;
@@ -56,4 +57,5 @@ bool get_gfxstream_should_skip_draw() {
     return sShouldSkipDraw;
 }
 
+}  // namespace host
 }  // namespace gfxstream

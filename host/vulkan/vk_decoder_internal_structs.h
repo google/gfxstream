@@ -45,6 +45,7 @@
 #include "vulkan/emulated_textures/compressed_image_info.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 template <class TDispatch>
@@ -242,8 +243,8 @@ struct DeviceInfo {
     std::optional<uint32_t> virtioGpuContextId;
 
     bool needEmulatedDecompression(VkFormat format) {
-        return (emulateTextureEtc2 && gfxstream::vk::isEtc2(format)) ||
-               (emulateTextureAstc && gfxstream::vk::isAstc(format));
+        return (emulateTextureEtc2 && isEtc2(format)) ||
+               (emulateTextureAstc && isAstc(format));
     }
 };
 
@@ -617,4 +618,5 @@ struct InstanceObjects {
 };
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

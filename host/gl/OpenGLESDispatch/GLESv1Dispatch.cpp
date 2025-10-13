@@ -23,6 +23,7 @@
 #include <string.h>
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 #define DEBUG 0
@@ -135,4 +136,5 @@ void *gles1_dispatch_get_proc_func(const char *name, void *userData)
 }
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

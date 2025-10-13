@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 namespace {
 
@@ -56,4 +57,5 @@ INSTANTIATE_TEST_SUITE_P(GLES2SnapshotMultisampling,
 
 }  // namespace
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

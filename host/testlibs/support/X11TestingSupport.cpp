@@ -17,6 +17,7 @@
 #include <stdio.h>
 
 namespace gfxstream {
+namespace host {
 
 struct X11State {
     X11State() :
@@ -52,4 +53,5 @@ void* createNativePixmap(int width, int height, int bytesPerPixel) {
 
 void freeNativePixmap(void* pixmap) { XFreePixmap(x11()->display, (Pixmap)pixmap); }
 
+}  // namespace host
 }  // namespace gfxstream

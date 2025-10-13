@@ -37,6 +37,7 @@
 #include <string.h>
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dlSymFunc,
@@ -3641,4 +3642,5 @@ bool vulkan_dispatch_check_device_VK_VERSION_1_1(const VulkanDispatch* vk)
 }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

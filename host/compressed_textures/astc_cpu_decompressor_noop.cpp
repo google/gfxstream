@@ -15,6 +15,7 @@
 #include "gfxstream/host/astc_cpu_decompressor.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 namespace {
 
@@ -41,4 +42,5 @@ AstcCpuDecompressor& AstcCpuDecompressor::get() {
 }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

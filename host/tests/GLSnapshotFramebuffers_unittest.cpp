@@ -20,6 +20,7 @@
 #include <map>
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 namespace {
 
@@ -158,4 +159,5 @@ TEST_F(SnapshotGlFramebufferObjectTest, BindColor0Texture2D) {
 
 }  // namespace
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

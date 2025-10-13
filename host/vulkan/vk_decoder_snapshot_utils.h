@@ -17,6 +17,7 @@
 #include "vulkan/vk_decoder_internal_structs.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 struct StateBlock {
     VkPhysicalDevice physicalDevice;
@@ -40,4 +41,5 @@ void signalSemaphore(StateBlock* stateBlock, VkSemaphore unboxed_semaphore);
 void loadBufferContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkBuffer buffer,
                        const BufferInfo* bufferInfo);
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

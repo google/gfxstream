@@ -18,6 +18,7 @@
 #include <stdint.h>
 
 namespace gfxstream {
+namespace host {
 
 class ColorBuffer;
 
@@ -78,4 +79,5 @@ class ReadbackWorker {
     virtual FlushResult flushPipeline(uint32_t displayId) = 0;
 };
 
+}  // namespace host
 }  // namespace gfxstream

@@ -18,6 +18,7 @@
 #include <limits>
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 EmulatedPhysicalDeviceQueueProperties::EmulatedPhysicalDeviceQueueProperties(
@@ -44,4 +45,5 @@ EmulatedPhysicalDeviceQueueProperties::EmulatedPhysicalDeviceQueueProperties(
 }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

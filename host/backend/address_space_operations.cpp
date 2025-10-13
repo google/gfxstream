@@ -17,6 +17,7 @@
 #include "gfxstream/host/address_space_device.h"
 
 namespace gfxstream {
+namespace host {
 namespace {
 
 // Defaults to the Gfxstream internal implementation.
@@ -33,3 +34,4 @@ const address_space_device_control_ops &get_gfxstream_address_space_ops() {
 }
 
 }  // namespace host
+}  // namespace gfxstream

@@ -39,6 +39,7 @@
 #include "vulkan/vk_decoder_global_state.h"
 
 namespace gfxstream {
+namespace host {
 
 // SyncThread///////////////////////////////////////////////////////////////////
 // The purpose of SyncThread is to track sync device timelines and give out +
@@ -151,4 +152,5 @@ class SyncThread : public gfxstream::base::Thread {
     bool mHasGl;
 };
 
+}  // namespace host
 }  // namespace gfxstream

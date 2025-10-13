@@ -26,6 +26,7 @@
 #include "vulkan/vulkan_dispatch.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 namespace {
 
@@ -60,7 +61,7 @@ class DisplayVkTest : public ::testing::Test {
             *k_vk, m_vkPhysicalDevice, m_swapChainQueueFamilyIndex, m_compositorQueueFamilyIndex,
             m_vkDevice, m_compositorVkQueue, m_compositorVkQueueLock, m_swapChainVkQueue,
             m_swapChainVkQueueLock);
-        m_displaySurface = std::make_unique<gfxstream::DisplaySurface>(
+        m_displaySurface = std::make_unique<DisplaySurface>(
             k_width, k_height,
             DisplaySurfaceVk::create(*k_vk, m_vkInstance, m_window->getNativeWindow()));
         ASSERT_NE(m_displaySurface, nullptr);
@@ -302,4 +303,5 @@ TEST_F(DisplayVkTest, PostTwoColorBuffers) {
 
 }  // namespace
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

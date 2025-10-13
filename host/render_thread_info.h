@@ -30,6 +30,7 @@
 #include "render_thread_info_vk.h"
 
 namespace gfxstream {
+namespace host {
 
 // A class used to model the state of each RenderThread related
 struct RenderThreadInfo {
@@ -76,6 +77,7 @@ struct RenderThreadInfo {
     void postLoadRefreshCurrentContextSurfacePtrs();
 };
 
+}  // namespace host
 }  // namespace gfxstream
 
 #endif

@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 
 namespace gfxstream {
+namespace host {
 namespace {
 
 TEST(StalePtrRegistry, Constructor) {
@@ -204,4 +205,5 @@ TEST(StalePtrRegistry, AddMakeStaleTwiceWithCollision) {
 }
 
 }  // namespace
+}  // namespace host
 }  // namespace gfxstream

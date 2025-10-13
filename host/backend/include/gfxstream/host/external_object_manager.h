@@ -39,6 +39,7 @@ using gfxstream::base::DescriptorType;
 using gfxstream::base::ManagedDescriptor;
 
 namespace gfxstream {
+namespace host {
 
 // Caching types
 #define MAP_CACHE_MASK 0x0f
@@ -172,4 +173,5 @@ class ExternalObjectManager {
     DISALLOW_COPY_ASSIGN_AND_MOVE(ExternalObjectManager);
 };
 
+}  // namespace host
 }  // namespace gfxstream

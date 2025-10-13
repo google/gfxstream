@@ -29,6 +29,7 @@
 #include "vulkan/vk_enum_string_helper.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 #define VK_ANB_ERR(fmt, ...) GFXSTREAM_ERROR(fmt, ##__VA_ARGS__);
@@ -912,4 +913,5 @@ AsyncResult AndroidNativeBufferInfo::registerQsriCallback(VkImage image,
 }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

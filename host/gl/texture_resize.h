@@ -20,6 +20,7 @@
 #include <memory>
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 class TextureResize {
@@ -78,6 +79,7 @@ private:
 };
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream
 
 #endif

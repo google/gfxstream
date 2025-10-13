@@ -17,6 +17,7 @@
 #include "render-utils/sync_device.h"
 
 namespace gfxstream {
+namespace host {
 
 extern gfxstream_sync_create_timeline_t gfxstream_sync_create_timeline;
 extern gfxstream_sync_create_fence_t gfxstream_sync_create_fence;
@@ -32,4 +33,5 @@ void set_gfxstream_sync_destroy_timeline(gfxstream_sync_destroy_timeline_t);
 void set_gfxstream_sync_register_trigger_wait(gfxstream_sync_register_trigger_wait_t trigger_fn);
 void set_gfxstream_sync_device_exists(gfxstream_sync_device_exists_t);
 
+}  // namespace host
 }  // namespace gfxstream

@@ -20,6 +20,7 @@
 #include <gtest/gtest.h>
 
 namespace gfxstream {
+namespace host {
 namespace {
 
 using testing::ElementsAreArray;
@@ -293,4 +294,5 @@ TEST(VirtioGpuTimelinesTest, TasksAndFencesOnMultipleRingsWithAsyncCallback) {
 }
 
 }  // namespace
+}  // namespace host
 }  // namespace gfxstream

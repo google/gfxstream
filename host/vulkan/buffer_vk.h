@@ -18,6 +18,7 @@
 #include "gfxstream/host/external_object_manager.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 class VkEmulation;
@@ -44,4 +45,5 @@ class BufferVk {
 };
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

@@ -27,9 +27,10 @@
 #include "render-utils/render_api_platform_types.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
-class DisplaySurfaceGl : public gfxstream::DisplaySurfaceImpl {
+class DisplaySurfaceGl : public DisplaySurfaceImpl {
   public:
     static std::unique_ptr<DisplaySurfaceGl> createPbufferSurface(EGLDisplay display,
                                                                   EGLConfig config,
@@ -69,4 +70,5 @@ class DisplaySurfaceGl : public gfxstream::DisplaySurfaceImpl {
 };
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

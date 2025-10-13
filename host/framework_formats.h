@@ -15,6 +15,7 @@
 #pragma once
 
 namespace gfxstream {
+namespace host {
 
 // Android system might want to allocate some color buffers with formats
 // that are not compatible with most OpenGL implementations,
@@ -36,4 +37,5 @@ enum FrameworkFormat {
     FRAMEWORK_FORMAT_P010 = 4,
 };
 
+}  // namespace host
 }  // namespace gfxstream

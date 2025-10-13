@@ -20,6 +20,7 @@
 #include "gfxstream/common/logging.h"
 
 namespace gfxstream {
+namespace host {
 namespace {
 
 // Historical defaults:
@@ -319,4 +320,5 @@ const gfxstream_multi_display_ops& get_gfxstream_multi_display_operations() {
     return sGfxstreamMultiDisplayOps;
 }
 
+}  // namespace host
 }  // namespace gfxstream

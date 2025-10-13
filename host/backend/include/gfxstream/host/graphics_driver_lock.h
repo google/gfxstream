@@ -17,9 +17,11 @@
 #include "gfxstream/synchronization/Lock.h"
 
 namespace gfxstream {
+namespace host {
 
 // Used to workaround various driver bugs (e.g. vkDestroyDevice deadlock, eglMakeCurrent +
 // vkDestroyDevice).
 gfxstream::base::Lock* graphicsDriverLock();
 
+}  // namespace host
 }  // namespace gfxstream

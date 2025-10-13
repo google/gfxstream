@@ -34,6 +34,7 @@
 #include "render-utils/render_api_platform_types.h"
 
 namespace gfxstream {
+namespace host {
 
 using gfxstream::base::AutoLock;
 using gfxstream::base::ConditionVariable;
@@ -565,4 +566,6 @@ bool SampleApplication::isSwANGLE() {
     return strstr(renderer, "ANGLE") && strstr(renderer, "SwiftShader");
 }
 
+
+}  // namespace host
 }  // namespace gfxstream

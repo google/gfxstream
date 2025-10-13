@@ -23,15 +23,16 @@
 #include "gfxstream/synchronization/Lock.h"
 
 namespace gfxstream {
+namespace host {
 namespace {
 
 using Buffer = RenderChannel::Buffer;
 using State = RenderChannel::State;
 using gfxstream::base::AutoLock;
-using gfxstream::BufferQueueResult;
+using gfxstream::host::BufferQueueResult;
 
 RenderChannel::IoResult
-ToIoResult(gfxstream::BufferQueueResult result) {
+ToIoResult(BufferQueueResult result) {
     switch (result) {
         case BufferQueueResult::Ok: {
             return RenderChannel::IoResult::Ok;
@@ -50,9 +51,9 @@ ToIoResult(gfxstream::BufferQueueResult result) {
 
 
 // TODO: Delete after fully migrating Gfxstream interface to gfxstream::base::Stream.
-class AemuStreamToGfxstreamStreamWrapper : public gfxstream::Stream {
+class AemuStreamToGfxstreamStreamWrapper : public Stream {
   public:
-    AemuStreamToGfxstreamStreamWrapper(gfxstream::Stream* stream)
+    AemuStreamToGfxstreamStreamWrapper(Stream* stream)
         : mStream(stream) {}
 
     ssize_t read(void* buffer, size_t size) override {
@@ -64,7 +65,7 @@ class AemuStreamToGfxstreamStreamWrapper : public gfxstream::Stream {
     }
 
   private:
-    gfxstream::Stream* const mStream = nullptr;
+    Stream* const mStream = nullptr;
 };
 
 }  // namespace
@@ -83,7 +84,7 @@ static constexpr size_t kGuestToHostQueueCapacity = 1024U;
 #endif
 static constexpr size_t kHostToGuestQueueCapacity = 16U;
 
-RenderChannelImpl::RenderChannelImpl(gfxstream::Stream* loadStream, uint32_t contextId)
+RenderChannelImpl::RenderChannelImpl(Stream* loadStream, uint32_t contextId)
     : mFromGuest(kGuestToHostQueueCapacity, mLock),
       mToGuest(kHostToGuestQueueCapacity, mLock) {
     if (loadStream) {
@@ -260,4 +261,5 @@ void RenderChannelImpl::onSave(gfxstream::Stream* stream) {
     mRenderThread->save(stream);
 }
 
+}  // namespace host
 }  // namespace gfxstream

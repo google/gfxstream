@@ -20,6 +20,7 @@
 #include "gfxstream/common/logging.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 namespace {
 
@@ -191,4 +192,5 @@ void EmulatedPhysicalDeviceMemoryProperties::transformToGuestMemoryRequirements(
 }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

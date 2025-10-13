@@ -26,6 +26,7 @@
 #include "vulkan/cereal/common/goldfish_vk_dispatch.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 // TODO: Support VK_AMD_buffer_marker.
@@ -99,4 +100,5 @@ class DeviceLostHelper {
 };
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

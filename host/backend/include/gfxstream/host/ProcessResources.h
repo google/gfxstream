@@ -21,6 +21,7 @@
 #include "gfxstream/Compiler.h"
 
 namespace gfxstream {
+namespace host {
 
 class ProcessResources {
    public:
@@ -39,5 +40,6 @@ class ProcessResources {
     mutable std::atomic<uint32_t> mSequenceNumber;
 };
 
+}  // namespace host
 }  // namespace gfxstream
 #endif

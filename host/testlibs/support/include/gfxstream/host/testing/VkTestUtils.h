@@ -20,6 +20,7 @@
 #include "vulkan/vk_utils.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 struct RenderResourceVkBase
@@ -333,6 +334,7 @@ using RenderTextureVk =
     RenderResourceVk<VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT>;
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream
 
 #endif

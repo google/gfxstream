@@ -21,6 +21,7 @@
 #include "gfxstream/host/features.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 namespace {
 
@@ -395,4 +396,5 @@ TEST(VkGuestMemoryUtilsTest, VulkanEnsureCachedCoherentMemoryAvailable) {
 }
 }  // namespace
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

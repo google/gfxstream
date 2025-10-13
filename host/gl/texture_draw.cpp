@@ -29,6 +29,7 @@
 #endif
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 namespace {
 
@@ -776,4 +777,5 @@ void TextureDraw::TexturedLayer::draw(GLuint program, GLint scaleSlot, intptr_t 
 }
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

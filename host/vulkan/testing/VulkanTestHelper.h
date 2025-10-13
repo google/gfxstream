@@ -23,6 +23,7 @@
 #include "vulkan/vk_decoder_context.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 namespace testing {
 
@@ -115,4 +116,5 @@ class VulkanTestHelper {
 
 }  // namespace testing
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

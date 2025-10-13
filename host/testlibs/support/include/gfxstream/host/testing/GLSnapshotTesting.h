@@ -29,6 +29,7 @@
 // clang-format on
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 struct GlValues {
@@ -196,7 +197,7 @@ testing::AssertionResult compareGlobalGlFloatv(
 //         EXPECT_FALSE(fooBarState());  // Snapshot preserved the state change
 //     }
 //
-class SnapshotTest : public gfxstream::gl::GLTest {
+class SnapshotTest : public gfxstream::host::gl::GLTest {
    public:
     SnapshotTest() = default;
 
@@ -317,4 +318,5 @@ protected:
 };
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

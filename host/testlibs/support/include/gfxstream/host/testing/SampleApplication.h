@@ -28,6 +28,7 @@
 #include "host/gl/emulated_egl_fence_sync.h"
 
 namespace gfxstream {
+namespace host {
 
 // Determines whether the host GPU should be used.
 bool shouldUseHostGpu();
@@ -111,4 +112,5 @@ private:
     DISALLOW_COPY_ASSIGN_AND_MOVE(SampleApplication);
 };
 
+}  // namespace host
 }  // namespace gfxstream

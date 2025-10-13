@@ -28,6 +28,7 @@
 #include "render-utils/stream.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 // A class used to model a guest EGLContext. This simply wraps a host
@@ -92,4 +93,5 @@ typedef std::unordered_map<HandleType, EmulatedEglContextPtr> EmulatedEglContext
 typedef std::unordered_set<HandleType> EmulatedEglContextSet;
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

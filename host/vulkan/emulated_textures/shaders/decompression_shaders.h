@@ -15,6 +15,7 @@
 #include <stdint.h>
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 namespace decompression_shaders {
 
@@ -107,4 +108,5 @@ inline constexpr uint32_t Etc2RGBA8_3D[] = {
 
 }  // namespace decompression_shaders
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

@@ -34,6 +34,7 @@
 #include "gfxstream/misc/StringUtils.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 namespace {
 
@@ -424,7 +425,7 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
     }
     auto* pbufferSurfaceGlPtr = pbufferSurfaceGl.get();
 
-    emulationGl->mPbufferSurface = std::make_unique<gfxstream::DisplaySurface>(
+    emulationGl->mPbufferSurface = std::make_unique<DisplaySurface>(
         /*width=*/1,
         /*height=*/1,
         std::move(pbufferSurfaceGl));
@@ -599,8 +600,8 @@ EmulationGl::~EmulationGl() {
     }
 }
 
-std::unique_ptr<gfxstream::DisplaySurface> EmulationGl::createFakeWindowSurface() {
-    return std::make_unique<gfxstream::DisplaySurface>(
+std::unique_ptr<DisplaySurface> EmulationGl::createFakeWindowSurface() {
+    return std::make_unique<DisplaySurface>(
         mWidth, mHeight,
         DisplaySurfaceGl::createPbufferSurface(
             mEglDisplay, mEglConfig, mEglContext, getGlesMaxContextAttribs(), mWidth, mHeight));
@@ -846,4 +847,5 @@ std::unique_ptr<EmulatedEglWindowSurface> EmulationGl::loadEmulatedEglWindowSurf
 }
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

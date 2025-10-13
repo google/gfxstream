@@ -20,6 +20,7 @@
 #include "vulkan_boxed_handles.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 #define DEFAULT_HANDLE_MAP_DEFINE(type)                                                            \
@@ -154,4 +155,5 @@ GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(BOXED_DISPATCHABLE_CREATE_IMPL)
 GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(BOXED_NON_DISPATCHABLE_CREATE_IMPL)
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

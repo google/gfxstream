@@ -19,6 +19,7 @@
 #include "render-utils/stream.h"
 
 namespace gfxstream {
+namespace host {
 
 // An implementation of the Stream interface on top of a vector.
 class MemStream : public Stream {
@@ -59,4 +60,5 @@ class MemStream : public Stream {
 void saveStream(Stream* stream, const MemStream& memStream);
 void loadStream(Stream* stream, MemStream* memStream);
 
+}  // namespace host
 }  // namespace gfxstream

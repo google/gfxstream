@@ -22,6 +22,7 @@
 #include "vulkan_handles.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 class VkDecoderGlobalState;
@@ -70,4 +71,5 @@ class BoxedHandleUnwrapMapping : public VulkanHandleMapping {
 };
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

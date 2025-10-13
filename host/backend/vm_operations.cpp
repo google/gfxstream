@@ -15,6 +15,7 @@
 #include "gfxstream/host/vm_operations.h"
 
 namespace gfxstream {
+namespace host {
 namespace {
 
 void DefaultMapUserMemory(uint64_t, void*, uint64_t) {}
@@ -52,4 +53,5 @@ const gfxstream_vm_ops& get_gfxstream_vm_operations() {
     return sGfxstreamVmOps;
 }
 
+}  // namespace host
 }  // namespace gfxstream

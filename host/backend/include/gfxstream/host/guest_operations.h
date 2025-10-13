@@ -15,6 +15,7 @@
 #include "render-utils/gralloc_enums.h"
 
 namespace gfxstream {
+namespace host {
 
 void set_gfxstream_guest_android_api_level(int level);
 int get_gfxstream_guest_android_api_level();
@@ -22,4 +23,5 @@ int get_gfxstream_guest_android_api_level();
 void set_gfxstream_guest_android_gralloc(GrallocImplementation gralloc);
 GrallocImplementation get_gfxstream_guest_android_gralloc();
 
+}  // namespace host
 }  // namespace gfxstream

@@ -25,6 +25,7 @@
 #include <GLES2/gl2.h>
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 namespace snapshot {
 
@@ -88,4 +89,5 @@ private:
 
 }  // namespace snapshot
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

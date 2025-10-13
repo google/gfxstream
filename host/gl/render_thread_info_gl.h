@@ -26,6 +26,7 @@
 #include "gl/gles2_dec/GLESv2Decoder.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 struct RenderThreadInfoGl {
@@ -75,4 +76,5 @@ struct RenderThreadInfoGl {
 };
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

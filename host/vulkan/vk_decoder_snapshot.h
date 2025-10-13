@@ -51,6 +51,7 @@ class BumpPool;
 }  // namespace gfxstream
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 class VkDecoderSnapshot {
@@ -2007,4 +2008,5 @@ class VkDecoderSnapshot {
 };
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

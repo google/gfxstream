@@ -31,6 +31,7 @@
 #include "gfxstream/host/gl_enums.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 // Define function pointer types.
@@ -61,4 +62,5 @@ void gles2_unimplemented();
 GLESDispatchMaxVersion gles2_dispatch_get_max_version();
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

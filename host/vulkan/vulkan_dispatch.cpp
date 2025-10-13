@@ -26,6 +26,7 @@ using gfxstream::base::pj;
 using gfxstream::base::pathExists;
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 // Function to check if the current process is running with full elevated rights
@@ -356,4 +357,5 @@ bool vkDispatchValid(const VulkanDispatch* vk) {
 }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

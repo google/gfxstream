@@ -22,11 +22,12 @@
 #include "render-utils/snapshot_operations.h"
 
 namespace gfxstream {
+namespace host {
 
 class InMemoryTextureSaverLoader : public ITextureLoader, public ITextureSaver {
   public:
     void saveTexture(uint32_t textureId, const saver_t& saver) override {
-        gfxstream::MemStream stream;
+        MemStream stream;
         saver(&stream, nullptr);
         mTextures[textureId] = stream.buffer();
     }
@@ -38,7 +39,7 @@ class InMemoryTextureSaverLoader : public ITextureLoader, public ITextureSaver {
         }
         const auto& textureData = it->second;
         std::vector<char> textureDataCopy = textureData;
-        gfxstream::MemStream stream(std::move(textureDataCopy));
+        MemStream stream(std::move(textureDataCopy));
         callback(&stream);
     }
 
@@ -48,4 +49,5 @@ class InMemoryTextureSaverLoader : public ITextureLoader, public ITextureSaver {
     std::unordered_map<uint32_t, std::vector<char>> mTextures;
 };
 
+}  // namespace host
 }  // namespace gfxstream

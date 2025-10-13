@@ -36,6 +36,7 @@ class IOStream;
 }  // namespace gfxstream
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 class VulkanStream : public gfxstream::Stream {
@@ -106,4 +107,5 @@ class VulkanMemReadingStream : public VulkanStream {
 };
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

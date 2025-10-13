@@ -39,6 +39,7 @@
 #include "vulkan_stream.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 #ifdef VK_VERSION_1_0
@@ -4363,4 +4364,5 @@ const char* api_opcode_to_string(const uint32_t opcode);
 #define OP_vkLast 300000000
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

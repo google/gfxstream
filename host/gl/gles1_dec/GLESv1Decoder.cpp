@@ -32,6 +32,7 @@ using gfxstream::base::AutoLock;
 using gfxstream::base::StaticLock;
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 static inline void* SafePointerFromUInt(GLuint value) {
@@ -387,4 +388,5 @@ void *GLESv1Decoder::s_getProc(const char *name, void *userData)
 }
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

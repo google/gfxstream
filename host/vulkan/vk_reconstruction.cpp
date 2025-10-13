@@ -35,6 +35,7 @@
 #endif
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 namespace {
 
@@ -102,8 +103,8 @@ void VkReconstruction::saveReplayBuffers(gfxstream::Stream* stream) {
     DEBUG_RECON("created handle buffer size: %zu trace: %zu", createdHandleBuffer.size(),
                 apiTraceBuffer.size());
 
-    gfxstream::saveBuffer(stream, createdHandleBuffer);
-    gfxstream::saveBuffer(stream, apiTraceBuffer);
+    gfxstream::host::saveBuffer(stream, createdHandleBuffer);
+    gfxstream::host::saveBuffer(stream, apiTraceBuffer);
 }
 
 /*static*/
@@ -112,8 +113,8 @@ void VkReconstruction::loadReplayBuffers(gfxstream::Stream* stream,
                                          std::vector<uint8_t>* outDecoderBuffer) {
     DEBUG_RECON("starting to unpack decoder replay buffer");
 
-    gfxstream::loadBuffer(stream, outHandleBuffer);
-    gfxstream::loadBuffer(stream, outDecoderBuffer);
+    gfxstream::host::loadBuffer(stream, outHandleBuffer);
+    gfxstream::host::loadBuffer(stream, outDecoderBuffer);
 
     DEBUG_RECON("finished unpacking decoder replay buffer");
 }
@@ -238,4 +239,5 @@ void VkReconstruction::addOrderedBoxedHandlesCreatedByCall(VkSnapshotApiCallHand
 }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

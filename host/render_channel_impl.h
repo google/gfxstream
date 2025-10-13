@@ -18,6 +18,7 @@
 #include "renderer_impl.h"
 
 namespace gfxstream {
+namespace host {
 
 class RenderThread;
 
@@ -114,8 +115,9 @@ class RenderChannelImpl final : public RenderChannel {
     mutable gfxstream::base::Lock mLock;
     State mState = State::Empty;
     State mWantedEvents = State::Empty;
-    gfxstream::BufferQueue<RenderChannel::Buffer> mFromGuest;
-    gfxstream::BufferQueue<RenderChannel::Buffer> mToGuest;
+    BufferQueue<RenderChannel::Buffer> mFromGuest;
+    BufferQueue<RenderChannel::Buffer> mToGuest;
 };
 
+}  // namespace host
 }  // namespace gfxstream

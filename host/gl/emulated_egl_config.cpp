@@ -24,6 +24,7 @@
 #include "gfxstream/host/renderer_operations.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 namespace {
 
@@ -315,4 +316,5 @@ EGLint EmulatedEglConfigList::packConfigs(GLuint bufferByteSize, GLuint* buffer)
 }
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

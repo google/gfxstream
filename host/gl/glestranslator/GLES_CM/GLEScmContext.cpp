@@ -36,6 +36,13 @@
 #include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/host/stream_utils.h"
 
+using gfxstream::Stream;
+using gfxstream::host::loadBuffer;
+using gfxstream::host::loadBufferPtr;
+using gfxstream::host::loadCollection;
+using gfxstream::host::saveBuffer;
+using gfxstream::host::saveCollection;
+
 static GLESVersion s_maxGlesVersion = GLES_1_1;
 
 void GLEScmContext::setMaxGlesVersion(GLESVersion version) {
@@ -100,24 +107,24 @@ void GLEScmContext::initDefaultFBO(
 }
 
 GLEScmContext::GLEScmContext(int maj, int min,
-        GlobalNameSpace* globalNameSpace, gfxstream::Stream* stream)
+        GlobalNameSpace* globalNameSpace, Stream* stream)
     : GLEScontext(globalNameSpace, stream, nullptr) {
     if (stream) {
         assert(maj == m_glesMajorVersion);
         assert(min == m_glesMinorVersion);
-        gfxstream::loadBuffer(stream, &mProjMatrices);
-        gfxstream::loadBuffer(stream, &mModelviewMatrices);
-        gfxstream::loadBuffer(stream, &mTextureMatrices,
-                [](gfxstream::Stream* stream) {
+        loadBuffer(stream, &mProjMatrices);
+        loadBuffer(stream, &mModelviewMatrices);
+        loadBuffer(stream, &mTextureMatrices,
+                [](Stream* stream) {
                     MatrixStack matrices;
-                    gfxstream::loadBuffer(stream, &matrices);
+                    loadBuffer(stream, &matrices);
                     return matrices;
                 });
-        gfxstream::loadBuffer(stream, &mTexUnitEnvs,
-                [](gfxstream::Stream* stream) {
+        loadBuffer(stream, &mTexUnitEnvs,
+                [](Stream* stream) {
                     TexEnv texEnv;
-                    gfxstream::loadCollection(stream, &texEnv,
-                            [] (gfxstream::Stream* stream) {
+                    loadCollection(stream, &texEnv,
+                            [] (Stream* stream) {
                                 GLenum idx = stream->getBe32();
                                 GLValTyped val;
                                 stream->read(&val, sizeof(GLValTyped));
@@ -125,11 +132,11 @@ GLEScmContext::GLEScmContext(int maj, int min,
                             });
                     return texEnv;
                 });
-        gfxstream::loadBuffer(stream, &mTexGens,
-                [](gfxstream::Stream* stream) {
+        loadBuffer(stream, &mTexGens,
+                [](Stream* stream) {
                     TexEnv texEnv;
-                    gfxstream::loadCollection(stream, &texEnv,
-                            [] (gfxstream::Stream* stream) {
+                    loadCollection(stream, &texEnv,
+                            [] (Stream* stream) {
                                 GLenum idx = stream->getBe32();
                                 GLValTyped val;
                                 stream->read(&val, sizeof(GLValTyped));
@@ -151,11 +158,11 @@ GLEScmContext::GLEScmContext(int maj, int min,
                     &m_texCoords[m_clientActiveTexture];
         }
 
-        gfxstream::loadBufferPtr<GLVal>(stream, mMultiTexCoord);
-        gfxstream::loadBufferPtr<Material>(stream, &mMaterial);
-        gfxstream::loadBufferPtr<LightModel>(stream, &mLightModel);
-        gfxstream::loadBufferPtr<Light>(stream, mLights);
-        gfxstream::loadBufferPtr<Fog>(stream, &mFog);
+        loadBufferPtr<GLVal>(stream, mMultiTexCoord);
+        loadBufferPtr<Material>(stream, &mMaterial);
+        loadBufferPtr<LightModel>(stream, &mLightModel);
+        loadBufferPtr<Light>(stream, mLights);
+        loadBufferPtr<Fog>(stream, &mFog);
 
     } else {
         m_glesMajorVersion = maj;
@@ -238,27 +245,27 @@ const GLEScmContext::Fog& GLEScmContext::getFogInfo() {
     return mFog;
 }
 
-void GLEScmContext::onSave(gfxstream::Stream* stream) const {
+void GLEScmContext::onSave(Stream* stream) const {
     GLEScontext::onSave(stream);
-    gfxstream::saveBuffer(stream, mProjMatrices);
-    gfxstream::saveBuffer(stream, mModelviewMatrices);
-    gfxstream::saveBuffer(stream, mTextureMatrices,
-            [](gfxstream::Stream* stream, const MatrixStack& matrices) {
-                gfxstream::saveBuffer(stream, matrices);
+    saveBuffer(stream, mProjMatrices);
+    saveBuffer(stream, mModelviewMatrices);
+    saveBuffer(stream, mTextureMatrices,
+            [](Stream* stream, const MatrixStack& matrices) {
+                saveBuffer(stream, matrices);
             });
-    gfxstream::saveBuffer(stream, mTexUnitEnvs,
-            [](gfxstream::Stream* stream, const TexEnv& texEnv) {
-                gfxstream::saveCollection(stream, texEnv,
-                        [] (gfxstream::Stream* stream,
+    saveBuffer(stream, mTexUnitEnvs,
+            [](Stream* stream, const TexEnv& texEnv) {
+                saveCollection(stream, texEnv,
+                        [] (Stream* stream,
                             const std::pair<GLenum, GLValTyped>& it) {
                             stream->putBe32(it.first);
                             stream->write(&it.second, sizeof(GLValTyped));
                         });
             });
-    gfxstream::saveBuffer(stream, mTexGens,
-            [](gfxstream::Stream* stream, const TexEnv& texEnv) {
-                gfxstream::saveCollection(stream, texEnv,
-                        [] (gfxstream::Stream* stream,
+    saveBuffer(stream, mTexGens,
+            [](Stream* stream, const TexEnv& texEnv) {
+                saveCollection(stream, texEnv,
+                        [] (Stream* stream,
                             const std::pair<GLenum, GLValTyped>& it) {
                             stream->putBe32(it.first);
                             stream->write(&it.second, sizeof(GLValTyped));
@@ -275,11 +282,11 @@ void GLEScmContext::onSave(gfxstream::Stream* stream) const {
         }
     }
 
-    gfxstream::saveBuffer<GLVal>(stream, mMultiTexCoord, kMaxTextureUnits);
-    gfxstream::saveBuffer<Material>(stream, &mMaterial, 1);
-    gfxstream::saveBuffer<LightModel>(stream, &mLightModel, 1);
-    gfxstream::saveBuffer<Light>(stream, mLights, kMaxLights);
-    gfxstream::saveBuffer<Fog>(stream, &mFog, 1);
+    saveBuffer<GLVal>(stream, mMultiTexCoord, kMaxTextureUnits);
+    saveBuffer<Material>(stream, &mMaterial, 1);
+    saveBuffer<LightModel>(stream, &mLightModel, 1);
+    saveBuffer<Light>(stream, mLights, kMaxLights);
+    saveBuffer<Fog>(stream, &mFog, 1);
 }
 
 void GLEScmContext::restoreMatrixStack(const MatrixStack& matrices) {

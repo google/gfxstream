@@ -543,7 +543,7 @@ void SaveableTexture::loadFromStream(gfxstream::Stream* stream) {
                 if (isDepth) {
                     levelData[level].m_depth = stream->getBe32();
                 }
-                loadBuffer(stream, &levelData[level].m_data);
+                gfxstream::host::loadBuffer(stream, &levelData[level].m_data);
             }
         };
         switch (m_target) {
@@ -563,7 +563,7 @@ void SaveableTexture::loadFromStream(gfxstream::Stream* stream) {
                 break;
         }
         // Load tex param
-        loadCollection(stream, &m_texParam,
+        gfxstream::host::loadCollection(stream, &m_texParam,
                 [](gfxstream::Stream* stream)
                     -> std::unordered_map<GLenum, GLint>::value_type {
                     GLenum pname = stream->getBe32();
@@ -736,7 +736,7 @@ void SaveableTexture::onSave(
                 if (isDepth) {
                     stream->putBe32(imgData.get()[level].m_depth);
                 }
-                saveBuffer(stream, imgData.get()[level].m_data);
+                gfxstream::host::saveBuffer(stream, imgData.get()[level].m_data);
             }
 
             // If under memory pressure, delete this intermediate buffer.
@@ -797,7 +797,7 @@ void SaveableTexture::onSave(
             saveParam(kTexParamGles3,
                     sizeof(kTexParamGles3) / sizeof(kTexParamGles3[0]));
         }
-        saveCollection(stream, texParam,
+        gfxstream::host::saveCollection(stream, texParam,
                 [](gfxstream::Stream* s,
                     const std::unordered_map<GLenum, GLint>::value_type& pair) {
                     s->putBe32(pair.first);

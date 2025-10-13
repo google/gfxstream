@@ -12,29 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <gtest/gtest.h>
-
 #include "compositor_vk.h"
 
 #include <algorithm>
 #include <array>
 #include <filesystem>
-#include <glm/gtx/matrix_transform_2d.hpp>
 #include <memory>
 #include <optional>
 
+#include <glm/gtx/matrix_transform_2d.hpp>
+#include <gtest/gtest.h>
+
 #include "borrowed_image_vk.h"
-#include "gfxstream/synchronization/Lock.h"
-#include "gfxstream/ImageUtils.h"
 #include "gfxstream/host/testing/VkTestUtils.h"
-#include "vulkan/vulkan_dispatch.h"
+#include "gfxstream/ImageUtils.h"
+#include "gfxstream/synchronization/Lock.h"
+#include "gfxstream/system/System.h"
 #include "vulkan/vk_utils.h"
+#include "vulkan/vulkan_dispatch.h"
 
 #ifdef BAZEL_CURRENT_REPOSITORY
 #include "rules_cc/cc/runfiles/runfiles.h"
 #endif
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 namespace {
 
@@ -1070,4 +1072,5 @@ TEST_F(CompositorVkTest, MultipleLayers) {
 
 }  // namespace
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

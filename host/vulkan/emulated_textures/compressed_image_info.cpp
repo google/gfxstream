@@ -22,6 +22,7 @@
 #include "vulkan/vk_enum_string_helper.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 namespace {
 
@@ -180,8 +181,7 @@ bool imageWillBecomeReadable(const VkImageMemoryBarrier& barrier) {
 }
 
 bool isCompressedFormat(VkFormat format) {
-    return gfxstream::vk::isAstc(format) || gfxstream::vk::isEtc2(format) ||
-           gfxstream::vk::isBc(format);
+    return isAstc(format) || isEtc2(format) || isBc(format);
 }
 
 // Returns the format that the shader uses to write the output image
@@ -357,9 +357,13 @@ bool CompressedImageInfo::needEmulatedAlpha(VkFormat format) {
     }
 }
 
-bool CompressedImageInfo::isEtc2() const { return gfxstream::vk::isEtc2(mCompressedFormat); }
+bool CompressedImageInfo::isEtc2() const {
+    return gfxstream::host::vk::isEtc2(mCompressedFormat);
+}
 
-bool CompressedImageInfo::isAstc() const { return gfxstream::vk::isAstc(mCompressedFormat); }
+bool CompressedImageInfo::isAstc() const {
+    return gfxstream::host::vk::isAstc(mCompressedFormat);
+}
 
 VkImageCreateInfo CompressedImageInfo::getOutputCreateInfo(
     const VkImageCreateInfo& createInfo) const {
@@ -809,4 +813,5 @@ VkExtent3D CompressedImageInfo::compressedMipmapPortion(const VkExtent3D& origEx
 }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

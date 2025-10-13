@@ -27,6 +27,7 @@
 #include "gfxstream/synchronization/Lock.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 namespace {
 
@@ -213,4 +214,5 @@ EmulatedEglFenceSync* EmulatedEglFenceSync::getFromHandle(uint64_t handle) {
 }
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

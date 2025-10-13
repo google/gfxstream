@@ -19,6 +19,7 @@
 #include <stdlib.h>
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 EGLDispatch s_egl;
@@ -53,4 +54,5 @@ bool init_egl_dispatch() {
 }
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

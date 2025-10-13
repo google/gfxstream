@@ -663,7 +663,7 @@ void EglDisplay::onSaveAllImages(gfxstream::Stream* stream,
         getGlobalNameSpace()->preSaveAddEglImage(image.second.get());
     }
     m_globalNameSpace.onSave(stream, textureSaver, saver);
-    saveCollection(stream, m_eglImages, [](
+    gfxstream::host::saveCollection(stream, m_eglImages, [](
             gfxstream::Stream* stream,
             const ImagesHndlMap::value_type& img) {
         stream->putBe32(img.first);
@@ -688,7 +688,7 @@ void EglDisplay::onLoadAllImages(gfxstream::Stream* stream,
         EglGlobalInfo::getInstance()->getIface(GLES_2_0));
     m_globalNameSpace.onLoad(stream, textureLoader, creator);
 
-    loadCollection(stream, &m_eglImages, [this](
+    gfxstream::host::loadCollection(stream, &m_eglImages, [this](
         gfxstream::Stream* stream) {
         unsigned int hndl = stream->getBe32();
         unsigned int globalName = stream->getBe32();

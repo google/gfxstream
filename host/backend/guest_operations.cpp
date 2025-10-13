@@ -15,6 +15,7 @@
 #include "gfxstream/host/guest_operations.h"
 
 namespace gfxstream {
+namespace host {
 namespace {
 
 static int sGuestAndroidApiLevel = -1;
@@ -38,4 +39,5 @@ GrallocImplementation get_gfxstream_guest_android_gralloc() {
     return sGuestAndroidGralloc;
 }
 
+}  // namespace host
 }  // namespace gfxstream

@@ -39,6 +39,7 @@ using gfxstream::base::Win32UnicodeString;
 using gfxstream::base::arraySize;
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 namespace {
 
@@ -432,4 +433,5 @@ TEST_F(VulkanTest, StagingMemoryQuery) {
 
 }  // namespace
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

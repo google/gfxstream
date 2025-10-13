@@ -76,18 +76,18 @@ class Renderer {
     //   asynchronously on its own thread. |loadStream| can be used right after
     //   the call as all the required data is copied here synchronously.
     virtual RenderChannelPtr createRenderChannel(
-            gfxstream::Stream* loadStream = nullptr,
+            Stream* loadStream = nullptr,
             uint32_t virtioGpuContextId = -1) = 0;
 
     // analog of createRenderChannel, but for the address space graphics device
     virtual void* addressSpaceGraphicsConsumerCreate(
         const AsgConsumerCreateInfo& info,
-        gfxstream::Stream* loadStream) = 0;
+        Stream* loadStream) = 0;
     virtual void addressSpaceGraphicsConsumerDestroy(void*) = 0;
     virtual void addressSpaceGraphicsConsumerPreSave(void* consumer) = 0;
     virtual void addressSpaceGraphicsConsumerSave(
             void* consumer,
-            gfxstream::Stream* stream) = 0;
+            Stream* stream) = 0;
     virtual void addressSpaceGraphicsConsumerPostSave(void* consumer) = 0;
     virtual void addressSpaceGraphicsConsumerRegisterPostLoadRenderThread(
             void* consumer) = 0;
@@ -292,10 +292,10 @@ class Renderer {
     virtual void resumeAll() = 0;
 
     virtual void save(
-            gfxstream::Stream* stream,
+            Stream* stream,
             const ITextureSaverPtr& textureSaver) = 0;
     virtual bool load(
-            gfxstream::Stream* stream,
+            Stream* stream,
             const ITextureLoaderPtr& textureLoader) = 0;
 
     // Fill GLES usage protobuf

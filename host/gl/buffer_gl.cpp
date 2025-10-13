@@ -15,6 +15,7 @@
 #include "buffer_gl.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 BufferGl::BufferGl(uint64_t size, HandleType handle, ContextHelper* helper)
@@ -102,4 +103,5 @@ void BufferGl::onSave(gfxstream::Stream* stream) {
 }
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

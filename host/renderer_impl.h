@@ -29,6 +29,7 @@ namespace android_studio {
 }
 
 namespace gfxstream {
+namespace host {
 
 class RendererImpl final : public Renderer {
 public:
@@ -155,4 +156,5 @@ private:
     std::unordered_set<RenderThread*> mAddressSpaceRenderThreads;
 };
 
+}  // namespace host
 }  // namespace gfxstream

@@ -285,7 +285,7 @@ int VirtioGpuFrontend::submitCmd(struct stream_renderer_command* cmd) {
             GFXSTREAM_DEBUG("wait for gpu ring %s", to_string(ring).c_str());
             auto taskId = mVirtioGpuTimelines->enqueueTask(ring);
 #if GFXSTREAM_ENABLE_HOST_GLES
-            gfxstream::FrameBuffer::getFB()->asyncWaitForGpuWithCb(
+            FrameBuffer::getFB()->asyncWaitForGpuWithCb(
                 sync_handle, [this, taskId] { mVirtioGpuTimelines->notifyTaskCompletion(taskId); });
 #endif
             break;
@@ -314,7 +314,7 @@ int VirtioGpuFrontend::submitCmd(struct stream_renderer_command* cmd) {
 
             GFXSTREAM_DEBUG("wait for gpu ring %s", to_string(ring).c_str());
             auto taskId = mVirtioGpuTimelines->enqueueTask(ring);
-            gfxstream::FrameBuffer::getFB()->asyncWaitForGpuVulkanWithCb(
+            FrameBuffer::getFB()->asyncWaitForGpuVulkanWithCb(
                 device_handle, fence_handle,
                 [this, taskId] { mVirtioGpuTimelines->notifyTaskCompletion(taskId); });
             break;
@@ -340,7 +340,7 @@ int VirtioGpuFrontend::submitCmd(struct stream_renderer_command* cmd) {
             GFXSTREAM_DEBUG("wait for gpu vk qsri ring %u image 0x%llx", to_string(ring).c_str(),
                             (unsigned long long)image_handle);
             auto taskId = mVirtioGpuTimelines->enqueueTask(ring);
-            gfxstream::FrameBuffer::getFB()->asyncWaitForGpuVulkanQsriWithCb(
+            FrameBuffer::getFB()->asyncWaitForGpuVulkanQsriWithCb(
                 image_handle,
                 [this, taskId] { mVirtioGpuTimelines->notifyTaskCompletion(taskId); });
             break;
@@ -423,7 +423,7 @@ int VirtioGpuFrontend::acquireContextFence(uint32_t contextId, uint64_t fenceId)
         return -EINVAL;
     }
 
-    mSyncMap[fenceId] = std::make_shared<gfxstream::SyncDescriptorInfo>(std::move(*syncInfoOpt));
+    mSyncMap[fenceId] = std::make_shared<SyncDescriptorInfo>(std::move(*syncInfoOpt));
 
     return 0;
 }
@@ -578,7 +578,7 @@ void VirtioGpuFrontend::fillCaps(uint32_t set, void* caps) {
             capset->ringSize = 12288;
             capset->bufferSize = 1048576;
 
-            auto* fb = gfxstream::FrameBuffer::getFB();
+            auto* fb = FrameBuffer::getFB();
             if (fb->hasEmulationVk()) {
                 const auto info = fb->getRepresentativeColorBufferMemoryTypeInfo();
                 capset->colorBufferMemoryIndex = info.guestMemoryTypeIndex;
@@ -638,7 +638,7 @@ void VirtioGpuFrontend::fillCaps(uint32_t set, void* caps) {
 
                 GLenum possibleFormatGl = virgl_format_to_gl(possibleFormat.format);
                 const bool supported =
-                    gfxstream::FrameBuffer::getFB()->isFormatSupported(possibleFormatGl);
+                    FrameBuffer::getFB()->isFormatSupported(possibleFormatGl);
 
                 GFXSTREAM_INFO(" %s: %s", possibleFormat.name,
                                (supported ? "supported" : "unsupported"));
@@ -747,7 +747,7 @@ int VirtioGpuFrontend::getResourceInfo(uint32_t resourceId,
 
 void VirtioGpuFrontend::flushResource(uint32_t res_handle) {
     auto taskId = mVirtioGpuTimelines->enqueueTask(VirtioGpuRingGlobal{});
-    gfxstream::FrameBuffer::getFB()->postWithCallback(
+    FrameBuffer::getFB()->postWithCallback(
         res_handle, [this, taskId](std::shared_future<void> waitForGpu) {
             waitForGpu.wait();
             mVirtioGpuTimelines->notifyTaskCompletion(taskId);
@@ -819,7 +819,7 @@ int VirtioGpuFrontend::resourceUnmap(uint32_t resourceId) {
 void* VirtioGpuFrontend::platformCreateSharedEglContext() {
     void* ptr = nullptr;
 #if GFXSTREAM_ENABLE_HOST_GLES
-    ptr = gfxstream::FrameBuffer::getFB()->platformCreateSharedEglContext();
+    ptr = FrameBuffer::getFB()->platformCreateSharedEglContext();
 #endif
     return ptr;
 }
@@ -827,7 +827,7 @@ void* VirtioGpuFrontend::platformCreateSharedEglContext() {
 int VirtioGpuFrontend::platformDestroySharedEglContext(void* context) {
     bool success = false;
 #if GFXSTREAM_ENABLE_HOST_GLES
-    success = gfxstream::FrameBuffer::getFB()->platformDestroySharedEglContext(context);
+    success = FrameBuffer::getFB()->platformDestroySharedEglContext(context);
 #endif
     return success ? 0 : -1;
 }

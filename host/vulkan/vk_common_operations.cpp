@@ -52,6 +52,7 @@
 #endif
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 namespace {
 
@@ -1847,7 +1848,7 @@ RepresentativeColorBufferMemoryTypeInfo VkEmulation::getRepresentativeColorBuffe
 
 void VkEmulation::onVkDeviceLost() { VkDecoderGlobalState::get()->on_DeviceLost(); }
 
-std::unique_ptr<gfxstream::DisplaySurface> VkEmulation::createDisplaySurface(
+std::unique_ptr<DisplaySurface> VkEmulation::createDisplaySurface(
     FBNativeWindowType window, uint32_t width, uint32_t height) {
     auto surfaceVk = DisplaySurfaceVk::create(*mIvk, mInstance, window);
     if (!surfaceVk) {
@@ -1855,7 +1856,7 @@ std::unique_ptr<gfxstream::DisplaySurface> VkEmulation::createDisplaySurface(
         return nullptr;
     }
 
-    return std::make_unique<gfxstream::DisplaySurface>(width, height, std::move(surfaceVk));
+    return std::make_unique<DisplaySurface>(width, height, std::move(surfaceVk));
 }
 
 #ifdef __APPLE__
@@ -2830,13 +2831,13 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height, GLe
 
 bool VkEmulation::isFormatSupported(GLenum format) {
     VkFormat vkFormat = glFormat2VkFormat(format);
-    bool supported = !gfxstream::vk::formatIsDepthOrStencil(vkFormat);
+    bool supported = !formatIsDepthOrStencil(vkFormat);
     // TODO(b/356603558): add proper Vulkan querying, for now preserve existing assumption
     if (!supported) {
         for (size_t i = 0; i < mImageSupportInfo.size(); ++i) {
             // Only enable depth/stencil if it is usable as an attachment
             if (mImageSupportInfo[i].format == vkFormat &&
-                gfxstream::vk::formatIsDepthOrStencil(mImageSupportInfo[i].format) &&
+                formatIsDepthOrStencil(mImageSupportInfo[i].format) &&
                 mImageSupportInfo[i].supported &&
                 mImageSupportInfo[i].formatProps2.formatProperties.optimalTilingFeatures &
                     VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT) {
@@ -4318,4 +4319,5 @@ VkEmulation::findRepresentativeColorBufferMemoryTypeIndexLocked() {
 }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

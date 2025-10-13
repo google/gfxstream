@@ -20,6 +20,7 @@
 #include <unordered_set>
 
 namespace gfxstream {
+namespace host {
 
 class DisplaySurface;
 class DisplaySurfaceUser;
@@ -65,4 +66,5 @@ class DisplaySurface {
     std::unordered_set<DisplaySurfaceUser*> mBoundUsers;
 };
 
+}  // namespace host
 }  // namespace gfxstream

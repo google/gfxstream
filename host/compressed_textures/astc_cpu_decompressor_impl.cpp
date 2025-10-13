@@ -20,6 +20,7 @@
 #include "astcenc.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 namespace {
 
@@ -279,4 +280,5 @@ AstcCpuDecompressor& AstcCpuDecompressor::get() {
 }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

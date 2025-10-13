@@ -23,6 +23,7 @@
 #include "gfxstream/common/logging.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 namespace {
 
@@ -210,4 +211,5 @@ DisplaySurfaceGl::~DisplaySurfaceGl() {
 }
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

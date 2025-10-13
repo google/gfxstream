@@ -32,6 +32,7 @@ class ColorBuffer;
 }  // namespace gfxstream
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 // This class implements async readback of emugl ColorBuffers.
@@ -109,4 +110,5 @@ class ReadbackWorkerGl : public ReadbackWorker {
 };
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

@@ -39,6 +39,7 @@
 #include "vulkan_boxed_handles.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 void reservedmarshal_extension_struct(VulkanStream* vkStream, VkStructureType rootType,
@@ -17144,4 +17145,5 @@ void reservedunmarshal_extension_struct(VulkanStream* vkStream, VkStructureType 
 }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

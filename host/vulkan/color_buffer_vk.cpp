@@ -17,6 +17,7 @@
 #include "vk_common_operations.h"
 
 namespace gfxstream {
+namespace host {
 namespace vk {
 
 /*static*/
@@ -101,4 +102,5 @@ std::optional<BlobDescriptorInfo> ColorBufferVk::exportBlob() {
 }
 
 }  // namespace vk
+}  // namespace host
 }  // namespace gfxstream

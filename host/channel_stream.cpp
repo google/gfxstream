@@ -22,6 +22,7 @@
 #include "render-utils/RenderChannel.h"
 
 namespace gfxstream {
+namespace host {
 
 using IoResult = RenderChannel::IoResult;
 
@@ -82,10 +83,12 @@ const unsigned char* ChannelStream::readRaw(void* buf, size_t* inout_len) {
 }
 
 void* ChannelStream::getDmaForReading(uint64_t guest_paddr) {
-    return gfxstream::g_gfxstream_dma_get_host_addr(guest_paddr);
+    return g_gfxstream_dma_get_host_addr(guest_paddr);
 }
 
-void ChannelStream::unlockDma(uint64_t guest_paddr) { gfxstream::g_gfxstream_dma_unlock(guest_paddr); }
+void ChannelStream::unlockDma(uint64_t guest_paddr) {
+    g_gfxstream_dma_unlock(guest_paddr);
+}
 
 void ChannelStream::forceStop() {
     mChannel->stopFromHost();
@@ -109,14 +112,15 @@ void ChannelStream::onSave(gfxstream::Stream* stream) {
     stream->putBe32(mReadBufferLeft);
     stream->write(mReadBuffer.data() + mReadBuffer.size() - mReadBufferLeft,
                   mReadBufferLeft);
-    gfxstream::saveBuffer(stream, mWriteBuffer);
+    gfxstream::host::saveBuffer(stream, mWriteBuffer);
 }
 
 unsigned char* ChannelStream::onLoad(gfxstream::Stream* stream) {
-    gfxstream::loadBuffer(stream, &mReadBuffer);
+    gfxstream::host::loadBuffer(stream, &mReadBuffer);
     mReadBufferLeft = mReadBuffer.size();
-    gfxstream::loadBuffer(stream, &mWriteBuffer);
+    gfxstream::host::loadBuffer(stream, &mWriteBuffer);
     return reinterpret_cast<unsigned char*>(mWriteBuffer.data());
 }
 
+}  // namespace host
 }  // namespace gfxstream

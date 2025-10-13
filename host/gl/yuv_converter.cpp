@@ -27,6 +27,7 @@
 #include "gfxstream/host/renderer_operations.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 #define YUV_CONVERTER_DEBUG 0
@@ -1124,4 +1125,5 @@ YUVConverter::~YUVConverter() {
 }
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

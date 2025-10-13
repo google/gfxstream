@@ -504,7 +504,7 @@ GLEScontext::GLEScontext(GlobalNameSpace* globalNameSpace,
             m_scissorWidth = static_cast<GLsizei>(stream->getBe32());
             m_scissorHeight = static_cast<GLsizei>(stream->getBe32());
 
-            loadCollection(stream, &m_glEnableList,
+            gfxstream::host::loadCollection(stream, &m_glEnableList,
                     [](gfxstream::Stream* stream) {
                         GLenum item = stream->getBe32();
                         bool enabled = stream->getByte();
@@ -515,7 +515,7 @@ GLEScontext::GLEScontext(GlobalNameSpace* globalNameSpace,
 
             stream->read(m_blendStates.data(), sizeof(BlendState) * blendStateCount);
 
-            loadCollection(stream, &m_glPixelStoreiList,
+            gfxstream::host::loadCollection(stream, &m_glPixelStoreiList,
                     [](gfxstream::Stream* stream) {
                         GLenum item = stream->getBe32();
                         GLint val = stream->getBe32();
@@ -684,7 +684,7 @@ void GLEScontext::onSave(gfxstream::Stream* stream) const {
         stream->putBe32(m_scissorWidth);
         stream->putBe32(m_scissorHeight);
 
-        saveCollection(stream, m_glEnableList, [](gfxstream::Stream* stream,
+        gfxstream::host::saveCollection(stream, m_glEnableList, [](gfxstream::Stream* stream,
                 const std::pair<const GLenum, bool>& enableItem) {
                     stream->putBe32(enableItem.first);
                     stream->putByte(enableItem.second);
@@ -692,7 +692,7 @@ void GLEScontext::onSave(gfxstream::Stream* stream) const {
         stream->putBe32((int)m_blendStates.size());
         stream->write(m_blendStates.data(), sizeof(BlendState) * m_blendStates.size());
 
-        saveCollection(stream, m_glPixelStoreiList, [](gfxstream::Stream* stream,
+        gfxstream::host::saveCollection(stream, m_glPixelStoreiList, [](gfxstream::Stream* stream,
                 const std::pair<const GLenum, GLint>& pixelStore) {
                     stream->putBe32(pixelStore.first);
                     stream->putBe32(pixelStore.second);

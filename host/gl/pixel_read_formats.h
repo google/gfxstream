@@ -27,6 +27,7 @@
 #include "gfxstream/ThreadAnnotations.h"
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 struct PixelReadbackCombination {
@@ -41,12 +42,13 @@ struct PixelReadbackCombination {
 };
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream
 
 namespace std {
 template <>
-struct hash<gfxstream::gl::PixelReadbackCombination> {
-    size_t operator()(const gfxstream::gl::PixelReadbackCombination& c) const {
+struct hash<gfxstream::host::gl::PixelReadbackCombination> {
+    size_t operator()(const gfxstream::host::gl::PixelReadbackCombination& c) const {
         return hash<GLenum>()(c.internalFormat) ^ hash<GLenum>()(c.pixelFormat) ^
                hash<GLenum>()(c.pixelType);
     }
@@ -54,6 +56,7 @@ struct hash<gfxstream::gl::PixelReadbackCombination> {
 }  // namespace std
 
 namespace gfxstream {
+namespace host {
 namespace gl {
 
 // Helper class to determine if glReadPixels on a texture image with a given internal format and
@@ -78,4 +81,5 @@ class PixelReadFormats {
 };
 
 }  // namespace gl
+}  // namespace host
 }  // namespace gfxstream

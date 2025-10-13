@@ -41,6 +41,7 @@ extern "C" {
 
 using namespace std::literals;
 
+using gfxstream::host::FrameBuffer;
 using gfxstream::host::LogLevel;
 using gfxstream::host::VirtioGpuFrontend;
 using gfxstream::Renderer;
@@ -187,7 +188,7 @@ GetGfxstreamFeatures(const int rendererFlags,
                      const bool rendererInitializedExternally) {
     if (rendererInitializedExternally) {
 #ifdef CONFIG_AEMU
-        return gfxstream::FrameBuffer::getFB()->getFeatures();
+        return FrameBuffer::getFB()->getFeatures();
 #else
         GFXSTREAM_FATAL("Unexpected external renderer initialization.");
         return std::nullopt;
@@ -243,7 +244,7 @@ RendererPtr InitRenderer(uint32_t displayWidth,
     GFXSTREAM_DEBUG("Initializing renderer with width:%u height:%u renderer-flags:0x%x",
                     displayWidth, displayHeight, rendererFlags);
 
-    gfxstream::vk::vkDispatch(false /* don't use test ICD */);
+    gfxstream::host::vk::vkDispatch(false /* don't use test ICD */);
 
     static gfxstream::RenderLibPtr sRendererLibrary = gfxstream::initLibrary();
     MaybeConfigureRenderer(*sRendererLibrary);
@@ -348,7 +349,7 @@ RendererPtr GetRenderer(uint32_t displayWidth,
         renderer = InitRenderer(displayWidth, displayHeight, rendererFlags, features);
     }
 
-    gfxstream::FrameBuffer::waitUntilInitialized();
+    FrameBuffer::waitUntilInitialized();
 
     return renderer;
 }
@@ -807,12 +808,12 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     gfxstream::host::InitializeTracing();
 
     // Set non product-specific callbacks
-    gfxstream::vk::vk_util::setVkCheckCallbacks(
-        std::make_unique<gfxstream::vk::vk_util::VkCheckCallbacks>(
-            gfxstream::vk::vk_util::VkCheckCallbacks{
+    gfxstream::host::vk::vk_util::setVkCheckCallbacks(
+        std::make_unique<gfxstream::host::vk::vk_util::VkCheckCallbacks>(
+            gfxstream::host::vk::vk_util::VkCheckCallbacks{
                 .onVkErrorDeviceLost =
                     []() {
-                        auto fb = gfxstream::FrameBuffer::getFB();
+                        auto fb = FrameBuffer::getFB();
                         if (!fb) {
                             GFXSTREAM_ERROR(
                                 "FrameBuffer not yet initialized. Dropping device lost event");
