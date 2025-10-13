@@ -23,7 +23,7 @@ if (NOT TARGET gfxstream_features)
 
     add_library(
         gfxstream_features
-        Features.cpp)
+        features.cpp)
     target_link_libraries(
         gfxstream_features
         PUBLIC

@@ -4,7 +4,7 @@
 inc_host_features = include_directories('include')
 
 files_lib_host_features = files(
-  'Features.cpp',
+  'features.cpp',
 )
 
 lib_host_features = static_library(

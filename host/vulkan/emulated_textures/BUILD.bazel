@@ -9,15 +9,15 @@ package(
 cc_library(
     name = "gfxstream_host_vulkan_emulated_textures",
     srcs = [
-        "AstcTexture.cpp",
-        "CompressedImageInfo.cpp",
-        "GpuDecompressionPipeline.cpp",
-        "shaders/DecompressionShaders.h",
+        "astc_texture.cpp",
+        "compressed_image_info.cpp",
+        "gpu_decompression_pipeline.cpp",
+        "shaders/decompression_shaders.h",
     ],
     hdrs = [
-        "AstcTexture.h",
-        "CompressedImageInfo.h",
-        "GpuDecompressionPipeline.h",
+        "astc_texture.h",
+        "compressed_image_info.h",
+        "gpu_decompression_pipeline.h",
     ],
     copts = GFXSTREAM_HOST_COPTS,
     defines = GFXSTREAM_HOST_DEFINES,

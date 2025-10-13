@@ -14,7 +14,7 @@
 
 #include <gtest/gtest.h>
 
-#include "FrameBuffer.h"
+#include "frame_buffer.h"
 #include "gfxstream/host/testing/HelloTriangle.h"
 #include "gfxstream/host/testing/GLSnapshotTestDispatch.h"
 #include "gfxstream/host/testing/GLSnapshotTesting.h"

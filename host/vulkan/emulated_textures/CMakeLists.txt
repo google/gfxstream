@@ -14,9 +14,9 @@
 
 add_library(
     emulated_textures
-    "AstcTexture.cpp"
-    "CompressedImageInfo.cpp"
-    "GpuDecompressionPipeline.cpp"
+    "astc_texture.cpp"
+    "compressed_image_info.cpp"
+    "gpu_decompression_pipeline.cpp"
     )
 
 target_link_libraries(

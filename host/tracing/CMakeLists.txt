@@ -23,7 +23,7 @@ if (NOT TARGET gfxstream_host_tracing)
 
     add_library(
         gfxstream_host_tracing
-        Tracing.cpp)
+        tracing.cpp)
     target_link_libraries(
         gfxstream_host_tracing
         PUBLIC

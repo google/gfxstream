@@ -50,6 +50,7 @@ package(
 # See NOTE_FOR_ANDROID16_RELEASE above for how to run locally:
 cuttlefish_gfxstream_deqp_test(
     name = "gfxstream_guest_angle_host_swiftshader_deqp_smoke",
+    size = "medium",
     # Launch Cuttlefish with: (see `cvd create --help`):
     cuttlefish_create_args = [
         "--gpu_mode=gfxstream_guest_angle_host_swiftshader",
@@ -58,12 +59,12 @@ cuttlefish_gfxstream_deqp_test(
     deqp_include_patterns = [
         "dEQP-VK.api.smoke*",
     ],
-    size = "medium",
 )
 
 # See NOTE_FOR_ANDROID16_RELEASE above for how to run locally:
 cuttlefish_gfxstream_deqp_test(
     name = "gfxstream_guest_angle_host_swiftshader_deqp_presubmit",
+    size = "large",
     # Launch Cuttlefish with: (see `cvd create --help`):
     cuttlefish_create_args = [
         "--gpu_mode=gfxstream_guest_angle_host_swiftshader",
@@ -80,12 +81,12 @@ cuttlefish_gfxstream_deqp_test(
         #"dEQP-VK.api.external.memory.android_hardware_buffer.image_formats*",
         #"dEQP-VK.api.external.memory.android_hardware_buffer.suballocated.image*",
     ],
-    size = "large",
 )
 
 # See NOTE_FOR_ANDROID16_RELEASE above for how to run locally:
 cuttlefish_gfxstream_cts_test(
     name = "gfxstream_guest_angle_host_swiftshader_cts_graphics_tests",
+    size = "enormous",
     # Run CTS with `--include-filter=<>`:
     cts_include_patterns = [
         "CtsGraphicsTestCases",
@@ -94,12 +95,12 @@ cuttlefish_gfxstream_cts_test(
     cuttlefish_create_args = [
         "--gpu_mode=gfxstream_guest_angle_host_swiftshader",
     ],
-    size = "enormous",
 )
 
 # See NOTE_FOR_ANDROID16_RELEASE above for how to run locally:
 cuttlefish_gfxstream_cts_test(
     name = "gfxstream_guest_angle_host_swiftshader_cts_native_hardware_tests",
+    size = "large",
     # Run CTS with `--include-filter=<>`:
     cts_include_patterns = [
         "CtsNativeHardwareTestCases",
@@ -108,47 +109,46 @@ cuttlefish_gfxstream_cts_test(
     cuttlefish_create_args = [
         "--gpu_mode=gfxstream_guest_angle_host_swiftshader",
     ],
-    size = "large",
 )
 
 # See NOTE_FOR_ANDROID16_RELEASE above for how to run locally:
 cuttlefish_gfxstream_vts_test(
     name = "gfxstream_guest_angle_host_swiftshader_vts_allocator_aidl_tests",
-    # Run VTS with `--include-filter=<>`:
-    vts_include_patterns = [
-        "VtsHalGraphicsAllocatorAidl_TargetTest",
-    ],
+    size = "large",
     # Launch Cuttlefish with: (see `cvd create --help`):
     cuttlefish_create_args = [
         "--gpu_mode=gfxstream_guest_angle_host_swiftshader",
     ],
-    size = "large",
+    # Run VTS with `--include-filter=<>`:
+    vts_include_patterns = [
+        "VtsHalGraphicsAllocatorAidl_TargetTest",
+    ],
 )
 
 # See NOTE_FOR_ANDROID16_RELEASE above for how to run locally:
 cuttlefish_gfxstream_vts_test(
     name = "gfxstream_guest_angle_host_swiftshader_vts_composer3_tests",
-    # Run VTS with `--include-filter=<>`:
-    vts_include_patterns = [
-        "VtsHalGraphicsComposer3_TargetTest",
-    ],
+    size = "large",
     # Launch Cuttlefish with: (see `cvd create --help`):
     cuttlefish_create_args = [
         "--gpu_mode=gfxstream_guest_angle_host_swiftshader",
     ],
-    size = "large",
+    # Run VTS with `--include-filter=<>`:
+    vts_include_patterns = [
+        "VtsHalGraphicsComposer3_TargetTest",
+    ],
 )
 
 # See NOTE_FOR_ANDROID16_RELEASE above for how to run locally:
 cuttlefish_gfxstream_vts_test(
     name = "gfxstream_guest_angle_host_swiftshader_vts_mapper_stablec_tests",
-    # Run VTS with `--include-filter=<>`:
-    vts_include_patterns = [
-        "VtsHalGraphicsMapperStableC_TargetTest",
-    ],
+    size = "large",
     # Launch Cuttlefish with: (see `cvd create --help`):
     cuttlefish_create_args = [
         "--gpu_mode=gfxstream_guest_angle_host_swiftshader",
     ],
-    size = "large",
+    # Run VTS with `--include-filter=<>`:
+    vts_include_patterns = [
+        "VtsHalGraphicsMapperStableC_TargetTest",
+    ],
 )

@@ -32,7 +32,7 @@
 
 #include "goldfish_vk_transform.h"
 
-#include "VkDecoderGlobalState.h"
+#include "vk_decoder_global_state.h"
 
 namespace gfxstream {
 namespace vk {

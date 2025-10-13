@@ -16,8 +16,8 @@
 #define VK_TEST_UTILS_H
 
 #include "gfxstream/files/PathUtils.h"
-#include "vulkan/VulkanDispatch.h"
-#include "vulkan/VkUtils.h"
+#include "vulkan/vulkan_dispatch.h"
+#include "vulkan/vk_utils.h"
 
 namespace gfxstream {
 namespace vk {

@@ -34,9 +34,9 @@
 
 #include <string.h>
 
-#include "VulkanBoxedHandles.h"
 #include "goldfish_vk_extension_structs.h"
 #include "goldfish_vk_private_defs.h"
+#include "vulkan_boxed_handles.h"
 
 namespace gfxstream {
 namespace vk {

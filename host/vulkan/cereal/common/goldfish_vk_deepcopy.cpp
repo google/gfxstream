@@ -34,9 +34,9 @@
 
 #include <string.h>
 
-#include "VkUtils.h"
 #include "goldfish_vk_extension_structs.h"
 #include "goldfish_vk_private_defs.h"
+#include "vk_utils.h"
 
 namespace gfxstream {
 namespace vk {

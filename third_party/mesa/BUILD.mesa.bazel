@@ -948,7 +948,7 @@ cc_library(
         "src/util/blake3/blake3_portable.c",
     ] + select({
         "@platforms//cpu:aarch64": [
-            "src/util/blake3/blake3_neon.c"
+            "src/util/blake3/blake3_neon.c",
         ],
         "//conditions:default": [],
     }),

@@ -15,7 +15,7 @@
 
 #include <memory>
 
-#include "FrameBuffer.h"
+#include "frame_buffer.h"
 #include "OpenGLESDispatch/OpenGLDispatchLoader.h"
 #include "gfxstream/host/testing/GLTestUtils.h"
 #include "gfxstream/host/testing/SampleApplication.h"

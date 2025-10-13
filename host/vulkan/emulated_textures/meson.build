@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 files_emulated_textures = files(
-  'AstcTexture.cpp',
-  'CompressedImageInfo.cpp',
-  'GpuDecompressionPipeline.cpp',
+  'astc_texture.cpp',
+  'compressed_image_info.cpp',
+  'gpu_decompression_pipeline.cpp',
 )
 
 emulated_texture_args = [

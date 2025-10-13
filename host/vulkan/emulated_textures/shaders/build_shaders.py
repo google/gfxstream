@@ -19,15 +19,15 @@ import os
 
 # The list of shaders to compile, without the .comp extension
 shaders = [
-    "Astc",
-    "AstcToRgb",
-    "AstcToBc3",
-    "EacR11Snorm",
-    "EacR11Unorm",
-    "EacRG11Snorm",
-    "EacRG11Unorm",
-    "Etc2RGB8",
-    "Etc2RGBA8",
+    "astc",
+    "astc_to_rgb",
+    "astc_to_bc3",
+    "eac_r11_snorm",
+    "eac_r11_unorm",
+    "eac_rg11_snorm",
+    "eac_rg11_unorm",
+    "etc2_rgb8",
+    "etc2_rgba8",
 ]
 
 # Template for the compilation command

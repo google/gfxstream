@@ -16,11 +16,11 @@
 
 #include <vector>
 
-#include "VirtioGpuFormatUtils.h"
 #include "gfxstream/host/testing/OSWindow.h"
 #include "gfxstream/system/System.h"
 #include "gfxstream/virtio-gpu-gfxstream-renderer-unstable.h"
 #include "gfxstream/virtio-gpu-gfxstream-renderer.h"
+#include "virtio_gpu_format_utils.h"
 
 using gfxstream::base::sleepMs;
 

@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "texture_draw.h"
+
 #include <gtest/gtest.h>
 
 #include "gfxstream/host/testing/GLTestUtils.h"
 #include "gfxstream/host/testing/OpenGLTestContext.h"
-#include "TextureDraw.h"
 
 namespace gfxstream {
 namespace gl {

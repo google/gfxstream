@@ -29,6 +29,6 @@ cc_library_static {
         "liblog",
     ],
     srcs: [
-        "Tracing.cpp",
+        "tracing.cpp",
     ],
 }

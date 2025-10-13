@@ -21,39 +21,39 @@ if(CONFIG_AEMU)
 endif()
 
 add_library(gfxstream-vulkan-server
-            BorrowedImageVk.cpp
-            BufferVk.cpp
-            ColorBufferVk.cpp
-            CompositorVk.cpp
-            DependencyGraph.cpp
-            DeviceLostHelper.cpp
-            DeviceOpTracker.cpp
-            DisplayVk.cpp
-            ExternalMemory.cpp
-            DisplaySurfaceVk.cpp
-            DebugUtilsHelper.cpp
-            PostWorkerVk.cpp
-            SwapChainStateVk.cpp
-            RenderThreadInfoVk.cpp
-            VkAndroidNativeBuffer.cpp
-            VkCommonOperations.cpp
-            VkDecoder.cpp
-            VkDecoderGlobalState.cpp
-            VkDecoderSnapshot.cpp
-            VkDecoderSnapshotUtils.cpp
-            VkEmulatedPhysicalDeviceMemory.cpp
-            VkEmulatedPhysicalDeviceQueue.cpp
-            VkFormatUtils.cpp
-            VkReconstruction.cpp
-            VkUtils.cpp
-            VulkanBoxedHandles.cpp
-            VulkanDispatch.cpp
-            VulkanHandleMapping.cpp
-            VulkanStream.cpp
+            borrowed_image_vk.cpp
+            buffer_vk.cpp
+            color_buffer_vk.cpp
+            compositor_vk.cpp
+            dependency_graph.cpp
+            device_lost_helper.cpp
+            device_op_tracker.cpp
+            display_vk.cpp
+            display_surface_vk.cpp
+            debug_utils_helper.cpp
+            external_memory.cpp
+            post_worker_vk.cpp
+            swap_chain_state_vk.cpp
+            render_thread_info_vk.cpp
+            vk_android_native_buffer_operations.cpp
+            vk_common_operations.cpp
+            vk_decoder.cpp
+            vk_decoder_global_state.cpp
+            vk_decoder_snapshot.cpp
+            vk_decoder_snapshot_utils.cpp
+            vk_emulated_physical_device_memory.cpp
+            vk_emulated_physical_device_queue.cpp
+            vk_format_utils.cpp
+            vk_reconstruction.cpp
+            vk_utils.cpp
+            vulkan_boxed_handles.cpp
+            vulkan_dispatch.cpp
+            vulkan_handle_mapping.cpp
+            vulkan_stream.cpp
             )
-set_source_files_properties(VkDecoder.cpp PROPERTIES COMPILE_FLAGS -Wno-unused-variable)
-set_source_files_properties(VkSubDecoder.cpp PROPERTIES COMPILE_FLAGS -Wno-unused-variable)
-set_source_files_properties(VkDecoderSnapshot.cpp PROPERTIES COMPILE_FLAGS -Wno-unused-variable)
+set_source_files_properties(vk_decoder.cpp PROPERTIES COMPILE_FLAGS -Wno-unused-variable)
+set_source_files_properties(vk_sub_decoder.cpp PROPERTIES COMPILE_FLAGS -Wno-unused-variable)
+set_source_files_properties(vk_decoder_snapshot.cpp PROPERTIES COMPILE_FLAGS -Wno-unused-variable)
 
 target_link_libraries(gfxstream-vulkan-server PUBLIC
         gfxstream_host_decoder_common

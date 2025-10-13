@@ -8,7 +8,7 @@ package(
 
 cc_library(
     name = "gfxstream_host_tracing",
-    srcs = ["Tracing.cpp"],
+    srcs = ["tracing.cpp"],
     hdrs = glob(["include/**/*.h"]),
     copts = GFXSTREAM_HOST_COPTS,
     defines = GFXSTREAM_HOST_DEFINES,

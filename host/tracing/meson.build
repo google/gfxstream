@@ -4,7 +4,7 @@
 inc_host_tracing = include_directories('include')
 
 files_lib_host_tracing = files(
-  'Tracing.cpp',
+  'tracing.cpp',
 )
 
 lib_host_tracing = static_library(

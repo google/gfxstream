@@ -20,10 +20,10 @@
 
 #include <thread>
 
-#include "FrameBuffer.h"
+#include "host/frame_buffer.h"
 #include "OpenGLESDispatch/OpenGLDispatchLoader.h"
-#include "RenderThreadInfo.h"
-#include "gfxstream/host/Features.h"
+#include "host/render_thread_info.h"
+#include "gfxstream/host/features.h"
 #include "gfxstream/host/renderer_operations.h"
 #include "gfxstream/host/testing/OSWindow.h"
 #include "gfxstream/host/testing/ShaderUtils.h"

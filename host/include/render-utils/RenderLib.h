@@ -16,7 +16,7 @@
 #include <functional>
 #include <memory>
 
-#include "gfxstream/host/Features.h"
+#include "gfxstream/host/features.h"
 #include "render-utils/Renderer.h"
 #include "render-utils/address_space_operations.h"
 #include "render-utils/display_operations.h"

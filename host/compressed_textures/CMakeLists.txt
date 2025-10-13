@@ -13,9 +13,9 @@
 # limitations under the License.
 
 if (ASTC_CPU_DECODING)
-    set(astc-cpu-decompressor-sources AstcCpuDecompressorImpl.cpp)
+    set(astc-cpu-decompressor-sources astc_cpu_decompressor_impl.cpp)
 else()
-    set(astc-cpu-decompressor-sources AstcCpuDecompressorNoOp.cpp)
+    set(astc-cpu-decompressor-sources astc_cpu_decompressor_noop.cpp)
 endif()
 
 add_library(
@@ -49,7 +49,7 @@ endif()
 if (ENABLE_VKCEREAL_TESTS)
     add_executable(
         gfxstream_host_compressed_textures_unittests
-        AstcCpuDecompressor_unittest.cpp)
+        astc_cpu_decompressor_unittest.cpp)
 
     target_link_libraries(
         gfxstream_host_compressed_textures_unittests

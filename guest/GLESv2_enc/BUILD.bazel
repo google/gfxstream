@@ -43,10 +43,10 @@ cc_library(
     hdrs = glob([
         "**/*.h",
     ]),
+    copts = ["-Wno-unused-private-field"],
     includes = [
         ".",
     ],
-    copts = ["-Wno-unused-private-field"],
     linkopts = [
         # Search the current directory for this library's shared libs.
         # Used for the end2end tests which package all of the guest

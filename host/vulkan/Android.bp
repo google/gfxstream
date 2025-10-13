@@ -67,43 +67,43 @@ cc_library_static {
         "-Wno-unreachable-code-loop-increment",
     ],
     srcs: [
-        "BorrowedImageVk.cpp",
-        "BufferVk.cpp",
-        "ColorBufferVk.cpp",
-        "CompositorVk.cpp",
-        "DebugUtilsHelper.cpp",
-        "DependencyGraph.cpp",
-        "DeviceLostHelper.cpp",
-        "DeviceOpTracker.cpp",
-        "DisplaySurfaceVk.cpp",
-        "DisplayVk.cpp",
-        "ExternalMemory.cpp",
-        "PostWorkerVk.cpp",
-        "RenderThreadInfoVk.cpp",
-        "SwapChainStateVk.cpp",
-        "VkAndroidNativeBuffer.cpp",
-        "VkCommonOperations.cpp",
-        "VkDecoder.cpp",
-        "VkDecoderGlobalState.cpp",
-        "VkDecoderSnapshot.cpp",
-        "VkDecoderSnapshotUtils.cpp",
-        "VkEmulatedPhysicalDeviceMemory.cpp",
-        "VkEmulatedPhysicalDeviceQueue.cpp",
-        "VkFormatUtils.cpp",
-        "VkReconstruction.cpp",
-        "VkUtils.cpp",
-        "VulkanBoxedHandles.cpp",
-        "VulkanDispatch.cpp",
-        "VulkanHandleMapping.cpp",
-        "VulkanStream.cpp",
+        "borrowed_image_vk.cpp",
+        "buffer_vk.cpp",
+        "color_buffer_vk.cpp",
+        "compositor_vk.cpp",
+        "debug_utils_helper.cpp",
+        "dependency_graph.cpp",
+        "device_lost_helper.cpp",
+        "device_op_tracker.cpp",
+        "display_surface_vk.cpp",
+        "display_vk.cpp",
+        "external_memory.cpp",
+        "post_worker_vk.cpp",
+        "render_thread_info_vk.cpp",
+        "swap_chain_state_vk.cpp",
+        "vk_android_native_buffer_operations.cpp",
+        "vk_common_operations.cpp",
+        "vk_decoder.cpp",
+        "vk_decoder_global_state.cpp",
+        "vk_decoder_snapshot.cpp",
+        "vk_decoder_snapshot_utils.cpp",
+        "vk_emulated_physical_device_memory.cpp",
+        "vk_emulated_physical_device_queue.cpp",
+        "vk_format_utils.cpp",
+        "vk_reconstruction.cpp",
+        "vk_utils.cpp",
+        "vulkan_boxed_handles.cpp",
+        "vulkan_dispatch.cpp",
+        "vulkan_handle_mapping.cpp",
+        "vulkan_stream.cpp",
     ],
     // http://b/178667698 - clang-tidy crashes with VulkanStream.cpp
     // https://android-review.googlesource.com/c/device/generic/vulkan-cereal/+/1560695/
     // http://b/255937616 - clang-tidy can take long with VkDecoder.cpp
     tidy_disabled_srcs: [
-        "VulkanStream.cpp",
-        "VkDecoderGlobalState.cpp", // took more than 400 seconds
-        "VkDecoder.cpp",
+        "vulkan_stream.cpp",
+        "vk_decoder_global_state.cpp", // took more than 400 seconds
+        "vk_decoder.cpp",
     ],
     export_include_dirs: [
         ".",
@@ -119,7 +119,7 @@ cc_test_host {
         "libgfxstream_thirdparty_glm",
     ],
     srcs: [
-        "CompositorVk_unittest.cpp",
+        "compositor_vk_unittest.cpp",
     ],
     data: [
         "testdata/256x256_android.png",
@@ -175,7 +175,7 @@ cc_test_host {
     name: "gfxstream_vkformatutils_tests",
     defaults: ["gfxstream_host_cc_defaults"],
     srcs: [
-        "VkFormatUtils_unittest.cpp",
+        "vk_format_utils_unittest.cpp",
     ],
     header_libs: [
         "libgfxstream_thirdparty_glm",
@@ -201,7 +201,7 @@ cc_test_host {
     name: "gfxstream_vkemulatedphysicaldevicememory_tests",
     defaults: ["gfxstream_host_cc_defaults"],
     srcs: [
-        "VkEmulatedPhysicalDeviceMemoryTests.cpp",
+        "vk_emulated_physical_device_memory_tests.cpp",
     ],
     shared_libs: [
         "libbase",
@@ -229,7 +229,7 @@ cc_test_host {
     name: "gfxstream_vkutil_tests",
     defaults: ["gfxstream_host_cc_defaults"],
     srcs: [
-        "VkUtilsTests.cpp",
+        "vk_utils_tests.cpp",
     ],
     shared_libs: [
         "libbase",
@@ -258,7 +258,7 @@ cc_test_host {
     name: "gfxstream_vkemulatedphysicaldevicequeue_tests",
     defaults: ["gfxstream_host_cc_defaults"],
     srcs: [
-        "VkEmulatedPhysicalDeviceQueueTests.cpp",
+        "vk_emulated_physical_device_queue_tests.cpp",
     ],
     shared_libs: [
         "libbase",

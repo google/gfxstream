@@ -32,8 +32,8 @@ cc_library_static {
         "libgfxstream_common_base",
     ],
     srcs: [
-        "AstcTexture.cpp",
-        "CompressedImageInfo.cpp",
-        "GpuDecompressionPipeline.cpp",
+        "astc_texture.cpp",
+        "compressed_image_info.cpp",
+        "gpu_decompression_pipeline.cpp",
     ],
 }

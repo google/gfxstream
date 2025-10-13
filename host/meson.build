@@ -57,30 +57,30 @@ link_gfxstream_backend = [
 ]
 
 files_lib_gfxstream_backend = files(
-  'Buffer.cpp',
-  'ChannelStream.cpp',
-  'ColorBuffer.cpp',
-  'FrameBuffer.cpp',
-  'Hwc2.cpp',
-  'PostWorker.cpp',
-  'ReadBuffer.cpp',
+  'buffer.cpp',
+  'channel_stream.cpp',
+  'color_buffer.cpp',
+  'frame_buffer.cpp',
+  'hwc2.cpp',
+  'post_worker.cpp',
+  'read_buffer.cpp',
   'render_api.cpp',
-  'RenderChannelImpl.cpp',
-  'RendererImpl.cpp',
-  'RenderLibImpl.cpp',
-  'RenderThread.cpp',
-  'RenderThreadInfo.cpp',
-  'RenderWindow.cpp',
-  'RingStream.cpp',
-  'SyncThread.cpp',
-  'virtio-gpu-gfxstream-renderer.cpp',
-  'VirtioGpuContext.cpp',
-  'VirtioGpuFrontend.cpp',
-  'VirtioGpuPipe.cpp',
-  'VirtioGpuResource.cpp',
-  'VirtioGpuRingBlob.cpp',
-  'VirtioGpuTimelines.cpp',
-  'VsyncThread.cpp',
+  'render_channel_impl.cpp',
+  'renderer_impl.cpp',
+  'render_lib_impl.cpp',
+  'render_thread.cpp',
+  'render_thread_info.cpp',
+  'render_window.cpp',
+  'ring_stream.cpp',
+  'sync_thread.cpp',
+  'virtio_gpu_context.cpp',
+  'virtio_gpu_frontend.cpp',
+  'virtio_gpu_gfxstream_renderer.cpp',
+  'virtio_gpu_pipe.cpp',
+  'virtio_gpu_resource.cpp',
+  'virtio_gpu_ring_blob.cpp',
+  'virtio_gpu_timelines.cpp',
+  'vsync_thread.cpp',
 )
 
 if use_gles or use_vulkan
@@ -97,8 +97,8 @@ endif
 if use_gles
   subdir('gl')
 
-  files_lib_gfxstream_backend += files('PostWorkerGl.cpp')
-  files_lib_gfxstream_backend += files('RenderControl.cpp')
+  files_lib_gfxstream_backend += files('post_worker_gl.cpp')
+  files_lib_gfxstream_backend += files('render_control.cpp')
 
   inc_gfxstream_backend += [
     inc_gl_common,
@@ -125,16 +125,16 @@ if use_composer
 endif
 
 if not use_gles
-  files_lib_gfxstream_backend += files('NativeSubWindow_stub.cpp')
+  files_lib_gfxstream_backend += files('native_sub_window_stub.cpp')
 elif host_machine.system() == 'darwin'
-  files_lib_gfxstream_backend += files('NativeSubWindow_cocoa.mm')
+  files_lib_gfxstream_backend += files('native_sub_window_cocoa.mm')
 elif host_machine.system() == 'windows'
-  files_lib_gfxstream_backend += files('NativeSubWindow_win32.cpp')
+  files_lib_gfxstream_backend += files('native_sub_window_win32.cpp')
 elif host_machine.system() == 'linux' and use_gles
-  files_lib_gfxstream_backend += files('NativeSubWindow_x11.cpp')
+  files_lib_gfxstream_backend += files('native_sub_window_x11.cpp')
 elif host_machine.system() == 'qnx'
   files_lib_gfxstream_backend += files(
-    'NativeSubWindow_qnx.cpp',
+    'native_sub_window_qnx.cpp',
   )
 endif
 

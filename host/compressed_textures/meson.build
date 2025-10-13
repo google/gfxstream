@@ -4,7 +4,7 @@
 inc_host_compressed_textures = include_directories('include')
 
 files_lib_host_compressed_textures = files(
-  'AstcCpuDecompressorNoOp.cpp',
+  'astc_cpu_decompressor_noop.cpp',
 )
 
 lib_host_compressed_textures = static_library(

@@ -62,38 +62,38 @@ endif()
 
 # Stream server core
 set(stream-server-core-sources
-    Buffer.cpp
-    ChannelStream.cpp
-    ColorBuffer.cpp
-    FrameBuffer.cpp
-    Hwc2.cpp
-    PostWorker.cpp
-    PostWorkerGl.cpp
-    ReadBuffer.cpp
-    RenderChannelImpl.cpp
-    RenderControl.cpp
-    RendererImpl.cpp
-    RenderLibImpl.cpp
-    RenderThread.cpp
-    RenderThreadInfo.cpp
-    RenderWindow.cpp
-    RingStream.cpp
-    SyncThread.cpp
-    VirtioGpuContext.cpp
-    VirtioGpuFrontend.cpp
-    VirtioGpuPipe.cpp
-    VirtioGpuResource.cpp
-    VirtioGpuRingBlob.cpp
-    VirtioGpuTimelines.cpp
-    VsyncThread.cpp)
+    buffer.cpp
+    channel_stream.cpp
+    color_buffer.cpp
+    frame_buffer.cpp
+    hwc2.cpp
+    post_worker.cpp
+    post_worker_gl.cpp
+    read_buffer.cpp
+    render_channel_impl.cpp
+    render_control.cpp
+    renderer_impl.cpp
+    render_lib_impl.cpp
+    render_thread.cpp
+    render_thread_info.cpp
+    render_window.cpp
+    ring_stream.cpp
+    sync_thread.cpp
+    virtio_gpu_context.cpp
+    virtio_gpu_frontend.cpp
+    virtio_gpu_pipe.cpp
+    virtio_gpu_resource.cpp
+    virtio_gpu_ring_blob.cpp
+    virtio_gpu_timelines.cpp
+    vsync_thread.cpp)
 if (APPLE)
-    set(stream-server-core-platform-sources NativeSubWindow_cocoa.mm)
+    set(stream-server-core-platform-sources native_sub_window_cocoa.mm)
 elseif (WIN32)
-    set(stream-server-core-platform-sources NativeSubWindow_win32.cpp)
+    set(stream-server-core-platform-sources native_sub_window_win32.cpp)
 elseif (QNX)
-    set(stream-server-core-platform-sources NativeSubWindow_qnx.cpp)
+    set(stream-server-core-platform-sources native_sub_window_qnx.cpp)
 else()
-    set(stream-server-core-platform-sources NativeSubWindow_x11.cpp)
+    set(stream-server-core-platform-sources native_sub_window_x11.cpp)
 endif()
 
 
@@ -173,7 +173,7 @@ add_library(
     gfxstream_backend
     SHARED
     render_api.cpp
-    virtio-gpu-gfxstream-renderer.cpp)
+    virtio_gpu_gfxstream_renderer.cpp)
 
 target_link_libraries(
     gfxstream_backend
@@ -248,8 +248,8 @@ endfunction()
     # Basic opengl rendering tests##################################################
     add_executable(
         OpenglRender_unittests
-        FrameBuffer_unittest.cpp
-        VsyncThread_unittest.cpp
+        frame_buffer_unittest.cpp
+        vsync_thread_unittest.cpp
         tests/GLES1Dispatch_unittest.cpp
         tests/DefaultFramebufferBlit_unittest.cpp
         tests/TextureDraw_unittest.cpp
@@ -305,15 +305,15 @@ endfunction()
     # Vulkan tests##################################################################
     add_executable(
         Vulkan_unittests
-        VirtioGpuTimelinesTests.cpp
-        vulkan/CompositorVk_unittest.cpp
-        vulkan/DisplayVk_unittest.cpp
-        vulkan/SwapChainStateVk_unittest.cpp
-        vulkan/VkDecoderGlobalState_unittest.cpp
-        vulkan/VkFormatUtils_unittest.cpp
-        vulkan/VkQsriTimeline_unittest.cpp
-        vulkan/VkUtilsTests.cpp
-        vulkan/Vulkan_unittest.cpp
+        virtio_gpu_timelines_tests.cpp
+        vulkan/compositor_vk_unittest.cpp
+        vulkan/display_vk_unittest.cpp
+        vulkan/swap_chain_state_vk_unittest.cpp
+        vulkan/vk_decoder_global_state_unittest.cpp
+        vulkan/vk_format_utils_unittest.cpp
+        vulkan/vk_qsri_timeline_unittest.cpp
+        vulkan/vk_utils_tests.cpp
+        vulkan/vulkan_unittest.cpp
     )
     target_link_libraries(
         Vulkan_unittests

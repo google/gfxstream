@@ -9,7 +9,7 @@ package(
 cc_library(
     name = "gfxstream_host_compressed_textures",
     srcs = [
-        "AstcCpuDecompressorNoOp.cpp",
+        "astc_cpu_decompressor_noop.cpp",
     ],
     hdrs = glob(["include/**/*.h"]),
     copts = GFXSTREAM_HOST_COPTS,
@@ -23,7 +23,7 @@ cc_library(
 cc_test(
     name = "gfxstream_host_compressed_textures_unittests",
     srcs = [
-        "AstcCpuDecompressor_unittest.cpp",
+        "astc_cpu_decompressor_unittest.cpp",
     ],
     copts = GFXSTREAM_HOST_COPTS,
     deps = [

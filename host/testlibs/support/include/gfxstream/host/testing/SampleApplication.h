@@ -18,14 +18,14 @@
 #include <functional>
 #include <memory>
 
-#include "FrameBuffer.h"
-#include "Hwc2.h"
+#include "host/frame_buffer.h"
+#include "host/hwc2.h"
 #include "OpenGLESDispatch/GLESv2Dispatch.h"
-#include "RenderThreadInfo.h"
+#include "host/render_thread_info.h"
 #include "gfxstream/Compiler.h"
 #include "gfxstream/host/testing/OSWindow.h"
-#include "EmulatedEglContext.h"
-#include "EmulatedEglFenceSync.h"
+#include "host/gl/emulated_egl_context.h"
+#include "host/gl/emulated_egl_fence_sync.h"
 
 namespace gfxstream {
 

@@ -20,7 +20,7 @@ cc_library_static {
     name: "libgfxstream_host_compressedtextures",
     defaults: ["gfxstream_host_cc_defaults"],
     srcs: [
-        "AstcCpuDecompressorNoOp.cpp",
+        "astc_cpu_decompressor_noop.cpp",
     ],
     static_libs: [
         "libgfxstream_etc",

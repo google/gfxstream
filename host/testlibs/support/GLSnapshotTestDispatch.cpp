@@ -14,8 +14,8 @@
 
 #include "gfxstream/host/testing/GLSnapshotTestDispatch.h"
 
-#include "FrameBuffer.h"
-#include "RenderThreadInfo.h"
+#include "host/frame_buffer.h"
+#include "host/render_thread_info.h"
 #include "gfxstream/host/glUtils.h"
 #include "gfxstream/host/testing/GLSnapshotTesting.h"
 #include "gfxstream/host/testing/GLTestUtils.h"

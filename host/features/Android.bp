@@ -23,6 +23,6 @@ cc_library_static {
         "include",
     ],
     srcs: [
-        "Features.cpp",
+        "features.cpp",
     ],
 }
