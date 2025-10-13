@@ -77,6 +77,7 @@ cc_library_static {
         "DeviceOpTracker.cpp",
         "DisplaySurfaceVk.cpp",
         "DisplayVk.cpp",
+        "ExternalMemory.cpp",
         "PostWorkerVk.cpp",
         "RenderThreadInfoVk.cpp",
         "SwapChainStateVk.cpp",
