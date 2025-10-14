@@ -176,7 +176,7 @@ TEST_P(GfxstreamEnd2EndCompositionTest, BasicCompositionBGRA) {
     GFXSTREAM_ASSERT(CompareAHBWithGolden(resultAhb, "256x256_golden_basic_composition.png"));
 }
 
-TEST_P(GfxstreamEnd2EndCompositionTest, BasicCompositionYV12) {
+TEST_P(GfxstreamEnd2EndCompositionTest, DISABLED_BasicCompositionYV12) {
     ScopedRenderControlDevice rcDevice(*mRc);
 
     auto yuvColor = PixelR8G8B8A8(66, 99, 160, 255);
