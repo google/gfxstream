@@ -29,8 +29,10 @@ Thread::Thread(ThreadFlags flags, int stackSize, std::optional<std::string> name
     : mStackSize(stackSize), mFlags(flags), mNameOpt(std::move(nameOpt)) {}
 
 Thread::~Thread() {
+    intptr_t exitStatus = 0;
     if (mThread) {
         assert(!mStarted || mFinished);
+        wait(&exitStatus);
         CloseHandle(mThread);
     }
 }
