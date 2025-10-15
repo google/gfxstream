@@ -95,6 +95,7 @@ cc_defaults {
         "libgfxstream_host_vulkan_cereal_common",
         "libgfxstream_thirdparty_glm",
         "libgfxstream_thirdparty_renderdoc_headers",
+        "libgfxstream_thirdparty_xcb_headers",
     ],
     export_header_lib_headers: [
         "libgfxstream_thirdparty_renderdoc_headers",

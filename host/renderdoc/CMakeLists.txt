@@ -24,7 +24,9 @@ target_link_libraries(
     gfxstream_host_renderdoc
     INTERFACE
     renderdoc
-    gfxstream_vulkan_headers)
+    gfxstream_vulkan_headers
+    gfxstream_xcb_headers
+    )
 
 if (ENABLE_VKCEREAL_TESTS)
     # AEMU build seems to have strange rpath setup which results in

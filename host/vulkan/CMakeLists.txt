@@ -70,6 +70,7 @@ target_link_libraries(gfxstream-vulkan-server PUBLIC
         gfxstream_host_tracing
         gfxstream_openglesdispatch.headers
         gfxstream_vulkan_headers
+        gfxstream_xcb_headers
         OpenglRender_vulkan_cereal
         PRIVATE
         gfxstream_opengl_headers

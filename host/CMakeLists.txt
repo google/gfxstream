@@ -128,6 +128,7 @@ target_link_libraries(
         gfxstream_openglesdispatch
         gfxstream-gl-server
         gfxstream-vulkan-server
+        gfxstream_xcb_headers
         GLES_CM_translator_static
         renderControl_dec
         )

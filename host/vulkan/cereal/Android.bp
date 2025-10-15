@@ -37,6 +37,7 @@ cc_library_static {
     header_libs: [
         "libgfxstream_thirdparty_vulkan_headers",
         "libgfxstream_host_vulkan_cereal_common",
+        "libgfxstream_thirdparty_xcb_headers",
     ],
     export_header_lib_headers: [
         "libgfxstream_thirdparty_vulkan_headers",

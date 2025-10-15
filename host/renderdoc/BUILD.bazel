@@ -17,6 +17,7 @@ cc_library(
         "//host/library:gfxstream_host_library",
         "//third_party/renderdoc",
         "//third_party/vulkan:gfxstream_vulkan_headers",
+        "//third_party/xcb",
     ],
 )
 

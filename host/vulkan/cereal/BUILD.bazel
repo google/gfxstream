@@ -60,5 +60,6 @@ cc_library(
         "//host/vulkan:gfxstream_vulkan_headers",
         "//host/vulkan:gfxstream_vulkan_server_headers",
         "//third_party/vulkan:gfxstream_vulkan_headers",
+        "//third_party/xcb",
     ],
 )

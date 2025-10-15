@@ -74,6 +74,7 @@ cc_library(
         "//third_party/opengl:gfxstream_gles2_headers",
         "//third_party/opengl:gfxstream_gles3_headers",
         "//third_party/vulkan:gfxstream_vulkan_headers",
+        "//third_party/xcb",
     ],
 )
 
@@ -218,6 +219,7 @@ cc_library(
         "//third_party/opengl:gfxstream_gles2_headers",
         "//third_party/opengl:gfxstream_gles3_headers",
         "//third_party/vulkan:gfxstream_vulkan_headers",
+        "//third_party/xcb",
     ] + select({
         "@platforms//os:macos": [
             ":gfxstream_backend_static-darwin",
