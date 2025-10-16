@@ -58,8 +58,9 @@ class DisplayVkTest : public ::testing::Test {
         ASSERT_EQ(k_vk->vkCreateCommandPool(m_vkDevice, &commandPoolCi, nullptr, &m_vkCommandPool),
                   VK_SUCCESS);
         m_displayVk = std::make_unique<DisplayVk>(
-            *k_vk, m_vkPhysicalDevice, m_swapChainQueueFamilyIndex, m_compositorQueueFamilyIndex,
-            m_vkDevice, m_compositorVkQueue, m_compositorVkQueueLock, m_swapChainVkQueue,
+            *k_vk, m_vkPhysicalDevice, m_vkDevice, nullptr, m_compositorQueueFamilyIndex,
+            m_compositorVkQueue, m_compositorVkQueueLock,
+            m_swapChainQueueFamilyIndex, m_swapChainVkQueue,
             m_swapChainVkQueueLock);
         m_displaySurface = std::make_unique<DisplaySurface>(
             k_width, k_height,
@@ -230,9 +231,9 @@ TEST_F(DisplayVkTest, Init) {}
 TEST_F(DisplayVkTest, PostWithoutSurfaceShouldntCrash) {
     uint32_t textureWidth = 20;
     uint32_t textureHeight = 40;
-    DisplayVk displayVk(*k_vk, m_vkPhysicalDevice, m_swapChainQueueFamilyIndex,
-                        m_compositorQueueFamilyIndex, m_vkDevice, m_compositorVkQueue,
-                        m_compositorVkQueueLock, m_swapChainVkQueue, m_swapChainVkQueueLock);
+    DisplayVk displayVk(*k_vk, m_vkPhysicalDevice, m_vkDevice, nullptr,
+                        m_compositorQueueFamilyIndex, m_compositorVkQueue, m_compositorVkQueueLock,
+                        m_swapChainQueueFamilyIndex, m_swapChainVkQueue, m_swapChainVkQueueLock);
     auto texture = RenderTexture::create(*k_vk, m_vkDevice, m_vkPhysicalDevice, m_compositorVkQueue,
                                          m_vkCommandPool, textureWidth, textureHeight);
     std::vector<uint32_t> pixels(textureWidth * textureHeight, 0);

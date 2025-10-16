@@ -70,6 +70,8 @@ class SwapChainStateVk {
     VkExtent2D getImageExtent() const;
     const std::vector<VkImage>& getVkImages() const;
     const std::vector<VkImageView>& getVkImageViews() const;
+    const std::vector<VkRenderPass>& getVkRenderPasses() const;
+    const std::vector<VkFramebuffer>& getVkFramebuffers() const;
     VkSwapchainKHR getSwapChain() const;
 
    private:
@@ -85,6 +87,12 @@ class SwapChainStateVk {
     VkExtent2D m_vkImageExtent;
     std::vector<VkImage> m_vkImages;
     std::vector<VkImageView> m_vkImageViews;
+
+    // RenderPasses and Framebuffers for rendering into the swapchain image
+    // TODO(b/389646068): Refactor rendering routines to move these to a higher level with more
+    // control, or maybe use dynamic rendering to avoid the need altogether.
+    std::vector<VkRenderPass> m_vkRenderPasses;
+    std::vector<VkFramebuffer> m_vkFramebuffers;
 };
 
 }  // namespace vk

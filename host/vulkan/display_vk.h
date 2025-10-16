@@ -42,9 +42,10 @@ namespace vk {
 
 class DisplayVk : public Display {
    public:
-    DisplayVk(const VulkanDispatch&, VkPhysicalDevice, uint32_t swapChainQueueFamilyIndex,
-              uint32_t compositorQueueFamilyIndex, VkDevice, VkQueue compositorVkQueue,
-              std::shared_ptr<gfxstream::base::Lock> compositorVkQueueLock, VkQueue swapChainVkQueue,
+    DisplayVk(const VulkanDispatch&, VkPhysicalDevice, VkDevice, CompositorVk* compositorVk,
+              uint32_t compositorQueueFamilyIndex, VkQueue compositorVkQueue,
+              std::shared_ptr<gfxstream::base::Lock> compositorVkQueueLock,
+              uint32_t swapChainQueueFamilyIndex, VkQueue swapChainVkQueue,
               std::shared_ptr<gfxstream::base::Lock> swapChainVkQueueLock);
     ~DisplayVk();
 
@@ -74,11 +75,14 @@ class DisplayVk : public Display {
 
     const VulkanDispatch& m_vk;
     VkPhysicalDevice m_vkPhysicalDevice;
-    uint32_t m_swapChainQueueFamilyIndex;
-    uint32_t m_compositorQueueFamilyIndex;
     VkDevice m_vkDevice;
+    CompositorVk* m_compositorVk;  // TODO(b/442394091): temporary addition, refactor compositor to
+                                   // separate drawing routines like TextureDraw in GL side
+
+    uint32_t m_compositorQueueFamilyIndex;
     VkQueue m_compositorVkQueue;
     std::shared_ptr<gfxstream::base::Lock> m_compositorVkQueueLock;
+    uint32_t m_swapChainQueueFamilyIndex;
     VkQueue m_swapChainVkQueue;
     std::shared_ptr<gfxstream::base::Lock> m_swapChainVkQueueLock;
     VkCommandPool m_vkCommandPool;

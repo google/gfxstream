@@ -103,6 +103,11 @@ VkResult SwapChainStateVk::initSwapChainStateVk(const VkSwapchainCreateInfoKHR& 
     m_vkImages.resize(imageCount);
     VK_CHECK(
         m_vk.vkGetSwapchainImagesKHR(m_vkDevice, m_vkSwapChain, &imageCount, m_vkImages.data()));
+
+    m_vkImageViews.resize(imageCount);
+    m_vkRenderPasses.resize(imageCount);
+    m_vkFramebuffers.resize(imageCount);
+
     for (size_t i = 0; i < m_vkImages.size(); i++) {
         VkImageViewCreateInfo imageViewCi = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
@@ -118,10 +123,64 @@ VkResult SwapChainStateVk::initSwapChainStateVk(const VkSwapchainCreateInfoKHR& 
                                  .levelCount = 1,
                                  .baseArrayLayer = 0,
                                  .layerCount = 1}};
-        VkImageView vkImageView;
-        VK_CHECK(m_vk.vkCreateImageView(m_vkDevice, &imageViewCi, nullptr, &vkImageView));
-        m_vkImageViews.push_back(vkImageView);
+        VK_CHECK(m_vk.vkCreateImageView(m_vkDevice, &imageViewCi, nullptr, &m_vkImageViews[i]));
+
+        VkAttachmentDescription colorAttachment = {
+            .format = k_vkFormat,
+            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+            .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+            .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+            .initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        };
+
+        const VkAttachmentReference colorAttachmentRef = {
+            .attachment = 0,
+            .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        };
+
+        const VkSubpassDescription subpass = {
+            .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+            .colorAttachmentCount = 1,
+            .pColorAttachments = &colorAttachmentRef,
+        };
+
+        const VkSubpassDependency subpassDependency = {
+            .srcSubpass = VK_SUBPASS_EXTERNAL,
+            .dstSubpass = 0,
+            .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            .srcAccessMask = 0,
+            .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+        };
+
+        const VkRenderPassCreateInfo renderPassCi = {
+            .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+            .attachmentCount = 1,
+            .pAttachments = &colorAttachment,
+            .subpassCount = 1,
+            .pSubpasses = &subpass,
+            .dependencyCount = 1,
+            .pDependencies = &subpassDependency,
+        };
+
+        VK_CHECK(m_vk.vkCreateRenderPass(m_vkDevice, &renderPassCi, nullptr, &m_vkRenderPasses[i]));
+
+        const VkFramebufferCreateInfo framebufferCi = {
+            .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+            .flags = 0,
+            .renderPass = m_vkRenderPasses[i],
+            .attachmentCount = 1,
+            .pAttachments = &m_vkImageViews[i],
+            .width = m_vkImageExtent.width,
+            .height = m_vkImageExtent.height,
+            .layers = 1,
+        };
+        VK_CHECK(m_vk.vkCreateFramebuffer(m_vkDevice, &framebufferCi, nullptr, &m_vkFramebuffers[i]));
     }
+
     return VK_SUCCESS;
 }
 
@@ -232,13 +291,17 @@ std::optional<SwapchainCreateInfoWrapper> SwapChainStateVk::createSwapChainCi(
             string_VkFormat(k_vkFormat), string_VkFormatFeatureFlags(formatFeatures).c_str());
         return std::nullopt;
     }
+
+    VkImageUsageFlags requiredUsageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+
     VkSurfaceCapabilitiesKHR surfaceCaps;
     VK_CHECK(vk.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &surfaceCaps));
-    if (!(surfaceCaps.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_DST_BIT)) {
+    if ((surfaceCaps.supportedUsageFlags & requiredUsageFlags) != requiredUsageFlags) {
         GFXSTREAM_ERROR(
             "The supported usage flags of the presentable images is %s, and don't contain "
-            "VK_IMAGE_USAGE_TRANSFER_DST_BIT.",
-            string_VkImageUsageFlags(surfaceCaps.supportedUsageFlags).c_str());
+            "all required flags '%s'.",
+            string_VkImageUsageFlags(surfaceCaps.supportedUsageFlags).c_str(),
+            string_VkImageUsageFlags(requiredUsageFlags).c_str());
         return std::nullopt;
     }
     std::optional<VkExtent2D> maybeExtent = std::nullopt;
@@ -272,7 +335,7 @@ std::optional<SwapchainCreateInfoWrapper> SwapChainStateVk::createSwapChainCi(
         .imageColorSpace = iSurfaceFormat->colorSpace,
         .imageExtent = extent,
         .imageArrayLayers = 1,
-        .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+        .imageUsage = requiredUsageFlags,
         .imageSharingMode = VkSharingMode{},
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
@@ -303,6 +366,10 @@ VkExtent2D SwapChainStateVk::getImageExtent() const { return m_vkImageExtent; }
 const std::vector<VkImage>& SwapChainStateVk::getVkImages() const { return m_vkImages; }
 
 const std::vector<VkImageView>& SwapChainStateVk::getVkImageViews() const { return m_vkImageViews; }
+
+const std::vector<VkRenderPass>& SwapChainStateVk::getVkRenderPasses() const { return m_vkRenderPasses; }
+
+const std::vector<VkFramebuffer>& SwapChainStateVk::getVkFramebuffers() const { return m_vkFramebuffers; }
 
 VkSwapchainKHR SwapChainStateVk::getSwapChain() const { return m_vkSwapChain; }
 

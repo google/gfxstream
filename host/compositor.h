@@ -44,6 +44,8 @@ class Compositor {
     virtual CompositionFinishedWaitable compose(const CompositionRequest& compositionRequest) = 0;
 
     virtual void onImageDestroyed(uint32_t imageId) {}
+
+    virtual void setScreenMask(int width, int height, const uint8_t* rgbaData) = 0;
 };
 
 }  // namespace host

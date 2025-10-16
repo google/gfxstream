@@ -1626,9 +1626,9 @@ void VkEmulation::initFeatures(Features features) {
         if (mDisplayVk) {
             GFXSTREAM_ERROR("Reset VkEmulation::displayVk.");
         }
-        mDisplayVk = std::make_unique<DisplayVk>(*mIvk, mPhysicalDevice, mQueueFamilyIndex,
-                                                 mQueueFamilyIndex, mDevice, mQueue, mQueueLock,
-                                                 mQueue, mQueueLock);
+        mDisplayVk = std::make_unique<DisplayVk>(*mIvk, mPhysicalDevice, mDevice,
+                                                 mCompositorVk.get(), mQueueFamilyIndex, mQueue,
+                                                 mQueueLock, mQueueFamilyIndex, mQueue, mQueueLock);
     }
 
     auto representativeInfo = findRepresentativeColorBufferMemoryTypeIndexLocked();

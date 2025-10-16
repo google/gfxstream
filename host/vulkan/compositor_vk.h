@@ -100,18 +100,25 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
 
     // Unused image that is solely used to occupy the sampled image binding
     // when compositing a solid color layer.
-    struct DefaultImage {
+    struct Image {
         VkImage m_vkImage = VK_NULL_HANDLE;
         VkImageView m_vkImageView = VK_NULL_HANDLE;
         VkDeviceMemory m_vkImageMemory = VK_NULL_HANDLE;
-    } m_defaultImage;
+    };
+
+    Image m_defaultImage;
+
+    gfxstream::base::Lock mMaskLock;
+    Image m_screenMaskImage;
 
     // The underlying storage for all of the uniform buffer objects.
     struct UniformBufferStorage {
         VkBuffer m_vkBuffer = VK_NULL_HANDLE;
         VkDeviceMemory m_vkDeviceMemory = VK_NULL_HANDLE;
         VkDeviceSize m_stride = 0;
-    } m_uniformStorage;
+    };
+
+    UniformBufferStorage m_uniformStorage;
 
     // Keep in sync with vulkan/Compositor.frag.
     struct SamplerBinding {
@@ -197,10 +204,19 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
 
     CompositionFinishedWaitable compose(const CompositionRequest& compositionRequest) override;
 
+    void setScreenMask(int width, int height, const uint8_t* rgbaData) override;
+
     void onImageDestroyed(uint32_t imageId) override;
 
     static bool queueSupportsComposition(const VkQueueFamilyProperties& properties) {
         return properties.queueFlags & VK_QUEUE_GRAPHICS_BIT;
+    }
+
+    // Check if a screen mask image has been set for the final composition
+    bool hasScreenMask() const { return (m_screenMaskImage.m_vkImage != VK_NULL_HANDLE); }
+
+    VkImageView getScreenMaskView() const {
+        return m_screenMaskImage.m_vkImageView;
     }
 
    private:
@@ -221,7 +237,16 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
     void setUpCommandPool();
     void setUpFences();
     void setUpDefaultImage();
+    void setUpScreenMaskImage(uint32_t width, uint32_t height, const uint8_t* rgbaData);
     void setUpFrameResourceFutures();
+
+    void setUpUniformBuffersImpl(std::vector<PerFrameResources>& frameResources, UniformBufferStorage& uniformBufferStorage);
+
+    Image createImage(uint32_t width, uint32_t height, const uint8_t* rgbaData,
+                      const std::string& debugName);
+    void destroyImage(Image& img);
+
+    void destroyUniformBufferStorage(UniformBufferStorage& storage);
 
     std::optional<std::tuple<VkBuffer, VkDeviceMemory>> createBuffer(VkDeviceSize,
                                                                      VkBufferUsageFlags,

@@ -53,19 +53,20 @@ bool shouldRecreateSwapchain(VkResult result) {
 
 }  // namespace
 
-DisplayVk::DisplayVk(const VulkanDispatch& vk, VkPhysicalDevice vkPhysicalDevice,
-                     uint32_t swapChainQueueFamilyIndex, uint32_t compositorQueueFamilyIndex,
-                     VkDevice vkDevice, VkQueue compositorVkQueue,
+DisplayVk::DisplayVk(const VulkanDispatch& vk, VkPhysicalDevice vkPhysicalDevice, VkDevice vkDevice,
+                     CompositorVk* compositorVk,
+                     uint32_t compositorQueueFamilyIndex, VkQueue compositorVkQueue,
                      std::shared_ptr<gfxstream::base::Lock> compositorVkQueueLock,
-                     VkQueue swapChainVkqueue,
+                     uint32_t swapChainQueueFamilyIndex, VkQueue swapChainVkqueue,
                      std::shared_ptr<gfxstream::base::Lock> swapChainVkQueueLock)
     : m_vk(vk),
       m_vkPhysicalDevice(vkPhysicalDevice),
-      m_swapChainQueueFamilyIndex(swapChainQueueFamilyIndex),
-      m_compositorQueueFamilyIndex(compositorQueueFamilyIndex),
       m_vkDevice(vkDevice),
+      m_compositorVk(compositorVk),
+      m_compositorQueueFamilyIndex(compositorQueueFamilyIndex),
       m_compositorVkQueue(compositorVkQueue),
       m_compositorVkQueueLock(compositorVkQueueLock),
+      m_swapChainQueueFamilyIndex(swapChainQueueFamilyIndex),
       m_swapChainVkQueue(swapChainVkqueue),
       m_swapChainVkQueueLock(swapChainVkQueueLock),
       m_vkCommandPool(VK_NULL_HANDLE),
@@ -99,6 +100,7 @@ void DisplayVk::drainQueues() {
     // We don't assume all VkCommandBuffer submitted to m_compositorVkQueueLock is always followed
     // by another operation on the m_swapChainVkQueue. Therefore, only waiting for the
     // m_swapChainVkQueue is not enough to guarantee all resources used are free to be destroyed.
+    if (m_swapChainVkQueue != m_compositorVkQueue)
     {
         gfxstream::base::AutoLock lock(*m_compositorVkQueueLock);
         VK_CHECK(vk_util::waitForVkQueueIdleWithRetry(m_vk, m_compositorVkQueue));

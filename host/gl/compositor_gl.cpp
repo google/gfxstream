@@ -44,7 +44,11 @@ std::shared_future<void> getCompletedFuture() {
 
 }  // namespace
 
-CompositorGl::CompositorGl(TextureDraw* textureDraw) : m_textureDraw(textureDraw) {}
+CompositorGl::CompositorGl(TextureDraw* textureDraw) : m_textureDraw(textureDraw) {
+    if(!m_textureDraw) {
+        GFXSTREAM_FATAL("CompositorGl requires a valid TextureDraw object!");
+    }
+}
 
 CompositorGl::~CompositorGl() {}
 
@@ -96,6 +100,11 @@ Compositor::CompositionFinishedWaitable CompositorGl::compose(
     // passes along a GL fence or VK fence.
     return getCompletedFuture();
 }
+
+void CompositorGl::setScreenMask(int width, int height, const uint8_t* rgbaData) {
+    m_textureDraw->setScreenMask(width, height, rgbaData);
+}
+
 
 }  // namespace gl
 }  // namespace host
