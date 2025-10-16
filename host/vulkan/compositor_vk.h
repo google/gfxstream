@@ -87,6 +87,7 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
     VkBuffer m_indexVkBuffer;
     VkDeviceMemory m_indexVkDeviceMemory;
     VkDescriptorPool m_vkDescriptorPool;
+    VkDescriptorPool m_vkDescriptorPoolOnDemand;
     VkCommandPool m_vkCommandPool;
     VkSampler m_defaultSampler;
 
@@ -119,6 +120,7 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
     };
 
     UniformBufferStorage m_uniformStorage;
+    UniformBufferStorage m_uniformStorageOnDemand;
 
     // Keep in sync with vulkan/Compositor.frag.
     struct SamplerBinding {
@@ -169,6 +171,9 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
     std::vector<PerFrameResources> m_frameResources;
     std::deque<std::shared_future<PerFrameResources*>> m_availableFrameResources;
 
+    std::vector<PerFrameResources> m_frameResourcesOnDemand;
+    std::deque<std::shared_future<PerFrameResources*>> m_availableFrameResourcesOnDemand;
+
     explicit CompositorVkBase(const VulkanDispatch& vk, VkDevice device,
                               VkPhysicalDevice physicalDevice, VkQueue queue,
                               std::shared_ptr<gfxstream::base::Lock> queueLock,
@@ -189,7 +194,8 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
           m_vkDescriptorPool(VK_NULL_HANDLE),
           m_vkCommandPool(VK_NULL_HANDLE),
           m_defaultSampler(VK_NULL_HANDLE),
-          m_frameResources(maxFramesInFlight) {}
+          m_frameResources(maxFramesInFlight),
+          m_frameResourcesOnDemand(maxFramesInFlight) {}
 };
 
 class CompositorVk : protected CompositorVkBase, public Compositor {
@@ -218,6 +224,14 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
     VkImageView getScreenMaskView() const {
         return m_screenMaskImage.m_vkImageView;
     }
+
+    PerFrameResources* drawScreenMask(VkCommandBuffer commandBuffer, VkFormat targetFormat,
+                                      uint32_t targetWidth, uint32_t targetHeight,
+                                      VkRenderPass targetRenderPass,
+                                      VkFramebuffer targetFramebuffer);
+
+    //TODO(b/389646068): Refactor to provide proper way of acquiring and releasing of resources
+    void releaseOndemandResources(VkFence gpuCompleteFence, PerFrameResources* frameResources);
 
    private:
     explicit CompositorVk(const VulkanDispatch&, VkDevice, VkPhysicalDevice, VkQueue,

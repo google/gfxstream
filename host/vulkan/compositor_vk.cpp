@@ -189,8 +189,10 @@ CompositorVk::~CompositorVk() {
     destroyImage(m_defaultImage);
     destroyImage(m_screenMaskImage);
     destroyUniformBufferStorage(m_uniformStorage);
+    destroyUniformBufferStorage(m_uniformStorageOnDemand);
 
     m_vk.vkDestroyDescriptorPool(m_vkDevice, m_vkDescriptorPool, nullptr);
+    m_vk.vkDestroyDescriptorPool(m_vkDevice, m_vkDescriptorPoolOnDemand, nullptr);
     m_vk.vkFreeMemory(m_vkDevice, m_vertexVkDeviceMemory, nullptr);
     m_vk.vkDestroyBuffer(m_vkDevice, m_vertexVkBuffer, nullptr);
     m_vk.vkFreeMemory(m_vkDevice, m_indexVkDeviceMemory, nullptr);
@@ -208,6 +210,9 @@ CompositorVk::~CompositorVk() {
     m_vk.vkDestroySampler(m_vkDevice, m_defaultSampler, nullptr);
     m_vk.vkDestroyCommandPool(m_vkDevice, m_vkCommandPool, nullptr);
     for (PerFrameResources& frameResources : m_frameResources) {
+        m_vk.vkDestroyFence(m_vkDevice, frameResources.m_vkFence, nullptr);
+    }
+    for (PerFrameResources& frameResources : m_frameResourcesOnDemand) {
         m_vk.vkDestroyFence(m_vkDevice, frameResources.m_vkFence, nullptr);
     }
 }
@@ -480,6 +485,10 @@ void CompositorVk::setUpDescriptorSets() {
     VK_CHECK(
         m_vk.vkCreateDescriptorPool(m_vkDevice, &descriptorPoolCi, nullptr, &m_vkDescriptorPool));
 
+    //TODO(b/389646068): Refactor on demand rendering and avoid using a separate descriptor pool
+    VK_CHECK(
+        m_vk.vkCreateDescriptorPool(m_vkDevice, &descriptorPoolCi, nullptr, &m_vkDescriptorPoolOnDemand));
+
     auto allocateFrameDescriptorSetsForLayout = [&](VkDescriptorPool pool,
                                                              VkDescriptorSetLayout layout,
                                                              UniformBufferStorage& uniformStorage,
@@ -536,6 +545,19 @@ void CompositorVk::setUpDescriptorSets() {
                 uniformBufferOffset);
         }
     }
+
+    VkDeviceSize uniformBufferOffsetOnDemand = 0;
+    for (uint32_t frameIndex = 0; frameIndex < m_maxFramesInFlight; ++frameIndex) {
+        PerFrameResources& frameResourcesOnDemand =
+            *const_cast<PerFrameResources*>(&m_frameResourcesOnDemand[frameIndex]);
+
+        for (const auto& [format, res] : m_perSamplerRes) {
+            frameResourcesOnDemand.m_layerDescriptorSets[format] =
+                allocateFrameDescriptorSetsForLayout(
+                    m_vkDescriptorPoolOnDemand, res.m_vkDescriptorSetLayout,
+                    m_uniformStorageOnDemand, uniformBufferOffsetOnDemand);
+        }
+    }
 }
 
 void CompositorVk::setUpCommandPool() {
@@ -563,6 +585,19 @@ void CompositorVk::setUpFences() {
         VK_CHECK(m_vk.vkCreateFence(m_vkDevice, &fenceCi, nullptr, &fence));
 
         frameResources.m_vkFence = fence;
+    }
+
+    for (uint32_t frameIndex = 0; frameIndex < m_maxFramesInFlight; ++frameIndex) {
+        PerFrameResources& frameResourcesOnDemand = m_frameResourcesOnDemand[frameIndex];
+
+        const VkFenceCreateInfo fenceCi = {
+            .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+        };
+
+        VkFence fence;
+        VK_CHECK(m_vk.vkCreateFence(m_vkDevice, &fenceCi, nullptr, &fence));
+
+        frameResourcesOnDemand.m_vkFence = fence;
     }
 }
 
@@ -767,9 +802,6 @@ void CompositorVk::setUpScreenMaskImage(uint32_t width, uint32_t height, const u
     destroyImage(m_screenMaskImage);
     if (rgbaData) {
         m_screenMaskImage = createImage(width, height, rgbaData, "screenMask");
-        // TODO(b/442394091): Screenmask image is not fully supported in vulkan composition
-        GFXSTREAM_ERROR("%s:%d - Screenmask image is not supported in vulkan composition.",
-                        __func__, __LINE__);
     }
 }
 
@@ -781,6 +813,13 @@ void CompositorVk::setUpFrameResourceFutures() {
             }).share();
 
         m_availableFrameResources.push_back(std::move(availableFrameResourceFuture));
+    }
+    for (uint32_t frameIndex = 0; frameIndex < m_maxFramesInFlight; ++frameIndex) {
+        std::shared_future<PerFrameResources*> availableFrameResourceFuture =
+            std::async(std::launch::deferred, [this, frameIndex] {
+                return &m_frameResourcesOnDemand[frameIndex];
+            }).share();
+        m_availableFrameResourcesOnDemand.push_back(std::move(availableFrameResourceFuture));
     }
 }
 
@@ -801,6 +840,7 @@ void CompositorVk::destroyImage(Image& img) {
 
 void CompositorVk::setUpUniformBuffers() {
     setUpUniformBuffersImpl(m_frameResources, m_uniformStorage);
+    setUpUniformBuffersImpl(m_frameResourcesOnDemand, m_uniformStorageOnDemand);
 }
 
 void CompositorVk::setUpUniformBuffersImpl(std::vector<PerFrameResources>& perFrameResources,
@@ -1612,6 +1652,151 @@ void CompositorVk::updateDescriptorSetsIfChanged(
                                 nullptr);
 
     frameResources->m_vkDescriptorSetsContents = descriptorSetsContents;
+}
+
+CompositorVk::PerFrameResources* CompositorVk::drawScreenMask(
+    VkCommandBuffer commandBuffer, VkFormat targetFormat, uint32_t targetWidth,
+    uint32_t targetHeight, VkRenderPass targetRenderPass, VkFramebuffer targetFramebuffer) {
+    // TODO(b/389646068): Make sure this renders correctly for each rotation mode
+    // TODO(b/389646068): Make sure this renders correctly with size and offset
+    if (!hasScreenMask()) {
+        return nullptr;
+    }
+
+    // If a screen mask is set, add another layer to draw the mask image
+    const VkFormat pipelineSamplerFormat = VK_FORMAT_UNDEFINED;  // Undefined means non-ycbcr
+    const DescriptorSetContents descriptorSetContents = {
+        .binding0 =
+            {
+                .sampledImageId = 0,
+                .sampledImageView = m_screenMaskImage.m_vkImageView,
+                .pipelineSamplerFormat = pipelineSamplerFormat,
+            },
+        .binding1 =
+            {
+                .positionTransform = glm::mat4(1.0f),
+                .texCoordTransform = glm::mat4(1.0f),
+                .colorTransform = glm::mat4(1.0f),
+                .mode = glm::uvec4(static_cast<uint32_t>(HWC2_COMPOSITION_DEVICE), 1.0f, 0, 0),
+                .alpha = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),
+            },
+    };
+
+    FrameDescriptorSetsContents descriptorSetsContents;
+    descriptorSetsContents.descriptorSets.push_back(descriptorSetContents);
+
+    auto pipelineIt =
+        m_vkGraphicsVkPipelines.find(GraphicsPipelineKey{targetFormat, pipelineSamplerFormat});
+    if (pipelineIt == m_vkGraphicsVkPipelines.end()) {
+        GFXSTREAM_FATAL(
+            "CompositorVk::%s failed to find pipeline resources for target:%s sampler:%s", __func__,
+            string_VkFormat(targetFormat), string_VkFormat(pipelineSamplerFormat));
+        return nullptr;
+    }
+
+    // TODO: Change resource management system to unify layer and screenmask/background rendering
+    // Grab and wait for the next available resources.
+    if (m_availableFrameResourcesOnDemand.empty()) {
+        GFXSTREAM_FATAL("CompositorVk::%s failed to get PerFrameResources.", __func__);
+        return nullptr;
+    }
+    auto frameResourceFuture = std::move(m_availableFrameResourcesOnDemand.front());
+    m_availableFrameResourcesOnDemand.pop_front();
+    PerFrameResources* frameResources = frameResourceFuture.get();
+
+    updateDescriptorSetsIfChanged(descriptorSetsContents, frameResources);
+
+    const VkRenderPassBeginInfo renderPassBeginInfo = {
+        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+        .renderPass = targetRenderPass,
+        .framebuffer = targetFramebuffer,
+        .renderArea =
+            {
+                .offset =
+                    {
+                        .x = 0,
+                        .y = 0,
+                    },
+                .extent =
+                    {
+                        .width = targetWidth,
+                        .height = targetHeight,
+                    },
+            },
+        .clearValueCount = 0,
+        .pClearValues = nullptr,
+    };
+
+    const VkRect2D scissor = {
+        .offset =
+            {
+                .x = 0,
+                .y = 0,
+            },
+        .extent =
+            {
+                .width = targetWidth,
+                .height = targetHeight,
+            },
+    };
+    const VkViewport viewport = {
+        .x = 0.0f,
+        .y = 0.0f,
+        .width = static_cast<float>(targetWidth),
+        .height = static_cast<float>(targetHeight),
+        .minDepth = 0.0f,
+        .maxDepth = 1.0f,
+    };
+
+    m_vk.vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+    const VkDeviceSize offsets[] = {0};
+    m_vk.vkCmdBindVertexBuffers(commandBuffer, 0, 1, &m_vertexVkBuffer, offsets);
+
+    m_vk.vkCmdBindIndexBuffer(commandBuffer, m_indexVkBuffer, 0, VK_INDEX_TYPE_UINT16);
+
+    m_vk.vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineIt->second);
+    m_vk.vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+    m_vk.vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+    VkPipelineLayout layerPipelineLayout =
+        m_perSamplerRes[pipelineSamplerFormat].m_vkPipelineLayout;
+    VkDescriptorSet layerDescriptorSet =
+        frameResources->m_layerDescriptorSets[pipelineSamplerFormat][0];
+
+    m_vk.vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                 layerPipelineLayout,
+                                 /*firstSet=*/0,
+                                 /*descriptorSetCount=*/1, &layerDescriptorSet,
+                                 /*dynamicOffsetCount=*/0,
+                                 /*pDynamicOffsets=*/nullptr);
+
+    m_vk.vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(k_indices.size()), 1, 0, 0, 0);
+
+    m_vk.vkCmdEndRenderPass(commandBuffer);
+
+    return frameResources;
+}
+
+void CompositorVk::releaseOndemandResources(VkFence gpuCompleteFence,
+                                            PerFrameResources* frameResources) {
+    std::shared_future<PerFrameResources*> gpuCompleteFutureForResources =
+        std::async(std::launch::deferred, [gpuCompleteFence, frameResources, this]() mutable {
+            GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DEFAULT_CATEGORY, "Wait for on demand complete fence");
+            VkResult res = m_vk.vkWaitForFences(m_vkDevice, 1, &gpuCompleteFence, VK_TRUE,
+                                                kVkWaitForFencesTimeoutNsecs);
+            if (res == VK_SUCCESS) {
+                return frameResources;
+            }
+            if (res == VK_TIMEOUT) {
+                // Retry. If device lost, hopefully this returns immediately.
+                res = m_vk.vkWaitForFences(m_vkDevice, 1, &gpuCompleteFence, VK_TRUE,
+                                           kVkWaitForFencesTimeoutNsecs);
+            }
+            VK_CHECK(res);
+            return frameResources;
+        }).share();
+    m_availableFrameResourcesOnDemand.push_back(gpuCompleteFutureForResources);
 }
 
 }  // namespace vk
