@@ -1088,7 +1088,7 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
 #endif
 
         if (emulation->mInstanceSupportsExternalMemoryCapabilities &&
-            deviceInfos[i].externalMemoryMode != ExternalMemory::Mode::Unknown) {
+            deviceInfos[i].externalMemoryMode != ExternalMemory::Mode::NotSupported) {
             std::vector<const char*> externalMemoryDeviceExtNames;
             ExternalMemory::getDeviceExtensionsForMode(
                 deviceInfos[i].externalMemoryMode, externalMemoryDeviceExtNames);

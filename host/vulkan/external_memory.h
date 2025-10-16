@@ -27,6 +27,7 @@ class ExternalMemory {
    public:
     enum class Mode {
         Unknown = 0,
+        NotSupported,
         OpaqueFd,         // VK_KHR_external_memory_fd
         OpaqueWin32,      // VK_KHR_external_memory_win32
         Metal,            // VK_EXT_external_memory_metal

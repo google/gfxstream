@@ -24,6 +24,8 @@ const char* ExternalMemory::to_string(const ExternalMemory::Mode mode) {
     switch (mode) {
         case Mode::Unknown:
             return "Unknown";
+        case Mode::NotSupported:
+            return "NotSupported";
         case Mode::OpaqueFd:
             return "OpaqueFd";
         case Mode::OpaqueWin32:
@@ -71,7 +73,7 @@ ExternalMemory::Mode ExternalMemory::calculateMode(std::vector<VkExtensionProper
     }
 
     GFXSTREAM_ERROR("%s: Vulkan driver doesn't support any external memory modes!", __func__);
-    return Mode::Unknown;
+    return Mode::NotSupported;
 }
 
 VkExternalMemoryHandleTypeFlagBits ExternalMemory::getHandleType(const ExternalMemory::Mode mode) {

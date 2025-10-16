@@ -186,8 +186,12 @@ class VkEmulation {
     VkExternalMemoryHandleTypeFlagBits getDefaultExternalMemoryHandleType();
     void appendExternalMemoryModeDeviceExtensions(std::vector<const char*>& outDeviceExtensions);
     ExternalMemory::Mode getExternalMemoryMode() const;
-    bool supportsExternalMemoryMetal() { return (getExternalMemoryMode() == ExternalMemory::Mode::Metal); }
-    bool supportsExternalMemory() { return (getExternalMemoryMode() != ExternalMemory::Mode::Unknown); }
+    bool supportsExternalMemoryMetal() {
+        return (getExternalMemoryMode() == ExternalMemory::Mode::Metal);
+    }
+    bool supportsExternalMemory() {
+        return (getExternalMemoryMode() != ExternalMemory::Mode::NotSupported);
+    }
 
     std::unique_ptr<DisplaySurface> createDisplaySurface(FBNativeWindowType window,
                                                                     uint32_t width,
