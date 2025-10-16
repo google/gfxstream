@@ -3113,7 +3113,7 @@ bool VkEmulation::readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint3
         const VkImageMemoryBarrier toCurrentLayoutImageBarrier = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .pNext = nullptr,
-            .srcAccessMask = VK_ACCESS_HOST_READ_BIT,
+            .srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
             .dstAccessMask = VK_ACCESS_NONE_KHR,
             .oldLayout = transferSrcLayout,
             .newLayout = colorBufferInfo->currentLayout,
@@ -3129,7 +3129,7 @@ bool VkEmulation::readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint3
                     .layerCount = 1,
                 },
         };
-        vk->vkCmdPipelineBarrier(mCommandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+        vk->vkCmdPipelineBarrier(mCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
                                  VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0, nullptr, 1,
                                  &toCurrentLayoutImageBarrier);
     } else {
