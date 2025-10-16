@@ -5791,6 +5791,12 @@ class VkDecoderGlobalState::Impl {
             -1,
         };
 #endif
+        VkImportMemoryHostPointerInfoEXT importHostInfo {
+            .sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT,
+            .pNext = NULL,
+            .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT,
+            .pHostPointer =  nullptr,
+        };
 
         void* mappedPtr = nullptr;
         // If required by the platform, wrap the descriptor received from VkEmulation for
@@ -5843,6 +5849,13 @@ class VkDecoderGlobalState::Impl {
                     opaqueFd = false;
                 }
 #endif
+
+                if (m_vkEmulation->getExternalMemoryMode() == ExternalMemory::Mode::HostAllocation) {
+                    importHostInfo.pHostPointer =
+                        m_vkEmulation->getColorBufferHostPointer(importCbInfoPtr->colorBuffer);
+                    vk_append_struct(&structChainIter, &importHostInfo);
+                    opaqueFd = false;
+                }
 
                 if (opaqueFd && m_vkEmulation->supportsExternalMemoryImport()) {
                     auto dupHandleInfo =
@@ -5927,6 +5940,12 @@ class VkDecoderGlobalState::Impl {
                 opaqueFd = false;
             }
 #endif
+            if (m_vkEmulation->getExternalMemoryMode() == ExternalMemory::Mode::HostAllocation) {
+                importHostInfo.pHostPointer =
+                    m_vkEmulation->getBufferHostPointer(importCbInfoPtr->colorBuffer);
+                vk_append_struct(&structChainIter, &importHostInfo);
+                opaqueFd = false;
+            }
 
             if (opaqueFd && m_vkEmulation->supportsExternalMemoryImport()) {
                 auto dupHandleInfo =
@@ -6045,7 +6064,6 @@ class VkDecoderGlobalState::Impl {
         const bool emulateHostVisible = hostVisible && !importEmulatedExternalMemory;
 
         std::optional<SharedMemory> sharedMemory = std::nullopt;
-        std::optional<VkImportMemoryHostPointerInfoEXT> importHostInfo;
         std::optional<VkExportMemoryAllocateInfo> exportAllocateInfo;
         std::shared_ptr<PrivateMemory> privateMemory = {};
 
@@ -6151,13 +6169,13 @@ class VkDecoderGlobalState::Impl {
                             "is: %d",
                             mappedPtrAlignment);
                     }
-                    importHostInfo = {
-                        .sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT,
-                        .pNext = NULL,
-                        .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT,
-                        .pHostPointer = mappedPtr,
-                    };
-                    vk_append_struct(&structChainIter, &*importHostInfo);
+
+                    if (importHostInfo.pHostPointer != nullptr) {
+                        GFXSTREAM_FATAL("%s: Host pointer info is already set import operation!",
+                                        __func__);
+                    }
+                    importHostInfo.pHostPointer = mappedPtr;
+                    vk_append_struct(&structChainIter, &importHostInfo);
                 }
 
                 sharedMemory = std::make_optional<SharedMemory>(std::move(memory));
@@ -6191,12 +6209,12 @@ class VkDecoderGlobalState::Impl {
                 privateMemory =
                     std::make_shared<PrivateMemory>(alignmentSize, localAllocInfo.allocationSize);
                 mappedPtr = privateMemory->getAddr();
-                importHostInfo = {
-                    .sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT,
-                    .pNext = NULL,
-                    .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT,
-                    .pHostPointer = mappedPtr,
-                };
+
+                if (importHostInfo.pHostPointer != nullptr) {
+                    GFXSTREAM_FATAL("%s: Host pointer info is already used for import operation!",
+                                    __func__);
+                }
+                importHostInfo.pHostPointer = mappedPtr;
 
                 VkMemoryHostPointerPropertiesEXT memoryHostPointerProperties = {
                     .sType = VK_STRUCTURE_TYPE_MEMORY_HOST_POINTER_PROPERTIES_EXT,
@@ -6234,7 +6252,7 @@ class VkDecoderGlobalState::Impl {
                         localAllocInfo.memoryTypeIndex);
                 }
 
-                vk_append_struct(&structChainIter, &*importHostInfo);
+                vk_append_struct(&structChainIter, &importHostInfo);
             }
         }
 

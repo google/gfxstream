@@ -36,13 +36,18 @@ const char* ExternalMemory::to_string(const ExternalMemory::Mode mode) {
             return "AndroidAHB";
         case Mode::QnxScreenBuffer:
             return "QnxScreenBuffer";
+        case Mode::HostAllocation:
+            return "HostAllocation";
     }
     return "Unhandled";
 }
 
 ExternalMemory::Mode ExternalMemory::calculateMode(std::vector<VkExtensionProperties>& deviceExts) {
 #if defined(_WIN32)
-    std::array<Mode, 1> supportedModes = {Mode::OpaqueWin32};
+    std::array<Mode, 2> supportedModes = {
+        Mode::OpaqueWin32,
+        Mode::HostAllocation,
+    };
 #elif defined(__ANDROID__)
     std::array<Mode, 1> supportedModes = {
         Mode::AndroidAHB,
@@ -64,6 +69,7 @@ ExternalMemory::Mode ExternalMemory::calculateMode(std::vector<VkExtensionProper
 #endif
 
     for (auto mode : supportedModes) {
+        //TODO: also check if the required image formats and memory types are supported
         std::vector<const char*> extRequired;
         getDeviceExtensionsForMode(mode, extRequired);
         if (vk_util::extensionsSupported(deviceExts, extRequired)) {
@@ -88,6 +94,8 @@ VkExternalMemoryHandleTypeFlagBits ExternalMemory::getHandleType(const ExternalM
             return VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID;
         case Mode::QnxScreenBuffer:
             return VK_EXTERNAL_MEMORY_HANDLE_TYPE_SCREEN_BUFFER_BIT_QNX;
+        case Mode::HostAllocation:
+            return VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT;
         default:
             // Should not call this function with Unknown. Not a fatal error as the
             // value retrieved might be used with external memory support check
@@ -132,6 +140,9 @@ void ExternalMemory::getDeviceExtensionsForMode(const ExternalMemory::Mode mode,
             outDeviceExtensions.push_back(VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME);
             break;
 #endif
+        case Mode::HostAllocation:
+            outDeviceExtensions.push_back(VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME);
+            break;
         default:
             GFXSTREAM_FATAL("%s: Invalid external memory mode %s!", __func__, to_string(mode));
     }

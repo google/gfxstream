@@ -29,6 +29,7 @@
 #include "vk_emulated_physical_device_memory.h"
 #include "vk_format_utils.h"
 #include "vulkan_dispatch.h"
+#include "gfxstream/Macros.h"
 #include "gfxstream/Optional.h"
 #include "gfxstream/Tracing.h"
 #include "gfxstream/containers/Lookup.h"
@@ -277,7 +278,10 @@ bool VkEmulation::StagingBuffer::create(VulkanDispatch* vk, VkDevice device,
 }
 
 void VkEmulation::StagingBuffer::destroy(VulkanDispatch* vk, VkDevice device) {
-    vk->vkUnmapMemory(device, mMemory);
+    if (mMappedPtr) {
+        vk->vkUnmapMemory(device, mMemory);
+        mMappedPtr = nullptr;
+    }
     vk->vkDestroyBuffer(device, mBuffer, nullptr);
     vk->vkFreeMemory(device, mMemory, nullptr);
 
@@ -1096,10 +1100,11 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
             deviceInfos[i].supportsExternalMemoryExport =
                 deviceInfos[i].supportsExternalMemoryImport =
                     vk_util::extensionsSupported(deviceExts, externalMemoryDeviceExtNames);
-#if defined(__QNX__)
+
             // External memory export not supported on QNX
-            deviceInfos[i].supportsExternalMemoryExport = false;
-#endif
+            if (deviceInfos[i].externalMemoryMode == ExternalMemory::Mode::QnxScreenBuffer) {
+                deviceInfos[i].supportsExternalMemoryExport = false;
+            }
         }
 
         if (emulation->mInstanceSupportsGetPhysicalDeviceProperties2) {
@@ -1905,10 +1910,18 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
         .allocationSize = info->size,
         .memoryTypeIndex = info->typeIndex,
     };
+    VkImportMemoryHostPointerInfoEXT importInfoHostPtr = {
+        .sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT,
+        .pNext = NULL,
+        .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT,
+        .pHostPointer = nullptr,
+    };
 
     auto allocInfoChain = vk_make_chain_iterator(&allocInfo);
 
-    if (mDeviceInfo.supportsExternalMemoryExport) {
+    // HostAllocation mode uses host side allocation and should not add VkExportMemoryAllocateInfo
+    if (mDeviceInfo.supportsExternalMemoryExport &&
+        getExternalMemoryMode() != ExternalMemory::Mode::HostAllocation) {
         exportAi.handleTypes =
             static_cast<VkExternalMemoryHandleTypeFlags>(getDefaultExternalMemoryHandleType());
 
@@ -1933,6 +1946,55 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
     bool memoryAllocated = false;
     std::vector<VkDeviceMemory> allocationAttempts;
     constexpr size_t kMaxAllocationAttempts = 20u;
+
+    // For host-allocation external memory mode, allocate host side memory first, then import
+    if (mDeviceInfo.externalMemoryMode == ExternalMemory::Mode::HostAllocation) {
+        // TODO(b/409769371): use PrivateMemory?
+        VkDeviceSize alignment = externalMemoryHostProperties().minImportedHostPointerAlignment;
+        VkDeviceSize alignedSize = ALIGN(allocInfo.allocationSize, alignment);
+#ifdef _WIN32
+        void* hostAllocation = _aligned_malloc(alignedSize, alignment);
+#else
+        void* hostAllocation = aligned_alloc(alignment, alignedSize);
+#endif
+        if (!hostAllocation) {
+            GFXSTREAM_ERROR("%s: Could not allocated host memory with size %llu, alignment %llu",
+                            __func__, alignedSize, alignment);
+            return false;
+        }
+
+        // TODO(b/409769371): this is mainly not necessary as software renderers would generally use
+        // single memory type anyways, check number of memory types first before doing a check
+        VkMemoryHostPointerPropertiesEXT memoryHostPointerProperties = {
+            .sType = VK_STRUCTURE_TYPE_MEMORY_HOST_POINTER_PROPERTIES_EXT,
+            .pNext = NULL,
+            .memoryTypeBits = 0,
+        };
+
+        // Swiftshader has a bug in their vkGetMemoryHostPointerPropertiesEXT implementation
+        // Ref: https://github.com/google/swiftshader/pull/32
+        const bool swiftshader =
+            (gfxstream::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD").compare("swiftshader") ==
+             0);
+        if (!swiftshader) {
+            vk->vkGetMemoryHostPointerPropertiesEXT(
+                mDevice, VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT, hostAllocation,
+                &memoryHostPointerProperties);
+            uint32_t requestedBits = (1u << allocInfo.memoryTypeIndex);
+            if ((requestedBits & memoryHostPointerProperties.memoryTypeBits) == 0) {
+                GFXSTREAM_FATAL(
+                    "%s: Cannot allocate external memory on memory type 0x%x, supported bits 0x%x",
+                    __func__, requestedBits, memoryHostPointerProperties.memoryTypeBits);
+            }
+        }
+
+        // Update allocation size
+        info->size = alignedSize;
+        allocInfo.allocationSize = alignedSize;
+        info->hostAllocationPtr = hostAllocation;
+        importInfoHostPtr.pHostPointer = hostAllocation;
+        vk_append_struct(&allocInfoChain, &importInfoHostPtr);
+    }
 
     while (!memoryAllocated) {
         VkResult allocRes = vk->vkAllocateMemory(mDevice, &allocInfo, nullptr, &info->memory);
@@ -2082,6 +2144,11 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
 #endif
             break;
         }
+        case ExternalMemory::Mode::HostAllocation: {
+            validHandle = (nullptr != info->hostAllocationPtr);
+            exportRes = validHandle ? VK_SUCCESS : VK_ERROR_INVALID_EXTERNAL_HANDLE;
+            break;
+        }
         default:
             GFXSTREAM_ERROR("%s: Unhandled external memory mode: %d", __func__,
                             mDeviceInfo.externalMemoryMode);
@@ -2143,6 +2210,14 @@ void VkEmulation::freeExternalMemoryLocked(VulkanDispatch* vk,
         CFRelease(info->externalMetalHandle);
     }
 #endif
+    if (info->hostAllocationPtr) {
+#ifdef _WIN32
+        _aligned_free(info->hostAllocationPtr);
+#else
+        free(info->hostAllocationPtr);
+#endif
+        info->hostAllocationPtr = nullptr;
+    }
 }
 
 bool VkEmulation::importExternalMemory(VulkanDispatch* vk, VkDevice targetDevice,
@@ -2153,6 +2228,7 @@ bool VkEmulation::importExternalMemory(VulkanDispatch* vk, VkDevice targetDevice
 
     // Declare structures to ensure they are in scope for pNext
     VkImportMemoryFdInfoKHR importInfoFd;
+    VkImportMemoryHostPointerInfoEXT importInfoHostPtr;
 #ifdef _WIN32
     VkImportMemoryWin32HandleInfoKHR importInfoWin32;
 #elif defined(__QNX__)
@@ -2231,6 +2307,22 @@ bool VkEmulation::importExternalMemory(VulkanDispatch* vk, VkDevice targetDevice
             break;
         }
 #endif
+        case ExternalMemory::Mode::HostAllocation: {
+            if (!info->hostAllocationPtr) {
+                GFXSTREAM_ERROR(
+                    "%s: external host pointer is not valid for external memory mode %s.", __func__,
+                    ExternalMemory::to_string(mDeviceInfo.externalMemoryMode));
+                return false;
+            }
+            importInfoHostPtr = {
+                .sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT,
+                .pNext = NULL,
+                .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT,
+                .pHostPointer = info->hostAllocationPtr,
+            };
+            importInfoPtr = &importInfoHostPtr;
+            break;
+        }
         default:
             // Should not call this function with Unknown. Not a fatal error as the
             // value retrieved might be used with external memory support check
@@ -2643,15 +2735,12 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height, GLe
         VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO
     };
 
-    VkExternalMemoryImageCreateInfo* extImageCiPtr = nullptr;
-
     if (extMemHandleInfo || mDeviceInfo.supportsExternalMemoryExport) {
         extImageCi.handleTypes =
             static_cast<VkExternalMemoryHandleTypeFlags>(getDefaultExternalMemoryHandleType());
-        extImageCiPtr = &extImageCi;
-    }
 
-    imageCi->pNext = extImageCiPtr;
+        imageCi->pNext = &extImageCi;
+    }
 
     auto vk = mDvk;
 
@@ -3456,6 +3545,23 @@ std::optional<ExternalHandleInfo> VkEmulation::dupColorBufferExtMemoryHandle(
     return dupExternalMemory(handleInfo);
 }
 
+void* VkEmulation::getColorBufferHostPointer(uint32_t colorBuffer) {
+    if (getExternalMemoryMode() != ExternalMemory::Mode::HostAllocation) {
+        GFXSTREAM_ERROR("%s: external memory mode doesn't use host pointers!", __func__);
+        return nullptr;
+    }
+    std::lock_guard<std::mutex> lock(mMutex);
+
+    auto infoPtr = gfxstream::base::find(mColorBuffers, colorBuffer);
+
+    if (!infoPtr) {
+        // Color buffer not found; this is usually OK.
+        return nullptr;
+    }
+
+    return infoPtr->memory.hostAllocationPtr;
+}
+
 #ifdef __APPLE__
 MTLResource_id VkEmulation::getColorBufferMetalMemoryHandle(uint32_t colorBuffer) {
     std::lock_guard<std::mutex> lock(mMutex);
@@ -3739,13 +3845,29 @@ std::optional<ExternalHandleInfo> VkEmulation::dupBufferExtMemoryHandle(uint32_t
     return dupExternalMemory(handleInfo);
 }
 
+void* VkEmulation::getBufferHostPointer(uint32_t bufferHandle) {
+    if (getExternalMemoryMode() != ExternalMemory::Mode::HostAllocation) {
+        GFXSTREAM_ERROR("%s: external memory mode doesn't use host pointers!", __func__);
+        return nullptr;
+    }
+    std::lock_guard<std::mutex> lock(mMutex);
+
+    auto infoPtr = gfxstream::base::find(mBuffers, bufferHandle);
+    if (!infoPtr) {
+        // Buffer not found; this is usually OK.
+        return nullptr;
+    }
+
+    return infoPtr->memory.hostAllocationPtr;
+}
+
 #ifdef __APPLE__
 MTLResource_id VkEmulation::getBufferMetalMemoryHandle(uint32_t bufferHandle) {
     std::lock_guard<std::mutex> lock(mMutex);
 
     auto infoPtr = gfxstream::base::find(mBuffers, bufferHandle);
     if (!infoPtr) {
-        // Color buffer not found; this is usually OK.
+        // Buffer not found; this is usually OK.
         return nullptr;
     }
 

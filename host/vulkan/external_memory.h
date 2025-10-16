@@ -33,6 +33,7 @@ class ExternalMemory {
         Metal,            // VK_EXT_external_memory_metal
         AndroidAHB,       // VK_ANDROID_external_memory_android_hardware_buffer
         QnxScreenBuffer,  // VK_QNX_external_memory_screen_buffer
+        HostAllocation,   // VK_EXT_external_memory_host
     };
 
     static const char* to_string(const Mode mode);

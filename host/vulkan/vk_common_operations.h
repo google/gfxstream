@@ -245,9 +245,14 @@ class VkEmulation {
 
         std::optional<ExternalHandleInfo> handleInfo = std::nullopt;
 #ifdef __APPLE__
-        // This is used as an external handle when MoltenVK is enabled
+        // This is used as an external handle with ExternalMemory::Mode::Metal
         MTLResource_id externalMetalHandle = nullptr;
 #endif
+        // Used with ExternalMemory::Mode::HostAllocation
+        // TODO: refactor to be able to change handle type based on external memory mode
+        // and move it into ExternalHandleInfo to support external memory exports or use
+        // mappedPtr directly instead, if that's guaranteed to be the same
+        void* hostAllocationPtr = nullptr;
 
         bool dedicatedAllocation = false;
     };
@@ -346,6 +351,7 @@ class VkEmulation {
     };
 
     std::optional<ExternalHandleInfo> dupColorBufferExtMemoryHandle(uint32_t colorBufferHandle);
+    void* getColorBufferHostPointer(uint32_t colorBuffer);
 #ifdef __APPLE__
     MTLResource_id getColorBufferMetalMemoryHandle(uint32_t colorBufferHandle);
 #endif
@@ -380,6 +386,7 @@ class VkEmulation {
     bool teardownVkBuffer(uint32_t bufferHandle);
 
     std::optional<ExternalHandleInfo> dupBufferExtMemoryHandle(uint32_t bufferHandle);
+    void* getBufferHostPointer(uint32_t bufferHandle);
 #ifdef __APPLE__
     MTLResource_id getBufferMetalMemoryHandle(uint32_t bufferHandle);
     MTLResource_id getMtlResourceFromVkDeviceMemory(VulkanDispatch* vk, VkDeviceMemory memory);
