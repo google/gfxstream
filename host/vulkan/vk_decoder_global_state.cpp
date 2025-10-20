@@ -1898,6 +1898,16 @@ class VkDecoderGlobalState::Impl {
                                                             pPropertyCount, pProperties);
         }
 
+#if defined(_WIN32)
+        // Temporary fix to get old system images working with lavapipe
+        // TODO(b/409769371): remove this once system images updated or win32 extension is supported
+        const bool advertiseHostAllocAsWin32 =
+            (m_vkEmulation->getExternalMemoryMode() == ExternalMemory::Mode::HostAllocation);
+        if (advertiseHostAllocAsWin32) {
+            shouldPassthrough = false;
+        }
+#endif
+
         // If MoltenVK is supported on host, we need to ensure that we include
         // VK_MVK_moltenvk extenstion in returned properties.
         std::vector<VkExtensionProperties> properties;
@@ -1929,6 +1939,21 @@ class VkDecoderGlobalState::Impl {
             ycbcr_props.specVersion = VK_KHR_SAMPLER_YCBCR_CONVERSION_SPEC_VERSION;
             properties.push_back(ycbcr_props);
         }
+
+#if defined(_WIN32)
+        if (advertiseHostAllocAsWin32) {
+            // Add "VK_KHR_external_memory_win32" to the list, which will be checked by the
+            // guest to enable VK_ANDROID_external_memory_android_hardware_buffer support.
+            GFXSTREAM_DEBUG("%s: adding '%s', to get external memory support on the guest",
+                            __func__, VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);
+            VkExtensionProperties ext_win32_props;
+            strncpy(ext_win32_props.extensionName, VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME,
+                    sizeof(ext_win32_props.extensionName));
+            ext_win32_props.specVersion = VK_KHR_EXTERNAL_MEMORY_WIN32_SPEC_VERSION;
+            properties.push_back(ext_win32_props);
+        }
+#endif
+
         if (pProperties == nullptr) {
             *pPropertyCount = properties.size();
         } else {
