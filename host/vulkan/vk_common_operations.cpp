@@ -2490,7 +2490,7 @@ uint32_t VkEmulation::getValidMemoryTypeIndex(uint32_t requiredMemoryTypeBits,
                                               VkMemoryPropertyFlags memoryProperty) {
     uint32_t secondBest = ~0;
     bool found = false;
-    for (int32_t i = 0; i <= 31; i++) {
+    for (uint32_t i = 0; i < mDeviceInfo.memProps.memoryTypeCount; i++) {
         if ((requiredMemoryTypeBits & (1u << i)) == 0) {
             // Not a suitable memory index
             continue;
@@ -2515,10 +2515,19 @@ uint32_t VkEmulation::getValidMemoryTypeIndex(uint32_t requiredMemoryTypeBits,
     }
 
     if (!found) {
-        const std::string memoryPropertyString = string_VkMemoryPropertyFlags(memoryProperty);
-        GFXSTREAM_FATAL("Could not find a valid memory index with memoryProperty:%s "
-                        ", and requiredMemoryTypeBits:%" PRIu32,
-                        memoryPropertyString.c_str(), requiredMemoryTypeBits);
+        GFXSTREAM_DEBUG("%s: Failed, memoryTypeCount = %lu", __func__,
+                        mDeviceInfo.memProps.memoryTypeCount);
+        std::string memoryPropertyString;
+        for (uint32_t i = 0; i < mDeviceInfo.memProps.memoryTypeCount; i++) {
+            memoryPropertyString =
+                string_VkMemoryPropertyFlags(mDeviceInfo.memProps.memoryTypes[i].propertyFlags);
+            GFXSTREAM_DEBUG("memoryTypes[%d].propertyFlags = %s", i, memoryPropertyString.c_str());
+        }
+        memoryPropertyString = string_VkMemoryPropertyFlags(memoryProperty);
+        GFXSTREAM_FATAL(
+            "Could not find a valid memory index with memoryProperty:%s "
+            ", and memoryTypeBits: 0x%x",
+            memoryPropertyString.c_str(), requiredMemoryTypeBits);
     }
     return secondBest;
 }
