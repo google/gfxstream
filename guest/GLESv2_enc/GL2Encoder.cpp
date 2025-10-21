@@ -3530,7 +3530,6 @@ void GL2Encoder::s_glCompressedTexImage2D(void* self, GLenum target, GLint level
 
     SET_ERROR_IF(!GLESv2Validation::textureTarget(ctx, target), GL_INVALID_ENUM);
     SET_ERROR_IF(target == GL_TEXTURE_CUBE_MAP, GL_INVALID_ENUM);
-    fprintf(stderr, "%s: format: 0x%x\n", __func__, internalformat);
     // Filter compressed formats support.
     SET_ERROR_IF(!GLESv2Validation::supportedCompressedFormat(ctx, internalformat), GL_INVALID_ENUM);
     // Verify level <= log2(GL_MAX_TEXTURE_SIZE).
@@ -6550,7 +6549,6 @@ void GL2Encoder::s_glBindAttribLocation(void *self , GLuint program, GLuint inde
     SET_ERROR_IF(index > maxVertexAttribs, GL_INVALID_VALUE);
     SET_ERROR_IF(name && !strncmp("gl_", name, 3), GL_INVALID_OPERATION);
 
-    fprintf(stderr, "%s: bind attrib %u name %s\n", __func__, index, name);
     ctx->m_glBindAttribLocation_enc(ctx, program, index, name);
 }
 
