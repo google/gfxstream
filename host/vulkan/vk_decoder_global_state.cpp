@@ -5967,7 +5967,7 @@ class VkDecoderGlobalState::Impl {
 #endif
             if (m_vkEmulation->getExternalMemoryMode() == ExternalMemory::Mode::HostAllocation) {
                 importHostInfo.pHostPointer =
-                    m_vkEmulation->getBufferHostPointer(importCbInfoPtr->colorBuffer);
+                    m_vkEmulation->getBufferHostPointer(importBufferInfoPtr->buffer);
                 vk_append_struct(&structChainIter, &importHostInfo);
                 opaqueFd = false;
             }
