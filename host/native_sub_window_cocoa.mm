@@ -86,20 +86,11 @@ EGLNativeWindowType createSubWindow(FBNativeWindowType p_window,
 
     // Enable views with metal backing when hardware acceleration is enabled, as it should provide
     // better performance and can be necessary for vulkan swapchain creation.
-    bool useMetalView = false;
-    const char* emuVulkanICD = getenv("ANDROID_EMU_VK_ICD");
+    bool useMetalView = true;
     const char* forceMetalView = getenv("ANDROID_EMU_USE_METAL_BACKED_VIEWS");
-    if (forceMetalView && (0 == strcmp("1", forceMetalView))) {
+    if (forceMetalView && (0 == strcmp("0", forceMetalView))) {
         // Enable enabling the option using an environment variable
-        useMetalView = true;
-    } else if (emuVulkanICD) {
-        // Enable metal views when software rendering is not requested
-        // This may require changes once we support vulkan composition on the software path
-        bool softwareRendering =
-            (0 == strcmp("swiftshader", emuVulkanICD)) || (0 == strcmp("lavapipe", emuVulkanICD));
-        if (!softwareRendering) {
-            useMetalView = true;
-        }
+        useMetalView = false;
     }
 
     NSView* glView = NULL;
