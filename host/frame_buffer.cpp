@@ -4356,7 +4356,17 @@ void FrameBuffer::Impl::createYUVTextures(uint32_t type, uint32_t count, int wid
                                           uint32_t* output) {
     FrameworkFormat format = static_cast<FrameworkFormat>(type);
     AutoLock mutex(m_lock);
-    RecursiveScopedContextBind bind(getPbufferSurfaceContextHelper());
+    auto contextHelper = getPbufferSurfaceContextHelper();
+    if (!contextHelper) {
+        // This should not be called in vulkan-only mode
+        GFXSTREAM_ERROR("%s: invalid pbuffer surface context", __func__);
+        return;
+    }
+    RecursiveScopedContextBind bind(contextHelper);
+    if (!bind.isOk()) {
+        GFXSTREAM_ERROR("%s: could not bind context helper", __func__);
+        return;
+    }
     for (uint32_t i = 0; i < count; ++i) {
         if (format == FRAMEWORK_FORMAT_NV12) {
             YUVConverter::createYUVGLTex(GL_TEXTURE0, width, height, format, m_features.Yuv420888ToNv21.enabled,

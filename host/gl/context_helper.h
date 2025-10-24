@@ -44,7 +44,7 @@ class ContextHelper {
 class RecursiveScopedContextBind {
   public:
     RecursiveScopedContextBind(ContextHelper* helper) : mHelper(helper) {
-        mIsBound = helper->setupContext();
+        mIsBound = helper ? helper->setupContext() : false;
     }
 
     bool isOk() const { return mIsBound; }
