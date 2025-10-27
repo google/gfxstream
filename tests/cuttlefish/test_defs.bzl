@@ -9,7 +9,7 @@ def _cuttlefish_gfxstream_xts_test(name,
         "--cuttlefish-fetch-args=\"" + " ".join(cuttlefish_fetch_args) + "\"",
         "--gfxstream-library-path=$(location //host:gfxstream_backend)",
         "--xml-test-result-converter-path=$(location :convert_xts_xml_to_junit_xml.py)",
-        "--xts-args=\"" + "".join(xts_args) + "\"",
+        "--xts-args=\"" + " ".join(xts_args) + "\"",
         "--xts-type=" + xts_type,
     ]
 
