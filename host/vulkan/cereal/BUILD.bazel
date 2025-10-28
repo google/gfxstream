@@ -24,6 +24,7 @@ cc_library(
         "//common/logging:gfxstream_common_logging",
         "//host/vulkan:gfxstream_vulkan_headers",
         "//third_party/vulkan:gfxstream_vulkan_headers",
+        "//third_party/xcb",
     ],
 )
 

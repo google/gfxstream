@@ -51,6 +51,7 @@ cc_library(
         "//host/iostream:gfxstream_host_iostream",
         "//host/vulkan/cereal:gfxstream_vulkan_cereal_headers",
         "//third_party/vulkan:gfxstream_vulkan_headers",
+        "//third_party/xcb",
     ],
 )
 

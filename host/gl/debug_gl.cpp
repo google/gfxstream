@@ -18,6 +18,9 @@
 
 #include <cstdarg>
 
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
+
 #include "OpenGLESDispatch/DispatchTables.h"
 
 namespace gfxstream {
