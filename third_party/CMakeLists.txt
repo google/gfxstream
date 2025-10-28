@@ -39,6 +39,7 @@ add_subdirectory(renderdoc)
 add_subdirectory(stb)
 add_subdirectory(vulkan)
 add_subdirectory(x11)
+add_subdirectory(xcb)
 
 if(NOT TARGET gtest_main AND ENABLE_VKCEREAL_TESTS)
     # For Windows: Prevent overriding the parent project's compiler/linker settings
