@@ -158,7 +158,7 @@ cc_defaults {
         android: {
             cflags: [
                 "-DVK_USE_PLATFORM_ANDROID_KHR",
-                "-DGFXSTREAM_UNSTABLE_VULKAN_BLOB_COLOR_BUFFER"
+                "-DGFXSTREAM_UNSTABLE_VULKAN_BLOB_COLOR_BUFFER",
             ],
             compile_multilib: "64",
         },

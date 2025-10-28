@@ -206,7 +206,7 @@ cc_library(
         "//host/gl:gles2_dec",
         "//host/gl/OpenGLESDispatch:gfxstream_host_openglesdispatch",
         "//host/gl/OpenGLESDispatch:gfxstream_host_openglesdispatch_headers",
-        "//host/gl/glestranslator/GLES_CM:GLES_CM_translator_static",
+        "//host/gl/glestranslator/gles_cm:gles_cm_translator_static",
         "//host/iostream:gfxstream_host_iostream",
         "//host/library:gfxstream_host_library",
         "//host/renderControl_dec",

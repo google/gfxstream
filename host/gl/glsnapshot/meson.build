@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 files_lib_gl_snapshot = files(
-  'GLSnapshot.cpp',
+  'gl_snapshot.cpp',
 )
 
 lib_gl_snapshot = static_library(

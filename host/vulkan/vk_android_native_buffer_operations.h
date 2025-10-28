@@ -30,7 +30,7 @@
 #include "gfxstream/ThreadAnnotations.h"
 #include "gfxstream/synchronization/ConditionVariable.h"
 #include "gfxstream/synchronization/Lock.h"
-#include "gfxstream/host/BackendCallbacks.h"
+#include "gfxstream/host/backend_callbacks.h"
 #include "goldfish_vk_private_defs.h"
 
 namespace gfxstream {

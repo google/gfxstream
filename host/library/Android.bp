@@ -23,7 +23,7 @@ cc_library_static {
         "include",
     ],
     srcs: [
-        "SharedLibrary.cpp",
+        "shared_library.cpp",
     ],
     static_libs: [
         "libgfxstream_common_base",

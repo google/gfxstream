@@ -14,7 +14,7 @@
 
 #include <gtest/gtest.h>
 
-#include "GLEScmContext.h"
+#include "gles_cm_context.h"
 #include "gfxstream/host/testing/GLTestUtils.h"
 #include "gfxstream/host/testing/OpenGLTestContext.h"
 

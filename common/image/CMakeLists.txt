@@ -21,7 +21,7 @@ target_include_directories(
     include)
 add_library(
     gfxstream_common_image
-    ImageUtils.cpp)
+    image_utils.cpp)
 target_link_libraries(
     gfxstream_common_image
     PUBLIC

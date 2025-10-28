@@ -34,7 +34,7 @@
 
 #include <memory>
 
-#include "gfxstream/host/ProcessResources.h"
+#include "gfxstream/host/process_resources.h"
 #include "vk_android_native_buffer_gfxstream.h"
 #include "vk_decoder_context.h"
 #include "vulkan_gfxstream.h"

@@ -21,7 +21,7 @@ target_include_directories(
     include)
 add_library(
     gfxstream_common_utils
-    Strings.cpp)
+    strings.cpp)
 target_link_libraries(
     gfxstream_common_utils
     PUBLIC

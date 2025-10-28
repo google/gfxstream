@@ -25,7 +25,7 @@ cc_library {
         "libgfxstream_thirdparty_stb",
     ],
     srcs: [
-        "ImageUtils.cpp",
+        "image_utils.cpp",
     ],
     export_include_dirs: [
         "include",

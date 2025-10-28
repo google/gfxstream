@@ -14,7 +14,7 @@
 
 add_library(
     gfxstream_host_library
-    SharedLibrary.cpp)
+    shared_library.cpp)
 
 target_include_directories(
     gfxstream_host_library

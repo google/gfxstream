@@ -23,7 +23,7 @@
 
 #include "borrowed_image_gl.h"
 #include "debug_gl.h"
-#include "GLcommon/GLutils.h"
+#include "common/gl_utils.h"
 #include "OpenGLESDispatch/DispatchTables.h"
 #include "OpenGLESDispatch/EGLDispatch.h"
 #include "render_thread_info_gl.h"

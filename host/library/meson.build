@@ -4,7 +4,7 @@
 inc_host_library = include_directories('include')
 
 files_lib_host_library = files(
-  'SharedLibrary.cpp',
+  'shared_library.cpp',
 )
 
 lib_host_library = static_library(

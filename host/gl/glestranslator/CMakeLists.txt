@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_subdirectory(GLcommon)
-add_subdirectory(GLES_V2)
-add_subdirectory(GLES_CM)
-add_subdirectory(EGL)
+add_subdirectory(common)
+add_subdirectory(gles_cm)
+add_subdirectory(gles_v2)
+add_subdirectory(egl)

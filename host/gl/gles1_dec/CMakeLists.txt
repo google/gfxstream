@@ -16,7 +16,7 @@ add_library(
     gles1_dec
     gles1_dec.cpp
     gles1_server_context.cpp
-    GLESv1Decoder.cpp)
+    gles_v1_decoder.cpp)
 target_link_libraries(
     gles1_dec
     PUBLIC

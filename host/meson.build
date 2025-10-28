@@ -9,7 +9,7 @@ inc_gfxstream_server = include_directories('include')
 inc_stream_servers = include_directories('.')
 inc_host_include = include_directories('include')
 
-inc_gl_common = include_directories('gl/glestranslator/GLcommon/include')
+inc_gl_common = include_directories('gl/glestranslator/common/include')
 
 subdir('features')
 subdir('iostream')

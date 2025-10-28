@@ -73,7 +73,7 @@ cc_library(
     name = "graphics_test_environment_support",
     testonly = True,
     srcs = [
-        "GraphicsTestEnvironment.cpp",
+        "graphics_test_environment.cpp",
     ],
     hdrs = [
         "include/gfxstream/common/testing/GraphicsTestEnvironment.h",

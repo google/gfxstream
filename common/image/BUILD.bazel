@@ -8,7 +8,7 @@ package(
 cc_library(
     name = "gfxstream_common_image",
     srcs = [
-        "ImageUtils.cpp",
+        "image_utils.cpp",
     ],
     hdrs = glob([
         "include/**/*.h",

@@ -4,7 +4,7 @@
 files_lib_gles1_dec = files(
   'gles1_dec.cpp',
   'gles1_server_context.cpp',
-  'GLESv1Decoder.cpp',
+  'gles_v1_decoder.cpp',
 )
 
 lib_gles1_dec = static_library(

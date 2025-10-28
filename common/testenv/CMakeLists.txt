@@ -21,7 +21,7 @@ target_include_directories(
     include)
 add_library(
     gfxstream_common_testenv
-    GraphicsTestEnvironment.cpp)
+    graphics_test_environment.cpp)
 target_link_libraries(
     gfxstream_common_testenv
     PUBLIC

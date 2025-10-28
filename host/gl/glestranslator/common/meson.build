@@ -1,0 +1,55 @@
+# Copyright 2023 Android Open Source Project
+# SPDX-License-Identifier: Apache-2.0
+
+files_lib_gl_common = files(
+  'rgtc.cpp',
+  'framebuffer_data.cpp',
+  'gl_background_loader.cpp',
+  'gl_dispatch.cpp',
+  'gles_buffer.cpp',
+  'gles_context.cpp',
+  'gles_pointer.cpp',
+  'gles_validate.cpp',
+  'gl_utils.cpp',
+  'named_object.cpp',
+  'object_data.cpp',
+  'object_name_space.cpp',
+  'palette_texture.cpp',
+  'range_manip.cpp',
+  'saveable_texture.cpp',
+  'scoped_gl_state.cpp',
+  'share_group.cpp',
+  'texture_data.cpp',
+  'texture_utils.cpp',
+)
+
+lib_gl_common = static_library(
+  'gl_common',
+  files_lib_gl_common,
+  cpp_args: gfxstream_host_args,
+  include_directories: [
+    inc_common_base,
+    inc_common_opengl,
+    inc_etc,
+    inc_gfxstream_server,
+    inc_gl_common,
+    inc_gl_openglesdispatch,
+    inc_host_backend,
+    inc_host_compressed_textures,
+    inc_host_decoder_common,
+    inc_host_library,
+    inc_common_logging,
+    inc_host_snapshot,
+    inc_include,
+    inc_stream_servers,
+  ],
+  link_with: [
+    lib_common_base,
+    lib_host_compressed_textures,
+    lib_etc,
+    lib_host_backend,
+    lib_host_library,
+    lib_common_logging,
+    lib_host_snapshot,
+  ],
+)

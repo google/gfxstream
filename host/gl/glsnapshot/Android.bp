@@ -19,7 +19,7 @@ package {
 cc_library_static {
     name: "libgfxstream_host_glsnapshot",
     defaults: ["gfxstream_host_cc_defaults"],
-    srcs: ["GLSnapshot.cpp"],
+    srcs: ["gl_snapshot.cpp"],
     export_include_dirs: ["."],
     static_libs: [
         "libgfxstream_host_openglesdispatch",

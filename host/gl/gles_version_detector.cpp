@@ -19,7 +19,7 @@
 #include <algorithm>
 
 #include "OpenGLESDispatch/EGLDispatch.h"
-#include "gfxstream/Strings.h"
+#include "gfxstream/strings.h"
 #include "gfxstream/host/driver_info.h"
 #include "gfxstream/host/renderer_operations.h"
 #include "gfxstream/misc/StringUtils.h"

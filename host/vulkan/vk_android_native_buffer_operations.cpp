@@ -23,7 +23,7 @@
 #include "vulkan_dispatch.h"
 #include "cereal/common/goldfish_vk_deepcopy.h"
 #include "cereal/common/goldfish_vk_extension_structs.h"
-#include "gfxstream/host/BackendCallbacks.h"
+#include "gfxstream/host/backend_callbacks.h"
 #include "gfxstream/host/tracing.h"
 #include "goldfish_vk_private_defs.h"
 #include "vulkan/vk_enum_string_helper.h"

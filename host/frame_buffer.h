@@ -37,7 +37,7 @@
 #include "vsync_thread.h"
 #include "gfxstream/AsyncResult.h"
 #include "gfxstream/EventNotificationSupport.h"
-#include "gfxstream/host/ProcessResources.h"
+#include "gfxstream/host/process_resources.h"
 #include "gfxstream/host/borrowed_image.h"
 #include "gfxstream/host/external_object_manager.h"
 #include "gfxstream/host/gl_enums.h"

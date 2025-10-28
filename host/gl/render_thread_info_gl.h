@@ -22,8 +22,8 @@
 #include "render-utils/stream.h"
 #include "gl/emulated_egl_context.h"
 #include "gl/emulated_egl_window_surface.h"
-#include "gl/gles1_dec/GLESv1Decoder.h"
-#include "gl/gles2_dec/GLESv2Decoder.h"
+#include "gl/gles1_dec/gles_v1_decoder.h"
+#include "gl/gles2_dec/gles_v2_decoder.h"
 
 namespace gfxstream {
 namespace host {

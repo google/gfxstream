@@ -35,7 +35,7 @@
 #include "host/gl/render_thread_info_gl.h"
 #include "host/gl/yuv_converter.h"
 #include "gl/gles2_dec/gles2_dec.h"
-#include "gl/glestranslator/EGL/EglGlobalInfo.h"
+#include "gl/glestranslator/egl/egl_global_info.h"
 #endif
 
 #include "host/gl/context_helper.h"
@@ -43,7 +43,7 @@
 #include "native_sub_window.h"
 #include "render_thread_info.h"
 #include "sync_thread.h"
-#include "gfxstream/SharedLibrary.h"
+#include "gfxstream/shared_library.h"
 #include "gfxstream/Tracing.h"
 #include "gfxstream/common/logging.h"
 #include "gfxstream/containers/Lookup.h"

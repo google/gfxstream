@@ -4,7 +4,7 @@
 inc_common_utils = include_directories('include')
 
 files_lib_common_utils = files(
-  'Strings.cpp',
+  'strings.cpp',
 )
 
 lib_common_utils = static_library(

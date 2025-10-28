@@ -25,7 +25,7 @@
 
 #include "borrowed_image_vk.h"
 #include "gfxstream/host/testing/VkTestUtils.h"
-#include "gfxstream/ImageUtils.h"
+#include "gfxstream/image_utils.h"
 #include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/system/System.h"
 #include "vulkan/vk_utils.h"

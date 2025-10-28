@@ -4,7 +4,7 @@
 inc_common_testenv = include_directories('include')
 
 files_lib_gfxstream_common_testenv = files(
-  'GraphicsTestEnvironment.cpp',
+  'graphics_test_environment.cpp',
 )
 
 lib_common_testenv = static_library(

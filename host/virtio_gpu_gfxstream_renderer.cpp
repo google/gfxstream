@@ -22,7 +22,7 @@ extern "C" {
 #include <string_view>
 
 #include "frame_buffer.h"
-#include "gfxstream/Strings.h"
+#include "gfxstream/strings.h"
 #include "gfxstream/common/logging.h"
 #include "gfxstream/host/features.h"
 #include "gfxstream/host/tracing.h"

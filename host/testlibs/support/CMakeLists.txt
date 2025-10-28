@@ -30,7 +30,7 @@ if (ENABLE_VKCEREAL_TESTS)
         include
         ${GFXSTREAM_REPO_ROOT}
         ${GFXSTREAM_REPO_ROOT}/host
-        ${GFXSTREAM_REPO_ROOT}/host/gl/glestranslator/GLES_CM
+        ${GFXSTREAM_REPO_ROOT}/host/gl/glestranslator/gles_cm
         ${GFXSTREAM_REPO_ROOT}/host/gl/glestranslator/include
         ${GFXSTREAM_REPO_ROOT}/host/gfxstream_host_decoder_common
         ${GFXSTREAM_REPO_ROOT}/host/vulkan

@@ -28,7 +28,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "gfxstream/SharedLibrary.h"
+#include "gfxstream/shared_library.h"
 #include "gfxstream/common/logging.h"
 
 namespace gfxstream {

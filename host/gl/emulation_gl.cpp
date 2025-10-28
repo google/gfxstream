@@ -21,7 +21,7 @@
 
 #include "display_surface_gl.h"
 #include "gles_version_detector.h"
-#include "GLcommon/GLEScontext.h"
+#include "common/gles_context.h"
 #include "OpenGLESDispatch/DispatchTables.h"
 #include "OpenGLESDispatch/EGLDispatch.h"
 #include "OpenGLESDispatch/GLESv2Dispatch.h"

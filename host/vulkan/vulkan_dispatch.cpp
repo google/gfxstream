@@ -14,7 +14,7 @@
 
 #include "vulkan_dispatch.h"
 
-#include "gfxstream/SharedLibrary.h"
+#include "gfxstream/shared_library.h"
 #include "gfxstream/files/PathUtils.h"
 #include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/system/System.h"

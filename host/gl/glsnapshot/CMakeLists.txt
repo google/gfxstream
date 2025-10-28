@@ -14,7 +14,7 @@
 
 add_library(
     GLSnapshot
-    GLSnapshot.cpp)
+    gl_snapshot.cpp)
 target_link_libraries(
     GLSnapshot
     PUBLIC

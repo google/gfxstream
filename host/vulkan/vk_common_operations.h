@@ -29,7 +29,7 @@
 #include "device_lost_helper.h"
 #include "display_vk.h"
 #include "external_memory.h"
-#include "gfxstream/host/BackendCallbacks.h"
+#include "gfxstream/host/backend_callbacks.h"
 #include "gfxstream/host/external_object_manager.h"
 #include "gfxstream/host/features.h"
 #include "gfxstream/host/GfxApiLogger.h"

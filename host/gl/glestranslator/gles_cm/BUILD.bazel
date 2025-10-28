@@ -1,0 +1,33 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+load("//:build_variables.bzl", "GFXSTREAM_HOST_COPTS", "GFXSTREAM_HOST_DEFINES")
+
+package(
+    default_applicable_licenses = ["//:gfxstream_license"],
+    default_visibility = ["//:gfxstream"],
+)
+
+cc_library(
+    name = "gles_cm_translator_static",
+    srcs = [
+        "core_profile_engine.cpp",
+        "gles_cm_context.cpp",
+        "gles_cm_imp.cpp",
+        "gles_cm_utils.cpp",
+        "gles_cm_validate.cpp",
+    ] + glob(["*.h"]),
+    copts = GFXSTREAM_HOST_COPTS + [
+        "-Wno-extern-c-compat",
+    ],
+    defines = GFXSTREAM_HOST_DEFINES,
+    deps = [
+        "//common/base:gfxstream_common_base",
+        "//common/logging:gfxstream_common_logging",
+        "//host:gfxstream_backend_headers",
+        "//host/backend:gfxstream_host_backend",
+        "//host/decoder_common:gfxstream_host_decoder_common",
+        "//host/gl:gl_common",
+        "//host/gl:gl_common_headers",
+        "//third_party/glm",
+        "//third_party/opengl:gfxstream_gles_headers",
+    ],
+)

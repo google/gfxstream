@@ -39,6 +39,7 @@ cc_library_static {
     srcs: [
         "gles1_dec.cpp",
         "gles1_server_context.cpp",
-        "GLESv1Decoder.cpp",
+        "gles_v1_decoder.cpp",
     ],
+
 }

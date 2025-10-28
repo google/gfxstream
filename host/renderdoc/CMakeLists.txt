@@ -34,7 +34,7 @@ if (ENABLE_VKCEREAL_TESTS)
     if(NOT CONFIG_AEMU)
         add_executable(
             gfxstream_host_renderdoc_tests
-            RenderDoc_unittest.cpp)
+            renderdoc_unittest.cpp)
 
         target_link_libraries(
             gfxstream_host_renderdoc_tests

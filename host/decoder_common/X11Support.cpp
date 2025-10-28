@@ -14,7 +14,7 @@
 
 #include "gfxstream/host/X11Support.h"
 
-#include "gfxstream/SharedLibrary.h"
+#include "gfxstream/shared_library.h"
 #include "gfxstream/common/logging.h"
 
 #define DEFINE_DUMMY_IMPL(rettype, funcname, args) \
