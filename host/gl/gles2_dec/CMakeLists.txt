@@ -27,7 +27,7 @@ target_link_libraries(
     PRIVATE
     gfxstream_common_base
     gfxstream_common_logging
-    gfxstream_host_backend
+    gfxstream_host_common
     gfxstream_host_library
     gfxstream_opengl_headers
     )

@@ -32,7 +32,7 @@ target_link_libraries(
     PUBLIC
     gfxstream_common_logging
     gfxstream_features
-    gfxstream_host_backend
+    gfxstream_host_common
     gfxstream_host_decoder_common
     gfxstream_vulkan_headers
     )

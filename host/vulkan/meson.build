@@ -77,7 +77,7 @@ lib_vulkan_server = static_library(
     inc_gl_openglesdispatch,
     inc_gl_server,
     inc_glm,
-    inc_host_backend,
+    inc_host_common,
     inc_host_compressed_textures,
     inc_host_decoder_common,
     inc_host_features,
@@ -99,7 +99,7 @@ lib_vulkan_server = static_library(
   link_with: [
     lib_common_base,
     lib_emulated_textures,
-    lib_host_backend,
+    lib_host_common,
     lib_host_compressed_textures,
     lib_host_features,
     lib_host_iostream,

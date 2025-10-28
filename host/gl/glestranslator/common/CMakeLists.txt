@@ -48,7 +48,7 @@ target_link_libraries(
     gfxstream_common_base
     gfxstream_common_logging
     gfxstream_etc_headers
-    gfxstream_host_backend
+    gfxstream_host_common
     gfxstream_host_compressed_textures
     gfxstream_host_library
     gfxstream_host_snapshot.headers

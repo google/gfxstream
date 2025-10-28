@@ -11,7 +11,7 @@ lib_gl_snapshot = static_library(
   cpp_args: gfxstream_host_args,
   include_directories: [
     inc_gl_openglesdispatch,
-    inc_host_backend,
+    inc_host_common,
     inc_include,
     inc_opengl_headers
   ],

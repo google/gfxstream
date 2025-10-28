@@ -19,7 +19,7 @@ subdir('renderdoc')
 subdir('snapshot')
 subdir('decoder_common')
 subdir('address_space')
-subdir('backend')
+subdir('common')
 
 inc_gfxstream_backend = [
   inc_host_decoder_common,
@@ -28,7 +28,7 @@ inc_gfxstream_backend = [
   inc_drm_headers,
   inc_glm,
   inc_host_address_space,
-  inc_host_backend,
+  inc_host_common,
   inc_host_features,
   inc_host_include,
   inc_host_iostream,
@@ -47,7 +47,7 @@ link_gfxstream_backend = [
   lib_common_base,
   lib_common_utils,
   lib_host_address_space,
-  lib_host_backend,
+  lib_host_common,
   lib_host_features,
   lib_host_iostream,
   lib_host_library,

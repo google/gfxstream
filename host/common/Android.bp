@@ -17,7 +17,7 @@ package {
 }
 
 cc_library_static {
-    name: "libgfxstream_host_backend",
+    name: "libgfxstream_host_common",
     defaults: ["gfxstream_host_cc_defaults"],
     srcs: [
         "address_space_operations.cpp",

@@ -78,7 +78,7 @@ target_link_libraries(
     gfxstream_host_decoder_common
     PRIVATE
     gfxstream_common_utils
-    gfxstream_host_backend
+    gfxstream_host_common
     )
 target_link_libraries(EGL_translator_static PUBLIC GLES_CM_translator_static GLES_V2_translator_static)
 if (NOT MSVC)

@@ -12,21 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if (NOT TARGET gfxstream_host_backend)
+if (NOT TARGET gfxstream_host_common)
     add_library(
-        gfxstream_host_backend.headers
+        gfxstream_host_common.headers
         INTERFACE)
     target_include_directories(
-        gfxstream_host_backend.headers
+        gfxstream_host_common.headers
         INTERFACE
         include)
     target_link_libraries(
-        gfxstream_host_backend.headers
+        gfxstream_host_common.headers
         INTERFACE
         gfxstream_backend_headers)
 
     add_library(
-        gfxstream_host_backend
+        gfxstream_host_common
         address_space_operations.cpp
         display_operations.cpp
         display_surface.cpp
@@ -44,10 +44,10 @@ if (NOT TARGET gfxstream_host_backend)
         window_operations.cpp
         )
     target_link_libraries(
-        gfxstream_host_backend
+        gfxstream_host_common
         PUBLIC
         gfxstream_common_utils
-        gfxstream_host_backend.headers
+        gfxstream_host_common.headers
         PRIVATE
         gfxstream_host_address_space
         gfxstream_common_logging

@@ -36,7 +36,7 @@ cc_library_static {
     static_libs: [
         "libgfxstream_common_base",
         "libgfxstream_etc",
-        "libgfxstream_host_backend",
+        "libgfxstream_host_common",
         "libgfxstream_host_compressedtextures",
         "libgfxstream_host_library",
         "libgfxstream_common_logging",

@@ -35,7 +35,7 @@ lib_vulkan_cereal = static_library(
     inc_cereal,
     inc_common_base,
     inc_gfxstream_server,
-    inc_host_backend,
+    inc_host_common,
     inc_host_decoder_common,
     inc_host_features,
     inc_common_logging,
@@ -46,7 +46,7 @@ lib_vulkan_cereal = static_library(
   ],
   link_with: [
     lib_common_base,
-    lib_host_backend,
+    lib_host_common,
     lib_host_features,
     lib_common_logging,
   ],

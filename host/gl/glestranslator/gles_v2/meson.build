@@ -23,7 +23,7 @@ lib_glesv2_translator = static_library(
     inc_gfxstream_server,
     inc_gl_common,
     inc_gl_openglesdispatch,
-    inc_host_backend,
+    inc_host_common,
     inc_host_decoder_common,
     inc_common_logging,
     inc_host_snapshot,
@@ -33,7 +33,7 @@ lib_glesv2_translator = static_library(
   ],
   link_with: [
     lib_common_base,
-    lib_host_backend,
+    lib_host_common,
     lib_host_decoder_common,
     lib_common_logging,
     lib_host_snapshot,

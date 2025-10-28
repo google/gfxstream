@@ -55,7 +55,7 @@ cc_library(
         "//common/base:gfxstream_common_base",
         "//common/logging:gfxstream_common_logging",
         "//host:gfxstream_host_headers",
-        "//host/backend:gfxstream_host_backend",
+        "//host/common:gfxstream_host_common",
         "//host/features:gfxstream_host_features",
         "//host/tracing:gfxstream_host_tracing",
         "//host/vulkan:gfxstream_vulkan_headers",

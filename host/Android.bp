@@ -53,7 +53,7 @@ gfxstream_backend_static_deps = [
     "libgfxstream_host_address_space",
     "libgfxstream_host_compressedtextures",
     "libgfxstream_host_decoder_common",
-    "libgfxstream_host_backend",
+    "libgfxstream_host_common",
     "libgfxstream_host_compressedtextures",
     "libgfxstream_host_features",
     "libgfxstream_host_gl_server",
@@ -111,7 +111,7 @@ cc_defaults {
     },
     export_static_lib_headers: [
         "libgfxstream_common_base",
-        "libgfxstream_host_backend",
+        "libgfxstream_host_common",
         "libgfxstream_host_decoder_common",
         "libgfxstream_host_features",
         "libgfxstream_host_renderdoc",

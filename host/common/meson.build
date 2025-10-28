@@ -1,9 +1,9 @@
 # Copyright 2024 Android Open Source Project
 # SPDX-License-Identifier: Apache-2.0
 
-inc_host_backend = include_directories('include')
+inc_host_common = include_directories('include')
 
-files_lib_host_backend = files(
+files_lib_host_common = files(
   'address_space_operations.cpp',
   'display_operations.cpp',
   'display_surface.cpp',
@@ -21,19 +21,19 @@ files_lib_host_backend = files(
   'window_operations.cpp',
 )
 
-lib_host_backend = static_library(
-  'host_backend',
-  files_lib_host_backend,
+lib_host_common = static_library(
+  'host_common',
+  files_lib_host_common,
   include_directories: [
     inc_common_base,
+    inc_common_logging,
     inc_gfxstream_server,
     inc_host_address_space,
-    inc_host_backend,
-    inc_common_logging,
+    inc_host_common,
   ],
   link_with: [
     lib_common_base,
-    lib_host_address_space,
     lib_common_logging,
+    lib_host_address_space,
   ],
 )

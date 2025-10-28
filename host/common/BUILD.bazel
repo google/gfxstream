@@ -7,7 +7,7 @@ package(
 )
 
 cc_library(
-    name = "gfxstream_host_backend",
+    name = "gfxstream_host_common",
     srcs = [
         "address_space_operations.cpp",
         "display_operations.cpp",

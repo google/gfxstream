@@ -61,7 +61,7 @@ target_link_libraries(gfxstream-vulkan-server PUBLIC
         gfxstream_common_base
         gfxstream_common_logging
         gfxstream_features
-        gfxstream_host_backend
+        gfxstream_host_common
         gfxstream_host_compressed_textures
         gfxstream_host_iostream
         gfxstream_host_library

@@ -20,9 +20,9 @@ lib_gl_openglesdispatch = static_library(
   include_directories: [
     inc_common_base,
     inc_gl_openglesdispatch,
-    inc_host_backend,
-    inc_opengl_headers,
+    inc_host_common,
     inc_include,
+    inc_opengl_headers,
   ],
   cpp_args: gfxstream_host_args,
   link_with: [

@@ -51,7 +51,7 @@ target_link_libraries(
         gfxstream_backend.headers
         gfxstream_common_logging
         gfxstream_features
-        gfxstream_host_backend
+        gfxstream_host_common
         gfxstream_opengl_headers
         gfxstream_openglesdispatch
         gfxstream_vulkan_headers

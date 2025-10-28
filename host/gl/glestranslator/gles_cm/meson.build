@@ -20,7 +20,7 @@ lib_glescm_translator = static_library(
     inc_gl_common,
     inc_gl_openglesdispatch,
     inc_glm,
-    inc_host_backend,
+    inc_host_common,
     inc_common_logging,
     inc_host_snapshot,
     inc_include,
@@ -28,7 +28,7 @@ lib_glescm_translator = static_library(
   ],
   link_with: [
     lib_common_base,
-    lib_host_backend,
+    lib_host_common,
     lib_common_logging,
     lib_host_snapshot,
   ],

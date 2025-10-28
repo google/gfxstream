@@ -21,7 +21,7 @@ target_include_directories(
         include)
 
 add_subdirectory(address_space)
-add_subdirectory(backend)
+add_subdirectory(common)
 add_subdirectory(features)
 add_subdirectory(iostream)
 add_subdirectory(library)
@@ -117,7 +117,7 @@ target_link_libraries(
         gfxstream_features
         gfxstream_glm_headers
         gfxstream_host_address_space
-        gfxstream_host_backend
+        gfxstream_host_common
         gfxstream_host_decoder_common
         gfxstream_host_iostream
         gfxstream_host_library
@@ -181,7 +181,7 @@ target_link_libraries(
     PUBLIC
     gfxstream_common_utils
     gfxstream_features
-    gfxstream_host_backend
+    gfxstream_host_common
     gfxstream_host_tracing
     gfxstream_backend_static
     PRIVATE
@@ -262,7 +262,7 @@ endfunction()
         gfxstream_host_testing_support
         gfxstream_backend_static
         gfxstream_common_base
-        gfxstream_host_backend
+        gfxstream_host_common
         gmock
         gtest_main)
     if (LINUX)
@@ -299,7 +299,7 @@ endfunction()
         gfxstream_host_testing_support
         gfxstream_backend_static
         gfxstream_common_base
-        gfxstream_host_backend
+        gfxstream_host_common
         gtest_main)
     discover_tests(OpenglRender_snapshot_unittests)
 
