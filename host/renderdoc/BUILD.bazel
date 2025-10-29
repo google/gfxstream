@@ -24,7 +24,7 @@ cc_library(
 cc_test(
     name = "gfxstream_host_renderdoc_tests",
     srcs = [
-        "RenderDoc_unittest.cpp",
+        "renderdoc_unittest.cpp",
     ],
     deps = [
         ":gfxstream_host_renderdoc",
