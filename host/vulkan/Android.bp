@@ -37,7 +37,6 @@ cc_library_static {
         "liblog",
     ],
     static_libs: [
-        "gfxstream_host_common",
         "libgfxstream_common_base",
         "libgfxstream_common_logging",
         "libgfxstream_host_common",
@@ -186,7 +185,6 @@ cc_test_host {
         "liblog",
     ],
     static_libs: [
-        "gfxstream_host_common",
         "libgfxstream_common_logging",
         "libgfxstream_host_vulkan_server",
         "libgtest",
@@ -209,7 +207,6 @@ cc_test_host {
         "liblog",
     ],
     static_libs: [
-        "gfxstream_host_common",
         "libgfxstream_common_base",
         "libgfxstream_common_logging",
         "libgfxstream_host_features",
@@ -266,7 +263,6 @@ cc_test_host {
         "liblog",
     ],
     static_libs: [
-        "gfxstream_host_common",
         "libgfxstream_common_base",
         "libgfxstream_host_features",
         "libgfxstream_host_vulkan_server",

@@ -42,7 +42,6 @@ cc_test_library {
         "libgfxstream_oswindow_test_support",
     ],
     static_libs: [
-        "gfxstream_base_test_support",
         "libgfxstream_common_base",
         "libgfxstream_common_logging",
         "libgfxstream_host_decoder_common",

@@ -191,7 +191,6 @@ cc_test_host {
         "libgfxstream_backend",
     ],
     static_libs: [
-        "gfxstream_base_test_support",
         "libgfxstream_common_base",
         "libgfxstream_common_image",
         "libgfxstream_common_logging",
