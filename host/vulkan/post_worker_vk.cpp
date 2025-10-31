@@ -37,7 +37,8 @@ std::shared_future<void> PostWorkerVk::postImpl(ColorBuffer* cb) {
     constexpr const int kMaxPostRetries = 2;
     for (int i = 0; i < kMaxPostRetries; i++) {
         const auto imageInfo = mFb->borrowColorBufferForDisplay(cb->getHndl());
-        auto result = m_displayVk->post(imageInfo.get());
+        const float rotationDegrees = static_cast<float>(mFb->getZrot());
+        auto result = m_displayVk->post(imageInfo.get(), rotationDegrees);
         if (result.success) {
             return result.postCompletedWaitable;
         }

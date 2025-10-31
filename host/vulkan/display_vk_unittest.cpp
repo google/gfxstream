@@ -239,7 +239,7 @@ TEST_F(DisplayVkTest, PostWithoutSurfaceShouldntCrash) {
     std::vector<uint32_t> pixels(textureWidth * textureHeight, 0);
     ASSERT_TRUE(texture->write(pixels));
     const auto imageInfo = createBorrowedImageInfo(texture);
-    displayVk.post(imageInfo.get());
+    displayVk.post(imageInfo.get(), 0);
 }
 
 TEST_F(DisplayVkTest, SimplePost) {
@@ -261,7 +261,7 @@ TEST_F(DisplayVkTest, SimplePost) {
     std::vector<std::shared_future<void>> waitForGpuFutures;
     for (uint32_t i = 0; i < 10; i++) {
         const auto imageInfo = createBorrowedImageInfo(texture);
-        auto postResult = m_displayVk->post(imageInfo.get());
+        auto postResult = m_displayVk->post(imageInfo.get(), 0);
         ASSERT_TRUE(postResult.success);
         waitForGpuFutures.emplace_back(std::move(postResult.postCompletedWaitable));
     }
@@ -289,13 +289,41 @@ TEST_F(DisplayVkTest, PostTwoColorBuffers) {
     for (uint32_t i = 0; i < 10; i++) {
         const auto redImageInfo = createBorrowedImageInfo(redTexture);
         const auto greenImageInfo = createBorrowedImageInfo(greenTexture);
-        auto redPostResult = m_displayVk->post(redImageInfo.get());
+        auto redPostResult = m_displayVk->post(redImageInfo.get(), 0);
         ASSERT_TRUE(redPostResult.success);
         waitForGpuFutures.emplace_back(std::move(redPostResult.postCompletedWaitable));
 
-        auto greenPostResult = m_displayVk->post(greenImageInfo.get());
+        auto greenPostResult = m_displayVk->post(greenImageInfo.get(), 0);
         ASSERT_TRUE(greenPostResult.success);
         waitForGpuFutures.emplace_back(std::move(greenPostResult.postCompletedWaitable));
+    }
+    for (auto &waitForGpuFuture : waitForGpuFutures) {
+        waitForGpuFuture.wait();
+    }
+}
+
+TEST_F(DisplayVkTest, PostWithRotation) {
+    uint32_t textureWidth = 20;
+    uint32_t textureHeight = 40;
+    auto texture = RenderTexture::create(*k_vk, m_vkDevice, m_vkPhysicalDevice, m_compositorVkQueue,
+                                         m_vkCommandPool, textureWidth, textureHeight);
+    std::vector<uint32_t> pixels(textureWidth * textureHeight);
+    for (int i = 0; i < textureHeight; i++) {
+        for (int j = 0; j < textureWidth; j++) {
+            uint8_t *pixel = reinterpret_cast<uint8_t *>(&pixels[i * textureWidth + j]);
+            pixel[0] = static_cast<uint8_t>((i * 0xff / textureHeight) & 0xff);
+            pixel[1] = static_cast<uint8_t>((j * 0xff / textureWidth) & 0xff);
+            pixel[2] = 0;
+            pixel[3] = 0xff;
+        }
+    }
+    ASSERT_TRUE(texture->write(pixels));
+    std::vector<std::shared_future<void>> waitForGpuFutures;
+    for (uint32_t i = 0; i < 10; i++) {
+        const auto imageInfo = createBorrowedImageInfo(texture);
+        auto postResult = m_displayVk->post(imageInfo.get(), 90.0f);
+        ASSERT_TRUE(postResult.success);
+        waitForGpuFutures.emplace_back(std::move(postResult.postCompletedWaitable));
     }
     for (auto &waitForGpuFuture : waitForGpuFutures) {
         waitForGpuFuture.wait();
