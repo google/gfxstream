@@ -4455,14 +4455,18 @@ void FrameBuffer::Impl::asyncWaitForGpuWithCb(uint64_t eglsync, FenceCompletionC
 }
 
 const gl::GLESv2Dispatch* FrameBuffer::Impl::getGles2Dispatch() {
-    ENSURE_GL_EMULATION_VALUE(nullptr);
-
+    if (!m_emulationGl) {
+        // This is ok, returned value should be checked
+        return nullptr;
+    }
     return m_emulationGl->getGles2Dispatch();
 }
 
 const gl::EGLDispatch* FrameBuffer::Impl::getEglDispatch() {
-    ENSURE_GL_EMULATION_VALUE(nullptr);
-
+    if (!m_emulationGl) {
+        // This is ok, returned value should be checked
+        return nullptr;
+    }
     return m_emulationGl->getEglDispatch();
 }
 
