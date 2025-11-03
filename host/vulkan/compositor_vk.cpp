@@ -1240,7 +1240,7 @@ void CompositorVk::buildCompositionVk(const CompositionRequest& compositionReque
                             glm::scale(glm::mat4(1.0f),
                                        glm::vec3(texCoordScaleX, texCoordScaleY, 1.0f)) *
                             glm::rotate(glm::mat4(1.0f), texcoordRotation,
-                                        glm::vec3(0.0f, 0.0f, 1.0f)),
+                                        glm::vec3(0.0f, 0.0f, -1.0f)), // rotate clockwise
                         // TODO(b/420586022): Support color transformation on host composition
                         .colorTransform = glm::mat4(1.0f),
                         .mode = glm::uvec4(static_cast<uint32_t>(layer.props.composeMode), 0, 0, 0),
