@@ -92,7 +92,7 @@ static void initIcdPaths(bool forTesting) {
     }
 
     if (forTesting) {
-        const char* testingICD = "swiftshader";
+        const char* testingICD = "lavapipe";
         GFXSTREAM_INFO("%s: In test environment, enforcing %s ICD.", __func__, testingICD);
         gfxstream::base::setEnvironmentVariable("ANDROID_EMU_VK_ICD", testingICD);
         androidIcd = testingICD;
