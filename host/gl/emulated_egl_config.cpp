@@ -235,9 +235,8 @@ int EmulatedEglConfigList::chooseConfig(const EGLint* attribs,
     } else if (wantSwapPreserved && apiLevel <= 19) {
         newAttribs[surfaceTypeIdx + 1] &= ~(EGLint)EGL_SWAP_BEHAVIOR_PRESERVED_BIT;
     }
-    if (get_gfxstream_renderer() == SELECTED_RENDERER_SWIFTSHADER ||
-        get_gfxstream_renderer() == SELECTED_RENDERER_SWIFTSHADER_INDIRECT ||
-        get_gfxstream_renderer() == SELECTED_RENDERER_ANGLE ||
+    if (get_gfxstream_renderer() == SELECTED_RENDERER_SWIFTSHADER_INDIRECT ||
+        get_gfxstream_renderer() == SELECTED_RENDERER_LAVAPIPE ||
         get_gfxstream_renderer() == SELECTED_RENDERER_ANGLE_INDIRECT) {
         newAttribs.push_back(EGL_CONFIG_CAVEAT);
         newAttribs.push_back(EGL_DONT_CARE);

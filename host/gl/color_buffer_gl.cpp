@@ -660,9 +660,10 @@ bool ColorBufferGl::readPixelsScaled(int width, int height, int rotation, const 
         // In fact, the spec only require RGBA8888 format support. Supports for
         // other formats are optional.
         bool needConvert4To3Channel =
-                pixelDataComponents == GL_RGB && pixelDataType == GL_UNSIGNED_BYTE &&
-                (get_gfxstream_renderer() == SELECTED_RENDERER_SWIFTSHADER_INDIRECT ||
-                    get_gfxstream_renderer() == SELECTED_RENDERER_ANGLE_INDIRECT);
+            pixelDataComponents == GL_RGB && pixelDataType == GL_UNSIGNED_BYTE &&
+            (get_gfxstream_renderer() == SELECTED_RENDERER_SWIFTSHADER_INDIRECT ||
+             get_gfxstream_renderer() == SELECTED_RENDERER_LAVAPIPE ||
+             get_gfxstream_renderer() == SELECTED_RENDERER_ANGLE_INDIRECT);
         std::vector<uint8_t> tmpPixels;
         void* readPixelsDst = pixels;
         if (needConvert4To3Channel) {

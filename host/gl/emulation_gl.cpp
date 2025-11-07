@@ -389,6 +389,7 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
         !disableFastBlit &&
         (get_gfxstream_renderer() == SELECTED_RENDERER_HOST ||
          get_gfxstream_renderer() == SELECTED_RENDERER_SWIFTSHADER_INDIRECT ||
+         get_gfxstream_renderer() == SELECTED_RENDERER_LAVAPIPE ||
          get_gfxstream_renderer() == SELECTED_RENDERER_ANGLE_INDIRECT);
 
     auto eglConfigOpt = getEmulationEglConfig(emulationGl->mEglDisplay, allowWindowSurface);

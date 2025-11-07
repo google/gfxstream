@@ -104,8 +104,8 @@ GLESDispatchMaxVersion calcMaxVersionFromDispatch(const gfxstream::host::Feature
 
     if (get_gfxstream_renderer() == SELECTED_RENDERER_HOST
         || get_gfxstream_renderer() == SELECTED_RENDERER_SWIFTSHADER_INDIRECT
-        || get_gfxstream_renderer() == SELECTED_RENDERER_ANGLE_INDIRECT
-        || get_gfxstream_renderer() == SELECTED_RENDERER_ANGLE9_INDIRECT) {
+        || get_gfxstream_renderer() == SELECTED_RENDERER_LAVAPIPE
+        || get_gfxstream_renderer() == SELECTED_RENDERER_ANGLE_INDIRECT) {
         if (s_egl.eglGetMaxGLESVersion) {
             maxVersion =
                 (GLESDispatchMaxVersion)s_egl.eglGetMaxGLESVersion(dpy);

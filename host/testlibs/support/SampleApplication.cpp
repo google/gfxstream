@@ -107,7 +107,7 @@ bool shouldUseHostGpu() {
     if (useHost) {
         set_gfxstream_renderer(SELECTED_RENDERER_HOST);
     } else {
-        set_gfxstream_renderer(SELECTED_RENDERER_SWIFTSHADER_INDIRECT);
+        set_gfxstream_renderer(SELECTED_RENDERER_LAVAPIPE);
     }
 
     return useHost;
