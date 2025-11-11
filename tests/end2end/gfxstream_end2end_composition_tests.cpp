@@ -16,6 +16,8 @@
 
 #include "gfxstream_end2end_tests.h"
 
+#include "gfxstream/common/logging.h"
+
 namespace gfxstream {
 namespace tests {
 namespace {
@@ -176,6 +178,67 @@ TEST_P(GfxstreamEnd2EndCompositionTest, BasicCompositionBGRA) {
     GFXSTREAM_ASSERT(CompareAHBWithGolden(resultAhb, "256x256_golden_basic_composition.png"));
 }
 
+// Tests that composing a solid color YV12 image results in fullscreen image
+// of exactly that same solid color.
+TEST_P(GfxstreamEnd2EndCompositionTest, DISABLED_BlitYV12) {
+    constexpr const uint32_t kWidth = 32;
+    constexpr const uint32_t kHeight = 32;
+
+    ScopedRenderControlDevice rcDevice(*mRc);
+
+    const PixelR8G8B8A8 rgbaColor = PixelR8G8B8A8(66, 99, 160, 255);
+
+    const auto yuvColor = PixelY8U8V8::FromR8G8B8A8(rgbaColor);
+    const auto yuvAhb = GFXSTREAM_ASSERT(
+        CreateAHBWithColor(kWidth, kHeight, GFXSTREAM_AHB_FORMAT_YV12, yuvColor));
+
+    auto resultAhb = GFXSTREAM_ASSERT(
+        ScopedAHardwareBuffer::Allocate(*mGralloc, kWidth, kHeight,
+                                        GFXSTREAM_AHB_FORMAT_B8G8R8A8_UNORM));
+
+    const RenderControlComposition composition = {
+        .displayId = 0,
+        .compositionResultColorBufferHandle = mGralloc->getHostHandle(resultAhb),
+    };
+    const std::vector<RenderControlCompositionLayer> compositionLayers = {{
+        {
+            .colorBufferHandle = mGralloc->getHostHandle(yuvAhb),
+            .composeMode = HWC2_COMPOSITION_DEVICE,
+            .displayFrame =
+                {
+                    .left = 0,
+                    .top = 0,
+                    .right = kWidth,
+                    .bottom = kHeight,
+                },
+            .crop =
+                {
+                    .left = 0,
+                    .top = 0,
+                    .right = static_cast<float>(kWidth),
+                    .bottom = static_cast<float>(kHeight),
+                },
+            .blendMode = HWC2_BLEND_MODE_NONE,
+            .alpha = 1.0,
+            .color =
+                {
+                    .r = 0,
+                    .g = 0,
+                    .b = 0,
+                    .a = 0,
+                },
+            .transform = static_cast<hwc_transform_t>(0),
+        },
+    }};
+    ASSERT_THAT(mRc->rcCompose(rcDevice,
+                               &composition,
+                               static_cast<uint32_t>(compositionLayers.size()),
+                               compositionLayers.data()),
+                Eq(0));
+
+    GFXSTREAM_ASSERT(AhbIsEntirely(resultAhb, rgbaColor));
+}
+
 TEST_P(GfxstreamEnd2EndCompositionTest, DISABLED_BasicCompositionYV12) {
     ScopedRenderControlDevice rcDevice(*mRc);
 
@@ -184,7 +247,7 @@ TEST_P(GfxstreamEnd2EndCompositionTest, DISABLED_BasicCompositionYV12) {
     auto layer1Ahb = GFXSTREAM_ASSERT(CreateAHBFromImage("256x256_android.png"));
     auto layer2Ahb = GFXSTREAM_ASSERT(CreateAHBWithColor(16, 16, GFXSTREAM_AHB_FORMAT_YV12, yuvColor));
     auto resultAhb = GFXSTREAM_ASSERT(
-        ScopedAHardwareBuffer::Allocate(*mGralloc, 256, 256, GFXSTREAM_AHB_FORMAT_B8G8R8A8_UNORM));
+        ScopedAHardwareBuffer::Allocate(*mGralloc, 256, 256, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
 
     const RenderControlComposition composition = {
         .displayId = 0,

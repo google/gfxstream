@@ -680,7 +680,7 @@ Result<Image> GfxstreamEnd2EndTest::AsImage(ScopedAHardwareBuffer& ahb) {
     return actual;
 }
 
-Result<Ok> GfxstreamEnd2EndTest::FillAhb(ScopedAHardwareBuffer& ahb, PixelR8G8B8A8 color) {
+Result<Ok> GfxstreamEnd2EndTest::FillAhb(ScopedAHardwareBuffer& ahb, PixelFillColor pixelFill) {
     const uint32_t drmFormat = ahb.GetDrmFormat();
 
     const uint32_t ahbWidth = ahb.GetWidth();
@@ -688,6 +688,12 @@ Result<Ok> GfxstreamEnd2EndTest::FillAhb(ScopedAHardwareBuffer& ahb, PixelR8G8B8
 
     std::vector<Gralloc::LockedPlane> planes = GFXSTREAM_EXPECT(ahb.LockPlanes());
     if (drmFormat == DRM_FORMAT_ABGR8888) {
+        if (!std::holds_alternative<PixelR8G8B8A8>(pixelFill)) {
+            return gfxstream::unexpected(
+                "FillAhb does not support filling a RGBA AHB with non RGBA data.");
+        }
+        const PixelR8G8B8A8& color = std::get<PixelR8G8B8A8>(pixelFill);
+
         const Gralloc::LockedPlane& plane = planes[0];
 
         std::vector<uint8_t> srcRow;
@@ -703,10 +709,11 @@ Result<Ok> GfxstreamEnd2EndTest::FillAhb(ScopedAHardwareBuffer& ahb, PixelR8G8B8
             std::memcpy(dstRow, srcRow.data(), srcRow.size());
         }
     } else if (drmFormat == DRM_FORMAT_NV12 || drmFormat == DRM_FORMAT_YVU420) {
-        uint8_t colorY;
-        uint8_t colorU;
-        uint8_t colorV;
-        RGBToYUV(color.r, color.g, color.b, &colorY, &colorU, &colorV);
+        if (!std::holds_alternative<PixelY8U8V8>(pixelFill)) {
+            return gfxstream::unexpected(
+                "FillAhb does not support filling a YUV AHB with non YUV data.");
+        }
+        const PixelY8U8V8& color = std::get<PixelY8U8V8>(pixelFill);
 
         const Gralloc::LockedPlane& yPlane = planes[0];
         const Gralloc::LockedPlane& uPlane = planes[1];
@@ -717,7 +724,7 @@ Result<Ok> GfxstreamEnd2EndTest::FillAhb(ScopedAHardwareBuffer& ahb, PixelR8G8B8
             for (uint32_t x = 0; x < ahbWidth; x++) {
                 uint8_t* dstY =
                     yPlane.data + (y * yPlane.rowStrideBytes) + (x * yPlane.pixelStrideBytes);
-                *dstY = colorY;
+                *dstY = color.y;
             }
         }
 
@@ -728,8 +735,8 @@ Result<Ok> GfxstreamEnd2EndTest::FillAhb(ScopedAHardwareBuffer& ahb, PixelR8G8B8
                                 (UV_x * uPlane.pixelStrideBytes);
                 uint8_t* dstV = vPlane.data + (UV_y * vPlane.rowStrideBytes) +
                                 (UV_x * vPlane.pixelStrideBytes);
-                *dstU = colorU;
-                *dstV = colorV;
+                *dstU = color.u;
+                *dstV = color.v;
             }
         }
     } else {
@@ -760,7 +767,7 @@ Result<ScopedAHardwareBuffer> GfxstreamEnd2EndTest::CreateAHBFromImage(
 Result<ScopedAHardwareBuffer> GfxstreamEnd2EndTest::CreateAHBWithColor(const uint32_t width,
                                                                        const uint32_t height,
                                                                        const uint32_t ahbFormat,
-                                                                       const PixelR8G8B8A8& color) {
+                                                                       const PixelFillColor& color) {
     auto ahb =
         GFXSTREAM_EXPECT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height, ahbFormat));
 
@@ -865,6 +872,17 @@ Result<Ok> GfxstreamEnd2EndTest::CompareAHBWithGolden(ScopedAHardwareBuffer& ahb
             "see the actual image generated).");
     }
 
+    return {};
+}
+
+Result<Ok> GfxstreamEnd2EndTest::AhbIsEntirely(ScopedAHardwareBuffer& ahb,
+                                               const PixelR8G8B8A8& color) {
+    Image actualImage = GFXSTREAM_EXPECT(AsImage(ahb));
+    Image expectedImage = ImageFromColor(actualImage.width, actualImage.height, color);
+
+    if (!AreImagesSimilar(expectedImage, actualImage)) {
+        return gfxstream::unexpected("Image is not entirely " + color.ToString());
+    }
     return {};
 }
 
