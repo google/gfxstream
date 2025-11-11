@@ -381,7 +381,18 @@ constexpr bool formatRequiresSamplerYcbcrConversion(VkFormat format) {
     }
 }
 
-std::optional<VkFormat> ToVkFormat(gfxstream::host::GfxstreamFormat format);
+std::optional<VkFormat> ToVkFormat(GfxstreamFormat format);
+std::optional<GfxstreamFormat> ToGfxstreamFormat(VkFormat format);
+
+#define TO_VK_FORMAT_OR_DIE(GFXSTREAM_FORMAT)                             \
+    ({                                                                    \
+        auto formatOptForVkFormatOrDie = ToVkFormat(GFXSTREAM_FORMAT);    \
+        if (!formatOptForVkFormatOrDie) {                                 \
+            const std::string formatString = ToString(GFXSTREAM_FORMAT);  \
+            GFXSTREAM_FATAL("Unhandled format %s, formatString.c_str()"); \
+        };                                                                \
+        *formatOptForVkFormatOrDie;                                       \
+    })
 
 // Returns the size in bytes needed to copy an image with the given format,
 // width, and height to a staging buffer and the VkBufferImageCopy-s needed

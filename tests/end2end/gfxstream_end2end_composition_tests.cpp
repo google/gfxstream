@@ -16,8 +16,6 @@
 
 #include "gfxstream_end2end_tests.h"
 
-#include "gfxstream/common/logging.h"
-
 namespace gfxstream {
 namespace tests {
 namespace {
@@ -180,7 +178,7 @@ TEST_P(GfxstreamEnd2EndCompositionTest, BasicCompositionBGRA) {
 
 // Tests that composing a solid color YV12 image results in fullscreen image
 // of exactly that same solid color.
-TEST_P(GfxstreamEnd2EndCompositionTest, DISABLED_BlitYV12) {
+TEST_P(GfxstreamEnd2EndCompositionTest, BlitYV12) {
     constexpr const uint32_t kWidth = 32;
     constexpr const uint32_t kHeight = 32;
 
@@ -239,15 +237,17 @@ TEST_P(GfxstreamEnd2EndCompositionTest, DISABLED_BlitYV12) {
     GFXSTREAM_ASSERT(AhbIsEntirely(resultAhb, rgbaColor));
 }
 
-TEST_P(GfxstreamEnd2EndCompositionTest, DISABLED_BasicCompositionYV12) {
+TEST_P(GfxstreamEnd2EndCompositionTest, BasicCompositionYV12) {
     ScopedRenderControlDevice rcDevice(*mRc);
 
-    auto yuvColor = PixelR8G8B8A8(66, 99, 160, 255);
-
     auto layer1Ahb = GFXSTREAM_ASSERT(CreateAHBFromImage("256x256_android.png"));
-    auto layer2Ahb = GFXSTREAM_ASSERT(CreateAHBWithColor(16, 16, GFXSTREAM_AHB_FORMAT_YV12, yuvColor));
+
+    const auto layer2RgbaColor = PixelR8G8B8A8(66, 99, 160, 255);
+    const auto layer2YuvColor = PixelY8U8V8::FromR8G8B8A8(layer2RgbaColor);
+    auto layer2Ahb = GFXSTREAM_ASSERT(CreateAHBWithColor(32, 32, GFXSTREAM_AHB_FORMAT_YV12, layer2YuvColor));
+
     auto resultAhb = GFXSTREAM_ASSERT(
-        ScopedAHardwareBuffer::Allocate(*mGralloc, 256, 256, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
+        ScopedAHardwareBuffer::Allocate(*mGralloc, 256, 256, GFXSTREAM_AHB_FORMAT_B8G8R8A8_UNORM));
 
     const RenderControlComposition composition = {
         .displayId = 0,

@@ -29,13 +29,51 @@
 #include "borrowed_image_vk.h"
 #include "compositor.h"
 #include "debug_utils_helper.h"
-#include "gfxstream/host/borrowed_image.h"
-#include "gfxstream/host/borrowed_image.h"
 #include "gfxstream/LruCache.h"
+#include "gfxstream/host/borrowed_image.h"
+#include "gfxstream/host/gfxstream_format.h"
 #include "gfxstream/synchronization/Lock.h"
 #include "goldfish_vk_dispatch.h"
 #include "host/hwc2.h"
 #include "vulkan/vk_utils.h"
+
+namespace gfxstream {
+namespace host {
+namespace vk {
+
+// This wrapper helps add type checking for a common pattern in the compositor
+// where all of the non-YUV formats can use a common resource but each YUV format
+// needs a custom resource due to the need to use immutable samplers for YUV images.
+struct YuvOrDefaultGfxstreamFormat {
+    YuvOrDefaultGfxstreamFormat() : underlying(GfxstreamFormat::UNKNOWN) {}
+
+    YuvOrDefaultGfxstreamFormat(GfxstreamFormat format)
+        : underlying(IsYuvFormat(format) ? format : GfxstreamFormat::UNKNOWN) {}
+
+    YuvOrDefaultGfxstreamFormat& operator=(GfxstreamFormat format) {
+        underlying = IsYuvFormat(format) ? format : GfxstreamFormat::UNKNOWN;
+        return *this;
+    }
+
+    GfxstreamFormat underlying = GfxstreamFormat::UNKNOWN;
+
+    bool operator==(const YuvOrDefaultGfxstreamFormat& other) const {
+        return underlying == other.underlying;
+    }
+};
+
+}  // namespace vk
+}  // namespace host
+}  // namespace gfxstream
+
+namespace std {
+template <>
+struct hash<gfxstream::host::vk::YuvOrDefaultGfxstreamFormat> {
+    size_t operator()(gfxstream::host::vk::YuvOrDefaultGfxstreamFormat format) const {
+        return hash<uint32_t>()(static_cast<uint32_t>(format.underlying));
+    }
+};
+}  // namespace std
 
 namespace gfxstream {
 namespace host {
@@ -63,20 +101,21 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
     const DebugUtilsHelper m_debugUtilsHelper;
     std::shared_ptr<gfxstream::base::Lock> m_vkQueueLock;
 
-    std::unordered_map<VkFormat /*rendertarget format*/, VkRenderPass> m_vkRenderPasses;
+    std::unordered_map<GfxstreamFormat /*rendertarget format*/, VkRenderPass> m_vkRenderPasses;
 
     struct GraphicsPipelineKey {
-        VkFormat rtFormat;
-        VkFormat samplerFormat;
+        GfxstreamFormat renderTargetFormat;
+        YuvOrDefaultGfxstreamFormat sampledImageFormat;
 
         bool operator==(const GraphicsPipelineKey& other) const {
-            return rtFormat == other.rtFormat && samplerFormat == other.samplerFormat;
+            return renderTargetFormat == other.renderTargetFormat &&
+                   sampledImageFormat == other.sampledImageFormat;
         }
     };
     struct GraphicsPipelineHash {
         std::size_t operator()(const GraphicsPipelineKey& k) const {
-            std::size_t h1 = std::hash<int>{}(k.rtFormat);
-            std::size_t h2 = std::hash<int>{}(k.samplerFormat);
+            std::size_t h1 = std::hash<GfxstreamFormat>{}(k.renderTargetFormat);
+            std::size_t h2 = std::hash<YuvOrDefaultGfxstreamFormat>{}(k.sampledImageFormat);
             return h1 ^ (h2 << 1);
         }
     };
@@ -91,13 +130,13 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
     VkCommandPool m_vkCommandPool;
     VkSampler m_defaultSampler;
 
-    struct PerSamplerResources {
-        VkDescriptorSetLayout m_vkDescriptorSetLayout = VK_NULL_HANDLE;
-        VkPipelineLayout m_vkPipelineLayout = VK_NULL_HANDLE;
+    struct PerFormatResources {
+        // The descriptor set layout for the composition pipeline when sampling this format.
+        VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
+        // The pipeline layout for the composition pipeline when sampling this format.
+        VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
     };
-
-    // Holds per-sampler objects, key is VK_FORMAT_UNDEFINED for default (i.e. non-ycbcr) samplers.
-    std::unordered_map<VkFormat /*sampler format*/, PerSamplerResources> m_perSamplerRes;
+    std::unordered_map<YuvOrDefaultGfxstreamFormat, PerFormatResources> m_formatResources;
 
     // Unused image that is solely used to occupy the sampled image binding
     // when compositing a solid color layer.
@@ -105,6 +144,7 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
         VkImage m_vkImage = VK_NULL_HANDLE;
         VkImageView m_vkImageView = VK_NULL_HANDLE;
         VkDeviceMemory m_vkImageMemory = VK_NULL_HANDLE;
+        GfxstreamFormat m_imageFormat = GfxstreamFormat::UNKNOWN;
     };
 
     Image m_defaultImage;
@@ -124,12 +164,12 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
     UniformBufferStorage m_uniformStorage;
 
     // Keep in sync with vulkan/Compositor.frag.
-    struct SamplerBinding {
+    struct SampledImageBinding {
         // Include the image id to trigger a descriptor update to handle the case
         // that the VkImageView is recycled across different images (b/322998473).
         uint32_t sampledImageId = 0;
         VkImageView sampledImageView = VK_NULL_HANDLE;
-        VkFormat pipelineSamplerFormat = VK_FORMAT_UNDEFINED;
+        GfxstreamFormat sampledImageFormat = GfxstreamFormat::UNKNOWN;
     };
 
     // Keep in sync with vulkan/Compositor.vert.
@@ -144,7 +184,7 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
 
     // The cached contents of a given descriptor set.
     struct DescriptorSetContents {
-        SamplerBinding binding0;
+        SampledImageBinding binding0;
         UniformBufferBinding binding1;
     };
 
@@ -161,11 +201,13 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
     struct PerFrameResources {
         VkFence m_vkFence = VK_NULL_HANDLE;
         VkCommandBuffer m_vkCommandBuffer = VK_NULL_HANDLE;
-        std::unordered_map<VkFormat /*pipelineSamplerFormat*/, std::vector<VkDescriptorSet>>
+        std::unordered_map<YuvOrDefaultGfxstreamFormat /*sampledImageFormat*/,
+                           std::vector<VkDescriptorSet>>
             m_layerDescriptorSets;
         // Pointers into the underlying uniform buffer storage for the uniform
         // buffer of part of each descriptor set for each layer.
-        std::unordered_map<VkFormat /*pipelineSamplerFormat*/, std::vector<UniformBufferBinding*>>
+        std::unordered_map<YuvOrDefaultGfxstreamFormat /*sampledImageFormat*/,
+                           std::vector<UniformBufferBinding*>>
             m_layerUboStorages;
         std::optional<FrameDescriptorSetsContents> m_vkDescriptorSetsContents;
     };
@@ -261,13 +303,13 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
                           uint32_t queueFamilyIndex, uint32_t maxFramesInFlight,
                           vk_util::YcbcrSamplerPool* ycbcrPool, DebugUtilsHelper debugUtils);
 
-    void setUpGraphicsPipeline(const VkShaderModule vertShaderMod,
-                               const VkShaderModule fragShaderMod, const VkFormat samplerFormat,
-                               const VkSampler immutableSampler);
+    void setUpFormatResources();
     void setUpRenderPasses();
+    void setUpGraphicsPipeline(const VkShaderModule vertShaderMod,
+                               const VkShaderModule fragShaderMod,
+                               const GfxstreamFormat samplerFormat);
     void setUpGraphicsPipelines();
     void setUpVertexBuffers();
-    void setUpPerSamplerResources();
     void setUpDescriptorSets();
     void setUpUniformBuffers();
     void setUpCommandPool();
@@ -295,9 +337,6 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
     // Check if the ColorBuffer can be used as a compose layer to be sampled from.
     bool canCompositeFrom(const VkImageCreateInfo& info);
 
-    // Check if the ColorBuffer can be used as a render target of a composition.
-    bool canCompositeTo(const VkImageCreateInfo& info);
-
     // A consolidated view of a `Compositor::CompositionRequestLayer` with only
     // the Vulkan components needed for command recording and submission.
     struct CompositionLayerVk {
@@ -316,7 +355,7 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
         VkRenderPass targetRenderPass = VK_NULL_HANDLE;
         VkFramebuffer targetFramebuffer = VK_NULL_HANDLE;
         std::vector<VkPipeline> layersPipelines;
-        std::vector<VkFormat> layerSourceSamplerFormats;
+        std::vector<YuvOrDefaultGfxstreamFormat> layerSourceSamplerFormats;
         std::vector<const BorrowedImageInfoVk*> layersSourceImages;
         FrameDescriptorSetsContents layersDescriptorSets;
     };

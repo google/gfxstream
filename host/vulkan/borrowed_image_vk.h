@@ -14,11 +14,13 @@
 
 #pragma once
 
+#include <vulkan/vulkan.h>
+
 #include <cstdint>
 #include <vector>
 
 #include "gfxstream/host/borrowed_image.h"
-#include "goldfish_vk_dispatch.h"
+#include "gfxstream/host/gfxstream_format.h"
 
 namespace gfxstream {
 namespace host {
@@ -28,6 +30,7 @@ struct BorrowedImageInfoVk : public BorrowedImageInfo {
     VkImage image = VK_NULL_HANDLE;
     VkImageView imageView = VK_NULL_HANDLE;
     VkImageCreateInfo imageCreateInfo = {};
+    GfxstreamFormat imageFormat = GfxstreamFormat::UNKNOWN;
 
     // The image layout that `image` is in before composition.
     //

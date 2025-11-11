@@ -65,6 +65,7 @@ template <VkImageLayout imageLayout, VkImageUsageFlags imageUsage>
 struct RenderResourceVk : public RenderResourceVkBase {
    public:
     static constexpr VkFormat k_vkFormat = VK_FORMAT_R8G8B8A8_UNORM;
+    static constexpr GfxstreamFormat k_format = GfxstreamFormat::R8G8B8A8_UNORM;
     static constexpr uint32_t k_bpp = 4;
     static constexpr VkImageLayout k_vkImageLayout = imageLayout;
 

@@ -2819,11 +2819,14 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height,
         return false;
     }
 
-    VkSamplerYcbcrConversionInfo ycbcrInfo = {VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_INFO,
-                                              nullptr, VK_NULL_HANDLE};
+    VkSamplerYcbcrConversionInfo ycbcrInfo = {
+        .sType = VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_INFO,
+        .pNext = nullptr,
+        .conversion = VK_NULL_HANDLE,
+    };
     bool addConversion = formatRequiresYcbcrConversion(imageVkFormat);
     if (addConversion) {
-        ycbcrInfo.conversion = mYcbcrSamplerPool.getConversion(imageVkFormat);
+        ycbcrInfo.conversion = mYcbcrSamplerPool.getConversion(format);
         if (ycbcrInfo.conversion == VK_NULL_HANDLE) {
             // We intentionally do no fail color buffer creation on this error, as
             // the image view and the conversion may be unused.
@@ -4307,6 +4310,7 @@ std::unique_ptr<BorrowedImageInfoVk> VkEmulation::borrowColorBufferForCompositio
     compositorInfo->image = colorBufferInfo->image;
     compositorInfo->imageView = colorBufferInfo->imageView;
     compositorInfo->imageCreateInfo = colorBufferInfo->imageCreateInfoShallow;
+    compositorInfo->imageFormat = colorBufferInfo->format;
     compositorInfo->preBorrowLayout = colorBufferInfo->currentLayout;
     compositorInfo->preBorrowQueueFamilyIndex = colorBufferInfo->currentQueueFamilyIndex;
     if (colorBufferIsTarget && mDisplayVk) {
@@ -4348,6 +4352,7 @@ std::unique_ptr<BorrowedImageInfoVk> VkEmulation::borrowColorBufferForDisplay(
     compositorInfo->image = colorBufferInfo->image;
     compositorInfo->imageView = colorBufferInfo->imageView;
     compositorInfo->imageCreateInfo = colorBufferInfo->imageCreateInfoShallow;
+    compositorInfo->imageFormat = colorBufferInfo->format;
     compositorInfo->preBorrowLayout = colorBufferInfo->currentLayout;
     compositorInfo->preBorrowQueueFamilyIndex = mQueueFamilyIndex;
 

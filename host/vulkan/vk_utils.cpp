@@ -18,6 +18,8 @@
 
 #include <cstring>
 
+#include "vk_format_utils.h"
+
 namespace gfxstream {
 namespace host {
 namespace vk {
@@ -74,30 +76,31 @@ bool YcbcrSamplerPool::init(const VulkanDispatch* ivk, const VulkanDispatch* dvk
                             VkPhysicalDevice physicalDevice, VkDevice device) {
     if (mDvk) {
         // Already initialized
-        GFXSTREAM_ERROR("Cannot initialize YcbcrSamplerPool: already initialized");
+        GFXSTREAM_ERROR("Failed to initialize YcbcrSamplerPool: already initialized");
         return false;
     }
     if (!dvk || !ivk || device == VK_NULL_HANDLE || physicalDevice == VK_NULL_HANDLE) {
-        GFXSTREAM_ERROR("Cannot initialize YcbcrSamplerPool: invalid parameters");
+        GFXSTREAM_ERROR("Failed to initialize YcbcrSamplerPool: invalid parameters");
         return false;
     }
-    mDvk = dvk;
     mIvk = ivk;
+    mDvk = dvk;
     mDevice = device;
     mPhysicalDevice = physicalDevice;
 
     // Create some conversion objects for known formats
-    std::array<VkFormat, 2> prePopulateFormats = {
-        VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM,
-        VK_FORMAT_G8_B8R8_2PLANE_420_UNORM,
+    const std::vector<GfxstreamFormat> kFormatsToPrepopulateSamplersFor = {
+        GfxstreamFormat::NV12,
+        GfxstreamFormat::NV21,
+        GfxstreamFormat::YV12,
+        GfxstreamFormat::YV21,
     };
-    for (VkFormat format : prePopulateFormats) {
-        YCbCrSamplerInfo temp;
-        if (!getOrCreateSamplerInfo(format, &temp)) {
+    for (const GfxstreamFormat format : kFormatsToPrepopulateSamplersFor) {
+        YCbCrSamplerInfo unused;
+        if (!getOrCreateSamplerInfo(format, &unused)) {
             return false;
         }
     }
-
     return true;
 }
 
@@ -108,13 +111,13 @@ void YcbcrSamplerPool::destroy() {
         mDvk->vkDestroySampler(mDevice, iter.second.sampler, nullptr);
     }
     m_ycbcrSamplers.clear();
-    mDvk = nullptr;
     mIvk = nullptr;
+    mDvk = nullptr;
     mDevice = VK_NULL_HANDLE;
     mPhysicalDevice = VK_NULL_HANDLE;
 }
 
-VkSamplerYcbcrConversion YcbcrSamplerPool::getConversion(VkFormat format) {
+VkSamplerYcbcrConversion YcbcrSamplerPool::getConversion(GfxstreamFormat format) {
     YCbCrSamplerInfo info;
     if (getOrCreateSamplerInfo(format, &info)) {
         return info.conversion;
@@ -122,7 +125,7 @@ VkSamplerYcbcrConversion YcbcrSamplerPool::getConversion(VkFormat format) {
     return VK_NULL_HANDLE;
 }
 
-VkSampler YcbcrSamplerPool::getSampler(VkFormat format) {
+VkSampler YcbcrSamplerPool::getSampler(GfxstreamFormat format) {
     YCbCrSamplerInfo info;
     if (getOrCreateSamplerInfo(format, &info)) {
         return info.sampler;
@@ -130,8 +133,8 @@ VkSampler YcbcrSamplerPool::getSampler(VkFormat format) {
     return VK_NULL_HANDLE;
 }
 
-std::vector<VkFormat> YcbcrSamplerPool::getAllFormats() const {
-    std::vector<VkFormat> ret;
+std::vector<GfxstreamFormat> YcbcrSamplerPool::getAllFormats() const {
+    std::vector<GfxstreamFormat> ret;
     std::lock_guard<std::mutex> lock(mMutex);
     ret.reserve(m_ycbcrSamplers.size());
     for (auto iter : m_ycbcrSamplers) {
@@ -140,10 +143,19 @@ std::vector<VkFormat> YcbcrSamplerPool::getAllFormats() const {
     return ret;
 }
 
-bool YcbcrSamplerPool::getOrCreateSamplerInfo(VkFormat format, YCbCrSamplerInfo* outInfo) {
+bool YcbcrSamplerPool::getOrCreateSamplerInfo(GfxstreamFormat format, YCbCrSamplerInfo* outInfo) {
     if (!outInfo || !mDvk) {
+        GFXSTREAM_FATAL("Uninitialized  YcbcrSamplerPool.");
         return false;
     }
+
+    auto vkFormatOpt = ToVkFormat(format);
+    if (!vkFormatOpt) {
+        const std::string formatString = ToString(format);
+        GFXSTREAM_ERROR("Unhandled format %s.", formatString.c_str());
+        return false;
+    }
+    const VkFormat vkFormat = *vkFormatOpt;
 
     std::lock_guard<std::mutex> lock(mMutex);
     auto iter = m_ycbcrSamplers.find(format);
@@ -152,14 +164,14 @@ bool YcbcrSamplerPool::getOrCreateSamplerInfo(VkFormat format, YCbCrSamplerInfo*
         return true;
     }
 
-    GFXSTREAM_VERBOSE("Creating ycbcr sampler for format %s", string_VkFormat(format));
+    GFXSTREAM_VERBOSE("Creating YCbCr sampler for %s", string_VkFormat(vkFormat));
     outInfo->conversion = VK_NULL_HANDLE;
     outInfo->sampler = VK_NULL_HANDLE;
 
     // TODO: move this to another common helper class in vk_util.h. (also
     // CompositorVk::getFormatFeatures) and better handling of the tiling mode.
     VkFormatProperties formatProperties = {};
-    mIvk->vkGetPhysicalDeviceFormatProperties(mPhysicalDevice, format, &formatProperties);
+    mIvk->vkGetPhysicalDeviceFormatProperties(mPhysicalDevice, vkFormat, &formatProperties);
     const VkFormatFeatureFlags formatFeatures = formatProperties.optimalTilingFeatures;
 
     // VUID-VkSamplerYcbcrConversionCreateInfo-xChromaOffset-01652
@@ -171,28 +183,70 @@ bool YcbcrSamplerPool::getOrCreateSamplerInfo(VkFormat format, YCbCrSamplerInfo*
         chromaLoc = VK_CHROMA_LOCATION_COSITED_EVEN;
     }
 
+    // The host vulkan driver is not aware of the plane ordering for YUV formats used
+    // in the guest and simply knows that the format "layout" is one of:
+    //
+    //  * VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16
+    //  * VK_FORMAT_G8_B8R8_2PLANE_420_UNORM
+    //  * VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM
+    //
+    // With this, the host needs to adjust the component swizzle based on plane
+    // ordering to ensure that the channels are interpreted correctly.
+    //
+    // From the Vulkan spec's "Sampler Y'CBCR Conversion" section:
+    //
+    //  * Y comes from the G-channel (after swizzle)
+    //  * U (CB) comes from the B-channel (after swizzle)
+    //  * V (CR) comes from the R-channel (after swizzle)
+    //
+    // See
+    // https://registry.khronos.org/vulkan/specs/latest/html/vkspec.html#textures-sampler-YCbCr-conversion
+    //
+    // To match the above, the sampler needs to swizzle such that:
+    //
+    //  * Y ends up in the G-channel
+    //  * U (CB) ends up in the B-channel
+    //  * V (CR) ends up in the R-channel
+    auto chromaOrderingOpt = GetYuvChromaOrdering(format);
+    if (!chromaOrderingOpt) {
+        const std::string formatString = ToString(format);
+        GFXSTREAM_ERROR("Unhandled format %s", formatString.c_str());
+        return false;
+    }
+    auto chromaOrdering = *chromaOrderingOpt;
+    const VkComponentMapping components =
+        chromaOrdering == YuvChromaOrdering::UV ?
+            VkComponentMapping{
+                .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+                .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+                .a = VK_COMPONENT_SWIZZLE_IDENTITY,
+            } :
+            VkComponentMapping{
+                .r = VK_COMPONENT_SWIZZLE_B,
+                .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                .b = VK_COMPONENT_SWIZZLE_R,
+                .a = VK_COMPONENT_SWIZZLE_IDENTITY,
+            };
+
     // Create the VkSamplerYcbcrConversion object with correct format
     const VkSamplerYcbcrConversionCreateInfo ycbcrConversionCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_CREATE_INFO,
         .pNext = nullptr,
-        .format = format,
-        .ycbcrModel = VK_SAMPLER_YCBCR_MODEL_CONVERSION_YCBCR_709,
-        .ycbcrRange = VK_SAMPLER_YCBCR_RANGE_ITU_FULL,
-        .components = {
-            .r = VK_COMPONENT_SWIZZLE_IDENTITY,
-            .g = VK_COMPONENT_SWIZZLE_IDENTITY,
-            .b = VK_COMPONENT_SWIZZLE_IDENTITY,
-            .a = VK_COMPONENT_SWIZZLE_IDENTITY,
-        },
+        .format = vkFormat,
+        .ycbcrModel = VK_SAMPLER_YCBCR_MODEL_CONVERSION_YCBCR_601,
+        .ycbcrRange = VK_SAMPLER_YCBCR_RANGE_ITU_NARROW,
+        .components = components,
         .xChromaOffset = chromaLoc,
         .yChromaOffset = chromaLoc,
         .chromaFilter = VK_FILTER_NEAREST,
-        .forceExplicitReconstruction = VK_FALSE};
+        .forceExplicitReconstruction = VK_FALSE,
+    };
     VkResult res = mDvk->vkCreateSamplerYcbcrConversion(mDevice, &ycbcrConversionCreateInfo,
                                                         nullptr, &outInfo->conversion);
     if (res != VK_SUCCESS) {
-        GFXSTREAM_ERROR("%s: Could not create ycbcr conversion for format: %s, err:%d", __func__,
-                        string_VkFormat(format), res);
+        GFXSTREAM_ERROR("Failed to create VkSamplerYcbcrConversion for %s: %s.",
+                        string_VkFormat(vkFormat), string_VkResult(res));
         return false;
     }
 
@@ -229,14 +283,12 @@ bool YcbcrSamplerPool::getOrCreateSamplerInfo(VkFormat format, YCbCrSamplerInfo*
     res = mDvk->vkCreateSampler(mDevice, &samplerInfo, nullptr, &outInfo->sampler);
     if (res != VK_SUCCESS) {
         mDvk->vkDestroySamplerYcbcrConversion(mDevice, outInfo->conversion, nullptr);
-
-        // Make this a softer error than crashing the emulator
-        GFXSTREAM_ERROR("%s: Could not create ycbcr sampler for format: %s, err:%d", __func__,
-                        string_VkFormat(format), res);
+        GFXSTREAM_ERROR("Failed to create VkSampler for %s: %s.", string_VkFormat(vkFormat),
+                        string_VkResult(res));
         return false;
     }
 
-    // Cache in the poool
+    // Cache in the pool
     m_ycbcrSamplers[format] = *outInfo;
 
     return true;

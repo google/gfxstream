@@ -290,6 +290,7 @@ class CompositorVkTest : public ::testing::Test {
         ret->image = image->m_vkImage;
         ret->imageCreateInfo = image->m_vkImageCreateInfo;
         ret->imageView = image->m_vkImageView;
+        ret->imageFormat = SourceOrTargetImage::k_format;
         ret->preBorrowLayout = SourceOrTargetImage::k_vkImageLayout;
         ret->preBorrowQueueFamilyIndex = m_compositorQueueFamilyIndex;
         ret->postBorrowLayout = SourceOrTargetImage::k_vkImageLayout;

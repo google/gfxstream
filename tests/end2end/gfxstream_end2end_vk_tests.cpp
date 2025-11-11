@@ -17,6 +17,7 @@
 
 #include "gfxstream_end2end_test_utils.h"
 #include "gfxstream_end2end_tests.h"
+#include "gfxstream/common/logging.h"
 #include "gfxstream/Expected.h"
 #include "shaders/blit_sampler2d_frag.h"
 #include "shaders/fullscreen_triangle_with_uv_vert.h"
@@ -298,10 +299,8 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
             const vkhpp::SamplerYcbcrConversionCreateInfo conversionCreateInfo = {
                 .pNext = &externalFormat,
                 .format = static_cast<vkhpp::Format>(ahbFormatProperties.format),
-                .ycbcrModel = static_cast<vkhpp::SamplerYcbcrModelConversion>(
-                    ahbFormatProperties.suggestedYcbcrModel),
-                .ycbcrRange =
-                    static_cast<vkhpp::SamplerYcbcrRange>(ahbFormatProperties.suggestedYcbcrRange),
+                .ycbcrModel = vkhpp::SamplerYcbcrModelConversion::eYcbcr601,
+                .ycbcrRange = vkhpp::SamplerYcbcrRange::eItuNarrow,
                 .components =
                     {
                         .r = static_cast<vkhpp::ComponentSwizzle>(
@@ -1084,11 +1083,45 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
         };
     }
 
+    bool IsYuvFormat(uint32_t ahbFormat) {
+        switch (ahbFormat) {
+            case GFXSTREAM_AHB_FORMAT_Y8Cb8Cr8_420:
+            case GFXSTREAM_AHB_FORMAT_YV12:
+                return true;
+            case GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM:
+            case GFXSTREAM_AHB_FORMAT_R8G8B8X8_UNORM:
+            case GFXSTREAM_AHB_FORMAT_R8G8B8_UNORM:
+            case GFXSTREAM_AHB_FORMAT_R5G6B5_UNORM:
+            case GFXSTREAM_AHB_FORMAT_B8G8R8A8_UNORM:
+            case GFXSTREAM_AHB_FORMAT_B5G5R5A1_UNORM:
+            case GFXSTREAM_AHB_FORMAT_B4G4R4A4_UNORM:
+            case GFXSTREAM_AHB_FORMAT_R16G16B16A16_FLOAT:
+            case GFXSTREAM_AHB_FORMAT_R10G10B10A2_UNORM:
+            case GFXSTREAM_AHB_FORMAT_BLOB:
+            case GFXSTREAM_AHB_FORMAT_D16_UNORM:
+            case GFXSTREAM_AHB_FORMAT_D24_UNORM:
+            case GFXSTREAM_AHB_FORMAT_D24_UNORM_S8_UINT:
+            case GFXSTREAM_AHB_FORMAT_D32_FLOAT:
+            case GFXSTREAM_AHB_FORMAT_D32_FLOAT_S8_UINT:
+            case GFXSTREAM_AHB_FORMAT_S8_UINT:
+            case GFXSTREAM_AHB_FORMAT_IMPLEMENTATION_DEFINED:
+            case GFXSTREAM_AHB_FORMAT_R8_UNORM:
+                return false;
+            default:
+                GFXSTREAM_ERROR("Unhandled format: %d", ahbFormat);
+                return false;
+        }
+    }
+
     void DoFillAndRenderFromAhb(uint32_t ahbFormat) {
         const uint32_t width = 1920;
         const uint32_t height = 1080;
+
         const auto goldenPixel = PixelR8G8B8A8(0, 255, 255, 255);
+        const auto goldenPixelYuv = PixelY8U8V8::FromR8G8B8A8(goldenPixel);
+
         const auto badPixel = PixelR8G8B8A8(0, 0, 0, 255);
+        const auto badPixelYuv = PixelY8U8V8::FromR8G8B8A8(badPixel);
 
         // Bind to a placeholder ahb before rebinding to the real one.
         // This is to test the behavior of descriptors and make sure
@@ -1096,12 +1129,20 @@ class GfxstreamEnd2EndVkTest : public GfxstreamEnd2EndTest {
         auto deletedAhb =
             GFXSTREAM_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height, ahbFormat));
 
-        GFXSTREAM_ASSERT(FillAhb(deletedAhb, badPixel));
+        if (IsYuvFormat(ahbFormat)) {
+            GFXSTREAM_ASSERT(FillAhb(deletedAhb, badPixelYuv));
+        } else {
+            GFXSTREAM_ASSERT(FillAhb(deletedAhb, badPixel));
+        }
 
         auto ahb =
             GFXSTREAM_ASSERT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height, ahbFormat));
 
-        GFXSTREAM_ASSERT(FillAhb(ahb, goldenPixel));
+        if (IsYuvFormat(ahbFormat)) {
+            GFXSTREAM_ASSERT(FillAhb(ahb, goldenPixelYuv));
+        } else {
+            GFXSTREAM_ASSERT(FillAhb(ahb, goldenPixel));
+        }
 
         const vkhpp::PhysicalDeviceVulkan11Features deviceFeatures = {
             .samplerYcbcrConversion = VK_TRUE,

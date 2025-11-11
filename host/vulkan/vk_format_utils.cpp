@@ -191,6 +191,51 @@ std::optional<VkFormat> ToVkFormat(GfxstreamFormat format) {
     }
 }
 
+std::optional<GfxstreamFormat> ToGfxstreamFormat(VkFormat format) {
+    switch (format) {
+        case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
+            return GfxstreamFormat::B4G4R4A4_UNORM;
+        case VK_FORMAT_B5G5R5A1_UNORM_PACK16:
+            return GfxstreamFormat::B5G5R5A1_UNORM;
+        case VK_FORMAT_B8G8R8A8_UNORM:
+            return GfxstreamFormat::B8G8R8A8_UNORM;
+        case VK_FORMAT_D16_UNORM:
+            return GfxstreamFormat::D16_UNORM;
+        case VK_FORMAT_D24_UNORM_S8_UINT:
+            return GfxstreamFormat::D24_UNORM_S8_UINT;
+        case VK_FORMAT_X8_D24_UNORM_PACK32:
+            return GfxstreamFormat::D24_UNORM;
+        case VK_FORMAT_D32_SFLOAT_S8_UINT:
+            return GfxstreamFormat::D32_FLOAT_S8_UINT;
+        case VK_FORMAT_D32_SFLOAT:
+            return GfxstreamFormat::D32_FLOAT;
+        case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+            return GfxstreamFormat::R10G10B10A2_UNORM;
+        case VK_FORMAT_R16_UNORM:
+            return GfxstreamFormat::R16_UNORM;
+        case VK_FORMAT_R16G16B16_SFLOAT:
+            return GfxstreamFormat::R16G16B16_FLOAT;
+        case VK_FORMAT_R16G16B16A16_SFLOAT:
+            return GfxstreamFormat::R16G16B16A16_FLOAT;
+        case VK_FORMAT_R5G6B5_UNORM_PACK16:
+            return GfxstreamFormat::R5G6B5_UNORM;
+        case VK_FORMAT_R8_UNORM:
+            return GfxstreamFormat::R8_UNORM;
+        case VK_FORMAT_R8G8_UNORM:
+            return GfxstreamFormat::R8G8_UNORM;
+        case VK_FORMAT_R8G8B8_UNORM:
+            return GfxstreamFormat::R8G8B8_UNORM;
+        case VK_FORMAT_R8G8B8A8_UNORM:
+            return GfxstreamFormat::R8G8B8A8_UNORM;
+        case VK_FORMAT_S8_UINT:
+            return GfxstreamFormat::S8_UINT;
+        case VK_FORMAT_UNDEFINED:
+            return GfxstreamFormat::UNKNOWN;
+        default:
+            return std::nullopt;
+    }
+}
+
 const FormatPlaneLayouts* getFormatPlaneLayouts(VkFormat format) {
     const auto& formatPlaneLayoutsMap = getFormatPlaneLayoutsMap();
 

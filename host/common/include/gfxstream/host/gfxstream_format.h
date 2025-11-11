@@ -502,3 +502,14 @@ inline std::optional<uint32_t> GetBpp(GfxstreamFormat format) {
 
 }  // host
 }  // gfxstream
+
+namespace std {
+
+template <>
+struct hash<gfxstream::host::GfxstreamFormat> {
+    size_t operator()(gfxstream::host::GfxstreamFormat format) const {
+        return hash<uint32_t>()(static_cast<uint32_t>(format));
+    }
+};
+
+}  // namespace std

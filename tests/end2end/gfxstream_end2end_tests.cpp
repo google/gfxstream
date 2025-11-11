@@ -470,6 +470,15 @@ Result<ScopedGlProgram> ScopedGlProgram::MakeProgram(
 
 Result<ScopedAHardwareBuffer> ScopedAHardwareBuffer::Allocate(Gralloc& gralloc, uint32_t width,
                                                               uint32_t height, uint32_t format) {
+    // TODO: move into emulated gralloc:
+    if (format == GFXSTREAM_AHB_FORMAT_YV12) {
+        if ((width % 32) != 0) {
+            return gfxstream::unexpected(
+                "Failed to allocate YV12 AHB with non multiple of 32 width: " +
+                std::to_string(width));
+        }
+    }
+
     AHardwareBuffer* ahb = nullptr;
     int status = gralloc.allocate(width, height, format, -1, &ahb);
     if (status != 0) {
@@ -921,24 +930,24 @@ std::vector<uint8_t> Fill(uint32_t w, uint32_t h, const PixelR8G8B8A8& pixel) {
 }
 
 void RGBToYUV(uint8_t r, uint8_t g, uint8_t b, uint8_t* outY, uint8_t* outU, uint8_t* outV) {
-    static const float kRGBToYUVBT601FullRange[] = {
+    static const float kRGBToYUVBT601NarrowRange[] = {
         // clang-format off
-         0.299000f,  0.587000f,  0.114000f,  0.000000f,  0.000000f,
-        -0.168736f, -0.331264f,  0.500000f,  0.000000f,  0.501961f,
-         0.500000f, -0.418688f, -0.081312f,  0.000000f,  0.501961f,
+         0.256788f,  0.504129f,  0.097906f,  0.000000f,  0.062745f,
+        -0.148223f, -0.290993f,  0.439216f,  0.000000f,  0.501961f,
+         0.439216f, -0.367788f, -0.071427f,  0.000000f,  0.501961f,
          0.000000f,  0.000000f,  0.000000f,  1.000000f,  0.000000f,
         // clang-format on
     };
 
     *outY = ClampToU8(SaturateToInt(
-        Round((kRGBToYUVBT601FullRange[0] * r) + (kRGBToYUVBT601FullRange[1] * g) +
-              (kRGBToYUVBT601FullRange[2] * b) + (kRGBToYUVBT601FullRange[4] * 255))));
+        Round((kRGBToYUVBT601NarrowRange[0] * r) + (kRGBToYUVBT601NarrowRange[1] * g) +
+              (kRGBToYUVBT601NarrowRange[2] * b) + (kRGBToYUVBT601NarrowRange[4] * 255))));
     *outU = ClampToU8(SaturateToInt(
-        Round((kRGBToYUVBT601FullRange[5] * r) + (kRGBToYUVBT601FullRange[6] * g) +
-              (kRGBToYUVBT601FullRange[7] * b) + (kRGBToYUVBT601FullRange[9] * 255))));
+        Round((kRGBToYUVBT601NarrowRange[5] * r) + (kRGBToYUVBT601NarrowRange[6] * g) +
+              (kRGBToYUVBT601NarrowRange[7] * b) + (kRGBToYUVBT601NarrowRange[9] * 255))));
     *outV = ClampToU8(SaturateToInt(
-        Round((kRGBToYUVBT601FullRange[10] * r) + (kRGBToYUVBT601FullRange[11] * g) +
-              (kRGBToYUVBT601FullRange[12] * b) + (kRGBToYUVBT601FullRange[14] * 255))));
+        Round((kRGBToYUVBT601NarrowRange[10] * r) + (kRGBToYUVBT601NarrowRange[11] * g) +
+              (kRGBToYUVBT601NarrowRange[12] * b) + (kRGBToYUVBT601NarrowRange[14] * 255))));
 }
 
 }  // namespace tests

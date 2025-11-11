@@ -31,12 +31,13 @@
 #include <type_traits>
 #include <vector>
 
-#include "vk_decoder_context.h"
-#include "vulkan_dispatch.h"
 #include "gfxstream/common/logging.h"
+#include "gfxstream/host/gfxstream_format.h"
 #include "gfxstream/synchronization/Lock.h"
+#include "vk_decoder_context.h"
 #include "vk_fn_info.h"
 #include "vk_struct_id.h"
+#include "vulkan_dispatch.h"
 
 namespace gfxstream {
 namespace host {
@@ -371,15 +372,16 @@ static inline bool vk_descriptor_type_has_image_view(VkDescriptorType type) {
 
 class YcbcrSamplerPool {
    public:
-    YcbcrSamplerPool()
-        : mDvk(nullptr), mIvk(nullptr), mPhysicalDevice(VK_NULL_HANDLE), mDevice(VK_NULL_HANDLE) {}
+    YcbcrSamplerPool() {}
+
     bool init(const VulkanDispatch* ivk, const VulkanDispatch* dvk, VkPhysicalDevice physicalDevice,
               VkDevice device);
     void destroy();
 
-    VkSamplerYcbcrConversion getConversion(VkFormat format);
-    VkSampler getSampler(VkFormat format);
-    std::vector<VkFormat> getAllFormats() const;
+    VkSamplerYcbcrConversion getConversion(GfxstreamFormat format);
+    VkSampler getSampler(GfxstreamFormat format);
+
+    std::vector<GfxstreamFormat> getAllFormats() const;
 
    private:
     struct YCbCrSamplerInfo {
@@ -387,14 +389,15 @@ class YcbcrSamplerPool {
         VkSampler sampler;
     };
 
-    bool getOrCreateSamplerInfo(VkFormat format, YCbCrSamplerInfo* outInfo);
+    bool getOrCreateSamplerInfo(GfxstreamFormat format, YCbCrSamplerInfo* outInfo);
+
+    const VulkanDispatch* mIvk = nullptr;
+    const VulkanDispatch* mDvk = nullptr;
+    VkPhysicalDevice mPhysicalDevice = VK_NULL_HANDLE;
+    VkDevice mDevice = VK_NULL_HANDLE;
 
     mutable std::mutex mMutex;
-    std::unordered_map<VkFormat, YCbCrSamplerInfo> m_ycbcrSamplers GUARDED_BY(mMutex);
-    const VulkanDispatch* mDvk;
-    const VulkanDispatch* mIvk;
-    VkPhysicalDevice mPhysicalDevice;
-    VkDevice mDevice;
+    std::unordered_map<GfxstreamFormat, YCbCrSamplerInfo> m_ycbcrSamplers GUARDED_BY(mMutex);
 };
 
 }  // namespace vk_util
