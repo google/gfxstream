@@ -1098,22 +1098,16 @@ class VkDecoderGlobalState::Impl {
         }
 #endif
 
-#if defined(__linux__)
-        // TODO(b/401005629) always lock before the call on linux
-        const bool doLockEarly = true;
-#else
         const bool swiftshader =
             (gfxstream::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD").compare("swiftshader") ==
              0);
-        // b/155795731: swiftshader needs to lock early.
-        const bool doLockEarly = swiftshader;
-#endif
         VkResult res = VK_SUCCESS;
-        if (!doLockEarly) {
+        if (!swiftshader) {
             res = m_vk->vkCreateInstance(&createInfoFiltered, pAllocator, pInstance);
         }
         std::lock_guard<std::mutex> lock(mMutex);
-        if (doLockEarly) {
+        if (swiftshader) {
+            // b/155795731: inside the lock.
             res = m_vk->vkCreateInstance(&createInfoFiltered, pAllocator, pInstance);
         }
         if (res != VK_SUCCESS) {
@@ -2209,22 +2203,17 @@ class VkDecoderGlobalState::Impl {
         createInfoFiltered.enabledExtensionCount = (uint32_t)updatedDeviceExtensions.size();
         createInfoFiltered.ppEnabledExtensionNames = updatedDeviceExtensions.data();
 
-#if defined(__linux__)
-        // TODO(b/401005629) always lock before the call on linux
-        const bool doLockEarly = true;
-#else
+
         const bool swiftshader =
             (gfxstream::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD").compare("swiftshader") ==
              0);
-        // b/155795731: swiftshader needs to lock early.
-        const bool doLockEarly = swiftshader;
-#endif
+
         VkResult result = VK_SUCCESS;
-        if (!doLockEarly) {
+        if (!swiftshader) {
             result = vk->vkCreateDevice(physicalDevice, &createInfoFiltered, pAllocator, pDevice);
         }
         std::lock_guard<std::mutex> lock(mMutex);
-        if (doLockEarly) {
+        if (swiftshader) {
             result = vk->vkCreateDevice(physicalDevice, &createInfoFiltered, pAllocator, pDevice);
         }
 
