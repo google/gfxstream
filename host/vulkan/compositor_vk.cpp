@@ -927,9 +927,9 @@ void CompositorVk::setUpFormatResources() {
         return ret;
     };
 
-    // The texture coordinate transformation matrices for flip/rotate/etc
-    // currently depends on this being repeat.
-    constexpr const VkSamplerAddressMode kSamplerMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    // The texture coordinate transformation matrices should output in [0-1] range
+    // to ensure compatibility with YUV samplers with clamped addressing modes.
+    constexpr const VkSamplerAddressMode kSamplerMode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 
     const VkSamplerCreateInfo samplerCi = {
         .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
@@ -1143,34 +1143,53 @@ void CompositorVk::buildCompositionVk(const CompositionRequest& compositionReque
         float texCoordScaleX = (texcoordRect.right - texcoordRect.left) / float(sourceImageWidth);
         float texCoordScaleY = (texcoordRect.bottom - texcoordRect.top) / float(sourceImageHeight);
 
-        const float texCoordTranslateX = texcoordRect.left / float(sourceImageWidth);
-        const float texCoordTranslateY = texcoordRect.top / float(sourceImageHeight);
+        float texCoordTranslateX = texcoordRect.left / float(sourceImageWidth);
+        float texCoordTranslateY = texcoordRect.top / float(sourceImageHeight);
 
         float texcoordRotation = 0.0f;
 
         const float pi = glm::pi<float>();
 
         switch (layer.props.transform) {
+            // Set texCoordTranslate values to keep texcoord outputs in [0-1] range
+            // for compatibility with the YUV samplers with CLAMP_TO_EDGE addressing modes.
+            // Rotations will be applied around the origin, clockwise. E.g. rotating 90 degrees
+            // will map (1,1) to (0,-1), hence texCoordTranslateY+=1 is added.
+            //       ^ y
+            //       |
+            //       +------+ (1,1)
+            //       |      |
+            //       |      |
+            // -(0,0)+------+---> x
+            //       |
             case HWC_TRANSFORM_NONE:
                 break;
             case HWC_TRANSFORM_ROT_90:
                 texcoordRotation = pi * 0.5f;
+                texCoordTranslateY += 1.0f;
                 break;
             case HWC_TRANSFORM_ROT_180:
                 texcoordRotation = pi;
+                texCoordTranslateX += 1.0f;
+                texCoordTranslateY += 1.0f;
                 break;
             case HWC_TRANSFORM_ROT_270:
                 texcoordRotation = pi * 1.5f;
+                texCoordTranslateX += 1.0f;
                 break;
             case HWC_TRANSFORM_FLIP_H:
                 texCoordScaleX *= -1.0f;
+                texCoordTranslateX += 1.0f;
                 break;
             case HWC_TRANSFORM_FLIP_V:
                 texCoordScaleY *= -1.0f;
+                texCoordTranslateY += 1.0f;
                 break;
             case HWC_TRANSFORM_FLIP_H_ROT_90:
                 texcoordRotation = pi * 0.5f;
                 texCoordScaleX *= -1.0f;
+                texCoordTranslateX += 1.0f;
+                texCoordTranslateY += 1.0f;
                 break;
             case HWC_TRANSFORM_FLIP_V_ROT_90:
                 texcoordRotation = pi * 0.5f;
