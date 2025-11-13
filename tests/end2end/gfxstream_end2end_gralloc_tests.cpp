@@ -152,14 +152,17 @@ INSTANTIATE_TEST_SUITE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndGrallocTests,
                              TestParams{
                                  .with_gl = true,
                                  .with_vk = false,
+                                 .with_features = {"MinimalLogging"},
                              },
                              TestParams{
                                  .with_gl = false,
                                  .with_vk = true,
+                                 .with_features = {"MinimalLogging"},
                              },
                              TestParams{
                                  .with_gl = true,
                                  .with_vk = true,
+                                 .with_features = {"MinimalLogging"},
                              },
                          }),
                          &GetTestName);

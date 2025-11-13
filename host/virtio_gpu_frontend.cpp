@@ -632,7 +632,9 @@ void VirtioGpuFrontend::fillCaps(uint32_t set, void* caps) {
             };
 #undef MAKE_FORMAT_AND_NAME
 
-            GFXSTREAM_INFO("Format support:");
+            if (!mFeatures.MinimalLogging.enabled) {
+                GFXSTREAM_INFO("Format support:");
+            }
             for (std::size_t i = 0; i < std::size(kPossibleFormats); i++) {
                 const FormatWithName& possibleFormat = kPossibleFormats[i];
 
@@ -643,10 +645,13 @@ void VirtioGpuFrontend::fillCaps(uint32_t set, void* caps) {
                 auto format = *formatOpt;
 
                 const bool supported = FrameBuffer::getFB()->isFormatSupported(format);
-                GFXSTREAM_INFO(" %s: %s", possibleFormat.name,
-                               (supported ? "supported" : "unsupported"));
                 set_virgl_format_supported(capset->virglSupportedFormats, possibleFormat.format,
                                            supported);
+
+                if (!mFeatures.MinimalLogging.enabled) {
+                    GFXSTREAM_INFO(" %s: %s", possibleFormat.name,
+                                   (supported ? "supported" : "unsupported"));
+                }
             }
 
             capset->hasTraceAsyncCommand = 1;

@@ -183,6 +183,12 @@ struct FeatureSet {
         "implementation.",
         &map,
     };
+    FeatureInfo MinimalLogging = {
+        "MinimalLogging",
+        "If enabled, Gfxstream will log less info. Useful for preventing logspam "
+        "CI which frequently starts and stops Gfxstream.",
+        &map,
+    };
     FeatureInfo NativeTextureDecompression = {
         "NativeTextureDecompression",
         "If enabled, allows the host to use ASTC and ETC2 formats when supported by "

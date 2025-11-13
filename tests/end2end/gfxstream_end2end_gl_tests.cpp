@@ -1662,12 +1662,20 @@ INSTANTIATE_TEST_SUITE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndGlTest,
                              TestParams{
                                  .with_gl = true,
                                  .with_vk = false,
-                                 .with_features = {"GlProgramBinaryLinkStatus"},
+                                 .with_features =
+                                     {
+                                         "GlProgramBinaryLinkStatus",
+                                         "MinimalLogging",
+                                     },
                              },
                              TestParams{
                                  .with_gl = true,
                                  .with_vk = true,
-                                 .with_features = {"GlProgramBinaryLinkStatus"},
+                                 .with_features =
+                                     {
+                                         "GlProgramBinaryLinkStatus",
+                                         "MinimalLogging",
+                                     },
                              },
                          }),
                          &GetTestName);

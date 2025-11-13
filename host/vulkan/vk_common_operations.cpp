@@ -1590,25 +1590,30 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
 
 void VkEmulation::initFeatures(Features features) {
     std::lock_guard<std::mutex> lock(mMutex);
-    GFXSTREAM_INFO("Initializing VkEmulation features:");
-    GFXSTREAM_INFO("    glInteropSupported: %s", features.glInteropSupported ? "true" : "false");
-    GFXSTREAM_INFO("    useDeferredCommands: %s", features.deferredCommands ? "true" : "false");
-    GFXSTREAM_INFO("    createResourceWithRequirements: %s",
-                   features.createResourceWithRequirements ? "true" : "false");
-    GFXSTREAM_INFO("    useVulkanComposition: %s",
-                   features.useVulkanComposition ? "true" : "false");
-    GFXSTREAM_INFO("    useVulkanNativeSwapchain: %s",
-                   features.useVulkanNativeSwapchain ? "true" : "false");
-    GFXSTREAM_INFO("    enable guestRenderDoc: %s", features.guestRenderDoc ? "true" : "false");
-    GFXSTREAM_INFO("    ASTC LDR emulation mode: %s",
-                   string_AstcEmulationMode(features.astcLdrEmulationMode));
-    GFXSTREAM_INFO("    enable ETC2 emulation: %s",
-                   features.enableEtc2Emulation ? "true" : "false");
-    GFXSTREAM_INFO("    enable Ycbcr emulation: %s",
-                   features.enableYcbcrEmulation ? "true" : "false");
-    GFXSTREAM_INFO("    guestVulkanOnly: %s", features.guestVulkanOnly ? "true" : "false");
-    GFXSTREAM_INFO("    useDedicatedAllocations: %s",
-                   features.useDedicatedAllocations ? "true" : "false");
+
+    if (!mFeatures.MinimalLogging.enabled) {
+        GFXSTREAM_INFO("Initializing VkEmulation features:");
+        GFXSTREAM_INFO("    glInteropSupported: %s",
+                       features.glInteropSupported ? "true" : "false");
+        GFXSTREAM_INFO("    useDeferredCommands: %s", features.deferredCommands ? "true" : "false");
+        GFXSTREAM_INFO("    createResourceWithRequirements: %s",
+                       features.createResourceWithRequirements ? "true" : "false");
+        GFXSTREAM_INFO("    useVulkanComposition: %s",
+                       features.useVulkanComposition ? "true" : "false");
+        GFXSTREAM_INFO("    useVulkanNativeSwapchain: %s",
+                       features.useVulkanNativeSwapchain ? "true" : "false");
+        GFXSTREAM_INFO("    enable guestRenderDoc: %s", features.guestRenderDoc ? "true" : "false");
+        GFXSTREAM_INFO("    ASTC LDR emulation mode: %s",
+                       string_AstcEmulationMode(features.astcLdrEmulationMode));
+        GFXSTREAM_INFO("    enable ETC2 emulation: %s",
+                       features.enableEtc2Emulation ? "true" : "false");
+        GFXSTREAM_INFO("    enable Ycbcr emulation: %s",
+                       features.enableYcbcrEmulation ? "true" : "false");
+        GFXSTREAM_INFO("    guestVulkanOnly: %s", features.guestVulkanOnly ? "true" : "false");
+        GFXSTREAM_INFO("    useDedicatedAllocations: %s",
+                       features.useDedicatedAllocations ? "true" : "false");
+    }
+
     mDeviceInfo.glInteropSupported = features.glInteropSupported;
     mUseDeferredCommands = features.deferredCommands;
     mUseCreateResourcesWithRequirements = features.createResourceWithRequirements;

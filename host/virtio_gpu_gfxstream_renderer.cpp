@@ -798,11 +798,13 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     }
     gfxstream::host::FeatureSet features = std::move(*featuresOpt);
 
-    GFXSTREAM_INFO("Gfxstream features:");
-    for (const auto& [_, featureInfo] : features.map) {
-        GFXSTREAM_INFO("    %s: %s (%s)", featureInfo->name.c_str(),
-                       (featureInfo->enabled ? "enabled" : "disabled"),
-                       featureInfo->reason.c_str());
+    if (!features.MinimalLogging.enabled) {
+        GFXSTREAM_INFO("Gfxstream features:");
+        for (const auto& [_, featureInfo] : features.map) {
+            GFXSTREAM_INFO("    %s: %s (%s)", featureInfo->name.c_str(),
+                           (featureInfo->enabled ? "enabled" : "disabled"),
+                           featureInfo->reason.c_str());
+        }
     }
 
     gfxstream::host::InitializeTracing();

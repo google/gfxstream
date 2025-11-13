@@ -2194,32 +2194,6 @@ TEST_P(GfxstreamEnd2EndVkTest, ImportAndBlitFromYv12Ahb) {
     DoFillAndRenderFromAhb(GFXSTREAM_AHB_FORMAT_YV12);
 }
 
-std::vector<TestParams> GenerateTestCases() {
-    std::vector<TestParams> cases = {TestParams{
-                                         .with_gl = false,
-                                         .with_vk = true,
-                                         .with_transport = GfxstreamTransport::kVirtioGpuAsg,
-                                     },
-                                     TestParams{
-                                         .with_gl = true,
-                                         .with_vk = true,
-                                         .with_transport = GfxstreamTransport::kVirtioGpuAsg,
-                                     },
-                                     TestParams{
-                                         .with_gl = false,
-                                         .with_vk = true,
-                                         .with_transport = GfxstreamTransport::kVirtioGpuPipe,
-                                     },
-                                     TestParams{
-                                         .with_gl = true,
-                                         .with_vk = true,
-                                         .with_transport = GfxstreamTransport::kVirtioGpuPipe,
-                                     }};
-    cases = WithAndWithoutFeatures(cases, {"VulkanSnapshots"});
-    cases = WithAndWithoutFeatures(cases, {"VulkanUseDedicatedAhbMemoryType"});
-    return cases;
-}
-
 TEST_P(GfxstreamEnd2EndVkTest, GetFenceStatusDefault) {
     auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
         GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
@@ -2462,8 +2436,38 @@ TEST_P(GfxstreamEnd2EndVkTest, GetFenceStatusOnExternalFence) {
     }
 }
 
-INSTANTIATE_TEST_SUITE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndVkTest,
-                         ::testing::ValuesIn(GenerateTestCases()), &GetTestName);
+INSTANTIATE_TEST_SUITE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndVkTest, ::testing::ValuesIn([]() {
+                             std::vector<TestParams> cases = {
+                                 TestParams{
+                                     .with_gl = false,
+                                     .with_vk = true,
+                                     .with_transport = GfxstreamTransport::kVirtioGpuAsg,
+                                     .with_features = {"MinimalLogging"},
+                                 },
+                                 TestParams{
+                                     .with_gl = true,
+                                     .with_vk = true,
+                                     .with_transport = GfxstreamTransport::kVirtioGpuAsg,
+                                     .with_features = {"MinimalLogging"},
+                                 },
+                                 TestParams{
+                                     .with_gl = false,
+                                     .with_vk = true,
+                                     .with_transport = GfxstreamTransport::kVirtioGpuPipe,
+                                     .with_features = {"MinimalLogging"},
+                                 },
+                                 TestParams{
+                                     .with_gl = true,
+                                     .with_vk = true,
+                                     .with_transport = GfxstreamTransport::kVirtioGpuPipe,
+                                     .with_features = {"MinimalLogging"},
+                                 }};
+                             cases = WithAndWithoutFeatures(cases, {"VulkanSnapshots"});
+                             cases =
+                                 WithAndWithoutFeatures(cases, {"VulkanUseDedicatedAhbMemoryType"});
+                             return cases;
+                         }()),
+                         &GetTestName);
 
 }  // namespace
 }  // namespace tests
