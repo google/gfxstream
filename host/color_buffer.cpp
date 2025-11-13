@@ -300,9 +300,56 @@ void ColorBuffer::Impl::readToBytesScaled(
                             pixelsFormatString.c_str());
             return;
         }
-        const int bpp = (pixelsFormat == GfxstreamFormat::R8G8B8_UNORM) ? 3 : 4;
-        const uint64_t outPixelsSize = bpp * pixelsWidth * pixelsHeight;
-        mColorBufferVk->readToBytes(0, 0, pixelsWidth, pixelsHeight, outPixels, outPixelsSize);
+
+        const int readbackBpp = 4;
+        const int outBpp = (pixelsFormat == GfxstreamFormat::R8G8B8_UNORM) ? 3 : 4;
+        const uint64_t outPixelsSize = outBpp * pixelsWidth * pixelsHeight;
+        if (readbackBpp != outBpp || pixelsRotation != 0) {
+            // TODO(b/447601952): handle RGB format inside readToBytes to avoid extra copy
+            bool flipDims = (pixelsRotation == GFXSTREAM_ROTATION_0 || pixelsRotation == GFXSTREAM_ROTATION_180);
+            int readbackWidth = flipDims ? pixelsWidth : pixelsHeight;
+            int readbackHeight = flipDims ? pixelsHeight : pixelsWidth;
+            std::vector<uint8_t> readback_r8g8b8a8;
+            readback_r8g8b8a8.resize(readbackBpp * readbackWidth * readbackHeight);
+            if (!mColorBufferVk->readToBytes(0, 0, readbackWidth, readbackHeight,
+                                             readback_r8g8b8a8.data(), readback_r8g8b8a8.size())) {
+                return;
+            }
+
+            // Convert RGBA to RGB
+            uint8_t* outPixelsBytes = static_cast<uint8_t*>(outPixels);
+            for (uint64_t i = 0, o = 0, px = 0;
+                 i < readback_r8g8b8a8.size() && o < outPixelsSize;
+                 i += readbackBpp, o += outBpp, px++) {
+                uint64_t inputPixelOffset = i;
+                if (pixelsRotation != 0) {
+                    uint64_t inputPixelX = px % pixelsWidth;
+                    uint64_t inputPixelY = px / pixelsWidth;
+                    switch (pixelsRotation) {
+                        case GFXSTREAM_ROTATION_90: {
+                            uint64_t tmp = inputPixelX;
+                            inputPixelX = inputPixelY;
+                            inputPixelY = (readbackHeight-1) - tmp;
+                        } break;
+                        case GFXSTREAM_ROTATION_180: {
+                            inputPixelX = (readbackWidth - 1) - inputPixelX;
+                            inputPixelY = (readbackHeight - 1) - inputPixelY;
+                        } break;
+                        case GFXSTREAM_ROTATION_270: {
+                            uint64_t tmp = inputPixelX;
+                            inputPixelX = (readbackWidth-1) - inputPixelY;
+                            inputPixelY = tmp;
+                        } break;
+                    }
+                    inputPixelOffset = (inputPixelY * readbackWidth + inputPixelX) * readbackBpp;
+                }
+                outPixelsBytes[o + 0] = readback_r8g8b8a8[inputPixelOffset + 0];
+                outPixelsBytes[o + 1] = readback_r8g8b8a8[inputPixelOffset + 1];
+                outPixelsBytes[o + 2] = readback_r8g8b8a8[inputPixelOffset + 2];
+            }
+        } else {
+            mColorBufferVk->readToBytes(0, 0, pixelsWidth, pixelsHeight, outPixels, outPixelsSize);
+        }
         return;
     }
 

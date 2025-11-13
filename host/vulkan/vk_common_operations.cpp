@@ -3085,8 +3085,10 @@ bool VkEmulation::readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint3
 
     if (x != 0 || y != 0 || w != colorBufferInfo->imageCreateInfoShallow.extent.width ||
         h != colorBufferInfo->imageCreateInfoShallow.extent.height) {
-        GFXSTREAM_ERROR("Failed to read from ColorBuffer:%d, unhandled subrect.",
-                        colorBufferHandle);
+        GFXSTREAM_ERROR(
+            "Failed to read from ColorBuffer:%d (%dx%d), unhandled subrect(%d %d, %dx%d).",
+            colorBufferHandle, colorBufferInfo->imageCreateInfoShallow.extent.width,
+            colorBufferInfo->imageCreateInfoShallow.extent.height, x, y, w, h);
         return false;
     }
 
