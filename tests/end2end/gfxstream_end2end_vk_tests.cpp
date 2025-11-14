@@ -2482,26 +2482,26 @@ INSTANTIATE_TEST_SUITE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndVkTest, ::testin
                                  TestParams{
                                      .with_gl = false,
                                      .with_vk = true,
-                                     .with_transport = GfxstreamTransport::kVirtioGpuAsg,
                                      .with_features = {"MinimalLogging"},
+                                     .with_transport = GfxstreamTransport::kVirtioGpuAsg,
                                  },
                                  TestParams{
                                      .with_gl = true,
                                      .with_vk = true,
-                                     .with_transport = GfxstreamTransport::kVirtioGpuAsg,
                                      .with_features = {"MinimalLogging"},
+                                     .with_transport = GfxstreamTransport::kVirtioGpuAsg,
                                  },
                                  TestParams{
                                      .with_gl = false,
                                      .with_vk = true,
-                                     .with_transport = GfxstreamTransport::kVirtioGpuPipe,
                                      .with_features = {"MinimalLogging"},
+                                     .with_transport = GfxstreamTransport::kVirtioGpuPipe,
                                  },
                                  TestParams{
                                      .with_gl = true,
                                      .with_vk = true,
-                                     .with_transport = GfxstreamTransport::kVirtioGpuPipe,
                                      .with_features = {"MinimalLogging"},
+                                     .with_transport = GfxstreamTransport::kVirtioGpuPipe,
                                  }};
                              cases = WithAndWithoutFeatures(cases, {"VulkanSnapshots"});
                              cases =

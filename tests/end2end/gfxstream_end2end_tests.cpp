@@ -12,24 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include "gfxstream_end2end_tests.h"
+
+#include <dlfcn.h>
+#include <drm/drm_fourcc.h>
 
 #include <cmath>
 #include <filesystem>
 
-#include <dlfcn.h>
-
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-#include <drm/drm_fourcc.h>
-
-#include "test_data_utils.h"
 #include "VirtGpu.h"
-#include "gfxstream/image_utils.h"
-#include "gfxstream/strings.h"
 #include "gfxstream/common/logging.h"
 #include "gfxstream/common/testing/GraphicsTestEnvironment.h"
+#include "gfxstream/image_utils.h"
+#include "gfxstream/strings.h"
 #include "gfxstream/system/System.h"
+#include "test_data_utils.h"
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
@@ -139,8 +139,8 @@ std::unique_ptr<GuestGlDispatchTable> GfxstreamEnd2EndTest::SetupGuestGl() {
 
     void* eglLib = dlopen(eglLibPathStr.c_str(), RTLD_NOW | RTLD_LOCAL);
     if (!eglLib) {
-        GFXSTREAM_ERROR("Failed to load Gfxstream EGL library from %s: %s.",
-                        eglLibPathStr.c_str(), dlerror());
+        GFXSTREAM_ERROR("Failed to load Gfxstream EGL library from %s: %s.", eglLibPathStr.c_str(),
+                        dlerror());
         return nullptr;
     }
 
@@ -163,15 +163,15 @@ std::unique_ptr<GuestGlDispatchTable> GfxstreamEnd2EndTest::SetupGuestGl() {
 
     auto eglGetAddr = reinterpret_cast<GetProcAddrType*>(dlsym(eglLib, "eglGetProcAddress"));
     if (!eglGetAddr) {
-        GFXSTREAM_ERROR("Failed to load Gfxstream EGL library from %s: %s",
-                        eglLibPathStr.c_str(), dlerror());
+        GFXSTREAM_ERROR("Failed to load Gfxstream EGL library from %s: %s", eglLibPathStr.c_str(),
+                        dlerror());
         return nullptr;
     }
 
     auto gl = std::make_unique<GuestGlDispatchTable>();
 
-    #define LOAD_EGL_FUNCTION(return_type, function_name, signature) \
-        gl-> function_name = reinterpret_cast< return_type (*) signature >(eglGetAddr( #function_name ));
+#define LOAD_EGL_FUNCTION(return_type, function_name, signature) \
+    gl->function_name = reinterpret_cast<return_type(*) signature>(eglGetAddr(#function_name));
 
     LIST_RENDER_EGL_FUNCTIONS(LOAD_EGL_FUNCTION)
     LIST_RENDER_EGL_EXTENSIONS_FUNCTIONS(LOAD_EGL_FUNCTION)
@@ -194,17 +194,18 @@ std::unique_ptr<GuestRenderControlDispatchTable> GfxstreamEnd2EndTest::SetupGues
 
     void* rcLib = dlopen(rcLibPath.c_str(), RTLD_NOW | RTLD_LOCAL);
     if (!rcLib) {
-        GFXSTREAM_ERROR("Failed to load Gfxstream RenderControl library from %s.", rcLibPath.c_str());
+        GFXSTREAM_ERROR("Failed to load Gfxstream RenderControl library from %s.",
+                        rcLibPath.c_str());
         return nullptr;
     }
 
     auto rc = std::make_unique<GuestRenderControlDispatchTable>();
 
-#define LOAD_RENDERCONTROL_FUNCTION(name)                         \
-    rc->name = reinterpret_cast<PFN_##name>(dlsym(rcLib, #name)); \
-    if (rc->name == nullptr) {                                    \
+#define LOAD_RENDERCONTROL_FUNCTION(name)                                   \
+    rc->name = reinterpret_cast<PFN_##name>(dlsym(rcLib, #name));           \
+    if (rc->name == nullptr) {                                              \
         GFXSTREAM_ERROR("Failed to load RenderControl function %s", #name); \
-        return nullptr;                                           \
+        return nullptr;                                                     \
     }
 
     LOAD_RENDERCONTROL_FUNCTION(rcCreateDevice);
@@ -223,7 +224,8 @@ std::unique_ptr<vkhpp::detail::DynamicLoader> GfxstreamEnd2EndTest::SetupGuestVk
         return nullptr;
     }
 
-    auto getInstanceProcAddr = dl->getProcAddress<PFN_vkGetInstanceProcAddr>("vk_icdGetInstanceProcAddr");
+    auto getInstanceProcAddr =
+        dl->getProcAddress<PFN_vkGetInstanceProcAddr>("vk_icdGetInstanceProcAddr");
     if (!getInstanceProcAddr) {
         GFXSTREAM_ERROR("Failed to load Vulkan vkGetInstanceProcAddr. %s", dlerror());
         return nullptr;
@@ -297,15 +299,11 @@ void GfxstreamEnd2EndTest::TearDown() {
     VirtGpuDevice::resetInstance();
 }
 
-void GfxstreamEnd2EndTest::SetUpEglContextAndSurface(
-        uint32_t contextVersion,
-        uint32_t width,
-        uint32_t height,
-        EGLDisplay* outDisplay,
-        EGLContext* outContext,
-        EGLSurface* outSurface) {
-    ASSERT_THAT(contextVersion, AnyOf(Eq(2), Eq(3)))
-        << "Invalid context version requested.";
+void GfxstreamEnd2EndTest::SetUpEglContextAndSurface(uint32_t contextVersion, uint32_t width,
+                                                     uint32_t height, EGLDisplay* outDisplay,
+                                                     EGLContext* outContext,
+                                                     EGLSurface* outSurface) {
+    ASSERT_THAT(contextVersion, AnyOf(Eq(2), Eq(3))) << "Invalid context version requested.";
 
     EGLDisplay display = mGl->eglGetDisplay(EGL_DEFAULT_DISPLAY);
     ASSERT_THAT(display, Not(Eq(EGL_NO_DISPLAY)));
@@ -360,11 +358,10 @@ void GfxstreamEnd2EndTest::SetUpEglContextAndSurface(
     *outSurface = surface;
 }
 
-void GfxstreamEnd2EndTest::TearDownEglContextAndSurface(
-        EGLDisplay display,
-        EGLContext context,
-        EGLSurface surface) {
-    ASSERT_THAT(mGl->eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT), IsTrue());
+void GfxstreamEnd2EndTest::TearDownEglContextAndSurface(EGLDisplay display, EGLContext context,
+                                                        EGLSurface surface) {
+    ASSERT_THAT(mGl->eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT),
+                IsTrue());
     ASSERT_THAT(mGl->eglDestroyContext(display, context), IsTrue());
     ASSERT_THAT(mGl->eglDestroySurface(display, surface), IsTrue());
 }
@@ -483,9 +480,9 @@ Result<ScopedAHardwareBuffer> ScopedAHardwareBuffer::Allocate(Gralloc& gralloc, 
     int status = gralloc.allocate(width, height, format, -1, &ahb);
     if (status != 0) {
         return gfxstream::unexpected(std::string("Failed to allocate AHB with width:") +
-                                         std::to_string(width) + std::string(" height:") +
-                                         std::to_string(height) + std::string(" format:") +
-                                         std::to_string(format));
+                                     std::to_string(width) + std::string(" height:") +
+                                     std::to_string(height) + std::string(" format:") +
+                                     std::to_string(format));
     }
 
     return ScopedAHardwareBuffer(gralloc, ahb);
@@ -690,6 +687,17 @@ Result<Image> GfxstreamEnd2EndTest::AsImage(ScopedAHardwareBuffer& ahb) {
 }
 
 Result<Ok> GfxstreamEnd2EndTest::FillAhb(ScopedAHardwareBuffer& ahb, PixelFillColor pixelFill) {
+    // Use checkerboad function with the same colors
+    return FillAhbWithCheckerboard(ahb, ahb.GetWidth(), pixelFill, pixelFill);
+}
+
+Result<Ok> GfxstreamEnd2EndTest::FillAhbWithCheckerboard(ScopedAHardwareBuffer& ahb,
+                                                         const uint32_t tileWidth,
+                                                         PixelFillColor pixelFill1,
+                                                         PixelFillColor pixelFill2) {
+    if (tileWidth == 0) {
+        return gfxstream::unexpected("Invalid parameter: tileWidth");
+    }
     const uint32_t drmFormat = ahb.GetDrmFormat();
 
     const uint32_t ahbWidth = ahb.GetWidth();
@@ -697,16 +705,22 @@ Result<Ok> GfxstreamEnd2EndTest::FillAhb(ScopedAHardwareBuffer& ahb, PixelFillCo
 
     std::vector<Gralloc::LockedPlane> planes = GFXSTREAM_EXPECT(ahb.LockPlanes());
     if (drmFormat == DRM_FORMAT_ABGR8888) {
-        if (!std::holds_alternative<PixelR8G8B8A8>(pixelFill)) {
+        if (!std::holds_alternative<PixelR8G8B8A8>(pixelFill1) ||
+            !std::holds_alternative<PixelR8G8B8A8>(pixelFill2)) {
             return gfxstream::unexpected(
                 "FillAhb does not support filling a RGBA AHB with non RGBA data.");
         }
-        const PixelR8G8B8A8& color = std::get<PixelR8G8B8A8>(pixelFill);
+        const PixelR8G8B8A8& color1 = std::get<PixelR8G8B8A8>(pixelFill1);
+        const PixelR8G8B8A8& color2 = std::get<PixelR8G8B8A8>(pixelFill2);
 
         const Gralloc::LockedPlane& plane = planes[0];
 
+        // Add padding and copy with tileWidth-offset for odd rows
         std::vector<uint8_t> srcRow;
-        for (uint32_t x = 0; x < ahbWidth; x++) {
+        srcRow.reserve((ahbWidth + tileWidth) * 4);
+        for (uint32_t x = 0; x < ahbWidth + tileWidth; x++) {
+            const bool odd = ((x / tileWidth) % 2);
+            const PixelR8G8B8A8& color = odd ? color2 : color1;
             srcRow.push_back(color.r);
             srcRow.push_back(color.g);
             srcRow.push_back(color.b);
@@ -715,14 +729,22 @@ Result<Ok> GfxstreamEnd2EndTest::FillAhb(ScopedAHardwareBuffer& ahb, PixelFillCo
 
         for (uint32_t y = 0; y < ahbHeight; y++) {
             uint8_t* dstRow = plane.data + (y * plane.rowStrideBytes);
-            std::memcpy(dstRow, srcRow.data(), srcRow.size());
+            const uint8_t* srcRowData = srcRow.data();
+            const bool odd = ((y / tileWidth) % 2);
+            if (odd) {
+                // Offset the pointer to alternate between checkerboard colors
+                srcRowData += tileWidth*4;
+            }
+            std::memcpy(dstRow, srcRowData, ahbWidth*4);
         }
     } else if (drmFormat == DRM_FORMAT_NV12 || drmFormat == DRM_FORMAT_YVU420) {
-        if (!std::holds_alternative<PixelY8U8V8>(pixelFill)) {
+        if (!std::holds_alternative<PixelY8U8V8>(pixelFill1) ||
+            !std::holds_alternative<PixelY8U8V8>(pixelFill2)) {
             return gfxstream::unexpected(
                 "FillAhb does not support filling a YUV AHB with non YUV data.");
         }
-        const PixelY8U8V8& color = std::get<PixelY8U8V8>(pixelFill);
+        const PixelY8U8V8& color1 = std::get<PixelY8U8V8>(pixelFill1);
+        const PixelY8U8V8& color2 = std::get<PixelY8U8V8>(pixelFill2);
 
         const Gralloc::LockedPlane& yPlane = planes[0];
         const Gralloc::LockedPlane& uPlane = planes[1];
@@ -733,19 +755,23 @@ Result<Ok> GfxstreamEnd2EndTest::FillAhb(ScopedAHardwareBuffer& ahb, PixelFillCo
             for (uint32_t x = 0; x < ahbWidth; x++) {
                 uint8_t* dstY =
                     yPlane.data + (y * yPlane.rowStrideBytes) + (x * yPlane.pixelStrideBytes);
-                *dstY = color.y;
+                const bool odd = ((x / tileWidth) % 2) ^ ((y / tileWidth) % 2);
+                *dstY = (odd) ? color2.y : color1.y;
             }
         }
 
         // UV planes, half res
-        for (uint32_t UV_y = 0; UV_y < ahbHeight/2; UV_y++) {
-            for (uint32_t UV_x = 0; UV_x < ahbWidth/2; UV_x++) {
-                uint8_t* dstU = uPlane.data + (UV_y * uPlane.rowStrideBytes) +
-                                (UV_x * uPlane.pixelStrideBytes);
-                uint8_t* dstV = vPlane.data + (UV_y * vPlane.rowStrideBytes) +
-                                (UV_x * vPlane.pixelStrideBytes);
-                *dstU = color.u;
-                *dstV = color.v;
+        uint32_t tileWidthUV = std::max(1u, tileWidth / 2);
+        for (uint32_t UV_y = 0; UV_y < ahbHeight / 2; UV_y++) {
+            for (uint32_t UV_x = 0; UV_x < ahbWidth / 2; UV_x++) {
+                uint8_t* dstU =
+                    uPlane.data + (UV_y * uPlane.rowStrideBytes) + (UV_x * uPlane.pixelStrideBytes);
+                uint8_t* dstV =
+                    vPlane.data + (UV_y * vPlane.rowStrideBytes) + (UV_x * vPlane.pixelStrideBytes);
+
+                const bool odd = ((UV_x / tileWidthUV) % 2) ^ ((UV_y / tileWidthUV) % 2);
+                *dstU = odd ? color2.u : color1.u;
+                *dstV = odd ? color2.v : color1.v;
             }
         }
     } else {
@@ -773,14 +799,24 @@ Result<ScopedAHardwareBuffer> GfxstreamEnd2EndTest::CreateAHBFromImage(
     return std::move(ahb);
 }
 
-Result<ScopedAHardwareBuffer> GfxstreamEnd2EndTest::CreateAHBWithColor(const uint32_t width,
-                                                                       const uint32_t height,
-                                                                       const uint32_t ahbFormat,
-                                                                       const PixelFillColor& color) {
+Result<ScopedAHardwareBuffer> GfxstreamEnd2EndTest::CreateAHBWithColor(
+    const uint32_t width, const uint32_t height, const uint32_t ahbFormat,
+    const PixelFillColor& color) {
     auto ahb =
         GFXSTREAM_EXPECT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height, ahbFormat));
 
     GFXSTREAM_EXPECT(FillAhb(ahb, color));
+
+    return std::move(ahb);
+}
+
+Result<ScopedAHardwareBuffer> GfxstreamEnd2EndTest::CreateAHBWithCheckerboard(
+    const uint32_t width, const uint32_t height, const uint32_t tileWidth, const uint32_t ahbFormat,
+    const PixelFillColor& color1, const PixelFillColor& color2) {
+    auto ahb =
+        GFXSTREAM_EXPECT(ScopedAHardwareBuffer::Allocate(*mGralloc, width, height, ahbFormat));
+
+    GFXSTREAM_EXPECT(FillAhbWithCheckerboard(ahb, tileWidth, color1, color2));
 
     return std::move(ahb);
 }

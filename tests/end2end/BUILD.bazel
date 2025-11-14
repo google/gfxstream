@@ -16,6 +16,8 @@ copy_to_directory(
         "testdata/256x256_android_with_transparency.png",
         "testdata/256x256_golden_basic_composition.png",
         "testdata/256x256_golden_basic_yv12.png",
+        "testdata/256x256_golden_rotated_rgba.png",
+        "testdata/256x256_golden_rotated_yv12.png",
         "//guest/GLESv1:gfxstream_guest_glesv1",
         "//guest/GLESv1_enc:gfxstream_guest_glesv1encoder_shared",
         "//guest/GLESv2:gfxstream_guest_glesv2",

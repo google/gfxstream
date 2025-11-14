@@ -187,12 +187,11 @@ TEST_P(GfxstreamEnd2EndCompositionTest, BlitYV12) {
     const PixelR8G8B8A8 rgbaColor = PixelR8G8B8A8(66, 99, 160, 255);
 
     const auto yuvColor = PixelY8U8V8::FromR8G8B8A8(rgbaColor);
-    const auto yuvAhb = GFXSTREAM_ASSERT(
-        CreateAHBWithColor(kWidth, kHeight, GFXSTREAM_AHB_FORMAT_YV12, yuvColor));
+    const auto yuvAhb =
+        GFXSTREAM_ASSERT(CreateAHBWithColor(kWidth, kHeight, GFXSTREAM_AHB_FORMAT_YV12, yuvColor));
 
-    auto resultAhb = GFXSTREAM_ASSERT(
-        ScopedAHardwareBuffer::Allocate(*mGralloc, kWidth, kHeight,
-                                        GFXSTREAM_AHB_FORMAT_B8G8R8A8_UNORM));
+    auto resultAhb = GFXSTREAM_ASSERT(ScopedAHardwareBuffer::Allocate(
+        *mGralloc, kWidth, kHeight, GFXSTREAM_AHB_FORMAT_B8G8R8A8_UNORM));
 
     const RenderControlComposition composition = {
         .displayId = 0,
@@ -228,11 +227,10 @@ TEST_P(GfxstreamEnd2EndCompositionTest, BlitYV12) {
             .transform = static_cast<hwc_transform_t>(0),
         },
     }};
-    ASSERT_THAT(mRc->rcCompose(rcDevice,
-                               &composition,
-                               static_cast<uint32_t>(compositionLayers.size()),
-                               compositionLayers.data()),
-                Eq(0));
+    ASSERT_THAT(
+        mRc->rcCompose(rcDevice, &composition, static_cast<uint32_t>(compositionLayers.size()),
+                       compositionLayers.data()),
+        Eq(0));
 
     GFXSTREAM_ASSERT(AhbIsEntirely(resultAhb, rgbaColor));
 }
@@ -244,7 +242,8 @@ TEST_P(GfxstreamEnd2EndCompositionTest, BasicCompositionYV12) {
 
     const auto layer2RgbaColor = PixelR8G8B8A8(66, 99, 160, 255);
     const auto layer2YuvColor = PixelY8U8V8::FromR8G8B8A8(layer2RgbaColor);
-    auto layer2Ahb = GFXSTREAM_ASSERT(CreateAHBWithColor(32, 32, GFXSTREAM_AHB_FORMAT_YV12, layer2YuvColor));
+    auto layer2Ahb =
+        GFXSTREAM_ASSERT(CreateAHBWithColor(32, 32, GFXSTREAM_AHB_FORMAT_YV12, layer2YuvColor));
 
     auto resultAhb = GFXSTREAM_ASSERT(
         ScopedAHardwareBuffer::Allocate(*mGralloc, 256, 256, GFXSTREAM_AHB_FORMAT_B8G8R8A8_UNORM));
@@ -315,6 +314,168 @@ TEST_P(GfxstreamEnd2EndCompositionTest, BasicCompositionYV12) {
     ASSERT_THAT(mRc->rcCompose(rcDevice, &composition, 2, compositionLayers), Eq(0));
 
     GFXSTREAM_ASSERT(CompareAHBWithGolden(resultAhb, "256x256_golden_basic_yv12.png"));
+}
+
+TEST_P(GfxstreamEnd2EndCompositionTest, RotatedCompositionRGBA) {
+    ScopedRenderControlDevice rcDevice(*mRc);
+
+    const auto rgbaColor1 = PixelR8G8B8A8(66, 99, 160, 255);
+    const auto rgbaColor2 = PixelR8G8B8A8(222, 16, 0, 255);
+
+    auto layer1Ahb = GFXSTREAM_ASSERT(CreateAHBFromImage("256x256_android.png"));
+    auto layer2Ahb = GFXSTREAM_ASSERT(
+       CreateAHBWithCheckerboard(256, 256, 64, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM, rgbaColor1, rgbaColor2));
+    auto resultAhb = GFXSTREAM_ASSERT(
+        ScopedAHardwareBuffer::Allocate(*mGralloc, 256, 256, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
+
+    const RenderControlComposition composition = {
+        .displayId = 0,
+        .compositionResultColorBufferHandle = mGralloc->getHostHandle(resultAhb),
+    };
+    const RenderControlCompositionLayer compositionLayers[2] = {
+        {
+            .colorBufferHandle = mGralloc->getHostHandle(layer1Ahb),
+            .composeMode = HWC2_COMPOSITION_DEVICE,
+            .displayFrame =
+                {
+                    .left = 0,
+                    .top = 0,
+                    .right = 256,
+                    .bottom = 256,
+                },
+            .crop =
+                {
+                    .left = 0,
+                    .top = 0,
+                    .right = static_cast<float>(256),
+                    .bottom = static_cast<float>(256),
+                },
+            .blendMode = HWC2_BLEND_MODE_PREMULTIPLIED,
+            .alpha = 1.0,
+            .color =
+                {
+                    .r = 0,
+                    .g = 0,
+                    .b = 0,
+                    .a = 0,
+                },
+            .transform = static_cast<hwc_transform_t>(0),
+        },
+        {
+            .colorBufferHandle = mGralloc->getHostHandle(layer2Ahb),
+            .composeMode = HWC2_COMPOSITION_DEVICE,
+            .displayFrame =
+                {
+                    .left = 64,
+                    .top = 32,
+                    .right = 128,
+                    .bottom = 160,
+                },
+            .crop =
+                {
+                    .left = 0,
+                    .top = 0,
+                    .right = static_cast<float>(256),
+                    .bottom = static_cast<float>(256),
+                },
+            .blendMode = HWC2_BLEND_MODE_PREMULTIPLIED,
+            .alpha = 1.0,
+            .color =
+                {
+                    .r = 0,
+                    .g = 0,
+                    .b = 0,
+                    .a = 0,
+                },
+            .transform = HWC_TRANSFORM_ROT_90,
+        },
+    };
+
+    ASSERT_THAT(mRc->rcCompose(rcDevice, &composition, 2, compositionLayers), Eq(0));
+
+    GFXSTREAM_ASSERT(CompareAHBWithGolden(resultAhb, "256x256_golden_rotated_rgba.png"));
+}
+
+TEST_P(GfxstreamEnd2EndCompositionTest, RotatedCompositionYV12) {
+    ScopedRenderControlDevice rcDevice(*mRc);
+
+    const auto rgbaColor1 = PixelR8G8B8A8(66, 99, 160, 255);
+    const auto rgbaColor2 = PixelR8G8B8A8(222, 16, 0, 255);
+    const auto yuvColor1 = PixelY8U8V8::FromR8G8B8A8(rgbaColor1);
+    const auto yuvColor2 = PixelY8U8V8::FromR8G8B8A8(rgbaColor2);
+
+    auto layer1Ahb = GFXSTREAM_ASSERT(CreateAHBFromImage("256x256_android.png"));
+    auto layer2Ahb = GFXSTREAM_ASSERT(
+        CreateAHBWithCheckerboard(256, 256, 64, GFXSTREAM_AHB_FORMAT_YV12, yuvColor1, yuvColor2));
+    auto resultAhb = GFXSTREAM_ASSERT(
+        ScopedAHardwareBuffer::Allocate(*mGralloc, 256, 256, GFXSTREAM_AHB_FORMAT_R8G8B8A8_UNORM));
+
+    const RenderControlComposition composition = {
+        .displayId = 0,
+        .compositionResultColorBufferHandle = mGralloc->getHostHandle(resultAhb),
+    };
+    const RenderControlCompositionLayer compositionLayers[2] = {
+        {
+            .colorBufferHandle = mGralloc->getHostHandle(layer1Ahb),
+            .composeMode = HWC2_COMPOSITION_DEVICE,
+            .displayFrame =
+                {
+                    .left = 0,
+                    .top = 0,
+                    .right = 256,
+                    .bottom = 256,
+                },
+            .crop =
+                {
+                    .left = 0,
+                    .top = 0,
+                    .right = static_cast<float>(256),
+                    .bottom = static_cast<float>(256),
+                },
+            .blendMode = HWC2_BLEND_MODE_NONE,
+            .alpha = 1.0,
+            .color =
+                {
+                    .r = 0,
+                    .g = 0,
+                    .b = 0,
+                    .a = 0,
+                },
+            .transform = static_cast<hwc_transform_t>(0),
+        },
+        {
+            .colorBufferHandle = mGralloc->getHostHandle(layer2Ahb),
+            .composeMode = HWC2_COMPOSITION_DEVICE,
+            .displayFrame =
+                {
+                    .left = 64,
+                    .top = 32,
+                    .right = 128,
+                    .bottom = 160,
+                },
+            .crop =
+                {
+                    .left = 0,
+                    .top = 0,
+                    .right = static_cast<float>(256),
+                    .bottom = static_cast<float>(256),
+                },
+            .blendMode = HWC2_BLEND_MODE_NONE,
+            .alpha = 1.0,
+            .color =
+                {
+                    .r = 0,
+                    .g = 0,
+                    .b = 0,
+                    .a = 0,
+                },
+            .transform = HWC_TRANSFORM_ROT_90,
+        },
+    };
+
+    ASSERT_THAT(mRc->rcCompose(rcDevice, &composition, 2, compositionLayers), Eq(0));
+
+    GFXSTREAM_ASSERT(CompareAHBWithGolden(resultAhb, "256x256_golden_rotated_yv12.png"));
 }
 
 INSTANTIATE_TEST_SUITE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndCompositionTest,

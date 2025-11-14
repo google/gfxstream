@@ -275,6 +275,12 @@ TextureDraw::TextureDraw()
     s_gles2.glBindBuffer(GL_ARRAY_BUFFER, 0);
     s_gles2.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
+    GLenum err = s_gles2.glGetError();
+    if (err != GL_NO_ERROR) {
+        GFXSTREAM_ERROR("TextureDraw::%s: GL error=0x%x\n",
+                        __FUNCTION__, err);
+    }
+
     mMaskLayer.create();
     mBackgroundLayer.create();
     mBackgroundOffset[0] = 0.0f;

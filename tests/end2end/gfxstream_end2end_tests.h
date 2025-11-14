@@ -44,12 +44,12 @@
 #include <vulkan/vk_android_native_buffer.h>
 // clang-format on
 
-#include "kumquat_instance.h"
 #include "Sync.h"
 #include "gfxstream/Expected.h"
 #include "gfxstream/guest/ANativeWindow.h"
 #include "gfxstream/guest/GfxStreamGralloc.h"
 #include "gfxstream/guest/RenderControlApi.h"
+#include "kumquat_instance.h"
 
 namespace gfxstream {
 namespace tests {
@@ -57,14 +57,12 @@ namespace tests {
 constexpr const bool kSaveImagesIfComparisonFailed = false;
 
 MATCHER(IsOk, "an ok result") {
-  auto& result = arg;
-  if (!result.ok()) {
-    *result_listener << "which is an error with message: \""
-                     << result.error()
-                     << "\"";
-    return false;
-  }
-  return true;
+    auto& result = arg;
+    if (!result.ok()) {
+        *result_listener << "which is an error with message: \"" << result.error() << "\"";
+        return false;
+    }
+    return true;
 }
 
 MATCHER(IsError, "an error result") {
@@ -493,7 +491,7 @@ struct PixelY8U8V8 {
         return std::tie(lhs.y, lhs.u, lhs.v) == std::tie(rhs.y, rhs.u, rhs.v);
     }
 
-    friend void PrintTo(const PixelY8U8V8 & pixel, std::ostream* os) { *os << pixel.ToString(); }
+    friend void PrintTo(const PixelY8U8V8& pixel, std::ostream* os) { *os << pixel.ToString(); }
 };
 
 using PixelFillColor = std::variant<PixelR8G8B8A8, PixelY8U8V8>;
@@ -508,8 +506,8 @@ struct Image {
 Image ImageFromColor(uint32_t w, uint32_t h, const PixelR8G8B8A8& pixel);
 
 enum class GfxstreamTransport {
-  kVirtioGpuAsg,
-  kVirtioGpuPipe,
+    kVirtioGpuAsg,
+    kVirtioGpuPipe,
 };
 
 struct TestParams {
@@ -547,16 +545,11 @@ class GfxstreamEnd2EndTest : public ::testing::TestWithParam<TestParams> {
     void TearDownGuest();
     void TearDown() override;
 
-    void SetUpEglContextAndSurface(uint32_t contextVersion,
-                                   uint32_t width,
-                                   uint32_t height,
-                                   EGLDisplay* outDisplay,
-                                   EGLContext* outContext,
+    void SetUpEglContextAndSurface(uint32_t contextVersion, uint32_t width, uint32_t height,
+                                   EGLDisplay* outDisplay, EGLContext* outContext,
                                    EGLSurface* outSurface);
 
-    void TearDownEglContextAndSurface(EGLDisplay display,
-                                      EGLContext context,
-                                      EGLSurface surface);
+    void TearDownEglContextAndSurface(EGLDisplay display, EGLContext context, EGLSurface surface);
 
     Result<ScopedGlShader> SetUpShader(GLenum type, const std::string& source);
 
@@ -583,12 +576,17 @@ class GfxstreamEnd2EndTest : public ::testing::TestWithParam<TestParams> {
     Result<Image> AsImage(ScopedAHardwareBuffer& ahb);
 
     Result<Ok> FillAhb(ScopedAHardwareBuffer& ahb, PixelFillColor color);
+    Result<Ok> FillAhbWithCheckerboard(ScopedAHardwareBuffer& ahb, const uint32_t tileWidth,
+                                       PixelFillColor color1, PixelFillColor color2);
 
     Result<ScopedAHardwareBuffer> CreateAHBFromImage(const std::string& basename);
 
     Result<ScopedAHardwareBuffer> CreateAHBWithColor(const uint32_t width, const uint32_t height,
                                                      const uint32_t ahbFormat,
                                                      const PixelFillColor& color);
+    Result<ScopedAHardwareBuffer> CreateAHBWithCheckerboard(
+        const uint32_t width, const uint32_t height, const uint32_t tileWidth,
+        const uint32_t ahbFormat, const PixelFillColor& color1, const PixelFillColor& color2);
 
     bool ArePixelsSimilar(uint32_t expectedPixel, uint32_t actualPixel);
 
