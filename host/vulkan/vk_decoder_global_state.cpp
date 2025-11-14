@@ -1093,7 +1093,7 @@ class VkDecoderGlobalState::Impl {
         vk_struct_chain_filter<VkDebugUtilsMessengerCreateInfoEXT>(&createInfoFiltered);
 
 #if defined(__APPLE__)
-        if (m_vkEmulation->supportsMoltenVk()) {
+        if (m_vkEmulation->supportsPortabilityEnumeration()) {
             createInfoFiltered.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
         }
 #endif
@@ -2146,7 +2146,7 @@ class VkDecoderGlobalState::Impl {
         // Enable all portability features supported on the device
         VkPhysicalDevicePortabilitySubsetFeaturesKHR supportedPortabilityFeatures = {
             VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PORTABILITY_SUBSET_FEATURES_KHR, nullptr};
-        if (m_vkEmulation->supportsMoltenVk()) {
+        if (m_vkEmulation->supportsPortabilityEnumeration()) {
             VkPhysicalDeviceFeatures2 features2 = {
                 .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
                 .pNext = &supportedPortabilityFeatures,
@@ -9311,7 +9311,7 @@ class VkDecoderGlobalState::Impl {
         m_vkEmulation->appendExternalMemoryModeDeviceExtensions(hostAlwaysDeviceExtensions);
 
 #if defined(__APPLE__)
-        if (m_vkEmulation->supportsMoltenVk()) {
+        if (m_vkEmulation->supportsPortabilityEnumeration()) {
             hostAlwaysDeviceExtensions.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
         }
 #endif
@@ -9367,6 +9367,8 @@ class VkDecoderGlobalState::Impl {
 #if defined(__APPLE__)
         if (m_vkEmulation->supportsMoltenVk()) {
             res.push_back(VK_MVK_MACOS_SURFACE_EXTENSION_NAME);
+        }
+        if (m_vkEmulation->supportsPortabilityEnumeration()) {
             res.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
         }
 #endif

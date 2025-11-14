@@ -120,6 +120,7 @@ class VkEmulation {
     bool supportsExternalFenceCapabilities() const;
     bool supportsSurfaces() const;
     bool supportsMoltenVk() const;
+    bool supportsPortabilityEnumeration() const;
 
     bool supportsGetPhysicalDeviceProperties2() const;
 
@@ -602,8 +603,10 @@ class VkEmulation {
     bool mInstanceSupportsSurface = false;
 #if defined(__APPLE__)
     bool mInstanceSupportsMoltenVK = false;
+    bool mInstanceSupportsPortabilityEnumeration = false;
 #else
     static const bool mInstanceSupportsMoltenVK = false;
+    static const bool mInstanceSupportsPortabilityEnumeration = false;
 #endif
 
     PFN_vkGetPhysicalDeviceImageFormatProperties2KHR mGetImageFormatProperties2Func = nullptr;

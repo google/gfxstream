@@ -920,10 +920,12 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
 #ifdef __APPLE__
     std::vector<const char*> moltenVkInstanceExtNames = {
         VK_MVK_MACOS_SURFACE_EXTENSION_NAME,
-        VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
     };
     std::vector<const char*> moltenVkDeviceExtNames = {
         VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME,
+    };
+    std::vector<const char*> portabilityEnumerationNames = {
+        VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
     };
 #endif
 
@@ -945,7 +947,10 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
 #if defined(__APPLE__)
     const std::string vulkanIcd = gfxstream::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD");
     const bool moltenVKRequested = (vulkanIcd == "moltenvk");
-    const bool moltenVKSupported = vk_util::extensionsSupported(instanceExts, moltenVkInstanceExtNames);
+    const bool moltenVKSupported =
+        vk_util::extensionsSupported(instanceExts, moltenVkInstanceExtNames);
+    const bool usePortabilityEnumeration =
+        vk_util::extensionsSupported(instanceExts, portabilityEnumerationNames);
     if (moltenVKRequested && !moltenVKSupported) {
         // This might happen if the user manually changes moltenvk ICD library
         // Just a warning to enable a later version without or other drivers without portability
@@ -1026,9 +1031,14 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
 
 #if defined(__APPLE__)
     if (useMoltenVK) {
-        GFXSTREAM_INFO("MoltenVK is supported, enabling Vulkan portability.");
-        instCi.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
         for (auto extension : moltenVkInstanceExtNames) {
+            selectedInstanceExtensionNames.emplace(extension);
+        }
+    }
+    if (usePortabilityEnumeration) {
+        GFXSTREAM_INFO("Enabling Vulkan portability.");
+        instCi.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+        for (auto extension : portabilityEnumerationNames) {
             selectedInstanceExtensionNames.emplace(extension);
         }
     }
@@ -1131,6 +1141,7 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
     emulation->mInstanceSupportsSurface = surfaceSupported;
 #if defined(__APPLE__)
     emulation->mInstanceSupportsMoltenVK = useMoltenVK;
+    emulation->mInstanceSupportsPortabilityEnumeration = usePortabilityEnumeration;
 #endif
 
     if (emulation->mInstanceSupportsGetPhysicalDeviceProperties2) {
@@ -1816,6 +1827,8 @@ bool VkEmulation::supportsExternalFenceCapabilities() const {
 bool VkEmulation::supportsSurfaces() const { return mInstanceSupportsSurface; }
 
 bool VkEmulation::supportsMoltenVk() const { return mInstanceSupportsMoltenVK; }
+
+bool VkEmulation::supportsPortabilityEnumeration() const { return mInstanceSupportsPortabilityEnumeration; }
 
 bool VkEmulation::supportsPhysicalDeviceIDProperties() const {
     return mInstanceSupportsPhysicalDeviceIDProperties;
