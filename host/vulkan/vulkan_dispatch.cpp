@@ -78,7 +78,20 @@ static void setIcdPaths(const std::string& icdFilename) {
 
 static void initIcdPaths(bool forTesting) {
     auto androidIcd = gfxstream::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD");
-    if (androidIcd == "") {
+
+    if (forTesting) {
+        const char* testingICD = "lavapipe";
+        if (!androidIcd.empty()) {
+            GFXSTREAM_WARNING(
+                "%s: In test environment, enforcing %s ICD, existing ANDROID_EMU_VK_ICD "
+                "value('%s') will be ignored",
+                __func__, testingICD, androidIcd.c_str());
+        } else {
+            GFXSTREAM_INFO("%s: In test environment, enforcing %s ICD.", __func__, testingICD);
+        }
+        gfxstream::base::setEnvironmentVariable("ANDROID_EMU_VK_ICD", testingICD);
+        androidIcd = testingICD;
+    } else if (androidIcd == "") {
         // Rely on user to set VK_DRIVER_FILES
         return;
     }
@@ -91,12 +104,6 @@ static void initIcdPaths(bool forTesting) {
                         __func__);
     }
 
-    if (forTesting) {
-        const char* testingICD = "lavapipe";
-        GFXSTREAM_INFO("%s: In test environment, enforcing %s ICD.", __func__, testingICD);
-        gfxstream::base::setEnvironmentVariable("ANDROID_EMU_VK_ICD", testingICD);
-        androidIcd = testingICD;
-    }
     if (androidIcd == "lavapipe") {
         GFXSTREAM_INFO("%s: ICD set to 'lavapipe', using Lavapipe ICD", __func__);
         setIcdPaths("lvp_icd.json");
@@ -322,9 +329,9 @@ void VulkanDispatchImpl::initialize(bool forTesting) {
     mForTesting = forTesting;
     initIcdPaths(mForTesting);
 
-    // In verbose logging mode, also enable vulkan loader error and warning messages
+    // In verbose logging and testing modes, also enable vulkan loader error and warning messages
     gfxstream::host::LogLevel logLevel = gfxstream::host::GetGfxstreamLogLevel();
-    if (logLevel >= gfxstream::host::LogLevel::kVerbose) {
+    if (forTesting || logLevel >= gfxstream::host::LogLevel::kVerbose) {
         // Set the env var only if the user didn't set it already
         if (gfxstream::base::getEnvironmentVariable("VK_LOADER_DEBUG").empty()) {
             GFXSTREAM_VERBOSE("Enabling error messages from vulkan loader");
