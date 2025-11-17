@@ -268,6 +268,19 @@ cvd create \
 
 echo "Cuttlefish device created!"
 
+# Wait for the new Cuttlefish device to appear in adb:
+echo "$(date +'%Y-%m-%dT%H:%M:%S%z')"
+echo "Waiting for the Cuttlefish device to connect to adb..."
+timeout --kill-after=30s 29s adb wait-for-device
+if [ $? -eq 0 ]; then
+  echo "$(date +'%Y-%m-%dT%H:%M:%S%z')"
+  echo "Cuttlefish device connected to adb."
+else
+  echo "$(date +'%Y-%m-%dT%H:%M:%S%z')"
+  echo "Timeout waiting for Cuttlefish device to connect to adb!"
+  exit 1
+fi
+
 # Run XTS
 echo "$(date +'%Y-%m-%dT%H:%M:%S%z')"
 echo "Running ${XTS_TYPE}..."
