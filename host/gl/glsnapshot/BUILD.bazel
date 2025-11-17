@@ -1,0 +1,25 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "objc_library")
+load("//:build_variables.bzl", "GFXSTREAM_HOST_COPTS", "GFXSTREAM_HOST_DEFINES")
+
+package(
+    default_applicable_licenses = ["//:gfxstream_license"],
+    default_visibility = ["//:gfxstream"],
+)
+
+cc_library(
+    name = "gfxstream_glsnapshot",
+    srcs = ["gl_snapshot.cpp"],
+    hdrs = ["gl_snapshot.h"],
+    copts = GFXSTREAM_HOST_COPTS + [
+        "-Wno-extern-c-compat",
+    ],
+    defines = GFXSTREAM_HOST_DEFINES,
+    includes = ["."],
+    deps = [
+        "//host/decoder_common:gfxstream_host_decoder_common",
+        "//host/gl/OpenGLESDispatch:gfxstream_host_openglesdispatch",
+        "//host/gl/OpenGLESDispatch:gfxstream_host_openglesdispatch_headers",
+        "//third_party/opengl:gfxstream_gles2_headers",
+        "//third_party/opengl:gfxstream_gles3_headers",
+    ],
+)

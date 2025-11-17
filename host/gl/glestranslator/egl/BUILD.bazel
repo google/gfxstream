@@ -1,0 +1,170 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "objc_library")
+load("//:build_variables.bzl", "GFXSTREAM_HOST_COPTS", "GFXSTREAM_HOST_DEFINES")
+
+package(
+    default_applicable_licenses = ["//:gfxstream_license"],
+    default_visibility = ["//:gfxstream"],
+)
+
+objc_library(
+    name = "gfxstream_glestranslator_egl_translator_darwin",
+    srcs = [
+        "glestranslator/egl/mac_native.m",
+        "glestranslator/egl/mac_pixel_formats_attribs.m",
+    ] + glob(["*.h"]),
+    copts = GFXSTREAM_HOST_COPTS + [
+        "-Wno-deprecated-declarations",
+    ],
+    defines = GFXSTREAM_HOST_DEFINES,
+    sdk_frameworks = [
+        "IOSurface",
+        "AppKit",
+        "CoreGraphics",
+        "OpenGL",
+    ],
+    target_compatible_with = [
+        "@platforms//os:macos",
+    ],
+    alwayslink = True,
+)
+
+cc_library(
+    name = "gfxstream_glestranslator_egl_translator_headers",
+    hdrs = [
+        "client_api_exts.h",
+        "core_profile_configs.h",
+        "egl_config.h",
+        "egl_context.h",
+        "egl_display.h",
+        "egl_global_info.h",
+        "egl_os_api.h",
+        "egl_pbuffer_surface.h",
+        "egl_surface.h",
+        "egl_thread_info.h",
+        "egl_validate.h",
+        "egl_window_surface.h",
+        "shader_cache.h",
+        "thread_info.h",
+    ] + select({
+        "@platforms//os:macos": [
+            "mac_native.h",
+            "mac_pixel_formats_attribs.h",
+        ],
+        "@platforms//os:windows": [
+        ],
+        "@platforms//os:linux": [
+            "x11_error_handler.h",
+        ],
+        "//conditions:default": [],
+    }),
+    copts = GFXSTREAM_HOST_COPTS,
+    defines = GFXSTREAM_HOST_DEFINES,
+    includes = ["glestranslator/egl"],
+    deps = [
+        "//common/base:gfxstream_common_base",
+        "//host:gfxstream_backend_headers",
+        "//host/decoder_common:gfxstream_host_decoder_common",
+        "//host/gl/glestranslator/common:gfxstream_glestranslator_common_headers",
+        "//third_party/opengl:gfxstream_egl_headers",
+        "//third_party/opengl:gfxstream_gles2_headers",
+    ],
+)
+
+cc_library(
+    name = "gfxstream_glestranslator_egl_translator",
+    srcs = [
+        "client_api_exts.cpp",
+        "egl_config.cpp",
+        "egl_context.cpp",
+        "egl_display.cpp",
+        "egl_global_info.cpp",
+        "egl_imp.cpp",
+        "egl_os_api_egl.cpp",
+        "egl_pbuffer_surface.cpp",
+        "egl_surface.cpp",
+        "egl_thread_info.cpp",
+        "egl_validate.cpp",
+        "egl_window_surface.cpp",
+        "shader_cache.cpp",
+        "thread_info.cpp",
+    ] + select({
+        "@platforms//os:macos": [
+            "egl_os_api_darwin.cpp",
+        ],
+        "@platforms//os:windows": [
+            "core_profile_configs_windows.cpp",
+            "egl_os_api_wgl.cpp",
+        ],
+        "@platforms//os:linux": [
+            "core_profile_configs_linux.cpp",
+            "egl_os_api_glx.cpp",
+            "x11_error_handler.cpp",
+        ],
+        "//conditions:default": [],
+    }),
+    hdrs = [
+        "client_api_exts.h",
+        "core_profile_configs.h",
+        "egl_config.h",
+        "egl_context.h",
+        "egl_display.h",
+        "egl_global_info.h",
+        "egl_os_api.h",
+        "egl_pbuffer_surface.h",
+        "egl_surface.h",
+        "egl_thread_info.h",
+        "egl_validate.h",
+        "egl_window_surface.h",
+        "shader_cache.h",
+        "thread_info.h",
+    ] + select({
+        "@platforms//os:macos": [
+            "mac_native.h",
+            "mac_pixel_formats_attribs.h",
+        ],
+        "@platforms//os:windows": [
+        ],
+        "@platforms//os:linux": [
+            "x11_error_handler.h",
+        ],
+        "//conditions:default": [],
+    }),
+    copts = GFXSTREAM_HOST_COPTS + [
+        "-Wno-extern-c-compat",
+        "-Wno-inconsistent-missing-override",
+        "-Wno-return-type-c-linkage",
+    ],
+    defines = GFXSTREAM_HOST_DEFINES,
+    textual_hdrs = [
+        "client_api_exts.in",
+    ],
+    deps =
+        [
+            ":gfxstream_glestranslator_egl_translator_headers",
+            "//common/base:gfxstream_common_base",
+            "//common/etc:gfxstream_etc",
+            "//common/logging:gfxstream_common_logging",
+            "//common/utils:gfxstream_common_utils",
+            "//host:gfxstream_backend_headers",
+            "//host:gfxstream_host_headers",
+            "//host/common:gfxstream_host_common",
+            "//host/decoder_common:gfxstream_host_decoder_common",
+            "//host/gl/glestranslator/common:gfxstream_glestranslator_common",
+            "//host/gl/glestranslator/common:gfxstream_glestranslator_common_headers",
+            "//host/gl/glestranslator/gles_cm:gles_cm_translator_static",
+            "//host/gl/glestranslator/gles_v2:gles_v2_translator_static",
+            "//host/library:gfxstream_host_library",
+            "//third_party/opengl:gfxstream_egl_headers",
+            "//third_party/opengl:gfxstream_gles2_headers",
+            "//third_party/opengl:gfxstream_gles_headers",
+            "//third_party/opengl:gfxstream_glx_headers",
+            "//third_party/opengl:gfxstream_opengl_headers",
+            "//third_party/x11:gfxstream_x11_headers",
+        ] + select({
+            "@platforms//os:macos": [
+                ":gfxstream_glestranslator_egl_translator_darwin",
+            ],
+            "//conditions:default": [],
+        }),
+    alwayslink = True,
+)
