@@ -28,6 +28,7 @@ lib_emulated_textures = static_library(
     inc_cereal_common,
     inc_common_base,
     inc_host_compressed_textures,
+    inc_host_common,
     inc_host_decoder_common,
     inc_host_include,
     inc_common_logging,
