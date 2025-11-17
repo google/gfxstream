@@ -50,7 +50,7 @@ package(
 # See NOTE_FOR_ANDROID16_RELEASE above for how to run locally:
 cuttlefish_gfxstream_deqp_test(
     name = "gfxstream_guest_angle_host_swiftshader_deqp_smoke",
-    size = "medium",
+    size = "large",
     # Launch Cuttlefish with: (see `cvd create --help`):
     cuttlefish_create_args = [
         "--gpu_mode=gfxstream_guest_angle_host_swiftshader",
