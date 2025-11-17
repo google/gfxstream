@@ -17,8 +17,8 @@ cc_library(
     copts = GFXSTREAM_HOST_COPTS,
     defines = GFXSTREAM_HOST_DEFINES,
     deps = [
-        ":EGL_translator_headers",
-        ":EGL_translator_static",
+        ":egl_translator",
+        ":egl_translator_headers",
         ":gfxstream_glsnapshot",
         "//common/base:gfxstream_common_base",
         "//common/logging:gfxstream_common_logging",
@@ -55,7 +55,7 @@ cc_library(
 )
 
 objc_library(
-    name = "egl_translator-darwin",
+    name = "egl_translator_darwin",
     srcs = [
         "glestranslator/egl/mac_native.m",
         "glestranslator/egl/mac_pixel_formats_attribs.m",
@@ -77,7 +77,7 @@ objc_library(
 )
 
 cc_library(
-    name = "EGL_translator_headers",
+    name = "egl_translator_headers",
     hdrs = [
         "glestranslator/egl/client_api_exts.h",
         "glestranslator/egl/core_profile_configs.h",
@@ -110,16 +110,16 @@ cc_library(
     includes = ["glestranslator/egl"],
     deps = [
         ":gl_common_headers",
+        "//common/base:gfxstream_common_base",
+        "//host:gfxstream_backend_headers",
+        "//host/decoder_common:gfxstream_host_decoder_common",
         "//third_party/opengl:gfxstream_egl_headers",
         "//third_party/opengl:gfxstream_gles2_headers",
-        "//host:gfxstream_backend_headers",
-        "//common/base:gfxstream_common_base",
-        "//host/decoder_common:gfxstream_host_decoder_common",
     ],
 )
 
 cc_library(
-    name = "EGL_translator_static",
+    name = "egl_translator",
     srcs = [
         "glestranslator/egl/client_api_exts.cpp",
         "glestranslator/egl/egl_config.cpp",
@@ -188,7 +188,7 @@ cc_library(
     ],
     deps =
         [
-            ":EGL_translator_headers",
+            ":egl_translator_headers",
             ":gl_common",
             ":gl_common_headers",
             "//common/base:gfxstream_common_base",
@@ -209,7 +209,7 @@ cc_library(
             "//third_party/opengl:gfxstream_opengl_headers",
             "//third_party/x11:gfxstream_x11_headers",
         ] + select({
-            "@platforms//os:macos": [":egl_translator-darwin"],
+            "@platforms//os:macos": [":egl_translator_darwin"],
             "//conditions:default": [],
         }),
     alwayslink = True,
@@ -243,7 +243,7 @@ cc_library(
     ],
     defines = GFXSTREAM_HOST_DEFINES,
     deps = [
-        ":EGL_translator_headers",
+        ":egl_translator_headers",
         ":gl_common_headers",
         "//common/base:gfxstream_common_base",
         "//common/etc:gfxstream_etc",
@@ -272,8 +272,8 @@ cc_library(
     copts = GFXSTREAM_HOST_COPTS,
     defines = GFXSTREAM_HOST_DEFINES,
     deps = [
-        ":EGL_translator_headers",
-        ":EGL_translator_static",
+        ":egl_translator",
+        ":egl_translator_headers",
         ":gfxstream_glsnapshot",
         "//common/base:gfxstream_common_base",
         "//common/logging:gfxstream_common_logging",
@@ -360,8 +360,8 @@ cc_library(
         ".",
     ],
     deps = [
-        ":EGL_translator_headers",
-        ":EGL_translator_static",
+        ":egl_translator",
+        ":egl_translator_headers",
         ":gfxstream_glsnapshot",
         ":gl_common_headers",
         ":gles1_dec",
