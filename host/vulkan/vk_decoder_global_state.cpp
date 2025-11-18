@@ -168,7 +168,7 @@ static constexpr const char* const kEmulatedInstanceExtensions[] = {
     VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME,
 };
 
-static constexpr uint32_t kMaxSafeVersion = VK_MAKE_VERSION(1, 4, 0);
+static constexpr uint32_t kMaxSafeVersion = VK_MAKE_VERSION(1, 3, 0);
 static constexpr uint32_t kMinVersion = VK_MAKE_VERSION(1, 0, 0);
 
 static constexpr uint64_t kPageSizeforBlob = 4096;
