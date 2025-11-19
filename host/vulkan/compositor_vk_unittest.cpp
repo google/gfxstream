@@ -131,10 +131,6 @@ class CompositorVkTest : public ::testing::Test {
     }
 
     void TearDown() override {
-#if defined(__APPLE__) && defined(__arm64__)
-        return;
-#endif
-
         k_vk->vkDestroyCommandPool(m_vkDevice, m_vkCommandPool, nullptr);
         k_vk->vkDestroyDevice(m_vkDevice, nullptr);
         m_vkDevice = VK_NULL_HANDLE;
