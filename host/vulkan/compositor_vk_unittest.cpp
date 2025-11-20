@@ -90,15 +90,7 @@ class CompositorVkTest : public ::testing::Test {
                                          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT>;
     using SourceImage = RenderTextureVk;
 
-    static void SetUpTestCase() {
-#if defined(__APPLE__)
-        // Enforce testing ICD on macOS, as the environment may be missing a vulkan implementation
-        // or, moltenvk may require compatibility bits set.
-        k_vk = vkDispatch(true);
-#else
-        k_vk = vkDispatch(false);
-#endif
-    }
+    static void SetUpTestCase() { k_vk = vkDispatch(true); }
 
     void SetUp() override {
         ASSERT_NE(k_vk, nullptr);

@@ -27,7 +27,7 @@ namespace {
 
 class SwapChainStateVkTest : public ::testing::Test {
    protected:
-    static void SetUpTestCase() { k_vk = vkDispatch(false); }
+    static void SetUpTestCase() { k_vk = vkDispatch(true); }
 
     void SetUp() override {
         // skip the test when testing without a window

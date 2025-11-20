@@ -382,7 +382,7 @@ static void teardownVulkanTest(const VulkanDispatch* vk,
 class VulkanTest : public ::testing::Test {
   protected:
     void SetUp() override {
-        auto dispatch = vkDispatch(false);
+        auto dispatch = vkDispatch(true);
         ASSERT_NE(dispatch, nullptr);
         mVk = *dispatch;
 
