@@ -250,39 +250,38 @@ class VulkanDispatchImpl {
             };
         }
 
+        std::vector<std::string> possiblePaths;
         const std::vector<std::string> possibleBasenames = getPossibleLoaderPathBasenames();
 
-        const std::string explicitIcd = gfxstream::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD");
-
-#ifdef _WIN32
-        constexpr const bool isWindows = true;
-#else
-        constexpr const bool isWindows = false;
-#endif
-        if (explicitIcd.empty() || isWindows) {
-            return possibleBasenames;
-        }
-
+        // 1. Add paths relative to the program/launcher directories.
         std::vector<std::string> possibleDirectories;
 
-        if (mForTesting || explicitIcd == "mock") {
-            possibleDirectories = {
-                pj({gfxstream::base::getProgramDirectory(), "testlib64"}),
-                pj({gfxstream::base::getLauncherDirectory(), "testlib64"}),
-            };
+        // If in testing mode, prioritize testlib64.
+        if (mForTesting) {
+            possibleDirectories.push_back(
+                pj({gfxstream::base::getProgramDirectory(), "testlib64"}));
+            possibleDirectories.push_back(
+                pj({gfxstream::base::getLauncherDirectory(), "testlib64"}));
         }
 
+        // Always add lib64/vulkan paths as a primary or secondary option.
         possibleDirectories.push_back(
             pj({gfxstream::base::getProgramDirectory(), "lib64", "vulkan"}));
         possibleDirectories.push_back(
             pj({gfxstream::base::getLauncherDirectory(), "lib64", "vulkan"}));
 
-        std::vector<std::string> possiblePaths;
+
         for (const std::string& possibleDirectory : possibleDirectories) {
             for (const std::string& possibleBasename : possibleBasenames) {
                 possiblePaths.push_back(pj({possibleDirectory, possibleBasename}));
             }
         }
+
+        // 2. Add system-wide basenames last, as an ultimate fallback.
+        for (const std::string& possibleBasename : possibleBasenames) {
+            possiblePaths.push_back(possibleBasename);
+        }
+
         return possiblePaths;
     }
 
