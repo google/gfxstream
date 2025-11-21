@@ -19,9 +19,10 @@
 #include <glm/gtx/matrix_transform_2d.hpp>
 
 #include "gfxstream/common/logging.h"
+#include "gfxstream/host/display_operations.h"
 #include "gfxstream/system/System.h"
-#include "vulkan/vk_format_utils.h"
 #include "vulkan/vk_enum_string_helper.h"
+#include "vulkan/vk_format_utils.h"
 
 namespace gfxstream {
 namespace host {
@@ -207,14 +208,27 @@ DisplayVk::PostResult DisplayVk::post(const BorrowedImageInfo* sourceImageInfo, 
         GFXSTREAM_INFO("Recreating swapchain completed.");
     }
 
-    auto result = postImpl(sourceImageInfo, rotationDegrees);
+    // TODO: Support multi display
+    std::optional<std::array<float, 16>> displayColorTransform = std::nullopt;
+    float displayColorTransformData[16];
+    if (get_gfxstream_multi_display_operations().get_color_transform_matrix(
+            0, displayColorTransformData) == 0) {
+        std::array<float, 16>& matrix = displayColorTransform.emplace();
+        for (size_t i = 0; i < 16; ++i) {
+            matrix[i] = displayColorTransformData[i];
+        }
+    }
+
+    auto result = postImpl(sourceImageInfo, rotationDegrees, displayColorTransform);
     if (!result.success) {
         m_needToRecreateSwapChain = true;
     }
     return result;
 }
 
-DisplayVk::PostResult DisplayVk::postImpl(const BorrowedImageInfo* sourceImageInfo, float rotationDegrees) {
+DisplayVk::PostResult DisplayVk::postImpl(
+    const BorrowedImageInfo* sourceImageInfo, float rotationDegrees,
+    const std::optional<std::array<float, 16>>& colorTransform) {
     auto completedFuture = std::async(std::launch::deferred, [] {}).share();
     completedFuture.wait();
 
@@ -440,7 +454,7 @@ DisplayVk::PostResult DisplayVk::postImpl(const BorrowedImageInfo* sourceImageIn
 
     CompositorVkBase::ImmediateModeResources* imResources =
         m_compositorVk ? m_compositorVk->acquireImmediateModeResources() : nullptr;
-    const bool useBlit = !imResources || (rotationDegrees == 0);
+    const bool useBlit = !imResources || (rotationDegrees == 0 && !colorTransform.has_value());
 
     if (useBlit) {
         // Use vkCmdBlitImage to post the image
@@ -527,7 +541,8 @@ DisplayVk::PostResult DisplayVk::postImpl(const BorrowedImageInfo* sourceImageIn
         m_compositorVk->drawImage(cmdBuff, m_swapChainStateVk->getFormat(),
                                   swapchainImageExtent.width, swapchainImageExtent.height,
                                   currentSwapchainRenderpass, currentSwapchainFramebuffer,
-                                  imResources, sourceImageInfoVk->imageView, rotationDegrees);
+                                  imResources, sourceImageInfoVk->imageView, rotationDegrees,
+                                  colorTransform);
     }
 
     // Render screen mask overlay

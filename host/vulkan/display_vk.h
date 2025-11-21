@@ -68,7 +68,8 @@ class DisplayVk : public Display {
     // component of the returned result is a future that will complete when the GPU side of work
     // completes. The caller is responsible to guarantee the synchronization and the layout of
     // ColorBufferCompositionInfo::m_vkImage is VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL.
-    PostResult postImpl(const BorrowedImageInfo* info, float rotationDegrees);
+    PostResult postImpl(const BorrowedImageInfo* info, float rotationDegrees,
+                        const std::optional<std::array<float, 16>>& colorTransform);
 
     VkFormatFeatureFlags getFormatFeatures(VkFormat, VkImageTiling);
     bool canPost(const VkImageCreateInfo&);

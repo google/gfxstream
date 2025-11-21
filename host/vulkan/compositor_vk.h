@@ -292,7 +292,8 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
     void drawImage(VkCommandBuffer commandBuffer, VkFormat targetFormat, uint32_t targetWidth,
                    uint32_t targetHeight, VkRenderPass targetRenderPass,
                    VkFramebuffer targetFramebuffer, ImmediateModeResources* frameResources,
-                   VkImageView imageView, float rotationDegrees);
+                   VkImageView imageView, float rotationDegrees,
+                   const std::optional<std::array<float, 16>>& colorTransform);
 
     ImmediateModeResources* acquireImmediateModeResources();
     void releaseImmediateModeResources(ImmediateModeResources* frameResources);

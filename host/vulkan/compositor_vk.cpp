@@ -1619,14 +1619,16 @@ void CompositorVk::drawScreenMask(VkCommandBuffer commandBuffer, VkFormat target
     }
 
     drawImage(commandBuffer, targetFormat, targetWidth, targetHeight, targetRenderPass,
-              targetFramebuffer, frameResources, m_screenMaskImage.m_vkImageView, rotationDegrees);
+              targetFramebuffer, frameResources, m_screenMaskImage.m_vkImageView, rotationDegrees,
+              std::nullopt);
 }
 
 void CompositorVk::drawImage(VkCommandBuffer commandBuffer, VkFormat targetFormatVk,
                              uint32_t targetWidth, uint32_t targetHeight,
                              VkRenderPass targetRenderPass, VkFramebuffer targetFramebuffer,
                              ImmediateModeResources* frameResources, VkImageView imageView,
-                             float rotationDegrees) {
+                             float rotationDegrees,
+                             const std::optional<std::array<float, 16>>& colorTransform) {
     if (frameResources->m_curDataIndex >= kMaxImmediateDrawsPerFrame) {
         GFXSTREAM_ERROR("CompositorVk::%s Requested too many immediate mode draws", __func__);
         return;
@@ -1675,6 +1677,13 @@ void CompositorVk::drawImage(VkCommandBuffer commandBuffer, VkFormat targetForma
         .mode = glm::uvec4(static_cast<uint32_t>(HWC2_COMPOSITION_DEVICE), 1.0f, 0, 0),
         .alpha = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),
     };
+    if (colorTransform.has_value()) {
+        const std::array<float, 16>& matrix = colorTransform.value();
+        uboContents.colorTransform = glm::mat4(matrix[0], matrix[1], matrix[2], matrix[3],    //
+                                               matrix[4], matrix[5], matrix[6], matrix[7],    //
+                                               matrix[8], matrix[9], matrix[10], matrix[11],  //
+                                               matrix[12], matrix[13], matrix[14], matrix[15]);
+    }
 
     {
         memcpy(uboStorage, &uboContents, sizeof(UniformBufferBinding));
