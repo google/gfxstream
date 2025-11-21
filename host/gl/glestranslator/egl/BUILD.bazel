@@ -9,8 +9,8 @@ package(
 objc_library(
     name = "gfxstream_glestranslator_egl_translator_darwin",
     srcs = [
-        "glestranslator/egl/mac_native.m",
-        "glestranslator/egl/mac_pixel_formats_attribs.m",
+        "mac_native.m",
+        "mac_pixel_formats_attribs.m",
     ] + glob(["*.h"]),
     copts = GFXSTREAM_HOST_COPTS + [
         "-Wno-deprecated-declarations",
