@@ -80,7 +80,7 @@ static void initIcdPaths(bool forTesting) {
     auto androidIcd = gfxstream::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD");
 
     if (forTesting) {
-#if defined(__APPLE__) && !defined(__arm64__)
+#if defined(__APPLE__) && !defined(__arm64__) || defined(__WIN32__)
         const char* testingICD = "swiftshader";
 #else
         const char* testingICD = "lavapipe";
@@ -102,8 +102,9 @@ static void initIcdPaths(bool forTesting) {
 
     // In high integrity mode (e.g. admin mode on windows), loader won't be able to read the
     // environment variables. TODO(b/446119531) Load the driver dlls directly in this case.
+    // Note: in testing mode the loader allows env vars in high integrity mode
     const bool highIntegrityMode = processInHighIntegrityMode();
-    if (highIntegrityMode) {
+    if (highIntegrityMode && !forTesting) {
         GFXSTREAM_ERROR("%s: Vulkan ICD selection is not supported with elevated permissions.",
                         __func__);
     }
