@@ -82,6 +82,73 @@ const char* string_AstcEmulationMode(AstcEmulationMode mode) {
     return "Unknown";
 }
 
+// Resize an RGBA image using Bilinear Interpolation.
+// TODO(b/462070386): temporary function to process readback data on the CPU, remove or move
+// into image_utils once the image processing is done on the GPU for better performance.
+static bool ResizeRGBAImage(const uint8_t* rgbaPixels, int w_old, int h_old, int w_new, int h_new,
+                            std::vector<uint8_t>& resizedPixels) {
+    if (w_new <= 0 || h_new <= 0 || w_old <= 0 || h_old <= 0) {
+        return false;
+    }
+
+    auto getPixelIndex = [](int x, int y, int width) { return (y * width + x) * 4; };
+
+    auto interpolateChannel = [](float x_frac, float y_frac, uint8_t q11, uint8_t q21, uint8_t q12,
+                                uint8_t q22) {
+        // Linear interpolation
+        float r1 = q11 * (1.0f - x_frac) + q21 * x_frac;
+        float r2 = q12 * (1.0f - x_frac) + q22 * x_frac;
+        float result = r1 * (1.0f - y_frac) + r2 * y_frac;
+
+        // Round and clamp the result
+        return static_cast<uint8_t>(std::clamp(std::round(result), 0.0f, 255.0f));
+    };
+
+    resizedPixels.resize(w_new * h_new * 4);
+
+    float scale_x = static_cast<float>(w_old) / w_new;
+    float scale_y = static_cast<float>(h_old) / h_new;
+
+    for (int y_new = 0; y_new < h_new; ++y_new) {
+        for (int x_new = 0; x_new < w_new; ++x_new) {
+            float x = (x_new + 0.5f) * scale_x - 0.5f;
+            float y = (y_new + 0.5f) * scale_y - 0.5f;
+            int x1 = std::clamp( static_cast<int>(std::floor(x)), 0, w_old - 1);
+            int y1 = std::clamp( static_cast<int>(std::floor(y)), 0, h_old - 1);
+            int x2 = std::clamp(x1 + 1, 0, w_old - 1);
+            int y2 = std::clamp(y1 + 1, 0, h_old - 1);
+
+            // Weights for interpolation
+            float x_frac = x - x1;
+            float y_frac = y - y1;
+            if (x1 == x2) x_frac = 0.0f;
+            if (y1 == y2) y_frac = 0.0f;
+
+            // Base indices
+            int idx11 = getPixelIndex(x1, y1, w_old);
+            int idx21 = getPixelIndex(x2, y1, w_old);
+            int idx12 = getPixelIndex(x1, y2, w_old);
+            int idx22 = getPixelIndex(x2, y2, w_old);
+
+            // New pixel index
+            int pixelIndex = getPixelIndex(x_new, y_new, w_new);
+
+            // 6. Interpolate each of the 4 channels (R, G, B, A)
+            for (int c = 0; c < 4; ++c) {
+                uint8_t q11 = rgbaPixels[idx11 + c];
+                uint8_t q21 = rgbaPixels[idx21 + c];
+                uint8_t q12 = rgbaPixels[idx12 + c];
+                uint8_t q22 = rgbaPixels[idx22 + c];
+
+                // Interpolate
+                resizedPixels[pixelIndex + c] = interpolateChannel(x_frac, y_frac, q11, q21, q12, q22);
+            }
+        }
+    }
+
+    return true;
+}
+
 }  // namespace
 
 static std::optional<ExternalHandleInfo> dupExternalMemory(std::optional<ExternalHandleInfo> handleInfo) {
@@ -3245,6 +3312,136 @@ bool VkEmulation::readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint3
         bufferCopySize = outPixelsSize;
     }
     std::memcpy(outPixels, mStaging.mMappedPtr, bufferCopySize);
+
+    return true;
+}
+
+bool VkEmulation::readColorBufferPixelsScaled(uint32_t colorBufferHandle, int pixelsWidth,
+                                              int pixelsHeight, int pixelsRotation,
+                                              const Rect& rect, GfxstreamFormat pixelsFormat,
+                                              void* outPixels) {
+    if (rect.pos.x != 0 || rect.pos.y != 0 || (rect.size.w != 0 && rect.size.w != pixelsWidth) ||
+        (rect.size.h != 0 && rect.size.h != pixelsHeight)) {
+        // TODO(b/389646068): support snipping
+        GFXSTREAM_ERROR(
+            "Readback snipping is not supported for Vulkan ColorBuffers. "
+            "(Requested: %dx%d, %dx%d)",
+            rect.pos.x, rect.pos.y, rect.size.w, rect.size.h);
+        return false;
+    }
+    if (pixelsFormat != GfxstreamFormat::R8G8B8A8_UNORM &&
+        pixelsFormat != GfxstreamFormat::R8G8B8X8_UNORM &&
+        pixelsFormat != GfxstreamFormat::R8G8B8_UNORM) {
+        // Only RGBA8/RGBX8/RGB8 destination formats are supported
+        const std::string pixelsFormatString = ToString(pixelsFormat);
+        GFXSTREAM_ERROR("Readback is not supported for Vulkan ColorBuffer to format %s.",
+                        pixelsFormatString.c_str());
+        return false;
+    }
+
+    std::lock_guard<std::mutex> lock(mMutex);
+    auto colorBufferInfo = gfxstream::base::find(mColorBuffers, colorBufferHandle);
+    if (!colorBufferInfo) {
+        GFXSTREAM_ERROR("Failed to read from ColorBuffer:%d, not found.", colorBufferHandle);
+        return false;
+    }
+
+    if (colorBufferInfo->format != GfxstreamFormat::R8G8B8A8_UNORM && colorBufferInfo->format != GfxstreamFormat::R8G8B8X8_UNORM) {
+        // Only RGBA8/RGBX8 source formats are supported
+        const std::string formatString = ToString(colorBufferInfo->format);
+        GFXSTREAM_ERROR("Readback is not supported for Vulkan ColorBuffer with format %s.",
+                        formatString.c_str());
+        return false;
+    }
+
+    const int readbackBpp = 4;
+    int readbackWidth = colorBufferInfo->width;
+    int readbackHeight = colorBufferInfo->height;
+    const uint64_t readbackPixelsSize = readbackBpp * readbackWidth * readbackHeight;
+
+    const int outBpp = (pixelsFormat == GfxstreamFormat::R8G8B8_UNORM) ? 3 : 4;
+    const uint64_t outPixelsSize = outBpp * pixelsWidth * pixelsHeight;
+    if (readbackBpp == outBpp && pixelsRotation == 0 && readbackPixelsSize == outPixelsSize) {
+        // Simple 1-1 readback case
+        return readColorBufferToBytesLocked(colorBufferHandle, 0, 0, pixelsWidth, pixelsHeight, outPixels, outPixelsSize);
+    }
+
+    // TODO(b/447601952): handle RGB format inside readToBytes to avoid extra copy
+    // TODO(b/460393431): Resize the image on the GPU and readback smaller data
+    std::vector<uint8_t> readback_r8g8b8a8;
+    readback_r8g8b8a8.resize(readbackPixelsSize);
+    if (!readColorBufferToBytesLocked(colorBufferHandle, 0, 0, readbackWidth, readbackHeight, readback_r8g8b8a8.data(),
+                                     readback_r8g8b8a8.size())) {
+        // Could not readback, cannot continue for resizing
+        GFXSTREAM_ERROR("%s: Failed to readback color buffer %d (%dx%d, %s)", colorBufferHandle,
+                        readbackWidth, readbackHeight, ToString(colorBufferInfo->format).c_str());
+        return false;
+    }
+
+    // Resize, if necessary
+    {
+        int readbackTargetWidth = pixelsWidth;
+        int readbackTargetHeight = pixelsHeight;
+
+        const bool flipDims =
+            (pixelsRotation == GFXSTREAM_ROTATION_90 || pixelsRotation == GFXSTREAM_ROTATION_270);
+        if (flipDims) {
+            // Image will be used as rotated, flip the dimensions for resize
+            int temp = readbackTargetWidth;
+            readbackTargetWidth = readbackTargetHeight;
+            readbackTargetHeight = temp;
+        }
+
+        if (readbackWidth != readbackTargetWidth || readbackHeight != readbackTargetHeight) {
+            std::vector<uint8_t> resized_readback_r8g8b8a8;
+            resized_readback_r8g8b8a8.resize(pixelsWidth * pixelsHeight * 4);
+
+            // Resizing only supports RGBA sources for now
+            if (!ResizeRGBAImage(readback_r8g8b8a8.data(), readbackWidth, readbackHeight,
+                                 readbackTargetWidth, readbackTargetHeight,
+                                 resized_readback_r8g8b8a8)) {
+                GFXSTREAM_ERROR("%s: Failed to resize the image (%dx%d -> %dx%d)", __func__,
+                                readbackWidth, readbackHeight, readbackTargetWidth,
+                                readbackTargetHeight);
+                return false;
+            }
+
+            readback_r8g8b8a8 = resized_readback_r8g8b8a8;
+            readbackWidth = readbackTargetWidth;
+            readbackHeight = readbackTargetHeight;
+        }
+    }
+
+    // Convert RGBA to RGB, and rotate at the same time if necessary
+    uint8_t* outPixelsBytes = static_cast<uint8_t*>(outPixels);
+    for (uint64_t i = 0, o = 0, px = 0; i < readback_r8g8b8a8.size() && o < outPixelsSize;
+         i += readbackBpp, o += outBpp, px++) {
+        uint64_t inputPixelOffset = i;
+        if (pixelsRotation != 0) {
+            uint64_t inputPixelX = px % pixelsWidth;
+            uint64_t inputPixelY = px / pixelsWidth;
+            switch (pixelsRotation) {
+                case GFXSTREAM_ROTATION_90: {
+                    uint64_t tmp = inputPixelX;
+                    inputPixelX = inputPixelY;
+                    inputPixelY = (readbackHeight - 1) - tmp;
+                } break;
+                case GFXSTREAM_ROTATION_180: {
+                    inputPixelX = (readbackWidth - 1) - inputPixelX;
+                    inputPixelY = (readbackHeight - 1) - inputPixelY;
+                } break;
+                case GFXSTREAM_ROTATION_270: {
+                    uint64_t tmp = inputPixelX;
+                    inputPixelX = (readbackWidth - 1) - inputPixelY;
+                    inputPixelY = tmp;
+                } break;
+            }
+            inputPixelOffset = (inputPixelY * readbackWidth + inputPixelX) * readbackBpp;
+        }
+        outPixelsBytes[o + 0] = readback_r8g8b8a8[inputPixelOffset + 0];
+        outPixelsBytes[o + 1] = readback_r8g8b8a8[inputPixelOffset + 1];
+        outPixelsBytes[o + 2] = readback_r8g8b8a8[inputPixelOffset + 2];
+    }
 
     return true;
 }

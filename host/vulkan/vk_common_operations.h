@@ -41,6 +41,7 @@
 #include "gfxstream/ThreadAnnotations.h"
 #include "goldfish_vk_private_defs.h"
 #include "host/framework_formats.h"
+#include "render-utils/Renderer.h"
 #include "vk_utils.h"
 
 #if defined(_WIN32)
@@ -372,6 +373,9 @@ class VkEmulation {
     bool readColorBufferToBytes(uint32_t colorBufferHandle, std::vector<uint8_t>* bytes);
     bool readColorBufferToBytes(uint32_t colorBufferHandle, uint32_t x, uint32_t y, uint32_t w,
                                 uint32_t h, void* outPixels, uint64_t outPixelsSize);
+    bool readColorBufferPixelsScaled(uint32_t colorBufferHandle, int pixelsWidth, int pixelsHeight,
+                                     int pixelsRotation, const Rect& rect,
+                                     GfxstreamFormat pixelsFormat, void* outPixels);
 
     bool updateColorBufferFromBytes(uint32_t colorBufferHandle, const std::vector<uint8_t>& bytes);
     bool updateColorBufferFromBytes(uint32_t colorBufferHandle, uint32_t x, uint32_t y, uint32_t w,

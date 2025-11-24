@@ -614,7 +614,7 @@ bool ColorBufferGl::readPixels(int x, int y, int width, int height, GfxstreamFor
 }
 
 bool ColorBufferGl::readPixelsScaled(int width, int height,
-                                     int rotation, Rect rect,
+                                     int rotation, const Rect& rect,
                                      GfxstreamFormat pixelsFormat, void* pixels) {
     RecursiveScopedContextBind context(m_helper);
     if (!context.isOk()) {

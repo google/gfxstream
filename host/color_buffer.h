@@ -75,7 +75,7 @@ class ColorBuffer : public LazySnapshotObj<ColorBuffer> {
     void readToBytes(int x, int y, int width, int height,
                      GfxstreamFormat pixelsFormat,
                      void* outPixels, uint64_t outPixelsSize);
-    void readToBytesScaled(int pixelsWidth, int pixelsHeight, int pixelsRotation, Rect rect,
+    void readToBytesScaled(int pixelsWidth, int pixelsHeight, int pixelsRotation, const Rect& rect,
                            GfxstreamFormat pixelsFormat, void* outPixels);
     void readYuvToBytes(int x, int y, int width, int height, void* outPixels, uint32_t outPixelsSize);
 

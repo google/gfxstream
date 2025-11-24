@@ -20,6 +20,7 @@
 #include "gfxstream/host/borrowed_image.h"
 #include "gfxstream/host/external_object_manager.h"
 #include "gfxstream/host/gfxstream_format.h"
+#include "render-utils/Renderer.h"
 #include "render-utils/stream.h"
 
 namespace gfxstream {
@@ -42,6 +43,8 @@ class ColorBufferVk {
     bool readToBytes(std::vector<uint8_t>* outBytes);
     bool readToBytes(uint32_t x, uint32_t y, uint32_t w, uint32_t h, void* outBytes,
                      uint64_t outBytesSize);
+    bool readPixelsScaled(int pixelsWidth, int pixelsHeight, int pixelsRotation, const Rect& rect,
+                          GfxstreamFormat pixelsFormat, void* outPixels);
 
     bool updateFromBytes(const std::vector<uint8_t>& bytes);
     bool updateFromBytes(uint32_t x, uint32_t y, uint32_t w, uint32_t h, const void* bytes);

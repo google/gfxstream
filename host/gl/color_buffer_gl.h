@@ -117,8 +117,8 @@ class ColorBufferGl {
     // Read the ColorBuffer instance's pixel values by first scaling
     // to the size of width x height, then clipping a |rect| from the
     // screen defined by width x height.
-    bool readPixelsScaled(int width, int height, int skinRotation,
-                          Rect rect, GfxstreamFormat pixelsFormat, void* pixels);
+    bool readPixelsScaled(int width, int height, int skinRotation, const Rect& rect,
+                          GfxstreamFormat pixelsFormat, void* pixels);
 
     // Read cached YUV pixel values into host memory.
     bool readPixelsYUVCached(int x,
