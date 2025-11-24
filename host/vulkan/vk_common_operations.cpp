@@ -13,31 +13,30 @@
 // limitations under the License.
 #include "vk_common_operations.h"
 
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
-#include <GLES3/gl3.h>
 #include <stdio.h>
 #include <string.h>
 #include <vulkan/vk_enum_string_helper.h>
 
+#include <glm/gtc/type_ptr.hpp>
 #include <iomanip>
 #include <ostream>
 #include <sstream>
 #include <unordered_set>
 
+#include "gfxstream/Macros.h"
+#include "gfxstream/Optional.h"
+#include "gfxstream/Tracing.h"
+#include "gfxstream/common/logging.h"
+#include "gfxstream/containers/Lookup.h"
+#include "gfxstream/containers/StaticMap.h"
+#include "gfxstream/host/display_operations.h"
+#include "gfxstream/host/vm_operations.h"
+#include "gfxstream/synchronization/Lock.h"
+#include "gfxstream/system/System.h"
 #include "vk_decoder_global_state.h"
 #include "vk_emulated_physical_device_memory.h"
 #include "vk_format_utils.h"
 #include "vulkan_dispatch.h"
-#include "gfxstream/Macros.h"
-#include "gfxstream/Optional.h"
-#include "gfxstream/Tracing.h"
-#include "gfxstream/containers/Lookup.h"
-#include "gfxstream/containers/StaticMap.h"
-#include "gfxstream/synchronization/Lock.h"
-#include "gfxstream/system/System.h"
-#include "gfxstream/common/logging.h"
-#include "gfxstream/host/vm_operations.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -147,6 +146,36 @@ static bool ResizeRGBAImage(const uint8_t* rgbaPixels, int w_old, int h_old, int
     }
 
     return true;
+}
+
+//TODO(b/462711047): move to post worker
+std::optional<std::array<float, 16>> GetColorTransform() {
+    // TODO: Support multi display
+    float displayColorTransformData[16];
+    if (get_gfxstream_multi_display_operations().get_color_transform_matrix(
+            0, displayColorTransformData)) {
+        return std::nullopt;
+    }
+
+    // Only set it if not identity to allow faster codepaths
+    bool isIdentity = true;
+    const float eps = 1e-6f;
+    for(int i = 0; i < 16; i++) {
+        const float expected = (i % 5 == 0) ? 1.0f : 0.0f;
+        if (std::abs(displayColorTransformData[i] - expected) > eps) {
+            isIdentity = false;
+            break;
+        }
+    }
+    if (isIdentity) {
+        return std::nullopt;
+    }
+
+    std::array<float, 16> matrix;
+    for (size_t i = 0; i < 16; ++i) {
+        matrix[i] = displayColorTransformData[i];
+    }
+    return matrix;
 }
 
 }  // namespace
@@ -3412,7 +3441,13 @@ bool VkEmulation::readColorBufferPixelsScaled(uint32_t colorBufferHandle, int pi
         }
     }
 
-    // Convert RGBA to RGB, and rotate at the same time if necessary
+
+    // Convert RGBA to RGB, rotate and color transform at the same time if necessary
+    std::optional<std::array<float, 16>> displayColorTransform = GetColorTransform();
+    glm::mat4 colorTransformMat = glm::mat4(1.0f);
+    if (displayColorTransform.has_value()) {
+        colorTransformMat = glm::make_mat4(&(displayColorTransform.value()[0]));
+    }
     uint8_t* outPixelsBytes = static_cast<uint8_t*>(outPixels);
     for (uint64_t i = 0, o = 0, px = 0; i < readback_r8g8b8a8.size() && o < outPixelsSize;
          i += readbackBpp, o += outBpp, px++) {
@@ -3441,6 +3476,17 @@ bool VkEmulation::readColorBufferPixelsScaled(uint32_t colorBufferHandle, int pi
         outPixelsBytes[o + 0] = readback_r8g8b8a8[inputPixelOffset + 0];
         outPixelsBytes[o + 1] = readback_r8g8b8a8[inputPixelOffset + 1];
         outPixelsBytes[o + 2] = readback_r8g8b8a8[inputPixelOffset + 2];
+
+        // Color transform
+        if (displayColorTransform) {
+            float r = outPixelsBytes[o + 0] / 255.0f;
+            float g = outPixelsBytes[o + 1] / 255.0f;
+            float b = outPixelsBytes[o + 2] / 255.0f;
+            const glm::vec4 transformed = colorTransformMat * glm::vec4(r,g,b,1.0f);
+            outPixelsBytes[o + 0] = std::clamp(transformed[0] * 255, 0.0f, 255.0f);
+            outPixelsBytes[o + 1] = std::clamp(transformed[1] * 255, 0.0f, 255.0f);
+            outPixelsBytes[o + 2] = std::clamp(transformed[2] * 255, 0.0f, 255.0f);
+        }
     }
 
     return true;
