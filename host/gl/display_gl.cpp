@@ -33,6 +33,36 @@ std::shared_future<void> getCompletedFuture() {
     return completedFuture;
 }
 
+//TODO(b/462711047): move to post worker
+std::optional<std::array<float, 16>> getColorTransform() {
+    // TODO: Support multi display
+    float displayColorTransformData[16];
+    if (get_gfxstream_multi_display_operations().get_color_transform_matrix(
+            0, displayColorTransformData)) {
+        return std::nullopt;
+    }
+
+    // Only set it if not identity to allow faster codepaths
+    bool isIdentity = true;
+    const float eps = 1e-6f;
+    for(int i = 0; i < 16; i++) {
+        const float expected = (i % 5 == 0) ? 1.0f : 0.0f;
+        if (std::abs(displayColorTransformData[i] - expected) > eps) {
+            isIdentity = false;
+            break;
+        }
+    }
+    if (isIdentity) {
+        return std::nullopt;
+    }
+
+    std::array<float, 16> matrix;
+    for (size_t i = 0; i < 16; ++i) {
+        matrix[i] = displayColorTransformData[i];
+    }
+    return matrix;
+}
+
 }  // namespace
 
 std::shared_future<void> DisplayGl::post(const Post& post) {
@@ -60,20 +90,9 @@ std::shared_future<void> DisplayGl::post(const Post& post) {
                 GFXSTREAM_ERROR("Cannot mix colorBuffer.postLayer with postWithOverlay!");
             }
 
-            // TODO: Use correct displayId
-            float displayColorTransform[16];
-            if (get_gfxstream_multi_display_operations().get_color_transform_matrix(
-                    0, displayColorTransform)) {
-                const float identityMatrix[16] = {
-                    1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-                    0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-                };
-                memcpy(displayColorTransform, identityMatrix, sizeof(displayColorTransform));
-            }
-
             layer.colorBuffer->glOpPostViewportScaledWithOverlay(
                 layer.overlayOptions->rotation, layer.overlayOptions->dx, layer.overlayOptions->dy,
-                displayColorTransform);
+                getColorTransform());
         }
     }
     if (hasDrawLayer) {

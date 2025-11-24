@@ -19,6 +19,8 @@
 #include <EGL/eglext.h>
 #include <GLES2/gl2.h>
 
+#include <array>
+#include <optional>
 #include <vector>
 
 #include "hwc2.h"
@@ -50,13 +52,13 @@ public:
     // coordinate space; only supported values are 0, 90, 180, 270). |dx,dy| is
     // the translation of the image towards the origin.
     bool draw(GLuint texture, float rotationDegrees, float dx, float dy,
-              const float* colorTransform) {
+              const std::optional<std::array<float, 16>>& colorTransform) {
         return drawImpl(texture, rotationDegrees, dx, dy, false, colorTransform);
     }
     // Same as 'draw()', but if an overlay has been provided, that overlay is
     // drawn on top of everything else.
     bool drawWithOverlay(GLuint texture, float rotationDegrees, float dx, float dy,
-                         const float* colorTransform) {
+                         const std::optional<std::array<float, 16>>& colorTransform) {
         return drawImpl(texture, rotationDegrees, dx, dy, true, colorTransform);
     }
 
@@ -69,7 +71,7 @@ public:
 
    private:
     bool drawImpl(GLuint texture, float rotationDegrees, float dx, float dy, bool wantOverlay,
-                  const float* colorTransform);
+                  const std::optional<std::array<float, 16>>& colorTransform);
     void preDrawLayer();
 
     GLuint mVertexShader;

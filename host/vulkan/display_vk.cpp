@@ -16,7 +16,8 @@
 
 #include <algorithm>
 #include <glm/glm.hpp>
-#include <glm/gtx/matrix_transform_2d.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "gfxstream/common/logging.h"
 #include "gfxstream/host/display_operations.h"
@@ -51,6 +52,36 @@ bool shouldRecreateSwapchain(VkResult result) {
         default:
             return false;
     }
+}
+
+//TODO(b/462711047): move to post worker
+std::optional<std::array<float, 16>> getColorTransform() {
+    // TODO: Support multi display
+    float displayColorTransformData[16];
+    if (get_gfxstream_multi_display_operations().get_color_transform_matrix(
+            0, displayColorTransformData)) {
+        return std::nullopt;
+    }
+
+    // Only set it if not identity to allow faster codepaths
+    bool isIdentity = true;
+    const float eps = 1e-6f;
+    for(int i = 0; i < 16; i++) {
+        const float expected = (i % 5 == 0) ? 1.0f : 0.0f;
+        if (std::abs(displayColorTransformData[i] - expected) > eps) {
+            isIdentity = false;
+            break;
+        }
+    }
+    if (isIdentity) {
+        return std::nullopt;
+    }
+
+    std::array<float, 16> matrix;
+    for (size_t i = 0; i < 16; ++i) {
+        matrix[i] = displayColorTransformData[i];
+    }
+    return matrix;
 }
 
 }  // namespace
@@ -208,18 +239,7 @@ DisplayVk::PostResult DisplayVk::post(const BorrowedImageInfo* sourceImageInfo, 
         GFXSTREAM_INFO("Recreating swapchain completed.");
     }
 
-    // TODO: Support multi display
-    std::optional<std::array<float, 16>> displayColorTransform = std::nullopt;
-    float displayColorTransformData[16];
-    if (get_gfxstream_multi_display_operations().get_color_transform_matrix(
-            0, displayColorTransformData) == 0) {
-        std::array<float, 16>& matrix = displayColorTransform.emplace();
-        for (size_t i = 0; i < 16; ++i) {
-            matrix[i] = displayColorTransformData[i];
-        }
-    }
-
-    auto result = postImpl(sourceImageInfo, rotationDegrees, displayColorTransform);
+    auto result = postImpl(sourceImageInfo, rotationDegrees, getColorTransform());
     if (!result.success) {
         m_needToRecreateSwapChain = true;
     }

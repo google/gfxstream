@@ -14,7 +14,9 @@
 
 #pragma once
 
+#include <array>
 #include <future>
+#include <optional>
 
 #include "gfxstream/host/display_surface_user.h"
 

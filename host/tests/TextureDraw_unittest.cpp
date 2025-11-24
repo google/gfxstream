@@ -75,7 +75,7 @@ void TestTextureDrawBasic(const GLESv2Dispatch* gl, GLenum internalformat,
 
     TextureDraw textureDraw;
 
-    textureDraw.draw(textureToDraw, 0, 0, 0, nullptr);
+    textureDraw.draw(textureToDraw, 0, 0, 0, std::nullopt);
 
     std::vector<unsigned char> pixelsOut(bytes, 0xff);
 

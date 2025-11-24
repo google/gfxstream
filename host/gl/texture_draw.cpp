@@ -291,7 +291,7 @@ TextureDraw::TextureDraw()
 
 bool TextureDraw::drawImpl(GLuint texture, float rotation,
                            float dx, float dy, bool wantOverlay,
-                           const float* colorTransform) {
+                           const std::optional<std::array<float, 16>>& colorTransform) {
     if (!mProgram) {
         GFXSTREAM_ERROR("%s: no program\n", __FUNCTION__);
         return false;
@@ -425,8 +425,8 @@ bool TextureDraw::drawImpl(GLuint texture, float rotation,
     s_gles2.glUniform1i(mComposeMode, HWC2_COMPOSITION_DEVICE);
     s_gles2.glUniform2f(mTranslationSlot, dx, dy);
 
-    if (colorTransform) {
-        s_gles2.glUniformMatrix4fv(mColorTransform, 1, GL_FALSE, colorTransform);
+    if (colorTransform.has_value()) {
+        s_gles2.glUniformMatrix4fv(mColorTransform, 1, GL_FALSE, &(colorTransform.value()[0]));
     } else {
         s_gles2.glUniformMatrix4fv(mColorTransform, 1, GL_FALSE, kIdentityMatrix);
     }

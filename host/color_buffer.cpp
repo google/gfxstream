@@ -170,8 +170,9 @@ class ColorBuffer::Impl : public LazySnapshotObj<ColorBuffer::Impl> {
     bool glOpReadContents(size_t* outNumBytes, void* outContents);
     bool glOpIsFastBlitSupported() const;
     void glOpPostLayer(const ComposeLayer& l, int frameWidth, int frameHeight);
-    void glOpPostViewportScaledWithOverlay(float rotation, float dx, float dy,
-                                           const float* colorTransform);
+    void glOpPostViewportScaledWithOverlay(
+        float rotation, float dx, float dy,
+        const std::optional<std::array<float, 16>>& colorTransform);
 #endif
 
    private:
@@ -803,8 +804,9 @@ void ColorBuffer::Impl::glOpPostLayer(const ComposeLayer& l, int frameWidth, int
     mColorBufferGl->postLayer(l, frameWidth, frameHeight);
 }
 
-void ColorBuffer::Impl::glOpPostViewportScaledWithOverlay(float rotation, float dx, float dy,
-                                                          const float* colorTransform) {
+void ColorBuffer::Impl::glOpPostViewportScaledWithOverlay(
+    float rotation, float dx, float dy,
+    const std::optional<std::array<float, 16>>& colorTransform) {
     if (!mColorBufferGl) {
         GFXSTREAM_FATAL("ColorBufferGl not available");
     }
@@ -946,8 +948,9 @@ void ColorBuffer::glOpPostLayer(const ComposeLayer& l, int frameWidth, int frame
     return mImpl->glOpPostLayer(l, frameWidth, frameHeight);
 }
 
-void ColorBuffer::glOpPostViewportScaledWithOverlay(float rotation, float dx, float dy,
-                                                    const float* colorTransform) {
+void ColorBuffer::glOpPostViewportScaledWithOverlay(
+    float rotation, float dx, float dy,
+    const std::optional<std::array<float, 16>>& colorTransform) {
     return mImpl->glOpPostViewportScaledWithOverlay(rotation, dx, dy, colorTransform);
 }
 

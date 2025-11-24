@@ -18,14 +18,16 @@
 #include <GLES3/gl3.h>
 #endif
 
+#include <array>
 #include <memory>
+#include <optional>
 
 #include "framework_formats.h"
-#include "handle.h"
-#include "hwc2.h"
 #include "gfxstream/host/borrowed_image.h"
 #include "gfxstream/host/external_object_manager.h"
 #include "gfxstream/host/gfxstream_format.h"
+#include "handle.h"
+#include "hwc2.h"
 #include "render-utils/Renderer.h"
 #include "render-utils/stream.h"
 #include "snapshot/LazySnapshotObj.h"
@@ -115,8 +117,9 @@ class ColorBuffer : public LazySnapshotObj<ColorBuffer> {
     bool glOpReadContents(size_t* outNumBytes, void* outContents);
     bool glOpIsFastBlitSupported() const;
     void glOpPostLayer(const ComposeLayer& l, int frameWidth, int frameHeight);
-    void glOpPostViewportScaledWithOverlay(float rotation, float dx, float dy,
-                                           const float* colorTransform);
+    void glOpPostViewportScaledWithOverlay(
+        float rotation, float dx, float dy,
+        const std::optional<std::array<float, 16>>& colorTransform);
 #endif
 
    private:
