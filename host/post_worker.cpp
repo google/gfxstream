@@ -92,11 +92,12 @@ void PostWorker::block(std::promise<void> scheduledSignal, std::future<void> con
 
 PostWorker::~PostWorker() {}
 
-void PostWorker::post(ColorBuffer* cb, std::unique_ptr<Post::CompletionCallback> postCallback) {
+void PostWorker::post(ColorBuffer* cb, std::unique_ptr<Post::CompletionCallback> postCallback,
+              const std::optional<std::array<float, 16>>& colorTransform) {
     auto packagedPostCallback = std::shared_ptr<Post::CompletionCallback>(std::move(postCallback));
     runTask(
-        std::packaged_task<void()>([cb, packagedPostCallback, this] {
-            auto completedFuture = postImpl(cb);
+        std::packaged_task<void()>([cb, packagedPostCallback, this, colorTransform] {
+            auto completedFuture = postImpl(cb, colorTransform);
             (*packagedPostCallback)(completedFuture);
         }));
 }
@@ -131,10 +132,11 @@ void PostWorker::clear() {
 }
 
 void PostWorker::screenshot(ColorBuffer* cb, int screenwidth, int screenheight, int skinRotation,
-                            GfxstreamFormat pixelsFormat, void* outPixels, Rect rect) {
+                            GfxstreamFormat pixelsFormat, void* outPixels, const Rect& rect,
+                            const std::optional<std::array<float, 16>>& colorTransform) {
     // See b/292237104.
     mFb->lock();
-    cb->readToBytesScaled(screenwidth, screenheight, skinRotation, rect, pixelsFormat, outPixels);
+    cb->readToBytesScaled(screenwidth, screenheight, skinRotation, rect, pixelsFormat, outPixels, colorTransform);
     mFb->unlock();
 }
 

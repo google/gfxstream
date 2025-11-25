@@ -375,7 +375,8 @@ class VkEmulation {
                                 uint32_t h, void* outPixels, uint64_t outPixelsSize);
     bool readColorBufferPixelsScaled(uint32_t colorBufferHandle, int pixelsWidth, int pixelsHeight,
                                      int pixelsRotation, const Rect& rect,
-                                     GfxstreamFormat pixelsFormat, void* outPixels);
+                                     GfxstreamFormat pixelsFormat, void* outPixels,
+                                     const std::optional<std::array<float, 16>>& colorTransform);
 
     bool updateColorBufferFromBytes(uint32_t colorBufferHandle, const std::vector<uint8_t>& bytes);
     bool updateColorBufferFromBytes(uint32_t colorBufferHandle, uint32_t x, uint32_t y, uint32_t w,

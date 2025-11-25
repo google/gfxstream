@@ -15,6 +15,8 @@
  */
 #pragma once
 
+#include <array>
+#include <optional>
 #include <future>
 
 #include "gfxstream/host/display_surface_user.h"
@@ -31,7 +33,8 @@ class PostWorkerVk : public PostWorker {
     PostWorkerVk(FrameBuffer* fb, Compositor* compositor, vk::DisplayVk* displayGl);
 
    protected:
-    std::shared_future<void> postImpl(ColorBuffer* cb) override;
+    std::shared_future<void> postImpl(
+        ColorBuffer* cb, const std::optional<std::array<float, 16>>& colorTransform) override;
     void viewportImpl(int width, int height) override;
     void clearImpl() override;
     void exitImpl() override;

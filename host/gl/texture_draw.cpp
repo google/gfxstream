@@ -434,6 +434,11 @@ bool TextureDraw::drawImpl(GLuint texture, float rotation,
     s_gles2.glDrawElements(GL_TRIANGLES, kIndicesPerDraw, GL_UNSIGNED_BYTE,
                            (const GLvoid*)indexShift);
 
+    if (colorTransform.has_value()) {
+        // Reset color transform to identity, if set
+        s_gles2.glUniformMatrix4fv(mColorTransform, 1, GL_FALSE, kIdentityMatrix);
+    }
+
     if (wantOverlay) {
         mMaskLayer.draw(mProgram, mScaleSlot, indexShift);
         // Reset to the "normal" texture
@@ -547,8 +552,9 @@ void TextureDraw::prepareForDrawLayer() {
     s_gles2.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void TextureDraw::drawLayer(const ComposeLayer& layer, int frameWidth, int frameHeight,
-                            int cbWidth, int cbHeight, GLuint texture) {
+void TextureDraw::drawLayer(const ComposeLayer& layer, int frameWidth, int frameHeight, int cbWidth,
+                            int cbHeight, GLuint texture,
+                            const std::optional<std::array<float, 16>>& colorTransform) {
     preDrawLayer();
     switch(layer.composeMode) {
         case HWC2_COMPOSITION_DEVICE:
@@ -585,8 +591,11 @@ void TextureDraw::drawLayer(const ComposeLayer& layer, int frameWidth, int frame
 
     s_gles2.glUniform1f(mAlpha, layer.alpha);
 
-    //TODO(b/420586022): Support color transformation on host composition
-    s_gles2.glUniformMatrix4fv(mColorTransform, 1, GL_FALSE, kIdentityMatrix);
+    if (colorTransform.has_value()) {
+        s_gles2.glUniformMatrix4fv(mColorTransform, 1, GL_FALSE, &(colorTransform.value()[0]));
+    } else {
+        s_gles2.glUniformMatrix4fv(mColorTransform, 1, GL_FALSE, kIdentityMatrix);
+    }
 
     float edges[4];
     edges[0] = 1 - 2.0 * (frameWidth - layer.displayFrame.left)/frameWidth;

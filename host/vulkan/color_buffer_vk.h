@@ -44,7 +44,8 @@ class ColorBufferVk {
     bool readToBytes(uint32_t x, uint32_t y, uint32_t w, uint32_t h, void* outBytes,
                      uint64_t outBytesSize);
     bool readPixelsScaled(int pixelsWidth, int pixelsHeight, int pixelsRotation, const Rect& rect,
-                          GfxstreamFormat pixelsFormat, void* outPixels);
+                          GfxstreamFormat pixelsFormat, void* outPixels,
+                          const std::optional<std::array<float, 16>>& colorTransform);
 
     bool updateFromBytes(const std::vector<uint8_t>& bytes);
     bool updateFromBytes(uint32_t x, uint32_t y, uint32_t w, uint32_t h, const void* bytes);

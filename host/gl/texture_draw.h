@@ -64,8 +64,9 @@ public:
 
     void setScreenMask(int width, int height, const uint8_t* rgbaData);
     void setScreenBackground(int width, int height, const uint8_t* rgbaData);
-    void drawLayer(const ComposeLayer& l, int frameWidth, int frameHeight,
-                   int cbWidth, int cbHeight, GLuint texture);
+    void drawLayer(const ComposeLayer& l, int frameWidth, int frameHeight, int cbWidth,
+                   int cbHeight, GLuint texture,
+                   const std::optional<std::array<float, 16>>& colorTransform = std::nullopt);
     void prepareForDrawLayer();
     void cleanupForDrawLayer();
 

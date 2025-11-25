@@ -66,7 +66,8 @@ class ColorBuffer::Impl : public LazySnapshotObj<ColorBuffer::Impl> {
     void readToBytes(int x, int y, int width, int height, GfxstreamFormat pixelsFormat,
                      void* outPixels, uint64_t outPixelsSize);
     void readToBytesScaled(int pixelsWidth, int pixelsHeight, int pixelsRotation, Rect rect,
-                           GfxstreamFormat pixelsFormat, void* outPixels);
+                           GfxstreamFormat pixelsFormat, void* outPixels,
+                           const std::optional<std::array<float, 16>>& colorTransform);
     void readYuvToBytes(int x, int y, int width, int height, void* outPixels,
                         uint32_t outPixelsSize);
 
@@ -98,7 +99,8 @@ class ColorBuffer::Impl : public LazySnapshotObj<ColorBuffer::Impl> {
                                       GLuint* textures);
     bool glOpReadContents(size_t* outNumBytes, void* outContents);
     bool glOpIsFastBlitSupported() const;
-    void glOpPostLayer(const ComposeLayer& l, int frameWidth, int frameHeight);
+    void glOpPostLayer(const ComposeLayer& l, int frameWidth, int frameHeight,
+        const std::optional<std::array<float, 16>>& colorTransform);
     void glOpPostViewportScaledWithOverlay(
         float rotation, float dx, float dy,
         const std::optional<std::array<float, 16>>& colorTransform);
@@ -262,24 +264,20 @@ void ColorBuffer::Impl::readToBytes(
 }
 
 void ColorBuffer::Impl::readToBytesScaled(
-        int pixelsWidth,
-        int pixelsHeight,
-        int pixelsRotation,
-        Rect rect,
-        GfxstreamFormat pixelsFormat,
-        void* outPixels) {
+    int pixelsWidth, int pixelsHeight, int pixelsRotation, Rect rect, GfxstreamFormat pixelsFormat,
+    void* outPixels, const std::optional<std::array<float, 16>>& colorTransform) {
     touch();
 
 #if GFXSTREAM_ENABLE_HOST_GLES
     if (mColorBufferGl) {
         mColorBufferGl->readPixelsScaled(pixelsWidth, pixelsHeight, pixelsRotation,
-                                         rect, pixelsFormat, outPixels);
+                                         rect, pixelsFormat, outPixels, colorTransform);
         return;
     }
 #endif
 
     if (mColorBufferVk) {
-        mColorBufferVk->readPixelsScaled(pixelsWidth, pixelsHeight, pixelsRotation, rect, pixelsFormat, outPixels);
+        mColorBufferVk->readPixelsScaled(pixelsWidth, pixelsHeight, pixelsRotation, rect, pixelsFormat, outPixels, colorTransform);
         return;
     }
 
@@ -613,12 +611,13 @@ bool ColorBuffer::Impl::glOpIsFastBlitSupported() const {
     return mColorBufferGl->isFastBlitSupported();
 }
 
-void ColorBuffer::Impl::glOpPostLayer(const ComposeLayer& l, int frameWidth, int frameHeight) {
+void ColorBuffer::Impl::glOpPostLayer(const ComposeLayer& l, int frameWidth, int frameHeight,
+        const std::optional<std::array<float, 16>>& colorTransform) {
     if (!mColorBufferGl) {
         GFXSTREAM_FATAL("ColorBufferGl not available");
     }
 
-    mColorBufferGl->postLayer(l, frameWidth, frameHeight);
+    mColorBufferGl->postLayer(l, frameWidth, frameHeight, colorTransform);
 }
 
 void ColorBuffer::Impl::glOpPostViewportScaledWithOverlay(
@@ -686,9 +685,10 @@ void ColorBuffer::readToBytes(int x, int y, int width, int height, GfxstreamForm
 }
 
 void ColorBuffer::readToBytesScaled(int pixelsWidth, int pixelsHeight, int pixelsRotation,
-                                    const Rect& rect, GfxstreamFormat pixelsFormat,
-                                    void* outPixels) {
-    mImpl->readToBytesScaled(pixelsWidth, pixelsHeight, pixelsRotation, rect, pixelsFormat, outPixels);
+                                    const Rect& rect, GfxstreamFormat pixelsFormat, void* outPixels,
+                                    const std::optional<std::array<float, 16>>& colorTransform) {
+    mImpl->readToBytesScaled(pixelsWidth, pixelsHeight, pixelsRotation, rect, pixelsFormat,
+                             outPixels, colorTransform);
 }
 
 void ColorBuffer::readYuvToBytes(int x, int y, int width, int height, void* outPixels,
@@ -762,8 +762,9 @@ bool ColorBuffer::glOpReadContents(size_t* outNumBytes, void* outContents) {
 
 bool ColorBuffer::glOpIsFastBlitSupported() const { return mImpl->glOpIsFastBlitSupported(); }
 
-void ColorBuffer::glOpPostLayer(const ComposeLayer& l, int frameWidth, int frameHeight) {
-    return mImpl->glOpPostLayer(l, frameWidth, frameHeight);
+void ColorBuffer::glOpPostLayer(const ComposeLayer& l, int frameWidth, int frameHeight,
+                            const std::optional<std::array<float, 16>>& colorTransform) {
+    return mImpl->glOpPostLayer(l, frameWidth, frameHeight, colorTransform);
 }
 
 void ColorBuffer::glOpPostViewportScaledWithOverlay(

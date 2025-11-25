@@ -43,6 +43,7 @@ cc_library_static {
     header_libs: [
         "libgfxstream_thirdparty_opengl_headers",
         "libgfxstream_backend_headers",
+        "libgfxstream_thirdparty_glm",
     ],
     static_libs: [
         "libgfxstream_common_base",

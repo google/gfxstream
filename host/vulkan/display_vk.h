@@ -49,7 +49,8 @@ class DisplayVk : public Display {
               std::shared_ptr<gfxstream::base::Lock> swapChainVkQueueLock);
     ~DisplayVk();
 
-    PostResult post(const BorrowedImageInfo* info, float rotationDegrees);
+    PostResult post(const BorrowedImageInfo* info, float rotationDegrees,
+                    const std::optional<std::array<float, 16>>& colorTransform);
 
     void drainQueues();
     void clear();

@@ -149,36 +149,6 @@ static bool ResizeRGBAImage(const uint8_t* rgbaPixels, int w_old, int h_old, int
     return true;
 }
 
-//TODO(b/462711047): move to post worker
-std::optional<std::array<float, 16>> GetColorTransform() {
-    // TODO: Support multi display
-    float displayColorTransformData[16];
-    if (get_gfxstream_multi_display_operations().get_color_transform_matrix(
-            0, displayColorTransformData)) {
-        return std::nullopt;
-    }
-
-    // Only set it if not identity to allow faster codepaths
-    bool isIdentity = true;
-    const float eps = 1e-6f;
-    for(int i = 0; i < 16; i++) {
-        const float expected = (i % 5 == 0) ? 1.0f : 0.0f;
-        if (std::abs(displayColorTransformData[i] - expected) > eps) {
-            isIdentity = false;
-            break;
-        }
-    }
-    if (isIdentity) {
-        return std::nullopt;
-    }
-
-    std::array<float, 16> matrix;
-    for (size_t i = 0; i < 16; ++i) {
-        matrix[i] = displayColorTransformData[i];
-    }
-    return matrix;
-}
-
 }  // namespace
 
 static std::optional<ExternalHandleInfo> dupExternalMemory(std::optional<ExternalHandleInfo> handleInfo) {
@@ -3346,10 +3316,10 @@ bool VkEmulation::readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint3
     return true;
 }
 
-bool VkEmulation::readColorBufferPixelsScaled(uint32_t colorBufferHandle, int pixelsWidth,
-                                              int pixelsHeight, int pixelsRotation,
-                                              const Rect& rect, GfxstreamFormat pixelsFormat,
-                                              void* outPixels) {
+bool VkEmulation::readColorBufferPixelsScaled(
+    uint32_t colorBufferHandle, int pixelsWidth, int pixelsHeight, int pixelsRotation,
+    const Rect& rect, GfxstreamFormat pixelsFormat, void* outPixels,
+    const std::optional<std::array<float, 16>>& colorTransform) {
     if (rect.pos.x != 0 || rect.pos.y != 0 || (rect.size.w != 0 && rect.size.w != pixelsWidth) ||
         (rect.size.h != 0 && rect.size.h != pixelsHeight)) {
         // TODO(b/389646068): support snipping
@@ -3445,10 +3415,9 @@ bool VkEmulation::readColorBufferPixelsScaled(uint32_t colorBufferHandle, int pi
     }
 
     // Convert RGBA to RGB, rotate and color transform at the same time if necessary
-    std::optional<std::array<float, 16>> displayColorTransform = GetColorTransform();
     glm::mat4 colorTransformMat = glm::mat4(1.0f);
-    if (displayColorTransform.has_value()) {
-        colorTransformMat = glm::make_mat4(&(displayColorTransform.value()[0]));
+    if (colorTransform.has_value()) {
+        colorTransformMat = glm::make_mat4(&(colorTransform.value()[0]));
     }
     uint8_t* outPixelsBytes = static_cast<uint8_t*>(outPixels);
     for (uint64_t i = 0, o = 0, px = 0; i < readback_r8g8b8a8.size() && o < outPixelsSize;
@@ -3480,7 +3449,7 @@ bool VkEmulation::readColorBufferPixelsScaled(uint32_t colorBufferHandle, int pi
         outPixelsBytes[o + 2] = readback_r8g8b8a8[inputPixelOffset + 2];
 
         // Color transform
-        if (displayColorTransform) {
+        if (colorTransform.has_value()) {
             float r = outPixelsBytes[o + 0] / 255.0f;
             float g = outPixelsBytes[o + 1] / 255.0f;
             float b = outPixelsBytes[o + 2] / 255.0f;

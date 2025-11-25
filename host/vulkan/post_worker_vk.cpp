@@ -26,7 +26,8 @@ namespace vk {
 PostWorkerVk::PostWorkerVk(FrameBuffer* fb, Compositor* compositor, vk::DisplayVk* displayVk)
     : PostWorker(false, fb, compositor), m_displayVk(displayVk) {}
 
-std::shared_future<void> PostWorkerVk::postImpl(ColorBuffer* cb) {
+std::shared_future<void> PostWorkerVk::postImpl(ColorBuffer* cb,
+              const std::optional<std::array<float, 16>>& colorTransform) {
     std::shared_future<void> completedFuture = std::async(std::launch::deferred, [] {}).share();
     completedFuture.wait();
 
@@ -38,7 +39,7 @@ std::shared_future<void> PostWorkerVk::postImpl(ColorBuffer* cb) {
     for (int i = 0; i < kMaxPostRetries; i++) {
         const auto imageInfo = mFb->borrowColorBufferForDisplay(cb->getHndl());
         const float rotationDegrees = static_cast<float>(mFb->getZrot());
-        auto result = m_displayVk->post(imageInfo.get(), rotationDegrees);
+        auto result = m_displayVk->post(imageInfo.get(), rotationDegrees, colorTransform);
         if (result.success) {
             return result.postCompletedWaitable;
         }

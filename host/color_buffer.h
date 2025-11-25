@@ -76,7 +76,8 @@ class ColorBuffer : public LazySnapshotObj<ColorBuffer> {
                      GfxstreamFormat pixelsFormat,
                      void* outPixels, uint64_t outPixelsSize);
     void readToBytesScaled(int pixelsWidth, int pixelsHeight, int pixelsRotation, const Rect& rect,
-                           GfxstreamFormat pixelsFormat, void* outPixels);
+                           GfxstreamFormat pixelsFormat, void* outPixels,
+                           const std::optional<std::array<float, 16>>& colorTransform);
     void readYuvToBytes(int x, int y, int width, int height, void* outPixels, uint32_t outPixelsSize);
 
     bool updateFromBytes(int x,
@@ -116,7 +117,8 @@ class ColorBuffer : public LazySnapshotObj<ColorBuffer> {
                                       GLuint* textures);
     bool glOpReadContents(size_t* outNumBytes, void* outContents);
     bool glOpIsFastBlitSupported() const;
-    void glOpPostLayer(const ComposeLayer& l, int frameWidth, int frameHeight);
+    void glOpPostLayer(const ComposeLayer& l, int frameWidth, int frameHeight,
+        const std::optional<std::array<float, 16>>& colorTransform);
     void glOpPostViewportScaledWithOverlay(
         float rotation, float dx, float dy,
         const std::optional<std::array<float, 16>>& colorTransform);

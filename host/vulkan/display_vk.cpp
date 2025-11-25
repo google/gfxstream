@@ -54,36 +54,6 @@ bool shouldRecreateSwapchain(VkResult result) {
     }
 }
 
-//TODO(b/462711047): move to post worker
-std::optional<std::array<float, 16>> getColorTransform() {
-    // TODO: Support multi display
-    float displayColorTransformData[16];
-    if (get_gfxstream_multi_display_operations().get_color_transform_matrix(
-            0, displayColorTransformData)) {
-        return std::nullopt;
-    }
-
-    // Only set it if not identity to allow faster codepaths
-    bool isIdentity = true;
-    const float eps = 1e-6f;
-    for(int i = 0; i < 16; i++) {
-        const float expected = (i % 5 == 0) ? 1.0f : 0.0f;
-        if (std::abs(displayColorTransformData[i] - expected) > eps) {
-            isIdentity = false;
-            break;
-        }
-    }
-    if (isIdentity) {
-        return std::nullopt;
-    }
-
-    std::array<float, 16> matrix;
-    for (size_t i = 0; i < 16; ++i) {
-        matrix[i] = displayColorTransformData[i];
-    }
-    return matrix;
-}
-
 }  // namespace
 
 DisplayVk::DisplayVk(const VulkanDispatch& vk, VkPhysicalDevice vkPhysicalDevice, VkDevice vkDevice,
@@ -207,7 +177,9 @@ bool DisplayVk::recreateSwapchain() {
     return true;
 }
 
-DisplayVk::PostResult DisplayVk::post(const BorrowedImageInfo* sourceImageInfo, float rotationDegrees) {
+DisplayVk::PostResult DisplayVk::post(const BorrowedImageInfo* sourceImageInfo,
+                                      float rotationDegrees,
+                                      const std::optional<std::array<float, 16>>& colorTransform) {
     auto completedFuture = std::async(std::launch::deferred, [] {}).share();
     completedFuture.wait();
 
@@ -239,7 +211,7 @@ DisplayVk::PostResult DisplayVk::post(const BorrowedImageInfo* sourceImageInfo, 
         GFXSTREAM_INFO("Recreating swapchain completed.");
     }
 
-    auto result = postImpl(sourceImageInfo, rotationDegrees, getColorTransform());
+    auto result = postImpl(sourceImageInfo, rotationDegrees, colorTransform);
     if (!result.success) {
         m_needToRecreateSwapChain = true;
     }

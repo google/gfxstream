@@ -118,7 +118,8 @@ class ColorBufferGl {
     // to the size of width x height, then clipping a |rect| from the
     // screen defined by width x height.
     bool readPixelsScaled(int width, int height, int skinRotation, const Rect& rect,
-                          GfxstreamFormat pixelsFormat, void* pixels);
+                          GfxstreamFormat pixelsFormat, void* pixels,
+                          const std::optional<std::array<float, 16>>& colorTransform);
 
     // Read cached YUV pixel values into host memory.
     bool readPixelsYUVCached(int x,
@@ -201,7 +202,8 @@ class ColorBufferGl {
     HandleType getHndl() const;
 
     bool isFastBlitSupported() const { return m_fastBlitSupported; }
-    void postLayer(const ComposeLayer& l, int frameWidth, int frameHeight);
+    void postLayer(const ComposeLayer& l, int frameWidth, int frameHeight,
+                   const std::optional<std::array<float, 16>>& colorTransform);
     GLuint getTexture();
 
     std::unique_ptr<BorrowedImageInfo> getBorrowedImageInfo();

@@ -65,9 +65,11 @@ bool ColorBufferVk::readToBytes(uint32_t x, uint32_t y, uint32_t w, uint32_t h, 
 
 bool ColorBufferVk::readPixelsScaled(int pixelsWidth, int pixelsHeight, int pixelsRotation,
                                      const Rect& rect, GfxstreamFormat pixelsFormat,
-                                     void* outPixels) {
+                                     void* outPixels,
+                                     const std::optional<std::array<float, 16>>& colorTransform) {
     return mVkEmulation.readColorBufferPixelsScaled(mHandle, pixelsWidth, pixelsHeight,
-                                                    pixelsRotation, rect, pixelsFormat, outPixels);
+                                                    pixelsRotation, rect, pixelsFormat, outPixels,
+                                                    colorTransform);
 }
 
 bool ColorBufferVk::updateFromBytes(const std::vector<uint8_t>& bytes) {

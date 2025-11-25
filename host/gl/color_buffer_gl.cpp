@@ -20,17 +20,18 @@
 #include <string.h>
 
 #include <cmath>
+#include <glm/gtc/type_ptr.hpp>
 
-#include "borrowed_image_gl.h"
-#include "debug_gl.h"
-#include "common/gl_utils.h"
 #include "OpenGLESDispatch/DispatchTables.h"
 #include "OpenGLESDispatch/EGLDispatch.h"
+#include "borrowed_image_gl.h"
+#include "common/gl_utils.h"
+#include "debug_gl.h"
+#include "gfxstream/host/renderer_operations.h"
+#include "gl/yuv_converter.h"
 #include "render_thread_info_gl.h"
 #include "texture_draw.h"
 #include "texture_resize.h"
-#include "gl/yuv_converter.h"
-#include "gfxstream/host/renderer_operations.h"
 
 namespace gfxstream {
 namespace host {
@@ -613,9 +614,9 @@ bool ColorBufferGl::readPixels(int x, int y, int width, int height, GfxstreamFor
     return res;
 }
 
-bool ColorBufferGl::readPixelsScaled(int width, int height,
-                                     int rotation, const Rect& rect,
-                                     GfxstreamFormat pixelsFormat, void* pixels) {
+bool ColorBufferGl::readPixelsScaled(int width, int height, int rotation, const Rect& rect,
+                                     GfxstreamFormat pixelsFormat, void* pixels,
+                                     const std::optional<std::array<float, 16>>& colorTransform) {
     RecursiveScopedContextBind context(m_helper);
     if (!context.isOk()) {
         return false;
@@ -677,14 +678,43 @@ bool ColorBufferGl::readPixelsScaled(int width, int height,
         } else {
             s_gles2.glReadPixels(0, 0, width, height, pixelDataComponents, pixelDataType, readPixelsDst);
         }
+        glm::mat4 colorTransformMat = glm::mat4(1.0f);
+        if (colorTransform.has_value()) {
+            colorTransformMat = glm::make_mat4(&(colorTransform.value()[0]));
+        }
         if (needConvert4To3Channel) {
             uint8_t* src = tmpPixels.data();
             uint8_t* dst = static_cast<uint8_t*>(pixels);
             for (int h = 0; h < height; h++) {
                 for (int w = 0; w < width; w++) {
-                    memcpy(dst, src, 3);
+                    if (colorTransform.has_value()) {
+                        float r = src[0] / 255.0f;
+                        float g = src[1] / 255.0f;
+                        float b = src[2] / 255.0f;
+                        const glm::vec4 transformed = colorTransformMat * glm::vec4(r,g,b,1.0f);
+                        dst[0] = std::clamp(transformed[0] * 255, 0.0f, 255.0f);
+                        dst[1] = std::clamp(transformed[1] * 255, 0.0f, 255.0f);
+                        dst[2] = std::clamp(transformed[2] * 255, 0.0f, 255.0f);
+                    } else {
+                        memcpy(dst, src, 3);
+                    }
+
                     dst += 3;
                     src += 4;
+                }
+            }
+        }else if (colorTransform.has_value()) {
+            uint8_t* outPixelsBytes = static_cast<uint8_t*>(pixels);
+            for (int h = 0; h < height; h++) {
+                for (int w = 0; w < width; w++) {
+                    float r = outPixelsBytes[0] / 255.0f;
+                    float g = outPixelsBytes[1] / 255.0f;
+                    float b = outPixelsBytes[2] / 255.0f;
+                    const glm::vec4 transformed = colorTransformMat * glm::vec4(r,g,b,1.0f);
+                    outPixelsBytes[0] = std::clamp(transformed[0] * 255, 0.0f, 255.0f);
+                    outPixelsBytes[1] = std::clamp(transformed[1] * 255, 0.0f, 255.0f);
+                    outPixelsBytes[2] = std::clamp(transformed[2] * 255, 0.0f, 255.0f);
+                    outPixelsBytes += 3;
                 }
             }
         }
@@ -1202,10 +1232,11 @@ void ColorBufferGl::restore() {
 
 GLuint ColorBufferGl::getTexture() { return m_tex; }
 
-void ColorBufferGl::postLayer(const ComposeLayer& l, int frameWidth, int frameHeight) {
+void ColorBufferGl::postLayer(const ComposeLayer& l, int frameWidth, int frameHeight,
+        const std::optional<std::array<float, 16>>& colorTransform) {
     waitSync();
     m_textureDraw->drawLayer(l, frameWidth, frameHeight, m_width, m_height,
-                             getViewportScaledTexture());
+                             getViewportScaledTexture(), colorTransform);
 }
 
 bool ColorBufferGl::importMemory(ManagedDescriptor externalDescriptor, uint64_t size,

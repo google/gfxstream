@@ -50,6 +50,8 @@ class DisplayGl : public Display {
         float dy;
       };
       std::optional<OverlayOptions> overlayOptions;
+
+      const std::optional<std::array<float, 16>> colorTransform;
     };
 
     // TODO(b/233939967): move to generic Display.
@@ -57,6 +59,7 @@ class DisplayGl : public Display {
       uint32_t frameWidth = 0;
       uint32_t frameHeight = 0;
       std::vector<PostLayer> layers;
+      std::optional<std::array<float, 16>> colorTransform;
     };
 
     std::shared_future<void> post(const Post& request);

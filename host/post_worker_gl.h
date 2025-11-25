@@ -37,7 +37,8 @@ class PostWorkerGl : public PostWorker, public DisplaySurfaceUser {
                  gl::DisplayGl* displayGl, gl::EmulationGl* emulationGl);
 
    protected:
-    std::shared_future<void> postImpl(ColorBuffer* cb) override;
+    std::shared_future<void> postImpl(
+        ColorBuffer* cb, const std::optional<std::array<float, 16>>& colorTransform) override;
     void viewportImpl(int width, int height) override;
     void clearImpl() override;
     void exitImpl() override;
@@ -49,7 +50,8 @@ class PostWorkerGl : public PostWorker, public DisplaySurfaceUser {
 
    private:
     void setupContext();
-    gl::DisplayGl::PostLayer postWithOverlay(ColorBuffer* cb);
+    gl::DisplayGl::PostLayer postWithOverlay(
+        ColorBuffer* cb, const std::optional<std::array<float, 16>>& colorTransform);
 
    private:
     // TODO(b/233939967): conslidate DisplayGl and DisplayVk into

@@ -53,7 +53,8 @@ PostWorkerGl::PostWorkerGl(bool mainThreadPostingOnly, FrameBuffer* fb, Composit
     }
 }
 
-std::shared_future<void> PostWorkerGl::postImpl(ColorBuffer* cb) {
+std::shared_future<void> PostWorkerGl::postImpl(
+    ColorBuffer* cb, const std::optional<std::array<float, 16>>& colorTransform) {
     if (!mContextBound || m_mainThreadPostingOnly) {
         // This might happen on headless mode
         // Also if posting on main thread, the context binding can get polluted easily, which
@@ -76,7 +77,7 @@ std::shared_future<void> PostWorkerGl::postImpl(ColorBuffer* cb) {
         if (get_gfxstream_should_skip_draw()) {
             post.layers.clear();
         } else {
-            post.layers.push_back(postWithOverlay(cb));
+            post.layers.push_back(postWithOverlay(cb, colorTransform));
         }
 #endif
     } else if (multiDisplay.is_multi_display_enabled()) {
@@ -100,7 +101,7 @@ std::shared_future<void> PostWorkerGl::postImpl(ColorBuffer* cb) {
                 get_gfxstream_window_operations().paint_multi_display_window(
                     currentDisplayId, currentDisplayColorBufferHandle);
             }
-            post.layers.push_back(postWithOverlay(cb));
+            post.layers.push_back(postWithOverlay(cb, colorTransform));
         } else {
             uint32_t combinedDisplayW = 0;
             uint32_t combinedDisplayH = 0;
@@ -108,6 +109,7 @@ std::shared_future<void> PostWorkerGl::postImpl(ColorBuffer* cb) {
 
             post.frameWidth = combinedDisplayW;
             post.frameHeight = combinedDisplayH;
+            post.colorTransform = colorTransform;
 
             int32_t previousDisplayId = -1;
             uint32_t currentDisplayId;
@@ -165,6 +167,7 @@ std::shared_future<void> PostWorkerGl::postImpl(ColorBuffer* cb) {
 
         post.frameWidth = m_viewportWidth / dpr;
         post.frameHeight = m_viewportHeight / dpr;
+        post.colorTransform = colorTransform;
 
         int displayOffsetX;
         int displayOffsetY;
@@ -192,12 +195,13 @@ std::shared_future<void> PostWorkerGl::postImpl(ColorBuffer* cb) {
             .layerOptions = postLayerOptions,
         });
     } else {
-        post.layers.push_back(postWithOverlay(cb));
+        post.layers.push_back(postWithOverlay(cb, colorTransform));
     }
     return m_displayGl->post(post);
 }
 
-DisplayGl::PostLayer PostWorkerGl::postWithOverlay(ColorBuffer* cb) {
+DisplayGl::PostLayer PostWorkerGl::postWithOverlay(
+    ColorBuffer* cb, const std::optional<std::array<float, 16>>& colorTransform) {
     float dpr = mFb->getDpr();
     int windowWidth = mFb->windowWidth();
     int windowHeight = mFb->windowHeight();
@@ -224,6 +228,7 @@ DisplayGl::PostLayer PostWorkerGl::postWithOverlay(ColorBuffer* cb) {
                 .dx = dx,
                 .dy = dy,
             },
+        .colorTransform = colorTransform,
     };
 }
 
