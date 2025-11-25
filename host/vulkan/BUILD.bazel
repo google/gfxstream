@@ -140,6 +140,12 @@ cc_library(
         "cereal",
         "cereal/common",
     ],
+    linkopts = select({
+        "@platforms//os:windows": [
+            "-DEFAULTLIB:Advapi32.lib",
+        ],
+        "//conditions:default": [],
+    }),
     textual_hdrs = [
         "vk_sub_decoder.cpp",
     ],
