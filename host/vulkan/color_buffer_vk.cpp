@@ -68,7 +68,7 @@ bool ColorBufferVk::readPixelsScaled(int pixelsWidth, int pixelsHeight, int pixe
                                      void* outPixels,
                                      const std::optional<std::array<float, 16>>& colorTransform) {
     return mVkEmulation.readColorBufferPixelsScaled(mHandle, pixelsWidth, pixelsHeight,
-                                                    pixelsRotation, rect, pixelsFormat, outPixels,
+                                                    static_cast<GFXSTREAM_ROTATION>(pixelsRotation), rect, pixelsFormat, outPixels,
                                                     colorTransform);
 }
 

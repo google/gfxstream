@@ -18,6 +18,7 @@
 layout(binding = 1) uniform UniformBufferObject {
     mat4 posTransform;
     mat4 texcoordTransform;
+    mat4 colorTransform;
     uvec4 mode;
     vec4 alpha;
     vec4 color;

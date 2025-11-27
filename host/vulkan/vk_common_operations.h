@@ -374,7 +374,7 @@ class VkEmulation {
     bool readColorBufferToBytes(uint32_t colorBufferHandle, uint32_t x, uint32_t y, uint32_t w,
                                 uint32_t h, void* outPixels, uint64_t outPixelsSize);
     bool readColorBufferPixelsScaled(uint32_t colorBufferHandle, int pixelsWidth, int pixelsHeight,
-                                     int pixelsRotation, const Rect& rect,
+                                     GFXSTREAM_ROTATION pixelsRotation, const Rect& rect,
                                      GfxstreamFormat pixelsFormat, void* outPixels,
                                      const std::optional<std::array<float, 16>>& colorTransform);
 
@@ -535,6 +535,15 @@ class VkEmulation {
     std::tuple<VkCommandBuffer, VkFence> allocateQueueTransferCommandBufferLocked() REQUIRES(mMutex);
 
     void freeExternalMemoryLocked(VulkanDispatch* vk, ExternalMemoryInfo* info) REQUIRES(mMutex);
+
+    bool readColorBufferPixelsScaledGpu(uint32_t colorBufferHandle, int pixelsWidth,
+                                        int pixelsHeight, GFXSTREAM_ROTATION pixelsRotation,
+                                        const Rect& rect, GfxstreamFormat pixelsFormat,
+                                        void* outPixels, const std::optional<std::array<float, 16>>& colorTransform);
+    bool readColorBufferPixelsScaledCpu(uint32_t colorBufferHandle, int pixelsWidth,
+                                        int pixelsHeight, GFXSTREAM_ROTATION pixelsRotation,
+                                        const Rect& rect, GfxstreamFormat pixelsFormat,
+                                        void* outPixels, const std::optional<std::array<float, 16>>& colorTransform);
 
     std::mutex mMutex;
 
