@@ -3250,6 +3250,9 @@ bool FrameBuffer::Impl::onLoad(Stream* stream, const ITextureLoaderPtr& textureL
             stream, &m_colorbuffers, [this, now](Stream* stream) -> ColorBufferMap::value_type {
                 ColorBufferPtr cb =
                     ColorBuffer::onLoad(m_emulationGl.get(), m_emulationVk.get(), stream);
+                if (!cb) {
+                    GFXSTREAM_FATAL("Cannot load color buffer for the snapshot!");
+                }
                 const HandleType handle = cb->getHndl();
                 const unsigned refCount = stream->getBe32();
                 const bool opened = stream->getByte();
