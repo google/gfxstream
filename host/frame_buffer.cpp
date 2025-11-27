@@ -230,6 +230,11 @@ std::optional<GfxstreamFormat> GetGfxstreamFormat(
         const GLenum type) {
     switch (format) {
         case GL_RGB:
+            if (type == GL_UNSIGNED_SHORT_5_6_5) {
+                return GfxstreamFormat::R5G6B5_UNORM;
+            } else {
+                return GfxstreamFormat::R8G8B8_UNORM;
+            }
         case GL_RGB8:
             return GfxstreamFormat::R8G8B8_UNORM;
         case GL_RGB565_OES:
