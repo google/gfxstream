@@ -85,9 +85,6 @@ class EMUGL_COMMON_API SharedLibrary {
                                char* error,
                                size_t errorSize);
 
-    // Adds an extra path to search for libraries.
-    static void addLibrarySearchPath(const char* path);
-
     // Generic function pointer type, for values returned by the
     // findSymbol() method.
     typedef void (*FunctionPtr)(void);

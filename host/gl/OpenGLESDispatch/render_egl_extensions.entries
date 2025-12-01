@@ -18,7 +18,6 @@ EGLint eglGetMaxGLESVersion(EGLDisplay display);
 void eglBlitFromCurrentReadBufferANDROID(EGLDisplay display, EGLImageKHR image);
 void* eglSetImageFenceANDROID(EGLDisplay display, EGLImageKHR image);
 void eglWaitImageFenceANDROID(EGLDisplay display, void* fence);
-void eglAddLibrarySearchPathANDROID(const char* path);
 EGLBoolean eglQueryVulkanInteropSupportANDROID(void);
 EGLBoolean eglGetSyncAttribKHR(EGLDisplay display, EGLSync sync, EGLint attribute, EGLint *value);
 EGLDisplay eglGetNativeDisplayANDROID(EGLDisplay display);

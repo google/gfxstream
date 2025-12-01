@@ -163,7 +163,6 @@ def gen_functions_header(entries, prefix_name, verbatim, filename, with_args):
         "eglBlitFromCurrentReadBufferANDROID",
         "eglSetImageFenceANDROID",
         "eglWaitImageFenceANDROID",
-        "eglAddLibrarySearchPathANDROID",
         "eglQueryVulkanInteropSupportANDROID",
         "eglQueryVulkanInteropSupportANDROID",
         # For snapshotting
