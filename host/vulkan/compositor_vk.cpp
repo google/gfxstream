@@ -185,7 +185,7 @@ CompositorVk::CompositorVk(const VulkanDispatch& vk, VkDevice vkDevice,
 CompositorVk::~CompositorVk() {
     {
         gfxstream::base::AutoLock lock(*m_vkQueueLock);
-        VK_CHECK(vk_util::waitForVkQueueIdleWithRetry(m_vk, m_vkQueue));
+        VK_CHECK(m_vk.vkQueueWaitIdle(m_vkQueue));
     }
     destroyImage(m_defaultImage);
     destroyImage(m_screenMaskImage);

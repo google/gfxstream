@@ -128,7 +128,7 @@ DisplayVk::~DisplayVk() {
 void DisplayVk::drainQueues() {
     {
         gfxstream::base::AutoLock lock(*m_swapChainVkQueueLock);
-        VK_CHECK(vk_util::waitForVkQueueIdleWithRetry(m_vk, m_swapChainVkQueue));
+        VK_CHECK(m_vk.vkQueueWaitIdle(m_swapChainVkQueue));
     }
     // We don't assume all VkCommandBuffer submitted to m_compositorVkQueueLock is always followed
     // by another operation on the m_swapChainVkQueue. Therefore, only waiting for the
@@ -136,7 +136,7 @@ void DisplayVk::drainQueues() {
     if (m_swapChainVkQueue != m_compositorVkQueue)
     {
         gfxstream::base::AutoLock lock(*m_compositorVkQueueLock);
-        VK_CHECK(vk_util::waitForVkQueueIdleWithRetry(m_vk, m_compositorVkQueue));
+        VK_CHECK(m_vk.vkQueueWaitIdle(m_compositorVkQueue));
     }
 }
 
