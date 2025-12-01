@@ -341,6 +341,30 @@ TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_FormatChange) {
     mFb->closeColorBuffer(handle);
 }
 
+// Regression test for b/462496183: ensure compatibility with older guests that
+// are not using virtio gpu and are instead still using GLenums for format params.
+TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_RGB565) {
+    constexpr const uint32_t kWidth = 1024;
+    constexpr const uint32_t kHeight = 1024;
+
+    HandleType colorBufferHandle =
+        mFb->createColorBuffer(kWidth, kHeight, GfxstreamFormat::R5G6B5_UNORM);
+    ASSERT_THAT(colorBufferHandle, ::testing::Ne(0));
+
+    for (int i = 0; i < 10; i++) {
+        constexpr const uint32_t kBpp = 2;
+        std::vector<uint8_t> buffer(kWidth * kHeight * kBpp);
+
+        // NOTE: historical usage did not pass a `buffer.size()`:
+        mFb->readColorBufferDeprecated(colorBufferHandle, 0, 0, kWidth, kHeight,
+                                       GL_RGB, GL_UNSIGNED_SHORT_5_6_5, buffer.data());
+        mFb->updateColorBufferDeprecated(colorBufferHandle, 0, 0, kWidth, kHeight,
+                                         GL_RGB, GL_UNSIGNED_SHORT_5_6_5, buffer.data());
+    }
+
+    mFb->closeColorBuffer(colorBufferHandle);
+}
+
 // Tests obtaining EGL configs from FrameBuffer.
 TEST_F(FrameBufferTest, Configs) {
     EGLint numConfigs = 0;
