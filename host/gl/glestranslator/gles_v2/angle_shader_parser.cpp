@@ -47,7 +47,7 @@ public:
         const char kLibName[] = "libshadertranslator.so";
 #endif
         char error[256];
-        mLib = gfxstream::base::SharedLibrary::open(kLibName, error, sizeof(error));
+        mLib = gfxstream::host::SharedLibrary::open(kLibName, error, sizeof(error));
         if (!mLib) {
             GFXSTREAM_ERROR("%s: Could not open shader translator library %s [%s]\n", __func__,
                             kLibName, error);
@@ -97,7 +97,7 @@ private:
                (nullptr != mDispatch.destroyInterfaceBlock);
     }
 
-    gfxstream::base::SharedLibrary* mLib = nullptr;
+    gfxstream::host::SharedLibrary* mLib = nullptr;
     bool mValid = false;
     STDispatch mDispatch;
 };

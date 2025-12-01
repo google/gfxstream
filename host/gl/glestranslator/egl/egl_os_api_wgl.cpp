@@ -61,7 +61,7 @@
 
 namespace {
 
-using gfxstream::base::SharedLibrary;
+using gfxstream::host::SharedLibrary;
 typedef GlLibrary::GlFunctionPointer GlFunctionPointer;
 
 // Returns true if an extension is include in a given extension list.

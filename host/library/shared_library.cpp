@@ -32,7 +32,7 @@
 using gfxstream::base::PathUtils;
 
 namespace gfxstream {
-namespace base {
+namespace host {
 
 static SharedLibrary::LibraryMap s_libraryMap;
 
@@ -220,5 +220,5 @@ SharedLibrary::FunctionPtr SharedLibrary::findSymbol(
 
 #endif  // !_WIN32
 
-}  // namespace base
-}  // namespace android
+}  // namespace host
+}  // namespace gfxstream

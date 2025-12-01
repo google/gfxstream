@@ -29,10 +29,10 @@ LIST_GLX_FUNCTYPES(DEFINE_DUMMY_IMPL)
 class X11FunctionGetter {
     public:
         X11FunctionGetter() :
-            mX11Lib(gfxstream::base::SharedLibrary::open("libX11")) {
+            mX11Lib(gfxstream::host::SharedLibrary::open("libX11")) {
             if (!mX11Lib) {
                 GFXSTREAM_WARNING("Could not open libX11.so, try libX11.so.6");
-                mX11Lib = (gfxstream::base::SharedLibrary::open("libX11.so.6"));
+                mX11Lib = (gfxstream::host::SharedLibrary::open("libX11.so.6"));
                 if (!mX11Lib) {
                     GFXSTREAM_ERROR("Could not open libX11.so.6, give up");
                     return;
@@ -44,10 +44,10 @@ class X11FunctionGetter {
                 LIST_XLIB_FUNCS(X11_ASSIGN_DUMMY_IMPL)
 
 
-            mX11XCBLib = gfxstream::base::SharedLibrary::open("libX11-xcb");
+            mX11XCBLib = gfxstream::host::SharedLibrary::open("libX11-xcb");
             if (!mX11XCBLib) {
                 GFXSTREAM_WARNING("Could not open libX11-xcb.so, try libX11-xcb.so.1");
-                mX11XCBLib = (gfxstream::base::SharedLibrary::open("libX11-xcb.so.1"));
+                mX11XCBLib = (gfxstream::host::SharedLibrary::open("libX11-xcb.so.1"));
                 if (!mX11XCBLib) {
                     GFXSTREAM_ERROR("Could not open libX11-xcb.so.1, give up");
                     // Do not return, only disable usage of XCB instead
@@ -75,8 +75,8 @@ class X11FunctionGetter {
 
         X11Api* getApi() { return &mApi; }
     private:
-        gfxstream::base::SharedLibrary* mX11Lib;
-        gfxstream::base::SharedLibrary* mX11XCBLib;
+        gfxstream::host::SharedLibrary* mX11Lib;
+        gfxstream::host::SharedLibrary* mX11XCBLib;
 
         X11Api mApi;
 };
@@ -88,7 +88,7 @@ class GlxFunctionGetter {
         // cases, depending on bad ldconfig configurations, link to the wrapper
         // lib that doesn't behave the same.
         GlxFunctionGetter() :
-            mGlxLib(gfxstream::base::SharedLibrary::open("libGL.so.1")) {
+            mGlxLib(gfxstream::host::SharedLibrary::open("libGL.so.1")) {
 
 #define GLX_ASSIGN_DUMMY_IMPL(funcname) mApi.funcname = dummy_##funcname;
 
@@ -116,7 +116,7 @@ class GlxFunctionGetter {
         GlxApi* getApi() { return &mApi; }
 
     private:
-        gfxstream::base::SharedLibrary* mGlxLib;
+        gfxstream::host::SharedLibrary* mGlxLib;
 
         GlxApi mApi;
 };

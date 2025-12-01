@@ -37,7 +37,7 @@ namespace host {
 class RenderDoc {
    public:
     using RenderDocApi = RENDERDOC_API_1_4_1;
-    static std::unique_ptr<RenderDoc> create(const gfxstream::base::SharedLibrary* renderDocLib) {
+    static std::unique_ptr<RenderDoc> create(const SharedLibrary* renderDocLib) {
         if (!renderDocLib) {
             GFXSTREAM_ERROR("The renderdoc shared library is null.");
             return nullptr;

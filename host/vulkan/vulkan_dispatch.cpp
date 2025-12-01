@@ -174,7 +174,7 @@ class SharedLibraries {
             return false;
         }
 
-        auto library = gfxstream::base::SharedLibrary::open(path.c_str());
+        auto library = SharedLibrary::open(path.c_str());
         if (library) {
             mLibs.push_back(library);
             GFXSTREAM_INFO("Added library: %s", path.c_str());
@@ -209,7 +209,7 @@ class SharedLibraries {
 
    private:
     size_t mSizeLimit;
-    std::vector<gfxstream::base::SharedLibrary*> mLibs;
+    std::vector<SharedLibrary*> mLibs;
 };
 
 static constexpr size_t getVulkanLibraryNumLimits() {

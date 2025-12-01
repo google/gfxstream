@@ -93,7 +93,7 @@ private:
         static void * s_getProc(const char *name, void *userData);
 
     GLDecoderContextData *m_contextData;
-    gfxstream::base::SharedLibrary* m_glesDso;
+    gfxstream::host::SharedLibrary* m_glesDso;
 };
 
 }  // namespace gl

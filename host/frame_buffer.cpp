@@ -68,7 +68,6 @@ namespace {
 
 using gfxstream::Stream;
 using gfxstream::base::AutoLock;
-using gfxstream::base::SharedLibrary;
 using gfxstream::base::WorkerProcessingResult;
 using gfxstream::host::gl::GLESApi;
 using gfxstream::host::gl::GLESApi_2;

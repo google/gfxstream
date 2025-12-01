@@ -32,10 +32,10 @@ using ::testing::MockFunction;
 using ::testing::Return;
 using ::testing::SetArgPointee;
 
-using FunctionPtr = gfxstream::base::SharedLibrary::FunctionPtr;
+using FunctionPtr = SharedLibrary::FunctionPtr;
 using RenderDocApi = RenderDoc::RenderDocApi;
 
-class MockSharedLibrary : public gfxstream::base::SharedLibrary {
+class MockSharedLibrary : public SharedLibrary {
    public:
     MockSharedLibrary() : SharedLibrary(NULL) {}
     MOCK_METHOD(FunctionPtr, findSymbol, (const char*), (const, override));

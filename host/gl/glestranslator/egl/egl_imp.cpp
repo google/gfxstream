@@ -304,8 +304,8 @@ GLESiface* static_translator_glesv2_getIfaces(const EGLiface*);
 #define STATIC_TRANSLATOR_GETIFACE_NAME_GLES_CM static_translator_glescm_getIfaces
 #define STATIC_TRANSLATOR_GETIFACE_NAME_GLES_V2 static_translator_glesv2_getIfaces
 
-#define LIB_GLES_CM_NAME EMUGL_LIBNAME("GLES_CM_translator")
-#define LIB_GLES_V2_NAME EMUGL_LIBNAME("GLES_V2_translator")
+#define LIB_GLES_CM_NAME "libGLES_CM_translator"
+#define LIB_GLES_V2_NAME "libGLES_V2_translator"
 
 static __translator_getGLESIfaceFunc loadIfaces(const char* libName,
                                                 char* error,

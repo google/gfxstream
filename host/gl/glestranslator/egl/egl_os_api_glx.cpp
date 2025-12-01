@@ -62,7 +62,7 @@ public:
     GlxLibrary() {
         static const char kLibName[] = "libGL.so.1";
         char error[256];
-        mLib = gfxstream::base::SharedLibrary::open(kLibName, error, sizeof(error));
+        mLib = gfxstream::host::SharedLibrary::open(kLibName, error, sizeof(error));
         if (!mLib) {
             GFXSTREAM_ERROR("%s: Could not open GL library %s [%s]\n", __func__, kLibName, error);
             return;
@@ -95,7 +95,7 @@ public:
     }
 
 private:
-    gfxstream::base::SharedLibrary* mLib = nullptr;
+    gfxstream::host::SharedLibrary* mLib = nullptr;
     ResolverFunc* mResolver = nullptr;
 };
 

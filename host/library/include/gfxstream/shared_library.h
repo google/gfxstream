@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef EMUGL_COMMON_SHARED_LIBRARY_H
-#define EMUGL_COMMON_SHARED_LIBRARY_H
+#pragma once
 
 #include <stddef.h>
 #include <memory>
@@ -24,18 +23,8 @@
 #include <windows.h>
 #endif
 
-#if defined(_MSC_VER) && !defined(STATIC_EMUGL)
-# ifdef BUILDING_EMUGL_COMMON_SHARED
-#  define EMUGL_COMMON_API __declspec(dllexport)
-# else
-#  define EMUGL_COMMON_API __declspec(dllimport)
-#endif
-#else
-# define EMUGL_COMMON_API
-#endif
-
 namespace gfxstream {
-namespace base {
+namespace host {
 
 // A class used to open a platform-specific shared library, and probe
 // it for symbols. Usage is the following:
@@ -50,7 +39,7 @@ namespace base {
 //    FunctionPtr my_func = library->findSymbol("my_func");
 //
 //  A shared library will be unloaded on program exit.
-class EMUGL_COMMON_API SharedLibrary {
+class SharedLibrary {
    private:
     struct Deleter {
         void operator()(SharedLibrary* lib) const { delete lib; }
@@ -114,10 +103,5 @@ class EMUGL_COMMON_API SharedLibrary {
     HandleType mLib;
 };
 
-#  define EMUGL_LIBNAME(name) "lib" name
-
-}  // namespace base
-}  // namespace android
-
-#undef EMUGL_COMMON_API
-#endif  // EMUGL_COMMON_SHARED_LIBRARY_H
+}  // namespace host
+}  // namespace gfxstream

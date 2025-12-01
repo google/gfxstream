@@ -153,12 +153,12 @@ public:
     EglOsEglDispatcher() {
         D("loading %s\n", kEGLLibName);
         char error[256];
-        mLib = gfxstream::base::SharedLibrary::open(kEGLLibName, error, sizeof(error));
+        mLib = gfxstream::host::SharedLibrary::open(kEGLLibName, error, sizeof(error));
         if (!mLib) {
 #ifdef __linux__
             GFXSTREAM_ERROR("%s: Could not open EGL library %s [%s]. Trying again with [%s]",
                             __FUNCTION__, kEGLLibName, error, kEGLLibNameAlt);
-            mLib = gfxstream::base::SharedLibrary::open(kEGLLibNameAlt, error, sizeof(error));
+            mLib = gfxstream::host::SharedLibrary::open(kEGLLibNameAlt, error, sizeof(error));
             if (!mLib) {
                 GFXSTREAM_ERROR("%s: Could not open EGL library %s [%s]", __FUNCTION__,
                                 kEGLLibNameAlt, error);
@@ -189,19 +189,19 @@ public:
     ~EglOsEglDispatcher() = default;
 
 private:
-    gfxstream::base::SharedLibrary* mLib = nullptr;
+    gfxstream::host::SharedLibrary* mLib = nullptr;
 };
 
 class EglOsGlLibrary : public GlLibrary {
 public:
     EglOsGlLibrary() {
         char error[256];
-        mLib = gfxstream::base::SharedLibrary::open(kGLES2LibName, error, sizeof(error));
+        mLib = gfxstream::host::SharedLibrary::open(kGLES2LibName, error, sizeof(error));
         if (!mLib) {
 #ifdef __linux__
             GFXSTREAM_ERROR("%s: Could not open GL library %s [%s]. Trying again with [%s]",
                             __FUNCTION__, kGLES2LibName, error, kGLES2LibNameAlt);
-            mLib = gfxstream::base::SharedLibrary::open(kGLES2LibNameAlt, error, sizeof(error));
+            mLib = gfxstream::host::SharedLibrary::open(kGLES2LibNameAlt, error, sizeof(error));
             if (!mLib) {
                 GFXSTREAM_ERROR("%s: Could not open GL library %s [%s]", __FUNCTION__,
                                 kGLES2LibNameAlt, error);
@@ -221,7 +221,7 @@ public:
     ~EglOsGlLibrary() = default;
 
 private:
-    gfxstream::base::SharedLibrary* mLib = nullptr;
+    gfxstream::host::SharedLibrary* mLib = nullptr;
 };
 
 class EglOsEglPixelFormat : public EglOS::PixelFormat {

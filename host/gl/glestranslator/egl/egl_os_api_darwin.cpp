@@ -368,7 +368,7 @@ public:
         static const char kLibName[] =
                 "/System/Library/Frameworks/OpenGL.framework/OpenGL";
         char error[256];
-        mLib = gfxstream::base::SharedLibrary::open(kLibName, error, sizeof(error));
+        mLib = gfxstream::host::SharedLibrary::open(kLibName, error, sizeof(error));
         if (!mLib) {
             GFXSTREAM_ERROR("%s: Could not open GL library %s [%s]\n", __FUNCTION__, kLibName,
                             error);
@@ -387,7 +387,7 @@ public:
     }
 
 private:
-    gfxstream::base::SharedLibrary* mLib = nullptr;
+    gfxstream::host::SharedLibrary* mLib = nullptr;
 };
 
 class MacEngine : public EglOS::Engine {

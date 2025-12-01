@@ -53,7 +53,7 @@ protected:
 
 private:
     GLDecoderContextData *m_contextData;
-    gfxstream::base::SharedLibrary* m_GL2library;
+    gfxstream::host::SharedLibrary* m_GL2library;
 
     static void *s_getProc(const char *name, void *userData);
     static void gles2_APIENTRY s_glGetCompressedTextureFormats(void *self, int count, GLint *formats);
