@@ -20,7 +20,7 @@
 #include <gtest/gtest.h>
 
 #include "render_thread_info.h"
-#include "gfxstream/common/testing/GraphicsTestEnvironment.h"
+#include "gfxstream/common/testing/graphics_test_environment.h"
 #include "gfxstream/files/PathUtils.h"
 #include "gfxstream/host/display_operations.h"
 #include "gfxstream/host/features.h"

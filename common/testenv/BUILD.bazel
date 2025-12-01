@@ -76,7 +76,7 @@ cc_library(
         "graphics_test_environment.cpp",
     ],
     hdrs = [
-        "include/gfxstream/common/testing/GraphicsTestEnvironment.h",
+        "include/gfxstream/common/testing/graphics_test_environment.h",
     ],
     data = select({
         ":graphics_test_environment_gles_angle_vulkan_lavapipe": [

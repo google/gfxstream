@@ -25,7 +25,7 @@
 
 #include "VirtGpu.h"
 #include "gfxstream/common/logging.h"
-#include "gfxstream/common/testing/GraphicsTestEnvironment.h"
+#include "gfxstream/common/testing/graphics_test_environment.h"
 #include "gfxstream/image_utils.h"
 #include "gfxstream/strings.h"
 #include "gfxstream/system/System.h"
