@@ -51,8 +51,8 @@ SharedLibrary* SharedLibrary::open(const char* libraryName,
     auto lib = s_libraryMap.find(libraryName);
 
     if (lib == s_libraryMap.end()) {
-        GFXSTREAM_INFO("SharedLibrary::open for [%s]: not found in map, open for the first time",
-             libraryName);
+        GFXSTREAM_VERBOSE("SharedLibrary::open for [%s]: not found in map, open for the first time",
+                          libraryName);
         SharedLibrary* load = do_open(libraryName, error, errorSize);
         if (load != nullptr) {
             s_libraryMap[libraryName] =
@@ -70,19 +70,19 @@ SharedLibrary* SharedLibrary::open(const char* libraryName,
 SharedLibrary* SharedLibrary::do_open(const char* libraryName,
                                       char* error,
                                       size_t errorSize) {
-    GFXSTREAM_INFO("SharedLibrary::open for [%s] (win32): call LoadLibrary", libraryName);
+    GFXSTREAM_VERBOSE("SharedLibrary::open for [%s] (win32): call LoadLibrary", libraryName);
     HMODULE lib = LoadLibraryA(libraryName);
 
     if (lib) {
         constexpr size_t kMaxPathLength = 2048;
         char fullPath[kMaxPathLength];
         GetModuleFileNameA(lib, fullPath, kMaxPathLength);
-        GFXSTREAM_INFO("SharedLibrary::open succeeded for [%s]. File name: [%s]", libraryName, fullPath);
+        GFXSTREAM_VERBOSE("SharedLibrary::open succeeded for [%s]. File name: [%s]", libraryName, fullPath);
         return new SharedLibrary(lib);
     }
 
     if (errorSize == 0) {
-        GFXSTREAM_INFO("SharedLibrary::open for [%s] failed, but no error", libraryName);
+        GFXSTREAM_VERBOSE("SharedLibrary::open for [%s] failed, but no error", libraryName);
         return NULL;
     }
 
@@ -115,7 +115,7 @@ SharedLibrary* SharedLibrary::do_open(const char* libraryName,
     if (ret > 0 && error[ret - 1] == '\r') {
         error[--ret] = '\0';
     }
-    GFXSTREAM_INFO("Failed to load [%s]. Error string: [%s]", libraryName, error);
+    GFXSTREAM_VERBOSE("Failed to load [%s]. Error string: [%s]", libraryName, error);
 
     return NULL;
 }
@@ -147,7 +147,7 @@ SharedLibrary::FunctionPtr SharedLibrary::findSymbol(
 SharedLibrary* SharedLibrary::do_open(const char* libraryName,
                                       char* error,
                                       size_t errorSize) {
-    GFXSTREAM_INFO("SharedLibrary::open for [%s] (posix): begin", libraryName);
+    GFXSTREAM_VERBOSE("SharedLibrary::open for [%s] (posix): begin", libraryName);
 
     const char* libPath = libraryName;
     char* path = NULL;
@@ -176,17 +176,17 @@ SharedLibrary* SharedLibrary::do_open(const char* libraryName,
     // On OSX, some libraries don't include an extension (notably OpenGL)
     // On OSX we try to open |libraryName| first.  If that doesn't exist,
     // we try |libraryName|.dylib
-    GFXSTREAM_INFO("SharedLibrary::open for [%s] (posix,darwin): call dlopen", libraryName);
+    GFXSTREAM_VERBOSE("SharedLibrary::open for [%s] (posix,darwin): call dlopen", libraryName);
     void* lib = dlopen(libraryName, RTLD_NOW);
     if (lib == NULL) {
-        GFXSTREAM_INFO(
+        GFXSTREAM_VERBOSE(
             "SharedLibrary::open for [%s] (posix,darwin): failed, "
             "try again with [%s]",
             libraryName, libPath);
         lib = dlopen(libPath, RTLD_NOW);
     }
 #else
-    GFXSTREAM_INFO("SharedLibrary::open for [%s] (posix,linux): call dlopen on [%s]", libraryName, libPath);
+    GFXSTREAM_VERBOSE("SharedLibrary::open for [%s] (posix,linux): call dlopen on [%s]", libraryName, libPath);
     void* lib = nullptr;
     const std::vector<std::string> ldLibraryPaths =
         gfxstream::Split(gfxstream::base::getEnvironmentVariable("LD_LIBRARY_PATH"), ":");
@@ -213,12 +213,12 @@ SharedLibrary* SharedLibrary::do_open(const char* libraryName,
     }
 
     if (lib) {
-        GFXSTREAM_INFO("SharedLibrary::open succeeded for [%s].", libraryName);
+        GFXSTREAM_VERBOSE("SharedLibrary::open succeeded for [%s].", libraryName);
         return new SharedLibrary(lib);
     }
 
     snprintf(error, errorSize, "%s", dlerror());
-    GFXSTREAM_INFO("SharedLibrary::open for [%s] failed (posix). dlerror: [%s]", libraryName, error);
+    GFXSTREAM_VERBOSE("SharedLibrary::open for [%s] failed (posix). dlerror: [%s]", libraryName, error);
     return nullptr;
 }
 
