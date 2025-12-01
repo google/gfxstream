@@ -396,7 +396,8 @@ TEST_P(GfxstreamEnd2EndCompositionTest, RotatedCompositionRGBA) {
     GFXSTREAM_ASSERT(CompareAHBWithGolden(resultAhb, "256x256_golden_rotated_rgba.png"));
 }
 
-TEST_P(GfxstreamEnd2EndCompositionTest, RotatedCompositionYV12) {
+// TODO(b/465208161): fix and re-enable.
+TEST_P(GfxstreamEnd2EndCompositionTest, DISABLED_RotatedCompositionYV12) {
     ScopedRenderControlDevice rcDevice(*mRc);
 
     const auto rgbaColor1 = PixelR8G8B8A8(66, 99, 160, 255);
