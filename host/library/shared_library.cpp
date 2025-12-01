@@ -18,16 +18,18 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <functional>
-#include <vector>
-
-#include "gfxstream/files/PathUtils.h"
-#include "gfxstream/common/logging.h"
-
 #ifndef _WIN32
 #include <dlfcn.h>
 #include <stdlib.h>
 #endif
+
+#include <functional>
+#include <vector>
+
+#include "gfxstream/common/logging.h"
+#include "gfxstream/files/PathUtils.h"
+#include "gfxstream/strings.h"
+#include "gfxstream/system/System.h"
 
 using gfxstream::base::PathUtils;
 
@@ -66,8 +68,8 @@ SharedLibrary* SharedLibrary::open(const char* libraryName,
 
 // static
 SharedLibrary* SharedLibrary::do_open(const char* libraryName,
-                                   char* error,
-                                   size_t errorSize) {
+                                      char* error,
+                                      size_t errorSize) {
     GFXSTREAM_INFO("SharedLibrary::open for [%s] (win32): call LoadLibrary", libraryName);
     HMODULE lib = LoadLibraryA(libraryName);
 
@@ -143,8 +145,8 @@ SharedLibrary::FunctionPtr SharedLibrary::findSymbol(
 
 // static
 SharedLibrary* SharedLibrary::do_open(const char* libraryName,
-                                   char* error,
-                                   size_t errorSize) {
+                                      char* error,
+                                      size_t errorSize) {
     GFXSTREAM_INFO("SharedLibrary::open for [%s] (posix): begin", libraryName);
 
     const char* libPath = libraryName;
@@ -185,7 +187,25 @@ SharedLibrary* SharedLibrary::do_open(const char* libraryName,
     }
 #else
     GFXSTREAM_INFO("SharedLibrary::open for [%s] (posix,linux): call dlopen on [%s]", libraryName, libPath);
-    void* lib = dlopen(libPath, RTLD_NOW);
+    void* lib = nullptr;
+    const std::vector<std::string> ldLibraryPaths =
+        gfxstream::Split(gfxstream::base::getEnvironmentVariable("LD_LIBRARY_PATH"), ":");
+    for (const std::string& ldLibraryPath : ldLibraryPaths) {
+        if (ldLibraryPath.empty()) {
+            continue;
+        }
+
+        const std::string fullpath = PathUtils::join(ldLibraryPath, libPath);
+        GFXSTREAM_VERBOSE("Calling dlopen on %s.", fullpath.c_str());
+
+        lib = dlopen(fullpath.c_str(), RTLD_NOW);
+        if (lib != nullptr) {
+            break;
+        }
+    }
+    if (lib == nullptr) {
+        lib = dlopen(libPath, RTLD_NOW);
+    }
 #endif
 
     if (path) {
@@ -199,7 +219,7 @@ SharedLibrary* SharedLibrary::do_open(const char* libraryName,
 
     snprintf(error, errorSize, "%s", dlerror());
     GFXSTREAM_INFO("SharedLibrary::open for [%s] failed (posix). dlerror: [%s]", libraryName, error);
-    return NULL;
+    return nullptr;
 }
 
 SharedLibrary::SharedLibrary(HandleType lib) : mLib(lib) {}
@@ -213,7 +233,7 @@ SharedLibrary::~SharedLibrary() {
 SharedLibrary::FunctionPtr SharedLibrary::findSymbol(
         const char* symbolName) const {
     if (!mLib || !symbolName) {
-        return NULL;
+        return nullptr;
     }
     return reinterpret_cast<FunctionPtr>(dlsym(mLib, symbolName));
 }

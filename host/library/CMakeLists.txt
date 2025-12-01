@@ -25,4 +25,5 @@ target_link_libraries(
     gfxstream_host_library
     PUBLIC
     gfxstream_common_base
-    gfxstream_common_logging)
+    gfxstream_common_logging
+    gfxstream_common_utils)

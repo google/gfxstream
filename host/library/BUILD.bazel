@@ -16,5 +16,6 @@ cc_library(
     deps = [
         "//common/base:gfxstream_common_base",
         "//common/logging:gfxstream_common_logging",
+        "//common/utils:gfxstream_common_utils",
     ],
 )
