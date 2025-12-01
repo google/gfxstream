@@ -12,13 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "frame_buffer.h"
 
 #include <memory>
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "frame_buffer.h"
 #include "render_thread_info.h"
+#include "gfxstream/common/testing/GraphicsTestEnvironment.h"
 #include "gfxstream/files/PathUtils.h"
 #include "gfxstream/host/display_operations.h"
 #include "gfxstream/host/features.h"
@@ -55,8 +57,12 @@ class FrameBufferTest : public ::testing::Test {
     FrameBufferTest() = default;
 
   protected:
+    static void SetUpTestSuite() {
+        ASSERT_THAT(gfxstream::testing::SetupGraphicsTestEnvironment(), ::testing::IsTrue())
+            << "Failed to configured graphics test environment!";
+    }
+
     void SetUp() override {
-        // setupStandaloneLibrarySearchPaths();
         const EGLDispatch* egl = LazyLoadedEGLDispatch::get();
         ASSERT_NE(nullptr, egl);
         ASSERT_NE(nullptr, LazyLoadedGLESv2Dispatch::get());

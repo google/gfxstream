@@ -102,31 +102,31 @@ std::string describeGlEnum(GLenum enumValue);
 // Compares an |actual| against an |expected| value. Returns a failure values
 // do not match; provide |description| to attach details to the failure message.
 template <class T>
-testing::AssertionResult compareValue(T expected,
-                                      T actual,
-                                      const std::string& description = "");
+::testing::AssertionResult compareValue(T expected,
+                                        T actual,
+                                        const std::string& description = "");
 
 // Compares a global GL value, known by |name| and retrieved as a boolean,
 // against an |expected| value.
-testing::AssertionResult compareGlobalGlBoolean(const GLESv2Dispatch* gl,
-                                                GLenum name,
-                                                GLboolean expected);
+::testing::AssertionResult compareGlobalGlBoolean(const GLESv2Dispatch* gl,
+                                                  GLenum name,
+                                                  GLboolean expected);
 
 // Compares a global GL value, known by |name| and retrieved as an integer,
 // against an |expected| value.
-testing::AssertionResult compareGlobalGlInt(const GLESv2Dispatch* gl,
-                                            GLenum name,
-                                            GLint expected);
-
-testing::AssertionResult compareGlobalGlInt_i(const GLESv2Dispatch* gl,
+::testing::AssertionResult compareGlobalGlInt(const GLESv2Dispatch* gl,
                                               GLenum name,
-                                              GLuint index,
                                               GLint expected);
+
+::testing::AssertionResult compareGlobalGlInt_i(const GLESv2Dispatch* gl,
+                                                GLenum name,
+                                                GLuint index,
+                                                GLint expected);
 // Compares a global GL value, known by |name| and retrieved as a float, against
 // an |expected| value.
-testing::AssertionResult compareGlobalGlFloat(const GLESv2Dispatch* gl,
-                                              GLenum name,
-                                              GLfloat expected);
+::testing::AssertionResult compareGlobalGlFloat(const GLESv2Dispatch* gl,
+                                                GLenum name,
+                                                GLfloat expected);
 
 // For building other compare functions which return AssertionResult.
 // Compare the values at each index of a vector |actual| against an |expected|.
@@ -134,7 +134,7 @@ testing::AssertionResult compareGlobalGlFloat(const GLESv2Dispatch* gl,
 // attach details to the failure message.
 // |actual| is allowed to contain more elements than |expected|.
 template <class T>
-testing::AssertionResult compareVector(
+::testing::AssertionResult compareVector(
         const std::vector<T>& expected,
         const std::vector<T>& actual,
         const std::string& description = "vector");
@@ -142,13 +142,13 @@ testing::AssertionResult compareVector(
 // Compares a vector of global GL values, known by |name| and retrieved as a
 // boolean array, against |expected| values.
 // Specify |size| if more space is needed than the size of |expected|.
-testing::AssertionResult compareGlobalGlBooleanv(
+::testing::AssertionResult compareGlobalGlBooleanv(
         const GLESv2Dispatch* gl,
         GLenum name,
         const std::vector<GLboolean>& expected,
         GLuint size = 0);
 
-testing::AssertionResult compareGlobalGlBooleanv_i(
+::testing::AssertionResult compareGlobalGlBooleanv_i(
         const GLESv2Dispatch* gl,
         GLenum name,
         GLuint index,
@@ -159,21 +159,21 @@ testing::AssertionResult compareGlobalGlBooleanv_i(
 // Compares a vector of global GL values, known by |name| and retrieved as an
 // integer array, against |expected| values.
 // Specify |size| if more space is needed than the size of |expected|.
-testing::AssertionResult compareGlobalGlIntv(const GLESv2Dispatch* gl,
-                                             GLenum name,
-                                             const std::vector<GLint>& expected,
-                                             GLuint size = 0);
-
-testing::AssertionResult compareGlobalGlIntv_i(const GLESv2Dispatch* gl,
+::testing::AssertionResult compareGlobalGlIntv(const GLESv2Dispatch* gl,
                                                GLenum name,
-                                               GLuint index,
                                                const std::vector<GLint>& expected,
                                                GLuint size = 0);
+
+::testing::AssertionResult compareGlobalGlIntv_i(const GLESv2Dispatch* gl,
+                                                 GLenum name,
+                                                 GLuint index,
+                                                 const std::vector<GLint>& expected,
+                                                 GLuint size = 0);
 
 // Compares a vector of global GL values, known by |name| and retrieved as a
 // float array, against |expected| values.
 // Specify |size| if more space is needed than the size of |expected|.
-testing::AssertionResult compareGlobalGlFloatv(
+::testing::AssertionResult compareGlobalGlFloatv(
         const GLESv2Dispatch* gl,
         GLenum name,
         const std::vector<GLfloat>& expected,

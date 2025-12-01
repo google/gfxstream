@@ -288,6 +288,7 @@ cc_test(
     deps = [
         ":gfxstream_backend_static",
         "//common/base:gfxstream_common_base",
+        "//common/testenv:graphics_test_environment_support",
         "//host/common:gfxstream_host_common",
         "//host/features:gfxstream_host_features",
         "//host/testlibs/oswindow:gfxstream_oswindow_test_support",

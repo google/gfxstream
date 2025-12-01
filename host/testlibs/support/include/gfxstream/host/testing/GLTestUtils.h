@@ -26,10 +26,10 @@ namespace host {
 
 using TestTexture = gfxstream::AlignedBuf<uint8_t, 4>;
 
-testing::AssertionResult RowMatches(int rowIndex, size_t rowBytes,
+::testing::AssertionResult RowMatches(int rowIndex, size_t rowBytes,
                                     unsigned char* expected, unsigned char* actual);
 
-testing::AssertionResult ImageMatches(int width, int height, int bpp, int rowLength,
+::testing::AssertionResult ImageMatches(int width, int height, int bpp, int rowLength,
                                       unsigned char* expected, unsigned char* actual);
 
 

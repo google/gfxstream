@@ -259,10 +259,11 @@ endfunction()
     target_link_libraries(
         OpenglRender_unittests
         PRIVATE
-        gfxstream_host_testing_support
         gfxstream_backend_static
         gfxstream_common_base
+        gfxstream_common_testenv
         gfxstream_host_common
+        gfxstream_host_testing_support
         gmock
         gtest_main)
     if (LINUX)
