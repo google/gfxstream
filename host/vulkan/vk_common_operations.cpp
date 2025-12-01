@@ -13,6 +13,7 @@
 // limitations under the License.
 #include "vk_common_operations.h"
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
 #include <vulkan/vk_enum_string_helper.h>
@@ -3383,13 +3384,13 @@ bool VkEmulation::readColorBufferPixelsScaled(uint32_t colorBufferHandle, int pi
         return false;
     }
 
-    const int readbackBpp = 4;
-    int readbackWidth = colorBufferInfo->width;
-    int readbackHeight = colorBufferInfo->height;
-    const uint64_t readbackPixelsSize = readbackBpp * readbackWidth * readbackHeight;
+    const uint32_t readbackBpp = 4;
+    uint64_t readbackWidth = colorBufferInfo->width;
+    uint64_t readbackHeight = colorBufferInfo->height;
+    const uint64_t readbackPixelsSize = readbackWidth * readbackHeight * readbackBpp;
 
-    const int outBpp = (pixelsFormat == GfxstreamFormat::R8G8B8_UNORM) ? 3 : 4;
-    const uint64_t outPixelsSize = outBpp * pixelsWidth * pixelsHeight;
+    const uint32_t outBpp = (pixelsFormat == GfxstreamFormat::R8G8B8_UNORM) ? 3 : 4;
+    const uint64_t outPixelsSize = pixelsWidth * pixelsHeight * outBpp;
     if (readbackBpp == outBpp && pixelsRotation == 0 && readbackPixelsSize == outPixelsSize) {
         // Simple 1-1 readback case
         return readColorBufferToBytesLocked(colorBufferHandle, 0, 0, pixelsWidth, pixelsHeight, outPixels, outPixelsSize);
@@ -3399,24 +3400,25 @@ bool VkEmulation::readColorBufferPixelsScaled(uint32_t colorBufferHandle, int pi
     // TODO(b/460393431): Resize the image on the GPU and readback smaller data
     std::vector<uint8_t> readback_r8g8b8a8;
     readback_r8g8b8a8.resize(readbackPixelsSize);
-    if (!readColorBufferToBytesLocked(colorBufferHandle, 0, 0, readbackWidth, readbackHeight, readback_r8g8b8a8.data(),
-                                     readback_r8g8b8a8.size())) {
+    if (!readColorBufferToBytesLocked(colorBufferHandle, 0, 0, readbackWidth, readbackHeight,
+                                      readback_r8g8b8a8.data(), readback_r8g8b8a8.size())) {
         // Could not readback, cannot continue for resizing
-        GFXSTREAM_ERROR("%s: Failed to readback color buffer %d (%dx%d, %s)", colorBufferHandle,
-                        readbackWidth, readbackHeight, ToString(colorBufferInfo->format).c_str());
+        GFXSTREAM_ERROR("%s: Failed to readback color buffer %d (%" PRIu64 "x%" PRIu64 ", %s)",
+                        colorBufferHandle, readbackWidth, readbackHeight,
+                        ToString(colorBufferInfo->format).c_str());
         return false;
     }
 
     // Resize, if necessary
     {
-        int readbackTargetWidth = pixelsWidth;
-        int readbackTargetHeight = pixelsHeight;
+        uint64_t readbackTargetWidth = pixelsWidth;
+        uint64_t readbackTargetHeight = pixelsHeight;
 
         const bool flipDims =
             (pixelsRotation == GFXSTREAM_ROTATION_90 || pixelsRotation == GFXSTREAM_ROTATION_270);
         if (flipDims) {
             // Image will be used as rotated, flip the dimensions for resize
-            int temp = readbackTargetWidth;
+            uint64_t temp = readbackTargetWidth;
             readbackTargetWidth = readbackTargetHeight;
             readbackTargetHeight = temp;
         }
@@ -3429,8 +3431,9 @@ bool VkEmulation::readColorBufferPixelsScaled(uint32_t colorBufferHandle, int pi
             if (!ResizeRGBAImage(readback_r8g8b8a8.data(), readbackWidth, readbackHeight,
                                  readbackTargetWidth, readbackTargetHeight,
                                  resized_readback_r8g8b8a8)) {
-                GFXSTREAM_ERROR("%s: Failed to resize the image (%dx%d -> %dx%d)", __func__,
-                                readbackWidth, readbackHeight, readbackTargetWidth,
+                GFXSTREAM_ERROR("%s: Failed to resize the image (%" PRIu64 "x%" PRIu64
+                                " -> %" PRIu64 "x%" PRIu64 ")",
+                                __func__, readbackWidth, readbackHeight, readbackTargetWidth,
                                 readbackTargetHeight);
                 return false;
             }
@@ -3440,7 +3443,6 @@ bool VkEmulation::readColorBufferPixelsScaled(uint32_t colorBufferHandle, int pi
             readbackHeight = readbackTargetHeight;
         }
     }
-
 
     // Convert RGBA to RGB, rotate and color transform at the same time if necessary
     std::optional<std::array<float, 16>> displayColorTransform = GetColorTransform();
