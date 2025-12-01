@@ -320,10 +320,11 @@ endfunction()
     target_link_libraries(
         Vulkan_unittests
         PRIVATE
-        gfxstream_host_testing_support
-        gfxstream_host_testing_oswindow_support
         gfxstream_backend_static
         gfxstream_common_base
+        gfxstream_common_testenv
+        gfxstream_host_testing_oswindow_support
+        gfxstream_host_testing_support
         gfxstream-vulkan-server
         gtest
         gtest_main

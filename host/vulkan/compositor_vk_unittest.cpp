@@ -21,9 +21,11 @@
 #include <optional>
 
 #include <glm/gtx/matrix_transform_2d.hpp>
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "borrowed_image_vk.h"
+#include "gfxstream/common/testing/graphics_test_environment.h"
 #include "gfxstream/host/testing/VkTestUtils.h"
 #include "gfxstream/image_utils.h"
 #include "gfxstream/synchronization/Lock.h"
@@ -90,7 +92,12 @@ class CompositorVkTest : public ::testing::Test {
                                          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT>;
     using SourceImage = RenderTextureVk;
 
-    static void SetUpTestCase() { k_vk = vkDispatch(true); }
+    static void SetUpTestSuite() {
+        ASSERT_THAT(gfxstream::testing::SetupGraphicsTestEnvironment(), ::testing::IsTrue())
+            << "Failed to configured graphics test environment!";
+
+        k_vk = vkDispatch(!gfxstream::testing::IsGraphicsTestEnvironmentProvidingVulkanDriver());
+    }
 
     void SetUp() override {
         ASSERT_NE(k_vk, nullptr);

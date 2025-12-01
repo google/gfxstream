@@ -159,8 +159,11 @@ cc_test_host {
     static_libs: [
         "libgfxstream_common_logging",
         "libgfxstream_common_base",
+        "libgfxstream_common_testenv",
         "libgfxstream_host_vulkan_server",
         "libgfxstream_host_test_support",
+        "libgtest",
+        "libgmock",
     ],
     test_options: {
         // Disabled by default as requires Vulkan.

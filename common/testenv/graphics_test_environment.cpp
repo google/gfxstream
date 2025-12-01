@@ -156,5 +156,15 @@ bool SetupGraphicsTestEnvironment() {
     return true;
 }
 
+bool IsGraphicsTestEnvironmentProvidingVulkanDriver() {
+#if defined(GFXSTREAM_TESTING_USE_VULKAN_LAVAPIPE)
+    return true;
+#elif defined(GFXSTREAM_TESTING_USE_VULKAN_SWIFTSHADER)
+    return true;
+#else
+    return false;
+#endif
+}
+
 }  // namespace testing
 }  // namespace gfxstream
