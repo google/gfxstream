@@ -90,6 +90,7 @@ class FrameBufferTest : public ::testing::Test {
                 mWindow->getDevicePixelRatio(), 0, false, false);
             mWindow->messageLoop();
         } else {
+            gfxstream::base::setEnvironmentVariable("ANDROID_EMU_HEADLESS", "1");
             EXPECT_TRUE(
                 FrameBuffer::initialize(mWidth, mHeight, features, mUseSubWindow));
             mFb = FrameBuffer::getFB();
