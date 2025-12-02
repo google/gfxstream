@@ -91,9 +91,6 @@ ParseGfxstreamFeatures(const int rendererFlags,
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
         &features, NoDelayCloseColorBuffer, true);
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
-        &features, PlayStoreImage,
-        !(rendererFlags & STREAM_RENDERER_FLAGS_USE_GLES_BIT));
-    GFXSTREAM_SET_FEATURE_ON_CONDITION(
         &features, RefCountPipe,
         /*Resources are ref counted via guest file objects.*/ false);
     GFXSTREAM_SET_FEATURE_ON_CONDITION(

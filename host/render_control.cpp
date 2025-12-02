@@ -311,10 +311,8 @@ static EGLint rcQueryEGLString(EGLenum name, void* buffer, EGLint bufferSize)
 }
 
 static bool shouldEnableAsyncSwap(const gfxstream::host::FeatureSet& features) {
-    bool isPhone = true;
-    bool playStoreImage = features.PlayStoreImage.enabled;
     return features.GlAsyncSwap.enabled &&
-           gfxstream_sync_device_exists() && (isPhone || playStoreImage) &&
+           gfxstream_sync_device_exists() &&
            sizeof(void*) == 8;
 }
 

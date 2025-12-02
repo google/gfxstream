@@ -202,12 +202,6 @@ struct FeatureSet {
         "upon receiving resource clean up commands.",
         &map,
     };
-    FeatureInfo PlayStoreImage = {
-        "PlayStoreImage",
-        "If enabled, the guest image is using the play store image which has "
-        "additional requirements.",
-        &map,
-    };
     FeatureInfo RefCountPipe = {
         "RefCountPipe",
         "If enabled, resources are referenced counted via a specific pipe "
