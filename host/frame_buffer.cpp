@@ -4078,34 +4078,35 @@ void FrameBuffer::Impl::createEmulatedEglFenceSync(EGLenum type, int destroyWhen
         *outSyncThread = reinterpret_cast<uint64_t>(SyncThread::get());
     }
 
-    if (!m_emulationGl) {
-        // Avoid spamming the logs
-        // TODO(b/442393728): avoid calls to this function in GuestAngle mode
-        static bool logged_once = false;
-        if (!logged_once) {
-            GFXSTREAM_WARNING("%s is called in vulkan-only mode.", __PRETTY_FUNCTION__);
-            logged_once = true;
+    if (m_emulationGl) {
+        // TODO(b/233939967): move RenderThreadInfoGl usage to EmulationGl.
+        RenderThreadInfoGl* const info = RenderThreadInfoGl::get();
+        if (!info) {
+            GFXSTREAM_FATAL("RenderThreadGL not available.");
         }
-        return;
-    }
+        if (!info->currContext) {
+            uint32_t syncContext;
+            uint32_t syncSurface;
+            createTrivialContext(0,  // There is no context to share.
+                                &syncContext, &syncSurface);
+            bindContext(syncContext, syncSurface, syncSurface);
+            // This context is then cleaned up when the render thread exits.
+        }
 
-    // TODO(b/233939967): move RenderThreadInfoGl usage to EmulationGl.
-    RenderThreadInfoGl* const info = RenderThreadInfoGl::get();
-    if (!info) {
-        GFXSTREAM_FATAL("RenderThreadGL not available.");
+        auto sync = m_emulationGl->createEmulatedEglFenceSync(type, destroyWhenSignaled);
+        if (sync && outSync) {
+            *outSync = (uint64_t)(uintptr_t)sync.release();
+        }
     }
-    if (!info->currContext) {
-        uint32_t syncContext;
-        uint32_t syncSurface;
-        createTrivialContext(0,  // There is no context to share.
-                             &syncContext, &syncSurface);
-        bindContext(syncContext, syncSurface, syncSurface);
-        // This context is then cleaned up when the render thread exits.
+    else if (m_emulationVk) {
+        // No-op: compose operations using this callback will be waited on the futures
+        // generated before processing later rc commands. This ensures CPU and GPU
+        // synchronization is established for non-async compose scenarios, where this
+        // codepath is used via HostFrameComposer on non-virtiogpu/minigbm images.
+        // Egl fences are not used on newer images with virtiogpu/minigbm.
     }
-
-    auto sync = m_emulationGl->createEmulatedEglFenceSync(type, destroyWhenSignaled);
-    if (sync && outSync) {
-        *outSync = (uint64_t)(uintptr_t)sync.release();
+    else {
+        GFXSTREAM_FATAL("Unimplemented");
     }
 }
 

@@ -44,6 +44,10 @@
 #include "vulkan/vk_common_operations.h"
 #include "vulkan/vk_decoder_global_state.h"
 
+// defined in guest/goldfish_sync.h
+#define GOLDFISH_SYNC_VULKAN_SEMAPHORE_SYNC 0x00000001
+#define GOLDFISH_SYNC_VULKAN_QSRI 0x00000002
+
 namespace gfxstream {
 namespace host {
 
@@ -311,7 +315,8 @@ static EGLint rcQueryEGLString(EGLenum name, void* buffer, EGLint bufferSize)
 }
 
 static bool shouldEnableAsyncSwap(const gfxstream::host::FeatureSet& features) {
-    return features.GlAsyncSwap.enabled &&
+     return features.GlAsyncSwap.enabled &&
+            !features.VulkanNativeSwapchain.enabled &&
            gfxstream_sync_device_exists() &&
            sizeof(void*) == 8;
 }
@@ -1075,23 +1080,24 @@ static void rcSelectChecksumHelper(uint32_t protocol, uint32_t reserved) {
 static void rcTriggerWait(uint64_t eglsync_ptr,
                           uint64_t thread_ptr,
                           uint64_t timeline) {
-    if (thread_ptr == 1) {
+    if (thread_ptr == GOLDFISH_SYNC_VULKAN_SEMAPHORE_SYNC) {
         // Is vulkan sync fd;
         // just signal right away for now
-        EGLSYNC_DPRINT("vkFence=0x%llx timeline=0x%llx", eglsync_ptr,
+        EGLSYNC_DPRINT("GOLDFISH_SYNC_VULKAN_SEMAPHORE_SYNC - vkFence=0x%llx timeline=0x%llx", eglsync_ptr,
                        thread_ptr, timeline);
         SyncThread::get()->triggerWaitVk(reinterpret_cast<VkFence>(eglsync_ptr),
                                          timeline);
-    } else if (thread_ptr == 2) {
-        EGLSYNC_DPRINT("vkFence=0x%llx timeline=0x%llx", eglsync_ptr,
+    } else if (thread_ptr == GOLDFISH_SYNC_VULKAN_QSRI) {
+        EGLSYNC_DPRINT("GOLDFISH_SYNC_VULKAN_QSRI - VkImage=0x%llx timeline=0x%llx", eglsync_ptr,
                        thread_ptr, timeline);
         SyncThread::get()->triggerWaitVkQsri(reinterpret_cast<VkImage>(eglsync_ptr), timeline);
     } else {
         EmulatedEglFenceSync* fenceSync = EmulatedEglFenceSync::getFromHandle(eglsync_ptr);
         FrameBuffer* fb = FrameBuffer::getFB();
         if (fb && fenceSync && fenceSync->isCompositionFence()) {
-            fb->scheduleVsyncTask([eglsync_ptr, fenceSync, timeline](uint64_t) {
+            fb->scheduleVsyncTask([eglsync_ptr, fenceSync, timeline, thread_ptr](uint64_t) {
                 (void)eglsync_ptr;
+                (void)thread_ptr;
                 EGLSYNC_DPRINT(
                     "vsync: eglsync=0x%llx fenceSync=%p thread_ptr=0x%llx "
                     "timeline=0x%llx",
@@ -1134,7 +1140,7 @@ static void rcCreateSyncKHR(EGLenum type,
                                    outSyncThread);
 
     RenderThreadInfo* tInfo = RenderThreadInfo::get();
-    if (tInfo && outSync && shouldEnableVsyncGatedSyncFences(fb->getFeatures())) {
+    if (fb->hasEmulationGl() && tInfo && outSync && shouldEnableVsyncGatedSyncFences(fb->getFeatures())) {
         auto fenceSync = reinterpret_cast<EmulatedEglFenceSync*>(outSync);
         fenceSync->setIsCompositionFence(tInfo->m_isCompositionThread);
     }
