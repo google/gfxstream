@@ -303,6 +303,33 @@ std::optional<GfxstreamFormat> GetGfxstreamFormat(
     }
 }
 
+static std::optional<std::array<float, 16>> GetColorTransform(uint32_t displayId = 0) {
+    float displayColorTransformData[16];
+    if (get_gfxstream_multi_display_operations().get_color_transform_matrix(
+            displayId, displayColorTransformData)) {
+        return std::nullopt;
+    }
+
+    // Only set it if not identity to allow faster codepaths
+    bool isIdentity = true;
+    const float eps = 1e-6f;
+    for(int i = 0; i < 16; i++) {
+        const float expected = (i % 5 == 0) ? 1.0f : 0.0f;
+        if (std::abs(displayColorTransformData[i] - expected) > eps) {
+            isIdentity = false;
+            break;
+        }
+    }
+    if (isIdentity) {
+        return std::nullopt;
+    }
+
+    std::array<float, 16> matrix;
+    std::copy(std::begin(displayColorTransformData), std::end(displayColorTransformData),
+                std::begin(matrix));
+    return matrix;
+}
+
 }  // namespace
 
 static HandleType sNextHandle = 0;
@@ -2527,7 +2554,7 @@ AsyncResult FrameBuffer::Impl::postImpl(HandleType p_colorbuffer, Post::Completi
         postCmd.cmd = PostCmd::Post;
         postCmd.cb = colorBuffer.get();
         postCmd.cbHandle = p_colorbuffer;
-        postCmd.colorTransform = Post::GetColorTransform();
+        postCmd.colorTransform = GetColorTransform();
         postCmd.completionCallback = std::make_unique<Post::CompletionCallback>(callback);
         sendPostWorkerCmd(std::move(postCmd));
         ret = AsyncResult::OK_AND_CALLBACK_SCHEDULED;
@@ -2838,7 +2865,7 @@ int FrameBuffer::Impl::getScreenshot(unsigned int nChannels, unsigned int* width
     scrCmd.screenshot.pixelsFormat = format;
     scrCmd.screenshot.pixels = pixels;
     scrCmd.screenshot.rect = rect;
-    scrCmd.colorTransform = Post::GetColorTransform();
+    scrCmd.colorTransform = GetColorTransform();
 
     std::future<void> completeFuture = sendPostWorkerCmd(std::move(scrCmd));
 

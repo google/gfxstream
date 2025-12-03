@@ -76,33 +76,6 @@ struct Post {
             Rect rect;
         } screenshot;
     };
-
-    static std::optional<std::array<float, 16>> GetColorTransform(uint32_t displayId = 0) {
-        float displayColorTransformData[16];
-        if (get_gfxstream_multi_display_operations().get_color_transform_matrix(
-                displayId, displayColorTransformData)) {
-            return std::nullopt;
-        }
-
-        // Only set it if not identity to allow faster codepaths
-        bool isIdentity = true;
-        const float eps = 1e-6f;
-        for(int i = 0; i < 16; i++) {
-            const float expected = (i % 5 == 0) ? 1.0f : 0.0f;
-            if (std::abs(displayColorTransformData[i] - expected) > eps) {
-                isIdentity = false;
-                break;
-            }
-        }
-        if (isIdentity) {
-            return std::nullopt;
-        }
-
-        std::array<float, 16> matrix;
-        std::copy(std::begin(displayColorTransformData), std::end(displayColorTransformData),
-                  std::begin(matrix));
-        return matrix;
-    }
 };
 
 }  // namespace host
