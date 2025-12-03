@@ -76,6 +76,7 @@ cc_library(
         "//host/gl/glestranslator/egl:gfxstream_glestranslator_egl_translator",
         "//host/gl/glestranslator/egl:gfxstream_glestranslator_egl_translator_headers",
         "//host/gl/glsnapshot:gfxstream_glsnapshot",
+        "//third_party/glm",
         "//third_party/opengl:gfxstream_egl_headers",
         "//third_party/opengl:gfxstream_gles2_headers",
         "//third_party/opengl:gfxstream_gles3_headers",
