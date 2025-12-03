@@ -53,6 +53,7 @@ jobs:
           --test_output=streamed \
           --verbose_failures \
           host:gfxstream_framebuffer_tests \
+          host/vulkan:gfxstream_compositorvk_tests \
           host/vulkan:gfxstream_emulatedphysicalmemory_tests \
           tests/end2end:gfxstream_end2end_tests
   run-gfxstream-bazel-end2end-tests-arm:
