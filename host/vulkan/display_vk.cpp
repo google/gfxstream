@@ -446,7 +446,45 @@ DisplayVk::PostResult DisplayVk::postImpl(
 
     CompositorVkBase::ImmediateModeResources* imResources =
         m_compositorVk ? m_compositorVk->acquireImmediateModeResources() : nullptr;
-    const bool useBlit = !imResources || (rotationDegrees == 0 && !colorTransform.has_value());
+
+    CompositorVk::ImageDrawParams drawParams = {
+        .commandBuffer = cmdBuff,
+        .targetFormat = m_swapChainStateVk->getFormat(),
+        .targetWidth = swapchainImageExtent.width,
+        .targetHeight = swapchainImageExtent.height,
+        .targetRenderPass = currentSwapchainRenderpass,
+        .targetFramebuffer = currentSwapchainFramebuffer,
+        .frameResources = imResources,
+        .rotationDegrees = rotationDegrees,
+        .useScreenBlend = false,
+        .colorTransform = std::nullopt,
+    };
+
+    bool renderBackground = imResources && m_compositorVk->hasScreenBackground();
+    if (renderBackground) {
+        if (currentSwapchainLayout != VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
+            VkImageMemoryBarrier transitionSwapchainToAttachmentBarrier = {
+                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                .srcAccessMask = curSrcAccessMask,
+                .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+                .oldLayout = currentSwapchainLayout,
+                .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .image = currentSwapchainImage,
+                .subresourceRange = subresourceRange,
+            };
+            m_vk.vkCmdPipelineBarrier(cmdBuff, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                                    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0,
+                                    nullptr, 1, &transitionSwapchainToAttachmentBarrier);
+            currentSwapchainLayout = transitionSwapchainToAttachmentBarrier.newLayout;
+            curSrcAccessMask = transitionSwapchainToAttachmentBarrier.dstAccessMask;
+        }
+
+        m_compositorVk->drawScreenBackground(drawParams);
+    }
+    const bool useBlit = !imResources || (rotationDegrees == 0 && !colorTransform.has_value() &&
+                                          !renderBackground);
 
     if (useBlit) {
         // Use vkCmdBlitImage to post the image
@@ -513,28 +551,28 @@ DisplayVk::PostResult DisplayVk::postImpl(
                             currentSwapchainImage, currentSwapchainLayout, 1, &region, filter);
     } else {
         // Use immediate drawImage call to render the image
-        VkImageMemoryBarrier transitionSwapchainToAttachmentBarrier = {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            .srcAccessMask = curSrcAccessMask,
-            .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-            .oldLayout = currentSwapchainLayout,
-            .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .image = currentSwapchainImage,
-            .subresourceRange = subresourceRange,
-        };
-        m_vk.vkCmdPipelineBarrier(cmdBuff, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                                  VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0,
-                                  nullptr, 1, &transitionSwapchainToAttachmentBarrier);
-        currentSwapchainLayout = transitionSwapchainToAttachmentBarrier.newLayout;
-        curSrcAccessMask = transitionSwapchainToAttachmentBarrier.dstAccessMask;
+        if (currentSwapchainLayout != VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
+            VkImageMemoryBarrier transitionSwapchainToAttachmentBarrier = {
+                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                .srcAccessMask = curSrcAccessMask,
+                .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+                .oldLayout = currentSwapchainLayout,
+                .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .image = currentSwapchainImage,
+                .subresourceRange = subresourceRange,
+            };
+            m_vk.vkCmdPipelineBarrier(cmdBuff, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                                      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr,
+                                      0, nullptr, 1, &transitionSwapchainToAttachmentBarrier);
+            currentSwapchainLayout = transitionSwapchainToAttachmentBarrier.newLayout;
+            curSrcAccessMask = transitionSwapchainToAttachmentBarrier.dstAccessMask;
+        }
 
-        m_compositorVk->drawImage(cmdBuff, m_swapChainStateVk->getFormat(),
-                                  swapchainImageExtent.width, swapchainImageExtent.height,
-                                  currentSwapchainRenderpass, currentSwapchainFramebuffer,
-                                  imResources, sourceImageInfoVk->imageView, rotationDegrees,
-                                  colorTransform);
+        drawParams.useScreenBlend = renderBackground;
+        drawParams.colorTransform = colorTransform;
+        m_compositorVk->drawImage(drawParams, sourceImageInfoVk->imageView);
     }
 
     // Render screen mask overlay
@@ -558,10 +596,9 @@ DisplayVk::PostResult DisplayVk::postImpl(
             curSrcAccessMask = transitionSwapchainToAttachmentBarrier.dstAccessMask;
         }
 
-        m_compositorVk->drawScreenMask(cmdBuff, m_swapChainStateVk->getFormat(),
-                                       swapchainImageExtent.width, swapchainImageExtent.height,
-                                       currentSwapchainRenderpass, currentSwapchainFramebuffer,
-                                       imResources, rotationDegrees);
+        drawParams.useScreenBlend = false;
+        drawParams.colorTransform = std::nullopt;
+        m_compositorVk->drawScreenMask(drawParams);
     }
 
     VkImageMemoryBarrier releaseSwapchainImageBarrier = {

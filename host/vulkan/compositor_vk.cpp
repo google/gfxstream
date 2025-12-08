@@ -288,7 +288,7 @@ void CompositorVk::setUpGraphicsPipeline(const VkShaderModule vertShaderMod,
         .alphaToOneEnable = VK_FALSE,
     };
 
-    const VkPipelineColorBlendAttachmentState colorBlendAttachment = {
+    const VkPipelineColorBlendAttachmentState alphaBlendAttachment = {
         .blendEnable = VK_TRUE,
         .srcColorBlendFactor = VK_BLEND_FACTOR_ONE,
         .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
@@ -300,11 +300,22 @@ void CompositorVk::setUpGraphicsPipeline(const VkShaderModule vertShaderMod,
                           VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
     };
 
-    const VkPipelineColorBlendStateCreateInfo colorBlendStateCi = {
+    const VkPipelineColorBlendAttachmentState screenBlendAttachment = {
+        .blendEnable = VK_TRUE,
+        .srcColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR,
+        .dstColorBlendFactor = VK_BLEND_FACTOR_ONE,
+        .colorBlendOp = VK_BLEND_OP_ADD,
+        .srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
+        .dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+        .alphaBlendOp = VK_BLEND_OP_ADD,
+        .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+                          VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+    };
+    VkPipelineColorBlendStateCreateInfo colorBlendStateCi = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
         .logicOpEnable = VK_FALSE,
         .attachmentCount = 1,
-        .pAttachments = &colorBlendAttachment,
+        .pAttachments = nullptr, // to be filled below
     };
 
     const VkDynamicState dynamicStates[] = {
@@ -339,15 +350,21 @@ void CompositorVk::setUpGraphicsPipeline(const VkShaderModule vertShaderMod,
     for (GfxstreamFormat renderTargetFormat : kRenderTargetFormats) {
         graphicsPipelineCi.renderPass = m_vkRenderPasses[renderTargetFormat];
 
-        VkPipeline pipeline = VK_NULL_HANDLE;
-        VK_CHECK(m_vk.vkCreateGraphicsPipelines(m_vkDevice, VK_NULL_HANDLE, 1, &graphicsPipelineCi,
-                                                nullptr, &pipeline));
+        for (int blend = 0; blend < 2; blend++) {
+            colorBlendStateCi.pAttachments =
+                (blend == 1) ? &screenBlendAttachment : &alphaBlendAttachment;
 
-        GraphicsPipelineKey key = {
-            .renderTargetFormat = renderTargetFormat,
-            .sampledImageFormat = sampledImageFormat,
-        };
-        m_vkGraphicsVkPipelines[key] = pipeline;
+            VkPipeline pipeline = VK_NULL_HANDLE;
+            VK_CHECK(m_vk.vkCreateGraphicsPipelines(m_vkDevice, VK_NULL_HANDLE, 1,
+                                                    &graphicsPipelineCi, nullptr, &pipeline));
+
+            GraphicsPipelineKey key = {
+                .renderTargetFormat = renderTargetFormat,
+                .sampledImageFormat = sampledImageFormat,
+                .screenBlend = (blend == 1),
+            };
+            m_vkGraphicsVkPipelines[key] = pipeline;
+        }
     }
 }
 
@@ -1238,6 +1255,7 @@ void CompositorVk::buildCompositionVk(const CompositionRequest& compositionReque
             .renderTargetFormat = targetImage->imageFormat,
             // Undefined means non non-ycbcr.
             .sampledImageFormat = GfxstreamFormat::UNKNOWN,
+            .screenBlend = false,
         };
 
         if (layer.props.composeMode == HWC2_COMPOSITION_SOLID_COLOR) {
@@ -1642,42 +1660,27 @@ void CompositorVk::updateDescriptorSetsIfChanged(
     frameResources->m_vkDescriptorSetsContents = descriptorSetsContents;
 }
 
-void CompositorVk::drawScreenMask(VkCommandBuffer commandBuffer, VkFormat targetFormat,
-                                  uint32_t targetWidth, uint32_t targetHeight,
-                                  VkRenderPass targetRenderPass, VkFramebuffer targetFramebuffer,
-                                  ImmediateModeResources* frameResources, float rotationDegrees) {
+void CompositorVk::drawScreenMask(const ImageDrawParams& params) {
     std::lock_guard<std::mutex> lock(mScreenImagesMutex);
     if (!hasScreenMask()) {
         return;
     }
 
-    drawImage(commandBuffer, targetFormat, targetWidth, targetHeight, targetRenderPass,
-              targetFramebuffer, frameResources, m_screenMaskImage.m_vkImageView, rotationDegrees);
+    drawImage(params, m_screenMaskImage.m_vkImageView);
 }
 
-void CompositorVk::drawScreenBackground(VkCommandBuffer commandBuffer, VkFormat targetFormat,
-                                        uint32_t targetWidth, uint32_t targetHeight,
-                                        VkRenderPass targetRenderPass,
-                                        VkFramebuffer targetFramebuffer,
-                                        ImmediateModeResources* frameResources,
-                                        float rotationDegrees) {
+void CompositorVk::drawScreenBackground(const ImageDrawParams& params) {
     std::lock_guard<std::mutex> lock(mScreenImagesMutex);
     if (!hasScreenBackground()) {
         return;
     }
 
-    drawImage(commandBuffer, targetFormat, targetWidth, targetHeight, targetRenderPass,
-              targetFramebuffer, frameResources, m_screenBackgroundImage.m_vkImageView,
-              rotationDegrees);
+    drawImage(params, m_screenBackgroundImage.m_vkImageView);
 }
 
-void CompositorVk::drawImage(VkCommandBuffer commandBuffer, VkFormat targetFormatVk,
-                             uint32_t targetWidth, uint32_t targetHeight,
-                             VkRenderPass targetRenderPass, VkFramebuffer targetFramebuffer,
-                             ImmediateModeResources* frameResources, VkImageView imageView,
-                             float rotationDegrees,
-                             const std::optional<std::array<float, 16>>& colorTransform) {
-    if (frameResources->m_curDataIndex >= kMaxImmediateDrawsPerFrame) {
+void CompositorVk::drawImage(const ImageDrawParams& params, VkImageView imageView) {
+    if (!params.frameResources ||
+        params.frameResources->m_curDataIndex >= kMaxImmediateDrawsPerFrame) {
         GFXSTREAM_ERROR("CompositorVk::%s Requested too many immediate mode draws", __func__);
         return;
     }
@@ -1685,9 +1688,9 @@ void CompositorVk::drawImage(VkCommandBuffer commandBuffer, VkFormat targetForma
     // If a screen mask is set, add another layer to draw the mask image
     const YuvOrDefaultGfxstreamFormat sampledImageFormat;
 
-    auto targetFormatOpt = ToGfxstreamFormat(targetFormatVk);
+    auto targetFormatOpt = ToGfxstreamFormat(params.targetFormat);
     if (!targetFormatOpt) {
-        GFXSTREAM_FATAL("Failed to convert format %s.", string_VkFormat(targetFormatVk));
+        GFXSTREAM_FATAL("Failed to convert format %s.", string_VkFormat(params.targetFormat));
         return;
     }
     const GfxstreamFormat targetFormat = *targetFormatOpt;
@@ -1695,6 +1698,7 @@ void CompositorVk::drawImage(VkCommandBuffer commandBuffer, VkFormat targetForma
     const GraphicsPipelineKey graphicsPipelineKey = {
         .renderTargetFormat = targetFormat,
         .sampledImageFormat = sampledImageFormat,
+        .screenBlend = params.useScreenBlend,
     };
     auto pipelineIt = m_vkGraphicsVkPipelines.find(graphicsPipelineKey);
     if (pipelineIt == m_vkGraphicsVkPipelines.end()) {
@@ -1709,29 +1713,29 @@ void CompositorVk::drawImage(VkCommandBuffer commandBuffer, VkFormat targetForma
     }
 
     VkDescriptorSet descriptorSet =
-        frameResources->m_descriptorSets[frameResources->m_curDataIndex];
+        params.frameResources->m_descriptorSets[params.frameResources->m_curDataIndex];
     UniformBufferBinding* uboStorage =
-        frameResources->m_uboStorages[frameResources->m_curDataIndex];
-    frameResources->m_curDataIndex++;
+        params.frameResources->m_uboStorages[params.frameResources->m_curDataIndex];
+    params.frameResources->m_curDataIndex++;
 
     // Determine the texture coordinate translation to ensure clamped texture addressing will work
     float texCoordTranslateX = 0;
     float texCoordTranslateY = 0;
     const float epsilon = 1e-5;
-    if (fabsf(rotationDegrees) <= epsilon) {
+    if (fabsf(params.rotationDegrees) <= epsilon) {
         // HWC_TRANSFORM_NONE
-    } else if (fabsf(rotationDegrees - 90.0f) <= epsilon) {
+    } else if (fabsf(params.rotationDegrees - 90.0f) <= epsilon) {
         // HWC_TRANSFORM_ROT_90
         texCoordTranslateY = 1.0f;
-    } else if (fabsf(rotationDegrees - 180.0f) <= epsilon) {
+    } else if (fabsf(params.rotationDegrees - 180.0f) <= epsilon) {
         // HWC_TRANSFORM_ROT_180
         texCoordTranslateX = 1.0f;
         texCoordTranslateY = 1.0f;
-    } else if (fabsf(rotationDegrees - 270.0f) <= epsilon) {
+    } else if (fabsf(params.rotationDegrees - 270.0f) <= epsilon) {
         // HWC_TRANSFORM_ROT_270
         texCoordTranslateX = 1.0f;
     } else {
-        GFXSTREAM_WARNING("Unsupported rotation value: %.3f", rotationDegrees);
+        GFXSTREAM_WARNING("Unsupported rotation value: %.3f", params.rotationDegrees);
     }
 
     const float pi = glm::pi<float>();
@@ -1739,14 +1743,14 @@ void CompositorVk::drawImage(VkCommandBuffer commandBuffer, VkFormat targetForma
         .positionTransform = glm::mat4(1.0f),
         .texCoordTransform = glm::translate(glm::mat4(1.0f), glm::vec3(texCoordTranslateX,
                                                                        texCoordTranslateY, 0.0f)) *
-                             glm::rotate(glm::mat4(1.0f), (rotationDegrees * pi) / 180.0f,
+                             glm::rotate(glm::mat4(1.0f), (params.rotationDegrees * pi) / 180.0f,
                                          glm::vec3(0.0f, 0.0f, -1.0f)),
         .colorTransform = glm::mat4(1.0f),
         .mode = glm::uvec4(static_cast<uint32_t>(HWC2_COMPOSITION_DEVICE), 1.0f, 0, 0),
         .alpha = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),
     };
-    if (colorTransform.has_value()) {
-        const std::array<float, 16>& matrix = colorTransform.value();
+    if (params.colorTransform.has_value()) {
+        const std::array<float, 16>& matrix = params.colorTransform.value();
         uboContents.colorTransform = glm::mat4(matrix[0], matrix[1], matrix[2], matrix[3],    //
                                                matrix[4], matrix[5], matrix[6], matrix[7],    //
                                                matrix[8], matrix[9], matrix[10], matrix[11],  //
@@ -1795,8 +1799,8 @@ void CompositorVk::drawImage(VkCommandBuffer commandBuffer, VkFormat targetForma
 
     const VkRenderPassBeginInfo renderPassBeginInfo = {
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-        .renderPass = targetRenderPass,
-        .framebuffer = targetFramebuffer,
+        .renderPass = params.targetRenderPass,
+        .framebuffer = params.targetFramebuffer,
         .renderArea =
             {
                 .offset =
@@ -1806,8 +1810,8 @@ void CompositorVk::drawImage(VkCommandBuffer commandBuffer, VkFormat targetForma
                     },
                 .extent =
                     {
-                        .width = targetWidth,
-                        .height = targetHeight,
+                        .width = params.targetWidth,
+                        .height = params.targetHeight,
                     },
             },
         .clearValueCount = 0,
@@ -1822,19 +1826,20 @@ void CompositorVk::drawImage(VkCommandBuffer commandBuffer, VkFormat targetForma
             },
         .extent =
             {
-                .width = targetWidth,
-                .height = targetHeight,
+                .width = params.targetWidth,
+                .height = params.targetHeight,
             },
     };
     const VkViewport viewport = {
         .x = 0.0f,
         .y = 0.0f,
-        .width = static_cast<float>(targetWidth),
-        .height = static_cast<float>(targetHeight),
+        .width = static_cast<float>(params.targetWidth),
+        .height = static_cast<float>(params.targetHeight),
         .minDepth = 0.0f,
         .maxDepth = 1.0f,
     };
 
+    VkCommandBuffer commandBuffer = params.commandBuffer;
     m_vk.vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
     const VkDeviceSize offsets[] = {0};

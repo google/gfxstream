@@ -106,10 +106,12 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
     struct GraphicsPipelineKey {
         GfxstreamFormat renderTargetFormat;
         YuvOrDefaultGfxstreamFormat sampledImageFormat;
+        bool screenBlend;
 
         bool operator==(const GraphicsPipelineKey& other) const {
             return renderTargetFormat == other.renderTargetFormat &&
-                   sampledImageFormat == other.sampledImageFormat;
+                   sampledImageFormat == other.sampledImageFormat &&
+                   screenBlend == other.screenBlend;
         }
     };
     struct GraphicsPipelineHash {
@@ -284,19 +286,22 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
     bool hasScreenMask() const { return (m_screenMaskImage.m_vkImage != VK_NULL_HANDLE); }
     bool hasScreenBackground() const { return (m_screenBackgroundImage.m_vkImage != VK_NULL_HANDLE); }
 
-    void drawScreenMask(VkCommandBuffer commandBuffer, VkFormat targetFormat, uint32_t targetWidth,
-                        uint32_t targetHeight, VkRenderPass targetRenderPass,
-                        VkFramebuffer targetFramebuffer, ImmediateModeResources* frameResources,
-                        float rotationDegrees);
-    void drawScreenBackground(VkCommandBuffer commandBuffer, VkFormat targetFormat, uint32_t targetWidth,
-                        uint32_t targetHeight, VkRenderPass targetRenderPass,
-                        VkFramebuffer targetFramebuffer, ImmediateModeResources* frameResources,
-                        float rotationDegrees);
-    void drawImage(VkCommandBuffer commandBuffer, VkFormat targetFormat, uint32_t targetWidth,
-                   uint32_t targetHeight, VkRenderPass targetRenderPass,
-                   VkFramebuffer targetFramebuffer, ImmediateModeResources* frameResources,
-                   VkImageView imageView, float rotationDegrees,
-                   const std::optional<std::array<float, 16>>& colorTransform = std::nullopt);
+    struct ImageDrawParams {
+        VkCommandBuffer commandBuffer;
+        VkFormat targetFormat;
+        uint32_t targetWidth;
+        uint32_t targetHeight;
+        VkRenderPass targetRenderPass;
+        VkFramebuffer targetFramebuffer;
+        ImmediateModeResources* frameResources;
+        float rotationDegrees = 0.0f;
+        bool useScreenBlend = false;
+        std::optional<std::array<float, 16>> colorTransform;
+    };
+
+    void drawScreenMask(const ImageDrawParams& params);
+    void drawScreenBackground(const ImageDrawParams& params);
+    void drawImage(const ImageDrawParams& params, VkImageView imageView);
 
     ImmediateModeResources* acquireImmediateModeResources();
     void releaseImmediateModeResources(ImmediateModeResources* frameResources);

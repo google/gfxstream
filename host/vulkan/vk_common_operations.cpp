@@ -3685,9 +3685,19 @@ bool VkEmulation::readColorBufferPixelsScaledGpu(uint32_t colorBufferHandle, int
     }
 
     // 2. Call m_compositorVk->drawImage for the transformation.
-    mCompositorVk->drawImage(mCommandBuffer, VK_FORMAT_R8G8B8A8_UNORM, pixelsWidth, pixelsHeight,
-                             tempRenderPass, tempFramebuffer, imResources, sourceCbInfo->imageView,
-                             rotationToDegrees(pixelsRotation), colorTransform);
+    CompositorVk::ImageDrawParams drawParams = {
+        .commandBuffer = mCommandBuffer,
+        .targetFormat = VK_FORMAT_R8G8B8A8_UNORM,
+        .targetWidth = (uint32_t)pixelsWidth,
+        .targetHeight = (uint32_t)pixelsHeight,
+        .targetRenderPass = tempRenderPass,
+        .targetFramebuffer = tempFramebuffer,
+        .frameResources = imResources,
+        .rotationDegrees = rotationToDegrees(pixelsRotation),
+        .useScreenBlend = false,
+        .colorTransform = colorTransform,
+    };
+    mCompositorVk->drawImage(drawParams, sourceCbInfo->imageView);
 
     // 3. Perform GPU-side readback from tempImage to staging buffer.
     mDebugUtilsHelper.cmdBeginDebugLabel(mCommandBuffer, "readColorBufferPixelsScaledGpu_Readback");
