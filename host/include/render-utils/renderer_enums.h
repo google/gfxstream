@@ -18,12 +18,14 @@
 extern "C" {
 #endif
 
+// Must match with EmulatorRenderer in studio_stats.proto
+// TODO(b/462074009): remove static_cast at toClearcutLogEmulatorRenderer
 typedef enum SelectedRenderer {
     SELECTED_RENDERER_UNKNOWN = 0,
     SELECTED_RENDERER_HOST = 1,
     SELECTED_RENDERER_OFF_DEPRECATED = 2,
     SELECTED_RENDERER_GUEST_DEPRECATED = 3,
-    SELECTED_RENDERER_MES_DEPRECATED = 4,
+    SELECTED_RENDERER_MESA_DEPRECATED = 4,
     SELECTED_RENDERER_SWIFTSHADER_DEPRECATED = 5,
     SELECTED_RENDERER_ANGLE_DEPRECATED = 6,   // ANGLE D3D11 with D3D9 fallback
     SELECTED_RENDERER_ANGLE9_DEPRECATED = 7,  // ANGLE forced to D3D9
