@@ -18,8 +18,6 @@
 extern "C" {
 #endif
 
-// Must match with EmulatorRenderer in studio_stats.proto
-// TODO(b/462074009): remove static_cast at toClearcutLogEmulatorRenderer
 typedef enum SelectedRenderer {
     SELECTED_RENDERER_UNKNOWN = 0,
     SELECTED_RENDERER_HOST = 1,
