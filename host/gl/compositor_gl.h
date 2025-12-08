@@ -37,6 +37,7 @@ class CompositorGl : public Compositor {
     CompositionFinishedWaitable compose(const CompositionRequest& compositionRequest) override;
 
     void setScreenMask(int width, int height, const uint8_t* rgbaData) override;
+    void setScreenBackground(int width, int height, const uint8_t* rgbaData) override;
 
   private:
     GLuint m_composeFbo = 0;

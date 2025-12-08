@@ -149,8 +149,9 @@ struct CompositorVkBase : public vk_util::MultiCrtp<CompositorVkBase,         //
 
     Image m_defaultImage;
 
-    std::mutex mScreenMaskMutex;
+    std::mutex mScreenImagesMutex;
     Image m_screenMaskImage;
+    Image m_screenBackgroundImage;
 
     // The underlying storage for all of the uniform buffer objects.
     struct UniformBufferStorage {
@@ -271,6 +272,7 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
     CompositionFinishedWaitable compose(const CompositionRequest& compositionRequest) override;
 
     void setScreenMask(int width, int height, const uint8_t* rgbaData) override;
+    void setScreenBackground(int width, int height, const uint8_t* rgbaData) override;
 
     void onImageDestroyed(uint32_t imageId) override;
 
@@ -280,12 +282,13 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
 
     // Check if a screen mask image has been set for the final composition
     bool hasScreenMask() const { return (m_screenMaskImage.m_vkImage != VK_NULL_HANDLE); }
-
-    VkImageView getScreenMaskView() const {
-        return m_screenMaskImage.m_vkImageView;
-    }
+    bool hasScreenBackground() const { return (m_screenBackgroundImage.m_vkImage != VK_NULL_HANDLE); }
 
     void drawScreenMask(VkCommandBuffer commandBuffer, VkFormat targetFormat, uint32_t targetWidth,
+                        uint32_t targetHeight, VkRenderPass targetRenderPass,
+                        VkFramebuffer targetFramebuffer, ImmediateModeResources* frameResources,
+                        float rotationDegrees);
+    void drawScreenBackground(VkCommandBuffer commandBuffer, VkFormat targetFormat, uint32_t targetWidth,
                         uint32_t targetHeight, VkRenderPass targetRenderPass,
                         VkFramebuffer targetFramebuffer, ImmediateModeResources* frameResources,
                         float rotationDegrees);
@@ -293,7 +296,7 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
                    uint32_t targetHeight, VkRenderPass targetRenderPass,
                    VkFramebuffer targetFramebuffer, ImmediateModeResources* frameResources,
                    VkImageView imageView, float rotationDegrees,
-                   const std::optional<std::array<float, 16>>& colorTransform);
+                   const std::optional<std::array<float, 16>>& colorTransform = std::nullopt);
 
     ImmediateModeResources* acquireImmediateModeResources();
     void releaseImmediateModeResources(ImmediateModeResources* frameResources);
@@ -317,6 +320,7 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
     void setUpFences();
     void setUpDefaultImage();
     void setUpScreenMaskImage(uint32_t width, uint32_t height, const uint8_t* rgbaData);
+    void setUpScreenBackgroundImage(uint32_t width, uint32_t height, const uint8_t* rgbaData);
     void setUpFrameResourceFutures();
 
     Image createImage(uint32_t width, uint32_t height, const uint8_t* rgbaData,

@@ -104,7 +104,9 @@ Compositor::CompositionFinishedWaitable CompositorGl::compose(
 void CompositorGl::setScreenMask(int width, int height, const uint8_t* rgbaData) {
     m_textureDraw->setScreenMask(width, height, rgbaData);
 }
-
+void CompositorGl::setScreenBackground(int width, int height, const uint8_t* rgbaData) {
+    m_textureDraw->setScreenBackground(width, height, rgbaData);
+}
 
 }  // namespace gl
 }  // namespace host

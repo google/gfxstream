@@ -189,6 +189,7 @@ CompositorVk::~CompositorVk() {
     }
     destroyImage(m_defaultImage);
     destroyImage(m_screenMaskImage);
+    destroyImage(m_screenBackgroundImage);
     destroyUniformBufferStorage(m_uniformStorage);
 
     m_vk.vkDestroyDescriptorPool(m_vkDevice, m_vkDescriptorPool, nullptr);
@@ -774,10 +775,19 @@ void CompositorVk::setUpDefaultImage() {
 }
 
 void CompositorVk::setUpScreenMaskImage(uint32_t width, uint32_t height, const uint8_t* rgbaData) {
-    std::lock_guard<std::mutex> lock(mScreenMaskMutex);
+    std::lock_guard<std::mutex> lock(mScreenImagesMutex);
     destroyImage(m_screenMaskImage);
     if (rgbaData) {
         m_screenMaskImage = createImage(width, height, rgbaData, "screenMask");
+    }
+}
+
+void CompositorVk::setUpScreenBackgroundImage(uint32_t width, uint32_t height,
+                                              const uint8_t* rgbaData) {
+    std::lock_guard<std::mutex> lock(mScreenImagesMutex);
+    destroyImage(m_screenBackgroundImage);
+    if (rgbaData) {
+        m_screenBackgroundImage = createImage(width, height, rgbaData, "screenBackground");
     }
 }
 
@@ -1547,6 +1557,10 @@ void CompositorVk::setScreenMask(int width, int height, const uint8_t* rgbaData)
     setUpScreenMaskImage(uint32_t(width), uint32_t(height), rgbaData);
 }
 
+void CompositorVk::setScreenBackground(int width, int height, const uint8_t* rgbaData) {
+    setUpScreenBackgroundImage(uint32_t(width), uint32_t(height), rgbaData);
+}
+
 void CompositorVk::onImageDestroyed(uint32_t imageId) { m_renderTargetCache.remove(imageId); }
 
 bool operator==(const CompositorVkBase::DescriptorSetContents& lhs,
@@ -1632,14 +1646,29 @@ void CompositorVk::drawScreenMask(VkCommandBuffer commandBuffer, VkFormat target
                                   uint32_t targetWidth, uint32_t targetHeight,
                                   VkRenderPass targetRenderPass, VkFramebuffer targetFramebuffer,
                                   ImmediateModeResources* frameResources, float rotationDegrees) {
-    std::lock_guard<std::mutex> lock(mScreenMaskMutex);
+    std::lock_guard<std::mutex> lock(mScreenImagesMutex);
     if (!hasScreenMask()) {
         return;
     }
 
     drawImage(commandBuffer, targetFormat, targetWidth, targetHeight, targetRenderPass,
-              targetFramebuffer, frameResources, m_screenMaskImage.m_vkImageView, rotationDegrees,
-              std::nullopt);
+              targetFramebuffer, frameResources, m_screenMaskImage.m_vkImageView, rotationDegrees);
+}
+
+void CompositorVk::drawScreenBackground(VkCommandBuffer commandBuffer, VkFormat targetFormat,
+                                        uint32_t targetWidth, uint32_t targetHeight,
+                                        VkRenderPass targetRenderPass,
+                                        VkFramebuffer targetFramebuffer,
+                                        ImmediateModeResources* frameResources,
+                                        float rotationDegrees) {
+    std::lock_guard<std::mutex> lock(mScreenImagesMutex);
+    if (!hasScreenBackground()) {
+        return;
+    }
+
+    drawImage(commandBuffer, targetFormat, targetWidth, targetHeight, targetRenderPass,
+              targetFramebuffer, frameResources, m_screenBackgroundImage.m_vkImageView,
+              rotationDegrees);
 }
 
 void CompositorVk::drawImage(VkCommandBuffer commandBuffer, VkFormat targetFormatVk,

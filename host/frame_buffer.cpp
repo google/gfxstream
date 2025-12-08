@@ -3750,8 +3750,7 @@ void FrameBuffer::Impl::setScreenMask(int width, int height, const uint8_t* rgba
 }
 
 void FrameBuffer::Impl::setScreenBackground(int width, int height, const uint8_t* rgbaData) {
-    ENSURE_GL_EMULATION_VOID();
-    m_emulationGl->mTextureDraw->setScreenBackground(width, height, rgbaData);
+    m_compositor->setScreenBackground(width, height, rgbaData);
 }
 
 #ifdef CONFIG_AEMU

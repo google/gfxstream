@@ -46,6 +46,7 @@ class Compositor {
     virtual void onImageDestroyed(uint32_t imageId) {}
 
     virtual void setScreenMask(int width, int height, const uint8_t* rgbaData) = 0;
+    virtual void setScreenBackground(int width, int height, const uint8_t* rgbaData) = 0;
 };
 
 }  // namespace host
