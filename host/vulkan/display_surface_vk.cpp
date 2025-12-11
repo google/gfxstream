@@ -43,18 +43,7 @@ std::unique_ptr<DisplaySurfaceVk> DisplaySurfaceVk::create(const VulkanDispatch&
     }
     VK_CHECK(vk.vkCreateWin32SurfaceKHR(instance, &surfaceCi, nullptr, &surface));
 #elif defined(VK_USE_PLATFORM_MACOS_MVK)
-    // TODO(b/389646068): add precondition for enabling vulkan composition path, and handle this
-    // case more gracefully without crashing the emulator
-    if (vk.vkCreateMacOSSurfaceMVK != nullptr) {
-        // Legacy path for MoltenVK, to be removed
-        const VkMacOSSurfaceCreateInfoMVK surfaceCi = {
-            .sType = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK,
-            .pNext = nullptr,
-            .flags = 0,
-            .pView = window,
-        };
-        VK_CHECK(vk.vkCreateMacOSSurfaceMVK(instance, &surfaceCi, nullptr, &surface));
-    } else if (vk.vkCreateMetalSurfaceEXT != nullptr) {
+    if (vk.vkCreateMetalSurfaceEXT != nullptr) {
         const CAMetalLayer* layer = getMetalLayerFromView(window);
         if (!layer) {
             GFXSTREAM_ERROR("Could not get a compatible metal view layer!");
