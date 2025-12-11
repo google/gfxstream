@@ -1819,6 +1819,14 @@ bool FrameBuffer::Impl::setupSubWindow(FBNativeWindowType p_window, int wx, int 
                     clearCmd.cmd = PostCmd::Clear;
                     sendPostWorkerCmd(std::move(clearCmd));
                 }
+            } else {
+                if (m_lastPostedColorBuffer) {
+                    GFXSTREAM_DEBUG("setupSubwindow: draw last posted cb");
+                    postImpl(m_lastPostedColorBuffer,
+                        [](std::shared_future<void> waitForGpu) {
+                            waitForGpu.wait();
+                        }, false);
+                }
             }
             m_windowContentFullWidth = fbw;
             m_windowContentFullHeight = fbh;
