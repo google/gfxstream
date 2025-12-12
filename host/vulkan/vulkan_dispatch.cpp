@@ -122,7 +122,7 @@ static void initIcdPaths(bool forTesting) {
         // Mac: Use MoltenVK by default unless GPU mode is set to swiftshader
         if (androidIcd == "kosmickrisp") {
             gfxstream::base::setEnvironmentVariable("ANDROID_EMU_VK_ICD", "kosmickrisp");
-            setIcdPaths("kosmickrisp_icd.json");
+            setIcdPaths("libkosmickrisp_icd.json");
         } else {
             if (androidIcd != "moltenvk") {
                 GFXSTREAM_WARNING("%s: Unknown ICD (%s), resetting to MoltenVK", __func__,
