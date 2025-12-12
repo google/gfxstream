@@ -9437,7 +9437,30 @@ class VkDecoderGlobalState::Impl {
 
         VkPhysicalDeviceFeatures feature;
         vk->vkGetPhysicalDeviceFeatures(physicalDevice, &feature);
-        return !feature.textureCompressionASTC_LDR;
+        if (!feature.textureCompressionASTC_LDR) {
+            // Feature is not present, emulate
+            return true;
+        }
+
+        // If the feature is present, check if it supports required features
+        // on most commonly used formats.
+        std::vector<VkFormat> formatsToCheck = {
+            VK_FORMAT_ASTC_4x4_UNORM_BLOCK, VK_FORMAT_ASTC_4x4_SRGB_BLOCK,
+            VK_FORMAT_ASTC_6x6_UNORM_BLOCK, VK_FORMAT_ASTC_6x6_SRGB_BLOCK,
+            VK_FORMAT_ASTC_8x8_UNORM_BLOCK, VK_FORMAT_ASTC_8x8_SRGB_BLOCK};
+        const VkFormatFeatureFlags requiredTilingFeatures =
+            VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT;
+        for (auto format : formatsToCheck) {
+            VkFormatProperties props;
+            vk->vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
+
+            if ((props.linearTilingFeatures & requiredTilingFeatures) != requiredTilingFeatures ||
+                (props.optimalTilingFeatures & requiredTilingFeatures) != requiredTilingFeatures) {
+                // Linear tiling is not supported, emulate
+                return true;
+            }
+        }
+        return false;
     }
 
     void getSupportedFenceHandleTypes(VulkanDispatch* vk, VkPhysicalDevice physicalDevice,
