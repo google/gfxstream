@@ -120,9 +120,15 @@ static void initIcdPaths(bool forTesting) {
     } else {
 #ifdef __APPLE__
         // Mac: Use MoltenVK by default unless GPU mode is set to swiftshader
+        const bool verboseLogs =
+            (gfxstream::base::getEnvironmentVariable("ANDROID_EMUGL_VERBOSE") == "1");
         if (androidIcd == "kosmickrisp") {
             gfxstream::base::setEnvironmentVariable("ANDROID_EMU_VK_ICD", "kosmickrisp");
             setIcdPaths("libkosmickrisp_icd.json");
+
+            if (verboseLogs) {
+                gfxstream::base::setEnvironmentVariable("MESA_KK_DEBUG", "1");
+            }
         } else {
             if (androidIcd != "moltenvk") {
                 GFXSTREAM_WARNING("%s: Unknown ICD (%s), resetting to MoltenVK", __func__,
@@ -136,8 +142,6 @@ static void initIcdPaths(bool forTesting) {
             // 2: Log errors and warning messages.
             // 3: Log errors, warnings and informational messages.
             // 4: Log errors, warnings, infos and debug messages.
-            const bool verboseLogs =
-                (gfxstream::base::getEnvironmentVariable("ANDROID_EMUGL_VERBOSE") == "1");
             const char* logLevelValue = verboseLogs ? "4" : "1";
             gfxstream::base::setEnvironmentVariable("MVK_CONFIG_LOG_LEVEL", logLevelValue);
 
