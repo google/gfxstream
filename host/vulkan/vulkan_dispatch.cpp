@@ -81,6 +81,7 @@ static void setIcdPaths(const std::string& icdFilename) {
 static void initIcdPaths(bool forTesting) {
     auto androidIcd = gfxstream::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD");
 
+#ifdef CONFIG_AEMU
     if (forTesting) {
 #if defined(__APPLE__) && !defined(__arm64__) || defined(__WIN32__)
         const char* testingICD = "swiftshader";
@@ -97,7 +98,9 @@ static void initIcdPaths(bool forTesting) {
         }
         gfxstream::base::setEnvironmentVariable("ANDROID_EMU_VK_ICD", testingICD);
         androidIcd = testingICD;
-    } else if (androidIcd == "") {
+    } else
+#endif
+    if (androidIcd == "") {
         // Rely on user to set VK_DRIVER_FILES
         return;
     }
