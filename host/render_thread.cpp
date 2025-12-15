@@ -405,7 +405,6 @@ intptr_t RenderThread::main() {
                 GFXSTREAM_INFO("Used Bandwidth %5.3f MB/s, time in progress %f ms total %f ms\n",
                                ((float)stats_totalBytes / dts) / (1024.0f * 1024.0f),
                                stats_progressTimeUs / 1000.0f, (float)dt);
-                readBuf.printStats();
                 stats_t0 = gfxstream::base::getHighResTimeUs() / 1000;
                 stats_progressTimeUs = 0;
                 stats_totalBytes = 0;

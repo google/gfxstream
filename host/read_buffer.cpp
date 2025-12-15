@@ -131,10 +131,5 @@ void ReadBuffer::onLoad(gfxstream::Stream* stream) {
     stream->read(m_readPtr, m_validData);
 }
 
-void ReadBuffer::printStats() {
-    GFXSTREAM_INFO("ReadBuffer::%s: tail move time %f ms\n", __func__,
-            (float)m_tailMoveTimeUs / 1000.0f);
-    m_tailMoveTimeUs = 0;
-}
 }  // namespace host
 }  // namespace gfxstream

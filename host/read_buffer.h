@@ -34,15 +34,12 @@ public:
 
     void onLoad(gfxstream::Stream* stream);
     void onSave(gfxstream::Stream* stream);
-
-    void printStats();
 private:
     unsigned char *m_buf;
     unsigned char *m_readPtr;
     size_t m_size;
     size_t m_validData;
 
-    uint64_t m_tailMoveTimeUs = 0;
     size_t m_neededFreeTailSize = 0;
 };
 
