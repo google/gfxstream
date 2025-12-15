@@ -42,7 +42,9 @@ const char* ExternalMemory::to_string(const ExternalMemory::Mode mode) {
     return "Unhandled";
 }
 
-ExternalMemory::Mode ExternalMemory::calculateMode(std::vector<VkExtensionProperties>& deviceExts) {
+ExternalMemory::Mode ExternalMemory::calculateMode(
+    const std::vector<VkExtensionProperties>& deviceExts,
+    const VkPhysicalDeviceMemoryProperties& memoryProps) {
 #if defined(_WIN32)
     std::array<Mode, 2> supportedModes = {
         Mode::OpaqueWin32,
@@ -69,9 +71,20 @@ ExternalMemory::Mode ExternalMemory::calculateMode(std::vector<VkExtensionProper
 #endif
 
     for (auto mode : supportedModes) {
-        //TODO: also check if the required image formats and memory types are supported
         std::vector<const char*> extRequired;
         getDeviceExtensionsForMode(mode, extRequired);
+        if (mode == Mode::HostAllocation) {
+            // TODO(b/469094646): Check this during the initial gpu selection
+            // Host allocation mode is designed for software renderers and only supported
+            // if there is only a single type of memory. Some drivers may still report
+            // invalid memory indices due to bugs in the extension's implementation, but
+            // this check ensures that we can safely keep using the memory in such cases.
+            if (memoryProps.memoryHeapCount != 1 || memoryProps.memoryTypeCount != 1) {
+                GFXSTREAM_INFO(
+                    "Cannot use external memory mode HostAllocation with multiple memory types");
+                continue;
+            }
+        }
         if (vk_util::extensionsSupported(deviceExts, extRequired)) {
             // Supported modes are in-order of preference, return the first one supported
             return mode;

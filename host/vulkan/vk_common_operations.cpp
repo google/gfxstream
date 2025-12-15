@@ -1179,7 +1179,8 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
         ivk->vkEnumerateDeviceExtensionProperties(physicalDevices[i], nullptr,
                                                   &deviceExtensionCount, deviceExts.data());
 
-        deviceInfos[i].externalMemoryMode = ExternalMemory::calculateMode(deviceExts);
+        deviceInfos[i].externalMemoryMode =
+            ExternalMemory::calculateMode(deviceExts, deviceInfos[i].memProps);
 
         deviceInfos[i].supportsExternalMemoryImport = false;
         deviceInfos[i].supportsExternalMemoryExport = false;

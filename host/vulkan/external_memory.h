@@ -37,7 +37,8 @@ class ExternalMemory {
     };
 
     static const char* to_string(const Mode mode);
-    static Mode calculateMode(std::vector<VkExtensionProperties>& deviceExts);
+    static Mode calculateMode(const std::vector<VkExtensionProperties>& deviceExts,
+                              const VkPhysicalDeviceMemoryProperties& memoryProps);
     static VkExternalMemoryHandleTypeFlagBits getHandleType(const Mode mode);
     static void getDeviceExtensionsForMode(const Mode mode,
                                            std::vector<const char*>& outDeviceExtensions);
