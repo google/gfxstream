@@ -2090,9 +2090,14 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
                 &memoryHostPointerProperties);
             uint32_t requestedBits = (1u << allocInfo.memoryTypeIndex);
             if ((requestedBits & memoryHostPointerProperties.memoryTypeBits) == 0) {
-                GFXSTREAM_FATAL(
-                    "%s: Cannot allocate external memory on memory type 0x%x, supported bits 0x%x",
-                    __func__, requestedBits, memoryHostPointerProperties.memoryTypeBits);
+                static bool errorReported = false;
+                if (!errorReported) {
+                    GFXSTREAM_ERROR(
+                        "%s: Cannot allocate external memory on memory type 0x%x, supported bits "
+                        "0x%x",
+                        __func__, requestedBits, memoryHostPointerProperties.memoryTypeBits);
+                        errorReported = true;
+                }
             }
         }
 
