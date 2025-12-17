@@ -1574,7 +1574,7 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
         }
     }
 
-    ivk->vkCreateDevice(emulation->mPhysicalDevice, &dCi, nullptr, &emulation->mDevice);
+    res = ivk->vkCreateDevice(emulation->mPhysicalDevice, &dCi, nullptr, &emulation->mDevice);
 
     if (res != VK_SUCCESS) {
         GFXSTREAM_ERROR("Failed to create Vulkan device. Error %s.", string_VkResult(res));
