@@ -9577,7 +9577,7 @@ class VkDecoderGlobalState::Impl {
                     .pNext = nullptr,
                     .memory = memory,
                 };
-                ret.streamHandleType = STREAM_HANDLE_TYPE_MEM_AHB;
+                ret.streamHandleType = STREAM_HANDLE_TYPE_PLATFORM_AHB;
 
                 AHardwareBuffer* exportHandle;
                 VkResult res =
