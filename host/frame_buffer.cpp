@@ -3794,8 +3794,9 @@ void FrameBuffer::Impl::createSharedTrivialContext(EGLContext* contextOut, EGLSu
 
     ENSURE_GL_EMULATION_VOID();
 
-    const EmulatedEglConfig* config = m_emulationGl->getEmulationEglConfigs().get(0 /* p_config */);
-    if (!config) return;
+    if (m_emulationGl->mEglConfig == EGL_NO_CONFIG) {
+        GFXSTREAM_FATAL("GL/EGL emulation has not chosen a config.");
+    }
 
     int maj, min;
     get_gfxstream_gles_version(&maj, &min);
@@ -3803,12 +3804,12 @@ void FrameBuffer::Impl::createSharedTrivialContext(EGLContext* contextOut, EGLSu
     const EGLint contextAttribs[] = {EGL_CONTEXT_MAJOR_VERSION_KHR, maj,
                                      EGL_CONTEXT_MINOR_VERSION_KHR, min, EGL_NONE};
 
-    *contextOut = s_egl.eglCreateContext(getDisplay(), config->getHostEglConfig(),
+    *contextOut = s_egl.eglCreateContext(getDisplay(), m_emulationGl->mEglConfig,
                                          getGlobalEGLContext(), contextAttribs);
 
     const EGLint pbufAttribs[] = {EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE};
 
-    *surfOut = s_egl.eglCreatePbufferSurface(getDisplay(), config->getHostEglConfig(), pbufAttribs);
+    *surfOut = s_egl.eglCreatePbufferSurface(getDisplay(), m_emulationGl->mEglConfig, pbufAttribs);
 }
 
 void FrameBuffer::Impl::destroySharedTrivialContext(EGLContext context, EGLSurface surface) {
