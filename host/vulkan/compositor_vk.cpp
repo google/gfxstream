@@ -488,7 +488,7 @@ void CompositorVk::setUpDescriptorSets() {
         },
         VkDescriptorPoolSize{
             .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .descriptorCount = descriptorSetsTotal,
+            .descriptorCount = descriptorSetsTotal * 2,
         }};
     const VkDescriptorPoolCreateInfo descriptorPoolCi = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
