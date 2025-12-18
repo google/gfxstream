@@ -30,6 +30,7 @@
 #include <tuple>
 #include <type_traits>
 #include <vector>
+#include <unordered_map>
 
 #include "gfxstream/common/logging.h"
 #include "gfxstream/host/gfxstream_format.h"
