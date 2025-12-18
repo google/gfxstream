@@ -42,6 +42,7 @@
 #include "goldfish_vk_private_defs.h"
 #include "host/framework_formats.h"
 #include "render-utils/Renderer.h"
+#include "vk_format_support.h"
 #include "vk_utils.h"
 
 #if defined(_WIN32)
@@ -431,27 +432,6 @@ class VkEmulation {
     std::optional<host::RepresentativeColorBufferMemoryTypeInfo>
     findRepresentativeColorBufferMemoryTypeIndexLocked() REQUIRES(mMutex);
 
-    struct ImageSupportInfo {
-        // Input parameters
-        VkFormat format;
-        VkImageType type;
-        VkImageTiling tiling;
-        VkImageUsageFlags usageFlags;
-        VkImageCreateFlags createFlags;
-
-        // Output parameters
-        bool supported = false;
-        bool supportsExternalMemory = false;
-        bool requiresDedicatedAllocation = false;
-
-        // Keep the raw output around.
-        VkFormatProperties2 formatProps2;
-        VkImageFormatProperties2 imageFormatProps2;
-        VkExternalImageFormatProperties extFormatProps;
-    };
-
-    static std::vector<VkEmulation::ImageSupportInfo> getBasicImageSupportList();
-
     // For a given ImageSupportInfo, populates usageWithExternalHandles and
     // requiresDedicatedAllocation. memoryTypeBits are populated later once the
     // device is created, because that needs a test image to be created.
@@ -630,7 +610,7 @@ class VkEmulation {
     VkCommandBuffer mCommandBuffer = VK_NULL_HANDLE;
     VkFence mCommandBufferFence = VK_NULL_HANDLE;
 
-    std::vector<ImageSupportInfo> mImageSupportInfo;
+    ImageSupport mImageSupportInfo = ImageSupport::GetDefaultUnpopulatedImageSupport();
 
     vk_util::YcbcrSamplerPool mYcbcrSamplerPool;
 

@@ -43,6 +43,7 @@ add_library(gfxstream-vulkan-server
             vk_decoder_snapshot_utils.cpp
             vk_emulated_physical_device_memory.cpp
             vk_emulated_physical_device_queue.cpp
+            vk_format_support.cpp
             vk_format_utils.cpp
             vk_reconstruction.cpp
             vk_utils.cpp

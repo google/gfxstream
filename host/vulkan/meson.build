@@ -31,6 +31,7 @@ files_lib_vulkan_server = files(
   'vk_decoder_global_state.cpp',
   'vk_decoder_snapshot.cpp',
   'vk_decoder_snapshot_utils.cpp',
+  'vk_format_support.cpp',
   'vk_format_utils.cpp',
   'vk_reconstruction.cpp',
   'vk_utils.cpp',

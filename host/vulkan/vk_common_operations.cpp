@@ -653,124 +653,6 @@ static std::string decodeDriverVersion(uint32_t vendorId, uint32_t driverVersion
     return result.str();
 }
 
-/*static*/ std::vector<VkEmulation::ImageSupportInfo> VkEmulation::getBasicImageSupportList() {
-    struct ImageFeatureCombo {
-        VkFormat format;
-        VkImageCreateFlags createFlags = 0;
-    };
-    // Set the mutable flag for RGB UNORM formats so that the created image can also be sampled in
-    // the sRGB Colorspace. See
-    // https://chromium-review.googlesource.com/c/chromiumos/platform/minigbm/+/3827672/comments/77db9cb3_60663a6a
-    // for details.
-    std::vector<ImageFeatureCombo> combos = {
-        // Cover all the gralloc formats
-        {VK_FORMAT_R8G8B8A8_UNORM,
-         VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT | VK_IMAGE_CREATE_EXTENDED_USAGE_BIT},
-        {VK_FORMAT_R8G8B8_UNORM,
-         VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT | VK_IMAGE_CREATE_EXTENDED_USAGE_BIT},
-
-        {VK_FORMAT_R5G6B5_UNORM_PACK16},
-        {VK_FORMAT_A1R5G5B5_UNORM_PACK16},
-
-        {VK_FORMAT_R16G16B16A16_SFLOAT},
-        {VK_FORMAT_R16G16B16_SFLOAT},
-
-        {VK_FORMAT_B8G8R8A8_UNORM,
-         VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT | VK_IMAGE_CREATE_EXTENDED_USAGE_BIT},
-
-        {VK_FORMAT_B4G4R4A4_UNORM_PACK16,
-         VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT | VK_IMAGE_CREATE_EXTENDED_USAGE_BIT},
-        {VK_FORMAT_R4G4B4A4_UNORM_PACK16,
-         VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT | VK_IMAGE_CREATE_EXTENDED_USAGE_BIT},
-
-        {VK_FORMAT_R8_UNORM,
-         VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT | VK_IMAGE_CREATE_EXTENDED_USAGE_BIT},
-        {VK_FORMAT_R16_UNORM,
-         VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT | VK_IMAGE_CREATE_EXTENDED_USAGE_BIT},
-
-        {VK_FORMAT_A2R10G10B10_UINT_PACK32},
-        {VK_FORMAT_A2R10G10B10_UNORM_PACK32},
-        {VK_FORMAT_A2B10G10R10_UNORM_PACK32},
-
-        // Compressed texture formats
-        {VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK},
-        {VK_FORMAT_ASTC_4x4_UNORM_BLOCK},
-
-        // YUV formats used in Android
-        {VK_FORMAT_G8_B8R8_2PLANE_420_UNORM},
-        {VK_FORMAT_G8_B8R8_2PLANE_422_UNORM},
-        {VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM},
-        {VK_FORMAT_G8_B8_R8_3PLANE_422_UNORM},
-        {VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16},
-    };
-
-    std::vector<VkImageType> types = {
-        VK_IMAGE_TYPE_2D,
-    };
-
-    std::vector<VkImageTiling> tilings = {
-        VK_IMAGE_TILING_LINEAR,
-        VK_IMAGE_TILING_OPTIMAL,
-    };
-
-    std::vector<VkImageUsageFlags> usageFlags = {
-        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
-        VK_IMAGE_USAGE_SAMPLED_BIT,          VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-        VK_IMAGE_USAGE_TRANSFER_DST_BIT,
-    };
-
-    std::vector<VkEmulation::ImageSupportInfo> res;
-
-    // Currently: 17 format + create flags combo, 2 tilings, 5 usage flags -> 170 cases to check.
-    for (auto combo : combos) {
-        for (auto t : types) {
-            for (auto ti : tilings) {
-                for (auto u : usageFlags) {
-                    VkEmulation::ImageSupportInfo info;
-                    info.format = combo.format;
-                    info.type = t;
-                    info.tiling = ti;
-                    info.usageFlags = u;
-                    info.createFlags = combo.createFlags;
-                    res.push_back(info);
-                }
-            }
-        }
-    }
-
-    // Add depth attachment cases
-    std::vector<ImageFeatureCombo> depthCombos = {
-        // Depth formats
-        {VK_FORMAT_D16_UNORM},
-        {VK_FORMAT_X8_D24_UNORM_PACK32},
-        {VK_FORMAT_D24_UNORM_S8_UINT},
-        {VK_FORMAT_D32_SFLOAT},
-        {VK_FORMAT_D32_SFLOAT_S8_UINT},
-    };
-
-    std::vector<VkImageUsageFlags> depthUsageFlags = {
-        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
-        VK_IMAGE_USAGE_SAMPLED_BIT,          VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-        VK_IMAGE_USAGE_TRANSFER_DST_BIT,
-    };
-
-    for (auto combo : depthCombos) {
-        for (auto t : types) {
-            for (auto u : depthUsageFlags) {
-                ImageSupportInfo info;
-                info.format = combo.format;
-                info.type = t;
-                info.tiling = VK_IMAGE_TILING_OPTIMAL;
-                info.usageFlags = u;
-                info.createFlags = combo.createFlags;
-                res.push_back(info);
-            }
-        }
-    }
-
-    return res;
-}
-
 // Checks if the user enforced a specific GPU, it can be done via index or name.
 // Otherwise try to find the best device with discrete GPU and high vulkan API level.
 // Scoring of the devices is done by some implicit choices based on known driver
@@ -1400,10 +1282,9 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
     // Postcondition: emulation has valid device support info
 
     // Collect image support info of the selected device
-    emulation->mImageSupportInfo = getBasicImageSupportList();
-    for (size_t i = 0; i < emulation->mImageSupportInfo.size(); ++i) {
+    for (size_t i = 0; i < emulation->mImageSupportInfo.mSupportInfos.size(); ++i) {
         emulation->populateImageFormatExternalMemorySupportInfo(ivk, emulation->mPhysicalDevice,
-                                                                &emulation->mImageSupportInfo[i]);
+                                                                &emulation->mImageSupportInfo.mSupportInfos[i]);
     }
 
     if (!emulation->mDeviceInfo.hasGraphicsQueueFamily) {
@@ -2573,19 +2454,15 @@ uint32_t VkEmulation::getValidMemoryTypeIndex(uint32_t requiredMemoryTypeBits,
 // pNext, sharingMode, queueFamilyIndexCount, pQueueFamilyIndices, and initialLayout won't be
 // filled.
 std::unique_ptr<VkImageCreateInfo> VkEmulation::generateColorBufferVkImageCreateInfoLocked(
-    VkFormat format, uint32_t width, uint32_t height, VkImageTiling tiling, uint32_t mipLevels) {
-    const VkEmulation::ImageSupportInfo* maybeImageSupportInfo = nullptr;
-    for (const auto& supportInfo : mImageSupportInfo) {
-        if (supportInfo.format == format && supportInfo.supported) {
-            maybeImageSupportInfo = &supportInfo;
-            break;
-        }
-    }
+        VkFormat format, uint32_t width, uint32_t height, VkImageTiling tiling,
+        uint32_t mipLevels) {
+    const ImageSupportInfo* maybeImageSupportInfo = mImageSupportInfo.GetSupportedInfo(format);
     if (!maybeImageSupportInfo) {
         GFXSTREAM_ERROR("Format %s [%d] is not supported.", string_VkFormat(format), format);
         return nullptr;
     }
-    const VkEmulation::ImageSupportInfo& imageSupportInfo = *maybeImageSupportInfo;
+    const ImageSupportInfo& imageSupportInfo = *maybeImageSupportInfo;
+
     const VkFormatProperties& formatProperties = imageSupportInfo.formatProps2.formatProperties;
 
     constexpr std::pair<VkFormatFeatureFlags, VkImageUsageFlags> formatUsagePairs[] = {
@@ -2989,27 +2866,7 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height,
 }
 
 bool VkEmulation::isFormatSupported(GfxstreamFormat format) {
-    std::optional<VkFormat> vkFormatOpt = ToVkFormat(format);
-    if (!vkFormatOpt) {
-        return false;
-    }
-    const VkFormat vkFormat = *vkFormatOpt;
-
-    bool supported = !formatIsDepthOrStencil(vkFormat);
-    // TODO(b/356603558): add proper Vulkan querying, for now preserve existing assumption
-    if (!supported) {
-        for (size_t i = 0; i < mImageSupportInfo.size(); ++i) {
-            // Only enable depth/stencil if it is usable as an attachment
-            if (mImageSupportInfo[i].format == vkFormat &&
-                formatIsDepthOrStencil(mImageSupportInfo[i].format) &&
-                mImageSupportInfo[i].supported &&
-                mImageSupportInfo[i].formatProps2.formatProperties.optimalTilingFeatures &
-                    VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT) {
-                supported = true;
-            }
-        }
-    }
-    return supported;
+    return mImageSupportInfo.IsFormatSupported(format);
 }
 
 bool VkEmulation::createVkColorBuffer(uint32_t width, uint32_t height, GfxstreamFormat format,
