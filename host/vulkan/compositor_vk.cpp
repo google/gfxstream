@@ -164,11 +164,11 @@ std::unique_ptr<CompositorVk> CompositorVk::create(
     const VulkanDispatch& vk, VkDevice vkDevice, VkPhysicalDevice vkPhysicalDevice, VkQueue vkQueue,
     std::shared_ptr<gfxstream::base::Lock> queueLock, uint32_t queueFamilyIndex,
     uint32_t maxFramesInFlight, vk_util::YcbcrSamplerPool* ycbcrSamplerPool,
-    DebugUtilsHelper debugUtils) {
+    const ImageSupport& imageSupport, DebugUtilsHelper debugUtils) {
     GFXSTREAM_VERBOSE("Creating CompositorVk");
     auto res = std::unique_ptr<CompositorVk>(
         new CompositorVk(vk, vkDevice, vkPhysicalDevice, vkQueue, queueLock, queueFamilyIndex,
-                         maxFramesInFlight, ycbcrSamplerPool, debugUtils));
+                         maxFramesInFlight, ycbcrSamplerPool, imageSupport, debugUtils));
 
     if (!res->setUpCommandPool() ||        //
         !res->setUpFormatResources() ||    //
@@ -190,9 +190,10 @@ CompositorVk::CompositorVk(const VulkanDispatch& vk, VkDevice vkDevice,
                            VkPhysicalDevice vkPhysicalDevice, VkQueue vkQueue,
                            std::shared_ptr<gfxstream::base::Lock> queueLock,
                            uint32_t queueFamilyIndex, uint32_t maxFramesInFlight,
-                           vk_util::YcbcrSamplerPool* ycbcrPool, DebugUtilsHelper debugUtilsHelper)
+                           vk_util::YcbcrSamplerPool* ycbcrPool, const ImageSupport& imageSupport,
+                           DebugUtilsHelper debugUtilsHelper)
     : CompositorVkBase(vk, vkDevice, vkPhysicalDevice, vkQueue, queueLock, queueFamilyIndex,
-                       maxFramesInFlight, ycbcrPool, debugUtilsHelper),
+                       maxFramesInFlight, ycbcrPool, imageSupport, debugUtilsHelper),
       m_maxFramesInFlight(maxFramesInFlight),
       m_renderTargetCache(k_renderTargetCacheSize) {}
 
@@ -496,22 +497,56 @@ bool CompositorVk::setUpVertexBuffers() {
 }
 
 bool CompositorVk::setUpDescriptorSets() {
+    // Each format option has a descriptor set with 1 UBO:
+    const uint32_t uniformBufferDescriptorsPerLayer = m_formatResources.size();
+    const uint32_t uniformBufferDescriptorsTotal =
+        (uniformBufferDescriptorsPerLayer * kMaxLayersPerFrame * m_maxFramesInFlight) +
+        (uniformBufferDescriptorsPerLayer * kMaxImmediateDrawsPerFrame);
+
+    // Each format option has a descriptor set with 1 logical sampler descriptor
+    // (i.e. 1 `sampler2D`) but vulkan implementations may use multiple underlying
+    // descriptors in order to support 1 logical YUV sampler.
+    // https://registry.khronos.org/VulkanSC/specs/1.0-extensions/man/html/VkSamplerYcbcrConversionImageFormatProperties.html
+    auto GetNumberOfDescriptorsForFormat =
+        [this](GfxstreamFormat format) {
+            constexpr const uint32_t kDefaultWorstCaseNumberOfDescriptorsNeeded = 3;
+
+            const std::optional<VkFormat> vkFormatOpt = ToVkFormat(format);
+            if (!vkFormatOpt) {
+                return kDefaultWorstCaseNumberOfDescriptorsNeeded;
+            }
+
+            const std::optional<uint32_t> imageSamplerDescriptorsNeedForFormatOpt =
+                m_imageSupport.GetNumberOfNeededCombinedImageSamplerDescriptors(*vkFormatOpt);
+            if (imageSamplerDescriptorsNeedForFormatOpt) {
+                return *imageSamplerDescriptorsNeedForFormatOpt;
+            }
+
+            return kDefaultWorstCaseNumberOfDescriptorsNeeded;
+        };
+    uint32_t imageSamplerDescriptorsPerLayer = 0;
+    for (const auto& [format, _] : m_formatResources) {
+        imageSamplerDescriptorsPerLayer += GetNumberOfDescriptorsForFormat(format.underlying);
+    }
+    const uint32_t imageSamplerDescriptorsTotal =
+        (imageSamplerDescriptorsPerLayer * kMaxLayersPerFrame * m_maxFramesInFlight) +
+        (imageSamplerDescriptorsPerLayer * kMaxImmediateDrawsPerFrame);
+
     const uint32_t descriptorSetsPerLayer = m_formatResources.size();
     const uint32_t descriptorSetsPerFrame =
         (kMaxLayersPerFrame * descriptorSetsPerLayer + kMaxImmediateDrawsPerFrame);
     const uint32_t descriptorSetsTotal = descriptorSetsPerFrame * m_maxFramesInFlight;
 
-    // TODO(b/389646068): *2 should not be necessary for image samplers but
-    // some drivers are throwing VK_ERROR_OUT_OF_POOL_MEMORY errors.
     const VkDescriptorPoolSize descriptorPoolSizes[2] = {
         VkDescriptorPoolSize{
             .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = descriptorSetsTotal * 2,
+            .descriptorCount = imageSamplerDescriptorsTotal,
         },
         VkDescriptorPoolSize{
             .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .descriptorCount = descriptorSetsTotal * 2,
-        }};
+            .descriptorCount = uniformBufferDescriptorsTotal,
+        },
+    };
     const VkDescriptorPoolCreateInfo descriptorPoolCi = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
         .flags = 0,

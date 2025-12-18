@@ -137,19 +137,13 @@ namespace vk {
     return imageSupport;
 }
 
-bool ImageSupport::IsFormatSupported(GfxstreamFormat format) const {
-    std::optional<VkFormat> vkFormatOpt = ToVkFormat(format);
-    if (!vkFormatOpt) {
-        return false;
-    }
-    const VkFormat vkFormat = *vkFormatOpt;
-
-    bool supported = !formatIsDepthOrStencil(vkFormat);
+bool ImageSupport::IsFormatSupported(VkFormat format) const {
+    bool supported = !formatIsDepthOrStencil(format);
     // TODO(b/356603558): add proper Vulkan querying, for now preserve existing assumption
     if (!supported) {
         for (const ImageSupportInfo& supportInfo : mSupportInfos) {
             // Only enable depth/stencil if it is usable as an attachment
-            if (supportInfo.format == vkFormat &&
+            if (supportInfo.format == format &&
                 formatIsDepthOrStencil(supportInfo.format) &&
                 supportInfo.supported &&
                 supportInfo.formatProps2.formatProperties.optimalTilingFeatures &
@@ -168,6 +162,32 @@ const ImageSupportInfo* ImageSupport::GetSupportedInfo(VkFormat format) const {
         }
     }
     return nullptr;
+}
+
+std::optional<uint32_t> ImageSupport::GetNumberOfNeededCombinedImageSamplerDescriptors(VkFormat format) const {
+    if (!formatRequiresSamplerYcbcrConversion(format)) {
+        return 1;
+    }
+
+    std::optional<uint32_t> needed;
+    for (const ImageSupportInfo& info : mSupportInfos) {
+        if (info.format != format) {
+            continue;
+        }
+        if (!info.supported) {
+            continue;
+        }
+        if (!info.samplerYcbcrConversionFormatProps) {
+            continue;
+        }
+        if (needed) {
+            needed = std::max(*needed, info.samplerYcbcrConversionFormatProps->combinedImageSamplerDescriptorCount);
+        } else {
+            needed = info.samplerYcbcrConversionFormatProps->combinedImageSamplerDescriptorCount;
+        }
+    }
+
+    return needed;
 }
 
 }  // namespace vk

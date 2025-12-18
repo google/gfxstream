@@ -30,6 +30,7 @@
 #include "gfxstream/image_utils.h"
 #include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/system/System.h"
+#include "vulkan/vk_format_support.h"
 #include "vulkan/vk_utils.h"
 #include "vulkan/vulkan_dispatch.h"
 
@@ -142,6 +143,7 @@ class CompositorVkTest : public ::testing::Test {
                                     m_compositorVkQueueLock, m_compositorQueueFamilyIndex,
                                     /*maxFramesInFlight=*/3,
                                     &m_YcbcrSamplerPool,
+                                    m_imageSupport,
                                     DebugUtilsHelper::withUtilsDisabled());
     }
 
@@ -315,6 +317,7 @@ class CompositorVkTest : public ::testing::Test {
     }
 
     static const VulkanDispatch* k_vk;
+    ImageSupport m_imageSupport = ImageSupport::GetDefaultUnpopulatedImageSupport();
     VkInstance m_vkInstance = VK_NULL_HANDLE;
     VkPhysicalDevice m_vkPhysicalDevice = VK_NULL_HANDLE;
     uint32_t m_compositorQueueFamilyIndex = 0;

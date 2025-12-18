@@ -1613,7 +1613,8 @@ void VkEmulation::initFeatures(Features features) {
         }
         mCompositorVk =
             CompositorVk::create(*mIvk, mDevice, mPhysicalDevice, mQueue, mQueueLock,
-                                 mQueueFamilyIndex, 3, &mYcbcrSamplerPool, mDebugUtilsHelper);
+                                 mQueueFamilyIndex, 3, &mYcbcrSamplerPool, mImageSupportInfo,
+                                 mDebugUtilsHelper);
         if (!mCompositorVk) {
             GFXSTREAM_FATAL("Failed to create Vulkan compositor.");
         }
@@ -2866,7 +2867,11 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height,
 }
 
 bool VkEmulation::isFormatSupported(GfxstreamFormat format) {
-    return mImageSupportInfo.IsFormatSupported(format);
+    auto vkFormatOpt = ToVkFormat(format);
+    if (!vkFormatOpt) {
+        return false;
+    }
+    return mImageSupportInfo.IsFormatSupported(*vkFormatOpt);
 }
 
 bool VkEmulation::createVkColorBuffer(uint32_t width, uint32_t height, GfxstreamFormat format,

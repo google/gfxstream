@@ -14,11 +14,10 @@
 
 #pragma once
 
+#include <optional>
 #include <vector>
 
 #include <vulkan/vulkan.h>
-
-#include "gfxstream/host/gfxstream_format.h"
 
 namespace gfxstream {
 namespace host {
@@ -39,15 +38,18 @@ struct ImageSupportInfo {
     VkFormatProperties2 formatProps2{};
     VkImageFormatProperties2 imageFormatProps2{};
     VkExternalImageFormatProperties extFormatProps{};
+    std::optional<VkSamplerYcbcrConversionImageFormatProperties> samplerYcbcrConversionFormatProps;
 };
 
 class ImageSupport {
   public:
     static ImageSupport GetDefaultUnpopulatedImageSupport();
 
-    bool IsFormatSupported(GfxstreamFormat format) const;
+    bool IsFormatSupported(VkFormat format) const;
 
     const ImageSupportInfo* GetSupportedInfo(VkFormat format) const;
+
+    std::optional<uint32_t> GetNumberOfNeededCombinedImageSamplerDescriptors(VkFormat format) const;
 
   private:
     friend class VkEmulation;
