@@ -312,27 +312,27 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
                           uint32_t queueFamilyIndex, uint32_t maxFramesInFlight,
                           vk_util::YcbcrSamplerPool* ycbcrPool, DebugUtilsHelper debugUtils);
 
-    void setUpFormatResources();
-    void setUpRenderPasses();
-    void setUpGraphicsPipeline(const VkShaderModule vertShaderMod,
+    bool setUpFormatResources();
+    bool setUpRenderPasses();
+    bool setUpGraphicsPipeline(const VkShaderModule vertShaderMod,
                                const VkShaderModule fragShaderMod,
                                const GfxstreamFormat samplerFormat);
-    void setUpGraphicsPipelines();
-    void setUpVertexBuffers();
-    void setUpDescriptorSets();
-    void setUpUniformBuffers();
-    void setUpCommandPool();
-    void setUpFences();
-    void setUpDefaultImage();
-    void setUpScreenMaskImage(uint32_t width, uint32_t height, const uint8_t* rgbaData);
-    void setUpScreenBackgroundImage(uint32_t width, uint32_t height, const uint8_t* rgbaData);
-    void setUpFrameResourceFutures();
+    bool setUpGraphicsPipelines();
+    bool setUpVertexBuffers();
+    bool setUpDescriptorSets();
+    bool setUpUniformBuffers();
+    bool setUpCommandPool();
+    bool setUpFences();
+    bool setUpDefaultImage();
+    bool setUpScreenMaskImage(uint32_t width, uint32_t height, const uint8_t* rgbaData);
+    bool setUpScreenBackgroundImage(uint32_t width, uint32_t height, const uint8_t* rgbaData);
+    bool setUpFrameResourceFutures();
 
-    Image createImage(uint32_t width, uint32_t height, const uint8_t* rgbaData,
+    bool createImage(Image& img, uint32_t width, uint32_t height, const uint8_t* rgbaData,
                       const std::string& debugName);
     void destroyImage(Image& img);
 
-    void createUniformBufferStorage(UniformBufferStorage& storage, uint32_t numBuffersRequired);
+    bool createUniformBufferStorage(UniformBufferStorage& storage, uint32_t numBuffersRequired);
     void destroyUniformBufferStorage(UniformBufferStorage& storage);
 
     std::optional<std::tuple<VkBuffer, VkDeviceMemory>> createBuffer(VkDeviceSize,

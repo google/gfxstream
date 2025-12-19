@@ -16,17 +16,17 @@
 
 #include <future>
 
-#include "frame_buffer.h"
-#include "gralloc_defs.h"
-#include "vk_common_operations.h"
-#include "vk_format_utils.h"
-#include "vulkan_dispatch.h"
 #include "cereal/common/goldfish_vk_deepcopy.h"
 #include "cereal/common/goldfish_vk_extension_structs.h"
+#include "frame_buffer.h"
 #include "gfxstream/host/backend_callbacks.h"
 #include "gfxstream/host/tracing.h"
 #include "goldfish_vk_private_defs.h"
+#include "gralloc_defs.h"
+#include "vk_common_operations.h"
+#include "vk_format_utils.h"
 #include "vulkan/vk_enum_string_helper.h"
+#include "vulkan_dispatch.h"
 
 namespace gfxstream {
 namespace host {
@@ -64,8 +64,7 @@ VkFence AndroidNativeBufferInfo::QsriWaitFencePool::getFenceFromPool() {
         mAvailableFences.pop_back();
         VkResult res = mVk->vkResetFences(mDevice, 1, &fence);
         if (res != VK_SUCCESS) {
-            const std::string resString = string_VkResult(res);
-            GFXSTREAM_FATAL("Failed to reset QSRI VkFence: %s", resString.c_str());
+            GFXSTREAM_FATAL("Failed to reset QSRI VkFence: %s", string_VkResult(res));
         }
         VK_ANB_DEBUG("existing fence in pool: %p. also reset the fence", fence);
     }
@@ -110,8 +109,7 @@ bool parseAndroidNativeBufferInfo(const VkImageCreateInfo* pCreateInfo,
 
 /*static*/
 std::unique_ptr<AndroidNativeBufferInfo> AndroidNativeBufferInfo::create(
-    VkEmulation* emu,
-    VulkanDispatch* vk, VkDevice device, gfxstream::base::BumpPool& allocator,
+    VkEmulation* emu, VulkanDispatch* vk, VkDevice device, gfxstream::base::BumpPool& allocator,
     const VkImageCreateInfo* pCreateInfo, const VkNativeBufferANDROID* nativeBufferANDROID,
     const VkAllocationCallbacks* pAllocator, const VkPhysicalDeviceMemoryProperties* memProps) {
     bool colorBufferExportedToGl = false;
@@ -144,8 +142,7 @@ std::unique_ptr<AndroidNativeBufferInfo> AndroidNativeBufferInfo::create(
         out->mExternallyBacked = true;
     }
 
-    out->mUseVulkanNativeImage =
-        (emu && emu->isGuestVulkanOnly()) || colorBufferExportedToGl;
+    out->mUseVulkanNativeImage = (emu && emu->isGuestVulkanOnly()) || colorBufferExportedToGl;
 
     VkDeviceSize bindOffset = 0;
     if (out->mExternallyBacked) {
@@ -255,8 +252,8 @@ std::unique_ptr<AndroidNativeBufferInfo> AndroidNativeBufferInfo::create(
         }
 
         if (!emu->importExternalMemory(out->mDeviceDispatch, out->mDevice,
-                                  &importedColorBufferMemoryInfo, dedicatedInfoPtr,
-                                  &out->mImageMemory)) {
+                                       &importedColorBufferMemoryInfo, dedicatedInfoPtr,
+                                       &out->mImageMemory)) {
             VK_ANB_ERR("VK_ANDROID_native_buffer: Failed to import external memory%s",
                        importedColorBufferMemoryInfo.dedicatedAllocation ? " (dedicated)" : "");
             return nullptr;
@@ -357,8 +354,8 @@ std::unique_ptr<AndroidNativeBufferInfo> AndroidNativeBufferInfo::create(
         }
 
         uint32_t stagingMemoryTypeIndex = -1;
-        bool stagingIndexRes =
-            getStagingMemoryTypeIndex(vk, device, memProps, stagingMemoryRequirements, &stagingMemoryTypeIndex);
+        bool stagingIndexRes = getStagingMemoryTypeIndex(
+            vk, device, memProps, stagingMemoryRequirements, &stagingMemoryTypeIndex);
         if (!stagingIndexRes) {
             VK_ANB_ERR(
                 "VK_ANDROID_native_buffer: could not obtain "
@@ -549,9 +546,8 @@ void AndroidNativeBufferInfo::QueueState::teardown(VulkanDispatch* vk, VkDevice 
     queueFamilyIndex = 0;
 }
 
-VkResult AndroidNativeBufferInfo::on_vkAcquireImageANDROID(VkEmulation* emu,
-                                                           VulkanDispatch* vk, VkDevice device,
-                                                           VkQueue defaultQueue,
+VkResult AndroidNativeBufferInfo::on_vkAcquireImageANDROID(VkEmulation* emu, VulkanDispatch* vk,
+                                                           VkDevice device, VkQueue defaultQueue,
                                                            uint32_t defaultQueueFamilyIndex,
                                                            std::mutex* defaultQueueMutex,
                                                            VkSemaphore semaphore, VkFence fence) {
@@ -670,9 +666,9 @@ VkResult AndroidNativeBufferInfo::on_vkAcquireImageANDROID(VkEmulation* emu,
 static constexpr uint64_t kTimeoutNs = 3ULL * 1000000000ULL;
 
 VkResult AndroidNativeBufferInfo::on_vkQueueSignalReleaseImageANDROID(
-    VkEmulation* emu, VulkanDispatch* vk, uint32_t queueFamilyIndex,
-    VkQueue queue, std::mutex* queueMutex, uint32_t waitSemaphoreCount,
-    const VkSemaphore* pWaitSemaphores, int* pNativeFenceFd) {
+    VkEmulation* emu, VulkanDispatch* vk, uint32_t queueFamilyIndex, VkQueue queue,
+    std::mutex* queueMutex, uint32_t waitSemaphoreCount, const VkSemaphore* pWaitSemaphores,
+    int* pNativeFenceFd) {
     const uint64_t traceId = gfxstream::host::GetUniqueTracingId();
     GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DEFAULT_CATEGORY, "vkQSRI syncImageToColorBuffer()",
                           GFXSTREAM_TRACE_FLOW(traceId));

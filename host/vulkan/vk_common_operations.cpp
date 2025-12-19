@@ -1730,8 +1730,12 @@ void VkEmulation::initFeatures(Features features) {
         if (mCompositorVk) {
             GFXSTREAM_ERROR("Reset VkEmulation::compositorVk.");
         }
-        mCompositorVk = CompositorVk::create(*mIvk, mDevice, mPhysicalDevice, mQueue, mQueueLock,
-                                             mQueueFamilyIndex, 3, &mYcbcrSamplerPool, mDebugUtilsHelper);
+        mCompositorVk =
+            CompositorVk::create(*mIvk, mDevice, mPhysicalDevice, mQueue, mQueueLock,
+                                 mQueueFamilyIndex, 3, &mYcbcrSamplerPool, mDebugUtilsHelper);
+        if (!mCompositorVk) {
+            GFXSTREAM_FATAL("Failed to create Vulkan compositor.");
+        }
     }
 
     if (features.useVulkanNativeSwapchain) {
