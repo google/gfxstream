@@ -1137,7 +1137,7 @@ class VkDecoderGlobalState::Impl {
                                                              info.applicationName.c_str());
 #endif
         // Box it up
-        VkInstance boxed = new_boxed_VkInstance(*pInstance, nullptr, true /* own dispatch */);
+        VkInstance boxed = new_boxed_VkInstance(*pInstance, nullptr);
         init_vulkan_dispatch_from_instance(m_vk, *pInstance, dispatch_VkInstance(boxed));
         info.boxed = boxed;
 
@@ -1321,8 +1321,7 @@ class VkDecoderGlobalState::Impl {
                 VALIDATE_NEW_HANDLE_INFO_ENTRY(mPhysdevInfo, physicalDevices[i]);
                 auto& physdevInfo = mPhysdevInfo[physicalDevices[i]];
                 physdevInfo.instance = instance;
-                physdevInfo.boxed = new_boxed_VkPhysicalDevice(physicalDevices[i], vk,
-                                                               false /* does not own dispatch */);
+                physdevInfo.boxed = new_boxed_VkPhysicalDevice(physicalDevices[i], vk);
 
                 vk->vkGetPhysicalDeviceProperties(physicalDevices[i], &physdevInfo.props);
 
@@ -2263,7 +2262,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         // First, get the dispatch table.
-        VkDevice boxedDevice = new_boxed_VkDevice(*pDevice, nullptr, true /* own dispatch */);
+        VkDevice boxedDevice = new_boxed_VkDevice(*pDevice, nullptr);
 
         if (mLogging) {
             GFXSTREAM_INFO("%s: init vulkan dispatch from device", __func__);
@@ -2338,8 +2337,7 @@ class VkDecoderGlobalState::Impl {
                 if (mLogging) {
                     GFXSTREAM_INFO("%s: get device queue (end)", __func__);
                 }
-                auto boxedQueue =
-                    new_boxed_VkQueue(physicalQueue, dispatch, false /* does not own dispatch */);
+                auto boxedQueue = new_boxed_VkQueue(physicalQueue, dispatch);
                 extraHandles.push_back((uint64_t)boxedQueue);
 
                 VALIDATE_NEW_HANDLE_INFO_ENTRY(mQueueInfo, physicalQueue);
@@ -2378,8 +2376,7 @@ class VkDecoderGlobalState::Impl {
                         uint64_t virtualQueue64 = (physicalQueue64 | QueueInfo::kVirtualQueueBit);
                         VkQueue virtualQueue = reinterpret_cast<VkQueue>(virtualQueue64);
 
-                        auto boxedVirtualQueue = new_boxed_VkQueue(
-                            virtualQueue, dispatch, false /* does not own dispatch */);
+                        auto boxedVirtualQueue = new_boxed_VkQueue(virtualQueue, dispatch);
                         extraHandles.push_back((uint64_t)boxedVirtualQueue);
 
                         VALIDATE_NEW_HANDLE_INFO_ENTRY(mQueueInfo, virtualQueue);
@@ -6846,8 +6843,7 @@ class VkDecoderGlobalState::Impl {
             mCommandBufferInfo[pCommandBuffers[i]].device = device;
             mCommandBufferInfo[pCommandBuffers[i]].debugUtilsHelper = deviceInfo->debugUtilsHelper;
             mCommandBufferInfo[pCommandBuffers[i]].cmdPool = pAllocateInfo->commandPool;
-            auto boxed = new_boxed_VkCommandBuffer(pCommandBuffers[i], vk,
-                                                   false /* does not own dispatch */);
+            auto boxed = new_boxed_VkCommandBuffer(pCommandBuffers[i], vk);
             mCommandBufferInfo[pCommandBuffers[i]].boxed = boxed;
 
             commandPoolInfo->cmdBuffers.insert(pCommandBuffers[i]);

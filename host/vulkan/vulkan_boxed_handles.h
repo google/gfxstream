@@ -133,14 +133,14 @@ class BoxedHandleManager {
 
 extern BoxedHandleManager sBoxedHandleManager;
 
-#define DEFINE_BOXED_DISPATCHABLE_HANDLE_API_DECL(type)                                 \
-    type new_boxed_##type(type underlying, VulkanDispatch* dispatch, bool ownDispatch); \
-    void delete_##type(type boxed);                                                     \
-    type unbox_##type(type boxed);                                                      \
-    type try_unbox_##type(type boxed);                                                  \
-    type unboxed_to_boxed_##type(type boxed);                                           \
-    VulkanDispatch* dispatch_##type(type boxed);                                        \
-    OrderMaintenanceInfo* ordmaint_##type(type boxed);                                  \
+#define DEFINE_BOXED_DISPATCHABLE_HANDLE_API_DECL(type)               \
+    type new_boxed_##type(type underlying, VulkanDispatch* dispatch); \
+    void delete_##type(type boxed);                                   \
+    type unbox_##type(type boxed);                                    \
+    type try_unbox_##type(type boxed);                                \
+    type unboxed_to_boxed_##type(type boxed);                         \
+    VulkanDispatch* dispatch_##type(type boxed);                      \
+    OrderMaintenanceInfo* ordmaint_##type(type boxed);                \
     VulkanMemReadingStream* readstream_##type(type boxed);
 
 #define DEFINE_BOXED_NON_DISPATCHABLE_HANDLE_API_DECL(type)                                  \

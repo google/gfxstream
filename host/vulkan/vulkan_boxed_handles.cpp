@@ -337,16 +337,17 @@ constexpr const char* GetTypeStr() {
 }
 
 template <typename VkObjectT>
-VkObjectT new_boxed_VkType(VkObjectT underlying, bool dispatchable = false, VulkanDispatch* dispatch = nullptr, bool ownsDispatch = false) {
+VkObjectT new_boxed_VkType(VkObjectT underlying, bool dispatchable = false, VulkanDispatch* dispatch = nullptr) {
     BoxedHandleInfo info;
     info.underlying = (uint64_t)underlying;
     if (dispatchable) {
         if (dispatch != nullptr) {
             info.dispatch = dispatch;
+            info.ownDispatch = false;
         } else {
             info.dispatch = new VulkanDispatch();
+            info.ownDispatch = true;
         }
-        info.ownDispatch = ownsDispatch;
         info.ordMaintInfo = new OrderMaintenanceInfo();
         info.readStream = nullptr;
     }
@@ -365,6 +366,11 @@ void delete_VkType(VkObjectT boxed) {
     }
 
     releaseOrderMaintInfo(info->ordMaintInfo);
+
+    if (info->ownDispatch) {
+        delete info->dispatch;
+        info->dispatch = nullptr;
+    }
 
     if (info->readStream) {
         sReadStreamRegistry.push(info->readStream);
@@ -519,8 +525,8 @@ VulkanDispatch* get_dispatch_VkType(VkObjectT boxed) {
 //////////////             DISPATCHABLE TYPES                    //////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-VkInstance new_boxed_VkInstance(VkInstance unboxed, VulkanDispatch* dispatch, bool ownsDispatch) {
-    return new_boxed_VkType<VkInstance>(unboxed, /*dispatchable=*/true, dispatch, ownsDispatch);
+VkInstance new_boxed_VkInstance(VkInstance unboxed, VulkanDispatch* dispatch) {
+    return new_boxed_VkType<VkInstance>(unboxed, /*dispatchable=*/true, dispatch);
 }
 
 void delete_VkInstance(VkInstance boxed) {
@@ -551,8 +557,8 @@ VulkanDispatch* dispatch_VkInstance(VkInstance boxed) {
     return get_dispatch_VkType<VkInstance>(boxed);
 }
 
-VkPhysicalDevice new_boxed_VkPhysicalDevice(VkPhysicalDevice unboxed, VulkanDispatch* dispatch, bool ownsDispatch) {
-    return new_boxed_VkType<VkPhysicalDevice>(unboxed, /*dispatchable=*/true, dispatch, ownsDispatch);
+VkPhysicalDevice new_boxed_VkPhysicalDevice(VkPhysicalDevice unboxed, VulkanDispatch* dispatch) {
+    return new_boxed_VkType<VkPhysicalDevice>(unboxed, /*dispatchable=*/true, dispatch);
 }
 
 void delete_VkPhysicalDevice(VkPhysicalDevice boxed) {
@@ -583,8 +589,8 @@ VulkanDispatch* dispatch_VkPhysicalDevice(VkPhysicalDevice boxed) {
     return get_dispatch_VkType<VkPhysicalDevice>(boxed);
 }
 
-VkDevice new_boxed_VkDevice(VkDevice unboxed, VulkanDispatch* dispatch, bool ownsDispatch) {
-    return new_boxed_VkType<VkDevice>(unboxed, /*dispatchable=*/true, dispatch, ownsDispatch);
+VkDevice new_boxed_VkDevice(VkDevice unboxed, VulkanDispatch* dispatch) {
+    return new_boxed_VkType<VkDevice>(unboxed, /*dispatchable=*/true, dispatch);
 }
 
 void delete_VkDevice(VkDevice boxed) {
@@ -615,8 +621,8 @@ VulkanDispatch* dispatch_VkDevice(VkDevice boxed) {
     return get_dispatch_VkType<VkDevice>(boxed);
 }
 
-VkCommandBuffer new_boxed_VkCommandBuffer(VkCommandBuffer unboxed, VulkanDispatch* dispatch, bool ownsDispatch) {
-    return new_boxed_VkType<VkCommandBuffer>(unboxed, /*dispatchable=*/true, dispatch, ownsDispatch);
+VkCommandBuffer new_boxed_VkCommandBuffer(VkCommandBuffer unboxed, VulkanDispatch* dispatch) {
+    return new_boxed_VkType<VkCommandBuffer>(unboxed, /*dispatchable=*/true, dispatch);
 }
 
 void delete_VkCommandBuffer(VkCommandBuffer boxed) {
@@ -647,8 +653,8 @@ VulkanDispatch* dispatch_VkCommandBuffer(VkCommandBuffer boxed) {
     return get_dispatch_VkType<VkCommandBuffer>(boxed);
 }
 
-VkQueue new_boxed_VkQueue(VkQueue unboxed, VulkanDispatch* dispatch, bool ownsDispatch) {
-    return new_boxed_VkType<VkQueue>(unboxed, /*dispatchable=*/true, dispatch, ownsDispatch);
+VkQueue new_boxed_VkQueue(VkQueue unboxed, VulkanDispatch* dispatch) {
+    return new_boxed_VkType<VkQueue>(unboxed, /*dispatchable=*/true, dispatch);
 }
 
 void delete_VkQueue(VkQueue boxed) {
