@@ -2829,7 +2829,7 @@ int FrameBuffer::Impl::getScreenshot(unsigned int nChannels, unsigned int* width
 
     if (*cPixels < (size_t)needed) {
         *cPixels = needed;
-        return -2;
+        return Renderer::GET_SCREENSHOT_RESULT_PIXELS_SIZE;
     }
     *cPixels = needed;
     if (desiredRotation == GFXSTREAM_ROTATION_90 || desiredRotation == GFXSTREAM_ROTATION_270) {

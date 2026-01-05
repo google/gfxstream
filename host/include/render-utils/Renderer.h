@@ -319,11 +319,11 @@ class Renderer {
     // indicates the users wants to snip the entire screen.
     // - |rect|  represents a rectangle within the screen defined by
     // desiredWidth and desiredHeight.
+    static const int GET_SCREENSHOT_RESULT_PIXELS_SIZE = -2;  // Return code to get pixel count
     virtual int getScreenshot(unsigned int nChannels, unsigned int* width, unsigned int* height,
                               uint8_t* pixels, size_t* cPixels, int displayId = 0,
                               int desiredWidth = 0, int desiredHeight = 0, int desiredRotation = 0,
                               Rect rect = {{0, 0}, {0, 0}}) = 0;
-
 
     virtual void preLoad() = 0;
     virtual void postLoad() = 0;
