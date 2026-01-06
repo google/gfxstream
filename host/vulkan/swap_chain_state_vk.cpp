@@ -205,6 +205,9 @@ std::vector<const char*> SwapChainStateVk::getRequiredInstanceExtensions() {
 #ifdef VK_USE_PLATFORM_XCB_KHR
             VK_KHR_XCB_SURFACE_EXTENSION_NAME,
 #endif
+#ifdef VK_USE_PLATFORM_SCREEN_QNX
+            VK_QNX_SCREEN_SURFACE_EXTENSION_NAME,
+#endif
     };
 }
 

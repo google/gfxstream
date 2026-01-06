@@ -90,8 +90,24 @@ std::unique_ptr<DisplaySurfaceVk> DisplaySurfaceVk::create(const VulkanDispatch&
         GFXSTREAM_FATAL("Vulkan driver do not support display surfaces!");
     }
     VK_CHECK(vk.vkCreateXcbSurfaceKHR(instance, &surfaceCi, nullptr, &surface));
-#else
-    GFXSTREAM_FATAL("Unimplemented.");
+#elif defined(VK_USE_PLATFORM_SCREEN_QNX)
+    screen_context_t screen_ctx = NULL;
+    int rc = screen_get_window_property_pv(window, SCREEN_PROPERTY_CONTEXT, (void**)&screen_ctx);
+    if (rc) {
+        GFXSTREAM_FATAL("Could not query SCREEN_PROPERTY_CONTEXT from the provided screen_window_t object.");
+    }
+
+    const VkScreenSurfaceCreateInfoQNX surfaceCi = {
+        .sType = VK_STRUCTURE_TYPE_SCREEN_SURFACE_CREATE_INFO_QNX,
+        .pNext = nullptr,
+        .flags = 0,
+        .context = screen_ctx,
+        .window = window,
+    };
+    if (vk.vkCreateScreenSurfaceQNX == nullptr) {
+        GFXSTREAM_FATAL("Vulkan driver does not support display surfaces for QNX!");
+    }
+    VK_CHECK(vk.vkCreateScreenSurfaceQNX(instance, &surfaceCi, nullptr, &surface));
 #endif
     if (surface == VK_NULL_HANDLE) {
         GFXSTREAM_FATAL("No VkSurfaceKHR created?");
