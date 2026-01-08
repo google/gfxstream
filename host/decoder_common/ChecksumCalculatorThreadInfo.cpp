@@ -31,8 +31,8 @@ std::atomic<size_t> sNumInstances(0);
 #endif  // TRACE_CHECKSUMHELPER
 }
 
-static ChecksumCalculatorThreadInfo* getChecksumCalculatorThreadInfo() {
-    static thread_local ChecksumCalculatorThreadInfo* tls = new ChecksumCalculatorThreadInfo;
+static ChecksumCalculatorThreadInfo& getChecksumCalculatorThreadInfo() {
+    static thread_local ChecksumCalculatorThreadInfo tls;
     return tls;
 }
 
@@ -47,11 +47,11 @@ ChecksumCalculatorThreadInfo::~ChecksumCalculatorThreadInfo() {
 }
 
 ChecksumCalculator& ChecksumCalculatorThreadInfo::get() {
-    return getChecksumCalculatorThreadInfo()->m_protocol;
+    return getChecksumCalculatorThreadInfo().m_protocol;
 }
 
 bool ChecksumCalculatorThreadInfo::setVersion(uint32_t version) {
-    return getChecksumCalculatorThreadInfo()->m_protocol.setVersion(version);
+    return getChecksumCalculatorThreadInfo().m_protocol.setVersion(version);
 }
 
 bool ChecksumCalculatorThreadInfo::writeChecksum(ChecksumCalculator* calc,

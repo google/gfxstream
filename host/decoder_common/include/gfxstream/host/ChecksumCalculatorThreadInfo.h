@@ -27,14 +27,9 @@ public:
     ChecksumCalculatorThreadInfo();
     ~ChecksumCalculatorThreadInfo();
 
-    ChecksumCalculator& get();
+    static ChecksumCalculator& get();
 
     static bool setVersion(uint32_t version);
-
-    static uint32_t getMaxVersion();
-    static const char* getMaxVersionString() {
-        return ChecksumCalculator::getMaxVersionStr();
-    }
 
     static bool writeChecksum(ChecksumCalculator* calc,
                               void* buf,

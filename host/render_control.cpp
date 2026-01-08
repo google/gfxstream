@@ -470,7 +470,7 @@ static EGLint rcGetGLString(EGLenum name, void* buffer, EGLint bufferSize) {
     bool hwcColorTransform = true;  // To ensure old host emulators won't advertise the support
 
     if (isChecksumEnabled && name == GL_EXTENSIONS) {
-        glStr += ChecksumCalculatorThreadInfo::getMaxVersionString();
+        glStr += ChecksumCalculator::getMaxVersionStr();
         glStr += " ";
     }
 

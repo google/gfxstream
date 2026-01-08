@@ -30,16 +30,15 @@
 #if GFXSTREAM_ENABLE_HOST_GLES
 #include "render_control.h"
 #endif
-#include "render_thread_info.h"
-#include "vulkan/vk_decoder_context.h"
-#include "gfxstream/host/ChecksumCalculatorThreadInfo.h"
 #include "gfxstream/common/logging.h"
 #include "gfxstream/host/ChecksumCalculatorThreadInfo.h"
 #include "gfxstream/host/stream_utils.h"
 #include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/synchronization/MessageChannel.h"
 #include "gfxstream/system/System.h"
+#include "render_thread_info.h"
 #include "vulkan/vk_common_operations.h"
+#include "vulkan/vk_decoder_context.h"
 
 namespace gfxstream {
 namespace host {
@@ -275,8 +274,7 @@ intptr_t RenderThread::main() {
     }
 
     std::unique_ptr<RenderThreadInfo> tInfo = std::make_unique<RenderThreadInfo>();
-    ChecksumCalculatorThreadInfo tChecksumInfo;
-    ChecksumCalculator& checksumCalc = tChecksumInfo.get();
+    ChecksumCalculator& checksumCalc = ChecksumCalculatorThreadInfo::get();
     bool needRestoreFromSnapshot = false;
 
     //
