@@ -636,9 +636,9 @@ static std::string decodeDriverVersion(uint32_t vendorId, uint32_t driverVersion
         }
         case 0x002:  // amd
         default: {
-            uint32_t major = VK_VERSION_MAJOR(driverVersion);
-            uint32_t minor = VK_VERSION_MINOR(driverVersion);
-            uint32_t patch = VK_VERSION_PATCH(driverVersion);
+            uint32_t major = VK_API_VERSION_MAJOR(driverVersion);
+            uint32_t minor = VK_API_VERSION_MINOR(driverVersion);
+            uint32_t patch = VK_API_VERSION_PATCH(driverVersion);
             result << major << "." << minor << "." << patch;
             break;
         }
@@ -914,9 +914,12 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
 
     // Can we know instance version early?
     if (gvk->vkEnumerateInstanceVersion) {
-        GFXSTREAM_DEBUG("global loader has vkEnumerateInstanceVersion.");
         uint32_t instanceVersion;
         VkResult res = gvk->vkEnumerateInstanceVersion(&instanceVersion);
+        GFXSTREAM_DEBUG("Global loader has instance version = %d.%d.%d",
+                    VK_API_VERSION_MAJOR(instanceVersion),
+                    VK_API_VERSION_MINOR(instanceVersion),
+                    VK_API_VERSION_PATCH(instanceVersion));
         if (VK_SUCCESS == res) {
             if (instanceVersion >= VK_MAKE_VERSION(1, 1, 0)) {
                 GFXSTREAM_DEBUG("global loader has vkEnumerateInstanceVersion returning >= 1.1.");
@@ -926,8 +929,9 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
     }
 
     GFXSTREAM_DEBUG("Creating an instance, asking for version %d.%d.%d ...",
-                    VK_VERSION_MAJOR(appInfo.apiVersion), VK_VERSION_MINOR(appInfo.apiVersion),
-                    VK_VERSION_PATCH(appInfo.apiVersion));
+                    VK_API_VERSION_MAJOR(appInfo.apiVersion),
+                    VK_API_VERSION_MINOR(appInfo.apiVersion),
+                    VK_API_VERSION_PATCH(appInfo.apiVersion));
 
     VkResult res = gvk->vkCreateInstance(&instCi, nullptr, &emulation->mInstance);
     if (res != VK_SUCCESS) {
@@ -1287,8 +1291,9 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
 
     auto deviceVersion = emulation->mDeviceInfo.physdevProps.apiVersion;
     GFXSTREAM_INFO("Selecting Vulkan device: %s, Version: %d.%d.%d",
-                   emulation->mDeviceInfo.physdevProps.deviceName, VK_VERSION_MAJOR(deviceVersion),
-                   VK_VERSION_MINOR(deviceVersion), VK_VERSION_PATCH(deviceVersion));
+                   emulation->mDeviceInfo.physdevProps.deviceName,
+                   VK_API_VERSION_MAJOR(deviceVersion), VK_API_VERSION_MINOR(deviceVersion),
+                   VK_API_VERSION_PATCH(deviceVersion));
 
     GFXSTREAM_INFO("Using Vulkan externalMemoryMode: %s for VkEmulation",
                    ExternalMemory::to_string(emulation->mDeviceInfo.externalMemoryMode));
