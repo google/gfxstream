@@ -19,3 +19,34 @@ build --noexperimental_link_static_libraries_once
 #   bazel test --graphics_drivers=gles_angle_vulkan_lavapipe
 #
 build --flag_alias=graphics_drivers=//common/testenv:graphics_test_environment
+
+# Address sanitizer
+build:asan --copt -DADDRESS_SANITIZER
+build:asan --copt -fno-omit-frame-pointer
+build:asan --copt -fsanitize=address
+build:asan --copt -g
+build:asan --copt -O3
+build:asan --linkopt -fsanitize=address
+build:asan --strip=never
+build:asan --//toolchain/bazel:asan_config=true
+
+# Memory sanitizer
+build:msan --copt -DMEMORY_SANITIZER
+build:msan --copt -fno-omit-frame-pointer
+build:msan --copt -fsanitize=memory
+build:msan --copt -g
+build:msan --copt -O3
+build:msan --linkopt -fsanitize=memory
+build:msan --strip=never
+build:msan --//toolchain/bazel:msan_config=true
+
+# Undefined Behavior Sanitizer
+build:ubsan --copt -DUNDEFINED_BEHAVIOR_SANITIZER
+build:ubsan --copt -fno-omit-frame-pointer
+build:ubsan --copt -fsanitize=undefined
+build:ubsan --copt -g
+build:ubsan --copt -O3
+build:ubsan --linkopt -fsanitize=undefined
+build:ubsan --linkopt -lubsan
+build:ubsan --strip=never
+build:ubsan --//toolchain/bazel:ubsan_config=true

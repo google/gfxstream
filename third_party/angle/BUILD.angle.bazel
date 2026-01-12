@@ -1,3 +1,4 @@
+load("@bazel_skylib//lib:selects.bzl", "selects")
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_shared_library")
 load("@rules_python//python:defs.bzl", "py_binary")
 
@@ -2395,10 +2396,18 @@ cc_shared_library(
     user_link_flags = [
         "-ldl",
         "-Wl,--gc-sections",
-        "-Wl,--no-undefined",
         "-Wl,-rpath=$$ORIGIN",
         "-Wl,--version-script=$(location @//third_party/angle:libEGL_angle.lds)",
-    ],
+    ] + selects.with_or({
+        (
+            "@//toolchain/bazel:asan_build",
+            "@//toolchain/bazel:msan_build",
+            "@//toolchain/bazel:ubsan_build",
+        ): [],
+        "//conditions:default": [
+            "-Wl,--no-undefined",
+        ],
+    }),
     deps = [
         ":libegl",
     ],
@@ -2413,10 +2422,18 @@ cc_shared_library(
     user_link_flags = [
         "-ldl",
         "-Wl,--gc-sections",
-        "-Wl,--no-undefined",
         "-Wl,-rpath=$$ORIGIN",
         "-Wl,--version-script=$(location @//third_party/angle:libGLESv2_angle.lds)",
-    ],
+    ] + selects.with_or({
+        (
+            "@//toolchain/bazel:asan_build",
+            "@//toolchain/bazel:msan_build",
+            "@//toolchain/bazel:ubsan_build",
+        ): [],
+        "//conditions:default": [
+            "-Wl,--no-undefined",
+        ],
+    }),
     deps = [
         ":libglesv2",
     ],

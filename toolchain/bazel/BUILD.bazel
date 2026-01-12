@@ -1,3 +1,4 @@
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load(":cc_toolchain_macro.bzl", "linux_local_clang")
 
 package(
@@ -86,4 +87,43 @@ linux_local_clang(
         "@platforms//os:linux",
     ],
     version = 11,
+)
+
+bool_flag(
+    name = "asan_config",
+    build_setting_default = False,
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "asan_build",
+    flag_values = {
+        ":asan_config": "True",
+    },
+)
+
+bool_flag(
+    name = "msan_config",
+    build_setting_default = False,
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "msan_build",
+    flag_values = {
+        ":msan_config": "True",
+    },
+)
+
+bool_flag(
+    name = "ubsan_config",
+    build_setting_default = False,
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "ubsan_build",
+    flag_values = {
+        ":ubsan_config": "True",
+    },
 )
