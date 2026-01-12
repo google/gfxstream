@@ -2222,6 +2222,30 @@ class VkDecoderGlobalState::Impl {
 
         if (result != VK_SUCCESS) {
             GFXSTREAM_WARNING("Failed to create VkDevice: %s.", string_VkResult(result));
+
+            // Provide extra information on specific cases
+            if (createInfoFiltered.pEnabledFeatures && result == VK_ERROR_FEATURE_NOT_PRESENT) {
+                VkPhysicalDeviceFeatures supported;
+                vk->vkGetPhysicalDeviceFeatures(physicalDevice, &supported);
+
+                std::string missingFeatures;
+                vk_util::getMissingFeatures(supported, *createInfoFiltered.pEnabledFeatures,
+                                            missingFeatures);
+                GFXSTREAM_WARNING("Missing features: %s", missingFeatures.c_str());
+            } else if (result == VK_ERROR_EXTENSION_NOT_PRESENT) {
+                uint32_t extCount;
+                vk->vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extCount,
+                                                         nullptr);
+                std::vector<VkExtensionProperties> availableExts(extCount);
+                vk->vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extCount,
+                                                         availableExts.data());
+
+                std::string missingExtensions;
+                vk_util::getMissingExtensions(availableExts, createInfoFiltered.enabledExtensionCount,
+                                              createInfoFiltered.ppEnabledExtensionNames,
+                                              missingExtensions);
+                GFXSTREAM_WARNING("Missing extensions: %s", missingExtensions.c_str());
+            }
             return result;
         }
 

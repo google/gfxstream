@@ -29,8 +29,8 @@
 #include <thread>
 #include <tuple>
 #include <type_traits>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 #include "gfxstream/common/logging.h"
 #include "gfxstream/host/gfxstream_format.h"
@@ -195,10 +195,10 @@ std::optional<uint32_t> findMemoryType(const VulkanDispatch* ivk, VkPhysicalDevi
                                        uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 bool extensionSupported(const std::vector<VkExtensionProperties>& currentProps,
-                               const char* wantedExtName);
+                        const char* wantedExtName);
 
 bool extensionsSupported(const std::vector<VkExtensionProperties>& currentProps,
-                                const std::vector<const char*>& wantedExtNames);
+                         const std::vector<const char*>& wantedExtNames);
 
 void setVkCheckCallbacks(std::unique_ptr<VkCheckCallbacks>);
 const CallbacksWrapper<VkCheckCallbacks>& getVkCheckCallbacks();
@@ -363,6 +363,19 @@ static inline bool vk_descriptor_type_has_image_view(VkDescriptorType type) {
             return false;
     }
 }
+
+// Get missing extensions from a requested list of extensions
+// Returns number of missing extension
+uint32_t getMissingExtensions(const std::vector<VkExtensionProperties>& currentProps,
+                              uint32_t enabledExtensionCount,
+                              const char* const* ppEnabledExtensionNames,
+                              std::string& outMissingExtensions);
+
+// Get missing features from a requested device features structure
+// Returns number of missing features
+uint32_t getMissingFeatures(const VkPhysicalDeviceFeatures& supported,
+                            const VkPhysicalDeviceFeatures& requested,
+                            std::string& outMissingFeatures);
 
 class YcbcrSamplerPool {
    public:
