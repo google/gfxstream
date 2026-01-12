@@ -461,12 +461,20 @@ void CompositorVk::setUpDescriptorSets() {
         (kMaxLayersPerFrame * descriptorSetsPerLayer + kMaxImmediateDrawsPerFrame);
     const uint32_t descriptorSetsTotal = descriptorSetsPerFrame * m_maxFramesInFlight;
 
-    // TODO(b/389646068): *2 should not be necessary for image samplers but
-    // some drivers are throwing VK_ERROR_OUT_OF_POOL_MEMORY errors.
+    // TODO(b/389646068): As per the note under
+    // https://docs.vulkan.org/refpages/latest/refpages/source/VkDescriptorPoolSize.html, the
+    // descriptorCount value here for use with combined image samplers must account for non-trivial
+    // descriptorCount consumption, otherwise some drivers are throwing VK_ERROR_OUT_OF_POOL_MEMORY.
+    // This information needs to be obtained from:
+    // VkSamplerYcbcrConversionImageFormatProperties::combinedImageSamplerDescriptorCount, or from
+    // VkPhysicalDeviceMaintenance6Properties::maxCombinedImageSamplerDescriptorCount.
+    // For now, use *3. A quick search in open-source drivers (i.e. upstream Mesa3D) reveals that
+    // the maximum value for this value is 3 across all drivers/platforms. This accounts for 3-plane
+    // YCbCr sampler formats in some drivers (i.e. Broadcom V3D).
     const VkDescriptorPoolSize descriptorPoolSizes[2] = {
         VkDescriptorPoolSize{
             .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = descriptorSetsTotal * 2,
+            .descriptorCount = descriptorSetsTotal * 3,
         },
         VkDescriptorPoolSize{
             .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
