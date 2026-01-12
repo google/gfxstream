@@ -16,12 +16,31 @@
 #include "post_worker_vk.h"
 
 #include "host/frame_buffer.h"
+#include "gfxstream/host/display_operations.h"
+#include "gfxstream/host/renderer_operations.h"
+#include "gfxstream/host/window_operations.h"
 #include "gfxstream/common/logging.h"
 #include "vulkan/display_vk.h"
 
 namespace gfxstream {
 namespace host {
 namespace vk {
+namespace {
+
+hwc_transform_t getTransformFromRotation(int rotation) {
+    switch (static_cast<int>(rotation / 90)) {
+        case 1:
+            return HWC_TRANSFORM_ROT_270;
+        case 2:
+            return HWC_TRANSFORM_ROT_180;
+        case 3:
+            return HWC_TRANSFORM_ROT_90;
+        default:
+            return HWC_TRANSFORM_NONE;
+    }
+}
+
+}  // namespace
 
 PostWorkerVk::PostWorkerVk(FrameBuffer* fb, Compositor* compositor, vk::DisplayVk* displayVk)
     : PostWorker(false, fb, compositor), m_displayVk(displayVk) {}
@@ -35,11 +54,117 @@ std::shared_future<void> PostWorkerVk::postImpl(ColorBuffer* cb,
         GFXSTREAM_FATAL("PostWorker missing DisplayVk.");
     }
 
+    std::vector<std::unique_ptr<BorrowedImageInfo>> borrowedImages;
+    DisplayVk::Post postCmd;
+
+    auto addPostImage = [&](ColorBuffer* colorBuffer, int32_t x, int32_t y, int32_t w, int32_t h,
+                            float rotation,
+                            const std::optional<std::array<float, 16>>& transform = std::nullopt) {
+        auto info = mFb->borrowColorBufferForDisplay(colorBuffer->getHndl());
+        if (!info) return;
+
+        DisplayVk::PostLayer layer;
+        layer.info = info.get();
+        layer.rotationDegrees = rotation;
+        layer.colorTransform = transform;
+        layer.displayFrame = {
+            .left = x,
+            .top = y,
+            .right = x + w,
+            .bottom = y + h,
+        };
+        borrowedImages.push_back(std::move(info));
+        postCmd.layers.push_back(layer);
+    };
+
+    const auto& multiDisplay = get_gfxstream_multi_display_operations();
+    const bool pixel_fold = multiDisplay.is_pixel_fold();
+
+    if (pixel_fold) {
+#ifdef CONFIG_AEMU
+        if (!get_gfxstream_should_skip_draw()) {
+            // TODO(b/467017311): Logic for pixel fold overlay if needed, similar to GL?
+             addPostImage(cb, 0, 0, 0, 0, static_cast<float>(mFb->getZrot()), colorTransform);
+        }
+#endif
+    } else if (multiDisplay.is_multi_display_enabled()) {
+        if (multiDisplay.is_multi_window()) {
+            int32_t previousDisplayId = -1;
+            uint32_t currentDisplayId;
+            uint32_t currentDisplayColorBufferHandle;
+            while (multiDisplay.get_next_display_info(previousDisplayId, &currentDisplayId,
+                                                      /*x=*/nullptr,
+                                                      /*y=*/nullptr,
+                                                      /*w=*/nullptr,
+                                                      /*h=*/nullptr,
+                                                      /*dpi=*/nullptr,
+                                                      /*flags=*/nullptr,
+                                                      &currentDisplayColorBufferHandle)) {
+                previousDisplayId = currentDisplayId;
+
+                if (currentDisplayColorBufferHandle == 0) {
+                    continue;
+                }
+                get_gfxstream_window_operations().paint_multi_display_window(
+                    currentDisplayId, currentDisplayColorBufferHandle);
+            }
+            // Main window post
+             addPostImage(cb, 0, 0, 0, 0, static_cast<float>(mFb->getZrot()), colorTransform);
+        } else {
+            uint32_t combinedDisplayW = 0;
+            uint32_t combinedDisplayH = 0;
+            multiDisplay.get_combined_size(&combinedDisplayW, &combinedDisplayH);
+            postCmd.frameWidth = combinedDisplayW;
+            postCmd.frameHeight = combinedDisplayH;
+
+            int32_t previousDisplayId = -1;
+            uint32_t currentDisplayId;
+            int32_t currentDisplayOffsetX;
+            int32_t currentDisplayOffsetY;
+            uint32_t currentDisplayW;
+            uint32_t currentDisplayH;
+            uint32_t currentDisplayColorBufferHandle;
+            while (multiDisplay.get_next_display_info(
+                previousDisplayId, &currentDisplayId, &currentDisplayOffsetX,
+                &currentDisplayOffsetY, &currentDisplayW, &currentDisplayH,
+                /*dpi=*/nullptr,
+                /*flags=*/nullptr, &currentDisplayColorBufferHandle)) {
+                previousDisplayId = currentDisplayId;
+
+                if (currentDisplayW == 0 || currentDisplayH == 0 ||
+                    (currentDisplayId != 0 && currentDisplayColorBufferHandle == 0)) {
+                    continue;
+                }
+
+                ColorBuffer* currentCb =
+                    currentDisplayId == 0
+                        ? cb
+                        : mFb->findColorBuffer(currentDisplayColorBufferHandle).get();
+                if (!currentCb) {
+                    continue;
+                }
+
+                float rotation = static_cast<float>(mFb->getZrot());
+                const auto transform = getTransformFromRotation(mFb->getZrot());
+                if (transform == HWC_TRANSFORM_ROT_90 || transform == HWC_TRANSFORM_ROT_270) {
+                    std::swap(currentDisplayW, currentDisplayH);
+                }
+                addPostImage(currentCb, currentDisplayOffsetX, currentDisplayOffsetY,
+                             currentDisplayW, currentDisplayH, rotation, colorTransform);
+            }
+        }
+    } else if (get_gfxstream_window_operations().is_folded()) {
+        // TODO: Implement fold logic if needed (similar to GL)
+        // For now simple post
+        addPostImage(cb, 0, 0, 0, 0, static_cast<float>(mFb->getZrot()), colorTransform);
+    } else {
+        // Simple case: single display, no special mode
+        addPostImage(cb, 0, 0, 0, 0, static_cast<float>(mFb->getZrot()), colorTransform);
+    }
+
     constexpr const int kMaxPostRetries = 2;
     for (int i = 0; i < kMaxPostRetries; i++) {
-        const auto imageInfo = mFb->borrowColorBufferForDisplay(cb->getHndl());
-        const float rotationDegrees = static_cast<float>(mFb->getZrot());
-        auto result = m_displayVk->post(imageInfo.get(), rotationDegrees, colorTransform);
+        auto result = m_displayVk->post(postCmd);
         if (result.success) {
             return result.postCompletedWaitable;
         }

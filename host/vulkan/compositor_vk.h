@@ -304,6 +304,7 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
         float rotationDegrees = 0.0f;
         bool useScreenBlend = false;
         std::optional<std::array<float, 16>> colorTransform;
+        hwc_rect_t displayFrame = {0, 0, 0, 0};
     };
 
     void drawScreenMask(const ImageDrawParams& params);

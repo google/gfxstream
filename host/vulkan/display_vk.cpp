@@ -177,9 +177,7 @@ bool DisplayVk::recreateSwapchain() {
     return true;
 }
 
-DisplayVk::PostResult DisplayVk::post(const BorrowedImageInfo* sourceImageInfo,
-                                      float rotationDegrees,
-                                      const std::optional<std::array<float, 16>>& colorTransform) {
+DisplayVk::PostResult DisplayVk::post(const Post& postCmd) {
     auto completedFuture = std::async(std::launch::deferred, [] {}).share();
     completedFuture.wait();
 
@@ -211,22 +209,23 @@ DisplayVk::PostResult DisplayVk::post(const BorrowedImageInfo* sourceImageInfo,
         GFXSTREAM_INFO("Recreating swapchain completed.");
     }
 
-    auto result = postImpl(sourceImageInfo, rotationDegrees, colorTransform);
+    auto result = postImpl(postCmd);
     if (!result.success) {
         m_needToRecreateSwapChain = true;
     }
     return result;
 }
 
-DisplayVk::PostResult DisplayVk::postImpl(
-    const BorrowedImageInfo* sourceImageInfo, float rotationDegrees,
-    const std::optional<std::array<float, 16>>& colorTransform) {
+DisplayVk::PostResult DisplayVk::postImpl(const Post& postCmd) {
     auto completedFuture = std::async(std::launch::deferred, [] {}).share();
     completedFuture.wait();
 
     // One for acquire, one for release.
-    const ImageBorrowResource* imageBorrowResources[2] = {nullptr};
-    for (size_t i = 0; i < std::size(imageBorrowResources); i++) {
+    size_t requiredResources = postCmd.layers.size() * 2;
+    std::vector<const ImageBorrowResource*> imageBorrowResources;
+    imageBorrowResources.reserve(requiredResources);
+
+    for (size_t i = 0; i < requiredResources; i++) {
         auto freeImageBorrowResource =
             std::find_if(m_imageBorrowResources.begin(), m_imageBorrowResources.end(),
                          [this](const std::unique_ptr<ImageBorrowResource>& imageBorrowResource) {
@@ -243,16 +242,15 @@ DisplayVk::PostResult DisplayVk::postImpl(
                 m_vkDevice, 1, &(*freeImageBorrowResource)->m_completeFence, VK_TRUE, UINT64_MAX));
         }
         VK_CHECK(m_vk.vkResetFences(m_vkDevice, 1, &(*freeImageBorrowResource)->m_completeFence));
-        imageBorrowResources[i] = freeImageBorrowResource->get();
+        imageBorrowResources.push_back(freeImageBorrowResource->get());
     }
     // We need to unconditionally acquire and release the image to satisfy the requiremment for the
     // borrowed image.
-    const auto* sourceImageInfoVk = static_cast<const BorrowedImageInfoVk*>(sourceImageInfo);
     struct ImageBorrower {
         ImageBorrower(const VulkanDispatch& vk, VkQueue queue,
                       std::shared_ptr<gfxstream::base::Lock> queueLock, uint32_t usedQueueFamilyIndex,
                       const BorrowedImageInfoVk& image, const ImageBorrowResource& acquireResource,
-                      const ImageBorrowResource& releaseResource)
+                      const ImageBorrowResource& releaseResource, VkImageLayout layout)
             : m_vk(vk),
               m_vkQueue(queue),
               m_queueLock(queueLock),
@@ -261,11 +259,16 @@ DisplayVk::PostResult DisplayVk::postImpl(
             std::vector<VkImageMemoryBarrier> acquireLayoutTransitionBarriers;
             std::vector<VkImageMemoryBarrier> releaseLayoutTransitionBarriers;
             std::vector<VkImageMemoryBarrier> releaseQueueTransferBarriers;
+            VkAccessFlags accessMask = VK_ACCESS_TRANSFER_READ_BIT;
+            if (layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+                accessMask = VK_ACCESS_SHADER_READ_BIT;
+            }
+
             addNeededBarriersToUseBorrowedImage(
                 image, usedQueueFamilyIndex,
-                /*usedInitialImageLayout=*/VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                /*usedFinalImageLayout=*/VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                VK_ACCESS_TRANSFER_READ_BIT, &acquireQueueTransferBarriers,
+                /*usedInitialImageLayout=*/layout,
+                /*usedFinalImageLayout=*/layout,
+                accessMask, &acquireQueueTransferBarriers,
                 &acquireLayoutTransitionBarriers, &releaseLayoutTransitionBarriers,
                 &releaseQueueTransferBarriers);
 
@@ -286,10 +289,14 @@ DisplayVk::PostResult DisplayVk::postImpl(
                     acquireQueueTransferBarriers.data());
             }
             if (!acquireLayoutTransitionBarriers.empty()) {
+                VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
+                if (layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+                    dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+                }
                 m_vk.vkCmdPipelineBarrier(
                     acquireResource.m_vkCommandBuffer,
                     VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT,
-                    VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr,
+                    dstStageMask, 0, 0, nullptr, 0, nullptr,
                     static_cast<uint32_t>(acquireLayoutTransitionBarriers.size()),
                     acquireLayoutTransitionBarriers.data());
             }
@@ -303,15 +310,23 @@ DisplayVk::PostResult DisplayVk::postImpl(
             VK_CHECK(
                 m_vk.vkBeginCommandBuffer(releaseResource.m_vkCommandBuffer, &releaseBeginInfo));
             if (!releaseLayoutTransitionBarriers.empty()) {
+                VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
+                if (layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+                    srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+                }
                 m_vk.vkCmdPipelineBarrier(
-                    releaseResource.m_vkCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                    releaseResource.m_vkCommandBuffer, srcStageMask,
                     VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0, nullptr,
                     static_cast<uint32_t>(releaseLayoutTransitionBarriers.size()),
                     releaseLayoutTransitionBarriers.data());
             }
             if (!releaseQueueTransferBarriers.empty()) {
+                VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
+                if (layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+                    srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+                }
                 m_vk.vkCmdPipelineBarrier(
-                    releaseResource.m_vkCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                    releaseResource.m_vkCommandBuffer, srcStageMask,
                     VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0, nullptr,
                     static_cast<uint32_t>(releaseQueueTransferBarriers.size()),
                     releaseQueueTransferBarriers.data());
@@ -358,9 +373,7 @@ DisplayVk::PostResult DisplayVk::postImpl(
                                             m_releaseResource.m_completeFence));
             }
         }
-    } imageBorrower(m_vk, m_compositorVkQueue, m_compositorVkQueueLock,
-                    m_compositorQueueFamilyIndex, *sourceImageInfoVk, *imageBorrowResources[0],
-                    *imageBorrowResources[1]);
+    };
 
     const auto* surface = getBoundSurface();
     if (!m_swapChainStateVk || !surface) {
@@ -368,9 +381,33 @@ DisplayVk::PostResult DisplayVk::postImpl(
         return PostResult{true, std::move(completedFuture)};
     }
 
-    if (!canPost(sourceImageInfoVk->imageCreateInfo)) {
-        GFXSTREAM_ERROR("Can't post ColorBuffer.");
-        return PostResult{true, std::move(completedFuture)};
+    bool useBlit = false;
+    // We can only use blit if there is exactly one image, no rotation/color transform,
+    // and no custom display frame (full screen).
+    if (postCmd.layers.size() == 1) {
+        const auto& layer = postCmd.layers[0];
+        if (layer.rotationDegrees == 0 && !layer.colorTransform.has_value() &&
+            hwc_rect_get_width(&layer.displayFrame) == 0 && !postCmd.colorTransform.has_value()) {
+             const auto* sourceImageInfoVk = static_cast<const BorrowedImageInfoVk*>(layer.info);
+             if (canPost(sourceImageInfoVk->imageCreateInfo)) {
+                 useBlit = true;
+             }
+        }
+    }
+
+    std::vector<std::unique_ptr<ImageBorrower>> borrowers;
+    borrowers.reserve(postCmd.layers.size());
+
+    for (size_t i = 0; i < postCmd.layers.size(); ++i) {
+        const auto& layer = postCmd.layers[i];
+        const auto* sourceImageInfoVk = static_cast<const BorrowedImageInfoVk*>(layer.info);
+        VkImageLayout layout = useBlit ? VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL
+                                       : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+        borrowers.emplace_back(std::make_unique<ImageBorrower>(
+            m_vk, m_compositorVkQueue, m_compositorVkQueueLock, m_compositorQueueFamilyIndex,
+            *sourceImageInfoVk, *imageBorrowResources[2 * i], *imageBorrowResources[2 * i + 1],
+            layout));
     }
 
     for (auto& postResourceFutureOpt : m_postResourceFutures) {
@@ -455,39 +492,51 @@ DisplayVk::PostResult DisplayVk::postImpl(
         .targetRenderPass = currentSwapchainRenderpass,
         .targetFramebuffer = currentSwapchainFramebuffer,
         .frameResources = imResources,
-        .rotationDegrees = rotationDegrees,
+        .rotationDegrees = 0.0f,
         .useScreenBlend = false,
         .colorTransform = std::nullopt,
     };
 
+    // For multi-display, we process background/mask per-image in the loop below.
     bool renderBackground = imResources && m_compositorVk->hasScreenBackground();
-    if (renderBackground) {
-        if (currentSwapchainLayout != VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
-            VkImageMemoryBarrier transitionSwapchainToAttachmentBarrier = {
-                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-                .srcAccessMask = curSrcAccessMask,
-                .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-                .oldLayout = currentSwapchainLayout,
-                .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                .image = currentSwapchainImage,
-                .subresourceRange = subresourceRange,
-            };
-            m_vk.vkCmdPipelineBarrier(cmdBuff, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                                    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0,
-                                    nullptr, 1, &transitionSwapchainToAttachmentBarrier);
-            currentSwapchainLayout = transitionSwapchainToAttachmentBarrier.newLayout;
-            curSrcAccessMask = transitionSwapchainToAttachmentBarrier.dstAccessMask;
-        }
-
-        m_compositorVk->drawScreenBackground(drawParams);
+    // Disable blit if:
+    // 1. We have multiple images (composition needed)
+    // 2. We have a background to render (blit overwrites it)
+    if (postCmd.layers.size() > 1 || renderBackground) {
+        useBlit = false;
     }
-    const bool useBlit = !imResources || (rotationDegrees == 0 && !colorTransform.has_value() &&
-                                          !renderBackground);
+    // Explicitly clear swapchain if not using blit (ensures clean canvas for composition)
+    // Only clear if we are NOT rendering the background skin (e.g. multi-display mode or no skin)
+    // If we are rendering the skin, we rely on it to cover the frame (and avoid black corners in gaps).
+    if (!useBlit && (!renderBackground || (postCmd.layers.size() > 1))) {
+        VkImageMemoryBarrier barrier = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .srcAccessMask = curSrcAccessMask,
+            .dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+            .oldLayout = currentSwapchainLayout,
+            .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = currentSwapchainImage,
+            .subresourceRange = subresourceRange,
+        };
+        m_vk.vkCmdPipelineBarrier(cmdBuff, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                                  VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1,
+                                  &barrier);
+
+        const VkClearColorValue clearColor = {{0.0f, 0.0f, 0.0f, 1.0f}};
+        m_vk.vkCmdClearColorImage(cmdBuff, currentSwapchainImage,
+                                  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &clearColor, 1,
+                                  &subresourceRange);
+
+        currentSwapchainLayout = barrier.newLayout;
+        curSrcAccessMask = barrier.dstAccessMask;
+    }
 
     if (useBlit) {
-        // Use vkCmdBlitImage to post the image
+        // Use vkCmdBlitImage to post the image (single image optimized path)
+        const auto& layer = postCmd.layers[0];
+        const auto* sourceImageInfoVk = static_cast<const BorrowedImageInfoVk*>(layer.info);
         VkImageMemoryBarrier acquireSwapchainImageBarrier = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .srcAccessMask = curSrcAccessMask,
@@ -550,7 +599,7 @@ DisplayVk::PostResult DisplayVk::postImpl(
         m_vk.vkCmdBlitImage(cmdBuff, sourceImageInfoVk->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                             currentSwapchainImage, currentSwapchainLayout, 1, &region, filter);
     } else {
-        // Use immediate drawImage call to render the image
+        // Use immediate drawImage call to render the images
         if (currentSwapchainLayout != VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
             VkImageMemoryBarrier transitionSwapchainToAttachmentBarrier = {
                 .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -570,36 +619,91 @@ DisplayVk::PostResult DisplayVk::postImpl(
             curSrcAccessMask = transitionSwapchainToAttachmentBarrier.dstAccessMask;
         }
 
-        drawParams.useScreenBlend = renderBackground;
-        drawParams.colorTransform = colorTransform;
-        m_compositorVk->drawImage(drawParams, sourceImageInfoVk->imageView);
-    }
-
-    // Render screen mask overlay
-    if (imResources && m_compositorVk->hasScreenMask()) {
-        if (useBlit) {
-            VkImageMemoryBarrier transitionSwapchainToAttachmentBarrier = {
-                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-                .srcAccessMask = curSrcAccessMask,
-                .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-                .oldLayout = currentSwapchainLayout,
-                .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                .image = currentSwapchainImage,
-                .subresourceRange = subresourceRange,
-            };
-            m_vk.vkCmdPipelineBarrier(cmdBuff, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                                      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr,
-                                      0, nullptr, 1, &transitionSwapchainToAttachmentBarrier);
-            currentSwapchainLayout = transitionSwapchainToAttachmentBarrier.newLayout;
-            curSrcAccessMask = transitionSwapchainToAttachmentBarrier.dstAccessMask;
+        // Compute logical width/height from the union of all image display frames
+        int32_t logicalWidth = postCmd.frameWidth;
+        int32_t logicalHeight = postCmd.frameHeight;
+        if (logicalWidth == 0 || logicalHeight == 0) {
+            for (const auto& layer : postCmd.layers) {
+                logicalWidth = std::max(logicalWidth, layer.displayFrame.right);
+                logicalHeight = std::max(logicalHeight, layer.displayFrame.bottom);
+            }
         }
 
-        drawParams.useScreenBlend = false;
-        drawParams.colorTransform = std::nullopt;
-        m_compositorVk->drawScreenMask(drawParams);
+        // If logical size is 0 (e.g. single image with 0-init frame), assume it matches swapchain
+        if (logicalWidth == 0) logicalWidth = swapchainImageExtent.width;
+        if (logicalHeight == 0) logicalHeight = swapchainImageExtent.height;
+
+        // Revert to Stretch scaling to match Input Mapper expectations (Fit Window)
+        float scaleX = static_cast<float>(swapchainImageExtent.width) / logicalWidth;
+        float scaleY = static_cast<float>(swapchainImageExtent.height) / logicalHeight;
+
+        for (size_t i = 0; i < postCmd.layers.size(); ++i) {
+            const auto& layer = postCmd.layers[i];
+            const auto* sourceImageInfoVk = static_cast<const BorrowedImageInfoVk*>(layer.info);
+            // Strictly disable skin/mask if multi-display mode is active, regardless of image count
+            bool isMultiDisplay = postCmd.layers.size() > 1;
+            bool disableMask = isMultiDisplay;
+
+            drawParams.useScreenBlend = (i == 0) && renderBackground && !disableMask;
+            // Prefer per-layer color transform, then global, then none
+            if (layer.colorTransform.has_value()) {
+                drawParams.colorTransform = layer.colorTransform;
+            } else {
+                drawParams.colorTransform = postCmd.colorTransform;
+            }
+            drawParams.rotationDegrees = layer.rotationDegrees;
+
+            if (hwc_rect_get_width(&layer.displayFrame) == 0 || hwc_rect_get_height(&layer.displayFrame) == 0) {
+                 // Fallback for 0-sized frames
+                 drawParams.displayFrame.left = 0;
+                 drawParams.displayFrame.top = 0;
+                 drawParams.displayFrame.right = swapchainImageExtent.width;
+                 drawParams.displayFrame.bottom = swapchainImageExtent.height;
+            } else {
+                // Apply Y-Flip layout to match GL/Input expectations (Bottom-Left origin logic)
+                int32_t flippedTop = logicalHeight - layer.displayFrame.bottom;
+                drawParams.displayFrame.left = static_cast<int32_t>(layer.displayFrame.left * scaleX);
+                drawParams.displayFrame.top = static_cast<int32_t>(flippedTop * scaleY);
+                drawParams.displayFrame.right = static_cast<int32_t>(layer.displayFrame.right * scaleX);
+                // bottom is determined by adding height (scaled) to top
+                drawParams.displayFrame.bottom = static_cast<int32_t>((flippedTop + hwc_rect_get_height(&layer.displayFrame)) * scaleY);
+            }
+
+            // Ensure transition to COLOR_ATTACHMENT_OPTIMAL if we're about to draw (after clear)
+            if (currentSwapchainLayout != VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
+                 VkImageMemoryBarrier transitionToAttachment = {
+                    .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                    .srcAccessMask = curSrcAccessMask,
+                    .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+                    .oldLayout = currentSwapchainLayout,
+                    .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                    .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                    .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                    .image = currentSwapchainImage,
+                    .subresourceRange = subresourceRange,
+                };
+                m_vk.vkCmdPipelineBarrier(cmdBuff, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                                          VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr,
+                                          0, nullptr, 1, &transitionToAttachment);
+                currentSwapchainLayout = transitionToAttachment.newLayout;
+                curSrcAccessMask = transitionToAttachment.dstAccessMask;
+            }
+
+            // Draw Background only if mask is allowed (single display mode)
+            if (i == 0 && renderBackground && !disableMask) {
+                m_compositorVk->drawScreenBackground(drawParams);
+            }
+
+            m_compositorVk->drawImage(drawParams, sourceImageInfoVk->imageView);
+
+            // Draw Mask only if mask is allowed (single display mode)
+            if (i == 0 && m_compositorVk->hasScreenMask() && !disableMask) {
+                 m_compositorVk->drawScreenMask(drawParams);
+            }
+        }
     }
+
+
 
     VkImageMemoryBarrier releaseSwapchainImageBarrier = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -730,12 +834,14 @@ bool DisplayVk::canPost(const VkImageCreateInfo& postImageCi) {
         return false;
     }
 
-    if (!(postImageCi.usage & VK_IMAGE_USAGE_TRANSFER_SRC_BIT)) {
+    if (!(postImageCi.usage & VK_IMAGE_USAGE_TRANSFER_SRC_BIT) &&
+        !(postImageCi.usage & VK_IMAGE_USAGE_SAMPLED_BIT)) {
         // According to VUID-vkCmdBlitImage-srcImage-00219, srcImage must have been created with
         // VK_IMAGE_USAGE_TRANSFER_SRC_BIT usage flag.
+        // If we use drawImage, we need VK_IMAGE_USAGE_SAMPLED_BIT.
         GFXSTREAM_ERROR(
-            "The VkImage is not created with the VK_IMAGE_USAGE_TRANSFER_SRC_BIT usage flag. The "
-            "usage flags are %s.",
+            "The VkImage is not created with the VK_IMAGE_USAGE_TRANSFER_SRC_BIT or "
+            "VK_IMAGE_USAGE_SAMPLED_BIT usage flag. The usage flags are %s.",
             string_VkImageUsageFlags(postImageCi.usage).c_str());
         return false;
     }

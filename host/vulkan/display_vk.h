@@ -49,8 +49,21 @@ class DisplayVk : public Display {
               std::shared_ptr<gfxstream::base::Lock> swapChainVkQueueLock);
     ~DisplayVk();
 
-    PostResult post(const BorrowedImageInfo* info, float rotationDegrees,
-                    const std::optional<std::array<float, 16>>& colorTransform);
+    struct PostLayer {
+        const BorrowedImageInfo* info;
+        float rotationDegrees;
+        std::optional<std::array<float, 16>> colorTransform;
+        hwc_rect_t displayFrame;
+    };
+
+    struct Post {
+        uint32_t frameWidth = 0;
+        uint32_t frameHeight = 0;
+        std::vector<PostLayer> layers;
+        std::optional<std::array<float, 16>> colorTransform;
+    };
+
+    PostResult post(const Post& postCmd);
 
     void drainQueues();
     void clear();
@@ -69,8 +82,7 @@ class DisplayVk : public Display {
     // component of the returned result is a future that will complete when the GPU side of work
     // completes. The caller is responsible to guarantee the synchronization and the layout of
     // ColorBufferCompositionInfo::m_vkImage is VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL.
-    PostResult postImpl(const BorrowedImageInfo* info, float rotationDegrees,
-                        const std::optional<std::array<float, 16>>& colorTransform);
+    PostResult postImpl(const Post& postCmd);
 
     VkFormatFeatureFlags getFormatFeatures(VkFormat, VkImageTiling);
     bool canPost(const VkImageCreateInfo&);

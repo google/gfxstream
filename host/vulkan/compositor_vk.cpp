@@ -1901,23 +1901,35 @@ void CompositorVk::drawImage(const ImageDrawParams& params, VkImageView imageVie
         .pClearValues = nullptr,
     };
 
+    int32_t viewportX = 0;
+    int32_t viewportY = 0;
+    uint32_t viewportWidth = params.targetWidth;
+    uint32_t viewportHeight = params.targetHeight;
+
+    if (hwc_rect_get_width(&params.displayFrame) > 0 && hwc_rect_get_height(&params.displayFrame) > 0) {
+        viewportX = params.displayFrame.left;
+        viewportY = params.displayFrame.top;
+        viewportWidth = hwc_rect_get_width(&params.displayFrame);
+        viewportHeight = hwc_rect_get_height(&params.displayFrame);
+    }
+
     const VkRect2D scissor = {
         .offset =
             {
-                .x = 0,
-                .y = 0,
+                .x = viewportX,
+                .y = viewportY,
             },
         .extent =
             {
-                .width = params.targetWidth,
-                .height = params.targetHeight,
+                .width = viewportWidth,
+                .height = viewportHeight,
             },
     };
     const VkViewport viewport = {
-        .x = 0.0f,
-        .y = 0.0f,
-        .width = static_cast<float>(params.targetWidth),
-        .height = static_cast<float>(params.targetHeight),
+        .x = static_cast<float>(viewportX),
+        .y = static_cast<float>(viewportY),
+        .width = static_cast<float>(viewportWidth),
+        .height = static_cast<float>(viewportHeight),
         .minDepth = 0.0f,
         .maxDepth = 1.0f,
     };

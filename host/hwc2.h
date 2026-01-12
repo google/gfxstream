@@ -55,6 +55,9 @@ typedef struct hwc_rect {
     int bottom;
 } hwc_rect_t;
 
+inline int hwc_rect_get_width(const hwc_rect_t* rect) { return rect->right - rect->left; }
+inline int hwc_rect_get_height(const hwc_rect_t* rect) { return rect->bottom - rect->top; }
+
 typedef enum {
     /* No transform */
     HWC_TRANSFORM_NONE = HAL_TRANSFORM_NONE,

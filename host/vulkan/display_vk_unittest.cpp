@@ -239,7 +239,13 @@ TEST_F(DisplayVkTest, PostWithoutSurfaceShouldntCrash) {
     std::vector<uint32_t> pixels(textureWidth * textureHeight, 0);
     ASSERT_TRUE(texture->write(pixels));
     const auto imageInfo = createBorrowedImageInfo(texture);
-    displayVk.post(imageInfo.get(), 0, std::nullopt);
+    DisplayVk::Post postCmd;
+    DisplayVk::PostLayer layer;
+    layer.info = imageInfo.get();
+    layer.rotationDegrees = 0;
+    layer.colorTransform = std::nullopt;
+    postCmd.layers.push_back(layer);
+    displayVk.post(postCmd);
 }
 
 TEST_F(DisplayVkTest, SimplePost) {
@@ -261,7 +267,13 @@ TEST_F(DisplayVkTest, SimplePost) {
     std::vector<std::shared_future<void>> waitForGpuFutures;
     for (uint32_t i = 0; i < 10; i++) {
         const auto imageInfo = createBorrowedImageInfo(texture);
-        auto postResult = m_displayVk->post(imageInfo.get(), 0, std::nullopt);
+        DisplayVk::Post postCmd;
+        DisplayVk::PostLayer layer;
+        layer.info = imageInfo.get();
+        layer.rotationDegrees = 0;
+        layer.colorTransform = std::nullopt;
+        postCmd.layers.push_back(layer);
+        auto postResult = m_displayVk->post(postCmd);
         ASSERT_TRUE(postResult.success);
         waitForGpuFutures.emplace_back(std::move(postResult.postCompletedWaitable));
     }
@@ -289,11 +301,23 @@ TEST_F(DisplayVkTest, PostTwoColorBuffers) {
     for (uint32_t i = 0; i < 10; i++) {
         const auto redImageInfo = createBorrowedImageInfo(redTexture);
         const auto greenImageInfo = createBorrowedImageInfo(greenTexture);
-        auto redPostResult = m_displayVk->post(redImageInfo.get(), 0, std::nullopt);
+        DisplayVk::Post redPostCmd;
+        DisplayVk::PostLayer redLayer;
+        redLayer.info = redImageInfo.get();
+        redLayer.rotationDegrees = 0;
+        redLayer.colorTransform = std::nullopt;
+        redPostCmd.layers.push_back(redLayer);
+        auto redPostResult = m_displayVk->post(redPostCmd);
         ASSERT_TRUE(redPostResult.success);
         waitForGpuFutures.emplace_back(std::move(redPostResult.postCompletedWaitable));
 
-        auto greenPostResult = m_displayVk->post(greenImageInfo.get(), 0, std::nullopt);
+        DisplayVk::Post greenPostCmd;
+        DisplayVk::PostLayer greenLayer;
+        greenLayer.info = greenImageInfo.get();
+        greenLayer.rotationDegrees = 0;
+        greenLayer.colorTransform = std::nullopt;
+        greenPostCmd.layers.push_back(greenLayer);
+        auto greenPostResult = m_displayVk->post(greenPostCmd);
         ASSERT_TRUE(greenPostResult.success);
         waitForGpuFutures.emplace_back(std::move(greenPostResult.postCompletedWaitable));
     }
@@ -321,7 +345,13 @@ TEST_F(DisplayVkTest, PostWithRotation) {
     std::vector<std::shared_future<void>> waitForGpuFutures;
     for (uint32_t i = 0; i < 10; i++) {
         const auto imageInfo = createBorrowedImageInfo(texture);
-        auto postResult = m_displayVk->post(imageInfo.get(), 90.0f, std::nullopt);
+        DisplayVk::Post postCmd;
+        DisplayVk::PostLayer layer;
+        layer.info = imageInfo.get();
+        layer.rotationDegrees = 90.0f;
+        layer.colorTransform = std::nullopt;
+        postCmd.layers.push_back(layer);
+        auto postResult = m_displayVk->post(postCmd);
         ASSERT_TRUE(postResult.success);
         waitForGpuFutures.emplace_back(std::move(postResult.postCompletedWaitable));
     }
@@ -350,7 +380,65 @@ TEST_F(DisplayVkTest, PostWithColorTransform) {
     std::vector<std::shared_future<void>> waitForGpuFutures;
     for (uint32_t i = 0; i < 10; i++) {
         const auto imageInfo = createBorrowedImageInfo(texture);
-        auto postResult = m_displayVk->post(imageInfo.get(), 0, colorTransform);
+        DisplayVk::Post postCmd;
+        DisplayVk::PostLayer layer;
+        layer.info = imageInfo.get();
+        layer.rotationDegrees = 0;
+        layer.colorTransform = colorTransform;
+        postCmd.layers.push_back(layer);
+        auto postResult = m_displayVk->post(postCmd);
+        ASSERT_TRUE(postResult.success);
+        waitForGpuFutures.emplace_back(std::move(postResult.postCompletedWaitable));
+    }
+    for (auto &waitForGpuFuture : waitForGpuFutures) {
+        waitForGpuFuture.wait();
+    }
+}
+
+TEST_F(DisplayVkTest, PostMultiDisplayComposition) {
+    uint32_t textureWidth = 20;
+    uint32_t textureHeight = 40;
+    // Create red texture for left display
+    auto redTexture = RenderTexture::create(*k_vk, m_vkDevice, m_vkPhysicalDevice, m_compositorVkQueue,
+                                            m_vkCommandPool, textureWidth, textureHeight);
+    uint32_t red = 0xff0000ff;
+    std::vector<uint32_t> redPixels(textureWidth * textureHeight, red);
+    ASSERT_TRUE(redTexture->write(redPixels));
+
+    // Create green texture for right display
+    auto greenTexture = RenderTexture::create(*k_vk, m_vkDevice, m_vkPhysicalDevice, m_compositorVkQueue,
+                                              m_vkCommandPool, textureWidth, textureHeight);
+    uint32_t green = 0xff00ff00;
+    std::vector<uint32_t> greenPixels(textureWidth * textureHeight, green);
+    ASSERT_TRUE(greenTexture->write(greenPixels));
+
+    std::vector<std::shared_future<void>> waitForGpuFutures;
+    for (uint32_t i = 0; i < 10; i++) {
+        const auto redImageInfo = createBorrowedImageInfo(redTexture);
+        const auto greenImageInfo = createBorrowedImageInfo(greenTexture);
+
+        DisplayVk::Post postCmd;
+        // Combined frame size (side-by-side)
+        postCmd.frameWidth = textureWidth * 2;
+        postCmd.frameHeight = textureHeight;
+
+        // Layer 1: Red at (0, 0)
+        DisplayVk::PostLayer redLayer;
+        redLayer.info = redImageInfo.get();
+        redLayer.rotationDegrees = 0;
+        redLayer.colorTransform = std::nullopt;
+        redLayer.displayFrame = {0, 0, (int)textureWidth, (int)textureHeight};
+        postCmd.layers.push_back(redLayer);
+
+        // Layer 2: Green at (20, 0)
+        DisplayVk::PostLayer greenLayer;
+        greenLayer.info = greenImageInfo.get();
+        greenLayer.rotationDegrees = 0;
+        greenLayer.colorTransform = std::nullopt;
+        greenLayer.displayFrame = {(int)textureWidth, 0, (int)textureWidth * 2, (int)textureHeight};
+        postCmd.layers.push_back(greenLayer);
+
+        auto postResult = m_displayVk->post(postCmd);
         ASSERT_TRUE(postResult.success);
         waitForGpuFutures.emplace_back(std::move(postResult.postCompletedWaitable));
     }
