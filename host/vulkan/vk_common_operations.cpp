@@ -913,15 +913,15 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
     instCi.ppEnabledExtensionNames = selectedInstanceExtensionNamesC.data();
 
     // Can we know instance version early?
+    uint32_t maxInstanceVersion = VK_VERSION_1_0;
     if (gvk->vkEnumerateInstanceVersion) {
-        uint32_t instanceVersion;
-        VkResult res = gvk->vkEnumerateInstanceVersion(&instanceVersion);
+        VkResult res = gvk->vkEnumerateInstanceVersion(&maxInstanceVersion);
         GFXSTREAM_DEBUG("Global loader has instance version = %d.%d.%d",
-                    VK_API_VERSION_MAJOR(instanceVersion),
-                    VK_API_VERSION_MINOR(instanceVersion),
-                    VK_API_VERSION_PATCH(instanceVersion));
+                    VK_API_VERSION_MAJOR(maxInstanceVersion),
+                    VK_API_VERSION_MINOR(maxInstanceVersion),
+                    VK_API_VERSION_PATCH(maxInstanceVersion));
         if (VK_SUCCESS == res) {
-            if (instanceVersion >= VK_MAKE_VERSION(1, 1, 0)) {
+            if (maxInstanceVersion >= VK_MAKE_VERSION(1, 1, 0)) {
                 GFXSTREAM_DEBUG("global loader has vkEnumerateInstanceVersion returning >= 1.1.");
                 appInfo.apiVersion = VK_MAKE_VERSION(1, 1, 0);
             }
@@ -962,6 +962,9 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
                 GFXSTREAM_ERROR("Warning: Vulkan 1.1 APIs missing from instance (1st try)");
             }
         }
+        if (instanceVersion > maxInstanceVersion) {
+            maxInstanceVersion = instanceVersion;
+        }
 
         if (appInfo.apiVersion < VK_MAKE_VERSION(1, 1, 0) &&
             instanceVersion >= VK_MAKE_VERSION(1, 1, 0)) {
@@ -986,7 +989,8 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
         }
     }
 
-    emulation->mVulkanInstanceVersion = appInfo.apiVersion;
+    emulation->mVulkanApiVersionInUse = appInfo.apiVersion;
+    emulation->mVulkanInstanceVersion = maxInstanceVersion;
 
     // https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkPhysicalDeviceIDProperties.html
     // Provided by VK_VERSION_1_1, or VK_KHR_external_fence_capabilities, VK_KHR_external_memory_capabilities,
@@ -1798,14 +1802,17 @@ std::string VkEmulation::getGpuVendor() const { return mDeviceInfo.driverVendor;
 
 std::string VkEmulation::getGpuName() const { return mDeviceInfo.physdevProps.deviceName; }
 
+std::string VkEmulation::getGpuDriverVersion() const { return mDeviceInfo.driverVersion; }
+
+std::string VkEmulation::getGpuDriverInfo() const { return mDeviceInfo.driverInfo; }
+
 std::string VkEmulation::getGpuVersionString() const {
     std::stringstream builder;
-    builder << "Vulkan "                                            //
-            << VK_API_VERSION_MAJOR(mVulkanInstanceVersion) << "."  //
-            << VK_API_VERSION_MINOR(mVulkanInstanceVersion) << "."  //
-            << VK_API_VERSION_PATCH(mVulkanInstanceVersion) << " "  //
-            << getGpuVendor() << " "                                //
-            << getGpuName();
+    builder << "Vulkan "                                             //
+            << VK_API_VERSION_MAJOR(mVulkanInstanceVersion) << "."   //
+            << VK_API_VERSION_MINOR(mVulkanInstanceVersion) << "."   //
+            << VK_API_VERSION_PATCH(mVulkanInstanceVersion) << ", "  //
+            << getGpuDriverInfo() << ", " << getGpuDriverVersion();
     return builder.str();
 }
 
@@ -1836,7 +1843,10 @@ void VkEmulation::getVulkanEmulationDeviceInfo(char** device_name, char** driver
                                                uint32_t* vendor_id, uint32_t* device_id,
                                                uint32_t* device_type, uint64_t* device_memory) {
     *driver_version = mDeviceInfo.physdevProps.driverVersion;
-    *api_version = mDeviceInfo.physdevProps.apiVersion;
+    // physdevProps.apiVersion only represents emulation device's api version, which is not very
+    // useful as it can be misleading for the max vulkan api version supported (e.g. vulkan 1.4
+    // supported device will say 1.1 because appinfo.version is provided like so.).
+    *api_version = mVulkanInstanceVersion;
     *vendor_id = mDeviceInfo.physdevProps.vendorID;
     *device_id = mDeviceInfo.physdevProps.deviceID;
     *device_type = mDeviceInfo.physdevProps.deviceType;
