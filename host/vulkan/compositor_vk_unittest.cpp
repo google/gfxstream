@@ -131,6 +131,7 @@ class CompositorVkTest : public ::testing::Test {
     }
 
     void TearDown() override {
+        m_YcbcrSamplerPool.destroy();
         k_vk->vkDestroyCommandPool(m_vkDevice, m_vkCommandPool, nullptr);
         k_vk->vkDestroyDevice(m_vkDevice, nullptr);
         m_vkDevice = VK_NULL_HANDLE;
