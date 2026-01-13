@@ -20,17 +20,17 @@
 #include <variant>
 
 #include "frame_buffer.h"
+#include "gfxstream/common/logging.h"
 #include "gfxstream/host/graphics_driver_lock.h"
-#include "render_channel_impl.h"
-#include "render_thread.h"
+#include "gfxstream/host/renderer_operations.h"
+#include "gfxstream/host/tracing.h"
 #include "gfxstream/system/System.h"
 #include "gfxstream/threads/WorkerThread.h"
-#include "gfxstream/common/logging.h"
-#include "gfxstream/host/renderer_operations.h"
-
 #if GFXSTREAM_ENABLE_HOST_GLES
 #include "host/gl/emulated_egl_fence_sync.h"
 #endif
+#include "render_channel_impl.h"
+#include "render_thread.h"
 
 namespace gfxstream {
 namespace host {
@@ -63,20 +63,25 @@ static const bool kUseSubwindowThread = false;
 class RendererImpl::ProcessCleanupThread {
 public:
     ProcessCleanupThread()
-        : mCleanupWorker([](Cmd cmd) {
-            using gfxstream::base::WorkerProcessingResult;
-            struct {
-                WorkerProcessingResult operator()(CleanProcessResources resources) {
-                    FrameBuffer::getFB()->cleanupProcGLObjects(resources.puid);
-                    // resources.resource are destroyed automatically when going out of the scope.
-                    return WorkerProcessingResult::Continue;
-                }
-                WorkerProcessingResult operator()(Exit) {
-                    return WorkerProcessingResult::Stop;
-                }
-            } visitor;
-            return std::visit(visitor, std::move(cmd));
-          }) {
+        : mCleanupWorker(
+            []() {
+                GFXSTREAM_TRACE_NAME_THREAD("Gfxstream Renderer Cleanup Worker");
+            },
+            [](Cmd cmd) {
+                using gfxstream::base::WorkerProcessingResult;
+                struct {
+                    WorkerProcessingResult operator()(CleanProcessResources resources) {
+                        FrameBuffer::getFB()->cleanupProcGLObjects(resources.puid);
+                        // resources.resource are destroyed automatically when going out of the
+                        // scope.
+                        return WorkerProcessingResult::Continue;
+                    }
+                    WorkerProcessingResult operator()(Exit) {
+                        return WorkerProcessingResult::Stop;
+                    }
+                } visitor;
+                return std::visit(visitor, std::move(cmd));
+            }) {
         mCleanupWorker.start();
     }
 

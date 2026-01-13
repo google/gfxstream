@@ -855,6 +855,8 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
         (PFN_vkQueueSubmitAsync2GOOGLE)dlSymFunc(lib, "vkQueueSubmitAsync2GOOGLE");
     out->vkGetSemaphoreGOOGLE = (PFN_vkGetSemaphoreGOOGLE)dlSymFunc(lib, "vkGetSemaphoreGOOGLE");
     out->vkTraceAsyncGOOGLE = (PFN_vkTraceAsyncGOOGLE)dlSymFunc(lib, "vkTraceAsyncGOOGLE");
+    out->vkSetDebugMetadataAsyncGOOGLE =
+        (PFN_vkSetDebugMetadataAsyncGOOGLE)dlSymFunc(lib, "vkSetDebugMetadataAsyncGOOGLE");
 #endif
 #ifdef VK_QNX_external_memory_screen_buffer
     out->vkGetScreenBufferPropertiesQNX =
@@ -1926,6 +1928,9 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
         (PFN_vkGetSemaphoreGOOGLE)vk->vkGetInstanceProcAddr(instance, "vkGetSemaphoreGOOGLE");
     out->vkTraceAsyncGOOGLE =
         (PFN_vkTraceAsyncGOOGLE)vk->vkGetInstanceProcAddr(instance, "vkTraceAsyncGOOGLE");
+    out->vkSetDebugMetadataAsyncGOOGLE =
+        (PFN_vkSetDebugMetadataAsyncGOOGLE)vk->vkGetInstanceProcAddr(
+            instance, "vkSetDebugMetadataAsyncGOOGLE");
 #endif
 #ifdef VK_QNX_external_memory_screen_buffer
     out->vkGetScreenBufferPropertiesQNX =
@@ -2973,6 +2978,8 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
         (PFN_vkGetSemaphoreGOOGLE)vk->vkGetDeviceProcAddr(device, "vkGetSemaphoreGOOGLE");
     out->vkTraceAsyncGOOGLE =
         (PFN_vkTraceAsyncGOOGLE)vk->vkGetDeviceProcAddr(device, "vkTraceAsyncGOOGLE");
+    out->vkSetDebugMetadataAsyncGOOGLE = (PFN_vkSetDebugMetadataAsyncGOOGLE)vk->vkGetDeviceProcAddr(
+        device, "vkSetDebugMetadataAsyncGOOGLE");
 #endif
 #ifdef VK_QNX_external_memory_screen_buffer
     out->vkGetScreenBufferPropertiesQNX =

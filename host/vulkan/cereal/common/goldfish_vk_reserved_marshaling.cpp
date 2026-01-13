@@ -15570,6 +15570,167 @@ void reservedunmarshal_VkCreateBlobGOOGLE(VulkanStream* vkStream, VkStructureTyp
     *ptr += sizeof(uint64_t);
 }
 
+void reservedunmarshal_VkDebugMetadataGuestProcessNameGOOGLE(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDebugMetadataGuestProcessNameGOOGLE* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT) {
+        // WARNING PTR CHECK
+        memcpy((char**)&forUnmarshaling->pName, (*ptr), 8);
+        gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pName);
+        *ptr += 8;
+        if (forUnmarshaling->pName) {
+            vkStream->loadStringInPlaceWithStreamPtr((char**)&forUnmarshaling->pName, ptr);
+        }
+    } else {
+        vkStream->loadStringInPlaceWithStreamPtr((char**)&forUnmarshaling->pName, ptr);
+    }
+}
+
+void reservedunmarshal_VkDebugMetadataGuestProcessIdGOOGLE(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDebugMetadataGuestProcessIdGOOGLE* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((uint64_t*)&forUnmarshaling->id, *ptr, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+}
+
+void reservedunmarshal_VkDebugMetadataGuestThreadNameGOOGLE(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDebugMetadataGuestThreadNameGOOGLE* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT) {
+        // WARNING PTR CHECK
+        memcpy((char**)&forUnmarshaling->pName, (*ptr), 8);
+        gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pName);
+        *ptr += 8;
+        if (forUnmarshaling->pName) {
+            vkStream->loadStringInPlaceWithStreamPtr((char**)&forUnmarshaling->pName, ptr);
+        }
+    } else {
+        vkStream->loadStringInPlaceWithStreamPtr((char**)&forUnmarshaling->pName, ptr);
+    }
+}
+
+void reservedunmarshal_VkDebugMetadataGuestThreadIdGOOGLE(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDebugMetadataGuestThreadIdGOOGLE* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((uint64_t*)&forUnmarshaling->id, *ptr, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+}
+
+void reservedunmarshal_VkDebugMetadataGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkDebugMetadataGOOGLE* forUnmarshaling,
+                                             uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+}
+
 #endif
 #ifdef VK_EXT_image_compression_control_swapchain
 void reservedunmarshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
@@ -17167,6 +17328,30 @@ void reservedunmarshal_extension_struct(VulkanStream* vkStream, VkStructureType 
             reservedunmarshal_VkCreateBlobGOOGLE(
                 vkStream, rootType, reinterpret_cast<VkCreateBlobGOOGLE*>(structExtension_out),
                 ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DEBUG_METADATA_GUEST_PROCESS_NAME_GOOGLE: {
+            reservedunmarshal_VkDebugMetadataGuestProcessNameGOOGLE(
+                vkStream, rootType,
+                reinterpret_cast<VkDebugMetadataGuestProcessNameGOOGLE*>(structExtension_out), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DEBUG_METADATA_GUEST_PROCESS_ID_GOOGLE: {
+            reservedunmarshal_VkDebugMetadataGuestProcessIdGOOGLE(
+                vkStream, rootType,
+                reinterpret_cast<VkDebugMetadataGuestProcessIdGOOGLE*>(structExtension_out), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DEBUG_METADATA_GUEST_THREAD_NAME_GOOGLE: {
+            reservedunmarshal_VkDebugMetadataGuestThreadNameGOOGLE(
+                vkStream, rootType,
+                reinterpret_cast<VkDebugMetadataGuestThreadNameGOOGLE*>(structExtension_out), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DEBUG_METADATA_GUEST_THREAD_ID_GOOGLE: {
+            reservedunmarshal_VkDebugMetadataGuestThreadIdGOOGLE(
+                vkStream, rootType,
+                reinterpret_cast<VkDebugMetadataGuestThreadIdGOOGLE*>(structExtension_out), ptr);
             break;
         }
 #endif

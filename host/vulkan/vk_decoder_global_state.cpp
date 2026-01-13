@@ -22,41 +22,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "host/frame_buffer.h"
-#include "render_thread_info_vk.h"
-#include "trivial_stream.h"
-#include "vk_android_native_buffer_operations.h"
-#include "vk_common_operations.h"
-#include "vk_decoder_context.h"
-#include "vk_decoder_internal_structs.h"
-#include "vk_decoder_snapshot.h"
-#include "vk_decoder_snapshot_utils.h"
-#include "vk_emulated_physical_device_memory.h"
-#include "vk_emulated_physical_device_queue.h"
-#include "vk_utils.h"
-#include "vulkan_boxed_handles.h"
-#include "vulkan_dispatch.h"
-#include "vulkan_stream.h"
-#include "common/goldfish_vk_deepcopy.h"
-#include "common/goldfish_vk_dispatch.h"
-#include "common/goldfish_vk_marshaling.h"
-#include "common/goldfish_vk_reserved_marshaling.h"
-#include "gfxstream/Macros.h"
-#include "gfxstream/common/logging.h"
-#include "gfxstream/containers/Lookup.h"
-#include "gfxstream/host/astc_cpu_decompressor.h"
-#include "gfxstream/host/RenderDoc.h"
-#include "gfxstream/host/tracing.h"
-#include "gfxstream/host/address_space_operations.h"
-#include "gfxstream/host/graphics_driver_lock.h"
-#include "gfxstream/host/vm_operations.h"
-#include "render-utils/stream.h"
-#include "vulkan/vk_format_utils.h"
-#include "vulkan/emulated_textures/astc_texture.h"
-#include "vulkan/emulated_textures/compressed_image_info.h"
-#include "vulkan/emulated_textures/gpu_decompression_pipeline.h"
-#include "vulkan/vk_enum_string_helper.h"
-#include "vulkan/vulkan_core.h"
 #ifndef _WIN32
 #include <unistd.h>
 #endif
@@ -69,6 +34,44 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <vulkan/vulkan_beta.h> // for MoltenVK portability extensions
 #endif
+
+#include "common/goldfish_vk_deepcopy.h"
+#include "common/goldfish_vk_dispatch.h"
+#include "common/goldfish_vk_marshaling.h"
+#include "common/goldfish_vk_reserved_marshaling.h"
+#include "gfxstream/common/logging.h"
+#include "gfxstream/containers/Lookup.h"
+#include "gfxstream/host/address_space_operations.h"
+#include "gfxstream/host/astc_cpu_decompressor.h"
+#include "gfxstream/host/graphics_driver_lock.h"
+#include "gfxstream/host/RenderDoc.h"
+#include "gfxstream/host/tracing.h"
+#include "gfxstream/host/vm_operations.h"
+#include "gfxstream/Macros.h"
+#include "gfxstream/strings.h"
+#include "host/frame_buffer.h"
+#include "render_thread_info_vk.h"
+#include "render-utils/stream.h"
+#include "trivial_stream.h"
+#include "vk_android_native_buffer_operations.h"
+#include "vk_common_operations.h"
+#include "vk_decoder_context.h"
+#include "vk_decoder_internal_structs.h"
+#include "vk_decoder_snapshot_utils.h"
+#include "vk_decoder_snapshot.h"
+#include "vk_emulated_physical_device_memory.h"
+#include "vk_emulated_physical_device_queue.h"
+#include "vk_utils.h"
+#include "vulkan_boxed_handles.h"
+#include "vulkan_dispatch.h"
+#include "vulkan_stream.h"
+#include "vulkan/emulated_textures/astc_texture.h"
+#include "vulkan/emulated_textures/compressed_image_info.h"
+#include "vulkan/emulated_textures/gpu_decompression_pipeline.h"
+#include "vulkan/vk_enum_string_helper.h"
+#include "vulkan/vk_format_utils.h"
+#include "vulkan/vulkan_core.h"
+
 
 // Verbose logging only when ANDROID_EMU_VK_LOG_CALLS is set
 #define LOG_CALLS_VERBOSE(fmt, ...)          \
@@ -6657,6 +6660,41 @@ class VkDecoderGlobalState::Impl {
                                       GFXSTREAM_TRACE_FLOW_GLOBAL(id), "flow id", id);
     }
 
+    void on_vkSetDebugMetadataAsyncGOOGLE(gfxstream::base::BumpPool* pool,
+                                          VkSnapshotApiCallHandle apiCallHandle,
+                                          const VkDebugMetadataGOOGLE* pMetadata) {
+        std::vector<std::string> trackNameParts;
+
+        const VkDebugMetadataGuestProcessNameGOOGLE* guestProcessNameInfo =
+            vk_find_struct<VkDebugMetadataGuestProcessNameGOOGLE>(pMetadata);
+        if (guestProcessNameInfo != nullptr) {
+            trackNameParts.emplace_back(guestProcessNameInfo->pName);
+        }
+
+        const VkDebugMetadataGuestThreadNameGOOGLE* guestThreadNameInfo =
+            vk_find_struct<VkDebugMetadataGuestThreadNameGOOGLE>(pMetadata);
+        if (guestThreadNameInfo != nullptr) {
+            trackNameParts.emplace_back(guestThreadNameInfo->pName);
+        }
+
+        const VkDebugMetadataGuestProcessIdGOOGLE* guestProcessIdInfo =
+            vk_find_struct<VkDebugMetadataGuestProcessIdGOOGLE>(pMetadata);
+        if (guestProcessIdInfo != nullptr) {
+            trackNameParts.emplace_back(std::string("PID:") + std::to_string(guestProcessIdInfo->id));
+        }
+
+        const VkDebugMetadataGuestThreadIdGOOGLE* guestThreadIdInfo =
+            vk_find_struct<VkDebugMetadataGuestThreadIdGOOGLE>(pMetadata);
+        if (guestThreadIdInfo != nullptr) {
+            trackNameParts.emplace_back(std::string("TID:") + std::to_string(guestThreadIdInfo->id));
+        }
+
+        if (!trackNameParts.empty()) {
+            const std::string trackName = Join(trackNameParts, " ");
+            GFXSTREAM_TRACE_NAME_THREAD(trackName);
+        }
+    }
+
     VkResult on_vkMapMemoryIntoAddressSpaceGOOGLE(gfxstream::base::BumpPool* pool,
                                                   VkSnapshotApiCallHandle, VkDevice boxed_device,
                                                   VkDeviceMemory memory, uint64_t* pAddress) {
@@ -11702,6 +11740,12 @@ void VkDecoderGlobalState::on_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(
 void VkDecoderGlobalState::on_vkTraceAsyncGOOGLE(gfxstream::base::BumpPool* pool,
                                                  VkSnapshotApiCallHandle apiCallHandle, uint64_t id) {
     mImpl->on_vkTraceAsyncGOOGLE(pool, apiCallHandle, id);
+}
+
+void VkDecoderGlobalState::on_vkSetDebugMetadataAsyncGOOGLE(gfxstream::base::BumpPool* pool,
+                                                            VkSnapshotApiCallHandle apiCallHandle,
+                                                            const VkDebugMetadataGOOGLE* pMetadata) {
+    mImpl->on_vkSetDebugMetadataAsyncGOOGLE(pool, apiCallHandle, pMetadata);
 }
 
 VkResult VkDecoderGlobalState::on_vkCreateSamplerYcbcrConversion(

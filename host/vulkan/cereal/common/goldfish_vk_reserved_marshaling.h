@@ -2284,6 +2284,25 @@ void reservedunmarshal_VkImportBufferGOOGLE(VulkanStream* vkStream, VkStructureT
 void reservedunmarshal_VkCreateBlobGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
                                           VkCreateBlobGOOGLE* forUnmarshaling, uint8_t** ptr);
 
+void reservedunmarshal_VkDebugMetadataGuestProcessNameGOOGLE(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDebugMetadataGuestProcessNameGOOGLE* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkDebugMetadataGuestProcessIdGOOGLE(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDebugMetadataGuestProcessIdGOOGLE* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkDebugMetadataGuestThreadNameGOOGLE(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDebugMetadataGuestThreadNameGOOGLE* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkDebugMetadataGuestThreadIdGOOGLE(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDebugMetadataGuestThreadIdGOOGLE* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkDebugMetadataGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
+                                             VkDebugMetadataGOOGLE* forUnmarshaling, uint8_t** ptr);
+
 #endif
 #ifdef VK_EXT_image_compression_control_swapchain
 void reservedunmarshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(

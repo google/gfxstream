@@ -24,7 +24,9 @@ namespace {
 
 TEST(WorkerThread, TheReturnedFutureFromEnqueueShouldBeReadyWhenTheWorkerStops) {
     struct Item {};
-    WorkerThread<Item> worker([](Item&&) { return WorkerProcessingResult::Stop; });
+    WorkerThread<Item> worker(
+        [](){},
+        [](Item&&) { return WorkerProcessingResult::Stop; });
     worker.start();
     worker.enqueue(Item{}).wait();
     EXPECT_EQ(worker.enqueue(Item{}).wait_for(std::chrono::milliseconds(500)),
@@ -33,7 +35,9 @@ TEST(WorkerThread, TheReturnedFutureFromEnqueueShouldBeReadyWhenTheWorkerStops) 
 
 TEST(WorkerThread, TheReturnedFutureFromEnqueueShouldBeReadyBeforeTheWorkerStarts) {
     struct Item {};
-    WorkerThread<Item> worker([](Item&&) { return WorkerProcessingResult::Stop; });
+    WorkerThread<Item> worker(
+        [](){},
+        [](Item&&) { return WorkerProcessingResult::Stop; });
     EXPECT_EQ(worker.enqueue(Item{}).wait_for(std::chrono::milliseconds(0)),
               std::future_status::ready);
 }

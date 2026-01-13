@@ -2871,6 +2871,10 @@ class VkDecoderSnapshot::Impl {
                               VkSemaphore semaphore, uint64_t syncId) {}
     void vkTraceAsyncGOOGLE(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle,
                             const uint8_t* apiCallPacket, size_t apiCallPacketSize, uint64_t id) {}
+    void vkSetDebugMetadataAsyncGOOGLE(gfxstream::base::BumpPool* pool,
+                                       VkSnapshotApiCallHandle apiCallHandle,
+                                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                       const VkDebugMetadataGOOGLE* pDebugMetadata) {}
 #endif
    private:
     std::mutex mReconstructionMutex;
@@ -6901,6 +6905,16 @@ void VkDecoderSnapshot::vkTraceAsyncGOOGLE(gfxstream::base::BumpPool* pool,
                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                            uint64_t id) {
     mImpl->vkTraceAsyncGOOGLE(pool, apiCallHandle, apiCallPacket, apiCallPacketSize, id);
+}
+#endif
+#ifdef VK_GOOGLE_gfxstream
+void VkDecoderSnapshot::vkSetDebugMetadataAsyncGOOGLE(gfxstream::base::BumpPool* pool,
+                                                      VkSnapshotApiCallHandle apiCallHandle,
+                                                      const uint8_t* apiCallPacket,
+                                                      size_t apiCallPacketSize,
+                                                      const VkDebugMetadataGOOGLE* pDebugMetadata) {
+    mImpl->vkSetDebugMetadataAsyncGOOGLE(pool, apiCallHandle, apiCallPacket, apiCallPacketSize,
+                                         pDebugMetadata);
 }
 #endif
 

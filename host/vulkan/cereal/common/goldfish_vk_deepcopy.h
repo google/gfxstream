@@ -2310,6 +2310,25 @@ void deepcopy_VkImportBufferGOOGLE(Allocator* alloc, VkStructureType rootType,
 void deepcopy_VkCreateBlobGOOGLE(Allocator* alloc, VkStructureType rootType,
                                  const VkCreateBlobGOOGLE* from, VkCreateBlobGOOGLE* to);
 
+void deepcopy_VkDebugMetadataGuestProcessNameGOOGLE(
+    Allocator* alloc, VkStructureType rootType, const VkDebugMetadataGuestProcessNameGOOGLE* from,
+    VkDebugMetadataGuestProcessNameGOOGLE* to);
+
+void deepcopy_VkDebugMetadataGuestProcessIdGOOGLE(Allocator* alloc, VkStructureType rootType,
+                                                  const VkDebugMetadataGuestProcessIdGOOGLE* from,
+                                                  VkDebugMetadataGuestProcessIdGOOGLE* to);
+
+void deepcopy_VkDebugMetadataGuestThreadNameGOOGLE(Allocator* alloc, VkStructureType rootType,
+                                                   const VkDebugMetadataGuestThreadNameGOOGLE* from,
+                                                   VkDebugMetadataGuestThreadNameGOOGLE* to);
+
+void deepcopy_VkDebugMetadataGuestThreadIdGOOGLE(Allocator* alloc, VkStructureType rootType,
+                                                 const VkDebugMetadataGuestThreadIdGOOGLE* from,
+                                                 VkDebugMetadataGuestThreadIdGOOGLE* to);
+
+void deepcopy_VkDebugMetadataGOOGLE(Allocator* alloc, VkStructureType rootType,
+                                    const VkDebugMetadataGOOGLE* from, VkDebugMetadataGOOGLE* to);
+
 #endif
 #ifdef VK_EXT_image_compression_control_swapchain
 void deepcopy_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(

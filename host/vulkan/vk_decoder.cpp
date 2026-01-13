@@ -22780,6 +22780,32 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
                 break;
             }
+            case OP_vkSetDebugMetadataAsyncGOOGLE: {
+                const VkDebugMetadataGOOGLE* pDebugMetadata;
+                vkReadStream->alloc((void**)&pDebugMetadata, sizeof(const VkDebugMetadataGOOGLE));
+                reservedunmarshal_VkDebugMetadataGOOGLE(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                        (VkDebugMetadataGOOGLE*)(pDebugMetadata),
+                                                        readStreamPtrPtr);
+                if (pDebugMetadata) {
+                    transform_tohost_VkDebugMetadataGOOGLE(
+                        m_state, (VkDebugMetadataGOOGLE*)(pDebugMetadata));
+                }
+                if (m_logCalls) {
+                    GFXSTREAM_INFO("stream %p: call vkSetDebugMetadataAsyncGOOGLE 0x%llx ",
+                                   ioStream, (unsigned long long)pDebugMetadata);
+                }
+                m_state->on_vkSetDebugMetadataAsyncGOOGLE(&m_pool, snapshotApiCallHandle,
+                                                          pDebugMetadata);
+                vkStream->unsetHandleMapping();
+                if (m_snapshotsEnabled) {
+                    m_state->snapshot()->vkSetDebugMetadataAsyncGOOGLE(
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, pDebugMetadata);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                break;
+            }
 #endif
             default: {
                 if (m_snapshotsEnabled) {

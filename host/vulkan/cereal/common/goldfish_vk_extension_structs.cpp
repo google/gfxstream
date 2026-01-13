@@ -1893,6 +1893,18 @@ size_t goldfish_vk_extension_struct_size(VkStructureType rootType, const void* s
         case VK_STRUCTURE_TYPE_CREATE_BLOB_GOOGLE: {
             return sizeof(VkCreateBlobGOOGLE);
         }
+        case VK_STRUCTURE_TYPE_DEBUG_METADATA_GUEST_PROCESS_NAME_GOOGLE: {
+            return sizeof(VkDebugMetadataGuestProcessNameGOOGLE);
+        }
+        case VK_STRUCTURE_TYPE_DEBUG_METADATA_GUEST_PROCESS_ID_GOOGLE: {
+            return sizeof(VkDebugMetadataGuestProcessIdGOOGLE);
+        }
+        case VK_STRUCTURE_TYPE_DEBUG_METADATA_GUEST_THREAD_NAME_GOOGLE: {
+            return sizeof(VkDebugMetadataGuestThreadNameGOOGLE);
+        }
+        case VK_STRUCTURE_TYPE_DEBUG_METADATA_GUEST_THREAD_ID_GOOGLE: {
+            return sizeof(VkDebugMetadataGuestThreadIdGOOGLE);
+        }
 #endif
 #ifdef VK_EXT_image_view_min_lod
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_VIEW_MIN_LOD_FEATURES_EXT: {
@@ -4379,6 +4391,18 @@ size_t goldfish_vk_extension_struct_size_with_stream_features(uint32_t streamFea
         }
         case VK_STRUCTURE_TYPE_CREATE_BLOB_GOOGLE: {
             return sizeof(VkCreateBlobGOOGLE);
+        }
+        case VK_STRUCTURE_TYPE_DEBUG_METADATA_GUEST_PROCESS_NAME_GOOGLE: {
+            return sizeof(VkDebugMetadataGuestProcessNameGOOGLE);
+        }
+        case VK_STRUCTURE_TYPE_DEBUG_METADATA_GUEST_PROCESS_ID_GOOGLE: {
+            return sizeof(VkDebugMetadataGuestProcessIdGOOGLE);
+        }
+        case VK_STRUCTURE_TYPE_DEBUG_METADATA_GUEST_THREAD_NAME_GOOGLE: {
+            return sizeof(VkDebugMetadataGuestThreadNameGOOGLE);
+        }
+        case VK_STRUCTURE_TYPE_DEBUG_METADATA_GUEST_THREAD_ID_GOOGLE: {
+            return sizeof(VkDebugMetadataGuestThreadIdGOOGLE);
         }
 #endif
 #ifdef VK_EXT_image_view_min_lod

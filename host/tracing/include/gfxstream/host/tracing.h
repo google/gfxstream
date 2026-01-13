@@ -54,10 +54,21 @@ PERFETTO_DEFINE_CATEGORIES(perfetto::Category(GFXSTREAM_TRACE_DEFAULT_CATEGORY)
 #define GFXSTREAM_TRACE_TRACK_FOR_CURRENT_THREAD() perfetto::ThreadTrack::Current()
 #define GFXSTREAM_TRACE_TRACK(id) perfetto::Track(id)
 
+// Use this for synthetic tracks (e.g. virtio gpu timeline).
 #define GFXSTREAM_TRACE_NAME_TRACK(track, name)                           \
     do {                                                                  \
         auto trackDescriptor = track.Serialize();                         \
         trackDescriptor.set_name(name);                                   \
+        perfetto::TrackEvent::SetTrackDescriptor(track, trackDescriptor); \
+    } while (0)
+
+#define GFXSTREAM_TRACE_NAME_THREAD(name)                                 \
+    do {                                                                  \
+        auto track = GFXSTREAM_TRACE_TRACK_FOR_CURRENT_THREAD();          \
+        auto trackDescriptor = track.Serialize();                         \
+        trackDescriptor.set_name(name);                                   \
+        auto* trackThreadDescriptor = trackDescriptor.mutable_thread();   \
+        trackThreadDescriptor->set_thread_name(name);                     \
         perfetto::TrackEvent::SetTrackDescriptor(track, trackDescriptor); \
     } while (0)
 
@@ -72,6 +83,7 @@ PERFETTO_DEFINE_CATEGORIES(perfetto::Category(GFXSTREAM_TRACE_DEFAULT_CATEGORY)
 #define GFXSTREAM_TRACE_TRACK_FOR_CURRENT_THREAD()
 #define GFXSTREAM_TRACE_TRACK(id)
 #define GFXSTREAM_TRACE_NAME_TRACK(track, name)
+#define GFXSTREAM_TRACE_NAME_THREAD(name)
 
 #endif  // GFXSTREAM_BUILD_WITH_TRACING
 

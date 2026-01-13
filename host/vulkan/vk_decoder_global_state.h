@@ -876,6 +876,10 @@ class VkDecoderGlobalState {
     void on_vkTraceAsyncGOOGLE(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle,
                                uint64_t id);
 
+    void on_vkSetDebugMetadataAsyncGOOGLE(gfxstream::base::BumpPool* pool,
+                                          VkSnapshotApiCallHandle apiCallHandle,
+                                          const VkDebugMetadataGOOGLE* pMetadata);
+
     VkResult on_vkQueuePresentKHR(gfxstream::base::BumpPool* pool,
                                   VkSnapshotApiCallHandle apiCallHandle, VkQueue queue,
                                   const VkPresentInfoKHR* pPresentInfo);

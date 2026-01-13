@@ -105,6 +105,11 @@ static const uint64_t kDefaultTimeoutNsecs = 5ULL * 1000ULL * 1000ULL * 1000ULL;
 SyncThread::SyncThread(bool hasGl)
     : gfxstream::base::Thread(gfxstream::base::ThreadFlags::MaskSignals, 512 * 1024),
       mWorkerThreadPool(kNumWorkerThreads,
+                        [](ThreadPool::WorkerId id) {
+                            GFXSTREAM_TRACE_NAME_THREAD(
+                                std::string("Gfxstream SyncThread Worker ") +
+                                std::to_string(id));
+                        },
                         [this](Command&& command, ThreadPool::WorkerId id) {
                             doSyncThreadCmd(std::move(command), id);
                         }),
@@ -410,11 +415,6 @@ void SyncThread::sendAsync(std::function<void(WorkerId)> job, std::string descri
 }
 
 void SyncThread::doSyncThreadCmd(Command&& command, WorkerId workerId) {
-    static thread_local std::once_flag sOnceFlag;
-    std::call_once(sOnceFlag, [&] {
-        GFXSTREAM_TRACE_NAME_TRACK(GFXSTREAM_TRACE_TRACK_FOR_CURRENT_THREAD(), "SyncThread");
-    });
-
     std::unique_ptr<std::unordered_map<std::string, std::string>> syncThreadData =
         std::make_unique<std::unordered_map<std::string, std::string>>();
     syncThreadData->insert({{"syncthread_cmd_desc", command.mDescription}});

@@ -45,6 +45,35 @@ typedef struct VkCreateBlobGOOGLE {
     uint64_t           blobId;
 } VkCreateBlobGOOGLE;
 
+typedef struct VkDebugMetadataGuestProcessNameGOOGLE {
+    VkStructureType    sType;
+    const void*        pNext;
+    const char*        pName;
+} VkDebugMetadataGuestProcessNameGOOGLE;
+
+typedef struct VkDebugMetadataGuestProcessIdGOOGLE {
+    VkStructureType    sType;
+    const void*        pNext;
+    uint64_t           id;
+} VkDebugMetadataGuestProcessIdGOOGLE;
+
+typedef struct VkDebugMetadataGuestThreadNameGOOGLE {
+    VkStructureType    sType;
+    const void*        pNext;
+    const char*        pName;
+} VkDebugMetadataGuestThreadNameGOOGLE;
+
+typedef struct VkDebugMetadataGuestThreadIdGOOGLE {
+    VkStructureType    sType;
+    const void*        pNext;
+    uint64_t           id;
+} VkDebugMetadataGuestThreadIdGOOGLE;
+
+typedef struct VkDebugMetadataGOOGLE {
+    VkStructureType    sType;
+    const void*        pNext;
+} VkDebugMetadataGOOGLE;
+
 typedef VkResult (VKAPI_PTR *PFN_vkMapMemoryIntoAddressSpaceGOOGLE)(VkDevice device, VkDeviceMemory memory, uint64_t* pAddress);
 typedef void (VKAPI_PTR *PFN_vkUpdateDescriptorSetWithTemplateSizedGOOGLE)(VkDevice device, VkDescriptorSet descriptorSet, VkDescriptorUpdateTemplate descriptorUpdateTemplate, uint32_t imageInfoCount, uint32_t bufferInfoCount, uint32_t bufferViewCount, const uint32_t* pImageInfoEntryIndices, const uint32_t* pBufferInfoEntryIndices, const uint32_t* pBufferViewEntryIndices, const VkDescriptorImageInfo* pImageInfos, const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews);
 typedef void (VKAPI_PTR *PFN_vkBeginCommandBufferAsyncGOOGLE)(VkCommandBuffer commandBuffer, const VkCommandBufferBeginInfo* pBeginInfo);
@@ -71,6 +100,7 @@ typedef void (VKAPI_PTR *PFN_vkUpdateDescriptorSetWithTemplateSized2GOOGLE)(VkDe
 typedef void (VKAPI_PTR *PFN_vkQueueSubmitAsync2GOOGLE)(VkQueue queue, uint32_t submitCount, const VkSubmitInfo2* pSubmits, VkFence fence);
 typedef VkResult (VKAPI_PTR *PFN_vkGetSemaphoreGOOGLE)(VkDevice device, VkSemaphore semaphore, uint64_t syncId);
 typedef void (VKAPI_PTR *PFN_vkTraceAsyncGOOGLE)(uint64_t id);
+typedef void (VKAPI_PTR *PFN_vkSetDebugMetadataAsyncGOOGLE)(const VkDebugMetadataGOOGLE* pDebugMetadata);
 
 VKAPI_ATTR VkResult VKAPI_CALL vkMapMemoryIntoAddressSpaceGOOGLE(
     VkDevice                                    device,
@@ -236,6 +266,9 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetSemaphoreGOOGLE(
 
 VKAPI_ATTR void VKAPI_CALL vkTraceAsyncGOOGLE(
     uint64_t                                    id);
+
+VKAPI_ATTR void VKAPI_CALL vkSetDebugMetadataAsyncGOOGLE(
+    const VkDebugMetadataGOOGLE*                pDebugMetadata);
 
 #ifdef __cplusplus
 }

@@ -406,8 +406,7 @@ VG_EXPORT void stream_renderer_get_cap_set(uint32_t set, uint32_t* max_ver, uint
     GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
                           "stream_renderer_get_cap_set()");
 
-    GFXSTREAM_TRACE_NAME_TRACK(GFXSTREAM_TRACE_TRACK_FOR_CURRENT_THREAD(),
-                               "Main Virtio Gpu Thread");
+    GFXSTREAM_TRACE_NAME_THREAD("Main Virtio Gpu Thread");
 
     // `max_ver` not useful
     return sFrontend()->getCapset(set, max_size);

@@ -66,7 +66,11 @@ class CleanupThread {
     using GenericCleanup = std::function<void()>;
 
     CleanupThread()
-        : mWorker([](CleanupTask task) {
+        : mWorker(
+            []() {
+                GFXSTREAM_TRACE_NAME_THREAD("Gfxstream Virtio Gpu Frontend Cleanup Thread");
+            },
+            [](CleanupTask task) {
               return std::visit(
                   [](auto&& work) {
                       using T = std::decay_t<decltype(work)>;
@@ -78,7 +82,7 @@ class CleanupThread {
                       }
                   },
                   std::move(task));
-          }) {
+            }) {
         mWorker.start();
     }
 
@@ -655,6 +659,7 @@ void VirtioGpuFrontend::fillCaps(uint32_t set, void* caps) {
             }
 
             capset->hasTraceAsyncCommand = 1;
+            capset->hasSetMetadataCommand = 1;
 
             break;
         }

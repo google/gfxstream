@@ -1999,6 +1999,10 @@ class VkDecoderSnapshot {
                               VkSemaphore semaphore, uint64_t syncId);
     void vkTraceAsyncGOOGLE(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle,
                             const uint8_t* apiCallPacket, size_t apiCallPacketSize, uint64_t id);
+    void vkSetDebugMetadataAsyncGOOGLE(gfxstream::base::BumpPool* pool,
+                                       VkSnapshotApiCallHandle apiCallHandle,
+                                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                       const VkDebugMetadataGOOGLE* pDebugMetadata);
 #endif
    private:
     class Impl;

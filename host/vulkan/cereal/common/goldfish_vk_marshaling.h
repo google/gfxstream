@@ -4327,6 +4327,38 @@ void marshal_VkCreateBlobGOOGLE(VulkanStream* vkStream, VkStructureType rootType
 void unmarshal_VkCreateBlobGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
                                   VkCreateBlobGOOGLE* forUnmarshaling);
 
+void marshal_VkDebugMetadataGuestProcessNameGOOGLE(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDebugMetadataGuestProcessNameGOOGLE* forMarshaling);
+
+void unmarshal_VkDebugMetadataGuestProcessNameGOOGLE(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDebugMetadataGuestProcessNameGOOGLE* forUnmarshaling);
+
+void marshal_VkDebugMetadataGuestProcessIdGOOGLE(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDebugMetadataGuestProcessIdGOOGLE* forMarshaling);
+
+void unmarshal_VkDebugMetadataGuestProcessIdGOOGLE(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDebugMetadataGuestProcessIdGOOGLE* forUnmarshaling);
+
+void marshal_VkDebugMetadataGuestThreadNameGOOGLE(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDebugMetadataGuestThreadNameGOOGLE* forMarshaling);
+
+void unmarshal_VkDebugMetadataGuestThreadNameGOOGLE(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDebugMetadataGuestThreadNameGOOGLE* forUnmarshaling);
+
+void marshal_VkDebugMetadataGuestThreadIdGOOGLE(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDebugMetadataGuestThreadIdGOOGLE* forMarshaling);
+
+void unmarshal_VkDebugMetadataGuestThreadIdGOOGLE(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDebugMetadataGuestThreadIdGOOGLE* forUnmarshaling);
+
 #define OP_vkMapMemoryIntoAddressSpaceGOOGLE 20317
 #define OP_vkUpdateDescriptorSetWithTemplateSizedGOOGLE 20320
 #define OP_vkBeginCommandBufferAsyncGOOGLE 20321
@@ -4353,6 +4385,13 @@ void unmarshal_VkCreateBlobGOOGLE(VulkanStream* vkStream, VkStructureType rootTy
 #define OP_vkQueueSubmitAsync2GOOGLE 292092830
 #define OP_vkGetSemaphoreGOOGLE 20342
 #define OP_vkTraceAsyncGOOGLE 286553566
+void marshal_VkDebugMetadataGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
+                                   const VkDebugMetadataGOOGLE* forMarshaling);
+
+void unmarshal_VkDebugMetadataGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
+                                     VkDebugMetadataGOOGLE* forUnmarshaling);
+
+#define OP_vkSetDebugMetadataAsyncGOOGLE 236453297
 #endif
 #ifdef VK_EXT_image_compression_control_swapchain
 void marshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(

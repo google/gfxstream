@@ -3815,6 +3815,36 @@ void transform_tohost_VkCreateBlobGOOGLE(VkDecoderGlobalState* resourceTracker,
 void transform_fromhost_VkCreateBlobGOOGLE(VkDecoderGlobalState* resourceTracker,
                                            VkCreateBlobGOOGLE* toTransform);
 
+void transform_tohost_VkDebugMetadataGuestProcessNameGOOGLE(
+    VkDecoderGlobalState* resourceTracker, VkDebugMetadataGuestProcessNameGOOGLE* toTransform);
+
+void transform_fromhost_VkDebugMetadataGuestProcessNameGOOGLE(
+    VkDecoderGlobalState* resourceTracker, VkDebugMetadataGuestProcessNameGOOGLE* toTransform);
+
+void transform_tohost_VkDebugMetadataGuestProcessIdGOOGLE(
+    VkDecoderGlobalState* resourceTracker, VkDebugMetadataGuestProcessIdGOOGLE* toTransform);
+
+void transform_fromhost_VkDebugMetadataGuestProcessIdGOOGLE(
+    VkDecoderGlobalState* resourceTracker, VkDebugMetadataGuestProcessIdGOOGLE* toTransform);
+
+void transform_tohost_VkDebugMetadataGuestThreadNameGOOGLE(
+    VkDecoderGlobalState* resourceTracker, VkDebugMetadataGuestThreadNameGOOGLE* toTransform);
+
+void transform_fromhost_VkDebugMetadataGuestThreadNameGOOGLE(
+    VkDecoderGlobalState* resourceTracker, VkDebugMetadataGuestThreadNameGOOGLE* toTransform);
+
+void transform_tohost_VkDebugMetadataGuestThreadIdGOOGLE(
+    VkDecoderGlobalState* resourceTracker, VkDebugMetadataGuestThreadIdGOOGLE* toTransform);
+
+void transform_fromhost_VkDebugMetadataGuestThreadIdGOOGLE(
+    VkDecoderGlobalState* resourceTracker, VkDebugMetadataGuestThreadIdGOOGLE* toTransform);
+
+void transform_tohost_VkDebugMetadataGOOGLE(VkDecoderGlobalState* resourceTracker,
+                                            VkDebugMetadataGOOGLE* toTransform);
+
+void transform_fromhost_VkDebugMetadataGOOGLE(VkDecoderGlobalState* resourceTracker,
+                                              VkDebugMetadataGOOGLE* toTransform);
+
 #endif
 #ifdef VK_EXT_image_compression_control_swapchain
 void transform_tohost_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
