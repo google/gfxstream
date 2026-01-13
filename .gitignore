@@ -284,6 +284,7 @@ Debug_x64/
 diag.txt
 ipch
 lib/*
+MODULE.bazel.lock
 out
 patches-*
 Release/
