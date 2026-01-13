@@ -123,7 +123,6 @@ class DisplayVk : public Display {
     std::deque<std::shared_ptr<PostResource>> m_freePostResources;
     std::vector<std::optional<std::shared_future<std::shared_ptr<PostResource>>>>
         m_postResourceFutures;
-    int m_inFlightFrameIndex;
 
     class ImageBorrowResource {
        public:

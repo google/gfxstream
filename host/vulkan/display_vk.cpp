@@ -172,7 +172,6 @@ bool DisplayVk::recreateSwapchain() {
         m_freePostResources.emplace_back(PostResource::create(m_vk, m_vkDevice, m_vkCommandPool));
     }
 
-    m_inFlightFrameIndex = 0;
     m_needToRecreateSwapChain = false;
     return true;
 }
