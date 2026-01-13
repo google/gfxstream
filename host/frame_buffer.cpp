@@ -1103,8 +1103,12 @@ std::unique_ptr<FrameBuffer::Impl> FrameBuffer::Impl::Create(FrameBuffer* frameb
 
     GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DEFAULT_CATEGORY, "FrameBuffer::Impl::Init()");
 
-    std::unique_ptr<gfxstream::host::RenderDocWithMultipleVkInstances> renderDocMultipleVkInstances = nullptr;
-    if (!gfxstream::base::getEnvironmentVariable("ANDROID_EMU_RENDERDOC").empty()) {
+    const char* ANDROID_EMU_RENDERDOC_ENVVAR = "ANDROID_EMU_RENDERDOC";
+    const char* ANDROID_EMU_RENDERDOC_CAPTURE_PATH_TEMPLATE_ENVVAR =
+        "ANDROID_EMU_RENDERDOC_CAPTURE_PATH_TEMPLATE";
+    std::unique_ptr<gfxstream::host::RenderDocWithMultipleVkInstances>
+        renderDocMultipleVkInstances = nullptr;
+    if (!gfxstream::base::getEnvironmentVariable(ANDROID_EMU_RENDERDOC_ENVVAR).empty()) {
         SharedLibrary* renderdocLib = nullptr;
 #ifdef _WIN32
         renderdocLib = SharedLibrary::open(R"(C:\Program Files\RenderDoc\renderdoc.dll)");
@@ -1113,7 +1117,6 @@ std::unique_ptr<FrameBuffer::Impl> FrameBuffer::Impl::Create(FrameBuffer* frameb
 #endif
         impl->m_renderDoc = gfxstream::host::RenderDoc::create(renderdocLib);
         if (impl->m_renderDoc) {
-            GFXSTREAM_INFO("RenderDoc integration enabled.");
             renderDocMultipleVkInstances =
                 std::make_unique<gfxstream::host::RenderDocWithMultipleVkInstances>(
                     *impl->m_renderDoc);
@@ -1121,9 +1124,26 @@ std::unique_ptr<FrameBuffer::Impl> FrameBuffer::Impl::Create(FrameBuffer* frameb
                 GFXSTREAM_ERROR(
                     "Failed to initialize RenderDoc with multiple VkInstances. Can't capture any "
                     "information from guest VkInstances with RenderDoc.");
+            } else {
+                const std::string capturePath = gfxstream::base::getEnvironmentVariable(
+                    ANDROID_EMU_RENDERDOC_CAPTURE_PATH_TEMPLATE_ENVVAR);
+                if (capturePath.empty()) {
+                    GFXSTREAM_INFO(
+                        "RenderDoc integration is enabled. Using default capture path, use "
+                        "%s to change.",
+                        ANDROID_EMU_RENDERDOC_CAPTURE_PATH_TEMPLATE_ENVVAR);
+                } else {
+                    renderDocMultipleVkInstances->setCaptureFilePathTemplate(capturePath);
+                    GFXSTREAM_INFO("RenderDoc integration is enabled. Capture path template: %s",
+                                   capturePath.c_str());
+                }
             }
+        } else {
+            GFXSTREAM_ERROR("%s is set, but RenderDoc integration cannot be enabled.",
+                            ANDROID_EMU_RENDERDOC_ENVVAR);
         }
     }
+
     // Initialize Vulkan emulation state
     //
     // Note: This must happen before any use of s_egl,
@@ -1183,8 +1203,6 @@ std::unique_ptr<FrameBuffer::Impl> FrameBuffer::Impl::Create(FrameBuffer* frameb
                 "disabled.");
             return nullptr;
         }
-
-        vk::VkDecoderGlobalState::initialize(impl->m_emulationVk.get());
 
         impl->m_vulkanEnabled = true;
         if (impl->m_features.VulkanNativeSwapchain.enabled()) {
@@ -1359,6 +1377,11 @@ std::unique_ptr<FrameBuffer::Impl> FrameBuffer::Impl::Create(FrameBuffer* frameb
         impl->m_postWorker.reset(postWorkerGl);
         impl->m_displaySurfaceUsers.push_back(postWorkerGl);
 #endif
+    }
+
+    // VkDecoderGlobalState must be initialized after m_emulationVk initialization is complete
+    if (impl->m_features.Vulkan.enabled) {
+        vk::VkDecoderGlobalState::initialize(impl->m_emulationVk.get());
     }
 
     // Start up the single sync thread. If we are using Vulkan native

@@ -63,6 +63,7 @@ class RenderDoc {
     static constexpr auto kIsFrameCapturing = &RenderDocApi::IsFrameCapturing;
     static constexpr auto kStartFrameCapture = &RenderDocApi::StartFrameCapture;
     static constexpr auto kEndFrameCapture = &RenderDocApi::EndFrameCapture;
+    static constexpr auto kSetCaptureFilePathTemplate = &RenderDocApi::SetCaptureFilePathTemplate;
     template <class F, class... Args, typename = std::enable_if_t<std::is_invocable_v<F, Args...>>>
     // Call a RenderDoc in-application API given the function pointer and parameters, and guard the
     // API call with a mutex.
@@ -97,15 +98,23 @@ class RenderDocWithMultipleVkInstancesBase {
         mCaptureContexts.erase(vkInstance);
     }
 
+    void setCaptureFilePathTemplate(const std::string& pathTemplate) {
+        std::lock_guard<std::mutex> guard(mMutex);
+        GFXSTREAM_DEBUG("RenderDoc:SetCaptureFilePathTemplate %s", pathTemplate.c_str());
+        mRenderDoc.call(RenderDoc::kSetCaptureFilePathTemplate, pathTemplate.c_str());
+    }
+
    private:
     class CaptureContext {
        public:
         CaptureContext(RenderDocT& renderDoc, VkInstance vkInstance)
             : mRenderDoc(renderDoc), mVkInstance(vkInstance) {
+            GFXSTREAM_DEBUG("RenderDoc:StartFrameCapture instance:0x%llx", mVkInstance);
             mRenderDoc.call(RenderDoc::kStartFrameCapture,
                             RENDERDOC_DEVICEPOINTER_FROM_VKINSTANCE(mVkInstance), nullptr);
         }
         ~CaptureContext() {
+            GFXSTREAM_DEBUG("RenderDoc:EndFrameCapture instance:0x%llx", mVkInstance);
             mRenderDoc.call(RenderDoc::kEndFrameCapture,
                             RENDERDOC_DEVICEPOINTER_FROM_VKINSTANCE(mVkInstance), nullptr);
         }
