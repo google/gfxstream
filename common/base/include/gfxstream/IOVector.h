@@ -55,7 +55,7 @@ public:
 
     const struct iovec& operator[](size_t n) const { return mIOVecs[n]; }
 
-    const size_t size() const { return mIOVecs.size(); }
+    size_t size() const { return mIOVecs.size(); }
     // clear() doesn't free the memory pointed by iov_base.
     void clear() { mIOVecs.clear(); }
 
