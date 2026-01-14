@@ -1,0 +1,75 @@
+name: Build and run Gfxstream tests via Bazel
+
+on:
+  workflow_call:
+    inputs:
+      # Which github runner to use:
+      runner:
+        type: string
+        required: true
+
+      # Additional args used in `bazel build <args>` and `bazel test <args>`:
+      additional-bazel-args:
+        type: string
+        default: ''
+
+      # Whether or not to run the `bazel test` step:
+      run-tests:
+        type: boolean
+        default: true
+
+jobs:
+  presubmit_bazel_workflow:
+    runs-on: ${{ inputs.runner }}
+    steps:
+    - name: Free disk space
+      uses: jlumbroso/free-disk-space@v1.3.1
+      with:
+        tool-cache: true
+
+    - name: Checkout repository
+      uses: actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675 # aka v2
+
+    - name: Install bazel
+      run: sudo bash toolchain/bazel/install_bazel.sh
+
+    - name: Install toolchain dependencies
+      run: sudo bash toolchain/bazel/install_toolchain_dependencies.sh
+
+    - name: Install runtime dependencies
+      run: sudo apt-get install -y libvulkan1
+
+    - name: Load cache config
+      run: cat .config/cache-config.env >> $GITHUB_ENV
+
+    - name: Mount Bazel cache
+      uses: actions/cache/restore@v4
+      with:
+        path: "~/bazel-disk-cache"
+        key: ${{ format('{0}-{1}-bazel-disk-cache-{2}-{3}-{4}-', runner.os, runner.arch, env.CACHE_VERSION, github.ref_name, github.sha) }}
+        restore-keys: |
+          ${{ format('{0}-{1}-bazel-disk-cache-{2}-{3}-', runner.os, runner.arch, env.CACHE_VERSION, github.ref_name) || '' }}
+          ${{ format('{0}-{1}-bazel-disk-cache-{2}-main-', runner.os, runner.arch, env.CACHE_VERSION) || '' }}
+          ${{ format('{0}-{1}-bazel-disk-cache-{2}-', runner.os, runner.arch, env.CACHE_VERSION) || '' }}
+
+    - name: Build
+      run: |
+        bazel build ... \
+          --disk_cache=$HOME/bazel-disk-cache \
+          --graphics_drivers=gles_angle_vulkan_swiftshader \
+          --verbose_failures \
+          ${{ inputs.additional-bazel-args }}
+
+    - name: Test
+      if: ${{ inputs.run-tests }}
+      run: |
+        bazel test \
+          --disk_cache=$HOME/bazel-disk-cache \
+          --graphics_drivers=gles_angle_vulkan_swiftshader \
+          --test_output=streamed \
+          --verbose_failures \
+          host:gfxstream_framebuffer_tests \
+          host/vulkan:gfxstream_compositorvk_tests \
+          host/vulkan:gfxstream_emulatedphysicalmemory_tests \
+          tests/end2end:gfxstream_end2end_tests \
+          ${{ inputs.additional-bazel-args }}

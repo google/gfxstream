@@ -13,81 +13,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  run-gfxstream-bazel-end2end-tests:
-    runs-on: ubuntu-22.04
-    steps:
-    - name: Free disk space
-      uses: jlumbroso/free-disk-space@v1.3.1
-      with:
-        tool-cache: true
-    - name: Checkout repository
-      uses: actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675 # aka v2
-    - name: Install bazel
-      run: sudo bash toolchain/bazel/install_bazel.sh
-    - name: Install toolchain dependencies
-      run: sudo bash toolchain/bazel/install_toolchain_dependencies.sh
-    - name: Install runtime dependencies
-      run: sudo apt-get install -y libvulkan1
-    - name: Load cache config
-      run: cat .config/cache-config.env >> $GITHUB_ENV
-    - name: Mount Bazel cache
-      uses: actions/cache/restore@v4
-      with:
-        path: "~/bazel-disk-cache"
-        key: ${{ format('{0}-{1}-bazel-disk-cache-{2}-{3}-{4}-', runner.os, runner.arch, env.CACHE_VERSION, github.ref_name, github.sha) }}
-        restore-keys: |
-          ${{ format('{0}-{1}-bazel-disk-cache-{2}-{3}-', runner.os, runner.arch, env.CACHE_VERSION, github.ref_name) || '' }}
-          ${{ format('{0}-{1}-bazel-disk-cache-{2}-main-', runner.os, runner.arch, env.CACHE_VERSION) || '' }}
-          ${{ format('{0}-{1}-bazel-disk-cache-{2}-', runner.os, runner.arch, env.CACHE_VERSION) || '' }}
-    - name: Build
-      run: |
-        bazel build ... \
-          --disk_cache=$HOME/bazel-disk-cache \
-          --graphics_drivers=gles_angle_vulkan_swiftshader \
-          --verbose_failures
-    - name: Run unit tests
-      run: |
-        bazel test \
-          --disk_cache=$HOME/bazel-disk-cache \
-          --graphics_drivers=gles_angle_vulkan_swiftshader \
-          --test_output=streamed \
-          --verbose_failures \
-          host:gfxstream_framebuffer_tests \
-          host/vulkan:gfxstream_compositorvk_tests \
-          host/vulkan:gfxstream_emulatedphysicalmemory_tests \
-          tests/end2end:gfxstream_end2end_tests
-  run-gfxstream-bazel-end2end-tests-arm:
-    runs-on: ubuntu-22.04-arm
-    steps:
-    - name: Free disk space
-      uses: jlumbroso/free-disk-space@v1.3.1
-      with:
-        tool-cache: true
-    - name: Checkout repository
-      uses: actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675 # aka v2
-    - name: Install bazel
-      run: sudo bash toolchain/bazel/install_bazel.sh
-    - name: Install toolchain dependencies
-      run: sudo bash toolchain/bazel/install_toolchain_dependencies.sh
-    - name: Install runtime dependencies
-      run: sudo apt-get install -y libvulkan1
-    - name: Load cache config
-      run: cat .config/cache-config.env >> $GITHUB_ENV
-    - name: Mount Bazel cache
-      uses: actions/cache/restore@v4
-      with:
-        path: "~/bazel-disk-cache"
-        key: ${{ format('{0}-{1}-bazel-disk-cache-{2}-{3}-{4}-', runner.os, runner.arch, env.CACHE_VERSION, github.ref_name, github.sha) }}
-        restore-keys: |
-          ${{ format('{0}-{1}-bazel-disk-cache-{2}-{3}-', runner.os, runner.arch, env.CACHE_VERSION, github.ref_name) || '' }}
-          ${{ format('{0}-{1}-bazel-disk-cache-{2}-main-', runner.os, runner.arch, env.CACHE_VERSION) || '' }}
-          ${{ format('{0}-{1}-bazel-disk-cache-{2}-', runner.os, runner.arch, env.CACHE_VERSION) || '' }}
-    - name: Build
-      run: |
-        bazel build ... \
-          --disk_cache=$HOME/bazel-disk-cache \
-          --graphics_drivers=gles_angle_vulkan_swiftshader \
-          --verbose_failures
+  run-gfxstream-bazel-tests:
+    uses: ./.github/workflows/presubmit_bazel.yml
+    with:
+      runner: ubuntu-22.04
+
+  run-gfxstream-bazel-tests-asan:
+    uses: ./.github/workflows/presubmit_bazel.yml
+    with:
+      # TODO(b/475886246): fix and remove `detect_leaks=0`
+      # TODO(b/475885975): fix and remove `detect_odr_violation=0`
+      additional-bazel-args: --config=asan --test_env="ASAN_OPTIONS=detect_leaks=0:detect_odr_violation=0"
+      runner: ubuntu-22.04
+
+  run-gfxstream-bazel-tests-arm:
+    uses: ./.github/workflows/presubmit_bazel.yml
+    with:
+      runner: ubuntu-22.04-arm
+      # The arm runner is too slow:
+      run-tests: false
+
   run-gfxstream-cmake-build:
     runs-on: ubuntu-22.04
     steps:
@@ -108,6 +53,7 @@ jobs:
       run: |
         cd build && \
         ninja
+
   run-gfxstream-meson-build:
     runs-on: ubuntu-22.04
     steps:
@@ -128,6 +74,7 @@ jobs:
     - name: Build
       run: |
         meson compile -C build
+
   run-gfxstream-meson-build-windows:
     runs-on: windows-latest
     defaults:
