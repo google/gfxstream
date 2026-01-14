@@ -35,6 +35,7 @@ cc_library(
     ],
     copts = GFXSTREAM_HOST_COPTS,
     defines = GFXSTREAM_HOST_DEFINES,
+    features = ["-parse_headers"],
     includes = ["include"],
     visibility = ["//visibility:public"],
     deps = [
