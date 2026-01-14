@@ -1537,7 +1537,7 @@ CompositorVk::CompositionFinishedWaitable CompositorVk::compose(
     // completes that can be shared outside of CompositorVk.
     std::shared_future<void> composeCompleteFuture =
         std::async(std::launch::deferred, [composeCompleteFutureForResources]() {
-            composeCompleteFutureForResources.get();
+            static_cast<void>(composeCompleteFutureForResources.get());
         }).share();
 
     return composeCompleteFuture;
