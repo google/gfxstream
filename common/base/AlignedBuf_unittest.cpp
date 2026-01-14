@@ -82,15 +82,15 @@ TEST(AlignedBuf, Copy) {
     EXPECT_EQ(buf2.size(), buf.size());
     EXPECT_NE(buf2.data(), buf.data());
 
-    for (int i = 0; i < buf.size(); i++) {
+    for (size_t i = 0; i < buf.size(); i++) {
         buf[i] = 0;
     }
 
-    for (int i = 0; i < buf2.size(); i++) {
+    for (size_t i = 0; i < buf2.size(); i++) {
         buf2[i] = 1;
     }
 
-    for (int i = 0; i < buf.size(); i++) {
+    for (size_t i = 0; i < buf.size(); i++) {
         EXPECT_EQ(0, buf[i]);
     }
 }
@@ -102,7 +102,7 @@ TEST(AlignedBuf, Move) {
 
     AlignedBuf<uint32_t, align> buf(size);
 
-    for (int i = 0; i < buf.size(); i++) {
+    for (size_t i = 0; i < buf.size(); i++) {
         buf[i] = 0;
         EXPECT_EQ(0, buf[i]);
     }
@@ -112,7 +112,7 @@ TEST(AlignedBuf, Move) {
     EXPECT_EQ(0, buf.size());
     EXPECT_EQ(size, buf2.size());
 
-    for (int i = 0; i < buf2.size(); i++) {
+    for (size_t i = 0; i < buf2.size(); i++) {
         EXPECT_EQ(0, buf2[i]);
         // Check that it is stil writable.
         buf2[i] = 0;

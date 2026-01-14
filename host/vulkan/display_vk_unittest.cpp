@@ -248,8 +248,8 @@ TEST_F(DisplayVkTest, SimplePost) {
     auto texture = RenderTexture::create(*k_vk, m_vkDevice, m_vkPhysicalDevice, m_compositorVkQueue,
                                          m_vkCommandPool, textureWidth, textureHeight);
     std::vector<uint32_t> pixels(textureWidth * textureHeight);
-    for (int i = 0; i < textureHeight; i++) {
-        for (int j = 0; j < textureWidth; j++) {
+    for (uint32_t i = 0; i < textureHeight; i++) {
+        for (uint32_t j = 0; j < textureWidth; j++) {
             uint8_t *pixel = reinterpret_cast<uint8_t *>(&pixels[i * textureWidth + j]);
             pixel[0] = static_cast<uint8_t>((i * 0xff / textureHeight) & 0xff);
             pixel[1] = static_cast<uint8_t>((j * 0xff / textureWidth) & 0xff);
@@ -308,8 +308,8 @@ TEST_F(DisplayVkTest, PostWithRotation) {
     auto texture = RenderTexture::create(*k_vk, m_vkDevice, m_vkPhysicalDevice, m_compositorVkQueue,
                                          m_vkCommandPool, textureWidth, textureHeight);
     std::vector<uint32_t> pixels(textureWidth * textureHeight);
-    for (int i = 0; i < textureHeight; i++) {
-        for (int j = 0; j < textureWidth; j++) {
+    for (uint32_t i = 0; i < textureHeight; i++) {
+        for (uint32_t j = 0; j < textureWidth; j++) {
             uint8_t *pixel = reinterpret_cast<uint8_t *>(&pixels[i * textureWidth + j]);
             pixel[0] = static_cast<uint8_t>((i * 0xff / textureHeight) & 0xff);
             pixel[1] = static_cast<uint8_t>((j * 0xff / textureWidth) & 0xff);
@@ -337,8 +337,8 @@ TEST_F(DisplayVkTest, PostWithColorTransform) {
     auto texture = RenderTexture::create(*k_vk, m_vkDevice, m_vkPhysicalDevice, m_compositorVkQueue,
                                          m_vkCommandPool, textureWidth, textureHeight);
     std::vector<uint32_t> pixels(textureWidth * textureHeight);
-    for (int i = 0; i < textureHeight; i++) {
-        for (int j = 0; j < textureWidth; j++) {
+    for (uint32_t i = 0; i < textureHeight; i++) {
+        for (uint32_t j = 0; j < textureWidth; j++) {
             uint8_t *pixel = reinterpret_cast<uint8_t *>(&pixels[i * textureWidth + j]);
             pixel[0] = static_cast<uint8_t>((i * 0xff / textureHeight) & 0xff);
             pixel[1] = static_cast<uint8_t>((j * 0xff / textureWidth) & 0xff);

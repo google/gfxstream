@@ -147,6 +147,7 @@ void DeviceLostHelper::onDeviceLost() {
                 checkpointDatas.resize(static_cast<size_t>(checkpointDataCount),
                                        VkCheckpointDataNV{
                                            .sType = VK_STRUCTURE_TYPE_CHECKPOINT_DATA_NV,
+                                           .pNext = nullptr,
                                        });
                 deviceDispatch->vkGetQueueCheckpointDataNV(queue, &checkpointDataCount,
                                                            checkpointDatas.data());

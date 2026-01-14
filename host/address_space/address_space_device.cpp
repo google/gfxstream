@@ -84,7 +84,7 @@ class AddressSpaceDeviceState {
             device_context->perform(pingInfo);
         } else {
             // The first ioctl establishes the device type
-            struct AddressSpaceCreateInfo create = {0};
+            struct AddressSpaceCreateInfo create = {};
             create.type = static_cast<uint32_t>(pingInfo->metadata);
             create.physAddr = phys_addr;
 
@@ -103,7 +103,7 @@ class AddressSpaceDeviceState {
         if (device_context) {
             device_context->perform(pingInfo);
         } else {
-            struct AddressSpaceCreateInfo create = {0};
+            struct AddressSpaceCreateInfo create = {};
             create.type = static_cast<uint32_t>(pingInfo->metadata);
             create.physAddr = phys_addr;
 
@@ -219,7 +219,7 @@ class AddressSpaceDeviceState {
                 case 0:
                     break;
                 case 1: {
-                    struct AddressSpaceCreateInfo create = {0};
+                    struct AddressSpaceCreateInfo create = {};
                     create.type = static_cast<uint32_t>(stream->getBe32());
                     create.physAddr = pingInfoGpa;
                     create.fromSnapshot = true;

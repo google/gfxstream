@@ -92,9 +92,13 @@ uint8_t* AstcTexture::createVkBufferAndMapMemory(size_t bufferSize) {
 
     VkBufferCreateInfo bufferInfo = {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
         .size = bufferSize,
         .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        .queueFamilyIndexCount = 0,
+        .pQueueFamilyIndices = nullptr,
     };
     res = mVk->vkCreateBuffer(mDevice, &bufferInfo, nullptr, &mDecompBuffer);
     if (res != VK_SUCCESS) {
@@ -124,6 +128,7 @@ uint8_t* AstcTexture::createVkBufferAndMapMemory(size_t bufferSize) {
 
     VkMemoryAllocateInfo allocInfo = {
         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+        .pNext = nullptr,
         .allocationSize = memRequirements.size,
         .memoryTypeIndex = *memIndex,
     };

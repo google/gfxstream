@@ -201,7 +201,7 @@ class Globals {
     }
 
     Allocation allocRingStorage() {
-        struct AllocationCreateInfo create = {0};
+        struct AllocationCreateInfo create = {};
         create.size = kAsgConsumerRingStorageSize;
         return newAllocation(create, mRingBlocks);
     }
@@ -212,7 +212,7 @@ class Globals {
     }
 
     Allocation allocBuffer() {
-        struct AllocationCreateInfo create = {0};
+        struct AllocationCreateInfo create = {};
         create.size = kAsgWriteBufferSize;
         return newAllocation(create, mBufferBlocks);
     }
@@ -227,7 +227,7 @@ class Globals {
             GFXSTREAM_FATAL("Dedicated ASG allocation requested without dedicated handle.\n");
         }
 
-        struct AllocationCreateInfo create = {0};
+        struct AllocationCreateInfo create = {};
         create.size = kAsgConsumerRingStorageSize + kAsgWriteBufferSize;
         create.dedicatedContextHandle = asgCreate.handle;
         create.virtioGpu = true;
@@ -371,7 +371,7 @@ private:
                          const std::optional<AddressSpaceDeviceLoadResources>& resources,
                          Block& block) {
         uint32_t filled = stream->getBe32();
-        struct AllocationCreateInfo create = {0};
+        struct AllocationCreateInfo create = {};
 
         if (!filled) {
             block.isEmpty = true;
