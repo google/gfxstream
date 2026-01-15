@@ -13,3 +13,25 @@ index aa03b4b096e..7a51ede4736 100644
  __BEGIN_DECLS
 
  /**
+diff --git a/src/gfxstream/guest/vulkan_enc/ResourceTracker.cpp b/src/gfxstream/guest/vulkan_enc/ResourceTracker.cpp
+index 4e0dc43c892..b3f8710d244 100644
+--- a/src/gfxstream/guest/vulkan_enc/ResourceTracker.cpp
++++ b/src/gfxstream/guest/vulkan_enc/ResourceTracker.cpp
+@@ -148,13 +148,13 @@ struct StagingInfo {
+     }
+
+     ~StagingInfo() {
+-        for (auto stream : streams) {
+-            delete stream;
+-        }
+-
+         for (auto encoder : encoders) {
+             delete encoder;
+         }
++
++        for (auto stream : streams) {
++            delete stream;
++        }
+     }
+
+     void pushStaging(CommandBufferStagingStream* stream, VkEncoder* encoder) {
