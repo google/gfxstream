@@ -605,8 +605,10 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
 
     const FeatureSet& getFeatures() const;
 
-    RepresentativeColorBufferMemoryTypeInfo getRepresentativeColorBufferMemoryTypeInfo()
-        const;
+    RepresentativeColorBufferMemoryTypeInfo getRepresentativeColorBufferMemoryTypeInfo() const;
+
+    void applyScreenshotBackground(const int width, const int height, const int numChannels,
+                                   uint8_t* pixelDataInOut);
 
    private:
     FrameBuffer() = default;
