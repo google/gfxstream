@@ -3647,6 +3647,32 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkDescriptorPoolInlineUniformBlockCreateInfo,
                       unmarshal_VkDescriptorPoolInlineUniformBlockCreateInfoEXT)
 
 #endif
+#ifdef VK_EXT_blend_operation_advanced
+void marshal_VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT* forUnmarshaling);
+
+void marshal_VkPipelineColorBlendAdvancedStateCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelineColorBlendAdvancedStateCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkPipelineColorBlendAdvancedStateCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineColorBlendAdvancedStateCreateInfoEXT* forUnmarshaling);
+
+#endif
 #ifdef VK_EXT_image_drm_format_modifier
 void marshal_VkDrmFormatModifierPropertiesEXT(
     VulkanStream* vkStream, VkStructureType rootType,
@@ -4262,6 +4288,22 @@ void marshal_VkPhysicalDevicePrimitiveTopologyListRestartFeaturesEXT(
 void unmarshal_VkPhysicalDevicePrimitiveTopologyListRestartFeaturesEXT(
     VulkanStream* vkStream, VkStructureType rootType,
     VkPhysicalDevicePrimitiveTopologyListRestartFeaturesEXT* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_frame_boundary
+void marshal_VkPhysicalDeviceFrameBoundaryFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceFrameBoundaryFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceFrameBoundaryFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceFrameBoundaryFeaturesEXT* forUnmarshaling);
+
+void marshal_VkFrameBoundaryEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                const VkFrameBoundaryEXT* forMarshaling);
+
+void unmarshal_VkFrameBoundaryEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                  VkFrameBoundaryEXT* forUnmarshaling);
 
 #endif
 #ifdef VK_EXT_extended_dynamic_state2

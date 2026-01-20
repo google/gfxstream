@@ -13759,6 +13759,111 @@ void reservedunmarshal_VkDebugUtilsObjectTagInfoEXT(VulkanStream* vkStream,
 }
 
 #endif
+#ifdef VK_EXT_blend_operation_advanced
+void reservedunmarshal_VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkBool32*)&forUnmarshaling->advancedBlendCoherentOperations, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((uint32_t*)&forUnmarshaling->advancedBlendMaxColorAttachments, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((VkBool32*)&forUnmarshaling->advancedBlendIndependentBlend, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->advancedBlendNonPremultipliedSrcColor, *ptr,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->advancedBlendNonPremultipliedDstColor, *ptr,
+           sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->advancedBlendCorrelatedOverlap, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->advancedBlendAllOperations, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkPipelineColorBlendAdvancedStateCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineColorBlendAdvancedStateCreateInfoEXT* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkBool32*)&forUnmarshaling->srcPremultiplied, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->dstPremultiplied, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBlendOverlapEXT*)&forUnmarshaling->blendOverlap, *ptr, sizeof(VkBlendOverlapEXT));
+    *ptr += sizeof(VkBlendOverlapEXT);
+}
+
+#endif
 #ifdef VK_EXT_image_drm_format_modifier
 void reservedunmarshal_VkDrmFormatModifierPropertiesEXT(
     VulkanStream* vkStream, VkStructureType rootType,
@@ -15337,6 +15442,130 @@ void reservedunmarshal_VkPhysicalDevicePrimitiveTopologyListRestartFeaturesEXT(
 }
 
 #endif
+#ifdef VK_EXT_frame_boundary
+void reservedunmarshal_VkPhysicalDeviceFrameBoundaryFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceFrameBoundaryFeaturesEXT* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkBool32*)&forUnmarshaling->frameBoundary, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkFrameBoundaryEXT(VulkanStream* vkStream, VkStructureType rootType,
+                                          VkFrameBoundaryEXT* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkFrameBoundaryFlagsEXT*)&forUnmarshaling->flags, *ptr,
+           sizeof(VkFrameBoundaryFlagsEXT));
+    *ptr += sizeof(VkFrameBoundaryFlagsEXT);
+    memcpy((uint64_t*)&forUnmarshaling->frameID, *ptr, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy((uint32_t*)&forUnmarshaling->imageCount, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    memcpy((VkImage**)&forUnmarshaling->pImages, (*ptr), 8);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pImages);
+    *ptr += 8;
+    if (forUnmarshaling->pImages) {
+        vkStream->alloc((void**)&forUnmarshaling->pImages,
+                        forUnmarshaling->imageCount * sizeof(const VkImage));
+        if (forUnmarshaling->imageCount) {
+            uint8_t* cgen_var_0_0_ptr = (uint8_t*)(*ptr);
+            *ptr += 8 * forUnmarshaling->imageCount;
+            if (forUnmarshaling) {
+                for (uint32_t k = 0; k < forUnmarshaling->imageCount; ++k) {
+                    uint64_t tmpval;
+                    memcpy(&tmpval, cgen_var_0_0_ptr + k * 8, sizeof(uint64_t));
+                    *(((VkImage*)forUnmarshaling->pImages) + k) =
+                        tmpval ? (VkImage)unbox_VkImage((VkImage)tmpval) : VK_NULL_HANDLE;
+                }
+            }
+        }
+    }
+    memcpy((uint32_t*)&forUnmarshaling->bufferCount, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    memcpy((VkBuffer**)&forUnmarshaling->pBuffers, (*ptr), 8);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pBuffers);
+    *ptr += 8;
+    if (forUnmarshaling->pBuffers) {
+        vkStream->alloc((void**)&forUnmarshaling->pBuffers,
+                        forUnmarshaling->bufferCount * sizeof(const VkBuffer));
+        if (forUnmarshaling->bufferCount) {
+            uint8_t* cgen_var_1_0_ptr = (uint8_t*)(*ptr);
+            *ptr += 8 * forUnmarshaling->bufferCount;
+            if (forUnmarshaling) {
+                for (uint32_t k = 0; k < forUnmarshaling->bufferCount; ++k) {
+                    uint64_t tmpval;
+                    memcpy(&tmpval, cgen_var_1_0_ptr + k * 8, sizeof(uint64_t));
+                    *(((VkBuffer*)forUnmarshaling->pBuffers) + k) =
+                        tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval) : VK_NULL_HANDLE;
+                }
+            }
+        }
+    }
+    memcpy((uint64_t*)&forUnmarshaling->tagName, *ptr, sizeof(uint64_t));
+    *ptr += sizeof(uint64_t);
+    memcpy((size_t*)&forUnmarshaling->tagSize, (*ptr), 8);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->tagSize);
+    *ptr += 8;
+    // WARNING PTR CHECK
+    memcpy((void**)&forUnmarshaling->pTag, (*ptr), 8);
+    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pTag);
+    *ptr += 8;
+    if (forUnmarshaling->pTag) {
+        vkStream->alloc((void**)&forUnmarshaling->pTag,
+                        forUnmarshaling->tagSize * sizeof(const uint8_t));
+        if (forUnmarshaling->tagSize > 0) {
+            memcpy((void*)forUnmarshaling->pTag, *ptr,
+                   forUnmarshaling->tagSize * sizeof(const uint8_t));
+            *ptr += forUnmarshaling->tagSize * sizeof(const uint8_t);
+        }
+    }
+}
+
+#endif
 #ifdef VK_EXT_extended_dynamic_state2
 void reservedunmarshal_VkPhysicalDeviceExtendedDynamicState2FeaturesEXT(
     VulkanStream* vkStream, VkStructureType rootType,
@@ -16875,6 +17104,32 @@ void reservedunmarshal_extension_struct(VulkanStream* vkStream, VkStructureType 
             break;
         }
 #endif
+#ifdef VK_EXT_blend_operation_advanced
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BLEND_OPERATION_ADVANCED_FEATURES_EXT: {
+            reservedunmarshal_VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT*>(
+                    structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BLEND_OPERATION_ADVANCED_PROPERTIES_EXT: {
+            reservedunmarshal_VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT*>(
+                    structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_ADVANCED_STATE_CREATE_INFO_EXT: {
+            reservedunmarshal_VkPipelineColorBlendAdvancedStateCreateInfoEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkPipelineColorBlendAdvancedStateCreateInfoEXT*>(
+                    structExtension_out),
+                ptr);
+            break;
+        }
+#endif
 #ifdef VK_EXT_image_drm_format_modifier
         case VK_STRUCTURE_TYPE_DRM_FORMAT_MODIFIER_PROPERTIES_LIST_EXT: {
             reservedunmarshal_VkDrmFormatModifierPropertiesListEXT(
@@ -17272,6 +17527,21 @@ void reservedunmarshal_extension_struct(VulkanStream* vkStream, VkStructureType 
                 vkStream, rootType,
                 reinterpret_cast<VkPhysicalDevicePrimitiveTopologyListRestartFeaturesEXT*>(
                     structExtension_out),
+                ptr);
+            break;
+        }
+#endif
+#ifdef VK_EXT_frame_boundary
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAME_BOUNDARY_FEATURES_EXT: {
+            reservedunmarshal_VkPhysicalDeviceFrameBoundaryFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceFrameBoundaryFeaturesEXT*>(structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_FRAME_BOUNDARY_EXT: {
+            reservedunmarshal_VkFrameBoundaryEXT(
+                vkStream, rootType, reinterpret_cast<VkFrameBoundaryEXT*>(structExtension_out),
                 ptr);
             break;
         }
