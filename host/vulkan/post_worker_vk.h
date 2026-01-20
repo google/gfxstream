@@ -47,6 +47,8 @@ class PostWorkerVk : public PostWorker {
     // useVulkan is set when calling FrameBuffer::initialize(). PostWorker
     // doesn't take the ownership of this DisplayVk object.
     DisplayVk* const m_displayVk;
+    uint32_t m_viewportWidth = 0;
+    uint32_t m_viewportHeight = 0;
 };
 
 }  // namespace vk

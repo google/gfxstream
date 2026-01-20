@@ -83,8 +83,26 @@ std::shared_future<void> PostWorkerVk::postImpl(ColorBuffer* cb,
     if (pixel_fold) {
 #ifdef CONFIG_AEMU
         if (!get_gfxstream_should_skip_draw()) {
-            // TODO(b/467017311): Logic for pixel fold overlay if needed, similar to GL?
-             addPostImage(cb, 0, 0, 0, 0, static_cast<float>(mFb->getZrot()), colorTransform);
+            const float dpr = mFb->getDpr();
+            const float px = mFb->getPx();
+            const float py = mFb->getPy();
+            const int windowWidth = mFb->windowWidth();
+            const int windowHeight = mFb->windowHeight();
+            const float zRot = static_cast<float>(mFb->getZrot());
+
+            // Calculate "excess" space (difference between viewport and content size)
+            // m_viewportWidth/Height are updated in viewportImpl
+            const float excessW = static_cast<float>(m_viewportWidth) - windowWidth * dpr;
+            const float excessH = static_cast<float>(m_viewportHeight) - windowHeight * dpr;
+
+            // Calculate offsets based on scroll position (px, py)
+            // px/py are 0.0 to 1.0
+            const int32_t x = static_cast<int32_t>(px * excessW);
+            const int32_t y = static_cast<int32_t>(py * excessH);
+            const int32_t w = static_cast<int32_t>(windowWidth * dpr);
+            const int32_t h = static_cast<int32_t>(windowHeight * dpr);
+
+            addPostImage(cb, x, y, w, h, zRot, colorTransform);
         }
 #endif
     } else if (multiDisplay.is_multi_display_enabled()) {
@@ -175,7 +193,9 @@ std::shared_future<void> PostWorkerVk::postImpl(ColorBuffer* cb,
 }
 
 void PostWorkerVk::viewportImpl(int width, int height) {
-    GFXSTREAM_ERROR("PostWorker with Vulkan doesn't support viewport");
+    const float dpr = mFb->getDpr();
+    m_viewportWidth = width * dpr;
+    m_viewportHeight = height * dpr;
 }
 
 void PostWorkerVk::clearImpl() {
