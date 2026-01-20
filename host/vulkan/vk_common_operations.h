@@ -132,6 +132,8 @@ class VkEmulation {
 
     bool supportsPrivateData() const;
 
+    bool supportsFrameBoundary() const;
+
     bool supportsExternalMemoryImport() const;
 
     bool supportsDmaBuf() const;
@@ -467,6 +469,7 @@ class VkEmulation {
         bool hasNvidiaDeviceDiagnosticCheckpointsExtension = false;
         bool supportsNvidiaDeviceDiagnosticCheckpoints = false;
         bool supportsPrivateData = false;
+        bool supportsFrameBoundary = false;
 
         std::vector<VkExtensionProperties> extensions;
 

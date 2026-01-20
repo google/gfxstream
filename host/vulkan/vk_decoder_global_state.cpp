@@ -7279,6 +7279,24 @@ class VkDecoderGlobalState::Impl {
             }
 
             deviceOpTracker = deviceInfo->deviceOpTracker.get();
+
+            if (mRenderDocWithMultipleVkInstances && m_vkEmulation->supportsFrameBoundary()) {
+                // Check if this is a frame boundary submission, only the first submit call
+                // will be searched to initiate the frame delimiter on renderdoc capture
+                const VkFrameBoundaryEXT* frameBoundary =
+                    vk_find_struct<VkFrameBoundaryEXT>(pSubmits);
+
+                if (frameBoundary) {
+                    auto* phyDeviceInfo =
+                        gfxstream::base::find(mPhysdevInfo, deviceInfo->physicalDevice);
+                    if (!phyDeviceInfo) {
+                        GFXSTREAM_ERROR("vkQueueSubmit cannot find physical device info for %p",
+                                        device);
+                        return VK_ERROR_INITIALIZATION_FAILED;
+                    }
+                    mRenderDocWithMultipleVkInstances->onFrameDelimiter(phyDeviceInfo->instance);
+                }
+            }
         }
 
         for (HandleType cb : acquiredColorBuffers) {

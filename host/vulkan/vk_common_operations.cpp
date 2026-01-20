@@ -1204,6 +1204,12 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
             if (vk_util::extensionSupported(deviceExts, VK_EXT_PRIVATE_DATA_EXTENSION_NAME)) {
                 vk_append_struct(&features2Chain, &privateDataFeatures);
             }
+            VkPhysicalDeviceFrameBoundaryFeaturesEXT frameBoundaryFeatures = {
+                .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAME_BOUNDARY_FEATURES_EXT
+            };
+            if (vk_util::extensionSupported(deviceExts, VK_EXT_FRAME_BOUNDARY_EXTENSION_NAME)) {
+                vk_append_struct(&features2Chain, &frameBoundaryFeatures);
+            }
 
             VkPhysicalDeviceRobustness2FeaturesEXT robustness2Features = {
                 .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT};
@@ -1223,6 +1229,7 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
                 deviceDiagnosticsConfigFeatures.diagnosticsConfig == VK_TRUE;
 
             deviceInfos[i].supportsPrivateData = (privateDataFeatures.privateData == VK_TRUE);
+            deviceInfos[i].supportsFrameBoundary = (frameBoundaryFeatures.frameBoundary == VK_TRUE);
 
             // Enable robustness only when requested
             if (robustnessRequested && robustnessSupported) {
@@ -1725,6 +1732,8 @@ bool VkEmulation::supportsPhysicalDeviceIDProperties() const {
 }
 
 bool VkEmulation::supportsPrivateData() const { return mDeviceInfo.supportsPrivateData; }
+
+bool VkEmulation::supportsFrameBoundary() const { return mDeviceInfo.supportsFrameBoundary; }
 
 bool VkEmulation::supportsExternalMemoryImport() const {
     return mDeviceInfo.supportsExternalMemoryImport;
