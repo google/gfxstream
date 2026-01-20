@@ -15,9 +15,9 @@
 python3 scripts/glsl-shader-to-spv.py \
     host/vulkan/compositor.vert \
     host/vulkan/compositor_vertex_shader.h \
-    compositorVertexShader
+    kCompositorVertexShader
 
 python3 scripts/glsl-shader-to-spv.py \
     host/vulkan/compositor.frag \
     host/vulkan/compositor_fragment_shader.h \
-    compositorFragmentShader
+    kCompositorFragmentShader

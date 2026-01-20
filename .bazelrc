@@ -20,6 +20,12 @@ build --noexperimental_link_static_libraries_once
 #
 build --flag_alias=graphics_drivers=//common/testenv:graphics_test_environment
 
+# Bazel 9 started to use `-I` instead `-isystem` for `includes` in `cc_library`
+# (see https://github.com/bazelbuild/bazel/releases/tag/9.0.0). Gfxstream still
+# uses some `#include <>`s.
+# TODO: consider replacing remaining angle bracket includes with quote includes.
+build --features=external_include_paths
+
 # Address sanitizer
 build:asan --copt -DADDRESS_SANITIZER
 build:asan --copt -fno-omit-frame-pointer

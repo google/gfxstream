@@ -54,6 +54,7 @@ cc_library(
     ],
     copts = GFXSTREAM_HOST_COPTS + [
         "-Wno-extern-c-compat",
+        "-Wno-return-type-c-linkage",
     ],
     defines = GFXSTREAM_HOST_DEFINES,
     includes = [

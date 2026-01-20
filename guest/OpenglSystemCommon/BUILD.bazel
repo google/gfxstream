@@ -14,9 +14,14 @@ cc_library(
         "ThreadInfo.cpp",
         "VirtioGpuPipeStream.cpp",
     ],
-    hdrs = glob([
-        "**/*.h",
-    ]),
+    hdrs = [
+        "FormatConversions.h",
+        "HostConnection.h",
+        "ProcessPipe.h",
+        "QemuPipeStream.h",
+        "ThreadInfo.h",
+        "VirtioGpuPipeStream.h",
+    ],
     defines = [
         "ANDROID",
         "GFXSTREAM_NO_QEMU_PIPE",

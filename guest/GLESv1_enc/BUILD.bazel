@@ -24,11 +24,20 @@ cc_library(
         "gl_enc.cpp",
         "gl_entry.cpp",
     ],
-    hdrs = glob([
-        "**/*.h",
-    ]),
+    hdrs = [
+        "GLEncoder.h",
+        "GLEncoderUtils.h",
+        "gl_client_context.h",
+        "gl_client_proc.h",
+        "gl_enc.h",
+        "gl_opcodes.h",
+        "gl_types.h",
+    ],
     includes = [
         ".",
+    ],
+    textual_hdrs = [
+        "gl_ftable.h",
     ],
     linkopts = [
         # Search the current directory for this library's shared libs.

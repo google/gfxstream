@@ -6,13 +6,14 @@ GFXSTREAM_COMMON_COPTS = [
     "-Werror",
     "-Wextra",
     "-Wformat",
-    "-Wshadow",
-    "-Wunused-result",
     "-Wno-missing-field-initializers",
+    "-Wno-return-type-c-linkage",
     "-Wno-unused-function",
     "-Wno-unused-parameter",
     "-Wno-unused-private-field",
     "-Wno-unused-variable",
+    "-Wshadow",
+    "-Wunused-result",
 ] + select({
     "//conditions:default": [
         "-Wno-thread-safety-analysis",

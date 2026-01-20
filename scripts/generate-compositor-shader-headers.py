@@ -47,8 +47,8 @@ def convert_shader(shader_path, output_path, var_name):
 if __name__ == "__main__":
     # Define the shaders relative to the base path
     shaders = [
-        ("host/vulkan/compositor.vert", "host/vulkan/compositor_vertex_shader.h", "compositorVertexShader"),
-        ("host/vulkan/compositor.frag", "host/vulkan/compositor_fragment_shader.h", "compositorFragmentShader")
+        ("host/vulkan/compositor.vert", "host/vulkan/compositor_vertex_shader.h", "kCompositorVertexShader"),
+        ("host/vulkan/compositor.frag", "host/vulkan/compositor_fragment_shader.h", "kCompositorFragmentShader")
     ]
 
     # Convert them all

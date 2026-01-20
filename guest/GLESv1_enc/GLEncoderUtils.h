@@ -16,6 +16,10 @@
 #ifndef GL_ENCODER_UTILS_H
 #define GL_ENCODER_UTILS_H
 
+#include <stddef.h>
+
+#include "gl_types.h"
+
 namespace glesv1_enc {
     size_t pixelDataSize(void *self, GLsizei width, GLsizei height, GLenum format, GLenum type, int pack);
 };

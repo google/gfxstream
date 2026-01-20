@@ -3,20 +3,21 @@ module(
     version = "0.0.1",
 )
 
-bazel_dep(name = "googletest", version = "1.15.2", repo_name = "com_google_googletest")
+bazel_dep(name = "googletest", version = "1.17.0.bcr.2", repo_name = "com_google_googletest")
 bazel_dep(name = "platforms", version = "0.0.11")
-bazel_dep(name = "rules_cc", version = "0.0.14")
+bazel_dep(name = "rules_cc", version = "0.2.16")
 bazel_dep(name = "rules_license", version = "1.0.0")
 
 ###########  When building Gfxstream from standalone repo ###########
 
-bazel_dep(name = "abseil-cpp", version = "20250127.0", dev_dependency = True)
-bazel_dep(name = "aspect_bazel_lib", version = "2.14.0", dev_dependency = True)
+bazel_dep(name = "abseil-cpp", version = "20260107.0", dev_dependency = True)
+bazel_dep(name = "aspect_bazel_lib", version = "2.22.5", dev_dependency = True)
 bazel_dep(name = "bazel_skylib", version = "1.7.1", dev_dependency = True)
-bazel_dep(name = "protobuf", version = "29.1", dev_dependency = True)
-bazel_dep(name = "toolchains_llvm", version = "1.2.0", dev_dependency = True)
-bazel_dep(name = "rules_python", version = "0.40.0", dev_dependency = True)
-bazel_dep(name = "rules_rust", version = "0.60.0", dev_dependency = True)
+bazel_dep(name = "protobuf", version = "33.4", dev_dependency = True)
+bazel_dep(name = "toolchains_llvm", version = "1.6.0", dev_dependency = True)
+bazel_dep(name = "rules_python", version = "1.5.0", dev_dependency = True)
+bazel_dep(name = "rules_shell", version = "0.6.1", dev_dependency = True)
+bazel_dep(name = "rules_rust", version = "0.68.1", dev_dependency = True)
 bazel_dep(name = "zlib", version = "1.3.1.bcr.3", dev_dependency = True)
 
 llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm", dev_dependency = True)
@@ -64,20 +65,28 @@ git_repository(
     build_file = "//third_party/angle:BUILD.angle.bazel",
     commit = "8b39631d6ab5a2efa21629c6fa94a80381720950",
     dev_dependency = True,
+    patch_args = ["-p1"],
+    patches = [
+        "//third_party/angle:PATCH.angle.patch",
+    ],
     remote = "https://android.googlesource.com/platform/external/angle.git",
 )
 
 git_repository(
     name = "spirv_headers",
-    commit = "aa6cef192b8e693916eb713e7a9ccadf06062ceb",  # vulkan-sdk-1.4.313.0
+    commit = "b824a462d4256d720bebb40e78b9eb8f78bbb305",  # vulkan-sdk-1.4.335.0
     dev_dependency = True,
     remote = "https://github.com/KhronosGroup/SPIRV-Headers.git",
 )
 
 git_repository(
     name = "spirv_tools",
-    commit = "f289d047f49fb60488301ec62bafab85573668cc",  # vulkan-sdk-1.4.313.0
+    commit = "262bdab48146c937467f826699a40da0fdfc0f1a",  # vulkan-sdk-1.4.335.0
     dev_dependency = True,
+    patch_args = ["-p1"],
+    patches = [
+        "//third_party/spirv_tools:PATCH.spirv_tools.patch",
+    ],
     remote = "https://github.com/KhronosGroup/SPIRV-Tools.git",
 )
 
@@ -86,6 +95,10 @@ git_repository(
     build_file = "//third_party/swiftshader:BUILD.swiftshader.bazel",
     commit = "4c3426403b9c89253322265323ca658a2476faca",
     dev_dependency = True,
+    patch_args = ["-p1"],
+    patches = [
+        "//third_party/swiftshader:PATCH.swiftshader.patch",
+    ],
     remote = "https://swiftshader.googlesource.com/SwiftShader.git",
 )
 

@@ -22,6 +22,8 @@
 
 #include "gfxstream/common/logging.h"
 #include "gfxstream/host/tracing.h"
+#include "vulkan/compositor_fragment_shader.h"
+#include "vulkan/compositor_vertex_shader.h"
 #include "vulkan/vk_enum_string_helper.h"
 #include "vulkan/vk_format_utils.h"
 #include "vulkan/vk_utils.h"
@@ -29,12 +31,6 @@
 namespace gfxstream {
 namespace host {
 namespace vk {
-
-namespace CompositorVkShader {
-#include "vulkan/compositor_fragment_shader.h"
-#include "vulkan/compositor_vertex_shader.h"
-}  // namespace CompositorVkShader
-
 namespace {
 
 constexpr const VkImageLayout kSourceImageInitialLayoutUsed =
@@ -386,8 +382,8 @@ bool CompositorVk::setUpGraphicsPipeline(const VkShaderModule vertShaderMod,
 }
 
 bool CompositorVk::setUpGraphicsPipelines() {
-    const std::vector<uint32_t> vertSpvBuff = CompositorVkShader::compositorVertexShader;
-    const std::vector<uint32_t> fragSpvBuff = CompositorVkShader::compositorFragmentShader;
+    const std::vector<uint32_t> vertSpvBuff = kCompositorVertexShader;
+    const std::vector<uint32_t> fragSpvBuff = kCompositorFragmentShader;
     const auto vertShaderMod = createShaderModule(m_vk, m_vkDevice, vertSpvBuff);
     const auto fragShaderMod = createShaderModule(m_vk, m_vkDevice, fragSpvBuff);
 

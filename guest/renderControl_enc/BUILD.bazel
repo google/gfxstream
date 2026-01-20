@@ -17,6 +17,8 @@ cc_library(
     ],
     hdrs = glob([
         "**/*.h",
+    ], exclude = [
+        "renderControl_ftable.h",
     ]),
     includes = [
         ".",

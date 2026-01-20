@@ -40,9 +40,19 @@ cc_library(
         "gl2_enc.cpp",
         "gl2_entry.cpp",
     ],
-    hdrs = glob([
-        "**/*.h",
-    ]),
+    hdrs = [
+        "GL2Encoder.h",
+        "GL2EncoderUtils.h",
+        "GLESv2Validation.h",
+        "gl2_client_context.h",
+        "gl2_client_proc.h",
+        "gl2_enc.h",
+        "gl2_opcodes.h",
+        "gl2_types.h",
+    ],
+    textual_hdrs = [
+        "gl2_ftable.h",
+    ],
     copts = ["-Wno-unused-private-field"],
     includes = [
         ".",
@@ -61,6 +71,7 @@ cc_library(
         "//third_party/opengl:gfxstream_gles2_headers",
         "//third_party/opengl:gfxstream_gles3_headers",
         "@mesa//:mesa_gfxstream_guest_iostream",
+        "@protobuf//:protobuf",
     ],
 )
 

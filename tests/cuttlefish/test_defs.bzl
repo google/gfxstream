@@ -1,3 +1,5 @@
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+
 def _cuttlefish_gfxstream_xts_test(
         name,
         cuttlefish_create_args,
@@ -19,7 +21,7 @@ def _cuttlefish_gfxstream_xts_test(
         "//host:gfxstream_backend",
     ]
 
-    native.sh_test(
+    sh_test(
         name = name,
         size = size,
         srcs = [

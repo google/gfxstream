@@ -17,6 +17,8 @@
 
 #include <map>
 
+#include "gl_base_types.h"
+
 template <typename T>
 void clearObjectMap(std::map<GLuint, T>& v) {
     typename std::map<GLuint, T>::iterator it = v.begin();
