@@ -241,9 +241,7 @@ std::unique_ptr<HostConnection> HostConnection::connect(enum VirtGpuCapset capse
     *pClientFlags = 0;
     con->m_stream->commitBuffer(sizeof(unsigned int));
 
-    if (capset == kCapsetGfxStreamMagma) {
-        noRenderControlEnc = 1;
-    } else if (capset == kCapsetGfxStreamVulkan) {
+    if (capset == kCapsetGfxStreamVulkan) {
         VirtGpuDevice* instance = VirtGpuDevice::getInstance(kCapsetGfxStreamVulkan);
         auto caps = instance->getCaps();
         noRenderControlEnc = caps.vulkanCapset.noRenderControlEnc;
