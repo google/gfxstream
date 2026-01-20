@@ -337,8 +337,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                 uint64_t tmpval;
                                 memcpy(&tmpval, cgen_var_2_0_ptr + k * 8, sizeof(uint64_t));
                                 *(((VkPhysicalDevice*)pPhysicalDevices) + k) =
-                                    tmpval ? (VkPhysicalDevice)(VkPhysicalDevice)(
-                                                 (VkPhysicalDevice)tmpval)
+                                    tmpval ? (VkPhysicalDevice)(VkPhysicalDevice)((
+                                                 VkPhysicalDevice)tmpval)
                                            : VK_NULL_HANDLE;
                             }
                         }
@@ -4974,8 +4974,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 uint64_t cgen_var_2;
                 memcpy((uint64_t*)&cgen_var_2, *readStreamPtrPtr, 8);
                 *readStreamPtrPtr += 8;
-                *(VkDescriptorSetLayout*)pSetLayout = (VkDescriptorSetLayout)(
-                    VkDescriptorSetLayout)((VkDescriptorSetLayout)(*&cgen_var_2));
+                *(VkDescriptorSetLayout*)pSetLayout =
+                    (VkDescriptorSetLayout)(VkDescriptorSetLayout)((
+                        VkDescriptorSetLayout)(*&cgen_var_2));
                 if (pCreateInfo) {
                     transform_tohost_VkDescriptorSetLayoutCreateInfo(
                         m_state, (VkDescriptorSetLayoutCreateInfo*)(pCreateInfo));
@@ -5041,8 +5042,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 uint64_t cgen_var_1;
                 memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
-                *(VkDescriptorSetLayout*)&descriptorSetLayout = (VkDescriptorSetLayout)(
-                    VkDescriptorSetLayout)((VkDescriptorSetLayout)(*&cgen_var_1));
+                *(VkDescriptorSetLayout*)&descriptorSetLayout =
+                    (VkDescriptorSetLayout)(VkDescriptorSetLayout)((
+                        VkDescriptorSetLayout)(*&cgen_var_1));
                 boxed_descriptorSetLayout_preserve = descriptorSetLayout;
                 descriptorSetLayout = try_unbox_VkDescriptorSetLayout(descriptorSetLayout);
                 // WARNING PTR CHECK
@@ -9837,8 +9839,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 uint64_t cgen_var_2;
                 memcpy((uint64_t*)&cgen_var_2, *readStreamPtrPtr, 8);
                 *readStreamPtrPtr += 8;
-                *(VkSamplerYcbcrConversion*)pYcbcrConversion = (VkSamplerYcbcrConversion)(
-                    VkSamplerYcbcrConversion)((VkSamplerYcbcrConversion)(*&cgen_var_2));
+                *(VkSamplerYcbcrConversion*)pYcbcrConversion =
+                    (VkSamplerYcbcrConversion)(VkSamplerYcbcrConversion)((
+                        VkSamplerYcbcrConversion)(*&cgen_var_2));
                 if (pCreateInfo) {
                     transform_tohost_VkSamplerYcbcrConversionCreateInfo(
                         m_state, (VkSamplerYcbcrConversionCreateInfo*)(pCreateInfo));
@@ -9906,8 +9909,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 uint64_t cgen_var_1;
                 memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
-                *(VkSamplerYcbcrConversion*)&ycbcrConversion = (VkSamplerYcbcrConversion)(
-                    VkSamplerYcbcrConversion)((VkSamplerYcbcrConversion)(*&cgen_var_1));
+                *(VkSamplerYcbcrConversion*)&ycbcrConversion =
+                    (VkSamplerYcbcrConversion)(VkSamplerYcbcrConversion)((
+                        VkSamplerYcbcrConversion)(*&cgen_var_1));
                 boxed_ycbcrConversion_preserve = ycbcrConversion;
                 ycbcrConversion = try_unbox_VkSamplerYcbcrConversion(ycbcrConversion);
                 // WARNING PTR CHECK
@@ -9982,8 +9986,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint64_t*)&cgen_var_2, *readStreamPtrPtr, 8);
                 *readStreamPtrPtr += 8;
                 *(VkDescriptorUpdateTemplate*)pDescriptorUpdateTemplate =
-                    (VkDescriptorUpdateTemplate)(VkDescriptorUpdateTemplate)(
-                        (VkDescriptorUpdateTemplate)(*&cgen_var_2));
+                    (VkDescriptorUpdateTemplate)(VkDescriptorUpdateTemplate)((
+                        VkDescriptorUpdateTemplate)(*&cgen_var_2));
                 if (pCreateInfo) {
                     transform_tohost_VkDescriptorUpdateTemplateCreateInfo(
                         m_state, (VkDescriptorUpdateTemplateCreateInfo*)(pCreateInfo));
@@ -10055,8 +10059,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkDescriptorUpdateTemplate*)&descriptorUpdateTemplate =
-                    (VkDescriptorUpdateTemplate)(VkDescriptorUpdateTemplate)(
-                        (VkDescriptorUpdateTemplate)(*&cgen_var_1));
+                    (VkDescriptorUpdateTemplate)(VkDescriptorUpdateTemplate)((
+                        VkDescriptorUpdateTemplate)(*&cgen_var_1));
                 boxed_descriptorUpdateTemplate_preserve = descriptorUpdateTemplate;
                 descriptorUpdateTemplate =
                     try_unbox_VkDescriptorUpdateTemplate(descriptorUpdateTemplate);
@@ -15399,8 +15403,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint64_t*)&cgen_var_2, *readStreamPtrPtr, 8);
                 *readStreamPtrPtr += 8;
                 *(VkDescriptorUpdateTemplate*)pDescriptorUpdateTemplate =
-                    (VkDescriptorUpdateTemplate)(VkDescriptorUpdateTemplate)(
-                        (VkDescriptorUpdateTemplate)(*&cgen_var_2));
+                    (VkDescriptorUpdateTemplate)(VkDescriptorUpdateTemplate)((
+                        VkDescriptorUpdateTemplate)(*&cgen_var_2));
                 if (pCreateInfo) {
                     transform_tohost_VkDescriptorUpdateTemplateCreateInfo(
                         m_state, (VkDescriptorUpdateTemplateCreateInfo*)(pCreateInfo));
@@ -15472,8 +15476,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkDescriptorUpdateTemplate*)&descriptorUpdateTemplate =
-                    (VkDescriptorUpdateTemplate)(VkDescriptorUpdateTemplate)(
-                        (VkDescriptorUpdateTemplate)(*&cgen_var_1));
+                    (VkDescriptorUpdateTemplate)(VkDescriptorUpdateTemplate)((
+                        VkDescriptorUpdateTemplate)(*&cgen_var_1));
                 boxed_descriptorUpdateTemplate_preserve = descriptorUpdateTemplate;
                 descriptorUpdateTemplate =
                     try_unbox_VkDescriptorUpdateTemplate(descriptorUpdateTemplate);
@@ -16238,8 +16242,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 uint64_t cgen_var_2;
                 memcpy((uint64_t*)&cgen_var_2, *readStreamPtrPtr, 8);
                 *readStreamPtrPtr += 8;
-                *(VkSamplerYcbcrConversion*)pYcbcrConversion = (VkSamplerYcbcrConversion)(
-                    VkSamplerYcbcrConversion)((VkSamplerYcbcrConversion)(*&cgen_var_2));
+                *(VkSamplerYcbcrConversion*)pYcbcrConversion =
+                    (VkSamplerYcbcrConversion)(VkSamplerYcbcrConversion)((
+                        VkSamplerYcbcrConversion)(*&cgen_var_2));
                 if (pCreateInfo) {
                     transform_tohost_VkSamplerYcbcrConversionCreateInfo(
                         m_state, (VkSamplerYcbcrConversionCreateInfo*)(pCreateInfo));
@@ -16308,8 +16313,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 uint64_t cgen_var_1;
                 memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
-                *(VkSamplerYcbcrConversion*)&ycbcrConversion = (VkSamplerYcbcrConversion)(
-                    VkSamplerYcbcrConversion)((VkSamplerYcbcrConversion)(*&cgen_var_1));
+                *(VkSamplerYcbcrConversion*)&ycbcrConversion =
+                    (VkSamplerYcbcrConversion)(VkSamplerYcbcrConversion)((
+                        VkSamplerYcbcrConversion)(*&cgen_var_1));
                 boxed_ycbcrConversion_preserve = ycbcrConversion;
                 ycbcrConversion = try_unbox_VkSamplerYcbcrConversion(ycbcrConversion);
                 // WARNING PTR CHECK
@@ -18376,8 +18382,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 uint64_t cgen_var_2;
                 memcpy((uint64_t*)&cgen_var_2, *readStreamPtrPtr, 8);
                 *readStreamPtrPtr += 8;
-                *(VkDebugReportCallbackEXT*)pCallback = (VkDebugReportCallbackEXT)(
-                    VkDebugReportCallbackEXT)((VkDebugReportCallbackEXT)(*&cgen_var_2));
+                *(VkDebugReportCallbackEXT*)pCallback =
+                    (VkDebugReportCallbackEXT)(VkDebugReportCallbackEXT)((
+                        VkDebugReportCallbackEXT)(*&cgen_var_2));
                 if (pCreateInfo) {
                     transform_tohost_VkDebugReportCallbackCreateInfoEXT(
                         m_state, (VkDebugReportCallbackCreateInfoEXT*)(pCreateInfo));
@@ -18447,8 +18454,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 uint64_t cgen_var_1;
                 memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
-                *(VkDebugReportCallbackEXT*)&callback = (VkDebugReportCallbackEXT)(
-                    VkDebugReportCallbackEXT)((VkDebugReportCallbackEXT)(*&cgen_var_1));
+                *(VkDebugReportCallbackEXT*)&callback =
+                    (VkDebugReportCallbackEXT)(VkDebugReportCallbackEXT)((
+                        VkDebugReportCallbackEXT)(*&cgen_var_1));
                 boxed_callback_preserve = callback;
                 callback = try_unbox_VkDebugReportCallbackEXT(callback);
                 // WARNING PTR CHECK
@@ -19288,8 +19296,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 uint64_t cgen_var_2;
                 memcpy((uint64_t*)&cgen_var_2, *readStreamPtrPtr, 8);
                 *readStreamPtrPtr += 8;
-                *(VkDebugUtilsMessengerEXT*)pMessenger = (VkDebugUtilsMessengerEXT)(
-                    VkDebugUtilsMessengerEXT)((VkDebugUtilsMessengerEXT)(*&cgen_var_2));
+                *(VkDebugUtilsMessengerEXT*)pMessenger =
+                    (VkDebugUtilsMessengerEXT)(VkDebugUtilsMessengerEXT)((
+                        VkDebugUtilsMessengerEXT)(*&cgen_var_2));
                 if (pCreateInfo) {
                     transform_tohost_VkDebugUtilsMessengerCreateInfoEXT(
                         m_state, (VkDebugUtilsMessengerCreateInfoEXT*)(pCreateInfo));
@@ -19359,8 +19368,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 uint64_t cgen_var_1;
                 memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
-                *(VkDebugUtilsMessengerEXT*)&messenger = (VkDebugUtilsMessengerEXT)(
-                    VkDebugUtilsMessengerEXT)((VkDebugUtilsMessengerEXT)(*&cgen_var_1));
+                *(VkDebugUtilsMessengerEXT*)&messenger =
+                    (VkDebugUtilsMessengerEXT)(VkDebugUtilsMessengerEXT)((
+                        VkDebugUtilsMessengerEXT)(*&cgen_var_1));
                 boxed_messenger_preserve = messenger;
                 messenger = try_unbox_VkDebugUtilsMessengerEXT(messenger);
                 // WARNING PTR CHECK
