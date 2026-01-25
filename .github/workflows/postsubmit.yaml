@@ -16,7 +16,7 @@ jobs:
       with:
         tool-cache: true
     - name: Checkout repository
-      uses: actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675 # aka v2
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
     - name: Install bazel
       run: sudo bash toolchain/bazel/install_bazel.sh
     - name: Install toolchain dependencies
@@ -24,7 +24,7 @@ jobs:
     - name: Load cache config
       run: cat .config/cache-config.env >> $GITHUB_ENV
     - name: Mount bazel cache
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: "~/bazel-disk-cache"
         key: ${{ format('{0}-{1}-bazel-disk-cache-{2}-{3}-{4}-{5}', runner.os, runner.arch, env.CACHE_VERSION, github.ref_name, github.sha, github.event_name) }}
@@ -47,7 +47,7 @@ jobs:
       with:
         tool-cache: true
     - name: Checkout repository
-      uses: actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675 # aka v2
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
     - name: Install bazel
       run: sudo bash toolchain/bazel/install_bazel.sh
     - name: Install toolchain dependencies
@@ -55,7 +55,7 @@ jobs:
     - name: Load cache config
       run: cat .config/cache-config.env >> $GITHUB_ENV
     - name: Mount bazel cache
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: "~/bazel-disk-cache"
         key: ${{ format('{0}-{1}-bazel-disk-cache-{2}-debian-package-{3}-{4}-{5}', runner.os, runner.arch, env.CACHE_VERSION, github.ref_name, github.sha, github.event_name) }}

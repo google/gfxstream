@@ -41,7 +41,7 @@ jobs:
       with:
         tool-cache: true
     - name: Checkout repository
-      uses: actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675 # aka v2
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
     - name: Install toolchain dependencies
       run: sudo bash toolchain/cmake/install_toolchain_dependencies.sh
     - name: Configure Build
@@ -62,7 +62,7 @@ jobs:
       with:
         tool-cache: true
     - name: Checkout repository
-      uses: actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675 # aka v2
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
     - name: Install toolchain dependencies
       run: sudo bash toolchain/meson/install_toolchain_dependencies.sh
     - name: Configure Build
@@ -82,7 +82,7 @@ jobs:
         shell: msys2 {0}
     steps:
       - name: Checkout current PR branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - uses: msys2/setup-msys2@v2

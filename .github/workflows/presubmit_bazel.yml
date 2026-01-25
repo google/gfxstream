@@ -28,7 +28,7 @@ jobs:
         tool-cache: true
 
     - name: Checkout repository
-      uses: actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675 # aka v2
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
 
     - name: Install bazel
       run: sudo bash toolchain/bazel/install_bazel.sh
@@ -43,7 +43,7 @@ jobs:
       run: cat .config/cache-config.env >> $GITHUB_ENV
 
     - name: Mount Bazel cache
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v5
       with:
         path: "~/bazel-disk-cache"
         key: ${{ format('{0}-{1}-bazel-disk-cache-{2}-{3}-{4}-', runner.os, runner.arch, env.CACHE_VERSION, github.ref_name, github.sha) }}
