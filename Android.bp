@@ -138,6 +138,10 @@ cc_defaults {
     vendor: true,
 }
 
+// Note: `host` in the name means the environment where VMM runs.
+// For the Cuttlefish case, this is Linux, which is referred to as `host` in
+// Soong terms. For the Android Virtualization Framework case, this is
+// Android, which is referred to as `android` in Soong terms.
 cc_defaults {
     name: "gfxstream_host_cc_defaults",
     defaults: [
@@ -145,7 +149,6 @@ cc_defaults {
     ],
     cflags: [
         "-DGFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT=1",
-        "-DGFXSTREAM_BUILD_WITH_TRACING=1",
     ] + select(soong_config_variable("gfxstream", "mesa3d_platforms"), {
         // Android surfaceless build
         "none": [
@@ -165,6 +168,7 @@ cc_defaults {
         host: {
             cflags: [
                 "-DGFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT=1",
+                "-DGFXSTREAM_BUILD_WITH_TRACING=1",
             ],
         },
     },

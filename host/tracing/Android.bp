@@ -22,12 +22,18 @@ cc_library_static {
     export_include_dirs: [
         "include",
     ],
-    whole_static_libs: [
-        "libperfetto_client_experimental",
-    ],
-    shared_libs: [
-        "liblog",
-    ],
+    // GFXSTREAM_BUILD_WITH_TRACING is on only for "linux host", not for
+    // "android host",
+    target: {
+        host: {
+            whole_static_libs: [
+                "libperfetto_client_experimental",
+            ],
+            shared_libs: [
+                "liblog",
+            ],
+        },
+    },
     srcs: [
         "tracing.cpp",
     ],
