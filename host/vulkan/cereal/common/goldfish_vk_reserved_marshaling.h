@@ -2267,6 +2267,12 @@ void reservedunmarshal_VkPipelineColorWriteCreateInfoEXT(
     VkPipelineColorWriteCreateInfoEXT* forUnmarshaling, uint8_t** ptr);
 
 #endif
+#ifdef VK_EXT_primitives_generated_query
+void reservedunmarshal_VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT* forUnmarshaling, uint8_t** ptr);
+
+#endif
 #ifdef VK_GOOGLE_gfxstream
 void reservedunmarshal_VkImportColorBufferGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
                                                  VkImportColorBufferGOOGLE* forUnmarshaling,

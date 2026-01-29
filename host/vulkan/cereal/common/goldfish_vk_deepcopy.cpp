@@ -9963,6 +9963,31 @@ void deepcopy_VkPipelineColorWriteCreateInfoEXT(Allocator* alloc, VkStructureTyp
 }
 
 #endif
+#ifdef VK_EXT_primitives_generated_query
+void deepcopy_VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT* from,
+    VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const VkBaseOutStructure*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+}
+
+#endif
 #ifdef VK_GOOGLE_gfxstream
 void deepcopy_VkImportColorBufferGOOGLE(Allocator* alloc, VkStructureType rootType,
                                         const VkImportColorBufferGOOGLE* from,
@@ -11747,6 +11772,17 @@ void deepcopy_extension_struct(Allocator* alloc, VkStructureType rootType,
                 alloc, rootType,
                 reinterpret_cast<const VkPipelineColorWriteCreateInfoEXT*>(structExtension),
                 reinterpret_cast<VkPipelineColorWriteCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_primitives_generated_query
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIMITIVES_GENERATED_QUERY_FEATURES_EXT: {
+            deepcopy_VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT(
+                alloc, rootType,
+                reinterpret_cast<const VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT*>(
+                    structExtension),
+                reinterpret_cast<VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT*>(
+                    structExtension_out));
             break;
         }
 #endif

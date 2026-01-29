@@ -2292,6 +2292,13 @@ void deepcopy_VkPipelineColorWriteCreateInfoEXT(Allocator* alloc, VkStructureTyp
                                                 VkPipelineColorWriteCreateInfoEXT* to);
 
 #endif
+#ifdef VK_EXT_primitives_generated_query
+void deepcopy_VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT* from,
+    VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT* to);
+
+#endif
 #ifdef VK_GOOGLE_gfxstream
 void deepcopy_VkImportColorBufferGOOGLE(Allocator* alloc, VkStructureType rootType,
                                         const VkImportColorBufferGOOGLE* from,

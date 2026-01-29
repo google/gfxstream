@@ -4298,6 +4298,16 @@ void unmarshal_VkPipelineColorWriteCreateInfoEXT(
 
 #define OP_vkCmdSetColorWriteEnableEXT 202223297
 #endif
+#ifdef VK_EXT_primitives_generated_query
+void marshal_VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT* forUnmarshaling);
+
+#endif
 #ifdef VK_GOOGLE_gfxstream
 void marshal_VkImportColorBufferGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
                                        const VkImportColorBufferGOOGLE* forMarshaling);

@@ -19784,6 +19784,52 @@ void unmarshal_VkPipelineColorWriteCreateInfoEXT(
 }
 
 #endif
+#ifdef VK_EXT_primitives_generated_query
+void marshal_VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT* forMarshaling) {
+    (void)rootType;
+    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    marshal_extension_struct(vkStream, rootType, forMarshaling->pNext);
+    vkStream->write((VkBool32*)&forMarshaling->primitivesGeneratedQuery, sizeof(VkBool32));
+    vkStream->write((VkBool32*)&forMarshaling->primitivesGeneratedQueryWithRasterizerDiscard,
+                    sizeof(VkBool32));
+    vkStream->write((VkBool32*)&forMarshaling->primitivesGeneratedQueryWithNonZeroStreams,
+                    sizeof(VkBool32));
+}
+
+void unmarshal_VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT* forUnmarshaling) {
+    (void)rootType;
+    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    size_t pNext_size;
+    pNext_size = vkStream->getBe32();
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        vkStream->read((void*)forUnmarshaling->pNext, sizeof(VkStructureType));
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        unmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext));
+    }
+    vkStream->read((VkBool32*)&forUnmarshaling->primitivesGeneratedQuery, sizeof(VkBool32));
+    vkStream->read((VkBool32*)&forUnmarshaling->primitivesGeneratedQueryWithRasterizerDiscard,
+                   sizeof(VkBool32));
+    vkStream->read((VkBool32*)&forUnmarshaling->primitivesGeneratedQueryWithNonZeroStreams,
+                   sizeof(VkBool32));
+}
+
+#endif
 #ifdef VK_GOOGLE_gfxstream
 void marshal_VkImportColorBufferGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
                                        const VkImportColorBufferGOOGLE* forMarshaling) {
@@ -21378,6 +21424,15 @@ void marshal_extension_struct(VulkanStream* vkStream, VkStructureType rootType,
             break;
         }
 #endif
+#ifdef VK_EXT_primitives_generated_query
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIMITIVES_GENERATED_QUERY_FEATURES_EXT: {
+            marshal_VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT*>(
+                    structExtension));
+            break;
+        }
+#endif
 #ifdef VK_GOOGLE_gfxstream
         case VK_STRUCTURE_TYPE_IMPORT_COLOR_BUFFER_GOOGLE: {
             marshal_VkImportColorBufferGOOGLE(
@@ -22837,6 +22892,15 @@ void unmarshal_extension_struct(VulkanStream* vkStream, VkStructureType rootType
             unmarshal_VkPipelineColorWriteCreateInfoEXT(
                 vkStream, rootType,
                 reinterpret_cast<VkPipelineColorWriteCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_primitives_generated_query
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIMITIVES_GENERATED_QUERY_FEATURES_EXT: {
+            unmarshal_VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT*>(
+                    structExtension_out));
             break;
         }
 #endif
