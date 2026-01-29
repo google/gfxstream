@@ -121,9 +121,9 @@ private:
 template <size_t Size, size_t Align>
 class OptionalStorageBase {
 protected:
-    using StoreT = typename std::aligned_storage<Size, Align>::type;
-    StoreT mStorage = {};
+    alignas(Align) std::byte mStorage[Size] = {};
 };
+
 
 }  // namespace details
 

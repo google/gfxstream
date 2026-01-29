@@ -17,6 +17,7 @@
 #include "aemu/base/TypeTraits.h"
 
 #include <cassert>
+#include <cstddef>
 #include <initializer_list>
 #include <new>
 #include <type_traits>
@@ -123,8 +124,8 @@ private:
 template <size_t Size, size_t Align>
 class OptionalStorageBase {
 protected:
-    using StoreT = typename std::aligned_storage<Size, Align>::type;
-    StoreT mStorage = {};
+    // Apply alignment directly to the array
+    alignas(Align) std::byte mStorage[Size] = {};
 };
 
 }  // namespace details
