@@ -102,7 +102,7 @@ bool PixelReadFormats::isSupported(GLenum internalFormat, GLenum texFormat, GLen
             }
         }
         if (!res) {
-            GFXSTREAM_ERROR(
+            GFXSTREAM_INFO(
                 "glReadPixels returned GL_NO_ERROR for tex(internal:0x%x fmt:0x%x type:0x%x) "
                 "read(fmt:0x%x type:0x%x), but data is zero.",
                 internalFormat, texFormat, texType, readFormat, readType);
@@ -113,7 +113,8 @@ bool PixelReadFormats::isSupported(GLenum internalFormat, GLenum texFormat, GLen
                 internalFormat, texFormat, texType, readFormat, readType);
         }
     } else {
-        GFXSTREAM_ERROR(
+        // Not an error, since this function is used to check the support
+        GFXSTREAM_INFO(
             "ColorBufferGl::readPixels NOT supported for tex(internal:0x%x fmt:0x%x type:0x%x) "
             "read(fmt:0x%x type:0x%x) error: 0x%x",
             internalFormat, texFormat, texType, readFormat, readType, error);
