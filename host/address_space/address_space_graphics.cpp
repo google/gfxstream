@@ -510,7 +510,8 @@ AddressSpaceGraphicsContext::AddressSpaceGraphicsContext(
         static_cast<AddressSpaceDeviceType>(create.type) == AddressSpaceDeviceType::VirtioGpuGraphics;
 
     if (isVirtio) {
-        VirtioGpuInfo& info = mVirtioGpuInfo.emplace();
+        mVirtioGpuInfo = VirtioGpuInfo{};
+        VirtioGpuInfo& info = *mVirtioGpuInfo;
         info.contextId = create.virtioGpuContextId;
         info.capsetId = create.virtioGpuCapsetId;
         if (create.contextNameSize) {
@@ -687,7 +688,8 @@ void AddressSpaceGraphicsContext::postSave() const {
 bool AddressSpaceGraphicsContext::load(gfxstream::Stream* stream) {
     const bool hasVirtioGpuInfo = (stream->getBe32() == 1);
     if (hasVirtioGpuInfo) {
-        VirtioGpuInfo& info = mVirtioGpuInfo.emplace();
+        mVirtioGpuInfo = VirtioGpuInfo{};
+        VirtioGpuInfo& info = *mVirtioGpuInfo;
         info.contextId = stream->getBe32();
         info.capsetId = stream->getBe32();
         const bool hasName = (stream->getBe32() == 1);
