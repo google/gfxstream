@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "gfxstream/Compiler.h"
+#include "gfxstream/Optional.h"
 #include "gfxstream/system/System.h"
 #include "gfxstream/threads/WorkerThread.h"
 
