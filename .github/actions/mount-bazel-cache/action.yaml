@@ -1,0 +1,42 @@
+name: 'Mount Bazel Cache'
+
+inputs:
+  # Effectively, "bazel build --config=<this> ..."
+  bazel-build-config-name:
+    required: false
+    default: "default"
+
+  # Whether or not to update the cache. This is expected to be true in postsubmit when we are intentionally updating the cache for future PRs.
+  writable:
+    required: false
+    default: "false"
+
+runs:
+  using: "composite"
+  steps:
+  - name: Load cache config
+    run: |
+      cat .config/cache-config.env >> $GITHUB_ENV
+
+  - name: Restore cache
+    if: inputs.writable != 'true'
+    uses: actions/cache/restore@v5
+    with:
+      path: "~/bazel-disk-cache"
+      key: ${{ format('{0}-{1}-bazel-disk-cache-{2}-config-{3}-{4}-{5}', runner.os, runner.arch, env.CACHE_VERSION, inputs.bazel-build-config-name, github.ref_name, github.sha) }}
+      restore-keys: |
+        ${{ format('{0}-{1}-bazel-disk-cache-{2}-config-{3}-{4}', runner.os, runner.arch, env.CACHE_VERSION, inputs.bazel-build-config-name, github.ref_name) || '' }}
+        ${{ format('{0}-{1}-bazel-disk-cache-{2}-config-{3}-main-', runner.os, runner.arch, env.CACHE_VERSION, inputs.bazel-build-config-name) || '' }}
+        ${{ format('{0}-{1}-bazel-disk-cache-{2}-config-{3}', runner.os, runner.arch, env.CACHE_VERSION, inputs.bazel-build-config-name) || '' }}
+
+  - name: Restore cache and save cache
+    if: inputs.writable == 'true'
+    uses: actions/cache@v5
+    with:
+      path: "~/bazel-disk-cache"
+      key: ${{ format('{0}-{1}-bazel-disk-cache-{2}-build-{3}-{4}-{5}-{6}', runner.os, runner.arch, env.CACHE_VERSION, inputs.bazel-build-config-name, github.ref_name, github.sha, github.event_name) }}
+      restore-keys: |
+        ${{ github.event_name == 'push' && format('{0}-{1}-bazel-disk-cache-{2}-config-{3}-{4}-{5}', runner.os, runner.arch, env.CACHE_VERSION, inputs.bazel-build-config-name, github.ref_name, github.sha) || '' }}
+        ${{ github.event_name == 'push' && format('{0}-{1}-bazel-disk-cache-{2}-config-{3}-{4}', runner.os, runner.arch, env.CACHE_VERSION, inputs.bazel-build-config-name, github.ref_name) || '' }}
+        ${{ github.event_name == 'push' && format('{0}-{1}-bazel-disk-cache-{2}-config-{3}-main-', runner.os, runner.arch, env.CACHE_VERSION, inputs.bazel-build-config-name) || '' }}
+        ${{ github.event_name == 'push' && format('{0}-{1}-bazel-disk-cache-{2}-config-', runner.os, runner.arch, env.CACHE_VERSION, inputs.bazel-build-config-name) || '' }}
