@@ -119,7 +119,7 @@ void YcbcrSamplerPool::destroy() {
 
 VkSamplerYcbcrConversion YcbcrSamplerPool::getConversion(GfxstreamFormat format) {
     YCbCrSamplerInfo info;
-    if (getOrCreateSamplerInfo(format, &info)) {
+    if (mDvk && getOrCreateSamplerInfo(format, &info)) {
         return info.conversion;
     }
     return VK_NULL_HANDLE;
@@ -127,7 +127,7 @@ VkSamplerYcbcrConversion YcbcrSamplerPool::getConversion(GfxstreamFormat format)
 
 VkSampler YcbcrSamplerPool::getSampler(GfxstreamFormat format) {
     YCbCrSamplerInfo info;
-    if (getOrCreateSamplerInfo(format, &info)) {
+    if (mDvk && getOrCreateSamplerInfo(format, &info)) {
         return info.sampler;
     }
     return VK_NULL_HANDLE;
@@ -144,8 +144,12 @@ std::vector<GfxstreamFormat> YcbcrSamplerPool::getAllFormats() const {
 }
 
 bool YcbcrSamplerPool::getOrCreateSamplerInfo(GfxstreamFormat format, YCbCrSamplerInfo* outInfo) {
-    if (!outInfo || !mDvk) {
-        GFXSTREAM_FATAL("Uninitialized  YcbcrSamplerPool.");
+    if (!outInfo) {
+        GFXSTREAM_ERROR("%s: Invalid input", __func__);
+        return false;
+    }
+    if (!mDvk) {
+        GFXSTREAM_ERROR("Uninitialized YcbcrSamplerPool.");
         return false;
     }
 
