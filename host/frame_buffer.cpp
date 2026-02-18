@@ -1106,15 +1106,29 @@ std::unique_ptr<FrameBuffer::Impl> FrameBuffer::Impl::Create(FrameBuffer* frameb
     const char* ANDROID_EMU_RENDERDOC_ENVVAR = "ANDROID_EMU_RENDERDOC";
     const char* ANDROID_EMU_RENDERDOC_CAPTURE_PATH_TEMPLATE_ENVVAR =
         "ANDROID_EMU_RENDERDOC_CAPTURE_PATH_TEMPLATE";
+    const char* ANDROID_EMU_RENDERDOC_LIBRARY_PATH = "ANDROID_EMU_RENDERDOC_LIBRARY_PATH";
     std::unique_ptr<gfxstream::host::RenderDocWithMultipleVkInstances>
         renderDocMultipleVkInstances = nullptr;
+
     if (!gfxstream::base::getEnvironmentVariable(ANDROID_EMU_RENDERDOC_ENVVAR).empty()) {
-        SharedLibrary* renderdocLib = nullptr;
+        std::string renderDocLibraryPath =
+            gfxstream::base::getEnvironmentVariable(ANDROID_EMU_RENDERDOC_LIBRARY_PATH);
+        const bool renderDocLibraryPathIsGiven = !renderDocLibraryPath.empty();
+        if (!renderDocLibraryPathIsGiven) {
+            // Look into default places
 #ifdef _WIN32
-        renderdocLib = SharedLibrary::open(R"(C:\Program Files\RenderDoc\renderdoc.dll)");
+            renderDocLibraryPath = R"(C:\Program Files\RenderDoc\renderdoc.dll)";
+#elif defined(__APPLE__)
+            renderDocLibraryPath = "librenderdoc.dylib";
 #elif defined(__linux__)
-        renderdocLib = SharedLibrary::open("librenderdoc.so");
+            renderDocLibraryPath = "librenderdoc.so";
+#else
+            renderDocLibraryPath = "librenderdoc";
 #endif
+        }
+
+        SharedLibrary* renderdocLib = nullptr;
+        renderdocLib = SharedLibrary::open(renderDocLibraryPath.c_str());
         impl->m_renderDoc = gfxstream::host::RenderDoc::create(renderdocLib);
         if (impl->m_renderDoc) {
             renderDocMultipleVkInstances =
@@ -1139,8 +1153,16 @@ std::unique_ptr<FrameBuffer::Impl> FrameBuffer::Impl::Create(FrameBuffer* frameb
                 }
             }
         } else {
-            GFXSTREAM_ERROR("%s is set, but RenderDoc integration cannot be enabled.",
-                            ANDROID_EMU_RENDERDOC_ENVVAR);
+            std::string errorMsg =
+                "ANDROID_EMU_RENDERDOC is set, but RenderDoc integration cannot be enabled.";
+            // Give a hint to ask user set an envvar to setup the library path
+            if (renderDocLibraryPathIsGiven) {
+                errorMsg += " ANDROID_EMU_RENDERDOC_LIBRARY_PATH is set to ";
+                errorMsg += renderDocLibraryPath;
+            } else {
+                errorMsg += " Use ANDROID_EMU_RENDERDOC_LIBRARY_PATH to set correct path";
+            }
+            GFXSTREAM_ERROR(errorMsg.c_str());
         }
     }
 
