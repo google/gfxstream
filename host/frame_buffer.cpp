@@ -437,8 +437,8 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
 
     void postWithCallback(HandleType p_colorbuffer, Post::CompletionCallback callback,
                           bool needLockAndBind = true);
-    bool hasGuestPostedAFrame() { return m_guestPostedAFrame; }
-    void resetGuestPostedAFrame() { m_guestPostedAFrame = false; }
+    bool hasGuestPostedAFrame() { return m_guestPostedAFrameTime.has_value(); }
+    void resetGuestPostedAFrame() { m_guestPostedAFrameTime = std::nullopt; }
 
     void doPostCallback(void* pixels, uint32_t displayId);
 
@@ -822,7 +822,7 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
                          bool needLockAndBind = true, bool repaint = false);
     bool postImplSync(HandleType p_colorbuffer, bool needLockAndBind = true, bool repaint = false);
     void setGuestPostedAFrame() {
-        m_guestPostedAFrame = true;
+        m_guestPostedAFrameTime = std::chrono::steady_clock::now();
         m_framebuffer->fireEvent({FrameBufferChange::FrameReady, mFrameNumber++});
     }
     HandleType createColorBufferWithResourceHandleLocked(int p_width, int p_height,
@@ -907,7 +907,7 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
         uint32_t height;
     };
     gfxstream::base::WorkerProcessingResult sendReadbackWorkerCmd(const Readback& readback);
-    bool m_guestPostedAFrame = false;
+    std::optional<std::chrono::steady_clock::time_point> m_guestPostedAFrameTime;
 
     struct onPost {
         Renderer::OnPostCallback cb;
@@ -3882,6 +3882,12 @@ void FrameBuffer::Impl::setScreenMask(int width, int height, const uint8_t* rgba
 }
 
 void FrameBuffer::Impl::setScreenBackground(int width, int height, const uint8_t* rgbaData) {
+    // Avoid processing the call before initializing or after finalizing the framebuffer
+    if (!sInitialized.load(std::memory_order_relaxed)) {
+        GFXSTREAM_DEBUG("%s called in an invalid state.", __func__);
+        return;
+    }
+
     if (rgbaData) {
         mScreenBackgroundImage.m_width = width;
         mScreenBackgroundImage.m_height = height;
@@ -3892,6 +3898,21 @@ void FrameBuffer::Impl::setScreenBackground(int width, int height, const uint8_t
     }
 
     m_compositor->setScreenBackground(width, height, rgbaData);
+
+    //  Try to update the display at least 30 times a second, in case the guest is not
+    //  updating the display
+    if (m_guestPostedAFrameTime && m_lastPostedColorBuffer) {
+        const std::chrono::milliseconds maxUpdateLatency(1000 / 30);
+        const auto nowTime = std::chrono::steady_clock::now();
+        bool shouldRepost = (nowTime - m_guestPostedAFrameTime.value()) > maxUpdateLatency;
+        if (shouldRepost) {
+            // This is same as calling repost(), but without redundant checks and logging
+            if (!m_displayVk) {
+                postImplSync(m_lastPostedColorBuffer, true, true);
+            }
+            m_guestPostedAFrameTime = nowTime;
+        }
+    }
 }
 
 #ifdef CONFIG_AEMU
