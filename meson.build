@@ -10,6 +10,10 @@ project('gfxstream', 'cpp', 'c',
 cc = meson.get_compiler('cpp')
 prog_python = import('python').find_installation('python3')
 
+if host_machine.system() == 'darwin'
+  add_languages('objc', 'objcpp')
+endif
+
 #========================#
 # Logging + error report #
 #========================#
@@ -73,6 +77,10 @@ if host_machine.system() == 'qnx'
   qnx_gles2_lib = cc.find_library('GLESv2', required : true)
   qnx_gles2_dep = declare_dependency(include_directories: inc_qnx_headers, dependencies: [qnx_gles2_lib])
 
+elif host_machine.system() == 'darwin'
+  thread_dep = dependency('threads')
+  gfxstream_host_args += '-DVK_USE_PLATFORM_METAL_EXT'
+  gfxstream_host_args += '-DVK_USE_PLATFORM_MACOS_MVK'
 elif host_machine.system() == 'linux'
   thread_dep = dependency('threads')
   gfxstream_host_args += '-DGFXSTREAM_UNSTABLE_VULKAN_EXTERNAL_SYNC=1'

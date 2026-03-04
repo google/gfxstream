@@ -26,6 +26,12 @@ jobs:
       additional-bazel-args: --config=asan --test_env="ASAN_OPTIONS=detect_leaks=0:detect_odr_violation=0"
       runner: ubuntu-22.04
 
+  run-gfxstream-bazel-build-macos:
+    uses: ./.github/workflows/presubmit_bazel.yml
+    with:
+      runner: macos-14
+      run-tests: false
+
   run-gfxstream-bazel-tests-arm:
     uses: ./.github/workflows/presubmit_bazel.yml
     with:
@@ -65,6 +71,40 @@ jobs:
       uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
     - name: Install toolchain dependencies
       run: sudo bash toolchain/meson/install_toolchain_dependencies.sh
+    - name: Configure Build
+      run: |
+        meson setup \
+          -Ddefault_library=static \
+          -Dgfxstream-build=host \
+          build
+    - name: Build
+      run: |
+        meson compile -C build
+
+  run-gfxstream-cmake-build-macos:
+    runs-on: macos-14
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+    - name: Install toolchain dependencies
+      run: brew install cmake ninja
+    - name: Configure Build
+      run: |
+        mkdir build && \
+        cd build && \
+        cmake .. -G Ninja
+    - name: Build
+      run: |
+        cd build && \
+        ninja
+
+  run-gfxstream-meson-build-macos:
+    runs-on: macos-14
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+    - name: Install toolchain dependencies
+      run: brew install meson ninja
     - name: Configure Build
       run: |
         meson setup \

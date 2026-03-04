@@ -1465,6 +1465,8 @@ cc_library(
             "third_party/llvm-16.0/configs/windows/include/**/*.def",
             "third_party/llvm-16.0/configs/windows/include/**/*.h",
         ]),
+        "@platforms//os:macos": [
+        ],
     }),
     copts = [
         "-DBLAKE3_NO_AVX512",
@@ -1505,6 +1507,8 @@ cc_library(
         "@platforms//os:windows": [
             "third_party/llvm-16.0/configs/windows/include",
         ],
+        "@platforms//os:macos": [
+        ],
     }),
     strip_include_prefix = "third_party/llvm-16.0",
 )
@@ -1530,6 +1534,8 @@ cc_library(
             "src/System/Linux/MemFd.hpp",
         ],
         "@platforms//os:windows": [
+        ],
+        "@platforms//os:macos": [
         ],
     }) + [
         "src/WSI/HeadlessSurfaceKHR.hpp",
@@ -1580,6 +1586,8 @@ cc_library(
             "src/System/Linux/MemFd.cpp",
         ],
         "@platforms//os:windows": [
+        ],
+        "@platforms//os:macos": [
         ],
     }) + [
         "src/Reactor/Assert.cpp",

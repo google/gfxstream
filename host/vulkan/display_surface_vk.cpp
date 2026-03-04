@@ -42,7 +42,7 @@ std::unique_ptr<DisplaySurfaceVk> DisplaySurfaceVk::create(const VulkanDispatch&
         GFXSTREAM_FATAL("Vulkan driver does not support display surfaces!");
     }
     VK_CHECK(vk.vkCreateWin32SurfaceKHR(instance, &surfaceCi, nullptr, &surface));
-#elif defined(VK_USE_PLATFORM_MACOS_MVK)
+#elif defined(VK_USE_PLATFORM_METAL_EXT)
     if (vk.vkCreateMetalSurfaceEXT != nullptr) {
         const CAMetalLayer* layer = getMetalLayerFromView(window);
         if (!layer) {
