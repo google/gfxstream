@@ -5871,7 +5871,27 @@ class VkDecoderGlobalState::Impl {
                     opaqueFd = false;
                 }
 #endif
+#if defined(__QNX__)
+                // Use QNX Screen buffer extension on host-vulkan mode for color buffer import,
+                // other paths on QNX may use FD handles ...
+                if (m_vkEmulation->getExternalMemoryMode() ==
+                    ExternalMemory::Mode::QnxScreenBuffer) {
+                    screen_buffer_t cbExtMemoryHandle =
+                        m_vkEmulation->getColorBufferScreenBufferQnxHandle(
+                            importCbInfoPtr->colorBuffer);
 
+                    if (cbExtMemoryHandle == nullptr) {
+                        GFXSTREAM_ERROR(
+                            "%s: VK_ERROR_OUT_OF_DEVICE_MEMORY: "
+                            "colorBuffer 0x%x does not have Vulkan external memory backing",
+                            __func__, importCbInfoPtr->colorBuffer);
+                        return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+                    }
+                    importScreenBufferInfo.buffer = cbExtMemoryHandle;
+                    vk_append_struct(&structChainIter, &importScreenBufferInfo);
+                    opaqueFd = false;
+                }
+#endif
                 if (m_vkEmulation->getExternalMemoryMode() == ExternalMemory::Mode::HostAllocation) {
                     importHostInfo.pHostPointer =
                         m_vkEmulation->getColorBufferHostPointer(importCbInfoPtr->colorBuffer);
@@ -5962,6 +5982,17 @@ class VkDecoderGlobalState::Impl {
                 opaqueFd = false;
             }
 #endif
+#if defined(__QNX__)
+            if (m_vkEmulation->getExternalMemoryMode() == ExternalMemory::Mode::QnxScreenBuffer) {
+                GFXSTREAM_ERROR(
+                    "%s: VK_ERROR_OUT_OF_DEVICE_MEMORY: "
+                    "ExternalMemory::Mode::QnxScreenBuffer does not support memory externalization "
+                    "for gfxstream BufferVk objects.",
+                    __func__);
+                return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+            }
+#endif
+
             if (m_vkEmulation->getExternalMemoryMode() == ExternalMemory::Mode::HostAllocation) {
                 importHostInfo.pHostPointer =
                     m_vkEmulation->getBufferHostPointer(importBufferInfoPtr->buffer);
