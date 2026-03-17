@@ -393,49 +393,9 @@ std::unique_ptr<ColorBufferGl> ColorBufferGl::create(
         cb->m_asyncReadbackType = GL_UNSIGNED_INT_8_8_8_8_REV;
     }
 
-    // Check the ExternalObjectManager for an external memory handle provided for import
-    auto extResourceHandleInfo =
-        ExternalObjectManager::get()->removeResourceExternalHandleInfo(hndl);
-    if (extResourceHandleInfo) {
-        switch (extResourceHandleInfo->streamHandleType) {
-            case STREAM_HANDLE_TYPE_PLATFORM_EGL_NATIVE_PIXMAP: {
-                void* nativePixmap = reinterpret_cast<void*>(extResourceHandleInfo->handle);
-                cb->m_eglImage =
-                    s_egl.eglCreateImageKHR(p_display, s_egl.eglGetCurrentContext(),
-                                            EGL_NATIVE_PIXMAP_KHR, nativePixmap, nullptr);
-                if (cb->m_eglImage == EGL_NO_IMAGE_KHR) {
-                    GFXSTREAM_ERROR(
-                        "ColorBufferGl::create(): EGL_NATIVE_PIXMAP handle provided as external "
-                        "resource info, but failed to import pixmap (nativePixmap=0x%x)",
-                        nativePixmap);
-                    return nullptr;
-                }
-
-                // Assume nativePixmap is compatible with ColorBufferGl's current dimensions and
-                // internal format.
-                EGLBoolean setInfoRes = s_egl.eglSetImageInfoANDROID(
-                    p_display, cb->m_eglImage, cb->m_width, cb->m_height, formatOpenglParams.internalFormat);
-                if (EGL_TRUE != setInfoRes) {
-                    GFXSTREAM_ERROR("ColorBufferGl::create(): Failed to set image info");
-                    return nullptr;
-                }
-
-                s_gles2.glBindTexture(GL_TEXTURE_2D, cb->m_tex);
-                s_gles2.glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, (GLeglImageOES)cb->m_eglImage);
-                break;
-            }
-            default: {
-                const std::string formatString = ToString(format);
-                GFXSTREAM_ERROR("ColorBufferGl::create -- external memory info was provided, but %s",
-                                formatString.c_str());
-                return nullptr;
-            }
-        }
-    } else {
-        cb->m_eglImage =
-            s_egl.eglCreateImageKHR(p_display, s_egl.eglGetCurrentContext(), EGL_GL_TEXTURE_2D_KHR,
-                                    (EGLClientBuffer)SafePointerFromUInt(cb->m_tex), NULL);
-    }
+    cb->m_eglImage =
+        s_egl.eglCreateImageKHR(p_display, s_egl.eglGetCurrentContext(), EGL_GL_TEXTURE_2D_KHR,
+                                (EGLClientBuffer)SafePointerFromUInt(cb->m_tex), NULL);
 
     s_gles2.glPixelStorei(GL_UNPACK_ALIGNMENT, prevUnpackAlignment);
 

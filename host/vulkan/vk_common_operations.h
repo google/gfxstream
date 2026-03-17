@@ -519,9 +519,6 @@ class VkEmulation {
                                           uint32_t w, uint32_t h, const void* pixels,
                                           size_t inputPixelsSize) REQUIRES(mMutex);
 
-    bool updateMemReqsForExtMem(std::optional<ExternalHandleInfo> extMemHandleInfo,
-                                VkMemoryRequirements* pMemReqs);
-
     std::tuple<VkCommandBuffer, VkFence> allocateQueueTransferCommandBufferLocked() REQUIRES(mMutex);
 
     void freeExternalMemoryLocked(VulkanDispatch* vk, ExternalMemoryInfo* info) REQUIRES(mMutex);

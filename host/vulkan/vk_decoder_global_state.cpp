@@ -5924,20 +5924,6 @@ class VkDecoderGlobalState::Impl {
                     importWin32HandleInfo.handle =
                         managedHandle.get().value_or(static_cast<HANDLE>(NULL));
                     vk_append_struct(&structChainIter, &importWin32HandleInfo);
-#elif defined(__QNX__)
-                    if (STREAM_HANDLE_TYPE_PLATFORM_SCREEN_BUFFER_QNX ==
-                        dupHandleInfo->streamHandleType) {
-                        importScreenBufferInfo.buffer = static_cast<screen_buffer_t>(
-                            reinterpret_cast<void*>(dupHandleInfo->handle));
-                        vk_append_struct(&structChainIter, &importScreenBufferInfo);
-                    } else {
-                        // TODO(aruby@blackberry.com): Fall through to the importFdInfo sequence
-                        // below to support non-screenbuffer external object imports on QNX?
-                        GFXSTREAM_ERROR(
-                            "Stream mem handleType: 0x%x not support for ColorBuffer import",
-                            dupHandleInfo->streamHandleType);
-                        return VK_ERROR_OUT_OF_DEVICE_MEMORY;
-                    }
 #elif defined(__ANDROID__)
                     importInfo.buffer = static_cast<AHardwareBuffer*>(
                         reinterpret_cast<void*>(dupHandleInfo->handle));
@@ -6026,19 +6012,6 @@ class VkDecoderGlobalState::Impl {
                 importWin32HandleInfo.handle =
                     managedHandle.get().value_or(static_cast<HANDLE>(NULL));
                 vk_append_struct(&structChainIter, &importWin32HandleInfo);
-#elif defined(__QNX__)
-                if (STREAM_HANDLE_TYPE_PLATFORM_SCREEN_BUFFER_QNX == dupHandleInfo->streamHandleType) {
-                    importScreenBufferInfo.buffer = static_cast<screen_buffer_t>(
-                        reinterpret_cast<void*>(dupHandleInfo->handle));
-                    vk_append_struct(&structChainIter, &importScreenBufferInfo);
-                } else {
-                    // TODO(aruby@blackberry.com): Fall through to the importFdInfo sequence below
-                    // to support non-screenbuffer external object imports on QNX?
-                    GFXSTREAM_ERROR(
-                        "Stream mem handleType: 0x%x not support for Buffer object import",
-                        dupHandleInfo->streamHandleType);
-                    return VK_ERROR_OUT_OF_DEVICE_MEMORY;
-                }
 #elif !defined(__ANDROID__)
                 importFdInfo.fd = dupHandleInfo->getFd();
                 vk_append_struct(&structChainIter, &importFdInfo);

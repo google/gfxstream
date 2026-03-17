@@ -452,26 +452,27 @@ int VirtioGpuFrontend::importResource(uint32_t res_handle,
         GFXSTREAM_ERROR("import_handle was not provided in call to importResource for handle: %d",
                         res_handle);
         return -EINVAL;
-    } else if (import_data && (import_data->flags & STREAM_RENDERER_IMPORT_FLAG_RESOURCE_EXISTS)) {
-        auto resourceIt = mResources.find(res_handle);
-        if (resourceIt == mResources.end()) {
-            GFXSTREAM_ERROR(
-                "import_data::flags specified STREAM_RENDERER_IMPORT_FLAG_RESOURCE_EXISTS, but "
-                "internal resource does not already exist",
-                res_handle);
-            return -EINVAL;
-        }
-        return resourceIt->second.ImportHandle(import_handle, import_data);
-    } else {
-        auto resourceOpt = VirtioGpuResource::Create(res_handle, import_handle, import_data);
-        if (!resourceOpt) {
-            GFXSTREAM_ERROR("Failed to create resource %u, with import_handle/import_data",
-                            res_handle);
-            return -EINVAL;
-        }
-        mResources[res_handle] = std::move(*resourceOpt);
-        return 0;
+    } else if (!import_data) {
+        GFXSTREAM_ERROR("import_data was not provided in call to importResource for handle: %d",
+                        res_handle);
+        return -EINVAL;
+    } else if (!(import_data->flags & STREAM_RENDERER_IMPORT_FLAG_RESOURCE_EXISTS)) {
+        GFXSTREAM_ERROR(
+            "import_data::flags did not specify STREAM_RENDERER_IMPORT_FLAG_RESOURCE_EXISTS. Implementation only supports importing to a resource that already exists (res_handle: %d)",
+            res_handle);
+        return -EINVAL;
     }
+
+    auto resourceIt = mResources.find(res_handle);
+    if (resourceIt == mResources.end()) {
+        GFXSTREAM_ERROR(
+            "import_data::flags specified STREAM_RENDERER_IMPORT_FLAG_RESOURCE_EXISTS, but "
+            "internal resource does not already exist",
+            res_handle);
+        return -EINVAL;
+    }
+
+    return resourceIt->second.ImportHandle(import_handle, import_data);
 }
 
 void VirtioGpuFrontend::unrefResource(uint32_t resourceId) {

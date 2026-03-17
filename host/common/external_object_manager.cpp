@@ -115,24 +115,5 @@ std::optional<SyncDescriptorInfo> ExternalObjectManager::removeSyncDescriptorInf
     return std::nullopt;
 }
 
-void ExternalObjectManager::addResourceExternalHandleInfo(
-    uint32_t resHandle, const ExternalHandleInfo& externalHandleInfo) {
-    std::lock_guard<std::mutex> lock(mMutex);
-    mResourceExternalHandleInfos.insert(std::make_pair(resHandle, externalHandleInfo));
-}
-
-std::optional<ExternalHandleInfo> ExternalObjectManager::removeResourceExternalHandleInfo(
-    uint32_t resHandle) {
-    std::lock_guard<std::mutex> lock(mMutex);
-    auto found = mResourceExternalHandleInfos.find(resHandle);
-    if (found != mResourceExternalHandleInfos.end()) {
-        std::optional<ExternalHandleInfo> ret = found->second;
-        mResourceExternalHandleInfos.erase(found);
-        return ret;
-    }
-
-    return std::nullopt;
-}
-
 }  // namespace host
 }  // namespace gfxstream
