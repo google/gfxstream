@@ -93,5 +93,6 @@ cc_test(
         "@mesa//:mesa_gfxstream_guest_platform",
         "@rules_cc//cc/runfiles",
         "@rutabaga//:rutabaga_gfx_kumquat_client_ffi_headers",
+        "@drm//:libdrm",
     ],
 )
