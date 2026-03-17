@@ -2843,7 +2843,7 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height,
         }
 #ifdef __APPLE_
         // importExtMemoryHandleToVkColorBuffer is not supported with external memory metal
-        if (supportsExternalMemoryMetal()) {
+        if (getExternalMemoryMode() == ExternalMemory::Mode::Metal) {
             GFXSTREAM_WARNING("extMemhandleInfo import in ColorBuffer creation is unexpected.");
             infoPtr->memory.externalMetalHandle = nullptr;
         }

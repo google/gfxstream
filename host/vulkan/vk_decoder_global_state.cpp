@@ -1887,7 +1887,8 @@ class VkDecoderGlobalState::Impl {
 
         bool shouldPassthrough = !m_vkEmulation->isYcbcrEmulationEnabled();
 #if defined(__APPLE__)
-        shouldPassthrough = shouldPassthrough && !m_vkEmulation->supportsExternalMemoryMetal();
+        shouldPassthrough = shouldPassthrough && !(m_vkEmulation->getExternalMemoryMode() ==
+                                                   ExternalMemory::Mode::Metal);
 #endif
         if (shouldPassthrough) {
             return vk->vkEnumerateDeviceExtensionProperties(physicalDevice, pLayerName,
@@ -1915,7 +1916,7 @@ class VkDecoderGlobalState::Impl {
 
 #if defined(__APPLE__) && defined(VK_MVK_moltenvk)
         // Guest will check for VK_MVK_moltenvk extension for enabling AHB support
-        if (m_vkEmulation->supportsExternalMemoryMetal() &&
+        if ((m_vkEmulation->getExternalMemoryMode() == ExternalMemory::Mode::Metal) &&
             !hasDeviceExtension(properties, VK_MVK_MOLTENVK_EXTENSION_NAME)) {
             // TODO(b/433496880): make sure any relevant guest image will check external memory
             // metal instead
@@ -5852,7 +5853,7 @@ class VkDecoderGlobalState::Impl {
 #if defined(__APPLE__)
                 // Use metal object extension on host-vulkan mode for color buffer import,
                 // other paths on MacOS will use FD handles
-                if (m_vkEmulation->supportsExternalMemoryMetal()) {
+                if (m_vkEmulation->getExternalMemoryMode() == ExternalMemory::Mode::Metal) {
                     MTLResource_id cbExtMemoryHandle =
                         m_vkEmulation->getColorBufferMetalMemoryHandle(
                             importCbInfoPtr->colorBuffer);
@@ -5961,7 +5962,7 @@ class VkDecoderGlobalState::Impl {
 
             bool opaqueFd = true;
 #ifdef __APPLE__
-            if (m_vkEmulation->supportsExternalMemoryMetal()) {
+            if (m_vkEmulation->getExternalMemoryMode() == ExternalMemory::Mode::Metal) {
                 MTLResource_id bufferMetalMemoryHandle =
                     m_vkEmulation->getBufferMetalMemoryHandle(importBufferInfoPtr->buffer);
 
@@ -6789,7 +6790,7 @@ class VkDecoderGlobalState::Impl {
                 STREAM_HANDLE_TYPE_MEM_SHM, info->caching, std::nullopt);
         } else if (m_vkEmulation->getFeatures().ExternalBlob.enabled) {
 #ifdef __APPLE__
-            if (m_vkEmulation->supportsExternalMemoryMetal()) {
+            if (m_vkEmulation->getExternalMemoryMode() == ExternalMemory::Mode::Metal) {
                 GFXSTREAM_FATAL("ExternalBlob feature is not supported with external memory metal");
             }
 #endif
