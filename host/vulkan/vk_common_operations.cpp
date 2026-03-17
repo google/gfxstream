@@ -1301,25 +1301,40 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
                    emulation->mDeviceInfo.physdevProps.deviceName, VK_VERSION_MAJOR(deviceVersion),
                    VK_VERSION_MINOR(deviceVersion), VK_VERSION_PATCH(deviceVersion));
 
+    GFXSTREAM_INFO("Using Vulkan externalMemoryMode: %s for VkEmulation",
+                   ExternalMemory::to_string(emulation->mDeviceInfo.externalMemoryMode));
+
+    GFXSTREAM_DEBUG("VkEmulation deviceInfo:");
+    GFXSTREAM_DEBUG("    hasGraphicsQueueFamily = %s",
+                    emulation->mDeviceInfo.hasGraphicsQueueFamily ? "true" : "false");
+    GFXSTREAM_DEBUG("    hasComputeQueueFamily = %s",
+                    emulation->mDeviceInfo.hasComputeQueueFamily ? "true" : "false");
+    GFXSTREAM_DEBUG("    externalMemoryMode = %s",
+                    ExternalMemory::to_string(emulation->mDeviceInfo.externalMemoryMode));
+    GFXSTREAM_DEBUG("    supportsExternalMemoryImport = %s",
+                    emulation->mDeviceInfo.supportsExternalMemoryImport ? "true" : "false");
+    GFXSTREAM_DEBUG("    supportsExternalMemoryExport = %s",
+                    emulation->mDeviceInfo.supportsExternalMemoryExport ? "true" : "false");
+    GFXSTREAM_DEBUG("    supportsDmaBuf = %s",
+                    emulation->mDeviceInfo.supportsDmaBuf ? "true" : "false");
+    GFXSTREAM_DEBUG("    supportsDriverProperties = %s",
+                    emulation->mDeviceInfo.supportsDriverProperties ? "true" : "false");
+    GFXSTREAM_DEBUG("    supportsExternalMemoryHostProps = %s",
+                    emulation->mDeviceInfo.supportsExternalMemoryHostProps ? "true" : "false");
+    GFXSTREAM_DEBUG("    hasSamplerYcbcrConversionExtension = %s",
+                    emulation->mDeviceInfo.hasSamplerYcbcrConversionExtension ? "true" : "false");
+    GFXSTREAM_DEBUG("    supportsSamplerYcbcrConversion = %s",
+                    emulation->mDeviceInfo.supportsSamplerYcbcrConversion ? "true" : "false");
+    GFXSTREAM_DEBUG("    glInteropSupported = %s",
+                    emulation->mDeviceInfo.glInteropSupported ? "true" : "false");
     GFXSTREAM_DEBUG(
-        "deviceInfo: \n"
-        "hasGraphicsQueueFamily = %d\n"
-        "hasComputeQueueFamily = %d\n"
-        "externalMemoryMode = %s\n"
-        "supportsExternalMemoryImport = %d\n"
-        "supportsExternalMemoryExport = %d\n"
-        "supportsDriverProperties = %d\n"
-        "hasSamplerYcbcrConversionExtension = %d\n"
-        "supportsSamplerYcbcrConversion = %d\n"
-        "glInteropSupported = %d",
-        emulation->mDeviceInfo.hasGraphicsQueueFamily, emulation->mDeviceInfo.hasComputeQueueFamily,
-        ExternalMemory::to_string(emulation->mDeviceInfo.externalMemoryMode),
-        emulation->mDeviceInfo.supportsExternalMemoryImport,
-        emulation->mDeviceInfo.supportsExternalMemoryExport,
-        emulation->mDeviceInfo.supportsDriverProperties,
-        emulation->mDeviceInfo.hasSamplerYcbcrConversionExtension,
-        emulation->mDeviceInfo.supportsSamplerYcbcrConversion,
-        emulation->mDeviceInfo.glInteropSupported);
+        "    hasNvidiaDeviceDiagnosticCheckpointsExtension = %s",
+        emulation->mDeviceInfo.hasNvidiaDeviceDiagnosticCheckpointsExtension ? "true" : "false");
+    GFXSTREAM_DEBUG(
+        "    supportsNvidiaDeviceDiagnosticCheckpoints = %s",
+        emulation->mDeviceInfo.supportsNvidiaDeviceDiagnosticCheckpoints ? "true" : "false");
+    GFXSTREAM_DEBUG("    supportsPrivateData = %s",
+                    emulation->mDeviceInfo.supportsPrivateData ? "true" : "false");
 
     float priority = 1.0f;
     VkDeviceQueueCreateInfo dqCi = {
