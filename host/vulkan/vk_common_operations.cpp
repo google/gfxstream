@@ -2806,7 +2806,7 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height,
 
     VkResult createRes = vk->vkCreateImage(mDevice, imageCi.get(), nullptr, &infoPtr->image);
     if (createRes != VK_SUCCESS) {
-        GFXSTREAM_DEBUG("Failed to create Vulkan image for ColorBuffer %d, error: %s",
+        GFXSTREAM_ERROR("Failed to create Vulkan image for ColorBuffer %d, error: %s",
                         colorBufferHandle, string_VkResult(createRes));
         return false;
     }
@@ -2965,7 +2965,7 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height,
     };
     createRes = vk->vkCreateImageView(mDevice, &imageViewCi, nullptr, &infoPtr->imageView);
     if (createRes != VK_SUCCESS) {
-        GFXSTREAM_DEBUG("Failed to create Vulkan image view for ColorBuffer %d, Error: %s",
+        GFXSTREAM_ERROR("Failed to create Vulkan image view for ColorBuffer %d, Error: %s",
                         colorBufferHandle, string_VkResult(createRes));
         return false;
     }
@@ -2993,7 +2993,7 @@ bool VkEmulation::createVkColorBuffer(uint32_t width, uint32_t height, Gfxstream
     std::lock_guard<std::mutex> lock(mMutex);
     auto infoPtr = gfxstream::base::find(mColorBuffers, colorBufferHandle);
     if (infoPtr) {
-        GFXSTREAM_DEBUG("ColorBuffer already exists for handle: %d", colorBufferHandle);
+        GFXSTREAM_ERROR("ColorBuffer already exists for handle: %d", colorBufferHandle);
         return false;
     }
 
@@ -3118,7 +3118,7 @@ bool VkEmulation::readColorBufferToBytes(uint32_t colorBufferHandle, std::vector
 
     auto colorBufferInfo = gfxstream::base::find(mColorBuffers, colorBufferHandle);
     if (!colorBufferInfo) {
-        GFXSTREAM_DEBUG("Failed to read from ColorBuffer:%d, not found.", colorBufferHandle);
+        GFXSTREAM_ERROR("Failed to read from ColorBuffer:%d, not found.", colorBufferHandle);
         bytes->clear();
         return false;
     }
@@ -3749,7 +3749,7 @@ bool VkEmulation::updateColorBufferFromBytes(uint32_t colorBufferHandle,
 
     auto colorBufferInfo = gfxstream::base::find(mColorBuffers, colorBufferHandle);
     if (!colorBufferInfo) {
-        GFXSTREAM_DEBUG("Failed to update ColorBuffer:%d, not found.", colorBufferHandle);
+        GFXSTREAM_ERROR("Failed to update ColorBuffer:%d, not found.", colorBufferHandle);
         return false;
     }
 
