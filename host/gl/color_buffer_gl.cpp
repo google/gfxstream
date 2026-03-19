@@ -1309,15 +1309,19 @@ bool ColorBufferGl::importEglNativePixmap(void* pixmap, bool preserveContent) {
     }
 
     // Assume pixmap is compatible with ColorBufferGl's current dimensions and internal format.
-    auto internalFormatOpt = GetSizedInternalFormat(m_format);
-    if (!internalFormatOpt) {
+    // Note: YUV resource formats will automatically be converted by this helper function to their
+    // corresponding host format (i.e. RGBA8888) for the internal format. This provides identical
+    // behavior to what is set on eglSetImageInfoAndroid() during initial ColorBufferGl creation.
+    auto cbFormatOpenglParamsOpt = GetFormatOpenglParameters(m_format);
+    if (!cbFormatOpenglParamsOpt) {
         const std::string formatString = ToString(m_format);
         GFXSTREAM_ERROR("Unsupported format:%s.", formatString.c_str());
         return false;
     }
-    const GLint internalFormat = *internalFormatOpt;
+    FormatOpenglParams& cbFormatOpenglParams = *cbFormatOpenglParamsOpt;
 
-    EGLBoolean setInfoRes = s_egl.eglSetImageInfoANDROID(m_display, image, m_width, m_height, internalFormat);
+    EGLBoolean setInfoRes = s_egl.eglSetImageInfoANDROID(m_display, image, m_width, m_height,
+                                                         cbFormatOpenglParams.internalFormat);
     if (EGL_TRUE != setInfoRes) {
         fprintf(stderr, "%s: error: failed to set image info\n", __func__);
         s_egl.eglDestroyImageKHR(m_display, image);
