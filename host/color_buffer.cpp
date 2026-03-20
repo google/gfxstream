@@ -177,7 +177,7 @@ std::unique_ptr<ColorBuffer::Impl> ColorBuffer::Impl::create(
     }
 
 #if GFXSTREAM_ENABLE_HOST_GLES
-    bool vkSnapshotEnabled = emulationVk && emulationVk->getFeatures().VulkanSnapshots.enabled;
+    bool vkSnapshotEnabled = emulationVk && emulationVk->getFeatures().VulkanSnapshots.enabled();
 
     if ((!stream || vkSnapshotEnabled) && colorBuffer->mColorBufferGl && colorBuffer->mColorBufferVk &&
         shouldAttemptExternalMemorySharing(format)) {

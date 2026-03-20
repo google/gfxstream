@@ -26,7 +26,7 @@ EmulatedPhysicalDeviceQueueProperties::EmulatedPhysicalDeviceQueueProperties(
     mQueueFamilyProperties = host;
 
     // Override queueCount for the virtual queue to be provided with device creations
-    mHasVirtualGraphicsQueue = features.VulkanVirtualQueue.enabled;
+    mHasVirtualGraphicsQueue = features.VulkanVirtualQueue.enabled();
     if (mHasVirtualGraphicsQueue) {
         // This feature will enforce multiple queues on all graphics capable phsical queues
         // by creating a virtual queue object, which forwards the work streams into the

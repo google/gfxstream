@@ -210,7 +210,7 @@ std::optional<VirtioGpuResource> VirtioGpuResource::Create(
 
     if (createBlobArgs->blob_id == 0) {
         RingBlobMemory memory;
-        if (features.ExternalBlob.enabled) {
+        if (features.ExternalBlob.enabled()) {
             memory = RingBlob::CreateWithShmem(resourceId, createBlobArgs->size);
         } else {
             memory = RingBlob::CreateWithHostMemory(resourceId, createBlobArgs->size, pageSize);
@@ -220,7 +220,7 @@ std::optional<VirtioGpuResource> VirtioGpuResource::Create(
             return std::nullopt;
         }
         resource.mBlobMemory.emplace(std::move(memory));
-    } else if (features.ExternalBlob.enabled) {
+    } else if (features.ExternalBlob.enabled()) {
         if (createBlobArgs->blob_mem == STREAM_BLOB_MEM_GUEST &&
             (createBlobArgs->blob_flags & STREAM_BLOB_FLAG_CREATE_GUEST_HANDLE)) {
 #if defined(__ANDROID__)

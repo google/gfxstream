@@ -70,7 +70,7 @@ void RenderThreadInfo::initGl() {
 
 void RenderThreadInfo::onSave(Stream* stream) {
     // TODO(b/309858017): remove if when ready to bump snapshot version
-    if (FrameBuffer::getFB()->getFeatures().VulkanSnapshots.enabled) {
+    if (FrameBuffer::getFB()->getFeatures().VulkanSnapshots.enabled()) {
         stream->putBe64(m_puid);
         stream->putBe32(m_shouldExit);
     }
@@ -94,7 +94,7 @@ void RenderThreadInfo::onSave(Stream* stream) {
 
 bool RenderThreadInfo::onLoad(Stream* stream) {
     // TODO(b/309858017): remove if when ready to bump snapshot version
-    if (FrameBuffer::getFB()->getFeatures().VulkanSnapshots.enabled) {
+    if (FrameBuffer::getFB()->getFeatures().VulkanSnapshots.enabled()) {
         m_puid = stream->getBe64();
         m_shouldExit = stream->getBe32() == 1;
     }

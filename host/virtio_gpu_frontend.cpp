@@ -590,7 +590,7 @@ void VirtioGpuFrontend::fillCaps(uint32_t set, void* caps) {
                 capset->deferredMapping = 1;
             }
 
-            if (mFeatures.VulkanBatchedDescriptorSetUpdate.enabled) {
+            if (mFeatures.VulkanBatchedDescriptorSetUpdate.enabled()) {
                 capset->vulkanBatchedDescriptorSetUpdate=1;
             }
             capset->noRenderControlEnc = 1;
@@ -637,7 +637,7 @@ void VirtioGpuFrontend::fillCaps(uint32_t set, void* caps) {
             };
 #undef MAKE_FORMAT_AND_NAME
 
-            if (!mFeatures.MinimalLogging.enabled) {
+            if (!mFeatures.MinimalLogging.enabled()) {
                 GFXSTREAM_INFO("Format support:");
             }
             for (std::size_t i = 0; i < std::size(kPossibleFormats); i++) {
@@ -653,7 +653,7 @@ void VirtioGpuFrontend::fillCaps(uint32_t set, void* caps) {
                 set_virgl_format_supported(capset->virglSupportedFormats, possibleFormat.format,
                                            supported);
 
-                if (!mFeatures.MinimalLogging.enabled) {
+                if (!mFeatures.MinimalLogging.enabled()) {
                     GFXSTREAM_INFO(" %s: %s", possibleFormat.name,
                                    (supported ? "supported" : "unsupported"));
                 }
@@ -798,7 +798,7 @@ int VirtioGpuFrontend::createBlob(uint32_t contextId, uint32_t resourceId,
 int VirtioGpuFrontend::resourceMap(uint32_t resourceId, void** hvaOut, uint64_t* sizeOut) {
     GFXSTREAM_DEBUG("resource: %u", resourceId);
 
-    if (mFeatures.ExternalBlob.enabled) {
+    if (mFeatures.ExternalBlob.enabled()) {
         GFXSTREAM_ERROR("Failed to map resource: external blob enabled.");
         return -EINVAL;
     }

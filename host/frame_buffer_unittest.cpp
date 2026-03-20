@@ -72,7 +72,7 @@ class FrameBufferTest : public ::testing::Test {
         mUseSubWindow = mWindow != nullptr;
 
         FeatureSet features = {};
-        features.EglOnEgl.enabled = !useHostGpu;
+        features.EglOnEgl.setEnabled(!useHostGpu);
 
         if (mUseSubWindow) {
             ASSERT_NE(nullptr, mWindow->getFramebufferNativeWindow());

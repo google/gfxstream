@@ -848,7 +848,7 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
 
     const bool debugUtilsSupported =
         vk_util::extensionSupported(instanceExts, VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-    const bool debugUtilsRequested = emulation->mFeatures.VulkanDebugUtils.enabled;
+    const bool debugUtilsRequested = emulation->mFeatures.VulkanDebugUtils.enabled();
     const bool debugUtilsAvailableAndRequested = debugUtilsSupported && debugUtilsRequested;
     if (debugUtilsAvailableAndRequested) {
         selectedInstanceExtensionNames.emplace(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
@@ -887,7 +887,7 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
         }
     }
 
-    if (emulation->mFeatures.VulkanNativeSwapchain.enabled) {
+    if (emulation->mFeatures.VulkanNativeSwapchain.enabled()) {
         for (auto extension : SwapChainStateVk::getRequiredInstanceExtensions()) {
             selectedInstanceExtensionNames.emplace(extension);
         }
@@ -1199,7 +1199,7 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
 
             VkPhysicalDeviceRobustness2FeaturesEXT robustness2Features = {
                 .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT};
-            const bool robustnessRequested = emulation->mFeatures.VulkanRobustness.enabled;
+            const bool robustnessRequested = emulation->mFeatures.VulkanRobustness.enabled();
             const bool robustnessSupported =
                 vk_util::extensionsSupported(deviceExts, {VK_EXT_ROBUSTNESS_2_EXTENSION_NAME});
             if (robustnessRequested && robustnessSupported) {
@@ -1354,7 +1354,7 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
     // in releaseColorBufferForGuestUse for the apps using Vulkan swapchain
     selectedDeviceExtensionNames.emplace(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
-    if (emulation->mFeatures.VulkanNativeSwapchain.enabled) {
+    if (emulation->mFeatures.VulkanNativeSwapchain.enabled()) {
         for (auto extension : SwapChainStateVk::getRequiredDeviceExtensions()) {
             selectedDeviceExtensionNames.emplace(extension);
         }
@@ -1428,7 +1428,7 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
     const bool commandBufferCheckpointsSupported =
         emulation->mDeviceInfo.supportsNvidiaDeviceDiagnosticCheckpoints;
     const bool commandBufferCheckpointsRequested =
-        emulation->mFeatures.VulkanCommandBufferCheckpoints.enabled;
+        emulation->mFeatures.VulkanCommandBufferCheckpoints.enabled();
     const bool commandBufferCheckpointsSupportedAndRequested =
         commandBufferCheckpointsSupported && commandBufferCheckpointsRequested;
     VkPhysicalDeviceDiagnosticsConfigFeaturesNV deviceDiagnosticsConfigFeatures = {
@@ -1582,7 +1582,7 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
 void VkEmulation::initFeatures(Features features) {
     std::lock_guard<std::mutex> lock(mMutex);
 
-    if (!mFeatures.MinimalLogging.enabled) {
+    if (!mFeatures.MinimalLogging.enabled()) {
         GFXSTREAM_INFO("Initializing VkEmulation features:");
         GFXSTREAM_INFO("    glInteropSupported: %s",
                        features.glInteropSupported ? "true" : "false");
@@ -1648,7 +1648,7 @@ void VkEmulation::initFeatures(Features features) {
         mRepresentativeColorBufferMemoryTypeInfo.hostMemoryTypeIndex,
         mRepresentativeColorBufferMemoryTypeInfo.guestMemoryTypeIndex);
 
-    if (mFeatures.VulkanAllocateHostVisibleAsUdmabuf.enabled) {
+    if (mFeatures.VulkanAllocateHostVisibleAsUdmabuf.enabled()) {
         mUdmabufCreator = std::make_unique<UdmabufCreator>();
         if (!mUdmabufCreator->init()) {
             mUdmabufCreator = nullptr;

@@ -53,7 +53,7 @@ EmulatedPhysicalDeviceMemoryProperties::EmulatedPhysicalDeviceMemoryProperties(
 
     // If enabled, hide non device memory types from the guest.
     // (useful to work around a bug where KVM can't map TTM memory).
-    if (features.VulkanAllocateDeviceMemoryOnly.enabled) {
+    if (features.VulkanAllocateDeviceMemoryOnly.enabled()) {
         for (uint32_t i = 0; i < mGuestMemoryProperties.memoryTypeCount; i++) {
             auto guestMemoryProperties = mGuestMemoryProperties.memoryTypes[i].propertyFlags;
             if (!(guestMemoryProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) {
@@ -63,7 +63,7 @@ EmulatedPhysicalDeviceMemoryProperties::EmulatedPhysicalDeviceMemoryProperties(
     }
 
     // Coherent memory in the guest requires one of these features:
-    if (!features.GlDirectMem.enabled && !features.VirtioGpuNext.enabled) {
+    if (!features.GlDirectMem.enabled() && !features.VirtioGpuNext.enabled()) {
         for (uint32_t i = 0; i < mGuestMemoryProperties.memoryTypeCount; i++) {
             mGuestMemoryProperties.memoryTypes[i].propertyFlags =
                 mGuestMemoryProperties.memoryTypes[i].propertyFlags &
@@ -72,7 +72,7 @@ EmulatedPhysicalDeviceMemoryProperties::EmulatedPhysicalDeviceMemoryProperties(
     }
 
     // Let cached memory pretend as coherent on the guest side.
-    if (features.VulkanDisableCoherentMemoryAndEmulate.enabled) {
+    if (features.VulkanDisableCoherentMemoryAndEmulate.enabled()) {
         for (uint32_t i = 0; i < mGuestMemoryProperties.memoryTypeCount; i++) {
             if (mGuestMemoryProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT) {
                 mGuestMemoryProperties.memoryTypes[i].propertyFlags |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
@@ -82,7 +82,7 @@ EmulatedPhysicalDeviceMemoryProperties::EmulatedPhysicalDeviceMemoryProperties(
         }
     }
 
-    if (features.VulkanEnsureCachedCoherentMemoryAvailable.enabled) {
+    if (features.VulkanEnsureCachedCoherentMemoryAvailable.enabled()) {
         /* Some app layers (i.e. Angle) require *some* coherent-cached memory to be
          *  available. To ensure compatiblity these guest layers, when coherent-cached
          *  memory type is unavailable, append the cached bit to the first coherent
@@ -121,7 +121,7 @@ EmulatedPhysicalDeviceMemoryProperties::EmulatedPhysicalDeviceMemoryProperties(
     // so that the host can control its memory properties. This ensures that the guest
     // only sees `VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT` and will not try to map the
     // memory.
-    if (features.VulkanUseDedicatedAhbMemoryType.enabled) {
+    if (features.VulkanUseDedicatedAhbMemoryType.enabled()) {
         if (mGuestMemoryProperties.memoryTypeCount == VK_MAX_MEMORY_TYPES) {
             GFXSTREAM_FATAL("Unable to create emulated AHB memory type because VK_MAX_MEMORY_TYPES "
                             "already in use.");

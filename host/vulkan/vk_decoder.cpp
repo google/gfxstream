@@ -72,7 +72,7 @@ class VkDecoder::Impl {
           m_boxedHandleUnwrapMapping(m_state),
           m_prevSeqno(std::nullopt),
           m_queueSubmitWithCommandsEnabled(
-              m_state->getFeatures().VulkanQueueSubmitWithCommands.enabled),
+              m_state->getFeatures().VulkanQueueSubmitWithCommands.enabled()),
           m_snapshotsEnabled(m_state->snapshotsEnabled()) {}
     VulkanStream* stream() { return &m_vkStream; }
     VulkanMemReadingStream* readStream() { return &m_vkMemReadingStream; }

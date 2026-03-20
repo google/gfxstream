@@ -149,7 +149,7 @@ EmulatedEglConfigList::EmulatedEglConfigList(EGLDisplay display, GLESDispatchMax
                                              const std::string& gpuVendor)
     : mDisplay(display),
       mGlesDispatchMaxVersion(version),
-      mGlesDynamicVersion(features.GlesDynamicVersion.enabled),
+      mGlesDynamicVersion(features.GlesDynamicVersion.enabled()),
       mGpuVendor(gpuVendor) {
     if (display == EGL_NO_DISPLAY) {
         GFXSTREAM_ERROR("Invalid display value %p (EGL_NO_DISPLAY).", (void*)display);

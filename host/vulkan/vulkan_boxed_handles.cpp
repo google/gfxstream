@@ -400,7 +400,7 @@ VkQueue unbox_VkQueueImpl(VkQueue boxed) {
     const uint64_t unboxedQueue64 = info->underlying;
 
     // Use VulkanVirtualQueue directly to avoid locking for hasVirtualGraphicsQueue call.
-    if (VkDecoderGlobalState::get()->getFeatures().VulkanVirtualQueue.enabled) {
+    if (VkDecoderGlobalState::get()->getFeatures().VulkanVirtualQueue.enabled()) {
         // Clear virtual bit and unbox into the actual physical queue handle
         return (VkQueue)(unboxedQueue64 & ~QueueInfo::kVirtualQueueBit);
     }

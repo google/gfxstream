@@ -145,7 +145,7 @@ TEST(VkGuestMemoryUtilsTest, ReserveAHardwareBuffer) {
     };
 
     gfxstream::host::FeatureSet features;
-    features.VulkanUseDedicatedAhbMemoryType.enabled = true;
+    features.VulkanUseDedicatedAhbMemoryType.setEnabled(true);
 
     const uint32_t kHostColorBufferIndex = 1;
     EmulatedPhysicalDeviceMemoryProperties helper(hostMemoryProperties, kHostColorBufferIndex,
@@ -224,7 +224,7 @@ TEST(VkGuestMemoryUtilsTest, VulkanAllocateDeviceMemoryOnly) {
     };
 
     gfxstream::host::FeatureSet features;
-    features.VulkanAllocateDeviceMemoryOnly.enabled = true;
+    features.VulkanAllocateDeviceMemoryOnly.setEnabled(true);
 
     EmulatedPhysicalDeviceMemoryProperties helper(hostMemoryProperties, 1, features);
 
@@ -298,7 +298,7 @@ TEST(VkGuestMemoryUtilsTest, VulkanDisableCoherentMemoryAndEmulate) {
     };
 
     gfxstream::host::FeatureSet features;
-    features.VulkanDisableCoherentMemoryAndEmulate.enabled = true;
+    features.VulkanDisableCoherentMemoryAndEmulate.setEnabled(true);
 
     EmulatedPhysicalDeviceMemoryProperties helper(hostMemoryProperties, 1, features);
 
@@ -365,8 +365,8 @@ TEST(VkGuestMemoryUtilsTest, VulkanEnsureCachedCoherentMemoryAvailable) {
     };
 
     gfxstream::host::FeatureSet features;
-    features.VirtioGpuNext.enabled = true;
-    features.VulkanEnsureCachedCoherentMemoryAvailable.enabled = true;
+    features.VirtioGpuNext.setEnabled(true);
+    features.VulkanEnsureCachedCoherentMemoryAvailable.setEnabled(true);
 
     EmulatedPhysicalDeviceMemoryProperties helper(hostMemoryProperties, 1, features);
 

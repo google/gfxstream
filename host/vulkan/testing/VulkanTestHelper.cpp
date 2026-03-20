@@ -40,7 +40,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL validationCallback(
 gfxstream::host::FeatureSet getGfxstreamFeatures() {
     gfxstream::host::FeatureSet features;
     // Enable so that we can have VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-    features.GlDirectMem.enabled = true;
+    features.GlDirectMem.setEnabled(true);
     return features;
 }
 

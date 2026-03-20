@@ -27,13 +27,13 @@ namespace vk {
 VulkanStream::VulkanStream(IOStream* stream, const gfxstream::host::FeatureSet& features) : mStream(stream) {
     unsetHandleMapping();
 
-    if (features.VulkanNullOptionalStrings.enabled) {
+    if (features.VulkanNullOptionalStrings.enabled()) {
         mFeatureBits |= VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT;
     }
-    if (features.VulkanIgnoredHandles.enabled) {
+    if (features.VulkanIgnoredHandles.enabled()) {
         mFeatureBits |= VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT;
     }
-    if (features.VulkanShaderFloat16Int8.enabled) {
+    if (features.VulkanShaderFloat16Int8.enabled()) {
         mFeatureBits |= VULKAN_STREAM_FEATURE_SHADER_FLOAT16_INT8_BIT;
     }
 }

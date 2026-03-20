@@ -156,7 +156,7 @@ std::optional<GfxstreamFormat> GetGfxstreamFormat(
             return GfxstreamFormat::YV12;
         }
         case FRAMEWORK_FORMAT_YUV_420_888: {
-            if (features.Yuv420888ToNv21.enabled) {
+            if (features.Yuv420888ToNv21.enabled()) {
                 return GfxstreamFormat::NV21;
             } else {
                 return GfxstreamFormat::YV21;
@@ -292,7 +292,7 @@ std::optional<GfxstreamFormat> GetGfxstreamFormat(
         case FRAMEWORK_FORMAT_P010:
             return GfxstreamFormat::P010;
         case FRAMEWORK_FORMAT_YUV_420_888: {
-            if (features.Yuv420888ToNv21.enabled) {
+            if (features.Yuv420888ToNv21.enabled()) {
                 return GfxstreamFormat::NV21;
             } else {
                 return GfxstreamFormat::YV21;
@@ -1132,7 +1132,7 @@ std::unique_ptr<FrameBuffer::Impl> FrameBuffer::Impl::Create(FrameBuffer* frameb
     // preventing new contexts from being created that share
     // against those contexts.
     vk::VulkanDispatch* vkDispatch = nullptr;
-    if (impl->m_features.Vulkan.enabled) {
+    if (impl->m_features.Vulkan.enabled()) {
         vkDispatch = vk::vkDispatch(false /* not for testing */);
 
         gfxstream::host::BackendCallbacks callbacks{
@@ -1186,7 +1186,7 @@ std::unique_ptr<FrameBuffer::Impl> FrameBuffer::Impl::Create(FrameBuffer* frameb
     }
     if (impl->m_emulationVk) {
         impl->m_vulkanEnabled = true;
-        if (impl->m_features.VulkanNativeSwapchain.enabled) {
+        if (impl->m_features.VulkanNativeSwapchain.enabled()) {
             impl->m_vkInstance = impl->m_emulationVk->getInstance();
         }
 
@@ -1200,7 +1200,7 @@ std::unique_ptr<FrameBuffer::Impl> FrameBuffer::Impl::Create(FrameBuffer* frameb
 
 #if GFXSTREAM_ENABLE_HOST_GLES
     // Do not initialize GL emulation if the guest is using ANGLE.
-    const bool needEmulationGl = !impl->m_features.GuestVulkanOnly.enabled;
+    const bool needEmulationGl = !impl->m_features.GuestVulkanOnly.enabled();
     if (needEmulationGl) {
         impl->m_emulationGl =
             EmulationGl::create(width, height, impl->m_features, useSubWindow);
@@ -1212,7 +1212,7 @@ std::unique_ptr<FrameBuffer::Impl> FrameBuffer::Impl::Create(FrameBuffer* frameb
 #endif
 
     impl->m_useVulkanComposition =
-        impl->m_features.GuestVulkanOnly.enabled || impl->m_features.VulkanNativeSwapchain.enabled;
+        impl->m_features.GuestVulkanOnly.enabled() || impl->m_features.VulkanNativeSwapchain.enabled();
 
     vk::VkEmulation::Features vkEmulationFeatures = {
         .glInteropSupported = false,  // Set later.
@@ -1224,12 +1224,12 @@ std::unique_ptr<FrameBuffer::Impl> FrameBuffer::Impl::Create(FrameBuffer* frameb
                 "ANDROID_EMU_VK_DISABLE_USE_CREATE_RESOURCES_WITH_REQUIREMENTS")
                 .empty(),
         .useVulkanComposition = impl->m_useVulkanComposition,
-        .useVulkanNativeSwapchain = impl->m_features.VulkanNativeSwapchain.enabled,
+        .useVulkanNativeSwapchain = impl->m_features.VulkanNativeSwapchain.enabled(),
         .guestRenderDoc = std::move(renderDocMultipleVkInstances),
         .astcLdrEmulationMode = AstcEmulationMode::Gpu,
         .enableEtc2Emulation = true,
         .enableYcbcrEmulation = false,
-        .guestVulkanOnly = impl->m_features.GuestVulkanOnly.enabled,
+        .guestVulkanOnly = impl->m_features.GuestVulkanOnly.enabled(),
         .useDedicatedAllocations = false,  // Set later.
     };
 
@@ -1238,8 +1238,8 @@ std::unique_ptr<FrameBuffer::Impl> FrameBuffer::Impl::Create(FrameBuffer* frameb
     // current-context when asked for them.
     //
     bool useVulkanGraphicsDiagInfo = impl->m_emulationVk &&
-                                     impl->m_features.VulkanNativeSwapchain.enabled &&
-                                     impl->m_features.GuestVulkanOnly.enabled;
+                                     impl->m_features.VulkanNativeSwapchain.enabled() &&
+                                     impl->m_features.GuestVulkanOnly.enabled();
 
     if (useVulkanGraphicsDiagInfo) {
         impl->m_graphicsAdapterVendor = impl->m_emulationVk->getGpuVendor();
@@ -1305,7 +1305,7 @@ std::unique_ptr<FrameBuffer::Impl> FrameBuffer::Impl::Create(FrameBuffer* frameb
 
     GFXSTREAM_DEBUG("glvk interop final: %d", vulkanInteropSupported);
     vkEmulationFeatures.glInteropSupported = vulkanInteropSupported;
-    if (impl->m_emulationVk && impl->m_features.Vulkan.enabled) {
+    if (impl->m_emulationVk && impl->m_features.Vulkan.enabled()) {
         impl->m_emulationVk->initFeatures(std::move(vkEmulationFeatures));
 
         auto* display = impl->m_emulationVk->getDisplay();
@@ -1390,9 +1390,9 @@ FrameBuffer::Impl::Impl(FrameBuffer* framebuffer, int p_width, int p_height,
         [this](FrameBuffer::Impl::Readback&& readback) {
             return sendReadbackWorkerCmd(readback);
         }),
-      m_refCountPipeEnabled(features.RefCountPipe.enabled),
-      m_noDelayCloseColorBufferEnabled(features.NoDelayCloseColorBuffer.enabled ||
-                                       features.Minigbm.enabled),
+      m_refCountPipeEnabled(features.RefCountPipe.enabled()),
+      m_noDelayCloseColorBufferEnabled(features.NoDelayCloseColorBuffer.enabled() ||
+                                       features.Minigbm.enabled()),
       m_postThread(
         []() {
             GFXSTREAM_TRACE_NAME_THREAD("Gfxstream Post Worker");
@@ -3101,7 +3101,7 @@ void FrameBuffer::Impl::onSave(Stream* stream, const ITextureSaverPtr& textureSa
 #endif
 
     // TODO(b/309858017): remove if when ready to bump snapshot version
-    if (m_features.VulkanSnapshots.enabled) {
+    if (m_features.VulkanSnapshots.enabled()) {
         AutoLock procResourceLock(m_procOwnedResourcesLock);
         stream->putBe64(m_procOwnedResources.size());
         for (const auto& element : m_procOwnedResources) {
@@ -3111,7 +3111,7 @@ void FrameBuffer::Impl::onSave(Stream* stream, const ITextureSaverPtr& textureSa
     }
 
     // Save Vulkan state
-    if (m_features.VulkanSnapshots.enabled && vk::VkDecoderGlobalState::get()) {
+    if (m_features.VulkanSnapshots.enabled() && vk::VkDecoderGlobalState::get()) {
         vk::VkDecoderGlobalState::get()->save(stream);
     }
 
@@ -3339,7 +3339,7 @@ bool FrameBuffer::Impl::onLoad(Stream* stream, const ITextureLoaderPtr& textureL
     loadProcOwnedCollection(stream, &m_procOwnedEmulatedEglContexts);
 #endif
     // TODO(b/309858017): remove if when ready to bump snapshot version
-    if (m_features.VulkanSnapshots.enabled) {
+    if (m_features.VulkanSnapshots.enabled()) {
         size_t resourceCount = stream->getBe64();
         for (size_t i = 0; i < resourceCount; i++) {
             uint64_t puid = stream->getBe64();
@@ -3384,7 +3384,7 @@ bool FrameBuffer::Impl::onLoad(Stream* stream, const ITextureLoaderPtr& textureL
     }
 
     // Restore Vulkan state
-    if (m_features.VulkanSnapshots.enabled && vk::VkDecoderGlobalState::get()) {
+    if (m_features.VulkanSnapshots.enabled() && vk::VkDecoderGlobalState::get()) {
         lock.unlock();
         GfxApiLogger gfxLogger;
         vk::VkDecoderGlobalState::get()->load(stream, gfxLogger);

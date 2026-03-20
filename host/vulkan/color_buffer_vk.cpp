@@ -31,7 +31,7 @@ std::unique_ptr<ColorBufferVk> ColorBufferVk::create(VkEmulation& vkEmulation, u
         GFXSTREAM_ERROR("Failed to create ColorBufferVk:%d", handle);
         return nullptr;
     }
-    if (vkEmulation.getFeatures().VulkanSnapshots.enabled && stream) {
+    if (vkEmulation.getFeatures().VulkanSnapshots.enabled() && stream) {
         VkImageLayout currentLayout = static_cast<VkImageLayout>(stream->getBe32());
         vkEmulation.setColorBufferCurrentLayout(handle, currentLayout);
     }
@@ -39,7 +39,7 @@ std::unique_ptr<ColorBufferVk> ColorBufferVk::create(VkEmulation& vkEmulation, u
 }
 
 void ColorBufferVk::onSave(gfxstream::Stream* stream) {
-    if (!mVkEmulation.getFeatures().VulkanSnapshots.enabled) {
+    if (!mVkEmulation.getFeatures().VulkanSnapshots.enabled()) {
         return;
     }
     stream->putBe32(static_cast<uint32_t>(mVkEmulation.getColorBufferCurrentLayout(mHandle)));

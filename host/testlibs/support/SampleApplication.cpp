@@ -249,7 +249,7 @@ SampleApplication::SampleApplication(int windowWidth, int windowHeight, int refr
     mUseSubWindow = mWindow != nullptr;
 
     FeatureSet features = {};
-    features.EglOnEgl.enabled = !useHostGpu;
+    features.EglOnEgl.setEnabled(!useHostGpu);
 
     FrameBuffer::initialize(mWidth, mHeight, features, mUseSubWindow);
     mFb = FrameBuffer::getFB();

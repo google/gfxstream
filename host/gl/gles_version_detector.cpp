@@ -209,7 +209,7 @@ std::string filterExtensionsBasedOnMaxVersion(const gfxstream::host::FeatureSet&
     // a. the dispatch version on the host is ES 2
     // b. the guest image is not updated for ES 3+
     // (GLESDynamicVersion is disabled)
-    if (ver > GLES_DISPATCH_MAX_VERSION_2 && features.GlesDynamicVersion.enabled) {
+    if (ver > GLES_DISPATCH_MAX_VERSION_2 && features.GlesDynamicVersion.enabled()) {
         return exts;
     }
 

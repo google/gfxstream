@@ -88,8 +88,8 @@ TEST(VkGuestQueueUtilsTest, VulkanVirtualQueue) {
 
     // Enable VulkanVirtualQueue, expect 2 graphics queues
     gfxstream::host::FeatureSet features;
-    features.Vulkan.enabled = true;
-    features.VulkanVirtualQueue.enabled = true;
+    features.Vulkan.setEnabled(true);
+    features.VulkanVirtualQueue.setEnabled(true);
 
     EmulatedPhysicalDeviceQueueProperties helper(hostQueueFamilyProperties, features);
 
