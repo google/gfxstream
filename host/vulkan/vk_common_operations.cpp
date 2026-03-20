@@ -58,6 +58,10 @@
 #include "platform_helper_qnx.h"
 #endif
 
+#ifdef __ANDROID__
+#include <android/hardware_buffer.h>
+#endif
+
 namespace gfxstream {
 namespace host {
 namespace vk {
@@ -1106,7 +1110,43 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
             if (deviceInfos[i].externalMemoryMode == ExternalMemory::Mode::QnxScreenBuffer) {
                 deviceInfos[i].supportsExternalMemoryExport = false;
             }
+
         }
+
+        deviceInfos[i].supportsAhbExport = false;
+#if defined(__ANDROID__)
+        if (deviceInfos[i].externalMemoryMode == ExternalMemory::Mode::AndroidAHB &&
+            emulation->mGetImageFormatProperties2Func) {
+            VkPhysicalDeviceExternalImageFormatInfo extInfo = {
+                VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_IMAGE_FORMAT_INFO,
+                nullptr,
+                VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID,
+            };
+            VkPhysicalDeviceImageFormatInfo2 formatInfo2 = {
+                VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_FORMAT_INFO_2,
+                &extInfo,
+                VK_FORMAT_R8G8B8A8_UNORM,
+                VK_IMAGE_TYPE_2D,
+                VK_IMAGE_TILING_OPTIMAL,
+                VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                0,
+            };
+            VkExternalImageFormatProperties outExternalProps = {
+                VK_STRUCTURE_TYPE_EXTERNAL_IMAGE_FORMAT_PROPERTIES, nullptr, {0, 0, 0},
+            };
+            VkImageFormatProperties2 outProps2 = {
+                VK_STRUCTURE_TYPE_IMAGE_FORMAT_PROPERTIES_2, &outExternalProps,
+                {{0, 0, 0}, 0, 0, 1, 0},
+            };
+            VkResult ahbProbeRes = emulation->mGetImageFormatProperties2Func(
+                physicalDevices[i], &formatInfo2, &outProps2);
+            if (ahbProbeRes == VK_SUCCESS) {
+                deviceInfos[i].supportsAhbExport =
+                    (outExternalProps.externalMemoryProperties.compatibleHandleTypes &
+                     VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID) != 0;
+            }
+        }
+#endif  // __ANDROID__
 
         if (emulation->mInstanceSupportsGetPhysicalDeviceProperties2) {
             deviceInfos[i].supportsDriverProperties =
@@ -1350,6 +1390,8 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
                     emulation->mDeviceInfo.supportsExternalMemoryImport ? "true" : "false");
     GFXSTREAM_DEBUG("    supportsExternalMemoryExport = %s",
                     emulation->mDeviceInfo.supportsExternalMemoryExport ? "true" : "false");
+    GFXSTREAM_DEBUG("    supportsAhbExport = %s",
+                    emulation->mDeviceInfo.supportsAhbExport ? "true" : "false");
     GFXSTREAM_DEBUG("    supportsDmaBuf = %s",
                     emulation->mDeviceInfo.supportsDmaBuf ? "true" : "false");
     GFXSTREAM_DEBUG("    supportsDriverProperties = %s",
@@ -2094,9 +2136,11 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
 
     auto allocInfoChain = vk_make_chain_iterator(&allocInfo);
 
-    // HostAllocation mode uses host side allocation and should not add VkExportMemoryAllocateInfo
+    // HostAllocation mode uses host side allocation and should not add VkExportMemoryAllocateInfo.
+    // AndroidAHB mode uses AHardwareBuffer_allocate + import instead of export (see switch below).
     if (mDeviceInfo.supportsExternalMemoryExport &&
-        getExternalMemoryMode() != ExternalMemory::Mode::HostAllocation) {
+        getExternalMemoryMode() != ExternalMemory::Mode::HostAllocation &&
+        getExternalMemoryMode() != ExternalMemory::Mode::AndroidAHB) {
         exportAi.handleTypes =
             static_cast<VkExternalMemoryHandleTypeFlags>(getDefaultExternalMemoryHandleType());
 
@@ -2256,6 +2300,105 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
             break;
         }
 #endif
+        case ExternalMemory::Mode::AndroidAHB: {
+#ifdef __ANDROID__
+            // Use AHB-first allocation: allocate an AHardwareBuffer via gralloc, then
+            // import it into Vulkan. This avoids the Vulkan export path which doesn't work
+            // with drivers that defer image layout until bind time (returning size=0 from
+            // vkGetImageMemoryRequirements for AHB-compatible images).
+            if (mDeviceInfo.supportsAhbExport && colorBufferInfo) {
+                auto cbInfoPtr = *colorBufferInfo;
+
+                // Map VkFormat to AHB format — must match to avoid tiling mismatch
+                uint32_t ahbFormat;
+                switch (cbInfoPtr->imageCreateInfoShallow.format) {
+                    case VK_FORMAT_B8G8R8A8_UNORM:
+                    case VK_FORMAT_B8G8R8A8_SRGB:
+                        ahbFormat = 5; // AHARDWAREBUFFER_FORMAT_B8G8R8A8_UNORM
+                        break;
+                    case VK_FORMAT_R8G8B8A8_UNORM:
+                    case VK_FORMAT_R8G8B8A8_SRGB:
+                    default:
+                        ahbFormat = AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNORM;
+                        break;
+                }
+                AHardwareBuffer_Desc desc = {
+                    .width = cbInfoPtr->width,
+                    .height = cbInfoPtr->height,
+                    .layers = 1,
+                    .format = ahbFormat,
+                    .usage = AHARDWAREBUFFER_USAGE_GPU_FRAMEBUFFER |
+                             AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE,
+                };
+
+                AHardwareBuffer* ahb = nullptr;
+                int ahbRes = AHardwareBuffer_allocate(&desc, &ahb);
+                if (ahbRes != 0 || !ahb) {
+                    GFXSTREAM_WARNING(
+                        "AHardwareBuffer_allocate failed (err=%d) for ColorBuffer %u (%ux%u). "
+                        "Falling back to non-exportable allocation.",
+                        ahbRes, cbInfoPtr->handle, cbInfoPtr->width, cbInfoPtr->height);
+                    break;
+                }
+
+                // Query Vulkan properties of the AHB
+                VkAndroidHardwareBufferPropertiesANDROID ahbProps = {
+                    .sType = VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_PROPERTIES_ANDROID,
+                };
+                VkResult propsRes = vk->vkGetAndroidHardwareBufferPropertiesANDROID(
+                    mDevice, ahb, &ahbProps);
+                if (propsRes != VK_SUCCESS) {
+                    GFXSTREAM_WARNING(
+                        "vkGetAndroidHardwareBufferPropertiesANDROID failed: %s. "
+                        "Falling back to non-exportable allocation.",
+                        string_VkResult(propsRes));
+                    AHardwareBuffer_release(ahb);
+                    break;
+                }
+
+                // Find a memory type that satisfies both the image and AHB requirements
+                uint32_t combinedBits = ahbProps.memoryTypeBits &
+                                        cbInfoPtr->imageMemReqs.memoryTypeBits;
+                if (!combinedBits) {
+                    GFXSTREAM_WARNING(
+                        "No common memory type for AHB (0x%x) and image (0x%x). "
+                        "Falling back to non-exportable allocation.",
+                        ahbProps.memoryTypeBits, cbInfoPtr->imageMemReqs.memoryTypeBits);
+                    AHardwareBuffer_release(ahb);
+                    break;
+                }
+
+                // Pick a device-local memory type from the combined bits
+                info->typeIndex = getValidMemoryTypeIndex(combinedBits, cbInfoPtr->memoryProperty);
+                allocInfo.memoryTypeIndex = info->typeIndex;
+                info->size = ahbProps.allocationSize;
+                allocInfo.allocationSize = ahbProps.allocationSize;
+
+                // Chain the import info
+                VkImportAndroidHardwareBufferInfoANDROID importAhbInfo = {
+                    .sType = VK_STRUCTURE_TYPE_IMPORT_ANDROID_HARDWARE_BUFFER_INFO_ANDROID,
+                    .pNext = nullptr,
+                    .buffer = ahb,
+                };
+                vk_append_struct(&allocInfoChain, &importAhbInfo);
+
+                // Store the AHB handle for lifetime management (released in freeExternalMemoryLocked)
+                info->handleInfo = ExternalHandleInfo{
+                    .handle = reinterpret_cast<ExternalHandleType>(ahb),
+                    .streamHandleType = STREAM_HANDLE_TYPE_PLATFORM_AHB,
+                };
+                cbInfoPtr->externalMemoryCompatible = true;
+
+                GFXSTREAM_DEBUG(
+                    "ColorBuffer %u: imported AHB (%ux%u, format=%u) into Vulkan "
+                    "(memoryTypeIndex=%u, size=%" PRIu64 ")",
+                    cbInfoPtr->handle, cbInfoPtr->width, cbInfoPtr->height,
+                    desc.format, info->typeIndex, (uint64_t)ahbProps.allocationSize);
+            }
+#endif
+            break;
+        }
+
         default:
             // The default behavior is exporting the memory using some getMemory() function
             // interface after allocation.
@@ -2382,20 +2525,28 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
 
         case ExternalMemory::Mode::AndroidAHB: {
 #ifdef __ANDROID__
-            VkMemoryGetAndroidHardwareBufferInfoANDROID getAhbInfo = {
-                .sType = VK_STRUCTURE_TYPE_MEMORY_GET_ANDROID_HARDWARE_BUFFER_INFO_ANDROID,
-                .pNext = nullptr,
-                .memory = info->memory,
-            };
-            AHardwareBuffer* exportHandle =
-                static_cast<AHardwareBuffer*>(reinterpret_cast<void*>(info->handleInfo->handle));
-            exportRes =
-                vk->vkGetMemoryAndroidHardwareBufferANDROID(mDevice, &getAhbInfo, &exportHandle);
-            validHandle = (VK_SUCCESS == exportRes) && (NULL != exportHandle);
-            info->handleInfo = ExternalHandleInfo{
-                .handle = reinterpret_cast<ExternalHandleType>(exportHandle),
-                .streamHandleType = STREAM_HANDLE_TYPE_PLATFORM_AHB,
-            };
+            // If the AHB was already allocated and imported (via AHardwareBuffer_allocate
+            // in the pre-allocation switch above), handleInfo is already set. Skip export.
+            if (info->handleInfo &&
+                info->handleInfo->streamHandleType == STREAM_HANDLE_TYPE_PLATFORM_AHB) {
+                validHandle = true;
+                exportRes = VK_SUCCESS;
+            } else {
+                // Fallback: use the old export path if AHB import wasn't used
+                VkMemoryGetAndroidHardwareBufferInfoANDROID getAhbInfo = {
+                    .sType = VK_STRUCTURE_TYPE_MEMORY_GET_ANDROID_HARDWARE_BUFFER_INFO_ANDROID,
+                    .pNext = nullptr,
+                    .memory = info->memory,
+                };
+                AHardwareBuffer* exportHandle = nullptr;
+                exportRes =
+                    vk->vkGetMemoryAndroidHardwareBufferANDROID(mDevice, &getAhbInfo, &exportHandle);
+                validHandle = (VK_SUCCESS == exportRes) && (NULL != exportHandle);
+                info->handleInfo = ExternalHandleInfo{
+                    .handle = reinterpret_cast<ExternalHandleType>(exportHandle),
+                    .streamHandleType = STREAM_HANDLE_TYPE_PLATFORM_AHB,
+                };
+            }
 #endif
             break;
         }
@@ -2953,6 +3104,7 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height,
         vk->vkGetImageMemoryRequirements(mDevice, infoPtr->image, &infoPtr->imageMemReqs);
     }
 
+
     // Currently we only care about two memory properties: DEVICE_LOCAL
     // and HOST_VISIBLE; other memory properties specified in
     // rcSetColorBufferVulkanMode2() call will be ignored for now.
@@ -3004,6 +3156,7 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height,
                         string_VkResult(bindImageMemoryRes));
         return false;
     }
+
 
     VkSamplerYcbcrConversionInfo ycbcrInfo = {
         .sType = VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_INFO,

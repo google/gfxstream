@@ -484,6 +484,7 @@ class VkEmulation {
         bool hasComputeQueueFamily = false;
         bool supportsExternalMemoryImport = false;
         bool supportsExternalMemoryExport = false;
+        bool supportsAhbExport = false;
         bool supportsDmaBuf = false;
         bool supportsDriverProperties = false;
         bool supportsExternalMemoryHostProps = false;
