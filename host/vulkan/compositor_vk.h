@@ -417,7 +417,9 @@ class CompositorVk : protected CompositorVkBase, public Compositor {
     static constexpr const VkFormat k_renderTargetFormat = VK_FORMAT_R8G8B8A8_UNORM;
     static constexpr const uint32_t k_renderTargetCacheSize = 128;
     // Maps from borrowed image ids to render target info.
-    gfxstream::base::LruCache<uint32_t, std::unique_ptr<RenderTarget>> m_renderTargetCache;
+    std::mutex m_renderTargetCacheMutex;
+    gfxstream::base::LruCache<uint32_t, std::unique_ptr<RenderTarget>> m_renderTargetCache
+        GUARDED_BY(m_renderTargetCacheMutex);
 };
 
 }  // namespace vk

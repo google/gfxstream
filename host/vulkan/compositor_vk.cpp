@@ -1160,6 +1160,7 @@ VkFormatFeatureFlags CompositorVk::getFormatFeatures(VkFormat format, VkImageTil
 
 CompositorVk::RenderTarget* CompositorVk::getOrCreateRenderTargetInfo(
     const BorrowedImageInfoVk& imageInfo) {
+    std::lock_guard<std::mutex> lock(m_renderTargetCacheMutex);
     auto* renderTargetPtr = m_renderTargetCache.get(imageInfo.id);
     if (renderTargetPtr != nullptr) {
         return renderTargetPtr->get();
@@ -1672,7 +1673,10 @@ void CompositorVk::setScreenBackground(int width, int height, const uint8_t* rgb
     setUpScreenBackgroundImage(uint32_t(width), uint32_t(height), rgbaData);
 }
 
-void CompositorVk::onImageDestroyed(uint32_t imageId) { m_renderTargetCache.remove(imageId); }
+void CompositorVk::onImageDestroyed(uint32_t imageId) {
+    std::lock_guard<std::mutex> lock(m_renderTargetCacheMutex);
+    m_renderTargetCache.remove(imageId);
+}
 
 bool operator==(const CompositorVkBase::DescriptorSetContents& lhs,
                 const CompositorVkBase::DescriptorSetContents& rhs) {
