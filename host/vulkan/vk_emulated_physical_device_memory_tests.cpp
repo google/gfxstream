@@ -394,6 +394,89 @@ TEST(VkGuestMemoryUtilsTest, VulkanEnsureCachedCoherentMemoryAvailable) {
     EXPECT_THAT(actualGuestMemoryProperties,
                 EqsVkPhysicalDeviceMemoryProperties(expectedGuestMemoryProperties));
 }
+
+TEST(VkGuestMemoryUtilsTest, VulkanAMDCoherentFlagsNotLeakedToGuest) {
+    VkPhysicalDeviceMemoryProperties hostMemoryProperties = {};
+    hostMemoryProperties.memoryHeapCount = 2;
+    hostMemoryProperties.memoryHeaps[0] = {.size = 0x400000000, .flags = 0};
+    hostMemoryProperties.memoryHeaps[1] = {.size = 0x40000000,
+                                           .flags = VK_MEMORY_HEAP_DEVICE_LOCAL_BIT};
+
+    hostMemoryProperties.memoryTypeCount = 8;
+    // Standard types (types 0-3):
+    hostMemoryProperties.memoryTypes[0] = {.propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                                           .heapIndex = 1};
+    hostMemoryProperties.memoryTypes[1] = {.propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                                             VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                           .heapIndex = 0};
+    hostMemoryProperties.memoryTypes[2] = {.propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT |
+                                                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                                             VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                           .heapIndex = 1};
+    hostMemoryProperties.memoryTypes[3] = {.propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                                             VK_MEMORY_PROPERTY_HOST_COHERENT_BIT |
+                                                             VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
+                                           .heapIndex = 0};
+    // AMD-specific types (types 4-7) with DEVICE_COHERENT and DEVICE_UNCACHED:
+    hostMemoryProperties.memoryTypes[4] = {.propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT |
+                                                             VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD |
+                                                             VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD,
+                                           .heapIndex = 1};
+    hostMemoryProperties.memoryTypes[5] = {.propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                                             VK_MEMORY_PROPERTY_HOST_COHERENT_BIT |
+                                                             VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD |
+                                                             VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD,
+                                           .heapIndex = 0};
+    hostMemoryProperties.memoryTypes[6] = {.propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT |
+                                                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                                             VK_MEMORY_PROPERTY_HOST_COHERENT_BIT |
+                                                             VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD |
+                                                             VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD,
+                                           .heapIndex = 1};
+    hostMemoryProperties.memoryTypes[7] = {.propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                                             VK_MEMORY_PROPERTY_HOST_COHERENT_BIT |
+                                                             VK_MEMORY_PROPERTY_HOST_CACHED_BIT |
+                                                             VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD |
+                                                             VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD,
+                                           .heapIndex = 0};
+
+    gfxstream::host::FeatureSet features;
+    EmulatedPhysicalDeviceMemoryProperties helper(hostMemoryProperties, 0, features);
+
+    const auto guestProps = helper.getGuestMemoryProperties();
+
+    for (uint32_t i = 0; i < guestProps.memoryTypeCount; i++) {
+        EXPECT_EQ(
+            guestProps.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD,
+            0u)
+            << "Guest memory type " << i << " has DEVICE_COHERENT_BIT_AMD (0x40) leaked from host";
+        EXPECT_EQ(
+            guestProps.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD,
+            0u)
+            << "Guest memory type " << i << " has DEVICE_UNCACHED_BIT_AMD (0x80) leaked from host";
+    }
+
+    VkMemoryRequirements reqs = {
+        .size = 4096,
+        .alignment = 256,
+        .memoryTypeBits = 0xFF,
+    };
+
+    helper.transformToGuestMemoryRequirements(&reqs);
+
+    for (uint32_t i = 0; i < guestProps.memoryTypeCount; i++) {
+        if (!(reqs.memoryTypeBits & (1u << i))) continue;
+
+        VkMemoryPropertyFlags flags = guestProps.memoryTypes[i].propertyFlags;
+        EXPECT_EQ(flags & VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD, 0u)
+            << "Guest memory type " << i << " (in memoryTypeBits) has "
+            << "DEVICE_COHERENT_BIT_AMD, which the guest cannot handle";
+        EXPECT_EQ(flags & VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD, 0u)
+            << "Guest memory type " << i << " (in memoryTypeBits) has "
+            << "DEVICE_UNCACHED_BIT_AMD, which the guest cannot handle";
+    }
+}
+
 }  // namespace
 }  // namespace vk
 }  // namespace host

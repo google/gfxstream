@@ -51,6 +51,13 @@ EmulatedPhysicalDeviceMemoryProperties::EmulatedPhysicalDeviceMemoryProperties(
         }
     }
 
+    // Strip VK_AMD_device_coherent_memory flags that gfxstream does not translate.
+    for (uint32_t i = 0; i < mGuestMemoryProperties.memoryTypeCount; i++) {
+        mGuestMemoryProperties.memoryTypes[i].propertyFlags &=
+            ~(VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD |
+              VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD);
+    }
+
     // If enabled, hide non device memory types from the guest.
     // (useful to work around a bug where KVM can't map TTM memory).
     if (features.VulkanAllocateDeviceMemoryOnly.enabled()) {
