@@ -1078,7 +1078,7 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
                 deviceInfos[i].supportsExternalMemoryImport =
                     vk_util::extensionsSupported(deviceExts, externalMemoryDeviceExtNames);
 
-            // External memory export not supported on QNX
+            // External memory export not supported by VK_QNX_external_memory_screen_buffer
             if (deviceInfos[i].externalMemoryMode == ExternalMemory::Mode::QnxScreenBuffer) {
                 deviceInfos[i].supportsExternalMemoryExport = false;
             }

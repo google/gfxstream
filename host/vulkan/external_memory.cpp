@@ -108,9 +108,9 @@ ExternalMemory::Mode ExternalMemory::calculateMode(
         Mode::AndroidAHB,
     };
 #elif defined(__QNX__)
-    // TODO(aruby@blackberry.com): Use (DMABUF|OPAQUE_FD) on QNX, when screen_buffer not supported?
-    std::array<Mode, 1> supportedModes = {
+    std::array<Mode, 2> supportedModes = {
         Mode::QnxScreenBuffer,
+        Mode::OpaqueFd,
     };
 #elif defined(__APPLE__)
     std::array<Mode, 2> supportedModes = {
