@@ -15,6 +15,7 @@
 
 #include <vulkan/vulkan.h>
 
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -36,12 +37,23 @@ class ExternalMemory {
         HostAllocation,   // VK_EXT_external_memory_host
     };
 
+    static inline const auto kAllValidModes = {Mode::OpaqueFd,        Mode::OpaqueWin32,
+                                               Mode::Metal,           Mode::AndroidAHB,
+                                               Mode::QnxScreenBuffer, Mode::HostAllocation};
+
     static const char* to_string(const Mode mode);
     static Mode calculateMode(const std::vector<VkExtensionProperties>& deviceExts,
-                              const VkPhysicalDeviceMemoryProperties& memoryProps);
+                              const VkPhysicalDeviceMemoryProperties& memoryProps,
+                              std::optional<std::string> modeStrOpt);
     static VkExternalMemoryHandleTypeFlagBits getHandleType(const Mode mode);
     static void getDeviceExtensionsForMode(const Mode mode,
                                            std::vector<const char*>& outDeviceExtensions);
+
+   private:
+    static std::optional<Mode> getMode(std::string modeStr);
+    static bool modeSupported(const ExternalMemory::Mode mode,
+                              const std::vector<VkExtensionProperties>& deviceExts,
+                              const VkPhysicalDeviceMemoryProperties& memoryProps);
 };
 
 }  // namespace vk

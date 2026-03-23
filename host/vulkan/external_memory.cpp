@@ -42,9 +42,62 @@ const char* ExternalMemory::to_string(const ExternalMemory::Mode mode) {
     return "Unhandled";
 }
 
+std::optional<ExternalMemory::Mode> ExternalMemory::getMode(std::string modeStr) {
+    for (const auto currMode : kAllValidModes) {
+        if (to_string(currMode) == modeStr) {
+            return currMode;
+        }
+    }
+    return std::nullopt;
+}
+
+bool ExternalMemory::modeSupported(const ExternalMemory::Mode mode,
+                                   const std::vector<VkExtensionProperties>& deviceExts,
+                                   const VkPhysicalDeviceMemoryProperties& memoryProps) {
+    std::vector<const char*> extRequired;
+    getDeviceExtensionsForMode(mode, extRequired);
+    if (mode == Mode::HostAllocation) {
+        // TODO(b/469094646): Check this during the initial gpu selection
+        // Host allocation mode is designed for software renderers and only supported
+        // if there is only a single type of memory. Some drivers may still report
+        // invalid memory indices due to bugs in the extension's implementation, but
+        // this check ensures that we can safely keep using the memory in such cases.
+        if (memoryProps.memoryHeapCount != 1 || memoryProps.memoryTypeCount != 1) {
+            GFXSTREAM_INFO(
+                "Cannot use external memory mode HostAllocation with multiple memory types");
+            return false;
+        }
+    }
+
+    return vk_util::extensionsSupported(deviceExts, extRequired);
+}
+
 ExternalMemory::Mode ExternalMemory::calculateMode(
     const std::vector<VkExtensionProperties>& deviceExts,
-    const VkPhysicalDeviceMemoryProperties& memoryProps) {
+    const VkPhysicalDeviceMemoryProperties& memoryProps, std::optional<std::string> modeStrOpt) {
+    if (modeStrOpt) {
+        auto mode = getMode(*modeStrOpt);
+        if (!mode) {
+            GFXSTREAM_ERROR(
+                "%s(): Could not find an ExternalMemoryMode matching the provided "
+                "VulkanExternalMemoryMode string: %s ",
+                __func__, modeStrOpt->c_str());
+
+            return Mode::Unknown;
+        }
+
+        if (!modeSupported(*mode, deviceExts, memoryProps)) {
+            GFXSTREAM_ERROR(
+                "%s(): Vulkan driver does not support the memory mode provided by the "
+                "VulkanExternalMemoryMode string: %s",
+                __func__, to_string(*mode));
+
+            return Mode::NotSupported;
+        }
+
+        return *mode;
+    }
+
 #if defined(_WIN32)
     std::array<Mode, 2> supportedModes = {
         Mode::OpaqueWin32,
@@ -71,21 +124,7 @@ ExternalMemory::Mode ExternalMemory::calculateMode(
 #endif
 
     for (auto mode : supportedModes) {
-        std::vector<const char*> extRequired;
-        getDeviceExtensionsForMode(mode, extRequired);
-        if (mode == Mode::HostAllocation) {
-            // TODO(b/469094646): Check this during the initial gpu selection
-            // Host allocation mode is designed for software renderers and only supported
-            // if there is only a single type of memory. Some drivers may still report
-            // invalid memory indices due to bugs in the extension's implementation, but
-            // this check ensures that we can safely keep using the memory in such cases.
-            if (memoryProps.memoryHeapCount != 1 || memoryProps.memoryTypeCount != 1) {
-                GFXSTREAM_INFO(
-                    "Cannot use external memory mode HostAllocation with multiple memory types");
-                continue;
-            }
-        }
-        if (vk_util::extensionsSupported(deviceExts, extRequired)) {
+        if (modeSupported(mode, deviceExts, memoryProps)) {
             // Supported modes are in-order of preference, return the first one supported
             return mode;
         }

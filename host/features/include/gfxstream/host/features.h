@@ -414,6 +414,13 @@ struct FeatureSet {
         "app-compatiblity for common graphics layers in the guest.",
         &map,
     };
+    StringFeatureInfo VulkanExternalMemoryMode = {
+        "VulkanExternalMemoryMode",
+        "A string specifying the ExternalMemoryMode for VkEmulation to use, "
+        "which overrides what would otherwise be determined automatically based on the platform "
+        "and the available Vulkan driver extensions.",
+        &map,
+    };
 };
 
 #define GFXSTREAM_SET_BOOL_FEATURE_ON_CONDITION(set, feature, condition) \
