@@ -17,6 +17,7 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <variant>
 #include <vector>
 
@@ -31,15 +32,20 @@ using StringFeatureValue = std::optional<std::string>;
 using FeatureValue = std::variant<bool, StringFeatureValue>;
 
 class FeatureInfoBase {
-protected:
+   public:
+    void setReason(std::string reasonStr) { reason = reasonStr; }
+    const std::string& getReason() const { return reason; }
+    const std::string& getName() const { return name; }
+
+    virtual bool parseValue(std::string_view strValue) = 0;
+    virtual std::string getValueReadable() const = 0;
+
+   protected:
     FeatureInfoBase(const FeatureInfoBase& rhs) = default;
 
-    FeatureInfoBase(const char* name, const char* description, FeatureMap* map,
+    FeatureInfoBase(std::string_view name, std::string_view description, FeatureMap* map,
                     FeatureValue initialValue)
-        : name(name),
-          description(description),
-          reason("Default reason"),
-          value(initialValue) {
+        : name(name), description(description), reason("Default reason"), value(initialValue) {
         if (map) {
             (*map)[std::string(name)] = this;
         }
@@ -55,19 +61,50 @@ protected:
 
 class BoolFeatureInfo : public FeatureInfoBase {
 public:
-    BoolFeatureInfo(const char* name, const char* description, FeatureMap* map)
-        : FeatureInfoBase(name, description, map, false) {}
+ BoolFeatureInfo(std::string_view name, std::string_view description, FeatureMap* map)
+     : FeatureInfoBase(name, description, map, false) {}
 
-    void setEnabled(bool enabled) { value = enabled; }
-    bool enabled() const { return std::get<bool>(value); }
+ void setEnabled(bool enabled) { value = enabled; }
+ bool enabled() const { return std::get<bool>(value); }
+
+ bool parseValue(std::string_view strValue) {
+     if (strValue != "enabled" && strValue != "disabled") {
+         return false;
+     }
+
+     setEnabled(strValue == "enabled");
+     return true;
+ }
+
+ std::string getValueReadable() const {
+     if (std::get<bool>(value)) {
+         return "enabled";
+     } else {
+         return "disabled";
+     }
+ }
 };
 
 class StringFeatureInfo : public FeatureInfoBase {
 public:
-    StringFeatureInfo(const char* name, const char* description, FeatureMap* map)
-        : FeatureInfoBase(name, description, map, std::nullopt) {}
+ StringFeatureInfo(std::string_view name, std::string_view description, FeatureMap* map)
+     : FeatureInfoBase(name, description, map, std::nullopt) {}
 
-    StringFeatureValue getValue() const { return std::get<StringFeatureValue>(value); }
+ StringFeatureValue getValue() const { return std::get<StringFeatureValue>(value); }
+
+ bool parseValue(std::string_view strValue) {
+     value = StringFeatureValue(strValue);
+     return true;
+ }
+
+ std::string getValueReadable() const {
+     auto strValueOpt = std::get<StringFeatureValue>(value);
+     if (strValueOpt) {
+         return *strValueOpt;
+     } else {
+         return "(Unset)";
+     }
+ }
 };
 
 struct FeatureSet {
@@ -75,6 +112,8 @@ struct FeatureSet {
 
     FeatureSet(const FeatureSet& rhs);
     FeatureSet& operator=(const FeatureSet& rhs);
+
+    bool processFeatureString(std::string featureStr, std::string featureReason);
 
     FeatureMap map;
 
@@ -378,12 +417,11 @@ struct FeatureSet {
 };
 
 #define GFXSTREAM_SET_BOOL_FEATURE_ON_CONDITION(set, feature, condition) \
-    do                                                              \
-    {                                                               \
-        {                                                           \
-            (set)->feature.setEnabled(condition);                     \
-            (set)->feature.reason = #condition;                     \
-        }                                                           \
+    do {                                                                 \
+        {                                                                \
+            (set)->feature.setEnabled(condition);                        \
+            (set)->feature.setReason(#condition);                        \
+        }                                                                \
     } while (0)
 
 }  // namespace host

@@ -13,4 +13,8 @@ cc_library(
     copts = GFXSTREAM_HOST_COPTS,
     defines = GFXSTREAM_HOST_DEFINES,
     includes = ["include"],
+    deps = [
+        "//common/logging:gfxstream_common_logging",
+        "//common/utils:gfxstream_common_utils",
+    ],
 )

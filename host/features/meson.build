@@ -10,5 +10,5 @@ files_lib_host_features = files(
 lib_host_features = static_library(
   'host_features',
   files_lib_host_features,
-  include_directories: [inc_host_features],
+  include_directories: [inc_host_features, inc_common_logging, inc_common_utils],
 )

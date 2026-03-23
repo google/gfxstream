@@ -134,39 +134,11 @@ ParseGfxstreamFeatures(const int rendererFlags,
     for (const std::string& rendererFeature : gfxstream::Split(rendererFeatures, ",;")) {
         if (rendererFeature.empty()) continue;
 
-        const std::vector<std::string>& parts = gfxstream::Split(rendererFeature, ":");
-        if (parts.size() != 2) {
-            GFXSTREAM_ERROR("Error: invalid renderer features: %s", rendererFeature.c_str());
+        if (!features.processFeatureString(
+                rendererFeature, "Overridden via STREAM_RENDERER_PARAM_RENDERER_FEATURES")) {
+            GFXSTREAM_ERROR("Could not process the feature string: %s", rendererFeature.c_str());
             return std::nullopt;
         }
-
-        const std::string& feature_name = parts[0];
-
-        auto feature_it = features.map.find(feature_name);
-        if (feature_it == features.map.end()) {
-            GFXSTREAM_ERROR("Error: invalid renderer feature: '%s'", feature_name.c_str());
-            return std::nullopt;
-        }
-
-        const std::string& feature_value = parts[1];
-
-        auto& feature_info = feature_it->second;
-        if (feature_info->isStrValue) {
-            feature_info->strValue = feature_value;
-            feature_info->enabled = true;
-        } else {
-            if (feature_value != "enabled" && feature_value != "disabled") {
-                GFXSTREAM_ERROR("Error: invalid option %s for renderer feature: %s",
-                                feature_value.c_str(), feature_name.c_str());
-                return std::nullopt;
-            }
-
-            feature_info->enabled = feature_value == "enabled";
-        }
-
-        feature_info->reason = "Overridden via STREAM_RENDERER_PARAM_RENDERER_FEATURES";
-
-        GFXSTREAM_INFO("Gfxstream feature %s %s", feature_name.c_str(), feature_value.c_str());
     }
 
     if (features.SystemBlob.enabled()) {
@@ -794,9 +766,8 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     if (!features.MinimalLogging.enabled()) {
         GFXSTREAM_INFO("Gfxstream features:");
         for (const auto& [_, featureInfo] : features.map) {
-            GFXSTREAM_INFO("    %s: %s (%s)", featureInfo->name.c_str(),
-                           (featureInfo->enabled ? "enabled" : "disabled"),
-                           featureInfo->reason.c_str());
+            GFXSTREAM_INFO("    %s: %s (%s)", featureInfo->getName().c_str(),
+                           featureInfo->getValueReadable().c_str(), featureInfo->getReason().c_str());
         }
     }
 

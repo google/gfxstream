@@ -27,5 +27,8 @@ if (NOT TARGET gfxstream_features)
     target_link_libraries(
         gfxstream_features
         PUBLIC
-        gfxstream_features.headers)
+        gfxstream_features.headers
+        gfxstream_common_base
+        gfxstream_common_logging
+        gfxstream_common_utils)
 endif()
