@@ -31,6 +31,11 @@ namespace gfxstream {
 namespace host {
 namespace vk {
 
+static constexpr char kLavapipeIcdJson[] = "lvp_icd.json";
+static constexpr char kSwiftShaderIcdJson[] = "vk_swiftshader_icd.json";
+
+static std::string sDirectDriverLibraryPath = "";
+
 // Function to check if the current process is running with full elevated rights
 bool processInHighIntegrityMode() {
     bool highIntegrity = false;
@@ -68,6 +73,18 @@ static std::string icdJsonNameToProgramAndLauncherPaths(const std::string& icdFi
         fullpath = pj({gfxstream::base::getLauncherDirectory(), "lib", "qemu", suffix});
     }
     return fullpath;
+}
+
+static std::string resolveDriverDllPath(const std::string& icdFilename, const std::string& dllFilename) {
+    std::string jsonPath = icdJsonNameToProgramAndLauncherPaths(icdFilename);
+    std::string dirName, baseName;
+    if (gfxstream::base::PathUtils::split(jsonPath.c_str(), &dirName, &baseName)) {
+        std::string dllPath = pj({dirName, dllFilename});
+        if (pathExists(dllPath.c_str())) {
+            return dllPath;
+        }
+    }
+    return "";
 }
 
 static void setIcdPaths(const std::string& icdFilename) {
@@ -109,17 +126,34 @@ static void initIcdPaths(bool forTesting) {
     // environment variables. TODO(b/446119531) Load the driver dlls directly in this case.
     // Note: in testing mode the loader allows env vars in high integrity mode
     const bool highIntegrityMode = processInHighIntegrityMode();
-    if (highIntegrityMode && !forTesting) {
-        GFXSTREAM_ERROR("%s: Vulkan ICD selection is not supported with elevated permissions.",
-                        __func__);
-    }
 
     if (androidIcd == "lavapipe") {
         GFXSTREAM_INFO("%s: ICD set to 'lavapipe', using Lavapipe ICD", __func__);
-        setIcdPaths("lvp_icd.json");
+        if (highIntegrityMode && !forTesting) {
+            sDirectDriverLibraryPath = resolveDriverDllPath(kLavapipeIcdJson, "libvulkan_lvp" + std::string(LIBSUFFIX));
+            if (sDirectDriverLibraryPath.empty()) {
+                GFXSTREAM_ERROR("%s: Failed to resolve Lavapipe driver DLL path.", __func__);
+            } else {
+                GFXSTREAM_INFO("%s: Resolved Lavapipe driver DLL path for direct loading: %s", __func__, sDirectDriverLibraryPath.c_str());
+            }
+        } else {
+            setIcdPaths(kLavapipeIcdJson);
+        }
     } else if (androidIcd == "swiftshader") {
         GFXSTREAM_INFO("%s: ICD set to 'swiftshader', using Swiftshader ICD", __func__);
-        setIcdPaths("vk_swiftshader_icd.json");
+        if (highIntegrityMode && !forTesting) {
+            sDirectDriverLibraryPath = resolveDriverDllPath(kSwiftShaderIcdJson, "vk_swiftshader" + std::string(LIBSUFFIX));
+            if (sDirectDriverLibraryPath.empty()) {
+                sDirectDriverLibraryPath = resolveDriverDllPath(kSwiftShaderIcdJson, "libvk_swiftshader" + std::string(LIBSUFFIX));
+            }
+            if (sDirectDriverLibraryPath.empty()) {
+                GFXSTREAM_ERROR("%s: Failed to resolve SwiftShader driver DLL path.", __func__);
+            } else {
+                GFXSTREAM_INFO("%s: Resolved SwiftShader driver DLL path for direct loading: %s", __func__, sDirectDriverLibraryPath.c_str());
+            }
+        } else {
+            setIcdPaths(kSwiftShaderIcdJson);
+        }
     } else {
 #ifdef __APPLE__
         // Mac: Use MoltenVK by default unless GPU mode is set to swiftshader
@@ -213,6 +247,23 @@ class SharedLibraries {
                 return funcPtr;
             }
         }
+
+        // Fallback for ICD direct loading (bypassing Vulkan Loader)
+        PFN_vkGetInstanceProcAddr gipa = nullptr;
+        for (const auto& lib : mLibs) {
+            gipa = reinterpret_cast<PFN_vkGetInstanceProcAddr>(lib->findSymbol("vkGetInstanceProcAddr"));
+            if (gipa) break;
+            gipa = reinterpret_cast<PFN_vkGetInstanceProcAddr>(lib->findSymbol("vk_icdGetInstanceProcAddr"));
+            if (gipa) break;
+        }
+
+        if (gipa) {
+            void* funcPtr = reinterpret_cast<void*>(gipa(nullptr, name));
+            if (funcPtr) {
+                return funcPtr;
+            }
+        }
+
         return nullptr;
     }
 
@@ -257,6 +308,14 @@ class VulkanDispatchImpl {
         if (!explicitPath.empty()) {
             return {
                 explicitPath,
+            };
+        }
+
+        const bool highIntegrityMode = processInHighIntegrityMode();
+        if (highIntegrityMode && !mForTesting && !sDirectDriverLibraryPath.empty()) {
+            GFXSTREAM_INFO("%s: Bypassing Vulkan Loader, using direct driver path: %s", __func__, sDirectDriverLibraryPath.c_str());
+            return {
+                sDirectDriverLibraryPath,
             };
         }
 
