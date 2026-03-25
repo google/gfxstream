@@ -1465,7 +1465,7 @@ std::unique_ptr<FrameBuffer::Impl> FrameBuffer::Impl::Create(FrameBuffer* frameb
     }
 
     // VkDecoderGlobalState must be initialized after m_emulationVk initialization is complete
-    if (impl->m_features.Vulkan.enabled) {
+    if (impl->m_features.Vulkan.enabled()) {
         vk::VkDecoderGlobalState::initialize(impl->m_emulationVk.get());
     }
 
