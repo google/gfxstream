@@ -339,6 +339,33 @@ void VulkanDispatchImpl::initialize(bool forTesting) {
         return;
     }
 
+#if defined(CONFIG_AEMU) && defined(_WIN32)
+    // We cannot guarantee compatibility with implicit layers, which can be problematic on Windows.
+    // Disable implicit layers for the loader if the user didn't set VK_LOADER_LAYERS_DISABLE and
+    // won't be using the RenderDoc integration Ref: b/492462313
+    if (gfxstream::base::getEnvironmentVariable("ANDROID_EMU_RENDERDOC").empty()) {
+        const std::string implicitLayersTag = "~implicit~";
+        const std::string allLayersTag = "~all~";
+        const std::string vulkanLayersDisabled =
+            gfxstream::base::getEnvironmentVariable("VK_LOADER_LAYERS_DISABLE");
+        if (vulkanLayersDisabled.find(implicitLayersTag) != std::string::npos ||
+            vulkanLayersDisabled.find(allLayersTag) != std::string::npos) {
+            GFXSTREAM_INFO("Implicit Vulkan layers are disabled by the user.");
+        } else if (vulkanLayersDisabled.empty()) {
+            GFXSTREAM_INFO(
+                "Disabling implicit Vulkan layers to avoid compatibility issues. Set "
+                "VK_LOADER_LAYERS_DISABLE manually to disable this behavior.");
+            gfxstream::base::setEnvironmentVariable("VK_LOADER_LAYERS_DISABLE", implicitLayersTag);
+        } else {
+            // Allow users to overwrite auto disablement
+            GFXSTREAM_WARNING(
+                "VK_LOADER_LAYERS_DISABLE is set to '%s' by the user, implicit layers won't be auto "
+                "disabled. This may cause compatibility issues with the emulator.",
+                vulkanLayersDisabled.c_str());
+        }
+    }
+#endif
+
     mForTesting = forTesting;
     initIcdPaths(mForTesting);
 
