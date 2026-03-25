@@ -11,6 +11,9 @@ cc_library(
     hdrs = glob([
         "include/**/*.h",
     ]),
-    copts = ["-fno-exceptions"],
+    copts = select({
+        "@platforms//os:windows": ["/EHs-c-"],
+        "//conditions:default": ["-fno-exceptions"],
+    }),
     includes = ["include"],
 )

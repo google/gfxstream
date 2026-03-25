@@ -9,6 +9,9 @@ cc_library(
     name = "gfxstream_common_utils",
     srcs = ["strings.cpp"],
     hdrs = glob(["include/**/*.h"]),
-    copts = ["-fno-exceptions"],
+    copts = select({
+        "@platforms//os:windows": ["/EHs-c-"],
+        "//conditions:default": ["-fno-exceptions"],
+    }),
     includes = ["include"],
 )
