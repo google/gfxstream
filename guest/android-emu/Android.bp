@@ -33,7 +33,6 @@ cc_library_shared {
         "aemu/base/threads/AndroidThread_pthread.cpp",
         "aemu/base/threads/AndroidWorkPool.cpp",
         "aemu/base/Tracing.cpp",
-        "android/utils/debug.c",
     ],
     shared_libs: [
         "libcutils",
@@ -68,7 +67,6 @@ cc_library_static {
         "aemu/base/threads/AndroidThread_pthread.cpp",
         "aemu/base/threads/AndroidWorkPool.cpp",
         "aemu/base/Tracing.cpp",
-        "android/utils/debug.c",
     ],
     shared_libs: [
         "libcutils",

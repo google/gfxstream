@@ -19,7 +19,6 @@ cc_library(
         "aemu/base/threads/AndroidThreadStore.cpp",
         "aemu/base/threads/AndroidThread_pthread.cpp",
         "aemu/base/threads/AndroidWorkPool.cpp",
-        "android/utils/debug.c",
     ],
     hdrs = glob([
         "**/*.h",

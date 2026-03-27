@@ -26,17 +26,6 @@ namespace gfxstream {
 namespace host {
 namespace gl {
 
-#define DEBUG 0
-
-#if DEBUG
-#define DPRINT(...) do { \
-    if (!VERBOSE_CHECK(gles1emu)) VERBOSE_ENABLE(gles1emu); \
-    VERBOSE_PRINT(gles1emu, __VA_ARGS__); \
-} while (0)
-#else
-#define DPRINT(...)
-#endif
-
 // An unimplemented function which prints out an error message.
 // To make it consistent with the guest, all GLES1 functions not supported by
 // the guest driver should be redirected to this function.
