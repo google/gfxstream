@@ -20,6 +20,7 @@ int qemu_pipe_read_fully(QEMU_PIPE_HANDLE pipe, void* buffer, int size) {
     while (size > 0) {
       int n = QEMU_PIPE_RETRY(qemu_pipe_read(pipe, p, size));
       if (n < 0) return n;
+      if (n == 0) return -1; // EOF
 
       p += n;
       size -= n;
@@ -34,6 +35,7 @@ int qemu_pipe_write_fully(QEMU_PIPE_HANDLE pipe, const void* buffer, int size) {
     while (size > 0) {
       int n = QEMU_PIPE_RETRY(qemu_pipe_write(pipe, p, size));
       if (n < 0) return n;
+      if (n == 0) return -1; // EOF
 
       p += n;
       size -= n;
