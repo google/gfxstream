@@ -17,6 +17,7 @@
 #ifndef __GRALLOC_CB_H__
 #define __GRALLOC_CB_H__
 
+#include <atomic>
 #include <cinttypes>
 #include <cutils/native_handle.h>
 
@@ -103,8 +104,7 @@ struct cb_handle_t : public native_handle_t {
     const uint32_t bufferSize;
     const uint32_t externalMetadataOffset; // relative to bufferPtr
     const uint32_t stride;
-    uint8_t        lockedUsage;
-    uint8_t        unused[3];
+    std::atomic<uint32_t> lockState = 0;
 };
 
 #endif //__GRALLOC_CB_H__
