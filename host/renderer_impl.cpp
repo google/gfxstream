@@ -342,12 +342,6 @@ void RendererImpl::pauseAllPreSave() {
             c->renderThread()->pausePreSnapshot();
         }
     }
-    {
-        std::lock_guard<std::mutex> lock(mAddressSpaceRenderThreadMutex);
-        for (const auto& thread : mAddressSpaceRenderThreads) {
-            thread->pausePreSnapshot();
-        }
-    }
     waitForProcessCleanup();
 }
 
