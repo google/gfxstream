@@ -3483,6 +3483,19 @@ class VkDecoderGlobalState::Impl {
     VkResult on_vkCreateSampler(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
                                 VkDevice boxed_device, const VkSamplerCreateInfo* pCreateInfo,
                                 const VkAllocationCallbacks* pAllocator, VkSampler* pSampler) {
+        if (pCreateInfo->borderColor == VK_BORDER_COLOR_FLOAT_CUSTOM_EXT ||
+            pCreateInfo->borderColor == VK_BORDER_COLOR_INT_CUSTOM_EXT) {
+            const VkSamplerCustomBorderColorCreateInfoEXT* customColorCI =
+                vk_find_struct<VkSamplerCustomBorderColorCreateInfoEXT>(pCreateInfo);
+            if (!customColorCI) {
+                // Avoid invalid usage and crashes on the driver, ref: b/495478375
+                GFXSTREAM_ERROR("%s: Invalid usage with missing custom border color structure.",
+                                __func__);
+                const_cast<VkSamplerCreateInfo*>(pCreateInfo)->borderColor =
+                    VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
+            }
+        }
+
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
         VkResult result = vk->vkCreateSampler(device, pCreateInfo, pAllocator, pSampler);
