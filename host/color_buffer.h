@@ -105,21 +105,21 @@ class ColorBuffer : public LazySnapshotObj<ColorBuffer> {
     std::optional<BlobDescriptorInfo> exportBlob();
 
 #if GFXSTREAM_ENABLE_HOST_GLES
-    GLuint glOpGetTexture();
+    bool canUseGlOps();
     bool glOpBlitFromCurrentReadBuffer();
     bool glOpBindToTexture();
     bool glOpBindToTexture2();
     bool glOpBindToRenderbuffer();
-    void glOpReadback(unsigned char* img, bool readbackBgra);
-    void glOpReadbackAsync(GLuint buffer, bool readbackBgra);
+    bool glOpReadback(unsigned char* img, bool readbackBgra);
+    bool glOpReadbackAsync(GLuint buffer, bool readbackBgra);
     bool glOpImportEglNativePixmap(void* pixmap, bool preserveContent);
-    void glOpSwapYuvTexturesAndUpdate(GLenum format, GLenum type, GfxstreamFormat texturesFormat,
+    bool glOpSwapYuvTexturesAndUpdate(GLenum format, GLenum type, GfxstreamFormat texturesFormat,
                                       GLuint* textures);
     bool glOpReadContents(size_t* outNumBytes, void* outContents);
     bool glOpIsFastBlitSupported() const;
-    void glOpPostLayer(const ComposeLayer& l, int frameWidth, int frameHeight,
+    bool glOpPostLayer(const ComposeLayer& l, int frameWidth, int frameHeight,
         const std::optional<std::array<float, 16>>& colorTransform);
-    void glOpPostViewportScaledWithOverlay(
+    bool glOpPostViewportScaledWithOverlay(
         float rotation, float dx, float dy, float scaleX, float scaleY,
         const std::optional<std::array<float, 16>>& colorTransform);
 #endif

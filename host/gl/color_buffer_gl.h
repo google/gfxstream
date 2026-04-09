@@ -189,9 +189,9 @@ class ColorBufferGl {
 
     // Read the content of the whole ColorBufferGl as 32-bit RGBA pixels.
     // |img| must be a buffer large enough (i.e. width * height * 4).
-    void readback(unsigned char* img, bool readbackBgra = false);
+    bool readback(unsigned char* img, bool readbackBgra = false);
     // readback() but async (to the specified |buffer|)
-    void readbackAsync(GLuint buffer, bool readbackBgra = false);
+    bool readbackAsync(GLuint buffer, bool readbackBgra = false);
 
     void onSave(gfxstream::Stream* stream);
     static std::unique_ptr<ColorBufferGl> onLoad(gfxstream::Stream* stream, EGLDisplay p_display,
@@ -205,7 +205,6 @@ class ColorBufferGl {
     bool isFastBlitSupported() const { return m_fastBlitSupported; }
     void postLayer(const ComposeLayer& l, int frameWidth, int frameHeight,
                    const std::optional<std::array<float, 16>>& colorTransform);
-    GLuint getTexture();
 
     std::unique_ptr<BorrowedImageInfo> getBorrowedImageInfo();
 

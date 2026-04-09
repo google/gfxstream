@@ -4742,6 +4742,16 @@ bool FrameBuffer::Impl::bindColorBufferToTexture2(HandleType p_colorbuffer) {
         return false;
     }
 
+    if (!colorBuffer->canUseGlOps()) {
+        // cannot call glOpBindToTexture2 without a valid gl colorbuffer
+        static bool errorReported = false;
+        if (!errorReported) {
+            GFXSTREAM_ERROR("%s: Cannot use GL colorbuffer operations", __func__);
+            errorReported = true;
+        }
+        return false;
+    }
+
     return colorBuffer->glOpBindToTexture2();
 }
 

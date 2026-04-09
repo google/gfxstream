@@ -1096,10 +1096,10 @@ bool ColorBufferGl::postViewportScaledWithOverlay(
                                           scaleY, colorTransform);
 }
 
-void ColorBufferGl::readback(unsigned char* img, bool readbackBgra) {
+bool ColorBufferGl::readback(unsigned char* img, bool readbackBgra) {
     RecursiveScopedContextBind context(m_helper);
     if (!context.isOk()) {
-        return;
+        return false;
     }
 
     waitSync();
@@ -1113,12 +1113,13 @@ void ColorBufferGl::readback(unsigned char* img, bool readbackBgra) {
         s_gles2.glReadPixels(0, 0, m_width, m_height, format, GL_UNSIGNED_BYTE, img);
         unbindFbo();
     }
+    return true;
 }
 
-void ColorBufferGl::readbackAsync(GLuint buffer, bool readbackBgra) {
+bool ColorBufferGl::readbackAsync(GLuint buffer, bool readbackBgra) {
     RecursiveScopedContextBind context(m_helper);
     if (!context.isOk()) {
-        return;
+        return false;
     }
 
     waitSync();
@@ -1132,6 +1133,7 @@ void ColorBufferGl::readbackAsync(GLuint buffer, bool readbackBgra) {
         s_gles2.glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
         unbindFbo();
     }
+    return true;
 }
 
 HandleType ColorBufferGl::getHndl() const { return mHndl; }
@@ -1204,8 +1206,6 @@ void ColorBufferGl::restore() {
         m_yuv_converter.reset(new YUVConverter(m_width, m_height, m_format));
     }
 }
-
-GLuint ColorBufferGl::getTexture() { return m_tex; }
 
 void ColorBufferGl::postLayer(const ComposeLayer& l, int frameWidth, int frameHeight,
         const std::optional<std::array<float, 16>>& colorTransform) {
