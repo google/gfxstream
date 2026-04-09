@@ -111,7 +111,8 @@ bool parseAndroidNativeBufferInfo(const VkImageCreateInfo* pCreateInfo,
 std::unique_ptr<AndroidNativeBufferInfo> AndroidNativeBufferInfo::create(
     VkEmulation* emu, VulkanDispatch* vk, VkDevice device, gfxstream::base::BumpPool& allocator,
     const VkImageCreateInfo* pCreateInfo, const VkNativeBufferANDROID* nativeBufferANDROID,
-    const VkAllocationCallbacks* pAllocator, const VkPhysicalDeviceMemoryProperties* memProps) {
+    const VkAllocationCallbacks* pAllocator, const VkPhysicalDeviceMemoryProperties* memProps,
+    DebugUtilsHelper debugUtilsHelper) {
     bool colorBufferExportedToGl = false;
     bool externalMemoryCompatible = false;
 
@@ -395,10 +396,10 @@ std::unique_ptr<AndroidNativeBufferInfo> AndroidNativeBufferInfo::create(
         }
     }
 
-    emu->getDebugUtilsHelper().addDebugLabel(out->mStagingBuffer, "ANB_StagingBuffer:%d",
-                                             out->mColorBufferHandle);
-    emu->getDebugUtilsHelper().addDebugLabel(out->mStagingBufferMemory, "ANB_StagingMemory:%d",
-                                             out->mColorBufferHandle);
+    debugUtilsHelper.addDebugLabel(out->mStagingBuffer, "ANB_StagingBuffer:%d",
+                                   out->mColorBufferHandle);
+    debugUtilsHelper.addDebugLabel(out->mStagingBufferMemory, "ANB_StagingMemory:%d",
+                                   out->mColorBufferHandle);
 
     out->mQsriWaitFencePool = std::make_unique<AndroidNativeBufferInfo::QsriWaitFencePool>(
         out->mDeviceDispatch, out->mDevice);

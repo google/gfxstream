@@ -106,6 +106,7 @@ class VkEmulation {
         bool enableYcbcrEmulation = false;
         bool guestVulkanOnly = false;
         bool useDedicatedAllocations = false;
+        uint32_t guestVulkanMaxApiVersion = VK_API_VERSION_1_3;
     };
     void initFeatures(Features features);
 
@@ -179,7 +180,7 @@ class VkEmulation {
     std::string getGpuVersionString() const;
     std::string getInstanceExtensionsString() const;
     std::string getDeviceExtensionsString() const;
-    void getVulkanEmulationDeviceInfo(char** device_name, char** driver_info,
+    bool getVulkanEmulationDeviceInfo(char** device_name, char** driver_info,
                                       uint32_t* driver_version, uint32_t* api_version,
                                       uint32_t* vendor_id, uint32_t* device_id,
                                       uint32_t* device_type, uint64_t* device_memory);
@@ -439,6 +440,14 @@ class VkEmulation {
                                                                          bool colorBufferIsTarget);
     std::unique_ptr<BorrowedImageInfoVk> borrowColorBufferForDisplay(uint32_t colorBufferHandle);
 
+    void applyApiVersionLimits(uint32_t& apiVersion) const {
+        if (apiVersion > mGuestVulkanMaxApiVersion) {
+            apiVersion = mGuestVulkanMaxApiVersion;
+        }
+    }
+
+    uint32_t vulkanInstanceVersion() const;
+
    private:
     VkEmulation() = default;
 
@@ -531,11 +540,15 @@ class VkEmulation {
     bool readColorBufferPixelsScaledGpu(uint32_t colorBufferHandle, int pixelsWidth,
                                         int pixelsHeight, GFXSTREAM_ROTATION pixelsRotation,
                                         const Rect& rect, GfxstreamFormat pixelsFormat,
-                                        void* outPixels, const std::optional<std::array<float, 16>>& colorTransform);
+                                        void* outPixels,
+                                        const std::optional<std::array<float, 16>>& colorTransform);
     bool readColorBufferPixelsScaledCpu(uint32_t colorBufferHandle, int pixelsWidth,
                                         int pixelsHeight, GFXSTREAM_ROTATION pixelsRotation,
                                         const Rect& rect, GfxstreamFormat pixelsFormat,
-                                        void* outPixels, const std::optional<std::array<float, 16>>& colorTransform);
+                                        void* outPixels,
+                                        const std::optional<std::array<float, 16>>& colorTransform);
+
+    void setFeatures(const gfxstream::host::FeatureSet& features);
 
     std::mutex mMutex;
 
@@ -570,6 +583,10 @@ class VkEmulation {
     bool mGuestVulkanOnly = false;
 
     bool mUseDedicatedAllocations = false;
+
+    // This represents the maximum vulkan api version that should be reported to the guest and is
+    // not related to the host vulkan level available or used.
+    uint32_t mGuestVulkanMaxApiVersion = VK_API_VERSION_1_3;
 
     // Instance and device for creating the system-wide shareable objects.
     VkInstance mInstance = VK_NULL_HANDLE;

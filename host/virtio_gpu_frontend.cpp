@@ -1000,7 +1000,7 @@ int VirtioGpuFrontend::snapshotRenderer(const char* directory) {
     const std::filesystem::path snapshotDirectory = std::string(directory);
     const std::filesystem::path snapshotPath = snapshotDirectory / kSnapshotBasenameRenderer;
 
-    StdioStream stream(fopen(snapshotPath.c_str(), "wb"), StdioStream::kOwner);
+    StdioStream stream(fopen(snapshotPath.string().c_str(), "wb"), StdioStream::kOwner);
 
     if (!mRenderer) {
         GFXSTREAM_ERROR("Failed to snapshot renderer: renderer not available.");
@@ -1042,9 +1042,9 @@ int VirtioGpuFrontend::snapshotFrontend(const char* directory) {
 
     const std::filesystem::path snapshotDirectory = std::string(directory);
     const std::filesystem::path snapshotPath = snapshotDirectory / kSnapshotBasenameFrontend;
-    int snapshotFd = open(snapshotPath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0660);
+    int snapshotFd = open(snapshotPath.string().c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0660);
     if (snapshotFd < 0) {
-        GFXSTREAM_ERROR("Failed to save snapshot: failed to open %s", snapshotPath.c_str());
+        GFXSTREAM_ERROR("Failed to save snapshot: failed to open %s", snapshotPath.string().c_str());
         return -1;
     }
     google::protobuf::io::FileOutputStream snapshotOutputStream(snapshotFd);
@@ -1061,7 +1061,7 @@ int VirtioGpuFrontend::snapshotAsg(const char* directory) {
     const std::filesystem::path snapshotDirectory = std::string(directory);
     const std::filesystem::path snapshotPath = snapshotDirectory / kSnapshotBasenameAsg;
 
-   StdioStream stream(fopen(snapshotPath.c_str(), "wb"), StdioStream::kOwner);
+   StdioStream stream(fopen(snapshotPath.string().c_str(), "wb"), StdioStream::kOwner);
 
     int ret = gfxstream_address_space_save_memory_state(&stream);
     if (ret) {
@@ -1106,7 +1106,7 @@ int VirtioGpuFrontend::restoreRenderer(const char* directory) {
     const std::filesystem::path snapshotDirectory = std::string(directory);
     const std::filesystem::path snapshotPath = snapshotDirectory / kSnapshotBasenameRenderer;
 
-    StdioStream stream(fopen(snapshotPath.c_str(), "rb"), StdioStream::kOwner);
+    StdioStream stream(fopen(snapshotPath.string().c_str(), "rb"), StdioStream::kOwner);
 
     if (!mRenderer) {
         GFXSTREAM_ERROR("Failed to restore renderer: renderer not available.");
@@ -1123,9 +1123,9 @@ int VirtioGpuFrontend::restoreFrontend(const char* directory) {
 
     gfxstream::host::snapshot::VirtioGpuFrontendSnapshot snapshot;
     {
-        int snapshotFd = open(snapshotPath.c_str(), O_RDONLY);
+        int snapshotFd = open(snapshotPath.string().c_str(), O_RDONLY);
         if (snapshotFd < 0) {
-            GFXSTREAM_ERROR("Failed to restore snapshot: failed to open %s", snapshotPath.c_str());
+            GFXSTREAM_ERROR("Failed to restore snapshot: failed to open %s", snapshotPath.string().c_str());
             return -1;
         }
         google::protobuf::io::FileInputStream snapshotInputStream(snapshotFd);
@@ -1170,7 +1170,7 @@ int VirtioGpuFrontend::restoreAsg(const char* directory) {
     const std::filesystem::path snapshotDirectory = std::string(directory);
     const std::filesystem::path snapshotPath = snapshotDirectory / kSnapshotBasenameAsg;
 
-    StdioStream stream(fopen(snapshotPath.c_str(), "rb"), StdioStream::kOwner);
+    StdioStream stream(fopen(snapshotPath.string().c_str(), "rb"), StdioStream::kOwner);
 
     // Gather external memory info that the ASG device needs to reload.
     AddressSpaceDeviceLoadResources asgLoadResources;

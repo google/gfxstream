@@ -7,13 +7,13 @@ bazel_dep(name = "googletest", version = "1.17.0.bcr.2", repo_name = "com_google
 bazel_dep(name = "platforms", version = "0.0.11")
 bazel_dep(name = "rules_cc", version = "0.2.16")
 bazel_dep(name = "rules_license", version = "1.0.0")
+bazel_dep(name = "protobuf", version = "33.4")
 
 ###########  When building Gfxstream from standalone repo ###########
 
 bazel_dep(name = "abseil-cpp", version = "20260107.0", dev_dependency = True)
 bazel_dep(name = "aspect_bazel_lib", version = "2.22.5", dev_dependency = True)
 bazel_dep(name = "bazel_skylib", version = "1.7.1", dev_dependency = True)
-bazel_dep(name = "protobuf", version = "33.4", dev_dependency = True)
 bazel_dep(name = "toolchains_llvm", version = "1.6.0", dev_dependency = True)
 bazel_dep(name = "rules_python", version = "1.5.0", dev_dependency = True)
 bazel_dep(name = "rules_shell", version = "0.6.1", dev_dependency = True)

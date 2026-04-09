@@ -377,15 +377,22 @@ bool VkEmulation::StagingBuffer::create(VulkanDispatch* vk, VkDevice device,
 }
 
 void VkEmulation::StagingBuffer::destroy(VulkanDispatch* vk, VkDevice device) {
+    if (!vk || device == VK_NULL_HANDLE) {
+        GFXSTREAM_WARNING("StagingBuffer::destroy: invalid parameters");
+        return;
+    }
     if (mMappedPtr) {
         vk->vkUnmapMemory(device, mMemory);
         mMappedPtr = nullptr;
     }
-    vk->vkDestroyBuffer(device, mBuffer, nullptr);
-    vk->vkFreeMemory(device, mMemory, nullptr);
-
-    mMemory = VK_NULL_HANDLE;
-    mBuffer = VK_NULL_HANDLE;
+    if (mBuffer != VK_NULL_HANDLE) {
+        vk->vkDestroyBuffer(device, mBuffer, nullptr);
+        mBuffer = VK_NULL_HANDLE;
+    }
+    if (mMemory != VK_NULL_HANDLE) {
+        vk->vkFreeMemory(device, mMemory, nullptr);
+        mMemory = VK_NULL_HANDLE;
+    }
 }
 
 ExternalMemory::Mode VkEmulation::getExternalMemoryMode() const {
@@ -770,8 +777,8 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
     std::lock_guard<std::mutex> lock(emulation->mMutex);
 
     emulation->mCallbacks = callbacks;
-    emulation->mFeatures = features;
     emulation->mGvk = gvk;
+    emulation->setFeatures(features);
 
     std::vector<const char*> getPhysicalDeviceProperties2InstanceExtNames = {
         VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
@@ -927,6 +934,15 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
             }
         }
     }
+#ifdef CONFIG_AEMU
+    // This probably won't work for any vulkan apps, and should not be chosen with the auto gpu
+    // selection system, but provide a warning in case the user enforces an old vulkan driver.
+    if (maxInstanceVersion == VK_VERSION_1_0) {
+        GFXSTREAM_ERROR(
+            "Selected Vulkan driver only supports Vulkan 1.0, Android Emulator is not fully "
+            "supported. Please update your drivers or use software rendering.");
+    }
+#endif
 
     GFXSTREAM_DEBUG("Creating an instance, asking for version %d.%d.%d ...",
                     VK_API_VERSION_MAJOR(appInfo.apiVersion),
@@ -1301,10 +1317,14 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
     }
 
     auto deviceVersion = emulation->mDeviceInfo.physdevProps.apiVersion;
-    GFXSTREAM_INFO("Selecting Vulkan device: %s, Version: %d.%d.%d",
+    char deviceInitInfo[1024];
+    snprintf(deviceInitInfo, sizeof(deviceInitInfo),
+        "Selecting Vulkan device: %s, Version: %d.%d.%d",
                    emulation->mDeviceInfo.physdevProps.deviceName,
                    VK_API_VERSION_MAJOR(deviceVersion), VK_API_VERSION_MINOR(deviceVersion),
                    VK_API_VERSION_PATCH(deviceVersion));
+    GFXSTREAM_INFO(deviceInitInfo);
+    get_gfxstream_vm_operations().add_crash_reporter_log(deviceInitInfo);
 
     GFXSTREAM_INFO("Using Vulkan externalMemoryMode: %s for VkEmulation",
                    ExternalMemory::to_string(emulation->mDeviceInfo.externalMemoryMode));
@@ -1340,6 +1360,36 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
         emulation->mDeviceInfo.supportsNvidiaDeviceDiagnosticCheckpoints ? "true" : "false");
     GFXSTREAM_DEBUG("    supportsPrivateData = %s",
                     emulation->mDeviceInfo.supportsPrivateData ? "true" : "false");
+
+    // TODO: move string generation to device info and do line by line logging without duplication
+    snprintf(deviceInitInfo, sizeof(deviceInitInfo),
+        "VkEmulation deviceInfo: \n"
+        "hasGraphicsQueueFamily = %d\n"
+        "hasComputeQueueFamily = %d\n"
+        "externalMemoryMode = %s\n"
+        "supportsExternalMemoryImport = %d\n"
+        "supportsExternalMemoryExport = %d\n"
+        "supportsDriverProperties = %d\n"
+        "supportsExternalMemoryHostProps = %d\n"
+        "hasSamplerYcbcrConversionExtension = %d\n"
+        "supportsSamplerYcbcrConversion = %d\n"
+        "glInteropSupported = %d\n"
+        "hasNvidiaDeviceDiagnosticCheckpointsExtension = %d\n"
+        "supportsNvidiaDeviceDiagnosticCheckpoints = %d\n"
+        "supportsPrivateData = %d\n",
+        emulation->mDeviceInfo.hasGraphicsQueueFamily, emulation->mDeviceInfo.hasComputeQueueFamily,
+        ExternalMemory::to_string(emulation->mDeviceInfo.externalMemoryMode),
+        emulation->mDeviceInfo.supportsExternalMemoryImport,
+        emulation->mDeviceInfo.supportsExternalMemoryExport,
+        emulation->mDeviceInfo.supportsDriverProperties,
+        emulation->mDeviceInfo.supportsExternalMemoryHostProps,
+        emulation->mDeviceInfo.hasSamplerYcbcrConversionExtension,
+        emulation->mDeviceInfo.supportsSamplerYcbcrConversion,
+        emulation->mDeviceInfo.glInteropSupported,
+        emulation->mDeviceInfo.hasNvidiaDeviceDiagnosticCheckpointsExtension,
+        emulation->mDeviceInfo.supportsNvidiaDeviceDiagnosticCheckpoints,
+        emulation->mDeviceInfo.supportsPrivateData);
+    get_gfxstream_vm_operations().add_crash_reporter_log(deviceInitInfo);
 
     float priority = 1.0f;
     VkDeviceQueueCreateInfo dqCi = {
@@ -1512,6 +1562,15 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
 
     GFXSTREAM_DEBUG("Vulkan device queue obtained.");
 
+    if (debugUtilsAvailableAndRequested) {
+        emulation->mDebugUtilsAvailableAndRequested = true;
+        emulation->mDebugUtilsHelper =
+            DebugUtilsHelper::withUtilsEnabled(emulation->mDevice, emulation->mIvk);
+
+        emulation->mDebugUtilsHelper.addDebugLabel(emulation->mInstance, "AEMU_Instance");
+        emulation->mDebugUtilsHelper.addDebugLabel(emulation->mDevice, "AEMU_Device");
+    }
+
     VkCommandPoolCreateInfo poolCi = {
         VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
         0,
@@ -1521,11 +1580,11 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
 
     VkResult poolCreateRes =
         dvk->vkCreateCommandPool(emulation->mDevice, &poolCi, nullptr, &emulation->mCommandPool);
-
     if (poolCreateRes != VK_SUCCESS) {
         GFXSTREAM_ERROR("Failed to create command pool. Error: %s.", string_VkResult(poolCreateRes));
         return nullptr;
     }
+    emulation->mDebugUtilsHelper.addDebugLabel(emulation->mCommandPool, "AEMU_CommandPool");
 
     VkCommandBufferAllocateInfo cbAi = {
         VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -1537,11 +1596,11 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
 
     VkResult cbAllocRes =
         dvk->vkAllocateCommandBuffers(emulation->mDevice, &cbAi, &emulation->mCommandBuffer);
-
     if (cbAllocRes != VK_SUCCESS) {
         GFXSTREAM_ERROR("Failed to allocate command buffer. Error: %s.", string_VkResult(cbAllocRes));
         return nullptr;
     }
+    emulation->mDebugUtilsHelper.addDebugLabel(emulation->mCommandBuffer, "AEMU_CommandBuffer");
 
     VkFenceCreateInfo fenceCi = {
         VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
@@ -1551,22 +1610,12 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
 
     VkResult fenceCreateRes =
         dvk->vkCreateFence(emulation->mDevice, &fenceCi, nullptr, &emulation->mCommandBufferFence);
-
     if (fenceCreateRes != VK_SUCCESS) {
         GFXSTREAM_ERROR("Failed to create fence for command buffer. Error: %s.",
                         string_VkResult(fenceCreateRes));
         return nullptr;
     }
-
-    if (debugUtilsAvailableAndRequested) {
-        emulation->mDebugUtilsAvailableAndRequested = true;
-        emulation->mDebugUtilsHelper =
-            DebugUtilsHelper::withUtilsEnabled(emulation->mDevice, emulation->mIvk);
-
-        emulation->mDebugUtilsHelper.addDebugLabel(emulation->mInstance, "AEMU_Instance");
-        emulation->mDebugUtilsHelper.addDebugLabel(emulation->mDevice, "AEMU_Device");
-        emulation->mDebugUtilsHelper.addDebugLabel(emulation->mCommandBuffer, "AEMU_CommandBuffer");
-    }
+    emulation->mDebugUtilsHelper.addDebugLabel(emulation->mCommandBufferFence, "AEMU_CommandBufferFence");
 
     if (commandBufferCheckpointsSupportedAndRequested) {
         emulation->mCommandBufferCheckpointsSupportedAndRequested = true;
@@ -1592,7 +1641,15 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
         GFXSTREAM_INFO("Sampler Ycbcr conversion is not supported.");
     }
 
+    if (emulation->getFeatures().VulkanAllocateHostMemory.enabled() &&
+        !emulation->supportsExternalMemoryHostProperties()) {
+        GFXSTREAM_ERROR(
+            "VulkanAllocateHostMemory is enabled but is not supported, you might encounter errors "
+            "when using vkMapMemory() due to unaligned host mappings.");
+    }
+
     GFXSTREAM_VERBOSE("Vulkan global emulation state successfully initialized.");
+    get_gfxstream_vm_operations().add_crash_reporter_log("Vulkan emulation initialized");
 
     return emulation;
 }
@@ -1621,6 +1678,10 @@ void VkEmulation::initFeatures(Features features) {
         GFXSTREAM_INFO("    guestVulkanOnly: %s", features.guestVulkanOnly ? "true" : "false");
         GFXSTREAM_INFO("    useDedicatedAllocations: %s",
                        features.useDedicatedAllocations ? "true" : "false");
+        GFXSTREAM_INFO("    guestVulkanMaxApiVersion: %d.%d.%d",
+                       VK_API_VERSION_MAJOR(features.guestVulkanMaxApiVersion),
+                       VK_API_VERSION_MINOR(features.guestVulkanMaxApiVersion),
+                       VK_API_VERSION_PATCH(features.guestVulkanMaxApiVersion));
     }
 
     mDeviceInfo.glInteropSupported = features.glInteropSupported;
@@ -1632,6 +1693,7 @@ void VkEmulation::initFeatures(Features features) {
     mEnableYcbcrEmulation = features.enableYcbcrEmulation;
     mGuestVulkanOnly = features.guestVulkanOnly;
     mUseDedicatedAllocations = features.useDedicatedAllocations;
+    mGuestVulkanMaxApiVersion = features.guestVulkanMaxApiVersion;
 
     if (features.useVulkanComposition) {
         if (mCompositorVk) {
@@ -1650,9 +1712,9 @@ void VkEmulation::initFeatures(Features features) {
         if (mDisplayVk) {
             GFXSTREAM_ERROR("Reset VkEmulation::displayVk.");
         }
-        mDisplayVk = std::make_unique<DisplayVk>(*mIvk, mPhysicalDevice, mDevice,
-                                                 mCompositorVk.get(), mQueueFamilyIndex, mQueue,
-                                                 mQueueLock, mQueueFamilyIndex, mQueue, mQueueLock);
+        mDisplayVk = std::make_unique<DisplayVk>(
+            *mIvk, mPhysicalDevice, mDevice, mCompositorVk.get(), mQueueFamilyIndex, mQueue,
+            mQueueLock, mQueueFamilyIndex, mQueue, mQueueLock, mDebugUtilsHelper);
     }
 
     auto representativeInfo = findRepresentativeColorBufferMemoryTypeIndexLocked();
@@ -1682,17 +1744,29 @@ VkEmulation::~VkEmulation() {
     mDisplayVk.reset();
     mUdmabufCreator.reset();
 
+    if (mDvk) {
+        for (auto& [cb,fence] : mTransferQueueCommandBufferPool) {
+            mDvk->vkDestroyFence(mDevice, fence, nullptr);
+            mDvk->vkFreeCommandBuffers(mDevice, mCommandPool, 1, &cb);
+        }
+
+        mStaging.destroy(mDvk, mDevice);
+
+        mDvk->vkDestroyFence(mDevice, mCommandBufferFence, nullptr);
+        mDvk->vkFreeCommandBuffers(mDevice, mCommandPool, 1, &mCommandBuffer);
+        mDvk->vkDestroyCommandPool(mDevice, mCommandPool, nullptr);
+    }
+    mTransferQueueCommandBufferPool.clear();
+
     mYcbcrSamplerPool.destroy();
 
-    mStaging.destroy(mDvk, mDevice);
+    if (mIvk && mDevice != VK_NULL_HANDLE) {
+        mIvk->vkDestroyDevice(mDevice, nullptr);
+    }
 
-    mDvk->vkDestroyFence(mDevice, mCommandBufferFence, nullptr);
-    mDvk->vkFreeCommandBuffers(mDevice, mCommandPool, 1, &mCommandBuffer);
-    mDvk->vkDestroyCommandPool(mDevice, mCommandPool, nullptr);
-
-    mIvk->vkDestroyDevice(mDevice, nullptr);
-
-    mGvk->vkDestroyInstance(mInstance, nullptr);
+    if (mGvk && mInstance != VK_NULL_HANDLE) {
+        mGvk->vkDestroyInstance(mInstance, nullptr);
+    }
 }
 
 bool VkEmulation::isYcbcrEmulationEnabled() const { return mEnableYcbcrEmulation; }
@@ -1700,6 +1774,8 @@ bool VkEmulation::isYcbcrEmulationEnabled() const { return mEnableYcbcrEmulation
 bool VkEmulation::isEtc2EmulationEnabled() const { return mEnableEtc2Emulation; }
 
 bool VkEmulation::deferredCommandsEnabled() const { return mUseDeferredCommands; }
+
+uint32_t VkEmulation::vulkanInstanceVersion() const { return mVulkanInstanceVersion; }
 
 bool VkEmulation::createResourcesWithRequirementsEnabled() const {
     return mUseCreateResourcesWithRequirements;
@@ -1770,6 +1846,39 @@ DebugUtilsHelper& VkEmulation::getDebugUtilsHelper() { return mDebugUtilsHelper;
 DeviceLostHelper& VkEmulation::getDeviceLostHelper() { return mDeviceLostHelper; }
 
 const gfxstream::host::FeatureSet& VkEmulation::getFeatures() const { return mFeatures; }
+
+void VkEmulation::setFeatures(const gfxstream::host::FeatureSet& features) {
+    mFeatures = features;
+
+    // Some features may require changes based on other features, system and drivers
+
+#ifdef _WIN32
+    // TODO: optimize host visible allocations on the guest side to avoid getting
+    // out of memory cases with lavapipe on other platforms.
+    if (!mFeatures.GlDirectMem.enabled() && mFeatures.VirtioGpuNext.enabled()) {
+        // Host visible memory that will be mapped into the guest virtual machines
+        // needs to be page aligned in some way:
+        const bool hostVisibleMemoryAllocationModeLikelyAligned =
+            // Vulkan VK_EXT_external_memory_* allocations are expected to be aligned:
+            mFeatures.ExternalBlob.enabled() ||
+            // Gfxstream will ensure alignment with memfd/shmem allocations:
+            mFeatures.SystemBlob.enabled() ||
+            // Gfxstream will ensure alignment with host allocations:
+            mFeatures.VulkanAllocateHostMemory.enabled();
+
+        if (!hostVisibleMemoryAllocationModeLikelyAligned) {
+            // Enable VulkanAllocateHostMemory as a fallback and avoid unaligned host visible
+            // mappings
+            mFeatures.VulkanAllocateHostMemory.setEnabled(true);
+            mFeatures.VulkanAllocateHostMemory.setReason(
+                "Ensure host allocations are aligned to "
+                "avoid VMM errors when mapping.");
+            GFXSTREAM_INFO("Enabling VulkanAllocateHostMemory: %s",
+                           mFeatures.VulkanAllocateHostMemory.reason.c_str());
+        }
+    }
+#endif
+}
 
 const gfxstream::host::BackendCallbacks& VkEmulation::getCallbacks() const { return mCallbacks; }
 
@@ -1847,7 +1956,7 @@ std::string VkEmulation::getDeviceExtensionsString() const {
     return builder.str();
 }
 
-void VkEmulation::getVulkanEmulationDeviceInfo(char** device_name, char** driver_info,
+bool VkEmulation::getVulkanEmulationDeviceInfo(char** device_name, char** driver_info,
                                                uint32_t* driver_version, uint32_t* api_version,
                                                uint32_t* vendor_id, uint32_t* device_id,
                                                uint32_t* device_type, uint64_t* device_memory) {
@@ -1869,6 +1978,8 @@ void VkEmulation::getVulkanEmulationDeviceInfo(char** device_name, char** driver
             *device_memory += mDeviceInfo.memProps.memoryHeaps[i].size;
         }
     }
+
+    return true;
 }
 
 const VkPhysicalDeviceProperties VkEmulation::getPhysicalDeviceProperties() const {
@@ -3004,6 +3115,10 @@ bool VkEmulation::teardownVkColorBufferLocked(uint32_t colorBufferHandle) {
         freeExternalMemoryLocked(vk, &info.memory);
     }
 
+    if (Compositor* c = getCompositor()) {
+        c->onImageDestroyed(colorBufferHandle);
+    }
+
     mColorBuffers.erase(colorBufferHandle);
 
     return true;
@@ -3514,6 +3629,7 @@ bool VkEmulation::readColorBufferPixelsScaledGpu(uint32_t colorBufferHandle, int
         .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
     };
     VK_CHECK(mDvk->vkCreateImage(mDevice, &imageCreateInfo, nullptr, &tempImage));
+    mDebugUtilsHelper.addDebugLabel(tempImage, "readColorBufferPixelsScaledGpu.tempImage");
 
     // Image memory allocation
     VkMemoryRequirements memReqs;
@@ -3537,6 +3653,7 @@ bool VkEmulation::readColorBufferPixelsScaledGpu(uint32_t colorBufferHandle, int
         .subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1},
     };
     VK_CHECK(mDvk->vkCreateImageView(mDevice, &imageViewCreateInfo, nullptr, &tempImageView));
+    mDebugUtilsHelper.addDebugLabel(tempImageView, "readColorBufferPixelsScaledGpu.tempImageView");
 
     // Render Pass creation
     VkAttachmentDescription colorAttachment = {
@@ -3576,6 +3693,7 @@ bool VkEmulation::readColorBufferPixelsScaledGpu(uint32_t colorBufferHandle, int
         .pDependencies = &dependency,
     };
     VK_CHECK(mDvk->vkCreateRenderPass(mDevice, &renderPassInfo, nullptr, &tempRenderPass));
+    mDebugUtilsHelper.addDebugLabel(tempRenderPass, "readColorBufferPixelsScaledGpu.tempRenderPass");
 
     // Framebuffer creation
     VkFramebufferCreateInfo framebufferInfo = {
@@ -3588,6 +3706,7 @@ bool VkEmulation::readColorBufferPixelsScaledGpu(uint32_t colorBufferHandle, int
         .layers = 1,
     };
     VK_CHECK(mDvk->vkCreateFramebuffer(mDevice, &framebufferInfo, nullptr, &tempFramebuffer));
+    mDebugUtilsHelper.addDebugLabel(tempFramebuffer, "readColorBufferPixelsScaledGpu.tempFramebuffer");
 
     const VkCommandBufferBeginInfo beginInfo = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -4611,6 +4730,7 @@ std::tuple<VkCommandBuffer, VkFence> VkEmulation::allocateQueueTransferCommandBu
         .commandBufferCount = 1,
     };
     VK_CHECK(vk->vkAllocateCommandBuffers(mDevice, &allocateInfo, &commandBuffer));
+
     VkFence fence;
     VkFenceCreateInfo fenceCi = {
         .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
@@ -4622,12 +4742,13 @@ std::tuple<VkCommandBuffer, VkFence> VkEmulation::allocateQueueTransferCommandBu
     const int cbIndex = static_cast<int>(mTransferQueueCommandBufferPool.size());
     mTransferQueueCommandBufferPool.emplace_back(commandBuffer, fence);
 
+    mDebugUtilsHelper.addDebugLabel(commandBuffer, "QueueTransferCommandBuffer:CB%d", cbIndex);
+    mDebugUtilsHelper.addDebugLabel(fence, "QueueTransferCommandBuffer:Fence%d", cbIndex);
+
     GFXSTREAM_DEBUG(
         "Create a new command buffer for queue transfer for a total of %d "
         "transfer command buffers",
         (cbIndex + 1));
-
-    mDebugUtilsHelper.addDebugLabel(commandBuffer, "QueueTransferCommandBuffer:%d", cbIndex);
 
     return std::make_tuple(commandBuffer, fence);
 }

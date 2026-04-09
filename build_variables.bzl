@@ -15,6 +15,11 @@ GFXSTREAM_COMMON_COPTS = [
     "-Wno-unused-variable",
     "-Wno-thread-safety-analysis",
     "-Wno-thread-safety-attributes",
+    "-Wno-c++98-compat-pedantic",
+    "-Wno-old-style-cast",
+    "-Wno-pre-c++17-compat",
+    "-Wno-pre-c++20-compat-pedantic",
+    "-Wno-unsafe-buffer-usage",
 ] + select({
     "@platforms//os:linux": [
         "-Werror",
@@ -50,6 +55,8 @@ GFXSTREAM_HOST_DEFINES = GFXSTREAM_HOST_VK_DEFINES + [
     "BUILDING_EMUGL_COMMON_SHARED",
     "EMUGL_BUILD",
     "GFXSTREAM_ENABLE_HOST_GLES=1",
+    "GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT=1",
+    "GFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT=1",
 ] + select({
     "@platforms//os:windows": [
         "WIN32_LEAN_AND_MEAN",

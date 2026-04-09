@@ -343,23 +343,33 @@ void SyncThread::triggerGeneral(FenceCompletionCallback cb, std::string descript
 }
 
 void SyncThread::cleanup() {
-    sendAndWaitForResult(
-        [this](WorkerId workerId) {
 #if GFXSTREAM_ENABLE_HOST_GLES
-            if (mHasGl) {
-                const EGLDispatch* egl = gl::LazyLoadedEGLDispatch::get();
+    if (mHasGl) {
+        // This works fine because ThreadPool::enqueue will distribute the
+        // tasks to workers in a linear order. Otherwise, we'll need to
+        // implement a broadcast event to ensure all threads destroy their
+        // resources correctly out of order.
+        for (uint32_t i = 0; i < kNumWorkerThreads; i++) {
+            sendAndWaitForResult(
+                [this](WorkerId workerId) {
+                    const EGLDispatch* egl = gl::LazyLoadedEGLDispatch::get();
 
-                egl->eglMakeCurrent(mDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+                    egl->eglMakeCurrent(mDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 
-                egl->eglDestroyContext(mDisplay, mContext[workerId]);
-                egl->eglDestroySurface(mDisplay, mSurface[workerId]);
-                mContext[workerId] = EGL_NO_CONTEXT;
-                mSurface[workerId] = EGL_NO_SURFACE;
-            }
+                    if (mContext[workerId] != EGL_NO_CONTEXT) {
+                        egl->eglDestroyContext(mDisplay, mContext[workerId]);
+                        mContext[workerId] = EGL_NO_CONTEXT;
+                    }
+                    if (mSurface[workerId] != EGL_NO_SURFACE) {
+                        egl->eglDestroySurface(mDisplay, mSurface[workerId]);
+                        mSurface[workerId] = EGL_NO_SURFACE;
+                    }
+                    return 0;
+                },
+                "gl_cleanup");
+        }
+    }
 #endif
-            return 0;
-        },
-        "cleanup");
     DPRINT("signal");
     mLock.lock();
     mExiting = true;

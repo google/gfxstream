@@ -464,14 +464,17 @@ RendererImpl::HardwareStrings RendererImpl::getHardwareStrings() {
     return res;
 }
 
-void RendererImpl::getVulkanEmulationDeviceInfo(char** device_name, char** driver_info,
+bool RendererImpl::getVulkanEmulationDeviceInfo(char** device_name, char** driver_info,
                                                 uint32_t* driver_version, uint32_t* api_version,
                                                 uint32_t* vendor_id, uint32_t* device_id,
                                                 uint32_t* device_type, uint64_t* device_memory) {
-    assert(mRenderWindow);
-    mRenderWindow->getVulkanEmulationDeviceInfo(device_name, driver_info, driver_version,
-                                                api_version, vendor_id, device_id, device_type,
-                                                device_memory);
+    if (!mRenderWindow) {
+        GFXSTREAM_ERROR("%s: invalid state", __func__);
+        return false;
+    }
+    return mRenderWindow->getVulkanEmulationDeviceInfo(device_name, driver_info, driver_version,
+                                                       api_version, vendor_id, device_id,
+                                                       device_type, device_memory);
 }
 
 void RendererImpl::setPostCallback(RendererImpl::OnPostCallback onPost,
@@ -556,6 +559,14 @@ void RendererImpl::setScreenMask(int width, int height, const uint8_t* rgbaData)
 void RendererImpl::setScreenBackground(int width, int height, const uint8_t* rgbaData) {
     assert(mRenderWindow);
     mRenderWindow->setScreenBackground(width, height, rgbaData);
+}
+
+void RendererImpl::setDisplayLayout(int screenWidth, int screenHeight, const Rect& displayRect) {
+    if(!mRenderWindow) {
+        GFXSTREAM_ERROR("%s: invalid render window!", __func__);
+        return;
+    }
+    mRenderWindow->setDisplayLayout(screenWidth, screenHeight, displayRect);
 }
 
 void RendererImpl::onGuestGraphicsProcessCreate(uint64_t puid) {

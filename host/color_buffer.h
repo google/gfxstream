@@ -120,7 +120,7 @@ class ColorBuffer : public LazySnapshotObj<ColorBuffer> {
     void glOpPostLayer(const ComposeLayer& l, int frameWidth, int frameHeight,
         const std::optional<std::array<float, 16>>& colorTransform);
     void glOpPostViewportScaledWithOverlay(
-        float rotation, float dx, float dy,
+        float rotation, float dx, float dy, float scaleX, float scaleY,
         const std::optional<std::array<float, 16>>& colorTransform);
 #endif
 

@@ -456,6 +456,8 @@ bool CompositorVk::setUpRenderPasses() {
 
         VkRenderPass renderPass = VK_NULL_HANDLE;
         VK_CHECK_RETURN(m_vk.vkCreateRenderPass(m_vkDevice, &renderPassCi, nullptr, &renderPass));
+        m_debugUtilsHelper.addDebugLabel(renderPass, "CompositorVk:renderPass:%s",
+                                         string_VkFormat(colorAttachment.format));
 
         m_vkRenderPasses[renderTargetFormat] = renderPass;
     }
@@ -659,6 +661,8 @@ bool CompositorVk::setUpFences() {
         };
         VK_CHECK_RETURN(
             m_vk.vkCreateFence(m_vkDevice, &fenceCi, nullptr, &frameResources.m_vkFence));
+        m_debugUtilsHelper.addDebugLabel(frameResources.m_vkFence, "CompositorVk:fence:%d",
+                                         frameIndex);
     }
 
     return true;
@@ -666,7 +670,10 @@ bool CompositorVk::setUpFences() {
 
 bool CompositorVk::createImage(CompositorVkBase::Image& imageOut, uint32_t width, uint32_t height,
                                const uint8_t* rgbaData, const std::string& debugName) {
+#if 0
+    // TODO(b/473742723): optimize this, and avoid re-creating of images for runtime updates
     GFXSTREAM_VERBOSE("%s: %s with size %d x %d", __func__, debugName.c_str(), width, height);
+#endif
     imageOut = {};
 
     const VkImageCreateInfo imageCreateInfo = {
@@ -693,6 +700,7 @@ bool CompositorVk::createImage(CompositorVkBase::Image& imageOut, uint32_t width
     };
     VkImage image = VK_NULL_HANDLE;
     VK_CHECK_RETURN(m_vk.vkCreateImage(m_vkDevice, &imageCreateInfo, nullptr, &image));
+    m_debugUtilsHelper.addDebugLabel(image, "CompositorVk:image:%s", debugName.c_str());
 
     VkMemoryRequirements imageMemoryRequirements;
     m_vk.vkGetImageMemoryRequirements(m_vkDevice, image, &imageMemoryRequirements);
@@ -741,6 +749,7 @@ bool CompositorVk::createImage(CompositorVkBase::Image& imageOut, uint32_t width
     };
     VkImageView imageView = VK_NULL_HANDLE;
     VK_CHECK_RETURN(m_vk.vkCreateImageView(m_vkDevice, &imageViewCreateInfo, nullptr, &imageView));
+    m_debugUtilsHelper.addDebugLabel(image, "CompositorVk:imageView:%s", debugName.c_str());
 
     VkBuffer stagingBuffer = VK_NULL_HANDLE;
     VkDeviceMemory stagingBufferMemory = VK_NULL_HANDLE;
@@ -1059,6 +1068,7 @@ bool CompositorVk::setUpFormatResources() {
     };
 
     VK_CHECK_RETURN(m_vk.vkCreateSampler(m_vkDevice, &samplerCi, nullptr, &m_defaultSampler));
+    m_debugUtilsHelper.addDebugLabel(m_defaultSampler, "CompositorVk:defaultSampler");
     m_formatResources[GfxstreamFormat::UNKNOWN] =
         createFormatResources(m_vk, m_vkDevice, m_defaultSampler);
 

@@ -38,6 +38,8 @@ typedef void (*gfxstream_vm_set_skip_snapshot_save_t)(bool used);
 typedef void (*gfxstream_vm_set_skip_snapshot_save_reason_t)(uint32_t reason);
 typedef void (*gfxstream_vm_set_snapshot_uses_vulkan_t)(void);
 
+typedef void (*gfxstream_vm_add_crash_reporter_log)(const char* message);
+
 typedef struct gfxstream_vm_ops {
     gfxstream_vm_map_user_memory_t map_user_memory;
     gfxstream_vm_unmap_user_memory_t unmap_user_memory;
@@ -50,4 +52,6 @@ typedef struct gfxstream_vm_ops {
     gfxstream_vm_set_skip_snapshot_save_t set_skip_snapshot_save;
     gfxstream_vm_set_skip_snapshot_save_reason_t set_skip_snapshot_save_reason;
     gfxstream_vm_set_snapshot_uses_vulkan_t set_snapshot_uses_vulkan;
+
+    gfxstream_vm_add_crash_reporter_log add_crash_reporter_log;
 } gfxstream_vm_ops;

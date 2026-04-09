@@ -289,8 +289,8 @@ TextureDraw::TextureDraw()
     mBackgroundSize[1] = 1.0f;
 }
 
-bool TextureDraw::drawImpl(GLuint texture, float rotation,
-                           float dx, float dy, bool wantOverlay,
+bool TextureDraw::drawImpl(GLuint texture, float rotation, float dx, float dy, float scaleX,
+                           float scaleY, bool wantOverlay,
                            const std::optional<std::array<float, 16>>& colorTransform) {
     if (!mProgram) {
         GFXSTREAM_ERROR("%s: no program\n", __FUNCTION__);
@@ -393,6 +393,7 @@ bool TextureDraw::drawImpl(GLuint texture, float rotation,
     const bool drawBackground = wantOverlay && mBackgroundLayer.preDraw();
 
     if (drawBackground) {
+        s_gles2.glUniform2f(mScaleSlot, 1.0f, 1.0f);
         s_gles2.glDisable(GL_BLEND);
 
         GLfloat prevCoordTranslation[2];
@@ -424,6 +425,7 @@ bool TextureDraw::drawImpl(GLuint texture, float rotation,
     s_gles2.glUniform1i(mTextureSlot, 0);
     s_gles2.glUniform1i(mComposeMode, HWC2_COMPOSITION_DEVICE);
     s_gles2.glUniform2f(mTranslationSlot, dx, dy);
+    s_gles2.glUniform2f(mScaleSlot, scaleX, scaleY);
 
     if (colorTransform.has_value()) {
         s_gles2.glUniformMatrix4fv(mColorTransform, 1, GL_FALSE, &(colorTransform.value()[0]));

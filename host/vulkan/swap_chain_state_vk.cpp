@@ -78,17 +78,21 @@ void SwapchainCreateInfoWrapper::setQueueFamilyIndices(
 }
 
 std::unique_ptr<SwapChainStateVk> SwapChainStateVk::createSwapChainVk(
-    const VulkanDispatch& vk, VkDevice vkDevice, const VkSwapchainCreateInfoKHR& swapChainCi) {
-    std::unique_ptr<SwapChainStateVk> swapChainVk(new SwapChainStateVk(vk, vkDevice));
+    const VulkanDispatch& vk, VkDevice vkDevice, const VkSwapchainCreateInfoKHR& swapChainCi,
+    DebugUtilsHelper debugUtilsHelper) {
+    std::unique_ptr<SwapChainStateVk> swapChainVk(
+        new SwapChainStateVk(vk, vkDevice, debugUtilsHelper));
     if (swapChainVk->initSwapChainStateVk(swapChainCi) != VK_SUCCESS) {
         return nullptr;
     }
     return swapChainVk;
 }
 
-SwapChainStateVk::SwapChainStateVk(const VulkanDispatch& vk, VkDevice vkDevice)
+SwapChainStateVk::SwapChainStateVk(const VulkanDispatch& vk, VkDevice vkDevice,
+                                   DebugUtilsHelper debugUtilsHelper)
     : m_vk(vk),
       m_vkDevice(vkDevice),
+      m_debugUtilsHelper(debugUtilsHelper),
       m_vkSwapChain(VK_NULL_HANDLE),
       m_vkImages(0),
       m_vkImageViews(0) {}
@@ -179,12 +183,21 @@ VkResult SwapChainStateVk::initSwapChainStateVk(const VkSwapchainCreateInfoKHR& 
             .layers = 1,
         };
         VK_CHECK(m_vk.vkCreateFramebuffer(m_vkDevice, &framebufferCi, nullptr, &m_vkFramebuffers[i]));
+
+        m_debugUtilsHelper.addDebugLabel(m_vkRenderPasses[i], "SwapChainStateVk.renderPass%d", i);
+        m_debugUtilsHelper.addDebugLabel(m_vkFramebuffers[i], "SwapChainStateVk.frameBuffer%d", i);
     }
 
     return VK_SUCCESS;
 }
 
 SwapChainStateVk::~SwapChainStateVk() {
+    for (auto frameBuffer : m_vkFramebuffers) {
+        m_vk.vkDestroyFramebuffer(m_vkDevice, frameBuffer, nullptr);
+    }
+    for (auto renderPass : m_vkRenderPasses) {
+        m_vk.vkDestroyRenderPass(m_vkDevice, renderPass, nullptr);
+    }
     for (auto imageView : m_vkImageViews) {
         m_vk.vkDestroyImageView(m_vkDevice, imageView, nullptr);
     }

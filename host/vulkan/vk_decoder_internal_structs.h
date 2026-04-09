@@ -520,6 +520,10 @@ struct ShaderModuleInfo {
     VkDevice device;
 };
 
+struct SamplerYcbcrConversionInfo {
+    VkDevice device;
+};
+
 struct PipelineCacheInfo {
     VkDevice device;
 };
@@ -613,6 +617,7 @@ struct InstanceObjects {
         std::unordered_map<VkEvent, EventInfo> events;
         std::unordered_map<VkSemaphore, SemaphoreInfo> semaphores;
         std::unordered_map<VkShaderModule, ShaderModuleInfo> shaderModules;
+        std::unordered_map<VkSamplerYcbcrConversion, SamplerYcbcrConversionInfo> samplerYcbcrConversions;
     };
     std::vector<DeviceObjects> devices;
 };

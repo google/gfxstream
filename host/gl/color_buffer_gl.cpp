@@ -1074,12 +1074,14 @@ bool ColorBufferGl::post(GLuint tex, float rotation, float dx, float dy,
     return m_textureDraw->draw(tex, rotation, dx, dy, colorTransform);
 }
 
-bool ColorBufferGl::postViewportScaledWithOverlay(float rotation, float dx, float dy,
-                                                  const std::optional<std::array<float, 16>>& colorTransform) {
+bool ColorBufferGl::postViewportScaledWithOverlay(
+    float rotation, float dx, float dy, float scaleX, float scaleY,
+    const std::optional<std::array<float, 16>>& colorTransform) {
     // NOTE: Do not call m_helper->setupContext() here!
     waitSync();
-    return m_textureDraw->drawWithOverlay(getViewportScaledTexture(), rotation, dx, dy,
-                                          colorTransform);
+
+    return m_textureDraw->drawWithOverlay(getViewportScaledTexture(), rotation, dx, dy, scaleX,
+                                          scaleY, colorTransform);
 }
 
 void ColorBufferGl::readback(unsigned char* img, bool readbackBgra) {

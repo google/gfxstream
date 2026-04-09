@@ -45,9 +45,11 @@ class DisplayGl : public Display {
       // only use drawLayer() but this is currently needed to support
       // existing draw paths without depending on FrameBuffer directly.
       struct OverlayOptions {
-        float rotation;
-        float dx;
-        float dy;
+        float rotation = 0.0f;
+        float dx = 0.0f;
+        float dy = 0.0f;
+        float scaleX = 1.0f;
+        float scaleY = 1.0f;
       };
       std::optional<OverlayOptions> overlayOptions;
 

@@ -62,14 +62,15 @@ namespace gl {
 
 class EmulationGl {
    public:
+    static bool initDispatchers(bool eglOnEgl);
     static std::unique_ptr<EmulationGl> create(uint32_t width, uint32_t height,
                                                const FeatureSet& features,
                                                bool allowWindowSurface);
 
     ~EmulationGl();
 
-    const EGLDispatch* getEglDispatch();
-    const GLESv2Dispatch* getGles2Dispatch();
+    static const EGLDispatch* getEglDispatch();
+    static const GLESv2Dispatch* getGles2Dispatch();
 
     std::string getEglString(EGLenum name);
     std::string getGlString(EGLenum name);

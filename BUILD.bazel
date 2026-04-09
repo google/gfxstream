@@ -1,5 +1,4 @@
 load("@rules_license//rules:license.bzl", "license")
-load("@rules_license//rules:license_kind.bzl", "license_kind")
 
 package_group(
     name = "gfxstream",
@@ -20,37 +19,15 @@ exports_files(
 
 license(
     name = "gfxstream_license",
+    package_name = "gfxstream",
+    copyright_notice = "Copyright 2024 - The Android Open Source Project",
     license_kinds = [
-        ":SPDX-license-identifier-Apache-2.0",
-        ":SPDX-license-identifier-BSD",
-        ":SPDX-license-identifier-ISC",
-        ":SPDX-license-identifier-MIT",
+        "@rules_license//licenses/spdx:Apache-2.0",
+        "@rules_license//licenses/spdx:BSD-3-Clause",
+        "@rules_license//licenses/spdx:ISC",
+        "@rules_license//licenses/spdx:MIT",
     ],
+    license_text = "LICENSE",
+    package_url = "https://android.googlesource.com/platform/hardware/google/gfxstream/",
+    visibility = ["//visibility:public"],
 )
-
-license_kind(
-    name = "SPDX-license-identifier-Apache-2.0",
-    conditions = ["notice"],
-    url = "https://spdx.org/licenses/Apache-2.0.html",
-)
-
-license_kind(
-    name = "SPDX-license-identifier-BSD",
-    conditions = ["notice"],
-    url = "https://spdx.org/licenses/BSD-3-Clause.html",
-)
-
-# X11 headers
-license_kind(
-    name = "SPDX-license-identifier-ISC",
-    conditions = ["notice"],
-    url = "https://spdx.org/licenses/ISC.html",
-)
-
-license_kind(
-    name = "SPDX-license-identifier-MIT",
-    conditions = ["notice"],
-    url = "https://spdx.org/licenses/MIT.html",
-)
-
-licenses(["notice"])

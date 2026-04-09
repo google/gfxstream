@@ -167,7 +167,8 @@ class ColorBufferGl {
     // |rotation| is the rotation angle in degrees, clockwise in the GL
     // coordinate space.
     // |colorTransform| is the layer's color transform matrix, null if identity.
-    bool postViewportScaledWithOverlay(float rotation, float dx, float dy,
+    bool postViewportScaledWithOverlay(float rotation, float dx, float dy, float scaleX,
+                                       float xscaleY,
                                        const std::optional<std::array<float, 16>>& colorTransform);
 
     // Bind the current context's EGL_TEXTURE_2D texture to this ColorBufferGl's

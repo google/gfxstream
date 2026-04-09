@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <map>
 #include <optional>
 #include <string>
@@ -116,6 +117,10 @@ struct FeatureSet {
     bool processFeatureString(std::string featureStr, std::string featureReason);
 
     FeatureMap map;
+
+    // This represents the maximum vulkan api version that should be reported to the guest and is
+    // not related to the host vulkan level available or used.
+    std::optional<uint32_t> guestVulkanMaxApiVersion;
 
     BoolFeatureInfo AsyncComposeSupport = {
         "AsyncComposeSupport",

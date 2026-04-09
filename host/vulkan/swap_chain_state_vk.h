@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "goldfish_vk_dispatch.h"
+#include "debug_utils_helper.h"
 
 namespace gfxstream {
 namespace host {
@@ -62,8 +63,9 @@ class SwapChainStateVk {
     SwapChainStateVk(const SwapChainStateVk&) = delete;
     SwapChainStateVk& operator = (const SwapChainStateVk&) = delete;
 
-    static std::unique_ptr<SwapChainStateVk> createSwapChainVk(const VulkanDispatch&, VkDevice,
-                                                               const VkSwapchainCreateInfoKHR&);
+    static std::unique_ptr<SwapChainStateVk> createSwapChainVk(
+        const VulkanDispatch&, VkDevice, const VkSwapchainCreateInfoKHR&,
+        DebugUtilsHelper debugUtils = DebugUtilsHelper::withUtilsDisabled());
 
     ~SwapChainStateVk();
     VkFormat getFormat();
@@ -75,7 +77,7 @@ class SwapChainStateVk {
     VkSwapchainKHR getSwapChain() const;
 
    private:
-    explicit SwapChainStateVk(const VulkanDispatch&, VkDevice);
+    explicit SwapChainStateVk(const VulkanDispatch&, VkDevice, DebugUtilsHelper);
 
     VkResult initSwapChainStateVk(const VkSwapchainCreateInfoKHR& swapChainCi);
     const static VkFormat k_vkFormat = VK_FORMAT_B8G8R8A8_UNORM;
@@ -83,6 +85,7 @@ class SwapChainStateVk {
 
     const VulkanDispatch& m_vk;
     VkDevice m_vkDevice;
+    DebugUtilsHelper m_debugUtilsHelper;
     VkSwapchainKHR m_vkSwapChain;
     VkExtent2D m_vkImageExtent;
     std::vector<VkImage> m_vkImages;

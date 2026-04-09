@@ -29,6 +29,8 @@ void DefaultSetSkipSnapshotSave(bool) {}
 void DefaultSetSkipSnapshotSaveReason(uint32_t) {}
 void DefaultSetSansphotUsesVulkan() {}
 
+void DefaultAddCrashReporterLog(const char* message) {}
+
 gfxstream_vm_ops sGfxstreamVmOps = {
     .map_user_memory = DefaultMapUserMemory,
     .unmap_user_memory = DefaultUnmapUserMemory,
@@ -41,6 +43,8 @@ gfxstream_vm_ops sGfxstreamVmOps = {
     .set_skip_snapshot_save = DefaultSetSkipSnapshotSave,
     .set_skip_snapshot_save_reason = DefaultSetSkipSnapshotSaveReason,
     .set_snapshot_uses_vulkan = DefaultSetSansphotUsesVulkan,
+
+    .add_crash_reporter_log = DefaultAddCrashReporterLog,
 };
 
 }  // namespace

@@ -24,14 +24,15 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "gfxstream/host/borrowed_image.h"
 #include "compositor_vk.h"
-#include "gfxstream/host/display.h"
+#include "debug_utils_helper.h"
 #include "display_surface_vk.h"
-#include "host/hwc2.h"
-#include "swap_chain_state_vk.h"
+#include "gfxstream/host/borrowed_image.h"
+#include "gfxstream/host/display.h"
 #include "gfxstream/synchronization/Lock.h"
 #include "goldfish_vk_dispatch.h"
+#include "host/hwc2.h"
+#include "swap_chain_state_vk.h"
 
 // The DisplayVk class holds the Vulkan and other states required to draw a
 // frame in a host window.
@@ -46,7 +47,8 @@ class DisplayVk : public Display {
               uint32_t compositorQueueFamilyIndex, VkQueue compositorVkQueue,
               std::shared_ptr<gfxstream::base::Lock> compositorVkQueueLock,
               uint32_t swapChainQueueFamilyIndex, VkQueue swapChainVkQueue,
-              std::shared_ptr<gfxstream::base::Lock> swapChainVkQueueLock);
+              std::shared_ptr<gfxstream::base::Lock> swapChainVkQueueLock,
+              DebugUtilsHelper debugUtils = DebugUtilsHelper::withUtilsDisabled());
     ~DisplayVk();
 
     struct PostLayer {
@@ -90,6 +92,7 @@ class DisplayVk : public Display {
     const VulkanDispatch& m_vk;
     VkPhysicalDevice m_vkPhysicalDevice;
     VkDevice m_vkDevice;
+    DebugUtilsHelper m_debugUtilsHelper;
     CompositorVk* m_compositorVk;  // TODO(b/442394091): temporary addition, refactor compositor to
                                    // separate drawing routines like TextureDraw in GL side
 

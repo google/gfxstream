@@ -29,7 +29,7 @@ namespace gfxstream {
 namespace host {
 namespace vk {
 
-#define ERR_ONCE(fmt, ...)              \
+#define ERR_ONCE(fmt, ...)                           \
     do {                                             \
         static bool displayVkInternalLogged = false; \
         if (!displayVkInternalLogged) {              \
@@ -57,14 +57,16 @@ bool shouldRecreateSwapchain(VkResult result) {
 }  // namespace
 
 DisplayVk::DisplayVk(const VulkanDispatch& vk, VkPhysicalDevice vkPhysicalDevice, VkDevice vkDevice,
-                     CompositorVk* compositorVk,
-                     uint32_t compositorQueueFamilyIndex, VkQueue compositorVkQueue,
+                     CompositorVk* compositorVk, uint32_t compositorQueueFamilyIndex,
+                     VkQueue compositorVkQueue,
                      std::shared_ptr<gfxstream::base::Lock> compositorVkQueueLock,
                      uint32_t swapChainQueueFamilyIndex, VkQueue swapChainVkqueue,
-                     std::shared_ptr<gfxstream::base::Lock> swapChainVkQueueLock)
+                     std::shared_ptr<gfxstream::base::Lock> swapChainVkQueueLock,
+                     DebugUtilsHelper debugUtils)
     : m_vk(vk),
       m_vkPhysicalDevice(vkPhysicalDevice),
       m_vkDevice(vkDevice),
+      m_debugUtilsHelper(debugUtils),
       m_compositorVk(compositorVk),
       m_compositorQueueFamilyIndex(compositorQueueFamilyIndex),
       m_compositorVkQueue(compositorVkQueue),
@@ -82,10 +84,18 @@ DisplayVk::DisplayVk(const VulkanDispatch& vk, VkPhysicalDevice vkPhysicalDevice
         .queueFamilyIndex = m_compositorQueueFamilyIndex,
     };
     VK_CHECK(m_vk.vkCreateCommandPool(m_vkDevice, &commandPoolCi, nullptr, &m_vkCommandPool));
+    m_debugUtilsHelper.addDebugLabel(m_vkCommandPool, "DisplayVk::commandPool");
+
     constexpr size_t imageBorrowResourcePoolSize = 10;
     for (size_t i = 0; i < imageBorrowResourcePoolSize; i++) {
         m_imageBorrowResources.emplace_back(
             ImageBorrowResource::create(m_vk, m_vkDevice, m_vkCommandPool));
+
+        auto& res = m_imageBorrowResources.back();
+        m_debugUtilsHelper.addDebugLabel(res->m_vkCommandBuffer,
+                                         "DisplayVk::imageBorrowResources:CB%d", i);
+        m_debugUtilsHelper.addDebugLabel(res->m_completeFence,
+                                         "DisplayVk:imageBorrowResources:Fence%d", i);
     }
 }
 
@@ -103,8 +113,7 @@ void DisplayVk::drainQueues() {
     // We don't assume all VkCommandBuffer submitted to m_compositorVkQueueLock is always followed
     // by another operation on the m_swapChainVkQueue. Therefore, only waiting for the
     // m_swapChainVkQueue is not enough to guarantee all resources used are free to be destroyed.
-    if (m_swapChainVkQueue != m_compositorVkQueue)
-    {
+    if (m_swapChainVkQueue != m_compositorVkQueue) {
         gfxstream::base::AutoLock lock(*m_compositorVkQueueLock);
         VK_CHECK(m_vk.vkQueueWaitIdle(m_compositorVkQueue));
     }
@@ -115,13 +124,9 @@ void DisplayVk::clear() {
     ERR_ONCE("DisplayVk::%s: Unimplemented", __func__);
 }
 
-void DisplayVk::bindToSurfaceImpl(DisplaySurface* surface) {
-    m_needToRecreateSwapChain = true;
-}
+void DisplayVk::bindToSurfaceImpl(DisplaySurface* surface) { m_needToRecreateSwapChain = true; }
 
-void DisplayVk::surfaceUpdated(DisplaySurface* surface) {
-    m_needToRecreateSwapChain = true;
-}
+void DisplayVk::surfaceUpdated(DisplaySurface* surface) { m_needToRecreateSwapChain = true; }
 
 void DisplayVk::unbindFromSurfaceImpl() { destroySwapchain(); }
 
@@ -144,7 +149,8 @@ bool DisplayVk::recreateSwapchain() {
 
     if (!SwapChainStateVk::validateQueueFamilyProperties(
             m_vk, m_vkPhysicalDevice, surfaceVk->getSurface(), m_swapChainQueueFamilyIndex)) {
-        GFXSTREAM_FATAL("DisplayVk can't create VkSwapchainKHR with given VkDevice and VkSurfaceKHR.");
+        GFXSTREAM_FATAL(
+            "DisplayVk can't create VkSwapchainKHR with given VkDevice and VkSurfaceKHR.");
     }
     GFXSTREAM_INFO("Creating swapchain with size %" PRIu32 "x%" PRIu32 ".", surface->getWidth(),
                    surface->getHeight());
@@ -162,14 +168,24 @@ bool DisplayVk::recreateSwapchain() {
             "DisplayVk: The image format chosen for present VkImage can't be used as the color "
             "attachment, and therefore can't be used as the render target of CompositorVk.");
     }
-    m_swapChainStateVk =
-        SwapChainStateVk::createSwapChainVk(m_vk, m_vkDevice, swapChainCi->mCreateInfo);
+    m_swapChainStateVk = SwapChainStateVk::createSwapChainVk(
+        m_vk, m_vkDevice, swapChainCi->mCreateInfo, m_debugUtilsHelper);
     if (m_swapChainStateVk == nullptr) return false;
     int numSwapChainImages = m_swapChainStateVk->getVkImages().size();
 
     m_postResourceFutures.resize(numSwapChainImages, std::nullopt);
     for (int i = 0; i < numSwapChainImages + 1; ++i) {
         m_freePostResources.emplace_back(PostResource::create(m_vk, m_vkDevice, m_vkCommandPool));
+
+        auto& res = m_freePostResources.back();
+        m_debugUtilsHelper.addDebugLabel(res->m_swapchainImageReleaseFence,
+                                         "DisplayVk::postResources:Fence%d", i);
+        m_debugUtilsHelper.addDebugLabel(res->m_swapchainImageAcquireSemaphore,
+                                         "DisplayVk::postResources:AcquireSemaphore%d", i);
+        m_debugUtilsHelper.addDebugLabel(res->m_swapchainImageReleaseFence,
+                                         "DisplayVk::postResources:ReleaseSemaphore%d", i);
+        m_debugUtilsHelper.addDebugLabel(res->m_vkCommandBuffer, "DisplayVk::postResources:CB%d",
+                                         i);
     }
 
     m_needToRecreateSwapChain = false;
@@ -201,8 +217,8 @@ DisplayVk::PostResult DisplayVk::post(const Post& postCmd) {
         }
 
         if (retriesRemaining < 0) {
-            GFXSTREAM_FATAL("Failed to create Swapchain. w:%d h:%d",
-                            surface->getWidth(), surface->getHeight());
+            GFXSTREAM_FATAL("Failed to create Swapchain. w:%d h:%d", surface->getWidth(),
+                            surface->getHeight());
         }
 
         GFXSTREAM_INFO("Recreating swapchain completed.");
@@ -230,8 +246,12 @@ DisplayVk::PostResult DisplayVk::postImpl(const Post& postCmd) {
                          [this](const std::unique_ptr<ImageBorrowResource>& imageBorrowResource) {
                              VkResult fenceStatus = m_vk.vkGetFenceStatus(
                                  m_vkDevice, imageBorrowResource->m_completeFence);
-                             if (fenceStatus == VK_SUCCESS) { return true; }
-                             if (fenceStatus == VK_NOT_READY) { return false; }
+                             if (fenceStatus == VK_SUCCESS) {
+                                 return true;
+                             }
+                             if (fenceStatus == VK_NOT_READY) {
+                                 return false;
+                             }
                              VK_CHECK(fenceStatus);
                              return false;
                          });
@@ -247,8 +267,9 @@ DisplayVk::PostResult DisplayVk::postImpl(const Post& postCmd) {
     // borrowed image.
     struct ImageBorrower {
         ImageBorrower(const VulkanDispatch& vk, VkQueue queue,
-                      std::shared_ptr<gfxstream::base::Lock> queueLock, uint32_t usedQueueFamilyIndex,
-                      const BorrowedImageInfoVk& image, const ImageBorrowResource& acquireResource,
+                      std::shared_ptr<gfxstream::base::Lock> queueLock,
+                      uint32_t usedQueueFamilyIndex, const BorrowedImageInfoVk& image,
+                      const ImageBorrowResource& acquireResource,
                       const ImageBorrowResource& releaseResource, VkImageLayout layout)
             : m_vk(vk),
               m_vkQueue(queue),
@@ -266,8 +287,7 @@ DisplayVk::PostResult DisplayVk::postImpl(const Post& postCmd) {
             addNeededBarriersToUseBorrowedImage(
                 image, usedQueueFamilyIndex,
                 /*usedInitialImageLayout=*/layout,
-                /*usedFinalImageLayout=*/layout,
-                accessMask, &acquireQueueTransferBarriers,
+                /*usedFinalImageLayout=*/layout, accessMask, &acquireQueueTransferBarriers,
                 &acquireLayoutTransitionBarriers, &releaseLayoutTransitionBarriers,
                 &releaseQueueTransferBarriers);
 
@@ -387,10 +407,10 @@ DisplayVk::PostResult DisplayVk::postImpl(const Post& postCmd) {
         const auto& layer = postCmd.layers[0];
         if (layer.rotationDegrees == 0 && !layer.colorTransform.has_value() &&
             hwc_rect_get_width(&layer.displayFrame) == 0 && !postCmd.colorTransform.has_value()) {
-             const auto* sourceImageInfoVk = static_cast<const BorrowedImageInfoVk*>(layer.info);
-             if (canPost(sourceImageInfoVk->imageCreateInfo)) {
-                 useBlit = true;
-             }
+            const auto* sourceImageInfoVk = static_cast<const BorrowedImageInfoVk*>(layer.info);
+            if (canPost(sourceImageInfoVk->imageCreateInfo)) {
+                useBlit = true;
+            }
         }
     }
 
@@ -444,6 +464,10 @@ DisplayVk::PostResult DisplayVk::postImpl(const Post& postCmd) {
                                    imageReadySem, VK_NULL_HANDLE, &imageIndex);
     if (shouldRecreateSwapchain(acquireRes)) {
         return PostResult{false, std::shared_future<void>()};
+    }
+    if (acquireRes == VK_ERROR_SURFACE_LOST_KHR) {
+        GFXSTREAM_ERROR("Cannot post ColorBuffer: Swapchain surface is lost.");
+        return PostResult{false, std::move(completedFuture)};
     }
     VK_CHECK(acquireRes);
 
@@ -506,7 +530,8 @@ DisplayVk::PostResult DisplayVk::postImpl(const Post& postCmd) {
     }
     // Explicitly clear swapchain if not using blit (ensures clean canvas for composition)
     // Only clear if we are NOT rendering the background skin (e.g. multi-display mode or no skin)
-    // If we are rendering the skin, we rely on it to cover the frame (and avoid black corners in gaps).
+    // If we are rendering the skin, we rely on it to cover the frame (and avoid black corners in
+    // gaps).
     if (!useBlit && (!renderBackground || (postCmd.layers.size() > 1))) {
         VkImageMemoryBarrier barrier = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -519,7 +544,7 @@ DisplayVk::PostResult DisplayVk::postImpl(const Post& postCmd) {
             .image = currentSwapchainImage,
             .subresourceRange = subresourceRange,
         };
-        m_vk.vkCmdPipelineBarrier(cmdBuff, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+        m_vk.vkCmdPipelineBarrier(cmdBuff, VK_PIPELINE_STAGE_TRANSFER_BIT,
                                   VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1,
                                   &barrier);
 
@@ -547,7 +572,7 @@ DisplayVk::PostResult DisplayVk::postImpl(const Post& postCmd) {
             .image = currentSwapchainImage,
             .subresourceRange = subresourceRange,
         };
-        m_vk.vkCmdPipelineBarrier(cmdBuff, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+        m_vk.vkCmdPipelineBarrier(cmdBuff, VK_PIPELINE_STAGE_TRANSFER_BIT,
                                   VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1,
                                   &acquireSwapchainImageBarrier);
         currentSwapchainLayout = acquireSwapchainImageBarrier.newLayout;
@@ -611,7 +636,7 @@ DisplayVk::PostResult DisplayVk::postImpl(const Post& postCmd) {
                 .image = currentSwapchainImage,
                 .subresourceRange = subresourceRange,
             };
-            m_vk.vkCmdPipelineBarrier(cmdBuff, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+            m_vk.vkCmdPipelineBarrier(cmdBuff, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
                                       VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr,
                                       0, nullptr, 1, &transitionSwapchainToAttachmentBarrier);
             currentSwapchainLayout = transitionSwapchainToAttachmentBarrier.newLayout;
@@ -643,7 +668,6 @@ DisplayVk::PostResult DisplayVk::postImpl(const Post& postCmd) {
             bool isMultiDisplay = postCmd.layers.size() > 1;
             bool disableMask = isMultiDisplay;
 
-            drawParams.useScreenBlend = (i == 0) && renderBackground && !disableMask;
             // Prefer per-layer color transform, then global, then none
             if (layer.colorTransform.has_value()) {
                 drawParams.colorTransform = layer.colorTransform;
@@ -652,25 +676,29 @@ DisplayVk::PostResult DisplayVk::postImpl(const Post& postCmd) {
             }
             drawParams.rotationDegrees = layer.rotationDegrees;
 
-            if (hwc_rect_get_width(&layer.displayFrame) == 0 || hwc_rect_get_height(&layer.displayFrame) == 0) {
-                 // Fallback for 0-sized frames
-                 drawParams.displayFrame.left = 0;
-                 drawParams.displayFrame.top = 0;
-                 drawParams.displayFrame.right = swapchainImageExtent.width;
-                 drawParams.displayFrame.bottom = swapchainImageExtent.height;
+            if (hwc_rect_get_width(&layer.displayFrame) == 0 ||
+                hwc_rect_get_height(&layer.displayFrame) == 0) {
+                // Fallback for 0-sized frames
+                drawParams.displayFrame.left = 0;
+                drawParams.displayFrame.top = 0;
+                drawParams.displayFrame.right = swapchainImageExtent.width;
+                drawParams.displayFrame.bottom = swapchainImageExtent.height;
             } else {
                 // Apply Y-Flip layout to match GL/Input expectations (Bottom-Left origin logic)
                 int32_t flippedTop = logicalHeight - layer.displayFrame.bottom;
-                drawParams.displayFrame.left = static_cast<int32_t>(layer.displayFrame.left * scaleX);
+                drawParams.displayFrame.left =
+                    static_cast<int32_t>(layer.displayFrame.left * scaleX);
                 drawParams.displayFrame.top = static_cast<int32_t>(flippedTop * scaleY);
-                drawParams.displayFrame.right = static_cast<int32_t>(layer.displayFrame.right * scaleX);
+                drawParams.displayFrame.right =
+                    static_cast<int32_t>(layer.displayFrame.right * scaleX);
                 // bottom is determined by adding height (scaled) to top
-                drawParams.displayFrame.bottom = static_cast<int32_t>((flippedTop + hwc_rect_get_height(&layer.displayFrame)) * scaleY);
+                drawParams.displayFrame.bottom = static_cast<int32_t>(
+                    (flippedTop + hwc_rect_get_height(&layer.displayFrame)) * scaleY);
             }
 
             // Ensure transition to COLOR_ATTACHMENT_OPTIMAL if we're about to draw (after clear)
             if (currentSwapchainLayout != VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
-                 VkImageMemoryBarrier transitionToAttachment = {
+                VkImageMemoryBarrier transitionToAttachment = {
                     .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
                     .srcAccessMask = curSrcAccessMask,
                     .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
@@ -681,9 +709,9 @@ DisplayVk::PostResult DisplayVk::postImpl(const Post& postCmd) {
                     .image = currentSwapchainImage,
                     .subresourceRange = subresourceRange,
                 };
-                m_vk.vkCmdPipelineBarrier(cmdBuff, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                                          VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr,
-                                          0, nullptr, 1, &transitionToAttachment);
+                m_vk.vkCmdPipelineBarrier(cmdBuff, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                                          VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0,
+                                          nullptr, 0, nullptr, 1, &transitionToAttachment);
                 currentSwapchainLayout = transitionToAttachment.newLayout;
                 curSrcAccessMask = transitionToAttachment.dstAccessMask;
             }
@@ -691,18 +719,33 @@ DisplayVk::PostResult DisplayVk::postImpl(const Post& postCmd) {
             // Draw Background only if mask is allowed (single display mode)
             if (i == 0 && renderBackground && !disableMask) {
                 m_compositorVk->drawScreenBackground(drawParams);
+
+                // Draw subsequent passes in screen blend mode
+                drawParams.useScreenBlend = true;
+
+                // Adjust display rendering if a layout has been given
+                const int targetWidth = drawParams.targetWidth;
+                const int targetHeight = drawParams.targetHeight;
+                Rect scaledDisplayRect = {};
+                if (m_compositorVk->getScaledDisplayRect(scaledDisplayRect, targetWidth,
+                                                         targetHeight)) {
+                    drawParams.displayFrame.left = scaledDisplayRect.pos.x;
+                    drawParams.displayFrame.top = scaledDisplayRect.pos.y;
+                    drawParams.displayFrame.right =
+                        drawParams.displayFrame.left + scaledDisplayRect.size.w;
+                    drawParams.displayFrame.bottom =
+                        drawParams.displayFrame.top + scaledDisplayRect.size.h;
+                }
             }
 
             m_compositorVk->drawImage(drawParams, sourceImageInfoVk->imageView);
 
             // Draw Mask only if mask is allowed (single display mode)
             if (i == 0 && m_compositorVk->hasScreenMask() && !disableMask) {
-                 m_compositorVk->drawScreenMask(drawParams);
+                m_compositorVk->drawScreenMask(drawParams);
             }
         }
     }
-
-
 
     VkImageMemoryBarrier releaseSwapchainImageBarrier = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -912,6 +955,7 @@ std::shared_ptr<DisplayVk::PostResource> DisplayVk::PostResource::create(
     };
     VkFence fence;
     VK_CHECK(vk.vkCreateFence(vkDevice, &fenceCi, nullptr, &fence));
+
     VkSemaphore semaphores[2];
     for (uint32_t i = 0; i < std::size(semaphores); i++) {
         VkSemaphoreCreateInfo semaphoreCi = {
@@ -927,6 +971,7 @@ std::shared_ptr<DisplayVk::PostResource> DisplayVk::PostResource::create(
         .commandBufferCount = 1,
     };
     VK_CHECK(vk.vkAllocateCommandBuffers(vkDevice, &commandBufferAllocInfo, &commandBuffer));
+
     return std::shared_ptr<PostResource>(new PostResource(
         vk, vkDevice, vkCommandPool, fence, semaphores[0], semaphores[1], commandBuffer));
 }
@@ -975,6 +1020,7 @@ std::unique_ptr<DisplayVk::ImageBorrowResource> DisplayVk::ImageBorrowResource::
 }
 
 DisplayVk::ImageBorrowResource::~ImageBorrowResource() {
+    m_vk.vkDestroyFence(m_vkDevice, m_completeFence, nullptr);
     m_vk.vkFreeCommandBuffers(m_vkDevice, m_vkCommandPool, 1, &m_vkCommandBuffer);
 }
 

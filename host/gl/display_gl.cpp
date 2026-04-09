@@ -61,7 +61,9 @@ std::shared_future<void> DisplayGl::post(const Post& post) {
             }
 
             layer.colorBuffer->glOpPostViewportScaledWithOverlay(
-                layer.overlayOptions->rotation, layer.overlayOptions->dx, layer.overlayOptions->dy,
+                layer.overlayOptions->rotation,
+                layer.overlayOptions->dx, layer.overlayOptions->dy,
+                layer.overlayOptions->scaleX, layer.overlayOptions->scaleY,
                 layer.colorTransform);
         }
     }

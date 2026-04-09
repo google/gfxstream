@@ -195,6 +195,9 @@ std::shared_future<void> PostWorkerGl::postImpl(
             .layerOptions = postLayerOptions,
         });
     } else {
+        post.frameWidth = m_viewportWidth;
+        post.frameHeight = m_viewportHeight;
+
         post.layers.push_back(postWithOverlay(cb, colorTransform));
     }
     return m_displayGl->post(post);
@@ -220,14 +223,29 @@ DisplayGl::PostLayer PostWorkerGl::postWithOverlay(
     float dx = px * fx;
     float dy = py * fy;
 
+    DisplayGl::PostLayer::OverlayOptions overlayOptions = {
+        .rotation = static_cast<float>(zRot),
+        .dx = dx,
+        .dy = dy,
+        .scaleX = 1.0f,
+        .scaleY = 1.0f
+    };
+
+    // Adjust offset and scale parameters if a display layout is given
+    Rect scaledDisplayRect = {};
+    if (m_compositor->getScaledDisplayRect(scaledDisplayRect, m_viewportWidth, m_viewportHeight)) {
+        // zero-offset: always centered
+        const int centerX = scaledDisplayRect.pos.x + scaledDisplayRect.size.w * 0.5f + 0.5f;
+        const int centerY = scaledDisplayRect.pos.y + scaledDisplayRect.size.h * 0.5f + 0.5f;
+        overlayOptions.dx = ((float)centerX / m_viewportWidth) * 2.0f - 1.0f;
+        overlayOptions.dy = ((float)centerY / m_viewportHeight) * 2.0f - 1.0f;
+        overlayOptions.scaleX = (float)scaledDisplayRect.size.w / m_viewportWidth;
+        overlayOptions.scaleY = (float)scaledDisplayRect.size.h / m_viewportHeight;
+    }
+
     return DisplayGl::PostLayer{
         .colorBuffer = cb,
-        .overlayOptions =
-            DisplayGl::PostLayer::OverlayOptions{
-                .rotation = static_cast<float>(zRot),
-                .dx = dx,
-                .dy = dy,
-            },
+        .overlayOptions = overlayOptions,
         .colorTransform = colorTransform,
     };
 }

@@ -23,15 +23,15 @@
 #include <unordered_set>
 #include <vector>
 
-#include "vk_common_operations.h"
-#include "vk_qsri_timeline.h"
 #include "gfxstream/AsyncResult.h"
 #include "gfxstream/BumpPool.h"
 #include "gfxstream/ThreadAnnotations.h"
+#include "gfxstream/host/backend_callbacks.h"
 #include "gfxstream/synchronization/ConditionVariable.h"
 #include "gfxstream/synchronization/Lock.h"
-#include "gfxstream/host/backend_callbacks.h"
 #include "goldfish_vk_private_defs.h"
+#include "vk_common_operations.h"
+#include "vk_qsri_timeline.h"
 
 namespace gfxstream {
 namespace host {
@@ -48,7 +48,8 @@ class AndroidNativeBufferInfo {
     static std::unique_ptr<AndroidNativeBufferInfo> create(
         VkEmulation* emu, VulkanDispatch* vk, VkDevice device, gfxstream::base::BumpPool& allocator,
         const VkImageCreateInfo* pCreateInfo, const VkNativeBufferANDROID* nativeBufferANDROID,
-        const VkAllocationCallbacks* pAllocator, const VkPhysicalDeviceMemoryProperties* memProps);
+        const VkAllocationCallbacks* pAllocator, const VkPhysicalDeviceMemoryProperties* memProps,
+        DebugUtilsHelper debugUtilsHelper);
 
     AndroidNativeBufferInfo(const AndroidNativeBufferInfo&) = delete;
     AndroidNativeBufferInfo& operator=(const AndroidNativeBufferInfo&) = delete;
@@ -66,14 +67,14 @@ class AndroidNativeBufferInfo {
 
     uint32_t getColorBufferHandle() const { return mColorBufferHandle; }
 
-    VkResult on_vkAcquireImageANDROID(VkEmulation* emu, VulkanDispatch* vk, VkDevice device, VkQueue defaultQueue,
-                                      uint32_t defaultQueueFamilyIndex,
+    VkResult on_vkAcquireImageANDROID(VkEmulation* emu, VulkanDispatch* vk, VkDevice device,
+                                      VkQueue defaultQueue, uint32_t defaultQueueFamilyIndex,
                                       std::mutex* defaultQueueMutex, VkSemaphore semaphore,
                                       VkFence fence);
 
-    VkResult on_vkQueueSignalReleaseImageANDROID(VkEmulation* emu,
-                                                 VulkanDispatch* vk, uint32_t queueFamilyIndex,
-                                                 VkQueue queue, std::mutex* queueMutex,
+    VkResult on_vkQueueSignalReleaseImageANDROID(VkEmulation* emu, VulkanDispatch* vk,
+                                                 uint32_t queueFamilyIndex, VkQueue queue,
+                                                 std::mutex* queueMutex,
                                                  uint32_t waitSemaphoreCount,
                                                  const VkSemaphore* pWaitSemaphores,
                                                  int* pNativeFenceFd);

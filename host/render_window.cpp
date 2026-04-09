@@ -485,14 +485,17 @@ void RenderWindow::setPostCallback(Renderer::OnPostCallback onPost, void* onPost
     D("Exiting");
 }
 
-void RenderWindow::getVulkanEmulationDeviceInfo(char** device_name, char** driver_info,
+bool RenderWindow::getVulkanEmulationDeviceInfo(char** device_name, char** driver_info,
                                                 uint32_t* driver_version, uint32_t* api_version,
                                                 uint32_t* vendor_id, uint32_t* device_id,
                                                 uint32_t* device_type, uint64_t* device_memory) {
-    assert(FrameBuffer::getFB());
-    FrameBuffer::getFB()->getVulkanEmulationDeviceInfo(device_name, driver_info, driver_version,
-                                                       api_version, vendor_id, device_id,
-                                                       device_type, device_memory);
+    if (!FrameBuffer::getFB()) {
+        GFXSTREAM_ERROR("%s: invalid state", __func__);
+        return false;
+    }
+    return FrameBuffer::getFB()->getVulkanEmulationDeviceInfo(
+        device_name, driver_info, driver_version, api_version, vendor_id, device_id, device_type,
+        device_memory);
 }
 
 bool RenderWindow::asyncReadbackSupported() {
@@ -594,6 +597,12 @@ void RenderWindow::setScreenMask(int width, int height, const uint8_t* rgbaData)
 void RenderWindow::setScreenBackground(int width, int height, const uint8_t* rgbaData) {
     if (FrameBuffer* fb = FrameBuffer::getFB()) {
         fb->setScreenBackground(width, height, rgbaData);
+    }
+}
+
+void RenderWindow::setDisplayLayout(int screenWidth, int screenHeight, const Rect& displayRect) {
+    if (FrameBuffer* fb = FrameBuffer::getFB()) {
+        fb->setDisplayLayout(screenWidth, screenHeight, displayRect);
     }
 }
 

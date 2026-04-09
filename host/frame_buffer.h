@@ -78,8 +78,7 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
     // own sub-windows. If false, this means the caller will use
     // setPostCallback() instead to retrieve the content.
     // Returns true on success, false otherwise.
-    static bool initialize(int width, int height, const FeatureSet& features,
-                           bool useSubWindow);
+    static bool initialize(int width, int height, const FeatureSet& features, bool useSubWindow);
 
     // Finalize the instance.
     static void finalize();
@@ -335,6 +334,7 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
 
     void setScreenMask(int width, int height, const uint8_t* rgbaData);
     void setScreenBackground(int width, int height, const uint8_t* rgbaData);
+    void setDisplayLayout(int screenWidth, int screenHeight, const Rect& displayRect);
 
     void registerVulkanInstance(uint64_t id, const char* appName) const;
     void unregisterVulkanInstance(uint64_t id) const;
@@ -363,6 +363,13 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
     int getScreenshot(unsigned int nChannels, unsigned int* width, unsigned int* height,
                       uint8_t* pixels, size_t* cPixels, int displayId, int desiredWidth,
                       int desiredHeight, int desiredRotation, Rect rect = {{0, 0}, {0, 0}});
+
+    // Saves a screenshot from a color buffer, applies post processing like color transform,
+    // display layout and background blending.
+    int getColorBufferScreenshot(ColorBuffer* cb, int screenwidth, int screenheight,
+                                 int skinRotation, GfxstreamFormat pixelsFormat, void* outPixels,
+                                 const Rect& rect,
+                                 const std::optional<std::array<float, 16>>& colorTransform);
 
     void onLastColorBufferRef(uint32_t handle);
     ColorBufferPtr findColorBuffer(HandleType p_colorbuffer);
@@ -598,7 +605,7 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
     // On return, |*vendor|, |*renderer| and |*version| will point to strings
     // that are owned by the instance (and must not be freed by the caller).
     void getDeviceInfo(const char** vendor, const char** renderer, const char** version) const;
-    void getVulkanEmulationDeviceInfo(char** device_name, char** driver_info,
+    bool getVulkanEmulationDeviceInfo(char** device_name, char** driver_info,
                                       uint32_t* driver_version, uint32_t* api_version,
                                       uint32_t* vendor_id, uint32_t* device_id,
                                       uint32_t* device_type, uint64_t* device_memory);

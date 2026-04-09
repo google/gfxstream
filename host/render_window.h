@@ -80,7 +80,7 @@ class RenderWindow {
     bool getHardwareStrings(const char** vendor,
                             const char** renderer,
                             const char** version);
-    void getVulkanEmulationDeviceInfo(char** device_name, char** driver_info,
+    bool getVulkanEmulationDeviceInfo(char** device_name, char** driver_info,
                                       uint32_t* driver_version, uint32_t* api_version,
                                       uint32_t* vendor_id, uint32_t* device_id,
                                       uint32_t* device_type, uint64_t* device_memory);
@@ -142,6 +142,9 @@ class RenderWindow {
 
     // Receive a background and pass it to TextureDraw
     void setScreenBackground(int width, int height, const uint8_t* rgbaData);
+
+    // Set display layout to change position/size of the emulation output on the screen
+    void setDisplayLayout(int screenWidth, int screenHeight, const Rect& displayRect);
 
     // Force a repaint of the whole content into the sub-window.
     void repaint();

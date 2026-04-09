@@ -21,11 +21,11 @@
 #include <Cocoa/Cocoa.h>
 
 /*
- * EmuGLView inherit from NSView and override the isOpaque
+ * EmuGLView inherit from NSOpenGLView and override the isOpaque
  * method to return YES. That prevents drawing of underlying window/view
  * when the view needs to be redrawn.
  */
-@interface EmuGLView : NSView {
+@interface EmuGLView : NSOpenGLView {
 } @end
 
 @implementation EmuGLView
@@ -36,7 +36,7 @@
 
 @end
 
-@interface EmuGLViewWithMetal : NSView
+@interface EmuGLViewWithMetal : NSOpenGLView
 
 - (CAMetalLayer *)getMetalLayer;
 
@@ -47,10 +47,6 @@
 
   - (BOOL)isOpaque {
       return YES;
-  }
-
-  + (Class) layerClass {
-    return [CAMetalLayer class];
   }
 
   - (CALayer *)makeBackingLayer {
@@ -97,12 +93,16 @@ EGLNativeWindowType createSubWindow(FBNativeWindowType p_window,
     if (useMetalView) {
         glView = [[EmuGLViewWithMetal alloc] initWithFrame:contentRect];
     } else {
-        glView = [[EmuGLView alloc] initWithFrame:contentRect];
+        glView = [[EmuGLView alloc] initWithFrame:contentRect pixelFormat:nil];
     }
     if (!glView) {
         return NULL;
     }
-    [glView setWantsBestResolutionOpenGLSurface:YES];
+    if (!useMetalView) {
+        // This is deprecated since macOS 10.15, but is still required for high-resolution
+        // OpenGL surfaces if not using Metal.
+        [glView setWantsBestResolutionOpenGLSurface:YES];
+    }
     [glView setWantsLayer:YES];
     [[win contentView] addSubview:glView];
     [win makeKeyAndOrderFront:nil];

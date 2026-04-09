@@ -53,13 +53,13 @@ public:
     // the translation of the image towards the origin.
     bool draw(GLuint texture, float rotationDegrees, float dx, float dy,
               const std::optional<std::array<float, 16>>& colorTransform) {
-        return drawImpl(texture, rotationDegrees, dx, dy, false, colorTransform);
+        return drawImpl(texture, rotationDegrees, dx, dy, 1.0f, 1.0f, false, colorTransform);
     }
     // Same as 'draw()', but if an overlay has been provided, that overlay is
     // drawn on top of everything else.
-    bool drawWithOverlay(GLuint texture, float rotationDegrees, float dx, float dy,
-                         const std::optional<std::array<float, 16>>& colorTransform) {
-        return drawImpl(texture, rotationDegrees, dx, dy, true, colorTransform);
+    bool drawWithOverlay(GLuint texture, float rotationDegrees, float dx, float dy, float sx,
+                         float sy, const std::optional<std::array<float, 16>>& colorTransform) {
+        return drawImpl(texture, rotationDegrees, dx, dy, sx, sy, true, colorTransform);
     }
 
     void setScreenMask(int width, int height, const uint8_t* rgbaData);
@@ -71,7 +71,8 @@ public:
     void cleanupForDrawLayer();
 
    private:
-    bool drawImpl(GLuint texture, float rotationDegrees, float dx, float dy, bool wantOverlay,
+    bool drawImpl(GLuint texture, float rotationDegrees, float dx, float dy, float scaleX,
+                  float scaleY, bool wantOverlay,
                   const std::optional<std::array<float, 16>>& colorTransform);
     void preDrawLayer();
 

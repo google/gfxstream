@@ -171,9 +171,6 @@ static constexpr const char* const kEmulatedInstanceExtensions[] = {
     VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME,
 };
 
-static constexpr uint32_t kMaxSafeVersion = VK_MAKE_VERSION(1, 3, 0);
-static constexpr uint32_t kMinVersion = VK_MAKE_VERSION(1, 0, 0);
-
 static constexpr uint64_t kPageSizeforBlob = 4096;
 static constexpr uint64_t kPageMaskForBlob = ~(0xfff);
 
@@ -232,6 +229,7 @@ class VkDecoderGlobalState::Impl {
         mBufferInfo.clear();
         mMemoryInfo.clear();
         mShaderModuleInfo.clear();
+        mSamplerYcbcrConversionInfo.clear();
         mPipelineCacheInfo.clear();
         mPipelineLayoutInfo.clear();
         mPipelineInfo.clear();
@@ -1038,14 +1036,10 @@ class VkDecoderGlobalState::Impl {
                                            uint32_t* pApiVersion) {
         if (m_vk->vkEnumerateInstanceVersion) {
             VkResult res = m_vk->vkEnumerateInstanceVersion(pApiVersion);
-
-            if (*pApiVersion > kMaxSafeVersion) {
-                *pApiVersion = kMaxSafeVersion;
-            }
-
+            m_vkEmulation->applyApiVersionLimits(*pApiVersion);
             return res;
         }
-        *pApiVersion = kMinVersion;
+        *pApiVersion = VK_API_VERSION_1_0;
         return VK_SUCCESS;
     }
 
@@ -1328,9 +1322,7 @@ class VkDecoderGlobalState::Impl {
 
                 vk->vkGetPhysicalDeviceProperties(physicalDevices[i], &physdevInfo.props);
 
-                if (physdevInfo.props.apiVersion > kMaxSafeVersion) {
-                    physdevInfo.props.apiVersion = kMaxSafeVersion;
-                }
+                m_vkEmulation->applyApiVersionLimits(physdevInfo.props.apiVersion);
 
                 VkPhysicalDeviceMemoryProperties hostMemoryProperties;
                 vk->vkGetPhysicalDeviceMemoryProperties(physicalDevices[i], &hostMemoryProperties);
@@ -1704,9 +1696,7 @@ class VkDecoderGlobalState::Impl {
 
         vk->vkGetPhysicalDeviceProperties(physicalDevice, pProperties);
 
-        if (pProperties->apiVersion > kMaxSafeVersion) {
-            pProperties->apiVersion = kMaxSafeVersion;
-        }
+        m_vkEmulation->applyApiVersionLimits(pProperties->apiVersion);
     }
 
     void on_vkGetPhysicalDeviceProperties2(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
@@ -1745,9 +1735,7 @@ class VkDecoderGlobalState::Impl {
             vk->vkGetPhysicalDeviceProperties(physicalDevice, &pProperties->properties);
         }
 
-        if (pProperties->properties.apiVersion > kMaxSafeVersion) {
-            pProperties->properties.apiVersion = kMaxSafeVersion;
-        }
+        m_vkEmulation->applyApiVersionLimits(pProperties->properties.apiVersion);
     }
 
     void on_vkGetPhysicalDeviceQueueFamilyProperties(
@@ -2958,7 +2946,8 @@ class VkDecoderGlobalState::Impl {
         VkResult createRes = VK_SUCCESS;
 
         if (nativeBufferANDROID) {
-            auto* physicalDeviceInfo = gfxstream::base::find(mPhysdevInfo, deviceInfo->physicalDevice);
+            auto* physicalDeviceInfo =
+                gfxstream::base::find(mPhysdevInfo, deviceInfo->physicalDevice);
             if (!physicalDeviceInfo) {
                 return VK_ERROR_DEVICE_LOST;
             }
@@ -2967,7 +2956,8 @@ class VkDecoderGlobalState::Impl {
                 physicalDeviceInfo->memoryPropertiesHelper->getHostMemoryProperties();
 
             anbInfo = AndroidNativeBufferInfo::create(
-                m_vkEmulation, vk, device, *pool, pCreateInfo, nativeBufferANDROID, pAllocator, &memoryProperties);
+                m_vkEmulation, vk, device, *pool, pCreateInfo, nativeBufferANDROID, pAllocator,
+                &memoryProperties, deviceInfo->debugUtilsHelper);
             if (anbInfo == nullptr) {
                 createRes = VK_ERROR_OUT_OF_DEVICE_MEMORY;
             }
@@ -6072,6 +6062,7 @@ class VkDecoderGlobalState::Impl {
                 physicalDeviceInfo->memoryPropertiesHelper
                     ->getHostMemoryInfoFromGuestMemoryTypeIndex(localAllocInfo.memoryTypeIndex);
             if (!hostMemoryInfoOpt) {
+                GFXSTREAM_ERROR("Failed to get host memory info.");
                 return VK_ERROR_INCOMPATIBLE_DRIVER;
             }
             const auto& hostMemoryInfo = *hostMemoryInfoOpt;
@@ -6253,8 +6244,15 @@ class VkDecoderGlobalState::Impl {
                         "VulkanAllocateHostMemory");
                     return VK_ERROR_INCOMPATIBLE_DRIVER;
                 }
+
+                // Determine size and alignment requirements and allocate a PrivateMemory
                 VkDeviceSize alignmentSize =
                     m_vkEmulation->externalMemoryHostProperties().minImportedHostPointerAlignment;
+                if (createBlobInfoPtr && alignmentSize < kPageSizeforBlob) {
+                    // Align blob allocations to the page size
+                    alignmentSize = kPageSizeforBlob;
+                }
+
                 VkDeviceSize alignedSize = ALIGN(localAllocInfo.allocationSize, alignmentSize);
                 localAllocInfo.allocationSize = alignedSize;
                 privateMemory =
@@ -6262,8 +6260,9 @@ class VkDecoderGlobalState::Impl {
                 mappedPtr = privateMemory->getAddr();
 
                 if (importHostInfo.pHostPointer != nullptr) {
-                    GFXSTREAM_FATAL("%s: Host pointer info is already used for import operation!",
+                    GFXSTREAM_ERROR("%s: Host pointer info is already used for import operation!",
                                     __func__);
+                    return VK_ERROR_INCOMPATIBLE_DRIVER;
                 }
                 importHostInfo.pHostPointer = mappedPtr;
 
@@ -6843,11 +6842,15 @@ class VkDecoderGlobalState::Impl {
 
             if (hva != alignedHva) {
                 GFXSTREAM_ERROR(
-                    "Mapping non page-size (0x%" PRIx64
+                    "%s: vkMapMemory failed, cannot map memory to a page-size (0x%" PRIx64
                     ") aligned host virtual address:%p "
                     "using the aligned host virtual address:%p. The underlying resources "
                     "using this blob may be corrupted/offset.",
-                    kPageSizeforBlob, hva, alignedHva);
+                    __func__, kPageSizeforBlob, hva, alignedHva);
+
+                // We cannot continue and add mapping for this unaligned mapping, better
+                // to return an error here, as it may cause crashes otherwise.
+                return VK_ERROR_OUT_OF_HOST_MEMORY;
             }
             ExternalObjectManager::get()->addMapping(virtioGpuContextId, hostBlobId,
                                                      (void*)(uintptr_t)alignedHva, info->caching);
@@ -8885,12 +8888,40 @@ class VkDecoderGlobalState::Impl {
         if (res != VK_SUCCESS) {
             return res;
         }
+
+        std::lock_guard<std::mutex> lock(mMutex);
+        VALIDATE_NEW_HANDLE_INFO_ENTRY(mSamplerYcbcrConversionInfo, *pYcbcrConversion);
+        auto& ycbcrConversionInfo = mSamplerYcbcrConversionInfo[*pYcbcrConversion];
+        ycbcrConversionInfo.device = device;
+
         *pYcbcrConversion = new_boxed_non_dispatchable_VkSamplerYcbcrConversion(*pYcbcrConversion);
         return VK_SUCCESS;
     }
 
-    void on_vkDestroySamplerYcbcrConversion(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
-                                            VkDevice boxed_device,
+    void destroySamplerYcbcrConversionWithExclusiveInfo(VkDevice device,
+                                                        VulkanDispatch* deviceDispatch,
+                                                        VkSamplerYcbcrConversion ycbcrConversion,
+                                                        SamplerYcbcrConversionInfo&,
+                                                        const VkAllocationCallbacks* pAllocator) {
+        deviceDispatch->vkDestroySamplerYcbcrConversion(device, ycbcrConversion, pAllocator);
+    }
+
+    void destroySamplerYcbcrConversionLocked(VkDevice device, VulkanDispatch* deviceDispatch,
+                                             VkSamplerYcbcrConversion ycbcrConversion,
+                                             const VkAllocationCallbacks* pAllocator)
+        REQUIRES(mMutex) {
+        auto ycbcrConversionInfoIt = mSamplerYcbcrConversionInfo.find(ycbcrConversion);
+        if (ycbcrConversionInfoIt == mSamplerYcbcrConversionInfo.end()) return;
+        auto& ycbcrConversionInfo = ycbcrConversionInfoIt->second;
+
+        destroySamplerYcbcrConversionWithExclusiveInfo(device, deviceDispatch, ycbcrConversion,
+                                                       ycbcrConversionInfo, pAllocator);
+
+        mSamplerYcbcrConversionInfo.erase(ycbcrConversionInfoIt);
+    }
+
+    void on_vkDestroySamplerYcbcrConversion(gfxstream::base::BumpPool* pool,
+                                            VkSnapshotApiCallHandle, VkDevice boxed_device,
                                             VkSamplerYcbcrConversion ycbcrConversion,
                                             const VkAllocationCallbacks* pAllocator) {
         if (m_vkEmulation->isYcbcrEmulationEnabled() &&
@@ -8899,8 +8930,9 @@ class VkDecoderGlobalState::Impl {
         }
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
-        vk->vkDestroySamplerYcbcrConversion(device, ycbcrConversion, pAllocator);
-        return;
+
+        std::lock_guard<std::mutex> lock(mMutex);
+        destroySamplerYcbcrConversionLocked(device, vk, ycbcrConversion, pAllocator);
     }
 
     VkResult on_vkEnumeratePhysicalDeviceGroups(
@@ -9852,6 +9884,7 @@ class VkDecoderGlobalState::Impl {
         extractInfosWithDeviceInto(device, mEventInfo, deviceObjects.events);
         extractInfosWithDeviceInto(device, mSemaphoreInfo, deviceObjects.semaphores);
         extractInfosWithDeviceInto(device, mShaderModuleInfo, deviceObjects.shaderModules);
+        extractInfosWithDeviceInto(device, mSamplerYcbcrConversionInfo, deviceObjects.samplerYcbcrConversions);
     }
 
     void extractInstanceAndDependenciesLocked(VkInstance instance, InstanceObjects& objects)
@@ -10346,6 +10379,7 @@ class VkDecoderGlobalState::Impl {
     std::unordered_map<VkEvent, EventInfo> mEventInfo GUARDED_BY(mMutex);
     std::unordered_map<VkSemaphore, SemaphoreInfo> mSemaphoreInfo GUARDED_BY(mMutex);
     std::unordered_map<VkShaderModule, ShaderModuleInfo> mShaderModuleInfo GUARDED_BY(mMutex);
+    std::unordered_map<VkSamplerYcbcrConversion, SamplerYcbcrConversionInfo> mSamplerYcbcrConversionInfo GUARDED_BY(mMutex);
 
 #ifdef _WIN32
     int mSemaphoreId = 1;
