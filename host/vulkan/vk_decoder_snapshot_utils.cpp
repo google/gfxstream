@@ -147,6 +147,26 @@ VkExtent3D getMipmapExtent(VkExtent3D baseExtent, uint32_t mipLevel) {
     };
 }
 
+VkImageAspectFlags getFormatAspects(VkFormat format) {
+    switch (format) {
+        case VK_FORMAT_D16_UNORM:
+        case VK_FORMAT_D32_SFLOAT:
+        case VK_FORMAT_X8_D24_UNORM_PACK32:
+            return VK_IMAGE_ASPECT_DEPTH_BIT;
+
+        case VK_FORMAT_D16_UNORM_S8_UINT:
+        case VK_FORMAT_D24_UNORM_S8_UINT:
+        case VK_FORMAT_D32_SFLOAT_S8_UINT:
+            return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+
+        case VK_FORMAT_S8_UINT:
+            return VK_IMAGE_ASPECT_STENCIL_BIT;
+
+        default:
+            return VK_IMAGE_ASPECT_COLOR_BIT;
+    }
+}
+
 constexpr uint32_t kBadImageSnapshot = 0xbaadbeef;
 constexpr uint32_t kGoodImageSnapshot = 0x900df00d;
 }  // namespace
@@ -234,10 +254,7 @@ void saveImageContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkImage
 
             // TODO(b/323059453): separate stencil and depth images properly
             VkExtent3D mipmapExtent = getMipmapExtent(imageCreateInfo.extent, mipLevel);
-            VkImageAspectFlags aspects =
-                imageCreateInfo.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT
-                    ? VK_IMAGE_ASPECT_STENCIL_BIT | VK_IMAGE_ASPECT_DEPTH_BIT
-                    : VK_IMAGE_ASPECT_COLOR_BIT;
+            VkImageAspectFlags aspects = getFormatAspects(imageCreateInfo.format);
             VkImageLayout layoutBeforeSave = imageInfo->layout;
             VkImageMemoryBarrier imgMemoryBarrier = {
                 .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -339,10 +356,7 @@ void loadImageContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkImage
     if (imageInfo->imageCreateInfoShallow.samples != VK_SAMPLE_COUNT_1_BIT) {
         // Set the layout and quit
         // TODO: resolve and save image content
-        VkImageAspectFlags aspects =
-            imageCreateInfo.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT
-                ? VK_IMAGE_ASPECT_STENCIL_BIT | VK_IMAGE_ASPECT_DEPTH_BIT
-                : VK_IMAGE_ASPECT_COLOR_BIT;
+        VkImageAspectFlags aspects = getFormatAspects(imageCreateInfo.format);
         VkImageMemoryBarrier imgMemoryBarrier = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .pNext = nullptr,
@@ -434,10 +448,7 @@ void loadImageContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkImage
             size_t bytes = stream->getBe64();
             stream->read(mapped, bytes);
 
-            VkImageAspectFlags aspects =
-                imageCreateInfo.usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT
-                    ? VK_IMAGE_ASPECT_STENCIL_BIT | VK_IMAGE_ASPECT_DEPTH_BIT
-                    : VK_IMAGE_ASPECT_COLOR_BIT;
+            VkImageAspectFlags aspects = getFormatAspects(imageCreateInfo.format);
             VkImageMemoryBarrier imgMemoryBarrier = {
                 .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
                 .pNext = nullptr,
