@@ -11,10 +11,14 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
+#if !defined(HAVE_MEMFD_CREATE)
+#include <sys/syscall.h>
+#endif
 #include <unistd.h>
 
 #include "gfxstream/EintrWrapper.h"
