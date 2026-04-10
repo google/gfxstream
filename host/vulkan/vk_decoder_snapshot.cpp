@@ -2779,24 +2779,7 @@ class VkDecoderSnapshot::Impl {
                                     VkSnapshotApiCallHandle apiCallHandle,
                                     const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                     VkQueue queue, VkCommandBuffer commandBuffer,
-                                    VkDeviceSize dataSize, const void* pData) {
-        // Note: special implementation
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
-        VkDecoderGlobalState* m_state = VkDecoderGlobalState::get();
-        uint64_t handle = m_state->newGlobalVkGenericHandle(Tag_VkCmdOp);
-        mReconstruction.addHandles((const uint64_t*)(&handle), 1);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)(&handle), 1, apiCallHandle,
-                                            VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)(&handle), 1);
-        mReconstruction.setApiTrace(apiCallHandle, apiCallPacket, apiCallPacketSize);
-        mReconstruction.removeDescendantsOfHandle((uint64_t)(uintptr_t)commandBuffer);
-        mReconstruction.addHandleDependency((const uint64_t*)(&handle), 1,
-                                            (uint64_t)(uintptr_t)commandBuffer);
-        // Track that `handle` depends on previously tracked dependencies (e.g. the handle for this
-        // `vkQueueFlushCommandsGOOGLE()` call depends on the `VkPipeline` handle from
-        // `vkCmdBindPipeline()`).
-        mReconstruction.addHandleDependenciesForApiCallDependencies(apiCallHandle, handle);
-    }
+                                    VkDeviceSize dataSize, const void* pData) {}
     void vkQueueCommitDescriptorSetUpdatesGOOGLE(
         gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle,
         const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkQueue queue,
