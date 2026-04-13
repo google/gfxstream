@@ -1405,6 +1405,7 @@ std::unique_ptr<FrameBuffer::Impl> FrameBuffer::Impl::Create(FrameBuffer* frameb
         .guestVulkanOnly = impl->m_features.GuestVulkanOnly.enabled(),
         .useDedicatedAllocations = false,  // Set later.
         .guestVulkanMaxApiVersion = maxApiVersion,
+        .enableProtectedMemoryEmulation = impl->m_features.VulkanProtectedMemoryEmulation.enabled(),
     };
 
     //

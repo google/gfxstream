@@ -1682,6 +1682,8 @@ void VkEmulation::initFeatures(Features features) {
                        VK_API_VERSION_MAJOR(features.guestVulkanMaxApiVersion),
                        VK_API_VERSION_MINOR(features.guestVulkanMaxApiVersion),
                        VK_API_VERSION_PATCH(features.guestVulkanMaxApiVersion));
+        GFXSTREAM_INFO("    enableProtectedMemoryEmulation: %s",
+                       features.enableProtectedMemoryEmulation ? "true" : "false");
     }
 
     mDeviceInfo.glInteropSupported = features.glInteropSupported;
@@ -1694,6 +1696,7 @@ void VkEmulation::initFeatures(Features features) {
     mGuestVulkanOnly = features.guestVulkanOnly;
     mUseDedicatedAllocations = features.useDedicatedAllocations;
     mGuestVulkanMaxApiVersion = features.guestVulkanMaxApiVersion;
+    mEnableProtectedMemoryEmulation = features.enableProtectedMemoryEmulation;
 
     if (features.useVulkanComposition) {
         if (mCompositorVk) {
@@ -1772,6 +1775,8 @@ VkEmulation::~VkEmulation() {
 bool VkEmulation::isYcbcrEmulationEnabled() const { return mEnableYcbcrEmulation; }
 
 bool VkEmulation::isEtc2EmulationEnabled() const { return mEnableEtc2Emulation; }
+
+bool VkEmulation::isProtectedMemoryEmulationEnabled() const { return mEnableProtectedMemoryEmulation; }
 
 bool VkEmulation::deferredCommandsEnabled() const { return mUseDeferredCommands; }
 

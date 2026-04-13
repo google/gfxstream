@@ -107,12 +107,15 @@ class VkEmulation {
         bool guestVulkanOnly = false;
         bool useDedicatedAllocations = false;
         uint32_t guestVulkanMaxApiVersion = VK_API_VERSION_1_3;
+        bool enableProtectedMemoryEmulation;
     };
     void initFeatures(Features features);
 
     bool isYcbcrEmulationEnabled() const;
 
     bool isEtc2EmulationEnabled() const;
+
+    bool isProtectedMemoryEmulationEnabled() const;
 
     bool deferredCommandsEnabled() const;
     bool createResourcesWithRequirementsEnabled() const;
@@ -587,6 +590,8 @@ class VkEmulation {
     // This represents the maximum vulkan api version that should be reported to the guest and is
     // not related to the host vulkan level available or used.
     uint32_t mGuestVulkanMaxApiVersion = VK_API_VERSION_1_3;
+
+    bool mEnableProtectedMemoryEmulation = true;
 
     // Instance and device for creating the system-wide shareable objects.
     VkInstance mInstance = VK_NULL_HANDLE;

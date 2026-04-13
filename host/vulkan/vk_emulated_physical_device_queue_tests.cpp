@@ -98,6 +98,61 @@ TEST(VkGuestQueueUtilsTest, VulkanVirtualQueue) {
     EXPECT_THAT(actualQueueProperties[0], EqsVkQueueFamilyProperties(expectedQueueFamilyProperties[0]));
 }
 
+// Use VulkanProtectedMemoryEmulation feature to emulate protected queues.
+TEST(VkGuestQueueUtilsTest, VulkanProtectedQueue) {
+    const std::vector<VkQueueFamilyProperties> hostQueueFamilyProperties = {
+        {.queueFlags = VK_QUEUE_GRAPHICS_BIT,
+         .queueCount = 1,
+         .timestampValidBits = 16,
+         .minImageTransferGranularity = {1, 1, 1}}};
+
+    const std::vector<VkQueueFamilyProperties> expectedQueueFamilyProperties = {
+        {.queueFlags = VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_PROTECTED_BIT,
+         .queueCount = 1,
+         .timestampValidBits = 16,
+         .minImageTransferGranularity = {1, 1, 1}}};
+
+    // Enable VulkanProtectedMemoryEmulation, expect 1 protected graphics queue
+    gfxstream::host::FeatureSet features;
+    features.Vulkan.setEnabled(true);
+    features.VulkanProtectedMemoryEmulation.setEnabled(true);
+
+    EmulatedPhysicalDeviceQueueProperties helper(hostQueueFamilyProperties, features);
+
+    const auto actualQueueProperties = helper.getQueueFamilyProperties();
+    EXPECT_THAT(actualQueueProperties.size(), 1);
+    EXPECT_THAT(actualQueueProperties[0], EqsVkQueueFamilyProperties(expectedQueueFamilyProperties[0]));
+}
+
+// Use VulkanVirtualQueue+VulkanProtectedMemoryEmulation
+TEST(VkGuestQueueUtilsTest, VulkanProtectedVirtualQueue) {
+    const std::vector<VkQueueFamilyProperties> hostQueueFamilyProperties = {
+        {.queueFlags = VK_QUEUE_GRAPHICS_BIT,
+         .queueCount = 1,
+         .timestampValidBits = 16,
+         .minImageTransferGranularity = {1, 1, 1}}};
+
+    const std::vector<VkQueueFamilyProperties> expectedQueueFamilyProperties = {
+        {.queueFlags = VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_PROTECTED_BIT,
+         .queueCount = 2,
+         .timestampValidBits = 16,
+         .minImageTransferGranularity = {1, 1, 1}}};
+
+    // Enable VulkanVirtualQueue and VulkanProtectedMemoryEmulation, expect 2 graphics queues with
+    // protected bit
+    gfxstream::host::FeatureSet features;
+    features.Vulkan.setEnabled(true);
+    features.VulkanVirtualQueue.setEnabled(true);
+    features.VulkanProtectedMemoryEmulation.setEnabled(true);
+
+    EmulatedPhysicalDeviceQueueProperties helper(hostQueueFamilyProperties, features);
+
+    const auto actualQueueProperties = helper.getQueueFamilyProperties();
+    EXPECT_THAT(actualQueueProperties.size(), 1);
+    EXPECT_THAT(actualQueueProperties[0], EqsVkQueueFamilyProperties(expectedQueueFamilyProperties[0]));
+}
+
+
 }  // namespace
 }  // namespace vk
 }  // namespace host

@@ -426,6 +426,11 @@ struct FeatureSet {
         "and the available Vulkan driver extensions.",
         &map,
     };
+    BoolFeatureInfo VulkanProtectedMemoryEmulation = {
+        "VulkanProtectedMemoryEmulation",
+        "If enabled, enables protected memory emulation for the guest.",
+        &map,
+    };
 };
 
 #define GFXSTREAM_SET_BOOL_FEATURE_ON_CONDITION(set, feature, condition) \

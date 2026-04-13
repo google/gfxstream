@@ -232,6 +232,7 @@ struct DeviceInfo {
     bool emulateTextureEtc2 = false;
     bool emulateTextureAstc = false;
     bool useAstcCpuDecompression = false;
+    bool emulateProtectedMemory = false;
 
     ExternalFenceInfo externalFenceInfo;
     VkPhysicalDevice physicalDevice;

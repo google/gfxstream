@@ -1433,16 +1433,23 @@ class VkDecoderGlobalState::Impl {
                 vk_find_struct<VkPhysicalDeviceVulkan11Features>(pFeatures);
             VkPhysicalDeviceVulkan13Features* vulkan13Features =
                 vk_find_struct<VkPhysicalDeviceVulkan13Features>(pFeatures);
-
-            // Protected memory is not supported on emulators. Override feature
-            // information to mark as unsupported (see b/329845987).
             VkPhysicalDeviceProtectedMemoryFeatures* protectedMemoryFeatures =
                 vk_find_struct<VkPhysicalDeviceProtectedMemoryFeatures>(pFeatures);
-            if (protectedMemoryFeatures != nullptr) {
-                protectedMemoryFeatures->protectedMemory = VK_FALSE;
-            }
-            if (vk11Features != nullptr) {
-                vk11Features->protectedMemory = VK_FALSE;
+
+            if (enableProtectedMemoryEmulation() ) {
+                if (protectedMemoryFeatures) {
+                    protectedMemoryFeatures->protectedMemory = VK_TRUE;
+                }
+                if (vk11Features) {
+                    vk11Features->protectedMemory = VK_TRUE;
+                }
+            } else {
+                if (protectedMemoryFeatures) {
+                    protectedMemoryFeatures->protectedMemory = VK_FALSE;
+                }
+                if (vk11Features) {
+                    vk11Features->protectedMemory = VK_FALSE;
+                }
             }
 
             if (m_vkEmulation->getFeatures().VulkanBatchedDescriptorSetUpdate.enabled()) {
@@ -1735,6 +1742,15 @@ class VkDecoderGlobalState::Impl {
             vk->vkGetPhysicalDeviceProperties(physicalDevice, &pProperties->properties);
         }
 
+        if (enableProtectedMemoryEmulation()) {
+            VkPhysicalDeviceProtectedMemoryProperties* protectedMemoryProperties =
+                vk_find_struct<VkPhysicalDeviceProtectedMemoryProperties>(pProperties);
+            if (protectedMemoryProperties) {
+                // Unprotected accesses will not result in device lost, it's already emulated
+                protectedMemoryProperties->protectedNoFault = VK_TRUE;
+            }
+        }
+
         m_vkEmulation->applyApiVersionLimits(pProperties->properties.apiVersion);
     }
 
@@ -1964,7 +1980,7 @@ class VkDecoderGlobalState::Impl {
 
         uint32_t supportedFenceHandleTypes = 0;
         uint32_t supportedBinarySemaphoreHandleTypes = 0;
-        // Run the underlying API call, filtering extensions.
+        // Run the underlying API call, filtering extensions and features.
 
         VkDeviceCreateInfo createInfoFiltered;
         deepcopy_VkDeviceCreateInfo(pool, VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO, pCreateInfo,
@@ -1978,6 +1994,7 @@ class VkDecoderGlobalState::Impl {
         // used to check for supported properties of individual formats as normal.
         const bool emulateTextureEtc2 = needEmulatedEtc2(physicalDevice, vk);
         const bool emulateTextureAstc = needEmulatedAstc(physicalDevice, vk);
+        const bool emulateProtectedMemory = needEmulatedProtectedMemory(physicalDevice, vk);
         VkPhysicalDeviceFeatures featuresFiltered;
         std::vector<VkPhysicalDeviceFeatures*> featuresToFilter;
 
@@ -2039,13 +2056,14 @@ class VkDecoderGlobalState::Impl {
             featuresToFilter.emplace_back(&features2->features);
         }
 
+        // Handle protected memory features
         {
             // b/329845987, protected memory is not supported on emulators.
             // We override feature information to mark as unsupported and need to return correct
             // error code here even if the feature is supported by the underlying driver.
-            bool protectedMemoryFeatureRequested = false;
             VkPhysicalDeviceProtectedMemoryFeatures* protectedMemoryFeatures =
                 vk_find_struct<VkPhysicalDeviceProtectedMemoryFeatures>(&createInfoFiltered);
+            bool protectedMemoryFeatureRequested = false;
             if (protectedMemoryFeatures != nullptr && protectedMemoryFeatures->protectedMemory) {
                 protectedMemoryFeatureRequested = true;
             }
@@ -2056,17 +2074,25 @@ class VkDecoderGlobalState::Impl {
                 protectedMemoryFeatureRequested = true;
             }
 
-            // This may be hit by the CTS in create_device_unsupported_features.vulkan11_features
-            // We log the behavior, to identify cases as some system apps may still try creating
-            // protected memory devices without checking the feature support.
-            if (protectedMemoryFeatureRequested) {
+            if (emulateProtectedMemory) {
+                // Feature is emulated, disable related bits before calling the underlying driver
+                if (protectedMemoryFeatures != nullptr &&
+                    protectedMemoryFeatures->protectedMemory) {
+                    protectedMemoryFeatures->protectedMemory = false;
+                }
+                if (vk11Features != nullptr && vk11Features->protectedMemory) {
+                    vk11Features->protectedMemory = false;
+                }
+                for (uint32_t i = 0; i < createInfoFiltered.queueCreateInfoCount; i++) {
+                    (const_cast<VkDeviceQueueCreateInfo*>(createInfoFiltered.pQueueCreateInfos))[i]
+                        .flags &= ~VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT;
+                }
+            } else if (protectedMemoryFeatureRequested) {
+                // This may be hit by the CTS in create_device_unsupported_features tests.
+                // We log the behavior, to identify cases as some system apps may still try creating
+                // protected memory devices without checking the feature support.
                 GFXSTREAM_INFO("%s: Unsupported protected memory feature is requested!", __func__);
                 return VK_ERROR_FEATURE_NOT_PRESENT;
-            }
-
-            for (uint32_t i = 0; i < createInfoFiltered.queueCreateInfoCount; i++) {
-                (const_cast<VkDeviceQueueCreateInfo*>(createInfoFiltered.pQueueCreateInfos))[i]
-                    .flags &= ~VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT;
             }
         }
 
@@ -2253,6 +2279,7 @@ class VkDecoderGlobalState::Impl {
         deviceInfo.physicalDevice = physicalDevice;
         deviceInfo.emulateTextureEtc2 = emulateTextureEtc2;
         deviceInfo.emulateTextureAstc = emulateTextureAstc;
+        deviceInfo.emulateProtectedMemory = emulateProtectedMemory;
         deviceInfo.useAstcCpuDecompression =
             m_vkEmulation->getAstcLdrEmulationMode() == AstcEmulationMode::Cpu &&
             AstcCpuDecompressor::get().available();
@@ -2267,10 +2294,12 @@ class VkDecoderGlobalState::Impl {
             static_cast<VkExternalSemaphoreHandleTypeFlagBits>(supportedBinarySemaphoreHandleTypes);
 
         GFXSTREAM_INFO(
-            "Created VkDevice:%p for application:'%s' instance:%p. ASTC emulation:%s CPU decoding:%s.",
+            "Created VkDevice:%p for application:'%s' instance:%p. ASTC emulation:%s CPU "
+            "decoding:%s. Protected memory:%s",
             *pDevice, instanceInfo.applicationName.c_str(), physicalDeviceInfo.instance,
             deviceInfo.emulateTextureAstc ? "on" : "off",
-            deviceInfo.useAstcCpuDecompression ? "on" : "off");
+            deviceInfo.useAstcCpuDecompression ? "on" : "off",
+            deviceInfo.emulateProtectedMemory ? "on" : "off");
 
         for (uint32_t i = 0; i < createInfoFiltered.enabledExtensionCount; ++i) {
             deviceInfo.enabledExtensionNames.push_back(
@@ -2325,9 +2354,17 @@ class VkDecoderGlobalState::Impl {
         std::unordered_map<uint32_t, uint32_t> queueFamilyIndexCounts;
         for (uint32_t i = 0; i < pCreateInfo->queueCreateInfoCount; ++i) {
             const auto& queueCreateInfo = pCreateInfo->pQueueCreateInfos[i];
+            auto unsupportedFlags = queueCreateInfo.flags;
+            if (emulateProtectedMemory) {
+                unsupportedFlags &= ~VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT;
+            }
             // Check only queues created with flags = 0 in VkDeviceQueueCreateInfo.
-            auto flags = queueCreateInfo.flags;
-            if (flags) continue;
+            if (unsupportedFlags) {
+                GFXSTREAM_ERROR(
+                    "%s: Unsupported queue creation flags(%d) for device creation",
+                    __func__, unsupportedFlags);
+                continue;
+            }
             uint32_t queueFamilyIndex = queueCreateInfo.queueFamilyIndex;
             uint32_t queueCount = queueCreateInfo.queueCount;
             queueFamilyIndexCounts[queueFamilyIndex] = queueCount;
@@ -2335,11 +2372,10 @@ class VkDecoderGlobalState::Impl {
 
         std::vector<uint64_t> extraHandles;
         for (auto it : queueFamilyIndexCounts) {
-            auto index = it.first;
+            auto queueFamilyIndex = it.first;
             auto count = it.second;
             auto addVirtualQueue =
                 (count == 2) && physicalDeviceInfo.queuePropertiesHelper->hasVirtualGraphicsQueue();
-            auto& queues = deviceInfo.queues[index];
             for (uint32_t i = 0; i < count; ++i) {
                 VkQueue physicalQueue;
 
@@ -2348,7 +2384,7 @@ class VkDecoderGlobalState::Impl {
                 }
 
                 assert(i == 0 || !addVirtualQueue);
-                vk->vkGetDeviceQueue(*pDevice, index, i, &physicalQueue);
+                vk->vkGetDeviceQueue(*pDevice, queueFamilyIndex, i, &physicalQueue);
 
                 if (mLogging) {
                     GFXSTREAM_INFO("%s: get device queue (end)", __func__);
@@ -2359,7 +2395,7 @@ class VkDecoderGlobalState::Impl {
                 VALIDATE_NEW_HANDLE_INFO_ENTRY(mQueueInfo, physicalQueue);
                 QueueInfo& physicalQueueInfo = mQueueInfo[physicalQueue];
                 physicalQueueInfo.device = *pDevice;
-                physicalQueueInfo.queueFamilyIndex = index;
+                physicalQueueInfo.queueFamilyIndex = queueFamilyIndex;
                 physicalQueueInfo.boxed = boxedQueue;
                 physicalQueueInfo.queueMutex = std::make_shared<std::mutex>();
                 // Only set pendingOps if it's a shared queue. If it's not shared, submissions
@@ -2367,7 +2403,7 @@ class VkDecoderGlobalState::Impl {
                 physicalQueueInfo.pendingOps =
                     addVirtualQueue ? std::make_shared<PhysicalQueuePendingOps>() : nullptr;
                 physicalQueueInfo.usingSharedPhysicalQueue = addVirtualQueue;
-                queues.push_back(physicalQueue);
+                deviceInfo.queues[queueFamilyIndex].push_back(physicalQueue);
 
                 deviceWithQueues.queues.push_back(DeviceLostHelper::QueueWithMutex{
                     .queue = physicalQueue,
@@ -2403,7 +2439,7 @@ class VkDecoderGlobalState::Impl {
                         virtualQueueInfo.queueMutex = physicalQueueInfo.queueMutex;  // Shares the same lock!
                         virtualQueueInfo.pendingOps = physicalQueueInfo.pendingOps;  // Shares the same pendingOps!
                         physicalQueueInfo.usingSharedPhysicalQueue = true;
-                        queues.push_back(virtualQueue);
+                        deviceInfo.queues[queueFamilyIndex].push_back(virtualQueue);
                     }
                     i++;
                 }
@@ -2427,9 +2463,21 @@ class VkDecoderGlobalState::Impl {
         return VK_SUCCESS;
     }
 
-    void on_vkGetDeviceQueue(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
+    void on_vkGetDeviceQueue(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle,
                              VkDevice boxed_device, uint32_t queueFamilyIndex, uint32_t queueIndex,
                              VkQueue* pQueue) {
+        VkDeviceQueueInfo2 info2 = {
+            .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_INFO_2,
+            .pNext = nullptr,
+            .queueFamilyIndex = queueFamilyIndex,
+            .queueIndex = queueIndex,
+        };
+        return on_vkGetDeviceQueue2(pool, apiCallHandle, boxed_device, &info2, pQueue);
+    }
+
+    void on_vkGetDeviceQueue2(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle,
+                              VkDevice boxed_device, const VkDeviceQueueInfo2* pQueueInfo,
+                              VkQueue* pQueue) {
         auto device = unbox_VkDevice(boxed_device);
 
         std::lock_guard<std::mutex> lock(mMutex);
@@ -2437,39 +2485,43 @@ class VkDecoderGlobalState::Impl {
         *pQueue = VK_NULL_HANDLE;
 
         auto* deviceInfo = gfxstream::base::find(mDeviceInfo, device);
-        if (!deviceInfo) return;
+        if (!deviceInfo) {
+            GFXSTREAM_ERROR("vkGetDeviceQueue invalid device: %p", device);
+            return;
+        }
+
+        if (!deviceInfo->emulateProtectedMemory) {
+            // Protected memory is not supported. So we should
+            // not return any queue if a client requests a protected device
+            // queue. See b/328436383.
+            if (pQueueInfo->flags & VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT) {
+                *pQueue = VK_NULL_HANDLE;
+                GFXSTREAM_WARNING("%s: Cannot get protected Vulkan device queue", __func__);
+                return;
+            }
+        }
 
         const auto& queues = deviceInfo->queues;
 
-        const auto* queueList = gfxstream::base::find(queues, queueFamilyIndex);
-        if (!queueList) return;
-        if (queueIndex >= queueList->size()) return;
+        const auto* queueList = gfxstream::base::find(queues, pQueueInfo->queueFamilyIndex);
+        if (!queueList) {
+            GFXSTREAM_ERROR("vkGetDeviceQueue failed on queue family index: %d", pQueueInfo->queueFamilyIndex);
+            return;
+        }
+        if (pQueueInfo->queueIndex >= queueList->size()) {
+            GFXSTREAM_ERROR("vkGetDeviceQueue invalid queueIndex: %d", pQueueInfo->queueIndex);
+            return;
+        }
 
-        VkQueue unboxedQueue = (*queueList)[queueIndex];
+        VkQueue unboxedQueue = (*queueList)[pQueueInfo->queueIndex];
 
         auto* queueInfo = gfxstream::base::find(mQueueInfo, unboxedQueue);
         if (!queueInfo) {
-            GFXSTREAM_ERROR("vkGetDeviceQueue failed on queue: %p", unboxedQueue);
+            GFXSTREAM_ERROR("vkGetDeviceQueue invalid queue: %p", unboxedQueue);
             return;
         }
 
         *pQueue = queueInfo->boxed;
-    }
-
-    void on_vkGetDeviceQueue2(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle,
-                              VkDevice boxed_device, const VkDeviceQueueInfo2* pQueueInfo,
-                              VkQueue* pQueue) {
-        // Protected memory is not supported on emulators. So we should
-        // not return any queue if a client requests a protected device
-        // queue. See b/328436383.
-        if (pQueueInfo->flags & VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT) {
-            *pQueue = VK_NULL_HANDLE;
-            GFXSTREAM_WARNING("%s: Cannot get protected Vulkan device queue", __func__);
-            return;
-        }
-        uint32_t queueFamilyIndex = pQueueInfo->queueFamilyIndex;
-        uint32_t queueIndex = pQueueInfo->queueIndex;
-        on_vkGetDeviceQueue(pool, apiCallHandle, boxed_device, queueFamilyIndex, queueIndex, pQueue);
     }
 
     void on_vkGetPhysicalDeviceSparseImageFormatProperties(
@@ -9529,6 +9581,8 @@ class VkDecoderGlobalState::Impl {
 
     bool enableEmulatedEtc2() const { return m_vkEmulation->isEtc2EmulationEnabled(); }
 
+    bool enableProtectedMemoryEmulation() const { return m_vkEmulation->isProtectedMemoryEmulationEnabled(); }
+
     bool enableEmulatedAstc() const {
         return (m_vkEmulation->getAstcLdrEmulationMode() != AstcEmulationMode::Disabled);
     }
@@ -9574,6 +9628,10 @@ class VkDecoderGlobalState::Impl {
             }
         }
         return false;
+    }
+
+    bool needEmulatedProtectedMemory(VkPhysicalDevice /*physicalDevice*/, VulkanDispatch* /*vk*/) EXCLUDES(mMutex) {
+        return m_vkEmulation->isProtectedMemoryEmulationEnabled();
     }
 
     void getSupportedFenceHandleTypes(VulkanDispatch* vk, VkPhysicalDevice physicalDevice,
