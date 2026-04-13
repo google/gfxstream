@@ -42,129 +42,12 @@ uint32_t GetMemoryType(const PhysicalDeviceInfo& physicalDevice,
     return -1;
 }
 
-VkDeviceSize GetImageLayerSize(const VkExtent3D& extent, VkFormat format) {
-    auto sz = extent.width * extent.height * extent.depth;
-    switch (format) {
-        case VK_FORMAT_R8_UNORM:
-        case VK_FORMAT_R8_SNORM:
-        case VK_FORMAT_R8_USCALED:
-        case VK_FORMAT_R8_SSCALED:
-        case VK_FORMAT_R8_UINT:
-        case VK_FORMAT_R8_SINT:
-        case VK_FORMAT_R8_SRGB:
-        case VK_FORMAT_S8_UINT:
-            return sz;
-        case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
-            return 3 * (sz >> 1);
-        case VK_FORMAT_R8G8_UNORM:
-        case VK_FORMAT_R8G8_SNORM:
-        case VK_FORMAT_R8G8_USCALED:
-        case VK_FORMAT_R8G8_SSCALED:
-        case VK_FORMAT_R8G8_UINT:
-        case VK_FORMAT_R8G8_SINT:
-        case VK_FORMAT_R8G8_SRGB:
-        case VK_FORMAT_D16_UNORM:
-        case VK_FORMAT_R16_UNORM:
-        case VK_FORMAT_R5G6B5_UNORM_PACK16:
-            return 2 * sz;
-        case VK_FORMAT_R8G8B8_UNORM:
-        case VK_FORMAT_R8G8B8_SNORM:
-        case VK_FORMAT_R8G8B8_USCALED:
-        case VK_FORMAT_R8G8B8_SSCALED:
-        case VK_FORMAT_R8G8B8_UINT:
-        case VK_FORMAT_R8G8B8_SINT:
-        case VK_FORMAT_R8G8B8_SRGB:
-        case VK_FORMAT_B8G8R8_UNORM:
-        case VK_FORMAT_B8G8R8_SNORM:
-        case VK_FORMAT_B8G8R8_USCALED:
-        case VK_FORMAT_B8G8R8_SSCALED:
-        case VK_FORMAT_B8G8R8_UINT:
-        case VK_FORMAT_B8G8R8_SINT:
-        case VK_FORMAT_B8G8R8_SRGB:
-        case VK_FORMAT_D16_UNORM_S8_UINT:
-            return 3 * sz;
-        case VK_FORMAT_R8G8B8A8_UNORM:
-        case VK_FORMAT_R8G8B8A8_SNORM:
-        case VK_FORMAT_R8G8B8A8_USCALED:
-        case VK_FORMAT_R8G8B8A8_SSCALED:
-        case VK_FORMAT_R8G8B8A8_UINT:
-        case VK_FORMAT_R8G8B8A8_SINT:
-        case VK_FORMAT_R8G8B8A8_SRGB:
-        case VK_FORMAT_B8G8R8A8_UNORM:
-        case VK_FORMAT_B8G8R8A8_SNORM:
-        case VK_FORMAT_B8G8R8A8_USCALED:
-        case VK_FORMAT_B8G8R8A8_SSCALED:
-        case VK_FORMAT_B8G8R8A8_UINT:
-        case VK_FORMAT_B8G8R8A8_SINT:
-        case VK_FORMAT_B8G8R8A8_SRGB:
-        case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
-        case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
-        case VK_FORMAT_A8B8G8R8_USCALED_PACK32:
-        case VK_FORMAT_A8B8G8R8_SSCALED_PACK32:
-        case VK_FORMAT_A8B8G8R8_UINT_PACK32:
-        case VK_FORMAT_A8B8G8R8_SINT_PACK32:
-        case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
-        case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
-        case VK_FORMAT_A2R10G10B10_SNORM_PACK32:
-        case VK_FORMAT_A2R10G10B10_USCALED_PACK32:
-        case VK_FORMAT_A2R10G10B10_SSCALED_PACK32:
-        case VK_FORMAT_A2R10G10B10_UINT_PACK32:
-        case VK_FORMAT_A2R10G10B10_SINT_PACK32:
-        case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
-        case VK_FORMAT_A2B10G10R10_SNORM_PACK32:
-        case VK_FORMAT_A2B10G10R10_USCALED_PACK32:
-        case VK_FORMAT_A2B10G10R10_SSCALED_PACK32:
-        case VK_FORMAT_A2B10G10R10_UINT_PACK32:
-        case VK_FORMAT_A2B10G10R10_SINT_PACK32:
-        case VK_FORMAT_D24_UNORM_S8_UINT:
-        case VK_FORMAT_R16G16_SFLOAT:
-        case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
-        case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
-        case VK_FORMAT_X8_D24_UNORM_PACK32:
-        case VK_FORMAT_D32_SFLOAT:
-        case VK_FORMAT_R32_SFLOAT:
-            return 4 * sz;
-        case VK_FORMAT_D32_SFLOAT_S8_UINT:
-            return 5 * sz;
-        case VK_FORMAT_R16G16B16A16_SINT:
-        case VK_FORMAT_R16G16B16A16_SFLOAT:
-            return 8 * sz;
-        case VK_FORMAT_R32G32B32A32_SINT:
-        case VK_FORMAT_R32G32B32A32_SFLOAT:
-            return 16 * sz;
-        default:
-            const std::string formatString = string_VkFormat(format);
-            GFXSTREAM_WARNING("Unsupported VkFormat:%s for snapshot save.", formatString.c_str());
-            return 0;
-    }
-}
-
 VkExtent3D getMipmapExtent(VkExtent3D baseExtent, uint32_t mipLevel) {
     return VkExtent3D{
         .width = baseExtent.width >> mipLevel,
         .height = baseExtent.height >> mipLevel,
         .depth = baseExtent.depth,
     };
-}
-
-VkImageAspectFlags getFormatAspects(VkFormat format) {
-    switch (format) {
-        case VK_FORMAT_D16_UNORM:
-        case VK_FORMAT_D32_SFLOAT:
-        case VK_FORMAT_X8_D24_UNORM_PACK32:
-            return VK_IMAGE_ASPECT_DEPTH_BIT;
-
-        case VK_FORMAT_D16_UNORM_S8_UINT:
-        case VK_FORMAT_D24_UNORM_S8_UINT:
-        case VK_FORMAT_D32_SFLOAT_S8_UINT:
-            return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-
-        case VK_FORMAT_S8_UINT:
-            return VK_IMAGE_ASPECT_STENCIL_BIT;
-
-        default:
-            return VK_IMAGE_ASPECT_COLOR_BIT;
-    }
 }
 
 constexpr uint32_t kBadImageSnapshot = 0xbaadbeef;
@@ -186,7 +69,10 @@ void saveImageContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkImage
     VulkanDispatch* dispatch = stateBlock->deviceDispatch;
     const VkImageCreateInfo& imageCreateInfo = imageInfo->imageCreateInfoShallow;
 
-    if (!GetImageLayerSize(imageCreateInfo.extent, imageCreateInfo.format)) {
+    VkDeviceSize stagingBufferSize = 0;
+    if (!getFormatTransferInfo(imageCreateInfo.format, imageCreateInfo.extent, &stagingBufferSize,
+                               nullptr) ||
+        !stagingBufferSize) {
         stream->putBe32(kBadImageSnapshot);
         return;
     }
@@ -208,7 +94,7 @@ void saveImageContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkImage
     VK_CHECK(dispatch->vkCreateFence(stateBlock->device, &fenceCreateInfo, nullptr, &fence));
     VkBufferCreateInfo bufferCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-        .size = GetImageLayerSize(imageCreateInfo.extent, imageCreateInfo.format),
+        .size = stagingBufferSize,
         .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT,
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
     };
@@ -252,9 +138,17 @@ void saveImageContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkImage
                 GFXSTREAM_FATAL("Failed to start command buffer on snapshot save");
             }
 
-            // TODO(b/323059453): separate stencil and depth images properly
             VkExtent3D mipmapExtent = getMipmapExtent(imageCreateInfo.extent, mipLevel);
-            VkImageAspectFlags aspects = getFormatAspects(imageCreateInfo.format);
+            VkDeviceSize mipmapStagingBufferSize = 0;
+            std::vector<VkBufferImageCopy> bufferImageCopies;
+            if (!getFormatTransferInfo(imageCreateInfo.format, mipmapExtent,
+                                       &mipmapStagingBufferSize, &bufferImageCopies)) {
+                GFXSTREAM_FATAL("Failed to get transfer info for snapshot save");
+            }
+            VkImageAspectFlags aspects = 0;
+            for (const auto& copy : bufferImageCopies) {
+                aspects |= copy.imageSubresource.aspectMask;
+            }
             VkImageLayout layoutBeforeSave = imageInfo->layout;
             VkImageMemoryBarrier imgMemoryBarrier = {
                 .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -275,25 +169,14 @@ void saveImageContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkImage
             dispatch->vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
                                            VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0,
                                            nullptr, 1, &imgMemoryBarrier);
-            VkBufferImageCopy region{
-                .bufferOffset = 0,
-                .bufferRowLength = 0,
-                .bufferImageHeight = 0,
-                .imageSubresource = VkImageSubresourceLayers{.aspectMask = aspects,
-                                                             .mipLevel = mipLevel,
-                                                             .baseArrayLayer = arrayLayer,
-                                                             .layerCount = 1},
-                .imageOffset =
-                    VkOffset3D{
-                        .x = 0,
-                        .y = 0,
-                        .z = 0,
-                    },
-                .imageExtent = mipmapExtent,
-            };
-            dispatch->vkCmdCopyImageToBuffer(commandBuffer, image,
-                                             VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, readbackBuffer,
-                                             1, &region);
+
+            for (auto& region : bufferImageCopies) {
+                region.imageSubresource.mipLevel = mipLevel;
+                region.imageSubresource.baseArrayLayer = arrayLayer;
+                dispatch->vkCmdCopyImageToBuffer(commandBuffer, image,
+                                                 VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                                                 readbackBuffer, 1, &region);
+            }
 
             // Cannot really translate it back to VK_IMAGE_LAYOUT_PREINITIALIZED
             if (layoutBeforeSave != VK_IMAGE_LAYOUT_PREINITIALIZED) {
@@ -317,7 +200,7 @@ void saveImageContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkImage
             VK_CHECK(
                 dispatch->vkWaitForFences(stateBlock->device, 1, &fence, VK_TRUE, 3000000000L));
             VK_CHECK(dispatch->vkResetFences(stateBlock->device, 1, &fence));
-            auto bytes = GetImageLayerSize(mipmapExtent, imageCreateInfo.format);
+            auto bytes = mipmapStagingBufferSize;
             stream->putBe64(bytes);
             stream->write(mapped, bytes);
         }
@@ -339,6 +222,12 @@ void loadImageContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkImage
     VulkanDispatch* dispatch = stateBlock->deviceDispatch;
     const VkImageCreateInfo& imageCreateInfo = imageInfo->imageCreateInfoShallow;
 
+    VkDeviceSize stagingBufferSize = 0;
+    if (!getFormatTransferInfo(imageCreateInfo.format, imageCreateInfo.extent, &stagingBufferSize,
+                               nullptr)) {
+        return;
+    }
+
     VkCommandBufferAllocateInfo allocInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
         .commandPool = stateBlock->commandPool,
@@ -356,7 +245,14 @@ void loadImageContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkImage
     if (imageInfo->imageCreateInfoShallow.samples != VK_SAMPLE_COUNT_1_BIT) {
         // Set the layout and quit
         // TODO: resolve and save image content
-        VkImageAspectFlags aspects = getFormatAspects(imageCreateInfo.format);
+        VkDeviceSize dummySize = 0;
+        std::vector<VkBufferImageCopy> dummyCopies;
+        getFormatTransferInfo(imageCreateInfo.format, imageCreateInfo.extent, &dummySize,
+                              &dummyCopies);
+        VkImageAspectFlags aspects = 0;
+        for (const auto& copy : dummyCopies) {
+            aspects |= copy.imageSubresource.aspectMask;
+        }
         VkImageMemoryBarrier imgMemoryBarrier = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .pNext = nullptr,
@@ -399,7 +295,7 @@ void loadImageContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkImage
     }
     VkBufferCreateInfo bufferCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-        .size = GetImageLayerSize(imageCreateInfo.extent, imageCreateInfo.format),
+        .size = stagingBufferSize,
         .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
     };
@@ -448,7 +344,16 @@ void loadImageContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkImage
             size_t bytes = stream->getBe64();
             stream->read(mapped, bytes);
 
-            VkImageAspectFlags aspects = getFormatAspects(imageCreateInfo.format);
+            VkDeviceSize mipmapStagingBufferSize = 0;
+            std::vector<VkBufferImageCopy> bufferImageCopies;
+            if (!getFormatTransferInfo(imageCreateInfo.format, mipmapExtent,
+                                       &mipmapStagingBufferSize, &bufferImageCopies)) {
+                GFXSTREAM_FATAL("Failed to get transfer info for snapshot load");
+            }
+            VkImageAspectFlags aspects = 0;
+            for (const auto& copy : bufferImageCopies) {
+                aspects |= copy.imageSubresource.aspectMask;
+            }
             VkImageMemoryBarrier imgMemoryBarrier = {
                 .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
                 .pNext = nullptr,
@@ -469,24 +374,12 @@ void loadImageContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkImage
                                            VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0,
                                            nullptr, 1, &imgMemoryBarrier);
 
-            VkBufferImageCopy region{
-                .bufferOffset = 0,
-                .bufferRowLength = 0,
-                .bufferImageHeight = 0,
-                .imageSubresource = VkImageSubresourceLayers{.aspectMask = aspects,
-                                                             .mipLevel = mipLevel,
-                                                             .baseArrayLayer = arrayLayer,
-                                                             .layerCount = 1},
-                .imageOffset =
-                    VkOffset3D{
-                        .x = 0,
-                        .y = 0,
-                        .z = 0,
-                    },
-                .imageExtent = mipmapExtent,
-            };
-            dispatch->vkCmdCopyBufferToImage(commandBuffer, stagingBuffer, image,
-                                             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+            for (auto& region : bufferImageCopies) {
+                region.imageSubresource.mipLevel = mipLevel;
+                region.imageSubresource.baseArrayLayer = arrayLayer;
+                dispatch->vkCmdCopyBufferToImage(commandBuffer, stagingBuffer, image,
+                                                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+            }
 
             // Cannot really translate it back to VK_IMAGE_LAYOUT_PREINITIALIZED
             if (imageInfo->layout != VK_IMAGE_LAYOUT_PREINITIALIZED) {

@@ -3211,8 +3211,7 @@ bool VkEmulation::readColorBufferToBytes(uint32_t colorBufferHandle, std::vector
 
     VkDeviceSize bytesNeeded = 0;
     bool result = getFormatTransferInfo(colorBufferInfo->imageCreateInfoShallow.format,
-                                        colorBufferInfo->imageCreateInfoShallow.extent.width,
-                                        colorBufferInfo->imageCreateInfoShallow.extent.height,
+                                        colorBufferInfo->imageCreateInfoShallow.extent,
                                         &bytesNeeded, nullptr);
     if (!result) {
         GFXSTREAM_ERROR("Failed to read from ColorBuffer:%d, failed to get read size.",
@@ -3269,9 +3268,8 @@ bool VkEmulation::readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint3
     VkDeviceSize bufferCopySize = 0;
     std::vector<VkBufferImageCopy> bufferImageCopies;
     if (!getFormatTransferInfo(colorBufferInfo->imageCreateInfoShallow.format,
-                               colorBufferInfo->imageCreateInfoShallow.extent.width,
-                               colorBufferInfo->imageCreateInfoShallow.extent.height,
-                               &bufferCopySize, &bufferImageCopies)) {
+                               colorBufferInfo->imageCreateInfoShallow.extent, &bufferCopySize,
+                               &bufferImageCopies)) {
         GFXSTREAM_ERROR("Failed to read ColorBuffer:%d, unable to get transfer info.",
                         colorBufferHandle);
         return false;
@@ -3905,9 +3903,7 @@ bool VkEmulation::updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, u
     const VkFormat creationFormat = colorBufferInfo->imageCreateInfoShallow.format;
     VkDeviceSize dstBufferSize = 0;
     std::vector<VkBufferImageCopy> bufferImageCopies;
-    if (!getFormatTransferInfo(creationFormat,
-                               colorBufferInfo->imageCreateInfoShallow.extent.width,
-                               colorBufferInfo->imageCreateInfoShallow.extent.height,
+    if (!getFormatTransferInfo(creationFormat, colorBufferInfo->imageCreateInfoShallow.extent,
                                &dstBufferSize, &bufferImageCopies)) {
         GFXSTREAM_ERROR("Failed to update ColorBuffer:%d, unable to get transfer info.",
                         colorBufferHandle);

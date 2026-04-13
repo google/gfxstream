@@ -37,6 +37,26 @@ struct FormatPlaneLayouts {
     std::vector<FormatPlaneLayout> planeLayouts;
 };
 
+VkImageAspectFlags getFormatAspects(VkFormat format) {
+    switch (format) {
+        case VK_FORMAT_D16_UNORM:
+        case VK_FORMAT_D32_SFLOAT:
+        case VK_FORMAT_X8_D24_UNORM_PACK32:
+            return VK_IMAGE_ASPECT_DEPTH_BIT;
+
+        case VK_FORMAT_D16_UNORM_S8_UINT:
+        case VK_FORMAT_D24_UNORM_S8_UINT:
+        case VK_FORMAT_D32_SFLOAT_S8_UINT:
+            return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+
+        case VK_FORMAT_S8_UINT:
+            return VK_IMAGE_ASPECT_STENCIL_BIT;
+
+        default:
+            return VK_IMAGE_ASPECT_COLOR_BIT;
+    }
+}
+
 const std::unordered_map<VkFormat, FormatPlaneLayouts>& getFormatPlaneLayoutsMap() {
     static const auto* kPlaneLayoutsMap = []() {
         auto* map = new std::unordered_map<VkFormat, FormatPlaneLayouts>({
@@ -105,18 +125,18 @@ const std::unordered_map<VkFormat, FormatPlaneLayouts>& getFormatPlaneLayoutsMap
              }},
         });
 
-#define ADD_SINGLE_PLANE_FORMAT_INFO(format, bpp)            \
-    (*map)[format] = FormatPlaneLayouts{                     \
-        .horizontalAlignmentPixels = 1,                      \
-        .planeLayouts =                                      \
-            {                                                \
-                {                                            \
-                    .horizontalSubsampling = 1,              \
-                    .verticalSubsampling = 1,                \
-                    .sampleIncrementBytes = bpp,             \
-                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, \
-                },                                           \
-            },                                               \
+#define ADD_SINGLE_PLANE_FORMAT_INFO(format, bpp)           \
+    (*map)[format] = FormatPlaneLayouts{                    \
+        .horizontalAlignmentPixels = 1,                     \
+        .planeLayouts =                                     \
+            {                                               \
+                {                                           \
+                    .horizontalSubsampling = 1,             \
+                    .verticalSubsampling = 1,               \
+                    .sampleIncrementBytes = bpp,            \
+                    .aspectMask = getFormatAspects(format), \
+                },                                          \
+            },                                              \
     };
         LIST_VK_FORMATS_LINEAR(ADD_SINGLE_PLANE_FORMAT_INFO)
 #undef ADD_SINGLE_PLANE_FORMAT_INFO
@@ -246,7 +266,7 @@ const FormatPlaneLayouts* getFormatPlaneLayouts(VkFormat format) {
     return &it->second;
 }
 
-bool getFormatTransferInfo(VkFormat format, uint32_t width, uint32_t height,
+bool getFormatTransferInfo(VkFormat format, VkExtent3D extent,
                            VkDeviceSize* outStagingBufferCopySize,
                            std::vector<VkBufferImageCopy>* outBufferImageCopies) {
     const FormatPlaneLayouts* formatInfo = getFormatPlaneLayouts(format);
@@ -255,8 +275,9 @@ bool getFormatTransferInfo(VkFormat format, uint32_t width, uint32_t height,
         return false;
     }
 
-    const uint32_t alignedWidth = alignToPower2(width, formatInfo->horizontalAlignmentPixels);
-    const uint32_t alignedHeight = height;
+    const uint32_t alignedWidth =
+        alignToPower2(extent.width, formatInfo->horizontalAlignmentPixels);
+    const uint32_t alignedHeight = extent.height;
     uint32_t cumulativeOffset = 0;
     uint32_t cumulativeSize = 0;
     for (const FormatPlaneLayout& planeInfo : formatInfo->planeLayouts) {
@@ -266,7 +287,7 @@ bool getFormatTransferInfo(VkFormat format, uint32_t width, uint32_t height,
         const uint32_t planeBpp = planeInfo.sampleIncrementBytes;
         const uint32_t planeStrideTexels = planeWidth;
         const uint32_t planeStrideBytes = planeStrideTexels * planeBpp;
-        const uint32_t planeSize = planeHeight * planeStrideBytes;
+        const uint32_t planeSize = planeHeight * planeStrideBytes * extent.depth;
         if (outBufferImageCopies) {
             outBufferImageCopies->emplace_back(VkBufferImageCopy{
                 .bufferOffset = planeOffset,
@@ -289,7 +310,7 @@ bool getFormatTransferInfo(VkFormat format, uint32_t width, uint32_t height,
                     {
                         .width = planeWidth,
                         .height = planeHeight,
-                        .depth = 1,
+                        .depth = extent.depth,
                     },
             });
         }

@@ -415,9 +415,9 @@ std::optional<GfxstreamFormat> ToGfxstreamFormat(VkFormat format);
     })
 
 // Returns the size in bytes needed to copy an image with the given format,
-// width, and height to a staging buffer and the VkBufferImageCopy-s needed
+// width, height, and depth to a staging buffer and the VkBufferImageCopy-s needed
 // to copy from a staging buffer to destination VkImage.
-bool getFormatTransferInfo(VkFormat format, uint32_t width, uint32_t height,
+bool getFormatTransferInfo(VkFormat format, VkExtent3D extent,
                            VkDeviceSize* outStagingBufferCopySize,
                            std::vector<VkBufferImageCopy>* outBufferImageCopies);
 
