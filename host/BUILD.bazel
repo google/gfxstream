@@ -9,7 +9,7 @@ package(
 )
 
 proto_library(
-    name = "libgfxstream_backend_proto",
+    name = "gfxstream_backend_proto",
     srcs = [
         "virtio_gpu_context_snapshot.proto",
         "virtio_gpu_frontend_snapshot.proto",
@@ -18,12 +18,11 @@ proto_library(
         "virtio_gpu_timelines_snapshot.proto",
     ],
     strip_import_prefix = "/host",
-    deps = ["@protobuf//:empty_proto"],
 )
 
 cc_proto_library(
-    name = "libgfxstream_backend_cc_proto",
-    deps = [":libgfxstream_backend_proto"],
+    name = "gfxstream_backend_cc_proto",
+    deps = [":gfxstream_backend_proto"],
 )
 
 cc_library(
@@ -211,9 +210,9 @@ cc_library(
     linkstatic = True,
     visibility = ["//visibility:public"],
     deps = [
+        ":gfxstream_backend_cc_proto",
         ":gfxstream_backend_headers",
         ":gfxstream_host_headers",
-        ":libgfxstream_backend_cc_proto",
         "//common/base:gfxstream_common_base",
         "//common/logging:gfxstream_common_logging",
         "//host/address_space:gfxstream_host_address_space",
@@ -266,6 +265,7 @@ cc_library(
     linkstatic = True,
     visibility = ["//visibility:public"],
     deps = [
+        ":gfxstream_backend_cc_proto",
         ":gfxstream_backend_headers",
         ":gfxstream_backend_static",
         ":gfxstream_host_headers",
@@ -290,6 +290,7 @@ cc_binary(
     linkshared = True,
     visibility = ["//visibility:public"],
     deps = [
+        ":gfxstream_backend_cc_proto",
         ":gfxstream_backend_headers",
         ":gfxstream_backend_static",
         ":gfxstream_host_headers",
