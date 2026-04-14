@@ -1874,7 +1874,7 @@ void VkEmulation::setFeatures(const gfxstream::host::FeatureSet& features) {
                 "Ensure host allocations are aligned to "
                 "avoid VMM errors when mapping.");
             GFXSTREAM_INFO("Enabling VulkanAllocateHostMemory: %s",
-                           mFeatures.VulkanAllocateHostMemory.reason.c_str());
+                           mFeatures.VulkanAllocateHostMemory.getReason());
         }
     }
 #endif
