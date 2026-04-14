@@ -17,6 +17,5 @@
 #ifndef _AEMU_LIMITS_H_
 #define _AEMU_LIMITS_H_
 
-#define SSIZE_MAX ((size_t)-1)
 #define PATH_MAX MAX_PATH
 #endif	/* Not _AEMU_LIMITS_H_ */
