@@ -31,3 +31,5 @@ license(
     package_url = "https://android.googlesource.com/platform/hardware/google/gfxstream/",
     visibility = ["//visibility:public"],
 )
+
+licenses(["notice"])
