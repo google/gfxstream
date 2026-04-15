@@ -17,5 +17,16 @@
 #ifndef _AEMU_LIMITS_H_
 #define _AEMU_LIMITS_H_
 
+#if !defined(PATH_MAX)
 #define PATH_MAX MAX_PATH
+#endif
+
+#if !defined(FILENAME_MAX)
+#define FILENAME_MAX MAX_PATH
+#endif
+
+#if !defined(NAME_MAX)
+#define NAME_MAX FILENAME_MAX
+#endif
+
 #endif	/* Not _AEMU_LIMITS_H_ */

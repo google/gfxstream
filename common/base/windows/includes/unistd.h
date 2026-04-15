@@ -27,6 +27,7 @@ ANDROID_BEGIN_HEADER
 #include <io.h>
 #include <stdio.h>
 #include <sys/stat.h>
+#include <limits.h>
 
 typedef long long ssize_t;
 typedef unsigned long long size_t;
@@ -37,17 +38,6 @@ typedef int mode_t;
 
 #define lseek(a, b, c) _lseek(a, b, c)
 #define lseek64 _lseeki64
-
-/* Maximum length of file name */
-#if !defined(PATH_MAX)
-#define PATH_MAX MAX_PATH
-#endif
-#if !defined(FILENAME_MAX)
-#define FILENAME_MAX MAX_PATH
-#endif
-#if !defined(NAME_MAX)
-#define NAME_MAX FILENAME_MAX
-#endif
 
 // Define for convenience only in mingw. This is
 // convenient for the _access function in Windows.
