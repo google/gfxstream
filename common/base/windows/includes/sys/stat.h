@@ -24,33 +24,6 @@
 #define S_IRUSR _S_IREAD
 #define S_IWUSR _S_IWRITE
 
-/*
- * File type macros.  Note that block devices, sockets and links cannot be
- * distinguished on Windows and the macros S_ISBLK, S_ISSOCK and S_ISLNK are
- * only defined for compatibility.  These macros should always return false
- * on Windows.
- */
-#if !defined(S_ISFIFO)
-#   define S_ISFIFO(mode) (((mode) & S_IFMT) == S_IFIFO)
-#endif
-#if !defined(S_ISDIR)
-#   define S_ISDIR(mode) (((mode) & S_IFMT) == S_IFDIR)
-#endif
-#if !defined(S_ISREG)
-#   define S_ISREG(mode) (((mode) & S_IFMT) == S_IFREG)
-#endif
-#if !defined(S_ISLNK)
-#   define S_ISLNK(mode) (((mode) & S_IFMT) == S_IFLNK)
-#endif
-#if !defined(S_ISSOCK)
-#   define S_ISSOCK(mode) (((mode) & S_IFMT) == S_IFSOCK)
-#endif
-#if !defined(S_ISCHR)
-#   define S_ISCHR(mode) (((mode) & S_IFMT) == S_IFCHR)
-#endif
-#if !defined(S_ISBLK)
-#   define S_ISBLK(mode) (((mode) & S_IFMT) == S_IFBLK)
-#endif
 
 
 /* File type and permission flags for stat(), general mask */
@@ -158,4 +131,31 @@
 #   define S_IXOTH 0
 #endif
 
+/*
+ * File type macros.  Note that block devices, sockets and links cannot be
+ * distinguished on Windows and the macros S_ISBLK, S_ISSOCK and S_ISLNK are
+ * only defined for compatibility.  These macros should always return false
+ * on Windows.
+ */
+#if !defined(S_ISFIFO)
+#   define S_ISFIFO(mode) (((mode) & S_IFMT) == S_IFIFO)
+#endif
+#if !defined(S_ISDIR)
+#   define S_ISDIR(mode) (((mode) & S_IFMT) == S_IFDIR)
+#endif
+#if !defined(S_ISREG)
+#   define S_ISREG(mode) (((mode) & S_IFMT) == S_IFREG)
+#endif
+#if !defined(S_ISLNK)
+#   define S_ISLNK(mode) (((mode) & S_IFMT) == S_IFLNK)
+#endif
+#if !defined(S_ISSOCK)
+#   define S_ISSOCK(mode) (((mode) & S_IFMT) == S_IFSOCK)
+#endif
+#if !defined(S_ISCHR)
+#   define S_ISCHR(mode) (((mode) & S_IFMT) == S_IFCHR)
+#endif
+#if !defined(S_ISBLK)
+#   define S_ISBLK(mode) (((mode) & S_IFMT) == S_IFBLK)
+#endif
 #endif	/* Not _AEMU_SYS_STAT_H_ */
