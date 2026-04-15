@@ -57,7 +57,6 @@ typedef int mode_t;
 #define STDIN_FILENO _fileno(stdin)
 #define STDOUT_FILENO _fileno(stdout)
 #define STDERR_FILENO _fileno(stderr)
-ssize_t pread(int fd, void *buf, size_t count, off_t offset);
 
 int usleep(long usec);
 unsigned int sleep(unsigned int seconds);

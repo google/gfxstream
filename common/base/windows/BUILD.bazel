@@ -39,7 +39,6 @@ cc_library(
         "src/dirent/dirent.cpp",
         "src/files.cpp",
         "src/msvc-posix.c",
-        "src/pread.cpp",
         "src/time.cpp",
     ],
     defines = [

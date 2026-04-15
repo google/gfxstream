@@ -43,7 +43,6 @@ target_sources(
     PRIVATE
     src/files.cpp
     src/msvc-posix.c
-    src/pread.cpp
     src/time.cpp)
 
 # Msvc redefines macro's to inject compatibility.
