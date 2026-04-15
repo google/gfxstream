@@ -24,9 +24,6 @@
 #define S_IRUSR _S_IREAD
 #define S_IWUSR _S_IWRITE
 
-#define S_ISDIR(mode)  (((mode) & S_IFMT) == S_IFDIR)
-
-
 /*
  * File type macros.  Note that block devices, sockets and links cannot be
  * distinguished on Windows and the macros S_ISBLK, S_ISSOCK and S_ISLNK are
