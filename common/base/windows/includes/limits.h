@@ -14,7 +14,7 @@
 
 #include_next <limits.h>
 
-#ifndef _AEMU_LIMITS_H_
+#ifndef _AEMU_LIMITS_H_  /* use the same guard as in aemu to prevent conflicts */
 #define _AEMU_LIMITS_H_
 
 #if !defined(PATH_MAX)
@@ -29,4 +29,4 @@
 #define NAME_MAX FILENAME_MAX
 #endif
 
-#endif	/* Not _AEMU_LIMITS_H_ */
+#endif	/* _AEMU_LIMITS_H_ */

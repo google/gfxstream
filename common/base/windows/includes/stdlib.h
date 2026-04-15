@@ -15,7 +15,7 @@
 
 #include_next <stdlib.h>
 
-#ifndef _AEMU_STDLIB_H_
+#ifndef _AEMU_STDLIB_H_  /* use the same guard as in aemu to prevent conflicts */
 #define _AEMU_STDLIB_H_
 
 #include "compat_compiler.h"
@@ -24,4 +24,4 @@ ANDROID_BEGIN_HEADER
 int mkstemp(char *tmpl);
 
 ANDROID_END_HEADER
-#endif	/* Not _AEMU_STDLIB_H_ */
+#endif  /* _AEMU_STDLIB_H_ */

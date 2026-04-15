@@ -14,7 +14,7 @@
 
 #include_next <sys/types.h>
 
-#ifndef _AEMU_SYS_TYPES_H_
+#ifndef _AEMU_SYS_TYPES_H_  /* use the same guard as in aemu to prevent conflicts */
 #define _AEMU_SYS_TYPES_H_
 
 #include <inttypes.h>
@@ -26,4 +26,4 @@ typedef unsigned int pid_t;
 #ifndef ssize_t
 typedef SSIZE_T ssize_t;
 #endif
-#endif	/* Not _AEMU_SYS_TYPES_H_ */
+#endif  /* _AEMU_SYS_TYPES_H_ */

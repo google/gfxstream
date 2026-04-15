@@ -13,9 +13,8 @@
 // limitations under the License.
 
 // A minimal set of functions found in unistd.h
-#if !defined(_AEMU_UNISTD_H_) && !defined(_MSVC_UNISTD_H)
+#ifndef _AEMU_UNISTD_H_  /* use the same guard as in aemu to prevent conflicts */
 #define _AEMU_UNISTD_H_
-#define _MSVC_UNISTD_H
 
 #include "compat_compiler.h"
 #include <process.h>
@@ -70,4 +69,6 @@ int _ftruncate(int fd, off_t length);
 #define __except1 __except (EXCEPTION_EXECUTE_HANDLER)
 
 ANDROID_END_HEADER
-#endif	/* Not _AEMU_UNISTD_H_ */
+
+#endif  /* _AEMU_UNISTD_H_ */
+

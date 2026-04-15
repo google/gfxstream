@@ -16,7 +16,7 @@
 // of qemu on windows with clang-cl.
 #include_next <sys/stat.h>
 
-#ifndef _AEMU_SYS_STAT_H_
+#ifndef _AEMU_SYS_STAT_H_  /* use the same guard as in aemu to prevent conflicts */
 #define _AEMU_SYS_STAT_H_
 
 #define fstat64 _fstat64
@@ -158,4 +158,5 @@
 #if !defined(S_ISBLK)
 #   define S_ISBLK(mode) (((mode) & S_IFMT) == S_IFBLK)
 #endif
-#endif	/* Not _AEMU_SYS_STAT_H_ */
+#endif	/* _AEMU_SYS_STAT_H_ */
+

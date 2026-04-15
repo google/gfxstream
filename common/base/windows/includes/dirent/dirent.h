@@ -11,7 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#ifndef _AEMU_DIRENT_H_
+
+#ifndef _AEMU_DIRENT_H_  /* use the same guard as in aemu to prevent conflicts */
 #define _AEMU_DIRENT_H_
 
 #include <sys/types.h>
@@ -188,4 +189,5 @@ void seekdir(DIR* dirp, long loc);
 }
 #endif
 
-#endif	/* Not _AEMU_DIRENT_H_ */
+#endif	/* _AEMU_DIRENT_H_ */
+

@@ -14,7 +14,7 @@
 
 #include_next <time.h>
 
-#ifndef _AEMU_TIME_H_
+#ifndef _AEMU_TIME_H_  /* use the same guard as in aemu to prevent conflicts */
 #define _AEMU_TIME_H_
 
 #ifndef _AEMU_SYS_CDEFS_H_
@@ -31,4 +31,4 @@ int nanosleep(const struct timespec *rqtp, struct timespec *rmtp);
 
 __END_DECLS
 
-#endif	/* Not _AEMU_TIME_H_ */
+#endif	/* _AEMU_TIME_H_ */

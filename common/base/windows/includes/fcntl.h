@@ -16,9 +16,9 @@
 // fcntl with added missing defines.
 #include_next <fcntl.h>
 
-#ifndef _AEMU_FCNTL_H_
+#ifndef _AEMU_FCNTL_H_  /* use the same guard as in aemu to prevent conflicts */
 #define _AEMU_FCNTL_H_
 
 #define O_ACCMODE (O_RDONLY | O_WRONLY | O_RDWR)
 
-#endif	/* Not _AEMU_FCNTL_H_ */
+#endif	/* _AEMU_FCNTL_H_ */

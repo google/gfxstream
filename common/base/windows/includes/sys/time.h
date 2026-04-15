@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef _AEMU_SYS_TIME_H_
+#ifndef _AEMU_SYS_TIME_H_  /* use the same guard as in aemu to prevent conflicts */
 #define _AEMU_SYS_TIME_H_
 
 #include <stdint.h>
@@ -31,6 +31,5 @@ typedef struct FileTime {
 
 typedef  void (*SystemTime)(FileTime*);
 
-
 extern int gettimeofday(struct timeval* tp, struct timezone* tz);
-#endif	/* Not _AEMU_SYS_TIME_H_ */
+#endif	/* _AEMU_SYS_TIME_H_ */

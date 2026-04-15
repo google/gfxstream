@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef _AEMU_SYS_CDEFS_H_
+#ifndef _AEMU_SYS_CDEFS_H_  /* use the same guard as in aemu to prevent conflicts */
 #define _AEMU_SYS_CDEFS_H_
 
 #ifdef __cplusplus
@@ -24,4 +24,5 @@
 #endif
 
 
-#endif	/* Not _AEMU_SYS_CDEFS_H_ */
+#endif	/* _AEMU_SYS_CDEFS_H_ */
+

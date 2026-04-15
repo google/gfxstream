@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef _AEMU_STRINGS_H_
+#ifndef _AEMU_STRINGS_H_  /* use the same guard as in aemu to prevent conflicts */
 #define _AEMU_STRINGS_H_
 
 // strings.h does not exist in msvc
@@ -24,4 +24,5 @@
 #  include <strings.h>
 #endif
 
-#endif	/* Not _AEMU_STRINGS_H_ */
+#endif	/* _AEMU_STRINGS_H_ */
+
