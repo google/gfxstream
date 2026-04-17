@@ -872,26 +872,28 @@ int VirtioGpuFrontend::exportBlob(uint32_t resourceId, struct stream_renderer_ha
 }
 
 int VirtioGpuFrontend::exportFence(uint64_t fenceId, struct stream_renderer_handle* handle) {
-    auto it = mSyncMap.find(fenceId);
-    if (it == mSyncMap.end()) {
+    auto syncIt = mSyncMap.find(fenceId);
+    if (syncIt == mSyncMap.end()) {
+        return -EINVAL;
+    }
+    auto& sync = syncIt->second;
+
+    auto rawDescriptorOpt = sync->descriptor.release();
+    if (!rawDescriptorOpt) {
         return -EINVAL;
     }
 
-    auto& entry = it->second;
-    DescriptorType rawDescriptor;
-    auto rawDescriptorOpt = entry->descriptor.release();
-    if (rawDescriptorOpt)
-        rawDescriptor = *rawDescriptorOpt;
-    else
-        return -EINVAL;
+    DescriptorType rawDescriptor = *rawDescriptorOpt;
 
-    handle->handle_type = entry->streamHandleType;
+    handle->handle_type = sync->streamHandleType;
 
 #ifdef _WIN32
     handle->os_handle = static_cast<int64_t>(reinterpret_cast<intptr_t>(rawDescriptor));
 #else
     handle->os_handle = static_cast<int64_t>(rawDescriptor);
 #endif
+
+    mSyncMap.erase(syncIt);
 
     return 0;
 }
