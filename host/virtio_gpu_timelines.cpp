@@ -66,18 +66,18 @@ void VirtioGpuTimelines::notifyTaskCompletion(TaskId taskId) {
     std::lock_guard<std::mutex> lock(mTimelinesMutex);
     auto iTask = mTaskIdToTask.find(taskId);
     if (iTask == mTaskIdToTask.end()) {
-        GFXSTREAM_FATAL("Task(id = " PRIu64 " can't be found", static_cast<uint64_t>(taskId));
+        GFXSTREAM_FATAL("Task(id = %" PRIu64 " can't be found", static_cast<uint64_t>(taskId));
     }
     std::shared_ptr<Task> task = iTask->second.lock();
     if (task == nullptr) {
-        GFXSTREAM_FATAL("Task(id = " PRIu64 " has been destroyed", static_cast<uint64_t>(taskId));
+        GFXSTREAM_FATAL("Task(id = %" PRIu64 " has been destroyed", static_cast<uint64_t>(taskId));
     }
     if (task->mId != taskId) {
-        GFXSTREAM_FATAL("Task id mismatch. Expected " PRIu64 " actual " PRIu64,
+        GFXSTREAM_FATAL("Task id mismatch. Expected %" PRIu64 " actual %" PRIu64,
                         static_cast<uint64_t>(taskId), static_cast<uint64_t>(task->mId));
     }
     if (task->mHasCompleted) {
-        GFXSTREAM_FATAL("Task(id = " PRIu64 " has been set to completed", static_cast<uint64_t>(taskId));
+        GFXSTREAM_FATAL("Task(id = %" PRIu64 " has been set to completed", static_cast<uint64_t>(taskId));
     }
 
     GFXSTREAM_TRACE_EVENT_INSTANT(GFXSTREAM_TRACE_VIRTIO_GPU_TIMELINE_CATEGORY,
