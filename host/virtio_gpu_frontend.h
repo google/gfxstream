@@ -55,9 +55,9 @@ class VirtioGpuFrontend {
 
     int destroyContext(VirtioGpuContextId handle);
 
-    int addressSpaceProcessCmd(VirtioGpuContextId ctxId, uint32_t* dwords);
-
-    int submitCmd(struct stream_renderer_command* cmd);
+    int processCommand(const struct stream_renderer_command* cmd);
+    int processAddressSpaceCommand(VirtioGpuContextId ctxId, const uint8_t* cmd_buffer,
+                                  uint32_t cmd_buffer_size);
 
     int createFence(uint64_t fence_id, const VirtioGpuRing& ring);
 
