@@ -246,7 +246,7 @@ int VirtioGpuFrontend::submitCmd(struct stream_renderer_command* cmd) {
     void* buffer = reinterpret_cast<void*>(cmd->cmd);
 
     VirtioGpuRing ring = VirtioGpuRingGlobal{};
-    GFXSTREAM_DEBUG("ctx: % u, ring: %s buffer: %p dwords: %d", cmd->ctx_id,
+    GFXSTREAM_DEBUG("ctx: %u, ring: %s buffer: %p dwords: %d", cmd->ctx_id,
                     to_string(ring).c_str(), buffer, cmd->cmd_size);
 
     if (!buffer) {
