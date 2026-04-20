@@ -4009,6 +4009,7 @@ void FrameBuffer::Impl::setScreenBackground(int width, int height, const uint8_t
         return;
     }
 
+    size_t prevImageSize = mScreenBackgroundImage.m_rgbaData.size();
     if (rgbaData) {
         mScreenBackgroundImage.m_width = width;
         mScreenBackgroundImage.m_height = height;
@@ -4026,6 +4027,10 @@ void FrameBuffer::Impl::setScreenBackground(int width, int height, const uint8_t
         const std::chrono::milliseconds maxUpdateLatency(1000 / 30);
         const auto nowTime = std::chrono::steady_clock::now();
         bool shouldRepost = (nowTime - m_guestPostedAFrameTime.value()) > maxUpdateLatency;
+        if (prevImageSize != mScreenBackgroundImage.m_rgbaData.size()) {
+            // Always repost if the image size has changed, e.g. disabling background image
+            shouldRepost = true;
+        }
         if (shouldRepost) {
             // This is same as calling repost(), but without redundant checks and logging
             postImplSync(m_lastPostedColorBuffer, true, true);

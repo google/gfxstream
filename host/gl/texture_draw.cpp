@@ -702,6 +702,7 @@ void TextureDraw::TexturedLayer::update(int width, int height, const uint8_t* rg
     std::lock_guard<std::mutex> lock(mMutex);
     if (width <= 0 || height <= 0 || rgbaData == nullptr) {
         mIsValid = false;
+        mTextureDirty = false;
         return;
     }
 
