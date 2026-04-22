@@ -61,6 +61,20 @@ void LoadRingConfig(Stream* stream, struct asg_ring_config* config) {
     config->in_error = stream->getBe32();
 }
 
+void SaveAsgContext(Stream* stream, const struct asg_context& context) {
+    stream->write(context.to_host, sizeof(struct ring_buffer));
+    stream->write(context.to_host_large_xfer.ring, sizeof(struct ring_buffer));
+    stream->write(context.from_host_large_xfer.ring, sizeof(struct ring_buffer));
+    stream->write(context.buffer, context.ring_config->buffer_size);
+}
+
+void LoadAsgContext(Stream* stream, struct asg_context* context) {
+    stream->read(context->to_host, sizeof(struct ring_buffer));
+    stream->read(context->to_host_large_xfer.ring, sizeof(struct ring_buffer));
+    stream->read(context->from_host_large_xfer.ring, sizeof(struct ring_buffer));
+    stream->read(context->buffer, context->ring_config->buffer_size);
+}
+
 }  // namespace
 
 RingStream::RingStream(const AsgConsumerCreateInfo& info, size_t bufsize) :
@@ -412,6 +426,8 @@ void RingStream::onSave(gfxstream::Stream* stream) {
     stream->putBe32(mUnavailableReadCount);
 
     SaveRingConfig(stream, mSavedRingConfig);
+
+    SaveAsgContext(stream, mContext);
 }
 
 unsigned char* RingStream::onLoad(gfxstream::Stream* stream) {
@@ -423,6 +439,8 @@ unsigned char* RingStream::onLoad(gfxstream::Stream* stream) {
     mUnavailableReadCount = stream->getBe32();
 
     LoadRingConfig(stream, &mSavedRingConfig);
+
+    LoadAsgContext(stream, &mContext);
 
     return reinterpret_cast<unsigned char*>(mWriteBuffer.data());
 }
