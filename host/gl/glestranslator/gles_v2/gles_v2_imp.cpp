@@ -3575,8 +3575,8 @@ static void sPrepareTexImage2D(GLenum target, GLsizei level, GLint internalforma
 
     // Desktop OpenGL doesn't support GL_BGRA_EXT as internal format.
     if (!isGles2Gles() && type == GL_UNSIGNED_BYTE && format == GL_BGRA_EXT &&
-        internalformat == GL_BGRA_EXT) {
-        internalformat = GL_RGBA;
+        internalformat == GL_BGRA8_EXT) {
+        internalformat = GL_RGBA8;
     }
 
     *type_out = type;

@@ -710,6 +710,8 @@ bool GLESv2Validate::pixelSizedFrmt(GLEScontext* ctx, GLenum internalformat,
 
     LIST_VALID_TEXFORMAT_COMBINATIONS(VALIDATE_FORMAT_COMBINATION)
 
+    GFXSTREAM_VERBOSE("Failed to match internalFormat:0x%x format:0x%x type:0x%x", internalformat,
+                      format, type);
     return false;
 }
 

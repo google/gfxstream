@@ -71,6 +71,7 @@ enum class GfxstreamFormat : uint32_t {
      * Corresponding formats:
      *   Android: AHARDWAREBUFFER_FORMAT_B8G8R8A8_UNORM (deprecated)
      *   Vulkan: VK_FORMAT_B8G8R8A8_UNORM
+     *   OpenGL ES: GL_BGRA8_EXT
      */
     B8G8R8A8_UNORM,
 
