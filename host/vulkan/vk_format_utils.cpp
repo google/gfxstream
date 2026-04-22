@@ -123,6 +123,63 @@ const std::unordered_map<VkFormat, FormatPlaneLayouts>& getFormatPlaneLayoutsMap
                          },
                      },
              }},
+            {VK_FORMAT_D16_UNORM_S8_UINT,
+             {
+                 .horizontalAlignmentPixels = 1,
+                 .planeLayouts =
+                     {
+                         {
+                             .horizontalSubsampling = 1,
+                             .verticalSubsampling = 1,
+                             .sampleIncrementBytes = 2,
+                             .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
+                         },
+                         {
+                             .horizontalSubsampling = 1,
+                             .verticalSubsampling = 1,
+                             .sampleIncrementBytes = 1,
+                             .aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT,
+                         },
+                     },
+             }},
+            {VK_FORMAT_D24_UNORM_S8_UINT,
+             {
+                 .horizontalAlignmentPixels = 1,
+                 .planeLayouts =
+                     {
+                         {
+                             .horizontalSubsampling = 1,
+                             .verticalSubsampling = 1,
+                             .sampleIncrementBytes = 3,
+                             .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
+                         },
+                         {
+                             .horizontalSubsampling = 1,
+                             .verticalSubsampling = 1,
+                             .sampleIncrementBytes = 1,
+                             .aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT,
+                         },
+                     },
+             }},
+            {VK_FORMAT_D32_SFLOAT_S8_UINT,
+             {
+                 .horizontalAlignmentPixels = 1,
+                 .planeLayouts =
+                     {
+                         {
+                             .horizontalSubsampling = 1,
+                             .verticalSubsampling = 1,
+                             .sampleIncrementBytes = 4,
+                             .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
+                         },
+                         {
+                             .horizontalSubsampling = 1,
+                             .verticalSubsampling = 1,
+                             .sampleIncrementBytes = 1,
+                             .aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT,
+                         },
+                     },
+             }},
         });
 
 #define ADD_SINGLE_PLANE_FORMAT_INFO(format, bpp)           \

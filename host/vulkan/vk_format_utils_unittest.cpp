@@ -276,29 +276,53 @@ TEST(VkFormatUtilsTest, GetTransferInfoDepthStencilWithDepth) {
     EXPECT_THAT(bufferCopySize, Eq(1536));
     ASSERT_THAT(bufferImageCopies,
                 ElementsAre(EqsVkBufferImageCopy(VkBufferImageCopy{
-                    .bufferOffset = 0,
-                    .bufferRowLength = 16,
-                    .bufferImageHeight = 0,
-                    .imageSubresource =
-                        {
-                            .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT,
-                            .mipLevel = 0,
-                            .baseArrayLayer = 0,
-                            .layerCount = 1,
-                        },
-                    .imageOffset =
-                        {
-                            .x = 0,
-                            .y = 0,
-                            .z = 0,
-                        },
-                    .imageExtent =
-                        {
-                            .width = 16,
-                            .height = 16,
-                            .depth = 2,
-                        },
-                })));
+                                .bufferOffset = 0,
+                                .bufferRowLength = 16,
+                                .bufferImageHeight = 0,
+                                .imageSubresource =
+                                    {
+                                        .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
+                                        .mipLevel = 0,
+                                        .baseArrayLayer = 0,
+                                        .layerCount = 1,
+                                    },
+                                .imageOffset =
+                                    {
+                                        .x = 0,
+                                        .y = 0,
+                                        .z = 0,
+                                    },
+                                .imageExtent =
+                                    {
+                                        .width = 16,
+                                        .height = 16,
+                                        .depth = 2,
+                                    },
+                            }),
+                            EqsVkBufferImageCopy(VkBufferImageCopy{
+                                .bufferOffset = 1024,
+                                .bufferRowLength = 16,
+                                .bufferImageHeight = 0,
+                                .imageSubresource =
+                                    {
+                                        .aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT,
+                                        .mipLevel = 0,
+                                        .baseArrayLayer = 0,
+                                        .layerCount = 1,
+                                    },
+                                .imageOffset =
+                                    {
+                                        .x = 0,
+                                        .y = 0,
+                                        .z = 0,
+                                    },
+                                .imageExtent =
+                                    {
+                                        .width = 16,
+                                        .height = 16,
+                                        .depth = 2,
+                                    },
+                            })));
 }
 
 }  // namespace
