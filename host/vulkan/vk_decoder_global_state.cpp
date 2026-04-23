@@ -1435,6 +1435,8 @@ class VkDecoderGlobalState::Impl {
                 vk_find_struct<VkPhysicalDeviceVulkan13Features>(pFeatures);
             VkPhysicalDeviceProtectedMemoryFeatures* protectedMemoryFeatures =
                 vk_find_struct<VkPhysicalDeviceProtectedMemoryFeatures>(pFeatures);
+            VkPhysicalDevicePipelineProtectedAccessFeatures* pipelineAccessFeatures =
+                vk_find_struct<VkPhysicalDevicePipelineProtectedAccessFeatures>(pFeatures);
 
             if (enableProtectedMemoryEmulation() ) {
                 if (protectedMemoryFeatures) {
@@ -1443,12 +1445,18 @@ class VkDecoderGlobalState::Impl {
                 if (vk11Features) {
                     vk11Features->protectedMemory = VK_TRUE;
                 }
+                if (pipelineAccessFeatures) {
+                    pipelineAccessFeatures->pipelineProtectedAccess = VK_TRUE;
+                }
             } else {
                 if (protectedMemoryFeatures) {
                     protectedMemoryFeatures->protectedMemory = VK_FALSE;
                 }
                 if (vk11Features) {
                     vk11Features->protectedMemory = VK_FALSE;
+                }
+                if (pipelineAccessFeatures) {
+                    pipelineAccessFeatures->pipelineProtectedAccess = VK_FALSE;
                 }
             }
 
@@ -1955,6 +1963,15 @@ class VkDecoderGlobalState::Impl {
         }
 #endif
 
+        if (enableProtectedMemoryEmulation() ) {
+            // Enable VK_EXT_pipeline_protected_access extension support
+            VkExtensionProperties ycbcr_props;
+            strncpy(ycbcr_props.extensionName, VK_EXT_PIPELINE_PROTECTED_ACCESS_EXTENSION_NAME,
+                    sizeof(ycbcr_props.extensionName));
+            ycbcr_props.specVersion = VK_EXT_PIPELINE_PROTECTED_ACCESS_SPEC_VERSION;
+            properties.push_back(ycbcr_props);
+        }
+
         if (pProperties == nullptr) {
             *pPropertyCount = properties.size();
         } else {
@@ -2056,7 +2073,7 @@ class VkDecoderGlobalState::Impl {
             featuresToFilter.emplace_back(&features2->features);
         }
 
-        // Handle protected memory features
+        // Handle protected memory related features
         {
             // b/329845987, protected memory is not supported on emulators.
             // We override feature information to mark as unsupported and need to return correct
@@ -2074,8 +2091,15 @@ class VkDecoderGlobalState::Impl {
                 protectedMemoryFeatureRequested = true;
             }
 
+            bool pipelineProtectedAccessFeatureRequested = false;
+            VkPhysicalDevicePipelineProtectedAccessFeatures* pipelineAccessFeatures =
+                vk_find_struct<VkPhysicalDevicePipelineProtectedAccessFeatures>(&createInfoFiltered);
+            if (pipelineAccessFeatures && pipelineAccessFeatures->pipelineProtectedAccess) {
+                pipelineProtectedAccessFeatureRequested = true;
+            }
+
             if (emulateProtectedMemory) {
-                // Feature is emulated, disable related bits before calling the underlying driver
+                // Features are emulated, disable related bits before calling the underlying driver
                 if (protectedMemoryFeatures != nullptr &&
                     protectedMemoryFeatures->protectedMemory) {
                     protectedMemoryFeatures->protectedMemory = false;
@@ -2087,11 +2111,19 @@ class VkDecoderGlobalState::Impl {
                     (const_cast<VkDeviceQueueCreateInfo*>(createInfoFiltered.pQueueCreateInfos))[i]
                         .flags &= ~VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT;
                 }
+
+                if (pipelineProtectedAccessFeatureRequested) {
+                    pipelineAccessFeatures->pipelineProtectedAccess = false;
+                }
             } else if (protectedMemoryFeatureRequested) {
                 // This may be hit by the CTS in create_device_unsupported_features tests.
                 // We log the behavior, to identify cases as some system apps may still try creating
                 // protected memory devices without checking the feature support.
                 GFXSTREAM_INFO("%s: Unsupported protected memory feature is requested!", __func__);
+                return VK_ERROR_FEATURE_NOT_PRESENT;
+            } else if (pipelineProtectedAccessFeatureRequested) {
+                GFXSTREAM_INFO("%s: Unsupported pipeline protected access feature is requested!",
+                               __func__);
                 return VK_ERROR_FEATURE_NOT_PRESENT;
             }
         }
