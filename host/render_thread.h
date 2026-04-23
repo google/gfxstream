@@ -105,6 +105,7 @@ class RenderThread : public gfxstream::base::Thread {
 
     SnapshotState mState = SnapshotState::Empty;
     std::atomic<bool> mFinished { false };
+    std::atomic_bool mDecodersShouldStop{false};
     gfxstream::base::Lock mLock;
     gfxstream::base::ConditionVariable mSnapshotSignal;
     gfxstream::base::ConditionVariable mFinishedSignal;

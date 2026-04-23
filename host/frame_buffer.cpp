@@ -2437,9 +2437,6 @@ void FrameBuffer::Impl::cleanupProcGLObjects(uint64_t puid) {
             [puid, &renderThreadWithThisPuidExists](RenderThreadInfo* i) {
             if (i->m_puid == puid) {
                 renderThreadWithThisPuidExists = true;
-
-                bool shouldExit = false;
-                i->m_shouldExit.compare_exchange_strong(shouldExit, true);
             }
         });
         gfxstream::base::sleepUs(10000);

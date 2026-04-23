@@ -119,6 +119,7 @@ void RenderThread::pausePreSnapshot() {
     assert(mState == SnapshotState::Empty);
     mStream.emplace();
     mState = SnapshotState::StartSaving;
+    mDecodersShouldStop.store(true, std::memory_order_relaxed);
     if (mRingStream) {
         mRingStream->pausePreSnapshot();
         // mSnapshotSignal.broadcastAndUnlock(&lock);
@@ -142,6 +143,7 @@ void RenderThread::resume() {
     mNeedReloadProcessResources = true;
     mStream.reset();
     mState = SnapshotState::Empty;
+    mDecodersShouldStop.store(false, std::memory_order_relaxed);
     if (mChannel) mChannel->resume();
     if (mRingStream) mRingStream->resume();
     mSnapshotSignal.broadcastAndUnlock(&lock);
@@ -233,6 +235,7 @@ void RenderThread::sendExitSignal() {
     if (!mFinished.load(std::memory_order_relaxed)) {
         GFXSTREAM_FATAL("RenderThread exit signal sent before finished");
     }
+    mDecodersShouldStop.store(true, std::memory_order_relaxed);
     mCanExit.store(true, std::memory_order_relaxed);
     mExitSignal.broadcastAndUnlock(&lock);
 }
@@ -443,7 +446,7 @@ intptr_t RenderThread::main() {
                 VkDecoderContext context = {
                     .processName = contextName,
                     .gfxApiLogger = &gfxLogger,
-                    .shouldExit = &(tInfo->m_shouldExit),
+                    .shouldExit = &mDecodersShouldStop,
                 };
                 last = tInfo->m_vkInfo->m_vkDec.decode(readBuf.buf(), readBuf.validData(), ioStream,
                                                       processResources, context);
