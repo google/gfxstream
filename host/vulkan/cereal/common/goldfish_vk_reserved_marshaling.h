@@ -2333,6 +2333,11 @@ void reservedunmarshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesE
     VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT* forUnmarshaling, uint8_t** ptr);
 
 #endif
+#ifdef VK_EXT_pipeline_protected_access
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDevicePipelineProtectedAccessFeatures,
+                      reservedunmarshal_VkPhysicalDevicePipelineProtectedAccessFeaturesEXT)
+
+#endif
 }  // namespace vk
 }  // namespace host
 }  // namespace gfxstream

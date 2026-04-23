@@ -4445,6 +4445,14 @@ void unmarshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
     VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT* forUnmarshaling);
 
 #endif
+#ifdef VK_EXT_pipeline_protected_access
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDevicePipelineProtectedAccessFeatures,
+                      marshal_VkPhysicalDevicePipelineProtectedAccessFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDevicePipelineProtectedAccessFeatures,
+                      unmarshal_VkPhysicalDevicePipelineProtectedAccessFeaturesEXT)
+
+#endif
 const char* api_opcode_to_string(const uint32_t opcode);
 
 #define OP_vkFirst_old 20000

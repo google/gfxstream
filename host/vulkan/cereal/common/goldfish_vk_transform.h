@@ -3896,6 +3896,14 @@ void transform_fromhost_VkPhysicalDeviceImageCompressionControlSwapchainFeatures
     VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT* toTransform);
 
 #endif
+#ifdef VK_EXT_pipeline_protected_access
+DEFINE_ALIAS_FUNCTION(transform_tohost_VkPhysicalDevicePipelineProtectedAccessFeatures,
+                      transform_tohost_VkPhysicalDevicePipelineProtectedAccessFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPhysicalDevicePipelineProtectedAccessFeatures,
+                      transform_fromhost_VkPhysicalDevicePipelineProtectedAccessFeaturesEXT)
+
+#endif
 }  // namespace vk
 }  // namespace host
 }  // namespace gfxstream

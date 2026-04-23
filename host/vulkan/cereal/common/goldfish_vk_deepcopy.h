@@ -2364,6 +2364,11 @@ void deepcopy_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
     VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT* to);
 
 #endif
+#ifdef VK_EXT_pipeline_protected_access
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDevicePipelineProtectedAccessFeatures,
+                      deepcopy_VkPhysicalDevicePipelineProtectedAccessFeaturesEXT)
+
+#endif
 }  // namespace vk
 }  // namespace host
 }  // namespace gfxstream
