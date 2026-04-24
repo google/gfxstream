@@ -3045,6 +3045,112 @@ DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPipelineRasterizationLineStateCreateI
                       transform_fromhost_VkPipelineRasterizationLineStateCreateInfoKHR)
 
 #endif
+#ifdef VK_KHR_maintenance6
+DEFINE_ALIAS_FUNCTION(transform_tohost_VkPhysicalDeviceMaintenance6Features,
+                      transform_tohost_VkPhysicalDeviceMaintenance6FeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPhysicalDeviceMaintenance6Features,
+                      transform_fromhost_VkPhysicalDeviceMaintenance6FeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(transform_tohost_VkPhysicalDeviceMaintenance6Properties,
+                      transform_tohost_VkPhysicalDeviceMaintenance6PropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPhysicalDeviceMaintenance6Properties,
+                      transform_fromhost_VkPhysicalDeviceMaintenance6PropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(transform_tohost_VkBindMemoryStatus, transform_tohost_VkBindMemoryStatusKHR)
+
+DEFINE_ALIAS_FUNCTION(transform_fromhost_VkBindMemoryStatus,
+                      transform_fromhost_VkBindMemoryStatusKHR)
+
+DEFINE_ALIAS_FUNCTION(transform_tohost_VkBindDescriptorSetsInfo,
+                      transform_tohost_VkBindDescriptorSetsInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(transform_fromhost_VkBindDescriptorSetsInfo,
+                      transform_fromhost_VkBindDescriptorSetsInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(transform_tohost_VkPushConstantsInfo, transform_tohost_VkPushConstantsInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPushConstantsInfo,
+                      transform_fromhost_VkPushConstantsInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(transform_tohost_VkPushDescriptorSetInfo,
+                      transform_tohost_VkPushDescriptorSetInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPushDescriptorSetInfo,
+                      transform_fromhost_VkPushDescriptorSetInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(transform_tohost_VkPushDescriptorSetWithTemplateInfo,
+                      transform_tohost_VkPushDescriptorSetWithTemplateInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPushDescriptorSetWithTemplateInfo,
+                      transform_fromhost_VkPushDescriptorSetWithTemplateInfoKHR)
+
+void transform_tohost_VkSetDescriptorBufferOffsetsInfoEXT(
+    VkDecoderGlobalState* resourceTracker, VkSetDescriptorBufferOffsetsInfoEXT* toTransform);
+
+void transform_fromhost_VkSetDescriptorBufferOffsetsInfoEXT(
+    VkDecoderGlobalState* resourceTracker, VkSetDescriptorBufferOffsetsInfoEXT* toTransform);
+
+void transform_tohost_VkBindDescriptorBufferEmbeddedSamplersInfoEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkBindDescriptorBufferEmbeddedSamplersInfoEXT* toTransform);
+
+void transform_fromhost_VkBindDescriptorBufferEmbeddedSamplersInfoEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkBindDescriptorBufferEmbeddedSamplersInfoEXT* toTransform);
+
+#endif
+#ifdef VK_KHR_maintenance7
+void transform_tohost_VkPhysicalDeviceMaintenance7FeaturesKHR(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMaintenance7FeaturesKHR* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceMaintenance7FeaturesKHR(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMaintenance7FeaturesKHR* toTransform);
+
+void transform_tohost_VkPhysicalDeviceMaintenance7PropertiesKHR(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMaintenance7PropertiesKHR* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceMaintenance7PropertiesKHR(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMaintenance7PropertiesKHR* toTransform);
+
+void transform_tohost_VkPhysicalDeviceLayeredApiPropertiesKHR(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceLayeredApiPropertiesKHR* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceLayeredApiPropertiesKHR(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceLayeredApiPropertiesKHR* toTransform);
+
+void transform_tohost_VkPhysicalDeviceLayeredApiPropertiesListKHR(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceLayeredApiPropertiesListKHR* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceLayeredApiPropertiesListKHR(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceLayeredApiPropertiesListKHR* toTransform);
+
+void transform_tohost_VkPhysicalDeviceLayeredApiVulkanPropertiesKHR(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceLayeredApiVulkanPropertiesKHR* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceLayeredApiVulkanPropertiesKHR(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceLayeredApiVulkanPropertiesKHR* toTransform);
+
+#endif
+#ifdef VK_KHR_maintenance8
+void transform_tohost_VkPhysicalDeviceMaintenance8FeaturesKHR(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMaintenance8FeaturesKHR* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceMaintenance8FeaturesKHR(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMaintenance8FeaturesKHR* toTransform);
+
+void transform_tohost_VkMemoryBarrierAccessFlags3KHR(VkDecoderGlobalState* resourceTracker,
+                                                     VkMemoryBarrierAccessFlags3KHR* toTransform);
+
+void transform_fromhost_VkMemoryBarrierAccessFlags3KHR(VkDecoderGlobalState* resourceTracker,
+                                                       VkMemoryBarrierAccessFlags3KHR* toTransform);
+
+#endif
 #ifdef VK_ANDROID_native_buffer
 void transform_tohost_VkNativeBufferUsage2ANDROID(VkDecoderGlobalState* resourceTracker,
                                                   VkNativeBufferUsage2ANDROID* toTransform);

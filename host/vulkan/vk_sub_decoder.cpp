@@ -3444,6 +3444,165 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 break;
             }
 #endif
+#ifdef VK_KHR_maintenance6
+            case OP_vkCmdBindDescriptorSets2KHR: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdBindDescriptorSets2KHR");
+                const VkBindDescriptorSetsInfo* pBindDescriptorSetsInfo;
+                VkBindDescriptorSetsInfo stack_pBindDescriptorSetsInfo[1];
+                pBindDescriptorSetsInfo = (VkBindDescriptorSetsInfo*)stack_pBindDescriptorSetsInfo;
+                reservedunmarshal_VkBindDescriptorSetsInfo(
+                    readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkBindDescriptorSetsInfo*)(pBindDescriptorSetsInfo), readStreamPtrPtr);
+                if (pBindDescriptorSetsInfo) {
+                    transform_tohost_VkBindDescriptorSetsInfo(
+                        globalstate, (VkBindDescriptorSetsInfo*)(pBindDescriptorSetsInfo));
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdBindDescriptorSets2KHR((VkCommandBuffer)dispatchHandle,
+                                                    pBindDescriptorSetsInfo);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdBindDescriptorSets2KHR(
+                        pool, snapshotApiCallHandle, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), pBindDescriptorSetsInfo);
+                }
+                break;
+            }
+            case OP_vkCmdPushConstants2KHR: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdPushConstants2KHR");
+                const VkPushConstantsInfo* pPushConstantsInfo;
+                VkPushConstantsInfo stack_pPushConstantsInfo[1];
+                pPushConstantsInfo = (VkPushConstantsInfo*)stack_pPushConstantsInfo;
+                reservedunmarshal_VkPushConstantsInfo(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                      (VkPushConstantsInfo*)(pPushConstantsInfo),
+                                                      readStreamPtrPtr);
+                if (pPushConstantsInfo) {
+                    transform_tohost_VkPushConstantsInfo(
+                        globalstate, (VkPushConstantsInfo*)(pPushConstantsInfo));
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdPushConstants2KHR((VkCommandBuffer)dispatchHandle, pPushConstantsInfo);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdPushConstants2KHR(
+                        pool, snapshotApiCallHandle, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), pPushConstantsInfo);
+                }
+                break;
+            }
+            case OP_vkCmdPushDescriptorSet2KHR: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdPushDescriptorSet2KHR");
+                const VkPushDescriptorSetInfo* pPushDescriptorSetInfo;
+                VkPushDescriptorSetInfo stack_pPushDescriptorSetInfo[1];
+                pPushDescriptorSetInfo = (VkPushDescriptorSetInfo*)stack_pPushDescriptorSetInfo;
+                reservedunmarshal_VkPushDescriptorSetInfo(
+                    readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkPushDescriptorSetInfo*)(pPushDescriptorSetInfo), readStreamPtrPtr);
+                if (pPushDescriptorSetInfo) {
+                    transform_tohost_VkPushDescriptorSetInfo(
+                        globalstate, (VkPushDescriptorSetInfo*)(pPushDescriptorSetInfo));
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdPushDescriptorSet2KHR((VkCommandBuffer)dispatchHandle,
+                                                   pPushDescriptorSetInfo);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdPushDescriptorSet2KHR(
+                        pool, snapshotApiCallHandle, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), pPushDescriptorSetInfo);
+                }
+                break;
+            }
+            case OP_vkCmdPushDescriptorSetWithTemplate2KHR: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdPushDescriptorSetWithTemplate2KHR");
+                const VkPushDescriptorSetWithTemplateInfo* pPushDescriptorSetWithTemplateInfo;
+                VkPushDescriptorSetWithTemplateInfo stack_pPushDescriptorSetWithTemplateInfo[1];
+                pPushDescriptorSetWithTemplateInfo =
+                    (VkPushDescriptorSetWithTemplateInfo*)stack_pPushDescriptorSetWithTemplateInfo;
+                reservedunmarshal_VkPushDescriptorSetWithTemplateInfo(
+                    readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkPushDescriptorSetWithTemplateInfo*)(pPushDescriptorSetWithTemplateInfo),
+                    readStreamPtrPtr);
+                if (pPushDescriptorSetWithTemplateInfo) {
+                    transform_tohost_VkPushDescriptorSetWithTemplateInfo(
+                        globalstate,
+                        (VkPushDescriptorSetWithTemplateInfo*)(pPushDescriptorSetWithTemplateInfo));
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdPushDescriptorSetWithTemplate2KHR((VkCommandBuffer)dispatchHandle,
+                                                               pPushDescriptorSetWithTemplateInfo);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdPushDescriptorSetWithTemplate2KHR(
+                        pool, snapshotApiCallHandle, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle),
+                        pPushDescriptorSetWithTemplateInfo);
+                }
+                break;
+            }
+            case OP_vkCmdSetDescriptorBufferOffsets2EXT: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdSetDescriptorBufferOffsets2EXT");
+                const VkSetDescriptorBufferOffsetsInfoEXT* pSetDescriptorBufferOffsetsInfo;
+                VkSetDescriptorBufferOffsetsInfoEXT stack_pSetDescriptorBufferOffsetsInfo[1];
+                pSetDescriptorBufferOffsetsInfo =
+                    (VkSetDescriptorBufferOffsetsInfoEXT*)stack_pSetDescriptorBufferOffsetsInfo;
+                reservedunmarshal_VkSetDescriptorBufferOffsetsInfoEXT(
+                    readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkSetDescriptorBufferOffsetsInfoEXT*)(pSetDescriptorBufferOffsetsInfo),
+                    readStreamPtrPtr);
+                if (pSetDescriptorBufferOffsetsInfo) {
+                    transform_tohost_VkSetDescriptorBufferOffsetsInfoEXT(
+                        globalstate,
+                        (VkSetDescriptorBufferOffsetsInfoEXT*)(pSetDescriptorBufferOffsetsInfo));
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetDescriptorBufferOffsets2EXT((VkCommandBuffer)dispatchHandle,
+                                                            pSetDescriptorBufferOffsetsInfo);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetDescriptorBufferOffsets2EXT(
+                        pool, snapshotApiCallHandle, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), pSetDescriptorBufferOffsetsInfo);
+                }
+                break;
+            }
+            case OP_vkCmdBindDescriptorBufferEmbeddedSamplers2EXT: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdBindDescriptorBufferEmbeddedSamplers2EXT");
+                const VkBindDescriptorBufferEmbeddedSamplersInfoEXT*
+                    pBindDescriptorBufferEmbeddedSamplersInfo;
+                VkBindDescriptorBufferEmbeddedSamplersInfoEXT
+                    stack_pBindDescriptorBufferEmbeddedSamplersInfo[1];
+                pBindDescriptorBufferEmbeddedSamplersInfo =
+                    (VkBindDescriptorBufferEmbeddedSamplersInfoEXT*)
+                        stack_pBindDescriptorBufferEmbeddedSamplersInfo;
+                reservedunmarshal_VkBindDescriptorBufferEmbeddedSamplersInfoEXT(
+                    readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkBindDescriptorBufferEmbeddedSamplersInfoEXT*)(pBindDescriptorBufferEmbeddedSamplersInfo),
+                    readStreamPtrPtr);
+                if (pBindDescriptorBufferEmbeddedSamplersInfo) {
+                    transform_tohost_VkBindDescriptorBufferEmbeddedSamplersInfoEXT(
+                        globalstate,
+                        (VkBindDescriptorBufferEmbeddedSamplersInfoEXT*)(pBindDescriptorBufferEmbeddedSamplersInfo));
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdBindDescriptorBufferEmbeddedSamplers2EXT(
+                        (VkCommandBuffer)dispatchHandle, pBindDescriptorBufferEmbeddedSamplersInfo);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdBindDescriptorBufferEmbeddedSamplers2EXT(
+                        pool, snapshotApiCallHandle, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle),
+                        pBindDescriptorBufferEmbeddedSamplersInfo);
+                }
+                break;
+            }
+#endif
 #ifdef VK_EXT_transform_feedback
             case OP_vkCmdBindTransformFeedbackBuffersEXT: {
                 GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,

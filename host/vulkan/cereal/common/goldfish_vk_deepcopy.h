@@ -1825,6 +1825,69 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkPipelineRasterizationLineStateCreateInfo,
                       deepcopy_VkPipelineRasterizationLineStateCreateInfoKHR)
 
 #endif
+#ifdef VK_KHR_maintenance6
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceMaintenance6Features,
+                      deepcopy_VkPhysicalDeviceMaintenance6FeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceMaintenance6Properties,
+                      deepcopy_VkPhysicalDeviceMaintenance6PropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkBindMemoryStatus, deepcopy_VkBindMemoryStatusKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkBindDescriptorSetsInfo, deepcopy_VkBindDescriptorSetsInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPushConstantsInfo, deepcopy_VkPushConstantsInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPushDescriptorSetInfo, deepcopy_VkPushDescriptorSetInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPushDescriptorSetWithTemplateInfo,
+                      deepcopy_VkPushDescriptorSetWithTemplateInfoKHR)
+
+void deepcopy_VkSetDescriptorBufferOffsetsInfoEXT(Allocator* alloc, VkStructureType rootType,
+                                                  const VkSetDescriptorBufferOffsetsInfoEXT* from,
+                                                  VkSetDescriptorBufferOffsetsInfoEXT* to);
+
+void deepcopy_VkBindDescriptorBufferEmbeddedSamplersInfoEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkBindDescriptorBufferEmbeddedSamplersInfoEXT* from,
+    VkBindDescriptorBufferEmbeddedSamplersInfoEXT* to);
+
+#endif
+#ifdef VK_KHR_maintenance7
+void deepcopy_VkPhysicalDeviceMaintenance7FeaturesKHR(
+    Allocator* alloc, VkStructureType rootType, const VkPhysicalDeviceMaintenance7FeaturesKHR* from,
+    VkPhysicalDeviceMaintenance7FeaturesKHR* to);
+
+void deepcopy_VkPhysicalDeviceMaintenance7PropertiesKHR(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceMaintenance7PropertiesKHR* from,
+    VkPhysicalDeviceMaintenance7PropertiesKHR* to);
+
+void deepcopy_VkPhysicalDeviceLayeredApiPropertiesKHR(
+    Allocator* alloc, VkStructureType rootType, const VkPhysicalDeviceLayeredApiPropertiesKHR* from,
+    VkPhysicalDeviceLayeredApiPropertiesKHR* to);
+
+void deepcopy_VkPhysicalDeviceLayeredApiPropertiesListKHR(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceLayeredApiPropertiesListKHR* from,
+    VkPhysicalDeviceLayeredApiPropertiesListKHR* to);
+
+void deepcopy_VkPhysicalDeviceLayeredApiVulkanPropertiesKHR(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceLayeredApiVulkanPropertiesKHR* from,
+    VkPhysicalDeviceLayeredApiVulkanPropertiesKHR* to);
+
+#endif
+#ifdef VK_KHR_maintenance8
+void deepcopy_VkPhysicalDeviceMaintenance8FeaturesKHR(
+    Allocator* alloc, VkStructureType rootType, const VkPhysicalDeviceMaintenance8FeaturesKHR* from,
+    VkPhysicalDeviceMaintenance8FeaturesKHR* to);
+
+void deepcopy_VkMemoryBarrierAccessFlags3KHR(Allocator* alloc, VkStructureType rootType,
+                                             const VkMemoryBarrierAccessFlags3KHR* from,
+                                             VkMemoryBarrierAccessFlags3KHR* to);
+
+#endif
 #ifdef VK_ANDROID_native_buffer
 void deepcopy_VkNativeBufferUsage2ANDROID(Allocator* alloc, VkStructureType rootType,
                                           const VkNativeBufferUsage2ANDROID* from,

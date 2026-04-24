@@ -1819,6 +1819,68 @@ DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPipelineRasterizationLineStateCreateIn
                       reservedunmarshal_VkPipelineRasterizationLineStateCreateInfoKHR)
 
 #endif
+#ifdef VK_KHR_maintenance6
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceMaintenance6Features,
+                      reservedunmarshal_VkPhysicalDeviceMaintenance6FeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceMaintenance6Properties,
+                      reservedunmarshal_VkPhysicalDeviceMaintenance6PropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkBindMemoryStatus, reservedunmarshal_VkBindMemoryStatusKHR)
+
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkBindDescriptorSetsInfo,
+                      reservedunmarshal_VkBindDescriptorSetsInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPushConstantsInfo,
+                      reservedunmarshal_VkPushConstantsInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPushDescriptorSetInfo,
+                      reservedunmarshal_VkPushDescriptorSetInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPushDescriptorSetWithTemplateInfo,
+                      reservedunmarshal_VkPushDescriptorSetWithTemplateInfoKHR)
+
+void reservedunmarshal_VkSetDescriptorBufferOffsetsInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkSetDescriptorBufferOffsetsInfoEXT* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkBindDescriptorBufferEmbeddedSamplersInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkBindDescriptorBufferEmbeddedSamplersInfoEXT* forUnmarshaling, uint8_t** ptr);
+
+#endif
+#ifdef VK_KHR_maintenance7
+void reservedunmarshal_VkPhysicalDeviceMaintenance7FeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMaintenance7FeaturesKHR* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceMaintenance7PropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMaintenance7PropertiesKHR* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceLayeredApiPropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceLayeredApiPropertiesKHR* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceLayeredApiPropertiesListKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceLayeredApiPropertiesListKHR* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceLayeredApiVulkanPropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceLayeredApiVulkanPropertiesKHR* forUnmarshaling, uint8_t** ptr);
+
+#endif
+#ifdef VK_KHR_maintenance8
+void reservedunmarshal_VkPhysicalDeviceMaintenance8FeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMaintenance8FeaturesKHR* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkMemoryBarrierAccessFlags3KHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkMemoryBarrierAccessFlags3KHR* forUnmarshaling, uint8_t** ptr);
+
+#endif
 #ifdef VK_ANDROID_native_buffer
 void reservedunmarshal_VkNativeBufferUsage2ANDROID(VulkanStream* vkStream, VkStructureType rootType,
                                                    VkNativeBufferUsage2ANDROID* forUnmarshaling,

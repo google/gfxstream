@@ -658,6 +658,22 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
     out->vkCmdSetLineStippleKHR =
         (PFN_vkCmdSetLineStippleKHR)dlSymFunc(lib, "vkCmdSetLineStippleKHR");
 #endif
+#ifdef VK_KHR_maintenance6
+    out->vkCmdBindDescriptorSets2KHR =
+        (PFN_vkCmdBindDescriptorSets2KHR)dlSymFunc(lib, "vkCmdBindDescriptorSets2KHR");
+    out->vkCmdPushConstants2KHR =
+        (PFN_vkCmdPushConstants2KHR)dlSymFunc(lib, "vkCmdPushConstants2KHR");
+    out->vkCmdPushDescriptorSet2KHR =
+        (PFN_vkCmdPushDescriptorSet2KHR)dlSymFunc(lib, "vkCmdPushDescriptorSet2KHR");
+    out->vkCmdPushDescriptorSetWithTemplate2KHR =
+        (PFN_vkCmdPushDescriptorSetWithTemplate2KHR)dlSymFunc(
+            lib, "vkCmdPushDescriptorSetWithTemplate2KHR");
+    out->vkCmdSetDescriptorBufferOffsets2EXT = (PFN_vkCmdSetDescriptorBufferOffsets2EXT)dlSymFunc(
+        lib, "vkCmdSetDescriptorBufferOffsets2EXT");
+    out->vkCmdBindDescriptorBufferEmbeddedSamplers2EXT =
+        (PFN_vkCmdBindDescriptorBufferEmbeddedSamplers2EXT)dlSymFunc(
+            lib, "vkCmdBindDescriptorBufferEmbeddedSamplers2EXT");
+#endif
 #ifdef VK_ANDROID_native_buffer
     out->vkGetSwapchainGrallocUsageANDROID =
         (PFN_vkGetSwapchainGrallocUsageANDROID)dlSymFunc(lib, "vkGetSwapchainGrallocUsageANDROID");
@@ -1691,6 +1707,23 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
 #ifdef VK_KHR_line_rasterization
     out->vkCmdSetLineStippleKHR =
         (PFN_vkCmdSetLineStippleKHR)vk->vkGetInstanceProcAddr(instance, "vkCmdSetLineStippleKHR");
+#endif
+#ifdef VK_KHR_maintenance6
+    out->vkCmdBindDescriptorSets2KHR = (PFN_vkCmdBindDescriptorSets2KHR)vk->vkGetInstanceProcAddr(
+        instance, "vkCmdBindDescriptorSets2KHR");
+    out->vkCmdPushConstants2KHR =
+        (PFN_vkCmdPushConstants2KHR)vk->vkGetInstanceProcAddr(instance, "vkCmdPushConstants2KHR");
+    out->vkCmdPushDescriptorSet2KHR = (PFN_vkCmdPushDescriptorSet2KHR)vk->vkGetInstanceProcAddr(
+        instance, "vkCmdPushDescriptorSet2KHR");
+    out->vkCmdPushDescriptorSetWithTemplate2KHR =
+        (PFN_vkCmdPushDescriptorSetWithTemplate2KHR)vk->vkGetInstanceProcAddr(
+            instance, "vkCmdPushDescriptorSetWithTemplate2KHR");
+    out->vkCmdSetDescriptorBufferOffsets2EXT =
+        (PFN_vkCmdSetDescriptorBufferOffsets2EXT)vk->vkGetInstanceProcAddr(
+            instance, "vkCmdSetDescriptorBufferOffsets2EXT");
+    out->vkCmdBindDescriptorBufferEmbeddedSamplers2EXT =
+        (PFN_vkCmdBindDescriptorBufferEmbeddedSamplers2EXT)vk->vkGetInstanceProcAddr(
+            instance, "vkCmdBindDescriptorBufferEmbeddedSamplers2EXT");
 #endif
 #ifdef VK_ANDROID_native_buffer
     out->vkGetSwapchainGrallocUsageANDROID =
@@ -2748,6 +2781,23 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
 #ifdef VK_KHR_line_rasterization
     out->vkCmdSetLineStippleKHR =
         (PFN_vkCmdSetLineStippleKHR)vk->vkGetDeviceProcAddr(device, "vkCmdSetLineStippleKHR");
+#endif
+#ifdef VK_KHR_maintenance6
+    out->vkCmdBindDescriptorSets2KHR = (PFN_vkCmdBindDescriptorSets2KHR)vk->vkGetDeviceProcAddr(
+        device, "vkCmdBindDescriptorSets2KHR");
+    out->vkCmdPushConstants2KHR =
+        (PFN_vkCmdPushConstants2KHR)vk->vkGetDeviceProcAddr(device, "vkCmdPushConstants2KHR");
+    out->vkCmdPushDescriptorSet2KHR = (PFN_vkCmdPushDescriptorSet2KHR)vk->vkGetDeviceProcAddr(
+        device, "vkCmdPushDescriptorSet2KHR");
+    out->vkCmdPushDescriptorSetWithTemplate2KHR =
+        (PFN_vkCmdPushDescriptorSetWithTemplate2KHR)vk->vkGetDeviceProcAddr(
+            device, "vkCmdPushDescriptorSetWithTemplate2KHR");
+    out->vkCmdSetDescriptorBufferOffsets2EXT =
+        (PFN_vkCmdSetDescriptorBufferOffsets2EXT)vk->vkGetDeviceProcAddr(
+            device, "vkCmdSetDescriptorBufferOffsets2EXT");
+    out->vkCmdBindDescriptorBufferEmbeddedSamplers2EXT =
+        (PFN_vkCmdBindDescriptorBufferEmbeddedSamplers2EXT)vk->vkGetDeviceProcAddr(
+            device, "vkCmdBindDescriptorBufferEmbeddedSamplers2EXT");
 #endif
 #ifdef VK_ANDROID_native_buffer
     out->vkGetSwapchainGrallocUsageANDROID =

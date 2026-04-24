@@ -3469,6 +3469,122 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkPipelineRasterizationLineStateCreateInfo,
 
 #define OP_vkCmdSetLineStippleKHR 219923286
 #endif
+#ifdef VK_KHR_maintenance6
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceMaintenance6Features,
+                      marshal_VkPhysicalDeviceMaintenance6FeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceMaintenance6Features,
+                      unmarshal_VkPhysicalDeviceMaintenance6FeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceMaintenance6Properties,
+                      marshal_VkPhysicalDeviceMaintenance6PropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceMaintenance6Properties,
+                      unmarshal_VkPhysicalDeviceMaintenance6PropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkBindMemoryStatus, marshal_VkBindMemoryStatusKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkBindMemoryStatus, unmarshal_VkBindMemoryStatusKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkBindDescriptorSetsInfo, marshal_VkBindDescriptorSetsInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkBindDescriptorSetsInfo, unmarshal_VkBindDescriptorSetsInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPushConstantsInfo, marshal_VkPushConstantsInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPushConstantsInfo, unmarshal_VkPushConstantsInfoKHR)
+
+#define OP_vkCmdBindDescriptorSets2KHR 267068670
+#define OP_vkCmdPushConstants2KHR 225333392
+DEFINE_ALIAS_FUNCTION(marshal_VkPushDescriptorSetInfo, marshal_VkPushDescriptorSetInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPushDescriptorSetInfo, unmarshal_VkPushDescriptorSetInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPushDescriptorSetWithTemplateInfo,
+                      marshal_VkPushDescriptorSetWithTemplateInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPushDescriptorSetWithTemplateInfo,
+                      unmarshal_VkPushDescriptorSetWithTemplateInfoKHR)
+
+#define OP_vkCmdPushDescriptorSet2KHR 214911878
+#define OP_vkCmdPushDescriptorSetWithTemplate2KHR 263717616
+void marshal_VkSetDescriptorBufferOffsetsInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkSetDescriptorBufferOffsetsInfoEXT* forMarshaling);
+
+void unmarshal_VkSetDescriptorBufferOffsetsInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkSetDescriptorBufferOffsetsInfoEXT* forUnmarshaling);
+
+void marshal_VkBindDescriptorBufferEmbeddedSamplersInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkBindDescriptorBufferEmbeddedSamplersInfoEXT* forMarshaling);
+
+void unmarshal_VkBindDescriptorBufferEmbeddedSamplersInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkBindDescriptorBufferEmbeddedSamplersInfoEXT* forUnmarshaling);
+
+#define OP_vkCmdSetDescriptorBufferOffsets2EXT 201280029
+#define OP_vkCmdBindDescriptorBufferEmbeddedSamplers2EXT 202767351
+#endif
+#ifdef VK_KHR_maintenance7
+void marshal_VkPhysicalDeviceMaintenance7FeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMaintenance7FeaturesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceMaintenance7FeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMaintenance7FeaturesKHR* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceMaintenance7PropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMaintenance7PropertiesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceMaintenance7PropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMaintenance7PropertiesKHR* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceLayeredApiPropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceLayeredApiPropertiesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceLayeredApiPropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceLayeredApiPropertiesKHR* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceLayeredApiPropertiesListKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceLayeredApiPropertiesListKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceLayeredApiPropertiesListKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceLayeredApiPropertiesListKHR* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceLayeredApiVulkanPropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceLayeredApiVulkanPropertiesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceLayeredApiVulkanPropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceLayeredApiVulkanPropertiesKHR* forUnmarshaling);
+
+#endif
+#ifdef VK_KHR_maintenance8
+void marshal_VkPhysicalDeviceMaintenance8FeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceMaintenance8FeaturesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceMaintenance8FeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceMaintenance8FeaturesKHR* forUnmarshaling);
+
+void marshal_VkMemoryBarrierAccessFlags3KHR(VulkanStream* vkStream, VkStructureType rootType,
+                                            const VkMemoryBarrierAccessFlags3KHR* forMarshaling);
+
+void unmarshal_VkMemoryBarrierAccessFlags3KHR(VulkanStream* vkStream, VkStructureType rootType,
+                                              VkMemoryBarrierAccessFlags3KHR* forUnmarshaling);
+
+#endif
 #ifdef VK_ANDROID_native_buffer
 void marshal_VkNativeBufferUsage2ANDROID(VulkanStream* vkStream, VkStructureType rootType,
                                          const VkNativeBufferUsage2ANDROID* forMarshaling);

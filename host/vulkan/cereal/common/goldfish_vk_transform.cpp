@@ -7661,6 +7661,202 @@ void transform_fromhost_VkPipelineLibraryCreateInfoKHR(
 }
 
 #endif
+#ifdef VK_KHR_maintenance6
+void transform_tohost_VkSetDescriptorBufferOffsetsInfoEXT(
+    VkDecoderGlobalState* resourceTracker, VkSetDescriptorBufferOffsetsInfoEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkSetDescriptorBufferOffsetsInfoEXT(
+    VkDecoderGlobalState* resourceTracker, VkSetDescriptorBufferOffsetsInfoEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkBindDescriptorBufferEmbeddedSamplersInfoEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkBindDescriptorBufferEmbeddedSamplersInfoEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkBindDescriptorBufferEmbeddedSamplersInfoEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkBindDescriptorBufferEmbeddedSamplersInfoEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_KHR_maintenance7
+void transform_tohost_VkPhysicalDeviceMaintenance7FeaturesKHR(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMaintenance7FeaturesKHR* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceMaintenance7FeaturesKHR(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMaintenance7FeaturesKHR* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceMaintenance7PropertiesKHR(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMaintenance7PropertiesKHR* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceMaintenance7PropertiesKHR(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMaintenance7PropertiesKHR* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceLayeredApiPropertiesKHR(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceLayeredApiPropertiesKHR* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceLayeredApiPropertiesKHR(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceLayeredApiPropertiesKHR* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceLayeredApiPropertiesListKHR(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceLayeredApiPropertiesListKHR* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform) {
+        if (toTransform->pLayeredApis) {
+            for (uint32_t i = 0; i < (uint32_t)toTransform->layeredApiCount; ++i) {
+                transform_tohost_VkPhysicalDeviceLayeredApiPropertiesKHR(
+                    resourceTracker,
+                    (VkPhysicalDeviceLayeredApiPropertiesKHR*)(toTransform->pLayeredApis + i));
+            }
+        }
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceLayeredApiPropertiesListKHR(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceLayeredApiPropertiesListKHR* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform) {
+        if (toTransform->pLayeredApis) {
+            for (uint32_t i = 0; i < (uint32_t)toTransform->layeredApiCount; ++i) {
+                transform_fromhost_VkPhysicalDeviceLayeredApiPropertiesKHR(
+                    resourceTracker,
+                    (VkPhysicalDeviceLayeredApiPropertiesKHR*)(toTransform->pLayeredApis + i));
+            }
+        }
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceLayeredApiVulkanPropertiesKHR(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceLayeredApiVulkanPropertiesKHR* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkPhysicalDeviceProperties2(
+        resourceTracker, (VkPhysicalDeviceProperties2*)(&toTransform->properties));
+}
+
+void transform_fromhost_VkPhysicalDeviceLayeredApiVulkanPropertiesKHR(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceLayeredApiVulkanPropertiesKHR* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkPhysicalDeviceProperties2(
+        resourceTracker, (VkPhysicalDeviceProperties2*)(&toTransform->properties));
+}
+
+#endif
+#ifdef VK_KHR_maintenance8
+void transform_tohost_VkPhysicalDeviceMaintenance8FeaturesKHR(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMaintenance8FeaturesKHR* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceMaintenance8FeaturesKHR(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMaintenance8FeaturesKHR* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkMemoryBarrierAccessFlags3KHR(VkDecoderGlobalState* resourceTracker,
+                                                     VkMemoryBarrierAccessFlags3KHR* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkMemoryBarrierAccessFlags3KHR(
+    VkDecoderGlobalState* resourceTracker, VkMemoryBarrierAccessFlags3KHR* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
 #ifdef VK_ANDROID_native_buffer
 void transform_tohost_VkNativeBufferUsage2ANDROID(VkDecoderGlobalState* resourceTracker,
                                                   VkNativeBufferUsage2ANDROID* toTransform) {
@@ -10259,6 +10455,46 @@ void transform_tohost_extension_struct(VkDecoderGlobalState* resourceTracker,
             break;
         }
 #endif
+#ifdef VK_KHR_maintenance7
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_7_FEATURES_KHR: {
+            transform_tohost_VkPhysicalDeviceMaintenance7FeaturesKHR(
+                resourceTracker,
+                reinterpret_cast<VkPhysicalDeviceMaintenance7FeaturesKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_7_PROPERTIES_KHR: {
+            transform_tohost_VkPhysicalDeviceMaintenance7PropertiesKHR(
+                resourceTracker,
+                reinterpret_cast<VkPhysicalDeviceMaintenance7PropertiesKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LAYERED_API_PROPERTIES_LIST_KHR: {
+            transform_tohost_VkPhysicalDeviceLayeredApiPropertiesListKHR(
+                resourceTracker, reinterpret_cast<VkPhysicalDeviceLayeredApiPropertiesListKHR*>(
+                                     structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LAYERED_API_VULKAN_PROPERTIES_KHR: {
+            transform_tohost_VkPhysicalDeviceLayeredApiVulkanPropertiesKHR(
+                resourceTracker, reinterpret_cast<VkPhysicalDeviceLayeredApiVulkanPropertiesKHR*>(
+                                     structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_KHR_maintenance8
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_8_FEATURES_KHR: {
+            transform_tohost_VkPhysicalDeviceMaintenance8FeaturesKHR(
+                resourceTracker,
+                reinterpret_cast<VkPhysicalDeviceMaintenance8FeaturesKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_MEMORY_BARRIER_ACCESS_FLAGS_3_KHR: {
+            transform_tohost_VkMemoryBarrierAccessFlags3KHR(
+                resourceTracker,
+                reinterpret_cast<VkMemoryBarrierAccessFlags3KHR*>(structExtension_out));
+            break;
+        }
+#endif
 #ifdef VK_ANDROID_native_buffer
         case VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID: {
             transform_tohost_VkNativeBufferANDROID(
@@ -11660,6 +11896,46 @@ void transform_fromhost_extension_struct(VkDecoderGlobalState* resourceTracker,
             transform_fromhost_VkPipelineLibraryCreateInfoKHR(
                 resourceTracker,
                 reinterpret_cast<VkPipelineLibraryCreateInfoKHR*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_KHR_maintenance7
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_7_FEATURES_KHR: {
+            transform_fromhost_VkPhysicalDeviceMaintenance7FeaturesKHR(
+                resourceTracker,
+                reinterpret_cast<VkPhysicalDeviceMaintenance7FeaturesKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_7_PROPERTIES_KHR: {
+            transform_fromhost_VkPhysicalDeviceMaintenance7PropertiesKHR(
+                resourceTracker,
+                reinterpret_cast<VkPhysicalDeviceMaintenance7PropertiesKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LAYERED_API_PROPERTIES_LIST_KHR: {
+            transform_fromhost_VkPhysicalDeviceLayeredApiPropertiesListKHR(
+                resourceTracker, reinterpret_cast<VkPhysicalDeviceLayeredApiPropertiesListKHR*>(
+                                     structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LAYERED_API_VULKAN_PROPERTIES_KHR: {
+            transform_fromhost_VkPhysicalDeviceLayeredApiVulkanPropertiesKHR(
+                resourceTracker, reinterpret_cast<VkPhysicalDeviceLayeredApiVulkanPropertiesKHR*>(
+                                     structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_KHR_maintenance8
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_8_FEATURES_KHR: {
+            transform_fromhost_VkPhysicalDeviceMaintenance8FeaturesKHR(
+                resourceTracker,
+                reinterpret_cast<VkPhysicalDeviceMaintenance8FeaturesKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_MEMORY_BARRIER_ACCESS_FLAGS_3_KHR: {
+            transform_fromhost_VkMemoryBarrierAccessFlags3KHR(
+                resourceTracker,
+                reinterpret_cast<VkMemoryBarrierAccessFlags3KHR*>(structExtension_out));
             break;
         }
 #endif

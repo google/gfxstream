@@ -1549,6 +1549,35 @@ class VkDecoderSnapshot {
                                 size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
                                 uint32_t lineStippleFactor, uint16_t lineStipplePattern);
 #endif
+#ifdef VK_KHR_maintenance6
+    void vkCmdBindDescriptorSets2KHR(gfxstream::base::BumpPool* pool,
+                                     VkSnapshotApiCallHandle apiCallHandle,
+                                     const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                     VkCommandBuffer commandBuffer,
+                                     const VkBindDescriptorSetsInfo* pBindDescriptorSetsInfo);
+    void vkCmdPushConstants2KHR(gfxstream::base::BumpPool* pool,
+                                VkSnapshotApiCallHandle apiCallHandle, const uint8_t* apiCallPacket,
+                                size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
+                                const VkPushConstantsInfo* pPushConstantsInfo);
+    void vkCmdPushDescriptorSet2KHR(gfxstream::base::BumpPool* pool,
+                                    VkSnapshotApiCallHandle apiCallHandle,
+                                    const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                    VkCommandBuffer commandBuffer,
+                                    const VkPushDescriptorSetInfo* pPushDescriptorSetInfo);
+    void vkCmdPushDescriptorSetWithTemplate2KHR(
+        gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
+        const VkPushDescriptorSetWithTemplateInfo* pPushDescriptorSetWithTemplateInfo);
+    void vkCmdSetDescriptorBufferOffsets2EXT(
+        gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
+        const VkSetDescriptorBufferOffsetsInfoEXT* pSetDescriptorBufferOffsetsInfo);
+    void vkCmdBindDescriptorBufferEmbeddedSamplers2EXT(
+        gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
+        const VkBindDescriptorBufferEmbeddedSamplersInfoEXT*
+            pBindDescriptorBufferEmbeddedSamplersInfo);
+#endif
 #ifdef VK_ANDROID_native_buffer
     void vkGetSwapchainGrallocUsageANDROID(gfxstream::base::BumpPool* pool,
                                            VkSnapshotApiCallHandle apiCallHandle,

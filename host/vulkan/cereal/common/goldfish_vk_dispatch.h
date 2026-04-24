@@ -457,6 +457,14 @@ struct VulkanDispatch {
 #ifdef VK_KHR_line_rasterization
     PFN_vkCmdSetLineStippleKHR vkCmdSetLineStippleKHR;
 #endif
+#ifdef VK_KHR_maintenance6
+    PFN_vkCmdBindDescriptorSets2KHR vkCmdBindDescriptorSets2KHR;
+    PFN_vkCmdPushConstants2KHR vkCmdPushConstants2KHR;
+    PFN_vkCmdPushDescriptorSet2KHR vkCmdPushDescriptorSet2KHR;
+    PFN_vkCmdPushDescriptorSetWithTemplate2KHR vkCmdPushDescriptorSetWithTemplate2KHR;
+    PFN_vkCmdSetDescriptorBufferOffsets2EXT vkCmdSetDescriptorBufferOffsets2EXT;
+    PFN_vkCmdBindDescriptorBufferEmbeddedSamplers2EXT vkCmdBindDescriptorBufferEmbeddedSamplers2EXT;
+#endif
 #ifdef VK_ANDROID_native_buffer
     PFN_vkGetSwapchainGrallocUsageANDROID vkGetSwapchainGrallocUsageANDROID;
     PFN_vkAcquireImageANDROID vkAcquireImageANDROID;
