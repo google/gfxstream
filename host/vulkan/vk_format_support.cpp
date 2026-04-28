@@ -161,6 +161,8 @@ const ImageSupportInfo* ImageSupport::GetSupportedInfo(VkFormat format) const {
             return &supportInfo;
         }
     }
+    GFXSTREAM_WARNING("Could not find support info for format: %s [%d]", string_VkFormat(format),
+                      (int)format);
     return nullptr;
 }
 

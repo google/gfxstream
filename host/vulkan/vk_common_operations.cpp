@@ -3016,7 +3016,7 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height,
             },
         .subresourceRange =
             {
-                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .aspectMask = getFormatAspects(imageVkFormat),
                 .baseMipLevel = 0,
                 .levelCount = 1,
                 .baseArrayLayer = 0,
