@@ -1184,6 +1184,16 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
         deviceInfos[i].hasSamplerYcbcrConversionExtension =
             vk_util::extensionSupported(deviceExts, VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME);
 
+        deviceInfos[i].supportsSwapchain =
+            vk_util::extensionSupported(deviceExts, VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+
+        std::string deviceName = std::string(deviceInfos[i].physdevProps.deviceName);
+        std::transform(deviceName.begin(), deviceName.end(), deviceName.begin(),
+                       [](unsigned char c) { return std::tolower(c); });
+        if (deviceName.find("llvmpipe") != std::string::npos) {
+            deviceInfos[i].isLavapipe = true;
+        }
+
         deviceInfos[i].hasNvidiaDeviceDiagnosticCheckpointsExtension =
             vk_util::extensionSupported(deviceExts, VK_NV_DEVICE_DIAGNOSTIC_CHECKPOINTS_EXTENSION_NAME);
 
@@ -1415,10 +1425,18 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
     }
 #endif
 
-    // We need to always enable swapchain extensions to be able to use this device
+    // We need to enable swapchain extensions to be able to use this device
     // to do VK_IMAGE_LAYOUT_PRESENT_SRC_KHR transition operations done
-    // in releaseColorBufferForGuestUse for the apps using Vulkan swapchain
-    selectedDeviceExtensionNames.emplace(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+    // in releaseColorBufferForGuestUse for the apps using Vulkan swapchain.
+    // If we are in surfaceless mode and using Lavapipe, we can skip this since
+    // building all of swapchain code can be hard in cloud environments.
+    const bool shouldSkipSwapchain =
+        emulation->mFeatures.Surfaceless.enabled() && emulation->mDeviceInfo.isLavapipe;
+    if (emulation->mDeviceInfo.supportsSwapchain && emulation->mInstanceSupportsSurface &&
+        !shouldSkipSwapchain) {
+        selectedDeviceExtensionNames.emplace(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+        emulation->mSwapchainEnabled = true;
+    }
 
     if (emulation->mFeatures.VulkanNativeSwapchain.enabled()) {
         for (auto extension : SwapChainStateVk::getRequiredDeviceExtensions()) {
@@ -1825,6 +1843,10 @@ bool VkEmulation::supportsDmaBuf() const { return mDeviceInfo.supportsDmaBuf; }
 bool VkEmulation::supportsExternalMemoryHostProperties() const {
     return mDeviceInfo.supportsExternalMemoryHostProps;
 }
+
+bool VkEmulation::isSwapchainEnabled() const { return mSwapchainEnabled; }
+
+bool VkEmulation::isLavapipe() const { return mDeviceInfo.isLavapipe; }
 
 std::optional<VkPhysicalDeviceRobustness2FeaturesEXT> VkEmulation::getRobustness2Features() const {
     return mDeviceInfo.robustness2Features;

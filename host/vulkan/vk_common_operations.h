@@ -144,6 +144,10 @@ class VkEmulation {
 
     bool supportsExternalMemoryHostProperties() const;
 
+    bool isSwapchainEnabled() const;
+
+    bool isLavapipe() const;
+
     std::optional<VkPhysicalDeviceRobustness2FeaturesEXT> getRobustness2Features() const;
 
     VkPhysicalDeviceExternalMemoryHostPropertiesEXT externalMemoryHostProperties() const;
@@ -475,6 +479,8 @@ class VkEmulation {
         bool supportsDmaBuf = false;
         bool supportsDriverProperties = false;
         bool supportsExternalMemoryHostProps = false;
+        bool supportsSwapchain = false;
+        bool isLavapipe = false;
         bool hasSamplerYcbcrConversionExtension = false;
         bool supportsSamplerYcbcrConversion = false;
         bool glInteropSupported = false;
@@ -592,6 +598,7 @@ class VkEmulation {
     uint32_t mGuestVulkanMaxApiVersion = VK_API_VERSION_1_3;
 
     bool mEnableProtectedMemoryEmulation = true;
+    bool mSwapchainEnabled = false;
 
     // Instance and device for creating the system-wide shareable objects.
     VkInstance mInstance = VK_NULL_HANDLE;

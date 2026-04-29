@@ -9487,25 +9487,36 @@ class VkDecoderGlobalState::Impl {
             VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME,
             VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME,
             VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME,
-            VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-            // TODO(b/378686769): Enable private data extension where available to
-            // mitigate the issues with duplicated vulkan handles. This should be
-            // removed once the issue is properly resolved.
-            VK_EXT_PRIVATE_DATA_EXTENSION_NAME,
-            // It is not uncommon for a guest app flow to expect to use
-            // VK_EXT_IMAGE_DRM_FORMAT_MODIFIER without actually enabling it in the
-            // ppEnabledExtensionNames. Mesa WSI (in Linux) does this, because it has certain
-            // assumptions about the Vulkan loader architecture it is using. However, depending on
-            // the host's Vulkan loader architecture, this could in NULL function pointer access
-            // (i.e. on vkGetImageDrmFormatModifierPropertiesEXT()). So just enable it if it's
-            // available.
-            VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME,
-#ifdef _WIN32
-            VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME,
-#elif defined(__QNX__) || defined(__unix__)
-            VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME,
-#endif
         };
+
+        const bool shouldSkipSwapchain =
+            m_vkEmulation->getFeatures().Surfaceless.enabled() && m_vkEmulation->isLavapipe();
+        if (!shouldSkipSwapchain) {
+            hostAlwaysDeviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+        }
+
+        hostAlwaysDeviceExtensions.insert(
+            hostAlwaysDeviceExtensions.end(),
+            {
+                // TODO(b/378686769): Enable private data extension where available to
+                // mitigate the issues with duplicated vulkan handles. This should be
+                // removed once the issue is properly resolved.
+                VK_EXT_PRIVATE_DATA_EXTENSION_NAME,
+                // It is not uncommon for a guest app flow to expect to use
+                // VK_EXT_IMAGE_DRM_FORMAT_MODIFIER without actually enabling it in the
+                // ppEnabledExtensionNames. Mesa WSI (in Linux) does this, because it has certain
+                // assumptions about the Vulkan loader architecture it is using. However, depending
+                // on
+                // the host's Vulkan loader architecture, this could in NULL function pointer access
+                // (i.e. on vkGetImageDrmFormatModifierPropertiesEXT()). So just enable it if it's
+                // available.
+                VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME,
+#ifdef _WIN32
+                VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME,
+#elif defined(__QNX__) || defined(__unix__)
+                VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME,
+#endif
+            });
 
         m_vkEmulation->appendExternalMemoryModeDeviceExtensions(hostAlwaysDeviceExtensions);
 
