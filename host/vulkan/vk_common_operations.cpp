@@ -4721,6 +4721,14 @@ VkImageLayout VkEmulation::getColorBufferCurrentLayout(uint32_t colorBufferHandl
     return infoPtr->currentLayout;
 }
 
+VkImageLayout VkEmulation::adjustImageLayout(VkImageLayout layout) const {
+    if (!mSwapchainEnabled && layout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR) {
+        return VK_IMAGE_LAYOUT_GENERAL;
+    } else {
+        return layout;
+    }
+}
+
 // Allocate a ready to use VkCommandBuffer for queue transfer. The caller needs
 // to signal the returned VkFence when the VkCommandBuffer completes.
 std::tuple<VkCommandBuffer, VkFence> VkEmulation::allocateQueueTransferCommandBufferLocked() {
@@ -4780,8 +4788,6 @@ std::tuple<VkCommandBuffer, VkFence> VkEmulation::allocateQueueTransferCommandBu
     return std::make_tuple(commandBuffer, fence);
 }
 
-const VkImageLayout kGuestUseDefaultImageLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
 void VkEmulation::releaseColorBufferForGuestUse(uint32_t colorBufferHandle) {
     std::lock_guard<std::mutex> lock(mMutex);
 
@@ -4792,6 +4798,7 @@ void VkEmulation::releaseColorBufferForGuestUse(uint32_t colorBufferHandle) {
         return;
     }
 
+    const auto kGuestUseDefaultImageLayout = adjustImageLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
     std::optional<VkImageMemoryBarrier> layoutTransitionBarrier;
     if (infoPtr->currentLayout != kGuestUseDefaultImageLayout) {
         layoutTransitionBarrier = VkImageMemoryBarrier{
@@ -4927,7 +4934,7 @@ std::unique_ptr<BorrowedImageInfoVk> VkEmulation::borrowColorBufferForCompositio
         compositorInfo->postBorrowLayout = colorBufferInfo->currentLayout;
 
         if (compositorInfo->postBorrowLayout == VK_IMAGE_LAYOUT_UNDEFINED) {
-            compositorInfo->postBorrowLayout = kGuestUseDefaultImageLayout;
+            compositorInfo->postBorrowLayout = adjustImageLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
         }
     }
 
@@ -4961,7 +4968,7 @@ std::unique_ptr<BorrowedImageInfoVk> VkEmulation::borrowColorBufferForDisplay(
     // Instruct the display to perform the queue transfer release after use so
     // that the color buffer can be acquired by the guest.
     compositorInfo->postBorrowQueueFamilyIndex = VK_QUEUE_FAMILY_EXTERNAL;
-    compositorInfo->postBorrowLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    compositorInfo->postBorrowLayout = adjustImageLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
     colorBufferInfo->currentLayout = compositorInfo->postBorrowLayout;
     colorBufferInfo->currentQueueFamilyIndex = compositorInfo->postBorrowQueueFamilyIndex;

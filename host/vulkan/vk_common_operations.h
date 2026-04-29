@@ -441,6 +441,8 @@ class VkEmulation {
 
     VkImageLayout getColorBufferCurrentLayout(uint32_t colorBufferHandle);
 
+    VkImageLayout adjustImageLayout(VkImageLayout layout) const;
+
     void releaseColorBufferForGuestUse(uint32_t colorBufferHandle);
 
     std::unique_ptr<BorrowedImageInfoVk> borrowColorBufferForComposition(uint32_t colorBufferHandle,
