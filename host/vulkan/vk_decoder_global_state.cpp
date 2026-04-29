@@ -2107,10 +2107,6 @@ class VkDecoderGlobalState::Impl {
                 if (vk11Features != nullptr && vk11Features->protectedMemory) {
                     vk11Features->protectedMemory = false;
                 }
-                for (uint32_t i = 0; i < createInfoFiltered.queueCreateInfoCount; i++) {
-                    (const_cast<VkDeviceQueueCreateInfo*>(createInfoFiltered.pQueueCreateInfos))[i]
-                        .flags &= ~VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT;
-                }
 
                 if (pipelineProtectedAccessFeatureRequested) {
                     pipelineAccessFeatures->pipelineProtectedAccess = false;
@@ -2125,6 +2121,12 @@ class VkDecoderGlobalState::Impl {
                 GFXSTREAM_INFO("%s: Unsupported pipeline protected access feature is requested!",
                                __func__);
                 return VK_ERROR_FEATURE_NOT_PRESENT;
+            }
+
+            // Always clear protected memory bits when passing the call to the host driver
+            for (uint32_t i = 0; i < createInfoFiltered.queueCreateInfoCount; i++) {
+                (const_cast<VkDeviceQueueCreateInfo*>(createInfoFiltered.pQueueCreateInfos))[i]
+                    .flags &= ~VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT;
             }
         }
 
