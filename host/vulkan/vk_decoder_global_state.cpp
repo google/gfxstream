@@ -5633,6 +5633,17 @@ class VkDecoderGlobalState::Impl {
             convertQueueFamilyForeignToExternal_VkImageMemoryBarrier(const_cast<VkImageMemoryBarrier&>(pImageMemoryBarriers[i]));
         }
 
+        std::vector<VkImageMemoryBarrier> mappedImageMemoryBarriers;
+        if (imageMemoryBarrierCount > 0 && m_vkEmulation->needsImageLayoutAdjustment()) {
+            mappedImageMemoryBarriers.assign(pImageMemoryBarriers,
+                                             pImageMemoryBarriers + imageMemoryBarrierCount);
+            for (auto& imb : mappedImageMemoryBarriers) {
+                imb.oldLayout = m_vkEmulation->adjustImageLayout(imb.oldLayout);
+                imb.newLayout = m_vkEmulation->adjustImageLayout(imb.newLayout);
+            }
+            pImageMemoryBarriers = mappedImageMemoryBarriers.data();
+        }
+
         if (imageMemoryBarrierCount == 0) {
             vk->vkCmdPipelineBarrier(commandBuffer, srcStageMask, dstStageMask, dependencyFlags,
                                      memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount,
@@ -5720,6 +5731,21 @@ class VkDecoderGlobalState::Impl {
 
         for (uint32_t i = 0; i < pDependencyInfo->imageMemoryBarrierCount; ++i) {
             convertQueueFamilyForeignToExternal_VkImageMemoryBarrier2(const_cast<VkImageMemoryBarrier2&>(pDependencyInfo->pImageMemoryBarriers[i]));
+        }
+
+        VkDependencyInfo mappedDependencyInfo = *pDependencyInfo;
+        std::vector<VkImageMemoryBarrier2> mappedImageMemoryBarriers;
+        if (pDependencyInfo->imageMemoryBarrierCount > 0 &&
+            m_vkEmulation->needsImageLayoutAdjustment()) {
+            mappedImageMemoryBarriers.assign(
+                pDependencyInfo->pImageMemoryBarriers,
+                pDependencyInfo->pImageMemoryBarriers + pDependencyInfo->imageMemoryBarrierCount);
+            for (auto& imb : mappedImageMemoryBarriers) {
+                imb.oldLayout = m_vkEmulation->adjustImageLayout(imb.oldLayout);
+                imb.newLayout = m_vkEmulation->adjustImageLayout(imb.newLayout);
+            }
+            mappedDependencyInfo.pImageMemoryBarriers = mappedImageMemoryBarriers.data();
+            pDependencyInfo = &mappedDependencyInfo;
         }
 
         std::lock_guard<std::mutex> lock(mMutex);
@@ -6741,11 +6767,12 @@ class VkDecoderGlobalState::Impl {
             // vkQueueSignalReleaseImageANDROID() is only called by the Android framework's
             // implementation of vkQueuePresentKHR(). The guest application is responsible for
             // transitioning the image layout of the image passed to vkQueuePresentKHR() to
-            // VK_IMAGE_LAYOUT_PRESENT_SRC_KHR before the call. If the host is using native
+            // the default guest image layout before the call. If the host is using native
             // Vulkan images where `image` is backed with the same memory as its ColorBuffer,
             // then we need to update the tracked layout for that ColorBuffer.
-            m_vkEmulation->setColorBufferCurrentLayout(anbInfo->getColorBufferHandle(),
-                                        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+            m_vkEmulation->setColorBufferCurrentLayout(
+                anbInfo->getColorBufferHandle(),
+                m_vkEmulation->adjustImageLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR));
         }
 
         if (snapshotsEnabled()) {
@@ -8199,15 +8226,68 @@ class VkDecoderGlobalState::Impl {
                 }
             }
         }
+
         std::vector<VkAttachmentDescription> attachments;
-        if (needReformat) {
+        std::vector<VkSubpassDescription> subpasses;
+        // Pointers for subpass attachments to keep them alive until the vkCreateRenderPass call
+        std::vector<std::vector<VkAttachmentReference>> inputAttachments;
+        std::vector<std::vector<VkAttachmentReference>> colorAttachments;
+        std::vector<std::vector<VkAttachmentReference>> resolveAttachments;
+
+        if (needReformat || m_vkEmulation->needsImageLayoutAdjustment()) {
             createInfo = *pCreateInfo;
             attachments.assign(pCreateInfo->pAttachments,
                                pCreateInfo->pAttachments + pCreateInfo->attachmentCount);
-            createInfo.pAttachments = attachments.data();
             for (auto& attachment : attachments) {
-                attachment.format = CompressedImageInfo::getOutputFormat(attachment.format);
+                if (needReformat && deviceInfo->needEmulatedDecompression(attachment.format)) {
+                    attachment.format = CompressedImageInfo::getOutputFormat(attachment.format);
+                }
+                attachment.initialLayout =
+                    m_vkEmulation->adjustImageLayout(attachment.initialLayout);
+                attachment.finalLayout = m_vkEmulation->adjustImageLayout(attachment.finalLayout);
             }
+            createInfo.pAttachments = attachments.data();
+
+            if (m_vkEmulation->needsImageLayoutAdjustment()) {
+                subpasses.assign(pCreateInfo->pSubpasses,
+                                 pCreateInfo->pSubpasses + pCreateInfo->subpassCount);
+                inputAttachments.resize(subpasses.size());
+                colorAttachments.resize(subpasses.size());
+                resolveAttachments.resize(subpasses.size());
+
+                for (uint32_t i = 0; i < createInfo.subpassCount; i++) {
+                    auto& subpass = subpasses[i];
+                    if (subpass.pInputAttachments) {
+                        inputAttachments[i].assign(
+                            subpass.pInputAttachments,
+                            subpass.pInputAttachments + subpass.inputAttachmentCount);
+                        for (auto& ref : inputAttachments[i]) {
+                            ref.layout = m_vkEmulation->adjustImageLayout(ref.layout);
+                        }
+                        subpass.pInputAttachments = inputAttachments[i].data();
+                    }
+                    if (subpass.pColorAttachments) {
+                        colorAttachments[i].assign(
+                            subpass.pColorAttachments,
+                            subpass.pColorAttachments + subpass.colorAttachmentCount);
+                        for (auto& ref : colorAttachments[i]) {
+                            ref.layout = m_vkEmulation->adjustImageLayout(ref.layout);
+                        }
+                        subpass.pColorAttachments = colorAttachments[i].data();
+                    }
+                    if (subpass.pResolveAttachments) {
+                        resolveAttachments[i].assign(
+                            subpass.pResolveAttachments,
+                            subpass.pResolveAttachments + subpass.colorAttachmentCount);
+                        for (auto& ref : resolveAttachments[i]) {
+                            ref.layout = m_vkEmulation->adjustImageLayout(ref.layout);
+                        }
+                        subpass.pResolveAttachments = resolveAttachments[i].data();
+                    }
+                }
+                createInfo.pSubpasses = subpasses.data();
+            }
+
             pCreateInfo = &createInfo;
         }
         VkResult res = vk->vkCreateRenderPass(device, pCreateInfo, pAllocator, pRenderPass);
@@ -8231,7 +8311,65 @@ class VkDecoderGlobalState::Impl {
                                     VkRenderPass* pRenderPass) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
+        VkRenderPassCreateInfo2 createInfo;
         std::lock_guard<std::mutex> lock(mMutex);
+
+        std::vector<VkAttachmentDescription2> attachments;
+        std::vector<VkSubpassDescription2> subpasses;
+        std::vector<std::vector<VkAttachmentReference2>> inputAttachments;
+        std::vector<std::vector<VkAttachmentReference2>> colorAttachments;
+        std::vector<std::vector<VkAttachmentReference2>> resolveAttachments;
+
+        if (m_vkEmulation->needsImageLayoutAdjustment()) {
+            createInfo = *pCreateInfo;
+            attachments.assign(pCreateInfo->pAttachments,
+                               pCreateInfo->pAttachments + pCreateInfo->attachmentCount);
+            for (auto& attachment : attachments) {
+                attachment.initialLayout =
+                    m_vkEmulation->adjustImageLayout(attachment.initialLayout);
+                attachment.finalLayout = m_vkEmulation->adjustImageLayout(attachment.finalLayout);
+            }
+            createInfo.pAttachments = attachments.data();
+
+            subpasses.assign(pCreateInfo->pSubpasses,
+                             pCreateInfo->pSubpasses + pCreateInfo->subpassCount);
+            inputAttachments.resize(subpasses.size());
+            colorAttachments.resize(subpasses.size());
+            resolveAttachments.resize(subpasses.size());
+
+            for (uint32_t i = 0; i < createInfo.subpassCount; i++) {
+                auto& subpass = subpasses[i];
+                if (subpass.pInputAttachments) {
+                    inputAttachments[i].assign(
+                        subpass.pInputAttachments,
+                        subpass.pInputAttachments + subpass.inputAttachmentCount);
+                    for (auto& ref : inputAttachments[i]) {
+                        ref.layout = m_vkEmulation->adjustImageLayout(ref.layout);
+                    }
+                    subpass.pInputAttachments = inputAttachments[i].data();
+                }
+                if (subpass.pColorAttachments) {
+                    colorAttachments[i].assign(
+                        subpass.pColorAttachments,
+                        subpass.pColorAttachments + subpass.colorAttachmentCount);
+                    for (auto& ref : colorAttachments[i]) {
+                        ref.layout = m_vkEmulation->adjustImageLayout(ref.layout);
+                    }
+                    subpass.pColorAttachments = colorAttachments[i].data();
+                }
+                if (subpass.pResolveAttachments) {
+                    resolveAttachments[i].assign(
+                        subpass.pResolveAttachments,
+                        subpass.pResolveAttachments + subpass.colorAttachmentCount);
+                    for (auto& ref : resolveAttachments[i]) {
+                        ref.layout = m_vkEmulation->adjustImageLayout(ref.layout);
+                    }
+                    subpass.pResolveAttachments = resolveAttachments[i].data();
+                }
+            }
+            createInfo.pSubpasses = subpasses.data();
+            pCreateInfo = &createInfo;
+        }
 
         VkResult res = vk->vkCreateRenderPass2(device, pCreateInfo, pAllocator, pRenderPass);
         if (res != VK_SUCCESS) {

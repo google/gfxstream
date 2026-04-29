@@ -4721,8 +4721,10 @@ VkImageLayout VkEmulation::getColorBufferCurrentLayout(uint32_t colorBufferHandl
     return infoPtr->currentLayout;
 }
 
+bool VkEmulation::needsImageLayoutAdjustment() const { return !mSwapchainEnabled; }
+
 VkImageLayout VkEmulation::adjustImageLayout(VkImageLayout layout) const {
-    if (!mSwapchainEnabled && layout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR) {
+    if (needsImageLayoutAdjustment() && layout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR) {
         return VK_IMAGE_LAYOUT_GENERAL;
     } else {
         return layout;

@@ -441,6 +441,7 @@ class VkEmulation {
 
     VkImageLayout getColorBufferCurrentLayout(uint32_t colorBufferHandle);
 
+    bool needsImageLayoutAdjustment() const;
     VkImageLayout adjustImageLayout(VkImageLayout layout) const;
 
     void releaseColorBufferForGuestUse(uint32_t colorBufferHandle);
