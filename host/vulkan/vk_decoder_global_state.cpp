@@ -5584,6 +5584,28 @@ class VkDecoderGlobalState::Impl {
         return imb.dstQueueFamilyIndex;
     }
 
+    template <typename BarrierType>
+    bool needsImageLayoutAdjustment(uint32_t count, const BarrierType* barriers) {
+        if (!m_vkEmulation->needsImageLayoutAdjustment()) {
+            return false;
+        }
+        for (uint32_t i = 0; i < count; ++i) {
+            if (barriers[i].oldLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR ||
+                barriers[i].newLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    template <typename BarrierType>
+    void adjustImageLayout(uint32_t count, BarrierType* barriers) {
+        for (uint32_t i = 0; i < count; ++i) {
+            barriers[i].oldLayout = m_vkEmulation->adjustImageLayout(barriers[i].oldLayout);
+            barriers[i].newLayout = m_vkEmulation->adjustImageLayout(barriers[i].newLayout);
+        }
+    }
+
     template <typename VkImageMemoryBarrierType>
     void processImageMemoryBarrierLocked(VkCommandBuffer commandBuffer,
                                          uint32_t imageMemoryBarrierCount,
@@ -5634,13 +5656,10 @@ class VkDecoderGlobalState::Impl {
         }
 
         std::vector<VkImageMemoryBarrier> mappedImageMemoryBarriers;
-        if (imageMemoryBarrierCount > 0 && m_vkEmulation->needsImageLayoutAdjustment()) {
+        if (needsImageLayoutAdjustment(imageMemoryBarrierCount, pImageMemoryBarriers)) {
             mappedImageMemoryBarriers.assign(pImageMemoryBarriers,
                                              pImageMemoryBarriers + imageMemoryBarrierCount);
-            for (auto& imb : mappedImageMemoryBarriers) {
-                imb.oldLayout = m_vkEmulation->adjustImageLayout(imb.oldLayout);
-                imb.newLayout = m_vkEmulation->adjustImageLayout(imb.newLayout);
-            }
+            adjustImageLayout(imageMemoryBarrierCount, mappedImageMemoryBarriers.data());
             pImageMemoryBarriers = mappedImageMemoryBarriers.data();
         }
 
@@ -5735,15 +5754,13 @@ class VkDecoderGlobalState::Impl {
 
         VkDependencyInfo mappedDependencyInfo = *pDependencyInfo;
         std::vector<VkImageMemoryBarrier2> mappedImageMemoryBarriers;
-        if (pDependencyInfo->imageMemoryBarrierCount > 0 &&
-            m_vkEmulation->needsImageLayoutAdjustment()) {
+        if (needsImageLayoutAdjustment(pDependencyInfo->imageMemoryBarrierCount,
+                                       pDependencyInfo->pImageMemoryBarriers)) {
             mappedImageMemoryBarriers.assign(
                 pDependencyInfo->pImageMemoryBarriers,
                 pDependencyInfo->pImageMemoryBarriers + pDependencyInfo->imageMemoryBarrierCount);
-            for (auto& imb : mappedImageMemoryBarriers) {
-                imb.oldLayout = m_vkEmulation->adjustImageLayout(imb.oldLayout);
-                imb.newLayout = m_vkEmulation->adjustImageLayout(imb.newLayout);
-            }
+            adjustImageLayout(pDependencyInfo->imageMemoryBarrierCount,
+                              mappedImageMemoryBarriers.data());
             mappedDependencyInfo.pImageMemoryBarriers = mappedImageMemoryBarriers.data();
             pDependencyInfo = &mappedDependencyInfo;
         }
@@ -5761,6 +5778,107 @@ class VkDecoderGlobalState::Impl {
         // TODO: If this is a decompressed image, handle decompression before calling
         // VkCmdvkCmdPipelineBarrier2 i.e. match on_vkCmdPipelineBarrier implementation
         vk->vkCmdPipelineBarrier2(commandBuffer, pDependencyInfo);
+    }
+
+    void on_vkCmdWaitEvents(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
+                            VkCommandBuffer boxed_commandBuffer, uint32_t eventCount,
+                            const VkEvent* pEvents, VkPipelineStageFlags srcStageMask,
+                            VkPipelineStageFlags dstStageMask, uint32_t memoryBarrierCount,
+                            const VkMemoryBarrier* pMemoryBarriers,
+                            uint32_t bufferMemoryBarrierCount,
+                            const VkBufferMemoryBarrier* pBufferMemoryBarriers,
+                            uint32_t imageMemoryBarrierCount,
+                            const VkImageMemoryBarrier* pImageMemoryBarriers) {
+        auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
+        auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
+
+        for (uint32_t i = 0; i < bufferMemoryBarrierCount; ++i) {
+            convertQueueFamilyForeignToExternal_VkBufferMemoryBarrier(
+                const_cast<VkBufferMemoryBarrier&>(pBufferMemoryBarriers[i]));
+        }
+
+        for (uint32_t i = 0; i < imageMemoryBarrierCount; ++i) {
+            convertQueueFamilyForeignToExternal_VkImageMemoryBarrier(
+                const_cast<VkImageMemoryBarrier&>(pImageMemoryBarriers[i]));
+        }
+
+        std::vector<VkImageMemoryBarrier> mappedImageMemoryBarriers;
+        if (needsImageLayoutAdjustment(imageMemoryBarrierCount, pImageMemoryBarriers)) {
+            mappedImageMemoryBarriers.assign(pImageMemoryBarriers,
+                                             pImageMemoryBarriers + imageMemoryBarrierCount);
+            adjustImageLayout(imageMemoryBarrierCount, mappedImageMemoryBarriers.data());
+            pImageMemoryBarriers = mappedImageMemoryBarriers.data();
+        }
+
+        std::lock_guard<std::mutex> lock(mMutex);
+        processImageMemoryBarrierLocked(commandBuffer, imageMemoryBarrierCount,
+                                        pImageMemoryBarriers);
+
+        vk->vkCmdWaitEvents(commandBuffer, eventCount, pEvents, srcStageMask, dstStageMask,
+                            memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount,
+                            pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers);
+    }
+
+    void on_vkCmdWaitEvents2(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
+                             VkCommandBuffer boxed_commandBuffer, uint32_t eventCount,
+                             const VkEvent* pEvents, const VkDependencyInfo* pDependencyInfos) {
+        auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
+        auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
+
+        std::vector<VkDependencyInfo> mappedDependencyInfos;
+        std::vector<std::vector<VkImageMemoryBarrier2>> mappedImageMemoryBarriers;
+
+        bool needFiltering = false;
+        for (uint32_t i = 0; i < eventCount; ++i) {
+            for (uint32_t j = 0; j < pDependencyInfos[i].bufferMemoryBarrierCount; ++j) {
+                convertQueueFamilyForeignToExternal_VkBufferMemoryBarrier2(
+                    const_cast<VkBufferMemoryBarrier2&>(
+                        pDependencyInfos[i].pBufferMemoryBarriers[j]));
+            }
+            for (uint32_t j = 0; j < pDependencyInfos[i].imageMemoryBarrierCount; ++j) {
+                convertQueueFamilyForeignToExternal_VkImageMemoryBarrier2(
+                    const_cast<VkImageMemoryBarrier2&>(
+                        pDependencyInfos[i].pImageMemoryBarriers[j]));
+            }
+            if (needsImageLayoutAdjustment(pDependencyInfos[i].imageMemoryBarrierCount,
+                                           pDependencyInfos[i].pImageMemoryBarriers)) {
+                needFiltering = true;
+            }
+        }
+
+        if (needFiltering) {
+            mappedDependencyInfos.assign(pDependencyInfos, pDependencyInfos + eventCount);
+            mappedImageMemoryBarriers.resize(eventCount);
+            for (uint32_t i = 0; i < eventCount; ++i) {
+                if (needsImageLayoutAdjustment(mappedDependencyInfos[i].imageMemoryBarrierCount,
+                                               mappedDependencyInfos[i].pImageMemoryBarriers)) {
+                    mappedImageMemoryBarriers[i].assign(
+                        mappedDependencyInfos[i].pImageMemoryBarriers,
+                        mappedDependencyInfos[i].pImageMemoryBarriers +
+                            mappedDependencyInfos[i].imageMemoryBarrierCount);
+                    adjustImageLayout(mappedDependencyInfos[i].imageMemoryBarrierCount,
+                                      mappedImageMemoryBarriers[i].data());
+                    mappedDependencyInfos[i].pImageMemoryBarriers =
+                        mappedImageMemoryBarriers[i].data();
+                }
+            }
+            pDependencyInfos = mappedDependencyInfos.data();
+        }
+
+        std::lock_guard<std::mutex> lock(mMutex);
+        for (uint32_t i = 0; i < eventCount; ++i) {
+            processImageMemoryBarrierLocked(commandBuffer,
+                                            pDependencyInfos[i].imageMemoryBarrierCount,
+                                            pDependencyInfos[i].pImageMemoryBarriers);
+        }
+
+        vk->vkCmdWaitEvents2(commandBuffer, eventCount, pEvents, pDependencyInfos);
+    }
+
+    void on_vkCmdWaitEvents2KHR(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
+                                VkCommandBuffer boxed_commandBuffer, uint32_t eventCount,
+                                const VkEvent* pEvents, const VkDependencyInfo* pDependencyInfos) {
+        on_vkCmdWaitEvents2(pool, {}, boxed_commandBuffer, eventCount, pEvents, pDependencyInfos);
     }
 
     bool mapHostVisibleMemoryToGuestPhysicalAddressLocked(VulkanDispatch* vk, VkDevice device,
@@ -11472,6 +11590,37 @@ void VkDecoderGlobalState::on_vkCmdPipelineBarrier2(gfxstream::base::BumpPool* p
                                                     VkCommandBuffer commandBuffer,
                                                     const VkDependencyInfo* pDependencyInfo) {
     mImpl->on_vkCmdPipelineBarrier2(pool, apiCallHandle, commandBuffer, pDependencyInfo);
+}
+
+void VkDecoderGlobalState::on_vkCmdWaitEvents(
+    gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle,
+    VkCommandBuffer commandBuffer, uint32_t eventCount, const VkEvent* pEvents,
+    VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask,
+    uint32_t memoryBarrierCount, const VkMemoryBarrier* pMemoryBarriers,
+    uint32_t bufferMemoryBarrierCount, const VkBufferMemoryBarrier* pBufferMemoryBarriers,
+    uint32_t imageMemoryBarrierCount, const VkImageMemoryBarrier* pImageMemoryBarriers) {
+    mImpl->on_vkCmdWaitEvents(pool, apiCallHandle, commandBuffer, eventCount, pEvents, srcStageMask,
+                              dstStageMask, memoryBarrierCount, pMemoryBarriers,
+                              bufferMemoryBarrierCount, pBufferMemoryBarriers,
+                              imageMemoryBarrierCount, pImageMemoryBarriers);
+}
+
+void VkDecoderGlobalState::on_vkCmdWaitEvents2(gfxstream::base::BumpPool* pool,
+                                               VkSnapshotApiCallHandle apiCallHandle,
+                                               VkCommandBuffer commandBuffer, uint32_t eventCount,
+                                               const VkEvent* pEvents,
+                                               const VkDependencyInfo* pDependencyInfos) {
+    mImpl->on_vkCmdWaitEvents2(pool, apiCallHandle, commandBuffer, eventCount, pEvents,
+                               pDependencyInfos);
+}
+
+void VkDecoderGlobalState::on_vkCmdWaitEvents2KHR(gfxstream::base::BumpPool* pool,
+                                                  VkSnapshotApiCallHandle apiCallHandle,
+                                                  VkCommandBuffer commandBuffer,
+                                                  uint32_t eventCount, const VkEvent* pEvents,
+                                                  const VkDependencyInfo* pDependencyInfos) {
+    mImpl->on_vkCmdWaitEvents2KHR(pool, apiCallHandle, commandBuffer, eventCount, pEvents,
+                                  pDependencyInfos);
 }
 
 VkResult VkDecoderGlobalState::on_vkAllocateMemory(gfxstream::base::BumpPool* pool,

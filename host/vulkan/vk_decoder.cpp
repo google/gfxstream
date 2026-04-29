@@ -7933,15 +7933,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 const VkBufferMemoryBarrier* pBufferMemoryBarriers;
                 uint32_t imageMemoryBarrierCount;
                 const VkImageMemoryBarrier* pImageMemoryBarriers;
-                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                // Begin global wrapped dispatchable handle unboxing for commandBuffer;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkCommandBuffer*)&commandBuffer =
                     (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
-                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
                 auto vk = dispatch_VkCommandBuffer(commandBuffer);
-                // End manual dispatchable handle unboxing for commandBuffer;
                 memcpy((uint32_t*)&eventCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pEvents, eventCount * sizeof(const VkEvent));
@@ -8020,10 +8018,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (unsigned long long)pImageMemoryBarriers);
                 }
                 if (CC_LIKELY(vk)) {
-                    vk->vkCmdWaitEvents(unboxed_commandBuffer, eventCount, pEvents, srcStageMask,
-                                        dstStageMask, memoryBarrierCount, pMemoryBarriers,
-                                        bufferMemoryBarrierCount, pBufferMemoryBarriers,
-                                        imageMemoryBarrierCount, pImageMemoryBarriers);
+                    m_state->on_vkCmdWaitEvents(&m_pool, snapshotApiCallHandle, commandBuffer,
+                                                eventCount, pEvents, srcStageMask, dstStageMask,
+                                                memoryBarrierCount, pMemoryBarriers,
+                                                bufferMemoryBarrierCount, pBufferMemoryBarriers,
+                                                imageMemoryBarrierCount, pImageMemoryBarriers);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
@@ -11539,15 +11538,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 uint32_t eventCount;
                 const VkEvent* pEvents;
                 const VkDependencyInfo* pDependencyInfos;
-                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                // Begin global wrapped dispatchable handle unboxing for commandBuffer;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkCommandBuffer*)&commandBuffer =
                     (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
-                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
                 auto vk = dispatch_VkCommandBuffer(commandBuffer);
-                // End manual dispatchable handle unboxing for commandBuffer;
                 memcpy((uint32_t*)&eventCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pEvents, eventCount * sizeof(const VkEvent));
@@ -11581,8 +11578,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pDependencyInfos);
                 }
                 if (CC_LIKELY(vk)) {
-                    vk->vkCmdWaitEvents2(unboxed_commandBuffer, eventCount, pEvents,
-                                         pDependencyInfos);
+                    m_state->on_vkCmdWaitEvents2(&m_pool, snapshotApiCallHandle, commandBuffer,
+                                                 eventCount, pEvents, pDependencyInfos);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
@@ -17121,15 +17118,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 uint32_t eventCount;
                 const VkEvent* pEvents;
                 const VkDependencyInfo* pDependencyInfos;
-                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                // Begin global wrapped dispatchable handle unboxing for commandBuffer;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkCommandBuffer*)&commandBuffer =
                     (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
-                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
                 auto vk = dispatch_VkCommandBuffer(commandBuffer);
-                // End manual dispatchable handle unboxing for commandBuffer;
                 memcpy((uint32_t*)&eventCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 vkReadStream->alloc((void**)&pEvents, eventCount * sizeof(const VkEvent));
@@ -17163,8 +17158,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (unsigned long long)pEvents, (unsigned long long)pDependencyInfos);
                 }
                 if (CC_LIKELY(vk)) {
-                    vk->vkCmdWaitEvents2KHR(unboxed_commandBuffer, eventCount, pEvents,
-                                            pDependencyInfos);
+                    m_state->on_vkCmdWaitEvents2KHR(&m_pool, snapshotApiCallHandle, commandBuffer,
+                                                    eventCount, pEvents, pDependencyInfos);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {

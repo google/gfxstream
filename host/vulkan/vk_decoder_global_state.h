@@ -483,6 +483,25 @@ class VkDecoderGlobalState {
                                   VkCommandBuffer commandBuffer,
                                   const VkDependencyInfo* pDependencyInfo);
 
+    void on_vkCmdWaitEvents(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle,
+                            VkCommandBuffer commandBuffer, uint32_t eventCount,
+                            const VkEvent* pEvents, VkPipelineStageFlags srcStageMask,
+                            VkPipelineStageFlags dstStageMask, uint32_t memoryBarrierCount,
+                            const VkMemoryBarrier* pMemoryBarriers,
+                            uint32_t bufferMemoryBarrierCount,
+                            const VkBufferMemoryBarrier* pBufferMemoryBarriers,
+                            uint32_t imageMemoryBarrierCount,
+                            const VkImageMemoryBarrier* pImageMemoryBarriers);
+
+    void on_vkCmdWaitEvents2(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle,
+                             VkCommandBuffer commandBuffer, uint32_t eventCount,
+                             const VkEvent* pEvents, const VkDependencyInfo* pDependencyInfos);
+
+    void on_vkCmdWaitEvents2KHR(gfxstream::base::BumpPool* pool,
+                                VkSnapshotApiCallHandle apiCallHandle,
+                                VkCommandBuffer commandBuffer, uint32_t eventCount,
+                                const VkEvent* pEvents, const VkDependencyInfo* pDependencyInfos);
+
     // Do we need to wrap vk(Create|Destroy)Instance to
     // update our maps of VkDevices? Spec suggests no:
     // https://www.khronos.org/registry/vulkan/specs/1.1-extensions/man/html/vkDestroyInstance.html
