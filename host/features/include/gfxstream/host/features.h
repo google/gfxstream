@@ -247,6 +247,12 @@ struct FeatureSet {
         "implementation.",
         &map,
     };
+    BoolFeatureInfo Surfaceless = {
+        "Surfaceless",
+        "If enabled, Gfxstream will run in surfaceless mode and will not depend "
+        "on VK_KHR_swapchain or other surface-related extensions.",
+        &map,
+    };
     BoolFeatureInfo MinimalLogging = {
         "MinimalLogging",
         "If enabled, Gfxstream will log less info. Useful for preventing logspam "

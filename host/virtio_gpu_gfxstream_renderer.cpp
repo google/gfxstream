@@ -94,6 +94,8 @@ ParseGfxstreamFeatures(const int rendererFlags,
         &features, RefCountPipe,
         /*Resources are ref counted via guest file objects.*/ false);
     GFXSTREAM_SET_BOOL_FEATURE_ON_CONDITION(
+        &features, Surfaceless, rendererFlags & STREAM_RENDERER_FLAGS_USE_SURFACELESS_BIT);
+    GFXSTREAM_SET_BOOL_FEATURE_ON_CONDITION(
         &features, SystemBlob,
         rendererFlags & STREAM_RENDERER_FLAGS_USE_SYSTEM_BLOB);
     GFXSTREAM_SET_BOOL_FEATURE_ON_CONDITION(
