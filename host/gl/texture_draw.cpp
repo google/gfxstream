@@ -15,6 +15,7 @@
 #include "texture_draw.h"
 
 #include <assert.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -343,7 +344,7 @@ bool TextureDraw::drawImpl(GLuint texture, float rotation, float dx, float dy, f
                                   sizeof(Vertex),
                                   reinterpret_cast<GLvoid*>(
                                         static_cast<uintptr_t>(
-                                                sizeof(float) * 2)));
+                                                offsetof(Vertex, coord))));
 
 #ifdef DEBUG_TEXTURE_DRAW
     // Validate program, just to be sure.
@@ -532,7 +533,7 @@ void TextureDraw::preDrawLayer() {
                                   sizeof(Vertex),
                                   reinterpret_cast<GLvoid*>(
                                         static_cast<uintptr_t>(
-                                                sizeof(float) * 2)));
+                                                offsetof(Vertex, coord))));
 #ifdef DEBUG_TEXTURE_DRAW
     err = s_gles2.glGetError();
     if (err != GL_NO_ERROR) {
