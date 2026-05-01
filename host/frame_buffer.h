@@ -142,19 +142,17 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
     // internal count.
     HandleType createColorBuffer(int p_width, int p_height, GfxstreamFormat format);
 
-    HandleType createColorBufferDeprecated(int width, int height,
-                                           GLenum internalFormat,
+    HandleType createColorBufferDeprecated(int width, int height, GLenum internalFormat,
                                            FrameworkFormat frameworkFormat);
 
     // Variant of createColorBuffer except with a particular
     // handle already assigned. This is for use with
     // virtio-gpu's RESOURCE_CREATE ioctl.
-    void createColorBufferWithResourceHandle(int p_width, int p_height,
-                                             GfxstreamFormat format,
+    // Returns true on success, false otherwise.
+    bool createColorBufferWithResourceHandle(int p_width, int p_height, GfxstreamFormat format,
                                              HandleType handle);
 
-    void createColorBufferWithResourceHandleDeprecated(int width, int height,
-                                                       GLenum internalFormat,
+    bool createColorBufferWithResourceHandleDeprecated(int width, int height, GLenum internalFormat,
                                                        FrameworkFormat frameworkFormat,
                                                        HandleType handle);
 
@@ -169,7 +167,8 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
     // Variant of createBuffer except with a particular handle already
     // assigned and using device local memory. This is for use with
     // virtio-gpu's RESOURCE_CREATE ioctl for BLOB resources.
-    void createBufferWithResourceHandle(uint64_t size, HandleType handle);
+    // Returns true on success, false otherwise.
+    bool createBufferWithResourceHandle(uint64_t size, HandleType handle);
 
     // Increment the reference count associated with a given ColorBuffer
     // instance. |p_colorbuffer| is its handle value as returned by
@@ -248,14 +247,12 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
     // |type| is the type of pixel data, e.g. GL_UNSIGNED_BYTE.
     // |pixels| is the address of a buffer containing the new pixel data.
     // Returns true on success, false otherwise.
-    bool updateColorBuffer(HandleType p_colorbuffer, int x, int y, int width,
-                           int height, GfxstreamFormat pixelFormat, void* pixels);
-    bool updateColorBufferDeprecated(HandleType p_colorbuffer, int x, int y, int width,
-                                     int height, GLenum format, GLenum type,
-                                     void* pixels);
-    bool updateColorBufferDeprecated(HandleType p_colorbuffer, int x, int y, int width,
-                                     int height, GLenum format, FrameworkFormat frameworkFormat,
-                                     void* pixels);
+    bool updateColorBuffer(HandleType p_colorbuffer, int x, int y, int width, int height,
+                           GfxstreamFormat pixelFormat, void* pixels);
+    bool updateColorBufferDeprecated(HandleType p_colorbuffer, int x, int y, int width, int height,
+                                     GLenum format, GLenum type, void* pixels);
+    bool updateColorBufferDeprecated(HandleType p_colorbuffer, int x, int y, int width, int height,
+                                     GLenum format, FrameworkFormat frameworkFormat, void* pixels);
 
     // Display the content of a given ColorBuffer into the framebuffer's
     // sub-window. |p_colorbuffer| is a handle value.

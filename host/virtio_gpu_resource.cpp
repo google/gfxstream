@@ -141,8 +141,11 @@ std::optional<VirtioGpuResource> VirtioGpuResource::Create(
     if (resourceType == VirtioGpuResourceType::PIPE) {
         // Frontend only resource.
     } else if (resourceType == VirtioGpuResourceType::BUFFER) {
-        FrameBuffer::getFB()->createBufferWithResourceHandle(args->width * args->height,
-                                                             args->handle);
+        if (!FrameBuffer::getFB()->createBufferWithResourceHandle(args->width * args->height,
+                                                                  args->handle)) {
+            GFXSTREAM_ERROR("Failed to create buffer with resource handle %d.", args->handle);
+            return std::nullopt;
+        }
     } else if (resourceType == VirtioGpuResourceType::COLOR_BUFFER) {
         auto formatOpt = ToGfxstreamFormat(args->format);
         if (!formatOpt) {
@@ -151,7 +154,13 @@ std::optional<VirtioGpuResource> VirtioGpuResource::Create(
         }
         auto format = *formatOpt;
 
-        FrameBuffer::getFB()->createColorBufferWithResourceHandle(args->width, args->height, format, args->handle);
+        if (!FrameBuffer::getFB()->createColorBufferWithResourceHandle(args->width, args->height,
+                                                                       format, args->handle)) {
+            const std::string formatString = ToString(format);
+            GFXSTREAM_ERROR("Failed to create color buffer with resource handle %d. (%dx%d, format: %s)",
+                            args->handle, args->width, args->height, formatString.c_str());
+            return std::nullopt;
+        }
         FrameBuffer::getFB()->setGuestManagedColorBufferLifetime(true /* guest manages lifetime */);
         FrameBuffer::getFB()->openColorBuffer(args->handle);
     } else {
