@@ -119,6 +119,14 @@ VirtioGpuResourceType GetResourceType(const struct stream_renderer_resource_crea
         return VirtioGpuResourceType::COLOR_BUFFER;
     }
     if (!(args.bind & VIRGL_BIND_LINEAR)) {
+        // Always treat large single dimensional R8 requests as buffers, even
+        // if they didn't request linear binding
+        const uint32_t largeBufferLimit = 16000;
+        bool shouldUseBuffer = args.width > largeBufferLimit && args.height == 1 &&
+                               args.depth == 1 && args.array_size == 1;
+        if (shouldUseBuffer) {
+            return VirtioGpuResourceType::BUFFER;
+        }
         return VirtioGpuResourceType::COLOR_BUFFER;
     }
 
@@ -130,9 +138,9 @@ VirtioGpuResourceType GetResourceType(const struct stream_renderer_resource_crea
 /*static*/
 std::optional<VirtioGpuResource> VirtioGpuResource::Create(
     const struct stream_renderer_resource_create_args* args, struct iovec* iov, uint32_t num_iovs) {
-    GFXSTREAM_DEBUG("resource id: %u", args->handle);
 
     const auto resourceType = GetResourceType(*args);
+    GFXSTREAM_DEBUG("resource id: %u, type: %d", args->handle, (int)resourceType);
     if (resourceType == VirtioGpuResourceType::BLOB) {
         GFXSTREAM_ERROR("Failed to create resource: encountered blob.");
         return std::nullopt;
