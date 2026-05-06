@@ -397,6 +397,7 @@ void GLESv2Decoder::s_glUnmapBufferAEMU(void* self, GLenum target, GLintptr offs
         void* gpu_ptr = ctx->glMapBufferRange(target, offset, length, access);
         if (!gpu_ptr) {
             fprintf(stderr, "%s: could not get host gpu pointer!\n", __FUNCTION__);
+            *out_res = GL_FALSE;
             return;
         }
         memcpy(gpu_ptr, guest_buffer, length);
@@ -441,6 +442,7 @@ void GLESv2Decoder::s_glUnmapBufferDMA(void* self, GLenum target, GLintptr offse
         void* gpu_ptr = ctx->glMapBufferRange(target, offset, length, access);
         if (!gpu_ptr) {
             fprintf(stderr, "%s: could not get host gpu pointer!\n", __FUNCTION__);
+            *out_res = GL_FALSE;
             return;
         }
         memcpy(gpu_ptr, guest_buffer, length);
