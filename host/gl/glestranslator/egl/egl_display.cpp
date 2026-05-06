@@ -38,6 +38,10 @@ EglDisplay::EglDisplay(EGLNativeDisplayType dpy,
 EglDisplay::~EglDisplay() {
     gfxstream::base::AutoLock mutex(m_lock);
 
+    // In case terminate() was not called:
+    m_contexts.clear();
+    m_surfaces.clear();
+
     m_configs.clear();
 
     delete m_manager[GLES_1_1];
