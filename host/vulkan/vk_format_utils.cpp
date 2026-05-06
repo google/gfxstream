@@ -32,10 +32,106 @@ struct FormatPlaneLayout {
     VkImageAspectFlags aspectMask = 0;
 };
 
+inline uint32_t alignToPower2(uint32_t val, uint32_t align) {
+    return (val + (align - 1)) & ~(align - 1);
+}
+
 struct FormatPlaneLayouts {
     uint32_t horizontalAlignmentPixels = 1;
     std::vector<FormatPlaneLayout> planeLayouts;
+    TransferInfo::PackFunction packFunction = nullptr;
+    TransferInfo::UnpackFunction unpackFunction = nullptr;
 };
+
+void PackD16S8(const VkExtent3D& extent, const uint8_t* src, uint8_t* dst) {
+    const uint32_t numPixels = extent.width * extent.height * extent.depth;
+    const uint32_t plane0Size = numPixels * 2;
+    const uint32_t plane1Offset = alignToPower2(plane0Size, 4);
+    const uint8_t* srcPixels = src;
+    uint8_t* dstDepth = dst;
+    uint8_t* dstStencil = dst + plane1Offset;
+    for (uint32_t i = 0; i < numPixels; ++i) {
+        dstDepth[i * 2 + 0] = srcPixels[i * 3 + 0];
+        dstDepth[i * 2 + 1] = srcPixels[i * 3 + 1];
+        dstStencil[i] = srcPixels[i * 3 + 2];
+    }
+}
+
+void UnpackD16S8(const VkExtent3D& extent, const uint8_t* src, uint8_t* dst) {
+    const uint32_t numPixels = extent.width * extent.height * extent.depth;
+    const uint32_t plane0Size = numPixels * 2;
+    const uint32_t plane1Offset = alignToPower2(plane0Size, 4);
+    const uint8_t* srcDepth = src;
+    const uint8_t* srcStencil = src + plane1Offset;
+    uint8_t* dstPixels = dst;
+    for (uint32_t i = 0; i < numPixels; ++i) {
+        dstPixels[i * 3 + 0] = srcDepth[i * 2 + 0];
+        dstPixels[i * 3 + 1] = srcDepth[i * 2 + 1];
+        dstPixels[i * 3 + 2] = srcStencil[i];
+    }
+}
+
+void PackD24S8(const VkExtent3D& extent, const uint8_t* src, uint8_t* dst) {
+    const uint32_t numPixels = extent.width * extent.height * extent.depth;
+    const uint32_t plane0Size = numPixels * 3;
+    const uint32_t plane1Offset = alignToPower2(plane0Size, 4);
+    const uint8_t* srcPixels = src;
+    uint8_t* dstDepth = dst;
+    uint8_t* dstStencil = dst + plane1Offset;
+    for (uint32_t i = 0; i < numPixels; ++i) {
+        dstDepth[i * 3 + 0] = srcPixels[i * 4 + 0];
+        dstDepth[i * 3 + 1] = srcPixels[i * 4 + 1];
+        dstDepth[i * 3 + 2] = srcPixels[i * 4 + 2];
+        dstStencil[i] = srcPixels[i * 4 + 3];
+    }
+}
+
+void UnpackD24S8(const VkExtent3D& extent, const uint8_t* src, uint8_t* dst) {
+    const uint32_t numPixels = extent.width * extent.height * extent.depth;
+    const uint32_t plane0Size = numPixels * 3;
+    const uint32_t plane1Offset = alignToPower2(plane0Size, 4);
+    const uint8_t* srcDepth = src;
+    const uint8_t* srcStencil = src + plane1Offset;
+    uint8_t* dstPixels = dst;
+    for (uint32_t i = 0; i < numPixels; ++i) {
+        dstPixels[i * 4 + 0] = srcDepth[i * 3 + 0];
+        dstPixels[i * 4 + 1] = srcDepth[i * 3 + 1];
+        dstPixels[i * 4 + 2] = srcDepth[i * 3 + 2];
+        dstPixels[i * 4 + 3] = srcStencil[i];
+    }
+}
+
+void PackD32S8(const VkExtent3D& extent, const uint8_t* src, uint8_t* dst) {
+    const uint32_t numPixels = extent.width * extent.height * extent.depth;
+    const uint32_t plane0Size = numPixels * 4;
+    const uint32_t plane1Offset = alignToPower2(plane0Size, 4);
+    const uint8_t* srcPixels = src;
+    uint8_t* dstDepth = dst;
+    uint8_t* dstStencil = dst + plane1Offset;
+    for (uint32_t i = 0; i < numPixels; ++i) {
+        dstDepth[i * 4 + 0] = srcPixels[i * 5 + 0];
+        dstDepth[i * 4 + 1] = srcPixels[i * 5 + 1];
+        dstDepth[i * 4 + 2] = srcPixels[i * 5 + 2];
+        dstDepth[i * 4 + 3] = srcPixels[i * 5 + 3];
+        dstStencil[i] = srcPixels[i * 5 + 4];
+    }
+}
+
+void UnpackD32S8(const VkExtent3D& extent, const uint8_t* src, uint8_t* dst) {
+    const uint32_t numPixels = extent.width * extent.height * extent.depth;
+    const uint32_t plane0Size = numPixels * 4;
+    const uint32_t plane1Offset = alignToPower2(plane0Size, 4);
+    const uint8_t* srcDepth = src;
+    const uint8_t* srcStencil = src + plane1Offset;
+    uint8_t* dstPixels = dst;
+    for (uint32_t i = 0; i < numPixels; ++i) {
+        dstPixels[i * 5 + 0] = srcDepth[i * 4 + 0];
+        dstPixels[i * 5 + 1] = srcDepth[i * 4 + 1];
+        dstPixels[i * 5 + 2] = srcDepth[i * 4 + 2];
+        dstPixels[i * 5 + 3] = srcDepth[i * 4 + 3];
+        dstPixels[i * 5 + 4] = srcStencil[i];
+    }
+}
 
 const std::unordered_map<VkFormat, FormatPlaneLayouts>& getFormatPlaneLayoutsMap() {
     static const auto* kPlaneLayoutsMap = []() {
@@ -121,6 +217,8 @@ const std::unordered_map<VkFormat, FormatPlaneLayouts>& getFormatPlaneLayoutsMap
                              .aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT,
                          },
                      },
+                 .packFunction = PackD16S8,
+                 .unpackFunction = UnpackD16S8,
              }},
             {VK_FORMAT_D24_UNORM_S8_UINT,
              {
@@ -140,6 +238,8 @@ const std::unordered_map<VkFormat, FormatPlaneLayouts>& getFormatPlaneLayoutsMap
                              .aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT,
                          },
                      },
+                 .packFunction = PackD24S8,
+                 .unpackFunction = UnpackD24S8,
              }},
             {VK_FORMAT_D32_SFLOAT_S8_UINT,
              {
@@ -159,6 +259,8 @@ const std::unordered_map<VkFormat, FormatPlaneLayouts>& getFormatPlaneLayoutsMap
                              .aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT,
                          },
                      },
+                 .packFunction = PackD32S8,
+                 .unpackFunction = UnpackD32S8,
              }},
         });
 
@@ -181,10 +283,6 @@ const std::unordered_map<VkFormat, FormatPlaneLayouts>& getFormatPlaneLayoutsMap
         return map;
     }();
     return *kPlaneLayoutsMap;
-}
-
-inline uint32_t alignToPower2(uint32_t val, uint32_t align) {
-    return (val + (align - 1)) & ~(align - 1);
 }
 
 }  // namespace
@@ -303,9 +401,7 @@ const FormatPlaneLayouts* getFormatPlaneLayouts(VkFormat format) {
     return &it->second;
 }
 
-bool getFormatTransferInfo(VkFormat format, VkExtent3D extent,
-                           VkDeviceSize* outStagingBufferCopySize,
-                           std::vector<VkBufferImageCopy>* outBufferImageCopies) {
+bool getFormatTransferInfo(VkFormat format, VkExtent3D extent, TransferInfo* outTransferInfo) {
     const FormatPlaneLayouts* formatInfo = getFormatPlaneLayouts(format);
     if (formatInfo == nullptr) {
         GFXSTREAM_ERROR("Unhandled format: %s [%d]", string_VkFormat(format), format);
@@ -316,47 +412,49 @@ bool getFormatTransferInfo(VkFormat format, VkExtent3D extent,
         alignToPower2(extent.width, formatInfo->horizontalAlignmentPixels);
     const uint32_t alignedHeight = extent.height;
     uint32_t cumulativeOffset = 0;
-    uint32_t cumulativeSize = 0;
+
+    outTransferInfo->bufferImageCopies.clear();
     for (const FormatPlaneLayout& planeInfo : formatInfo->planeLayouts) {
-        const uint32_t planeOffset = cumulativeOffset;
+        // Align to 4 for VUID-vkCmdCopyBufferToImage-dstImage-07978
+        const uint32_t planeOffset = (formatInfo->packFunction || formatInfo->unpackFunction)
+                                         ? alignToPower2(cumulativeOffset, 4)
+                                         : cumulativeOffset;
         const uint32_t planeWidth = alignedWidth / planeInfo.horizontalSubsampling;
         const uint32_t planeHeight = alignedHeight / planeInfo.verticalSubsampling;
         const uint32_t planeBpp = planeInfo.sampleIncrementBytes;
         const uint32_t planeStrideTexels = planeWidth;
         const uint32_t planeStrideBytes = planeStrideTexels * planeBpp;
         const uint32_t planeSize = planeHeight * planeStrideBytes * extent.depth;
-        if (outBufferImageCopies) {
-            outBufferImageCopies->emplace_back(VkBufferImageCopy{
-                .bufferOffset = planeOffset,
-                .bufferRowLength = planeStrideTexels,
-                .bufferImageHeight = 0,
-                .imageSubresource =
-                    {
-                        .aspectMask = planeInfo.aspectMask,
-                        .mipLevel = 0,
-                        .baseArrayLayer = 0,
-                        .layerCount = 1,
-                    },
-                .imageOffset =
-                    {
-                        .x = 0,
-                        .y = 0,
-                        .z = 0,
-                    },
-                .imageExtent =
-                    {
-                        .width = planeWidth,
-                        .height = planeHeight,
-                        .depth = extent.depth,
-                    },
-            });
-        }
-        cumulativeOffset += planeSize;
-        cumulativeSize += planeSize;
+
+        outTransferInfo->bufferImageCopies.emplace_back(VkBufferImageCopy{
+            .bufferOffset = planeOffset,
+            .bufferRowLength = planeStrideTexels,
+            .bufferImageHeight = 0,
+            .imageSubresource =
+                {
+                    .aspectMask = planeInfo.aspectMask,
+                    .mipLevel = 0,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1,
+                },
+            .imageOffset =
+                {
+                    .x = 0,
+                    .y = 0,
+                    .z = 0,
+                },
+            .imageExtent =
+                {
+                    .width = planeWidth,
+                    .height = planeHeight,
+                    .depth = extent.depth,
+                },
+        });
+        cumulativeOffset = planeOffset + planeSize;
     }
-    if (outStagingBufferCopySize) {
-        *outStagingBufferCopySize = cumulativeSize;
-    }
+    outTransferInfo->stagingBufferCopySize = cumulativeOffset;
+    outTransferInfo->packFunction = formatInfo->packFunction;
+    outTransferInfo->unpackFunction = formatInfo->unpackFunction;
 
     return true;
 }

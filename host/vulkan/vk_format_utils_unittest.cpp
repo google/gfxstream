@@ -74,7 +74,8 @@ TEST(VkFormatUtilsTest, GetTransferInfoInvalidFormat) {
     const VkFormat format = VK_FORMAT_UNDEFINED;
     const uint32_t width = 16;
     const uint32_t height = 16;
-    ASSERT_THAT(getFormatTransferInfo(format, {width, height, 1}, nullptr, nullptr), IsFalse());
+    TransferInfo transferInfo;
+    ASSERT_THAT(getFormatTransferInfo(format, {width, height, 1}, &transferInfo), IsFalse());
 }
 
 TEST(VkFormatUtilsTest, GetTransferInfoRGBA) {
@@ -82,36 +83,33 @@ TEST(VkFormatUtilsTest, GetTransferInfoRGBA) {
     const uint32_t width = 16;
     const uint32_t height = 16;
 
-    VkDeviceSize bufferCopySize;
-    std::vector<VkBufferImageCopy> bufferImageCopies;
-    ASSERT_THAT(
-        getFormatTransferInfo(format, {width, height, 1}, &bufferCopySize, &bufferImageCopies),
-        IsTrue());
-    EXPECT_THAT(bufferCopySize, Eq(1024));
-    ASSERT_THAT(bufferImageCopies, ElementsAre(EqsVkBufferImageCopy(VkBufferImageCopy{
-                                       .bufferOffset = 0,
-                                       .bufferRowLength = 16,
-                                       .bufferImageHeight = 0,
-                                       .imageSubresource =
-                                           {
-                                               .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                                               .mipLevel = 0,
-                                               .baseArrayLayer = 0,
-                                               .layerCount = 1,
-                                           },
-                                       .imageOffset =
-                                           {
-                                               .x = 0,
-                                               .y = 0,
-                                               .z = 0,
-                                           },
-                                       .imageExtent =
-                                           {
-                                               .width = 16,
-                                               .height = 16,
-                                               .depth = 1,
-                                           },
-                                   })));
+    TransferInfo transferInfo;
+    ASSERT_THAT(getFormatTransferInfo(format, {width, height, 1}, &transferInfo), IsTrue());
+    EXPECT_THAT(transferInfo.stagingBufferCopySize, Eq(1024));
+    ASSERT_THAT(transferInfo.bufferImageCopies, ElementsAre(EqsVkBufferImageCopy(VkBufferImageCopy{
+                                                    .bufferOffset = 0,
+                                                    .bufferRowLength = 16,
+                                                    .bufferImageHeight = 0,
+                                                    .imageSubresource =
+                                                        {
+                                                            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                                                            .mipLevel = 0,
+                                                            .baseArrayLayer = 0,
+                                                            .layerCount = 1,
+                                                        },
+                                                    .imageOffset =
+                                                        {
+                                                            .x = 0,
+                                                            .y = 0,
+                                                            .z = 0,
+                                                        },
+                                                    .imageExtent =
+                                                        {
+                                                            .width = 16,
+                                                            .height = 16,
+                                                            .depth = 1,
+                                                        },
+                                                })));
 }
 
 TEST(VkFormatUtilsTest, GetTransferInfoNV12OrNV21) {
@@ -119,13 +117,10 @@ TEST(VkFormatUtilsTest, GetTransferInfoNV12OrNV21) {
     const uint32_t width = 16;
     const uint32_t height = 16;
 
-    VkDeviceSize bufferCopySize;
-    std::vector<VkBufferImageCopy> bufferImageCopies;
-    ASSERT_THAT(
-        getFormatTransferInfo(format, {width, height, 1}, &bufferCopySize, &bufferImageCopies),
-        IsTrue());
-    EXPECT_THAT(bufferCopySize, Eq(384));
-    ASSERT_THAT(bufferImageCopies,
+    TransferInfo transferInfo;
+    ASSERT_THAT(getFormatTransferInfo(format, {width, height, 1}, &transferInfo), IsTrue());
+    EXPECT_THAT(transferInfo.stagingBufferCopySize, Eq(384));
+    ASSERT_THAT(transferInfo.bufferImageCopies,
                 ElementsAre(EqsVkBufferImageCopy(VkBufferImageCopy{
                                 .bufferOffset = 0,
                                 .bufferRowLength = 16,
@@ -181,13 +176,10 @@ TEST(VkFormatUtilsTest, GetTransferInfoYV12OrYV21) {
     const uint32_t width = 32;
     const uint32_t height = 32;
 
-    VkDeviceSize bufferCopySize;
-    std::vector<VkBufferImageCopy> bufferImageCopies;
-    ASSERT_THAT(
-        getFormatTransferInfo(format, {width, height, 1}, &bufferCopySize, &bufferImageCopies),
-        IsTrue());
-    EXPECT_THAT(bufferCopySize, Eq(1536));
-    ASSERT_THAT(bufferImageCopies,
+    TransferInfo transferInfo;
+    ASSERT_THAT(getFormatTransferInfo(format, {width, height, 1}, &transferInfo), IsTrue());
+    EXPECT_THAT(transferInfo.stagingBufferCopySize, Eq(1536));
+    ASSERT_THAT(transferInfo.bufferImageCopies,
                 ElementsAre(EqsVkBufferImageCopy(VkBufferImageCopy{
                                 .bufferOffset = 0,
                                 .bufferRowLength = 32,
@@ -268,13 +260,10 @@ TEST(VkFormatUtilsTest, GetTransferInfoDepthStencilWithDepth) {
     const uint32_t height = 16;
     const uint32_t depth = 2;
 
-    VkDeviceSize bufferCopySize;
-    std::vector<VkBufferImageCopy> bufferImageCopies;
-    ASSERT_THAT(
-        getFormatTransferInfo(format, {width, height, depth}, &bufferCopySize, &bufferImageCopies),
-        IsTrue());
-    EXPECT_THAT(bufferCopySize, Eq(1536));
-    ASSERT_THAT(bufferImageCopies,
+    TransferInfo transferInfo;
+    ASSERT_THAT(getFormatTransferInfo(format, {width, height, depth}, &transferInfo), IsTrue());
+    EXPECT_THAT(transferInfo.stagingBufferCopySize, Eq(1536));
+    ASSERT_THAT(transferInfo.bufferImageCopies,
                 ElementsAre(EqsVkBufferImageCopy(VkBufferImageCopy{
                                 .bufferOffset = 0,
                                 .bufferRowLength = 16,

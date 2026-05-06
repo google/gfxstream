@@ -69,13 +69,13 @@ void saveImageContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkImage
     VulkanDispatch* dispatch = stateBlock->deviceDispatch;
     const VkImageCreateInfo& imageCreateInfo = imageInfo->imageCreateInfoShallow;
 
-    VkDeviceSize stagingBufferSize = 0;
-    if (!getFormatTransferInfo(imageCreateInfo.format, imageCreateInfo.extent, &stagingBufferSize,
-                               nullptr) ||
-        !stagingBufferSize) {
+    TransferInfo transferInfo;
+    if (!getFormatTransferInfo(imageCreateInfo.format, imageCreateInfo.extent, &transferInfo) ||
+        !transferInfo.stagingBufferCopySize) {
         stream->putBe32(kBadImageSnapshot);
         return;
     }
+    VkDeviceSize stagingBufferSize = transferInfo.stagingBufferCopySize;
 
     stream->putBe32(kGoodImageSnapshot);
     VkCommandBufferAllocateInfo allocInfo{
@@ -139,12 +139,11 @@ void saveImageContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkImage
             }
 
             VkExtent3D mipmapExtent = getMipmapExtent(imageCreateInfo.extent, mipLevel);
-            VkDeviceSize mipmapStagingBufferSize = 0;
-            std::vector<VkBufferImageCopy> bufferImageCopies;
-            if (!getFormatTransferInfo(imageCreateInfo.format, mipmapExtent,
-                                       &mipmapStagingBufferSize, &bufferImageCopies)) {
+            if (!getFormatTransferInfo(imageCreateInfo.format, mipmapExtent, &transferInfo)) {
                 GFXSTREAM_FATAL("Failed to get transfer info for snapshot save");
             }
+            VkDeviceSize mipmapStagingBufferSize = transferInfo.stagingBufferCopySize;
+            std::vector<VkBufferImageCopy>& bufferImageCopies = transferInfo.bufferImageCopies;
             VkImageAspectFlags aspects = 0;
             for (const auto& copy : bufferImageCopies) {
                 aspects |= copy.imageSubresource.aspectMask;
@@ -222,11 +221,11 @@ void loadImageContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkImage
     VulkanDispatch* dispatch = stateBlock->deviceDispatch;
     const VkImageCreateInfo& imageCreateInfo = imageInfo->imageCreateInfoShallow;
 
-    VkDeviceSize stagingBufferSize = 0;
-    if (!getFormatTransferInfo(imageCreateInfo.format, imageCreateInfo.extent, &stagingBufferSize,
-                               nullptr)) {
+    TransferInfo transferInfo;
+    if (!getFormatTransferInfo(imageCreateInfo.format, imageCreateInfo.extent, &transferInfo)) {
         return;
     }
+    VkDeviceSize stagingBufferSize = transferInfo.stagingBufferCopySize;
 
     VkCommandBufferAllocateInfo allocInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -245,12 +244,9 @@ void loadImageContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkImage
     if (imageInfo->imageCreateInfoShallow.samples != VK_SAMPLE_COUNT_1_BIT) {
         // Set the layout and quit
         // TODO: resolve and save image content
-        VkDeviceSize dummySize = 0;
-        std::vector<VkBufferImageCopy> dummyCopies;
-        getFormatTransferInfo(imageCreateInfo.format, imageCreateInfo.extent, &dummySize,
-                              &dummyCopies);
+        getFormatTransferInfo(imageCreateInfo.format, imageCreateInfo.extent, &transferInfo);
         VkImageAspectFlags aspects = 0;
-        for (const auto& copy : dummyCopies) {
+        for (const auto& copy : transferInfo.bufferImageCopies) {
             aspects |= copy.imageSubresource.aspectMask;
         }
         VkImageMemoryBarrier imgMemoryBarrier = {
@@ -344,12 +340,10 @@ void loadImageContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkImage
             size_t bytes = stream->getBe64();
             stream->read(mapped, bytes);
 
-            VkDeviceSize mipmapStagingBufferSize = 0;
-            std::vector<VkBufferImageCopy> bufferImageCopies;
-            if (!getFormatTransferInfo(imageCreateInfo.format, mipmapExtent,
-                                       &mipmapStagingBufferSize, &bufferImageCopies)) {
+            if (!getFormatTransferInfo(imageCreateInfo.format, mipmapExtent, &transferInfo)) {
                 GFXSTREAM_FATAL("Failed to get transfer info for snapshot load");
             }
+            std::vector<VkBufferImageCopy>& bufferImageCopies = transferInfo.bufferImageCopies;
             VkImageAspectFlags aspects = 0;
             for (const auto& copy : bufferImageCopies) {
                 aspects |= copy.imageSubresource.aspectMask;

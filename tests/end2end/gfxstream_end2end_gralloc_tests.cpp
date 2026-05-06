@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <cstring>
+
 #include "gfxstream_end2end_tests.h"
 
 namespace gfxstream {
@@ -140,6 +142,56 @@ TEST_P(GfxstreamEnd2EndGrallocTests, AllocateTransfer_YV12) {
                                         (x * vPlane.pixelStrideBytes);
                 ASSERT_THAT(*actualU, Eq(colorU));
                 ASSERT_THAT(*actualV, Eq(colorV));
+            }
+        }
+
+        ahb.Unlock();
+    }
+}
+
+TEST_P(GfxstreamEnd2EndGrallocTests, AllocateTransfer_Depth32FloatStencil8) {
+    constexpr const uint32_t kWidth = 32;
+    constexpr const uint32_t kHeight = 32;
+
+    auto ahb = GFXSTREAM_ASSERT(ScopedAHardwareBuffer::Allocate(
+        *mGralloc, kWidth, kHeight, GFXSTREAM_AHB_FORMAT_D32_FLOAT_S8_UINT));
+
+    constexpr const uint32_t kBpp = 8;  // 4 bytes depth, 1 byte stencil, 3 bytes padding
+    constexpr const uint32_t kRowStrideBytes = kBpp * kWidth;
+
+    {
+        uint8_t* ahbBytes = GFXSTREAM_ASSERT(ahb.Lock());
+
+        // Depth values must be distinguishable
+        for (uint32_t y = 0; y < kHeight; y++) {
+            for (uint32_t x = 0; x < kWidth; x++) {
+                uint8_t* dst = ahbBytes + (y * kRowStrideBytes) + (x * kBpp);
+
+                float depthVal =
+                    static_cast<float>(y * kWidth + x) / static_cast<float>(kWidth * kHeight);
+                std::memcpy(dst, &depthVal, sizeof(float));
+
+                dst[4] = (x + y) & 0xFF;
+            }
+        }
+
+        ahb.Unlock();
+    }
+    {
+        const uint8_t* ahbBytes = GFXSTREAM_ASSERT(ahb.Lock());
+
+        for (uint32_t y = 0; y < kHeight; y++) {
+            for (uint32_t x = 0; x < kWidth; x++) {
+                const uint8_t* src = ahbBytes + (y * kRowStrideBytes) + (x * kBpp);
+
+                float expectedDepthVal =
+                    static_cast<float>(y * kWidth + x) / static_cast<float>(kWidth * kHeight);
+                float actualDepthVal;
+                std::memcpy(&actualDepthVal, src, sizeof(float));
+                ASSERT_THAT(actualDepthVal, Eq(expectedDepthVal));
+
+                uint8_t expectedStencilVal = (x + y) & 0xFF;
+                ASSERT_THAT(src[4], Eq(expectedStencilVal));
             }
         }
 

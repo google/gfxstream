@@ -419,9 +419,35 @@ std::optional<GfxstreamFormat> ToGfxstreamFormat(VkFormat format);
 // Returns the size in bytes needed to copy an image with the given format,
 // width, height, and depth to a staging buffer and the VkBufferImageCopy-s needed
 // to copy from a staging buffer to destination VkImage.
-bool getFormatTransferInfo(VkFormat format, VkExtent3D extent,
-                           VkDeviceSize* outStagingBufferCopySize,
-                           std::vector<VkBufferImageCopy>* outBufferImageCopies);
+struct TransferInfo {
+    VkDeviceSize stagingBufferCopySize = 0;
+    std::vector<VkBufferImageCopy> bufferImageCopies;
+
+    // Some formats can not be copied directly transferred in their natural format.
+    // For example, depth stencil formats must be transferred by copying the depth
+    // and stencil aspects separately and to/from separate buffer regions (see
+    // b/507879052). The `packFunction` and `unpackFunction` will return functions
+    // to convert the contents to/from their natural representation to representations
+    // supported by transfers.
+
+    // Function that can be used to convert from the natural representation
+    // (e.g. a 2x2 VK_FORMAT_D24_UNORM_S8_UINT image that is DDDSDDDSDDDSDDDS) to a
+    // representation supported by a buffer copy (e.g. 2x2 depth data followed
+    // stencil data that is DDDDDDDDDDDDSSSS).
+    using PackFunction = void (*)(const VkExtent3D& extent, const uint8_t* src, uint8_t* dst);
+    // If nullptr, the format does not require packing.
+    PackFunction packFunction = nullptr;
+
+    // Function that can be used to convert from representation supported by a buffer
+    // copy (e.g. 2x2 depth data followed by stencil data that is DDDDDDDDDDDDSSSS) to
+    // the natural representation (e.g. a 2x2 VK_FORMAT_D24_UNORM_S8_UINT image that
+    // is DDDSDDDSDDDSDDDS).
+    using UnpackFunction = void (*)(const VkExtent3D& extent, const uint8_t* src, uint8_t* dst);
+    // If nullptr, the format does not require unpacking.
+    UnpackFunction unpackFunction = nullptr;
+};
+
+bool getFormatTransferInfo(VkFormat format, VkExtent3D extent, TransferInfo* outTransferInfo);
 
 }  // namespace vk
 }  // namespace host
