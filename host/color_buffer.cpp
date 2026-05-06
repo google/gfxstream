@@ -162,9 +162,8 @@ std::unique_ptr<ColorBuffer::Impl> ColorBuffer::Impl::create(
         const bool vulkanOnly = colorBuffer->mColorBufferGl == nullptr;
         const uint32_t memoryProperty = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
         const uint32_t mipLevels = 1;
-        colorBuffer->mColorBufferVk =
-            vk::ColorBufferVk::create(*emulationVk, handle, width, height, format,
-                                      vulkanOnly, memoryProperty, stream, mipLevels);
+        colorBuffer->mColorBufferVk = vk::ColorBufferVk::create(
+            *emulationVk, handle, width, height, format, vulkanOnly, memoryProperty, mipLevels);
         if (!colorBuffer->mColorBufferVk) {
             if (emulationGl) {
                 // Historically, ColorBufferVk setup was deferred until the first actual Vulkan
@@ -196,6 +195,13 @@ std::unique_ptr<ColorBuffer::Impl> ColorBuffer::Impl::create(
     }
 #endif
 
+    if (colorBuffer->mColorBufferVk && stream) {
+        auto behavior = colorBuffer->mGlAndVkAreSharingExternalMemory
+                            ? vk::LoadImageBehavior::SkipImageContent
+                            : vk::LoadImageBehavior::LoadImageContent;
+        colorBuffer->mColorBufferVk->onLoad(stream, behavior);
+    }
+
     return colorBuffer;
 }
 
@@ -226,7 +232,9 @@ void ColorBuffer::Impl::onSave(gfxstream::Stream* stream) {
     }
 #endif
     if (mColorBufferVk) {
-        mColorBufferVk->onSave(stream);
+        auto behavior = mGlAndVkAreSharingExternalMemory ? vk::SaveImageBehavior::SkipImageContent
+                                                         : vk::SaveImageBehavior::SaveImageContent;
+        mColorBufferVk->onSave(stream, behavior);
     }
 }
 

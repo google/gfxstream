@@ -23,26 +23,52 @@ namespace vk {
 /*static*/
 std::unique_ptr<ColorBufferVk> ColorBufferVk::create(VkEmulation& vkEmulation, uint32_t handle,
                                                      uint32_t width, uint32_t height,
-                                                     GfxstreamFormat format,
-                                                     bool vulkanOnly, uint32_t memoryProperty,
-                                                     gfxstream::Stream* stream, uint32_t mipLevels) {
+                                                     GfxstreamFormat format, bool vulkanOnly,
+                                                     uint32_t memoryProperty, uint32_t mipLevels) {
     if (!vkEmulation.createVkColorBuffer(width, height, format, handle, vulkanOnly,
                                          memoryProperty, mipLevels)) {
         GFXSTREAM_ERROR("Failed to create ColorBufferVk:%d", handle);
         return nullptr;
     }
-    if (vkEmulation.getFeatures().VulkanSnapshots.enabled() && stream) {
-        VkImageLayout currentLayout = static_cast<VkImageLayout>(stream->getBe32());
-        vkEmulation.setColorBufferCurrentLayout(handle, currentLayout);
-    }
     return std::unique_ptr<ColorBufferVk>(new ColorBufferVk(vkEmulation, handle));
 }
 
-void ColorBufferVk::onSave(gfxstream::Stream* stream) {
+void ColorBufferVk::onLoad(gfxstream::Stream* stream, LoadImageBehavior behavior) {
+    if (!mVkEmulation.getFeatures().VulkanSnapshots.enabled() || !stream) {
+        return;
+    }
+    VkImageLayout currentLayout = static_cast<VkImageLayout>(stream->getBe32());
+    mVkEmulation.setColorBufferCurrentLayout(mHandle, currentLayout);
+
+    if (behavior == LoadImageBehavior::SkipImageContent) {
+        return;
+    }
+
+    uint64_t size = stream->getBe64();
+    if (size > 0) {
+        std::vector<uint8_t> pixels(size);
+        stream->read(pixels.data(), size);
+        mVkEmulation.updateColorBufferFromBytes(mHandle, pixels);
+    }
+}
+
+void ColorBufferVk::onSave(gfxstream::Stream* stream, SaveImageBehavior behavior) {
     if (!mVkEmulation.getFeatures().VulkanSnapshots.enabled()) {
         return;
     }
     stream->putBe32(static_cast<uint32_t>(mVkEmulation.getColorBufferCurrentLayout(mHandle)));
+
+    if (behavior == SaveImageBehavior::SkipImageContent) {
+        return;
+    }
+
+    std::vector<uint8_t> pixels;
+    if (readToBytes(&pixels)) {
+        stream->putBe64(pixels.size());
+        stream->write(pixels.data(), pixels.size());
+    } else {
+        stream->putBe64(0);
+    }
 }
 
 ColorBufferVk::ColorBufferVk(VkEmulation& vkEmulation, uint32_t handle)

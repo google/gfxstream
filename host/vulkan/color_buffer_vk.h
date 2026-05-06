@@ -27,6 +27,16 @@ namespace gfxstream {
 namespace host {
 namespace vk {
 
+enum class SaveImageBehavior {
+    SaveImageContent,
+    SkipImageContent,
+};
+
+enum class LoadImageBehavior {
+    LoadImageContent,
+    SkipImageContent,
+};
+
 class VkEmulation;
 
 class ColorBufferVk {
@@ -34,9 +44,7 @@ class ColorBufferVk {
     static std::unique_ptr<ColorBufferVk> create(VkEmulation& emulationVk, uint32_t handle,
                                                  uint32_t width, uint32_t height,
                                                  GfxstreamFormat format, bool vulkanOnly,
-                                                 uint32_t memoryProperty,
-                                                 gfxstream::Stream* stream,
-                                                 uint32_t mipLevels);
+                                                 uint32_t memoryProperty, uint32_t mipLevels);
 
     ~ColorBufferVk();
 
@@ -53,7 +61,8 @@ class ColorBufferVk {
     std::unique_ptr<BorrowedImageInfo> borrowForComposition(bool colorBufferIsTarget);
     std::unique_ptr<BorrowedImageInfo> borrowForDisplay();
 
-    void onSave(gfxstream::Stream* stream);
+    void onLoad(gfxstream::Stream* stream, LoadImageBehavior behavior);
+    void onSave(gfxstream::Stream* stream, SaveImageBehavior behavior);
 
     std::optional<BlobDescriptorInfo> exportBlob();
 

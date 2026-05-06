@@ -379,6 +379,17 @@ class VkDecoderGlobalState::Impl {
         cmdBufferInfo->eventsReset.clear();
     }
 
+    bool isMemoryBoundToColorBuffer(VkDeviceMemory memory) REQUIRES(mMutex) {
+        if (memory == VK_NULL_HANDLE) {
+            return false;
+        }
+        auto* memoryInfo = gfxstream::base::find(mMemoryInfo, memory);
+        if (memoryInfo && memoryInfo->boundColorBuffer) {
+            return true;
+        }
+        return false;
+    }
+
     StateBlock createSnapshotStateBlock(VkDevice unboxed_device,
                                         VkQueue unboxed_queue = VK_NULL_HANDLE,
                                         int queueFamilyIndex = -1) REQUIRES(mMutex) {
@@ -511,6 +522,10 @@ class VkDecoderGlobalState::Impl {
             }
             const ImageInfo& imageInfo = mImageInfo[unboxedImage];
             if (imageInfo.memory == VK_NULL_HANDLE) {
+                continue;
+            }
+            if (isMemoryBoundToColorBuffer(imageInfo.memory)) {
+                // color buffer is saved in ColorBufferVk already
                 continue;
             }
             // Vulkan command playback doesn't recover image layout. We need to do it here.
@@ -826,6 +841,10 @@ class VkDecoderGlobalState::Impl {
                 auto unboxedImage = unbox_VkImage(boxedImage);
                 ImageInfo& imageInfo = mImageInfo[unboxedImage];
                 if (imageInfo.memory == VK_NULL_HANDLE) {
+                    continue;
+                }
+                if (isMemoryBoundToColorBuffer(imageInfo.memory)) {
+                    // color buffer is loaded in ColorBufferVk already
                     continue;
                 }
                 // Playback doesn't recover image layout. We need to do it here.
