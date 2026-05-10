@@ -257,6 +257,20 @@ enum class GfxstreamFormat : uint32_t {
      *   OpenGL ES: GL_R16_EXT
      */
     R16_UNORM,
+
+    /**
+     * Corresponding formats:
+     *   Android: N/A
+     *   Vulkan: VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR
+     */
+    A1B5G5R5_UNORM,
+
+    /**
+     * Corresponding formats:
+     *   Android: N/A
+     *   Vulkan: VK_FORMAT_A8_UNORM_KHR
+     */
+    A8_UNORM,
 };
 
 inline bool IsYuvFormat(GfxstreamFormat format) {
@@ -289,6 +303,8 @@ inline bool IsYuvFormat(GfxstreamFormat format) {
         case GfxstreamFormat::R8G8B8A8_UNORM:
         case GfxstreamFormat::R8G8B8X8_UNORM:
         case GfxstreamFormat::S8_UINT:
+        case GfxstreamFormat::A1B5G5R5_UNORM:
+        case GfxstreamFormat::A8_UNORM:
         case GfxstreamFormat::UNKNOWN:
             return false;
     }
@@ -325,6 +341,8 @@ inline bool IsInterleavedChromaYuvFormat(GfxstreamFormat format) {
         case GfxstreamFormat::UNKNOWN:
         case GfxstreamFormat::YV21:
         case GfxstreamFormat::YV12:
+        case GfxstreamFormat::A1B5G5R5_UNORM:
+        case GfxstreamFormat::A8_UNORM:
             return false;
     }
 }
@@ -367,6 +385,8 @@ inline std::optional<YuvChromaOrdering> GetYuvChromaOrdering(GfxstreamFormat for
         case GfxstreamFormat::R8G8B8X8_UNORM:
         case GfxstreamFormat::S8_UINT:
         case GfxstreamFormat::UNKNOWN:
+        case GfxstreamFormat::A1B5G5R5_UNORM:
+        case GfxstreamFormat::A8_UNORM:
             return std::nullopt;
     }
 }
@@ -437,6 +457,10 @@ inline std::string ToString(GfxstreamFormat format) {
             return "YV21";
         case GfxstreamFormat::YV12:
             return "YV12";
+        case GfxstreamFormat::A1B5G5R5_UNORM:
+            return "A1B5G5R5_UNORM_PACK16";
+        case GfxstreamFormat::A8_UNORM:
+            return "A8_UNORM";
     }
 }
 
@@ -498,6 +522,10 @@ inline std::optional<uint32_t> GetBpp(GfxstreamFormat format) {
             return std::nullopt;
         case GfxstreamFormat::YV12:
             return std::nullopt;
+        case GfxstreamFormat::A1B5G5R5_UNORM:
+            return 2;
+        case GfxstreamFormat::A8_UNORM:
+            return 1;
     }
 }
 

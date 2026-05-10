@@ -163,6 +163,8 @@ namespace vk {
     f(VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16, 8) \
     f(VK_FORMAT_R12X4_UNORM_PACK16, 2)                 \
     f(VK_FORMAT_R12X4G12X4_UNORM_2PACK16, 4)           \
+    f(VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR, 2)          \
+    f(VK_FORMAT_A8_UNORM_KHR, 1)                       \
     f(VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16, 8)
 
 constexpr uint32_t getBytesPerPixel(VkFormat format) {

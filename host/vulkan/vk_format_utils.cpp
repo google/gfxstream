@@ -341,6 +341,10 @@ std::optional<VkFormat> ToVkFormat(GfxstreamFormat format) {
             return VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM;
         case GfxstreamFormat::YV12:
             return VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM;
+        case GfxstreamFormat::A1B5G5R5_UNORM:
+            return VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR;
+        case GfxstreamFormat::A8_UNORM:
+            return VK_FORMAT_A8_UNORM_KHR;
         default:
             return std::nullopt;
     }
@@ -386,6 +390,10 @@ std::optional<GfxstreamFormat> ToGfxstreamFormat(VkFormat format) {
             return GfxstreamFormat::S8_UINT;
         case VK_FORMAT_UNDEFINED:
             return GfxstreamFormat::UNKNOWN;
+        case VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR:
+            return GfxstreamFormat::A1B5G5R5_UNORM;
+        case VK_FORMAT_A8_UNORM_KHR:
+            return GfxstreamFormat::A8_UNORM;
         default:
             return std::nullopt;
     }

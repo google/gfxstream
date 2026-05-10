@@ -122,6 +122,10 @@ std::optional<GLenum> GetSizedInternalFormat(GfxstreamFormat format) {
             return std::nullopt;
         case GfxstreamFormat::YV12:
             return std::nullopt;
+        case GfxstreamFormat::A1B5G5R5_UNORM:
+            return std::nullopt;
+        case GfxstreamFormat::A8_UNORM:
+            return std::nullopt;
         default:
             return std::nullopt;
     }
@@ -181,6 +185,10 @@ std::optional<GLenum> GetPixelComponents(GfxstreamFormat format) {
             return std::nullopt;
         case GfxstreamFormat::YV12:
             return std::nullopt;
+        case GfxstreamFormat::A1B5G5R5_UNORM:
+            return std::nullopt;
+        case GfxstreamFormat::A8_UNORM:
+            return std::nullopt;
         default:
             return std::nullopt;
     }
@@ -239,6 +247,10 @@ std::optional<GLenum> GetPixelDataType(GfxstreamFormat format) {
         case GfxstreamFormat::YV21:
             return std::nullopt;
         case GfxstreamFormat::YV12:
+            return std::nullopt;
+        case GfxstreamFormat::A1B5G5R5_UNORM:
+            return std::nullopt;
+        case GfxstreamFormat::A8_UNORM:
             return std::nullopt;
         default:
             return std::nullopt;
