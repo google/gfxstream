@@ -767,9 +767,17 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
 
     if (!features.MinimalLogging.enabled()) {
         GFXSTREAM_INFO("Gfxstream features:");
+
+        if (features.guestVulkanMaxApiVersion) {
+            const uint32_t apiVersion = features.guestVulkanMaxApiVersion.value();
+            GFXSTREAM_INFO("    guestVulkanMaxApiVersion = %d.%d.%d",
+                           VK_API_VERSION_MAJOR(apiVersion), VK_API_VERSION_MINOR(apiVersion),
+                           VK_API_VERSION_PATCH(apiVersion));
+        }
         for (const auto& [_, featureInfo] : features.map) {
             GFXSTREAM_INFO("    %s: %s (%s)", featureInfo->getName().c_str(),
-                           featureInfo->getValueReadable().c_str(), featureInfo->getReason().c_str());
+                           featureInfo->getValueReadable().c_str(),
+                           featureInfo->getReason().c_str());
         }
     }
 

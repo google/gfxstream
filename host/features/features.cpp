@@ -27,6 +27,7 @@ FeatureSet::FeatureSet(const FeatureSet& rhs) : FeatureSet() {
 }
 
 FeatureSet& FeatureSet::operator=(const FeatureSet& rhs) {
+    guestVulkanMaxApiVersion = rhs.guestVulkanMaxApiVersion;
     for (const auto& [featureName, featureInfo] : rhs.map) {
         *map[featureName] = *featureInfo;
     }
