@@ -191,12 +191,13 @@ protected:
         }
 
         // Info log
-        GLsizei logLength;
+        GLsizei logLength = 0;
         gl->glGetProgramiv(m_program_name, GL_INFO_LOG_LENGTH, &logLength);
         ret.infoLog.resize(logLength);
-        GLsizei actualLength;
-        gl->glGetProgramInfoLog(m_program_name, logLength, &actualLength,
-                                &ret.infoLog[0]);
+        if (logLength > 0) {
+            GLsizei actualLength = 0;
+            gl->glGetProgramInfoLog(m_program_name, logLength, &actualLength, &ret.infoLog[0]);
+        }
 
         // Boolean statuses
         GLint val;
@@ -212,13 +213,16 @@ protected:
         gl->glGetProgramiv(m_program_name, GL_ATTACHED_SHADERS,
                            &attachedShaders);
         ret.shaders.resize(attachedShaders);
-        GLsizei shaderCount;
-        gl->glGetAttachedShaders(m_program_name, attachedShaders, &shaderCount,
-                                 &ret.shaders[0]);
+        if (attachedShaders > 0) {
+            GLsizei shaderCount;
+            gl->glGetAttachedShaders(m_program_name, attachedShaders, &shaderCount,
+                                     &ret.shaders[0]);
+        }
 
         // Uniforms
         gl->glGetProgramiv(m_program_name, GL_ACTIVE_UNIFORM_MAX_LENGTH,
                            &ret.maxUniformName);
+        EXPECT_GE(ret.maxUniformName, 0);
         gl->glGetProgramiv(m_program_name, GL_ACTIVE_UNIFORMS,
                            &ret.activeUniforms);
         for (GLuint i = 0; i < ret.activeUniforms; i++) {
@@ -253,6 +257,7 @@ protected:
         // Attributes
         gl->glGetProgramiv(m_program_name, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH,
                            &ret.maxAttributeName);
+        EXPECT_GE(ret.maxAttributeName, 0);
         gl->glGetProgramiv(m_program_name, GL_ACTIVE_ATTRIBUTES,
                            &ret.activeAttributes);
         for (GLuint i = 0; i < ret.activeAttributes; i++) {
