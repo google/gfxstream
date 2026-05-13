@@ -56,7 +56,7 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
         uint8_t* readStreamPtr = readStream->getBuf();
         uint8_t** readStreamPtrPtr = &readStreamPtr;
         switch (opcode) {
-#ifdef VK_VERSION_1_0
+#ifdef VK_BASE_VERSION_1_0
             case OP_vkBeginCommandBuffer: {
                 GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
                                       "VkSubDecoder vkBeginCommandBuffer");
@@ -124,542 +124,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                                                            vkResetCommandBuffer_VkResult_return,
                                                            (VkCommandBuffer)(boxed_dispatchHandle),
                                                            flags);
-                }
-                break;
-            }
-            case OP_vkCmdBindPipeline: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdBindPipeline");
-                VkPipelineBindPoint pipelineBindPoint;
-                VkPipeline pipeline;
-                memcpy((VkPipelineBindPoint*)&pipelineBindPoint, *readStreamPtrPtr,
-                       sizeof(VkPipelineBindPoint));
-                *readStreamPtrPtr += sizeof(VkPipelineBindPoint);
-                uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
-                *(VkPipeline*)&pipeline = (VkPipeline)unbox_VkPipeline((VkPipeline)(*&cgen_var_0));
-                if (CC_LIKELY(vk)) {
-                    this->on_vkCmdBindPipeline(pool, snapshotApiCallHandle,
-                                               (VkCommandBuffer)(boxed_dispatchHandle),
-                                               pipelineBindPoint, pipeline);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdBindPipeline(pool, snapshotApiCallHandle, nullptr, 0,
-                                                        (VkCommandBuffer)(boxed_dispatchHandle),
-                                                        pipelineBindPoint, pipeline);
-                }
-                break;
-            }
-            case OP_vkCmdSetViewport: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdSetViewport");
-                uint32_t firstViewport;
-                uint32_t viewportCount;
-                const VkViewport* pViewports;
-                VkViewport stack_pViewports[MAX_STACK_ITEMS];
-                memcpy((uint32_t*)&firstViewport, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                memcpy((uint32_t*)&viewportCount, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                if (viewportCount <= MAX_STACK_ITEMS) {
-                    pViewports = (VkViewport*)stack_pViewports;
-                } else {
-                    readStream->alloc((void**)&pViewports,
-                                      viewportCount * sizeof(const VkViewport));
-                }
-                for (uint32_t i = 0; i < (uint32_t)viewportCount; ++i) {
-                    reservedunmarshal_VkViewport(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                                 (VkViewport*)(pViewports + i), readStreamPtrPtr);
-                }
-                if (pViewports) {
-                    for (uint32_t i = 0; i < (uint32_t)viewportCount; ++i) {
-                        transform_tohost_VkViewport(globalstate, (VkViewport*)(pViewports + i));
-                    }
-                }
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdSetViewport((VkCommandBuffer)dispatchHandle, firstViewport,
-                                         viewportCount, pViewports);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdSetViewport(pool, snapshotApiCallHandle, nullptr, 0,
-                                                       (VkCommandBuffer)(boxed_dispatchHandle),
-                                                       firstViewport, viewportCount, pViewports);
-                }
-                break;
-            }
-            case OP_vkCmdSetScissor: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdSetScissor");
-                uint32_t firstScissor;
-                uint32_t scissorCount;
-                const VkRect2D* pScissors;
-                VkRect2D stack_pScissors[MAX_STACK_ITEMS];
-                memcpy((uint32_t*)&firstScissor, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                memcpy((uint32_t*)&scissorCount, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                if (scissorCount <= MAX_STACK_ITEMS) {
-                    pScissors = (VkRect2D*)stack_pScissors;
-                } else {
-                    readStream->alloc((void**)&pScissors, scissorCount * sizeof(const VkRect2D));
-                }
-                for (uint32_t i = 0; i < (uint32_t)scissorCount; ++i) {
-                    reservedunmarshal_VkRect2D(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                               (VkRect2D*)(pScissors + i), readStreamPtrPtr);
-                }
-                if (pScissors) {
-                    for (uint32_t i = 0; i < (uint32_t)scissorCount; ++i) {
-                        transform_tohost_VkRect2D(globalstate, (VkRect2D*)(pScissors + i));
-                    }
-                }
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdSetScissor((VkCommandBuffer)dispatchHandle, firstScissor, scissorCount,
-                                        pScissors);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdSetScissor(pool, snapshotApiCallHandle, nullptr, 0,
-                                                      (VkCommandBuffer)(boxed_dispatchHandle),
-                                                      firstScissor, scissorCount, pScissors);
-                }
-                break;
-            }
-            case OP_vkCmdSetLineWidth: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdSetLineWidth");
-                float lineWidth;
-                memcpy((float*)&lineWidth, *readStreamPtrPtr, sizeof(float));
-                *readStreamPtrPtr += sizeof(float);
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdSetLineWidth((VkCommandBuffer)dispatchHandle, lineWidth);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdSetLineWidth(pool, snapshotApiCallHandle, nullptr, 0,
-                                                        (VkCommandBuffer)(boxed_dispatchHandle),
-                                                        lineWidth);
-                }
-                break;
-            }
-            case OP_vkCmdSetDepthBias: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdSetDepthBias");
-                float depthBiasConstantFactor;
-                float depthBiasClamp;
-                float depthBiasSlopeFactor;
-                memcpy((float*)&depthBiasConstantFactor, *readStreamPtrPtr, sizeof(float));
-                *readStreamPtrPtr += sizeof(float);
-                memcpy((float*)&depthBiasClamp, *readStreamPtrPtr, sizeof(float));
-                *readStreamPtrPtr += sizeof(float);
-                memcpy((float*)&depthBiasSlopeFactor, *readStreamPtrPtr, sizeof(float));
-                *readStreamPtrPtr += sizeof(float);
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdSetDepthBias((VkCommandBuffer)dispatchHandle, depthBiasConstantFactor,
-                                          depthBiasClamp, depthBiasSlopeFactor);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdSetDepthBias(pool, snapshotApiCallHandle, nullptr, 0,
-                                                        (VkCommandBuffer)(boxed_dispatchHandle),
-                                                        depthBiasConstantFactor, depthBiasClamp,
-                                                        depthBiasSlopeFactor);
-                }
-                break;
-            }
-            case OP_vkCmdSetBlendConstants: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdSetBlendConstants");
-                float blendConstants[4];
-                memcpy((float*)blendConstants, *readStreamPtrPtr, 4 * sizeof(const float));
-                *readStreamPtrPtr += 4 * sizeof(const float);
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdSetBlendConstants((VkCommandBuffer)dispatchHandle, blendConstants);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdSetBlendConstants(
-                        pool, snapshotApiCallHandle, nullptr, 0,
-                        (VkCommandBuffer)(boxed_dispatchHandle), blendConstants);
-                }
-                break;
-            }
-            case OP_vkCmdSetDepthBounds: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdSetDepthBounds");
-                float minDepthBounds;
-                float maxDepthBounds;
-                memcpy((float*)&minDepthBounds, *readStreamPtrPtr, sizeof(float));
-                *readStreamPtrPtr += sizeof(float);
-                memcpy((float*)&maxDepthBounds, *readStreamPtrPtr, sizeof(float));
-                *readStreamPtrPtr += sizeof(float);
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdSetDepthBounds((VkCommandBuffer)dispatchHandle, minDepthBounds,
-                                            maxDepthBounds);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdSetDepthBounds(pool, snapshotApiCallHandle, nullptr, 0,
-                                                          (VkCommandBuffer)(boxed_dispatchHandle),
-                                                          minDepthBounds, maxDepthBounds);
-                }
-                break;
-            }
-            case OP_vkCmdSetStencilCompareMask: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdSetStencilCompareMask");
-                VkStencilFaceFlags faceMask;
-                uint32_t compareMask;
-                memcpy((VkStencilFaceFlags*)&faceMask, *readStreamPtrPtr,
-                       sizeof(VkStencilFaceFlags));
-                *readStreamPtrPtr += sizeof(VkStencilFaceFlags);
-                memcpy((uint32_t*)&compareMask, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdSetStencilCompareMask((VkCommandBuffer)dispatchHandle, faceMask,
-                                                   compareMask);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdSetStencilCompareMask(
-                        pool, snapshotApiCallHandle, nullptr, 0,
-                        (VkCommandBuffer)(boxed_dispatchHandle), faceMask, compareMask);
-                }
-                break;
-            }
-            case OP_vkCmdSetStencilWriteMask: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdSetStencilWriteMask");
-                VkStencilFaceFlags faceMask;
-                uint32_t writeMask;
-                memcpy((VkStencilFaceFlags*)&faceMask, *readStreamPtrPtr,
-                       sizeof(VkStencilFaceFlags));
-                *readStreamPtrPtr += sizeof(VkStencilFaceFlags);
-                memcpy((uint32_t*)&writeMask, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdSetStencilWriteMask((VkCommandBuffer)dispatchHandle, faceMask,
-                                                 writeMask);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdSetStencilWriteMask(
-                        pool, snapshotApiCallHandle, nullptr, 0,
-                        (VkCommandBuffer)(boxed_dispatchHandle), faceMask, writeMask);
-                }
-                break;
-            }
-            case OP_vkCmdSetStencilReference: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdSetStencilReference");
-                VkStencilFaceFlags faceMask;
-                uint32_t reference;
-                memcpy((VkStencilFaceFlags*)&faceMask, *readStreamPtrPtr,
-                       sizeof(VkStencilFaceFlags));
-                *readStreamPtrPtr += sizeof(VkStencilFaceFlags);
-                memcpy((uint32_t*)&reference, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdSetStencilReference((VkCommandBuffer)dispatchHandle, faceMask,
-                                                 reference);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdSetStencilReference(
-                        pool, snapshotApiCallHandle, nullptr, 0,
-                        (VkCommandBuffer)(boxed_dispatchHandle), faceMask, reference);
-                }
-                break;
-            }
-            case OP_vkCmdBindDescriptorSets: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdBindDescriptorSets");
-                VkPipelineBindPoint pipelineBindPoint;
-                VkPipelineLayout layout;
-                uint32_t firstSet;
-                uint32_t descriptorSetCount;
-                const VkDescriptorSet* pDescriptorSets;
-                VkDescriptorSet stack_pDescriptorSets[MAX_STACK_ITEMS];
-                uint32_t dynamicOffsetCount;
-                const uint32_t* pDynamicOffsets;
-                uint32_t stack_pDynamicOffsets[MAX_STACK_ITEMS];
-                memcpy((VkPipelineBindPoint*)&pipelineBindPoint, *readStreamPtrPtr,
-                       sizeof(VkPipelineBindPoint));
-                *readStreamPtrPtr += sizeof(VkPipelineBindPoint);
-                uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
-                *(VkPipelineLayout*)&layout =
-                    (VkPipelineLayout)unbox_VkPipelineLayout((VkPipelineLayout)(*&cgen_var_0));
-                memcpy((uint32_t*)&firstSet, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                memcpy((uint32_t*)&descriptorSetCount, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                if (descriptorSetCount <= MAX_STACK_ITEMS) {
-                    pDescriptorSets = (VkDescriptorSet*)stack_pDescriptorSets;
-                } else {
-                    readStream->alloc((void**)&pDescriptorSets,
-                                      descriptorSetCount * sizeof(const VkDescriptorSet));
-                }
-                if (descriptorSetCount) {
-                    uint8_t* cgen_var_1_ptr = (uint8_t*)(*readStreamPtrPtr);
-                    *readStreamPtrPtr += 8 * descriptorSetCount;
-                    for (uint32_t k = 0; k < descriptorSetCount; ++k) {
-                        uint64_t tmpval;
-                        memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkDescriptorSet*)pDescriptorSets) + k) =
-                            tmpval ? (VkDescriptorSet)unbox_VkDescriptorSet((VkDescriptorSet)tmpval)
-                                   : VK_NULL_HANDLE;
-                    }
-                }
-                memcpy((uint32_t*)&dynamicOffsetCount, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                if (dynamicOffsetCount <= MAX_STACK_ITEMS) {
-                    pDynamicOffsets = (uint32_t*)stack_pDynamicOffsets;
-                } else {
-                    readStream->alloc((void**)&pDynamicOffsets,
-                                      dynamicOffsetCount * sizeof(const uint32_t));
-                }
-                if (dynamicOffsetCount > 0) {
-                    memcpy((uint32_t*)pDynamicOffsets, *readStreamPtrPtr,
-                           dynamicOffsetCount * sizeof(const uint32_t));
-                    *readStreamPtrPtr += dynamicOffsetCount * sizeof(const uint32_t);
-                }
-                if (CC_LIKELY(vk)) {
-                    this->on_vkCmdBindDescriptorSets(
-                        pool, snapshotApiCallHandle, (VkCommandBuffer)(boxed_dispatchHandle),
-                        pipelineBindPoint, layout, firstSet, descriptorSetCount, pDescriptorSets,
-                        dynamicOffsetCount, pDynamicOffsets);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdBindDescriptorSets(
-                        pool, snapshotApiCallHandle, nullptr, 0,
-                        (VkCommandBuffer)(boxed_dispatchHandle), pipelineBindPoint, layout,
-                        firstSet, descriptorSetCount, pDescriptorSets, dynamicOffsetCount,
-                        pDynamicOffsets);
-                }
-                break;
-            }
-            case OP_vkCmdBindIndexBuffer: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdBindIndexBuffer");
-                VkBuffer buffer;
-                VkDeviceSize offset;
-                VkIndexType indexType;
-                uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
-                *(VkBuffer*)&buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
-                memcpy((VkDeviceSize*)&offset, *readStreamPtrPtr, sizeof(VkDeviceSize));
-                *readStreamPtrPtr += sizeof(VkDeviceSize);
-                memcpy((VkIndexType*)&indexType, *readStreamPtrPtr, sizeof(VkIndexType));
-                *readStreamPtrPtr += sizeof(VkIndexType);
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdBindIndexBuffer((VkCommandBuffer)dispatchHandle, buffer, offset,
-                                             indexType);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdBindIndexBuffer(pool, snapshotApiCallHandle, nullptr, 0,
-                                                           (VkCommandBuffer)(boxed_dispatchHandle),
-                                                           buffer, offset, indexType);
-                }
-                break;
-            }
-            case OP_vkCmdBindVertexBuffers: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdBindVertexBuffers");
-                uint32_t firstBinding;
-                uint32_t bindingCount;
-                const VkBuffer* pBuffers;
-                VkBuffer stack_pBuffers[MAX_STACK_ITEMS];
-                const VkDeviceSize* pOffsets;
-                VkDeviceSize stack_pOffsets[MAX_STACK_ITEMS];
-                memcpy((uint32_t*)&firstBinding, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                memcpy((uint32_t*)&bindingCount, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                if (bindingCount <= MAX_STACK_ITEMS) {
-                    pBuffers = (VkBuffer*)stack_pBuffers;
-                } else {
-                    readStream->alloc((void**)&pBuffers, bindingCount * sizeof(const VkBuffer));
-                }
-                if (bindingCount) {
-                    uint8_t* cgen_var_0_ptr = (uint8_t*)(*readStreamPtrPtr);
-                    *readStreamPtrPtr += 8 * bindingCount;
-                    for (uint32_t k = 0; k < bindingCount; ++k) {
-                        uint64_t tmpval;
-                        memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkBuffer*)pBuffers) + k) =
-                            tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval) : VK_NULL_HANDLE;
-                    }
-                }
-                if (bindingCount <= MAX_STACK_ITEMS) {
-                    pOffsets = (VkDeviceSize*)stack_pOffsets;
-                } else {
-                    readStream->alloc((void**)&pOffsets, bindingCount * sizeof(const VkDeviceSize));
-                }
-                if (bindingCount > 0) {
-                    memcpy((VkDeviceSize*)pOffsets, *readStreamPtrPtr,
-                           bindingCount * sizeof(const VkDeviceSize));
-                    *readStreamPtrPtr += bindingCount * sizeof(const VkDeviceSize);
-                }
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdBindVertexBuffers((VkCommandBuffer)dispatchHandle, firstBinding,
-                                               bindingCount, pBuffers, pOffsets);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdBindVertexBuffers(
-                        pool, snapshotApiCallHandle, nullptr, 0,
-                        (VkCommandBuffer)(boxed_dispatchHandle), firstBinding, bindingCount,
-                        pBuffers, pOffsets);
-                }
-                break;
-            }
-            case OP_vkCmdDraw: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY, "VkSubDecoder vkCmdDraw");
-                uint32_t vertexCount;
-                uint32_t instanceCount;
-                uint32_t firstVertex;
-                uint32_t firstInstance;
-                memcpy((uint32_t*)&vertexCount, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                memcpy((uint32_t*)&instanceCount, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                memcpy((uint32_t*)&firstVertex, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                memcpy((uint32_t*)&firstInstance, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdDraw((VkCommandBuffer)dispatchHandle, vertexCount, instanceCount,
-                                  firstVertex, firstInstance);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdDraw(pool, snapshotApiCallHandle, nullptr, 0,
-                                                (VkCommandBuffer)(boxed_dispatchHandle),
-                                                vertexCount, instanceCount, firstVertex,
-                                                firstInstance);
-                }
-                break;
-            }
-            case OP_vkCmdDrawIndexed: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdDrawIndexed");
-                uint32_t indexCount;
-                uint32_t instanceCount;
-                uint32_t firstIndex;
-                int32_t vertexOffset;
-                uint32_t firstInstance;
-                memcpy((uint32_t*)&indexCount, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                memcpy((uint32_t*)&instanceCount, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                memcpy((uint32_t*)&firstIndex, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                memcpy((int32_t*)&vertexOffset, *readStreamPtrPtr, sizeof(int32_t));
-                *readStreamPtrPtr += sizeof(int32_t);
-                memcpy((uint32_t*)&firstInstance, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdDrawIndexed((VkCommandBuffer)dispatchHandle, indexCount, instanceCount,
-                                         firstIndex, vertexOffset, firstInstance);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdDrawIndexed(pool, snapshotApiCallHandle, nullptr, 0,
-                                                       (VkCommandBuffer)(boxed_dispatchHandle),
-                                                       indexCount, instanceCount, firstIndex,
-                                                       vertexOffset, firstInstance);
-                }
-                break;
-            }
-            case OP_vkCmdDrawIndirect: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdDrawIndirect");
-                VkBuffer buffer;
-                VkDeviceSize offset;
-                uint32_t drawCount;
-                uint32_t stride;
-                uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
-                *(VkBuffer*)&buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
-                memcpy((VkDeviceSize*)&offset, *readStreamPtrPtr, sizeof(VkDeviceSize));
-                *readStreamPtrPtr += sizeof(VkDeviceSize);
-                memcpy((uint32_t*)&drawCount, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                memcpy((uint32_t*)&stride, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdDrawIndirect((VkCommandBuffer)dispatchHandle, buffer, offset,
-                                          drawCount, stride);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdDrawIndirect(pool, snapshotApiCallHandle, nullptr, 0,
-                                                        (VkCommandBuffer)(boxed_dispatchHandle),
-                                                        buffer, offset, drawCount, stride);
-                }
-                break;
-            }
-            case OP_vkCmdDrawIndexedIndirect: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdDrawIndexedIndirect");
-                VkBuffer buffer;
-                VkDeviceSize offset;
-                uint32_t drawCount;
-                uint32_t stride;
-                uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
-                *(VkBuffer*)&buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
-                memcpy((VkDeviceSize*)&offset, *readStreamPtrPtr, sizeof(VkDeviceSize));
-                *readStreamPtrPtr += sizeof(VkDeviceSize);
-                memcpy((uint32_t*)&drawCount, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                memcpy((uint32_t*)&stride, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdDrawIndexedIndirect((VkCommandBuffer)dispatchHandle, buffer, offset,
-                                                 drawCount, stride);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdDrawIndexedIndirect(
-                        pool, snapshotApiCallHandle, nullptr, 0,
-                        (VkCommandBuffer)(boxed_dispatchHandle), buffer, offset, drawCount, stride);
-                }
-                break;
-            }
-            case OP_vkCmdDispatch: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdDispatch");
-                uint32_t groupCountX;
-                uint32_t groupCountY;
-                uint32_t groupCountZ;
-                memcpy((uint32_t*)&groupCountX, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                memcpy((uint32_t*)&groupCountY, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                memcpy((uint32_t*)&groupCountZ, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdDispatch((VkCommandBuffer)dispatchHandle, groupCountX, groupCountY,
-                                      groupCountZ);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdDispatch(pool, snapshotApiCallHandle, nullptr, 0,
-                                                    (VkCommandBuffer)(boxed_dispatchHandle),
-                                                    groupCountX, groupCountY, groupCountZ);
-                }
-                break;
-            }
-            case OP_vkCmdDispatchIndirect: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdDispatchIndirect");
-                VkBuffer buffer;
-                VkDeviceSize offset;
-                uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
-                *(VkBuffer*)&buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
-                memcpy((VkDeviceSize*)&offset, *readStreamPtrPtr, sizeof(VkDeviceSize));
-                *readStreamPtrPtr += sizeof(VkDeviceSize);
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdDispatchIndirect((VkCommandBuffer)dispatchHandle, buffer, offset);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdDispatchIndirect(pool, snapshotApiCallHandle, nullptr, 0,
-                                                            (VkCommandBuffer)(boxed_dispatchHandle),
-                                                            buffer, offset);
                 }
                 break;
             }
@@ -754,59 +218,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                                                      (VkCommandBuffer)(boxed_dispatchHandle),
                                                      srcImage, srcImageLayout, dstImage,
                                                      dstImageLayout, regionCount, pRegions);
-                }
-                break;
-            }
-            case OP_vkCmdBlitImage: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdBlitImage");
-                VkImage srcImage;
-                VkImageLayout srcImageLayout;
-                VkImage dstImage;
-                VkImageLayout dstImageLayout;
-                uint32_t regionCount;
-                const VkImageBlit* pRegions;
-                VkImageBlit stack_pRegions[MAX_STACK_ITEMS];
-                VkFilter filter;
-                uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
-                *(VkImage*)&srcImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
-                memcpy((VkImageLayout*)&srcImageLayout, *readStreamPtrPtr, sizeof(VkImageLayout));
-                *readStreamPtrPtr += sizeof(VkImageLayout);
-                uint64_t cgen_var_1;
-                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
-                *(VkImage*)&dstImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_1));
-                memcpy((VkImageLayout*)&dstImageLayout, *readStreamPtrPtr, sizeof(VkImageLayout));
-                *readStreamPtrPtr += sizeof(VkImageLayout);
-                memcpy((uint32_t*)&regionCount, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                if (regionCount <= MAX_STACK_ITEMS) {
-                    pRegions = (VkImageBlit*)stack_pRegions;
-                } else {
-                    readStream->alloc((void**)&pRegions, regionCount * sizeof(const VkImageBlit));
-                }
-                for (uint32_t i = 0; i < (uint32_t)regionCount; ++i) {
-                    reservedunmarshal_VkImageBlit(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                                  (VkImageBlit*)(pRegions + i), readStreamPtrPtr);
-                }
-                memcpy((VkFilter*)&filter, *readStreamPtrPtr, sizeof(VkFilter));
-                *readStreamPtrPtr += sizeof(VkFilter);
-                if (pRegions) {
-                    for (uint32_t i = 0; i < (uint32_t)regionCount; ++i) {
-                        transform_tohost_VkImageBlit(globalstate, (VkImageBlit*)(pRegions + i));
-                    }
-                }
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdBlitImage((VkCommandBuffer)dispatchHandle, srcImage, srcImageLayout,
-                                       dstImage, dstImageLayout, regionCount, pRegions, filter);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdBlitImage(pool, snapshotApiCallHandle, nullptr, 0,
-                                                     (VkCommandBuffer)(boxed_dispatchHandle),
-                                                     srcImage, srcImageLayout, dstImage,
-                                                     dstImageLayout, regionCount, pRegions, filter);
                 }
                 break;
             }
@@ -973,385 +384,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                     this->snapshot()->vkCmdFillBuffer(pool, snapshotApiCallHandle, nullptr, 0,
                                                       (VkCommandBuffer)(boxed_dispatchHandle),
                                                       dstBuffer, dstOffset, size, data);
-                }
-                break;
-            }
-            case OP_vkCmdClearColorImage: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdClearColorImage");
-                VkImage image;
-                VkImageLayout imageLayout;
-                const VkClearColorValue* pColor;
-                VkClearColorValue stack_pColor[1];
-                uint32_t rangeCount;
-                const VkImageSubresourceRange* pRanges;
-                VkImageSubresourceRange stack_pRanges[MAX_STACK_ITEMS];
-                uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
-                *(VkImage*)&image = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
-                memcpy((VkImageLayout*)&imageLayout, *readStreamPtrPtr, sizeof(VkImageLayout));
-                *readStreamPtrPtr += sizeof(VkImageLayout);
-                pColor = (VkClearColorValue*)stack_pColor;
-                reservedunmarshal_VkClearColorValue(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                                    (VkClearColorValue*)(pColor), readStreamPtrPtr);
-                memcpy((uint32_t*)&rangeCount, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                if (rangeCount <= MAX_STACK_ITEMS) {
-                    pRanges = (VkImageSubresourceRange*)stack_pRanges;
-                } else {
-                    readStream->alloc((void**)&pRanges,
-                                      rangeCount * sizeof(const VkImageSubresourceRange));
-                }
-                for (uint32_t i = 0; i < (uint32_t)rangeCount; ++i) {
-                    reservedunmarshal_VkImageSubresourceRange(
-                        readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                        (VkImageSubresourceRange*)(pRanges + i), readStreamPtrPtr);
-                }
-                if (pColor) {
-                    transform_tohost_VkClearColorValue(globalstate, (VkClearColorValue*)(pColor));
-                }
-                if (pRanges) {
-                    for (uint32_t i = 0; i < (uint32_t)rangeCount; ++i) {
-                        transform_tohost_VkImageSubresourceRange(
-                            globalstate, (VkImageSubresourceRange*)(pRanges + i));
-                    }
-                }
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdClearColorImage((VkCommandBuffer)dispatchHandle, image, imageLayout,
-                                             pColor, rangeCount, pRanges);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdClearColorImage(pool, snapshotApiCallHandle, nullptr, 0,
-                                                           (VkCommandBuffer)(boxed_dispatchHandle),
-                                                           image, imageLayout, pColor, rangeCount,
-                                                           pRanges);
-                }
-                break;
-            }
-            case OP_vkCmdClearDepthStencilImage: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdClearDepthStencilImage");
-                VkImage image;
-                VkImageLayout imageLayout;
-                const VkClearDepthStencilValue* pDepthStencil;
-                VkClearDepthStencilValue stack_pDepthStencil[1];
-                uint32_t rangeCount;
-                const VkImageSubresourceRange* pRanges;
-                VkImageSubresourceRange stack_pRanges[MAX_STACK_ITEMS];
-                uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
-                *(VkImage*)&image = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
-                memcpy((VkImageLayout*)&imageLayout, *readStreamPtrPtr, sizeof(VkImageLayout));
-                *readStreamPtrPtr += sizeof(VkImageLayout);
-                pDepthStencil = (VkClearDepthStencilValue*)stack_pDepthStencil;
-                reservedunmarshal_VkClearDepthStencilValue(
-                    readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                    (VkClearDepthStencilValue*)(pDepthStencil), readStreamPtrPtr);
-                memcpy((uint32_t*)&rangeCount, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                if (rangeCount <= MAX_STACK_ITEMS) {
-                    pRanges = (VkImageSubresourceRange*)stack_pRanges;
-                } else {
-                    readStream->alloc((void**)&pRanges,
-                                      rangeCount * sizeof(const VkImageSubresourceRange));
-                }
-                for (uint32_t i = 0; i < (uint32_t)rangeCount; ++i) {
-                    reservedunmarshal_VkImageSubresourceRange(
-                        readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                        (VkImageSubresourceRange*)(pRanges + i), readStreamPtrPtr);
-                }
-                if (pDepthStencil) {
-                    transform_tohost_VkClearDepthStencilValue(
-                        globalstate, (VkClearDepthStencilValue*)(pDepthStencil));
-                }
-                if (pRanges) {
-                    for (uint32_t i = 0; i < (uint32_t)rangeCount; ++i) {
-                        transform_tohost_VkImageSubresourceRange(
-                            globalstate, (VkImageSubresourceRange*)(pRanges + i));
-                    }
-                }
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdClearDepthStencilImage((VkCommandBuffer)dispatchHandle, image,
-                                                    imageLayout, pDepthStencil, rangeCount,
-                                                    pRanges);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdClearDepthStencilImage(
-                        pool, snapshotApiCallHandle, nullptr, 0,
-                        (VkCommandBuffer)(boxed_dispatchHandle), image, imageLayout, pDepthStencil,
-                        rangeCount, pRanges);
-                }
-                break;
-            }
-            case OP_vkCmdClearAttachments: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdClearAttachments");
-                uint32_t attachmentCount;
-                const VkClearAttachment* pAttachments;
-                VkClearAttachment stack_pAttachments[MAX_STACK_ITEMS];
-                uint32_t rectCount;
-                const VkClearRect* pRects;
-                VkClearRect stack_pRects[MAX_STACK_ITEMS];
-                memcpy((uint32_t*)&attachmentCount, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                if (attachmentCount <= MAX_STACK_ITEMS) {
-                    pAttachments = (VkClearAttachment*)stack_pAttachments;
-                } else {
-                    readStream->alloc((void**)&pAttachments,
-                                      attachmentCount * sizeof(const VkClearAttachment));
-                }
-                for (uint32_t i = 0; i < (uint32_t)attachmentCount; ++i) {
-                    reservedunmarshal_VkClearAttachment(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                                        (VkClearAttachment*)(pAttachments + i),
-                                                        readStreamPtrPtr);
-                }
-                memcpy((uint32_t*)&rectCount, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                if (rectCount <= MAX_STACK_ITEMS) {
-                    pRects = (VkClearRect*)stack_pRects;
-                } else {
-                    readStream->alloc((void**)&pRects, rectCount * sizeof(const VkClearRect));
-                }
-                for (uint32_t i = 0; i < (uint32_t)rectCount; ++i) {
-                    reservedunmarshal_VkClearRect(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                                  (VkClearRect*)(pRects + i), readStreamPtrPtr);
-                }
-                if (pAttachments) {
-                    for (uint32_t i = 0; i < (uint32_t)attachmentCount; ++i) {
-                        transform_tohost_VkClearAttachment(globalstate,
-                                                           (VkClearAttachment*)(pAttachments + i));
-                    }
-                }
-                if (pRects) {
-                    for (uint32_t i = 0; i < (uint32_t)rectCount; ++i) {
-                        transform_tohost_VkClearRect(globalstate, (VkClearRect*)(pRects + i));
-                    }
-                }
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdClearAttachments((VkCommandBuffer)dispatchHandle, attachmentCount,
-                                              pAttachments, rectCount, pRects);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdClearAttachments(pool, snapshotApiCallHandle, nullptr, 0,
-                                                            (VkCommandBuffer)(boxed_dispatchHandle),
-                                                            attachmentCount, pAttachments,
-                                                            rectCount, pRects);
-                }
-                break;
-            }
-            case OP_vkCmdResolveImage: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdResolveImage");
-                VkImage srcImage;
-                VkImageLayout srcImageLayout;
-                VkImage dstImage;
-                VkImageLayout dstImageLayout;
-                uint32_t regionCount;
-                const VkImageResolve* pRegions;
-                VkImageResolve stack_pRegions[MAX_STACK_ITEMS];
-                uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
-                *(VkImage*)&srcImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
-                memcpy((VkImageLayout*)&srcImageLayout, *readStreamPtrPtr, sizeof(VkImageLayout));
-                *readStreamPtrPtr += sizeof(VkImageLayout);
-                uint64_t cgen_var_1;
-                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
-                *(VkImage*)&dstImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_1));
-                memcpy((VkImageLayout*)&dstImageLayout, *readStreamPtrPtr, sizeof(VkImageLayout));
-                *readStreamPtrPtr += sizeof(VkImageLayout);
-                memcpy((uint32_t*)&regionCount, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                if (regionCount <= MAX_STACK_ITEMS) {
-                    pRegions = (VkImageResolve*)stack_pRegions;
-                } else {
-                    readStream->alloc((void**)&pRegions,
-                                      regionCount * sizeof(const VkImageResolve));
-                }
-                for (uint32_t i = 0; i < (uint32_t)regionCount; ++i) {
-                    reservedunmarshal_VkImageResolve(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                                     (VkImageResolve*)(pRegions + i),
-                                                     readStreamPtrPtr);
-                }
-                if (pRegions) {
-                    for (uint32_t i = 0; i < (uint32_t)regionCount; ++i) {
-                        transform_tohost_VkImageResolve(globalstate,
-                                                        (VkImageResolve*)(pRegions + i));
-                    }
-                }
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdResolveImage((VkCommandBuffer)dispatchHandle, srcImage, srcImageLayout,
-                                          dstImage, dstImageLayout, regionCount, pRegions);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdResolveImage(pool, snapshotApiCallHandle, nullptr, 0,
-                                                        (VkCommandBuffer)(boxed_dispatchHandle),
-                                                        srcImage, srcImageLayout, dstImage,
-                                                        dstImageLayout, regionCount, pRegions);
-                }
-                break;
-            }
-            case OP_vkCmdSetEvent: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdSetEvent");
-                VkEvent event;
-                VkPipelineStageFlags stageMask;
-                uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
-                *(VkEvent*)&event = (VkEvent)unbox_VkEvent((VkEvent)(*&cgen_var_0));
-                memcpy((VkPipelineStageFlags*)&stageMask, *readStreamPtrPtr,
-                       sizeof(VkPipelineStageFlags));
-                *readStreamPtrPtr += sizeof(VkPipelineStageFlags);
-                if (CC_LIKELY(vk)) {
-                    this->on_vkCmdSetEvent(pool, snapshotApiCallHandle,
-                                           (VkCommandBuffer)(boxed_dispatchHandle), event,
-                                           stageMask);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdSetEvent(pool, snapshotApiCallHandle, nullptr, 0,
-                                                    (VkCommandBuffer)(boxed_dispatchHandle), event,
-                                                    stageMask);
-                }
-                break;
-            }
-            case OP_vkCmdResetEvent: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdResetEvent");
-                VkEvent event;
-                VkPipelineStageFlags stageMask;
-                uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
-                *(VkEvent*)&event = (VkEvent)unbox_VkEvent((VkEvent)(*&cgen_var_0));
-                memcpy((VkPipelineStageFlags*)&stageMask, *readStreamPtrPtr,
-                       sizeof(VkPipelineStageFlags));
-                *readStreamPtrPtr += sizeof(VkPipelineStageFlags);
-                if (CC_LIKELY(vk)) {
-                    this->on_vkCmdResetEvent(pool, snapshotApiCallHandle,
-                                             (VkCommandBuffer)(boxed_dispatchHandle), event,
-                                             stageMask);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdResetEvent(pool, snapshotApiCallHandle, nullptr, 0,
-                                                      (VkCommandBuffer)(boxed_dispatchHandle),
-                                                      event, stageMask);
-                }
-                break;
-            }
-            case OP_vkCmdWaitEvents: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdWaitEvents");
-                uint32_t eventCount;
-                const VkEvent* pEvents;
-                VkEvent stack_pEvents[MAX_STACK_ITEMS];
-                VkPipelineStageFlags srcStageMask;
-                VkPipelineStageFlags dstStageMask;
-                uint32_t memoryBarrierCount;
-                const VkMemoryBarrier* pMemoryBarriers;
-                VkMemoryBarrier stack_pMemoryBarriers[MAX_STACK_ITEMS];
-                uint32_t bufferMemoryBarrierCount;
-                const VkBufferMemoryBarrier* pBufferMemoryBarriers;
-                VkBufferMemoryBarrier stack_pBufferMemoryBarriers[MAX_STACK_ITEMS];
-                uint32_t imageMemoryBarrierCount;
-                const VkImageMemoryBarrier* pImageMemoryBarriers;
-                VkImageMemoryBarrier stack_pImageMemoryBarriers[MAX_STACK_ITEMS];
-                memcpy((uint32_t*)&eventCount, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                if (eventCount <= MAX_STACK_ITEMS) {
-                    pEvents = (VkEvent*)stack_pEvents;
-                } else {
-                    readStream->alloc((void**)&pEvents, eventCount * sizeof(const VkEvent));
-                }
-                if (eventCount) {
-                    uint8_t* cgen_var_0_ptr = (uint8_t*)(*readStreamPtrPtr);
-                    *readStreamPtrPtr += 8 * eventCount;
-                    for (uint32_t k = 0; k < eventCount; ++k) {
-                        uint64_t tmpval;
-                        memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkEvent*)pEvents) + k) =
-                            tmpval ? (VkEvent)unbox_VkEvent((VkEvent)tmpval) : VK_NULL_HANDLE;
-                    }
-                }
-                memcpy((VkPipelineStageFlags*)&srcStageMask, *readStreamPtrPtr,
-                       sizeof(VkPipelineStageFlags));
-                *readStreamPtrPtr += sizeof(VkPipelineStageFlags);
-                memcpy((VkPipelineStageFlags*)&dstStageMask, *readStreamPtrPtr,
-                       sizeof(VkPipelineStageFlags));
-                *readStreamPtrPtr += sizeof(VkPipelineStageFlags);
-                memcpy((uint32_t*)&memoryBarrierCount, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                if (memoryBarrierCount <= MAX_STACK_ITEMS) {
-                    pMemoryBarriers = (VkMemoryBarrier*)stack_pMemoryBarriers;
-                } else {
-                    readStream->alloc((void**)&pMemoryBarriers,
-                                      memoryBarrierCount * sizeof(const VkMemoryBarrier));
-                }
-                for (uint32_t i = 0; i < (uint32_t)memoryBarrierCount; ++i) {
-                    reservedunmarshal_VkMemoryBarrier(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                                      (VkMemoryBarrier*)(pMemoryBarriers + i),
-                                                      readStreamPtrPtr);
-                }
-                memcpy((uint32_t*)&bufferMemoryBarrierCount, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                if (bufferMemoryBarrierCount <= MAX_STACK_ITEMS) {
-                    pBufferMemoryBarriers = (VkBufferMemoryBarrier*)stack_pBufferMemoryBarriers;
-                } else {
-                    readStream->alloc(
-                        (void**)&pBufferMemoryBarriers,
-                        bufferMemoryBarrierCount * sizeof(const VkBufferMemoryBarrier));
-                }
-                for (uint32_t i = 0; i < (uint32_t)bufferMemoryBarrierCount; ++i) {
-                    reservedunmarshal_VkBufferMemoryBarrier(
-                        readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                        (VkBufferMemoryBarrier*)(pBufferMemoryBarriers + i), readStreamPtrPtr);
-                }
-                memcpy((uint32_t*)&imageMemoryBarrierCount, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                if (imageMemoryBarrierCount <= MAX_STACK_ITEMS) {
-                    pImageMemoryBarriers = (VkImageMemoryBarrier*)stack_pImageMemoryBarriers;
-                } else {
-                    readStream->alloc((void**)&pImageMemoryBarriers,
-                                      imageMemoryBarrierCount * sizeof(const VkImageMemoryBarrier));
-                }
-                for (uint32_t i = 0; i < (uint32_t)imageMemoryBarrierCount; ++i) {
-                    reservedunmarshal_VkImageMemoryBarrier(
-                        readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                        (VkImageMemoryBarrier*)(pImageMemoryBarriers + i), readStreamPtrPtr);
-                }
-                if (pMemoryBarriers) {
-                    for (uint32_t i = 0; i < (uint32_t)memoryBarrierCount; ++i) {
-                        transform_tohost_VkMemoryBarrier(globalstate,
-                                                         (VkMemoryBarrier*)(pMemoryBarriers + i));
-                    }
-                }
-                if (pBufferMemoryBarriers) {
-                    for (uint32_t i = 0; i < (uint32_t)bufferMemoryBarrierCount; ++i) {
-                        transform_tohost_VkBufferMemoryBarrier(
-                            globalstate, (VkBufferMemoryBarrier*)(pBufferMemoryBarriers + i));
-                    }
-                }
-                if (pImageMemoryBarriers) {
-                    for (uint32_t i = 0; i < (uint32_t)imageMemoryBarrierCount; ++i) {
-                        transform_tohost_VkImageMemoryBarrier(
-                            globalstate, (VkImageMemoryBarrier*)(pImageMemoryBarriers + i));
-                    }
-                }
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdWaitEvents(
-                        (VkCommandBuffer)dispatchHandle, eventCount, pEvents, srcStageMask,
-                        dstStageMask, memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount,
-                        pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdWaitEvents(
-                        pool, snapshotApiCallHandle, nullptr, 0,
-                        (VkCommandBuffer)(boxed_dispatchHandle), eventCount, pEvents, srcStageMask,
-                        dstStageMask, memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount,
-                        pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers);
                 }
                 break;
             }
@@ -1597,6 +629,396 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 }
                 break;
             }
+            case OP_vkCmdExecuteCommands: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdExecuteCommands");
+                uint32_t commandBufferCount;
+                const VkCommandBuffer* pCommandBuffers;
+                VkCommandBuffer stack_pCommandBuffers[MAX_STACK_ITEMS];
+                memcpy((uint32_t*)&commandBufferCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (commandBufferCount <= MAX_STACK_ITEMS) {
+                    pCommandBuffers = (VkCommandBuffer*)stack_pCommandBuffers;
+                } else {
+                    readStream->alloc((void**)&pCommandBuffers,
+                                      commandBufferCount * sizeof(const VkCommandBuffer));
+                }
+                if (commandBufferCount) {
+                    uint8_t* cgen_var_0_ptr = (uint8_t*)(*readStreamPtrPtr);
+                    *readStreamPtrPtr += 8 * commandBufferCount;
+                    for (uint32_t k = 0; k < commandBufferCount; ++k) {
+                        uint64_t tmpval;
+                        memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
+                        *(((VkCommandBuffer*)pCommandBuffers) + k) =
+                            tmpval ? (VkCommandBuffer)unbox_VkCommandBuffer((VkCommandBuffer)tmpval)
+                                   : VK_NULL_HANDLE;
+                    }
+                }
+                if (CC_LIKELY(vk)) {
+                    this->on_vkCmdExecuteCommands(pool, snapshotApiCallHandle,
+                                                  (VkCommandBuffer)(boxed_dispatchHandle),
+                                                  commandBufferCount, pCommandBuffers);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdExecuteCommands(pool, snapshotApiCallHandle, nullptr, 0,
+                                                           (VkCommandBuffer)(boxed_dispatchHandle),
+                                                           commandBufferCount, pCommandBuffers);
+                }
+                break;
+            }
+#endif
+#ifdef VK_COMPUTE_VERSION_1_0
+            case OP_vkCmdBindPipeline: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdBindPipeline");
+                VkPipelineBindPoint pipelineBindPoint;
+                VkPipeline pipeline;
+                memcpy((VkPipelineBindPoint*)&pipelineBindPoint, *readStreamPtrPtr,
+                       sizeof(VkPipelineBindPoint));
+                *readStreamPtrPtr += sizeof(VkPipelineBindPoint);
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkPipeline*)&pipeline = (VkPipeline)unbox_VkPipeline((VkPipeline)(*&cgen_var_0));
+                if (CC_LIKELY(vk)) {
+                    this->on_vkCmdBindPipeline(pool, snapshotApiCallHandle,
+                                               (VkCommandBuffer)(boxed_dispatchHandle),
+                                               pipelineBindPoint, pipeline);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdBindPipeline(pool, snapshotApiCallHandle, nullptr, 0,
+                                                        (VkCommandBuffer)(boxed_dispatchHandle),
+                                                        pipelineBindPoint, pipeline);
+                }
+                break;
+            }
+            case OP_vkCmdBindDescriptorSets: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdBindDescriptorSets");
+                VkPipelineBindPoint pipelineBindPoint;
+                VkPipelineLayout layout;
+                uint32_t firstSet;
+                uint32_t descriptorSetCount;
+                const VkDescriptorSet* pDescriptorSets;
+                VkDescriptorSet stack_pDescriptorSets[MAX_STACK_ITEMS];
+                uint32_t dynamicOffsetCount;
+                const uint32_t* pDynamicOffsets;
+                uint32_t stack_pDynamicOffsets[MAX_STACK_ITEMS];
+                memcpy((VkPipelineBindPoint*)&pipelineBindPoint, *readStreamPtrPtr,
+                       sizeof(VkPipelineBindPoint));
+                *readStreamPtrPtr += sizeof(VkPipelineBindPoint);
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkPipelineLayout*)&layout =
+                    (VkPipelineLayout)unbox_VkPipelineLayout((VkPipelineLayout)(*&cgen_var_0));
+                memcpy((uint32_t*)&firstSet, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&descriptorSetCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (descriptorSetCount <= MAX_STACK_ITEMS) {
+                    pDescriptorSets = (VkDescriptorSet*)stack_pDescriptorSets;
+                } else {
+                    readStream->alloc((void**)&pDescriptorSets,
+                                      descriptorSetCount * sizeof(const VkDescriptorSet));
+                }
+                if (descriptorSetCount) {
+                    uint8_t* cgen_var_1_ptr = (uint8_t*)(*readStreamPtrPtr);
+                    *readStreamPtrPtr += 8 * descriptorSetCount;
+                    for (uint32_t k = 0; k < descriptorSetCount; ++k) {
+                        uint64_t tmpval;
+                        memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
+                        *(((VkDescriptorSet*)pDescriptorSets) + k) =
+                            tmpval ? (VkDescriptorSet)unbox_VkDescriptorSet((VkDescriptorSet)tmpval)
+                                   : VK_NULL_HANDLE;
+                    }
+                }
+                memcpy((uint32_t*)&dynamicOffsetCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (dynamicOffsetCount <= MAX_STACK_ITEMS) {
+                    pDynamicOffsets = (uint32_t*)stack_pDynamicOffsets;
+                } else {
+                    readStream->alloc((void**)&pDynamicOffsets,
+                                      dynamicOffsetCount * sizeof(const uint32_t));
+                }
+                if (dynamicOffsetCount > 0) {
+                    memcpy((uint32_t*)pDynamicOffsets, *readStreamPtrPtr,
+                           dynamicOffsetCount * sizeof(const uint32_t));
+                    *readStreamPtrPtr += dynamicOffsetCount * sizeof(const uint32_t);
+                }
+                if (CC_LIKELY(vk)) {
+                    this->on_vkCmdBindDescriptorSets(
+                        pool, snapshotApiCallHandle, (VkCommandBuffer)(boxed_dispatchHandle),
+                        pipelineBindPoint, layout, firstSet, descriptorSetCount, pDescriptorSets,
+                        dynamicOffsetCount, pDynamicOffsets);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdBindDescriptorSets(
+                        pool, snapshotApiCallHandle, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), pipelineBindPoint, layout,
+                        firstSet, descriptorSetCount, pDescriptorSets, dynamicOffsetCount,
+                        pDynamicOffsets);
+                }
+                break;
+            }
+            case OP_vkCmdClearColorImage: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdClearColorImage");
+                VkImage image;
+                VkImageLayout imageLayout;
+                const VkClearColorValue* pColor;
+                VkClearColorValue stack_pColor[1];
+                uint32_t rangeCount;
+                const VkImageSubresourceRange* pRanges;
+                VkImageSubresourceRange stack_pRanges[MAX_STACK_ITEMS];
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkImage*)&image = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
+                memcpy((VkImageLayout*)&imageLayout, *readStreamPtrPtr, sizeof(VkImageLayout));
+                *readStreamPtrPtr += sizeof(VkImageLayout);
+                pColor = (VkClearColorValue*)stack_pColor;
+                reservedunmarshal_VkClearColorValue(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                    (VkClearColorValue*)(pColor), readStreamPtrPtr);
+                memcpy((uint32_t*)&rangeCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (rangeCount <= MAX_STACK_ITEMS) {
+                    pRanges = (VkImageSubresourceRange*)stack_pRanges;
+                } else {
+                    readStream->alloc((void**)&pRanges,
+                                      rangeCount * sizeof(const VkImageSubresourceRange));
+                }
+                for (uint32_t i = 0; i < (uint32_t)rangeCount; ++i) {
+                    reservedunmarshal_VkImageSubresourceRange(
+                        readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkImageSubresourceRange*)(pRanges + i), readStreamPtrPtr);
+                }
+                if (pColor) {
+                    transform_tohost_VkClearColorValue(globalstate, (VkClearColorValue*)(pColor));
+                }
+                if (pRanges) {
+                    for (uint32_t i = 0; i < (uint32_t)rangeCount; ++i) {
+                        transform_tohost_VkImageSubresourceRange(
+                            globalstate, (VkImageSubresourceRange*)(pRanges + i));
+                    }
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdClearColorImage((VkCommandBuffer)dispatchHandle, image, imageLayout,
+                                             pColor, rangeCount, pRanges);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdClearColorImage(pool, snapshotApiCallHandle, nullptr, 0,
+                                                           (VkCommandBuffer)(boxed_dispatchHandle),
+                                                           image, imageLayout, pColor, rangeCount,
+                                                           pRanges);
+                }
+                break;
+            }
+            case OP_vkCmdDispatch: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdDispatch");
+                uint32_t groupCountX;
+                uint32_t groupCountY;
+                uint32_t groupCountZ;
+                memcpy((uint32_t*)&groupCountX, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&groupCountY, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&groupCountZ, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdDispatch((VkCommandBuffer)dispatchHandle, groupCountX, groupCountY,
+                                      groupCountZ);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdDispatch(pool, snapshotApiCallHandle, nullptr, 0,
+                                                    (VkCommandBuffer)(boxed_dispatchHandle),
+                                                    groupCountX, groupCountY, groupCountZ);
+                }
+                break;
+            }
+            case OP_vkCmdDispatchIndirect: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdDispatchIndirect");
+                VkBuffer buffer;
+                VkDeviceSize offset;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkBuffer*)&buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
+                memcpy((VkDeviceSize*)&offset, *readStreamPtrPtr, sizeof(VkDeviceSize));
+                *readStreamPtrPtr += sizeof(VkDeviceSize);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdDispatchIndirect((VkCommandBuffer)dispatchHandle, buffer, offset);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdDispatchIndirect(pool, snapshotApiCallHandle, nullptr, 0,
+                                                            (VkCommandBuffer)(boxed_dispatchHandle),
+                                                            buffer, offset);
+                }
+                break;
+            }
+            case OP_vkCmdSetEvent: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdSetEvent");
+                VkEvent event;
+                VkPipelineStageFlags stageMask;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkEvent*)&event = (VkEvent)unbox_VkEvent((VkEvent)(*&cgen_var_0));
+                memcpy((VkPipelineStageFlags*)&stageMask, *readStreamPtrPtr,
+                       sizeof(VkPipelineStageFlags));
+                *readStreamPtrPtr += sizeof(VkPipelineStageFlags);
+                if (CC_LIKELY(vk)) {
+                    this->on_vkCmdSetEvent(pool, snapshotApiCallHandle,
+                                           (VkCommandBuffer)(boxed_dispatchHandle), event,
+                                           stageMask);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetEvent(pool, snapshotApiCallHandle, nullptr, 0,
+                                                    (VkCommandBuffer)(boxed_dispatchHandle), event,
+                                                    stageMask);
+                }
+                break;
+            }
+            case OP_vkCmdResetEvent: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdResetEvent");
+                VkEvent event;
+                VkPipelineStageFlags stageMask;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkEvent*)&event = (VkEvent)unbox_VkEvent((VkEvent)(*&cgen_var_0));
+                memcpy((VkPipelineStageFlags*)&stageMask, *readStreamPtrPtr,
+                       sizeof(VkPipelineStageFlags));
+                *readStreamPtrPtr += sizeof(VkPipelineStageFlags);
+                if (CC_LIKELY(vk)) {
+                    this->on_vkCmdResetEvent(pool, snapshotApiCallHandle,
+                                             (VkCommandBuffer)(boxed_dispatchHandle), event,
+                                             stageMask);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdResetEvent(pool, snapshotApiCallHandle, nullptr, 0,
+                                                      (VkCommandBuffer)(boxed_dispatchHandle),
+                                                      event, stageMask);
+                }
+                break;
+            }
+            case OP_vkCmdWaitEvents: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdWaitEvents");
+                uint32_t eventCount;
+                const VkEvent* pEvents;
+                VkEvent stack_pEvents[MAX_STACK_ITEMS];
+                VkPipelineStageFlags srcStageMask;
+                VkPipelineStageFlags dstStageMask;
+                uint32_t memoryBarrierCount;
+                const VkMemoryBarrier* pMemoryBarriers;
+                VkMemoryBarrier stack_pMemoryBarriers[MAX_STACK_ITEMS];
+                uint32_t bufferMemoryBarrierCount;
+                const VkBufferMemoryBarrier* pBufferMemoryBarriers;
+                VkBufferMemoryBarrier stack_pBufferMemoryBarriers[MAX_STACK_ITEMS];
+                uint32_t imageMemoryBarrierCount;
+                const VkImageMemoryBarrier* pImageMemoryBarriers;
+                VkImageMemoryBarrier stack_pImageMemoryBarriers[MAX_STACK_ITEMS];
+                memcpy((uint32_t*)&eventCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (eventCount <= MAX_STACK_ITEMS) {
+                    pEvents = (VkEvent*)stack_pEvents;
+                } else {
+                    readStream->alloc((void**)&pEvents, eventCount * sizeof(const VkEvent));
+                }
+                if (eventCount) {
+                    uint8_t* cgen_var_0_ptr = (uint8_t*)(*readStreamPtrPtr);
+                    *readStreamPtrPtr += 8 * eventCount;
+                    for (uint32_t k = 0; k < eventCount; ++k) {
+                        uint64_t tmpval;
+                        memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
+                        *(((VkEvent*)pEvents) + k) =
+                            tmpval ? (VkEvent)unbox_VkEvent((VkEvent)tmpval) : VK_NULL_HANDLE;
+                    }
+                }
+                memcpy((VkPipelineStageFlags*)&srcStageMask, *readStreamPtrPtr,
+                       sizeof(VkPipelineStageFlags));
+                *readStreamPtrPtr += sizeof(VkPipelineStageFlags);
+                memcpy((VkPipelineStageFlags*)&dstStageMask, *readStreamPtrPtr,
+                       sizeof(VkPipelineStageFlags));
+                *readStreamPtrPtr += sizeof(VkPipelineStageFlags);
+                memcpy((uint32_t*)&memoryBarrierCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (memoryBarrierCount <= MAX_STACK_ITEMS) {
+                    pMemoryBarriers = (VkMemoryBarrier*)stack_pMemoryBarriers;
+                } else {
+                    readStream->alloc((void**)&pMemoryBarriers,
+                                      memoryBarrierCount * sizeof(const VkMemoryBarrier));
+                }
+                for (uint32_t i = 0; i < (uint32_t)memoryBarrierCount; ++i) {
+                    reservedunmarshal_VkMemoryBarrier(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                      (VkMemoryBarrier*)(pMemoryBarriers + i),
+                                                      readStreamPtrPtr);
+                }
+                memcpy((uint32_t*)&bufferMemoryBarrierCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (bufferMemoryBarrierCount <= MAX_STACK_ITEMS) {
+                    pBufferMemoryBarriers = (VkBufferMemoryBarrier*)stack_pBufferMemoryBarriers;
+                } else {
+                    readStream->alloc(
+                        (void**)&pBufferMemoryBarriers,
+                        bufferMemoryBarrierCount * sizeof(const VkBufferMemoryBarrier));
+                }
+                for (uint32_t i = 0; i < (uint32_t)bufferMemoryBarrierCount; ++i) {
+                    reservedunmarshal_VkBufferMemoryBarrier(
+                        readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkBufferMemoryBarrier*)(pBufferMemoryBarriers + i), readStreamPtrPtr);
+                }
+                memcpy((uint32_t*)&imageMemoryBarrierCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (imageMemoryBarrierCount <= MAX_STACK_ITEMS) {
+                    pImageMemoryBarriers = (VkImageMemoryBarrier*)stack_pImageMemoryBarriers;
+                } else {
+                    readStream->alloc((void**)&pImageMemoryBarriers,
+                                      imageMemoryBarrierCount * sizeof(const VkImageMemoryBarrier));
+                }
+                for (uint32_t i = 0; i < (uint32_t)imageMemoryBarrierCount; ++i) {
+                    reservedunmarshal_VkImageMemoryBarrier(
+                        readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkImageMemoryBarrier*)(pImageMemoryBarriers + i), readStreamPtrPtr);
+                }
+                if (pMemoryBarriers) {
+                    for (uint32_t i = 0; i < (uint32_t)memoryBarrierCount; ++i) {
+                        transform_tohost_VkMemoryBarrier(globalstate,
+                                                         (VkMemoryBarrier*)(pMemoryBarriers + i));
+                    }
+                }
+                if (pBufferMemoryBarriers) {
+                    for (uint32_t i = 0; i < (uint32_t)bufferMemoryBarrierCount; ++i) {
+                        transform_tohost_VkBufferMemoryBarrier(
+                            globalstate, (VkBufferMemoryBarrier*)(pBufferMemoryBarriers + i));
+                    }
+                }
+                if (pImageMemoryBarriers) {
+                    for (uint32_t i = 0; i < (uint32_t)imageMemoryBarrierCount; ++i) {
+                        transform_tohost_VkImageMemoryBarrier(
+                            globalstate, (VkImageMemoryBarrier*)(pImageMemoryBarriers + i));
+                    }
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdWaitEvents(
+                        (VkCommandBuffer)dispatchHandle, eventCount, pEvents, srcStageMask,
+                        dstStageMask, memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount,
+                        pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdWaitEvents(
+                        pool, snapshotApiCallHandle, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), eventCount, pEvents, srcStageMask,
+                        dstStageMask, memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount,
+                        pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers);
+                }
+                break;
+            }
             case OP_vkCmdPushConstants: {
                 GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
                                       "VkSubDecoder vkCmdPushConstants");
@@ -1635,6 +1057,625 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                     this->snapshot()->vkCmdPushConstants(pool, snapshotApiCallHandle, nullptr, 0,
                                                          (VkCommandBuffer)(boxed_dispatchHandle),
                                                          layout, stageFlags, offset, size, pValues);
+                }
+                break;
+            }
+#endif
+#ifdef VK_GRAPHICS_VERSION_1_0
+            case OP_vkCmdSetViewport: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdSetViewport");
+                uint32_t firstViewport;
+                uint32_t viewportCount;
+                const VkViewport* pViewports;
+                VkViewport stack_pViewports[MAX_STACK_ITEMS];
+                memcpy((uint32_t*)&firstViewport, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&viewportCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (viewportCount <= MAX_STACK_ITEMS) {
+                    pViewports = (VkViewport*)stack_pViewports;
+                } else {
+                    readStream->alloc((void**)&pViewports,
+                                      viewportCount * sizeof(const VkViewport));
+                }
+                for (uint32_t i = 0; i < (uint32_t)viewportCount; ++i) {
+                    reservedunmarshal_VkViewport(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                 (VkViewport*)(pViewports + i), readStreamPtrPtr);
+                }
+                if (pViewports) {
+                    for (uint32_t i = 0; i < (uint32_t)viewportCount; ++i) {
+                        transform_tohost_VkViewport(globalstate, (VkViewport*)(pViewports + i));
+                    }
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetViewport((VkCommandBuffer)dispatchHandle, firstViewport,
+                                         viewportCount, pViewports);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetViewport(pool, snapshotApiCallHandle, nullptr, 0,
+                                                       (VkCommandBuffer)(boxed_dispatchHandle),
+                                                       firstViewport, viewportCount, pViewports);
+                }
+                break;
+            }
+            case OP_vkCmdSetScissor: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdSetScissor");
+                uint32_t firstScissor;
+                uint32_t scissorCount;
+                const VkRect2D* pScissors;
+                VkRect2D stack_pScissors[MAX_STACK_ITEMS];
+                memcpy((uint32_t*)&firstScissor, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&scissorCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (scissorCount <= MAX_STACK_ITEMS) {
+                    pScissors = (VkRect2D*)stack_pScissors;
+                } else {
+                    readStream->alloc((void**)&pScissors, scissorCount * sizeof(const VkRect2D));
+                }
+                for (uint32_t i = 0; i < (uint32_t)scissorCount; ++i) {
+                    reservedunmarshal_VkRect2D(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                               (VkRect2D*)(pScissors + i), readStreamPtrPtr);
+                }
+                if (pScissors) {
+                    for (uint32_t i = 0; i < (uint32_t)scissorCount; ++i) {
+                        transform_tohost_VkRect2D(globalstate, (VkRect2D*)(pScissors + i));
+                    }
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetScissor((VkCommandBuffer)dispatchHandle, firstScissor, scissorCount,
+                                        pScissors);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetScissor(pool, snapshotApiCallHandle, nullptr, 0,
+                                                      (VkCommandBuffer)(boxed_dispatchHandle),
+                                                      firstScissor, scissorCount, pScissors);
+                }
+                break;
+            }
+            case OP_vkCmdSetLineWidth: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdSetLineWidth");
+                float lineWidth;
+                memcpy((float*)&lineWidth, *readStreamPtrPtr, sizeof(float));
+                *readStreamPtrPtr += sizeof(float);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetLineWidth((VkCommandBuffer)dispatchHandle, lineWidth);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetLineWidth(pool, snapshotApiCallHandle, nullptr, 0,
+                                                        (VkCommandBuffer)(boxed_dispatchHandle),
+                                                        lineWidth);
+                }
+                break;
+            }
+            case OP_vkCmdSetDepthBias: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdSetDepthBias");
+                float depthBiasConstantFactor;
+                float depthBiasClamp;
+                float depthBiasSlopeFactor;
+                memcpy((float*)&depthBiasConstantFactor, *readStreamPtrPtr, sizeof(float));
+                *readStreamPtrPtr += sizeof(float);
+                memcpy((float*)&depthBiasClamp, *readStreamPtrPtr, sizeof(float));
+                *readStreamPtrPtr += sizeof(float);
+                memcpy((float*)&depthBiasSlopeFactor, *readStreamPtrPtr, sizeof(float));
+                *readStreamPtrPtr += sizeof(float);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetDepthBias((VkCommandBuffer)dispatchHandle, depthBiasConstantFactor,
+                                          depthBiasClamp, depthBiasSlopeFactor);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetDepthBias(pool, snapshotApiCallHandle, nullptr, 0,
+                                                        (VkCommandBuffer)(boxed_dispatchHandle),
+                                                        depthBiasConstantFactor, depthBiasClamp,
+                                                        depthBiasSlopeFactor);
+                }
+                break;
+            }
+            case OP_vkCmdSetBlendConstants: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdSetBlendConstants");
+                float blendConstants[4];
+                memcpy((float*)blendConstants, *readStreamPtrPtr, 4 * sizeof(const float));
+                *readStreamPtrPtr += 4 * sizeof(const float);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetBlendConstants((VkCommandBuffer)dispatchHandle, blendConstants);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetBlendConstants(
+                        pool, snapshotApiCallHandle, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), blendConstants);
+                }
+                break;
+            }
+            case OP_vkCmdSetDepthBounds: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdSetDepthBounds");
+                float minDepthBounds;
+                float maxDepthBounds;
+                memcpy((float*)&minDepthBounds, *readStreamPtrPtr, sizeof(float));
+                *readStreamPtrPtr += sizeof(float);
+                memcpy((float*)&maxDepthBounds, *readStreamPtrPtr, sizeof(float));
+                *readStreamPtrPtr += sizeof(float);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetDepthBounds((VkCommandBuffer)dispatchHandle, minDepthBounds,
+                                            maxDepthBounds);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetDepthBounds(pool, snapshotApiCallHandle, nullptr, 0,
+                                                          (VkCommandBuffer)(boxed_dispatchHandle),
+                                                          minDepthBounds, maxDepthBounds);
+                }
+                break;
+            }
+            case OP_vkCmdSetStencilCompareMask: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdSetStencilCompareMask");
+                VkStencilFaceFlags faceMask;
+                uint32_t compareMask;
+                memcpy((VkStencilFaceFlags*)&faceMask, *readStreamPtrPtr,
+                       sizeof(VkStencilFaceFlags));
+                *readStreamPtrPtr += sizeof(VkStencilFaceFlags);
+                memcpy((uint32_t*)&compareMask, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetStencilCompareMask((VkCommandBuffer)dispatchHandle, faceMask,
+                                                   compareMask);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetStencilCompareMask(
+                        pool, snapshotApiCallHandle, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), faceMask, compareMask);
+                }
+                break;
+            }
+            case OP_vkCmdSetStencilWriteMask: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdSetStencilWriteMask");
+                VkStencilFaceFlags faceMask;
+                uint32_t writeMask;
+                memcpy((VkStencilFaceFlags*)&faceMask, *readStreamPtrPtr,
+                       sizeof(VkStencilFaceFlags));
+                *readStreamPtrPtr += sizeof(VkStencilFaceFlags);
+                memcpy((uint32_t*)&writeMask, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetStencilWriteMask((VkCommandBuffer)dispatchHandle, faceMask,
+                                                 writeMask);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetStencilWriteMask(
+                        pool, snapshotApiCallHandle, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), faceMask, writeMask);
+                }
+                break;
+            }
+            case OP_vkCmdSetStencilReference: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdSetStencilReference");
+                VkStencilFaceFlags faceMask;
+                uint32_t reference;
+                memcpy((VkStencilFaceFlags*)&faceMask, *readStreamPtrPtr,
+                       sizeof(VkStencilFaceFlags));
+                *readStreamPtrPtr += sizeof(VkStencilFaceFlags);
+                memcpy((uint32_t*)&reference, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetStencilReference((VkCommandBuffer)dispatchHandle, faceMask,
+                                                 reference);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetStencilReference(
+                        pool, snapshotApiCallHandle, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), faceMask, reference);
+                }
+                break;
+            }
+            case OP_vkCmdBindIndexBuffer: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdBindIndexBuffer");
+                VkBuffer buffer;
+                VkDeviceSize offset;
+                VkIndexType indexType;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkBuffer*)&buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
+                memcpy((VkDeviceSize*)&offset, *readStreamPtrPtr, sizeof(VkDeviceSize));
+                *readStreamPtrPtr += sizeof(VkDeviceSize);
+                memcpy((VkIndexType*)&indexType, *readStreamPtrPtr, sizeof(VkIndexType));
+                *readStreamPtrPtr += sizeof(VkIndexType);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdBindIndexBuffer((VkCommandBuffer)dispatchHandle, buffer, offset,
+                                             indexType);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdBindIndexBuffer(pool, snapshotApiCallHandle, nullptr, 0,
+                                                           (VkCommandBuffer)(boxed_dispatchHandle),
+                                                           buffer, offset, indexType);
+                }
+                break;
+            }
+            case OP_vkCmdBindVertexBuffers: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdBindVertexBuffers");
+                uint32_t firstBinding;
+                uint32_t bindingCount;
+                const VkBuffer* pBuffers;
+                VkBuffer stack_pBuffers[MAX_STACK_ITEMS];
+                const VkDeviceSize* pOffsets;
+                VkDeviceSize stack_pOffsets[MAX_STACK_ITEMS];
+                memcpy((uint32_t*)&firstBinding, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&bindingCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (bindingCount <= MAX_STACK_ITEMS) {
+                    pBuffers = (VkBuffer*)stack_pBuffers;
+                } else {
+                    readStream->alloc((void**)&pBuffers, bindingCount * sizeof(const VkBuffer));
+                }
+                if (bindingCount) {
+                    uint8_t* cgen_var_0_ptr = (uint8_t*)(*readStreamPtrPtr);
+                    *readStreamPtrPtr += 8 * bindingCount;
+                    for (uint32_t k = 0; k < bindingCount; ++k) {
+                        uint64_t tmpval;
+                        memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
+                        *(((VkBuffer*)pBuffers) + k) =
+                            tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval) : VK_NULL_HANDLE;
+                    }
+                }
+                if (bindingCount <= MAX_STACK_ITEMS) {
+                    pOffsets = (VkDeviceSize*)stack_pOffsets;
+                } else {
+                    readStream->alloc((void**)&pOffsets, bindingCount * sizeof(const VkDeviceSize));
+                }
+                if (bindingCount > 0) {
+                    memcpy((VkDeviceSize*)pOffsets, *readStreamPtrPtr,
+                           bindingCount * sizeof(const VkDeviceSize));
+                    *readStreamPtrPtr += bindingCount * sizeof(const VkDeviceSize);
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdBindVertexBuffers((VkCommandBuffer)dispatchHandle, firstBinding,
+                                               bindingCount, pBuffers, pOffsets);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdBindVertexBuffers(
+                        pool, snapshotApiCallHandle, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), firstBinding, bindingCount,
+                        pBuffers, pOffsets);
+                }
+                break;
+            }
+            case OP_vkCmdDraw: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY, "VkSubDecoder vkCmdDraw");
+                uint32_t vertexCount;
+                uint32_t instanceCount;
+                uint32_t firstVertex;
+                uint32_t firstInstance;
+                memcpy((uint32_t*)&vertexCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&instanceCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&firstVertex, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&firstInstance, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdDraw((VkCommandBuffer)dispatchHandle, vertexCount, instanceCount,
+                                  firstVertex, firstInstance);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdDraw(pool, snapshotApiCallHandle, nullptr, 0,
+                                                (VkCommandBuffer)(boxed_dispatchHandle),
+                                                vertexCount, instanceCount, firstVertex,
+                                                firstInstance);
+                }
+                break;
+            }
+            case OP_vkCmdDrawIndexed: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdDrawIndexed");
+                uint32_t indexCount;
+                uint32_t instanceCount;
+                uint32_t firstIndex;
+                int32_t vertexOffset;
+                uint32_t firstInstance;
+                memcpy((uint32_t*)&indexCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&instanceCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&firstIndex, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((int32_t*)&vertexOffset, *readStreamPtrPtr, sizeof(int32_t));
+                *readStreamPtrPtr += sizeof(int32_t);
+                memcpy((uint32_t*)&firstInstance, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdDrawIndexed((VkCommandBuffer)dispatchHandle, indexCount, instanceCount,
+                                         firstIndex, vertexOffset, firstInstance);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdDrawIndexed(pool, snapshotApiCallHandle, nullptr, 0,
+                                                       (VkCommandBuffer)(boxed_dispatchHandle),
+                                                       indexCount, instanceCount, firstIndex,
+                                                       vertexOffset, firstInstance);
+                }
+                break;
+            }
+            case OP_vkCmdDrawIndirect: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdDrawIndirect");
+                VkBuffer buffer;
+                VkDeviceSize offset;
+                uint32_t drawCount;
+                uint32_t stride;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkBuffer*)&buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
+                memcpy((VkDeviceSize*)&offset, *readStreamPtrPtr, sizeof(VkDeviceSize));
+                *readStreamPtrPtr += sizeof(VkDeviceSize);
+                memcpy((uint32_t*)&drawCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&stride, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdDrawIndirect((VkCommandBuffer)dispatchHandle, buffer, offset,
+                                          drawCount, stride);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdDrawIndirect(pool, snapshotApiCallHandle, nullptr, 0,
+                                                        (VkCommandBuffer)(boxed_dispatchHandle),
+                                                        buffer, offset, drawCount, stride);
+                }
+                break;
+            }
+            case OP_vkCmdDrawIndexedIndirect: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdDrawIndexedIndirect");
+                VkBuffer buffer;
+                VkDeviceSize offset;
+                uint32_t drawCount;
+                uint32_t stride;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkBuffer*)&buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
+                memcpy((VkDeviceSize*)&offset, *readStreamPtrPtr, sizeof(VkDeviceSize));
+                *readStreamPtrPtr += sizeof(VkDeviceSize);
+                memcpy((uint32_t*)&drawCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&stride, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdDrawIndexedIndirect((VkCommandBuffer)dispatchHandle, buffer, offset,
+                                                 drawCount, stride);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdDrawIndexedIndirect(
+                        pool, snapshotApiCallHandle, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), buffer, offset, drawCount, stride);
+                }
+                break;
+            }
+            case OP_vkCmdBlitImage: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdBlitImage");
+                VkImage srcImage;
+                VkImageLayout srcImageLayout;
+                VkImage dstImage;
+                VkImageLayout dstImageLayout;
+                uint32_t regionCount;
+                const VkImageBlit* pRegions;
+                VkImageBlit stack_pRegions[MAX_STACK_ITEMS];
+                VkFilter filter;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkImage*)&srcImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
+                memcpy((VkImageLayout*)&srcImageLayout, *readStreamPtrPtr, sizeof(VkImageLayout));
+                *readStreamPtrPtr += sizeof(VkImageLayout);
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkImage*)&dstImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_1));
+                memcpy((VkImageLayout*)&dstImageLayout, *readStreamPtrPtr, sizeof(VkImageLayout));
+                *readStreamPtrPtr += sizeof(VkImageLayout);
+                memcpy((uint32_t*)&regionCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (regionCount <= MAX_STACK_ITEMS) {
+                    pRegions = (VkImageBlit*)stack_pRegions;
+                } else {
+                    readStream->alloc((void**)&pRegions, regionCount * sizeof(const VkImageBlit));
+                }
+                for (uint32_t i = 0; i < (uint32_t)regionCount; ++i) {
+                    reservedunmarshal_VkImageBlit(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                  (VkImageBlit*)(pRegions + i), readStreamPtrPtr);
+                }
+                memcpy((VkFilter*)&filter, *readStreamPtrPtr, sizeof(VkFilter));
+                *readStreamPtrPtr += sizeof(VkFilter);
+                if (pRegions) {
+                    for (uint32_t i = 0; i < (uint32_t)regionCount; ++i) {
+                        transform_tohost_VkImageBlit(globalstate, (VkImageBlit*)(pRegions + i));
+                    }
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdBlitImage((VkCommandBuffer)dispatchHandle, srcImage, srcImageLayout,
+                                       dstImage, dstImageLayout, regionCount, pRegions, filter);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdBlitImage(pool, snapshotApiCallHandle, nullptr, 0,
+                                                     (VkCommandBuffer)(boxed_dispatchHandle),
+                                                     srcImage, srcImageLayout, dstImage,
+                                                     dstImageLayout, regionCount, pRegions, filter);
+                }
+                break;
+            }
+            case OP_vkCmdClearDepthStencilImage: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdClearDepthStencilImage");
+                VkImage image;
+                VkImageLayout imageLayout;
+                const VkClearDepthStencilValue* pDepthStencil;
+                VkClearDepthStencilValue stack_pDepthStencil[1];
+                uint32_t rangeCount;
+                const VkImageSubresourceRange* pRanges;
+                VkImageSubresourceRange stack_pRanges[MAX_STACK_ITEMS];
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkImage*)&image = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
+                memcpy((VkImageLayout*)&imageLayout, *readStreamPtrPtr, sizeof(VkImageLayout));
+                *readStreamPtrPtr += sizeof(VkImageLayout);
+                pDepthStencil = (VkClearDepthStencilValue*)stack_pDepthStencil;
+                reservedunmarshal_VkClearDepthStencilValue(
+                    readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkClearDepthStencilValue*)(pDepthStencil), readStreamPtrPtr);
+                memcpy((uint32_t*)&rangeCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (rangeCount <= MAX_STACK_ITEMS) {
+                    pRanges = (VkImageSubresourceRange*)stack_pRanges;
+                } else {
+                    readStream->alloc((void**)&pRanges,
+                                      rangeCount * sizeof(const VkImageSubresourceRange));
+                }
+                for (uint32_t i = 0; i < (uint32_t)rangeCount; ++i) {
+                    reservedunmarshal_VkImageSubresourceRange(
+                        readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkImageSubresourceRange*)(pRanges + i), readStreamPtrPtr);
+                }
+                if (pDepthStencil) {
+                    transform_tohost_VkClearDepthStencilValue(
+                        globalstate, (VkClearDepthStencilValue*)(pDepthStencil));
+                }
+                if (pRanges) {
+                    for (uint32_t i = 0; i < (uint32_t)rangeCount; ++i) {
+                        transform_tohost_VkImageSubresourceRange(
+                            globalstate, (VkImageSubresourceRange*)(pRanges + i));
+                    }
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdClearDepthStencilImage((VkCommandBuffer)dispatchHandle, image,
+                                                    imageLayout, pDepthStencil, rangeCount,
+                                                    pRanges);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdClearDepthStencilImage(
+                        pool, snapshotApiCallHandle, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), image, imageLayout, pDepthStencil,
+                        rangeCount, pRanges);
+                }
+                break;
+            }
+            case OP_vkCmdClearAttachments: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdClearAttachments");
+                uint32_t attachmentCount;
+                const VkClearAttachment* pAttachments;
+                VkClearAttachment stack_pAttachments[MAX_STACK_ITEMS];
+                uint32_t rectCount;
+                const VkClearRect* pRects;
+                VkClearRect stack_pRects[MAX_STACK_ITEMS];
+                memcpy((uint32_t*)&attachmentCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (attachmentCount <= MAX_STACK_ITEMS) {
+                    pAttachments = (VkClearAttachment*)stack_pAttachments;
+                } else {
+                    readStream->alloc((void**)&pAttachments,
+                                      attachmentCount * sizeof(const VkClearAttachment));
+                }
+                for (uint32_t i = 0; i < (uint32_t)attachmentCount; ++i) {
+                    reservedunmarshal_VkClearAttachment(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                        (VkClearAttachment*)(pAttachments + i),
+                                                        readStreamPtrPtr);
+                }
+                memcpy((uint32_t*)&rectCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (rectCount <= MAX_STACK_ITEMS) {
+                    pRects = (VkClearRect*)stack_pRects;
+                } else {
+                    readStream->alloc((void**)&pRects, rectCount * sizeof(const VkClearRect));
+                }
+                for (uint32_t i = 0; i < (uint32_t)rectCount; ++i) {
+                    reservedunmarshal_VkClearRect(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                  (VkClearRect*)(pRects + i), readStreamPtrPtr);
+                }
+                if (pAttachments) {
+                    for (uint32_t i = 0; i < (uint32_t)attachmentCount; ++i) {
+                        transform_tohost_VkClearAttachment(globalstate,
+                                                           (VkClearAttachment*)(pAttachments + i));
+                    }
+                }
+                if (pRects) {
+                    for (uint32_t i = 0; i < (uint32_t)rectCount; ++i) {
+                        transform_tohost_VkClearRect(globalstate, (VkClearRect*)(pRects + i));
+                    }
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdClearAttachments((VkCommandBuffer)dispatchHandle, attachmentCount,
+                                              pAttachments, rectCount, pRects);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdClearAttachments(pool, snapshotApiCallHandle, nullptr, 0,
+                                                            (VkCommandBuffer)(boxed_dispatchHandle),
+                                                            attachmentCount, pAttachments,
+                                                            rectCount, pRects);
+                }
+                break;
+            }
+            case OP_vkCmdResolveImage: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdResolveImage");
+                VkImage srcImage;
+                VkImageLayout srcImageLayout;
+                VkImage dstImage;
+                VkImageLayout dstImageLayout;
+                uint32_t regionCount;
+                const VkImageResolve* pRegions;
+                VkImageResolve stack_pRegions[MAX_STACK_ITEMS];
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkImage*)&srcImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
+                memcpy((VkImageLayout*)&srcImageLayout, *readStreamPtrPtr, sizeof(VkImageLayout));
+                *readStreamPtrPtr += sizeof(VkImageLayout);
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkImage*)&dstImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_1));
+                memcpy((VkImageLayout*)&dstImageLayout, *readStreamPtrPtr, sizeof(VkImageLayout));
+                *readStreamPtrPtr += sizeof(VkImageLayout);
+                memcpy((uint32_t*)&regionCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (regionCount <= MAX_STACK_ITEMS) {
+                    pRegions = (VkImageResolve*)stack_pRegions;
+                } else {
+                    readStream->alloc((void**)&pRegions,
+                                      regionCount * sizeof(const VkImageResolve));
+                }
+                for (uint32_t i = 0; i < (uint32_t)regionCount; ++i) {
+                    reservedunmarshal_VkImageResolve(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                     (VkImageResolve*)(pRegions + i),
+                                                     readStreamPtrPtr);
+                }
+                if (pRegions) {
+                    for (uint32_t i = 0; i < (uint32_t)regionCount; ++i) {
+                        transform_tohost_VkImageResolve(globalstate,
+                                                        (VkImageResolve*)(pRegions + i));
+                    }
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdResolveImage((VkCommandBuffer)dispatchHandle, srcImage, srcImageLayout,
+                                          dstImage, dstImageLayout, regionCount, pRegions);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdResolveImage(pool, snapshotApiCallHandle, nullptr, 0,
+                                                        (VkCommandBuffer)(boxed_dispatchHandle),
+                                                        srcImage, srcImageLayout, dstImage,
+                                                        dstImageLayout, regionCount, pRegions);
                 }
                 break;
             }
@@ -1694,45 +1735,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 }
                 break;
             }
-            case OP_vkCmdExecuteCommands: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdExecuteCommands");
-                uint32_t commandBufferCount;
-                const VkCommandBuffer* pCommandBuffers;
-                VkCommandBuffer stack_pCommandBuffers[MAX_STACK_ITEMS];
-                memcpy((uint32_t*)&commandBufferCount, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                if (commandBufferCount <= MAX_STACK_ITEMS) {
-                    pCommandBuffers = (VkCommandBuffer*)stack_pCommandBuffers;
-                } else {
-                    readStream->alloc((void**)&pCommandBuffers,
-                                      commandBufferCount * sizeof(const VkCommandBuffer));
-                }
-                if (commandBufferCount) {
-                    uint8_t* cgen_var_0_ptr = (uint8_t*)(*readStreamPtrPtr);
-                    *readStreamPtrPtr += 8 * commandBufferCount;
-                    for (uint32_t k = 0; k < commandBufferCount; ++k) {
-                        uint64_t tmpval;
-                        memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkCommandBuffer*)pCommandBuffers) + k) =
-                            tmpval ? (VkCommandBuffer)unbox_VkCommandBuffer((VkCommandBuffer)tmpval)
-                                   : VK_NULL_HANDLE;
-                    }
-                }
-                if (CC_LIKELY(vk)) {
-                    this->on_vkCmdExecuteCommands(pool, snapshotApiCallHandle,
-                                                  (VkCommandBuffer)(boxed_dispatchHandle),
-                                                  commandBufferCount, pCommandBuffers);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdExecuteCommands(pool, snapshotApiCallHandle, nullptr, 0,
-                                                           (VkCommandBuffer)(boxed_dispatchHandle),
-                                                           commandBufferCount, pCommandBuffers);
-                }
-                break;
-            }
 #endif
-#ifdef VK_VERSION_1_1
+#ifdef VK_BASE_VERSION_1_1
             case OP_vkCmdSetDeviceMask: {
                 GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
                                       "VkSubDecoder vkCmdSetDeviceMask");
@@ -1749,6 +1753,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 }
                 break;
             }
+#endif
+#ifdef VK_COMPUTE_VERSION_1_1
             case OP_vkCmdDispatchBase: {
                 GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
                                       "VkSubDecoder vkCmdDispatchBase");
@@ -1783,7 +1789,7 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 break;
             }
 #endif
-#ifdef VK_VERSION_1_2
+#ifdef VK_GRAPHICS_VERSION_1_2
             case OP_vkCmdDrawIndirectCount: {
                 GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
                                       "VkSubDecoder vkCmdDrawIndirectCount");
@@ -1953,110 +1959,7 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 break;
             }
 #endif
-#ifdef VK_VERSION_1_3
-            case OP_vkCmdSetEvent2: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdSetEvent2");
-                VkEvent event;
-                const VkDependencyInfo* pDependencyInfo;
-                VkDependencyInfo stack_pDependencyInfo[1];
-                uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
-                *(VkEvent*)&event = (VkEvent)unbox_VkEvent((VkEvent)(*&cgen_var_0));
-                pDependencyInfo = (VkDependencyInfo*)stack_pDependencyInfo;
-                reservedunmarshal_VkDependencyInfo(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                                   (VkDependencyInfo*)(pDependencyInfo),
-                                                   readStreamPtrPtr);
-                if (pDependencyInfo) {
-                    transform_tohost_VkDependencyInfo(globalstate,
-                                                      (VkDependencyInfo*)(pDependencyInfo));
-                }
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdSetEvent2((VkCommandBuffer)dispatchHandle, event, pDependencyInfo);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdSetEvent2(pool, snapshotApiCallHandle, nullptr, 0,
-                                                     (VkCommandBuffer)(boxed_dispatchHandle), event,
-                                                     pDependencyInfo);
-                }
-                break;
-            }
-            case OP_vkCmdResetEvent2: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdResetEvent2");
-                VkEvent event;
-                VkPipelineStageFlags2 stageMask;
-                uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
-                *(VkEvent*)&event = (VkEvent)unbox_VkEvent((VkEvent)(*&cgen_var_0));
-                memcpy((VkPipelineStageFlags2*)&stageMask, *readStreamPtrPtr,
-                       sizeof(VkPipelineStageFlags2));
-                *readStreamPtrPtr += sizeof(VkPipelineStageFlags2);
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdResetEvent2((VkCommandBuffer)dispatchHandle, event, stageMask);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdResetEvent2(pool, snapshotApiCallHandle, nullptr, 0,
-                                                       (VkCommandBuffer)(boxed_dispatchHandle),
-                                                       event, stageMask);
-                }
-                break;
-            }
-            case OP_vkCmdWaitEvents2: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdWaitEvents2");
-                uint32_t eventCount;
-                const VkEvent* pEvents;
-                VkEvent stack_pEvents[MAX_STACK_ITEMS];
-                const VkDependencyInfo* pDependencyInfos;
-                VkDependencyInfo stack_pDependencyInfos[MAX_STACK_ITEMS];
-                memcpy((uint32_t*)&eventCount, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                if (eventCount <= MAX_STACK_ITEMS) {
-                    pEvents = (VkEvent*)stack_pEvents;
-                } else {
-                    readStream->alloc((void**)&pEvents, eventCount * sizeof(const VkEvent));
-                }
-                if (eventCount) {
-                    uint8_t* cgen_var_0_ptr = (uint8_t*)(*readStreamPtrPtr);
-                    *readStreamPtrPtr += 8 * eventCount;
-                    for (uint32_t k = 0; k < eventCount; ++k) {
-                        uint64_t tmpval;
-                        memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
-                        *(((VkEvent*)pEvents) + k) =
-                            tmpval ? (VkEvent)unbox_VkEvent((VkEvent)tmpval) : VK_NULL_HANDLE;
-                    }
-                }
-                if (eventCount <= MAX_STACK_ITEMS) {
-                    pDependencyInfos = (VkDependencyInfo*)stack_pDependencyInfos;
-                } else {
-                    readStream->alloc((void**)&pDependencyInfos,
-                                      eventCount * sizeof(const VkDependencyInfo));
-                }
-                for (uint32_t i = 0; i < (uint32_t)eventCount; ++i) {
-                    reservedunmarshal_VkDependencyInfo(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                                                       (VkDependencyInfo*)(pDependencyInfos + i),
-                                                       readStreamPtrPtr);
-                }
-                if (pDependencyInfos) {
-                    for (uint32_t i = 0; i < (uint32_t)eventCount; ++i) {
-                        transform_tohost_VkDependencyInfo(
-                            globalstate, (VkDependencyInfo*)(pDependencyInfos + i));
-                    }
-                }
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdWaitEvents2((VkCommandBuffer)dispatchHandle, eventCount, pEvents,
-                                         pDependencyInfos);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdWaitEvents2(pool, snapshotApiCallHandle, nullptr, 0,
-                                                       (VkCommandBuffer)(boxed_dispatchHandle),
-                                                       eventCount, pEvents, pDependencyInfos);
-                }
-                break;
-            }
+#ifdef VK_BASE_VERSION_1_3
             case OP_vkCmdPipelineBarrier2: {
                 GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
                                       "VkSubDecoder vkCmdPipelineBarrier2");
@@ -2207,6 +2110,113 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 }
                 break;
             }
+#endif
+#ifdef VK_COMPUTE_VERSION_1_3
+            case OP_vkCmdSetEvent2: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdSetEvent2");
+                VkEvent event;
+                const VkDependencyInfo* pDependencyInfo;
+                VkDependencyInfo stack_pDependencyInfo[1];
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkEvent*)&event = (VkEvent)unbox_VkEvent((VkEvent)(*&cgen_var_0));
+                pDependencyInfo = (VkDependencyInfo*)stack_pDependencyInfo;
+                reservedunmarshal_VkDependencyInfo(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                   (VkDependencyInfo*)(pDependencyInfo),
+                                                   readStreamPtrPtr);
+                if (pDependencyInfo) {
+                    transform_tohost_VkDependencyInfo(globalstate,
+                                                      (VkDependencyInfo*)(pDependencyInfo));
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetEvent2((VkCommandBuffer)dispatchHandle, event, pDependencyInfo);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetEvent2(pool, snapshotApiCallHandle, nullptr, 0,
+                                                     (VkCommandBuffer)(boxed_dispatchHandle), event,
+                                                     pDependencyInfo);
+                }
+                break;
+            }
+            case OP_vkCmdResetEvent2: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdResetEvent2");
+                VkEvent event;
+                VkPipelineStageFlags2 stageMask;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkEvent*)&event = (VkEvent)unbox_VkEvent((VkEvent)(*&cgen_var_0));
+                memcpy((VkPipelineStageFlags2*)&stageMask, *readStreamPtrPtr,
+                       sizeof(VkPipelineStageFlags2));
+                *readStreamPtrPtr += sizeof(VkPipelineStageFlags2);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdResetEvent2((VkCommandBuffer)dispatchHandle, event, stageMask);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdResetEvent2(pool, snapshotApiCallHandle, nullptr, 0,
+                                                       (VkCommandBuffer)(boxed_dispatchHandle),
+                                                       event, stageMask);
+                }
+                break;
+            }
+            case OP_vkCmdWaitEvents2: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdWaitEvents2");
+                uint32_t eventCount;
+                const VkEvent* pEvents;
+                VkEvent stack_pEvents[MAX_STACK_ITEMS];
+                const VkDependencyInfo* pDependencyInfos;
+                VkDependencyInfo stack_pDependencyInfos[MAX_STACK_ITEMS];
+                memcpy((uint32_t*)&eventCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (eventCount <= MAX_STACK_ITEMS) {
+                    pEvents = (VkEvent*)stack_pEvents;
+                } else {
+                    readStream->alloc((void**)&pEvents, eventCount * sizeof(const VkEvent));
+                }
+                if (eventCount) {
+                    uint8_t* cgen_var_0_ptr = (uint8_t*)(*readStreamPtrPtr);
+                    *readStreamPtrPtr += 8 * eventCount;
+                    for (uint32_t k = 0; k < eventCount; ++k) {
+                        uint64_t tmpval;
+                        memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
+                        *(((VkEvent*)pEvents) + k) =
+                            tmpval ? (VkEvent)unbox_VkEvent((VkEvent)tmpval) : VK_NULL_HANDLE;
+                    }
+                }
+                if (eventCount <= MAX_STACK_ITEMS) {
+                    pDependencyInfos = (VkDependencyInfo*)stack_pDependencyInfos;
+                } else {
+                    readStream->alloc((void**)&pDependencyInfos,
+                                      eventCount * sizeof(const VkDependencyInfo));
+                }
+                for (uint32_t i = 0; i < (uint32_t)eventCount; ++i) {
+                    reservedunmarshal_VkDependencyInfo(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                                                       (VkDependencyInfo*)(pDependencyInfos + i),
+                                                       readStreamPtrPtr);
+                }
+                if (pDependencyInfos) {
+                    for (uint32_t i = 0; i < (uint32_t)eventCount; ++i) {
+                        transform_tohost_VkDependencyInfo(
+                            globalstate, (VkDependencyInfo*)(pDependencyInfos + i));
+                    }
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdWaitEvents2((VkCommandBuffer)dispatchHandle, eventCount, pEvents,
+                                         pDependencyInfos);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdWaitEvents2(pool, snapshotApiCallHandle, nullptr, 0,
+                                                       (VkCommandBuffer)(boxed_dispatchHandle),
+                                                       eventCount, pEvents, pDependencyInfos);
+                }
+                break;
+            }
+#endif
+#ifdef VK_GRAPHICS_VERSION_1_3
             case OP_vkCmdBlitImage2: {
                 GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
                                       "VkSubDecoder vkCmdBlitImage2");
@@ -2664,55 +2674,7 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 break;
             }
 #endif
-#ifdef VK_VERSION_1_4
-            case OP_vkCmdSetLineStipple: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdSetLineStipple");
-                uint32_t lineStippleFactor;
-                uint16_t lineStipplePattern;
-                memcpy((uint32_t*)&lineStippleFactor, *readStreamPtrPtr, sizeof(uint32_t));
-                *readStreamPtrPtr += sizeof(uint32_t);
-                memcpy((uint16_t*)&lineStipplePattern, *readStreamPtrPtr, sizeof(uint16_t));
-                *readStreamPtrPtr += sizeof(uint16_t);
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdSetLineStipple((VkCommandBuffer)dispatchHandle, lineStippleFactor,
-                                            lineStipplePattern);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdSetLineStipple(pool, snapshotApiCallHandle, nullptr, 0,
-                                                          (VkCommandBuffer)(boxed_dispatchHandle),
-                                                          lineStippleFactor, lineStipplePattern);
-                }
-                break;
-            }
-            case OP_vkCmdBindIndexBuffer2: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdBindIndexBuffer2");
-                VkBuffer buffer;
-                VkDeviceSize offset;
-                VkDeviceSize size;
-                VkIndexType indexType;
-                uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
-                *(VkBuffer*)&buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
-                memcpy((VkDeviceSize*)&offset, *readStreamPtrPtr, sizeof(VkDeviceSize));
-                *readStreamPtrPtr += sizeof(VkDeviceSize);
-                memcpy((VkDeviceSize*)&size, *readStreamPtrPtr, sizeof(VkDeviceSize));
-                *readStreamPtrPtr += sizeof(VkDeviceSize);
-                memcpy((VkIndexType*)&indexType, *readStreamPtrPtr, sizeof(VkIndexType));
-                *readStreamPtrPtr += sizeof(VkIndexType);
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdBindIndexBuffer2((VkCommandBuffer)dispatchHandle, buffer, offset, size,
-                                              indexType);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdBindIndexBuffer2(pool, snapshotApiCallHandle, nullptr, 0,
-                                                            (VkCommandBuffer)(boxed_dispatchHandle),
-                                                            buffer, offset, size, indexType);
-                }
-                break;
-            }
+#ifdef VK_COMPUTE_VERSION_1_4
             case OP_vkCmdPushDescriptorSet: {
                 GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
                                       "VkSubDecoder vkCmdPushDescriptorSet");
@@ -2804,57 +2766,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                         pool, snapshotApiCallHandle, nullptr, 0,
                         (VkCommandBuffer)(boxed_dispatchHandle), descriptorUpdateTemplate, layout,
                         set, pData);
-                }
-                break;
-            }
-            case OP_vkCmdSetRenderingAttachmentLocations: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdSetRenderingAttachmentLocations");
-                const VkRenderingAttachmentLocationInfo* pLocationInfo;
-                VkRenderingAttachmentLocationInfo stack_pLocationInfo[1];
-                pLocationInfo = (VkRenderingAttachmentLocationInfo*)stack_pLocationInfo;
-                reservedunmarshal_VkRenderingAttachmentLocationInfo(
-                    readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                    (VkRenderingAttachmentLocationInfo*)(pLocationInfo), readStreamPtrPtr);
-                if (pLocationInfo) {
-                    transform_tohost_VkRenderingAttachmentLocationInfo(
-                        globalstate, (VkRenderingAttachmentLocationInfo*)(pLocationInfo));
-                }
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdSetRenderingAttachmentLocations((VkCommandBuffer)dispatchHandle,
-                                                             pLocationInfo);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdSetRenderingAttachmentLocations(
-                        pool, snapshotApiCallHandle, nullptr, 0,
-                        (VkCommandBuffer)(boxed_dispatchHandle), pLocationInfo);
-                }
-                break;
-            }
-            case OP_vkCmdSetRenderingInputAttachmentIndices: {
-                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
-                                      "VkSubDecoder vkCmdSetRenderingInputAttachmentIndices");
-                const VkRenderingInputAttachmentIndexInfo* pInputAttachmentIndexInfo;
-                VkRenderingInputAttachmentIndexInfo stack_pInputAttachmentIndexInfo[1];
-                pInputAttachmentIndexInfo =
-                    (VkRenderingInputAttachmentIndexInfo*)stack_pInputAttachmentIndexInfo;
-                reservedunmarshal_VkRenderingInputAttachmentIndexInfo(
-                    readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
-                    (VkRenderingInputAttachmentIndexInfo*)(pInputAttachmentIndexInfo),
-                    readStreamPtrPtr);
-                if (pInputAttachmentIndexInfo) {
-                    transform_tohost_VkRenderingInputAttachmentIndexInfo(
-                        globalstate,
-                        (VkRenderingInputAttachmentIndexInfo*)(pInputAttachmentIndexInfo));
-                }
-                if (CC_LIKELY(vk)) {
-                    vk->vkCmdSetRenderingInputAttachmentIndices((VkCommandBuffer)dispatchHandle,
-                                                                pInputAttachmentIndexInfo);
-                }
-                if (snapshotsEnabled()) {
-                    this->snapshot()->vkCmdSetRenderingInputAttachmentIndices(
-                        pool, snapshotApiCallHandle, nullptr, 0,
-                        (VkCommandBuffer)(boxed_dispatchHandle), pInputAttachmentIndexInfo);
                 }
                 break;
             }
@@ -2954,6 +2865,107 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                         pool, snapshotApiCallHandle, nullptr, 0,
                         (VkCommandBuffer)(boxed_dispatchHandle),
                         pPushDescriptorSetWithTemplateInfo);
+                }
+                break;
+            }
+#endif
+#ifdef VK_GRAPHICS_VERSION_1_4
+            case OP_vkCmdSetLineStipple: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdSetLineStipple");
+                uint32_t lineStippleFactor;
+                uint16_t lineStipplePattern;
+                memcpy((uint32_t*)&lineStippleFactor, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint16_t*)&lineStipplePattern, *readStreamPtrPtr, sizeof(uint16_t));
+                *readStreamPtrPtr += sizeof(uint16_t);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetLineStipple((VkCommandBuffer)dispatchHandle, lineStippleFactor,
+                                            lineStipplePattern);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetLineStipple(pool, snapshotApiCallHandle, nullptr, 0,
+                                                          (VkCommandBuffer)(boxed_dispatchHandle),
+                                                          lineStippleFactor, lineStipplePattern);
+                }
+                break;
+            }
+            case OP_vkCmdBindIndexBuffer2: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdBindIndexBuffer2");
+                VkBuffer buffer;
+                VkDeviceSize offset;
+                VkDeviceSize size;
+                VkIndexType indexType;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkBuffer*)&buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
+                memcpy((VkDeviceSize*)&offset, *readStreamPtrPtr, sizeof(VkDeviceSize));
+                *readStreamPtrPtr += sizeof(VkDeviceSize);
+                memcpy((VkDeviceSize*)&size, *readStreamPtrPtr, sizeof(VkDeviceSize));
+                *readStreamPtrPtr += sizeof(VkDeviceSize);
+                memcpy((VkIndexType*)&indexType, *readStreamPtrPtr, sizeof(VkIndexType));
+                *readStreamPtrPtr += sizeof(VkIndexType);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdBindIndexBuffer2((VkCommandBuffer)dispatchHandle, buffer, offset, size,
+                                              indexType);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdBindIndexBuffer2(pool, snapshotApiCallHandle, nullptr, 0,
+                                                            (VkCommandBuffer)(boxed_dispatchHandle),
+                                                            buffer, offset, size, indexType);
+                }
+                break;
+            }
+            case OP_vkCmdSetRenderingAttachmentLocations: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdSetRenderingAttachmentLocations");
+                const VkRenderingAttachmentLocationInfo* pLocationInfo;
+                VkRenderingAttachmentLocationInfo stack_pLocationInfo[1];
+                pLocationInfo = (VkRenderingAttachmentLocationInfo*)stack_pLocationInfo;
+                reservedunmarshal_VkRenderingAttachmentLocationInfo(
+                    readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkRenderingAttachmentLocationInfo*)(pLocationInfo), readStreamPtrPtr);
+                if (pLocationInfo) {
+                    transform_tohost_VkRenderingAttachmentLocationInfo(
+                        globalstate, (VkRenderingAttachmentLocationInfo*)(pLocationInfo));
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetRenderingAttachmentLocations((VkCommandBuffer)dispatchHandle,
+                                                             pLocationInfo);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetRenderingAttachmentLocations(
+                        pool, snapshotApiCallHandle, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), pLocationInfo);
+                }
+                break;
+            }
+            case OP_vkCmdSetRenderingInputAttachmentIndices: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdSetRenderingInputAttachmentIndices");
+                const VkRenderingInputAttachmentIndexInfo* pInputAttachmentIndexInfo;
+                VkRenderingInputAttachmentIndexInfo stack_pInputAttachmentIndexInfo[1];
+                pInputAttachmentIndexInfo =
+                    (VkRenderingInputAttachmentIndexInfo*)stack_pInputAttachmentIndexInfo;
+                reservedunmarshal_VkRenderingInputAttachmentIndexInfo(
+                    readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkRenderingInputAttachmentIndexInfo*)(pInputAttachmentIndexInfo),
+                    readStreamPtrPtr);
+                if (pInputAttachmentIndexInfo) {
+                    transform_tohost_VkRenderingInputAttachmentIndexInfo(
+                        globalstate,
+                        (VkRenderingInputAttachmentIndexInfo*)(pInputAttachmentIndexInfo));
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetRenderingInputAttachmentIndices((VkCommandBuffer)dispatchHandle,
+                                                                pInputAttachmentIndexInfo);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetRenderingInputAttachmentIndices(
+                        pool, snapshotApiCallHandle, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), pInputAttachmentIndexInfo);
                 }
                 break;
             }

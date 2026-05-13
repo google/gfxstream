@@ -57,7 +57,7 @@ class VkDecoderGlobalState;
     LIST_TRIVIAL_TRANSFORMED_TYPES(f) \
     LIST_NON_TRIVIAL_TRANSFORMED_TYPES(f)
 
-#ifdef VK_VERSION_1_0
+#ifdef VK_BASE_VERSION_1_0
 void transform_tohost_VkExtent2D(VkDecoderGlobalState* resourceTracker, VkExtent2D* toTransform);
 
 void transform_fromhost_VkExtent2D(VkDecoderGlobalState* resourceTracker, VkExtent2D* toTransform);
@@ -89,54 +89,6 @@ void transform_tohost_VkBaseOutStructure(VkDecoderGlobalState* resourceTracker,
 
 void transform_fromhost_VkBaseOutStructure(VkDecoderGlobalState* resourceTracker,
                                            VkBaseOutStructure* toTransform);
-
-void transform_tohost_VkBufferMemoryBarrier(VkDecoderGlobalState* resourceTracker,
-                                            VkBufferMemoryBarrier* toTransform);
-
-void transform_fromhost_VkBufferMemoryBarrier(VkDecoderGlobalState* resourceTracker,
-                                              VkBufferMemoryBarrier* toTransform);
-
-void transform_tohost_VkDispatchIndirectCommand(VkDecoderGlobalState* resourceTracker,
-                                                VkDispatchIndirectCommand* toTransform);
-
-void transform_fromhost_VkDispatchIndirectCommand(VkDecoderGlobalState* resourceTracker,
-                                                  VkDispatchIndirectCommand* toTransform);
-
-void transform_tohost_VkDrawIndexedIndirectCommand(VkDecoderGlobalState* resourceTracker,
-                                                   VkDrawIndexedIndirectCommand* toTransform);
-
-void transform_fromhost_VkDrawIndexedIndirectCommand(VkDecoderGlobalState* resourceTracker,
-                                                     VkDrawIndexedIndirectCommand* toTransform);
-
-void transform_tohost_VkDrawIndirectCommand(VkDecoderGlobalState* resourceTracker,
-                                            VkDrawIndirectCommand* toTransform);
-
-void transform_fromhost_VkDrawIndirectCommand(VkDecoderGlobalState* resourceTracker,
-                                              VkDrawIndirectCommand* toTransform);
-
-void transform_tohost_VkImageSubresourceRange(VkDecoderGlobalState* resourceTracker,
-                                              VkImageSubresourceRange* toTransform);
-
-void transform_fromhost_VkImageSubresourceRange(VkDecoderGlobalState* resourceTracker,
-                                                VkImageSubresourceRange* toTransform);
-
-void transform_tohost_VkImageMemoryBarrier(VkDecoderGlobalState* resourceTracker,
-                                           VkImageMemoryBarrier* toTransform);
-
-void transform_fromhost_VkImageMemoryBarrier(VkDecoderGlobalState* resourceTracker,
-                                             VkImageMemoryBarrier* toTransform);
-
-void transform_tohost_VkMemoryBarrier(VkDecoderGlobalState* resourceTracker,
-                                      VkMemoryBarrier* toTransform);
-
-void transform_fromhost_VkMemoryBarrier(VkDecoderGlobalState* resourceTracker,
-                                        VkMemoryBarrier* toTransform);
-
-void transform_tohost_VkPipelineCacheHeaderVersionOne(VkDecoderGlobalState* resourceTracker,
-                                                      VkPipelineCacheHeaderVersionOne* toTransform);
-
-void transform_fromhost_VkPipelineCacheHeaderVersionOne(
-    VkDecoderGlobalState* resourceTracker, VkPipelineCacheHeaderVersionOne* toTransform);
 
 void transform_tohost_VkAllocationCallbacks(VkDecoderGlobalState* resourceTracker,
                                             VkAllocationCallbacks* toTransform);
@@ -264,6 +216,36 @@ void transform_tohost_VkMemoryRequirements(VkDecoderGlobalState* resourceTracker
 void transform_fromhost_VkMemoryRequirements(VkDecoderGlobalState* resourceTracker,
                                              VkMemoryRequirements* toTransform);
 
+void transform_tohost_VkImageSubresource(VkDecoderGlobalState* resourceTracker,
+                                         VkImageSubresource* toTransform);
+
+void transform_fromhost_VkImageSubresource(VkDecoderGlobalState* resourceTracker,
+                                           VkImageSubresource* toTransform);
+
+void transform_tohost_VkSparseImageFormatProperties(VkDecoderGlobalState* resourceTracker,
+                                                    VkSparseImageFormatProperties* toTransform);
+
+void transform_fromhost_VkSparseImageFormatProperties(VkDecoderGlobalState* resourceTracker,
+                                                      VkSparseImageFormatProperties* toTransform);
+
+void transform_tohost_VkSparseImageMemoryBind(VkDecoderGlobalState* resourceTracker,
+                                              VkSparseImageMemoryBind* toTransform);
+
+void transform_fromhost_VkSparseImageMemoryBind(VkDecoderGlobalState* resourceTracker,
+                                                VkSparseImageMemoryBind* toTransform);
+
+void transform_tohost_VkSparseImageMemoryBindInfo(VkDecoderGlobalState* resourceTracker,
+                                                  VkSparseImageMemoryBindInfo* toTransform);
+
+void transform_fromhost_VkSparseImageMemoryBindInfo(VkDecoderGlobalState* resourceTracker,
+                                                    VkSparseImageMemoryBindInfo* toTransform);
+
+void transform_tohost_VkSparseImageMemoryRequirements(VkDecoderGlobalState* resourceTracker,
+                                                      VkSparseImageMemoryRequirements* toTransform);
+
+void transform_fromhost_VkSparseImageMemoryRequirements(
+    VkDecoderGlobalState* resourceTracker, VkSparseImageMemoryRequirements* toTransform);
+
 void transform_tohost_VkSparseMemoryBind(VkDecoderGlobalState* resourceTracker,
                                          VkSparseMemoryBind* toTransform);
 
@@ -282,41 +264,11 @@ void transform_tohost_VkSparseImageOpaqueMemoryBindInfo(
 void transform_fromhost_VkSparseImageOpaqueMemoryBindInfo(
     VkDecoderGlobalState* resourceTracker, VkSparseImageOpaqueMemoryBindInfo* toTransform);
 
-void transform_tohost_VkImageSubresource(VkDecoderGlobalState* resourceTracker,
-                                         VkImageSubresource* toTransform);
-
-void transform_fromhost_VkImageSubresource(VkDecoderGlobalState* resourceTracker,
-                                           VkImageSubresource* toTransform);
-
-void transform_tohost_VkSparseImageMemoryBind(VkDecoderGlobalState* resourceTracker,
-                                              VkSparseImageMemoryBind* toTransform);
-
-void transform_fromhost_VkSparseImageMemoryBind(VkDecoderGlobalState* resourceTracker,
-                                                VkSparseImageMemoryBind* toTransform);
-
-void transform_tohost_VkSparseImageMemoryBindInfo(VkDecoderGlobalState* resourceTracker,
-                                                  VkSparseImageMemoryBindInfo* toTransform);
-
-void transform_fromhost_VkSparseImageMemoryBindInfo(VkDecoderGlobalState* resourceTracker,
-                                                    VkSparseImageMemoryBindInfo* toTransform);
-
 void transform_tohost_VkBindSparseInfo(VkDecoderGlobalState* resourceTracker,
                                        VkBindSparseInfo* toTransform);
 
 void transform_fromhost_VkBindSparseInfo(VkDecoderGlobalState* resourceTracker,
                                          VkBindSparseInfo* toTransform);
-
-void transform_tohost_VkSparseImageFormatProperties(VkDecoderGlobalState* resourceTracker,
-                                                    VkSparseImageFormatProperties* toTransform);
-
-void transform_fromhost_VkSparseImageFormatProperties(VkDecoderGlobalState* resourceTracker,
-                                                      VkSparseImageFormatProperties* toTransform);
-
-void transform_tohost_VkSparseImageMemoryRequirements(VkDecoderGlobalState* resourceTracker,
-                                                      VkSparseImageMemoryRequirements* toTransform);
-
-void transform_fromhost_VkSparseImageMemoryRequirements(
-    VkDecoderGlobalState* resourceTracker, VkSparseImageMemoryRequirements* toTransform);
 
 void transform_tohost_VkFenceCreateInfo(VkDecoderGlobalState* resourceTracker,
                                         VkFenceCreateInfo* toTransform);
@@ -330,12 +282,6 @@ void transform_tohost_VkSemaphoreCreateInfo(VkDecoderGlobalState* resourceTracke
 void transform_fromhost_VkSemaphoreCreateInfo(VkDecoderGlobalState* resourceTracker,
                                               VkSemaphoreCreateInfo* toTransform);
 
-void transform_tohost_VkEventCreateInfo(VkDecoderGlobalState* resourceTracker,
-                                        VkEventCreateInfo* toTransform);
-
-void transform_fromhost_VkEventCreateInfo(VkDecoderGlobalState* resourceTracker,
-                                          VkEventCreateInfo* toTransform);
-
 void transform_tohost_VkQueryPoolCreateInfo(VkDecoderGlobalState* resourceTracker,
                                             VkQueryPoolCreateInfo* toTransform);
 
@@ -347,12 +293,6 @@ void transform_tohost_VkBufferCreateInfo(VkDecoderGlobalState* resourceTracker,
 
 void transform_fromhost_VkBufferCreateInfo(VkDecoderGlobalState* resourceTracker,
                                            VkBufferCreateInfo* toTransform);
-
-void transform_tohost_VkBufferViewCreateInfo(VkDecoderGlobalState* resourceTracker,
-                                             VkBufferViewCreateInfo* toTransform);
-
-void transform_fromhost_VkBufferViewCreateInfo(VkDecoderGlobalState* resourceTracker,
-                                               VkBufferViewCreateInfo* toTransform);
 
 void transform_tohost_VkImageCreateInfo(VkDecoderGlobalState* resourceTracker,
                                         VkImageCreateInfo* toTransform);
@@ -372,11 +312,108 @@ void transform_tohost_VkComponentMapping(VkDecoderGlobalState* resourceTracker,
 void transform_fromhost_VkComponentMapping(VkDecoderGlobalState* resourceTracker,
                                            VkComponentMapping* toTransform);
 
+void transform_tohost_VkImageSubresourceRange(VkDecoderGlobalState* resourceTracker,
+                                              VkImageSubresourceRange* toTransform);
+
+void transform_fromhost_VkImageSubresourceRange(VkDecoderGlobalState* resourceTracker,
+                                                VkImageSubresourceRange* toTransform);
+
 void transform_tohost_VkImageViewCreateInfo(VkDecoderGlobalState* resourceTracker,
                                             VkImageViewCreateInfo* toTransform);
 
 void transform_fromhost_VkImageViewCreateInfo(VkDecoderGlobalState* resourceTracker,
                                               VkImageViewCreateInfo* toTransform);
+
+void transform_tohost_VkCommandPoolCreateInfo(VkDecoderGlobalState* resourceTracker,
+                                              VkCommandPoolCreateInfo* toTransform);
+
+void transform_fromhost_VkCommandPoolCreateInfo(VkDecoderGlobalState* resourceTracker,
+                                                VkCommandPoolCreateInfo* toTransform);
+
+void transform_tohost_VkCommandBufferAllocateInfo(VkDecoderGlobalState* resourceTracker,
+                                                  VkCommandBufferAllocateInfo* toTransform);
+
+void transform_fromhost_VkCommandBufferAllocateInfo(VkDecoderGlobalState* resourceTracker,
+                                                    VkCommandBufferAllocateInfo* toTransform);
+
+void transform_tohost_VkCommandBufferInheritanceInfo(VkDecoderGlobalState* resourceTracker,
+                                                     VkCommandBufferInheritanceInfo* toTransform);
+
+void transform_fromhost_VkCommandBufferInheritanceInfo(VkDecoderGlobalState* resourceTracker,
+                                                       VkCommandBufferInheritanceInfo* toTransform);
+
+void transform_tohost_VkCommandBufferBeginInfo(VkDecoderGlobalState* resourceTracker,
+                                               VkCommandBufferBeginInfo* toTransform);
+
+void transform_fromhost_VkCommandBufferBeginInfo(VkDecoderGlobalState* resourceTracker,
+                                                 VkCommandBufferBeginInfo* toTransform);
+
+void transform_tohost_VkBufferCopy(VkDecoderGlobalState* resourceTracker,
+                                   VkBufferCopy* toTransform);
+
+void transform_fromhost_VkBufferCopy(VkDecoderGlobalState* resourceTracker,
+                                     VkBufferCopy* toTransform);
+
+void transform_tohost_VkImageSubresourceLayers(VkDecoderGlobalState* resourceTracker,
+                                               VkImageSubresourceLayers* toTransform);
+
+void transform_fromhost_VkImageSubresourceLayers(VkDecoderGlobalState* resourceTracker,
+                                                 VkImageSubresourceLayers* toTransform);
+
+void transform_tohost_VkBufferImageCopy(VkDecoderGlobalState* resourceTracker,
+                                        VkBufferImageCopy* toTransform);
+
+void transform_fromhost_VkBufferImageCopy(VkDecoderGlobalState* resourceTracker,
+                                          VkBufferImageCopy* toTransform);
+
+void transform_tohost_VkImageCopy(VkDecoderGlobalState* resourceTracker, VkImageCopy* toTransform);
+
+void transform_fromhost_VkImageCopy(VkDecoderGlobalState* resourceTracker,
+                                    VkImageCopy* toTransform);
+
+void transform_tohost_VkBufferMemoryBarrier(VkDecoderGlobalState* resourceTracker,
+                                            VkBufferMemoryBarrier* toTransform);
+
+void transform_fromhost_VkBufferMemoryBarrier(VkDecoderGlobalState* resourceTracker,
+                                              VkBufferMemoryBarrier* toTransform);
+
+void transform_tohost_VkImageMemoryBarrier(VkDecoderGlobalState* resourceTracker,
+                                           VkImageMemoryBarrier* toTransform);
+
+void transform_fromhost_VkImageMemoryBarrier(VkDecoderGlobalState* resourceTracker,
+                                             VkImageMemoryBarrier* toTransform);
+
+void transform_tohost_VkMemoryBarrier(VkDecoderGlobalState* resourceTracker,
+                                      VkMemoryBarrier* toTransform);
+
+void transform_fromhost_VkMemoryBarrier(VkDecoderGlobalState* resourceTracker,
+                                        VkMemoryBarrier* toTransform);
+
+#endif
+#ifdef VK_COMPUTE_VERSION_1_0
+void transform_tohost_VkDispatchIndirectCommand(VkDecoderGlobalState* resourceTracker,
+                                                VkDispatchIndirectCommand* toTransform);
+
+void transform_fromhost_VkDispatchIndirectCommand(VkDecoderGlobalState* resourceTracker,
+                                                  VkDispatchIndirectCommand* toTransform);
+
+void transform_tohost_VkPipelineCacheHeaderVersionOne(VkDecoderGlobalState* resourceTracker,
+                                                      VkPipelineCacheHeaderVersionOne* toTransform);
+
+void transform_fromhost_VkPipelineCacheHeaderVersionOne(
+    VkDecoderGlobalState* resourceTracker, VkPipelineCacheHeaderVersionOne* toTransform);
+
+void transform_tohost_VkEventCreateInfo(VkDecoderGlobalState* resourceTracker,
+                                        VkEventCreateInfo* toTransform);
+
+void transform_fromhost_VkEventCreateInfo(VkDecoderGlobalState* resourceTracker,
+                                          VkEventCreateInfo* toTransform);
+
+void transform_tohost_VkBufferViewCreateInfo(VkDecoderGlobalState* resourceTracker,
+                                             VkBufferViewCreateInfo* toTransform);
+
+void transform_fromhost_VkBufferViewCreateInfo(VkDecoderGlobalState* resourceTracker,
+                                               VkBufferViewCreateInfo* toTransform);
 
 void transform_tohost_VkShaderModuleCreateInfo(VkDecoderGlobalState* resourceTracker,
                                                VkShaderModuleCreateInfo* toTransform);
@@ -413,94 +450,6 @@ void transform_tohost_VkComputePipelineCreateInfo(VkDecoderGlobalState* resource
 
 void transform_fromhost_VkComputePipelineCreateInfo(VkDecoderGlobalState* resourceTracker,
                                                     VkComputePipelineCreateInfo* toTransform);
-
-void transform_tohost_VkVertexInputBindingDescription(VkDecoderGlobalState* resourceTracker,
-                                                      VkVertexInputBindingDescription* toTransform);
-
-void transform_fromhost_VkVertexInputBindingDescription(
-    VkDecoderGlobalState* resourceTracker, VkVertexInputBindingDescription* toTransform);
-
-void transform_tohost_VkVertexInputAttributeDescription(
-    VkDecoderGlobalState* resourceTracker, VkVertexInputAttributeDescription* toTransform);
-
-void transform_fromhost_VkVertexInputAttributeDescription(
-    VkDecoderGlobalState* resourceTracker, VkVertexInputAttributeDescription* toTransform);
-
-void transform_tohost_VkPipelineVertexInputStateCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkPipelineVertexInputStateCreateInfo* toTransform);
-
-void transform_fromhost_VkPipelineVertexInputStateCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkPipelineVertexInputStateCreateInfo* toTransform);
-
-void transform_tohost_VkPipelineInputAssemblyStateCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkPipelineInputAssemblyStateCreateInfo* toTransform);
-
-void transform_fromhost_VkPipelineInputAssemblyStateCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkPipelineInputAssemblyStateCreateInfo* toTransform);
-
-void transform_tohost_VkPipelineTessellationStateCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkPipelineTessellationStateCreateInfo* toTransform);
-
-void transform_fromhost_VkPipelineTessellationStateCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkPipelineTessellationStateCreateInfo* toTransform);
-
-void transform_tohost_VkViewport(VkDecoderGlobalState* resourceTracker, VkViewport* toTransform);
-
-void transform_fromhost_VkViewport(VkDecoderGlobalState* resourceTracker, VkViewport* toTransform);
-
-void transform_tohost_VkPipelineViewportStateCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkPipelineViewportStateCreateInfo* toTransform);
-
-void transform_fromhost_VkPipelineViewportStateCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkPipelineViewportStateCreateInfo* toTransform);
-
-void transform_tohost_VkPipelineRasterizationStateCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkPipelineRasterizationStateCreateInfo* toTransform);
-
-void transform_fromhost_VkPipelineRasterizationStateCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkPipelineRasterizationStateCreateInfo* toTransform);
-
-void transform_tohost_VkPipelineMultisampleStateCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkPipelineMultisampleStateCreateInfo* toTransform);
-
-void transform_fromhost_VkPipelineMultisampleStateCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkPipelineMultisampleStateCreateInfo* toTransform);
-
-void transform_tohost_VkStencilOpState(VkDecoderGlobalState* resourceTracker,
-                                       VkStencilOpState* toTransform);
-
-void transform_fromhost_VkStencilOpState(VkDecoderGlobalState* resourceTracker,
-                                         VkStencilOpState* toTransform);
-
-void transform_tohost_VkPipelineDepthStencilStateCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkPipelineDepthStencilStateCreateInfo* toTransform);
-
-void transform_fromhost_VkPipelineDepthStencilStateCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkPipelineDepthStencilStateCreateInfo* toTransform);
-
-void transform_tohost_VkPipelineColorBlendAttachmentState(
-    VkDecoderGlobalState* resourceTracker, VkPipelineColorBlendAttachmentState* toTransform);
-
-void transform_fromhost_VkPipelineColorBlendAttachmentState(
-    VkDecoderGlobalState* resourceTracker, VkPipelineColorBlendAttachmentState* toTransform);
-
-void transform_tohost_VkPipelineColorBlendStateCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkPipelineColorBlendStateCreateInfo* toTransform);
-
-void transform_fromhost_VkPipelineColorBlendStateCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkPipelineColorBlendStateCreateInfo* toTransform);
-
-void transform_tohost_VkPipelineDynamicStateCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkPipelineDynamicStateCreateInfo* toTransform);
-
-void transform_fromhost_VkPipelineDynamicStateCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkPipelineDynamicStateCreateInfo* toTransform);
-
-void transform_tohost_VkGraphicsPipelineCreateInfo(VkDecoderGlobalState* resourceTracker,
-                                                   VkGraphicsPipelineCreateInfo* toTransform);
-
-void transform_fromhost_VkGraphicsPipelineCreateInfo(VkDecoderGlobalState* resourceTracker,
-                                                     VkGraphicsPipelineCreateInfo* toTransform);
 
 void transform_tohost_VkPushConstantRange(VkDecoderGlobalState* resourceTracker,
                                           VkPushConstantRange* toTransform);
@@ -574,6 +523,114 @@ void transform_tohost_VkWriteDescriptorSet(VkDecoderGlobalState* resourceTracker
 void transform_fromhost_VkWriteDescriptorSet(VkDecoderGlobalState* resourceTracker,
                                              VkWriteDescriptorSet* toTransform);
 
+void transform_tohost_VkClearColorValue(VkDecoderGlobalState* resourceTracker,
+                                        VkClearColorValue* toTransform);
+
+void transform_fromhost_VkClearColorValue(VkDecoderGlobalState* resourceTracker,
+                                          VkClearColorValue* toTransform);
+
+#endif
+#ifdef VK_GRAPHICS_VERSION_1_0
+void transform_tohost_VkDrawIndexedIndirectCommand(VkDecoderGlobalState* resourceTracker,
+                                                   VkDrawIndexedIndirectCommand* toTransform);
+
+void transform_fromhost_VkDrawIndexedIndirectCommand(VkDecoderGlobalState* resourceTracker,
+                                                     VkDrawIndexedIndirectCommand* toTransform);
+
+void transform_tohost_VkDrawIndirectCommand(VkDecoderGlobalState* resourceTracker,
+                                            VkDrawIndirectCommand* toTransform);
+
+void transform_fromhost_VkDrawIndirectCommand(VkDecoderGlobalState* resourceTracker,
+                                              VkDrawIndirectCommand* toTransform);
+
+void transform_tohost_VkStencilOpState(VkDecoderGlobalState* resourceTracker,
+                                       VkStencilOpState* toTransform);
+
+void transform_fromhost_VkStencilOpState(VkDecoderGlobalState* resourceTracker,
+                                         VkStencilOpState* toTransform);
+
+void transform_tohost_VkVertexInputAttributeDescription(
+    VkDecoderGlobalState* resourceTracker, VkVertexInputAttributeDescription* toTransform);
+
+void transform_fromhost_VkVertexInputAttributeDescription(
+    VkDecoderGlobalState* resourceTracker, VkVertexInputAttributeDescription* toTransform);
+
+void transform_tohost_VkVertexInputBindingDescription(VkDecoderGlobalState* resourceTracker,
+                                                      VkVertexInputBindingDescription* toTransform);
+
+void transform_fromhost_VkVertexInputBindingDescription(
+    VkDecoderGlobalState* resourceTracker, VkVertexInputBindingDescription* toTransform);
+
+void transform_tohost_VkViewport(VkDecoderGlobalState* resourceTracker, VkViewport* toTransform);
+
+void transform_fromhost_VkViewport(VkDecoderGlobalState* resourceTracker, VkViewport* toTransform);
+
+void transform_tohost_VkPipelineColorBlendAttachmentState(
+    VkDecoderGlobalState* resourceTracker, VkPipelineColorBlendAttachmentState* toTransform);
+
+void transform_fromhost_VkPipelineColorBlendAttachmentState(
+    VkDecoderGlobalState* resourceTracker, VkPipelineColorBlendAttachmentState* toTransform);
+
+void transform_tohost_VkPipelineColorBlendStateCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkPipelineColorBlendStateCreateInfo* toTransform);
+
+void transform_fromhost_VkPipelineColorBlendStateCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkPipelineColorBlendStateCreateInfo* toTransform);
+
+void transform_tohost_VkPipelineDepthStencilStateCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkPipelineDepthStencilStateCreateInfo* toTransform);
+
+void transform_fromhost_VkPipelineDepthStencilStateCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkPipelineDepthStencilStateCreateInfo* toTransform);
+
+void transform_tohost_VkPipelineDynamicStateCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkPipelineDynamicStateCreateInfo* toTransform);
+
+void transform_fromhost_VkPipelineDynamicStateCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkPipelineDynamicStateCreateInfo* toTransform);
+
+void transform_tohost_VkPipelineInputAssemblyStateCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkPipelineInputAssemblyStateCreateInfo* toTransform);
+
+void transform_fromhost_VkPipelineInputAssemblyStateCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkPipelineInputAssemblyStateCreateInfo* toTransform);
+
+void transform_tohost_VkPipelineMultisampleStateCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkPipelineMultisampleStateCreateInfo* toTransform);
+
+void transform_fromhost_VkPipelineMultisampleStateCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkPipelineMultisampleStateCreateInfo* toTransform);
+
+void transform_tohost_VkPipelineRasterizationStateCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkPipelineRasterizationStateCreateInfo* toTransform);
+
+void transform_fromhost_VkPipelineRasterizationStateCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkPipelineRasterizationStateCreateInfo* toTransform);
+
+void transform_tohost_VkPipelineTessellationStateCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkPipelineTessellationStateCreateInfo* toTransform);
+
+void transform_fromhost_VkPipelineTessellationStateCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkPipelineTessellationStateCreateInfo* toTransform);
+
+void transform_tohost_VkPipelineVertexInputStateCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkPipelineVertexInputStateCreateInfo* toTransform);
+
+void transform_fromhost_VkPipelineVertexInputStateCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkPipelineVertexInputStateCreateInfo* toTransform);
+
+void transform_tohost_VkPipelineViewportStateCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkPipelineViewportStateCreateInfo* toTransform);
+
+void transform_fromhost_VkPipelineViewportStateCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkPipelineViewportStateCreateInfo* toTransform);
+
+void transform_tohost_VkGraphicsPipelineCreateInfo(VkDecoderGlobalState* resourceTracker,
+                                                   VkGraphicsPipelineCreateInfo* toTransform);
+
+void transform_fromhost_VkGraphicsPipelineCreateInfo(VkDecoderGlobalState* resourceTracker,
+                                                     VkGraphicsPipelineCreateInfo* toTransform);
+
 void transform_tohost_VkAttachmentDescription(VkDecoderGlobalState* resourceTracker,
                                               VkAttachmentDescription* toTransform);
 
@@ -592,17 +649,17 @@ void transform_tohost_VkFramebufferCreateInfo(VkDecoderGlobalState* resourceTrac
 void transform_fromhost_VkFramebufferCreateInfo(VkDecoderGlobalState* resourceTracker,
                                                 VkFramebufferCreateInfo* toTransform);
 
-void transform_tohost_VkSubpassDescription(VkDecoderGlobalState* resourceTracker,
-                                           VkSubpassDescription* toTransform);
-
-void transform_fromhost_VkSubpassDescription(VkDecoderGlobalState* resourceTracker,
-                                             VkSubpassDescription* toTransform);
-
 void transform_tohost_VkSubpassDependency(VkDecoderGlobalState* resourceTracker,
                                           VkSubpassDependency* toTransform);
 
 void transform_fromhost_VkSubpassDependency(VkDecoderGlobalState* resourceTracker,
                                             VkSubpassDependency* toTransform);
+
+void transform_tohost_VkSubpassDescription(VkDecoderGlobalState* resourceTracker,
+                                           VkSubpassDescription* toTransform);
+
+void transform_fromhost_VkSubpassDescription(VkDecoderGlobalState* resourceTracker,
+                                             VkSubpassDescription* toTransform);
 
 void transform_tohost_VkRenderPassCreateInfo(VkDecoderGlobalState* resourceTracker,
                                              VkRenderPassCreateInfo* toTransform);
@@ -610,59 +667,16 @@ void transform_tohost_VkRenderPassCreateInfo(VkDecoderGlobalState* resourceTrack
 void transform_fromhost_VkRenderPassCreateInfo(VkDecoderGlobalState* resourceTracker,
                                                VkRenderPassCreateInfo* toTransform);
 
-void transform_tohost_VkCommandPoolCreateInfo(VkDecoderGlobalState* resourceTracker,
-                                              VkCommandPoolCreateInfo* toTransform);
-
-void transform_fromhost_VkCommandPoolCreateInfo(VkDecoderGlobalState* resourceTracker,
-                                                VkCommandPoolCreateInfo* toTransform);
-
-void transform_tohost_VkCommandBufferAllocateInfo(VkDecoderGlobalState* resourceTracker,
-                                                  VkCommandBufferAllocateInfo* toTransform);
-
-void transform_fromhost_VkCommandBufferAllocateInfo(VkDecoderGlobalState* resourceTracker,
-                                                    VkCommandBufferAllocateInfo* toTransform);
-
-void transform_tohost_VkCommandBufferInheritanceInfo(VkDecoderGlobalState* resourceTracker,
-                                                     VkCommandBufferInheritanceInfo* toTransform);
-
-void transform_fromhost_VkCommandBufferInheritanceInfo(VkDecoderGlobalState* resourceTracker,
-                                                       VkCommandBufferInheritanceInfo* toTransform);
-
-void transform_tohost_VkCommandBufferBeginInfo(VkDecoderGlobalState* resourceTracker,
-                                               VkCommandBufferBeginInfo* toTransform);
-
-void transform_fromhost_VkCommandBufferBeginInfo(VkDecoderGlobalState* resourceTracker,
-                                                 VkCommandBufferBeginInfo* toTransform);
-
-void transform_tohost_VkBufferCopy(VkDecoderGlobalState* resourceTracker,
-                                   VkBufferCopy* toTransform);
-
-void transform_fromhost_VkBufferCopy(VkDecoderGlobalState* resourceTracker,
-                                     VkBufferCopy* toTransform);
-
-void transform_tohost_VkImageSubresourceLayers(VkDecoderGlobalState* resourceTracker,
-                                               VkImageSubresourceLayers* toTransform);
-
-void transform_fromhost_VkImageSubresourceLayers(VkDecoderGlobalState* resourceTracker,
-                                                 VkImageSubresourceLayers* toTransform);
-
-void transform_tohost_VkBufferImageCopy(VkDecoderGlobalState* resourceTracker,
-                                        VkBufferImageCopy* toTransform);
-
-void transform_fromhost_VkBufferImageCopy(VkDecoderGlobalState* resourceTracker,
-                                          VkBufferImageCopy* toTransform);
-
-void transform_tohost_VkClearColorValue(VkDecoderGlobalState* resourceTracker,
-                                        VkClearColorValue* toTransform);
-
-void transform_fromhost_VkClearColorValue(VkDecoderGlobalState* resourceTracker,
-                                          VkClearColorValue* toTransform);
-
 void transform_tohost_VkClearDepthStencilValue(VkDecoderGlobalState* resourceTracker,
                                                VkClearDepthStencilValue* toTransform);
 
 void transform_fromhost_VkClearDepthStencilValue(VkDecoderGlobalState* resourceTracker,
                                                  VkClearDepthStencilValue* toTransform);
+
+void transform_tohost_VkClearRect(VkDecoderGlobalState* resourceTracker, VkClearRect* toTransform);
+
+void transform_fromhost_VkClearRect(VkDecoderGlobalState* resourceTracker,
+                                    VkClearRect* toTransform);
 
 void transform_tohost_VkClearValue(VkDecoderGlobalState* resourceTracker,
                                    VkClearValue* toTransform);
@@ -676,20 +690,10 @@ void transform_tohost_VkClearAttachment(VkDecoderGlobalState* resourceTracker,
 void transform_fromhost_VkClearAttachment(VkDecoderGlobalState* resourceTracker,
                                           VkClearAttachment* toTransform);
 
-void transform_tohost_VkClearRect(VkDecoderGlobalState* resourceTracker, VkClearRect* toTransform);
-
-void transform_fromhost_VkClearRect(VkDecoderGlobalState* resourceTracker,
-                                    VkClearRect* toTransform);
-
 void transform_tohost_VkImageBlit(VkDecoderGlobalState* resourceTracker, VkImageBlit* toTransform);
 
 void transform_fromhost_VkImageBlit(VkDecoderGlobalState* resourceTracker,
                                     VkImageBlit* toTransform);
-
-void transform_tohost_VkImageCopy(VkDecoderGlobalState* resourceTracker, VkImageCopy* toTransform);
-
-void transform_fromhost_VkImageCopy(VkDecoderGlobalState* resourceTracker,
-                                    VkImageCopy* toTransform);
 
 void transform_tohost_VkImageResolve(VkDecoderGlobalState* resourceTracker,
                                      VkImageResolve* toTransform);
@@ -704,13 +708,7 @@ void transform_fromhost_VkRenderPassBeginInfo(VkDecoderGlobalState* resourceTrac
                                               VkRenderPassBeginInfo* toTransform);
 
 #endif
-#ifdef VK_VERSION_1_1
-void transform_tohost_VkPhysicalDeviceSubgroupProperties(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceSubgroupProperties* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceSubgroupProperties(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceSubgroupProperties* toTransform);
-
+#ifdef VK_BASE_VERSION_1_1
 void transform_tohost_VkBindBufferMemoryInfo(VkDecoderGlobalState* resourceTracker,
                                              VkBindBufferMemoryInfo* toTransform);
 
@@ -722,12 +720,6 @@ void transform_tohost_VkBindImageMemoryInfo(VkDecoderGlobalState* resourceTracke
 
 void transform_fromhost_VkBindImageMemoryInfo(VkDecoderGlobalState* resourceTracker,
                                               VkBindImageMemoryInfo* toTransform);
-
-void transform_tohost_VkPhysicalDevice16BitStorageFeatures(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDevice16BitStorageFeatures* toTransform);
-
-void transform_fromhost_VkPhysicalDevice16BitStorageFeatures(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDevice16BitStorageFeatures* toTransform);
 
 void transform_tohost_VkMemoryDedicatedRequirements(VkDecoderGlobalState* resourceTracker,
                                                     VkMemoryDedicatedRequirements* toTransform);
@@ -746,12 +738,6 @@ void transform_tohost_VkMemoryAllocateFlagsInfo(VkDecoderGlobalState* resourceTr
 
 void transform_fromhost_VkMemoryAllocateFlagsInfo(VkDecoderGlobalState* resourceTracker,
                                                   VkMemoryAllocateFlagsInfo* toTransform);
-
-void transform_tohost_VkDeviceGroupRenderPassBeginInfo(
-    VkDecoderGlobalState* resourceTracker, VkDeviceGroupRenderPassBeginInfo* toTransform);
-
-void transform_fromhost_VkDeviceGroupRenderPassBeginInfo(
-    VkDecoderGlobalState* resourceTracker, VkDeviceGroupRenderPassBeginInfo* toTransform);
 
 void transform_tohost_VkDeviceGroupCommandBufferBeginInfo(
     VkDecoderGlobalState* resourceTracker, VkDeviceGroupCommandBufferBeginInfo* toTransform);
@@ -879,69 +865,11 @@ void transform_tohost_VkPhysicalDeviceSparseImageFormatInfo2(
 void transform_fromhost_VkPhysicalDeviceSparseImageFormatInfo2(
     VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceSparseImageFormatInfo2* toTransform);
 
-void transform_tohost_VkPhysicalDevicePointClippingProperties(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDevicePointClippingProperties* toTransform);
-
-void transform_fromhost_VkPhysicalDevicePointClippingProperties(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDevicePointClippingProperties* toTransform);
-
-void transform_tohost_VkInputAttachmentAspectReference(
-    VkDecoderGlobalState* resourceTracker, VkInputAttachmentAspectReference* toTransform);
-
-void transform_fromhost_VkInputAttachmentAspectReference(
-    VkDecoderGlobalState* resourceTracker, VkInputAttachmentAspectReference* toTransform);
-
-void transform_tohost_VkRenderPassInputAttachmentAspectCreateInfo(
-    VkDecoderGlobalState* resourceTracker,
-    VkRenderPassInputAttachmentAspectCreateInfo* toTransform);
-
-void transform_fromhost_VkRenderPassInputAttachmentAspectCreateInfo(
-    VkDecoderGlobalState* resourceTracker,
-    VkRenderPassInputAttachmentAspectCreateInfo* toTransform);
-
 void transform_tohost_VkImageViewUsageCreateInfo(VkDecoderGlobalState* resourceTracker,
                                                  VkImageViewUsageCreateInfo* toTransform);
 
 void transform_fromhost_VkImageViewUsageCreateInfo(VkDecoderGlobalState* resourceTracker,
                                                    VkImageViewUsageCreateInfo* toTransform);
-
-void transform_tohost_VkPipelineTessellationDomainOriginStateCreateInfo(
-    VkDecoderGlobalState* resourceTracker,
-    VkPipelineTessellationDomainOriginStateCreateInfo* toTransform);
-
-void transform_fromhost_VkPipelineTessellationDomainOriginStateCreateInfo(
-    VkDecoderGlobalState* resourceTracker,
-    VkPipelineTessellationDomainOriginStateCreateInfo* toTransform);
-
-void transform_tohost_VkRenderPassMultiviewCreateInfo(VkDecoderGlobalState* resourceTracker,
-                                                      VkRenderPassMultiviewCreateInfo* toTransform);
-
-void transform_fromhost_VkRenderPassMultiviewCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkRenderPassMultiviewCreateInfo* toTransform);
-
-void transform_tohost_VkPhysicalDeviceMultiviewFeatures(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMultiviewFeatures* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceMultiviewFeatures(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMultiviewFeatures* toTransform);
-
-void transform_tohost_VkPhysicalDeviceMultiviewProperties(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMultiviewProperties* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceMultiviewProperties(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMultiviewProperties* toTransform);
-
-void transform_tohost_VkPhysicalDeviceVariablePointersFeatures(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceVariablePointersFeatures* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceVariablePointersFeatures(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceVariablePointersFeatures* toTransform);
-
-DEFINE_ALIAS_FUNCTION(transform_tohost_VkPhysicalDeviceVariablePointersFeatures,
-                      transform_tohost_VkPhysicalDeviceVariablePointerFeatures)
-
-DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPhysicalDeviceVariablePointersFeatures,
-                      transform_fromhost_VkPhysicalDeviceVariablePointerFeatures)
 
 void transform_tohost_VkPhysicalDeviceProtectedMemoryFeatures(
     VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceProtectedMemoryFeatures* toTransform);
@@ -967,18 +895,6 @@ void transform_tohost_VkProtectedSubmitInfo(VkDecoderGlobalState* resourceTracke
 void transform_fromhost_VkProtectedSubmitInfo(VkDecoderGlobalState* resourceTracker,
                                               VkProtectedSubmitInfo* toTransform);
 
-void transform_tohost_VkSamplerYcbcrConversionCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkSamplerYcbcrConversionCreateInfo* toTransform);
-
-void transform_fromhost_VkSamplerYcbcrConversionCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkSamplerYcbcrConversionCreateInfo* toTransform);
-
-void transform_tohost_VkSamplerYcbcrConversionInfo(VkDecoderGlobalState* resourceTracker,
-                                                   VkSamplerYcbcrConversionInfo* toTransform);
-
-void transform_fromhost_VkSamplerYcbcrConversionInfo(VkDecoderGlobalState* resourceTracker,
-                                                     VkSamplerYcbcrConversionInfo* toTransform);
-
 void transform_tohost_VkBindImagePlaneMemoryInfo(VkDecoderGlobalState* resourceTracker,
                                                  VkBindImagePlaneMemoryInfo* toTransform);
 
@@ -990,34 +906,6 @@ void transform_tohost_VkImagePlaneMemoryRequirementsInfo(
 
 void transform_fromhost_VkImagePlaneMemoryRequirementsInfo(
     VkDecoderGlobalState* resourceTracker, VkImagePlaneMemoryRequirementsInfo* toTransform);
-
-void transform_tohost_VkPhysicalDeviceSamplerYcbcrConversionFeatures(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceSamplerYcbcrConversionFeatures* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceSamplerYcbcrConversionFeatures(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceSamplerYcbcrConversionFeatures* toTransform);
-
-void transform_tohost_VkSamplerYcbcrConversionImageFormatProperties(
-    VkDecoderGlobalState* resourceTracker,
-    VkSamplerYcbcrConversionImageFormatProperties* toTransform);
-
-void transform_fromhost_VkSamplerYcbcrConversionImageFormatProperties(
-    VkDecoderGlobalState* resourceTracker,
-    VkSamplerYcbcrConversionImageFormatProperties* toTransform);
-
-void transform_tohost_VkDescriptorUpdateTemplateEntry(VkDecoderGlobalState* resourceTracker,
-                                                      VkDescriptorUpdateTemplateEntry* toTransform);
-
-void transform_fromhost_VkDescriptorUpdateTemplateEntry(
-    VkDecoderGlobalState* resourceTracker, VkDescriptorUpdateTemplateEntry* toTransform);
-
-void transform_tohost_VkDescriptorUpdateTemplateCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkDescriptorUpdateTemplateCreateInfo* toTransform);
-
-void transform_fromhost_VkDescriptorUpdateTemplateCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkDescriptorUpdateTemplateCreateInfo* toTransform);
 
 void transform_tohost_VkExternalMemoryProperties(VkDecoderGlobalState* resourceTracker,
                                                  VkExternalMemoryProperties* toTransform);
@@ -1109,6 +997,44 @@ void transform_tohost_VkExternalSemaphoreProperties(VkDecoderGlobalState* resour
 void transform_fromhost_VkExternalSemaphoreProperties(VkDecoderGlobalState* resourceTracker,
                                                       VkExternalSemaphoreProperties* toTransform);
 
+#endif
+#ifdef VK_COMPUTE_VERSION_1_1
+void transform_tohost_VkPhysicalDeviceSubgroupProperties(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceSubgroupProperties* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceSubgroupProperties(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceSubgroupProperties* toTransform);
+
+void transform_tohost_VkPhysicalDevice16BitStorageFeatures(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDevice16BitStorageFeatures* toTransform);
+
+void transform_fromhost_VkPhysicalDevice16BitStorageFeatures(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDevice16BitStorageFeatures* toTransform);
+
+void transform_tohost_VkPhysicalDeviceVariablePointersFeatures(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceVariablePointersFeatures* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceVariablePointersFeatures(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceVariablePointersFeatures* toTransform);
+
+DEFINE_ALIAS_FUNCTION(transform_tohost_VkPhysicalDeviceVariablePointersFeatures,
+                      transform_tohost_VkPhysicalDeviceVariablePointerFeatures)
+
+DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPhysicalDeviceVariablePointersFeatures,
+                      transform_fromhost_VkPhysicalDeviceVariablePointerFeatures)
+
+void transform_tohost_VkDescriptorUpdateTemplateEntry(VkDecoderGlobalState* resourceTracker,
+                                                      VkDescriptorUpdateTemplateEntry* toTransform);
+
+void transform_fromhost_VkDescriptorUpdateTemplateEntry(
+    VkDecoderGlobalState* resourceTracker, VkDescriptorUpdateTemplateEntry* toTransform);
+
+void transform_tohost_VkDescriptorUpdateTemplateCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkDescriptorUpdateTemplateCreateInfo* toTransform);
+
+void transform_fromhost_VkDescriptorUpdateTemplateCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkDescriptorUpdateTemplateCreateInfo* toTransform);
+
 void transform_tohost_VkPhysicalDeviceMaintenance3Properties(
     VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMaintenance3Properties* toTransform);
 
@@ -1120,6 +1046,88 @@ void transform_tohost_VkDescriptorSetLayoutSupport(VkDecoderGlobalState* resourc
 
 void transform_fromhost_VkDescriptorSetLayoutSupport(VkDecoderGlobalState* resourceTracker,
                                                      VkDescriptorSetLayoutSupport* toTransform);
+
+void transform_tohost_VkSamplerYcbcrConversionCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkSamplerYcbcrConversionCreateInfo* toTransform);
+
+void transform_fromhost_VkSamplerYcbcrConversionCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkSamplerYcbcrConversionCreateInfo* toTransform);
+
+void transform_tohost_VkSamplerYcbcrConversionInfo(VkDecoderGlobalState* resourceTracker,
+                                                   VkSamplerYcbcrConversionInfo* toTransform);
+
+void transform_fromhost_VkSamplerYcbcrConversionInfo(VkDecoderGlobalState* resourceTracker,
+                                                     VkSamplerYcbcrConversionInfo* toTransform);
+
+void transform_tohost_VkPhysicalDeviceSamplerYcbcrConversionFeatures(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceSamplerYcbcrConversionFeatures* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceSamplerYcbcrConversionFeatures(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceSamplerYcbcrConversionFeatures* toTransform);
+
+void transform_tohost_VkSamplerYcbcrConversionImageFormatProperties(
+    VkDecoderGlobalState* resourceTracker,
+    VkSamplerYcbcrConversionImageFormatProperties* toTransform);
+
+void transform_fromhost_VkSamplerYcbcrConversionImageFormatProperties(
+    VkDecoderGlobalState* resourceTracker,
+    VkSamplerYcbcrConversionImageFormatProperties* toTransform);
+
+#endif
+#ifdef VK_GRAPHICS_VERSION_1_1
+void transform_tohost_VkDeviceGroupRenderPassBeginInfo(
+    VkDecoderGlobalState* resourceTracker, VkDeviceGroupRenderPassBeginInfo* toTransform);
+
+void transform_fromhost_VkDeviceGroupRenderPassBeginInfo(
+    VkDecoderGlobalState* resourceTracker, VkDeviceGroupRenderPassBeginInfo* toTransform);
+
+void transform_tohost_VkPhysicalDevicePointClippingProperties(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDevicePointClippingProperties* toTransform);
+
+void transform_fromhost_VkPhysicalDevicePointClippingProperties(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDevicePointClippingProperties* toTransform);
+
+void transform_tohost_VkInputAttachmentAspectReference(
+    VkDecoderGlobalState* resourceTracker, VkInputAttachmentAspectReference* toTransform);
+
+void transform_fromhost_VkInputAttachmentAspectReference(
+    VkDecoderGlobalState* resourceTracker, VkInputAttachmentAspectReference* toTransform);
+
+void transform_tohost_VkRenderPassInputAttachmentAspectCreateInfo(
+    VkDecoderGlobalState* resourceTracker,
+    VkRenderPassInputAttachmentAspectCreateInfo* toTransform);
+
+void transform_fromhost_VkRenderPassInputAttachmentAspectCreateInfo(
+    VkDecoderGlobalState* resourceTracker,
+    VkRenderPassInputAttachmentAspectCreateInfo* toTransform);
+
+void transform_tohost_VkPipelineTessellationDomainOriginStateCreateInfo(
+    VkDecoderGlobalState* resourceTracker,
+    VkPipelineTessellationDomainOriginStateCreateInfo* toTransform);
+
+void transform_fromhost_VkPipelineTessellationDomainOriginStateCreateInfo(
+    VkDecoderGlobalState* resourceTracker,
+    VkPipelineTessellationDomainOriginStateCreateInfo* toTransform);
+
+void transform_tohost_VkRenderPassMultiviewCreateInfo(VkDecoderGlobalState* resourceTracker,
+                                                      VkRenderPassMultiviewCreateInfo* toTransform);
+
+void transform_fromhost_VkRenderPassMultiviewCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkRenderPassMultiviewCreateInfo* toTransform);
+
+void transform_tohost_VkPhysicalDeviceMultiviewFeatures(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMultiviewFeatures* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceMultiviewFeatures(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMultiviewFeatures* toTransform);
+
+void transform_tohost_VkPhysicalDeviceMultiviewProperties(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMultiviewProperties* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceMultiviewProperties(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMultiviewProperties* toTransform);
 
 void transform_tohost_VkPhysicalDeviceShaderDrawParametersFeatures(
     VkDecoderGlobalState* resourceTracker,
@@ -1136,7 +1144,19 @@ DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPhysicalDeviceShaderDrawParametersFea
                       transform_fromhost_VkPhysicalDeviceShaderDrawParameterFeatures)
 
 #endif
-#ifdef VK_VERSION_1_2
+#ifdef VK_BASE_VERSION_1_2
+void transform_tohost_VkConformanceVersion(VkDecoderGlobalState* resourceTracker,
+                                           VkConformanceVersion* toTransform);
+
+void transform_fromhost_VkConformanceVersion(VkDecoderGlobalState* resourceTracker,
+                                             VkConformanceVersion* toTransform);
+
+void transform_tohost_VkPhysicalDeviceDriverProperties(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceDriverProperties* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceDriverProperties(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceDriverProperties* toTransform);
+
 void transform_tohost_VkPhysicalDeviceVulkan11Features(
     VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceVulkan11Features* toTransform);
 
@@ -1155,12 +1175,6 @@ void transform_tohost_VkPhysicalDeviceVulkan12Features(
 void transform_fromhost_VkPhysicalDeviceVulkan12Features(
     VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceVulkan12Features* toTransform);
 
-void transform_tohost_VkConformanceVersion(VkDecoderGlobalState* resourceTracker,
-                                           VkConformanceVersion* toTransform);
-
-void transform_fromhost_VkConformanceVersion(VkDecoderGlobalState* resourceTracker,
-                                             VkConformanceVersion* toTransform);
-
 void transform_tohost_VkPhysicalDeviceVulkan12Properties(
     VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceVulkan12Properties* toTransform);
 
@@ -1173,223 +1187,11 @@ void transform_tohost_VkImageFormatListCreateInfo(VkDecoderGlobalState* resource
 void transform_fromhost_VkImageFormatListCreateInfo(VkDecoderGlobalState* resourceTracker,
                                                     VkImageFormatListCreateInfo* toTransform);
 
-void transform_tohost_VkAttachmentDescription2(VkDecoderGlobalState* resourceTracker,
-                                               VkAttachmentDescription2* toTransform);
-
-void transform_fromhost_VkAttachmentDescription2(VkDecoderGlobalState* resourceTracker,
-                                                 VkAttachmentDescription2* toTransform);
-
-void transform_tohost_VkAttachmentReference2(VkDecoderGlobalState* resourceTracker,
-                                             VkAttachmentReference2* toTransform);
-
-void transform_fromhost_VkAttachmentReference2(VkDecoderGlobalState* resourceTracker,
-                                               VkAttachmentReference2* toTransform);
-
-void transform_tohost_VkSubpassDescription2(VkDecoderGlobalState* resourceTracker,
-                                            VkSubpassDescription2* toTransform);
-
-void transform_fromhost_VkSubpassDescription2(VkDecoderGlobalState* resourceTracker,
-                                              VkSubpassDescription2* toTransform);
-
-void transform_tohost_VkSubpassDependency2(VkDecoderGlobalState* resourceTracker,
-                                           VkSubpassDependency2* toTransform);
-
-void transform_fromhost_VkSubpassDependency2(VkDecoderGlobalState* resourceTracker,
-                                             VkSubpassDependency2* toTransform);
-
-void transform_tohost_VkRenderPassCreateInfo2(VkDecoderGlobalState* resourceTracker,
-                                              VkRenderPassCreateInfo2* toTransform);
-
-void transform_fromhost_VkRenderPassCreateInfo2(VkDecoderGlobalState* resourceTracker,
-                                                VkRenderPassCreateInfo2* toTransform);
-
-void transform_tohost_VkSubpassBeginInfo(VkDecoderGlobalState* resourceTracker,
-                                         VkSubpassBeginInfo* toTransform);
-
-void transform_fromhost_VkSubpassBeginInfo(VkDecoderGlobalState* resourceTracker,
-                                           VkSubpassBeginInfo* toTransform);
-
-void transform_tohost_VkSubpassEndInfo(VkDecoderGlobalState* resourceTracker,
-                                       VkSubpassEndInfo* toTransform);
-
-void transform_fromhost_VkSubpassEndInfo(VkDecoderGlobalState* resourceTracker,
-                                         VkSubpassEndInfo* toTransform);
-
-void transform_tohost_VkPhysicalDevice8BitStorageFeatures(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDevice8BitStorageFeatures* toTransform);
-
-void transform_fromhost_VkPhysicalDevice8BitStorageFeatures(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDevice8BitStorageFeatures* toTransform);
-
-void transform_tohost_VkPhysicalDeviceDriverProperties(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceDriverProperties* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceDriverProperties(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceDriverProperties* toTransform);
-
-void transform_tohost_VkPhysicalDeviceShaderAtomicInt64Features(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceShaderAtomicInt64Features* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceShaderAtomicInt64Features(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceShaderAtomicInt64Features* toTransform);
-
-void transform_tohost_VkPhysicalDeviceShaderFloat16Int8Features(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceShaderFloat16Int8Features* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceShaderFloat16Int8Features(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceShaderFloat16Int8Features* toTransform);
-
-void transform_tohost_VkPhysicalDeviceFloatControlsProperties(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceFloatControlsProperties* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceFloatControlsProperties(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceFloatControlsProperties* toTransform);
-
-void transform_tohost_VkDescriptorSetLayoutBindingFlagsCreateInfo(
-    VkDecoderGlobalState* resourceTracker,
-    VkDescriptorSetLayoutBindingFlagsCreateInfo* toTransform);
-
-void transform_fromhost_VkDescriptorSetLayoutBindingFlagsCreateInfo(
-    VkDecoderGlobalState* resourceTracker,
-    VkDescriptorSetLayoutBindingFlagsCreateInfo* toTransform);
-
-void transform_tohost_VkPhysicalDeviceDescriptorIndexingFeatures(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceDescriptorIndexingFeatures* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceDescriptorIndexingFeatures(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceDescriptorIndexingFeatures* toTransform);
-
-void transform_tohost_VkPhysicalDeviceDescriptorIndexingProperties(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceDescriptorIndexingProperties* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceDescriptorIndexingProperties(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceDescriptorIndexingProperties* toTransform);
-
-void transform_tohost_VkDescriptorSetVariableDescriptorCountAllocateInfo(
-    VkDecoderGlobalState* resourceTracker,
-    VkDescriptorSetVariableDescriptorCountAllocateInfo* toTransform);
-
-void transform_fromhost_VkDescriptorSetVariableDescriptorCountAllocateInfo(
-    VkDecoderGlobalState* resourceTracker,
-    VkDescriptorSetVariableDescriptorCountAllocateInfo* toTransform);
-
-void transform_tohost_VkDescriptorSetVariableDescriptorCountLayoutSupport(
-    VkDecoderGlobalState* resourceTracker,
-    VkDescriptorSetVariableDescriptorCountLayoutSupport* toTransform);
-
-void transform_fromhost_VkDescriptorSetVariableDescriptorCountLayoutSupport(
-    VkDecoderGlobalState* resourceTracker,
-    VkDescriptorSetVariableDescriptorCountLayoutSupport* toTransform);
-
-void transform_tohost_VkSubpassDescriptionDepthStencilResolve(
-    VkDecoderGlobalState* resourceTracker, VkSubpassDescriptionDepthStencilResolve* toTransform);
-
-void transform_fromhost_VkSubpassDescriptionDepthStencilResolve(
-    VkDecoderGlobalState* resourceTracker, VkSubpassDescriptionDepthStencilResolve* toTransform);
-
-void transform_tohost_VkPhysicalDeviceDepthStencilResolveProperties(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceDepthStencilResolveProperties* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceDepthStencilResolveProperties(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceDepthStencilResolveProperties* toTransform);
-
-void transform_tohost_VkPhysicalDeviceScalarBlockLayoutFeatures(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceScalarBlockLayoutFeatures* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceScalarBlockLayoutFeatures(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceScalarBlockLayoutFeatures* toTransform);
-
-void transform_tohost_VkImageStencilUsageCreateInfo(VkDecoderGlobalState* resourceTracker,
-                                                    VkImageStencilUsageCreateInfo* toTransform);
-
-void transform_fromhost_VkImageStencilUsageCreateInfo(VkDecoderGlobalState* resourceTracker,
-                                                      VkImageStencilUsageCreateInfo* toTransform);
-
-void transform_tohost_VkSamplerReductionModeCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkSamplerReductionModeCreateInfo* toTransform);
-
-void transform_fromhost_VkSamplerReductionModeCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkSamplerReductionModeCreateInfo* toTransform);
-
-void transform_tohost_VkPhysicalDeviceSamplerFilterMinmaxProperties(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceSamplerFilterMinmaxProperties* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceSamplerFilterMinmaxProperties(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceSamplerFilterMinmaxProperties* toTransform);
-
 void transform_tohost_VkPhysicalDeviceVulkanMemoryModelFeatures(
     VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceVulkanMemoryModelFeatures* toTransform);
 
 void transform_fromhost_VkPhysicalDeviceVulkanMemoryModelFeatures(
     VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceVulkanMemoryModelFeatures* toTransform);
-
-void transform_tohost_VkPhysicalDeviceImagelessFramebufferFeatures(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceImagelessFramebufferFeatures* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceImagelessFramebufferFeatures(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceImagelessFramebufferFeatures* toTransform);
-
-void transform_tohost_VkFramebufferAttachmentImageInfo(
-    VkDecoderGlobalState* resourceTracker, VkFramebufferAttachmentImageInfo* toTransform);
-
-void transform_fromhost_VkFramebufferAttachmentImageInfo(
-    VkDecoderGlobalState* resourceTracker, VkFramebufferAttachmentImageInfo* toTransform);
-
-void transform_tohost_VkFramebufferAttachmentsCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkFramebufferAttachmentsCreateInfo* toTransform);
-
-void transform_fromhost_VkFramebufferAttachmentsCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkFramebufferAttachmentsCreateInfo* toTransform);
-
-void transform_tohost_VkRenderPassAttachmentBeginInfo(VkDecoderGlobalState* resourceTracker,
-                                                      VkRenderPassAttachmentBeginInfo* toTransform);
-
-void transform_fromhost_VkRenderPassAttachmentBeginInfo(
-    VkDecoderGlobalState* resourceTracker, VkRenderPassAttachmentBeginInfo* toTransform);
-
-void transform_tohost_VkPhysicalDeviceUniformBufferStandardLayoutFeatures(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceUniformBufferStandardLayoutFeatures* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceUniformBufferStandardLayoutFeatures(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceUniformBufferStandardLayoutFeatures* toTransform);
-
-void transform_tohost_VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures* toTransform);
-
-void transform_tohost_VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures* toTransform);
-
-void transform_tohost_VkAttachmentReferenceStencilLayout(
-    VkDecoderGlobalState* resourceTracker, VkAttachmentReferenceStencilLayout* toTransform);
-
-void transform_fromhost_VkAttachmentReferenceStencilLayout(
-    VkDecoderGlobalState* resourceTracker, VkAttachmentReferenceStencilLayout* toTransform);
-
-void transform_tohost_VkAttachmentDescriptionStencilLayout(
-    VkDecoderGlobalState* resourceTracker, VkAttachmentDescriptionStencilLayout* toTransform);
-
-void transform_fromhost_VkAttachmentDescriptionStencilLayout(
-    VkDecoderGlobalState* resourceTracker, VkAttachmentDescriptionStencilLayout* toTransform);
 
 void transform_tohost_VkPhysicalDeviceHostQueryResetFeatures(
     VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceHostQueryResetFeatures* toTransform);
@@ -1468,7 +1270,217 @@ void transform_fromhost_VkDeviceMemoryOpaqueCaptureAddressInfo(
     VkDecoderGlobalState* resourceTracker, VkDeviceMemoryOpaqueCaptureAddressInfo* toTransform);
 
 #endif
-#ifdef VK_VERSION_1_3
+#ifdef VK_COMPUTE_VERSION_1_2
+void transform_tohost_VkPhysicalDevice8BitStorageFeatures(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDevice8BitStorageFeatures* toTransform);
+
+void transform_fromhost_VkPhysicalDevice8BitStorageFeatures(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDevice8BitStorageFeatures* toTransform);
+
+void transform_tohost_VkPhysicalDeviceShaderAtomicInt64Features(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceShaderAtomicInt64Features* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceShaderAtomicInt64Features(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceShaderAtomicInt64Features* toTransform);
+
+void transform_tohost_VkPhysicalDeviceShaderFloat16Int8Features(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceShaderFloat16Int8Features* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceShaderFloat16Int8Features(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceShaderFloat16Int8Features* toTransform);
+
+void transform_tohost_VkPhysicalDeviceFloatControlsProperties(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceFloatControlsProperties* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceFloatControlsProperties(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceFloatControlsProperties* toTransform);
+
+void transform_tohost_VkDescriptorSetLayoutBindingFlagsCreateInfo(
+    VkDecoderGlobalState* resourceTracker,
+    VkDescriptorSetLayoutBindingFlagsCreateInfo* toTransform);
+
+void transform_fromhost_VkDescriptorSetLayoutBindingFlagsCreateInfo(
+    VkDecoderGlobalState* resourceTracker,
+    VkDescriptorSetLayoutBindingFlagsCreateInfo* toTransform);
+
+void transform_tohost_VkPhysicalDeviceDescriptorIndexingFeatures(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceDescriptorIndexingFeatures* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceDescriptorIndexingFeatures(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceDescriptorIndexingFeatures* toTransform);
+
+void transform_tohost_VkPhysicalDeviceDescriptorIndexingProperties(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceDescriptorIndexingProperties* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceDescriptorIndexingProperties(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceDescriptorIndexingProperties* toTransform);
+
+void transform_tohost_VkDescriptorSetVariableDescriptorCountAllocateInfo(
+    VkDecoderGlobalState* resourceTracker,
+    VkDescriptorSetVariableDescriptorCountAllocateInfo* toTransform);
+
+void transform_fromhost_VkDescriptorSetVariableDescriptorCountAllocateInfo(
+    VkDecoderGlobalState* resourceTracker,
+    VkDescriptorSetVariableDescriptorCountAllocateInfo* toTransform);
+
+void transform_tohost_VkDescriptorSetVariableDescriptorCountLayoutSupport(
+    VkDecoderGlobalState* resourceTracker,
+    VkDescriptorSetVariableDescriptorCountLayoutSupport* toTransform);
+
+void transform_fromhost_VkDescriptorSetVariableDescriptorCountLayoutSupport(
+    VkDecoderGlobalState* resourceTracker,
+    VkDescriptorSetVariableDescriptorCountLayoutSupport* toTransform);
+
+void transform_tohost_VkPhysicalDeviceScalarBlockLayoutFeatures(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceScalarBlockLayoutFeatures* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceScalarBlockLayoutFeatures(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceScalarBlockLayoutFeatures* toTransform);
+
+void transform_tohost_VkSamplerReductionModeCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkSamplerReductionModeCreateInfo* toTransform);
+
+void transform_fromhost_VkSamplerReductionModeCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkSamplerReductionModeCreateInfo* toTransform);
+
+void transform_tohost_VkPhysicalDeviceSamplerFilterMinmaxProperties(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceSamplerFilterMinmaxProperties* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceSamplerFilterMinmaxProperties(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceSamplerFilterMinmaxProperties* toTransform);
+
+void transform_tohost_VkPhysicalDeviceUniformBufferStandardLayoutFeatures(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceUniformBufferStandardLayoutFeatures* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceUniformBufferStandardLayoutFeatures(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceUniformBufferStandardLayoutFeatures* toTransform);
+
+void transform_tohost_VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures* toTransform);
+
+#endif
+#ifdef VK_GRAPHICS_VERSION_1_2
+void transform_tohost_VkAttachmentDescription2(VkDecoderGlobalState* resourceTracker,
+                                               VkAttachmentDescription2* toTransform);
+
+void transform_fromhost_VkAttachmentDescription2(VkDecoderGlobalState* resourceTracker,
+                                                 VkAttachmentDescription2* toTransform);
+
+void transform_tohost_VkAttachmentReference2(VkDecoderGlobalState* resourceTracker,
+                                             VkAttachmentReference2* toTransform);
+
+void transform_fromhost_VkAttachmentReference2(VkDecoderGlobalState* resourceTracker,
+                                               VkAttachmentReference2* toTransform);
+
+void transform_tohost_VkSubpassDescription2(VkDecoderGlobalState* resourceTracker,
+                                            VkSubpassDescription2* toTransform);
+
+void transform_fromhost_VkSubpassDescription2(VkDecoderGlobalState* resourceTracker,
+                                              VkSubpassDescription2* toTransform);
+
+void transform_tohost_VkSubpassDependency2(VkDecoderGlobalState* resourceTracker,
+                                           VkSubpassDependency2* toTransform);
+
+void transform_fromhost_VkSubpassDependency2(VkDecoderGlobalState* resourceTracker,
+                                             VkSubpassDependency2* toTransform);
+
+void transform_tohost_VkSubpassBeginInfo(VkDecoderGlobalState* resourceTracker,
+                                         VkSubpassBeginInfo* toTransform);
+
+void transform_fromhost_VkSubpassBeginInfo(VkDecoderGlobalState* resourceTracker,
+                                           VkSubpassBeginInfo* toTransform);
+
+void transform_tohost_VkSubpassEndInfo(VkDecoderGlobalState* resourceTracker,
+                                       VkSubpassEndInfo* toTransform);
+
+void transform_fromhost_VkSubpassEndInfo(VkDecoderGlobalState* resourceTracker,
+                                         VkSubpassEndInfo* toTransform);
+
+void transform_tohost_VkRenderPassCreateInfo2(VkDecoderGlobalState* resourceTracker,
+                                              VkRenderPassCreateInfo2* toTransform);
+
+void transform_fromhost_VkRenderPassCreateInfo2(VkDecoderGlobalState* resourceTracker,
+                                                VkRenderPassCreateInfo2* toTransform);
+
+void transform_tohost_VkSubpassDescriptionDepthStencilResolve(
+    VkDecoderGlobalState* resourceTracker, VkSubpassDescriptionDepthStencilResolve* toTransform);
+
+void transform_fromhost_VkSubpassDescriptionDepthStencilResolve(
+    VkDecoderGlobalState* resourceTracker, VkSubpassDescriptionDepthStencilResolve* toTransform);
+
+void transform_tohost_VkPhysicalDeviceDepthStencilResolveProperties(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceDepthStencilResolveProperties* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceDepthStencilResolveProperties(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceDepthStencilResolveProperties* toTransform);
+
+void transform_tohost_VkImageStencilUsageCreateInfo(VkDecoderGlobalState* resourceTracker,
+                                                    VkImageStencilUsageCreateInfo* toTransform);
+
+void transform_fromhost_VkImageStencilUsageCreateInfo(VkDecoderGlobalState* resourceTracker,
+                                                      VkImageStencilUsageCreateInfo* toTransform);
+
+void transform_tohost_VkPhysicalDeviceImagelessFramebufferFeatures(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceImagelessFramebufferFeatures* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceImagelessFramebufferFeatures(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceImagelessFramebufferFeatures* toTransform);
+
+void transform_tohost_VkFramebufferAttachmentImageInfo(
+    VkDecoderGlobalState* resourceTracker, VkFramebufferAttachmentImageInfo* toTransform);
+
+void transform_fromhost_VkFramebufferAttachmentImageInfo(
+    VkDecoderGlobalState* resourceTracker, VkFramebufferAttachmentImageInfo* toTransform);
+
+void transform_tohost_VkRenderPassAttachmentBeginInfo(VkDecoderGlobalState* resourceTracker,
+                                                      VkRenderPassAttachmentBeginInfo* toTransform);
+
+void transform_fromhost_VkRenderPassAttachmentBeginInfo(
+    VkDecoderGlobalState* resourceTracker, VkRenderPassAttachmentBeginInfo* toTransform);
+
+void transform_tohost_VkFramebufferAttachmentsCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkFramebufferAttachmentsCreateInfo* toTransform);
+
+void transform_fromhost_VkFramebufferAttachmentsCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkFramebufferAttachmentsCreateInfo* toTransform);
+
+void transform_tohost_VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures* toTransform);
+
+void transform_tohost_VkAttachmentReferenceStencilLayout(
+    VkDecoderGlobalState* resourceTracker, VkAttachmentReferenceStencilLayout* toTransform);
+
+void transform_fromhost_VkAttachmentReferenceStencilLayout(
+    VkDecoderGlobalState* resourceTracker, VkAttachmentReferenceStencilLayout* toTransform);
+
+void transform_tohost_VkAttachmentDescriptionStencilLayout(
+    VkDecoderGlobalState* resourceTracker, VkAttachmentDescriptionStencilLayout* toTransform);
+
+void transform_fromhost_VkAttachmentDescriptionStencilLayout(
+    VkDecoderGlobalState* resourceTracker, VkAttachmentDescriptionStencilLayout* toTransform);
+
+#endif
+#ifdef VK_BASE_VERSION_1_3
 void transform_tohost_VkPhysicalDeviceVulkan13Features(
     VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceVulkan13Features* toTransform);
 
@@ -1481,39 +1493,11 @@ void transform_tohost_VkPhysicalDeviceVulkan13Properties(
 void transform_fromhost_VkPhysicalDeviceVulkan13Properties(
     VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceVulkan13Properties* toTransform);
 
-void transform_tohost_VkPipelineCreationFeedback(VkDecoderGlobalState* resourceTracker,
-                                                 VkPipelineCreationFeedback* toTransform);
-
-void transform_fromhost_VkPipelineCreationFeedback(VkDecoderGlobalState* resourceTracker,
-                                                   VkPipelineCreationFeedback* toTransform);
-
-void transform_tohost_VkPipelineCreationFeedbackCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkPipelineCreationFeedbackCreateInfo* toTransform);
-
-void transform_fromhost_VkPipelineCreationFeedbackCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkPipelineCreationFeedbackCreateInfo* toTransform);
-
-void transform_tohost_VkPhysicalDeviceShaderTerminateInvocationFeatures(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceShaderTerminateInvocationFeatures* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceShaderTerminateInvocationFeatures(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceShaderTerminateInvocationFeatures* toTransform);
-
 void transform_tohost_VkPhysicalDeviceToolProperties(VkDecoderGlobalState* resourceTracker,
                                                      VkPhysicalDeviceToolProperties* toTransform);
 
 void transform_fromhost_VkPhysicalDeviceToolProperties(VkDecoderGlobalState* resourceTracker,
                                                        VkPhysicalDeviceToolProperties* toTransform);
-
-void transform_tohost_VkPhysicalDeviceShaderDemoteToHelperInvocationFeatures(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceShaderDemoteToHelperInvocationFeatures* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceShaderDemoteToHelperInvocationFeatures(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceShaderDemoteToHelperInvocationFeatures* toTransform);
 
 void transform_tohost_VkPhysicalDevicePrivateDataFeatures(
     VkDecoderGlobalState* resourceTracker, VkPhysicalDevicePrivateDataFeatures* toTransform);
@@ -1532,14 +1516,6 @@ void transform_tohost_VkPrivateDataSlotCreateInfo(VkDecoderGlobalState* resource
 
 void transform_fromhost_VkPrivateDataSlotCreateInfo(VkDecoderGlobalState* resourceTracker,
                                                     VkPrivateDataSlotCreateInfo* toTransform);
-
-void transform_tohost_VkPhysicalDevicePipelineCreationCacheControlFeatures(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDevicePipelineCreationCacheControlFeatures* toTransform);
-
-void transform_fromhost_VkPhysicalDevicePipelineCreationCacheControlFeatures(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDevicePipelineCreationCacheControlFeatures* toTransform);
 
 void transform_tohost_VkMemoryBarrier2(VkDecoderGlobalState* resourceTracker,
                                        VkMemoryBarrier2* toTransform);
@@ -1589,20 +1565,6 @@ void transform_tohost_VkPhysicalDeviceSynchronization2Features(
 void transform_fromhost_VkPhysicalDeviceSynchronization2Features(
     VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceSynchronization2Features* toTransform);
 
-void transform_tohost_VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures* toTransform);
-
-void transform_tohost_VkPhysicalDeviceImageRobustnessFeatures(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceImageRobustnessFeatures* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceImageRobustnessFeatures(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceImageRobustnessFeatures* toTransform);
-
 void transform_tohost_VkBufferCopy2(VkDecoderGlobalState* resourceTracker,
                                     VkBufferCopy2* toTransform);
 
@@ -1645,29 +1607,95 @@ void transform_tohost_VkCopyImageToBufferInfo2(VkDecoderGlobalState* resourceTra
 void transform_fromhost_VkCopyImageToBufferInfo2(VkDecoderGlobalState* resourceTracker,
                                                  VkCopyImageToBufferInfo2* toTransform);
 
-void transform_tohost_VkImageBlit2(VkDecoderGlobalState* resourceTracker,
-                                   VkImageBlit2* toTransform);
+void transform_tohost_VkPhysicalDeviceTextureCompressionASTCHDRFeatures(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceTextureCompressionASTCHDRFeatures* toTransform);
 
-void transform_fromhost_VkImageBlit2(VkDecoderGlobalState* resourceTracker,
-                                     VkImageBlit2* toTransform);
+void transform_fromhost_VkPhysicalDeviceTextureCompressionASTCHDRFeatures(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceTextureCompressionASTCHDRFeatures* toTransform);
 
-void transform_tohost_VkBlitImageInfo2(VkDecoderGlobalState* resourceTracker,
-                                       VkBlitImageInfo2* toTransform);
+void transform_tohost_VkFormatProperties3(VkDecoderGlobalState* resourceTracker,
+                                          VkFormatProperties3* toTransform);
 
-void transform_fromhost_VkBlitImageInfo2(VkDecoderGlobalState* resourceTracker,
-                                         VkBlitImageInfo2* toTransform);
+void transform_fromhost_VkFormatProperties3(VkDecoderGlobalState* resourceTracker,
+                                            VkFormatProperties3* toTransform);
 
-void transform_tohost_VkImageResolve2(VkDecoderGlobalState* resourceTracker,
-                                      VkImageResolve2* toTransform);
+void transform_tohost_VkPhysicalDeviceMaintenance4Features(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMaintenance4Features* toTransform);
 
-void transform_fromhost_VkImageResolve2(VkDecoderGlobalState* resourceTracker,
-                                        VkImageResolve2* toTransform);
+void transform_fromhost_VkPhysicalDeviceMaintenance4Features(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMaintenance4Features* toTransform);
 
-void transform_tohost_VkResolveImageInfo2(VkDecoderGlobalState* resourceTracker,
-                                          VkResolveImageInfo2* toTransform);
+void transform_tohost_VkPhysicalDeviceMaintenance4Properties(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMaintenance4Properties* toTransform);
 
-void transform_fromhost_VkResolveImageInfo2(VkDecoderGlobalState* resourceTracker,
-                                            VkResolveImageInfo2* toTransform);
+void transform_fromhost_VkPhysicalDeviceMaintenance4Properties(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMaintenance4Properties* toTransform);
+
+void transform_tohost_VkDeviceBufferMemoryRequirements(
+    VkDecoderGlobalState* resourceTracker, VkDeviceBufferMemoryRequirements* toTransform);
+
+void transform_fromhost_VkDeviceBufferMemoryRequirements(
+    VkDecoderGlobalState* resourceTracker, VkDeviceBufferMemoryRequirements* toTransform);
+
+void transform_tohost_VkDeviceImageMemoryRequirements(VkDecoderGlobalState* resourceTracker,
+                                                      VkDeviceImageMemoryRequirements* toTransform);
+
+void transform_fromhost_VkDeviceImageMemoryRequirements(
+    VkDecoderGlobalState* resourceTracker, VkDeviceImageMemoryRequirements* toTransform);
+
+#endif
+#ifdef VK_COMPUTE_VERSION_1_3
+void transform_tohost_VkPipelineCreationFeedback(VkDecoderGlobalState* resourceTracker,
+                                                 VkPipelineCreationFeedback* toTransform);
+
+void transform_fromhost_VkPipelineCreationFeedback(VkDecoderGlobalState* resourceTracker,
+                                                   VkPipelineCreationFeedback* toTransform);
+
+void transform_tohost_VkPipelineCreationFeedbackCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkPipelineCreationFeedbackCreateInfo* toTransform);
+
+void transform_fromhost_VkPipelineCreationFeedbackCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkPipelineCreationFeedbackCreateInfo* toTransform);
+
+void transform_tohost_VkPhysicalDeviceShaderTerminateInvocationFeatures(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceShaderTerminateInvocationFeatures* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceShaderTerminateInvocationFeatures(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceShaderTerminateInvocationFeatures* toTransform);
+
+void transform_tohost_VkPhysicalDeviceShaderDemoteToHelperInvocationFeatures(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceShaderDemoteToHelperInvocationFeatures* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceShaderDemoteToHelperInvocationFeatures(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceShaderDemoteToHelperInvocationFeatures* toTransform);
+
+void transform_tohost_VkPhysicalDevicePipelineCreationCacheControlFeatures(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDevicePipelineCreationCacheControlFeatures* toTransform);
+
+void transform_fromhost_VkPhysicalDevicePipelineCreationCacheControlFeatures(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDevicePipelineCreationCacheControlFeatures* toTransform);
+
+void transform_tohost_VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures* toTransform);
+
+void transform_tohost_VkPhysicalDeviceImageRobustnessFeatures(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceImageRobustnessFeatures* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceImageRobustnessFeatures(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceImageRobustnessFeatures* toTransform);
 
 void transform_tohost_VkPhysicalDeviceSubgroupSizeControlFeatures(
     VkDecoderGlobalState* resourceTracker,
@@ -1721,13 +1749,55 @@ void transform_fromhost_VkDescriptorPoolInlineUniformBlockCreateInfo(
     VkDecoderGlobalState* resourceTracker,
     VkDescriptorPoolInlineUniformBlockCreateInfo* toTransform);
 
-void transform_tohost_VkPhysicalDeviceTextureCompressionASTCHDRFeatures(
+void transform_tohost_VkPhysicalDeviceShaderIntegerDotProductFeatures(
     VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceTextureCompressionASTCHDRFeatures* toTransform);
+    VkPhysicalDeviceShaderIntegerDotProductFeatures* toTransform);
 
-void transform_fromhost_VkPhysicalDeviceTextureCompressionASTCHDRFeatures(
+void transform_fromhost_VkPhysicalDeviceShaderIntegerDotProductFeatures(
     VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceTextureCompressionASTCHDRFeatures* toTransform);
+    VkPhysicalDeviceShaderIntegerDotProductFeatures* toTransform);
+
+void transform_tohost_VkPhysicalDeviceShaderIntegerDotProductProperties(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceShaderIntegerDotProductProperties* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceShaderIntegerDotProductProperties(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceShaderIntegerDotProductProperties* toTransform);
+
+void transform_tohost_VkPhysicalDeviceTexelBufferAlignmentProperties(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceTexelBufferAlignmentProperties* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceTexelBufferAlignmentProperties(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceTexelBufferAlignmentProperties* toTransform);
+
+#endif
+#ifdef VK_GRAPHICS_VERSION_1_3
+void transform_tohost_VkImageBlit2(VkDecoderGlobalState* resourceTracker,
+                                   VkImageBlit2* toTransform);
+
+void transform_fromhost_VkImageBlit2(VkDecoderGlobalState* resourceTracker,
+                                     VkImageBlit2* toTransform);
+
+void transform_tohost_VkBlitImageInfo2(VkDecoderGlobalState* resourceTracker,
+                                       VkBlitImageInfo2* toTransform);
+
+void transform_fromhost_VkBlitImageInfo2(VkDecoderGlobalState* resourceTracker,
+                                         VkBlitImageInfo2* toTransform);
+
+void transform_tohost_VkImageResolve2(VkDecoderGlobalState* resourceTracker,
+                                      VkImageResolve2* toTransform);
+
+void transform_fromhost_VkImageResolve2(VkDecoderGlobalState* resourceTracker,
+                                        VkImageResolve2* toTransform);
+
+void transform_tohost_VkResolveImageInfo2(VkDecoderGlobalState* resourceTracker,
+                                          VkResolveImageInfo2* toTransform);
+
+void transform_fromhost_VkResolveImageInfo2(VkDecoderGlobalState* resourceTracker,
+                                            VkResolveImageInfo2* toTransform);
 
 void transform_tohost_VkRenderingAttachmentInfo(VkDecoderGlobalState* resourceTracker,
                                                 VkRenderingAttachmentInfo* toTransform);
@@ -1759,62 +1829,8 @@ void transform_tohost_VkCommandBufferInheritanceRenderingInfo(
 void transform_fromhost_VkCommandBufferInheritanceRenderingInfo(
     VkDecoderGlobalState* resourceTracker, VkCommandBufferInheritanceRenderingInfo* toTransform);
 
-void transform_tohost_VkPhysicalDeviceShaderIntegerDotProductFeatures(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceShaderIntegerDotProductFeatures* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceShaderIntegerDotProductFeatures(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceShaderIntegerDotProductFeatures* toTransform);
-
-void transform_tohost_VkPhysicalDeviceShaderIntegerDotProductProperties(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceShaderIntegerDotProductProperties* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceShaderIntegerDotProductProperties(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceShaderIntegerDotProductProperties* toTransform);
-
-void transform_tohost_VkPhysicalDeviceTexelBufferAlignmentProperties(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceTexelBufferAlignmentProperties* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceTexelBufferAlignmentProperties(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceTexelBufferAlignmentProperties* toTransform);
-
-void transform_tohost_VkFormatProperties3(VkDecoderGlobalState* resourceTracker,
-                                          VkFormatProperties3* toTransform);
-
-void transform_fromhost_VkFormatProperties3(VkDecoderGlobalState* resourceTracker,
-                                            VkFormatProperties3* toTransform);
-
-void transform_tohost_VkPhysicalDeviceMaintenance4Features(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMaintenance4Features* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceMaintenance4Features(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMaintenance4Features* toTransform);
-
-void transform_tohost_VkPhysicalDeviceMaintenance4Properties(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMaintenance4Properties* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceMaintenance4Properties(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMaintenance4Properties* toTransform);
-
-void transform_tohost_VkDeviceBufferMemoryRequirements(
-    VkDecoderGlobalState* resourceTracker, VkDeviceBufferMemoryRequirements* toTransform);
-
-void transform_fromhost_VkDeviceBufferMemoryRequirements(
-    VkDecoderGlobalState* resourceTracker, VkDeviceBufferMemoryRequirements* toTransform);
-
-void transform_tohost_VkDeviceImageMemoryRequirements(VkDecoderGlobalState* resourceTracker,
-                                                      VkDeviceImageMemoryRequirements* toTransform);
-
-void transform_fromhost_VkDeviceImageMemoryRequirements(
-    VkDecoderGlobalState* resourceTracker, VkDeviceImageMemoryRequirements* toTransform);
-
 #endif
-#ifdef VK_VERSION_1_4
+#ifdef VK_BASE_VERSION_1_4
 void transform_tohost_VkPhysicalDeviceVulkan14Features(
     VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceVulkan14Features* toTransform);
 
@@ -1847,78 +1863,6 @@ void transform_tohost_VkQueueFamilyGlobalPriorityProperties(
 void transform_fromhost_VkQueueFamilyGlobalPriorityProperties(
     VkDecoderGlobalState* resourceTracker, VkQueueFamilyGlobalPriorityProperties* toTransform);
 
-void transform_tohost_VkPhysicalDeviceShaderSubgroupRotateFeatures(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceShaderSubgroupRotateFeatures* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceShaderSubgroupRotateFeatures(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceShaderSubgroupRotateFeatures* toTransform);
-
-void transform_tohost_VkPhysicalDeviceShaderFloatControls2Features(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceShaderFloatControls2Features* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceShaderFloatControls2Features(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceShaderFloatControls2Features* toTransform);
-
-void transform_tohost_VkPhysicalDeviceShaderExpectAssumeFeatures(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceShaderExpectAssumeFeatures* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceShaderExpectAssumeFeatures(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceShaderExpectAssumeFeatures* toTransform);
-
-void transform_tohost_VkPhysicalDeviceLineRasterizationFeatures(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceLineRasterizationFeatures* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceLineRasterizationFeatures(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceLineRasterizationFeatures* toTransform);
-
-void transform_tohost_VkPhysicalDeviceLineRasterizationProperties(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceLineRasterizationProperties* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceLineRasterizationProperties(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceLineRasterizationProperties* toTransform);
-
-void transform_tohost_VkPipelineRasterizationLineStateCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkPipelineRasterizationLineStateCreateInfo* toTransform);
-
-void transform_fromhost_VkPipelineRasterizationLineStateCreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkPipelineRasterizationLineStateCreateInfo* toTransform);
-
-void transform_tohost_VkPhysicalDeviceVertexAttributeDivisorProperties(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceVertexAttributeDivisorProperties* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceVertexAttributeDivisorProperties(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceVertexAttributeDivisorProperties* toTransform);
-
-void transform_tohost_VkVertexInputBindingDivisorDescription(
-    VkDecoderGlobalState* resourceTracker, VkVertexInputBindingDivisorDescription* toTransform);
-
-void transform_fromhost_VkVertexInputBindingDivisorDescription(
-    VkDecoderGlobalState* resourceTracker, VkVertexInputBindingDivisorDescription* toTransform);
-
-void transform_tohost_VkPipelineVertexInputDivisorStateCreateInfo(
-    VkDecoderGlobalState* resourceTracker,
-    VkPipelineVertexInputDivisorStateCreateInfo* toTransform);
-
-void transform_fromhost_VkPipelineVertexInputDivisorStateCreateInfo(
-    VkDecoderGlobalState* resourceTracker,
-    VkPipelineVertexInputDivisorStateCreateInfo* toTransform);
-
-void transform_tohost_VkPhysicalDeviceVertexAttributeDivisorFeatures(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceVertexAttributeDivisorFeatures* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceVertexAttributeDivisorFeatures(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceVertexAttributeDivisorFeatures* toTransform);
-
 void transform_tohost_VkPhysicalDeviceIndexTypeUint8Features(
     VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceIndexTypeUint8Features* toTransform);
 
@@ -1949,11 +1893,11 @@ void transform_tohost_VkPhysicalDeviceMaintenance5Properties(
 void transform_fromhost_VkPhysicalDeviceMaintenance5Properties(
     VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMaintenance5Properties* toTransform);
 
-void transform_tohost_VkRenderingAreaInfo(VkDecoderGlobalState* resourceTracker,
-                                          VkRenderingAreaInfo* toTransform);
+void transform_tohost_VkSubresourceLayout2(VkDecoderGlobalState* resourceTracker,
+                                           VkSubresourceLayout2* toTransform);
 
-void transform_fromhost_VkRenderingAreaInfo(VkDecoderGlobalState* resourceTracker,
-                                            VkRenderingAreaInfo* toTransform);
+void transform_fromhost_VkSubresourceLayout2(VkDecoderGlobalState* resourceTracker,
+                                             VkSubresourceLayout2* toTransform);
 
 void transform_tohost_VkImageSubresource2(VkDecoderGlobalState* resourceTracker,
                                           VkImageSubresource2* toTransform);
@@ -1967,49 +1911,11 @@ void transform_tohost_VkDeviceImageSubresourceInfo(VkDecoderGlobalState* resourc
 void transform_fromhost_VkDeviceImageSubresourceInfo(VkDecoderGlobalState* resourceTracker,
                                                      VkDeviceImageSubresourceInfo* toTransform);
 
-void transform_tohost_VkSubresourceLayout2(VkDecoderGlobalState* resourceTracker,
-                                           VkSubresourceLayout2* toTransform);
-
-void transform_fromhost_VkSubresourceLayout2(VkDecoderGlobalState* resourceTracker,
-                                             VkSubresourceLayout2* toTransform);
-
-void transform_tohost_VkPipelineCreateFlags2CreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkPipelineCreateFlags2CreateInfo* toTransform);
-
-void transform_fromhost_VkPipelineCreateFlags2CreateInfo(
-    VkDecoderGlobalState* resourceTracker, VkPipelineCreateFlags2CreateInfo* toTransform);
-
 void transform_tohost_VkBufferUsageFlags2CreateInfo(VkDecoderGlobalState* resourceTracker,
                                                     VkBufferUsageFlags2CreateInfo* toTransform);
 
 void transform_fromhost_VkBufferUsageFlags2CreateInfo(VkDecoderGlobalState* resourceTracker,
                                                       VkBufferUsageFlags2CreateInfo* toTransform);
-
-void transform_tohost_VkPhysicalDevicePushDescriptorProperties(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDevicePushDescriptorProperties* toTransform);
-
-void transform_fromhost_VkPhysicalDevicePushDescriptorProperties(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDevicePushDescriptorProperties* toTransform);
-
-void transform_tohost_VkPhysicalDeviceDynamicRenderingLocalReadFeatures(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceDynamicRenderingLocalReadFeatures* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceDynamicRenderingLocalReadFeatures(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceDynamicRenderingLocalReadFeatures* toTransform);
-
-void transform_tohost_VkRenderingAttachmentLocationInfo(
-    VkDecoderGlobalState* resourceTracker, VkRenderingAttachmentLocationInfo* toTransform);
-
-void transform_fromhost_VkRenderingAttachmentLocationInfo(
-    VkDecoderGlobalState* resourceTracker, VkRenderingAttachmentLocationInfo* toTransform);
-
-void transform_tohost_VkRenderingInputAttachmentIndexInfo(
-    VkDecoderGlobalState* resourceTracker, VkRenderingInputAttachmentIndexInfo* toTransform);
-
-void transform_fromhost_VkRenderingInputAttachmentIndexInfo(
-    VkDecoderGlobalState* resourceTracker, VkRenderingInputAttachmentIndexInfo* toTransform);
 
 void transform_tohost_VkPhysicalDeviceMaintenance6Features(
     VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMaintenance6Features* toTransform);
@@ -2028,58 +1934,6 @@ void transform_tohost_VkBindMemoryStatus(VkDecoderGlobalState* resourceTracker,
 
 void transform_fromhost_VkBindMemoryStatus(VkDecoderGlobalState* resourceTracker,
                                            VkBindMemoryStatus* toTransform);
-
-void transform_tohost_VkBindDescriptorSetsInfo(VkDecoderGlobalState* resourceTracker,
-                                               VkBindDescriptorSetsInfo* toTransform);
-
-void transform_fromhost_VkBindDescriptorSetsInfo(VkDecoderGlobalState* resourceTracker,
-                                                 VkBindDescriptorSetsInfo* toTransform);
-
-void transform_tohost_VkPushConstantsInfo(VkDecoderGlobalState* resourceTracker,
-                                          VkPushConstantsInfo* toTransform);
-
-void transform_fromhost_VkPushConstantsInfo(VkDecoderGlobalState* resourceTracker,
-                                            VkPushConstantsInfo* toTransform);
-
-void transform_tohost_VkPushDescriptorSetInfo(VkDecoderGlobalState* resourceTracker,
-                                              VkPushDescriptorSetInfo* toTransform);
-
-void transform_fromhost_VkPushDescriptorSetInfo(VkDecoderGlobalState* resourceTracker,
-                                                VkPushDescriptorSetInfo* toTransform);
-
-void transform_tohost_VkPushDescriptorSetWithTemplateInfo(
-    VkDecoderGlobalState* resourceTracker, VkPushDescriptorSetWithTemplateInfo* toTransform);
-
-void transform_fromhost_VkPushDescriptorSetWithTemplateInfo(
-    VkDecoderGlobalState* resourceTracker, VkPushDescriptorSetWithTemplateInfo* toTransform);
-
-void transform_tohost_VkPhysicalDevicePipelineProtectedAccessFeatures(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDevicePipelineProtectedAccessFeatures* toTransform);
-
-void transform_fromhost_VkPhysicalDevicePipelineProtectedAccessFeatures(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDevicePipelineProtectedAccessFeatures* toTransform);
-
-void transform_tohost_VkPhysicalDevicePipelineRobustnessFeatures(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDevicePipelineRobustnessFeatures* toTransform);
-
-void transform_fromhost_VkPhysicalDevicePipelineRobustnessFeatures(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDevicePipelineRobustnessFeatures* toTransform);
-
-void transform_tohost_VkPhysicalDevicePipelineRobustnessProperties(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDevicePipelineRobustnessProperties* toTransform);
-
-void transform_fromhost_VkPhysicalDevicePipelineRobustnessProperties(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDevicePipelineRobustnessProperties* toTransform);
-
-void transform_tohost_VkPipelineRobustnessCreateInfo(VkDecoderGlobalState* resourceTracker,
-                                                     VkPipelineRobustnessCreateInfo* toTransform);
-
-void transform_fromhost_VkPipelineRobustnessCreateInfo(VkDecoderGlobalState* resourceTracker,
-                                                       VkPipelineRobustnessCreateInfo* toTransform);
 
 void transform_tohost_VkPhysicalDeviceHostImageCopyFeatures(
     VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceHostImageCopyFeatures* toTransform);
@@ -2140,6 +1994,172 @@ void transform_tohost_VkHostImageCopyDevicePerformanceQuery(
 
 void transform_fromhost_VkHostImageCopyDevicePerformanceQuery(
     VkDecoderGlobalState* resourceTracker, VkHostImageCopyDevicePerformanceQuery* toTransform);
+
+#endif
+#ifdef VK_COMPUTE_VERSION_1_4
+void transform_tohost_VkPhysicalDeviceShaderSubgroupRotateFeatures(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceShaderSubgroupRotateFeatures* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceShaderSubgroupRotateFeatures(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceShaderSubgroupRotateFeatures* toTransform);
+
+void transform_tohost_VkPhysicalDeviceShaderFloatControls2Features(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceShaderFloatControls2Features* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceShaderFloatControls2Features(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceShaderFloatControls2Features* toTransform);
+
+void transform_tohost_VkPhysicalDeviceShaderExpectAssumeFeatures(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceShaderExpectAssumeFeatures* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceShaderExpectAssumeFeatures(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceShaderExpectAssumeFeatures* toTransform);
+
+void transform_tohost_VkPipelineCreateFlags2CreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkPipelineCreateFlags2CreateInfo* toTransform);
+
+void transform_fromhost_VkPipelineCreateFlags2CreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkPipelineCreateFlags2CreateInfo* toTransform);
+
+void transform_tohost_VkPhysicalDevicePushDescriptorProperties(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDevicePushDescriptorProperties* toTransform);
+
+void transform_fromhost_VkPhysicalDevicePushDescriptorProperties(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDevicePushDescriptorProperties* toTransform);
+
+void transform_tohost_VkBindDescriptorSetsInfo(VkDecoderGlobalState* resourceTracker,
+                                               VkBindDescriptorSetsInfo* toTransform);
+
+void transform_fromhost_VkBindDescriptorSetsInfo(VkDecoderGlobalState* resourceTracker,
+                                                 VkBindDescriptorSetsInfo* toTransform);
+
+void transform_tohost_VkPushConstantsInfo(VkDecoderGlobalState* resourceTracker,
+                                          VkPushConstantsInfo* toTransform);
+
+void transform_fromhost_VkPushConstantsInfo(VkDecoderGlobalState* resourceTracker,
+                                            VkPushConstantsInfo* toTransform);
+
+void transform_tohost_VkPushDescriptorSetInfo(VkDecoderGlobalState* resourceTracker,
+                                              VkPushDescriptorSetInfo* toTransform);
+
+void transform_fromhost_VkPushDescriptorSetInfo(VkDecoderGlobalState* resourceTracker,
+                                                VkPushDescriptorSetInfo* toTransform);
+
+void transform_tohost_VkPushDescriptorSetWithTemplateInfo(
+    VkDecoderGlobalState* resourceTracker, VkPushDescriptorSetWithTemplateInfo* toTransform);
+
+void transform_fromhost_VkPushDescriptorSetWithTemplateInfo(
+    VkDecoderGlobalState* resourceTracker, VkPushDescriptorSetWithTemplateInfo* toTransform);
+
+void transform_tohost_VkPhysicalDevicePipelineProtectedAccessFeatures(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDevicePipelineProtectedAccessFeatures* toTransform);
+
+void transform_fromhost_VkPhysicalDevicePipelineProtectedAccessFeatures(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDevicePipelineProtectedAccessFeatures* toTransform);
+
+void transform_tohost_VkPhysicalDevicePipelineRobustnessFeatures(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDevicePipelineRobustnessFeatures* toTransform);
+
+void transform_fromhost_VkPhysicalDevicePipelineRobustnessFeatures(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDevicePipelineRobustnessFeatures* toTransform);
+
+void transform_tohost_VkPhysicalDevicePipelineRobustnessProperties(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDevicePipelineRobustnessProperties* toTransform);
+
+void transform_fromhost_VkPhysicalDevicePipelineRobustnessProperties(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDevicePipelineRobustnessProperties* toTransform);
+
+void transform_tohost_VkPipelineRobustnessCreateInfo(VkDecoderGlobalState* resourceTracker,
+                                                     VkPipelineRobustnessCreateInfo* toTransform);
+
+void transform_fromhost_VkPipelineRobustnessCreateInfo(VkDecoderGlobalState* resourceTracker,
+                                                       VkPipelineRobustnessCreateInfo* toTransform);
+
+#endif
+#ifdef VK_GRAPHICS_VERSION_1_4
+void transform_tohost_VkPhysicalDeviceLineRasterizationFeatures(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceLineRasterizationFeatures* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceLineRasterizationFeatures(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceLineRasterizationFeatures* toTransform);
+
+void transform_tohost_VkPhysicalDeviceLineRasterizationProperties(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceLineRasterizationProperties* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceLineRasterizationProperties(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceLineRasterizationProperties* toTransform);
+
+void transform_tohost_VkPipelineRasterizationLineStateCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkPipelineRasterizationLineStateCreateInfo* toTransform);
+
+void transform_fromhost_VkPipelineRasterizationLineStateCreateInfo(
+    VkDecoderGlobalState* resourceTracker, VkPipelineRasterizationLineStateCreateInfo* toTransform);
+
+void transform_tohost_VkPhysicalDeviceVertexAttributeDivisorProperties(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceVertexAttributeDivisorProperties* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceVertexAttributeDivisorProperties(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceVertexAttributeDivisorProperties* toTransform);
+
+void transform_tohost_VkVertexInputBindingDivisorDescription(
+    VkDecoderGlobalState* resourceTracker, VkVertexInputBindingDivisorDescription* toTransform);
+
+void transform_fromhost_VkVertexInputBindingDivisorDescription(
+    VkDecoderGlobalState* resourceTracker, VkVertexInputBindingDivisorDescription* toTransform);
+
+void transform_tohost_VkPipelineVertexInputDivisorStateCreateInfo(
+    VkDecoderGlobalState* resourceTracker,
+    VkPipelineVertexInputDivisorStateCreateInfo* toTransform);
+
+void transform_fromhost_VkPipelineVertexInputDivisorStateCreateInfo(
+    VkDecoderGlobalState* resourceTracker,
+    VkPipelineVertexInputDivisorStateCreateInfo* toTransform);
+
+void transform_tohost_VkPhysicalDeviceVertexAttributeDivisorFeatures(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceVertexAttributeDivisorFeatures* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceVertexAttributeDivisorFeatures(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceVertexAttributeDivisorFeatures* toTransform);
+
+void transform_tohost_VkRenderingAreaInfo(VkDecoderGlobalState* resourceTracker,
+                                          VkRenderingAreaInfo* toTransform);
+
+void transform_fromhost_VkRenderingAreaInfo(VkDecoderGlobalState* resourceTracker,
+                                            VkRenderingAreaInfo* toTransform);
+
+void transform_tohost_VkPhysicalDeviceDynamicRenderingLocalReadFeatures(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceDynamicRenderingLocalReadFeatures* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceDynamicRenderingLocalReadFeatures(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceDynamicRenderingLocalReadFeatures* toTransform);
+
+void transform_tohost_VkRenderingAttachmentLocationInfo(
+    VkDecoderGlobalState* resourceTracker, VkRenderingAttachmentLocationInfo* toTransform);
+
+void transform_fromhost_VkRenderingAttachmentLocationInfo(
+    VkDecoderGlobalState* resourceTracker, VkRenderingAttachmentLocationInfo* toTransform);
+
+void transform_tohost_VkRenderingInputAttachmentIndexInfo(
+    VkDecoderGlobalState* resourceTracker, VkRenderingInputAttachmentIndexInfo* toTransform);
+
+void transform_fromhost_VkRenderingInputAttachmentIndexInfo(
+    VkDecoderGlobalState* resourceTracker, VkRenderingInputAttachmentIndexInfo* toTransform);
 
 #endif
 #ifdef VK_KHR_swapchain
@@ -3025,6 +3045,46 @@ DEFINE_ALIAS_FUNCTION(transform_fromhost_VkBufferUsageFlags2CreateInfo,
                       transform_fromhost_VkBufferUsageFlags2CreateInfoKHR)
 
 #endif
+#ifdef VK_KHR_swapchain_maintenance1
+void transform_tohost_VkPhysicalDeviceSwapchainMaintenance1FeaturesKHR(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceSwapchainMaintenance1FeaturesKHR* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceSwapchainMaintenance1FeaturesKHR(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceSwapchainMaintenance1FeaturesKHR* toTransform);
+
+void transform_tohost_VkSwapchainPresentFenceInfoKHR(VkDecoderGlobalState* resourceTracker,
+                                                     VkSwapchainPresentFenceInfoKHR* toTransform);
+
+void transform_fromhost_VkSwapchainPresentFenceInfoKHR(VkDecoderGlobalState* resourceTracker,
+                                                       VkSwapchainPresentFenceInfoKHR* toTransform);
+
+void transform_tohost_VkSwapchainPresentModesCreateInfoKHR(
+    VkDecoderGlobalState* resourceTracker, VkSwapchainPresentModesCreateInfoKHR* toTransform);
+
+void transform_fromhost_VkSwapchainPresentModesCreateInfoKHR(
+    VkDecoderGlobalState* resourceTracker, VkSwapchainPresentModesCreateInfoKHR* toTransform);
+
+void transform_tohost_VkSwapchainPresentModeInfoKHR(VkDecoderGlobalState* resourceTracker,
+                                                    VkSwapchainPresentModeInfoKHR* toTransform);
+
+void transform_fromhost_VkSwapchainPresentModeInfoKHR(VkDecoderGlobalState* resourceTracker,
+                                                      VkSwapchainPresentModeInfoKHR* toTransform);
+
+void transform_tohost_VkSwapchainPresentScalingCreateInfoKHR(
+    VkDecoderGlobalState* resourceTracker, VkSwapchainPresentScalingCreateInfoKHR* toTransform);
+
+void transform_fromhost_VkSwapchainPresentScalingCreateInfoKHR(
+    VkDecoderGlobalState* resourceTracker, VkSwapchainPresentScalingCreateInfoKHR* toTransform);
+
+void transform_tohost_VkReleaseSwapchainImagesInfoKHR(VkDecoderGlobalState* resourceTracker,
+                                                      VkReleaseSwapchainImagesInfoKHR* toTransform);
+
+void transform_fromhost_VkReleaseSwapchainImagesInfoKHR(
+    VkDecoderGlobalState* resourceTracker, VkReleaseSwapchainImagesInfoKHR* toTransform);
+
+#endif
 #ifdef VK_KHR_line_rasterization
 DEFINE_ALIAS_FUNCTION(transform_tohost_VkPhysicalDeviceLineRasterizationFeatures,
                       transform_tohost_VkPhysicalDeviceLineRasterizationFeaturesKHR)
@@ -3138,17 +3198,39 @@ void transform_fromhost_VkPhysicalDeviceLayeredApiVulkanPropertiesKHR(
 
 #endif
 #ifdef VK_KHR_maintenance8
+void transform_tohost_VkMemoryBarrierAccessFlags3KHR(VkDecoderGlobalState* resourceTracker,
+                                                     VkMemoryBarrierAccessFlags3KHR* toTransform);
+
+void transform_fromhost_VkMemoryBarrierAccessFlags3KHR(VkDecoderGlobalState* resourceTracker,
+                                                       VkMemoryBarrierAccessFlags3KHR* toTransform);
+
 void transform_tohost_VkPhysicalDeviceMaintenance8FeaturesKHR(
     VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMaintenance8FeaturesKHR* toTransform);
 
 void transform_fromhost_VkPhysicalDeviceMaintenance8FeaturesKHR(
     VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMaintenance8FeaturesKHR* toTransform);
 
-void transform_tohost_VkMemoryBarrierAccessFlags3KHR(VkDecoderGlobalState* resourceTracker,
-                                                     VkMemoryBarrierAccessFlags3KHR* toTransform);
+#endif
+#ifdef VK_KHR_maintenance9
+void transform_tohost_VkPhysicalDeviceMaintenance9FeaturesKHR(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMaintenance9FeaturesKHR* toTransform);
 
-void transform_fromhost_VkMemoryBarrierAccessFlags3KHR(VkDecoderGlobalState* resourceTracker,
-                                                       VkMemoryBarrierAccessFlags3KHR* toTransform);
+void transform_fromhost_VkPhysicalDeviceMaintenance9FeaturesKHR(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMaintenance9FeaturesKHR* toTransform);
+
+void transform_tohost_VkPhysicalDeviceMaintenance9PropertiesKHR(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMaintenance9PropertiesKHR* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceMaintenance9PropertiesKHR(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceMaintenance9PropertiesKHR* toTransform);
+
+void transform_tohost_VkQueueFamilyOwnershipTransferPropertiesKHR(
+    VkDecoderGlobalState* resourceTracker,
+    VkQueueFamilyOwnershipTransferPropertiesKHR* toTransform);
+
+void transform_fromhost_VkQueueFamilyOwnershipTransferPropertiesKHR(
+    VkDecoderGlobalState* resourceTracker,
+    VkQueueFamilyOwnershipTransferPropertiesKHR* toTransform);
 
 #endif
 #ifdef VK_ANDROID_native_buffer
@@ -3659,43 +3741,41 @@ DEFINE_ALIAS_FUNCTION(transform_fromhost_VkImageSubresource2,
 
 #endif
 #ifdef VK_EXT_swapchain_maintenance1
-void transform_tohost_VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT* toTransform);
+DEFINE_ALIAS_FUNCTION(transform_tohost_VkPhysicalDeviceSwapchainMaintenance1FeaturesKHR,
+                      transform_tohost_VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT)
 
-void transform_fromhost_VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT* toTransform);
+DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPhysicalDeviceSwapchainMaintenance1FeaturesKHR,
+                      transform_fromhost_VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT)
 
-void transform_tohost_VkSwapchainPresentFenceInfoEXT(VkDecoderGlobalState* resourceTracker,
-                                                     VkSwapchainPresentFenceInfoEXT* toTransform);
+DEFINE_ALIAS_FUNCTION(transform_tohost_VkSwapchainPresentFenceInfoKHR,
+                      transform_tohost_VkSwapchainPresentFenceInfoEXT)
 
-void transform_fromhost_VkSwapchainPresentFenceInfoEXT(VkDecoderGlobalState* resourceTracker,
-                                                       VkSwapchainPresentFenceInfoEXT* toTransform);
+DEFINE_ALIAS_FUNCTION(transform_fromhost_VkSwapchainPresentFenceInfoKHR,
+                      transform_fromhost_VkSwapchainPresentFenceInfoEXT)
 
-void transform_tohost_VkSwapchainPresentModesCreateInfoEXT(
-    VkDecoderGlobalState* resourceTracker, VkSwapchainPresentModesCreateInfoEXT* toTransform);
+DEFINE_ALIAS_FUNCTION(transform_tohost_VkSwapchainPresentModesCreateInfoKHR,
+                      transform_tohost_VkSwapchainPresentModesCreateInfoEXT)
 
-void transform_fromhost_VkSwapchainPresentModesCreateInfoEXT(
-    VkDecoderGlobalState* resourceTracker, VkSwapchainPresentModesCreateInfoEXT* toTransform);
+DEFINE_ALIAS_FUNCTION(transform_fromhost_VkSwapchainPresentModesCreateInfoKHR,
+                      transform_fromhost_VkSwapchainPresentModesCreateInfoEXT)
 
-void transform_tohost_VkSwapchainPresentModeInfoEXT(VkDecoderGlobalState* resourceTracker,
-                                                    VkSwapchainPresentModeInfoEXT* toTransform);
+DEFINE_ALIAS_FUNCTION(transform_tohost_VkSwapchainPresentModeInfoKHR,
+                      transform_tohost_VkSwapchainPresentModeInfoEXT)
 
-void transform_fromhost_VkSwapchainPresentModeInfoEXT(VkDecoderGlobalState* resourceTracker,
-                                                      VkSwapchainPresentModeInfoEXT* toTransform);
+DEFINE_ALIAS_FUNCTION(transform_fromhost_VkSwapchainPresentModeInfoKHR,
+                      transform_fromhost_VkSwapchainPresentModeInfoEXT)
 
-void transform_tohost_VkSwapchainPresentScalingCreateInfoEXT(
-    VkDecoderGlobalState* resourceTracker, VkSwapchainPresentScalingCreateInfoEXT* toTransform);
+DEFINE_ALIAS_FUNCTION(transform_tohost_VkSwapchainPresentScalingCreateInfoKHR,
+                      transform_tohost_VkSwapchainPresentScalingCreateInfoEXT)
 
-void transform_fromhost_VkSwapchainPresentScalingCreateInfoEXT(
-    VkDecoderGlobalState* resourceTracker, VkSwapchainPresentScalingCreateInfoEXT* toTransform);
+DEFINE_ALIAS_FUNCTION(transform_fromhost_VkSwapchainPresentScalingCreateInfoKHR,
+                      transform_fromhost_VkSwapchainPresentScalingCreateInfoEXT)
 
-void transform_tohost_VkReleaseSwapchainImagesInfoEXT(VkDecoderGlobalState* resourceTracker,
-                                                      VkReleaseSwapchainImagesInfoEXT* toTransform);
+DEFINE_ALIAS_FUNCTION(transform_tohost_VkReleaseSwapchainImagesInfoKHR,
+                      transform_tohost_VkReleaseSwapchainImagesInfoEXT)
 
-void transform_fromhost_VkReleaseSwapchainImagesInfoEXT(
-    VkDecoderGlobalState* resourceTracker, VkReleaseSwapchainImagesInfoEXT* toTransform);
+DEFINE_ALIAS_FUNCTION(transform_fromhost_VkReleaseSwapchainImagesInfoKHR,
+                      transform_fromhost_VkReleaseSwapchainImagesInfoEXT)
 
 #endif
 #ifdef VK_EXT_shader_demote_to_helper_invocation
@@ -3745,26 +3825,20 @@ void transform_fromhost_VkDeviceDeviceMemoryReportCreateInfoEXT(
 
 #endif
 #ifdef VK_EXT_robustness2
-void transform_tohost_VkPhysicalDeviceRobustness2FeaturesEXT(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceRobustness2FeaturesEXT* toTransform);
+DEFINE_ALIAS_FUNCTION(transform_tohost_VkPhysicalDeviceRobustness2FeaturesKHR,
+                      transform_tohost_VkPhysicalDeviceRobustness2FeaturesEXT)
 
-void transform_fromhost_VkPhysicalDeviceRobustness2FeaturesEXT(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceRobustness2FeaturesEXT* toTransform);
+DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPhysicalDeviceRobustness2FeaturesKHR,
+                      transform_fromhost_VkPhysicalDeviceRobustness2FeaturesEXT)
 
-void transform_tohost_VkPhysicalDeviceRobustness2PropertiesEXT(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceRobustness2PropertiesEXT* toTransform);
+DEFINE_ALIAS_FUNCTION(transform_tohost_VkPhysicalDeviceRobustness2PropertiesKHR,
+                      transform_tohost_VkPhysicalDeviceRobustness2PropertiesEXT)
 
-void transform_fromhost_VkPhysicalDeviceRobustness2PropertiesEXT(
-    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceRobustness2PropertiesEXT* toTransform);
+DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPhysicalDeviceRobustness2PropertiesKHR,
+                      transform_fromhost_VkPhysicalDeviceRobustness2PropertiesEXT)
 
 #endif
 #ifdef VK_EXT_custom_border_color
-void transform_tohost_VkSamplerCustomBorderColorCreateInfoEXT(
-    VkDecoderGlobalState* resourceTracker, VkSamplerCustomBorderColorCreateInfoEXT* toTransform);
-
-void transform_fromhost_VkSamplerCustomBorderColorCreateInfoEXT(
-    VkDecoderGlobalState* resourceTracker, VkSamplerCustomBorderColorCreateInfoEXT* toTransform);
-
 void transform_tohost_VkPhysicalDeviceCustomBorderColorPropertiesEXT(
     VkDecoderGlobalState* resourceTracker,
     VkPhysicalDeviceCustomBorderColorPropertiesEXT* toTransform);

@@ -43,7 +43,7 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
     memset(out, 0x0, sizeof(VulkanDispatch));
     void* lib = dlOpenFunc();
     if (!lib) return;
-#ifdef VK_VERSION_1_0
+#ifdef VK_BASE_VERSION_1_0
     out->vkDestroyInstance = (PFN_vkDestroyInstance)dlSymFunc(lib, "vkDestroyInstance");
     out->vkEnumeratePhysicalDevices =
         (PFN_vkEnumeratePhysicalDevices)dlSymFunc(lib, "vkEnumeratePhysicalDevices");
@@ -79,7 +79,7 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
         (PFN_vkGetPhysicalDeviceSparseImageFormatProperties)dlSymFunc(
             lib, "vkGetPhysicalDeviceSparseImageFormatProperties");
 #endif
-#ifdef VK_VERSION_1_1
+#ifdef VK_BASE_VERSION_1_1
     out->vkEnumerateInstanceVersion =
         (PFN_vkEnumerateInstanceVersion)dlSymFunc(lib, "vkEnumerateInstanceVersion");
     out->vkEnumeratePhysicalDeviceGroups =
@@ -163,7 +163,7 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
     out->vkCreateScreenSurfaceQNX =
         (PFN_vkCreateScreenSurfaceQNX)dlSymFunc(lib, "vkCreateScreenSurfaceQNX");
 #endif
-#ifdef VK_VERSION_1_0
+#ifdef VK_BASE_VERSION_1_0
     out->vkGetDeviceQueue = (PFN_vkGetDeviceQueue)dlSymFunc(lib, "vkGetDeviceQueue");
     out->vkQueueSubmit = (PFN_vkQueueSubmit)dlSymFunc(lib, "vkQueueSubmit");
     out->vkQueueWaitIdle = (PFN_vkQueueWaitIdle)dlSymFunc(lib, "vkQueueWaitIdle");
@@ -194,24 +194,51 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
     out->vkWaitForFences = (PFN_vkWaitForFences)dlSymFunc(lib, "vkWaitForFences");
     out->vkCreateSemaphore = (PFN_vkCreateSemaphore)dlSymFunc(lib, "vkCreateSemaphore");
     out->vkDestroySemaphore = (PFN_vkDestroySemaphore)dlSymFunc(lib, "vkDestroySemaphore");
-    out->vkCreateEvent = (PFN_vkCreateEvent)dlSymFunc(lib, "vkCreateEvent");
-    out->vkDestroyEvent = (PFN_vkDestroyEvent)dlSymFunc(lib, "vkDestroyEvent");
-    out->vkGetEventStatus = (PFN_vkGetEventStatus)dlSymFunc(lib, "vkGetEventStatus");
-    out->vkSetEvent = (PFN_vkSetEvent)dlSymFunc(lib, "vkSetEvent");
-    out->vkResetEvent = (PFN_vkResetEvent)dlSymFunc(lib, "vkResetEvent");
     out->vkCreateQueryPool = (PFN_vkCreateQueryPool)dlSymFunc(lib, "vkCreateQueryPool");
     out->vkDestroyQueryPool = (PFN_vkDestroyQueryPool)dlSymFunc(lib, "vkDestroyQueryPool");
     out->vkGetQueryPoolResults = (PFN_vkGetQueryPoolResults)dlSymFunc(lib, "vkGetQueryPoolResults");
     out->vkCreateBuffer = (PFN_vkCreateBuffer)dlSymFunc(lib, "vkCreateBuffer");
     out->vkDestroyBuffer = (PFN_vkDestroyBuffer)dlSymFunc(lib, "vkDestroyBuffer");
-    out->vkCreateBufferView = (PFN_vkCreateBufferView)dlSymFunc(lib, "vkCreateBufferView");
-    out->vkDestroyBufferView = (PFN_vkDestroyBufferView)dlSymFunc(lib, "vkDestroyBufferView");
     out->vkCreateImage = (PFN_vkCreateImage)dlSymFunc(lib, "vkCreateImage");
     out->vkDestroyImage = (PFN_vkDestroyImage)dlSymFunc(lib, "vkDestroyImage");
     out->vkGetImageSubresourceLayout =
         (PFN_vkGetImageSubresourceLayout)dlSymFunc(lib, "vkGetImageSubresourceLayout");
     out->vkCreateImageView = (PFN_vkCreateImageView)dlSymFunc(lib, "vkCreateImageView");
     out->vkDestroyImageView = (PFN_vkDestroyImageView)dlSymFunc(lib, "vkDestroyImageView");
+    out->vkCreateCommandPool = (PFN_vkCreateCommandPool)dlSymFunc(lib, "vkCreateCommandPool");
+    out->vkDestroyCommandPool = (PFN_vkDestroyCommandPool)dlSymFunc(lib, "vkDestroyCommandPool");
+    out->vkResetCommandPool = (PFN_vkResetCommandPool)dlSymFunc(lib, "vkResetCommandPool");
+    out->vkAllocateCommandBuffers =
+        (PFN_vkAllocateCommandBuffers)dlSymFunc(lib, "vkAllocateCommandBuffers");
+    out->vkFreeCommandBuffers = (PFN_vkFreeCommandBuffers)dlSymFunc(lib, "vkFreeCommandBuffers");
+    out->vkBeginCommandBuffer = (PFN_vkBeginCommandBuffer)dlSymFunc(lib, "vkBeginCommandBuffer");
+    out->vkEndCommandBuffer = (PFN_vkEndCommandBuffer)dlSymFunc(lib, "vkEndCommandBuffer");
+    out->vkResetCommandBuffer = (PFN_vkResetCommandBuffer)dlSymFunc(lib, "vkResetCommandBuffer");
+    out->vkCmdCopyBuffer = (PFN_vkCmdCopyBuffer)dlSymFunc(lib, "vkCmdCopyBuffer");
+    out->vkCmdCopyImage = (PFN_vkCmdCopyImage)dlSymFunc(lib, "vkCmdCopyImage");
+    out->vkCmdCopyBufferToImage =
+        (PFN_vkCmdCopyBufferToImage)dlSymFunc(lib, "vkCmdCopyBufferToImage");
+    out->vkCmdCopyImageToBuffer =
+        (PFN_vkCmdCopyImageToBuffer)dlSymFunc(lib, "vkCmdCopyImageToBuffer");
+    out->vkCmdUpdateBuffer = (PFN_vkCmdUpdateBuffer)dlSymFunc(lib, "vkCmdUpdateBuffer");
+    out->vkCmdFillBuffer = (PFN_vkCmdFillBuffer)dlSymFunc(lib, "vkCmdFillBuffer");
+    out->vkCmdPipelineBarrier = (PFN_vkCmdPipelineBarrier)dlSymFunc(lib, "vkCmdPipelineBarrier");
+    out->vkCmdBeginQuery = (PFN_vkCmdBeginQuery)dlSymFunc(lib, "vkCmdBeginQuery");
+    out->vkCmdEndQuery = (PFN_vkCmdEndQuery)dlSymFunc(lib, "vkCmdEndQuery");
+    out->vkCmdResetQueryPool = (PFN_vkCmdResetQueryPool)dlSymFunc(lib, "vkCmdResetQueryPool");
+    out->vkCmdWriteTimestamp = (PFN_vkCmdWriteTimestamp)dlSymFunc(lib, "vkCmdWriteTimestamp");
+    out->vkCmdCopyQueryPoolResults =
+        (PFN_vkCmdCopyQueryPoolResults)dlSymFunc(lib, "vkCmdCopyQueryPoolResults");
+    out->vkCmdExecuteCommands = (PFN_vkCmdExecuteCommands)dlSymFunc(lib, "vkCmdExecuteCommands");
+#endif
+#ifdef VK_COMPUTE_VERSION_1_0
+    out->vkCreateEvent = (PFN_vkCreateEvent)dlSymFunc(lib, "vkCreateEvent");
+    out->vkDestroyEvent = (PFN_vkDestroyEvent)dlSymFunc(lib, "vkDestroyEvent");
+    out->vkGetEventStatus = (PFN_vkGetEventStatus)dlSymFunc(lib, "vkGetEventStatus");
+    out->vkSetEvent = (PFN_vkSetEvent)dlSymFunc(lib, "vkSetEvent");
+    out->vkResetEvent = (PFN_vkResetEvent)dlSymFunc(lib, "vkResetEvent");
+    out->vkCreateBufferView = (PFN_vkCreateBufferView)dlSymFunc(lib, "vkCreateBufferView");
+    out->vkDestroyBufferView = (PFN_vkDestroyBufferView)dlSymFunc(lib, "vkDestroyBufferView");
     out->vkCreateShaderModule = (PFN_vkCreateShaderModule)dlSymFunc(lib, "vkCreateShaderModule");
     out->vkDestroyShaderModule = (PFN_vkDestroyShaderModule)dlSymFunc(lib, "vkDestroyShaderModule");
     out->vkCreatePipelineCache = (PFN_vkCreatePipelineCache)dlSymFunc(lib, "vkCreatePipelineCache");
@@ -220,8 +247,6 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
     out->vkGetPipelineCacheData =
         (PFN_vkGetPipelineCacheData)dlSymFunc(lib, "vkGetPipelineCacheData");
     out->vkMergePipelineCaches = (PFN_vkMergePipelineCaches)dlSymFunc(lib, "vkMergePipelineCaches");
-    out->vkCreateGraphicsPipelines =
-        (PFN_vkCreateGraphicsPipelines)dlSymFunc(lib, "vkCreateGraphicsPipelines");
     out->vkCreateComputePipelines =
         (PFN_vkCreateComputePipelines)dlSymFunc(lib, "vkCreateComputePipelines");
     out->vkDestroyPipeline = (PFN_vkDestroyPipeline)dlSymFunc(lib, "vkDestroyPipeline");
@@ -245,22 +270,26 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
     out->vkFreeDescriptorSets = (PFN_vkFreeDescriptorSets)dlSymFunc(lib, "vkFreeDescriptorSets");
     out->vkUpdateDescriptorSets =
         (PFN_vkUpdateDescriptorSets)dlSymFunc(lib, "vkUpdateDescriptorSets");
+    out->vkCmdBindPipeline = (PFN_vkCmdBindPipeline)dlSymFunc(lib, "vkCmdBindPipeline");
+    out->vkCmdBindDescriptorSets =
+        (PFN_vkCmdBindDescriptorSets)dlSymFunc(lib, "vkCmdBindDescriptorSets");
+    out->vkCmdClearColorImage = (PFN_vkCmdClearColorImage)dlSymFunc(lib, "vkCmdClearColorImage");
+    out->vkCmdDispatch = (PFN_vkCmdDispatch)dlSymFunc(lib, "vkCmdDispatch");
+    out->vkCmdDispatchIndirect = (PFN_vkCmdDispatchIndirect)dlSymFunc(lib, "vkCmdDispatchIndirect");
+    out->vkCmdSetEvent = (PFN_vkCmdSetEvent)dlSymFunc(lib, "vkCmdSetEvent");
+    out->vkCmdResetEvent = (PFN_vkCmdResetEvent)dlSymFunc(lib, "vkCmdResetEvent");
+    out->vkCmdWaitEvents = (PFN_vkCmdWaitEvents)dlSymFunc(lib, "vkCmdWaitEvents");
+    out->vkCmdPushConstants = (PFN_vkCmdPushConstants)dlSymFunc(lib, "vkCmdPushConstants");
+#endif
+#ifdef VK_GRAPHICS_VERSION_1_0
+    out->vkCreateGraphicsPipelines =
+        (PFN_vkCreateGraphicsPipelines)dlSymFunc(lib, "vkCreateGraphicsPipelines");
     out->vkCreateFramebuffer = (PFN_vkCreateFramebuffer)dlSymFunc(lib, "vkCreateFramebuffer");
     out->vkDestroyFramebuffer = (PFN_vkDestroyFramebuffer)dlSymFunc(lib, "vkDestroyFramebuffer");
     out->vkCreateRenderPass = (PFN_vkCreateRenderPass)dlSymFunc(lib, "vkCreateRenderPass");
     out->vkDestroyRenderPass = (PFN_vkDestroyRenderPass)dlSymFunc(lib, "vkDestroyRenderPass");
     out->vkGetRenderAreaGranularity =
         (PFN_vkGetRenderAreaGranularity)dlSymFunc(lib, "vkGetRenderAreaGranularity");
-    out->vkCreateCommandPool = (PFN_vkCreateCommandPool)dlSymFunc(lib, "vkCreateCommandPool");
-    out->vkDestroyCommandPool = (PFN_vkDestroyCommandPool)dlSymFunc(lib, "vkDestroyCommandPool");
-    out->vkResetCommandPool = (PFN_vkResetCommandPool)dlSymFunc(lib, "vkResetCommandPool");
-    out->vkAllocateCommandBuffers =
-        (PFN_vkAllocateCommandBuffers)dlSymFunc(lib, "vkAllocateCommandBuffers");
-    out->vkFreeCommandBuffers = (PFN_vkFreeCommandBuffers)dlSymFunc(lib, "vkFreeCommandBuffers");
-    out->vkBeginCommandBuffer = (PFN_vkBeginCommandBuffer)dlSymFunc(lib, "vkBeginCommandBuffer");
-    out->vkEndCommandBuffer = (PFN_vkEndCommandBuffer)dlSymFunc(lib, "vkEndCommandBuffer");
-    out->vkResetCommandBuffer = (PFN_vkResetCommandBuffer)dlSymFunc(lib, "vkResetCommandBuffer");
-    out->vkCmdBindPipeline = (PFN_vkCmdBindPipeline)dlSymFunc(lib, "vkCmdBindPipeline");
     out->vkCmdSetViewport = (PFN_vkCmdSetViewport)dlSymFunc(lib, "vkCmdSetViewport");
     out->vkCmdSetScissor = (PFN_vkCmdSetScissor)dlSymFunc(lib, "vkCmdSetScissor");
     out->vkCmdSetLineWidth = (PFN_vkCmdSetLineWidth)dlSymFunc(lib, "vkCmdSetLineWidth");
@@ -274,8 +303,6 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
         (PFN_vkCmdSetStencilWriteMask)dlSymFunc(lib, "vkCmdSetStencilWriteMask");
     out->vkCmdSetStencilReference =
         (PFN_vkCmdSetStencilReference)dlSymFunc(lib, "vkCmdSetStencilReference");
-    out->vkCmdBindDescriptorSets =
-        (PFN_vkCmdBindDescriptorSets)dlSymFunc(lib, "vkCmdBindDescriptorSets");
     out->vkCmdBindIndexBuffer = (PFN_vkCmdBindIndexBuffer)dlSymFunc(lib, "vkCmdBindIndexBuffer");
     out->vkCmdBindVertexBuffers =
         (PFN_vkCmdBindVertexBuffers)dlSymFunc(lib, "vkCmdBindVertexBuffers");
@@ -284,45 +311,21 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
     out->vkCmdDrawIndirect = (PFN_vkCmdDrawIndirect)dlSymFunc(lib, "vkCmdDrawIndirect");
     out->vkCmdDrawIndexedIndirect =
         (PFN_vkCmdDrawIndexedIndirect)dlSymFunc(lib, "vkCmdDrawIndexedIndirect");
-    out->vkCmdDispatch = (PFN_vkCmdDispatch)dlSymFunc(lib, "vkCmdDispatch");
-    out->vkCmdDispatchIndirect = (PFN_vkCmdDispatchIndirect)dlSymFunc(lib, "vkCmdDispatchIndirect");
-    out->vkCmdCopyBuffer = (PFN_vkCmdCopyBuffer)dlSymFunc(lib, "vkCmdCopyBuffer");
-    out->vkCmdCopyImage = (PFN_vkCmdCopyImage)dlSymFunc(lib, "vkCmdCopyImage");
     out->vkCmdBlitImage = (PFN_vkCmdBlitImage)dlSymFunc(lib, "vkCmdBlitImage");
-    out->vkCmdCopyBufferToImage =
-        (PFN_vkCmdCopyBufferToImage)dlSymFunc(lib, "vkCmdCopyBufferToImage");
-    out->vkCmdCopyImageToBuffer =
-        (PFN_vkCmdCopyImageToBuffer)dlSymFunc(lib, "vkCmdCopyImageToBuffer");
-    out->vkCmdUpdateBuffer = (PFN_vkCmdUpdateBuffer)dlSymFunc(lib, "vkCmdUpdateBuffer");
-    out->vkCmdFillBuffer = (PFN_vkCmdFillBuffer)dlSymFunc(lib, "vkCmdFillBuffer");
-    out->vkCmdClearColorImage = (PFN_vkCmdClearColorImage)dlSymFunc(lib, "vkCmdClearColorImage");
     out->vkCmdClearDepthStencilImage =
         (PFN_vkCmdClearDepthStencilImage)dlSymFunc(lib, "vkCmdClearDepthStencilImage");
     out->vkCmdClearAttachments = (PFN_vkCmdClearAttachments)dlSymFunc(lib, "vkCmdClearAttachments");
     out->vkCmdResolveImage = (PFN_vkCmdResolveImage)dlSymFunc(lib, "vkCmdResolveImage");
-    out->vkCmdSetEvent = (PFN_vkCmdSetEvent)dlSymFunc(lib, "vkCmdSetEvent");
-    out->vkCmdResetEvent = (PFN_vkCmdResetEvent)dlSymFunc(lib, "vkCmdResetEvent");
-    out->vkCmdWaitEvents = (PFN_vkCmdWaitEvents)dlSymFunc(lib, "vkCmdWaitEvents");
-    out->vkCmdPipelineBarrier = (PFN_vkCmdPipelineBarrier)dlSymFunc(lib, "vkCmdPipelineBarrier");
-    out->vkCmdBeginQuery = (PFN_vkCmdBeginQuery)dlSymFunc(lib, "vkCmdBeginQuery");
-    out->vkCmdEndQuery = (PFN_vkCmdEndQuery)dlSymFunc(lib, "vkCmdEndQuery");
-    out->vkCmdResetQueryPool = (PFN_vkCmdResetQueryPool)dlSymFunc(lib, "vkCmdResetQueryPool");
-    out->vkCmdWriteTimestamp = (PFN_vkCmdWriteTimestamp)dlSymFunc(lib, "vkCmdWriteTimestamp");
-    out->vkCmdCopyQueryPoolResults =
-        (PFN_vkCmdCopyQueryPoolResults)dlSymFunc(lib, "vkCmdCopyQueryPoolResults");
-    out->vkCmdPushConstants = (PFN_vkCmdPushConstants)dlSymFunc(lib, "vkCmdPushConstants");
     out->vkCmdBeginRenderPass = (PFN_vkCmdBeginRenderPass)dlSymFunc(lib, "vkCmdBeginRenderPass");
     out->vkCmdNextSubpass = (PFN_vkCmdNextSubpass)dlSymFunc(lib, "vkCmdNextSubpass");
     out->vkCmdEndRenderPass = (PFN_vkCmdEndRenderPass)dlSymFunc(lib, "vkCmdEndRenderPass");
-    out->vkCmdExecuteCommands = (PFN_vkCmdExecuteCommands)dlSymFunc(lib, "vkCmdExecuteCommands");
 #endif
-#ifdef VK_VERSION_1_1
+#ifdef VK_BASE_VERSION_1_1
     out->vkBindBufferMemory2 = (PFN_vkBindBufferMemory2)dlSymFunc(lib, "vkBindBufferMemory2");
     out->vkBindImageMemory2 = (PFN_vkBindImageMemory2)dlSymFunc(lib, "vkBindImageMemory2");
     out->vkGetDeviceGroupPeerMemoryFeatures = (PFN_vkGetDeviceGroupPeerMemoryFeatures)dlSymFunc(
         lib, "vkGetDeviceGroupPeerMemoryFeatures");
     out->vkCmdSetDeviceMask = (PFN_vkCmdSetDeviceMask)dlSymFunc(lib, "vkCmdSetDeviceMask");
-    out->vkCmdDispatchBase = (PFN_vkCmdDispatchBase)dlSymFunc(lib, "vkCmdDispatchBase");
     out->vkGetImageMemoryRequirements2 =
         (PFN_vkGetImageMemoryRequirements2)dlSymFunc(lib, "vkGetImageMemoryRequirements2");
     out->vkGetBufferMemoryRequirements2 =
@@ -331,10 +334,9 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
         lib, "vkGetImageSparseMemoryRequirements2");
     out->vkTrimCommandPool = (PFN_vkTrimCommandPool)dlSymFunc(lib, "vkTrimCommandPool");
     out->vkGetDeviceQueue2 = (PFN_vkGetDeviceQueue2)dlSymFunc(lib, "vkGetDeviceQueue2");
-    out->vkCreateSamplerYcbcrConversion =
-        (PFN_vkCreateSamplerYcbcrConversion)dlSymFunc(lib, "vkCreateSamplerYcbcrConversion");
-    out->vkDestroySamplerYcbcrConversion =
-        (PFN_vkDestroySamplerYcbcrConversion)dlSymFunc(lib, "vkDestroySamplerYcbcrConversion");
+#endif
+#ifdef VK_COMPUTE_VERSION_1_1
+    out->vkCmdDispatchBase = (PFN_vkCmdDispatchBase)dlSymFunc(lib, "vkCmdDispatchBase");
     out->vkCreateDescriptorUpdateTemplate =
         (PFN_vkCreateDescriptorUpdateTemplate)dlSymFunc(lib, "vkCreateDescriptorUpdateTemplate");
     out->vkDestroyDescriptorUpdateTemplate =
@@ -343,16 +345,12 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
         (PFN_vkUpdateDescriptorSetWithTemplate)dlSymFunc(lib, "vkUpdateDescriptorSetWithTemplate");
     out->vkGetDescriptorSetLayoutSupport =
         (PFN_vkGetDescriptorSetLayoutSupport)dlSymFunc(lib, "vkGetDescriptorSetLayoutSupport");
+    out->vkCreateSamplerYcbcrConversion =
+        (PFN_vkCreateSamplerYcbcrConversion)dlSymFunc(lib, "vkCreateSamplerYcbcrConversion");
+    out->vkDestroySamplerYcbcrConversion =
+        (PFN_vkDestroySamplerYcbcrConversion)dlSymFunc(lib, "vkDestroySamplerYcbcrConversion");
 #endif
-#ifdef VK_VERSION_1_2
-    out->vkCmdDrawIndirectCount =
-        (PFN_vkCmdDrawIndirectCount)dlSymFunc(lib, "vkCmdDrawIndirectCount");
-    out->vkCmdDrawIndexedIndirectCount =
-        (PFN_vkCmdDrawIndexedIndirectCount)dlSymFunc(lib, "vkCmdDrawIndexedIndirectCount");
-    out->vkCreateRenderPass2 = (PFN_vkCreateRenderPass2)dlSymFunc(lib, "vkCreateRenderPass2");
-    out->vkCmdBeginRenderPass2 = (PFN_vkCmdBeginRenderPass2)dlSymFunc(lib, "vkCmdBeginRenderPass2");
-    out->vkCmdNextSubpass2 = (PFN_vkCmdNextSubpass2)dlSymFunc(lib, "vkCmdNextSubpass2");
-    out->vkCmdEndRenderPass2 = (PFN_vkCmdEndRenderPass2)dlSymFunc(lib, "vkCmdEndRenderPass2");
+#ifdef VK_BASE_VERSION_1_2
     out->vkResetQueryPool = (PFN_vkResetQueryPool)dlSymFunc(lib, "vkResetQueryPool");
     out->vkGetSemaphoreCounterValue =
         (PFN_vkGetSemaphoreCounterValue)dlSymFunc(lib, "vkGetSemaphoreCounterValue");
@@ -366,7 +364,17 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
         (PFN_vkGetDeviceMemoryOpaqueCaptureAddress)dlSymFunc(
             lib, "vkGetDeviceMemoryOpaqueCaptureAddress");
 #endif
-#ifdef VK_VERSION_1_3
+#ifdef VK_GRAPHICS_VERSION_1_2
+    out->vkCmdDrawIndirectCount =
+        (PFN_vkCmdDrawIndirectCount)dlSymFunc(lib, "vkCmdDrawIndirectCount");
+    out->vkCmdDrawIndexedIndirectCount =
+        (PFN_vkCmdDrawIndexedIndirectCount)dlSymFunc(lib, "vkCmdDrawIndexedIndirectCount");
+    out->vkCreateRenderPass2 = (PFN_vkCreateRenderPass2)dlSymFunc(lib, "vkCreateRenderPass2");
+    out->vkCmdBeginRenderPass2 = (PFN_vkCmdBeginRenderPass2)dlSymFunc(lib, "vkCmdBeginRenderPass2");
+    out->vkCmdNextSubpass2 = (PFN_vkCmdNextSubpass2)dlSymFunc(lib, "vkCmdNextSubpass2");
+    out->vkCmdEndRenderPass2 = (PFN_vkCmdEndRenderPass2)dlSymFunc(lib, "vkCmdEndRenderPass2");
+#endif
+#ifdef VK_BASE_VERSION_1_3
     out->vkGetPhysicalDeviceToolProperties =
         (PFN_vkGetPhysicalDeviceToolProperties)dlSymFunc(lib, "vkGetPhysicalDeviceToolProperties");
     out->vkCreatePrivateDataSlot =
@@ -375,9 +383,6 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
         (PFN_vkDestroyPrivateDataSlot)dlSymFunc(lib, "vkDestroyPrivateDataSlot");
     out->vkSetPrivateData = (PFN_vkSetPrivateData)dlSymFunc(lib, "vkSetPrivateData");
     out->vkGetPrivateData = (PFN_vkGetPrivateData)dlSymFunc(lib, "vkGetPrivateData");
-    out->vkCmdSetEvent2 = (PFN_vkCmdSetEvent2)dlSymFunc(lib, "vkCmdSetEvent2");
-    out->vkCmdResetEvent2 = (PFN_vkCmdResetEvent2)dlSymFunc(lib, "vkCmdResetEvent2");
-    out->vkCmdWaitEvents2 = (PFN_vkCmdWaitEvents2)dlSymFunc(lib, "vkCmdWaitEvents2");
     out->vkCmdPipelineBarrier2 = (PFN_vkCmdPipelineBarrier2)dlSymFunc(lib, "vkCmdPipelineBarrier2");
     out->vkCmdWriteTimestamp2 = (PFN_vkCmdWriteTimestamp2)dlSymFunc(lib, "vkCmdWriteTimestamp2");
     out->vkQueueSubmit2 = (PFN_vkQueueSubmit2)dlSymFunc(lib, "vkQueueSubmit2");
@@ -387,6 +392,20 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
         (PFN_vkCmdCopyBufferToImage2)dlSymFunc(lib, "vkCmdCopyBufferToImage2");
     out->vkCmdCopyImageToBuffer2 =
         (PFN_vkCmdCopyImageToBuffer2)dlSymFunc(lib, "vkCmdCopyImageToBuffer2");
+    out->vkGetDeviceBufferMemoryRequirements = (PFN_vkGetDeviceBufferMemoryRequirements)dlSymFunc(
+        lib, "vkGetDeviceBufferMemoryRequirements");
+    out->vkGetDeviceImageMemoryRequirements = (PFN_vkGetDeviceImageMemoryRequirements)dlSymFunc(
+        lib, "vkGetDeviceImageMemoryRequirements");
+    out->vkGetDeviceImageSparseMemoryRequirements =
+        (PFN_vkGetDeviceImageSparseMemoryRequirements)dlSymFunc(
+            lib, "vkGetDeviceImageSparseMemoryRequirements");
+#endif
+#ifdef VK_COMPUTE_VERSION_1_3
+    out->vkCmdSetEvent2 = (PFN_vkCmdSetEvent2)dlSymFunc(lib, "vkCmdSetEvent2");
+    out->vkCmdResetEvent2 = (PFN_vkCmdResetEvent2)dlSymFunc(lib, "vkCmdResetEvent2");
+    out->vkCmdWaitEvents2 = (PFN_vkCmdWaitEvents2)dlSymFunc(lib, "vkCmdWaitEvents2");
+#endif
+#ifdef VK_GRAPHICS_VERSION_1_3
     out->vkCmdBlitImage2 = (PFN_vkCmdBlitImage2)dlSymFunc(lib, "vkCmdBlitImage2");
     out->vkCmdResolveImage2 = (PFN_vkCmdResolveImage2)dlSymFunc(lib, "vkCmdResolveImage2");
     out->vkCmdBeginRendering = (PFN_vkCmdBeginRendering)dlSymFunc(lib, "vkCmdBeginRendering");
@@ -418,34 +437,25 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
         (PFN_vkCmdSetDepthBiasEnable)dlSymFunc(lib, "vkCmdSetDepthBiasEnable");
     out->vkCmdSetPrimitiveRestartEnable =
         (PFN_vkCmdSetPrimitiveRestartEnable)dlSymFunc(lib, "vkCmdSetPrimitiveRestartEnable");
-    out->vkGetDeviceBufferMemoryRequirements = (PFN_vkGetDeviceBufferMemoryRequirements)dlSymFunc(
-        lib, "vkGetDeviceBufferMemoryRequirements");
-    out->vkGetDeviceImageMemoryRequirements = (PFN_vkGetDeviceImageMemoryRequirements)dlSymFunc(
-        lib, "vkGetDeviceImageMemoryRequirements");
-    out->vkGetDeviceImageSparseMemoryRequirements =
-        (PFN_vkGetDeviceImageSparseMemoryRequirements)dlSymFunc(
-            lib, "vkGetDeviceImageSparseMemoryRequirements");
 #endif
-#ifdef VK_VERSION_1_4
-    out->vkCmdSetLineStipple = (PFN_vkCmdSetLineStipple)dlSymFunc(lib, "vkCmdSetLineStipple");
+#ifdef VK_BASE_VERSION_1_4
     out->vkMapMemory2 = (PFN_vkMapMemory2)dlSymFunc(lib, "vkMapMemory2");
     out->vkUnmapMemory2 = (PFN_vkUnmapMemory2)dlSymFunc(lib, "vkUnmapMemory2");
-    out->vkCmdBindIndexBuffer2 = (PFN_vkCmdBindIndexBuffer2)dlSymFunc(lib, "vkCmdBindIndexBuffer2");
-    out->vkGetRenderingAreaGranularity =
-        (PFN_vkGetRenderingAreaGranularity)dlSymFunc(lib, "vkGetRenderingAreaGranularity");
     out->vkGetDeviceImageSubresourceLayout =
         (PFN_vkGetDeviceImageSubresourceLayout)dlSymFunc(lib, "vkGetDeviceImageSubresourceLayout");
     out->vkGetImageSubresourceLayout2 =
         (PFN_vkGetImageSubresourceLayout2)dlSymFunc(lib, "vkGetImageSubresourceLayout2");
+    out->vkCopyMemoryToImage = (PFN_vkCopyMemoryToImage)dlSymFunc(lib, "vkCopyMemoryToImage");
+    out->vkCopyImageToMemory = (PFN_vkCopyImageToMemory)dlSymFunc(lib, "vkCopyImageToMemory");
+    out->vkCopyImageToImage = (PFN_vkCopyImageToImage)dlSymFunc(lib, "vkCopyImageToImage");
+    out->vkTransitionImageLayout =
+        (PFN_vkTransitionImageLayout)dlSymFunc(lib, "vkTransitionImageLayout");
+#endif
+#ifdef VK_COMPUTE_VERSION_1_4
     out->vkCmdPushDescriptorSet =
         (PFN_vkCmdPushDescriptorSet)dlSymFunc(lib, "vkCmdPushDescriptorSet");
     out->vkCmdPushDescriptorSetWithTemplate = (PFN_vkCmdPushDescriptorSetWithTemplate)dlSymFunc(
         lib, "vkCmdPushDescriptorSetWithTemplate");
-    out->vkCmdSetRenderingAttachmentLocations = (PFN_vkCmdSetRenderingAttachmentLocations)dlSymFunc(
-        lib, "vkCmdSetRenderingAttachmentLocations");
-    out->vkCmdSetRenderingInputAttachmentIndices =
-        (PFN_vkCmdSetRenderingInputAttachmentIndices)dlSymFunc(
-            lib, "vkCmdSetRenderingInputAttachmentIndices");
     out->vkCmdBindDescriptorSets2 =
         (PFN_vkCmdBindDescriptorSets2)dlSymFunc(lib, "vkCmdBindDescriptorSets2");
     out->vkCmdPushConstants2 = (PFN_vkCmdPushConstants2)dlSymFunc(lib, "vkCmdPushConstants2");
@@ -453,11 +463,17 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
         (PFN_vkCmdPushDescriptorSet2)dlSymFunc(lib, "vkCmdPushDescriptorSet2");
     out->vkCmdPushDescriptorSetWithTemplate2 = (PFN_vkCmdPushDescriptorSetWithTemplate2)dlSymFunc(
         lib, "vkCmdPushDescriptorSetWithTemplate2");
-    out->vkCopyMemoryToImage = (PFN_vkCopyMemoryToImage)dlSymFunc(lib, "vkCopyMemoryToImage");
-    out->vkCopyImageToMemory = (PFN_vkCopyImageToMemory)dlSymFunc(lib, "vkCopyImageToMemory");
-    out->vkCopyImageToImage = (PFN_vkCopyImageToImage)dlSymFunc(lib, "vkCopyImageToImage");
-    out->vkTransitionImageLayout =
-        (PFN_vkTransitionImageLayout)dlSymFunc(lib, "vkTransitionImageLayout");
+#endif
+#ifdef VK_GRAPHICS_VERSION_1_4
+    out->vkCmdSetLineStipple = (PFN_vkCmdSetLineStipple)dlSymFunc(lib, "vkCmdSetLineStipple");
+    out->vkCmdBindIndexBuffer2 = (PFN_vkCmdBindIndexBuffer2)dlSymFunc(lib, "vkCmdBindIndexBuffer2");
+    out->vkGetRenderingAreaGranularity =
+        (PFN_vkGetRenderingAreaGranularity)dlSymFunc(lib, "vkGetRenderingAreaGranularity");
+    out->vkCmdSetRenderingAttachmentLocations = (PFN_vkCmdSetRenderingAttachmentLocations)dlSymFunc(
+        lib, "vkCmdSetRenderingAttachmentLocations");
+    out->vkCmdSetRenderingInputAttachmentIndices =
+        (PFN_vkCmdSetRenderingInputAttachmentIndices)dlSymFunc(
+            lib, "vkCmdSetRenderingInputAttachmentIndices");
 #endif
 #ifdef VK_KHR_surface
     out->vkGetPhysicalDeviceSurfaceSupportKHR = (PFN_vkGetPhysicalDeviceSurfaceSupportKHR)dlSymFunc(
@@ -653,6 +669,10 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
         lib, "vkGetDeviceImageSubresourceLayoutKHR");
     out->vkGetImageSubresourceLayout2KHR =
         (PFN_vkGetImageSubresourceLayout2KHR)dlSymFunc(lib, "vkGetImageSubresourceLayout2KHR");
+#endif
+#ifdef VK_KHR_swapchain_maintenance1
+    out->vkReleaseSwapchainImagesKHR =
+        (PFN_vkReleaseSwapchainImagesKHR)dlSymFunc(lib, "vkReleaseSwapchainImagesKHR");
 #endif
 #ifdef VK_KHR_line_rasterization
     out->vkCmdSetLineStippleKHR =
@@ -905,7 +925,7 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
 void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
                                         VulkanDispatch* out) {
     memset(out, 0x0, sizeof(VulkanDispatch));
-#ifdef VK_VERSION_1_0
+#ifdef VK_BASE_VERSION_1_0
     out->vkDestroyInstance =
         (PFN_vkDestroyInstance)vk->vkGetInstanceProcAddr(instance, "vkDestroyInstance");
     out->vkEnumeratePhysicalDevices = (PFN_vkEnumeratePhysicalDevices)vk->vkGetInstanceProcAddr(
@@ -952,7 +972,7 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
         (PFN_vkGetPhysicalDeviceSparseImageFormatProperties)vk->vkGetInstanceProcAddr(
             instance, "vkGetPhysicalDeviceSparseImageFormatProperties");
 #endif
-#ifdef VK_VERSION_1_1
+#ifdef VK_BASE_VERSION_1_1
     out->vkEnumerateInstanceVersion = (PFN_vkEnumerateInstanceVersion)vk->vkGetInstanceProcAddr(
         instance, "vkEnumerateInstanceVersion");
     out->vkEnumeratePhysicalDeviceGroups =
@@ -1050,7 +1070,7 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
     out->vkCreateScreenSurfaceQNX = (PFN_vkCreateScreenSurfaceQNX)vk->vkGetInstanceProcAddr(
         instance, "vkCreateScreenSurfaceQNX");
 #endif
-#ifdef VK_VERSION_1_0
+#ifdef VK_BASE_VERSION_1_0
     out->vkGetDeviceQueue =
         (PFN_vkGetDeviceQueue)vk->vkGetInstanceProcAddr(instance, "vkGetDeviceQueue");
     out->vkQueueSubmit = (PFN_vkQueueSubmit)vk->vkGetInstanceProcAddr(instance, "vkQueueSubmit");
@@ -1095,12 +1115,6 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
         (PFN_vkCreateSemaphore)vk->vkGetInstanceProcAddr(instance, "vkCreateSemaphore");
     out->vkDestroySemaphore =
         (PFN_vkDestroySemaphore)vk->vkGetInstanceProcAddr(instance, "vkDestroySemaphore");
-    out->vkCreateEvent = (PFN_vkCreateEvent)vk->vkGetInstanceProcAddr(instance, "vkCreateEvent");
-    out->vkDestroyEvent = (PFN_vkDestroyEvent)vk->vkGetInstanceProcAddr(instance, "vkDestroyEvent");
-    out->vkGetEventStatus =
-        (PFN_vkGetEventStatus)vk->vkGetInstanceProcAddr(instance, "vkGetEventStatus");
-    out->vkSetEvent = (PFN_vkSetEvent)vk->vkGetInstanceProcAddr(instance, "vkSetEvent");
-    out->vkResetEvent = (PFN_vkResetEvent)vk->vkGetInstanceProcAddr(instance, "vkResetEvent");
     out->vkCreateQueryPool =
         (PFN_vkCreateQueryPool)vk->vkGetInstanceProcAddr(instance, "vkCreateQueryPool");
     out->vkDestroyQueryPool =
@@ -1110,10 +1124,6 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
     out->vkCreateBuffer = (PFN_vkCreateBuffer)vk->vkGetInstanceProcAddr(instance, "vkCreateBuffer");
     out->vkDestroyBuffer =
         (PFN_vkDestroyBuffer)vk->vkGetInstanceProcAddr(instance, "vkDestroyBuffer");
-    out->vkCreateBufferView =
-        (PFN_vkCreateBufferView)vk->vkGetInstanceProcAddr(instance, "vkCreateBufferView");
-    out->vkDestroyBufferView =
-        (PFN_vkDestroyBufferView)vk->vkGetInstanceProcAddr(instance, "vkDestroyBufferView");
     out->vkCreateImage = (PFN_vkCreateImage)vk->vkGetInstanceProcAddr(instance, "vkCreateImage");
     out->vkDestroyImage = (PFN_vkDestroyImage)vk->vkGetInstanceProcAddr(instance, "vkDestroyImage");
     out->vkGetImageSubresourceLayout = (PFN_vkGetImageSubresourceLayout)vk->vkGetInstanceProcAddr(
@@ -1122,6 +1132,58 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
         (PFN_vkCreateImageView)vk->vkGetInstanceProcAddr(instance, "vkCreateImageView");
     out->vkDestroyImageView =
         (PFN_vkDestroyImageView)vk->vkGetInstanceProcAddr(instance, "vkDestroyImageView");
+    out->vkCreateCommandPool =
+        (PFN_vkCreateCommandPool)vk->vkGetInstanceProcAddr(instance, "vkCreateCommandPool");
+    out->vkDestroyCommandPool =
+        (PFN_vkDestroyCommandPool)vk->vkGetInstanceProcAddr(instance, "vkDestroyCommandPool");
+    out->vkResetCommandPool =
+        (PFN_vkResetCommandPool)vk->vkGetInstanceProcAddr(instance, "vkResetCommandPool");
+    out->vkAllocateCommandBuffers = (PFN_vkAllocateCommandBuffers)vk->vkGetInstanceProcAddr(
+        instance, "vkAllocateCommandBuffers");
+    out->vkFreeCommandBuffers =
+        (PFN_vkFreeCommandBuffers)vk->vkGetInstanceProcAddr(instance, "vkFreeCommandBuffers");
+    out->vkBeginCommandBuffer =
+        (PFN_vkBeginCommandBuffer)vk->vkGetInstanceProcAddr(instance, "vkBeginCommandBuffer");
+    out->vkEndCommandBuffer =
+        (PFN_vkEndCommandBuffer)vk->vkGetInstanceProcAddr(instance, "vkEndCommandBuffer");
+    out->vkResetCommandBuffer =
+        (PFN_vkResetCommandBuffer)vk->vkGetInstanceProcAddr(instance, "vkResetCommandBuffer");
+    out->vkCmdCopyBuffer =
+        (PFN_vkCmdCopyBuffer)vk->vkGetInstanceProcAddr(instance, "vkCmdCopyBuffer");
+    out->vkCmdCopyImage = (PFN_vkCmdCopyImage)vk->vkGetInstanceProcAddr(instance, "vkCmdCopyImage");
+    out->vkCmdCopyBufferToImage =
+        (PFN_vkCmdCopyBufferToImage)vk->vkGetInstanceProcAddr(instance, "vkCmdCopyBufferToImage");
+    out->vkCmdCopyImageToBuffer =
+        (PFN_vkCmdCopyImageToBuffer)vk->vkGetInstanceProcAddr(instance, "vkCmdCopyImageToBuffer");
+    out->vkCmdUpdateBuffer =
+        (PFN_vkCmdUpdateBuffer)vk->vkGetInstanceProcAddr(instance, "vkCmdUpdateBuffer");
+    out->vkCmdFillBuffer =
+        (PFN_vkCmdFillBuffer)vk->vkGetInstanceProcAddr(instance, "vkCmdFillBuffer");
+    out->vkCmdPipelineBarrier =
+        (PFN_vkCmdPipelineBarrier)vk->vkGetInstanceProcAddr(instance, "vkCmdPipelineBarrier");
+    out->vkCmdBeginQuery =
+        (PFN_vkCmdBeginQuery)vk->vkGetInstanceProcAddr(instance, "vkCmdBeginQuery");
+    out->vkCmdEndQuery = (PFN_vkCmdEndQuery)vk->vkGetInstanceProcAddr(instance, "vkCmdEndQuery");
+    out->vkCmdResetQueryPool =
+        (PFN_vkCmdResetQueryPool)vk->vkGetInstanceProcAddr(instance, "vkCmdResetQueryPool");
+    out->vkCmdWriteTimestamp =
+        (PFN_vkCmdWriteTimestamp)vk->vkGetInstanceProcAddr(instance, "vkCmdWriteTimestamp");
+    out->vkCmdCopyQueryPoolResults = (PFN_vkCmdCopyQueryPoolResults)vk->vkGetInstanceProcAddr(
+        instance, "vkCmdCopyQueryPoolResults");
+    out->vkCmdExecuteCommands =
+        (PFN_vkCmdExecuteCommands)vk->vkGetInstanceProcAddr(instance, "vkCmdExecuteCommands");
+#endif
+#ifdef VK_COMPUTE_VERSION_1_0
+    out->vkCreateEvent = (PFN_vkCreateEvent)vk->vkGetInstanceProcAddr(instance, "vkCreateEvent");
+    out->vkDestroyEvent = (PFN_vkDestroyEvent)vk->vkGetInstanceProcAddr(instance, "vkDestroyEvent");
+    out->vkGetEventStatus =
+        (PFN_vkGetEventStatus)vk->vkGetInstanceProcAddr(instance, "vkGetEventStatus");
+    out->vkSetEvent = (PFN_vkSetEvent)vk->vkGetInstanceProcAddr(instance, "vkSetEvent");
+    out->vkResetEvent = (PFN_vkResetEvent)vk->vkGetInstanceProcAddr(instance, "vkResetEvent");
+    out->vkCreateBufferView =
+        (PFN_vkCreateBufferView)vk->vkGetInstanceProcAddr(instance, "vkCreateBufferView");
+    out->vkDestroyBufferView =
+        (PFN_vkDestroyBufferView)vk->vkGetInstanceProcAddr(instance, "vkDestroyBufferView");
     out->vkCreateShaderModule =
         (PFN_vkCreateShaderModule)vk->vkGetInstanceProcAddr(instance, "vkCreateShaderModule");
     out->vkDestroyShaderModule =
@@ -1134,8 +1196,6 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
         (PFN_vkGetPipelineCacheData)vk->vkGetInstanceProcAddr(instance, "vkGetPipelineCacheData");
     out->vkMergePipelineCaches =
         (PFN_vkMergePipelineCaches)vk->vkGetInstanceProcAddr(instance, "vkMergePipelineCaches");
-    out->vkCreateGraphicsPipelines = (PFN_vkCreateGraphicsPipelines)vk->vkGetInstanceProcAddr(
-        instance, "vkCreateGraphicsPipelines");
     out->vkCreateComputePipelines = (PFN_vkCreateComputePipelines)vk->vkGetInstanceProcAddr(
         instance, "vkCreateComputePipelines");
     out->vkDestroyPipeline =
@@ -1164,6 +1224,26 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
         (PFN_vkFreeDescriptorSets)vk->vkGetInstanceProcAddr(instance, "vkFreeDescriptorSets");
     out->vkUpdateDescriptorSets =
         (PFN_vkUpdateDescriptorSets)vk->vkGetInstanceProcAddr(instance, "vkUpdateDescriptorSets");
+    out->vkCmdBindPipeline =
+        (PFN_vkCmdBindPipeline)vk->vkGetInstanceProcAddr(instance, "vkCmdBindPipeline");
+    out->vkCmdBindDescriptorSets =
+        (PFN_vkCmdBindDescriptorSets)vk->vkGetInstanceProcAddr(instance, "vkCmdBindDescriptorSets");
+    out->vkCmdClearColorImage =
+        (PFN_vkCmdClearColorImage)vk->vkGetInstanceProcAddr(instance, "vkCmdClearColorImage");
+    out->vkCmdDispatch = (PFN_vkCmdDispatch)vk->vkGetInstanceProcAddr(instance, "vkCmdDispatch");
+    out->vkCmdDispatchIndirect =
+        (PFN_vkCmdDispatchIndirect)vk->vkGetInstanceProcAddr(instance, "vkCmdDispatchIndirect");
+    out->vkCmdSetEvent = (PFN_vkCmdSetEvent)vk->vkGetInstanceProcAddr(instance, "vkCmdSetEvent");
+    out->vkCmdResetEvent =
+        (PFN_vkCmdResetEvent)vk->vkGetInstanceProcAddr(instance, "vkCmdResetEvent");
+    out->vkCmdWaitEvents =
+        (PFN_vkCmdWaitEvents)vk->vkGetInstanceProcAddr(instance, "vkCmdWaitEvents");
+    out->vkCmdPushConstants =
+        (PFN_vkCmdPushConstants)vk->vkGetInstanceProcAddr(instance, "vkCmdPushConstants");
+#endif
+#ifdef VK_GRAPHICS_VERSION_1_0
+    out->vkCreateGraphicsPipelines = (PFN_vkCreateGraphicsPipelines)vk->vkGetInstanceProcAddr(
+        instance, "vkCreateGraphicsPipelines");
     out->vkCreateFramebuffer =
         (PFN_vkCreateFramebuffer)vk->vkGetInstanceProcAddr(instance, "vkCreateFramebuffer");
     out->vkDestroyFramebuffer =
@@ -1174,24 +1254,6 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
         (PFN_vkDestroyRenderPass)vk->vkGetInstanceProcAddr(instance, "vkDestroyRenderPass");
     out->vkGetRenderAreaGranularity = (PFN_vkGetRenderAreaGranularity)vk->vkGetInstanceProcAddr(
         instance, "vkGetRenderAreaGranularity");
-    out->vkCreateCommandPool =
-        (PFN_vkCreateCommandPool)vk->vkGetInstanceProcAddr(instance, "vkCreateCommandPool");
-    out->vkDestroyCommandPool =
-        (PFN_vkDestroyCommandPool)vk->vkGetInstanceProcAddr(instance, "vkDestroyCommandPool");
-    out->vkResetCommandPool =
-        (PFN_vkResetCommandPool)vk->vkGetInstanceProcAddr(instance, "vkResetCommandPool");
-    out->vkAllocateCommandBuffers = (PFN_vkAllocateCommandBuffers)vk->vkGetInstanceProcAddr(
-        instance, "vkAllocateCommandBuffers");
-    out->vkFreeCommandBuffers =
-        (PFN_vkFreeCommandBuffers)vk->vkGetInstanceProcAddr(instance, "vkFreeCommandBuffers");
-    out->vkBeginCommandBuffer =
-        (PFN_vkBeginCommandBuffer)vk->vkGetInstanceProcAddr(instance, "vkBeginCommandBuffer");
-    out->vkEndCommandBuffer =
-        (PFN_vkEndCommandBuffer)vk->vkGetInstanceProcAddr(instance, "vkEndCommandBuffer");
-    out->vkResetCommandBuffer =
-        (PFN_vkResetCommandBuffer)vk->vkGetInstanceProcAddr(instance, "vkResetCommandBuffer");
-    out->vkCmdBindPipeline =
-        (PFN_vkCmdBindPipeline)vk->vkGetInstanceProcAddr(instance, "vkCmdBindPipeline");
     out->vkCmdSetViewport =
         (PFN_vkCmdSetViewport)vk->vkGetInstanceProcAddr(instance, "vkCmdSetViewport");
     out->vkCmdSetScissor =
@@ -1210,8 +1272,6 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
         instance, "vkCmdSetStencilWriteMask");
     out->vkCmdSetStencilReference = (PFN_vkCmdSetStencilReference)vk->vkGetInstanceProcAddr(
         instance, "vkCmdSetStencilReference");
-    out->vkCmdBindDescriptorSets =
-        (PFN_vkCmdBindDescriptorSets)vk->vkGetInstanceProcAddr(instance, "vkCmdBindDescriptorSets");
     out->vkCmdBindIndexBuffer =
         (PFN_vkCmdBindIndexBuffer)vk->vkGetInstanceProcAddr(instance, "vkCmdBindIndexBuffer");
     out->vkCmdBindVertexBuffers =
@@ -1223,57 +1283,21 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
         (PFN_vkCmdDrawIndirect)vk->vkGetInstanceProcAddr(instance, "vkCmdDrawIndirect");
     out->vkCmdDrawIndexedIndirect = (PFN_vkCmdDrawIndexedIndirect)vk->vkGetInstanceProcAddr(
         instance, "vkCmdDrawIndexedIndirect");
-    out->vkCmdDispatch = (PFN_vkCmdDispatch)vk->vkGetInstanceProcAddr(instance, "vkCmdDispatch");
-    out->vkCmdDispatchIndirect =
-        (PFN_vkCmdDispatchIndirect)vk->vkGetInstanceProcAddr(instance, "vkCmdDispatchIndirect");
-    out->vkCmdCopyBuffer =
-        (PFN_vkCmdCopyBuffer)vk->vkGetInstanceProcAddr(instance, "vkCmdCopyBuffer");
-    out->vkCmdCopyImage = (PFN_vkCmdCopyImage)vk->vkGetInstanceProcAddr(instance, "vkCmdCopyImage");
     out->vkCmdBlitImage = (PFN_vkCmdBlitImage)vk->vkGetInstanceProcAddr(instance, "vkCmdBlitImage");
-    out->vkCmdCopyBufferToImage =
-        (PFN_vkCmdCopyBufferToImage)vk->vkGetInstanceProcAddr(instance, "vkCmdCopyBufferToImage");
-    out->vkCmdCopyImageToBuffer =
-        (PFN_vkCmdCopyImageToBuffer)vk->vkGetInstanceProcAddr(instance, "vkCmdCopyImageToBuffer");
-    out->vkCmdUpdateBuffer =
-        (PFN_vkCmdUpdateBuffer)vk->vkGetInstanceProcAddr(instance, "vkCmdUpdateBuffer");
-    out->vkCmdFillBuffer =
-        (PFN_vkCmdFillBuffer)vk->vkGetInstanceProcAddr(instance, "vkCmdFillBuffer");
-    out->vkCmdClearColorImage =
-        (PFN_vkCmdClearColorImage)vk->vkGetInstanceProcAddr(instance, "vkCmdClearColorImage");
     out->vkCmdClearDepthStencilImage = (PFN_vkCmdClearDepthStencilImage)vk->vkGetInstanceProcAddr(
         instance, "vkCmdClearDepthStencilImage");
     out->vkCmdClearAttachments =
         (PFN_vkCmdClearAttachments)vk->vkGetInstanceProcAddr(instance, "vkCmdClearAttachments");
     out->vkCmdResolveImage =
         (PFN_vkCmdResolveImage)vk->vkGetInstanceProcAddr(instance, "vkCmdResolveImage");
-    out->vkCmdSetEvent = (PFN_vkCmdSetEvent)vk->vkGetInstanceProcAddr(instance, "vkCmdSetEvent");
-    out->vkCmdResetEvent =
-        (PFN_vkCmdResetEvent)vk->vkGetInstanceProcAddr(instance, "vkCmdResetEvent");
-    out->vkCmdWaitEvents =
-        (PFN_vkCmdWaitEvents)vk->vkGetInstanceProcAddr(instance, "vkCmdWaitEvents");
-    out->vkCmdPipelineBarrier =
-        (PFN_vkCmdPipelineBarrier)vk->vkGetInstanceProcAddr(instance, "vkCmdPipelineBarrier");
-    out->vkCmdBeginQuery =
-        (PFN_vkCmdBeginQuery)vk->vkGetInstanceProcAddr(instance, "vkCmdBeginQuery");
-    out->vkCmdEndQuery = (PFN_vkCmdEndQuery)vk->vkGetInstanceProcAddr(instance, "vkCmdEndQuery");
-    out->vkCmdResetQueryPool =
-        (PFN_vkCmdResetQueryPool)vk->vkGetInstanceProcAddr(instance, "vkCmdResetQueryPool");
-    out->vkCmdWriteTimestamp =
-        (PFN_vkCmdWriteTimestamp)vk->vkGetInstanceProcAddr(instance, "vkCmdWriteTimestamp");
-    out->vkCmdCopyQueryPoolResults = (PFN_vkCmdCopyQueryPoolResults)vk->vkGetInstanceProcAddr(
-        instance, "vkCmdCopyQueryPoolResults");
-    out->vkCmdPushConstants =
-        (PFN_vkCmdPushConstants)vk->vkGetInstanceProcAddr(instance, "vkCmdPushConstants");
     out->vkCmdBeginRenderPass =
         (PFN_vkCmdBeginRenderPass)vk->vkGetInstanceProcAddr(instance, "vkCmdBeginRenderPass");
     out->vkCmdNextSubpass =
         (PFN_vkCmdNextSubpass)vk->vkGetInstanceProcAddr(instance, "vkCmdNextSubpass");
     out->vkCmdEndRenderPass =
         (PFN_vkCmdEndRenderPass)vk->vkGetInstanceProcAddr(instance, "vkCmdEndRenderPass");
-    out->vkCmdExecuteCommands =
-        (PFN_vkCmdExecuteCommands)vk->vkGetInstanceProcAddr(instance, "vkCmdExecuteCommands");
 #endif
-#ifdef VK_VERSION_1_1
+#ifdef VK_BASE_VERSION_1_1
     out->vkBindBufferMemory2 =
         (PFN_vkBindBufferMemory2)vk->vkGetInstanceProcAddr(instance, "vkBindBufferMemory2");
     out->vkBindImageMemory2 =
@@ -1283,8 +1307,6 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
             instance, "vkGetDeviceGroupPeerMemoryFeatures");
     out->vkCmdSetDeviceMask =
         (PFN_vkCmdSetDeviceMask)vk->vkGetInstanceProcAddr(instance, "vkCmdSetDeviceMask");
-    out->vkCmdDispatchBase =
-        (PFN_vkCmdDispatchBase)vk->vkGetInstanceProcAddr(instance, "vkCmdDispatchBase");
     out->vkGetImageMemoryRequirements2 =
         (PFN_vkGetImageMemoryRequirements2)vk->vkGetInstanceProcAddr(
             instance, "vkGetImageMemoryRequirements2");
@@ -1298,12 +1320,10 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
         (PFN_vkTrimCommandPool)vk->vkGetInstanceProcAddr(instance, "vkTrimCommandPool");
     out->vkGetDeviceQueue2 =
         (PFN_vkGetDeviceQueue2)vk->vkGetInstanceProcAddr(instance, "vkGetDeviceQueue2");
-    out->vkCreateSamplerYcbcrConversion =
-        (PFN_vkCreateSamplerYcbcrConversion)vk->vkGetInstanceProcAddr(
-            instance, "vkCreateSamplerYcbcrConversion");
-    out->vkDestroySamplerYcbcrConversion =
-        (PFN_vkDestroySamplerYcbcrConversion)vk->vkGetInstanceProcAddr(
-            instance, "vkDestroySamplerYcbcrConversion");
+#endif
+#ifdef VK_COMPUTE_VERSION_1_1
+    out->vkCmdDispatchBase =
+        (PFN_vkCmdDispatchBase)vk->vkGetInstanceProcAddr(instance, "vkCmdDispatchBase");
     out->vkCreateDescriptorUpdateTemplate =
         (PFN_vkCreateDescriptorUpdateTemplate)vk->vkGetInstanceProcAddr(
             instance, "vkCreateDescriptorUpdateTemplate");
@@ -1316,21 +1336,14 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
     out->vkGetDescriptorSetLayoutSupport =
         (PFN_vkGetDescriptorSetLayoutSupport)vk->vkGetInstanceProcAddr(
             instance, "vkGetDescriptorSetLayoutSupport");
+    out->vkCreateSamplerYcbcrConversion =
+        (PFN_vkCreateSamplerYcbcrConversion)vk->vkGetInstanceProcAddr(
+            instance, "vkCreateSamplerYcbcrConversion");
+    out->vkDestroySamplerYcbcrConversion =
+        (PFN_vkDestroySamplerYcbcrConversion)vk->vkGetInstanceProcAddr(
+            instance, "vkDestroySamplerYcbcrConversion");
 #endif
-#ifdef VK_VERSION_1_2
-    out->vkCmdDrawIndirectCount =
-        (PFN_vkCmdDrawIndirectCount)vk->vkGetInstanceProcAddr(instance, "vkCmdDrawIndirectCount");
-    out->vkCmdDrawIndexedIndirectCount =
-        (PFN_vkCmdDrawIndexedIndirectCount)vk->vkGetInstanceProcAddr(
-            instance, "vkCmdDrawIndexedIndirectCount");
-    out->vkCreateRenderPass2 =
-        (PFN_vkCreateRenderPass2)vk->vkGetInstanceProcAddr(instance, "vkCreateRenderPass2");
-    out->vkCmdBeginRenderPass2 =
-        (PFN_vkCmdBeginRenderPass2)vk->vkGetInstanceProcAddr(instance, "vkCmdBeginRenderPass2");
-    out->vkCmdNextSubpass2 =
-        (PFN_vkCmdNextSubpass2)vk->vkGetInstanceProcAddr(instance, "vkCmdNextSubpass2");
-    out->vkCmdEndRenderPass2 =
-        (PFN_vkCmdEndRenderPass2)vk->vkGetInstanceProcAddr(instance, "vkCmdEndRenderPass2");
+#ifdef VK_BASE_VERSION_1_2
     out->vkResetQueryPool =
         (PFN_vkResetQueryPool)vk->vkGetInstanceProcAddr(instance, "vkResetQueryPool");
     out->vkGetSemaphoreCounterValue = (PFN_vkGetSemaphoreCounterValue)vk->vkGetInstanceProcAddr(
@@ -1348,7 +1361,22 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
         (PFN_vkGetDeviceMemoryOpaqueCaptureAddress)vk->vkGetInstanceProcAddr(
             instance, "vkGetDeviceMemoryOpaqueCaptureAddress");
 #endif
-#ifdef VK_VERSION_1_3
+#ifdef VK_GRAPHICS_VERSION_1_2
+    out->vkCmdDrawIndirectCount =
+        (PFN_vkCmdDrawIndirectCount)vk->vkGetInstanceProcAddr(instance, "vkCmdDrawIndirectCount");
+    out->vkCmdDrawIndexedIndirectCount =
+        (PFN_vkCmdDrawIndexedIndirectCount)vk->vkGetInstanceProcAddr(
+            instance, "vkCmdDrawIndexedIndirectCount");
+    out->vkCreateRenderPass2 =
+        (PFN_vkCreateRenderPass2)vk->vkGetInstanceProcAddr(instance, "vkCreateRenderPass2");
+    out->vkCmdBeginRenderPass2 =
+        (PFN_vkCmdBeginRenderPass2)vk->vkGetInstanceProcAddr(instance, "vkCmdBeginRenderPass2");
+    out->vkCmdNextSubpass2 =
+        (PFN_vkCmdNextSubpass2)vk->vkGetInstanceProcAddr(instance, "vkCmdNextSubpass2");
+    out->vkCmdEndRenderPass2 =
+        (PFN_vkCmdEndRenderPass2)vk->vkGetInstanceProcAddr(instance, "vkCmdEndRenderPass2");
+#endif
+#ifdef VK_BASE_VERSION_1_3
     out->vkGetPhysicalDeviceToolProperties =
         (PFN_vkGetPhysicalDeviceToolProperties)vk->vkGetInstanceProcAddr(
             instance, "vkGetPhysicalDeviceToolProperties");
@@ -1360,11 +1388,6 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
         (PFN_vkSetPrivateData)vk->vkGetInstanceProcAddr(instance, "vkSetPrivateData");
     out->vkGetPrivateData =
         (PFN_vkGetPrivateData)vk->vkGetInstanceProcAddr(instance, "vkGetPrivateData");
-    out->vkCmdSetEvent2 = (PFN_vkCmdSetEvent2)vk->vkGetInstanceProcAddr(instance, "vkCmdSetEvent2");
-    out->vkCmdResetEvent2 =
-        (PFN_vkCmdResetEvent2)vk->vkGetInstanceProcAddr(instance, "vkCmdResetEvent2");
-    out->vkCmdWaitEvents2 =
-        (PFN_vkCmdWaitEvents2)vk->vkGetInstanceProcAddr(instance, "vkCmdWaitEvents2");
     out->vkCmdPipelineBarrier2 =
         (PFN_vkCmdPipelineBarrier2)vk->vkGetInstanceProcAddr(instance, "vkCmdPipelineBarrier2");
     out->vkCmdWriteTimestamp2 =
@@ -1378,6 +1401,24 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
         (PFN_vkCmdCopyBufferToImage2)vk->vkGetInstanceProcAddr(instance, "vkCmdCopyBufferToImage2");
     out->vkCmdCopyImageToBuffer2 =
         (PFN_vkCmdCopyImageToBuffer2)vk->vkGetInstanceProcAddr(instance, "vkCmdCopyImageToBuffer2");
+    out->vkGetDeviceBufferMemoryRequirements =
+        (PFN_vkGetDeviceBufferMemoryRequirements)vk->vkGetInstanceProcAddr(
+            instance, "vkGetDeviceBufferMemoryRequirements");
+    out->vkGetDeviceImageMemoryRequirements =
+        (PFN_vkGetDeviceImageMemoryRequirements)vk->vkGetInstanceProcAddr(
+            instance, "vkGetDeviceImageMemoryRequirements");
+    out->vkGetDeviceImageSparseMemoryRequirements =
+        (PFN_vkGetDeviceImageSparseMemoryRequirements)vk->vkGetInstanceProcAddr(
+            instance, "vkGetDeviceImageSparseMemoryRequirements");
+#endif
+#ifdef VK_COMPUTE_VERSION_1_3
+    out->vkCmdSetEvent2 = (PFN_vkCmdSetEvent2)vk->vkGetInstanceProcAddr(instance, "vkCmdSetEvent2");
+    out->vkCmdResetEvent2 =
+        (PFN_vkCmdResetEvent2)vk->vkGetInstanceProcAddr(instance, "vkCmdResetEvent2");
+    out->vkCmdWaitEvents2 =
+        (PFN_vkCmdWaitEvents2)vk->vkGetInstanceProcAddr(instance, "vkCmdWaitEvents2");
+#endif
+#ifdef VK_GRAPHICS_VERSION_1_3
     out->vkCmdBlitImage2 =
         (PFN_vkCmdBlitImage2)vk->vkGetInstanceProcAddr(instance, "vkCmdBlitImage2");
     out->vkCmdResolveImage2 =
@@ -1419,42 +1460,30 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
     out->vkCmdSetPrimitiveRestartEnable =
         (PFN_vkCmdSetPrimitiveRestartEnable)vk->vkGetInstanceProcAddr(
             instance, "vkCmdSetPrimitiveRestartEnable");
-    out->vkGetDeviceBufferMemoryRequirements =
-        (PFN_vkGetDeviceBufferMemoryRequirements)vk->vkGetInstanceProcAddr(
-            instance, "vkGetDeviceBufferMemoryRequirements");
-    out->vkGetDeviceImageMemoryRequirements =
-        (PFN_vkGetDeviceImageMemoryRequirements)vk->vkGetInstanceProcAddr(
-            instance, "vkGetDeviceImageMemoryRequirements");
-    out->vkGetDeviceImageSparseMemoryRequirements =
-        (PFN_vkGetDeviceImageSparseMemoryRequirements)vk->vkGetInstanceProcAddr(
-            instance, "vkGetDeviceImageSparseMemoryRequirements");
 #endif
-#ifdef VK_VERSION_1_4
-    out->vkCmdSetLineStipple =
-        (PFN_vkCmdSetLineStipple)vk->vkGetInstanceProcAddr(instance, "vkCmdSetLineStipple");
+#ifdef VK_BASE_VERSION_1_4
     out->vkMapMemory2 = (PFN_vkMapMemory2)vk->vkGetInstanceProcAddr(instance, "vkMapMemory2");
     out->vkUnmapMemory2 = (PFN_vkUnmapMemory2)vk->vkGetInstanceProcAddr(instance, "vkUnmapMemory2");
-    out->vkCmdBindIndexBuffer2 =
-        (PFN_vkCmdBindIndexBuffer2)vk->vkGetInstanceProcAddr(instance, "vkCmdBindIndexBuffer2");
-    out->vkGetRenderingAreaGranularity =
-        (PFN_vkGetRenderingAreaGranularity)vk->vkGetInstanceProcAddr(
-            instance, "vkGetRenderingAreaGranularity");
     out->vkGetDeviceImageSubresourceLayout =
         (PFN_vkGetDeviceImageSubresourceLayout)vk->vkGetInstanceProcAddr(
             instance, "vkGetDeviceImageSubresourceLayout");
     out->vkGetImageSubresourceLayout2 = (PFN_vkGetImageSubresourceLayout2)vk->vkGetInstanceProcAddr(
         instance, "vkGetImageSubresourceLayout2");
+    out->vkCopyMemoryToImage =
+        (PFN_vkCopyMemoryToImage)vk->vkGetInstanceProcAddr(instance, "vkCopyMemoryToImage");
+    out->vkCopyImageToMemory =
+        (PFN_vkCopyImageToMemory)vk->vkGetInstanceProcAddr(instance, "vkCopyImageToMemory");
+    out->vkCopyImageToImage =
+        (PFN_vkCopyImageToImage)vk->vkGetInstanceProcAddr(instance, "vkCopyImageToImage");
+    out->vkTransitionImageLayout =
+        (PFN_vkTransitionImageLayout)vk->vkGetInstanceProcAddr(instance, "vkTransitionImageLayout");
+#endif
+#ifdef VK_COMPUTE_VERSION_1_4
     out->vkCmdPushDescriptorSet =
         (PFN_vkCmdPushDescriptorSet)vk->vkGetInstanceProcAddr(instance, "vkCmdPushDescriptorSet");
     out->vkCmdPushDescriptorSetWithTemplate =
         (PFN_vkCmdPushDescriptorSetWithTemplate)vk->vkGetInstanceProcAddr(
             instance, "vkCmdPushDescriptorSetWithTemplate");
-    out->vkCmdSetRenderingAttachmentLocations =
-        (PFN_vkCmdSetRenderingAttachmentLocations)vk->vkGetInstanceProcAddr(
-            instance, "vkCmdSetRenderingAttachmentLocations");
-    out->vkCmdSetRenderingInputAttachmentIndices =
-        (PFN_vkCmdSetRenderingInputAttachmentIndices)vk->vkGetInstanceProcAddr(
-            instance, "vkCmdSetRenderingInputAttachmentIndices");
     out->vkCmdBindDescriptorSets2 = (PFN_vkCmdBindDescriptorSets2)vk->vkGetInstanceProcAddr(
         instance, "vkCmdBindDescriptorSets2");
     out->vkCmdPushConstants2 =
@@ -1464,14 +1493,21 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
     out->vkCmdPushDescriptorSetWithTemplate2 =
         (PFN_vkCmdPushDescriptorSetWithTemplate2)vk->vkGetInstanceProcAddr(
             instance, "vkCmdPushDescriptorSetWithTemplate2");
-    out->vkCopyMemoryToImage =
-        (PFN_vkCopyMemoryToImage)vk->vkGetInstanceProcAddr(instance, "vkCopyMemoryToImage");
-    out->vkCopyImageToMemory =
-        (PFN_vkCopyImageToMemory)vk->vkGetInstanceProcAddr(instance, "vkCopyImageToMemory");
-    out->vkCopyImageToImage =
-        (PFN_vkCopyImageToImage)vk->vkGetInstanceProcAddr(instance, "vkCopyImageToImage");
-    out->vkTransitionImageLayout =
-        (PFN_vkTransitionImageLayout)vk->vkGetInstanceProcAddr(instance, "vkTransitionImageLayout");
+#endif
+#ifdef VK_GRAPHICS_VERSION_1_4
+    out->vkCmdSetLineStipple =
+        (PFN_vkCmdSetLineStipple)vk->vkGetInstanceProcAddr(instance, "vkCmdSetLineStipple");
+    out->vkCmdBindIndexBuffer2 =
+        (PFN_vkCmdBindIndexBuffer2)vk->vkGetInstanceProcAddr(instance, "vkCmdBindIndexBuffer2");
+    out->vkGetRenderingAreaGranularity =
+        (PFN_vkGetRenderingAreaGranularity)vk->vkGetInstanceProcAddr(
+            instance, "vkGetRenderingAreaGranularity");
+    out->vkCmdSetRenderingAttachmentLocations =
+        (PFN_vkCmdSetRenderingAttachmentLocations)vk->vkGetInstanceProcAddr(
+            instance, "vkCmdSetRenderingAttachmentLocations");
+    out->vkCmdSetRenderingInputAttachmentIndices =
+        (PFN_vkCmdSetRenderingInputAttachmentIndices)vk->vkGetInstanceProcAddr(
+            instance, "vkCmdSetRenderingInputAttachmentIndices");
 #endif
 #ifdef VK_KHR_surface
     out->vkGetPhysicalDeviceSurfaceSupportKHR =
@@ -1703,6 +1739,10 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
     out->vkGetImageSubresourceLayout2KHR =
         (PFN_vkGetImageSubresourceLayout2KHR)vk->vkGetInstanceProcAddr(
             instance, "vkGetImageSubresourceLayout2KHR");
+#endif
+#ifdef VK_KHR_swapchain_maintenance1
+    out->vkReleaseSwapchainImagesKHR = (PFN_vkReleaseSwapchainImagesKHR)vk->vkGetInstanceProcAddr(
+        instance, "vkReleaseSwapchainImagesKHR");
 #endif
 #ifdef VK_KHR_line_rasterization
     out->vkCmdSetLineStippleKHR =
@@ -1999,7 +2039,7 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
 
 void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, VulkanDispatch* out) {
     memset(out, 0x0, sizeof(VulkanDispatch));
-#ifdef VK_VERSION_1_0
+#ifdef VK_BASE_VERSION_1_0
     out->vkDestroyInstance =
         (PFN_vkDestroyInstance)vk->vkGetDeviceProcAddr(device, "vkDestroyInstance");
     out->vkEnumeratePhysicalDevices = (PFN_vkEnumeratePhysicalDevices)vk->vkGetDeviceProcAddr(
@@ -2044,7 +2084,7 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
         (PFN_vkGetPhysicalDeviceSparseImageFormatProperties)vk->vkGetDeviceProcAddr(
             device, "vkGetPhysicalDeviceSparseImageFormatProperties");
 #endif
-#ifdef VK_VERSION_1_1
+#ifdef VK_BASE_VERSION_1_1
     out->vkEnumerateInstanceVersion = (PFN_vkEnumerateInstanceVersion)vk->vkGetDeviceProcAddr(
         device, "vkEnumerateInstanceVersion");
     out->vkEnumeratePhysicalDeviceGroups =
@@ -2142,7 +2182,7 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
     out->vkCreateScreenSurfaceQNX =
         (PFN_vkCreateScreenSurfaceQNX)vk->vkGetDeviceProcAddr(device, "vkCreateScreenSurfaceQNX");
 #endif
-#ifdef VK_VERSION_1_0
+#ifdef VK_BASE_VERSION_1_0
     out->vkGetDeviceQueue =
         (PFN_vkGetDeviceQueue)vk->vkGetDeviceProcAddr(device, "vkGetDeviceQueue");
     out->vkQueueSubmit = (PFN_vkQueueSubmit)vk->vkGetDeviceProcAddr(device, "vkQueueSubmit");
@@ -2184,12 +2224,6 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
         (PFN_vkCreateSemaphore)vk->vkGetDeviceProcAddr(device, "vkCreateSemaphore");
     out->vkDestroySemaphore =
         (PFN_vkDestroySemaphore)vk->vkGetDeviceProcAddr(device, "vkDestroySemaphore");
-    out->vkCreateEvent = (PFN_vkCreateEvent)vk->vkGetDeviceProcAddr(device, "vkCreateEvent");
-    out->vkDestroyEvent = (PFN_vkDestroyEvent)vk->vkGetDeviceProcAddr(device, "vkDestroyEvent");
-    out->vkGetEventStatus =
-        (PFN_vkGetEventStatus)vk->vkGetDeviceProcAddr(device, "vkGetEventStatus");
-    out->vkSetEvent = (PFN_vkSetEvent)vk->vkGetDeviceProcAddr(device, "vkSetEvent");
-    out->vkResetEvent = (PFN_vkResetEvent)vk->vkGetDeviceProcAddr(device, "vkResetEvent");
     out->vkCreateQueryPool =
         (PFN_vkCreateQueryPool)vk->vkGetDeviceProcAddr(device, "vkCreateQueryPool");
     out->vkDestroyQueryPool =
@@ -2198,10 +2232,6 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
         (PFN_vkGetQueryPoolResults)vk->vkGetDeviceProcAddr(device, "vkGetQueryPoolResults");
     out->vkCreateBuffer = (PFN_vkCreateBuffer)vk->vkGetDeviceProcAddr(device, "vkCreateBuffer");
     out->vkDestroyBuffer = (PFN_vkDestroyBuffer)vk->vkGetDeviceProcAddr(device, "vkDestroyBuffer");
-    out->vkCreateBufferView =
-        (PFN_vkCreateBufferView)vk->vkGetDeviceProcAddr(device, "vkCreateBufferView");
-    out->vkDestroyBufferView =
-        (PFN_vkDestroyBufferView)vk->vkGetDeviceProcAddr(device, "vkDestroyBufferView");
     out->vkCreateImage = (PFN_vkCreateImage)vk->vkGetDeviceProcAddr(device, "vkCreateImage");
     out->vkDestroyImage = (PFN_vkDestroyImage)vk->vkGetDeviceProcAddr(device, "vkDestroyImage");
     out->vkGetImageSubresourceLayout = (PFN_vkGetImageSubresourceLayout)vk->vkGetDeviceProcAddr(
@@ -2210,6 +2240,55 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
         (PFN_vkCreateImageView)vk->vkGetDeviceProcAddr(device, "vkCreateImageView");
     out->vkDestroyImageView =
         (PFN_vkDestroyImageView)vk->vkGetDeviceProcAddr(device, "vkDestroyImageView");
+    out->vkCreateCommandPool =
+        (PFN_vkCreateCommandPool)vk->vkGetDeviceProcAddr(device, "vkCreateCommandPool");
+    out->vkDestroyCommandPool =
+        (PFN_vkDestroyCommandPool)vk->vkGetDeviceProcAddr(device, "vkDestroyCommandPool");
+    out->vkResetCommandPool =
+        (PFN_vkResetCommandPool)vk->vkGetDeviceProcAddr(device, "vkResetCommandPool");
+    out->vkAllocateCommandBuffers =
+        (PFN_vkAllocateCommandBuffers)vk->vkGetDeviceProcAddr(device, "vkAllocateCommandBuffers");
+    out->vkFreeCommandBuffers =
+        (PFN_vkFreeCommandBuffers)vk->vkGetDeviceProcAddr(device, "vkFreeCommandBuffers");
+    out->vkBeginCommandBuffer =
+        (PFN_vkBeginCommandBuffer)vk->vkGetDeviceProcAddr(device, "vkBeginCommandBuffer");
+    out->vkEndCommandBuffer =
+        (PFN_vkEndCommandBuffer)vk->vkGetDeviceProcAddr(device, "vkEndCommandBuffer");
+    out->vkResetCommandBuffer =
+        (PFN_vkResetCommandBuffer)vk->vkGetDeviceProcAddr(device, "vkResetCommandBuffer");
+    out->vkCmdCopyBuffer = (PFN_vkCmdCopyBuffer)vk->vkGetDeviceProcAddr(device, "vkCmdCopyBuffer");
+    out->vkCmdCopyImage = (PFN_vkCmdCopyImage)vk->vkGetDeviceProcAddr(device, "vkCmdCopyImage");
+    out->vkCmdCopyBufferToImage =
+        (PFN_vkCmdCopyBufferToImage)vk->vkGetDeviceProcAddr(device, "vkCmdCopyBufferToImage");
+    out->vkCmdCopyImageToBuffer =
+        (PFN_vkCmdCopyImageToBuffer)vk->vkGetDeviceProcAddr(device, "vkCmdCopyImageToBuffer");
+    out->vkCmdUpdateBuffer =
+        (PFN_vkCmdUpdateBuffer)vk->vkGetDeviceProcAddr(device, "vkCmdUpdateBuffer");
+    out->vkCmdFillBuffer = (PFN_vkCmdFillBuffer)vk->vkGetDeviceProcAddr(device, "vkCmdFillBuffer");
+    out->vkCmdPipelineBarrier =
+        (PFN_vkCmdPipelineBarrier)vk->vkGetDeviceProcAddr(device, "vkCmdPipelineBarrier");
+    out->vkCmdBeginQuery = (PFN_vkCmdBeginQuery)vk->vkGetDeviceProcAddr(device, "vkCmdBeginQuery");
+    out->vkCmdEndQuery = (PFN_vkCmdEndQuery)vk->vkGetDeviceProcAddr(device, "vkCmdEndQuery");
+    out->vkCmdResetQueryPool =
+        (PFN_vkCmdResetQueryPool)vk->vkGetDeviceProcAddr(device, "vkCmdResetQueryPool");
+    out->vkCmdWriteTimestamp =
+        (PFN_vkCmdWriteTimestamp)vk->vkGetDeviceProcAddr(device, "vkCmdWriteTimestamp");
+    out->vkCmdCopyQueryPoolResults =
+        (PFN_vkCmdCopyQueryPoolResults)vk->vkGetDeviceProcAddr(device, "vkCmdCopyQueryPoolResults");
+    out->vkCmdExecuteCommands =
+        (PFN_vkCmdExecuteCommands)vk->vkGetDeviceProcAddr(device, "vkCmdExecuteCommands");
+#endif
+#ifdef VK_COMPUTE_VERSION_1_0
+    out->vkCreateEvent = (PFN_vkCreateEvent)vk->vkGetDeviceProcAddr(device, "vkCreateEvent");
+    out->vkDestroyEvent = (PFN_vkDestroyEvent)vk->vkGetDeviceProcAddr(device, "vkDestroyEvent");
+    out->vkGetEventStatus =
+        (PFN_vkGetEventStatus)vk->vkGetDeviceProcAddr(device, "vkGetEventStatus");
+    out->vkSetEvent = (PFN_vkSetEvent)vk->vkGetDeviceProcAddr(device, "vkSetEvent");
+    out->vkResetEvent = (PFN_vkResetEvent)vk->vkGetDeviceProcAddr(device, "vkResetEvent");
+    out->vkCreateBufferView =
+        (PFN_vkCreateBufferView)vk->vkGetDeviceProcAddr(device, "vkCreateBufferView");
+    out->vkDestroyBufferView =
+        (PFN_vkDestroyBufferView)vk->vkGetDeviceProcAddr(device, "vkDestroyBufferView");
     out->vkCreateShaderModule =
         (PFN_vkCreateShaderModule)vk->vkGetDeviceProcAddr(device, "vkCreateShaderModule");
     out->vkDestroyShaderModule =
@@ -2222,8 +2301,6 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
         (PFN_vkGetPipelineCacheData)vk->vkGetDeviceProcAddr(device, "vkGetPipelineCacheData");
     out->vkMergePipelineCaches =
         (PFN_vkMergePipelineCaches)vk->vkGetDeviceProcAddr(device, "vkMergePipelineCaches");
-    out->vkCreateGraphicsPipelines =
-        (PFN_vkCreateGraphicsPipelines)vk->vkGetDeviceProcAddr(device, "vkCreateGraphicsPipelines");
     out->vkCreateComputePipelines =
         (PFN_vkCreateComputePipelines)vk->vkGetDeviceProcAddr(device, "vkCreateComputePipelines");
     out->vkDestroyPipeline =
@@ -2251,6 +2328,24 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
         (PFN_vkFreeDescriptorSets)vk->vkGetDeviceProcAddr(device, "vkFreeDescriptorSets");
     out->vkUpdateDescriptorSets =
         (PFN_vkUpdateDescriptorSets)vk->vkGetDeviceProcAddr(device, "vkUpdateDescriptorSets");
+    out->vkCmdBindPipeline =
+        (PFN_vkCmdBindPipeline)vk->vkGetDeviceProcAddr(device, "vkCmdBindPipeline");
+    out->vkCmdBindDescriptorSets =
+        (PFN_vkCmdBindDescriptorSets)vk->vkGetDeviceProcAddr(device, "vkCmdBindDescriptorSets");
+    out->vkCmdClearColorImage =
+        (PFN_vkCmdClearColorImage)vk->vkGetDeviceProcAddr(device, "vkCmdClearColorImage");
+    out->vkCmdDispatch = (PFN_vkCmdDispatch)vk->vkGetDeviceProcAddr(device, "vkCmdDispatch");
+    out->vkCmdDispatchIndirect =
+        (PFN_vkCmdDispatchIndirect)vk->vkGetDeviceProcAddr(device, "vkCmdDispatchIndirect");
+    out->vkCmdSetEvent = (PFN_vkCmdSetEvent)vk->vkGetDeviceProcAddr(device, "vkCmdSetEvent");
+    out->vkCmdResetEvent = (PFN_vkCmdResetEvent)vk->vkGetDeviceProcAddr(device, "vkCmdResetEvent");
+    out->vkCmdWaitEvents = (PFN_vkCmdWaitEvents)vk->vkGetDeviceProcAddr(device, "vkCmdWaitEvents");
+    out->vkCmdPushConstants =
+        (PFN_vkCmdPushConstants)vk->vkGetDeviceProcAddr(device, "vkCmdPushConstants");
+#endif
+#ifdef VK_GRAPHICS_VERSION_1_0
+    out->vkCreateGraphicsPipelines =
+        (PFN_vkCreateGraphicsPipelines)vk->vkGetDeviceProcAddr(device, "vkCreateGraphicsPipelines");
     out->vkCreateFramebuffer =
         (PFN_vkCreateFramebuffer)vk->vkGetDeviceProcAddr(device, "vkCreateFramebuffer");
     out->vkDestroyFramebuffer =
@@ -2261,24 +2356,6 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
         (PFN_vkDestroyRenderPass)vk->vkGetDeviceProcAddr(device, "vkDestroyRenderPass");
     out->vkGetRenderAreaGranularity = (PFN_vkGetRenderAreaGranularity)vk->vkGetDeviceProcAddr(
         device, "vkGetRenderAreaGranularity");
-    out->vkCreateCommandPool =
-        (PFN_vkCreateCommandPool)vk->vkGetDeviceProcAddr(device, "vkCreateCommandPool");
-    out->vkDestroyCommandPool =
-        (PFN_vkDestroyCommandPool)vk->vkGetDeviceProcAddr(device, "vkDestroyCommandPool");
-    out->vkResetCommandPool =
-        (PFN_vkResetCommandPool)vk->vkGetDeviceProcAddr(device, "vkResetCommandPool");
-    out->vkAllocateCommandBuffers =
-        (PFN_vkAllocateCommandBuffers)vk->vkGetDeviceProcAddr(device, "vkAllocateCommandBuffers");
-    out->vkFreeCommandBuffers =
-        (PFN_vkFreeCommandBuffers)vk->vkGetDeviceProcAddr(device, "vkFreeCommandBuffers");
-    out->vkBeginCommandBuffer =
-        (PFN_vkBeginCommandBuffer)vk->vkGetDeviceProcAddr(device, "vkBeginCommandBuffer");
-    out->vkEndCommandBuffer =
-        (PFN_vkEndCommandBuffer)vk->vkGetDeviceProcAddr(device, "vkEndCommandBuffer");
-    out->vkResetCommandBuffer =
-        (PFN_vkResetCommandBuffer)vk->vkGetDeviceProcAddr(device, "vkResetCommandBuffer");
-    out->vkCmdBindPipeline =
-        (PFN_vkCmdBindPipeline)vk->vkGetDeviceProcAddr(device, "vkCmdBindPipeline");
     out->vkCmdSetViewport =
         (PFN_vkCmdSetViewport)vk->vkGetDeviceProcAddr(device, "vkCmdSetViewport");
     out->vkCmdSetScissor = (PFN_vkCmdSetScissor)vk->vkGetDeviceProcAddr(device, "vkCmdSetScissor");
@@ -2296,8 +2373,6 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
         (PFN_vkCmdSetStencilWriteMask)vk->vkGetDeviceProcAddr(device, "vkCmdSetStencilWriteMask");
     out->vkCmdSetStencilReference =
         (PFN_vkCmdSetStencilReference)vk->vkGetDeviceProcAddr(device, "vkCmdSetStencilReference");
-    out->vkCmdBindDescriptorSets =
-        (PFN_vkCmdBindDescriptorSets)vk->vkGetDeviceProcAddr(device, "vkCmdBindDescriptorSets");
     out->vkCmdBindIndexBuffer =
         (PFN_vkCmdBindIndexBuffer)vk->vkGetDeviceProcAddr(device, "vkCmdBindIndexBuffer");
     out->vkCmdBindVertexBuffers =
@@ -2309,52 +2384,21 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
         (PFN_vkCmdDrawIndirect)vk->vkGetDeviceProcAddr(device, "vkCmdDrawIndirect");
     out->vkCmdDrawIndexedIndirect =
         (PFN_vkCmdDrawIndexedIndirect)vk->vkGetDeviceProcAddr(device, "vkCmdDrawIndexedIndirect");
-    out->vkCmdDispatch = (PFN_vkCmdDispatch)vk->vkGetDeviceProcAddr(device, "vkCmdDispatch");
-    out->vkCmdDispatchIndirect =
-        (PFN_vkCmdDispatchIndirect)vk->vkGetDeviceProcAddr(device, "vkCmdDispatchIndirect");
-    out->vkCmdCopyBuffer = (PFN_vkCmdCopyBuffer)vk->vkGetDeviceProcAddr(device, "vkCmdCopyBuffer");
-    out->vkCmdCopyImage = (PFN_vkCmdCopyImage)vk->vkGetDeviceProcAddr(device, "vkCmdCopyImage");
     out->vkCmdBlitImage = (PFN_vkCmdBlitImage)vk->vkGetDeviceProcAddr(device, "vkCmdBlitImage");
-    out->vkCmdCopyBufferToImage =
-        (PFN_vkCmdCopyBufferToImage)vk->vkGetDeviceProcAddr(device, "vkCmdCopyBufferToImage");
-    out->vkCmdCopyImageToBuffer =
-        (PFN_vkCmdCopyImageToBuffer)vk->vkGetDeviceProcAddr(device, "vkCmdCopyImageToBuffer");
-    out->vkCmdUpdateBuffer =
-        (PFN_vkCmdUpdateBuffer)vk->vkGetDeviceProcAddr(device, "vkCmdUpdateBuffer");
-    out->vkCmdFillBuffer = (PFN_vkCmdFillBuffer)vk->vkGetDeviceProcAddr(device, "vkCmdFillBuffer");
-    out->vkCmdClearColorImage =
-        (PFN_vkCmdClearColorImage)vk->vkGetDeviceProcAddr(device, "vkCmdClearColorImage");
     out->vkCmdClearDepthStencilImage = (PFN_vkCmdClearDepthStencilImage)vk->vkGetDeviceProcAddr(
         device, "vkCmdClearDepthStencilImage");
     out->vkCmdClearAttachments =
         (PFN_vkCmdClearAttachments)vk->vkGetDeviceProcAddr(device, "vkCmdClearAttachments");
     out->vkCmdResolveImage =
         (PFN_vkCmdResolveImage)vk->vkGetDeviceProcAddr(device, "vkCmdResolveImage");
-    out->vkCmdSetEvent = (PFN_vkCmdSetEvent)vk->vkGetDeviceProcAddr(device, "vkCmdSetEvent");
-    out->vkCmdResetEvent = (PFN_vkCmdResetEvent)vk->vkGetDeviceProcAddr(device, "vkCmdResetEvent");
-    out->vkCmdWaitEvents = (PFN_vkCmdWaitEvents)vk->vkGetDeviceProcAddr(device, "vkCmdWaitEvents");
-    out->vkCmdPipelineBarrier =
-        (PFN_vkCmdPipelineBarrier)vk->vkGetDeviceProcAddr(device, "vkCmdPipelineBarrier");
-    out->vkCmdBeginQuery = (PFN_vkCmdBeginQuery)vk->vkGetDeviceProcAddr(device, "vkCmdBeginQuery");
-    out->vkCmdEndQuery = (PFN_vkCmdEndQuery)vk->vkGetDeviceProcAddr(device, "vkCmdEndQuery");
-    out->vkCmdResetQueryPool =
-        (PFN_vkCmdResetQueryPool)vk->vkGetDeviceProcAddr(device, "vkCmdResetQueryPool");
-    out->vkCmdWriteTimestamp =
-        (PFN_vkCmdWriteTimestamp)vk->vkGetDeviceProcAddr(device, "vkCmdWriteTimestamp");
-    out->vkCmdCopyQueryPoolResults =
-        (PFN_vkCmdCopyQueryPoolResults)vk->vkGetDeviceProcAddr(device, "vkCmdCopyQueryPoolResults");
-    out->vkCmdPushConstants =
-        (PFN_vkCmdPushConstants)vk->vkGetDeviceProcAddr(device, "vkCmdPushConstants");
     out->vkCmdBeginRenderPass =
         (PFN_vkCmdBeginRenderPass)vk->vkGetDeviceProcAddr(device, "vkCmdBeginRenderPass");
     out->vkCmdNextSubpass =
         (PFN_vkCmdNextSubpass)vk->vkGetDeviceProcAddr(device, "vkCmdNextSubpass");
     out->vkCmdEndRenderPass =
         (PFN_vkCmdEndRenderPass)vk->vkGetDeviceProcAddr(device, "vkCmdEndRenderPass");
-    out->vkCmdExecuteCommands =
-        (PFN_vkCmdExecuteCommands)vk->vkGetDeviceProcAddr(device, "vkCmdExecuteCommands");
 #endif
-#ifdef VK_VERSION_1_1
+#ifdef VK_BASE_VERSION_1_1
     out->vkBindBufferMemory2 =
         (PFN_vkBindBufferMemory2)vk->vkGetDeviceProcAddr(device, "vkBindBufferMemory2");
     out->vkBindImageMemory2 =
@@ -2364,8 +2408,6 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
             device, "vkGetDeviceGroupPeerMemoryFeatures");
     out->vkCmdSetDeviceMask =
         (PFN_vkCmdSetDeviceMask)vk->vkGetDeviceProcAddr(device, "vkCmdSetDeviceMask");
-    out->vkCmdDispatchBase =
-        (PFN_vkCmdDispatchBase)vk->vkGetDeviceProcAddr(device, "vkCmdDispatchBase");
     out->vkGetImageMemoryRequirements2 = (PFN_vkGetImageMemoryRequirements2)vk->vkGetDeviceProcAddr(
         device, "vkGetImageMemoryRequirements2");
     out->vkGetBufferMemoryRequirements2 =
@@ -2378,12 +2420,10 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
         (PFN_vkTrimCommandPool)vk->vkGetDeviceProcAddr(device, "vkTrimCommandPool");
     out->vkGetDeviceQueue2 =
         (PFN_vkGetDeviceQueue2)vk->vkGetDeviceProcAddr(device, "vkGetDeviceQueue2");
-    out->vkCreateSamplerYcbcrConversion =
-        (PFN_vkCreateSamplerYcbcrConversion)vk->vkGetDeviceProcAddr(
-            device, "vkCreateSamplerYcbcrConversion");
-    out->vkDestroySamplerYcbcrConversion =
-        (PFN_vkDestroySamplerYcbcrConversion)vk->vkGetDeviceProcAddr(
-            device, "vkDestroySamplerYcbcrConversion");
+#endif
+#ifdef VK_COMPUTE_VERSION_1_1
+    out->vkCmdDispatchBase =
+        (PFN_vkCmdDispatchBase)vk->vkGetDeviceProcAddr(device, "vkCmdDispatchBase");
     out->vkCreateDescriptorUpdateTemplate =
         (PFN_vkCreateDescriptorUpdateTemplate)vk->vkGetDeviceProcAddr(
             device, "vkCreateDescriptorUpdateTemplate");
@@ -2396,20 +2436,14 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
     out->vkGetDescriptorSetLayoutSupport =
         (PFN_vkGetDescriptorSetLayoutSupport)vk->vkGetDeviceProcAddr(
             device, "vkGetDescriptorSetLayoutSupport");
+    out->vkCreateSamplerYcbcrConversion =
+        (PFN_vkCreateSamplerYcbcrConversion)vk->vkGetDeviceProcAddr(
+            device, "vkCreateSamplerYcbcrConversion");
+    out->vkDestroySamplerYcbcrConversion =
+        (PFN_vkDestroySamplerYcbcrConversion)vk->vkGetDeviceProcAddr(
+            device, "vkDestroySamplerYcbcrConversion");
 #endif
-#ifdef VK_VERSION_1_2
-    out->vkCmdDrawIndirectCount =
-        (PFN_vkCmdDrawIndirectCount)vk->vkGetDeviceProcAddr(device, "vkCmdDrawIndirectCount");
-    out->vkCmdDrawIndexedIndirectCount = (PFN_vkCmdDrawIndexedIndirectCount)vk->vkGetDeviceProcAddr(
-        device, "vkCmdDrawIndexedIndirectCount");
-    out->vkCreateRenderPass2 =
-        (PFN_vkCreateRenderPass2)vk->vkGetDeviceProcAddr(device, "vkCreateRenderPass2");
-    out->vkCmdBeginRenderPass2 =
-        (PFN_vkCmdBeginRenderPass2)vk->vkGetDeviceProcAddr(device, "vkCmdBeginRenderPass2");
-    out->vkCmdNextSubpass2 =
-        (PFN_vkCmdNextSubpass2)vk->vkGetDeviceProcAddr(device, "vkCmdNextSubpass2");
-    out->vkCmdEndRenderPass2 =
-        (PFN_vkCmdEndRenderPass2)vk->vkGetDeviceProcAddr(device, "vkCmdEndRenderPass2");
+#ifdef VK_BASE_VERSION_1_2
     out->vkResetQueryPool =
         (PFN_vkResetQueryPool)vk->vkGetDeviceProcAddr(device, "vkResetQueryPool");
     out->vkGetSemaphoreCounterValue = (PFN_vkGetSemaphoreCounterValue)vk->vkGetDeviceProcAddr(
@@ -2427,7 +2461,21 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
         (PFN_vkGetDeviceMemoryOpaqueCaptureAddress)vk->vkGetDeviceProcAddr(
             device, "vkGetDeviceMemoryOpaqueCaptureAddress");
 #endif
-#ifdef VK_VERSION_1_3
+#ifdef VK_GRAPHICS_VERSION_1_2
+    out->vkCmdDrawIndirectCount =
+        (PFN_vkCmdDrawIndirectCount)vk->vkGetDeviceProcAddr(device, "vkCmdDrawIndirectCount");
+    out->vkCmdDrawIndexedIndirectCount = (PFN_vkCmdDrawIndexedIndirectCount)vk->vkGetDeviceProcAddr(
+        device, "vkCmdDrawIndexedIndirectCount");
+    out->vkCreateRenderPass2 =
+        (PFN_vkCreateRenderPass2)vk->vkGetDeviceProcAddr(device, "vkCreateRenderPass2");
+    out->vkCmdBeginRenderPass2 =
+        (PFN_vkCmdBeginRenderPass2)vk->vkGetDeviceProcAddr(device, "vkCmdBeginRenderPass2");
+    out->vkCmdNextSubpass2 =
+        (PFN_vkCmdNextSubpass2)vk->vkGetDeviceProcAddr(device, "vkCmdNextSubpass2");
+    out->vkCmdEndRenderPass2 =
+        (PFN_vkCmdEndRenderPass2)vk->vkGetDeviceProcAddr(device, "vkCmdEndRenderPass2");
+#endif
+#ifdef VK_BASE_VERSION_1_3
     out->vkGetPhysicalDeviceToolProperties =
         (PFN_vkGetPhysicalDeviceToolProperties)vk->vkGetDeviceProcAddr(
             device, "vkGetPhysicalDeviceToolProperties");
@@ -2439,11 +2487,6 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
         (PFN_vkSetPrivateData)vk->vkGetDeviceProcAddr(device, "vkSetPrivateData");
     out->vkGetPrivateData =
         (PFN_vkGetPrivateData)vk->vkGetDeviceProcAddr(device, "vkGetPrivateData");
-    out->vkCmdSetEvent2 = (PFN_vkCmdSetEvent2)vk->vkGetDeviceProcAddr(device, "vkCmdSetEvent2");
-    out->vkCmdResetEvent2 =
-        (PFN_vkCmdResetEvent2)vk->vkGetDeviceProcAddr(device, "vkCmdResetEvent2");
-    out->vkCmdWaitEvents2 =
-        (PFN_vkCmdWaitEvents2)vk->vkGetDeviceProcAddr(device, "vkCmdWaitEvents2");
     out->vkCmdPipelineBarrier2 =
         (PFN_vkCmdPipelineBarrier2)vk->vkGetDeviceProcAddr(device, "vkCmdPipelineBarrier2");
     out->vkCmdWriteTimestamp2 =
@@ -2456,6 +2499,24 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
         (PFN_vkCmdCopyBufferToImage2)vk->vkGetDeviceProcAddr(device, "vkCmdCopyBufferToImage2");
     out->vkCmdCopyImageToBuffer2 =
         (PFN_vkCmdCopyImageToBuffer2)vk->vkGetDeviceProcAddr(device, "vkCmdCopyImageToBuffer2");
+    out->vkGetDeviceBufferMemoryRequirements =
+        (PFN_vkGetDeviceBufferMemoryRequirements)vk->vkGetDeviceProcAddr(
+            device, "vkGetDeviceBufferMemoryRequirements");
+    out->vkGetDeviceImageMemoryRequirements =
+        (PFN_vkGetDeviceImageMemoryRequirements)vk->vkGetDeviceProcAddr(
+            device, "vkGetDeviceImageMemoryRequirements");
+    out->vkGetDeviceImageSparseMemoryRequirements =
+        (PFN_vkGetDeviceImageSparseMemoryRequirements)vk->vkGetDeviceProcAddr(
+            device, "vkGetDeviceImageSparseMemoryRequirements");
+#endif
+#ifdef VK_COMPUTE_VERSION_1_3
+    out->vkCmdSetEvent2 = (PFN_vkCmdSetEvent2)vk->vkGetDeviceProcAddr(device, "vkCmdSetEvent2");
+    out->vkCmdResetEvent2 =
+        (PFN_vkCmdResetEvent2)vk->vkGetDeviceProcAddr(device, "vkCmdResetEvent2");
+    out->vkCmdWaitEvents2 =
+        (PFN_vkCmdWaitEvents2)vk->vkGetDeviceProcAddr(device, "vkCmdWaitEvents2");
+#endif
+#ifdef VK_GRAPHICS_VERSION_1_3
     out->vkCmdBlitImage2 = (PFN_vkCmdBlitImage2)vk->vkGetDeviceProcAddr(device, "vkCmdBlitImage2");
     out->vkCmdResolveImage2 =
         (PFN_vkCmdResolveImage2)vk->vkGetDeviceProcAddr(device, "vkCmdResolveImage2");
@@ -2495,41 +2556,30 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
     out->vkCmdSetPrimitiveRestartEnable =
         (PFN_vkCmdSetPrimitiveRestartEnable)vk->vkGetDeviceProcAddr(
             device, "vkCmdSetPrimitiveRestartEnable");
-    out->vkGetDeviceBufferMemoryRequirements =
-        (PFN_vkGetDeviceBufferMemoryRequirements)vk->vkGetDeviceProcAddr(
-            device, "vkGetDeviceBufferMemoryRequirements");
-    out->vkGetDeviceImageMemoryRequirements =
-        (PFN_vkGetDeviceImageMemoryRequirements)vk->vkGetDeviceProcAddr(
-            device, "vkGetDeviceImageMemoryRequirements");
-    out->vkGetDeviceImageSparseMemoryRequirements =
-        (PFN_vkGetDeviceImageSparseMemoryRequirements)vk->vkGetDeviceProcAddr(
-            device, "vkGetDeviceImageSparseMemoryRequirements");
 #endif
-#ifdef VK_VERSION_1_4
-    out->vkCmdSetLineStipple =
-        (PFN_vkCmdSetLineStipple)vk->vkGetDeviceProcAddr(device, "vkCmdSetLineStipple");
+#ifdef VK_BASE_VERSION_1_4
     out->vkMapMemory2 = (PFN_vkMapMemory2)vk->vkGetDeviceProcAddr(device, "vkMapMemory2");
     out->vkUnmapMemory2 = (PFN_vkUnmapMemory2)vk->vkGetDeviceProcAddr(device, "vkUnmapMemory2");
-    out->vkCmdBindIndexBuffer2 =
-        (PFN_vkCmdBindIndexBuffer2)vk->vkGetDeviceProcAddr(device, "vkCmdBindIndexBuffer2");
-    out->vkGetRenderingAreaGranularity = (PFN_vkGetRenderingAreaGranularity)vk->vkGetDeviceProcAddr(
-        device, "vkGetRenderingAreaGranularity");
     out->vkGetDeviceImageSubresourceLayout =
         (PFN_vkGetDeviceImageSubresourceLayout)vk->vkGetDeviceProcAddr(
             device, "vkGetDeviceImageSubresourceLayout");
     out->vkGetImageSubresourceLayout2 = (PFN_vkGetImageSubresourceLayout2)vk->vkGetDeviceProcAddr(
         device, "vkGetImageSubresourceLayout2");
+    out->vkCopyMemoryToImage =
+        (PFN_vkCopyMemoryToImage)vk->vkGetDeviceProcAddr(device, "vkCopyMemoryToImage");
+    out->vkCopyImageToMemory =
+        (PFN_vkCopyImageToMemory)vk->vkGetDeviceProcAddr(device, "vkCopyImageToMemory");
+    out->vkCopyImageToImage =
+        (PFN_vkCopyImageToImage)vk->vkGetDeviceProcAddr(device, "vkCopyImageToImage");
+    out->vkTransitionImageLayout =
+        (PFN_vkTransitionImageLayout)vk->vkGetDeviceProcAddr(device, "vkTransitionImageLayout");
+#endif
+#ifdef VK_COMPUTE_VERSION_1_4
     out->vkCmdPushDescriptorSet =
         (PFN_vkCmdPushDescriptorSet)vk->vkGetDeviceProcAddr(device, "vkCmdPushDescriptorSet");
     out->vkCmdPushDescriptorSetWithTemplate =
         (PFN_vkCmdPushDescriptorSetWithTemplate)vk->vkGetDeviceProcAddr(
             device, "vkCmdPushDescriptorSetWithTemplate");
-    out->vkCmdSetRenderingAttachmentLocations =
-        (PFN_vkCmdSetRenderingAttachmentLocations)vk->vkGetDeviceProcAddr(
-            device, "vkCmdSetRenderingAttachmentLocations");
-    out->vkCmdSetRenderingInputAttachmentIndices =
-        (PFN_vkCmdSetRenderingInputAttachmentIndices)vk->vkGetDeviceProcAddr(
-            device, "vkCmdSetRenderingInputAttachmentIndices");
     out->vkCmdBindDescriptorSets2 =
         (PFN_vkCmdBindDescriptorSets2)vk->vkGetDeviceProcAddr(device, "vkCmdBindDescriptorSets2");
     out->vkCmdPushConstants2 =
@@ -2539,14 +2589,20 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
     out->vkCmdPushDescriptorSetWithTemplate2 =
         (PFN_vkCmdPushDescriptorSetWithTemplate2)vk->vkGetDeviceProcAddr(
             device, "vkCmdPushDescriptorSetWithTemplate2");
-    out->vkCopyMemoryToImage =
-        (PFN_vkCopyMemoryToImage)vk->vkGetDeviceProcAddr(device, "vkCopyMemoryToImage");
-    out->vkCopyImageToMemory =
-        (PFN_vkCopyImageToMemory)vk->vkGetDeviceProcAddr(device, "vkCopyImageToMemory");
-    out->vkCopyImageToImage =
-        (PFN_vkCopyImageToImage)vk->vkGetDeviceProcAddr(device, "vkCopyImageToImage");
-    out->vkTransitionImageLayout =
-        (PFN_vkTransitionImageLayout)vk->vkGetDeviceProcAddr(device, "vkTransitionImageLayout");
+#endif
+#ifdef VK_GRAPHICS_VERSION_1_4
+    out->vkCmdSetLineStipple =
+        (PFN_vkCmdSetLineStipple)vk->vkGetDeviceProcAddr(device, "vkCmdSetLineStipple");
+    out->vkCmdBindIndexBuffer2 =
+        (PFN_vkCmdBindIndexBuffer2)vk->vkGetDeviceProcAddr(device, "vkCmdBindIndexBuffer2");
+    out->vkGetRenderingAreaGranularity = (PFN_vkGetRenderingAreaGranularity)vk->vkGetDeviceProcAddr(
+        device, "vkGetRenderingAreaGranularity");
+    out->vkCmdSetRenderingAttachmentLocations =
+        (PFN_vkCmdSetRenderingAttachmentLocations)vk->vkGetDeviceProcAddr(
+            device, "vkCmdSetRenderingAttachmentLocations");
+    out->vkCmdSetRenderingInputAttachmentIndices =
+        (PFN_vkCmdSetRenderingInputAttachmentIndices)vk->vkGetDeviceProcAddr(
+            device, "vkCmdSetRenderingInputAttachmentIndices");
 #endif
 #ifdef VK_KHR_surface
     out->vkGetPhysicalDeviceSurfaceSupportKHR =
@@ -2777,6 +2833,10 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
     out->vkGetImageSubresourceLayout2KHR =
         (PFN_vkGetImageSubresourceLayout2KHR)vk->vkGetDeviceProcAddr(
             device, "vkGetImageSubresourceLayout2KHR");
+#endif
+#ifdef VK_KHR_swapchain_maintenance1
+    out->vkReleaseSwapchainImagesKHR = (PFN_vkReleaseSwapchainImagesKHR)vk->vkGetDeviceProcAddr(
+        device, "vkReleaseSwapchainImagesKHR");
 #endif
 #ifdef VK_KHR_line_rasterization
     out->vkCmdSetLineStippleKHR =
@@ -3063,661 +3123,388 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
 #endif
 }
 
-bool vulkan_dispatch_check_instance_VK_VERSION_1_0(const VulkanDispatch* vk)
+bool vulkan_dispatch_check_instance_VK_BASE_VERSION_1_0(const VulkanDispatch* vk)
 
 {
     bool good = true;
     if (!vk->vkCreateInstance) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCreateInstance not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCreateInstance not found\n");
         good = false;
     }
     if (!vk->vkEnumerateInstanceExtensionProperties) {
-        fprintf(stderr,
-                "VK_VERSION_1_0 check failed: vkEnumerateInstanceExtensionProperties not found\n");
+        fprintf(
+            stderr,
+            "VK_BASE_VERSION_1_0 check failed: vkEnumerateInstanceExtensionProperties not found\n");
         good = false;
     }
     if (!vk->vkEnumerateInstanceLayerProperties) {
         fprintf(stderr,
-                "VK_VERSION_1_0 check failed: vkEnumerateInstanceLayerProperties not found\n");
+                "VK_BASE_VERSION_1_0 check failed: vkEnumerateInstanceLayerProperties not found\n");
         good = false;
     }
     if (!vk->vkGetDeviceProcAddr) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkGetDeviceProcAddr not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkGetDeviceProcAddr not found\n");
         good = false;
     }
     if (!vk->vkGetPhysicalDeviceSparseImageFormatProperties) {
         fprintf(stderr,
-                "VK_VERSION_1_0 check failed: vkGetPhysicalDeviceSparseImageFormatProperties not "
-                "found\n");
+                "VK_BASE_VERSION_1_0 check failed: vkGetPhysicalDeviceSparseImageFormatProperties "
+                "not found\n");
         good = false;
     }
     return good;
 }
 
-bool vulkan_dispatch_check_instance_VK_VERSION_1_1(const VulkanDispatch* vk)
+bool vulkan_dispatch_check_instance_VK_BASE_VERSION_1_1(const VulkanDispatch* vk)
 
 {
     bool good = true;
     if (!vk->vkEnumerateInstanceVersion) {
-        fprintf(stderr, "VK_VERSION_1_1 check failed: vkEnumerateInstanceVersion not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_1 check failed: vkEnumerateInstanceVersion not found\n");
         good = false;
     }
     if (!vk->vkEnumeratePhysicalDeviceGroups) {
-        fprintf(stderr, "VK_VERSION_1_1 check failed: vkEnumeratePhysicalDeviceGroups not found\n");
+        fprintf(stderr,
+                "VK_BASE_VERSION_1_1 check failed: vkEnumeratePhysicalDeviceGroups not found\n");
         good = false;
     }
     if (!vk->vkGetPhysicalDeviceFeatures2) {
-        fprintf(stderr, "VK_VERSION_1_1 check failed: vkGetPhysicalDeviceFeatures2 not found\n");
+        fprintf(stderr,
+                "VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceFeatures2 not found\n");
         good = false;
     }
     if (!vk->vkGetPhysicalDeviceProperties2) {
-        fprintf(stderr, "VK_VERSION_1_1 check failed: vkGetPhysicalDeviceProperties2 not found\n");
+        fprintf(stderr,
+                "VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceProperties2 not found\n");
         good = false;
     }
     if (!vk->vkGetPhysicalDeviceFormatProperties2) {
-        fprintf(stderr,
-                "VK_VERSION_1_1 check failed: vkGetPhysicalDeviceFormatProperties2 not found\n");
+        fprintf(
+            stderr,
+            "VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceFormatProperties2 not found\n");
         good = false;
     }
     if (!vk->vkGetPhysicalDeviceImageFormatProperties2) {
-        fprintf(
-            stderr,
-            "VK_VERSION_1_1 check failed: vkGetPhysicalDeviceImageFormatProperties2 not found\n");
+        fprintf(stderr,
+                "VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceImageFormatProperties2 not "
+                "found\n");
         good = false;
     }
     if (!vk->vkGetPhysicalDeviceQueueFamilyProperties2) {
-        fprintf(
-            stderr,
-            "VK_VERSION_1_1 check failed: vkGetPhysicalDeviceQueueFamilyProperties2 not found\n");
+        fprintf(stderr,
+                "VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceQueueFamilyProperties2 not "
+                "found\n");
         good = false;
     }
     if (!vk->vkGetPhysicalDeviceMemoryProperties2) {
-        fprintf(stderr,
-                "VK_VERSION_1_1 check failed: vkGetPhysicalDeviceMemoryProperties2 not found\n");
+        fprintf(
+            stderr,
+            "VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceMemoryProperties2 not found\n");
         good = false;
     }
     if (!vk->vkGetPhysicalDeviceSparseImageFormatProperties2) {
         fprintf(stderr,
-                "VK_VERSION_1_1 check failed: vkGetPhysicalDeviceSparseImageFormatProperties2 not "
-                "found\n");
+                "VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceSparseImageFormatProperties2 "
+                "not found\n");
         good = false;
     }
     if (!vk->vkGetPhysicalDeviceExternalBufferProperties) {
-        fprintf(
-            stderr,
-            "VK_VERSION_1_1 check failed: vkGetPhysicalDeviceExternalBufferProperties not found\n");
+        fprintf(stderr,
+                "VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceExternalBufferProperties not "
+                "found\n");
         good = false;
     }
     if (!vk->vkGetPhysicalDeviceExternalFenceProperties) {
-        fprintf(
-            stderr,
-            "VK_VERSION_1_1 check failed: vkGetPhysicalDeviceExternalFenceProperties not found\n");
+        fprintf(stderr,
+                "VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceExternalFenceProperties not "
+                "found\n");
         good = false;
     }
     if (!vk->vkGetPhysicalDeviceExternalSemaphoreProperties) {
         fprintf(stderr,
-                "VK_VERSION_1_1 check failed: vkGetPhysicalDeviceExternalSemaphoreProperties not "
-                "found\n");
+                "VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceExternalSemaphoreProperties "
+                "not found\n");
         good = false;
     }
     return good;
 }
 
-bool vulkan_dispatch_check_device_VK_VERSION_1_0(const VulkanDispatch* vk)
+bool vulkan_dispatch_check_device_VK_BASE_VERSION_1_0(const VulkanDispatch* vk)
 
 {
     bool good = true;
     if (!vk->vkGetDeviceQueue) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkGetDeviceQueue not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkGetDeviceQueue not found\n");
         good = false;
     }
     if (!vk->vkQueueSubmit) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkQueueSubmit not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkQueueSubmit not found\n");
         good = false;
     }
     if (!vk->vkQueueWaitIdle) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkQueueWaitIdle not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkQueueWaitIdle not found\n");
         good = false;
     }
     if (!vk->vkDeviceWaitIdle) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkDeviceWaitIdle not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkDeviceWaitIdle not found\n");
         good = false;
     }
     if (!vk->vkAllocateMemory) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkAllocateMemory not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkAllocateMemory not found\n");
         good = false;
     }
     if (!vk->vkFreeMemory) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkFreeMemory not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkFreeMemory not found\n");
         good = false;
     }
     if (!vk->vkMapMemory) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkMapMemory not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkMapMemory not found\n");
         good = false;
     }
     if (!vk->vkUnmapMemory) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkUnmapMemory not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkUnmapMemory not found\n");
         good = false;
     }
     if (!vk->vkFlushMappedMemoryRanges) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkFlushMappedMemoryRanges not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkFlushMappedMemoryRanges not found\n");
         good = false;
     }
     if (!vk->vkInvalidateMappedMemoryRanges) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkInvalidateMappedMemoryRanges not found\n");
+        fprintf(stderr,
+                "VK_BASE_VERSION_1_0 check failed: vkInvalidateMappedMemoryRanges not found\n");
         good = false;
     }
     if (!vk->vkGetDeviceMemoryCommitment) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkGetDeviceMemoryCommitment not found\n");
+        fprintf(stderr,
+                "VK_BASE_VERSION_1_0 check failed: vkGetDeviceMemoryCommitment not found\n");
         good = false;
     }
     if (!vk->vkBindBufferMemory) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkBindBufferMemory not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkBindBufferMemory not found\n");
         good = false;
     }
     if (!vk->vkBindImageMemory) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkBindImageMemory not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkBindImageMemory not found\n");
         good = false;
     }
     if (!vk->vkGetBufferMemoryRequirements) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkGetBufferMemoryRequirements not found\n");
+        fprintf(stderr,
+                "VK_BASE_VERSION_1_0 check failed: vkGetBufferMemoryRequirements not found\n");
         good = false;
     }
     if (!vk->vkGetImageMemoryRequirements) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkGetImageMemoryRequirements not found\n");
+        fprintf(stderr,
+                "VK_BASE_VERSION_1_0 check failed: vkGetImageMemoryRequirements not found\n");
         good = false;
     }
     if (!vk->vkGetImageSparseMemoryRequirements) {
         fprintf(stderr,
-                "VK_VERSION_1_0 check failed: vkGetImageSparseMemoryRequirements not found\n");
+                "VK_BASE_VERSION_1_0 check failed: vkGetImageSparseMemoryRequirements not found\n");
         good = false;
     }
     if (!vk->vkQueueBindSparse) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkQueueBindSparse not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkQueueBindSparse not found\n");
         good = false;
     }
     if (!vk->vkCreateFence) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCreateFence not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCreateFence not found\n");
         good = false;
     }
     if (!vk->vkDestroyFence) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkDestroyFence not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkDestroyFence not found\n");
         good = false;
     }
     if (!vk->vkResetFences) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkResetFences not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkResetFences not found\n");
         good = false;
     }
     if (!vk->vkGetFenceStatus) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkGetFenceStatus not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkGetFenceStatus not found\n");
         good = false;
     }
     if (!vk->vkWaitForFences) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkWaitForFences not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkWaitForFences not found\n");
         good = false;
     }
     if (!vk->vkCreateSemaphore) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCreateSemaphore not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCreateSemaphore not found\n");
         good = false;
     }
     if (!vk->vkDestroySemaphore) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkDestroySemaphore not found\n");
-        good = false;
-    }
-    if (!vk->vkCreateEvent) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCreateEvent not found\n");
-        good = false;
-    }
-    if (!vk->vkDestroyEvent) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkDestroyEvent not found\n");
-        good = false;
-    }
-    if (!vk->vkGetEventStatus) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkGetEventStatus not found\n");
-        good = false;
-    }
-    if (!vk->vkSetEvent) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkSetEvent not found\n");
-        good = false;
-    }
-    if (!vk->vkResetEvent) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkResetEvent not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkDestroySemaphore not found\n");
         good = false;
     }
     if (!vk->vkCreateQueryPool) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCreateQueryPool not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCreateQueryPool not found\n");
         good = false;
     }
     if (!vk->vkDestroyQueryPool) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkDestroyQueryPool not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkDestroyQueryPool not found\n");
         good = false;
     }
     if (!vk->vkGetQueryPoolResults) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkGetQueryPoolResults not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkGetQueryPoolResults not found\n");
         good = false;
     }
     if (!vk->vkCreateBuffer) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCreateBuffer not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCreateBuffer not found\n");
         good = false;
     }
     if (!vk->vkDestroyBuffer) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkDestroyBuffer not found\n");
-        good = false;
-    }
-    if (!vk->vkCreateBufferView) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCreateBufferView not found\n");
-        good = false;
-    }
-    if (!vk->vkDestroyBufferView) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkDestroyBufferView not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkDestroyBuffer not found\n");
         good = false;
     }
     if (!vk->vkCreateImage) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCreateImage not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCreateImage not found\n");
         good = false;
     }
     if (!vk->vkDestroyImage) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkDestroyImage not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkDestroyImage not found\n");
         good = false;
     }
     if (!vk->vkGetImageSubresourceLayout) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkGetImageSubresourceLayout not found\n");
+        fprintf(stderr,
+                "VK_BASE_VERSION_1_0 check failed: vkGetImageSubresourceLayout not found\n");
         good = false;
     }
     if (!vk->vkCreateImageView) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCreateImageView not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCreateImageView not found\n");
         good = false;
     }
     if (!vk->vkDestroyImageView) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkDestroyImageView not found\n");
-        good = false;
-    }
-    if (!vk->vkCreateShaderModule) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCreateShaderModule not found\n");
-        good = false;
-    }
-    if (!vk->vkDestroyShaderModule) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkDestroyShaderModule not found\n");
-        good = false;
-    }
-    if (!vk->vkCreatePipelineCache) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCreatePipelineCache not found\n");
-        good = false;
-    }
-    if (!vk->vkDestroyPipelineCache) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkDestroyPipelineCache not found\n");
-        good = false;
-    }
-    if (!vk->vkGetPipelineCacheData) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkGetPipelineCacheData not found\n");
-        good = false;
-    }
-    if (!vk->vkMergePipelineCaches) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkMergePipelineCaches not found\n");
-        good = false;
-    }
-    if (!vk->vkCreateGraphicsPipelines) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCreateGraphicsPipelines not found\n");
-        good = false;
-    }
-    if (!vk->vkCreateComputePipelines) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCreateComputePipelines not found\n");
-        good = false;
-    }
-    if (!vk->vkDestroyPipeline) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkDestroyPipeline not found\n");
-        good = false;
-    }
-    if (!vk->vkCreatePipelineLayout) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCreatePipelineLayout not found\n");
-        good = false;
-    }
-    if (!vk->vkDestroyPipelineLayout) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkDestroyPipelineLayout not found\n");
-        good = false;
-    }
-    if (!vk->vkCreateSampler) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCreateSampler not found\n");
-        good = false;
-    }
-    if (!vk->vkDestroySampler) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkDestroySampler not found\n");
-        good = false;
-    }
-    if (!vk->vkCreateDescriptorSetLayout) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCreateDescriptorSetLayout not found\n");
-        good = false;
-    }
-    if (!vk->vkDestroyDescriptorSetLayout) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkDestroyDescriptorSetLayout not found\n");
-        good = false;
-    }
-    if (!vk->vkCreateDescriptorPool) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCreateDescriptorPool not found\n");
-        good = false;
-    }
-    if (!vk->vkDestroyDescriptorPool) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkDestroyDescriptorPool not found\n");
-        good = false;
-    }
-    if (!vk->vkResetDescriptorPool) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkResetDescriptorPool not found\n");
-        good = false;
-    }
-    if (!vk->vkAllocateDescriptorSets) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkAllocateDescriptorSets not found\n");
-        good = false;
-    }
-    if (!vk->vkFreeDescriptorSets) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkFreeDescriptorSets not found\n");
-        good = false;
-    }
-    if (!vk->vkUpdateDescriptorSets) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkUpdateDescriptorSets not found\n");
-        good = false;
-    }
-    if (!vk->vkCreateFramebuffer) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCreateFramebuffer not found\n");
-        good = false;
-    }
-    if (!vk->vkDestroyFramebuffer) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkDestroyFramebuffer not found\n");
-        good = false;
-    }
-    if (!vk->vkCreateRenderPass) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCreateRenderPass not found\n");
-        good = false;
-    }
-    if (!vk->vkDestroyRenderPass) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkDestroyRenderPass not found\n");
-        good = false;
-    }
-    if (!vk->vkGetRenderAreaGranularity) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkGetRenderAreaGranularity not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkDestroyImageView not found\n");
         good = false;
     }
     if (!vk->vkCreateCommandPool) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCreateCommandPool not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCreateCommandPool not found\n");
         good = false;
     }
     if (!vk->vkDestroyCommandPool) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkDestroyCommandPool not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkDestroyCommandPool not found\n");
         good = false;
     }
     if (!vk->vkResetCommandPool) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkResetCommandPool not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkResetCommandPool not found\n");
         good = false;
     }
     if (!vk->vkAllocateCommandBuffers) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkAllocateCommandBuffers not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkAllocateCommandBuffers not found\n");
         good = false;
     }
     if (!vk->vkFreeCommandBuffers) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkFreeCommandBuffers not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkFreeCommandBuffers not found\n");
         good = false;
     }
     if (!vk->vkBeginCommandBuffer) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkBeginCommandBuffer not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkBeginCommandBuffer not found\n");
         good = false;
     }
     if (!vk->vkEndCommandBuffer) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkEndCommandBuffer not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkEndCommandBuffer not found\n");
         good = false;
     }
     if (!vk->vkResetCommandBuffer) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkResetCommandBuffer not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdBindPipeline) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdBindPipeline not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdSetViewport) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdSetViewport not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdSetScissor) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdSetScissor not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdSetLineWidth) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdSetLineWidth not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdSetDepthBias) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdSetDepthBias not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdSetBlendConstants) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdSetBlendConstants not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdSetDepthBounds) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdSetDepthBounds not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdSetStencilCompareMask) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdSetStencilCompareMask not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdSetStencilWriteMask) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdSetStencilWriteMask not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdSetStencilReference) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdSetStencilReference not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdBindDescriptorSets) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdBindDescriptorSets not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdBindIndexBuffer) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdBindIndexBuffer not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdBindVertexBuffers) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdBindVertexBuffers not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdDraw) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdDraw not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdDrawIndexed) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdDrawIndexed not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdDrawIndirect) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdDrawIndirect not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdDrawIndexedIndirect) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdDrawIndexedIndirect not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdDispatch) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdDispatch not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdDispatchIndirect) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdDispatchIndirect not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkResetCommandBuffer not found\n");
         good = false;
     }
     if (!vk->vkCmdCopyBuffer) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdCopyBuffer not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCmdCopyBuffer not found\n");
         good = false;
     }
     if (!vk->vkCmdCopyImage) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdCopyImage not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdBlitImage) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdBlitImage not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCmdCopyImage not found\n");
         good = false;
     }
     if (!vk->vkCmdCopyBufferToImage) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdCopyBufferToImage not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCmdCopyBufferToImage not found\n");
         good = false;
     }
     if (!vk->vkCmdCopyImageToBuffer) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdCopyImageToBuffer not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCmdCopyImageToBuffer not found\n");
         good = false;
     }
     if (!vk->vkCmdUpdateBuffer) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdUpdateBuffer not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCmdUpdateBuffer not found\n");
         good = false;
     }
     if (!vk->vkCmdFillBuffer) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdFillBuffer not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdClearColorImage) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdClearColorImage not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdClearDepthStencilImage) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdClearDepthStencilImage not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdClearAttachments) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdClearAttachments not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdResolveImage) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdResolveImage not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdSetEvent) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdSetEvent not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdResetEvent) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdResetEvent not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdWaitEvents) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdWaitEvents not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCmdFillBuffer not found\n");
         good = false;
     }
     if (!vk->vkCmdPipelineBarrier) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdPipelineBarrier not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCmdPipelineBarrier not found\n");
         good = false;
     }
     if (!vk->vkCmdBeginQuery) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdBeginQuery not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCmdBeginQuery not found\n");
         good = false;
     }
     if (!vk->vkCmdEndQuery) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdEndQuery not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCmdEndQuery not found\n");
         good = false;
     }
     if (!vk->vkCmdResetQueryPool) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdResetQueryPool not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCmdResetQueryPool not found\n");
         good = false;
     }
     if (!vk->vkCmdWriteTimestamp) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdWriteTimestamp not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCmdWriteTimestamp not found\n");
         good = false;
     }
     if (!vk->vkCmdCopyQueryPoolResults) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdCopyQueryPoolResults not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdPushConstants) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdPushConstants not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdBeginRenderPass) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdBeginRenderPass not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdNextSubpass) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdNextSubpass not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdEndRenderPass) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdEndRenderPass not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCmdCopyQueryPoolResults not found\n");
         good = false;
     }
     if (!vk->vkCmdExecuteCommands) {
-        fprintf(stderr, "VK_VERSION_1_0 check failed: vkCmdExecuteCommands not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCmdExecuteCommands not found\n");
         good = false;
     }
     return good;
 }
 
-bool vulkan_dispatch_check_device_VK_VERSION_1_1(const VulkanDispatch* vk)
+bool vulkan_dispatch_check_device_VK_BASE_VERSION_1_1(const VulkanDispatch* vk)
 
 {
     bool good = true;
     if (!vk->vkBindBufferMemory2) {
-        fprintf(stderr, "VK_VERSION_1_1 check failed: vkBindBufferMemory2 not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_1 check failed: vkBindBufferMemory2 not found\n");
         good = false;
     }
     if (!vk->vkBindImageMemory2) {
-        fprintf(stderr, "VK_VERSION_1_1 check failed: vkBindImageMemory2 not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_1 check failed: vkBindImageMemory2 not found\n");
         good = false;
     }
     if (!vk->vkGetDeviceGroupPeerMemoryFeatures) {
         fprintf(stderr,
-                "VK_VERSION_1_1 check failed: vkGetDeviceGroupPeerMemoryFeatures not found\n");
+                "VK_BASE_VERSION_1_1 check failed: vkGetDeviceGroupPeerMemoryFeatures not found\n");
         good = false;
     }
     if (!vk->vkCmdSetDeviceMask) {
-        fprintf(stderr, "VK_VERSION_1_1 check failed: vkCmdSetDeviceMask not found\n");
-        good = false;
-    }
-    if (!vk->vkCmdDispatchBase) {
-        fprintf(stderr, "VK_VERSION_1_1 check failed: vkCmdDispatchBase not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_1 check failed: vkCmdSetDeviceMask not found\n");
         good = false;
     }
     if (!vk->vkGetImageMemoryRequirements2) {
-        fprintf(stderr, "VK_VERSION_1_1 check failed: vkGetImageMemoryRequirements2 not found\n");
+        fprintf(stderr,
+                "VK_BASE_VERSION_1_1 check failed: vkGetImageMemoryRequirements2 not found\n");
         good = false;
     }
     if (!vk->vkGetBufferMemoryRequirements2) {
-        fprintf(stderr, "VK_VERSION_1_1 check failed: vkGetBufferMemoryRequirements2 not found\n");
+        fprintf(stderr,
+                "VK_BASE_VERSION_1_1 check failed: vkGetBufferMemoryRequirements2 not found\n");
         good = false;
     }
     if (!vk->vkGetImageSparseMemoryRequirements2) {
-        fprintf(stderr,
-                "VK_VERSION_1_1 check failed: vkGetImageSparseMemoryRequirements2 not found\n");
+        fprintf(
+            stderr,
+            "VK_BASE_VERSION_1_1 check failed: vkGetImageSparseMemoryRequirements2 not found\n");
         good = false;
     }
     if (!vk->vkTrimCommandPool) {
-        fprintf(stderr, "VK_VERSION_1_1 check failed: vkTrimCommandPool not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_1 check failed: vkTrimCommandPool not found\n");
         good = false;
     }
     if (!vk->vkGetDeviceQueue2) {
-        fprintf(stderr, "VK_VERSION_1_1 check failed: vkGetDeviceQueue2 not found\n");
-        good = false;
-    }
-    if (!vk->vkCreateSamplerYcbcrConversion) {
-        fprintf(stderr, "VK_VERSION_1_1 check failed: vkCreateSamplerYcbcrConversion not found\n");
-        good = false;
-    }
-    if (!vk->vkDestroySamplerYcbcrConversion) {
-        fprintf(stderr, "VK_VERSION_1_1 check failed: vkDestroySamplerYcbcrConversion not found\n");
-        good = false;
-    }
-    if (!vk->vkCreateDescriptorUpdateTemplate) {
-        fprintf(stderr,
-                "VK_VERSION_1_1 check failed: vkCreateDescriptorUpdateTemplate not found\n");
-        good = false;
-    }
-    if (!vk->vkDestroyDescriptorUpdateTemplate) {
-        fprintf(stderr,
-                "VK_VERSION_1_1 check failed: vkDestroyDescriptorUpdateTemplate not found\n");
-        good = false;
-    }
-    if (!vk->vkUpdateDescriptorSetWithTemplate) {
-        fprintf(stderr,
-                "VK_VERSION_1_1 check failed: vkUpdateDescriptorSetWithTemplate not found\n");
-        good = false;
-    }
-    if (!vk->vkGetDescriptorSetLayoutSupport) {
-        fprintf(stderr, "VK_VERSION_1_1 check failed: vkGetDescriptorSetLayoutSupport not found\n");
+        fprintf(stderr, "VK_BASE_VERSION_1_1 check failed: vkGetDeviceQueue2 not found\n");
         good = false;
     }
     return good;

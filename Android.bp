@@ -149,6 +149,21 @@ cc_defaults {
     ],
     cflags: [
         "-DGFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT=1",
+        "-DVK_BASE_VERSION_1_0",
+        "-DVK_BASE_VERSION_1_1",
+        "-DVK_BASE_VERSION_1_2",
+        "-DVK_BASE_VERSION_1_3",
+        "-DVK_BASE_VERSION_1_4",
+        "-DVK_COMPUTE_VERSION_1_0",
+        "-DVK_COMPUTE_VERSION_1_1",
+        "-DVK_COMPUTE_VERSION_1_2",
+        "-DVK_COMPUTE_VERSION_1_3",
+        "-DVK_COMPUTE_VERSION_1_4",
+        "-DVK_GRAPHICS_VERSION_1_0",
+        "-DVK_GRAPHICS_VERSION_1_1",
+        "-DVK_GRAPHICS_VERSION_1_2",
+        "-DVK_GRAPHICS_VERSION_1_3",
+        "-DVK_GRAPHICS_VERSION_1_4",
     ] + select(soong_config_variable("gfxstream", "mesa3d_platforms"), {
         // Android surfaceless build
         "none": [

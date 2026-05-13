@@ -12,6 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+if(CONFIG_AEMU)
+    add_compile_definitions(GFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT)
+    add_compile_definitions(CONFIG_AEMU)
+endif()
+
+add_compile_definitions(VK_BASE_VERSION_1_0)
+add_compile_definitions(VK_BASE_VERSION_1_1)
+add_compile_definitions(VK_BASE_VERSION_1_2)
+add_compile_definitions(VK_BASE_VERSION_1_3)
+add_compile_definitions(VK_BASE_VERSION_1_4)
+add_compile_definitions(VK_COMPUTE_VERSION_1_0)
+add_compile_definitions(VK_COMPUTE_VERSION_1_1)
+add_compile_definitions(VK_COMPUTE_VERSION_1_2)
+add_compile_definitions(VK_COMPUTE_VERSION_1_3)
+add_compile_definitions(VK_COMPUTE_VERSION_1_4)
+add_compile_definitions(VK_GRAPHICS_VERSION_1_0)
+add_compile_definitions(VK_GRAPHICS_VERSION_1_1)
+add_compile_definitions(VK_GRAPHICS_VERSION_1_2)
+add_compile_definitions(VK_GRAPHICS_VERSION_1_3)
+add_compile_definitions(VK_GRAPHICS_VERSION_1_4)
+
 add_library(
         gfxstream_backend_headers
         INTERFACE)
@@ -53,12 +75,6 @@ target_include_directories(
 add_subdirectory(gl)
 add_subdirectory(renderControl_dec)
 add_subdirectory(vulkan)
-
-
-if(CONFIG_AEMU)
-    add_compile_definitions(GFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT)
-    add_compile_definitions(CONFIG_AEMU)
-endif()
 
 # Stream server core
 set(stream-server-core-sources

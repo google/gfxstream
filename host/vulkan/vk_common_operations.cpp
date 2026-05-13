@@ -966,7 +966,7 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
     init_vulkan_dispatch_from_instance(gvk, emulation->mInstance, emulation->mIvk);
 
     auto ivk = emulation->mIvk;
-    if (!vulkan_dispatch_check_instance_VK_VERSION_1_0(ivk)) {
+    if (!vulkan_dispatch_check_instance_VK_BASE_VERSION_1_0(ivk)) {
         GFXSTREAM_ERROR("Warning: Vulkan 1.0 APIs missing from instance");
     }
 
@@ -974,7 +974,7 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
         uint32_t instanceVersion;
         VkResult enumInstanceRes = ivk->vkEnumerateInstanceVersion(&instanceVersion);
         if ((VK_SUCCESS == enumInstanceRes) && instanceVersion >= VK_MAKE_VERSION(1, 1, 0)) {
-            if (!vulkan_dispatch_check_instance_VK_VERSION_1_1(ivk)) {
+            if (!vulkan_dispatch_check_instance_VK_BASE_VERSION_1_1(ivk)) {
                 GFXSTREAM_ERROR("Warning: Vulkan 1.1 APIs missing from instance (1st try)");
             }
         }
@@ -999,7 +999,7 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
 
             GFXSTREAM_DEBUG("Created Vulkan 1.1 instance on second try.");
 
-            if (!vulkan_dispatch_check_instance_VK_VERSION_1_1(ivk)) {
+            if (!vulkan_dispatch_check_instance_VK_BASE_VERSION_1_1(ivk)) {
                 GFXSTREAM_ERROR("Warning: Vulkan 1.1 APIs missing from instance (2nd try)");
             }
         }
@@ -1557,11 +1557,11 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
     auto dvk = emulation->mDvk;
 
     // Check if the dispatch table has everything 1.1 related
-    if (!vulkan_dispatch_check_device_VK_VERSION_1_0(dvk)) {
+    if (!vulkan_dispatch_check_device_VK_BASE_VERSION_1_0(dvk)) {
         GFXSTREAM_ERROR("Warning: Vulkan 1.0 APIs missing from device.");
     }
     if (deviceVersion >= VK_MAKE_VERSION(1, 1, 0)) {
-        if (!vulkan_dispatch_check_device_VK_VERSION_1_1(dvk)) {
+        if (!vulkan_dispatch_check_device_VK_BASE_VERSION_1_1(dvk)) {
             GFXSTREAM_ERROR("Warning: Vulkan 1.1 APIs missing from device");
         }
     }

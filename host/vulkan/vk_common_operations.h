@@ -57,6 +57,11 @@ typedef int VK_EXT_SYNC_HANDLE;
 #define VK_EXT_SYNC_HANDLE_INVALID (-1)
 #endif
 
+#ifdef __APPLE__
+// MTLTexture_id or MTLBuffer_id for external resource handles
+typedef void* MTLResource_id;
+#endif
+
 namespace gfxstream {
 namespace host {
 namespace vk {
