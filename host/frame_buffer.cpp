@@ -1351,9 +1351,11 @@ std::unique_ptr<FrameBuffer::Impl> FrameBuffer::Impl::Create(FrameBuffer* frameb
 
     uint32_t maxApiVersion = VK_API_VERSION_1_3;
     if (impl->m_emulationVk) {
-        if (impl->m_features.guestVulkanMaxApiVersion) {
+        std::optional<uint32_t> featureMaxApiVersion =
+            impl->m_features.GuestVulkanMaxApiVersion.getValue();
+        if (featureMaxApiVersion) {
             GFXSTREAM_DEBUG("%s: Maximum Vulkan API version will be limited", __func__);
-            maxApiVersion = features.guestVulkanMaxApiVersion.value();
+            maxApiVersion = featureMaxApiVersion.value();
         } else {
             // Use maximum available by default
             maxApiVersion = impl->m_emulationVk->vulkanInstanceVersion();

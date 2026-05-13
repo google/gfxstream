@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include <charconv>
 #include <cstdint>
 #include <map>
 #include <optional>
@@ -30,7 +31,8 @@ class FeatureInfoBase;
 using FeatureMap = std::map<std::string, FeatureInfoBase*>;
 // The potential types for the "value" of a given feature
 using StringFeatureValue = std::optional<std::string>;
-using FeatureValue = std::variant<bool, StringFeatureValue>;
+using U32FeatureValue = std::optional<uint32_t>;
+using FeatureValue = std::variant<bool, StringFeatureValue, U32FeatureValue>;
 
 class FeatureInfoBase {
    public:
@@ -61,51 +63,48 @@ class FeatureInfoBase {
 };
 
 class BoolFeatureInfo : public FeatureInfoBase {
-public:
- BoolFeatureInfo(std::string_view name, std::string_view description, FeatureMap* map)
-     : FeatureInfoBase(name, description, map, false) {}
+   public:
+    BoolFeatureInfo(std::string_view name, std::string_view description, FeatureMap* map)
+        : FeatureInfoBase(name, description, map, false) {}
 
- void setEnabled(bool enabled) { value = enabled; }
- bool enabled() const { return std::get<bool>(value); }
+    void setEnabled(bool enabled) { value = enabled; }
+    bool enabled() const { return std::get<bool>(value); }
 
- bool parseValue(std::string_view strValue) {
-     if (strValue != "enabled" && strValue != "disabled") {
-         return false;
-     }
-
-     setEnabled(strValue == "enabled");
-     return true;
- }
-
- std::string getValueReadable() const {
-     if (std::get<bool>(value)) {
-         return "enabled";
-     } else {
-         return "disabled";
-     }
- }
+    bool parseValue(std::string_view strValue) override;
+    std::string getValueReadable() const override;
 };
 
 class StringFeatureInfo : public FeatureInfoBase {
-public:
- StringFeatureInfo(std::string_view name, std::string_view description, FeatureMap* map)
-     : FeatureInfoBase(name, description, map, std::nullopt) {}
+   public:
+    StringFeatureInfo(std::string_view name, std::string_view description, FeatureMap* map)
+        : FeatureInfoBase(name, description, map, StringFeatureValue(std::nullopt)) {}
 
- StringFeatureValue getValue() const { return std::get<StringFeatureValue>(value); }
+    StringFeatureValue getValue() const { return std::get<StringFeatureValue>(value); }
 
- bool parseValue(std::string_view strValue) {
-     value = StringFeatureValue(strValue);
-     return true;
- }
+    bool parseValue(std::string_view strValue) override;
+    std::string getValueReadable() const override;
+};
 
- std::string getValueReadable() const {
-     auto strValueOpt = std::get<StringFeatureValue>(value);
-     if (strValueOpt) {
-         return *strValueOpt;
-     } else {
-         return "(Unset)";
-     }
- }
+class U32FeatureInfo : public FeatureInfoBase {
+   public:
+    U32FeatureInfo(std::string_view name, std::string_view description, FeatureMap* map)
+        : FeatureInfoBase(name, description, map, U32FeatureValue(std::nullopt)) {}
+
+    U32FeatureValue getValue() const { return std::get<U32FeatureValue>(value); }
+
+    bool parseValue(std::string_view strValue) override;
+    std::string getValueReadable() const override;
+};
+
+class VulkanVersionFeatureInfo : public U32FeatureInfo {
+   public:
+    VulkanVersionFeatureInfo(std::string_view name, std::string_view description, FeatureMap* map)
+        : U32FeatureInfo(name, description, map) {}
+
+    U32FeatureValue getValue() const { return std::get<U32FeatureValue>(value); }
+
+    bool parseValue(std::string_view strValue) override;
+    std::string getValueReadable() const override;
 };
 
 struct FeatureSet {
@@ -117,10 +116,6 @@ struct FeatureSet {
     bool processFeatureString(std::string featureStr, std::string featureReason);
 
     FeatureMap map;
-
-    // This represents the maximum vulkan api version that should be reported to the guest and is
-    // not related to the host vulkan level available or used.
-    std::optional<uint32_t> guestVulkanMaxApiVersion;
 
     BoolFeatureInfo AsyncComposeSupport = {
         "AsyncComposeSupport",
@@ -435,6 +430,12 @@ struct FeatureSet {
     BoolFeatureInfo VulkanProtectedMemoryEmulation = {
         "VulkanProtectedMemoryEmulation",
         "If enabled, enables protected memory emulation for the guest.",
+        &map,
+    };
+    VulkanVersionFeatureInfo GuestVulkanMaxApiVersion = {
+        "GuestVulkanMaxApiVersion",
+        "Represents the maximum vulkan api version that should be reported to the guest and is"
+        " not related to the host vulkan level available or used.",
         &map,
     };
 };
