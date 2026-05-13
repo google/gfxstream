@@ -1,4 +1,4 @@
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 load("//:build_variables.bzl", "GFXSTREAM_HOST_COPTS", "GFXSTREAM_HOST_DEFINES")
 
 package(
@@ -16,5 +16,18 @@ cc_library(
     deps = [
         "//common/logging:gfxstream_common_logging",
         "//common/utils:gfxstream_common_utils",
+    ],
+)
+
+cc_test(
+    name = "gfxstream_features_tests",
+    srcs = [
+        "features_unittest.cpp",
+    ],
+    copts = GFXSTREAM_HOST_COPTS,
+    deps = [
+        ":gfxstream_host_features",
+        "@com_google_googletest//:gtest",
+        "@com_google_googletest//:gtest_main",
     ],
 )
