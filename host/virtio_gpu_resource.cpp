@@ -81,15 +81,6 @@ static std::unordered_map<int, struct ResourceFormatInfo> virglFormatInfoMap = {
     {VIRGL_FORMAT_R8_UNORM, {DRM_FORMAT_R8, 1}},
 };
 
-static std::optional<int> DrmFourccToVirglFormat(uint32_t drm_fourcc) {
-    for (auto it : virglFormatInfoMap) {
-        if (it.second.drm_fourcc == drm_fourcc) {
-            return it.first;
-        }
-    }
-    return -1;
-}
-
 static std::optional<struct ResourceFormatInfo> VirglFormatInfo(uint32_t virglFormat) {
     auto it = virglFormatInfoMap.find(virglFormat);
     if (virglFormatInfoMap.end() != it) {
