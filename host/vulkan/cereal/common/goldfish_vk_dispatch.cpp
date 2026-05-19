@@ -568,6 +568,9 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
         lib, "vkDestroyDescriptorUpdateTemplateKHR");
     out->vkUpdateDescriptorSetWithTemplateKHR = (PFN_vkUpdateDescriptorSetWithTemplateKHR)dlSymFunc(
         lib, "vkUpdateDescriptorSetWithTemplateKHR");
+    out->vkCmdPushDescriptorSetWithTemplateKHR =
+        (PFN_vkCmdPushDescriptorSetWithTemplateKHR)dlSymFunc(
+            lib, "vkCmdPushDescriptorSetWithTemplateKHR");
 #endif
 #ifdef VK_KHR_create_renderpass2
     out->vkCreateRenderPass2KHR =
@@ -908,6 +911,8 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
     out->vkCmdTraceRaysKHR = (PFN_vkCmdTraceRaysKHR)dlSymFunc(lib, "vkCmdTraceRaysKHR");
     out->vkCreateRayTracingPipelinesKHR =
         (PFN_vkCreateRayTracingPipelinesKHR)dlSymFunc(lib, "vkCreateRayTracingPipelinesKHR");
+    out->vkGetRayTracingShaderGroupHandlesKHR = (PFN_vkGetRayTracingShaderGroupHandlesKHR)dlSymFunc(
+        lib, "vkGetRayTracingShaderGroupHandlesKHR");
     out->vkGetRayTracingCaptureReplayShaderGroupHandlesKHR =
         (PFN_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR)dlSymFunc(
             lib, "vkGetRayTracingCaptureReplayShaderGroupHandlesKHR");
@@ -1615,6 +1620,9 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
     out->vkUpdateDescriptorSetWithTemplateKHR =
         (PFN_vkUpdateDescriptorSetWithTemplateKHR)vk->vkGetInstanceProcAddr(
             instance, "vkUpdateDescriptorSetWithTemplateKHR");
+    out->vkCmdPushDescriptorSetWithTemplateKHR =
+        (PFN_vkCmdPushDescriptorSetWithTemplateKHR)vk->vkGetInstanceProcAddr(
+            instance, "vkCmdPushDescriptorSetWithTemplateKHR");
 #endif
 #ifdef VK_KHR_create_renderpass2
     out->vkCreateRenderPass2KHR =
@@ -2023,6 +2031,9 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
     out->vkCreateRayTracingPipelinesKHR =
         (PFN_vkCreateRayTracingPipelinesKHR)vk->vkGetInstanceProcAddr(
             instance, "vkCreateRayTracingPipelinesKHR");
+    out->vkGetRayTracingShaderGroupHandlesKHR =
+        (PFN_vkGetRayTracingShaderGroupHandlesKHR)vk->vkGetInstanceProcAddr(
+            instance, "vkGetRayTracingShaderGroupHandlesKHR");
     out->vkGetRayTracingCaptureReplayShaderGroupHandlesKHR =
         (PFN_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR)vk->vkGetInstanceProcAddr(
             instance, "vkGetRayTracingCaptureReplayShaderGroupHandlesKHR");
@@ -2710,6 +2721,9 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
     out->vkUpdateDescriptorSetWithTemplateKHR =
         (PFN_vkUpdateDescriptorSetWithTemplateKHR)vk->vkGetDeviceProcAddr(
             device, "vkUpdateDescriptorSetWithTemplateKHR");
+    out->vkCmdPushDescriptorSetWithTemplateKHR =
+        (PFN_vkCmdPushDescriptorSetWithTemplateKHR)vk->vkGetDeviceProcAddr(
+            device, "vkCmdPushDescriptorSetWithTemplateKHR");
 #endif
 #ifdef VK_KHR_create_renderpass2
     out->vkCreateRenderPass2KHR =
@@ -3109,6 +3123,9 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
     out->vkCreateRayTracingPipelinesKHR =
         (PFN_vkCreateRayTracingPipelinesKHR)vk->vkGetDeviceProcAddr(
             device, "vkCreateRayTracingPipelinesKHR");
+    out->vkGetRayTracingShaderGroupHandlesKHR =
+        (PFN_vkGetRayTracingShaderGroupHandlesKHR)vk->vkGetDeviceProcAddr(
+            device, "vkGetRayTracingShaderGroupHandlesKHR");
     out->vkGetRayTracingCaptureReplayShaderGroupHandlesKHR =
         (PFN_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR)vk->vkGetDeviceProcAddr(
             device, "vkGetRayTracingCaptureReplayShaderGroupHandlesKHR");

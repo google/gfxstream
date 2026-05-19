@@ -402,6 +402,7 @@ struct VulkanDispatch {
     PFN_vkCreateDescriptorUpdateTemplateKHR vkCreateDescriptorUpdateTemplateKHR;
     PFN_vkDestroyDescriptorUpdateTemplateKHR vkDestroyDescriptorUpdateTemplateKHR;
     PFN_vkUpdateDescriptorSetWithTemplateKHR vkUpdateDescriptorSetWithTemplateKHR;
+    PFN_vkCmdPushDescriptorSetWithTemplateKHR vkCmdPushDescriptorSetWithTemplateKHR;
 #endif
 #ifdef VK_KHR_create_renderpass2
     PFN_vkCreateRenderPass2KHR vkCreateRenderPass2KHR;
@@ -630,6 +631,7 @@ struct VulkanDispatch {
 #ifdef VK_KHR_ray_tracing_pipeline
     PFN_vkCmdTraceRaysKHR vkCmdTraceRaysKHR;
     PFN_vkCreateRayTracingPipelinesKHR vkCreateRayTracingPipelinesKHR;
+    PFN_vkGetRayTracingShaderGroupHandlesKHR vkGetRayTracingShaderGroupHandlesKHR;
     PFN_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR
         vkGetRayTracingCaptureReplayShaderGroupHandlesKHR;
     PFN_vkCmdTraceRaysIndirectKHR vkCmdTraceRaysIndirectKHR;

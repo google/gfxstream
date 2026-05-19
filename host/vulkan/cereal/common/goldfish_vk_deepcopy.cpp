@@ -9943,7 +9943,78 @@ void deepcopy_VkDeviceDeviceMemoryReportCreateInfoEXT(
 }
 
 #endif
+#ifdef VK_EXT_robustness2
+void deepcopy_VkPhysicalDeviceRobustness2FeaturesKHR(
+    Allocator* alloc, VkStructureType rootType, const VkPhysicalDeviceRobustness2FeaturesKHR* from,
+    VkPhysicalDeviceRobustness2FeaturesKHR* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const VkBaseOutStructure*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+}
+
+void deepcopy_VkPhysicalDeviceRobustness2PropertiesKHR(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceRobustness2PropertiesKHR* from,
+    VkPhysicalDeviceRobustness2PropertiesKHR* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const VkBaseOutStructure*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+}
+
+#endif
 #ifdef VK_EXT_custom_border_color
+void deepcopy_VkSamplerCustomBorderColorCreateInfoEXT(
+    Allocator* alloc, VkStructureType rootType, const VkSamplerCustomBorderColorCreateInfoEXT* from,
+    VkSamplerCustomBorderColorCreateInfoEXT* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const VkBaseOutStructure*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+    deepcopy_VkClearColorValue(alloc, rootType, &from->customBorderColor,
+                               (VkClearColorValue*)(&to->customBorderColor));
+}
+
 void deepcopy_VkPhysicalDeviceCustomBorderColorPropertiesEXT(
     Allocator* alloc, VkStructureType rootType,
     const VkPhysicalDeviceCustomBorderColorPropertiesEXT* from,
@@ -12257,7 +12328,30 @@ void deepcopy_extension_struct(Allocator* alloc, VkStructureType rootType,
             break;
         }
 #endif
+#ifdef VK_EXT_robustness2
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_KHR: {
+            deepcopy_VkPhysicalDeviceRobustness2FeaturesKHR(
+                alloc, rootType,
+                reinterpret_cast<const VkPhysicalDeviceRobustness2FeaturesKHR*>(structExtension),
+                reinterpret_cast<VkPhysicalDeviceRobustness2FeaturesKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_PROPERTIES_KHR: {
+            deepcopy_VkPhysicalDeviceRobustness2PropertiesKHR(
+                alloc, rootType,
+                reinterpret_cast<const VkPhysicalDeviceRobustness2PropertiesKHR*>(structExtension),
+                reinterpret_cast<VkPhysicalDeviceRobustness2PropertiesKHR*>(structExtension_out));
+            break;
+        }
+#endif
 #ifdef VK_EXT_custom_border_color
+        case VK_STRUCTURE_TYPE_SAMPLER_CUSTOM_BORDER_COLOR_CREATE_INFO_EXT: {
+            deepcopy_VkSamplerCustomBorderColorCreateInfoEXT(
+                alloc, rootType,
+                reinterpret_cast<const VkSamplerCustomBorderColorCreateInfoEXT*>(structExtension),
+                reinterpret_cast<VkSamplerCustomBorderColorCreateInfoEXT*>(structExtension_out));
+            break;
+        }
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_BORDER_COLOR_PROPERTIES_EXT: {
             deepcopy_VkPhysicalDeviceCustomBorderColorPropertiesEXT(
                 alloc, rootType,

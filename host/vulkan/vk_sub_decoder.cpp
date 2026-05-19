@@ -3007,6 +3007,51 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 break;
             }
 #endif
+#ifdef VK_KHR_descriptor_update_template
+            case OP_vkCmdPushDescriptorSetWithTemplateKHR: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdPushDescriptorSetWithTemplateKHR");
+                VkDescriptorUpdateTemplate descriptorUpdateTemplate;
+                VkPipelineLayout layout;
+                uint32_t set;
+                const void* pData;
+                uint8_t* stack_pData[1];
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDescriptorUpdateTemplate*)&descriptorUpdateTemplate =
+                    (VkDescriptorUpdateTemplate)unbox_VkDescriptorUpdateTemplate(
+                        (VkDescriptorUpdateTemplate)(*&cgen_var_0));
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkPipelineLayout*)&layout =
+                    (VkPipelineLayout)unbox_VkPipelineLayout((VkPipelineLayout)(*&cgen_var_1));
+                memcpy((uint32_t*)&set, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                // WARNING PTR CHECK
+                memcpy((void**)&pData, (*readStreamPtrPtr), 8);
+                gfxstream::Stream::fromBe64((uint8_t*)&pData);
+                *readStreamPtrPtr += 8;
+                if (pData) {
+                    pData = (void*)stack_pData;
+                    memcpy((void*)pData, *readStreamPtrPtr, sizeof(const uint8_t));
+                    *readStreamPtrPtr += sizeof(const uint8_t);
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdPushDescriptorSetWithTemplateKHR((VkCommandBuffer)dispatchHandle,
+                                                              descriptorUpdateTemplate, layout, set,
+                                                              pData);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdPushDescriptorSetWithTemplateKHR(
+                        pool, snapshotApiCallHandle, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), descriptorUpdateTemplate, layout,
+                        set, pData);
+                }
+                break;
+            }
+#endif
 #ifdef VK_KHR_create_renderpass2
             case OP_vkCmdBeginRenderPass2KHR: {
                 GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,

@@ -1335,6 +1335,11 @@ class VkDecoderSnapshot {
                                               VkDescriptorSet descriptorSet,
                                               VkDescriptorUpdateTemplate descriptorUpdateTemplate,
                                               const void* pData);
+    void vkCmdPushDescriptorSetWithTemplateKHR(
+        gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
+        VkDescriptorUpdateTemplate descriptorUpdateTemplate, VkPipelineLayout layout, uint32_t set,
+        const void* pData);
 #endif
 #ifdef VK_KHR_create_renderpass2
     void vkCreateRenderPass2KHR(gfxstream::base::BumpPool* pool,

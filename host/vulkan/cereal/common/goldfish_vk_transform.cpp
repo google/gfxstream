@@ -9025,7 +9025,67 @@ void transform_fromhost_VkDeviceDeviceMemoryReportCreateInfoEXT(
 }
 
 #endif
+#ifdef VK_EXT_robustness2
+void transform_tohost_VkPhysicalDeviceRobustness2FeaturesKHR(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceRobustness2FeaturesKHR* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceRobustness2FeaturesKHR(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceRobustness2FeaturesKHR* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceRobustness2PropertiesKHR(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceRobustness2PropertiesKHR* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceRobustness2PropertiesKHR(
+    VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceRobustness2PropertiesKHR* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
 #ifdef VK_EXT_custom_border_color
+void transform_tohost_VkSamplerCustomBorderColorCreateInfoEXT(
+    VkDecoderGlobalState* resourceTracker, VkSamplerCustomBorderColorCreateInfoEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkClearColorValue(resourceTracker,
+                                       (VkClearColorValue*)(&toTransform->customBorderColor));
+}
+
+void transform_fromhost_VkSamplerCustomBorderColorCreateInfoEXT(
+    VkDecoderGlobalState* resourceTracker, VkSamplerCustomBorderColorCreateInfoEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkClearColorValue(resourceTracker,
+                                         (VkClearColorValue*)(&toTransform->customBorderColor));
+}
+
 void transform_tohost_VkPhysicalDeviceCustomBorderColorPropertiesEXT(
     VkDecoderGlobalState* resourceTracker,
     VkPhysicalDeviceCustomBorderColorPropertiesEXT* toTransform) {
@@ -10827,7 +10887,27 @@ void transform_tohost_extension_struct(VkDecoderGlobalState* resourceTracker,
             break;
         }
 #endif
+#ifdef VK_EXT_robustness2
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_KHR: {
+            transform_tohost_VkPhysicalDeviceRobustness2FeaturesKHR(
+                resourceTracker,
+                reinterpret_cast<VkPhysicalDeviceRobustness2FeaturesKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_PROPERTIES_KHR: {
+            transform_tohost_VkPhysicalDeviceRobustness2PropertiesKHR(
+                resourceTracker,
+                reinterpret_cast<VkPhysicalDeviceRobustness2PropertiesKHR*>(structExtension_out));
+            break;
+        }
+#endif
 #ifdef VK_EXT_custom_border_color
+        case VK_STRUCTURE_TYPE_SAMPLER_CUSTOM_BORDER_COLOR_CREATE_INFO_EXT: {
+            transform_tohost_VkSamplerCustomBorderColorCreateInfoEXT(
+                resourceTracker,
+                reinterpret_cast<VkSamplerCustomBorderColorCreateInfoEXT*>(structExtension_out));
+            break;
+        }
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_BORDER_COLOR_PROPERTIES_EXT: {
             transform_tohost_VkPhysicalDeviceCustomBorderColorPropertiesEXT(
                 resourceTracker, reinterpret_cast<VkPhysicalDeviceCustomBorderColorPropertiesEXT*>(
@@ -12299,7 +12379,27 @@ void transform_fromhost_extension_struct(VkDecoderGlobalState* resourceTracker,
             break;
         }
 #endif
+#ifdef VK_EXT_robustness2
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_KHR: {
+            transform_fromhost_VkPhysicalDeviceRobustness2FeaturesKHR(
+                resourceTracker,
+                reinterpret_cast<VkPhysicalDeviceRobustness2FeaturesKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_PROPERTIES_KHR: {
+            transform_fromhost_VkPhysicalDeviceRobustness2PropertiesKHR(
+                resourceTracker,
+                reinterpret_cast<VkPhysicalDeviceRobustness2PropertiesKHR*>(structExtension_out));
+            break;
+        }
+#endif
 #ifdef VK_EXT_custom_border_color
+        case VK_STRUCTURE_TYPE_SAMPLER_CUSTOM_BORDER_COLOR_CREATE_INFO_EXT: {
+            transform_fromhost_VkSamplerCustomBorderColorCreateInfoEXT(
+                resourceTracker,
+                reinterpret_cast<VkSamplerCustomBorderColorCreateInfoEXT*>(structExtension_out));
+            break;
+        }
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_BORDER_COLOR_PROPERTIES_EXT: {
             transform_fromhost_VkPhysicalDeviceCustomBorderColorPropertiesEXT(
                 resourceTracker, reinterpret_cast<VkPhysicalDeviceCustomBorderColorPropertiesEXT*>(

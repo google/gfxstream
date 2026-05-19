@@ -2029,6 +2029,11 @@ class VkDecoderSnapshot::Impl {
                                               VkDescriptorSet descriptorSet,
                                               VkDescriptorUpdateTemplate descriptorUpdateTemplate,
                                               const void* pData) {}
+    void vkCmdPushDescriptorSetWithTemplateKHR(
+        gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
+        VkDescriptorUpdateTemplate descriptorUpdateTemplate, VkPipelineLayout layout, uint32_t set,
+        const void* pData) {}
 #endif
 #ifdef VK_KHR_create_renderpass2
     void vkCreateRenderPass2KHR(gfxstream::base::BumpPool* pool,
@@ -5672,6 +5677,17 @@ void VkDecoderSnapshot::vkUpdateDescriptorSetWithTemplateKHR(
     mImpl->vkUpdateDescriptorSetWithTemplateKHR(pool, apiCallHandle, apiCallPacket,
                                                 apiCallPacketSize, device, descriptorSet,
                                                 descriptorUpdateTemplate, pData);
+}
+#endif
+#ifdef VK_KHR_descriptor_update_template
+void VkDecoderSnapshot::vkCmdPushDescriptorSetWithTemplateKHR(
+    gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle,
+    const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
+    VkDescriptorUpdateTemplate descriptorUpdateTemplate, VkPipelineLayout layout, uint32_t set,
+    const void* pData) {
+    mImpl->vkCmdPushDescriptorSetWithTemplateKHR(pool, apiCallHandle, apiCallPacket,
+                                                 apiCallPacketSize, commandBuffer,
+                                                 descriptorUpdateTemplate, layout, set, pData);
 }
 #endif
 #ifdef VK_KHR_create_renderpass2

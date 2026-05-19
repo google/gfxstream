@@ -2290,14 +2290,26 @@ void reservedunmarshal_VkDeviceDeviceMemoryReportCreateInfoEXT(
 
 #endif
 #ifdef VK_EXT_robustness2
+void reservedunmarshal_VkPhysicalDeviceRobustness2FeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRobustness2FeaturesKHR* forUnmarshaling, uint8_t** ptr);
+
 DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceRobustness2FeaturesKHR,
                       reservedunmarshal_VkPhysicalDeviceRobustness2FeaturesEXT)
+
+void reservedunmarshal_VkPhysicalDeviceRobustness2PropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceRobustness2PropertiesKHR* forUnmarshaling, uint8_t** ptr);
 
 DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceRobustness2PropertiesKHR,
                       reservedunmarshal_VkPhysicalDeviceRobustness2PropertiesEXT)
 
 #endif
 #ifdef VK_EXT_custom_border_color
+void reservedunmarshal_VkSamplerCustomBorderColorCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkSamplerCustomBorderColorCreateInfoEXT* forUnmarshaling, uint8_t** ptr);
+
 void reservedunmarshal_VkPhysicalDeviceCustomBorderColorPropertiesEXT(
     VulkanStream* vkStream, VkStructureType rootType,
     VkPhysicalDeviceCustomBorderColorPropertiesEXT* forUnmarshaling, uint8_t** ptr);
