@@ -71,6 +71,8 @@ class RingStream final : public IOStream {
     RenderChannel::Buffer mWriteBuffer;
     size_t mReadBufferLeft = 0;
 
+    uint32_t mBufSize = 0;
+
     // The number of times this RingStream should attempt reading
     // before going to sleep.
     static const uint32_t kMaxUnavailableReads = 8;

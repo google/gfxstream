@@ -81,7 +81,8 @@ RingStream::RingStream(const AsgConsumerCreateInfo& info, size_t bufsize) :
     IOStream(bufsize),
     mContext(CreateContext(info)),
     mSavedRingConfig(*mContext.ring_config),
-    mCallbacks(info.callbacks) {}
+    mCallbacks(info.callbacks),
+    mBufSize(info.buffer_size) {}
 
 RingStream::~RingStream() = default;
 
@@ -309,6 +310,13 @@ void RingStream::type1Read(
 #pragma clang diagnostic ignored "-Wunreachable-code-loop-increment"
 #endif // __clang__
     for (uint32_t i = 0; i < xferTotal; ++i) {
+        // Guest controls offset/size via shared memory; validate against the
+        // host-allocated auxiliary buffer before dereferencing.
+        if (xfersPtr[i].offset > mBufSize ||
+            xfersPtr[i].size > mBufSize - xfersPtr[i].offset) {
+            mContext.ring_config->in_error = 1;
+            return;
+        }
         if (*current + xfersPtr[i].size > ptrEnd) {
             // Save in a temp buffer or we'll get stuck
             if (begin == *current && i == 0) {
