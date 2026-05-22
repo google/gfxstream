@@ -144,7 +144,6 @@ cc_library_static {
     ],
     static_libs: [
         "libgfxstream_androidemu_static",
-        "libgfxstream_androidemu_static",
         "mesa_gfxstream_guest_android",
         "libOpenglCodecCommon_static",
     ],
