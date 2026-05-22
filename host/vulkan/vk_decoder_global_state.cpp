@@ -221,6 +221,7 @@ class VkDecoderGlobalState::Impl {
         mDeviceInfo.clear();
         mImageInfo.clear();
         mImageViewInfo.clear();
+        mBufferViewInfo.clear();
         mEventInfo.clear();
         mSamplerInfo.clear();
         mCommandBufferInfo.clear();
@@ -3414,6 +3415,56 @@ class VkDecoderGlobalState::Impl {
         destroyImageViewLocked(device, deviceDispatch, imageView, pAllocator);
     }
 
+    VkResult on_vkCreateBufferView(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
+                                   VkDevice boxed_device, const VkBufferViewCreateInfo* pCreateInfo,
+                                   const VkAllocationCallbacks* pAllocator, VkBufferView* pView) {
+        auto device = unbox_VkDevice(boxed_device);
+        auto vk = dispatch_VkDevice(boxed_device);
+
+        VkResult result = vk->vkCreateBufferView(device, pCreateInfo, pAllocator, pView);
+        if (result != VK_SUCCESS) {
+            return result;
+        }
+
+        std::lock_guard<std::mutex> lock(mMutex);
+        VALIDATE_NEW_HANDLE_INFO_ENTRY(mBufferViewInfo, *pView);
+        auto& bufferViewInfo = mBufferViewInfo[*pView];
+        bufferViewInfo.device = device;
+
+        *pView = new_boxed_non_dispatchable_VkBufferView(*pView);
+        bufferViewInfo.boxed = *pView;
+        return result;
+    }
+
+    void destroyBufferViewWithExclusiveInfo(VkDevice device, VulkanDispatch* deviceDispatch,
+                                            VkBufferView bufferView, BufferViewInfo& bufferViewInfo,
+                                            const VkAllocationCallbacks* pAllocator) {
+        deviceDispatch->vkDestroyBufferView(device, bufferView, pAllocator);
+    }
+
+    void destroyBufferViewLocked(VkDevice device, VulkanDispatch* deviceDispatch,
+                                 VkBufferView bufferView, const VkAllocationCallbacks* pAllocator)
+        REQUIRES(mMutex) {
+        auto bufferViewInfoIt = mBufferViewInfo.find(bufferView);
+        if (bufferViewInfoIt == mBufferViewInfo.end()) return;
+        auto& bufferViewInfo = bufferViewInfoIt->second;
+
+        destroyBufferViewWithExclusiveInfo(device, deviceDispatch, bufferView, bufferViewInfo,
+                                           pAllocator);
+
+        mBufferViewInfo.erase(bufferView);
+    }
+
+    void on_vkDestroyBufferView(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
+                                VkDevice boxed_device, VkBufferView bufferView,
+                                const VkAllocationCallbacks* pAllocator) {
+        auto device = unbox_VkDevice(boxed_device);
+        auto deviceDispatch = dispatch_VkDevice(boxed_device);
+
+        std::lock_guard<std::mutex> lock(mMutex);
+        destroyBufferViewLocked(device, deviceDispatch, bufferView, pAllocator);
+    }
+
     VkResult on_vkCreateSampler(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
                                 VkDevice boxed_device, const VkSamplerCreateInfo* pCreateInfo,
                                 const VkAllocationCallbacks* pAllocator, VkSampler* pSampler) {
@@ -4639,10 +4690,13 @@ class VkDecoderGlobalState::Impl {
                     entry.bufferView = descriptorWrite.pTexelBufferView[writeElemIdx];
                     entry.writeType = DescriptorSetInfo::DescriptorWriteType::BufferView;
                     entry.descriptorType = descType;
+                    entry.alives.clear();
                     if (snapshotsEnabled()) {
-                        // TODO: check alive
-                        GFXSTREAM_ERROR("%s: Snapshot for texel buffer view is incomplete.\n",
-                                        __func__);
+                        auto* bufferViewInfo =
+                            gfxstream::base::find(mBufferViewInfo, entry.bufferView);
+                        if (bufferViewInfo) {
+                            entry.alives.push_back(bufferViewInfo->alive);
+                        }
                     }
                 }
             } else if (isDescriptorTypeInlineUniformBlock(descType)) {
@@ -10253,6 +10307,7 @@ class VkDecoderGlobalState::Impl {
         extractInfosWithDeviceInto(device, mFramebufferInfo, deviceObjects.framebuffers);
         extractInfosWithDeviceInto(device, mImageInfo, deviceObjects.images);
         extractInfosWithDeviceInto(device, mImageViewInfo, deviceObjects.imageViews);
+        extractInfosWithDeviceInto(device, mBufferViewInfo, deviceObjects.bufferViews);
         extractInfosWithDeviceInto(device, mPipelineCacheInfo, deviceObjects.pipelineCaches);
         extractInfosWithDeviceInto(device, mPipelineLayoutInfo, deviceObjects.pipelineLayouts);
         extractInfosWithDeviceInto(device, mPipelineInfo, deviceObjects.pipelines);
@@ -10346,6 +10401,13 @@ class VkDecoderGlobalState::Impl {
                 destroyImageViewWithExclusiveInfo(device, deviceDispatch, imageView, imageViewInfo,
                                                   nullptr);
                 delete_VkImageView(imageViewInfo.boxed);
+            }
+
+            LOG_CALLS_VERBOSE("%s: %zu bufferViews.", __func__, deviceObjects.bufferViews.size());
+            for (auto& [bufferView, bufferViewInfo] : deviceObjects.bufferViews) {
+                destroyBufferViewWithExclusiveInfo(device, deviceDispatch, bufferView,
+                                                   bufferViewInfo, nullptr);
+                delete_VkBufferView(bufferViewInfo.boxed);
             }
 
             LOG_CALLS_VERBOSE("%s: %zu images.", __func__, deviceObjects.images.size());
@@ -10748,6 +10810,7 @@ class VkDecoderGlobalState::Impl {
     std::unordered_map<VkFramebuffer, FramebufferInfo> mFramebufferInfo GUARDED_BY(mMutex);
     std::unordered_map<VkImage, ImageInfo> mImageInfo GUARDED_BY(mMutex);
     std::unordered_map<VkImageView, ImageViewInfo> mImageViewInfo GUARDED_BY(mMutex);
+    std::unordered_map<VkBufferView, BufferViewInfo> mBufferViewInfo GUARDED_BY(mMutex);
     std::unordered_map<VkPipeline, PipelineInfo> mPipelineInfo GUARDED_BY(mMutex);
     std::unordered_map<VkPipelineCache, PipelineCacheInfo> mPipelineCacheInfo GUARDED_BY(mMutex);
     std::unordered_map<VkPipelineLayout, PipelineLayoutInfo> mPipelineLayoutInfo GUARDED_BY(mMutex);
@@ -11230,6 +11293,23 @@ void VkDecoderGlobalState::on_vkDestroyImageView(gfxstream::base::BumpPool* pool
                                                  VkDevice device, VkImageView imageView,
                                                  const VkAllocationCallbacks* pAllocator) {
     mImpl->on_vkDestroyImageView(pool, apiCallHandle, device, imageView, pAllocator);
+}
+
+VkResult VkDecoderGlobalState::on_vkCreateBufferView(gfxstream::base::BumpPool* pool,
+                                                     VkSnapshotApiCallHandle apiCallHandle,
+                                                     VkDevice device,
+                                                     const VkBufferViewCreateInfo* pCreateInfo,
+                                                     const VkAllocationCallbacks* pAllocator,
+                                                     VkBufferView* pView) {
+    return mImpl->on_vkCreateBufferView(pool, apiCallHandle, device, pCreateInfo, pAllocator,
+                                        pView);
+}
+
+void VkDecoderGlobalState::on_vkDestroyBufferView(gfxstream::base::BumpPool* pool,
+                                                  VkSnapshotApiCallHandle apiCallHandle,
+                                                  VkDevice device, VkBufferView bufferView,
+                                                  const VkAllocationCallbacks* pAllocator) {
+    mImpl->on_vkDestroyBufferView(pool, apiCallHandle, device, bufferView, pAllocator);
 }
 
 VkResult VkDecoderGlobalState::on_vkCreateSampler(gfxstream::base::BumpPool* pool,

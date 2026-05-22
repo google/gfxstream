@@ -5046,14 +5046,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 const VkBufferViewCreateInfo* pCreateInfo;
                 const VkAllocationCallbacks* pAllocator;
                 VkBufferView* pView;
-                // Begin non wrapped dispatchable handle unboxing for device;
+                // Begin global wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
-                auto unboxed_device = unbox_VkDevice(device);
                 auto vk = dispatch_VkDevice(device);
-                // End manual dispatchable handle unboxing for device;
                 vkReadStream->alloc((void**)&pCreateInfo, sizeof(const VkBufferViewCreateInfo));
                 reservedunmarshal_VkBufferViewCreateInfo(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                          (VkBufferViewCreateInfo*)(pCreateInfo),
@@ -5091,21 +5089,20 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 VkResult vkCreateBufferView_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
-                    vkCreateBufferView_VkResult_return =
-                        vk->vkCreateBufferView(unboxed_device, pCreateInfo, pAllocator, pView);
+                    vkCreateBufferView_VkResult_return = m_state->on_vkCreateBufferView(
+                        &m_pool, snapshotApiCallHandle, device, pCreateInfo, pAllocator, pView);
                 }
                 if ((vkCreateBufferView_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
                 vkStream->unsetHandleMapping();
-                // Begin auto non dispatchable handle create for pView;
-                if (vkCreateBufferView_VkResult_return == VK_SUCCESS)
-                    vkStream->setHandleMapping(&m_boxedHandleCreateMapping);
+                // Begin manual non dispatchable handle create for pView;
+                vkStream->unsetHandleMapping();
                 uint64_t cgen_var_3;
                 static_assert(8 == sizeof(VkBufferView),
                               "handle map overwrite requires VkBufferView to be 8 bytes long");
                 vkStream->handleMapping()->mapHandles_VkBufferView((VkBufferView*)pView, 1);
                 vkStream->write((VkBufferView*)pView, 8 * 1);
-                // Begin auto non dispatchable handle create for pView;
+                // Begin manual non dispatchable handle create for pView;
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreateBufferView_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
@@ -5125,14 +5122,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkDevice device;
                 VkBufferView bufferView;
                 const VkAllocationCallbacks* pAllocator;
-                // Begin non wrapped dispatchable handle unboxing for device;
+                // Begin global wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
-                auto unboxed_device = unbox_VkDevice(device);
                 auto vk = dispatch_VkDevice(device);
-                // End manual dispatchable handle unboxing for device;
                 // Begin manual non dispatchable handle destroy unboxing for bufferView;
                 VkBufferView boxed_bufferView_preserve;
                 uint64_t cgen_var_1;
@@ -5162,7 +5157,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)bufferView, (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
-                    vk->vkDestroyBufferView(unboxed_device, bufferView, pAllocator);
+                    m_state->on_vkDestroyBufferView(&m_pool, snapshotApiCallHandle, device,
+                                                    bufferView, pAllocator);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {

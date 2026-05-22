@@ -286,10 +286,17 @@ class VkDecoderGlobalState {
                                   VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
                                   const VkImageViewCreateInfo* pCreateInfo,
                                   const VkAllocationCallbacks* pAllocator, VkImageView* pView);
+    void on_vkDestroyImageView(gfxstream::base::BumpPool* pool,
+                               VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+                               VkImageView imageView, const VkAllocationCallbacks* pAllocator);
 
-    void on_vkDestroyImageView(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle,
-                               VkDevice device, VkImageView imageView,
-                               const VkAllocationCallbacks* pAllocator);
+    VkResult on_vkCreateBufferView(gfxstream::base::BumpPool* pool,
+                                   VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+                                   const VkBufferViewCreateInfo* pCreateInfo,
+                                   const VkAllocationCallbacks* pAllocator, VkBufferView* pView);
+    void on_vkDestroyBufferView(gfxstream::base::BumpPool* pool,
+                                VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+                                VkBufferView bufferView, const VkAllocationCallbacks* pAllocator);
 
     VkResult on_vkCreateSampler(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle,
                                 VkDevice device, const VkSamplerCreateInfo* pCreateInfo,

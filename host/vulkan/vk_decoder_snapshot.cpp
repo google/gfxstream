@@ -765,6 +765,9 @@ class VkDecoderSnapshot::Impl {
         // pView create
         mReconstruction.addHandles((const uint64_t*)pView, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pView, 1, (uint64_t)(uintptr_t)device);
+        mReconstruction.addHandleDependency(
+            (const uint64_t*)pView, 1,
+            (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkBuffer(pCreateInfo->buffer));
         mReconstruction.setApiTrace(apiCallHandle, apiCallPacket, apiCallPacketSize);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pView, 1, apiCallHandle,
                                             VkReconstruction::CREATED);

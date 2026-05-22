@@ -341,6 +341,12 @@ struct BufferInfo {
     std::shared_ptr<bool> alive{new bool(true)};
 };
 
+struct BufferViewInfo {
+    VkDevice device;
+    VkBufferView boxed = VK_NULL_HANDLE;
+    std::shared_ptr<bool> alive{new bool(true)};
+};
+
 struct ImageInfo {
     VkDevice device;
     VkImage boxed = VK_NULL_HANDLE;
@@ -609,6 +615,7 @@ struct InstanceObjects {
         std::unordered_map<VkFramebuffer, FramebufferInfo> framebuffers;
         std::unordered_map<VkImage, ImageInfo> images;
         std::unordered_map<VkImageView, ImageViewInfo> imageViews;
+        std::unordered_map<VkBufferView, BufferViewInfo> bufferViews;
         std::unordered_map<VkPipeline, PipelineInfo> pipelines;
         std::unordered_map<VkPipelineCache, PipelineCacheInfo> pipelineCaches;
         std::unordered_map<VkPipelineLayout, PipelineLayoutInfo> pipelineLayouts;
