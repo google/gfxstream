@@ -48,6 +48,7 @@ namespace host {
 #define VIRGL_FORMAT_YV12                    163
 #define VIRGL_FORMAT_NV12                    166
 #define VIRGL_FORMAT_P010                    314
+#define VIRGL_FORMAT_P210                    317
 // clang-format on
 
 inline std::optional<GfxstreamFormat> ToGfxstreamFormat(uint32_t virglFormat) {
@@ -75,6 +76,8 @@ inline std::optional<GfxstreamFormat> ToGfxstreamFormat(uint32_t virglFormat) {
             return GfxstreamFormat::NV12;
         case VIRGL_FORMAT_P010:
             return GfxstreamFormat::P010;
+        case VIRGL_FORMAT_P210:
+            return GfxstreamFormat::P210;
         case VIRGL_FORMAT_YV12:
             return GfxstreamFormat::YV12;
         case VIRGL_FORMAT_R10G10B10A2_UNORM:
@@ -154,7 +157,24 @@ static inline size_t GetTransferSize(uint32_t virglFormat,
     auto format = *formatOpt;
 
     if (IsYuvFormat(format)) {
-        uint32_t bpp = format == GfxstreamFormat::P010 ? 2 : 1;
+        uint32_t bpp;
+        switch (format) {
+            case GfxstreamFormat::P010:
+            case GfxstreamFormat::P210:
+                bpp = 2;
+                break;
+            case GfxstreamFormat::NV12:
+            case GfxstreamFormat::NV21:
+            case GfxstreamFormat::YV12:
+            case GfxstreamFormat::YV21:
+                bpp = 1;
+                break;
+            default: {
+                const std::string formatString = ToString(format);
+                GFXSTREAM_ERROR("Unhandled format %s", formatString.c_str());
+                return 0;
+            }
+        }
 
         uint32_t yWidth = totalWidth;
         uint32_t yHeight = totalHeight;
@@ -162,7 +182,8 @@ static inline size_t GetTransferSize(uint32_t virglFormat,
         switch (format) {
             case GfxstreamFormat::NV12:
             case GfxstreamFormat::NV21:
-            case GfxstreamFormat::P010: {
+            case GfxstreamFormat::P010:
+            case GfxstreamFormat::P210: {
                 yStridePixels = yWidth;
                 break;
             }
@@ -186,7 +207,8 @@ static inline size_t GetTransferSize(uint32_t virglFormat,
         switch (format) {
             case GfxstreamFormat::NV12:
             case GfxstreamFormat::NV21:
-            case GfxstreamFormat::P010: {
+            case GfxstreamFormat::P010:
+            case GfxstreamFormat::P210: {
                 uvStridePixels = yStridePixels;
                 uvPlaneCount = 1;
                 break;
@@ -205,7 +227,25 @@ static inline size_t GetTransferSize(uint32_t virglFormat,
         }
 
         uint32_t uvStrideBytes = uvStridePixels * bpp;
-        uint32_t uvHeight = totalHeight / 2;
+        uint32_t verticalSubsampling;
+        switch (format) {
+            case GfxstreamFormat::P210:
+                verticalSubsampling = 1;
+                break;
+            case GfxstreamFormat::NV12:
+            case GfxstreamFormat::NV21:
+            case GfxstreamFormat::YV12:
+            case GfxstreamFormat::YV21:
+            case GfxstreamFormat::P010:
+                verticalSubsampling = 2;
+                break;
+            default: {
+                const std::string formatString = ToString(format);
+                GFXSTREAM_ERROR("Unhandled format %s", formatString.c_str());
+                return 0;
+            }
+        }
+        uint32_t uvHeight = totalHeight / verticalSubsampling;
         uint32_t uvSize = uvStrideBytes * uvHeight * uvPlaneCount;
 
         uint32_t dataSize = ySize + uvSize;

@@ -243,6 +243,18 @@ enum class GfxstreamFormat : uint32_t {
     P010,
 
     /**
+     * P210 is a 4:2:2 YCbCr semiplanar format comprised of a WxH Y plane
+     * followed by a WxH CbCr plane. Each sample is represented by a 16-bit
+     * little-endian value, with the lower 6 bits set to zero.
+     *
+     * Corresponding formats:
+     *   Android: AHARDWAREBUFFER_FORMAT_YCBCR_P210
+     *   Vulkan: VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16
+     *   OpenGL ES: N/A
+     */
+    P210,
+
+    /**
      * Corresponding formats:
      *   Android: AHARDWAREBUFFER_FORMAT_R8_UNORM
      *   Vulkan: VK_FORMAT_R8_UNORM
@@ -278,6 +290,7 @@ inline bool IsYuvFormat(GfxstreamFormat format) {
         case GfxstreamFormat::NV12:
         case GfxstreamFormat::NV21:
         case GfxstreamFormat::P010:
+        case GfxstreamFormat::P210:
         case GfxstreamFormat::YV21:
         case GfxstreamFormat::YV12:
             return true;
@@ -315,6 +328,7 @@ inline bool IsInterleavedChromaYuvFormat(GfxstreamFormat format) {
         case GfxstreamFormat::NV12:
         case GfxstreamFormat::NV21:
         case GfxstreamFormat::P010:
+        case GfxstreamFormat::P210:
             return true;
         case GfxstreamFormat::B10G10R10A2_UNORM:
         case GfxstreamFormat::B4G4R4A4_UNORM:
@@ -361,6 +375,7 @@ inline std::optional<YuvChromaOrdering> GetYuvChromaOrdering(GfxstreamFormat for
         case GfxstreamFormat::YV12:
         case GfxstreamFormat::NV21:
         case GfxstreamFormat::P010:
+        case GfxstreamFormat::P210:
             return YuvChromaOrdering::VU;
         case GfxstreamFormat::B10G10R10A2_UNORM:
         case GfxstreamFormat::B4G4R4A4_UNORM:
@@ -427,6 +442,8 @@ inline std::string ToString(GfxstreamFormat format) {
             return "NV21";
         case GfxstreamFormat::P010:
             return "P010";
+        case GfxstreamFormat::P210:
+            return "P210";
         case GfxstreamFormat::R4G4B4A4_UNORM:
             return "R4G4B4A4_UNORM";
         case GfxstreamFormat::R10G10B10A2_UNORM:
@@ -491,6 +508,7 @@ inline std::optional<uint32_t> GetBpp(GfxstreamFormat format) {
         case GfxstreamFormat::NV21:
             return std::nullopt;
         case GfxstreamFormat::P010:
+        case GfxstreamFormat::P210:
             return std::nullopt;
         case GfxstreamFormat::R10G10B10A2_UNORM:
             return 4;

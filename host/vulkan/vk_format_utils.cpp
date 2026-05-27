@@ -155,6 +155,25 @@ const std::unordered_map<VkFormat, FormatPlaneLayouts>& getFormatPlaneLayoutsMap
                          },
                      },
              }},
+            {VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16,
+             {
+                 .horizontalAlignmentPixels = 2,
+                 .planeLayouts =
+                     {
+                         {
+                             .horizontalSubsampling = 1,
+                             .verticalSubsampling = 1,
+                             .sampleIncrementBytes = 2,
+                             .aspectMask = VK_IMAGE_ASPECT_PLANE_0_BIT,
+                         },
+                         {
+                             .horizontalSubsampling = 2,
+                             .verticalSubsampling = 1,
+                             .sampleIncrementBytes = 4,
+                             .aspectMask = VK_IMAGE_ASPECT_PLANE_1_BIT,
+                         },
+                     },
+             }},
             {VK_FORMAT_G8_B8R8_2PLANE_420_UNORM,
              {
                  .horizontalAlignmentPixels = 2,
@@ -313,6 +332,8 @@ std::optional<VkFormat> ToVkFormat(GfxstreamFormat format) {
             return VK_FORMAT_G8_B8R8_2PLANE_420_UNORM;
         case GfxstreamFormat::P010:
             return VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16;
+        case GfxstreamFormat::P210:
+            return VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16;
         case GfxstreamFormat::R10G10B10A2_UNORM:
             return VK_FORMAT_A2B10G10R10_UNORM_PACK32;
         case GfxstreamFormat::R16_UNORM:

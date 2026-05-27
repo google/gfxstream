@@ -481,7 +481,7 @@ void main(void) {
     yuv[2] = texture2D(uSamplerV, uvTexCoords).r;
     )";
 
-    static const char kSampleP010[] = R"(
+    static const char kSample10BitYUV[] = R"(
         uint yRaw = texture(uSamplerY, yTexCoords).r;
         uint uRaw = texture(uSamplerU, uvTexCoords).r;
         uint vRaw = texture(uSamplerV, uvTexCoords).g;
@@ -583,8 +583,9 @@ void main(void) {
             }
             break;
         }
-        case GfxstreamFormat::P010: {
-            fragShaderSource += kSampleP010;
+        case GfxstreamFormat::P010:
+        case GfxstreamFormat::P210: {
+            fragShaderSource += kSample10BitYUV;
             break;
         }
         default: {

@@ -31,6 +31,10 @@
 #endif
 #include <hardware/gralloc.h>
 
+#ifndef HAL_PIXEL_FORMAT_YCBCR_P210
+#define HAL_PIXEL_FORMAT_YCBCR_P210 60
+#endif
+
 #include "ClientAPIExts.h"
 #include "EGLImage.h"
 #include "GL2Encoder.h"
@@ -2235,6 +2239,7 @@ EGLImageKHR eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EG
             case HAL_PIXEL_FORMAT_RGBA_1010102:
             case HAL_PIXEL_FORMAT_YCBCR_420_888:
             case HAL_PIXEL_FORMAT_YCBCR_P010:
+            case HAL_PIXEL_FORMAT_YCBCR_P210:
             case HAL_PIXEL_FORMAT_DEPTH_16:
             case HAL_PIXEL_FORMAT_DEPTH_24:
             case HAL_PIXEL_FORMAT_DEPTH_24_STENCIL_8:

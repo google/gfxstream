@@ -187,6 +187,8 @@ bool YcbcrSamplerPool::init(const VulkanDispatch* ivk, const VulkanDispatch* dvk
         GfxstreamFormat::NV21,
         GfxstreamFormat::YV12,
         GfxstreamFormat::YV21,
+        GfxstreamFormat::P010,
+        GfxstreamFormat::P210,
     };
     for (const GfxstreamFormat format : kFormatsToPrepopulateSamplersFor) {
         YCbCrSamplerInfo unused;
