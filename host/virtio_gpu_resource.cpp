@@ -532,6 +532,12 @@ int VirtioGpuResource::ReadFromPipeToLinear(uint64_t offset, stream_renderer_box
         return -EINVAL;
     }
 
+    size_t requiredSize = box->x + box->w;
+    if (mLinear.size() < requiredSize) {
+        GFXSTREAM_ERROR("mLinear is too small! size: %zu, required: %zu", mLinear.size(), requiredSize);
+        return -EINVAL;
+    }
+
     return mHostPipe->TransferFromHost(mLinear.data() + box->x, box->w);
 }
 
@@ -563,6 +569,12 @@ int VirtioGpuResource::ReadFromBufferToLinear(uint64_t offset, stream_renderer_b
 
     if (!mCreateArgs) {
         GFXSTREAM_ERROR("Failed to transfer: resource %d missing args.", mId);
+        return -EINVAL;
+    }
+
+    size_t requiredSize = mCreateArgs->width * mCreateArgs->height;
+    if (mLinear.size() < requiredSize) {
+        GFXSTREAM_ERROR("mLinear is too small! size: %zu, required: %zu", mLinear.size(), requiredSize);
         return -EINVAL;
     }
 
@@ -604,6 +616,13 @@ int VirtioGpuResource::ReadFromColorBufferToLinear(uint64_t offset, stream_rende
         return -EINVAL;
     }
     auto format = *formatOpt;
+
+    size_t requiredSize = GetTransferSize(mCreateArgs->format, mCreateArgs->width, mCreateArgs->height,
+                                          0, 0, mCreateArgs->width, mCreateArgs->height);
+    if (mLinear.size() < requiredSize) {
+        GFXSTREAM_ERROR("mLinear is too small! size: %zu, required: %zu", mLinear.size(), requiredSize);
+        return -EINVAL;
+    }
 
     // We always xfer the whole thing again from GL
     // since it's fiddly to calc / copy-out subregions
