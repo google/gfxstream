@@ -764,6 +764,31 @@ int VirtioGpuResource::TransferWithIov(uint64_t offset, const stream_renderer_bo
 }
 
 int VirtioGpuResource::ExportBlob(struct stream_renderer_handle* outHandle) {
+    // For non-blob COLOR_BUFFER resources (CREATE_3D path), there is no mBlobMemory
+    // set. Attempt to export the ColorBuffer's external memory.
+    if (!mBlobMemory && mResourceType == VirtioGpuResourceType::COLOR_BUFFER) {
+        auto descriptorInfoOpt = FrameBuffer::getFB()->exportColorBuffer(mId);
+        if (!descriptorInfoOpt) {
+            return -EINVAL;
+        }
+#ifdef __ANDROID__
+        auto rawDescriptor = descriptorInfoOpt->descriptorInfo.handle;
+#else
+        auto rawDescriptorOpt = descriptorInfoOpt->descriptorInfo.descriptor.release();
+        if (!rawDescriptorOpt) {
+            return -EINVAL;
+        }
+        auto rawDescriptor = *rawDescriptorOpt;
+#endif
+#ifdef _WIN32
+        outHandle->os_handle = static_cast<int64_t>(reinterpret_cast<intptr_t>(rawDescriptor));
+#else
+        outHandle->os_handle = static_cast<int64_t>(rawDescriptor);
+#endif
+        outHandle->handle_type = descriptorInfoOpt->descriptorInfo.streamHandleType;
+        return 0;
+    }
+
     if (!mBlobMemory) {
         return -EINVAL;
     }
