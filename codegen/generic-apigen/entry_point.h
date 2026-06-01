@@ -57,6 +57,8 @@ class EntryPoint {
     bool flushOnEncode() const { return m_flushOnEncode; }
     void setFlushOnEncode(bool state) { m_flushOnEncode = state; }
     void setCustomHostApi(const std::string& apiname) { m_customHostApi = apiname; }
+    bool serverAddSizeParamForBuffers() const { return m_serverAddSizeParamForBuffers; }
+    void setServerAddSizeParamForBuffers(bool state) { m_serverAddSizeParamForBuffers = state; }
     int validateVarAttr(const std::string& varname, size_t lc) const;
     int setAttribute(const std::string& line, size_t lc);
 
@@ -68,6 +70,7 @@ class EntryPoint {
     bool m_customDecoder;
     bool m_notApi;
     bool m_flushOnEncode;
+    bool m_serverAddSizeParamForBuffers;
     std::string m_customHostApi;
 
     void err(unsigned int lc, const char* msg) { fprintf(stderr, "line %d: %s\n", lc, msg); }

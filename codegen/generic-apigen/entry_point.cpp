@@ -33,6 +33,7 @@ void EntryPoint::reset() {
     m_customDecoder = false;
     m_notApi = false;
     m_flushOnEncode = false;
+    m_serverAddSizeParamForBuffers = false;
     m_vars.clear();
 }
 
@@ -376,6 +377,8 @@ int EntryPoint::setAttribute(const std::string& line, size_t lc) {
             setNotApi(true);
         } else if (flag == "flushOnEncode") {
             setFlushOnEncode(true);
+        } else if (flag == "server_add_size_param_for_buffers") {
+            setServerAddSizeParamForBuffers(true);
         } else {
             fprintf(stderr, "WARNING: %u: unknown flag %s\n", (unsigned int)lc, flag.c_str());
         }

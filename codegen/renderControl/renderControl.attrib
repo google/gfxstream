@@ -37,6 +37,7 @@ rcChooseConfig
 rcReadColorBuffer
     dir pixels out
     len pixels (((glUtilsPixelBitSize(format, type) * width) >> 3) * height)
+    flag server_add_size_param_for_buffers
 
 rcReadColorBufferYUV
     dir pixels out

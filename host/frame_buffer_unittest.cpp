@@ -356,9 +356,9 @@ TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_RGB565) {
         constexpr const uint32_t kBpp = 2;
         std::vector<uint8_t> buffer(kWidth * kHeight * kBpp);
 
-        // NOTE: historical usage did not pass a `buffer.size()`:
         mFb->readColorBufferDeprecated(colorBufferHandle, 0, 0, kWidth, kHeight,
-                                       GL_RGB, GL_UNSIGNED_SHORT_5_6_5, buffer.data());
+                                       GL_RGB, GL_UNSIGNED_SHORT_5_6_5, buffer.data(),
+                                       buffer.size());
         mFb->updateColorBufferDeprecated(colorBufferHandle, 0, 0, kWidth, kHeight,
                                          GL_RGB, GL_UNSIGNED_SHORT_5_6_5, buffer.data());
     }

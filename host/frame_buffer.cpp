@@ -757,16 +757,6 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
                                           int height, uint32_t format, uint32_t type,
                                           uint32_t texturesFormat, uint32_t* textures);
 
-    // Reads back the raw color buffer to |pixels|
-    // if |pixels| is not null.
-    // Always returns in |numBytes| how many bytes were
-    // planned to be transmitted.
-    // |numBytes| is not an input parameter;
-    // fewer or more bytes cannot be specified.
-    // If the framework format is YUV, it will read
-    // back as raw YUV data.
-    bool readColorBufferContents(HandleType p_colorbuffer, size_t* numBytes, void* pixels);
-
     void asyncWaitForGpuWithCb(uint64_t eglsync, FenceCompletionCallback cb);
 
     const gl::EGLDispatch* getEglDispatch();
@@ -4968,19 +4958,6 @@ void FrameBuffer::Impl::swapTexturesAndUpdateColorBuffer(uint32_t p_colorbuffer,
     }
 }
 
-bool FrameBuffer::Impl::readColorBufferContents(HandleType p_colorbuffer, size_t* numBytes,
-                                                void* pixels) {
-    AutoLock mutex(m_lock);
-
-    ColorBufferPtr colorBuffer = findColorBuffer(p_colorbuffer);
-    if (!colorBuffer) {
-        // bad colorbuffer handle
-        return false;
-    }
-
-    return colorBuffer->glOpReadContents(numBytes, pixels);
-}
-
 void FrameBuffer::Impl::asyncWaitForGpuWithCb(uint64_t eglsync, FenceCompletionCallback cb) {
     EmulatedEglFenceSync* fenceSync = EmulatedEglFenceSync::getFromHandle(eglsync);
 
@@ -5656,11 +5633,6 @@ void FrameBuffer::swapTexturesAndUpdateColorBuffer(uint32_t colorBufferHandle, i
                                                    uint32_t* textures) {
     mImpl->swapTexturesAndUpdateColorBuffer(colorBufferHandle, x, y, width, height, format, type,
                                             texturesFormat, textures);
-}
-
-bool FrameBuffer::readColorBufferContents(HandleType p_colorbuffer, size_t* numBytes,
-                                          void* pixels) {
-    return mImpl->readColorBufferContents(p_colorbuffer, numBytes, pixels);
 }
 
 void FrameBuffer::asyncWaitForGpuWithCb(uint64_t eglsync, FenceCompletionCallback cb) {

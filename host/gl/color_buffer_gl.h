@@ -108,12 +108,8 @@ class ColorBufferGl {
     GLuint getHeight() const { return m_height; }
 
     // Read the ColorBufferGl instance's pixel values into host memory.
-    bool readPixels(int x,
-                    int y,
-                    int width,
-                    int height,
-                    GfxstreamFormat pixelsFormat,
-                    void* pixels);
+    bool readPixels(int x, int y, int width, int height, GfxstreamFormat pixelsFormat, void* pixels,
+                    uint32_t pixels_size);
     // Read the ColorBuffer instance's pixel values by first scaling
     // to the size of width x height, then clipping a |rect| from the
     // screen defined by width x height.
@@ -146,7 +142,7 @@ class ColorBufferGl {
 
     // Reads back entire contents, tightly packed rows.
     // If the framework format is YUV, it will read back as raw YUV data.
-    bool readContents(size_t* numBytes, void* pixels);
+    bool readContents(std::vector<uint8_t>* outContents);
 
     // Draw a ColorBufferGl instance, i.e. blit it to the current guest
     // framebuffer object / window surface. This doesn't display anything.

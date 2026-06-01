@@ -613,8 +613,8 @@ int VirtioGpuResource::ReadFromColorBufferToLinear(uint64_t offset, stream_rende
                                                  mLinear.size());
     } else {
         FrameBuffer::getFB()->readColorBuffer(mCreateArgs->handle, 0, 0, mCreateArgs->width,
-                                              mCreateArgs->height, format,
-                                              mLinear.data());
+                                              mCreateArgs->height, format, mLinear.data(),
+                                              mLinear.size());
     }
 
     return 0;

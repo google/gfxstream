@@ -49,7 +49,9 @@ typedef void (renderControl_APIENTRY *rcFBSetSwapInterval_server_proc_t) (EGLint
 typedef void (renderControl_APIENTRY *rcBindTexture_server_proc_t) (uint32_t);
 typedef void (renderControl_APIENTRY *rcBindRenderbuffer_server_proc_t) (uint32_t);
 typedef EGLint (renderControl_APIENTRY *rcColorBufferCacheFlush_server_proc_t) (uint32_t, EGLint, int);
-typedef void (renderControl_APIENTRY *rcReadColorBuffer_server_proc_t) (uint32_t, GLint, GLint, GLint, GLint, GLenum, GLenum, void*);
+typedef void(renderControl_APIENTRY* rcReadColorBuffer_server_proc_t)(uint32_t, GLint, GLint, GLint,
+                                                                      GLint, GLenum, GLenum, void*,
+                                                                      uint32_t);
 typedef int (renderControl_APIENTRY *rcUpdateColorBuffer_server_proc_t) (uint32_t, GLint, GLint, GLint, GLint, GLenum, GLenum, void*);
 typedef int (renderControl_APIENTRY *rcOpenColorBuffer2_server_proc_t) (uint32_t);
 typedef uint32_t (renderControl_APIENTRY *rcCreateClientImage_server_proc_t) (uint32_t, EGLenum, GLuint);

@@ -989,17 +989,15 @@ static EGLint rcColorBufferCacheFlush(uint32_t colorBuffer,
     return 0;
 }
 
-static void rcReadColorBuffer(uint32_t colorBuffer,
-                              GLint x, GLint y,
-                              GLint width, GLint height,
-                              GLenum format, GLenum type, void* pixels)
-{
+static void rcReadColorBuffer(uint32_t colorBuffer, GLint x, GLint y, GLint width, GLint height,
+                              GLenum format, GLenum type, void* pixels, uint32_t pixels_size) {
     FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         return;
     }
 
-    fb->readColorBufferDeprecated(colorBuffer, x, y, width, height, format, type, pixels);
+    fb->readColorBufferDeprecated(colorBuffer, x, y, width, height, format, type, pixels,
+                                  pixels_size);
 }
 
 static int rcUpdateColorBuffer(uint32_t colorBuffer,

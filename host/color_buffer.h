@@ -115,7 +115,6 @@ class ColorBuffer : public LazySnapshotObj<ColorBuffer> {
     bool glOpImportEglNativePixmap(void* pixmap, bool preserveContent);
     bool glOpSwapYuvTexturesAndUpdate(GLenum format, GLenum type, GfxstreamFormat texturesFormat,
                                       GLuint* textures);
-    bool glOpReadContents(size_t* outNumBytes, void* outContents);
     bool glOpIsFastBlitSupported() const;
     bool glOpPostLayer(const ComposeLayer& l, int frameWidth, int frameHeight,
         const std::optional<std::array<float, 16>>& colorTransform);

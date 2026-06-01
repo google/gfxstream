@@ -123,6 +123,10 @@ int ApiGen::genProcTypes(const std::string& filename, SideType side) {
                 if (j != 0 || side == CLIENT_SIDE || (side == SERVER_SIDE && e->customDecoder()))
                     fprintf(fp, ", ");
                 evars[j].printType(fp);
+                if (e->serverAddSizeParamForBuffers() && side == SERVER_SIDE &&
+                    evars[j].isPointer()) {
+                    fprintf(fp, ", uint32_t");
+                }
             }
         }
         fprintf(fp, ");\n");
@@ -140,6 +144,9 @@ int ApiGen::genProcTypes(const std::string& filename, SideType side) {
                 if (!evars[j].isVoid()) {
                     if (j != 0) fprintf(fp, ", ");
                     evars[j].printType(fp);
+                    if (e->serverAddSizeParamForBuffers() && evars[j].isPointer()) {
+                        fprintf(fp, ", uint32_t");
+                    }
                 }
             }
             fprintf(fp, ");\n");
@@ -1248,6 +1255,9 @@ int ApiGen::genDecoderImpl(const std::string& filename) {
                                     fprintf(fp, "(%s)(inptr_%s.get())", var_type_name, var_name);
                                 }
                             }
+                            if (e->serverAddSizeParamForBuffers()) {
+                                fprintf(fp, ", size_%s", var_name);
+                            }
                         } else if (pass == PASS_DebugPrint && v->pointerDir() == Var::POINTER_IN) {
                             fprintf(fp, "(%s)(inptr_%s.get()), size_%s", var_type_name, var_name,
                                     var_name);
@@ -1262,6 +1272,9 @@ int ApiGen::genDecoderImpl(const std::string& filename) {
                                         var_type_name, var_name);
                             } else {
                                 fprintf(fp, "(%s)(inptr_%s)", var_type_name, var_name);
+                            }
+                            if (e->serverAddSizeParamForBuffers()) {
+                                fprintf(fp, ", size_%s", var_name);
                             }
                         } else if (pass == PASS_DebugPrint && v->pointerDir() == Var::POINTER_IN) {
                             fprintf(fp, "(%s)(inptr_%s), size_%s", var_type_name, var_name,
@@ -1310,6 +1323,9 @@ int ApiGen::genDecoderImpl(const std::string& filename) {
                                     fprintf(fp, "(%s)(outptr_%s.get())", var_type_name, var_name);
                                 }
                             }
+                            if (e->serverAddSizeParamForBuffers()) {
+                                fprintf(fp, ", size_%s", var_name);
+                            }
                         } else if (pass == PASS_DebugPrint) {
                             fprintf(fp, "(%s)(outptr_%s.get()), size_%s", var_type_name, var_name,
                                     var_name);
@@ -1334,6 +1350,9 @@ int ApiGen::genDecoderImpl(const std::string& filename) {
                                         var_type_name, var_name);
                             } else {
                                 fprintf(fp, "(%s)(outptr_%s)", var_type_name, var_name);
+                            }
+                            if (e->serverAddSizeParamForBuffers()) {
+                                fprintf(fp, ", size_%s", var_name);
                             }
                         } else if (pass == PASS_DebugPrint) {
                             fprintf(fp, "(%s)(outptr_%s), size_%s", var_type_name, var_name,

@@ -212,11 +212,10 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
     // with the pixel data.
     // |outPixelsSize| is the size of buffer
     void readColorBuffer(HandleType p_colorbuffer, int x, int y, int width, int height,
-                         GfxstreamFormat pixelsFormat, void* pixels,
-                         uint64_t outPixelsSize = std::numeric_limits<uint64_t>::max());
-    void readColorBufferDeprecated(HandleType p_colorbuffer, int x, int y, int width,
-                                   int height, GLenum format, GLenum type,
-                                   void* pixels, uint64_t outPixelsSize = std::numeric_limits<uint64_t>::max());
+                         GfxstreamFormat pixelsFormat, void* pixels, uint64_t outPixelsSize);
+    void readColorBufferDeprecated(HandleType p_colorbuffer, int x, int y, int width, int height,
+                                   GLenum format, GLenum type, void* pixels,
+                                   uint64_t outPixelsSize);
 
     // Read the content of a given YUV420_888 ColorBuffer into client memory.
     // |p_colorbuffer| is the ColorBuffer's handle value. Similar
@@ -581,16 +580,6 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
     void swapTexturesAndUpdateColorBuffer(uint32_t colorbufferhandle, int x, int y, int width,
                                           int height, uint32_t format, uint32_t type,
                                           uint32_t texturesFormat, uint32_t* textures);
-
-    // Reads back the raw color buffer to |pixels|
-    // if |pixels| is not null.
-    // Always returns in |numBytes| how many bytes were
-    // planned to be transmitted.
-    // |numBytes| is not an input parameter;
-    // fewer or more bytes cannot be specified.
-    // If the framework format is YUV, it will read
-    // back as raw YUV data.
-    bool readColorBufferContents(HandleType p_colorbuffer, size_t* numBytes, void* pixels);
 
     void asyncWaitForGpuWithCb(uint64_t eglsync, FenceCompletionCallback cb);
 

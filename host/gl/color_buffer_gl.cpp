@@ -526,7 +526,7 @@ bool ColorBufferGl::isReadbackToFormatSupported(GfxstreamFormat outputFormat) {
 }
 
 bool ColorBufferGl::readPixels(int x, int y, int width, int height, GfxstreamFormat pixelFormat,
-                               void* pixels) {
+                               void* pixels, uint32_t pixelsSize) {
     RecursiveScopedContextBind context(m_helper);
     if (!context.isOk()) {
         return false;
@@ -535,21 +535,19 @@ bool ColorBufferGl::readPixels(int x, int y, int width, int height, GfxstreamFor
     GL_SCOPED_DEBUG_GROUP("ColorBufferGl::readPixels(handle:%d fbo:%d tex:%d)", mHndl, m_fbo,
                           m_tex);
 
-    auto pixelDataComponentsOpt = GetPixelComponents(pixelFormat);
-    if (!pixelDataComponentsOpt) {
+    auto formatParamsOpt = GetFormatOpenglParameters(pixelFormat);
+    if (!formatParamsOpt) {
         const std::string formatString = ToString(pixelFormat);
-        GFXSTREAM_ERROR("Unsupported format %s", formatString.c_str());
+        GFXSTREAM_ERROR("Format %s unsupported.", formatString.c_str());
         return false;
     }
-    const GLenum pixelDataComponents = *pixelDataComponentsOpt;
+    const FormatOpenglParams& formatParams = *formatParamsOpt;
 
-    auto pixelDataTypeOpt = GetPixelDataType(pixelFormat);
-    if (!pixelDataTypeOpt) {
-        const std::string formatString = ToString(pixelFormat);
-        GFXSTREAM_ERROR("Unsupported format %s", formatString.c_str());
+    uint32_t sizeNeeded = width * height * formatParams.bpp;
+    if (pixelsSize < sizeNeeded) {
+        GFXSTREAM_ERROR("Insufficiently sized buffer for glReadPixels().");
         return false;
     }
-    const GLenum pixelDataType = *pixelDataTypeOpt;
 
     waitSync();
 
@@ -564,7 +562,8 @@ bool ColorBufferGl::readPixels(int x, int y, int width, int height, GfxstreamFor
     s_gles2.glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
     if (isReadbackToFormatSupported(pixelFormat)) {
-        s_gles2.glReadPixels(x, y, width, height, pixelDataComponents, pixelDataType, pixels);
+        s_gles2.glReadPixels(x, y, width, height, formatParams.pixelDataComponents,
+                             formatParams.pixelDataType, pixels);
     } else {
         // Software readback. All GL drivers support RGBA readback. We try our best here to
         // support conversions from RGBA to some commonly requested formats.
@@ -577,7 +576,7 @@ bool ColorBufferGl::readPixels(int x, int y, int width, int height, GfxstreamFor
             GFXSTREAM_ERROR(
                 "UNIMPLEMENTED: GLES driver doesn't support readback for "
                 "(components=0x%x type=0x%x) and no software conversion implemented.",
-                pixelDataComponents, pixelDataType);
+                formatParams.pixelDataComponents, formatParams.pixelDataType);
             res = false;
         }
     }
@@ -832,20 +831,16 @@ bool ColorBufferGl::replaceContents(const void* newContents, size_t numBytes) {
     return subUpdate(0, 0, m_width, m_height, m_format, newContents);
 }
 
-bool ColorBufferGl::readContents(size_t* numBytes, void* pixels) {
+bool ColorBufferGl::readContents(std::vector<uint8_t>* outContents) {
     if (m_yuv_converter) {
         // common code path for vk & gles
-        *numBytes = m_yuv_converter->getDataSize();
-        if (!pixels) {
-            return true;
-        }
-        return readPixelsYUVCached(0, 0, 0, 0, pixels, *numBytes);
+        size_t needed = m_yuv_converter->getDataSize();
+        outContents->resize(needed);
+        return readPixelsYUVCached(0, 0, 0, 0, outContents->data(), outContents->size());
     } else {
-        *numBytes = m_numBytes;
-        if (!pixels) {
-            return true;
-        }
-        return readPixels(0, 0, m_width, m_height, m_format, pixels);
+        outContents->resize(m_numBytes);
+        return readPixels(0, 0, m_width, m_height, m_format, outContents->data(),
+                          outContents->size());
     }
 }
 
@@ -1260,11 +1255,7 @@ bool ColorBufferGl::importMemory(ManagedDescriptor externalDescriptor, uint64_t 
     GLuint glTiling = linearTiling ? GL_LINEAR_TILING_EXT : GL_OPTIMAL_TILING_EXT;
 
     std::vector<uint8_t> prevContents;
-
-    size_t bytes;
-    readContents(&bytes, nullptr);
-    prevContents.resize(bytes, 0);
-    readContents(&bytes, prevContents.data());
+    readContents(&prevContents);
 
     s_gles2.glDeleteTextures(1, &m_tex);
     s_gles2.glDeleteFramebuffers(1, &m_fbo);
@@ -1346,10 +1337,7 @@ bool ColorBufferGl::importEglNativePixmap(void* pixmap, bool preserveContent) {
 
     std::vector<uint8_t> contents;
     if (preserveContent) {
-        size_t bytes;
-        readContents(&bytes, nullptr);
-        contents.resize(bytes);
-        readContents(&bytes, contents.data());
+        readContents(&contents);
     }
 
     s_gles2.glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, (GLeglImageOES)NULL);

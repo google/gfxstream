@@ -16,6 +16,7 @@
 #include <assert.h>
 
 #include <algorithm>
+#include <limits>
 #include <utility>
 #include <variant>
 
@@ -609,8 +610,9 @@ static struct AndroidVirtioGpuOps sVirtioGpuOps = {
     .read_color_buffer =
         [](uint32_t handle, int x, int y, int width, int height, uint32_t format, uint32_t type,
            void* pixels) {
-            FrameBuffer::getFB()->readColorBufferDeprecated(handle, x, y, width, height, format, type,
-                                                            pixels);
+            FrameBuffer::getFB()->readColorBufferDeprecated(handle, x, y, width, height, format,
+                                                            type, pixels,
+                                                            std::numeric_limits<uint64_t>::max());
         },
     .read_color_buffer2 =
         [](uint32_t handle, int x, int y, int width, int height, uint32_t format, uint32_t type,

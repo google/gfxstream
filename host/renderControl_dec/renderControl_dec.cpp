@@ -525,8 +525,10 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
 			OutputBuffer outptr_pixels(&tmpBuf[0], size_pixels);
 			DECODER_DEBUG_LOG("renderControl(%p): rcReadColorBuffer(colorbuffer:0x%08x x:0x%08x y:0x%08x width:0x%08x height:0x%08x format:0x%08x type:0x%08x pixels:%p(%u) )", stream, var_colorbuffer, var_x, var_y, var_width, var_height, var_format, var_type, (void*)(outptr_pixels.get()), size_pixels);
-			this->rcReadColorBuffer(var_colorbuffer, var_x, var_y, var_width, var_height, var_format, var_type, (void*)(outptr_pixels.get()));
-			outptr_pixels.flush();
+                        this->rcReadColorBuffer(var_colorbuffer, var_x, var_y, var_width,
+                                                var_height, var_format, var_type,
+                                                (void*)(outptr_pixels.get()), size_pixels);
+                        outptr_pixels.flush();
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}

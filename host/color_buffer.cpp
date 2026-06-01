@@ -97,7 +97,6 @@ class ColorBuffer::Impl : public LazySnapshotObj<ColorBuffer::Impl> {
     bool glOpImportEglNativePixmap(void* pixmap, bool preserveContent);
     bool glOpSwapYuvTexturesAndUpdate(GLenum format, GLenum type, GfxstreamFormat texturesFormat,
                                       GLuint* textures);
-    bool glOpReadContents(size_t* outNumBytes, void* outContents);
     bool glOpIsFastBlitSupported() const;
     bool glOpPostLayer(const ComposeLayer& l, int frameWidth, int frameHeight,
                        const std::optional<std::array<float, 16>>& colorTransform);
@@ -258,7 +257,7 @@ void ColorBuffer::Impl::readToBytes(
 
 #if GFXSTREAM_ENABLE_HOST_GLES
     if (mColorBufferGl) {
-        mColorBufferGl->readPixels(x, y, width, height, pixelsFormat, outPixels);
+        mColorBufferGl->readPixels(x, y, width, height, pixelsFormat, outPixels, outPixelsSize);
         return;
     }
 #endif
@@ -484,16 +483,9 @@ bool ColorBuffer::Impl::invalidateForVk() {
     }
 
 #if GFXSTREAM_ENABLE_HOST_GLES
-    std::size_t contentsSize = 0;
-    if (!mColorBufferGl->readContents(&contentsSize, nullptr)) {
+    std::vector<uint8_t> contents;
+    if (!mColorBufferGl->readContents(&contents)) {
         GFXSTREAM_ERROR("Failed to get GL contents size for ColorBuffer:%d", mHandle);
-        return false;
-    }
-
-    std::vector<uint8_t> contents(contentsSize, 0);
-
-    if (!mColorBufferGl->readContents(&contentsSize, contents.data())) {
-        GFXSTREAM_ERROR("Failed to get GL contents for ColorBuffer:%d", mHandle);
         return false;
     }
 
@@ -608,15 +600,6 @@ bool ColorBuffer::Impl::glOpSwapYuvTexturesAndUpdate(GLenum format, GLenum type,
 
     flushFromGl();
     return true;
-}
-
-bool ColorBuffer::Impl::glOpReadContents(size_t* outNumBytes, void* outContents) {
-    if (!mColorBufferGl) {
-        GFXSTREAM_ERROR("%s: ColorBufferGl not available", __func__);
-        return false;
-    }
-
-    return mColorBufferGl->readContents(outNumBytes, outContents);
 }
 
 bool ColorBuffer::Impl::glOpIsFastBlitSupported() const {
@@ -775,10 +758,6 @@ bool ColorBuffer::glOpImportEglNativePixmap(void* pixmap, bool preserveContent) 
 bool ColorBuffer::glOpSwapYuvTexturesAndUpdate(GLenum format, GLenum type,
                                                GfxstreamFormat texturesFormat, GLuint* textures) {
     return mImpl->glOpSwapYuvTexturesAndUpdate(format, type, texturesFormat, textures);
-}
-
-bool ColorBuffer::glOpReadContents(size_t* outNumBytes, void* outContents) {
-    return mImpl->glOpReadContents(outNumBytes, outContents);
 }
 
 bool ColorBuffer::glOpIsFastBlitSupported() const { return mImpl->glOpIsFastBlitSupported(); }
