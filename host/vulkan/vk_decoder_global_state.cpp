@@ -9277,12 +9277,29 @@ class VkDecoderGlobalState::Impl {
     void on_vkCollectDescriptorPoolIdsGOOGLE(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
                                              VkDevice device, VkDescriptorPool descriptorPool,
                                              uint32_t* pPoolIdCount, uint64_t* pPoolIds) {
-        std::lock_guard<std::mutex> lock(mMutex);
-        auto& info = mDescriptorPoolInfo[descriptorPool];
-        *pPoolIdCount = (uint32_t)info.poolIds.size();
 
-        if (pPoolIds) {
-            for (uint32_t i = 0; i < info.poolIds.size(); ++i) {
+
+        std::lock_guard<std::mutex> lock(mMutex);
+
+        auto it = mDescriptorPoolInfo.find(descriptorPool);
+        if (it == mDescriptorPoolInfo.end()) {
+            GFXSTREAM_ERROR("Failed to find VkDescriptorPool:%p", descriptorPool);
+            if (pPoolIdCount) {
+                *pPoolIdCount = 0;
+            }
+            return;
+        }
+        DescriptorPoolInfo& info = it->second;
+
+        const uint32_t requestedCount = pPoolIdCount ? *pPoolIdCount : 0;
+        const uint32_t availableCount = static_cast<uint32_t>(info.poolIds.size());
+
+        if (pPoolIdCount) {
+            *pPoolIdCount = availableCount;
+        }
+
+        if (pPoolIdCount && pPoolIds) {
+            for (uint32_t i = 0; i < std::min(requestedCount, availableCount); ++i) {
                 pPoolIds[i] = info.poolIds[i];
             }
         }
