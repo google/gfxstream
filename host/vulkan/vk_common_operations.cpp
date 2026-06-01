@@ -3275,6 +3275,14 @@ bool VkEmulation::readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint3
     VkDeviceSize bufferCopySize = transferInfo.stagingBufferCopySize;
     const std::vector<VkBufferImageCopy>& bufferImageCopies = transferInfo.bufferImageCopies;
 
+    const VkDeviceSize stagingBufferSize = mStaging.mAllocationSize;
+    if (bufferCopySize > stagingBufferSize) {
+        GFXSTREAM_ERROR("Failed to read ColorBuffer:%d, transfer size %" PRIu64
+                        " too large for staging buffer size:%" PRIu64 ".",
+                        colorBufferHandle, bufferCopySize, stagingBufferSize);
+        return false;
+    }
+
     // Avoid transitioning from VK_IMAGE_LAYOUT_UNDEFINED. Unfortunetly, Android does not
     // yet have a mechanism for sharing the expected VkImageLayout. However, the Vulkan
     // spec's image layout transition sections says "If the old layout is
