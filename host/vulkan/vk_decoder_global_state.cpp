@@ -4610,6 +4610,37 @@ class VkDecoderGlobalState::Impl {
                                       descriptorCopyCount, pDescriptorCopies);
     }
 
+    static DescriptorSetInfo::DescriptorWrite* GetDescriptorSetElementEntryWrapping(
+        std::vector<std::vector<DescriptorSetInfo::DescriptorWrite>>& descriptorSetTable,
+        uint32_t& bindingIndex, uint32_t& arrayElementIndex) {
+        if (bindingIndex >= descriptorSetTable.size()) {
+            return nullptr;
+        }
+
+        std::vector<DescriptorSetInfo::DescriptorWrite>& bindingTable =
+            descriptorSetTable[bindingIndex];
+        if (arrayElementIndex < bindingTable.size()) {
+            return &bindingTable[arrayElementIndex];
+        }
+
+        // Descriptor writes wrap to the next binding. See
+        // https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkWriteDescriptorSet.html
+        ++bindingIndex;
+        arrayElementIndex = 0;
+
+        if (bindingIndex >= descriptorSetTable.size()) {
+            return nullptr;
+        }
+
+        std::vector<DescriptorSetInfo::DescriptorWrite>& nextBindingTable =
+            descriptorSetTable[bindingIndex];
+        if (arrayElementIndex < nextBindingTable.size()) {
+            return &nextBindingTable[arrayElementIndex];
+        }
+
+        return nullptr;
+    }
+
     void on_vkUpdateDescriptorSetsImpl(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
                                        VulkanDispatch* vk, VkDevice device,
                                        uint32_t descriptorWriteCount,
@@ -4629,73 +4660,63 @@ class VkDecoderGlobalState::Impl {
             uint32_t dstArrayElement = descriptorWrite.dstArrayElement;
             uint32_t descriptorCount = descriptorWrite.descriptorCount;
 
-            uint32_t arrOffset = dstArrayElement;
-
             if (isDescriptorTypeImageInfo(descType)) {
                 for (uint32_t writeElemIdx = 0; writeElemIdx < descriptorCount;
-                     ++writeElemIdx, ++arrOffset) {
-                    // Descriptor writes wrap to the next binding. See
-                    // https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkWriteDescriptorSet.html
-                    if (arrOffset >= table[dstBinding].size()) {
-                        ++dstBinding;
-                        arrOffset = 0;
-                    }
-                    auto& entry = table[dstBinding][arrOffset];
-                    entry.imageInfo = descriptorWrite.pImageInfo[writeElemIdx];
-                    entry.writeType = DescriptorSetInfo::DescriptorWriteType::ImageInfo;
-                    entry.descriptorType = descType;
-                    entry.alives.clear();
-                    entry.boundColorBuffer.reset();
+                     ++writeElemIdx, ++dstArrayElement) {
+                    auto* entry =
+                        GetDescriptorSetElementEntryWrapping(table, dstBinding, dstArrayElement);
+                    if (entry == nullptr) break;
+                    entry->imageInfo = descriptorWrite.pImageInfo[writeElemIdx];
+                    entry->writeType = DescriptorSetInfo::DescriptorWriteType::ImageInfo;
+                    entry->descriptorType = descType;
+                    entry->alives.clear();
+                    entry->boundColorBuffer.reset();
                     if (descriptorTypeContainsImage(descType)) {
                         auto* imageViewInfo =
-                            gfxstream::base::find(mImageViewInfo, entry.imageInfo.imageView);
+                            gfxstream::base::find(mImageViewInfo, entry->imageInfo.imageView);
                         if (imageViewInfo) {
-                            entry.alives.push_back(imageViewInfo->alive);
-                            entry.boundColorBuffer = imageViewInfo->boundColorBuffer;
+                            entry->alives.push_back(imageViewInfo->alive);
+                            entry->boundColorBuffer = imageViewInfo->boundColorBuffer;
                         }
                     }
                     if (descriptorTypeContainsSampler(descType)) {
                         auto* samplerInfo =
-                            gfxstream::base::find(mSamplerInfo, entry.imageInfo.sampler);
+                            gfxstream::base::find(mSamplerInfo, entry->imageInfo.sampler);
                         if (samplerInfo) {
-                            entry.alives.push_back(samplerInfo->alive);
+                            entry->alives.push_back(samplerInfo->alive);
                         }
                     }
                 }
             } else if (isDescriptorTypeBufferInfo(descType)) {
                 for (uint32_t writeElemIdx = 0; writeElemIdx < descriptorCount;
-                     ++writeElemIdx, ++arrOffset) {
-                    if (arrOffset >= table[dstBinding].size()) {
-                        ++dstBinding;
-                        arrOffset = 0;
-                    }
-                    auto& entry = table[dstBinding][arrOffset];
-                    entry.bufferInfo = descriptorWrite.pBufferInfo[writeElemIdx];
-                    entry.writeType = DescriptorSetInfo::DescriptorWriteType::BufferInfo;
-                    entry.descriptorType = descType;
-                    entry.alives.clear();
-                    auto* bufferInfo = gfxstream::base::find(mBufferInfo, entry.bufferInfo.buffer);
+                     ++writeElemIdx, ++dstArrayElement) {
+                    auto* entry =
+                        GetDescriptorSetElementEntryWrapping(table, dstBinding, dstArrayElement);
+                    if (entry == nullptr) break;
+                    entry->bufferInfo = descriptorWrite.pBufferInfo[writeElemIdx];
+                    entry->writeType = DescriptorSetInfo::DescriptorWriteType::BufferInfo;
+                    entry->descriptorType = descType;
+                    entry->alives.clear();
+                    auto* bufferInfo = gfxstream::base::find(mBufferInfo, entry->bufferInfo.buffer);
                     if (bufferInfo) {
-                        entry.alives.push_back(bufferInfo->alive);
+                        entry->alives.push_back(bufferInfo->alive);
                     }
                 }
             } else if (isDescriptorTypeBufferView(descType)) {
                 for (uint32_t writeElemIdx = 0; writeElemIdx < descriptorCount;
-                     ++writeElemIdx, ++arrOffset) {
-                    if (arrOffset >= table[dstBinding].size()) {
-                        ++dstBinding;
-                        arrOffset = 0;
-                    }
-                    auto& entry = table[dstBinding][arrOffset];
-                    entry.bufferView = descriptorWrite.pTexelBufferView[writeElemIdx];
-                    entry.writeType = DescriptorSetInfo::DescriptorWriteType::BufferView;
-                    entry.descriptorType = descType;
-                    entry.alives.clear();
+                     ++writeElemIdx, ++dstArrayElement) {
+                    auto* entry =
+                        GetDescriptorSetElementEntryWrapping(table, dstBinding, dstArrayElement);
+                    if (entry == nullptr) break;
+                    entry->bufferView = descriptorWrite.pTexelBufferView[writeElemIdx];
+                    entry->writeType = DescriptorSetInfo::DescriptorWriteType::BufferView;
+                    entry->descriptorType = descType;
+                    entry->alives.clear();
                     if (snapshotsEnabled()) {
                         auto* bufferViewInfo =
-                            gfxstream::base::find(mBufferViewInfo, entry.bufferView);
+                            gfxstream::base::find(mBufferViewInfo, entry->bufferView);
                         if (bufferViewInfo) {
-                            entry.alives.push_back(bufferViewInfo->alive);
+                            entry->alives.push_back(bufferViewInfo->alive);
                         }
                     }
                 }
@@ -4714,15 +4735,20 @@ class VkDecoderGlobalState::Impl {
                     GFXSTREAM_FATAL("Did not find inline uniform block");
                     return;
                 }
-                auto& entry = table[dstBinding][0];
-                entry.inlineUniformBlock = *descInlineUniformBlock;
-                entry.inlineUniformBlockBuffer.assign(
+
+                // Inline uniform block descriptors effectively only have a single element.
+                uint32_t zero = 0;
+                auto* entry = GetDescriptorSetElementEntryWrapping(table, dstBinding, zero);
+                if (entry == nullptr) break;
+
+                entry->inlineUniformBlock = *descInlineUniformBlock;
+                entry->inlineUniformBlockBuffer.assign(
                     static_cast<const uint8_t*>(descInlineUniformBlock->pData),
                     static_cast<const uint8_t*>(descInlineUniformBlock->pData) +
                         descInlineUniformBlock->dataSize);
-                entry.writeType = DescriptorSetInfo::DescriptorWriteType::InlineUniformBlock;
-                entry.descriptorType = descType;
-                entry.dstArrayElement = dstArrayElement;
+                entry->writeType = DescriptorSetInfo::DescriptorWriteType::InlineUniformBlock;
+                entry->descriptorType = descType;
+                entry->dstArrayElement = dstArrayElement;
             } else if (isDescriptorTypeAccelerationStructure(descType)) {
                 // TODO
                 // Look for pNext inline uniform block or acceleration structure.
