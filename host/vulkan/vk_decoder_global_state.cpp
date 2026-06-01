@@ -9220,7 +9220,13 @@ class VkDecoderGlobalState::Impl {
 
         for (uint32_t i = 0; i < descriptorSetCount; ++i) {
             uint64_t poolId = pDescriptorSetPoolIds[i];
+
             uint32_t whichPool = pDescriptorSetWhichPool[i];
+            if (whichPool >= descriptorPoolCount) {
+                GFXSTREAM_ERROR("Invalid descriptor pool index: %" PRIu32, whichPool);
+                return;
+            }
+
             uint32_t pendingAlloc = pDescriptorSetPendingAllocation[i];
             bool didAllocThisTime = false;
             setsToUpdate[i] = getOrAllocateDescriptorSetFromPoolAndIdLocked(
@@ -9238,12 +9244,22 @@ class VkDecoderGlobalState::Impl {
 
             for (uint32_t i = 0; i < descriptorSetCount; ++i) {
                 uint32_t writeStartIndex = pDescriptorWriteStartingIndices[i];
+                if (writeStartIndex > pendingDescriptorWriteCount) {
+                    GFXSTREAM_ERROR("Invalid descriptor write index %" PRIu32, writeStartIndex);
+                    return;
+                }
+
                 uint32_t writeEndIndex;
                 if (i == descriptorSetCount - 1) {
                     writeEndIndex = pendingDescriptorWriteCount;
                 } else {
                     writeEndIndex = pDescriptorWriteStartingIndices[i + 1];
                 }
+                if (writeEndIndex > pendingDescriptorWriteCount) {
+                    GFXSTREAM_ERROR("Invalid descriptor write index %" PRIu32, writeEndIndex);
+                    return;
+                }
+
                 for (uint32_t j = writeStartIndex; j < writeEndIndex; ++j) {
                     writeDescriptorSetsForHostDriver[j].dstSet = setsToUpdate[i];
                 }
