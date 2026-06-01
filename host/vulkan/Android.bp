@@ -215,6 +215,7 @@ cc_test_host {
     static_libs: [
         "libgfxstream_common_base",
         "libgfxstream_common_logging",
+        "libgfxstream_common_utils",
         "libgfxstream_host_features",
         "libgfxstream_host_vulkan_server",
         "libgmock",
@@ -270,6 +271,8 @@ cc_test_host {
     ],
     static_libs: [
         "libgfxstream_common_base",
+        "libgfxstream_common_logging",
+        "libgfxstream_common_utils",
         "libgfxstream_host_common",
         "libgfxstream_host_features",
         "libgfxstream_host_vulkan_server",
