@@ -1,0 +1,129 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+
+package(
+    default_visibility = [
+        "@//:gfxstream",
+        "@mesa//:__subpackages__",
+    ],
+)
+
+cc_library(
+    name = "spirv",
+    hdrs = glob([
+        "SPIRV/**/*.h",
+        "SPIRV/**/*.hpp",
+        "SPIRV/**/*.inc",
+    ], allow_empty = True),
+    srcs = glob([
+        "SPIRV/*.c",
+        "SPIRV/*.cc",
+        "SPIRV/*.cpp",
+        "SPIRV/*.h",
+    ], allow_empty = True),
+    deps = [
+        ":glslang_headers",
+    ],
+    strip_include_prefix = "SPIRV",
+    includes = [
+        "SPIRV",
+    ],
+)
+
+genrule(
+    name = "build_info",
+    srcs = [
+        "build_info.h.tmpl",
+    ],
+    outs = [
+        "glslang/build_info.h"
+    ],
+    cmd = "sed " +
+          "-e \"s/@major@/0/g\" " +
+          "-e \"s/@minor@/0/g\" " +
+          "-e \"s/@patch@/0/g\" " +
+          "-e \"s/@flavor@/test/g\" " +
+          "$< > $@",
+)
+
+genrule(
+    name = "gen_glsl_intrinsic_header",
+    srcs = glob(["glslang/ExtensionHeaders/*.glsl"], allow_empty = True) + [
+        "gen_extension_headers.py",
+    ],
+    outs = ["glslang/glsl_intrinsic_header.h"],
+    cmd = "python3 $(location gen_extension_headers.py) -i $$(dirname $$(echo $(SRCS) | cut -d' ' -f1)) -o $(location glslang/glsl_intrinsic_header.h)",
+)
+
+cc_library(
+    name = "glslang",
+    hdrs = glob([
+        "glslang/**/*.h",
+        "glslang/**/*.hpp",
+        "glslang/**/*.inc",
+    ], allow_empty = True),
+    srcs = glob([
+        "glslang/**/*.c",
+        "glslang/**/*.cc",
+        "glslang/**/*.cpp",
+        "glslang/**/*.h",
+    ], exclude=[
+        "glslang/CInterface/**/*",
+        "glslang/OSDependent/*/**/*",
+    ], allow_empty = True) + select({
+        "@platforms//os:linux": glob([
+            "glslang/OSDependent/Unix/**/*.c",
+            "glslang/OSDependent/Unix/**/*.cc",
+            "glslang/OSDependent/Unix/**/*.cpp",
+            "glslang/OSDependent/Unix/**/*.h",
+        ], allow_empty = True),
+        "@platforms//os:windows": glob([
+            "glslang/OSDependent/Windows/**/*.c",
+            "glslang/OSDependent/Windows/**/*.cc",
+            "glslang/OSDependent/Windows/**/*.cpp",
+            "glslang/OSDependent/Windows/**/*.h",
+        ], allow_empty = True),
+    }) + [
+        ":build_info",
+        ":gen_glsl_intrinsic_header",
+    ],
+    includes = [
+        ".",
+    ],
+    copts = [
+        '-DENABLE_HLSL',
+        '-DENABLE_OPT=0',
+    ],
+)
+
+cc_library(
+    name = "glslang_headers",
+    hdrs = glob([
+        "glslang/Include/**/*.h",
+        "glslang/Include/**/*.hpp",
+        "glslang/Include/**/*.inc",
+    ], allow_empty = True),
+    deps = [
+        "glslang",
+    ],
+    strip_include_prefix = "glslang/Include",
+    includes = [
+        "glslang/Include",
+    ],
+)
+
+cc_binary(
+    name = "glslangValidator",
+    srcs = glob([
+        "StandAlone/*.cpp",
+        "StandAlone/*.h",
+    ], exclude = [
+        "StandAlone/spirv-remap.cpp",
+    ], allow_empty = True),
+    copts = [
+        "-DENABLE_OPT=0",
+    ],
+    deps = [
+        ":glslang",
+        ":spirv",
+    ],
+)

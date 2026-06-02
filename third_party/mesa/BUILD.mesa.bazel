@@ -1,22 +1,28 @@
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_shared_library")
 load("@rules_python//python:defs.bzl", "py_binary")
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_static_library")
 
 package(
-    default_visibility = ["@//:gfxstream"],
+    default_visibility = [
+        "@//:gfxstream",
+        "@rutabaga//:__subpackages__",
+    ],
 )
 
 MESA_DEFAULT_COPTS = [
-    "-Wno-error",
     "-D__STDC_CONSTANT_MACROS",
     "-D__STDC_LIMIT_MACROS",
     "-D_GNU_SOURCE",
-    "-DEND2END_TESTS",
     "-DANDROID",
-    "-DVK_USE_PLATFORM_ANDROID_KHR",
-    "-DGFXSTREAM_ENABLE_GUEST_GOLDFISH",
-    "-DHAVE_SECURE_GETENV",
+    "-DBLAKE3_NO_AVX2",
+    "-DBLAKE3_NO_AVX512",
+    "-DBLAKE3_NO_SSE2",
+    "-DBLAKE3_NO_SSE41",
+    "-DCLOCK_MONOTONIC=1",
     "-DDRAW_LLVM_AVAILABLE=1",
     "-DENABLE_SHADER_CACHE",
+    "-DEND2END_TESTS",
+    "-DGFXSTREAM_ENABLE_GUEST_GOLDFISH",
     "-DHAVE___BUILTIN_CLZ",
     "-DHAVE___BUILTIN_CLZLL",
     "-DHAVE___BUILTIN_CTZ",
@@ -26,8 +32,8 @@ MESA_DEFAULT_COPTS = [
     "-DHAVE___BUILTIN_POPCOUNT",
     "-DHAVE___BUILTIN_POPCOUNTLL",
     "-DHAVE___BUILTIN_UNREACHABLE",
+    "-DHAVE_COMPRESSION",
     "-DHAVE_ENDIAN_H",
-    "-DHAVE_LIBDRM",
     "-DHAVE_FUNC_ATTRIBUTE_ALIAS",
     "-DHAVE_FUNC_ATTRIBUTE_FLATTEN",
     "-DHAVE_FUNC_ATTRIBUTE_FORMAT",
@@ -36,22 +42,40 @@ MESA_DEFAULT_COPTS = [
     "-DHAVE_FUNC_ATTRIBUTE_RETURNS_NONNULL",
     "-DHAVE_FUNC_ATTRIBUTE_UNUSED",
     "-DHAVE_FUNC_ATTRIBUTE_WARN_UNUSED_RESULT",
-    "-DHAVE_REALLOCARRAY",
+    "-DHAVE_LIBDRM",
     "-DHAVE_PTHREAD=1",
+    "-DHAVE_REALLOCARRAY",
+    "-DHAVE_SECURE_GETENV",
     "-DHAVE_STRUCT_TIMESPEC",
+    "-DHAVE_SYSCONF",
     "-DHAVE_TIMESPEC_GET",
-    "-DHAVE_COMPRESSION",
-    "-DBLAKE3_NO_SSE2",
-    "-DBLAKE3_NO_SSE41",
-    "-DBLAKE3_NO_AVX2",
-    "-DBLAKE3_NO_AVX512",
-    "-DCLOCK_MONOTONIC=1",
     "-DHAVE_ZLIB",
     "-DMAJOR_IN_SYSMACROS",
     "-DMESA_DEBUG=0",
     "-DMESA_LLVM_VERSION_STRING=\\\"16.0.0\\\"",
     "-DPACKAGE_BUGREPORT=\\\"https://bugs.freedesktop.org/enter_bug.cgi?product=Mesa\\\"",
     "-DPACKAGE_VERSION=\\\"24.2\\\"",
+    "-DTIME_ACTIVE",
+    "-DTIME_MONOTONIC_RAW",
+    "-DTIME_MONOTONIC",
+    "-DTIME_THREAD_ACTIVE",
+    "-DTIME_UTC",
+    "-DVK_BASE_VERSION_1_0",
+    "-DVK_BASE_VERSION_1_1",
+    "-DVK_BASE_VERSION_1_2",
+    "-DVK_BASE_VERSION_1_3",
+    "-DVK_BASE_VERSION_1_4",
+    "-DVK_COMPUTE_VERSION_1_0",
+    "-DVK_COMPUTE_VERSION_1_1",
+    "-DVK_COMPUTE_VERSION_1_2",
+    "-DVK_COMPUTE_VERSION_1_3",
+    "-DVK_COMPUTE_VERSION_1_4",
+    "-DVK_GRAPHICS_VERSION_1_0",
+    "-DVK_GRAPHICS_VERSION_1_1",
+    "-DVK_GRAPHICS_VERSION_1_2",
+    "-DVK_GRAPHICS_VERSION_1_3",
+    "-DVK_GRAPHICS_VERSION_1_4",
+    "-DVK_USE_PLATFORM_ANDROID_KHR",
     "-fno-math-errno",
     "-fno-trapping-math",
     "-Werror=incompatible-pointer-types",
@@ -62,6 +86,7 @@ MESA_DEFAULT_COPTS = [
     "-Wno-constant-conversion",
     "-Wno-constant-logical-operand",
     "-Wno-enum-conversion",
+    "-Wno-error",
     "-Wno-format",
     "-Wno-gnu-variable-sized-type-not-at-end",
     "-Wno-implicit-const-int-float-conversion",
@@ -90,11 +115,6 @@ MESA_DEFAULT_COPTS = [
     "-Wno-unused-parameter",
     "-Wno-unused-private-field",
     "-Wno-visibility",
-    "-DTIME_UTC",
-    "-DTIME_MONOTONIC",
-    "-DTIME_ACTIVE",
-    "-DTIME_THREAD_ACTIVE",
-    "-DTIME_MONOTONIC_RAW",
 ]
 
 MESA_DEFAULT_CXXOPTS = []
@@ -463,21 +483,21 @@ genrule(
 genrule(
     name = "nir_intrinsics_header",
     outs = ["src/compiler/nir_intrinsics.h"],
-    cmd = "python3 $(location nir_intrinsics_header_gen) --outdir $$(dirname $(location src/compiler/nir_intrinsics.h))",
+    cmd = "python3 $(location nir_intrinsics_header_gen) --out $(location src/compiler/nir_intrinsics.h)",
     tools = ["nir_intrinsics_header_gen"],
 )
 
 genrule(
     name = "nir_intrinsics_indices_header",
     outs = ["src/compiler/nir_intrinsics_indices.h"],
-    cmd = "python3 $(location nir_intrinsics_indices_gen) --outdir $$(dirname $(location src/compiler/nir_intrinsics_indices.h))",
+    cmd = "python3 $(location nir_intrinsics_indices_gen) --out $(location src/compiler/nir_intrinsics_indices.h)",
     tools = ["nir_intrinsics_indices_gen"],
 )
 
 genrule(
     name = "nir_intrinsics_impl",
     outs = ["src/compiler/nir_intrinsics.c"],
-    cmd = "python3 $(location nir_intrinsics_impl_gen) --outdir $$(dirname $(location src/compiler/nir_intrinsics.c))",
+    cmd = "python3 $(location nir_intrinsics_impl_gen) --out $(location src/compiler/nir_intrinsics.c)",
     tools = ["nir_intrinsics_impl_gen"],
 )
 
@@ -720,7 +740,8 @@ genrule(
         "vk_enum_defines.h",
     ],
     cmd = "python3 $(location gen_enum_to_str) --xml " +
-          "$(location :mesa_vulkan_xml) --outdir $$(dirname $(location vk_enum_to_str.h)) " +
+          "$(location :mesa_vulkan_xml) --out-c $(location vk_enum_to_str.c) " +
+          "--out-h $(location vk_enum_to_str.h) --out-d $(location vk_enum_defines.h) " +
           "--beta false",
     tools = ["gen_enum_to_str"],
 )
@@ -730,7 +751,7 @@ genrule(
     srcs = [":mesa_vulkan_xml"],
     outs = ["vk_struct_type_cast.h"],
     cmd = "python3 $(location vk_struct_type_cast_gen) --xml " +
-          "$(location :mesa_vulkan_xml) --outdir $$(dirname $(location vk_struct_type_cast.h)) " +
+          "$(location :mesa_vulkan_xml) --out $(location vk_struct_type_cast.h) " +
           "--beta false",
     tools = ["vk_struct_type_cast_gen"],
 )
@@ -865,36 +886,44 @@ cc_library(
         "src/util/disk_cache_os.c",
         "src/util/double.c",
         "src/util/fast_idiv_by_const.c",
+        "src/util/float8.c",
         "src/util/fossilize_db.c",
         "src/util/futex.c",
         "src/util/half_float.c",
         "src/util/hash_table.c",
+        "src/util/helpers.c",
         "src/util/log.c",
+        "src/util/lut.c",
         "src/util/memstream.c",
         "src/util/mesa-blake3.c",
-        "src/util/mesa-sha1.c",
         "src/util/mesa_cache_db.c",
         "src/util/mesa_cache_db_multipart.c",
         "src/util/os_file.c",
+        "src/util/os_file_notify.c",
         "src/util/os_memory_fd.c",
         "src/util/os_misc.c",
         "src/util/os_socket.c",
         "src/util/os_time.c",
+        "src/util/pb_slab.c",
         "src/util/perf/u_trace.c",
         "src/util/ralloc.c",
         "src/util/rand_xor.c",
+        "src/util/range_minimum_query.c",
         "src/util/rb_tree.c",
         "src/util/register_allocate.c",
         "src/util/rgtc.c",
         "src/util/rwlock.c",
         "src/util/set.c",
-        "src/util/sha1/sha1.c",
         "src/util/simple_mtx.c",
         "src/util/slab.c",
         "src/util/softfloat.c",
         "src/util/sparse_array.c",
         "src/util/string_buffer.c",
+        "src/util/strndup.c",
         "src/util/strtod.c",
+        "src/util/texcompress_astc.cpp",
+        "src/util/texcompress_astc_luts.cpp",
+        "src/util/texcompress_astc_luts_wrap.cpp",
         "src/util/thread_sched.c",
         "src/util/u_atomic.c",
         "src/util/u_call_once.c",
@@ -911,6 +940,9 @@ cc_library(
         "src/util/u_process.c",
         "src/util/u_qsort.cpp",
         "src/util/u_queue.c",
+        "src/util/u_range_remap.c",
+        "src/util/u_string.c",
+        "src/util/u_sync_provider.c",
         "src/util/u_thread.c",
         "src/util/u_vector.c",
         "src/util/u_worklist.c",
@@ -922,6 +954,8 @@ cc_library(
         "include/c99_compat.h",
         "include/no_extern_c.h",
         ":mesa_util_driconf_static_header",
+        ":gen_u_format_gen_header",
+        ":gen_u_format_pack_header",
     ] + glob([
         "src/util/**/*.h",
     ]),
@@ -986,7 +1020,7 @@ cc_library(
 cc_library(
     name = "mesa_compiler_glsl_list",
     hdrs = [
-        "src/compiler/glsl/list.h",
+        "src/compiler/list.h",
     ],
     copts = MESA_DEFAULT_COPTS,
     strip_include_prefix = "src",
@@ -1001,93 +1035,152 @@ cc_library(
         "src/compiler/nir/nir.c",
         "src/compiler/nir/nir_builder.c",
         "src/compiler/nir/nir_builtin_builder.c",
+        "src/compiler/nir/nir_clip_cull_distance_io_utils.c",
         "src/compiler/nir/nir_clone.c",
         "src/compiler/nir/nir_control_flow.c",
         "src/compiler/nir/nir_deref.c",
         "src/compiler/nir/nir_divergence_analysis.c",
         "src/compiler/nir/nir_dominance.c",
+        "src/compiler/nir/nir_dominance_lca.c",
+        "src/compiler/nir/nir_downgrade_pls_vars.c",
         "src/compiler/nir/nir_fixup_is_exported.c",
         "src/compiler/nir/nir_format_convert.c",
         "src/compiler/nir/nir_from_ssa.c",
         "src/compiler/nir/nir_functions.c",
         "src/compiler/nir/nir_gather_info.c",
+        "src/compiler/nir/nir_gather_output_deps.c",
+        "src/compiler/nir/nir_gather_tcs_info.c",
         "src/compiler/nir/nir_gather_types.c",
         "src/compiler/nir/nir_gather_xfb_info.c",
         "src/compiler/nir/nir_gs_count_vertices.c",
+        "src/compiler/nir/nir_inline_sysval.c",
         "src/compiler/nir/nir_inline_uniforms.c",
         "src/compiler/nir/nir_instr_set.c",
+        "src/compiler/nir/nir_io_add_xfb_info.c",
         "src/compiler/nir/nir_legacy.c",
         "src/compiler/nir/nir_linking_helpers.c",
         "src/compiler/nir/nir_liveness.c",
         "src/compiler/nir/nir_loop_analyze.c",
+        "src/compiler/nir/nir_lower_alpha.c",
         "src/compiler/nir/nir_lower_alu.c",
         "src/compiler/nir/nir_lower_alu_width.c",
+        "src/compiler/nir/nir_lower_amul.c",
         "src/compiler/nir/nir_lower_array_deref_of_vec.c",
+        "src/compiler/nir/nir_lower_atomics.c",
+        "src/compiler/nir/nir_lower_atomics_to_ssbo.c",
         "src/compiler/nir/nir_lower_bit_size.c",
+        "src/compiler/nir/nir_lower_bitmap.c",
+        "src/compiler/nir/nir_lower_blend.c",
         "src/compiler/nir/nir_lower_bool_to_float.c",
         "src/compiler/nir/nir_lower_bool_to_int32.c",
+        "src/compiler/nir/nir_lower_calls_to_builtins.c",
+        "src/compiler/nir/nir_lower_cl_images.c",
+        "src/compiler/nir/nir_lower_clamp_color_outputs.c",
         "src/compiler/nir/nir_lower_clip.c",
-        "src/compiler/nir/nir_lower_clip_cull_distance_arrays.c",
+        "src/compiler/nir/nir_lower_clip_disable.c",
+        "src/compiler/nir/nir_lower_clip_halfz.c",
+        "src/compiler/nir/nir_lower_const_arrays_to_uniforms.c",
         "src/compiler/nir/nir_lower_continue_constructs.c",
         "src/compiler/nir/nir_lower_convert_alu_types.c",
+        "src/compiler/nir/nir_lower_cooperative_matrix.c",
         "src/compiler/nir/nir_lower_discard_if.c",
         "src/compiler/nir/nir_lower_double_ops.c",
+        "src/compiler/nir/nir_lower_explicit_io.c",
+        "src/compiler/nir/nir_lower_fb_read.c",
+        "src/compiler/nir/nir_lower_flatshade.c",
+        "src/compiler/nir/nir_lower_floats.c",
         "src/compiler/nir/nir_lower_flrp.c",
         "src/compiler/nir/nir_lower_fp16_conv.c",
+        "src/compiler/nir/nir_lower_frag_coord_to_pixel_coord.c",
         "src/compiler/nir/nir_lower_fragcolor.c",
+        "src/compiler/nir/nir_lower_fragcoord_wtrans.c",
         "src/compiler/nir/nir_lower_frexp.c",
         "src/compiler/nir/nir_lower_global_vars_to_local.c",
         "src/compiler/nir/nir_lower_goto_ifs.c",
         "src/compiler/nir/nir_lower_gs_intrinsics.c",
+        "src/compiler/nir/nir_lower_halt_to_return.c",
+        "src/compiler/nir/nir_lower_helper_writes.c",
         "src/compiler/nir/nir_lower_idiv.c",
         "src/compiler/nir/nir_lower_image.c",
-        "src/compiler/nir/nir_lower_indirect_derefs.c",
+        "src/compiler/nir/nir_lower_image_atomics_to_global.c",
+        "src/compiler/nir/nir_lower_indirect_derefs_to_if_else_trees.c",
         "src/compiler/nir/nir_lower_input_attachments.c",
         "src/compiler/nir/nir_lower_int64.c",
         "src/compiler/nir/nir_lower_int_to_float.c",
         "src/compiler/nir/nir_lower_interpolation.c",
         "src/compiler/nir/nir_lower_io.c",
-        "src/compiler/nir/nir_lower_io_arrays_to_elements.c",
+        "src/compiler/nir/nir_lower_io_array_vars_to_elements.c",
+        "src/compiler/nir/nir_lower_io_indirect_loads.c",
         "src/compiler/nir/nir_lower_io_to_scalar.c",
-        "src/compiler/nir/nir_lower_io_to_temporaries.c",
-        "src/compiler/nir/nir_lower_io_to_vector.c",
+        "src/compiler/nir/nir_lower_io_vars_to_scalar.c",
+        "src/compiler/nir/nir_lower_io_vars_to_temporaries.c",
         "src/compiler/nir/nir_lower_is_helper_invocation.c",
         "src/compiler/nir/nir_lower_load_const_to_scalar.c",
         "src/compiler/nir/nir_lower_locals_to_regs.c",
         "src/compiler/nir/nir_lower_mediump.c",
+        "src/compiler/nir/nir_lower_mem_access_bit_sizes.c",
+        "src/compiler/nir/nir_lower_memcpy.c",
+        "src/compiler/nir/nir_lower_memory_model.c",
         "src/compiler/nir/nir_lower_multiview.c",
         "src/compiler/nir/nir_lower_non_uniform_access.c",
         "src/compiler/nir/nir_lower_packing.c",
+        "src/compiler/nir/nir_lower_passthrough_edgeflags.c",
         "src/compiler/nir/nir_lower_patch_vertices.c",
         "src/compiler/nir/nir_lower_phis_to_scalar.c",
+        "src/compiler/nir/nir_lower_pntc_ytransform.c",
+        "src/compiler/nir/nir_lower_point_size.c",
+        "src/compiler/nir/nir_lower_point_smooth.c",
+        "src/compiler/nir/nir_lower_poly_line_smooth.c",
+        "src/compiler/nir/nir_lower_printf.c",
+        "src/compiler/nir/nir_lower_readonly_images_to_tex.c",
         "src/compiler/nir/nir_lower_reg_intrinsics_to_ssa.c",
         "src/compiler/nir/nir_lower_returns.c",
+        "src/compiler/nir/nir_lower_robust_access.c",
+        "src/compiler/nir/nir_lower_sample_shading.c",
         "src/compiler/nir/nir_lower_samplers.c",
         "src/compiler/nir/nir_lower_scratch.c",
+        "src/compiler/nir/nir_lower_scratch_to_var.c",
         "src/compiler/nir/nir_lower_shader_calls.c",
         "src/compiler/nir/nir_lower_single_sampled.c",
+        "src/compiler/nir/nir_lower_ssbo.c",
         "src/compiler/nir/nir_lower_subgroups.c",
         "src/compiler/nir/nir_lower_system_values.c",
         "src/compiler/nir/nir_lower_sysvals_to_varyings.c",
         "src/compiler/nir/nir_lower_task_shader.c",
+        "src/compiler/nir/nir_lower_terminate_to_demote.c",
+        "src/compiler/nir/nir_lower_tess_coord_z.c",
         "src/compiler/nir/nir_lower_tex.c",
+        "src/compiler/nir/nir_lower_tex_shadow.c",
+        "src/compiler/nir/nir_lower_texcoord_replace.c",
+        "src/compiler/nir/nir_lower_texcoord_replace_late.c",
         "src/compiler/nir/nir_lower_two_sided_color.c",
         "src/compiler/nir/nir_lower_ubo_vec4.c",
+        "src/compiler/nir/nir_lower_undef_to_zero.c",
         "src/compiler/nir/nir_lower_uniforms_to_ubo.c",
         "src/compiler/nir/nir_lower_var_copies.c",
         "src/compiler/nir/nir_lower_variable_initializers.c",
         "src/compiler/nir/nir_lower_vars_to_ssa.c",
+        "src/compiler/nir/nir_lower_vec3_to_vec4.c",
         "src/compiler/nir/nir_lower_vec_to_regs.c",
         "src/compiler/nir/nir_lower_view_index_to_device_index.c",
+        "src/compiler/nir/nir_lower_viewport_transform.c",
+        "src/compiler/nir/nir_lower_workgroup_size.c",
         "src/compiler/nir/nir_lower_wpos_center.c",
+        "src/compiler/nir/nir_lower_wpos_ytransform.c",
+        "src/compiler/nir/nir_lower_wrmasks.c",
         "src/compiler/nir/nir_metadata.c",
+        "src/compiler/nir/nir_mod_analysis.c",
+        "src/compiler/nir/nir_move_output_stores_to_end.c",
         "src/compiler/nir/nir_move_vec_src_uses_to_dest.c",
         "src/compiler/nir/nir_normalize_cubemap_coords.c",
+        "src/compiler/nir/nir_normalize_sin_cos.c",
         "src/compiler/nir/nir_opt_access.c",
         "src/compiler/nir/nir_opt_barriers.c",
+        "src/compiler/nir/nir_opt_barycentric.c",
+        "src/compiler/nir/nir_opt_call.c",
+        "src/compiler/nir/nir_opt_clip_cull_const.c",
         "src/compiler/nir/nir_opt_combine_stores.c",
         "src/compiler/nir/nir_opt_comparison_pre.c",
-        "src/compiler/nir/nir_opt_conditional_discard.c",
         "src/compiler/nir/nir_opt_constant_folding.c",
         "src/compiler/nir/nir_opt_copy_prop_vars.c",
         "src/compiler/nir/nir_opt_copy_propagate.c",
@@ -1096,21 +1189,35 @@ cc_library(
         "src/compiler/nir/nir_opt_dead_cf.c",
         "src/compiler/nir/nir_opt_dead_write_vars.c",
         "src/compiler/nir/nir_opt_find_array_copies.c",
+        "src/compiler/nir/nir_opt_fp_math_ctrl.c",
+        "src/compiler/nir/nir_opt_frag_coord_to_pixel_coord.c",
+        "src/compiler/nir/nir_opt_fragdepth.c",
         "src/compiler/nir/nir_opt_gcm.c",
+        "src/compiler/nir/nir_opt_generate_bfi.c",
+        "src/compiler/nir/nir_opt_group_loads.c",
         "src/compiler/nir/nir_opt_idiv_const.c",
         "src/compiler/nir/nir_opt_if.c",
         "src/compiler/nir/nir_opt_intrinsics.c",
         "src/compiler/nir/nir_opt_large_constants.c",
+        "src/compiler/nir/nir_opt_licm.c",
+        "src/compiler/nir/nir_opt_load_skip_helpers.c",
         "src/compiler/nir/nir_opt_load_store_vectorize.c",
         "src/compiler/nir/nir_opt_loop.c",
         "src/compiler/nir/nir_opt_loop_unroll.c",
         "src/compiler/nir/nir_opt_memcpy.c",
         "src/compiler/nir/nir_opt_move.c",
+        "src/compiler/nir/nir_opt_move_discards_to_top.c",
+        "src/compiler/nir/nir_opt_move_to_top.c",
+        "src/compiler/nir/nir_opt_mqsad.c",
         "src/compiler/nir/nir_opt_non_uniform_access.c",
         "src/compiler/nir/nir_opt_offsets.c",
         "src/compiler/nir/nir_opt_peephole_select.c",
         "src/compiler/nir/nir_opt_phi_precision.c",
+        "src/compiler/nir/nir_opt_phi_to_bool.c",
+        "src/compiler/nir/nir_opt_preamble.c",
         "src/compiler/nir/nir_opt_ray_queries.c",
+        "src/compiler/nir/nir_opt_reassociate.c",
+        "src/compiler/nir/nir_opt_reassociate_bfi.c",
         "src/compiler/nir/nir_opt_rematerialize_compares.c",
         "src/compiler/nir/nir_opt_remove_phis.c",
         "src/compiler/nir/nir_opt_shrink_stores.c",
@@ -1118,22 +1225,39 @@ cc_library(
         "src/compiler/nir/nir_opt_sink.c",
         "src/compiler/nir/nir_opt_undef.c",
         "src/compiler/nir/nir_opt_uniform_atomics.c",
+        "src/compiler/nir/nir_opt_uniform_subgroup.c",
+        "src/compiler/nir/nir_opt_uub.c",
+        "src/compiler/nir/nir_opt_varyings.c",
         "src/compiler/nir/nir_opt_vectorize.c",
+        "src/compiler/nir/nir_opt_vectorize_io.c",
+        "src/compiler/nir/nir_opt_vectorize_io_vars.c",
+        "src/compiler/nir/nir_passthrough_gs.c",
+        "src/compiler/nir/nir_passthrough_tcs.c",
         "src/compiler/nir/nir_phi_builder.c",
         "src/compiler/nir/nir_print.c",
         "src/compiler/nir/nir_propagate_invariant.c",
         "src/compiler/nir/nir_range_analysis.c",
+        "src/compiler/nir/nir_recompute_io_bases.c",
         "src/compiler/nir/nir_remove_dead_variables.c",
+        "src/compiler/nir/nir_remove_outputs.c",
+        "src/compiler/nir/nir_remove_tex_shadow.c",
         "src/compiler/nir/nir_repair_ssa.c",
+        "src/compiler/nir/nir_scale_fdiv.c",
+        "src/compiler/nir/nir_schedule.c",
         "src/compiler/nir/nir_search.c",
+        "src/compiler/nir/nir_separate_merged_clip_cull_io.c",
         "src/compiler/nir/nir_serialize.c",
+        "src/compiler/nir/nir_shader_bisect.c",
         "src/compiler/nir/nir_split_64bit_vec3_and_vec4.c",
+        "src/compiler/nir/nir_split_conversions.c",
         "src/compiler/nir/nir_split_per_member_structs.c",
         "src/compiler/nir/nir_split_var_copies.c",
         "src/compiler/nir/nir_split_vars.c",
         "src/compiler/nir/nir_sweep.c",
         "src/compiler/nir/nir_to_lcssa.c",
         "src/compiler/nir/nir_trivialize_registers.c",
+        "src/compiler/nir/nir_unlower_io_to_vars.c",
+        "src/compiler/nir/nir_use_dominance.c",
         "src/compiler/nir/nir_validate.c",
         "src/compiler/nir/nir_worklist.c",
         ":nir_constant_expressions_impl",
@@ -1141,34 +1265,9 @@ cc_library(
         ":nir_opcodes_impl",
         ":nir_opt_algebraic_impl",
     ],
-    hdrs = [
-        "src/compiler/nir/nir.h",
-        "src/compiler/nir/nir_builder.h",
-        "src/compiler/nir/nir_builtin_builder.h",
-        "src/compiler/nir/nir_constant_expressions.h",
-        "src/compiler/nir/nir_control_flow.h",
-        "src/compiler/nir/nir_control_flow_private.h",
-        "src/compiler/nir/nir_conversion_builder.h",
-        "src/compiler/nir/nir_defines.h",
-        "src/compiler/nir/nir_deref.h",
-        "src/compiler/nir/nir_format_convert.h",
-        "src/compiler/nir/nir_inline_helpers.h",
-        "src/compiler/nir/nir_instr_set.h",
-        "src/compiler/nir/nir_legacy.h",
-        "src/compiler/nir/nir_loop_analyze.h",
-        "src/compiler/nir/nir_lower_blend.h",
-        "src/compiler/nir/nir_phi_builder.h",
-        "src/compiler/nir/nir_precompiled.h",
-        "src/compiler/nir/nir_range_analysis.h",
-        "src/compiler/nir/nir_schedule.h",
-        "src/compiler/nir/nir_search.h",
-        "src/compiler/nir/nir_search_helpers.h",
-        "src/compiler/nir/nir_serialize.h",
-        "src/compiler/nir/nir_vla.h",
-        "src/compiler/nir/nir_worklist.h",
-        "src/compiler/nir/nir_xfb_info.h",
-        "src/compiler/nir/tests/nir_opt_varyings_test.h",
-        "src/compiler/nir/tests/nir_test.h",
+    hdrs = glob([
+        "src/compiler/nir/**/*.h",
+    ]) + [
         ":nir_builder_opcodes_header",
         ":nir_intrinsics_header",
         ":nir_intrinsics_indices_header",
@@ -1280,13 +1379,11 @@ cc_library(
         "src/compiler/spirv/vtn_subgroup.c",
         "src/compiler/spirv/vtn_variables.c",
     ],
-    hdrs = [
-        "src/compiler/spirv/GLSL.ext.AMD.h",
-        "src/compiler/spirv/GLSL.std.450.h",
-        "src/compiler/spirv/OpenCL.std.h",
-        "src/compiler/spirv/nir_spirv.h",
-        "src/compiler/spirv/spirv.h",
+    hdrs = glob([
+        "src/compiler/spirv/**/*.h",
+    ]) + [
         "src/compiler/spirv/spirv_info.h",
+        "src/compiler/spirv/vtn_generator_ids.h",
     ],
     copts = MESA_DEFAULT_COPTS,
     includes = [
@@ -2024,14 +2121,9 @@ cc_library(
 
 cc_library(
     name = "mesa_virtio",
-    hdrs = [
-        "src/virtio/virtio-gpu/drm_hw.h",
-        "src/virtio/virtio-gpu/venus_hw.h",
-        "src/virtio/virtio-gpu/virgl_hw.h",
-        "src/virtio/virtio-gpu/virgl_protocol.h",
-        "src/virtio/virtio-gpu/virgl_video_hw.h",
-        "src/virtio/virtio-gpu/virglrenderer_hw.h",
-    ],
+    hdrs = glob([
+        "src/virtio/virtio-gpu/**/*.h",
+    ]),
     copts = MESA_DEFAULT_COPTS,
     strip_include_prefix = "src",
 )
@@ -2305,12 +2397,370 @@ genrule(
     tools = [":vk_synchronization_helpers_gen"],
 )
 
+genrule(
+    name = "gen_astc_spv",
+    srcs = ["src/compiler/glsl/astc_decoder.glsl"],
+    outs = ["src/vulkan/runtime/astc_spv.h"],
+    cmd = "$(location @glslang//:glslangValidator) -V -S comp -x -o $(location src/vulkan/runtime/astc_spv.h) $(location src/compiler/glsl/astc_decoder.glsl) --quiet",
+    tools = ["@glslang//:glslangValidator"],
+)
+
+genrule(
+    name = "gen_hploc_internal_spv_h",
+    srcs = [
+        "src/vulkan/runtime/bvh/hploc_internal.comp",
+        "src/vulkan/runtime/bvh/leaf.h",
+        "src/vulkan/runtime/bvh/vk_build_helpers.h",
+        "src/vulkan/runtime/bvh/vk_build_interface.h",
+        "src/vulkan/runtime/bvh/vk_bvh.h",
+        "src/vulkan/runtime/bvh/vk_debug.h",
+        "src/compiler/spirv/spirv_internal_exts.h",
+    ],
+    outs = ["src/vulkan/runtime/bvh/hploc_internal.spv.h"],
+    cmd = "$(location @glslang//:glslangValidator) -V -I$$(dirname $(location src/vulkan/runtime/bvh/leaf.h)) -I$$(dirname $(location src/compiler/spirv/spirv_internal_exts.h)) --target-env spirv1.5 -x -o $(location src/vulkan/runtime/bvh/hploc_internal.spv.h) $(location src/vulkan/runtime/bvh/hploc_internal.comp) --quiet " +
+          "'-P#extension GL_GOOGLE_include_directive : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_int16 : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_int32 : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require' " +
+          "'-P#extension GL_EXT_scalar_block_layout : require' " +
+          "'-P#extension GL_EXT_buffer_reference : require' " +
+          "'-P#extension GL_EXT_buffer_reference2 : require' " +
+          "'-P#extension GL_KHR_memory_scope_semantics : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_arithmetic : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_basic : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_shuffle : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_ballot : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_clustered : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_vote : require' " +
+          "'-P#extension GL_EXT_shader_atomic_int64 : require' " +
+          "'-P#extension GL_EXT_spirv_intrinsics : require'",
+    tools = ["@glslang//:glslangValidator"],
+)
+
+genrule(
+    name = "gen_lbvh_generate_ir_spv_h",
+    srcs = [
+        "src/vulkan/runtime/bvh/lbvh_generate_ir.comp",
+        "src/vulkan/runtime/bvh/leaf.h",
+        "src/vulkan/runtime/bvh/vk_build_helpers.h",
+        "src/vulkan/runtime/bvh/vk_build_interface.h",
+        "src/vulkan/runtime/bvh/vk_bvh.h",
+        "src/vulkan/runtime/bvh/vk_debug.h",
+        "src/compiler/spirv/spirv_internal_exts.h",
+    ],
+    outs = ["src/vulkan/runtime/bvh/lbvh_generate_ir.spv.h"],
+    cmd = "$(location @glslang//:glslangValidator) -V -I$$(dirname $(location src/vulkan/runtime/bvh/leaf.h)) -I$$(dirname $(location src/compiler/spirv/spirv_internal_exts.h)) --target-env spirv1.5 -x -o $(location src/vulkan/runtime/bvh/lbvh_generate_ir.spv.h) $(location src/vulkan/runtime/bvh/lbvh_generate_ir.comp) --quiet " +
+          "'-P#extension GL_GOOGLE_include_directive : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_int16 : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_int32 : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require' " +
+          "'-P#extension GL_EXT_scalar_block_layout : require' " +
+          "'-P#extension GL_EXT_buffer_reference : require' " +
+          "'-P#extension GL_EXT_buffer_reference2 : require' " +
+          "'-P#extension GL_KHR_memory_scope_semantics : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_arithmetic : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_basic : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_shuffle : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_ballot : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_clustered : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_vote : require' " +
+          "'-P#extension GL_EXT_shader_atomic_int64 : require' " +
+          "'-P#extension GL_EXT_spirv_intrinsics : require'",
+    tools = ["@glslang//:glslangValidator"],
+)
+
+genrule(
+    name = "gen_lbvh_main_spv_h",
+    srcs = [
+        "src/vulkan/runtime/bvh/lbvh_main.comp",
+        "src/vulkan/runtime/bvh/leaf.h",
+        "src/vulkan/runtime/bvh/vk_build_helpers.h",
+        "src/vulkan/runtime/bvh/vk_build_interface.h",
+        "src/vulkan/runtime/bvh/vk_bvh.h",
+        "src/vulkan/runtime/bvh/vk_debug.h",
+        "src/compiler/spirv/spirv_internal_exts.h",
+    ],
+    outs = ["src/vulkan/runtime/bvh/lbvh_main.spv.h"],
+    cmd = "$(location @glslang//:glslangValidator) -V -I$$(dirname $(location src/vulkan/runtime/bvh/leaf.h)) -I$$(dirname $(location src/compiler/spirv/spirv_internal_exts.h)) --target-env spirv1.5 -x -o $(location src/vulkan/runtime/bvh/lbvh_main.spv.h) $(location src/vulkan/runtime/bvh/lbvh_main.comp) --quiet " +
+          "'-P#extension GL_GOOGLE_include_directive : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_int16 : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_int32 : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require' " +
+          "'-P#extension GL_EXT_scalar_block_layout : require' " +
+          "'-P#extension GL_EXT_buffer_reference : require' " +
+          "'-P#extension GL_EXT_buffer_reference2 : require' " +
+          "'-P#extension GL_KHR_memory_scope_semantics : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_arithmetic : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_basic : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_shuffle : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_ballot : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_clustered : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_vote : require' " +
+          "'-P#extension GL_EXT_shader_atomic_int64 : require' " +
+          "'-P#extension GL_EXT_spirv_intrinsics : require'",
+    tools = ["@glslang//:glslangValidator"],
+)
+
+genrule(
+    name = "gen_leaf_spv_h",
+    srcs = [
+        "src/vulkan/runtime/bvh/leaf.comp",
+        "src/vulkan/runtime/bvh/leaf.h",
+        "src/vulkan/runtime/bvh/vk_build_helpers.h",
+        "src/vulkan/runtime/bvh/vk_build_interface.h",
+        "src/vulkan/runtime/bvh/vk_bvh.h",
+        "src/vulkan/runtime/bvh/vk_debug.h",
+        "src/compiler/spirv/spirv_internal_exts.h",
+    ],
+    outs = ["src/vulkan/runtime/bvh/leaf.spv.h"],
+    cmd = "$(location @glslang//:glslangValidator) -V -I$$(dirname $(location src/vulkan/runtime/bvh/leaf.h)) -I$$(dirname $(location src/compiler/spirv/spirv_internal_exts.h)) --target-env spirv1.5 -x -o $(location src/vulkan/runtime/bvh/leaf.spv.h) $(location src/vulkan/runtime/bvh/leaf.comp) --quiet " +
+          "'-P#extension GL_GOOGLE_include_directive : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_int16 : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_int32 : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require' " +
+          "'-P#extension GL_EXT_scalar_block_layout : require' " +
+          "'-P#extension GL_EXT_buffer_reference : require' " +
+          "'-P#extension GL_EXT_buffer_reference2 : require' " +
+          "'-P#extension GL_KHR_memory_scope_semantics : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_arithmetic : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_basic : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_shuffle : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_ballot : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_clustered : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_vote : require' " +
+          "'-P#extension GL_EXT_shader_atomic_int64 : require' " +
+          "'-P#extension GL_EXT_spirv_intrinsics : require'",
+    tools = ["@glslang//:glslangValidator"],
+)
+
+genrule(
+    name = "gen_morton_spv_h",
+    srcs = [
+        "src/vulkan/runtime/bvh/morton.comp",
+        "src/vulkan/runtime/bvh/leaf.h",
+        "src/vulkan/runtime/bvh/vk_build_helpers.h",
+        "src/vulkan/runtime/bvh/vk_build_interface.h",
+        "src/vulkan/runtime/bvh/vk_bvh.h",
+        "src/vulkan/runtime/bvh/vk_debug.h",
+        "src/compiler/spirv/spirv_internal_exts.h",
+    ],
+    outs = ["src/vulkan/runtime/bvh/morton.spv.h"],
+    cmd = "$(location @glslang//:glslangValidator) -V -I$$(dirname $(location src/vulkan/runtime/bvh/leaf.h)) -I$$(dirname $(location src/compiler/spirv/spirv_internal_exts.h)) --target-env spirv1.5 -x -o $(location src/vulkan/runtime/bvh/morton.spv.h) $(location src/vulkan/runtime/bvh/morton.comp) --quiet " +
+          "'-P#extension GL_GOOGLE_include_directive : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_int16 : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_int32 : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require' " +
+          "'-P#extension GL_EXT_scalar_block_layout : require' " +
+          "'-P#extension GL_EXT_buffer_reference : require' " +
+          "'-P#extension GL_EXT_buffer_reference2 : require' " +
+          "'-P#extension GL_KHR_memory_scope_semantics : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_arithmetic : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_basic : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_shuffle : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_ballot : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_clustered : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_vote : require' " +
+          "'-P#extension GL_EXT_shader_atomic_int64 : require' " +
+          "'-P#extension GL_EXT_spirv_intrinsics : require'",
+    tools = ["@glslang//:glslangValidator"],
+)
+
+genrule(
+    name = "gen_ploc_internal_spv_h",
+    srcs = [
+        "src/vulkan/runtime/bvh/ploc_internal.comp",
+        "src/vulkan/runtime/bvh/leaf.h",
+        "src/vulkan/runtime/bvh/vk_build_helpers.h",
+        "src/vulkan/runtime/bvh/vk_build_interface.h",
+        "src/vulkan/runtime/bvh/vk_bvh.h",
+        "src/vulkan/runtime/bvh/vk_debug.h",
+        "src/compiler/spirv/spirv_internal_exts.h",
+    ],
+    outs = ["src/vulkan/runtime/bvh/ploc_internal.spv.h"],
+    cmd = "$(location @glslang//:glslangValidator) -V -I$$(dirname $(location src/vulkan/runtime/bvh/leaf.h)) -I$$(dirname $(location src/compiler/spirv/spirv_internal_exts.h)) --target-env spirv1.5 -x -o $(location src/vulkan/runtime/bvh/ploc_internal.spv.h) $(location src/vulkan/runtime/bvh/ploc_internal.comp) --quiet " +
+          "'-P#extension GL_GOOGLE_include_directive : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_int16 : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_int32 : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require' " +
+          "'-P#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require' " +
+          "'-P#extension GL_EXT_scalar_block_layout : require' " +
+          "'-P#extension GL_EXT_buffer_reference : require' " +
+          "'-P#extension GL_EXT_buffer_reference2 : require' " +
+          "'-P#extension GL_KHR_memory_scope_semantics : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_arithmetic : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_basic : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_shuffle : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_ballot : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_clustered : require' " +
+          "'-P#extension GL_KHR_shader_subgroup_vote : require' " +
+          "'-P#extension GL_EXT_shader_atomic_int64 : require' " +
+          "'-P#extension GL_EXT_spirv_intrinsics : require'",
+    tools = ["@glslang//:glslangValidator"],
+)
+
+RADIX_SORT_DEPS = [
+    "src/vulkan/runtime/radix_sort/shaders/bufref.h",
+    "src/vulkan/runtime/radix_sort/shaders/config.h",
+    "src/vulkan/runtime/radix_sort/shaders/prefix.h",
+    "src/vulkan/runtime/radix_sort/shaders/prefix_limits.h",
+    "src/vulkan/runtime/radix_sort/shaders/push.h",
+    "src/vulkan/runtime/radix_sort/shaders/scatter.glsl",
+]
+
+genrule(
+    name = "gen_fill_spv_h",
+    srcs = ["src/vulkan/runtime/radix_sort/shaders/fill.comp"] + RADIX_SORT_DEPS,
+    outs = ["src/vulkan/runtime/radix_sort/shaders/fill.spv.h"],
+    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/fill.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/fill.comp) --quiet",
+    tools = ["@glslang//:glslangValidator"],
+)
+
+genrule(
+    name = "gen_u64_histogram_spv_h",
+    srcs = ["src/vulkan/runtime/radix_sort/shaders/histogram.comp"] + RADIX_SORT_DEPS,
+    outs = ["src/vulkan/runtime/radix_sort/shaders/u64_histogram.spv.h"],
+    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u64_histogram.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/histogram.comp) -DRS_KEYVAL_DWORDS=2 --quiet",
+    tools = ["@glslang//:glslangValidator"],
+)
+
+genrule(
+    name = "gen_u96_histogram_spv_h",
+    srcs = ["src/vulkan/runtime/radix_sort/shaders/histogram.comp"] + RADIX_SORT_DEPS,
+    outs = ["src/vulkan/runtime/radix_sort/shaders/u96_histogram.spv.h"],
+    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u96_histogram.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/histogram.comp) -DRS_KEYVAL_DWORDS=3 --quiet",
+    tools = ["@glslang//:glslangValidator"],
+)
+
+genrule(
+    name = "gen_u64_init_spv_h",
+    srcs = ["src/vulkan/runtime/radix_sort/shaders/init.comp"] + RADIX_SORT_DEPS,
+    outs = ["src/vulkan/runtime/radix_sort/shaders/u64_init.spv.h"],
+    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u64_init.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/init.comp) -DRS_KEYVAL_DWORDS=2 --quiet",
+    tools = ["@glslang//:glslangValidator"],
+)
+
+genrule(
+    name = "gen_u96_init_spv_h",
+    srcs = ["src/vulkan/runtime/radix_sort/shaders/init.comp"] + RADIX_SORT_DEPS,
+    outs = ["src/vulkan/runtime/radix_sort/shaders/u96_init.spv.h"],
+    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u96_init.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/init.comp) -DRS_KEYVAL_DWORDS=3 --quiet",
+    tools = ["@glslang//:glslangValidator"],
+)
+
+genrule(
+    name = "gen_u64_prefix_spv_h",
+    srcs = ["src/vulkan/runtime/radix_sort/shaders/prefix.comp"] + RADIX_SORT_DEPS,
+    outs = ["src/vulkan/runtime/radix_sort/shaders/u64_prefix.spv.h"],
+    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u64_prefix.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/prefix.comp) -DRS_KEYVAL_DWORDS=2 --quiet",
+    tools = ["@glslang//:glslangValidator"],
+)
+
+genrule(
+    name = "gen_u96_prefix_spv_h",
+    srcs = ["src/vulkan/runtime/radix_sort/shaders/prefix.comp"] + RADIX_SORT_DEPS,
+    outs = ["src/vulkan/runtime/radix_sort/shaders/u96_prefix.spv.h"],
+    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u96_prefix.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/prefix.comp) -DRS_KEYVAL_DWORDS=3 --quiet",
+    tools = ["@glslang//:glslangValidator"],
+)
+
+genrule(
+    name = "gen_u64_scatter_0_even_spv_h",
+    srcs = ["src/vulkan/runtime/radix_sort/shaders/scatter_0_even.comp"] + RADIX_SORT_DEPS,
+    outs = ["src/vulkan/runtime/radix_sort/shaders/u64_scatter_0_even.spv.h"],
+    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u64_scatter_0_even.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/scatter_0_even.comp) -DRS_KEYVAL_DWORDS=2 --quiet",
+    tools = ["@glslang//:glslangValidator"],
+)
+
+genrule(
+    name = "gen_u96_scatter_0_even_spv_h",
+    srcs = ["src/vulkan/runtime/radix_sort/shaders/scatter_0_even.comp"] + RADIX_SORT_DEPS,
+    outs = ["src/vulkan/runtime/radix_sort/shaders/u96_scatter_0_even.spv.h"],
+    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u96_scatter_0_even.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/scatter_0_even.comp) -DRS_KEYVAL_DWORDS=3 --quiet",
+    tools = ["@glslang//:glslangValidator"],
+)
+
+genrule(
+    name = "gen_u64_scatter_0_odd_spv_h",
+    srcs = ["src/vulkan/runtime/radix_sort/shaders/scatter_0_odd.comp"] + RADIX_SORT_DEPS,
+    outs = ["src/vulkan/runtime/radix_sort/shaders/u64_scatter_0_odd.spv.h"],
+    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u64_scatter_0_odd.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/scatter_0_odd.comp) -DRS_KEYVAL_DWORDS=2 --quiet",
+    tools = ["@glslang//:glslangValidator"],
+)
+
+genrule(
+    name = "gen_u96_scatter_0_odd_spv_h",
+    srcs = ["src/vulkan/runtime/radix_sort/shaders/scatter_0_odd.comp"] + RADIX_SORT_DEPS,
+    outs = ["src/vulkan/runtime/radix_sort/shaders/u96_scatter_0_odd.spv.h"],
+    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u96_scatter_0_odd.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/scatter_0_odd.comp) -DRS_KEYVAL_DWORDS=3 --quiet",
+    tools = ["@glslang//:glslangValidator"],
+)
+
+genrule(
+    name = "gen_u64_scatter_1_even_spv_h",
+    srcs = ["src/vulkan/runtime/radix_sort/shaders/scatter_1_even.comp"] + RADIX_SORT_DEPS,
+    outs = ["src/vulkan/runtime/radix_sort/shaders/u64_scatter_1_even.spv.h"],
+    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u64_scatter_1_even.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/scatter_1_even.comp) -DRS_KEYVAL_DWORDS=2 --quiet",
+    tools = ["@glslang//:glslangValidator"],
+)
+
+genrule(
+    name = "gen_u96_scatter_1_even_spv_h",
+    srcs = ["src/vulkan/runtime/radix_sort/shaders/scatter_1_even.comp"] + RADIX_SORT_DEPS,
+    outs = ["src/vulkan/runtime/radix_sort/shaders/u96_scatter_1_even.spv.h"],
+    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u96_scatter_1_even.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/scatter_1_even.comp) -DRS_KEYVAL_DWORDS=3 --quiet",
+    tools = ["@glslang//:glslangValidator"],
+)
+
+genrule(
+    name = "gen_u64_scatter_1_odd_spv_h",
+    srcs = ["src/vulkan/runtime/radix_sort/shaders/scatter_1_odd.comp"] + RADIX_SORT_DEPS,
+    outs = ["src/vulkan/runtime/radix_sort/shaders/u64_scatter_1_odd.spv.h"],
+    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u64_scatter_1_odd.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/scatter_1_odd.comp) -DRS_KEYVAL_DWORDS=2 --quiet",
+    tools = ["@glslang//:glslangValidator"],
+)
+
+genrule(
+    name = "gen_u96_scatter_1_odd_spv_h",
+    srcs = ["src/vulkan/runtime/radix_sort/shaders/scatter_1_odd.comp"] + RADIX_SORT_DEPS,
+    outs = ["src/vulkan/runtime/radix_sort/shaders/u96_scatter_1_odd.spv.h"],
+    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u96_scatter_1_odd.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/scatter_1_odd.comp) -DRS_KEYVAL_DWORDS=3 --quiet",
+    tools = ["@glslang//:glslangValidator"],
+)
+
+genrule(
+    name = "gen_u96_scatter_2_even_spv_h",
+    srcs = ["src/vulkan/runtime/radix_sort/shaders/scatter_2_even.comp"] + RADIX_SORT_DEPS,
+    outs = ["src/vulkan/runtime/radix_sort/shaders/u96_scatter_2_even.spv.h"],
+    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u96_scatter_2_even.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/scatter_2_even.comp) -DRS_KEYVAL_DWORDS=3 --quiet",
+    tools = ["@glslang//:glslangValidator"],
+)
+
+genrule(
+    name = "gen_u96_scatter_2_odd_spv_h",
+    srcs = ["src/vulkan/runtime/radix_sort/shaders/scatter_2_odd.comp"] + RADIX_SORT_DEPS,
+    outs = ["src/vulkan/runtime/radix_sort/shaders/u96_scatter_2_odd.spv.h"],
+    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u96_scatter_2_odd.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/scatter_2_odd.comp) -DRS_KEYVAL_DWORDS=3 --quiet",
+    tools = ["@glslang//:glslangValidator"],
+)
+
 cc_library(
     name = "mesa_vulkan_runtime",
     srcs = [
         "src/vulkan/runtime/radix_sort/common/util.c",
         "src/vulkan/runtime/radix_sort/common/vk/barrier.c",
         "src/vulkan/runtime/radix_sort/radix_sort_u64.c",
+        "src/vulkan/runtime/radix_sort/radix_sort_u96.c",
         "src/vulkan/runtime/radix_sort/radix_sort_vk.c",
         "src/vulkan/runtime/rmv/vk_rmv_common.c",
         "src/vulkan/runtime/rmv/vk_rmv_exporter.c",
@@ -2343,10 +2793,14 @@ cc_library(
         "src/vulkan/runtime/vk_instance.c",
         "src/vulkan/runtime/vk_log.c",
         "src/vulkan/runtime/vk_meta.c",
+        "src/vulkan/runtime/vk_meta_blit_resolve.c",
+        "src/vulkan/runtime/vk_meta_clear.c",
+        "src/vulkan/runtime/vk_meta_copy_fill_update.c",
         "src/vulkan/runtime/vk_meta_draw_rects.c",
         "src/vulkan/runtime/vk_meta_object_list.c",
         "src/vulkan/runtime/vk_nir.c",
         "src/vulkan/runtime/vk_nir_convert_ycbcr.c",
+        "src/vulkan/runtime/vk_nir_lower_descriptor_heaps.c",
         "src/vulkan/runtime/vk_object.c",
         "src/vulkan/runtime/vk_physical_device.c",
         "src/vulkan/runtime/vk_physical_device_features.c",
@@ -2369,6 +2823,8 @@ cc_library(
         "src/vulkan/runtime/vk_sync_timeline.c",
         "src/vulkan/runtime/vk_synchronization.c",
         "src/vulkan/runtime/vk_synchronization_helpers.c",
+        "src/vulkan/runtime/vk_texcompress_astc.c",
+        "src/vulkan/runtime/vk_texcompress_etc2.c",
         "src/vulkan/runtime/vk_video.c",
         "src/vulkan/runtime/vk_ycbcr_conversion.c",
         "src/vulkan/wsi/wsi_common.c",
@@ -2378,10 +2834,10 @@ cc_library(
     ],
     hdrs = [
         "src/vulkan/runtime/astc_spv.h",
+        "src/vulkan/runtime/bvh/hploc_internal.spv.h",
         "src/vulkan/runtime/bvh/lbvh_generate_ir.spv.h",
         "src/vulkan/runtime/bvh/lbvh_main.spv.h",
         "src/vulkan/runtime/bvh/leaf.spv.h",
-        "src/vulkan/runtime/bvh/leaf_always_active.spv.h",
         "src/vulkan/runtime/bvh/morton.spv.h",
         "src/vulkan/runtime/bvh/ploc_internal.spv.h",
         "src/vulkan/runtime/bvh/vk_build_helpers.h",
@@ -2391,22 +2847,32 @@ cc_library(
         "src/vulkan/runtime/radix_sort/common/util.h",
         "src/vulkan/runtime/radix_sort/common/vk/barrier.h",
         "src/vulkan/runtime/radix_sort/radix_sort_u64.h",
+        "src/vulkan/runtime/radix_sort/radix_sort_u96.h",
         "src/vulkan/runtime/radix_sort/radix_sort_vk.h",
         "src/vulkan/runtime/radix_sort/radix_sort_vk_devaddr.h",
         "src/vulkan/runtime/radix_sort/radix_sort_vk_ext.h",
         "src/vulkan/runtime/radix_sort/shaders/bufref.h",
         "src/vulkan/runtime/radix_sort/shaders/config.h",
-        "src/vulkan/runtime/radix_sort/shaders/fill.comp.spv.h",
-        "src/vulkan/runtime/radix_sort/shaders/histogram.comp.spv.h",
-        "src/vulkan/runtime/radix_sort/shaders/init.comp.spv.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix.comp.spv.h",
+        "src/vulkan/runtime/radix_sort/shaders/fill.spv.h",
         "src/vulkan/runtime/radix_sort/shaders/prefix.h",
         "src/vulkan/runtime/radix_sort/shaders/prefix_limits.h",
         "src/vulkan/runtime/radix_sort/shaders/push.h",
-        "src/vulkan/runtime/radix_sort/shaders/scatter_0_even.comp.spv.h",
-        "src/vulkan/runtime/radix_sort/shaders/scatter_0_odd.comp.spv.h",
-        "src/vulkan/runtime/radix_sort/shaders/scatter_1_even.comp.spv.h",
-        "src/vulkan/runtime/radix_sort/shaders/scatter_1_odd.comp.spv.h",
+        "src/vulkan/runtime/radix_sort/shaders/u64_histogram.spv.h",
+        "src/vulkan/runtime/radix_sort/shaders/u64_init.spv.h",
+        "src/vulkan/runtime/radix_sort/shaders/u64_prefix.spv.h",
+        "src/vulkan/runtime/radix_sort/shaders/u64_scatter_0_even.spv.h",
+        "src/vulkan/runtime/radix_sort/shaders/u64_scatter_0_odd.spv.h",
+        "src/vulkan/runtime/radix_sort/shaders/u64_scatter_1_even.spv.h",
+        "src/vulkan/runtime/radix_sort/shaders/u64_scatter_1_odd.spv.h",
+        "src/vulkan/runtime/radix_sort/shaders/u96_histogram.spv.h",
+        "src/vulkan/runtime/radix_sort/shaders/u96_init.spv.h",
+        "src/vulkan/runtime/radix_sort/shaders/u96_prefix.spv.h",
+        "src/vulkan/runtime/radix_sort/shaders/u96_scatter_0_even.spv.h",
+        "src/vulkan/runtime/radix_sort/shaders/u96_scatter_0_odd.spv.h",
+        "src/vulkan/runtime/radix_sort/shaders/u96_scatter_1_even.spv.h",
+        "src/vulkan/runtime/radix_sort/shaders/u96_scatter_1_odd.spv.h",
+        "src/vulkan/runtime/radix_sort/shaders/u96_scatter_2_even.spv.h",
+        "src/vulkan/runtime/radix_sort/shaders/u96_scatter_2_odd.spv.h",
         "src/vulkan/runtime/radix_sort/target.h",
         "src/vulkan/runtime/rmv/vk_rmv_common.h",
         "src/vulkan/runtime/rmv/vk_rmv_tokens.h",
@@ -2444,6 +2910,7 @@ cc_library(
         "src/vulkan/runtime/vk_meta_private.h",
         "src/vulkan/runtime/vk_nir.h",
         "src/vulkan/runtime/vk_nir_convert_ycbcr.h",
+        "src/vulkan/runtime/vk_nir_lower_descriptor_heaps.h",
         "src/vulkan/runtime/vk_object.h",
         "src/vulkan/runtime/vk_physical_device.h",
         "src/vulkan/runtime/vk_physical_device_features.h",
@@ -2477,8 +2944,11 @@ cc_library(
         "src/vulkan/wsi/wsi_common_queue.h",
     ],
     copts = MESA_DEFAULT_COPTS,
+    defines = ["MESA_VK_LOG=1"],
     includes = [
         "src/vulkan/runtime",
+        "src/vulkan/runtime/radix_sort",
+        "src/vulkan/runtime/radix_sort/common",
         "src/vulkan/wsi",
     ],
     deps = [
@@ -2582,6 +3052,77 @@ cc_library(
     strip_include_prefix = "src/gfxstream/guest/iostream/include",
 )
 
+rust_library(
+    name = "mesa_rust_util",
+    srcs = glob([
+        "src/util/rust/**/*.rs",
+    ]),
+    crate_name = "mesa3d_util",
+    edition = "2021",
+    deps = [
+        "@mesa_crate_deps//:cfg-if",
+        "@mesa_crate_deps//:libc",
+        "@mesa_crate_deps//:log",
+        "@mesa_crate_deps//:rustix",
+        "@mesa_crate_deps//:thiserror",
+        "@mesa_crate_deps//:zerocopy",
+    ],
+    proc_macro_deps = [
+        "@mesa_crate_deps//:remain",
+    ],
+)
+
+rust_library(
+    name = "mesa_protocols",
+    srcs = glob([
+        "src/virtio/protocols/**/*.rs",
+    ]),
+    crate_name = "mesa3d_protocols",
+    edition = "2021",
+    deps = [
+        ":mesa_rust_util",
+        "@mesa_crate_deps//:zerocopy",
+    ],
+)
+
+rust_library(
+    name = "mesa_virtgpu_kumquat",
+    srcs = glob([
+        "src/virtio/virtgpu_kumquat/**/*.rs",
+    ]),
+    crate_name = "virtgpu_kumquat",
+    edition = "2021",
+    deps = [
+        ":mesa_rust_util",
+        ":mesa_protocols",
+    ],
+)
+
+rust_static_library(
+    name = "mesa_virtgpu_kumquat_ffi_rust",
+    srcs = glob([
+        "src/virtio/virtgpu_kumquat_ffi/**/*.rs",
+    ]),
+    crate_name = "virtgpu_kumquat_ffi",
+    edition = "2021",
+    deps = [
+        ":mesa_rust_util",
+        ":mesa_protocols",
+        ":mesa_virtgpu_kumquat",
+        "@mesa_crate_deps//:libc",
+        "@mesa_crate_deps//:log",
+    ],
+)
+
+cc_library(
+    name = "mesa_virtgpu_kumquat_ffi",
+    hdrs = ["src/virtio/virtgpu_kumquat_ffi/include/virtgpu_kumquat_ffi.h"],
+    strip_include_prefix = "src/virtio/virtgpu_kumquat_ffi/include",
+    deps = [
+        ":mesa_virtgpu_kumquat_ffi_rust",
+    ],
+)
+
 cc_library(
     name = "mesa_gfxstream_guest_platform",
     srcs = [
@@ -2592,24 +3133,31 @@ cc_library(
         "src/gfxstream/guest/platform/kumquat/VirtGpuKumquatDevice.cpp",
         "src/gfxstream/guest/platform/kumquat/VirtGpuKumquatSync.cpp",
         "src/gfxstream/guest/platform/kumquat/VirtGpuKumquatSync.h",
-        "src/gfxstream/guest/platform/linux/LinuxSync.cpp",
-        "src/gfxstream/guest/platform/linux/LinuxSync.h",
-        "src/gfxstream/guest/platform/linux/LinuxVirtGpu.h",
-        "src/gfxstream/guest/platform/linux/LinuxVirtGpuBlob.cpp",
-        "src/gfxstream/guest/platform/linux/LinuxVirtGpuBlobMapping.cpp",
-        "src/gfxstream/guest/platform/linux/LinuxVirtGpuDevice.cpp",
+        "src/gfxstream/guest/platform/kumquat/vulkan-mapper/GfxStreamVulkanMapper.cpp",
+        "src/gfxstream/guest/platform/kumquat/vulkan-mapper/GfxStreamVulkanMapper.h",
+        "src/gfxstream/guest/platform/drm/DrmSync.cpp",
+        "src/gfxstream/guest/platform/drm/DrmSync.h",
+        "src/gfxstream/guest/platform/drm/DrmVirtGpu.h",
+        "src/gfxstream/guest/platform/drm/DrmVirtGpuBlob.cpp",
+        "src/gfxstream/guest/platform/drm/DrmVirtGpuBlobMapping.cpp",
+        "src/gfxstream/guest/platform/drm/DrmVirtGpuDevice.cpp",
     ],
     hdrs = glob([
         "src/gfxstream/guest/platform/include/**/*.h",
     ]),
     copts = MESA_DEFAULT_COPTS,
+    includes = [
+        "src",
+        "src/gfxstream/guest/platform/kumquat/vulkan-mapper",
+    ],
     strip_include_prefix = "src/gfxstream/guest/platform/include",
     deps = [
         ":mesa_drm",
         ":mesa_util",
+        ":mesa_virtio",
+        ":mesa_virtgpu_kumquat_ffi",
+        ":mesa_vulkan_util",
         "@drm//:libdrm",
-        "@rutabaga//:rutabaga_gfx_kumquat_client_ffi",
-        "@rutabaga//:rutabaga_gfx_kumquat_client_ffi_headers",
     ],
 )
 
@@ -2709,6 +3257,108 @@ cc_library(
     strip_include_prefix = "src/gfxstream/aemu/include",
 )
 
+py_binary(
+    name = "genvk_py_binary",
+    srcs = [
+        "src/gfxstream/codegen/scripts/cereal/__init__.py",
+        "src/gfxstream/codegen/scripts/cereal/api_log_decoder.py",
+        "src/gfxstream/codegen/scripts/cereal/common/__init__.py",
+        "src/gfxstream/codegen/scripts/cereal/common/codegen.py",
+        "src/gfxstream/codegen/scripts/cereal/common/vulkantypes.py",
+        "src/gfxstream/codegen/scripts/cereal/counting.py",
+        "src/gfxstream/codegen/scripts/cereal/decoder.py",
+        "src/gfxstream/codegen/scripts/cereal/decodersnapshot.py",
+        "src/gfxstream/codegen/scripts/cereal/deepcopy.py",
+        "src/gfxstream/codegen/scripts/cereal/dispatch.py",
+        "src/gfxstream/codegen/scripts/cereal/encoder.py",
+        "src/gfxstream/codegen/scripts/cereal/extensionstructs.py",
+        "src/gfxstream/codegen/scripts/cereal/frontend.py",
+        "src/gfxstream/codegen/scripts/cereal/functable.py",
+        "src/gfxstream/codegen/scripts/cereal/handlemap.py",
+        "src/gfxstream/codegen/scripts/cereal/marshaling.py",
+        "src/gfxstream/codegen/scripts/cereal/marshalingdefs.py",
+        "src/gfxstream/codegen/scripts/cereal/reservedmarshaling.py",
+        "src/gfxstream/codegen/scripts/cereal/subdecode.py",
+        "src/gfxstream/codegen/scripts/cereal/testing.py",
+        "src/gfxstream/codegen/scripts/cereal/transform.py",
+        "src/gfxstream/codegen/scripts/cereal/unbox.py",
+        "src/gfxstream/codegen/scripts/cereal/vkextensionstructuretype.py",
+        "src/gfxstream/codegen/scripts/cereal/wrapperdefs.py",
+        "src/gfxstream/codegen/scripts/cerealgenerator.py",
+        "src/gfxstream/codegen/scripts/cgenerator.py",
+        "src/gfxstream/codegen/scripts/generator.py",
+        "src/gfxstream/codegen/scripts/genvk.py",
+        "src/gfxstream/codegen/scripts/reg.py",
+    ],
+    imports = [
+        "src/gfxstream/codegen/scripts",
+    ],
+    main = "src/gfxstream/codegen/scripts/genvk.py",
+    deps = [
+        "@mako",
+    ],
+)
+
+genrule(
+    name = "gen_vulkan_gfxstream_header",
+    srcs = ["src/gfxstream/codegen/xml/vk_gfxstream.xml"],
+    outs = ["src/gfxstream/guest/vulkan_enc/vulkan_gfxstream.h"],
+    cmd = "GFXSTREAM_NO_CLANG_FMT=1 CEREAL_VARIANT=guest python3 $(location :genvk_py_binary) " +
+          "-registry $(location src/gfxstream/codegen/xml/vk_gfxstream.xml) vulkan_gfxstream.h " +
+          "-o $$(dirname $(location src/gfxstream/guest/vulkan_enc/vulkan_gfxstream.h))",
+    tools = [":genvk_py_binary"],
+)
+
+genrule(
+    name = "gfxstream_guest_vk_autogen_headers",
+    srcs = [
+        "src/vulkan/registry/vk.xml",
+        "src/gfxstream/codegen/xml/vk_gfxstream.xml",
+    ],
+    outs = [
+        "src/gfxstream/guest/vulkan_enc/VkEncoder.h",
+        "src/gfxstream/guest/vulkan_enc/goldfish_vk_counting_guest.h",
+        "src/gfxstream/guest/vulkan_enc/goldfish_vk_deepcopy_guest.h",
+        "src/gfxstream/guest/vulkan_enc/goldfish_vk_extension_structs_guest.h",
+        "src/gfxstream/guest/vulkan_enc/goldfish_vk_marshaling_guest.h",
+        "src/gfxstream/guest/vulkan_enc/goldfish_vk_reserved_marshaling_guest.h",
+        "src/gfxstream/guest/vulkan_enc/goldfish_vk_transform_guest.h",
+        "src/gfxstream/guest/vulkan_enc/vulkan_gfxstream_structure_type.h",
+    ],
+    cmd = "GFXSTREAM_NO_CLANG_FMT=1 CEREAL_VARIANT=guest " +
+          "GFXSTREAM_GUEST_ENCODER_DIR=$$(cd $$(dirname $(location src/gfxstream/guest/vulkan_enc/VkEncoder.h)) && pwd) " +
+          "python3 $(location :genvk_py_binary) " +
+          "-registry $(location src/vulkan/registry/vk.xml) " +
+          "-registryGfxstream $(location src/gfxstream/codegen/xml/vk_gfxstream.xml) " +
+          "cereal -o $$(cd $$(dirname $(location src/gfxstream/guest/vulkan_enc/VkEncoder.h)) && pwd)/host/vulkan/cereal",
+    tools = [":genvk_py_binary"],
+)
+
+genrule(
+    name = "gfxstream_guest_vk_autogen_impl",
+    srcs = [
+        "src/vulkan/registry/vk.xml",
+        "src/gfxstream/codegen/xml/vk_gfxstream.xml",
+    ],
+    outs = [
+        "src/gfxstream/guest/vulkan_enc/VkEncoder.cpp",
+        "src/gfxstream/guest/vulkan_enc/func_table.cpp",
+        "src/gfxstream/guest/vulkan_enc/goldfish_vk_counting_guest.cpp",
+        "src/gfxstream/guest/vulkan_enc/goldfish_vk_deepcopy_guest.cpp",
+        "src/gfxstream/guest/vulkan_enc/goldfish_vk_extension_structs_guest.cpp",
+        "src/gfxstream/guest/vulkan_enc/goldfish_vk_marshaling_guest.cpp",
+        "src/gfxstream/guest/vulkan_enc/goldfish_vk_reserved_marshaling_guest.cpp",
+        "src/gfxstream/guest/vulkan_enc/goldfish_vk_transform_guest.cpp",
+    ],
+    cmd = "GFXSTREAM_NO_CLANG_FMT=1 CEREAL_VARIANT=guest " +
+          "GFXSTREAM_GUEST_ENCODER_DIR=$$(cd $$(dirname $(location src/gfxstream/guest/vulkan_enc/VkEncoder.cpp)) && pwd) " +
+          "python3 $(location :genvk_py_binary) " +
+          "-registry $(location src/vulkan/registry/vk.xml) " +
+          "-registryGfxstream $(location src/gfxstream/codegen/xml/vk_gfxstream.xml) " +
+          "cereal -o $$(cd $$(dirname $(location src/gfxstream/guest/vulkan_enc/VkEncoder.cpp)) && pwd)/host/vulkan/cereal",
+    tools = [":genvk_py_binary"],
+)
+
 cc_library(
     name = "mesa_gfxstream_guest_vulkan_impl",
     srcs = [
@@ -2733,37 +3383,23 @@ cc_library(
         "src/gfxstream/guest/vulkan_enc/Resources.h",
         "src/gfxstream/guest/vulkan_enc/Validation.cpp",
         "src/gfxstream/guest/vulkan_enc/Validation.h",
-        "src/gfxstream/guest/vulkan_enc/VkEncoder.cpp",
-        "src/gfxstream/guest/vulkan_enc/VkEncoder.h",
         "src/gfxstream/guest/vulkan_enc/VkEncoder.h.inl",
         "src/gfxstream/guest/vulkan_enc/VulkanHandleMapping.cpp",
         "src/gfxstream/guest/vulkan_enc/VulkanHandleMapping.h",
         "src/gfxstream/guest/vulkan_enc/VulkanHandles.h",
         "src/gfxstream/guest/vulkan_enc/VulkanStreamGuest.cpp",
         "src/gfxstream/guest/vulkan_enc/VulkanStreamGuest.h",
-        "src/gfxstream/guest/vulkan_enc/func_table.cpp",
         "src/gfxstream/guest/vulkan_enc/gfxstream_vk_entrypoints.c",
         "src/gfxstream/guest/vulkan_enc/gfxstream_vk_entrypoints.h",
         "src/gfxstream/guest/vulkan_enc/gfxstream_vk_private.cpp",
         "src/gfxstream/guest/vulkan_enc/gfxstream_vk_private.h",
-        "src/gfxstream/guest/vulkan_enc/goldfish_vk_counting_guest.cpp",
-        "src/gfxstream/guest/vulkan_enc/goldfish_vk_counting_guest.h",
-        "src/gfxstream/guest/vulkan_enc/goldfish_vk_deepcopy_guest.cpp",
-        "src/gfxstream/guest/vulkan_enc/goldfish_vk_deepcopy_guest.h",
-        "src/gfxstream/guest/vulkan_enc/goldfish_vk_extension_structs_guest.cpp",
-        "src/gfxstream/guest/vulkan_enc/goldfish_vk_extension_structs_guest.h",
-        "src/gfxstream/guest/vulkan_enc/goldfish_vk_marshaling_guest.cpp",
-        "src/gfxstream/guest/vulkan_enc/goldfish_vk_marshaling_guest.h",
         "src/gfxstream/guest/vulkan_enc/goldfish_vk_private_defs.h",
-        "src/gfxstream/guest/vulkan_enc/goldfish_vk_reserved_marshaling_guest.cpp",
-        "src/gfxstream/guest/vulkan_enc/goldfish_vk_reserved_marshaling_guest.h",
-        "src/gfxstream/guest/vulkan_enc/goldfish_vk_transform_guest.cpp",
-        "src/gfxstream/guest/vulkan_enc/goldfish_vk_transform_guest.h",
         "src/gfxstream/guest/vulkan_enc/vk_android_native_buffer_gfxstream.h",
         "src/gfxstream/guest/vulkan_enc/vk_format_info.h",
         "src/gfxstream/guest/vulkan_enc/vk_platform_compat.h",
-        "src/gfxstream/guest/vulkan_enc/vulkan_gfxstream.h",
-        "src/gfxstream/guest/vulkan_enc/vulkan_gfxstream_structure_type.h",
+        ":gfxstream_guest_vk_autogen_headers",
+        ":gfxstream_guest_vk_autogen_impl",
+        ":gen_vulkan_gfxstream_header",
     ],
     hdrs = [
         "src/gfxstream/guest/vulkan_enc/VkEncoder.cpp.inl",
@@ -2788,6 +3424,7 @@ cc_library(
         ":mesa_gfxstream_connection_manager",
         ":mesa_gfxstream_guest_aemu",
         ":mesa_gfxstream_guest_android",
+        ":mesa_commit",
         ":mesa_util",
         ":mesa_util_format",
         ":mesa_vulkan_runtime",

@@ -124,14 +124,81 @@ git_repository(
 git_repository(
     name = "mesa",
     build_file = "//third_party/mesa:BUILD.mesa.bazel",
-    commit = "224e91e39836d3ca31f80df2e0379e55c70574f8",
+    commit = "0ec4cc9cd5a09831b2447a342b44fcd05ae362f2",
     dev_dependency = True,
-    patch_args = ["-p1"],
+    patch_args = ["-p1", "--ignore-whitespace"],
     patches = [
-        "//third_party/mesa:PATCH.mesa.patch",
+        "//third_party/mesa:PATCH.0001_fix_locking.patch",
+        "//third_party/mesa:PATCH.0002_support_d32_s8_testing.patch",
+        "//third_party/mesa:PATCH.0003_check_dmabuf_support.patch",
+        "//third_party/mesa:PATCH.0004_disable_vk_envvar_modification_for_testing.patch",
     ],
     remote = "https://android.googlesource.com/platform/external/mesa3d.git",
 )
+
+mesa_crate_deps = use_extension(
+    "@rules_rust//crate_universe:extensions.bzl",
+    "crate",
+    dev_dependency = True,
+)
+mesa_crate_deps.spec(
+    package = "cfg-if",
+    version = "1.0.0",
+)
+mesa_crate_deps.spec(
+    package = "thiserror",
+    version = "2.0.11",
+)
+mesa_crate_deps.spec(
+    package = "libc",
+    version = "0.2.116",
+)
+mesa_crate_deps.spec(
+    package = "log",
+    version = "0.4",
+)
+mesa_crate_deps.spec(
+    package = "remain",
+    version = "0.2",
+)
+mesa_crate_deps.spec(
+    package = "thiserror",
+    version = "1.0.23",
+)
+mesa_crate_deps.spec(
+    features = ["derive"],
+    package = "zerocopy",
+    version = "0.8.13",
+)
+mesa_crate_deps.spec(
+    features = [
+        "event",
+        "fs",
+        "mm",
+        "net",
+        "param",
+        "pipe",
+        "thread",
+        "use-libc",
+        "use-libc-auxv",
+        "libc_errno",
+    ],
+    package = "rustix",
+    version = "1.0.7",
+)
+mesa_crate_deps.from_specs(
+    name = "mesa_crate_deps",
+)
+use_repo(mesa_crate_deps, "mesa_crate_deps")
+
+git_repository(
+    name = "glslang",
+    build_file = "//third_party/glslang:BUILD.glslang.bazel",
+    commit = "a91631b260cba3f22858d6c6827511e636c2458a",
+    dev_dependency = True,
+    remote = "https://github.com/KhronosGroup/glslang.git",
+)
+
 
 git_repository(
     name = "mako",
@@ -160,13 +227,9 @@ git_repository(
 git_repository(
     name = "rutabaga",
     build_file = "//third_party/rutabaga:BUILD.rutabaga.bazel",
-    commit = "99ea64dca3024b667d09f3ec56f7dd77f6671495",
+    commit = "10c9ffb974e3d134bf40ddecc20abfd66fb5a99d",
     dev_dependency = True,
-    patch_args = ["-p1"],
-    patches = [
-        "//third_party/rutabaga:PATCH.rutabaga.patch",
-    ],
-    remote = "https://chromium.googlesource.com/crosvm/crosvm.git",
+    remote = "https://github.com/magma-gpu/rutabaga_gfx",
 )
 
 rutabaga_crate_deps = use_extension(
@@ -233,6 +296,22 @@ rutabaga_crate_deps.spec(
     features = ["derive"],
     package = "zerocopy",
     version = "0.8.13",
+)
+rutabaga_crate_deps.spec(
+    features = [
+        "event",
+        "fs",
+        "mm",
+        "net",
+        "param",
+        "pipe",
+        "thread",
+        "use-libc",
+        "use-libc-auxv",
+        "libc_errno",
+    ],
+    package = "rustix",
+    version = "1.0.7",
 )
 rutabaga_crate_deps.from_specs(
     name = "rutabaga_crate_deps",

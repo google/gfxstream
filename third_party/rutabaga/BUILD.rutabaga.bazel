@@ -8,11 +8,12 @@ package(
 rust_library(
     name = "rutabaga_gfx",
     srcs = glob([
-        "rutabaga_gfx/src/**/*.rs",
+        "src/**/*.rs",
     ]),
     crate_features = [
         "vulkano",
     ],
+    edition = "2021",
     proc_macro_deps = [
         "@rutabaga_crate_deps//:remain",
     ],
@@ -20,6 +21,7 @@ rust_library(
         "--cfg=fence_passing_option1",
     ],
     deps = [
+        "@mesa//:mesa_rust_util",
         "@rutabaga_crate_deps//:anyhow",
         "@rutabaga_crate_deps//:cfg-if",
         "@rutabaga_crate_deps//:libc",
@@ -36,12 +38,13 @@ rust_library(
 rust_library(
     name = "rutabaga_gfx_gfxstream",
     srcs = glob([
-        "rutabaga_gfx/src/**/*.rs",
+        "src/**/*.rs",
     ]),
     crate_features = [
         "gfxstream",
     ],
     crate_name = "rutabaga_gfx",
+    edition = "2021",
     proc_macro_deps = [
         "@rutabaga_crate_deps//:remain",
     ],
@@ -50,6 +53,7 @@ rust_library(
     ],
     deps = [
         "@//host:gfxstream_backend_shared",
+        "@mesa//:mesa_rust_util",
         "@rutabaga_crate_deps//:anyhow",
         "@rutabaga_crate_deps//:cfg-if",
         "@rutabaga_crate_deps//:libc",
@@ -62,66 +66,30 @@ rust_library(
     ],
 )
 
-cc_library(
-    name = "rutabaga_gfx_kumquat_client_ffi_headers",
-    hdrs = [
-        "rutabaga_gfx/kumquat/gpu_client/src/include/virtgpu_kumquat_ffi.h",
-    ],
-    strip_include_prefix = "rutabaga_gfx/kumquat/gpu_client/src/include",
-    visibility = [
-        "@//:gfxstream",
-        "@mesa//:__subpackages__",
-    ],
-)
-
-cc_library(
-    name = "rutabaga_gfx_kumquat_client_ffi_prefixed_headers",
-    hdrs = [
-        "rutabaga_gfx/kumquat/gpu_client/src/include/virtgpu_kumquat_ffi.h",
-    ],
-    include_prefix = "virtgpu_kumquat",
-    strip_include_prefix = "rutabaga_gfx/kumquat/gpu_client/src/include",
-    visibility = [
-        "@//:gfxstream",
-        "@mesa//:__subpackages__",
-    ],
-)
-
-rust_static_library(
-    name = "rutabaga_gfx_kumquat_client_ffi",
-    srcs = glob([
-        "rutabaga_gfx/kumquat/gpu_client/src/**/*.rs",
-    ]),
-    visibility = [
-        "@//:gfxstream",
-        "@mesa//:__subpackages__",
-    ],
-    deps = [
-        ":rutabaga_gfx",
-        "@rutabaga_crate_deps//:anyhow",
-        "@rutabaga_crate_deps//:libc",
-        "@rutabaga_crate_deps//:log",
-        "@rutabaga_crate_deps//:zerocopy",
-    ],
-)
-
 rust_binary(
     name = "rutabaga_gfx_kumquat_server",
     srcs = glob([
-        "rutabaga_gfx/kumquat/server/src/**/*.rs",
+        "kumquat/server/src/**/*.rs",
     ]),
     binary_name = "kumquat_virtio",
     features = [
         "gfxstream",
     ],
+    edition = "2021",
+    proc_macro_deps = [
+        "@rutabaga_crate_deps//:remain",
+    ],
     deps = [
         ":rutabaga_gfx_gfxstream",
+        "@mesa//:mesa_rust_util",
+        "@mesa//:mesa_protocols",
         "@//host:gfxstream_backend_static",
         "@rutabaga_crate_deps//:anyhow",
         "@rutabaga_crate_deps//:clap",
         "@rutabaga_crate_deps//:libc",
         "@rutabaga_crate_deps//:log",
         "@rutabaga_crate_deps//:nix",
+        "@rutabaga_crate_deps//:thiserror",
         "@rutabaga_crate_deps//:zerocopy",
     ],
 )

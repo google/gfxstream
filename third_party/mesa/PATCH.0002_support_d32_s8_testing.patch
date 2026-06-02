@@ -1,0 +1,60 @@
+From 581e71fd3341ec72ed2e2ccb34a05dc9f4d6ff41 Mon Sep 17 00:00:00 2001
+From: Jason Macnak <natsu@google.com>
+Date: Mon, 8 Jun 2026 10:56:32 -0700
+Subject: [PATCH 2/4] Support D32 S8 testing
+
+https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/42090
+---
+ .../guest/android/GrallocEmulated.cpp         | 22 +++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+
+diff --git a/src/gfxstream/guest/android/GrallocEmulated.cpp b/src/gfxstream/guest/android/GrallocEmulated.cpp
+index 10521c8c900..950bff4ff76 100644
+--- a/src/gfxstream/guest/android/GrallocEmulated.cpp
++++ b/src/gfxstream/guest/android/GrallocEmulated.cpp
+@@ -19,6 +19,10 @@ static constexpr int numInts = 1;
+ 
+ #define DRM_FORMAT_R8_BLOB fourcc_code('9', '9', '9', '9')
+ 
++#ifndef DRM_FORMAT_DEPTH32_STENCIL8
++#define DRM_FORMAT_DEPTH32_STENCIL8 fourcc_code('D', 'F', 'S', '8')
++#endif
++
+ template <typename T, typename N>
+ T DivideRoundUp(T n, N divisor) {
+     const T div = static_cast<T>(divisor);
+@@ -66,6 +70,8 @@ std::optional<uint32_t> AhbToDrmFormat(uint32_t ahbFormat) {
+             return DRM_FORMAT_ARGB8888;
+         case GFXSTREAM_AHB_FORMAT_BLOB:
+             return DRM_FORMAT_R8_BLOB;
++        case GFXSTREAM_AHB_FORMAT_D32_FLOAT_S8_UINT:
++            return DRM_FORMAT_DEPTH32_STENCIL8;
+         case GFXSTREAM_AHB_FORMAT_R8_UNORM:
+             return DRM_FORMAT_R8;
+         case GFXSTREAM_AHB_FORMAT_YV12:
+@@ -159,6 +165,22 @@ const std::unordered_map<uint32_t, DrmFormatInfo>& GetDrmFormatInfoMap() {
+                      },
+                  },
+          }},
++        {DRM_FORMAT_DEPTH32_STENCIL8,
++         {
++             .androidFormat = GFXSTREAM_AHB_FORMAT_D32_FLOAT_S8_UINT,
++             .virglFormat = VIRGL_FORMAT_Z32_FLOAT_S8X24_UINT,
++             .isYuv = false,
++             .horizontalAlignmentPixels = 1,
++             .verticalAlignmentPixels = 1,
++             .planes =
++                 {
++                     {
++                         .horizontalSubsampling = 1,
++                         .verticalSubsampling = 1,
++                         .bytesPerPixel = 8,
++                     },
++                 },
++         }},
+         {DRM_FORMAT_R8,
+          {
+              .androidFormat = GFXSTREAM_AHB_FORMAT_R8_UNORM,
+-- 
+2.54.0.1064.gd145956f57-goog
+

@@ -91,8 +91,8 @@ cc_test(
         "@com_google_googletest//:gtest_main",
         "@mesa//:mesa_gfxstream_guest_android",
         "@mesa//:mesa_gfxstream_guest_platform",
+        "@mesa//:mesa_virtgpu_kumquat_ffi",
         "@rules_cc//cc/runfiles",
-        "@rutabaga//:rutabaga_gfx_kumquat_client_ffi_headers",
         "@drm//:libdrm",
     ],
 )

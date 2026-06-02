@@ -1,0 +1,44 @@
+From 0f5c90de0dc4ba3004efcb015f051aba1c682022 Mon Sep 17 00:00:00 2001
+From: Jason Macnak <natsu@google.com>
+Date: Mon, 8 Jun 2026 10:59:12 -0700
+Subject: [PATCH 4/4] Disable VK_DRIVER_FILES modification for testing
+
+... as this is used to ensure that the locally built software renderer
+is used.
+---
+ .../kumquat/vulkan-mapper/GfxStreamVulkanMapper.cpp  | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/src/gfxstream/guest/platform/kumquat/vulkan-mapper/GfxStreamVulkanMapper.cpp b/src/gfxstream/guest/platform/kumquat/vulkan-mapper/GfxStreamVulkanMapper.cpp
+index 5287d199491..87dac8bfded 100644
+--- a/src/gfxstream/guest/platform/kumquat/vulkan-mapper/GfxStreamVulkanMapper.cpp
++++ b/src/gfxstream/guest/platform/kumquat/vulkan-mapper/GfxStreamVulkanMapper.cpp
+@@ -223,19 +223,19 @@ GfxStreamVulkanMapper* GfxStreamVulkanMapper::getInstance(std::optional<DeviceId
+         // testing, VK_DRIVER_FILES shouldn't be defined.  For deqp-vk, this is
+         // useful, but not safe for multi-threaded tests.  For now, since this is only
+         // used for end2end tests, we should be good.
+-        char* driver = os_get_option_dup(VK_DRIVER_FILES);
++        // char* driver = os_get_option_dup(VK_DRIVER_FILES);
+ 
+-        os_unset_option(VK_DRIVER_FILES);
++        // os_unset_option(VK_DRIVER_FILES);
+         sVkMapper = std::make_unique<GfxStreamVulkanMapper>();
+         if (!sVkMapper->initialize(*deviceIdOpt)) {
+             sVkMapper = nullptr;
+             return nullptr;
+         }
+ 
+-        if (driver) {
+-            os_set_option(VK_DRIVER_FILES, driver, true);
+-        }
+-        free(driver);
++        // if (driver) {
++        //     os_set_option(VK_DRIVER_FILES, driver, true);
++        // }
++        // free(driver);
+     }
+ 
+     return sVkMapper.get();
+-- 
+2.54.0.1064.gd145956f57-goog
+
