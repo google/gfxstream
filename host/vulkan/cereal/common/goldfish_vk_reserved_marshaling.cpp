@@ -15428,15 +15428,9 @@ void reservedunmarshal_VkDeviceDeviceMemoryReportCreateInfoEXT(
     memcpy((PFN_vkDeviceMemoryReportCallbackEXT*)&forUnmarshaling->pfnUserCallback, (*ptr), 8);
     gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pfnUserCallback);
     *ptr += 8;
-    // WARNING PTR CHECK
-    memcpy((void**)&forUnmarshaling->pUserData, (*ptr), 8);
-    gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pUserData);
-    *ptr += 8;
-    if (forUnmarshaling->pUserData) {
-        vkStream->alloc((void**)&forUnmarshaling->pUserData, sizeof(uint8_t));
-        memcpy((void*)forUnmarshaling->pUserData, *ptr, sizeof(uint8_t));
-        *ptr += sizeof(uint8_t);
-    }
+    vkStream->alloc((void**)&forUnmarshaling->pUserData, sizeof(uint8_t));
+    memcpy((void*)forUnmarshaling->pUserData, *ptr, sizeof(uint8_t));
+    *ptr += sizeof(uint8_t);
 }
 
 #endif

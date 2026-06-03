@@ -19753,12 +19753,7 @@ void marshal_VkDeviceDeviceMemoryReportCreateInfoEXT(
                     sizeof(VkDeviceMemoryReportFlagsEXT));
     uint64_t cgen_var_0 = (uint64_t)forMarshaling->pfnUserCallback;
     vkStream->putBe64(cgen_var_0);
-    // WARNING PTR CHECK
-    uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->pUserData;
-    vkStream->putBe64(cgen_var_1);
-    if (forMarshaling->pUserData) {
-        vkStream->write((void*)forMarshaling->pUserData, sizeof(uint8_t));
-    }
+    vkStream->write((void*)forMarshaling->pUserData, sizeof(uint8_t));
 }
 
 void unmarshal_VkDeviceDeviceMemoryReportCreateInfoEXT(
@@ -19785,12 +19780,8 @@ void unmarshal_VkDeviceDeviceMemoryReportCreateInfoEXT(
     vkStream->read((VkDeviceMemoryReportFlagsEXT*)&forUnmarshaling->flags,
                    sizeof(VkDeviceMemoryReportFlagsEXT));
     forUnmarshaling->pfnUserCallback = (PFN_vkDeviceMemoryReportCallbackEXT)vkStream->getBe64();
-    // WARNING PTR CHECK
-    forUnmarshaling->pUserData = (void*)(uintptr_t)vkStream->getBe64();
-    if (forUnmarshaling->pUserData) {
-        vkStream->alloc((void**)&forUnmarshaling->pUserData, sizeof(uint8_t));
-        vkStream->read((void*)forUnmarshaling->pUserData, sizeof(uint8_t));
-    }
+    vkStream->alloc((void**)&forUnmarshaling->pUserData, sizeof(uint8_t));
+    vkStream->read((void*)forUnmarshaling->pUserData, sizeof(uint8_t));
 }
 
 #endif
