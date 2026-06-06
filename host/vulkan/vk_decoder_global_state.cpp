@@ -1906,6 +1906,9 @@ class VkDecoderGlobalState::Impl {
         auto& physicalDeviceMemoryHelper = physicalDeviceInfo->memoryPropertiesHelper;
         pMemoryProperties->memoryProperties =
             physicalDeviceMemoryHelper->getGuestMemoryProperties();
+
+        physicalDeviceMemoryHelper->clampMemoryBudgetToGuestHeapSizes(
+            vk_find_struct<VkPhysicalDeviceMemoryBudgetPropertiesEXT>(pMemoryProperties));
     }
 
     VkResult on_vkEnumerateDeviceExtensionProperties(gfxstream::base::BumpPool* pool,

@@ -30,7 +30,9 @@ static constexpr const uint32_t kInvalidMemoryTypeIndex = std::numeric_limits<ui
 
 EmulatedPhysicalDeviceMemoryProperties::EmulatedPhysicalDeviceMemoryProperties(
     const VkPhysicalDeviceMemoryProperties& hostMemoryProperties,
-    const uint32_t hostColorBufferMemoryTypeIndex, const gfxstream::host::FeatureSet& features) {
+    const uint32_t hostColorBufferMemoryTypeIndex, const gfxstream::host::FeatureSet& features,
+    const VkDeviceSize maxSafeHeapSize)
+    : mMaxSafeHeapSize(maxSafeHeapSize) {
     // Start with the original host memory properties:
     mHostMemoryProperties = hostMemoryProperties;
     mGuestMemoryProperties = hostMemoryProperties;
@@ -44,10 +46,9 @@ EmulatedPhysicalDeviceMemoryProperties::EmulatedPhysicalDeviceMemoryProperties(
 
     // Hide any bogus heap sizes from bad drivers with a reasonable default that will not
     // break the bank on 32-bit userspaces.
-    static constexpr VkDeviceSize kMaxSafeHeapSize = 2ULL * 1024ULL * 1024ULL * 1024ULL;
     for (uint32_t i = 0; i < mHostMemoryProperties.memoryHeapCount; i++) {
-        if (mGuestMemoryProperties.memoryHeaps[i].size > kMaxSafeHeapSize) {
-            mGuestMemoryProperties.memoryHeaps[i].size = kMaxSafeHeapSize;
+        if (mGuestMemoryProperties.memoryHeaps[i].size > mMaxSafeHeapSize) {
+            mGuestMemoryProperties.memoryHeaps[i].size = mMaxSafeHeapSize;
         }
     }
 
@@ -196,6 +197,22 @@ void EmulatedPhysicalDeviceMemoryProperties::transformToGuestMemoryRequirements(
     }
 
     memoryRequirements->memoryTypeBits = guestMemoryTypeBits;
+}
+
+void EmulatedPhysicalDeviceMemoryProperties::clampMemoryBudgetToGuestHeapSizes(
+    VkPhysicalDeviceMemoryBudgetPropertiesEXT* budgetProps) const {
+    if (budgetProps == nullptr) {
+        return;
+    }
+    for (uint32_t i = 0; i < mGuestMemoryProperties.memoryHeapCount; i++) {
+        const VkDeviceSize heapSize = mGuestMemoryProperties.memoryHeaps[i].size;
+        if (budgetProps->heapBudget[i] > heapSize) {
+            budgetProps->heapBudget[i] = heapSize;
+        }
+        if (budgetProps->heapUsage[i] > heapSize) {
+            budgetProps->heapUsage[i] = heapSize;
+        }
+    }
 }
 
 }  // namespace vk
