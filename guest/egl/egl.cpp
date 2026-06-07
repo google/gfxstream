@@ -1781,34 +1781,34 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
     case 1:
     case 2:
         break;
-    case 3:
+    case 3: {
         if (rcEnc->getGLESMaxVersion() < GLES_MAX_VERSION_3_0) {
             GFXSTREAM_ERROR("EGL_BAD_CONFIG: no ES 3 support");
             setErrorReturn(EGL_BAD_CONFIG, EGL_NO_CONTEXT);
         }
-        switch (minorVersion) {
-            case 0:
-                break;
-            case 1:
-                if (rcEnc->getGLESMaxVersion() < GLES_MAX_VERSION_3_1) {
-                    GFXSTREAM_ERROR("EGL_BAD_CONFIG: no ES 3.1 support");
-                    setErrorReturn(EGL_BAD_CONFIG, EGL_NO_CONTEXT);
-                }
-                break;
-            case 2:
-                if (rcEnc->getGLESMaxVersion() < GLES_MAX_VERSION_3_2) {
-                    GFXSTREAM_ERROR("EGL_BAD_CONFIG: no ES 3.2 support");
-                    setErrorReturn(EGL_BAD_CONFIG, EGL_NO_CONTEXT);
-                }
-                break;
-            default:
-                GFXSTREAM_ERROR("EGL_BAD_CONFIG: Unknown ES version %d.%d",
-                                majorVersion, minorVersion);
-                setErrorReturn(EGL_BAD_CONFIG, EGL_NO_CONTEXT);
+        if (minorVersion < 0 || minorVersion > 2) {
+            GFXSTREAM_ERROR("EGL_BAD_CONFIG: Unknown ES version %d.%d",
+                            majorVersion, minorVersion);
+            setErrorReturn(EGL_BAD_CONFIG, EGL_NO_CONTEXT);
+        }
+        // The host GLES translator tops out at ES 3.1 (ANDROID_EMU_gles_max_
+        // version_3_1) even on a 3.2-capable host GL. Clamp the requested ES 3.x
+        // minor version down to the host maximum and grant the best available
+        // context instead of returning EGL_BAD_CONFIG, so apps that ask for a
+        // higher version keep running rather than aborting on context creation.
+        int hostMaxMinor =
+            (rcEnc->getGLESMaxVersion() >= GLES_MAX_VERSION_3_2) ? 2 :
+            (rcEnc->getGLESMaxVersion() >= GLES_MAX_VERSION_3_1) ? 1 : 0;
+        if (minorVersion > hostMaxMinor) {
+            GFXSTREAM_WARNING("Requested GLES 3.%d but host supports at most "
+                              "3.%d; granting a 3.%d context",
+                              minorVersion, hostMaxMinor, hostMaxMinor);
+            minorVersion = hostMaxMinor;
         }
         break;
+    }
     default:
-        GFXSTREAM_ERROR("%s:%d EGL_BAD_CONFIG: invalid major GLES version: %d", majorVersion);
+        GFXSTREAM_ERROR("EGL_BAD_CONFIG: invalid major GLES version: %d", majorVersion);
         setErrorReturn(EGL_BAD_CONFIG, EGL_NO_CONTEXT);
     }
 

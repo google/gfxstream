@@ -327,6 +327,74 @@ TEST_P(GfxstreamEnd2EndGlTest, ContextStrings) {
     ASSERT_THAT(mGl->eglDestroySurface(display, surface), IsTrue());
 }
 
+// Requesting a GLES 3.x context whose minor version exceeds what the host GLES
+// translator supports (it tops out at ES 3.1) must not fail: eglCreateContext
+// clamps the request down to the host maximum and returns a usable context
+// instead of EGL_NO_CONTEXT. Without the clamp, apps that ask for the highest
+// available GLES version abort on context creation.
+TEST_P(GfxstreamEnd2EndGlTest, RequestEs32ContextClampsInsteadOfFailing) {
+    EGLDisplay display = mGl->eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    ASSERT_THAT(display, Not(Eq(EGL_NO_DISPLAY)));
+
+    int versionMajor = 0;
+    int versionMinor = 0;
+    ASSERT_THAT(mGl->eglInitialize(display, &versionMajor, &versionMinor), IsTrue());
+
+    ASSERT_THAT(mGl->eglBindAPI(EGL_OPENGL_ES_API), IsTrue());
+
+    // clang-format off
+    static const EGLint configAttributes[] = {
+        EGL_SURFACE_TYPE,    EGL_PBUFFER_BIT,
+        EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT,
+        EGL_NONE,
+    };
+    // clang-format on
+
+    int numConfigs = 0;
+    ASSERT_THAT(mGl->eglChooseConfig(display, configAttributes, nullptr, 1, &numConfigs), IsTrue());
+    ASSERT_THAT(numConfigs, Gt(0));
+
+    EGLConfig config = nullptr;
+    ASSERT_THAT(mGl->eglChooseConfig(display, configAttributes, &config, 1, &numConfigs), IsTrue());
+    ASSERT_THAT(config, Not(Eq(nullptr)));
+
+    // Explicitly request an ES 3.2 context. The host translator caps at ES 3.1,
+    // so before the clamp this returned EGL_NO_CONTEXT; now it must grant the
+    // best available 3.x context.
+    // clang-format off
+    static const EGLint es32ContextAttribs[] = {
+        EGL_CONTEXT_MAJOR_VERSION_KHR, 3,
+        EGL_CONTEXT_MINOR_VERSION_KHR, 2,
+        EGL_NONE,
+    };
+    // clang-format on
+
+    EGLContext context = mGl->eglCreateContext(display, config, EGL_NO_CONTEXT, es32ContextAttribs);
+    ASSERT_THAT(context, Not(Eq(EGL_NO_CONTEXT)));
+
+    constexpr const int width = 32;
+    constexpr const int height = 32;
+
+    // clang-format off
+    static const EGLint surfaceAttributes[] = {
+        EGL_WIDTH,  width,
+        EGL_HEIGHT, height,
+        EGL_NONE,
+    };
+    // clang-format on
+
+    EGLSurface surface = mGl->eglCreatePbufferSurface(display, config, surfaceAttributes);
+    ASSERT_THAT(surface, Not(Eq(EGL_NO_SURFACE)));
+
+    ASSERT_THAT(mGl->eglMakeCurrent(display, surface, surface, context), IsTrue());
+    const auto versionString = (const char*)mGl->glGetString(GL_VERSION);
+    EXPECT_THAT(versionString, HasSubstr("ES 3"));
+
+    ASSERT_THAT(mGl->eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT), IsTrue());
+    ASSERT_THAT(mGl->eglDestroyContext(display, context), IsTrue());
+    ASSERT_THAT(mGl->eglDestroySurface(display, surface), IsTrue());
+}
+
 TEST_P(GfxstreamEnd2EndGlTest, FramebufferFetchShader) {
     const std::string extensionsString = (const char*)mGl->glGetString(GL_EXTENSIONS);
     ASSERT_THAT(extensionsString, Not(IsEmpty()));
