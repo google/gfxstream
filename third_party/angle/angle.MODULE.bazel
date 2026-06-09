@@ -1,0 +1,13 @@
+git_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
+git_repository(
+    name = "angle",
+    build_file = "//third_party/angle:BUILD.angle.bazel",
+    commit = "8b39631d6ab5a2efa21629c6fa94a80381720950",
+    dev_dependency = True,
+    patch_args = ["-p1"],
+    patches = [
+        "//third_party/angle:PATCH.angle.patch",
+    ],
+    remote = "https://android.googlesource.com/platform/external/angle.git",
+)

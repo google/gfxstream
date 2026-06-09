@@ -1,0 +1,95 @@
+git_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
+git_repository(
+    name = "rutabaga",
+    build_file = "//third_party/rutabaga:BUILD.rutabaga.bazel",
+    commit = "10c9ffb974e3d134bf40ddecc20abfd66fb5a99d",
+    dev_dependency = True,
+    remote = "https://github.com/magma-gpu/rutabaga_gfx",
+)
+
+rutabaga_crate_deps = use_extension(
+    "@rules_rust//crate_universe:extensions.bzl",
+    "crate",
+    dev_dependency = True,
+)
+rutabaga_crate_deps.spec(
+    package = "anyhow",
+    version = "1",
+)
+rutabaga_crate_deps.spec(
+    package = "cfg-if",
+    version = "1.0.0",
+)
+rutabaga_crate_deps.spec(
+    features = ["derive"],
+    package = "clap",
+    version = "4.1.8",
+)
+rutabaga_crate_deps.spec(
+    package = "libc",
+    version = "0.2.116",
+)
+rutabaga_crate_deps.spec(
+    package = "log",
+    version = "0.4",
+)
+rutabaga_crate_deps.spec(
+    features = [
+        "event",
+        "feature",
+        "fs",
+        "mman",
+        "socket",
+        "uio",
+        "ioctl",
+    ],
+    package = "nix",
+    version = "0.29",
+)
+rutabaga_crate_deps.spec(
+    package = "remain",
+    version = "0.2",
+)
+rutabaga_crate_deps.spec(
+    features = ["derive"],
+    package = "serde",
+    version = "1",
+)
+rutabaga_crate_deps.spec(
+    package = "serde_json",
+    version = "1",
+)
+rutabaga_crate_deps.spec(
+    package = "thiserror",
+    version = "1.0.23",
+)
+rutabaga_crate_deps.spec(
+    package = "vulkano",
+    version = "0.33.0",
+)
+rutabaga_crate_deps.spec(
+    features = ["derive"],
+    package = "zerocopy",
+    version = "0.8.13",
+)
+rutabaga_crate_deps.spec(
+    features = [
+        "event",
+        "fs",
+        "mm",
+        "net",
+        "param",
+        "pipe",
+        "thread",
+        "use-libc",
+        "use-libc-auxv",
+        "libc_errno",
+    ],
+    package = "rustix",
+    version = "1.0.7",
+)
+rutabaga_crate_deps.from_specs(
+    name = "rutabaga_crate_deps",
+)
+use_repo(rutabaga_crate_deps, "rutabaga_crate_deps")

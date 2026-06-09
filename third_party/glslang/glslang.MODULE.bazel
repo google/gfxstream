@@ -1,0 +1,9 @@
+git_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
+git_repository(
+    name = "glslang",
+    build_file = "//third_party/glslang:BUILD.glslang.bazel",
+    commit = "a91631b260cba3f22858d6c6827511e636c2458a",
+    dev_dependency = True,
+    remote = "https://github.com/KhronosGroup/glslang.git",
+)

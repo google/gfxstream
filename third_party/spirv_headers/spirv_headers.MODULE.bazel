@@ -1,0 +1,8 @@
+git_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
+git_repository(
+    name = "spirv_headers",
+    commit = "b824a462d4256d720bebb40e78b9eb8f78bbb305",  # vulkan-sdk-1.4.335.0
+    dev_dependency = True,
+    remote = "https://github.com/KhronosGroup/SPIRV-Headers.git",
+)

@@ -1,0 +1,9 @@
+git_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
+git_repository(
+    name = "zlib_android",
+    build_file = "//third_party/zlib:BUILD.zlib.bazel",
+    commit = "f29fc757b1f27c182f36790eb0ccc6cf8ec27e8e",
+    dev_dependency = True,
+    remote = "https://android.googlesource.com/platform/external/zlib.git",
+)

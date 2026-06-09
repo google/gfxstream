@@ -1,0 +1,12 @@
+git_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
+git_repository(
+    name = "spirv_tools",
+    commit = "262bdab48146c937467f826699a40da0fdfc0f1a",  # vulkan-sdk-1.4.335.0
+    dev_dependency = True,
+    patch_args = ["-p1"],
+    patches = [
+        "//third_party/spirv_tools:PATCH.spirv_tools.patch",
+    ],
+    remote = "https://github.com/KhronosGroup/SPIRV-Tools.git",
+)
