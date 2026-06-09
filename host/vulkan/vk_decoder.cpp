@@ -784,14 +784,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                       "VkDecoder vkGetInstanceProcAddr");
                 VkInstance instance;
                 const char* pName;
-                // Begin non wrapped dispatchable handle unboxing for instance;
+                // Begin global wrapped dispatchable handle unboxing for instance;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkInstance*)&instance = (VkInstance)(VkInstance)((VkInstance)(*&cgen_var_0));
-                auto unboxed_instance = unbox_VkInstance(instance);
                 auto vk = dispatch_VkInstance(instance);
-                // End manual dispatchable handle unboxing for instance;
                 vkReadStream->loadStringInPlaceWithStreamPtr((char**)&pName, readStreamPtrPtr);
                 if (m_logCalls) {
                     GFXSTREAM_INFO("stream %p: call vkGetInstanceProcAddr 0x%llx 0x%llx ", ioStream,
@@ -801,7 +799,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     (PFN_vkVoidFunction)0;
                 if (CC_LIKELY(vk)) {
                     vkGetInstanceProcAddr_PFN_vkVoidFunction_return =
-                        vk->vkGetInstanceProcAddr(unboxed_instance, pName);
+                        m_state->on_vkGetInstanceProcAddr(&m_pool, snapshotApiCallHandle, instance,
+                                                          pName);
                 }
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkGetInstanceProcAddr_PFN_vkVoidFunction_return,
@@ -822,14 +821,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                       "VkDecoder vkGetDeviceProcAddr");
                 VkDevice device;
                 const char* pName;
-                // Begin non wrapped dispatchable handle unboxing for device;
+                // Begin global wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
-                auto unboxed_device = unbox_VkDevice(device);
                 auto vk = dispatch_VkDevice(device);
-                // End manual dispatchable handle unboxing for device;
                 vkReadStream->loadStringInPlaceWithStreamPtr((char**)&pName, readStreamPtrPtr);
                 if (m_logCalls) {
                     GFXSTREAM_INFO("stream %p: call vkGetDeviceProcAddr 0x%llx 0x%llx ", ioStream,
@@ -838,8 +835,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 PFN_vkVoidFunction vkGetDeviceProcAddr_PFN_vkVoidFunction_return =
                     (PFN_vkVoidFunction)0;
                 if (CC_LIKELY(vk)) {
-                    vkGetDeviceProcAddr_PFN_vkVoidFunction_return =
-                        vk->vkGetDeviceProcAddr(unboxed_device, pName);
+                    vkGetDeviceProcAddr_PFN_vkVoidFunction_return = m_state->on_vkGetDeviceProcAddr(
+                        &m_pool, snapshotApiCallHandle, device, pName);
                 }
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkGetDeviceProcAddr_PFN_vkVoidFunction_return,

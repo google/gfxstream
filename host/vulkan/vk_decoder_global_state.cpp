@@ -1052,6 +1052,18 @@ class VkDecoderGlobalState::Impl {
         return *deviceInfo.virtioGpuContextId;
     }
 
+    PFN_vkVoidFunction on_vkGetInstanceProcAddr(gfxstream::base::BumpPool*, VkSnapshotApiCallHandle,
+                                                VkInstance, const char*) {
+        // Guest can not use host function pointers.
+        return nullptr;
+    }
+
+    PFN_vkVoidFunction on_vkGetDeviceProcAddr(gfxstream::base::BumpPool*, VkSnapshotApiCallHandle,
+                                              VkDevice, const char*) {
+        // Guest can not use host function pointers.
+        return nullptr;
+    }
+
     VkResult on_vkEnumerateInstanceVersion(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
                                            uint32_t* pApiVersion) {
         if (m_vk->vkEnumerateInstanceVersion) {
@@ -11022,6 +11034,17 @@ void VkDecoderGlobalState::save(gfxstream::Stream* stream) { mImpl->save(stream)
 
 void VkDecoderGlobalState::load(gfxstream::Stream* stream, GfxApiLogger& gfxLogger) {
     mImpl->load(stream, gfxLogger);
+}
+
+PFN_vkVoidFunction VkDecoderGlobalState::on_vkGetInstanceProcAddr(
+    gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle, VkInstance instance,
+    const char* pName) {
+    return mImpl->on_vkGetInstanceProcAddr(pool, apiCallHandle, instance, pName);
+}
+PFN_vkVoidFunction VkDecoderGlobalState::on_vkGetDeviceProcAddr(
+    gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+    const char* pName) {
+    return mImpl->on_vkGetDeviceProcAddr(pool, apiCallHandle, device, pName);
 }
 
 VkResult VkDecoderGlobalState::on_vkEnumerateInstanceVersion(gfxstream::base::BumpPool* pool,

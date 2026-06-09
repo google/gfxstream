@@ -92,6 +92,13 @@ class VkDecoderGlobalState {
     void save(gfxstream::Stream* stream);
     void load(gfxstream::Stream* stream, gfxstream::host::GfxApiLogger& gfxLogger);
 
+    PFN_vkVoidFunction on_vkGetInstanceProcAddr(gfxstream::base::BumpPool* pool,
+                                                VkSnapshotApiCallHandle apiCallHandle,
+                                                VkInstance instance, const char* pName);
+    PFN_vkVoidFunction on_vkGetDeviceProcAddr(gfxstream::base::BumpPool* pool,
+                                              VkSnapshotApiCallHandle apiCallHandle,
+                                              VkDevice device, const char* pName);
+
     VkResult on_vkEnumerateInstanceVersion(gfxstream::base::BumpPool* pool,
                                            VkSnapshotApiCallHandle apiCallHandle,
                                            uint32_t* pApiVersion);
