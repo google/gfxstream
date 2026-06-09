@@ -124,14 +124,11 @@ git_repository(
 git_repository(
     name = "mesa",
     build_file = "//third_party/mesa:BUILD.mesa.bazel",
-    commit = "0ec4cc9cd5a09831b2447a342b44fcd05ae362f2",
+    commit = "93476c62994245aba4e3fef4acaaad90c91a61be",
     dev_dependency = True,
     patch_args = ["-p1", "--ignore-whitespace"],
     patches = [
-        "//third_party/mesa:PATCH.0001_fix_locking.patch",
-        "//third_party/mesa:PATCH.0002_support_d32_s8_testing.patch",
-        "//third_party/mesa:PATCH.0003_check_dmabuf_support.patch",
-        "//third_party/mesa:PATCH.0004_disable_vk_envvar_modification_for_testing.patch",
+        "//third_party/mesa:PATCH.0001_disable_vk_envvar_modification_for_testing.patch",
     ],
     remote = "https://android.googlesource.com/platform/external/mesa3d.git",
 )
