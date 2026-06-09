@@ -72,18 +72,18 @@ rust_binary(
         "kumquat/server/src/**/*.rs",
     ]),
     binary_name = "kumquat_virtio",
+    edition = "2021",
     features = [
         "gfxstream",
     ],
-    edition = "2021",
     proc_macro_deps = [
         "@rutabaga_crate_deps//:remain",
     ],
     deps = [
         ":rutabaga_gfx_gfxstream",
-        "@mesa//:mesa_rust_util",
-        "@mesa//:mesa_protocols",
         "@//host:gfxstream_backend_static",
+        "@mesa//:mesa_protocols",
+        "@mesa//:mesa_rust_util",
         "@rutabaga_crate_deps//:anyhow",
         "@rutabaga_crate_deps//:clap",
         "@rutabaga_crate_deps//:libc",

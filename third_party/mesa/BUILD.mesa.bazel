@@ -953,9 +953,9 @@ cc_library(
     hdrs = [
         "include/c99_compat.h",
         "include/no_extern_c.h",
-        ":mesa_util_driconf_static_header",
         ":gen_u_format_gen_header",
         ":gen_u_format_pack_header",
+        ":mesa_util_driconf_static_header",
     ] + glob([
         "src/util/**/*.h",
     ]),
@@ -3059,6 +3059,9 @@ rust_library(
     ]),
     crate_name = "mesa3d_util",
     edition = "2021",
+    proc_macro_deps = [
+        "@mesa_crate_deps//:remain",
+    ],
     deps = [
         "@mesa_crate_deps//:cfg-if",
         "@mesa_crate_deps//:libc",
@@ -3066,9 +3069,6 @@ rust_library(
         "@mesa_crate_deps//:rustix",
         "@mesa_crate_deps//:thiserror",
         "@mesa_crate_deps//:zerocopy",
-    ],
-    proc_macro_deps = [
-        "@mesa_crate_deps//:remain",
     ],
 )
 
@@ -3093,8 +3093,8 @@ rust_library(
     crate_name = "virtgpu_kumquat",
     edition = "2021",
     deps = [
-        ":mesa_rust_util",
         ":mesa_protocols",
+        ":mesa_rust_util",
     ],
 )
 
@@ -3106,8 +3106,8 @@ rust_static_library(
     crate_name = "virtgpu_kumquat_ffi",
     edition = "2021",
     deps = [
-        ":mesa_rust_util",
         ":mesa_protocols",
+        ":mesa_rust_util",
         ":mesa_virtgpu_kumquat",
         "@mesa_crate_deps//:libc",
         "@mesa_crate_deps//:log",
@@ -3127,6 +3127,12 @@ cc_library(
     name = "mesa_gfxstream_guest_platform",
     srcs = [
         "src/gfxstream/guest/platform/VirtGpu.cpp",
+        "src/gfxstream/guest/platform/drm/DrmSync.cpp",
+        "src/gfxstream/guest/platform/drm/DrmSync.h",
+        "src/gfxstream/guest/platform/drm/DrmVirtGpu.h",
+        "src/gfxstream/guest/platform/drm/DrmVirtGpuBlob.cpp",
+        "src/gfxstream/guest/platform/drm/DrmVirtGpuBlobMapping.cpp",
+        "src/gfxstream/guest/platform/drm/DrmVirtGpuDevice.cpp",
         "src/gfxstream/guest/platform/kumquat/VirtGpuKumquat.h",
         "src/gfxstream/guest/platform/kumquat/VirtGpuKumquatBlob.cpp",
         "src/gfxstream/guest/platform/kumquat/VirtGpuKumquatBlobMapping.cpp",
@@ -3135,12 +3141,6 @@ cc_library(
         "src/gfxstream/guest/platform/kumquat/VirtGpuKumquatSync.h",
         "src/gfxstream/guest/platform/kumquat/vulkan-mapper/GfxStreamVulkanMapper.cpp",
         "src/gfxstream/guest/platform/kumquat/vulkan-mapper/GfxStreamVulkanMapper.h",
-        "src/gfxstream/guest/platform/drm/DrmSync.cpp",
-        "src/gfxstream/guest/platform/drm/DrmSync.h",
-        "src/gfxstream/guest/platform/drm/DrmVirtGpu.h",
-        "src/gfxstream/guest/platform/drm/DrmVirtGpuBlob.cpp",
-        "src/gfxstream/guest/platform/drm/DrmVirtGpuBlobMapping.cpp",
-        "src/gfxstream/guest/platform/drm/DrmVirtGpuDevice.cpp",
     ],
     hdrs = glob([
         "src/gfxstream/guest/platform/include/**/*.h",
@@ -3154,8 +3154,8 @@ cc_library(
     deps = [
         ":mesa_drm",
         ":mesa_util",
-        ":mesa_virtio",
         ":mesa_virtgpu_kumquat_ffi",
+        ":mesa_virtio",
         ":mesa_vulkan_util",
         "@drm//:libdrm",
     ],
@@ -3397,9 +3397,9 @@ cc_library(
         "src/gfxstream/guest/vulkan_enc/vk_android_native_buffer_gfxstream.h",
         "src/gfxstream/guest/vulkan_enc/vk_format_info.h",
         "src/gfxstream/guest/vulkan_enc/vk_platform_compat.h",
+        ":gen_vulkan_gfxstream_header",
         ":gfxstream_guest_vk_autogen_headers",
         ":gfxstream_guest_vk_autogen_impl",
-        ":gen_vulkan_gfxstream_header",
     ],
     hdrs = [
         "src/gfxstream/guest/vulkan_enc/VkEncoder.cpp.inl",
@@ -3421,10 +3421,10 @@ cc_library(
     ],
     deps = [
         ":mesa_android_stub",
+        ":mesa_commit",
         ":mesa_gfxstream_connection_manager",
         ":mesa_gfxstream_guest_aemu",
         ":mesa_gfxstream_guest_android",
-        ":mesa_commit",
         ":mesa_util",
         ":mesa_util_format",
         ":mesa_vulkan_runtime",

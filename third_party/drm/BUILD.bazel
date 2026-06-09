@@ -7,6 +7,6 @@ package(
 cc_library(
     name = "gfxstream_drm_headers",
     hdrs = glob(["include/**/*.h"]),
-    strip_include_prefix = "include",
     features = ["system_include_paths"],
+    strip_include_prefix = "include",
 )
