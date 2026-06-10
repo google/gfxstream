@@ -2,12 +2,12 @@
 
 ## Guest Vulkan
 
-gfxstream vulkan is the most actively developed component. Some key commponents
+gfxstream vulkan is the most actively developed component. Some key components
 of the current design include:
 
 *   1:1 threading model - each guest Vulkan encoder thread gets host side
     decoding thread
-*   Support for both virtio-gpu, goldish and testing transports.
+*   Support for both virtio-gpu, goldfish and testing transports.
 *   Support for Android, Fuchsia, and Linux guests.
 *   Ring Buffer to stream commands, in the style of io_uring.
 *   Mesa embedded to provide

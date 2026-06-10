@@ -14,7 +14,7 @@ original device state.
 
 `DependencyGraph` has 2 types of nodes:
 
-* `DependencyGraph::ApiNode` where each node represents a specific innovcation
+* `DependencyGraph::ApiNode` where each node represents a specific invocation
 of a Vulkan API function.
 
 * `DependencyGraph::DepNode` where each node represents either:
