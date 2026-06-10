@@ -329,6 +329,7 @@ endfunction()
         vulkan/swap_chain_state_vk_unittest.cpp
         vulkan/vk_decoder_global_state_unittest.cpp
         vulkan/vk_emulated_physical_device_memory_tests.cpp
+        vulkan/vk_emulated_physical_device_queue_tests.cpp
         vulkan/vk_format_utils_unittest.cpp
         vulkan/vk_qsri_timeline_unittest.cpp
         vulkan/vk_utils_tests.cpp
