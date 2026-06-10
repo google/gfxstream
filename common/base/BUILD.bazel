@@ -145,6 +145,7 @@ cc_test(
         "HybridEntityManager_unittest.cpp",
         "LruCache_unittest.cpp",
         "ManagedDescriptor_unittest.cpp",
+        "SharedMemory_unittest.cpp",
         "StringFormat_unittest.cpp",
         "TypeTraits_unittest.cpp",
         "WorkerThread_unittest.cpp",

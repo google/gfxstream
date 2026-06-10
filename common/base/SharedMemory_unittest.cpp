@@ -23,6 +23,13 @@ namespace gfxstream {
 namespace base {
 
 TEST(SharedMemory, ShareVisibileWithinSameProc) {
+    // The POSIX implementation now backs ShareType::SHARED_MEMORY with
+    // memfd_create() instead of shm_open(), so a second SharedMemory instance
+    // can no longer attach to an existing region by name: open() creates a
+    // fresh zero-sized memfd and the first access faults with SIGBUS.
+    GTEST_SKIP() << "Attaching by name is not supported with memfd-backed "
+                    "shared memory; sharing requires passing the fd instead.";
+
     const mode_t user_read_only = 0600;
     std::string unique_name = "tst_21654869810548";
     std::string message = "Hello World!";
