@@ -2,7 +2,7 @@ git_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:git.bzl", "g
 
 git_repository(
     name = "pyyaml",
-    build_file = "//third_party/mesa:BUILD.pyyaml.bazel",
+    build_file = "//third_party/pyyaml:BUILD.pyyaml.bazel",
     commit = "41309b0bcb4559edb1d691d47199035ef539d785",  # 6.0.2
     dev_dependency = True,
     remote = "https://github.com/yaml/pyyaml.git",
