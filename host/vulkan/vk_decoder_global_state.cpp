@@ -9435,6 +9435,95 @@ class VkDecoderGlobalState::Impl {
         return VK_SUCCESS;
     }
 
+    VkResult on_vkCreatePrivateDataSlotEXT(gfxstream::base::BumpPool* pool,
+                                           VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+                                           const VkPrivateDataSlotCreateInfo* pCreateInfo,
+                                           const VkAllocationCallbacks* pAllocator,
+                                           VkPrivateDataSlot* pPrivateDataSlot) {
+        // Guest relies on the host to generate a handle.
+        return on_vkCreatePrivateDataSlot(pool, apiCallHandle, device, pCreateInfo, pAllocator,
+                                          pPrivateDataSlot);
+    }
+
+    void on_vkDestroyPrivateDataSlotEXT(gfxstream::base::BumpPool* pool,
+                                        VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+                                        VkPrivateDataSlot privateDataSlot,
+                                        const VkAllocationCallbacks* pAllocator) {
+        return on_vkDestroyPrivateDataSlot(pool, apiCallHandle, device, privateDataSlot,
+                                           pAllocator);
+    }
+
+    void on_vkGetPrivateDataEXT(gfxstream::base::BumpPool* pool,
+                                VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+                                VkObjectType objectType, uint64_t objectHandle,
+                                VkPrivateDataSlot privateDataSlot, uint64_t* pData) {
+        on_vkGetPrivateData(pool, apiCallHandle, device, objectType, objectHandle, privateDataSlot,
+                            pData);
+    }
+
+    VkResult on_vkSetPrivateDataEXT(gfxstream::base::BumpPool* pool,
+                                    VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+                                    VkObjectType objectType, uint64_t objectHandle,
+                                    VkPrivateDataSlot privateDataSlot, uint64_t data) {
+        return on_vkSetPrivateData(pool, apiCallHandle, device, objectType, objectHandle,
+                                   privateDataSlot, data);
+    }
+
+    VkResult on_vkCreatePrivateDataSlot(gfxstream::base::BumpPool* pool,
+                                        VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+                                        const VkPrivateDataSlotCreateInfo* pCreateInfo,
+                                        const VkAllocationCallbacks* pAllocator,
+                                        VkPrivateDataSlot* pPrivateDataSlot) {
+        // Private data slots are mostly handled in the guest so this is not forwarded to the host
+        // driver. However, the guest historically relied on the host to generate a handle, so we do
+        // that here.
+        static std::atomic<uint64_t> nextHandle = 1;
+
+        VkPrivateDataSlot handle = (VkPrivateDataSlot)(uintptr_t)nextHandle.fetch_add(1);
+
+        *pPrivateDataSlot = new_boxed_non_dispatchable_VkPrivateDataSlot(handle);
+        return VK_SUCCESS;
+    }
+
+    void on_vkDestroyPrivateDataSlot(gfxstream::base::BumpPool* /*pool*/,
+                                     VkSnapshotApiCallHandle /*apiCallHandle*/, VkDevice /*device*/,
+                                     VkPrivateDataSlot /*privateDataSlot*/,
+                                     const VkAllocationCallbacks* /*pAllocator*/) {
+        // No-op as `privateDataSlot` is just an arbitrary handle created by
+        // `on_vkCreatePrivateDataSlot()`.
+    }
+
+    void on_vkGetPrivateData(gfxstream::base::BumpPool* /*pool*/,
+                             VkSnapshotApiCallHandle /*apiCallHandle*/, VkDevice /*device*/,
+                             VkObjectType /*objectType*/, uint64_t /*objectHandle*/,
+                             VkPrivateDataSlot /*privateDataSlot*/, uint64_t* /*pData*/) {
+        GFXSTREAM_VERBOSE(
+            "Unexpected call to on_vkGetPrivateData() which should be handled in the guest.");
+    }
+
+    VkResult on_vkSetPrivateData(gfxstream::base::BumpPool* /*pool*/,
+                                 VkSnapshotApiCallHandle /*apiCallHandle*/, VkDevice /*device*/,
+                                 VkObjectType /*objectType*/, uint64_t /*objectHandle*/,
+                                 VkPrivateDataSlot /*privateDataSlot*/, uint64_t /*data*/) {
+        GFXSTREAM_VERBOSE(
+            "Unexpected call to on_vkSetPrivateData() which should be handled in the guest.");
+        return VK_ERROR_UNKNOWN;
+    }
+
+    VkResult on_vkSetDebugUtilsObjectNameEXT(gfxstream::base::BumpPool* /*pool*/,
+                                             VkSnapshotApiCallHandle /*apiCallHandle*/,
+                                             VkDevice /*device*/,
+                                             const VkDebugUtilsObjectNameInfoEXT* /*pNameInfo*/) {
+        return VK_SUCCESS;
+    }
+
+    VkResult on_vkSetDebugUtilsObjectTagEXT(gfxstream::base::BumpPool* /*pool*/,
+                                            VkSnapshotApiCallHandle /*apiCallHandle*/,
+                                            VkDevice /*device*/,
+                                            const VkDebugUtilsObjectTagInfoEXT* /*pTagInfo*/) {
+        return VK_SUCCESS;
+    }
+
     void on_DeviceLost() {
         m_vkEmulation->getDeviceLostHelper().onDeviceLost();
         GFXSTREAM_FATAL("Encountered device lost.");
@@ -12404,6 +12493,89 @@ VkResult VkDecoderGlobalState::on_vkEnumeratePhysicalDeviceGroupsKHR(
     VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties) {
     return mImpl->on_vkEnumeratePhysicalDeviceGroups(
         pool, apiCallHandle, instance, pPhysicalDeviceGroupCount, pPhysicalDeviceGroupProperties);
+}
+
+VkResult VkDecoderGlobalState::on_vkCreatePrivateDataSlotEXT(
+    gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+    const VkPrivateDataSlotCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator,
+    VkPrivateDataSlot* pPrivateDataSlot) {
+    return mImpl->on_vkCreatePrivateDataSlotEXT(pool, apiCallHandle, device, pCreateInfo,
+                                                pAllocator, pPrivateDataSlot);
+}
+
+void VkDecoderGlobalState::on_vkDestroyPrivateDataSlotEXT(gfxstream::base::BumpPool* pool,
+                                                          VkSnapshotApiCallHandle apiCallHandle,
+                                                          VkDevice device,
+                                                          VkPrivateDataSlot privateDataSlot,
+                                                          const VkAllocationCallbacks* pAllocator) {
+    mImpl->on_vkDestroyPrivateDataSlotEXT(pool, apiCallHandle, device, privateDataSlot, pAllocator);
+}
+
+void VkDecoderGlobalState::on_vkGetPrivateDataEXT(gfxstream::base::BumpPool* pool,
+                                                  VkSnapshotApiCallHandle apiCallHandle,
+                                                  VkDevice device, VkObjectType objectType,
+                                                  uint64_t objectHandle,
+                                                  VkPrivateDataSlot privateDataSlot,
+                                                  uint64_t* pData) {
+    mImpl->on_vkGetPrivateDataEXT(pool, apiCallHandle, device, objectType, objectHandle,
+                                  privateDataSlot, pData);
+}
+
+VkResult VkDecoderGlobalState::on_vkSetPrivateDataEXT(gfxstream::base::BumpPool* pool,
+                                                      VkSnapshotApiCallHandle apiCallHandle,
+                                                      VkDevice device, VkObjectType objectType,
+                                                      uint64_t objectHandle,
+                                                      VkPrivateDataSlot privateDataSlot,
+                                                      uint64_t data) {
+    return mImpl->on_vkSetPrivateDataEXT(pool, apiCallHandle, device, objectType, objectHandle,
+                                         privateDataSlot, data);
+}
+
+VkResult VkDecoderGlobalState::on_vkCreatePrivateDataSlot(
+    gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+    const VkPrivateDataSlotCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator,
+    VkPrivateDataSlot* pPrivateDataSlot) {
+    return mImpl->on_vkCreatePrivateDataSlot(pool, apiCallHandle, device, pCreateInfo, pAllocator,
+                                             pPrivateDataSlot);
+}
+
+void VkDecoderGlobalState::on_vkDestroyPrivateDataSlot(gfxstream::base::BumpPool* pool,
+                                                       VkSnapshotApiCallHandle apiCallHandle,
+                                                       VkDevice device,
+                                                       VkPrivateDataSlot privateDataSlot,
+                                                       const VkAllocationCallbacks* pAllocator) {
+    mImpl->on_vkDestroyPrivateDataSlot(pool, apiCallHandle, device, privateDataSlot, pAllocator);
+}
+
+void VkDecoderGlobalState::on_vkGetPrivateData(gfxstream::base::BumpPool* pool,
+                                               VkSnapshotApiCallHandle apiCallHandle,
+                                               VkDevice device, VkObjectType objectType,
+                                               uint64_t objectHandle,
+                                               VkPrivateDataSlot privateDataSlot, uint64_t* pData) {
+    mImpl->on_vkGetPrivateData(pool, apiCallHandle, device, objectType, objectHandle,
+                               privateDataSlot, pData);
+}
+
+VkResult VkDecoderGlobalState::on_vkSetPrivateData(gfxstream::base::BumpPool* pool,
+                                                   VkSnapshotApiCallHandle apiCallHandle,
+                                                   VkDevice device, VkObjectType objectType,
+                                                   uint64_t objectHandle,
+                                                   VkPrivateDataSlot privateDataSlot,
+                                                   uint64_t data) {
+    return mImpl->on_vkSetPrivateData(pool, apiCallHandle, device, objectType, objectHandle,
+                                      privateDataSlot, data);
+}
+
+VkResult VkDecoderGlobalState::on_vkSetDebugUtilsObjectNameEXT(
+    gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+    const VkDebugUtilsObjectNameInfoEXT* pNameInfo) {
+    return mImpl->on_vkSetDebugUtilsObjectNameEXT(pool, apiCallHandle, device, pNameInfo);
+}
+
+VkResult VkDecoderGlobalState::on_vkSetDebugUtilsObjectTagEXT(
+    gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+    const VkDebugUtilsObjectTagInfoEXT* pTagInfo) {
+    return mImpl->on_vkSetDebugUtilsObjectTagEXT(pool, apiCallHandle, device, pTagInfo);
 }
 
 void VkDecoderGlobalState::on_DeviceLost() { mImpl->on_DeviceLost(); }

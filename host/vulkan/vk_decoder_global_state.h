@@ -943,6 +943,51 @@ class VkDecoderGlobalState {
         uint32_t* pPhysicalDeviceGroupCount,
         VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties);
 
+    // VK_EXT_private_data
+    VkResult on_vkCreatePrivateDataSlotEXT(gfxstream::base::BumpPool* pool,
+                                           VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+                                           const VkPrivateDataSlotCreateInfo* pCreateInfo,
+                                           const VkAllocationCallbacks* pAllocator,
+                                           VkPrivateDataSlot* pPrivateDataSlot);
+    void on_vkDestroyPrivateDataSlotEXT(gfxstream::base::BumpPool* pool,
+                                        VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+                                        VkPrivateDataSlot privateDataSlot,
+                                        const VkAllocationCallbacks* pAllocator);
+    void on_vkGetPrivateDataEXT(gfxstream::base::BumpPool* pool,
+                                VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+                                VkObjectType objectType, uint64_t objectHandle,
+                                VkPrivateDataSlot privateDataSlot, uint64_t* pData);
+    VkResult on_vkSetPrivateDataEXT(gfxstream::base::BumpPool* pool,
+                                    VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+                                    VkObjectType objectType, uint64_t objectHandle,
+                                    VkPrivateDataSlot privateDataSlot, uint64_t data);
+
+    // VK_EXT_private_data in core after VK_VERSION_1_3
+    VkResult on_vkCreatePrivateDataSlot(gfxstream::base::BumpPool* pool,
+                                        VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+                                        const VkPrivateDataSlotCreateInfo* pCreateInfo,
+                                        const VkAllocationCallbacks* pAllocator,
+                                        VkPrivateDataSlot* pPrivateDataSlot);
+    void on_vkDestroyPrivateDataSlot(gfxstream::base::BumpPool* pool,
+                                     VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+                                     VkPrivateDataSlot privateDataSlot,
+                                     const VkAllocationCallbacks* pAllocator);
+    void on_vkGetPrivateData(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle,
+                             VkDevice device, VkObjectType objectType, uint64_t objectHandle,
+                             VkPrivateDataSlot privateDataSlot, uint64_t* pData);
+    VkResult on_vkSetPrivateData(gfxstream::base::BumpPool* pool,
+                                 VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+                                 VkObjectType objectType, uint64_t objectHandle,
+                                 VkPrivateDataSlot privateDataSlot, uint64_t data);
+
+    // VK_EXT_debug_utils
+    VkResult on_vkSetDebugUtilsObjectNameEXT(gfxstream::base::BumpPool* pool,
+                                             VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+                                             const VkDebugUtilsObjectNameInfoEXT* pNameInfo);
+    VkResult on_vkSetDebugUtilsObjectTagEXT(gfxstream::base::BumpPool* pool,
+                                            VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+                                            const VkDebugUtilsObjectTagInfoEXT* pTagInfo);
+
     void on_DeviceLost();
 
     // Fence waits

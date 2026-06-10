@@ -2649,12 +2649,29 @@ class VkDecoderSnapshot::Impl {
                                     VkResult input_result, VkDevice device,
                                     const VkPrivateDataSlotCreateInfo* pCreateInfo,
                                     const VkAllocationCallbacks* pAllocator,
-                                    VkPrivateDataSlot* pPrivateDataSlot) {}
+                                    VkPrivateDataSlot* pPrivateDataSlot) {
+        if (!pPrivateDataSlot) return;
+        if (input_result != VK_SUCCESS) return;
+        std::lock_guard<std::mutex> lock(mReconstructionMutex);
+        // pPrivateDataSlot create
+        mReconstruction.addHandles((const uint64_t*)pPrivateDataSlot, 1);
+        mReconstruction.addHandleDependency((const uint64_t*)pPrivateDataSlot, 1,
+                                            (uint64_t)(uintptr_t)device);
+        mReconstruction.setApiTrace(apiCallHandle, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pPrivateDataSlot, 1, apiCallHandle,
+                                            VkReconstruction::CREATED);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pPrivateDataSlot,
+                                                1);
+    }
     void vkDestroyPrivateDataSlotEXT(gfxstream::base::BumpPool* pool,
                                      VkSnapshotApiCallHandle apiCallHandle,
                                      const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                      VkDevice device, VkPrivateDataSlot privateDataSlot,
-                                     const VkAllocationCallbacks* pAllocator) {}
+                                     const VkAllocationCallbacks* pAllocator) {
+        std::lock_guard<std::mutex> lock(mReconstructionMutex);
+        // privateDataSlot destroy
+        mReconstruction.removeHandles((const uint64_t*)(&privateDataSlot), 1, true);
+    }
     void vkSetPrivateDataEXT(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle,
                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                              VkResult input_result, VkDevice device, VkObjectType objectType,

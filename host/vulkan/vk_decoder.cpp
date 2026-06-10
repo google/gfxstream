@@ -11202,14 +11202,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 const VkPrivateDataSlotCreateInfo* pCreateInfo;
                 const VkAllocationCallbacks* pAllocator;
                 VkPrivateDataSlot* pPrivateDataSlot;
-                // Begin non wrapped dispatchable handle unboxing for device;
+                // Begin global wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
-                auto unboxed_device = unbox_VkDevice(device);
                 auto vk = dispatch_VkDevice(device);
-                // End manual dispatchable handle unboxing for device;
                 vkReadStream->alloc((void**)&pCreateInfo,
                                     sizeof(const VkPrivateDataSlotCreateInfo));
                 reservedunmarshal_VkPrivateDataSlotCreateInfo(
@@ -11249,22 +11247,22 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 VkResult vkCreatePrivateDataSlot_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
-                    vkCreatePrivateDataSlot_VkResult_return = vk->vkCreatePrivateDataSlot(
-                        unboxed_device, pCreateInfo, pAllocator, pPrivateDataSlot);
+                    vkCreatePrivateDataSlot_VkResult_return = m_state->on_vkCreatePrivateDataSlot(
+                        &m_pool, snapshotApiCallHandle, device, pCreateInfo, pAllocator,
+                        pPrivateDataSlot);
                 }
                 if ((vkCreatePrivateDataSlot_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
                 vkStream->unsetHandleMapping();
-                // Begin auto non dispatchable handle create for pPrivateDataSlot;
-                if (vkCreatePrivateDataSlot_VkResult_return == VK_SUCCESS)
-                    vkStream->setHandleMapping(&m_boxedHandleCreateMapping);
+                // Begin manual non dispatchable handle create for pPrivateDataSlot;
+                vkStream->unsetHandleMapping();
                 uint64_t cgen_var_3;
                 static_assert(8 == sizeof(VkPrivateDataSlot),
                               "handle map overwrite requires VkPrivateDataSlot to be 8 bytes long");
                 vkStream->handleMapping()->mapHandles_VkPrivateDataSlot(
                     (VkPrivateDataSlot*)pPrivateDataSlot, 1);
                 vkStream->write((VkPrivateDataSlot*)pPrivateDataSlot, 8 * 1);
-                // Begin auto non dispatchable handle create for pPrivateDataSlot;
+                // Begin manual non dispatchable handle create for pPrivateDataSlot;
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreatePrivateDataSlot_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
@@ -11285,14 +11283,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkDevice device;
                 VkPrivateDataSlot privateDataSlot;
                 const VkAllocationCallbacks* pAllocator;
-                // Begin non wrapped dispatchable handle unboxing for device;
+                // Begin global wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
-                auto unboxed_device = unbox_VkDevice(device);
                 auto vk = dispatch_VkDevice(device);
-                // End manual dispatchable handle unboxing for device;
                 // Begin manual non dispatchable handle destroy unboxing for privateDataSlot;
                 VkPrivateDataSlot boxed_privateDataSlot_preserve;
                 uint64_t cgen_var_1;
@@ -11323,7 +11319,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
-                    vk->vkDestroyPrivateDataSlot(unboxed_device, privateDataSlot, pAllocator);
+                    m_state->on_vkDestroyPrivateDataSlot(&m_pool, snapshotApiCallHandle, device,
+                                                         privateDataSlot, pAllocator);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
@@ -11345,14 +11342,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 uint64_t objectHandle;
                 VkPrivateDataSlot privateDataSlot;
                 uint64_t data;
-                // Begin non wrapped dispatchable handle unboxing for device;
+                // Begin global wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
-                auto unboxed_device = unbox_VkDevice(device);
                 auto vk = dispatch_VkDevice(device);
-                // End manual dispatchable handle unboxing for device;
                 memcpy((VkObjectType*)&objectType, *readStreamPtrPtr, sizeof(VkObjectType));
                 *readStreamPtrPtr += sizeof(VkObjectType);
                 memcpy((uint64_t*)&objectHandle, *readStreamPtrPtr, sizeof(uint64_t));
@@ -11373,8 +11368,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 VkResult vkSetPrivateData_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
-                    vkSetPrivateData_VkResult_return = vk->vkSetPrivateData(
-                        unboxed_device, objectType, objectHandle, privateDataSlot, data);
+                    vkSetPrivateData_VkResult_return = m_state->on_vkSetPrivateData(
+                        &m_pool, snapshotApiCallHandle, device, objectType, objectHandle,
+                        privateDataSlot, data);
                 }
                 if ((vkSetPrivateData_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -11400,14 +11396,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 uint64_t objectHandle;
                 VkPrivateDataSlot privateDataSlot;
                 uint64_t* pData;
-                // Begin non wrapped dispatchable handle unboxing for device;
+                // Begin global wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
-                auto unboxed_device = unbox_VkDevice(device);
                 auto vk = dispatch_VkDevice(device);
-                // End manual dispatchable handle unboxing for device;
                 memcpy((VkObjectType*)&objectType, *readStreamPtrPtr, sizeof(VkObjectType));
                 *readStreamPtrPtr += sizeof(VkObjectType);
                 memcpy((uint64_t*)&objectHandle, *readStreamPtrPtr, sizeof(uint64_t));
@@ -11430,8 +11424,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (unsigned long long)pData);
                 }
                 if (CC_LIKELY(vk)) {
-                    vk->vkGetPrivateData(unboxed_device, objectType, objectHandle, privateDataSlot,
-                                         pData);
+                    m_state->on_vkGetPrivateData(&m_pool, snapshotApiCallHandle, device, objectType,
+                                                 objectHandle, privateDataSlot, pData);
                 }
                 vkStream->unsetHandleMapping();
                 vkStream->write((uint64_t*)pData, sizeof(uint64_t));
@@ -19335,14 +19329,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                       "VkDecoder vkSetDebugUtilsObjectNameEXT");
                 VkDevice device;
                 const VkDebugUtilsObjectNameInfoEXT* pNameInfo;
-                // Begin non wrapped dispatchable handle unboxing for device;
+                // Begin global wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
-                auto unboxed_device = unbox_VkDevice(device);
                 auto vk = dispatch_VkDevice(device);
-                // End manual dispatchable handle unboxing for device;
                 vkReadStream->alloc((void**)&pNameInfo,
                                     sizeof(const VkDebugUtilsObjectNameInfoEXT));
                 reservedunmarshal_VkDebugUtilsObjectNameInfoEXT(
@@ -19360,7 +19352,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkSetDebugUtilsObjectNameEXT_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkSetDebugUtilsObjectNameEXT_VkResult_return =
-                        vk->vkSetDebugUtilsObjectNameEXT(unboxed_device, pNameInfo);
+                        m_state->on_vkSetDebugUtilsObjectNameEXT(&m_pool, snapshotApiCallHandle,
+                                                                 device, pNameInfo);
                 }
                 if ((vkSetDebugUtilsObjectNameEXT_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -19382,14 +19375,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                       "VkDecoder vkSetDebugUtilsObjectTagEXT");
                 VkDevice device;
                 const VkDebugUtilsObjectTagInfoEXT* pTagInfo;
-                // Begin non wrapped dispatchable handle unboxing for device;
+                // Begin global wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
-                auto unboxed_device = unbox_VkDevice(device);
                 auto vk = dispatch_VkDevice(device);
-                // End manual dispatchable handle unboxing for device;
                 vkReadStream->alloc((void**)&pTagInfo, sizeof(const VkDebugUtilsObjectTagInfoEXT));
                 reservedunmarshal_VkDebugUtilsObjectTagInfoEXT(
                     vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -19406,7 +19397,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkSetDebugUtilsObjectTagEXT_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
                     vkSetDebugUtilsObjectTagEXT_VkResult_return =
-                        vk->vkSetDebugUtilsObjectTagEXT(unboxed_device, pTagInfo);
+                        m_state->on_vkSetDebugUtilsObjectTagEXT(&m_pool, snapshotApiCallHandle,
+                                                                device, pTagInfo);
                 }
                 if ((vkSetDebugUtilsObjectTagEXT_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -20987,14 +20979,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 const VkPrivateDataSlotCreateInfo* pCreateInfo;
                 const VkAllocationCallbacks* pAllocator;
                 VkPrivateDataSlot* pPrivateDataSlot;
-                // Begin non wrapped dispatchable handle unboxing for device;
+                // Begin global wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
-                auto unboxed_device = unbox_VkDevice(device);
                 auto vk = dispatch_VkDevice(device);
-                // End manual dispatchable handle unboxing for device;
                 vkReadStream->alloc((void**)&pCreateInfo,
                                     sizeof(const VkPrivateDataSlotCreateInfo));
                 reservedunmarshal_VkPrivateDataSlotCreateInfo(
@@ -21034,16 +21024,24 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 VkResult vkCreatePrivateDataSlotEXT_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
-                    vkCreatePrivateDataSlotEXT_VkResult_return = vk->vkCreatePrivateDataSlotEXT(
-                        unboxed_device, pCreateInfo, pAllocator, pPrivateDataSlot);
+                    vkCreatePrivateDataSlotEXT_VkResult_return =
+                        m_state->on_vkCreatePrivateDataSlotEXT(&m_pool, snapshotApiCallHandle,
+                                                               device, pCreateInfo, pAllocator,
+                                                               pPrivateDataSlot);
                 }
                 if ((vkCreatePrivateDataSlotEXT_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
                 vkStream->unsetHandleMapping();
+                // Begin manual non dispatchable handle create for pPrivateDataSlot;
+                vkStream->unsetHandleMapping();
                 uint64_t cgen_var_3;
-                vkStream->handleMapping()->mapHandles_VkPrivateDataSlot_u64(pPrivateDataSlot,
-                                                                            &cgen_var_3, 1);
-                vkStream->write((uint64_t*)&cgen_var_3, 8);
+                static_assert(8 == sizeof(VkPrivateDataSlot),
+                              "handle map overwrite requires VkPrivateDataSlot to be 8 bytes long");
+                vkStream->handleMapping()->mapHandles_VkPrivateDataSlot(
+                    (VkPrivateDataSlot*)pPrivateDataSlot, 1);
+                vkStream->write((VkPrivateDataSlot*)pPrivateDataSlot, 8 * 1);
+                // Begin manual non dispatchable handle create for pPrivateDataSlot;
+                vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreatePrivateDataSlotEXT_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
                 if (m_snapshotsEnabled) {
@@ -21063,19 +21061,21 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkDevice device;
                 VkPrivateDataSlot privateDataSlot;
                 const VkAllocationCallbacks* pAllocator;
-                // Begin non wrapped dispatchable handle unboxing for device;
+                // Begin global wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
-                auto unboxed_device = unbox_VkDevice(device);
                 auto vk = dispatch_VkDevice(device);
-                // End manual dispatchable handle unboxing for device;
+                // Begin manual non dispatchable handle destroy unboxing for privateDataSlot;
+                VkPrivateDataSlot boxed_privateDataSlot_preserve;
                 uint64_t cgen_var_1;
                 memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkPrivateDataSlot*)&privateDataSlot =
-                    (VkPrivateDataSlot)unbox_VkPrivateDataSlot((VkPrivateDataSlot)(*&cgen_var_1));
+                    (VkPrivateDataSlot)(VkPrivateDataSlot)((VkPrivateDataSlot)(*&cgen_var_1));
+                boxed_privateDataSlot_preserve = privateDataSlot;
+                privateDataSlot = try_unbox_VkPrivateDataSlot(privateDataSlot);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 gfxstream::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -21097,14 +21097,16 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (unsigned long long)pAllocator);
                 }
                 if (CC_LIKELY(vk)) {
-                    vk->vkDestroyPrivateDataSlotEXT(unboxed_device, privateDataSlot, pAllocator);
+                    m_state->on_vkDestroyPrivateDataSlotEXT(&m_pool, snapshotApiCallHandle, device,
+                                                            privateDataSlot, pAllocator);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
-                    m_state->snapshot()->vkDestroyPrivateDataSlotEXT(&m_pool, snapshotApiCallHandle,
-                                                                     packet, packetLen, device,
-                                                                     privateDataSlot, pAllocator);
+                    m_state->snapshot()->vkDestroyPrivateDataSlotEXT(
+                        &m_pool, snapshotApiCallHandle, packet, packetLen, device,
+                        boxed_privateDataSlot_preserve, pAllocator);
                 }
+                delete_VkPrivateDataSlot(boxed_privateDataSlot_preserve);
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
                     seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
@@ -21118,14 +21120,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 uint64_t objectHandle;
                 VkPrivateDataSlot privateDataSlot;
                 uint64_t data;
-                // Begin non wrapped dispatchable handle unboxing for device;
+                // Begin global wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
-                auto unboxed_device = unbox_VkDevice(device);
                 auto vk = dispatch_VkDevice(device);
-                // End manual dispatchable handle unboxing for device;
                 memcpy((VkObjectType*)&objectType, *readStreamPtrPtr, sizeof(VkObjectType));
                 *readStreamPtrPtr += sizeof(VkObjectType);
                 memcpy((uint64_t*)&objectHandle, *readStreamPtrPtr, sizeof(uint64_t));
@@ -21146,8 +21146,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 VkResult vkSetPrivateDataEXT_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
                 if (CC_LIKELY(vk)) {
-                    vkSetPrivateDataEXT_VkResult_return = vk->vkSetPrivateDataEXT(
-                        unboxed_device, objectType, objectHandle, privateDataSlot, data);
+                    vkSetPrivateDataEXT_VkResult_return = m_state->on_vkSetPrivateDataEXT(
+                        &m_pool, snapshotApiCallHandle, device, objectType, objectHandle,
+                        privateDataSlot, data);
                 }
                 if ((vkSetPrivateDataEXT_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -21173,14 +21174,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 uint64_t objectHandle;
                 VkPrivateDataSlot privateDataSlot;
                 uint64_t* pData;
-                // Begin non wrapped dispatchable handle unboxing for device;
+                // Begin global wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
-                auto unboxed_device = unbox_VkDevice(device);
                 auto vk = dispatch_VkDevice(device);
-                // End manual dispatchable handle unboxing for device;
                 memcpy((VkObjectType*)&objectType, *readStreamPtrPtr, sizeof(VkObjectType));
                 *readStreamPtrPtr += sizeof(VkObjectType);
                 memcpy((uint64_t*)&objectHandle, *readStreamPtrPtr, sizeof(uint64_t));
@@ -21203,8 +21202,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (unsigned long long)pData);
                 }
                 if (CC_LIKELY(vk)) {
-                    vk->vkGetPrivateDataEXT(unboxed_device, objectType, objectHandle,
-                                            privateDataSlot, pData);
+                    m_state->on_vkGetPrivateDataEXT(&m_pool, snapshotApiCallHandle, device,
+                                                    objectType, objectHandle, privateDataSlot,
+                                                    pData);
                 }
                 vkStream->unsetHandleMapping();
                 vkStream->write((uint64_t*)pData, sizeof(uint64_t));
