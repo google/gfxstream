@@ -4648,6 +4648,24 @@ void unmarshal_VkDebugMetadataGOOGLE(VulkanStream* vkStream, VkStructureType roo
 
 #define OP_vkSetDebugMetadataAsyncGOOGLE 236453297
 #endif
+#ifdef VK_EXT_border_color_swizzle
+void marshal_VkPhysicalDeviceBorderColorSwizzleFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceBorderColorSwizzleFeaturesEXT* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceBorderColorSwizzleFeaturesEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceBorderColorSwizzleFeaturesEXT* forUnmarshaling);
+
+void marshal_VkSamplerBorderColorComponentMappingCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkSamplerBorderColorComponentMappingCreateInfoEXT* forMarshaling);
+
+void unmarshal_VkSamplerBorderColorComponentMappingCreateInfoEXT(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkSamplerBorderColorComponentMappingCreateInfoEXT* forUnmarshaling);
+
+#endif
 #ifdef VK_EXT_image_compression_control_swapchain
 void marshal_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
     VulkanStream* vkStream, VkStructureType rootType,

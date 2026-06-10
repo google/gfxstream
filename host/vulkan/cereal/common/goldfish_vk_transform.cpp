@@ -9577,6 +9577,52 @@ void transform_fromhost_VkDebugMetadataGOOGLE(VkDecoderGlobalState* resourceTrac
 }
 
 #endif
+#ifdef VK_EXT_border_color_swizzle
+void transform_tohost_VkPhysicalDeviceBorderColorSwizzleFeaturesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceBorderColorSwizzleFeaturesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceBorderColorSwizzleFeaturesEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceBorderColorSwizzleFeaturesEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkSamplerBorderColorComponentMappingCreateInfoEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkSamplerBorderColorComponentMappingCreateInfoEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkComponentMapping(resourceTracker,
+                                        (VkComponentMapping*)(&toTransform->components));
+}
+
+void transform_fromhost_VkSamplerBorderColorComponentMappingCreateInfoEXT(
+    VkDecoderGlobalState* resourceTracker,
+    VkSamplerBorderColorComponentMappingCreateInfoEXT* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkComponentMapping(resourceTracker,
+                                          (VkComponentMapping*)(&toTransform->components));
+}
+
+#endif
 #ifdef VK_EXT_image_compression_control_swapchain
 void transform_tohost_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
     VkDecoderGlobalState* resourceTracker,
@@ -11076,6 +11122,21 @@ void transform_tohost_extension_struct(VkDecoderGlobalState* resourceTracker,
             break;
         }
 #endif
+#ifdef VK_EXT_border_color_swizzle
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BORDER_COLOR_SWIZZLE_FEATURES_EXT: {
+            transform_tohost_VkPhysicalDeviceBorderColorSwizzleFeaturesEXT(
+                resourceTracker, reinterpret_cast<VkPhysicalDeviceBorderColorSwizzleFeaturesEXT*>(
+                                     structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SAMPLER_BORDER_COLOR_COMPONENT_MAPPING_CREATE_INFO_EXT: {
+            transform_tohost_VkSamplerBorderColorComponentMappingCreateInfoEXT(
+                resourceTracker,
+                reinterpret_cast<VkSamplerBorderColorComponentMappingCreateInfoEXT*>(
+                    structExtension_out));
+            break;
+        }
+#endif
 #ifdef VK_EXT_image_compression_control_swapchain
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_COMPRESSION_CONTROL_SWAPCHAIN_FEATURES_EXT: {
             transform_tohost_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
@@ -12565,6 +12626,21 @@ void transform_fromhost_extension_struct(VkDecoderGlobalState* resourceTracker,
             transform_fromhost_VkDebugMetadataGuestThreadIdGOOGLE(
                 resourceTracker,
                 reinterpret_cast<VkDebugMetadataGuestThreadIdGOOGLE*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_border_color_swizzle
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BORDER_COLOR_SWIZZLE_FEATURES_EXT: {
+            transform_fromhost_VkPhysicalDeviceBorderColorSwizzleFeaturesEXT(
+                resourceTracker, reinterpret_cast<VkPhysicalDeviceBorderColorSwizzleFeaturesEXT*>(
+                                     structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SAMPLER_BORDER_COLOR_COMPONENT_MAPPING_CREATE_INFO_EXT: {
+            transform_fromhost_VkSamplerBorderColorComponentMappingCreateInfoEXT(
+                resourceTracker,
+                reinterpret_cast<VkSamplerBorderColorComponentMappingCreateInfoEXT*>(
+                    structExtension_out));
             break;
         }
 #endif

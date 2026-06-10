@@ -2482,6 +2482,18 @@ void deepcopy_VkDebugMetadataGOOGLE(Allocator* alloc, VkStructureType rootType,
                                     const VkDebugMetadataGOOGLE* from, VkDebugMetadataGOOGLE* to);
 
 #endif
+#ifdef VK_EXT_border_color_swizzle
+void deepcopy_VkPhysicalDeviceBorderColorSwizzleFeaturesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceBorderColorSwizzleFeaturesEXT* from,
+    VkPhysicalDeviceBorderColorSwizzleFeaturesEXT* to);
+
+void deepcopy_VkSamplerBorderColorComponentMappingCreateInfoEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkSamplerBorderColorComponentMappingCreateInfoEXT* from,
+    VkSamplerBorderColorComponentMappingCreateInfoEXT* to);
+
+#endif
 #ifdef VK_EXT_image_compression_control_swapchain
 void deepcopy_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
     Allocator* alloc, VkStructureType rootType,

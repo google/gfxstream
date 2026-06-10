@@ -10626,6 +10626,56 @@ void deepcopy_VkDebugMetadataGOOGLE(Allocator* alloc, VkStructureType rootType,
 }
 
 #endif
+#ifdef VK_EXT_border_color_swizzle
+void deepcopy_VkPhysicalDeviceBorderColorSwizzleFeaturesEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceBorderColorSwizzleFeaturesEXT* from,
+    VkPhysicalDeviceBorderColorSwizzleFeaturesEXT* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const VkBaseOutStructure*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+}
+
+void deepcopy_VkSamplerBorderColorComponentMappingCreateInfoEXT(
+    Allocator* alloc, VkStructureType rootType,
+    const VkSamplerBorderColorComponentMappingCreateInfoEXT* from,
+    VkSamplerBorderColorComponentMappingCreateInfoEXT* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const VkBaseOutStructure*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+    deepcopy_VkComponentMapping(alloc, rootType, &from->components,
+                                (VkComponentMapping*)(&to->components));
+}
+
+#endif
 #ifdef VK_EXT_image_compression_control_swapchain
 void deepcopy_VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT(
     Allocator* alloc, VkStructureType rootType,
@@ -12555,6 +12605,26 @@ void deepcopy_extension_struct(Allocator* alloc, VkStructureType rootType,
                 alloc, rootType,
                 reinterpret_cast<const VkDebugMetadataGuestThreadIdGOOGLE*>(structExtension),
                 reinterpret_cast<VkDebugMetadataGuestThreadIdGOOGLE*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_border_color_swizzle
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BORDER_COLOR_SWIZZLE_FEATURES_EXT: {
+            deepcopy_VkPhysicalDeviceBorderColorSwizzleFeaturesEXT(
+                alloc, rootType,
+                reinterpret_cast<const VkPhysicalDeviceBorderColorSwizzleFeaturesEXT*>(
+                    structExtension),
+                reinterpret_cast<VkPhysicalDeviceBorderColorSwizzleFeaturesEXT*>(
+                    structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SAMPLER_BORDER_COLOR_COMPONENT_MAPPING_CREATE_INFO_EXT: {
+            deepcopy_VkSamplerBorderColorComponentMappingCreateInfoEXT(
+                alloc, rootType,
+                reinterpret_cast<const VkSamplerBorderColorComponentMappingCreateInfoEXT*>(
+                    structExtension),
+                reinterpret_cast<VkSamplerBorderColorComponentMappingCreateInfoEXT*>(
+                    structExtension_out));
             break;
         }
 #endif
