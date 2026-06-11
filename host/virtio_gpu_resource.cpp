@@ -124,6 +124,29 @@ VirtioGpuResourceType GetResourceType(const struct stream_renderer_resource_crea
     return VirtioGpuResourceType::BUFFER;
 }
 
+// Fills `outHandle` from an exported descriptor, consolidating the platform
+// `#ifdef`s: on Android the descriptor is an opaque handle taken by value; on
+// other platforms it is a ManagedDescriptor whose ownership is released to the
+// VMM. Returns 0 on success, -EINVAL if the descriptor could not be obtained.
+int fillExportHandle(struct stream_renderer_handle* outHandle, BlobDescriptorType& descriptorInfo) {
+#ifdef __ANDROID__
+    auto rawDescriptor = descriptorInfo.handle;
+#else
+    auto rawDescriptorOpt = descriptorInfo.descriptor.release();
+    if (!rawDescriptorOpt) {
+        return -EINVAL;
+    }
+    auto rawDescriptor = *rawDescriptorOpt;
+#endif
+#ifdef _WIN32
+    outHandle->os_handle = static_cast<int64_t>(reinterpret_cast<intptr_t>(rawDescriptor));
+#else
+    outHandle->os_handle = static_cast<int64_t>(rawDescriptor);
+#endif
+    outHandle->handle_type = descriptorInfo.streamHandleType;
+    return 0;
+}
+
 }  // namespace
 
 /*static*/
@@ -764,6 +787,16 @@ int VirtioGpuResource::TransferWithIov(uint64_t offset, const stream_renderer_bo
 }
 
 int VirtioGpuResource::ExportBlob(struct stream_renderer_handle* outHandle) {
+    // For non-blob COLOR_BUFFER resources (CREATE_3D path), there is no mBlobMemory
+    // set. Attempt to export the ColorBuffer's external memory.
+    if (!mBlobMemory && mResourceType == VirtioGpuResourceType::COLOR_BUFFER) {
+        auto descriptorInfoOpt = FrameBuffer::getFB()->exportColorBuffer(mId);
+        if (!descriptorInfoOpt) {
+            return -EINVAL;
+        }
+        return fillExportHandle(outHandle, descriptorInfoOpt->descriptorInfo);
+    }
+
     if (!mBlobMemory) {
         return -EINVAL;
     }
@@ -785,24 +818,12 @@ int VirtioGpuResource::ExportBlob(struct stream_renderer_handle* outHandle) {
         return 0;
     } else if (std::holds_alternative<ExternalMemoryInfo>(*mBlobMemory)) {
         auto& memory = std::get<ExternalMemoryInfo>(*mBlobMemory);
-#ifdef __ANDROID__
-        auto rawDescriptor = memory->descriptorInfo.handle;
-#else
-        auto rawDescriptorOpt = memory->descriptorInfo.descriptor.release();
-        if (!rawDescriptorOpt) {
+        int ret = fillExportHandle(outHandle, memory->descriptorInfo);
+        if (ret != 0) {
             GFXSTREAM_ERROR("failed to export blob for resource %u: failed to get raw handle.",
                             mId);
-            return -EINVAL;
         }
-        auto rawDescriptor = *rawDescriptorOpt;
-#endif
-#ifdef _WIN32
-        outHandle->os_handle = static_cast<int64_t>(reinterpret_cast<intptr_t>(rawDescriptor));
-#else
-        outHandle->os_handle = static_cast<int64_t>(rawDescriptor);
-#endif
-        outHandle->handle_type = memory->descriptorInfo.streamHandleType;
-        return 0;
+        return ret;
     }
 
     return -EINVAL;
