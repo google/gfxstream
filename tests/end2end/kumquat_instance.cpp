@@ -14,6 +14,8 @@
 
 #include "kumquat_instance.h"
 
+#include <linux/prctl.h>
+#include <sys/prctl.h>
 #include <unistd.h>
 
 #include <gmock/gmock.h>
@@ -53,6 +55,7 @@ void KumquatInstance::SetUp(bool withGl, bool withVk, std::string features) {
 
     pid_t pid = fork();
     if (pid == 0) {
+        prctl(PR_SET_PDEATHSIG, SIGHUP);  // Die when parent dies
         close(fds[0]);
         execl(kumquatCommand.c_str(), kumquatCommand.c_str(), gpu_socket_cmd.c_str(),
               capset_names.c_str(), renderer_features.c_str(), pipe_descriptor.c_str(), nullptr);
