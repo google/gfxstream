@@ -123,7 +123,9 @@ static bool ResizeRGBAImage(const uint8_t* rgbaPixels, int w_old, int h_old, int
         return false;
     }
 
-    auto getPixelIndex = [](int x, int y, int width) { return (y * width + x) * 4; };
+    auto getPixelIndex = [](int x, int y, int width) -> int64_t {
+        return (static_cast<int64_t>(y) * width + x) * 4;
+    };
 
     auto interpolateChannel = [](float x_frac, float y_frac, uint8_t q11, uint8_t q21, uint8_t q12,
                                 uint8_t q22) {
@@ -136,7 +138,7 @@ static bool ResizeRGBAImage(const uint8_t* rgbaPixels, int w_old, int h_old, int
         return static_cast<uint8_t>(std::clamp(std::round(result), 0.0f, 255.0f));
     };
 
-    resizedPixels.resize(w_new * h_new * 4);
+    resizedPixels.resize(static_cast<size_t>(w_new) * h_new * 4);
 
     float scale_x = static_cast<float>(w_old) / w_new;
     float scale_y = static_cast<float>(h_old) / h_new;
@@ -157,13 +159,13 @@ static bool ResizeRGBAImage(const uint8_t* rgbaPixels, int w_old, int h_old, int
             if (y1 == y2) y_frac = 0.0f;
 
             // Base indices
-            int idx11 = getPixelIndex(x1, y1, w_old);
-            int idx21 = getPixelIndex(x2, y1, w_old);
-            int idx12 = getPixelIndex(x1, y2, w_old);
-            int idx22 = getPixelIndex(x2, y2, w_old);
+            int64_t idx11 = getPixelIndex(x1, y1, w_old);
+            int64_t idx21 = getPixelIndex(x2, y1, w_old);
+            int64_t idx12 = getPixelIndex(x1, y2, w_old);
+            int64_t idx22 = getPixelIndex(x2, y2, w_old);
 
             // New pixel index
-            int pixelIndex = getPixelIndex(x_new, y_new, w_new);
+            int64_t pixelIndex = getPixelIndex(x_new, y_new, w_new);
 
             // 6. Interpolate each of the 4 channels (R, G, B, A)
             for (int c = 0; c < 4; ++c) {
@@ -3650,7 +3652,7 @@ bool VkEmulation::readColorBufferPixelsScaledCpu(uint32_t colorBufferHandle, int
     const uint64_t readbackPixelsSize = readbackWidth * readbackHeight * readbackBpp;
 
     const uint32_t outBpp = (pixelsFormat == GfxstreamFormat::R8G8B8_UNORM) ? 3 : 4;
-    const uint64_t outPixelsSize = pixelsWidth * pixelsHeight * outBpp;
+    const uint64_t outPixelsSize = static_cast<uint64_t>(pixelsWidth) * pixelsHeight * outBpp;
     if (readbackBpp == outBpp && pixelsRotation == 0 && readbackPixelsSize == outPixelsSize) {
         // Simple 1-1 readback case
         return readColorBufferToBytesLocked(colorBufferHandle, 0, 0, pixelsWidth, pixelsHeight, outPixels, outPixelsSize);
@@ -3683,7 +3685,7 @@ bool VkEmulation::readColorBufferPixelsScaledCpu(uint32_t colorBufferHandle, int
 
         if (readbackWidth != readbackTargetWidth || readbackHeight != readbackTargetHeight) {
             std::vector<uint8_t> resized_readback_r8g8b8a8;
-            resized_readback_r8g8b8a8.resize(pixelsWidth * pixelsHeight * 4);
+            resized_readback_r8g8b8a8.resize(static_cast<uint64_t>(pixelsWidth) * pixelsHeight * 4);
 
             // Resizing only supports RGBA sources for now
             if (!ResizeRGBAImage(readback_r8g8b8a8.data(), readbackWidth, readbackHeight,
