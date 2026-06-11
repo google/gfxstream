@@ -15,11 +15,14 @@ cc_library(
         "renderControl_enc.cpp",
         "renderControl_entry.cpp",
     ],
-    hdrs = glob([
-        "**/*.h",
-    ], exclude = [
-        "renderControl_ftable.h",
-    ]),
+    hdrs = glob(
+        [
+            "**/*.h",
+        ],
+        exclude = [
+            "renderControl_ftable.h",
+        ],
+    ),
     includes = [
         ".",
     ],

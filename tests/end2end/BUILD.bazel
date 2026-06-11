@@ -89,10 +89,10 @@ cc_test(
         "//third_party/vulkan:gfxstream_vulkan_headers",
         "@com_google_googletest//:gtest",
         "@com_google_googletest//:gtest_main",
+        "@drm//:libdrm",
         "@mesa//:mesa_gfxstream_guest_android",
         "@mesa//:mesa_gfxstream_guest_platform",
         "@mesa//:mesa_virtgpu_kumquat_ffi",
         "@rules_cc//cc/runfiles",
-        "@drm//:libdrm",
     ],
 )

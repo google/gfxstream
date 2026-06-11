@@ -50,9 +50,6 @@ cc_library(
         "gl2_opcodes.h",
         "gl2_types.h",
     ],
-    textual_hdrs = [
-        "gl2_ftable.h",
-    ],
     copts = ["-Wno-unused-private-field"],
     includes = [
         ".",
@@ -63,6 +60,9 @@ cc_library(
         # libraries into a single `testdata` directory for testing.
         "-Wl,-rpath,'$$ORIGIN'",
     ],
+    textual_hdrs = [
+        "gl2_ftable.h",
+    ],
     deps = [
         ":gfxstream_guest_glesv2encoder_cc_proto",
         "//common/logging:gfxstream_common_logging",
@@ -71,7 +71,7 @@ cc_library(
         "//third_party/opengl:gfxstream_gles2_headers",
         "//third_party/opengl:gfxstream_gles3_headers",
         "@mesa//:mesa_gfxstream_guest_iostream",
-        "@protobuf//:protobuf",
+        "@protobuf",
     ],
 )
 

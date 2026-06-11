@@ -36,14 +36,14 @@ cc_library(
     includes = [
         ".",
     ],
-    textual_hdrs = [
-        "gl_ftable.h",
-    ],
     linkopts = [
         # Search the current directory for this library's shared libs.
         # Used for the end2end tests which package all of the guest
         # libraries into a single `testdata` directory for testing.
         "-Wl,-rpath,'$$ORIGIN'",
+    ],
+    textual_hdrs = [
+        "gl_ftable.h",
     ],
     deps = [
         "//common/logging:gfxstream_common_logging",
