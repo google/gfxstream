@@ -166,6 +166,9 @@ cc_defaults {
         },
         android: {
             srcs: ["native_sub_window_android.cpp"],
+            shared_libs: [
+                "libnativewindow",
+            ],
         },
     },
 }
