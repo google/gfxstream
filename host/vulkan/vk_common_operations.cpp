@@ -4634,6 +4634,13 @@ bool VkEmulation::readBufferToBytes(uint32_t bufferHandle, uint64_t offset, uint
         return false;
     }
 
+    if (offset > bufferInfo->size || size > bufferInfo->size - offset) {
+        GFXSTREAM_ERROR("Failed to read from Buffer:%d, [offset %" PRIu64 ", size %" PRIu64
+                        "] out of range of buffer size %" PRIu64 ".",
+                        bufferHandle, offset, size, bufferInfo->size);
+        return false;
+    }
+
     const auto& stagingBufferInfo = mStaging;
     if (size > stagingBufferInfo.mAllocationSize) {
         GFXSTREAM_ERROR("Failed to read from Buffer:%d, staging buffer too small.", bufferHandle);
@@ -4717,6 +4724,13 @@ bool VkEmulation::updateBufferFromBytes(uint32_t bufferHandle, uint64_t offset, 
     auto bufferInfo = gfxstream::base::find(mBuffers, bufferHandle);
     if (!bufferInfo) {
         GFXSTREAM_ERROR("Failed to update Buffer:%d, not found.", bufferHandle);
+        return false;
+    }
+
+    if (offset > bufferInfo->size || size > bufferInfo->size - offset) {
+        GFXSTREAM_ERROR("Failed to update Buffer:%d, [offset %" PRIu64 ", size %" PRIu64
+                        "] out of range of buffer size %" PRIu64 ".",
+                        bufferHandle, offset, size, bufferInfo->size);
         return false;
     }
 
