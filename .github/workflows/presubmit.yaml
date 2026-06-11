@@ -13,6 +13,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  run-buildozer:
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+    - name: Install go
+      uses: actions/setup-go@v6
+      with:
+        go-version: '1.23.1'
+    - name: Install buildozer
+      run: go install github.com/bazelbuild/buildtools/buildozer@latest
+    - name: Validate formatting
+      if: '!cancelled()'
+      run: |
+        if [[ $(buildozer '//...:__pkg__' format 2>&1) ]]; then
+          echo "Please format BUILD.bazel files with \"buildozer '//...:__pkg__' format\"";
+          exit 1;
+        fi
+    - name: Validate no unused loads
+      if: '!cancelled()'
+      run: |
+        if [[ $(buildozer -stdout=true '//...:__pkg__' 'fix unusedLoads') ]]; then
+          buildozer '//...:__pkg__' 'fix unusedLoads'
+          echo "Please remove unused 'load' statements with \"buildozer '//...:__pkg__' 'fix unusedLoads'\"";
+          exit 1;
+        fi
+
   run-gfxstream-bazel-tests:
     uses: ./.github/workflows/presubmit_bazel.yml
     with:
