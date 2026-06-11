@@ -22,41 +22,6 @@
 namespace gfxstream {
 namespace base {
 
-TEST(SharedMemory, ShareVisibileWithinSameProc) {
-    // The POSIX implementation now backs ShareType::SHARED_MEMORY with
-    // memfd_create() instead of shm_open(), so a second SharedMemory instance
-    // can no longer attach to an existing region by name: open() creates a
-    // fresh zero-sized memfd and the first access faults with SIGBUS.
-    GTEST_SKIP() << "Attaching by name is not supported with memfd-backed "
-                    "shared memory; sharing requires passing the fd instead.";
-
-    const mode_t user_read_only = 0600;
-    std::string unique_name = "tst_21654869810548";
-    std::string message = "Hello World!";
-    base::SharedMemory mWriter(unique_name, message.size());
-    base::SharedMemory mReader(unique_name, message.size());
-
-    ASSERT_FALSE(mWriter.isOpen());
-    ASSERT_FALSE(mReader.isOpen());
-
-    int err = mWriter.create(user_read_only);
-    ASSERT_EQ(0, err);
-    err = mReader.open(SharedMemory::AccessMode::READ_ONLY);
-    ASSERT_EQ(0, err);
-
-    ASSERT_TRUE(mWriter.isOpen());
-    ASSERT_TRUE(mReader.isOpen());
-
-    memcpy(*mWriter, message.c_str(), message.size());
-    std::string read(static_cast<const char*>(*mReader));
-    ASSERT_TRUE(message == read);
-
-    mWriter.close();
-    mReader.close();
-    ASSERT_FALSE(mWriter.isOpen());
-    ASSERT_FALSE(mReader.isOpen());
-}
-
 // TODO: Provide support for TestSystem.
 // TEST(SharedMemory, ShareFileBackedVisibileWithinSameProc) {
 //     gfxstream::base::TestSystem ts("/home", 64);
