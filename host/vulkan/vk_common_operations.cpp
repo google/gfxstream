@@ -3698,7 +3698,7 @@ bool VkEmulation::readColorBufferPixelsScaledCpu(uint32_t colorBufferHandle, int
                 return false;
             }
 
-            readback_r8g8b8a8 = resized_readback_r8g8b8a8;
+            readback_r8g8b8a8 = std::move(resized_readback_r8g8b8a8);
             readbackWidth = readbackTargetWidth;
             readbackHeight = readbackTargetHeight;
         }
