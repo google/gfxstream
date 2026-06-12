@@ -65,14 +65,16 @@ void SaveAsgContext(Stream* stream, const struct asg_context& context) {
     stream->write(context.to_host, sizeof(struct ring_buffer));
     stream->write(context.to_host_large_xfer.ring, sizeof(struct ring_buffer));
     stream->write(context.from_host_large_xfer.ring, sizeof(struct ring_buffer));
-    stream->write(context.buffer, context.ring_config->buffer_size);
+    stream->putBe32(context.buffer_size);
+    stream->write(context.buffer, context.buffer_size);
 }
 
 void LoadAsgContext(Stream* stream, struct asg_context* context) {
     stream->read(context->to_host, sizeof(struct ring_buffer));
     stream->read(context->to_host_large_xfer.ring, sizeof(struct ring_buffer));
     stream->read(context->from_host_large_xfer.ring, sizeof(struct ring_buffer));
-    stream->read(context->buffer, context->ring_config->buffer_size);
+    context->buffer_size = stream->getBe32();
+    stream->read(context->buffer, context->buffer_size);
 }
 
 }  // namespace
@@ -310,33 +312,39 @@ void RingStream::type1Read(
 #pragma clang diagnostic ignored "-Wunreachable-code-loop-increment"
 #endif // __clang__
     for (uint32_t i = 0; i < xferTotal; ++i) {
+        const asg_type1_xfer& xfer = xfersPtr[i];
+
+        const uint32_t buffer_size = mContext.buffer_size;
+
         // Guest controls offset/size via shared memory; validate against the
         // host-allocated auxiliary buffer before dereferencing.
-        if (xfersPtr[i].offset > mBufSize ||
-            xfersPtr[i].size > mBufSize - xfersPtr[i].offset) {
-            mContext.ring_config->in_error = 1;
+        if (xfer.offset >= buffer_size || xfer.size > buffer_size - xfer.offset) {
+            GFXSTREAM_ERROR("Invalid type1 xfer: offset %u, size %u, buffer_size %u\n",
+                            xfer.offset, xfer.size, buffer_size);
+            __atomic_store_n(&mContext.ring_config->in_error, 1, __ATOMIC_RELEASE);
             return;
         }
-        if (*current + xfersPtr[i].size > ptrEnd) {
+
+        if (*current + xfer.size > ptrEnd) {
             // Save in a temp buffer or we'll get stuck
             if (begin == *current && i == 0) {
-                const char* src = mContext.buffer + xfersPtr[i].offset;
-                mReadBuffer.resize_noinit(xfersPtr[i].size);
-                memcpy(mReadBuffer.data(), src, xfersPtr[i].size);
-                mReadBufferLeft = xfersPtr[i].size;
+                const char* src = mContext.buffer + xfer.offset;
+                mReadBuffer.resize_noinit(xfer.size);
+                memcpy(mReadBuffer.data(), src, xfer.size);
+                mReadBufferLeft = xfer.size;
                 ring_buffer_advance_read(
                         mContext.to_host, sizeof(struct asg_type1_xfer), 1);
                 __atomic_fetch_add(&mContext.ring_config->host_consumed_pos, xfersPtr[i].size, __ATOMIC_RELEASE);
             }
             return;
         }
-        const char* src = mContext.buffer + xfersPtr[i].offset;
-        memcpy(*current, src, xfersPtr[i].size);
+        const char* src = mContext.buffer + xfer.offset;
+        memcpy(*current, src, xfer.size);
         ring_buffer_advance_read(
                 mContext.to_host, sizeof(struct asg_type1_xfer), 1);
-        __atomic_fetch_add(&mContext.ring_config->host_consumed_pos, xfersPtr[i].size, __ATOMIC_RELEASE);
-        *current += xfersPtr[i].size;
-        *count += xfersPtr[i].size;
+        __atomic_fetch_add(&mContext.ring_config->host_consumed_pos, xfer.size, __ATOMIC_RELEASE);
+        *current += xfer.size;
+        *count += xfer.size;
 
         // TODO: Figure out why running multiple xfers here can result in data
         // corruption and remove clang diagnostic block.

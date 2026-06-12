@@ -113,9 +113,13 @@ struct asg_ring_config;
 //
 // Each context also comes with _one_ auxiliary buffer to hold both its own
 // commands and to perform private DMA transfers.
-struct asg_context { // ptrs into RingStorage
-    struct ring_buffer* to_host;
+struct asg_context {
     char* buffer;
+    uint32_t buffer_size;
+
+    // The following are pointers into the underlying `asg_ring_storage`
+    // shared between the guest and host.
+    struct ring_buffer* to_host;
     asg_host_state* host_state;
     asg_ring_config* ring_config;
     struct ring_buffer_with_view to_host_large_xfer;
@@ -148,6 +152,7 @@ inline struct asg_context asg_context_create(
     ring_buffer_init(res.to_host);
 
     res.buffer = buffer;
+    res.buffer_size = buffer_size;
     res.host_state =
         reinterpret_cast<asg_host_state*>(
             &res.to_host->state);
