@@ -3664,7 +3664,7 @@ bool VkEmulation::readColorBufferPixelsScaledCpu(uint32_t colorBufferHandle, int
                                       readback_r8g8b8a8.data(), readback_r8g8b8a8.size())) {
         // Could not readback, cannot continue for resizing
         GFXSTREAM_ERROR("%s: Failed to readback color buffer %d (%" PRIu64 "x%" PRIu64 ", %s)",
-                        colorBufferHandle, readbackWidth, readbackHeight,
+                        __func__, colorBufferHandle, readbackWidth, readbackHeight,
                         ToString(colorBufferInfo->format).c_str());
         return false;
     }
