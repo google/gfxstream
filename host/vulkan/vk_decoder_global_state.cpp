@@ -8094,18 +8094,21 @@ class VkDecoderGlobalState::Impl {
         auto vk = dispatch_VkDevice(boxed_device);
 
         std::lock_guard<std::mutex> lock(mMutex);
-        auto* info = gfxstream::base::find(mDescriptorUpdateTemplateInfo, descriptorUpdateTemplate);
-        if (!info) return;
 
-        memcpy(info->data.data() + info->imageInfoStart, pImageInfos,
-               imageInfoCount * sizeof(VkDescriptorImageInfo));
-        memcpy(info->data.data() + info->bufferInfoStart, pBufferInfos,
-               bufferInfoCount * sizeof(VkDescriptorBufferInfo));
-        memcpy(info->data.data() + info->bufferViewStart, pBufferViews,
-               bufferViewCount * sizeof(VkBufferView));
+        auto infoIt = mDescriptorUpdateTemplateInfo.find(descriptorUpdateTemplate);
+        if (infoIt == mDescriptorUpdateTemplateInfo.end()) return;
+        DescriptorUpdateTemplateInfo& info = infoIt->second;
+
+        std::memcpy(info.data.data() + info.imageInfoStart, pImageInfos,
+                    std::min(imageInfoCount, info.imageInfoCount) * sizeof(VkDescriptorImageInfo));
+        std::memcpy(
+            info.data.data() + info.bufferInfoStart, pBufferInfos,
+            std::min(bufferInfoCount, info.bufferInfoCount) * sizeof(VkDescriptorBufferInfo));
+        std::memcpy(info.data.data() + info.bufferViewStart, pBufferViews,
+                    std::min(bufferViewCount, info.bufferViewCount) * sizeof(VkBufferView));
 
         vk->vkUpdateDescriptorSetWithTemplate(device, descriptorSet, descriptorUpdateTemplate,
-                                              info->data.data());
+                                              info.data.data());
     }
 
     void on_vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
@@ -8120,20 +8123,22 @@ class VkDecoderGlobalState::Impl {
         auto vk = dispatch_VkDevice(boxed_device);
 
         std::lock_guard<std::mutex> lock(mMutex);
-        auto* info = gfxstream::base::find(mDescriptorUpdateTemplateInfo, descriptorUpdateTemplate);
-        if (!info) return;
+        auto infoIt = mDescriptorUpdateTemplateInfo.find(descriptorUpdateTemplate);
+        if (infoIt == mDescriptorUpdateTemplateInfo.end()) return;
+        DescriptorUpdateTemplateInfo& info = infoIt->second;
 
-        memcpy(info->data.data() + info->imageInfoStart, pImageInfos,
-               imageInfoCount * sizeof(VkDescriptorImageInfo));
-        memcpy(info->data.data() + info->bufferInfoStart, pBufferInfos,
-               bufferInfoCount * sizeof(VkDescriptorBufferInfo));
-        memcpy(info->data.data() + info->bufferViewStart, pBufferViews,
-               bufferViewCount * sizeof(VkBufferView));
-        memcpy(info->data.data() + info->inlineUniformBlockStart, pInlineUniformBlockData,
-               inlineUniformBlockCount);
+        std::memcpy(info.data.data() + info.imageInfoStart, pImageInfos,
+                    std::min(imageInfoCount, info.imageInfoCount) * sizeof(VkDescriptorImageInfo));
+        std::memcpy(
+            info.data.data() + info.bufferInfoStart, pBufferInfos,
+            std::min(bufferInfoCount, info.bufferInfoCount) * sizeof(VkDescriptorBufferInfo));
+        std::memcpy(info.data.data() + info.bufferViewStart, pBufferViews,
+                    std::min(bufferViewCount, info.bufferViewCount) * sizeof(VkBufferView));
+        std::memcpy(info.data.data() + info.inlineUniformBlockStart, pInlineUniformBlockData,
+                    std::min(inlineUniformBlockCount, info.inlineUniformBlockCount));
 
         vk->vkUpdateDescriptorSetWithTemplate(device, descriptorSet, descriptorUpdateTemplate,
-                                              info->data.data());
+                                              info.data.data());
     }
 
     void hostSyncCommandBuffer(const char* tag, VkCommandBuffer boxed_commandBuffer,
@@ -10636,17 +10641,6 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    struct DescriptorUpdateTemplateInfo {
-        VkDescriptorUpdateTemplateCreateInfo createInfo;
-        std::vector<VkDescriptorUpdateTemplateEntry> linearizedTemplateEntries;
-        // Preallocated pData
-        std::vector<uint8_t> data;
-        size_t imageInfoStart;
-        size_t bufferInfoStart;
-        size_t bufferViewStart;
-        size_t inlineUniformBlockStart;
-    };
-
     DescriptorUpdateTemplateInfo calcLinearizedDescriptorUpdateTemplateInfo(
         const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo) {
         DescriptorUpdateTemplateInfo res;
@@ -10683,9 +10677,13 @@ class VkDecoderGlobalState::Impl {
         res.data.resize(imageInfoBytes + bufferInfoBytes + bufferViewBytes +
                         inlineUniformBlockBytes);
         res.imageInfoStart = 0;
+        res.imageInfoCount = numImageInfos;
         res.bufferInfoStart = imageInfoBytes;
+        res.bufferInfoCount = numBufferInfos;
         res.bufferViewStart = imageInfoBytes + bufferInfoBytes;
+        res.bufferViewCount = numBufferViews;
         res.inlineUniformBlockStart = imageInfoBytes + bufferInfoBytes + bufferViewBytes;
+        res.inlineUniformBlockCount = numInlineUniformBlocks;
 
         size_t imageInfoCount = 0;
         size_t bufferInfoCount = 0;

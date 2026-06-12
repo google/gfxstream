@@ -469,6 +469,29 @@ struct DescriptorSetLayoutInfo {
     std::vector<VkDescriptorSetLayoutBinding> bindings;
 };
 
+struct DescriptorUpdateTemplateInfo {
+    VkDescriptorUpdateTemplateCreateInfo createInfo;
+    std::vector<VkDescriptorUpdateTemplateEntry> linearizedTemplateEntries;
+    // Preallocated pData
+    std::vector<uint8_t> data;
+
+    // Offset into `data` for the `VkDescriptorImageInfo`s.
+    size_t imageInfoStart = 0;
+    uint32_t imageInfoCount = 0;
+
+    // Offset into `data` for the `VkDescriptorBufferInfo`s.
+    size_t bufferInfoStart = 0;
+    uint32_t bufferInfoCount = 0;
+
+    // Offset into `data` for the `VkBufferView`s.
+    size_t bufferViewStart = 0;
+    uint32_t bufferViewCount = 0;
+
+    // Offset into `data` for the `VkWriteDescriptorSetInlineUniformBlockEXT`
+    size_t inlineUniformBlockStart = 0;
+    uint32_t inlineUniformBlockCount = 0;
+};
+
 struct DescriptorPoolInfo {
     VkDevice device = 0;
     VkDescriptorPool boxed = 0;
