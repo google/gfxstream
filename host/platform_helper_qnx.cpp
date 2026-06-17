@@ -95,7 +95,7 @@ std::optional<std::pair<screen_stream_t, screen_buffer_t>> createScreenStreamBuf
         GFXSTREAM_ERROR(
             "Could not create buffer for screen_stream_t (usage=0x%x, id_str=%s, width=%d, "
             "height=%d, format=%d)\n",
-            screenUsage, bufferName.c_str(), width, height, format);
+            screenUsage, bufferName.c_str(), width, height, screenFormat);
         return std::nullopt;
     }
 

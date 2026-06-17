@@ -2255,7 +2255,7 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
                 // So, do server-side allocation first, then import to Vulkan.
                 // Note: External memory is only supported for ColorBuffers, in this case.
                 auto cbInfoPtr = *colorBufferInfo;
-                std::string bufferName = "VkColorBuffer-" + cbInfoPtr->handle;
+                std::string bufferName = std::string("VkColorBuffer-") + std::to_string(cbInfoPtr->handle);
                 auto screenStreamBuffer = gfxstream::qnx::createScreenStreamBuffer(
                     cbInfoPtr->width, cbInfoPtr->height, cbInfoPtr->format, bufferName);
                 if (!screenStreamBuffer) {
