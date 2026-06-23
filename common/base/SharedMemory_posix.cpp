@@ -55,7 +55,10 @@ SharedMemory::SharedMemory(const std::string& name, size_t size) {
         mName = PathUtils::recompose(PathUtils::decompose(std::move(path)));
     } else {
         mShareType = ShareType::SHARED_MEMORY;
-        mName = name;
+        // POSIX.1-2017 (System Interfaces) requires shm_open() names to begin
+        // with a '/' character to avoid implementation-defined behavior.
+        // Normalize unconditionally so callers don't need to care about it.
+        mName = (!name.empty() && name[0] != '/') ? ("/" + name) : name;
     }
 }
 
@@ -111,7 +114,9 @@ int SharedMemory::openInternal(int oflag, int mode, bool doMapping) {
     int err = 0;
     struct stat sb;
     if (mShareType == ShareType::SHARED_MEMORY) {
-#if defined(HAVE_MEMFD_CREATE)
+#if defined(__APPLE__)
+        mFd = ::shm_open(mName.c_str(), oflag, mode);
+#elif defined(HAVE_MEMFD_CREATE)
         mFd = memfd_create(mName.c_str(), MFD_CLOEXEC | MFD_ALLOW_SEALING);
 #else
         mFd = syscall(__NR_memfd_create, mName.c_str(), FD_CLOEXEC);
