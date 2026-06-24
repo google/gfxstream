@@ -81,7 +81,7 @@ UdmabufCreator::UdmabufCreator() {}
 UdmabufCreator::~UdmabufCreator() {}
 
 bool UdmabufCreator::init() {
-    auto rawDescriptor = open("/dev/udmabuf", O_RDWR);
+    auto rawDescriptor = open("/dev/udmabuf", O_RDONLY);
     if (rawDescriptor < 0) {
         return false;
     }
