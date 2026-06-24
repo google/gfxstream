@@ -14,6 +14,7 @@
 
 #include "virtio_gpu_pipe.h"
 
+#include <atomic>
 #include <cstring>
 
 #include "gfxstream/common/logging.h"
