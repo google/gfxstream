@@ -7287,9 +7287,10 @@ class VkDecoderGlobalState::Impl {
         CommandPoolInfo& commandPoolInfo,
         std::unordered_map<VkCommandBuffer, CommandBufferInfo>& commandBufferInfos) {
         for (const VkCommandBuffer commandBuffer : commandPoolInfo.cmdBuffers) {
-            auto iterInInfos = commandBufferInfos.find(commandBuffer);
-            if (iterInInfos != commandBufferInfos.end()) {
-                commandBufferInfos.erase(iterInInfos);
+            auto commandBufferIt = commandBufferInfos.find(commandBuffer);
+            if (commandBufferIt != commandBufferInfos.end()) {
+                commandBufferInfos.erase(commandBufferIt);
+                delete_VkCommandBuffer(commandBuffer);
             } else {
                 GFXSTREAM_ERROR("Cannot find command buffer reference (%p).", commandBuffer);
             }
@@ -10578,8 +10579,7 @@ class VkDecoderGlobalState::Impl {
             LOG_CALLS_VERBOSE("%s: %zu commandBuffers.", __func__, deviceObjects.commandBuffers.size());
             for (auto& [commandBuffer, commandBufferInfo] : deviceObjects.commandBuffers) {
                 freeCommandBufferWithExclusiveInfos(device, deviceDispatch, commandBuffer,
-                                                       commandBufferInfo,
-                                                       deviceObjects.commandPools);
+                                                    commandBufferInfo, deviceObjects.commandPools);
             }
 
             LOG_CALLS_VERBOSE("%s: %zu commandPools.", __func__, deviceObjects.commandPools.size());
