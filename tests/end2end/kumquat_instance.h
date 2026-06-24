@@ -17,6 +17,8 @@
 #include <cstdint>
 #include <string>
 
+#include <sys/types.h>
+
 #include "virtgpu_kumquat_ffi.h"
 
 namespace gfxstream {
