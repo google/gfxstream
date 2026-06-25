@@ -529,7 +529,7 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
                                                 var_height, var_format, var_type,
                                                 (void*)(outptr_pixels.get()), size_pixels);
                         outptr_pixels.flush();
-			if (useChecksum) {
+                        if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
 			stream->flush();
@@ -1535,8 +1535,10 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			totalTmpSize += checksumSize;
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
 			DECODER_DEBUG_LOG("renderControl(%p): rcGetDisplayColorTransform(displayId:0x%08x outColorTransformMatrix:%p(%u) )", stream, var_displayId, (mat4x4_ptr)(inptr_outColorTransformMatrix.get()), size_outColorTransformMatrix);
-			int function_call_retval = 			this->rcGetDisplayColorTransform(var_displayId, (mat4x4_ptr)(inptr_outColorTransformMatrix.get()));
-			std::memcpy(&tmpBuf[0], &function_call_retval, sizeof(int));
+                        int function_call_retval = this->rcGetDisplayColorTransform(
+                            var_displayId, (mat4x4_ptr)(inptr_outColorTransformMatrix.get()),
+                            size_outColorTransformMatrix);
+                        std::memcpy(&tmpBuf[0], &function_call_retval, sizeof(int));
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}
@@ -1558,8 +1560,10 @@ size_t renderControl_decoder_context_t::decode(void *buf, size_t len, IOStream *
 			totalTmpSize += checksumSize;
 			unsigned char *tmpBuf = stream->alloc(totalTmpSize);
 			DECODER_DEBUG_LOG("renderControl(%p): rcSetDisplayColorTransform(displayId:0x%08x colorTransformMatrix:%p(%u) )", stream, var_displayId, (const mat4x4_ptr)(inptr_colorTransformMatrix.get()), size_colorTransformMatrix);
-			int function_call_retval = 			this->rcSetDisplayColorTransform(var_displayId, (const mat4x4_ptr)(inptr_colorTransformMatrix.get()));
-			std::memcpy(&tmpBuf[0], &function_call_retval, sizeof(int));
+                        int function_call_retval = this->rcSetDisplayColorTransform(
+                            var_displayId, (const mat4x4_ptr)(inptr_colorTransformMatrix.get()),
+                            size_colorTransformMatrix);
+                        std::memcpy(&tmpBuf[0], &function_call_retval, sizeof(int));
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
 			}

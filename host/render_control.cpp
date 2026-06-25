@@ -1355,22 +1355,32 @@ static int rcSetDisplayPose(uint32_t displayId,
     return fb->setDisplayPose(displayId, x, y, w, h);
 }
 
-static int rcGetDisplayColorTransform(uint32_t displayId,
-                            mat4x4_ptr outColorTransform) {
+static int rcGetDisplayColorTransform(uint32_t displayId, mat4x4_ptr outColorTransform,
+                                      uint32_t outColorTransformSize) {
     FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
         return -1;
     }
 
+    if (outColorTransformSize != (16 * sizeof(float))) {
+        GFXSTREAM_ERROR("Invalid color transform size: %" PRIu32, outColorTransformSize);
+        return -1;
+    }
+
     return fb->getDisplayColorTransform(displayId, reinterpret_cast<float*>(outColorTransform));
 }
 
-static int rcSetDisplayColorTransform(uint32_t displayId,
-                            const mat4x4_ptr colorTransform) {
+static int rcSetDisplayColorTransform(uint32_t displayId, const mat4x4_ptr colorTransform,
+                                      uint32_t colorTransformSize) {
     FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         GFXSTREAM_WARNING("%s: framebuffer cannot be found!", __func__);
+        return -1;
+    }
+
+    if (colorTransformSize != (16 * sizeof(float))) {
+        GFXSTREAM_ERROR("Invalid color transform size: %" PRIu32, colorTransformSize);
         return -1;
     }
 

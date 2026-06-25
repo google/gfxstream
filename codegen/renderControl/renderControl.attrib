@@ -125,3 +125,9 @@ rcSetProcessMetadata
 rcGetHostExtensionsString
     dir buffer out
     len buffer bufferSize
+
+rcGetDisplayColorTransform
+    flag server_add_size_param_for_buffers
+
+rcSetDisplayColorTransform
+    flag server_add_size_param_for_buffers
