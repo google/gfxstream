@@ -71,5 +71,6 @@ jobs:
           host:gfxstream_framebuffer_tests \
           host/vulkan:gfxstream_compositorvk_tests \
           host/vulkan:gfxstream_emulatedphysicalmemory_tests \
+          host/vulkan:vk_common_operations_tests \
           tests/end2end:gfxstream_end2end_tests \
           ${{ inputs.additional-bazel-args }}
