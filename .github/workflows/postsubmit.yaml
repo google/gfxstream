@@ -9,6 +9,8 @@ on:
 
 jobs:
   postsubmit-populate-bazel-cache:
+    # Only run in the upstream repository; skip in forks.
+    if: github.repository == 'google/gfxstream'
     runs-on: ubuntu-22.04
     steps:
     - name: Free disk space
@@ -40,6 +42,8 @@ jobs:
           --graphics_drivers=gles_angle_vulkan_swiftshader \
           --verbose_failures
   postsubmit-populate-bazel-cache-arm:
+    # Only run in the upstream repository; skip in forks.
+    if: github.repository == 'google/gfxstream'
     runs-on: ubuntu-22.04-arm
     steps:
     - name: Free disk space
