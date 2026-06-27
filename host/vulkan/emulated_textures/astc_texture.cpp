@@ -206,14 +206,18 @@ void AstcTexture::on_vkCmdCopyBufferToImageImpl(VkCommandBuffer commandBuffer, u
                                        ((height + mBlockHeight - 1) / mBlockHeight);
         const uint32_t compressedSize = numAstcBlocks * 16;
         // We haven't updated decompRegion.bufferOffset yet, so it's still the _compressed_ offset.
-        const uint32_t compressedDataOffset = decompRegion.bufferOffset;
+        // Keep the full 64-bit width: bufferOffset is guest-controlled and the read below uses the
+        // untruncated value, so truncating to uint32_t here would let a large offset (e.g.
+        // 0x1'0000'0000) pass the bounds check and then read out of bounds.
+        const VkDeviceSize compressedDataOffset = decompRegion.bufferOffset;
 
         // Do all the precondition checks
         if (!isRegionValid(decompRegion, width, height)) return;
-        if (compressedDataOffset + compressedSize > astcDataSize) {
+        if (compressedDataOffset > astcDataSize || compressedSize > astcDataSize - compressedDataOffset) {
             GFXSTREAM_WARNING(
                 "ASTC CPU decompression: data out of bounds. Offset: %llu, Size: %llu, Total %llu",
-                compressedDataOffset, compressedSize, astcDataSize);
+                (unsigned long long)compressedDataOffset, (unsigned long long)compressedSize,
+                (unsigned long long)astcDataSize);
             return;
         }
 
