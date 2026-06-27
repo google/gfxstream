@@ -3578,6 +3578,16 @@ bool VkEmulation::readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint3
     }
 
     if (transferInfo.unpackFunction) {
+        // The unpacked output never exceeds the staging copy size (the std::vector overload above
+        // sizes its destination to exactly bufferCopySize). outPixelsSize is guest-controlled, so
+        // reject a destination that is too small rather than letting unpackFunction write past it.
+        if (bufferCopySize > outPixelsSize) {
+            GFXSTREAM_ERROR(
+                "Failed to read from ColorBuffer:%d, output buffer too small. Required: %llu, "
+                "Actual: %llu",
+                colorBufferHandle, bufferCopySize, outPixelsSize);
+            return false;
+        }
         transferInfo.unpackFunction(colorBufferInfo->imageCreateInfoShallow.extent,
                                     (const uint8_t*)mStaging.mMappedPtr, (uint8_t*)outPixels);
     } else {
@@ -4125,6 +4135,16 @@ bool VkEmulation::updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, u
             return false;
         }
     } else if (transferInfo.packFunction) {
+        // packFunction reads the natural-format pixels, which never exceed dstBufferSize. pixels is
+        // guest-controlled, so reject an input smaller than that to avoid an out-of-bounds read
+        // (mirrors the size checks in the sibling branches).
+        if (inputPixelsSize != 0 && inputPixelsSize < dstBufferSize) {
+            GFXSTREAM_ERROR(
+                "Unexpected contents size when trying to update ColorBuffer:%d, provided:%zu "
+                "expected at least:%" PRIu64,
+                colorBufferHandle, inputPixelsSize, dstBufferSize);
+            return false;
+        }
         transferInfo.packFunction(colorBufferInfo->imageCreateInfoShallow.extent,
                                   (const uint8_t*)pixels, (uint8_t*)stagingBufferPtr);
     } else {
