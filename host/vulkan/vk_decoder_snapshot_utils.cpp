@@ -337,12 +337,16 @@ void loadImageContent(gfxstream::Stream* stream, StateBlock* stateBlock, VkImage
             }
 
             VkExtent3D mipmapExtent = getMipmapExtent(imageCreateInfo.extent, mipLevel);
-            size_t bytes = stream->getBe64();
-            stream->read(mapped, bytes);
-
             if (!getFormatTransferInfo(imageCreateInfo.format, mipmapExtent, &transferInfo)) {
                 GFXSTREAM_FATAL("Failed to get transfer info for snapshot load");
             }
+
+            // Require the serialized size to match the expected per-mip transfer size.
+            size_t bytes = stream->getBe64();
+            if (bytes != transferInfo.stagingBufferCopySize) {
+                GFXSTREAM_FATAL("Unexpected image content size on snapshot load");
+            }
+            stream->read(mapped, bytes);
             std::vector<VkBufferImageCopy>& bufferImageCopies = transferInfo.bufferImageCopies;
             VkImageAspectFlags aspects = 0;
             for (const auto& copy : bufferImageCopies) {
