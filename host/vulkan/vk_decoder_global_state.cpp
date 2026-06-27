@@ -5512,6 +5512,17 @@ class VkDecoderGlobalState::Impl {
                 GFXSTREAM_WARNING("ASTC CPU decompression: VkBuffer memory isn't host-visible");
                 return;
             }
+            // memoryOffset and the buffer size are guest-controlled; make sure the buffer's range
+            // actually lies within the mapped allocation before the CPU decompressor reads from it.
+            if (bufferInfo->memoryOffset > memoryInfo->size ||
+                bufferInfo->size > memoryInfo->size - bufferInfo->memoryOffset) {
+                GFXSTREAM_WARNING(
+                    "ASTC CPU decompression: buffer range [offset %llu, size %llu] out of bounds of "
+                    "mapped memory size %llu.",
+                    (unsigned long long)bufferInfo->memoryOffset,
+                    (unsigned long long)bufferInfo->size, (unsigned long long)memoryInfo->size);
+                return;
+            }
             uint8_t* astcData = (uint8_t*)(memoryInfo->ptr) + bufferInfo->memoryOffset;
             cmpInfo.decompressOnCpu(commandBuffer, astcData, bufferInfo->size, dstImage,
                                     dstImageLayout, regionCount, pRegions, context);
@@ -6761,6 +6772,9 @@ class VkDecoderGlobalState::Impl {
         REQUIRES(mMutex) {
         auto* info = gfxstream::base::find(mMemoryInfo, memory);
         if (!info || !info->ptr) return VK_ERROR_MEMORY_MAP_FAILED;  // Invalid usage.
+
+        // offset is guest-controlled; do not hand back a pointer past the end of the allocation.
+        if (offset > info->size) return VK_ERROR_MEMORY_MAP_FAILED;
 
         *ppData = (void*)((uint8_t*)info->ptr + offset);
         return VK_SUCCESS;
@@ -8693,7 +8707,12 @@ class VkDecoderGlobalState::Impl {
                 // Some drivers don't seem to handle stride==0 very well.
                 // In fact, the spec does not say what should happen with stride==0.
                 // So we just use the largest stride possible.
-                stride = mBufferInfo[dstBuffer].size - dstOffset;
+                // dstOffset is guest-controlled; look the buffer up without inserting a default
+                // entry and avoid an unsigned underflow if it points past the end of the buffer.
+                auto* dstBufferInfo = gfxstream::base::find(mBufferInfo, dstBuffer);
+                if (dstBufferInfo && dstOffset <= dstBufferInfo->size) {
+                    stride = dstBufferInfo->size - dstOffset;
+                }
             }
         }
 
