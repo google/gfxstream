@@ -30,9 +30,9 @@ namespace vk {
 namespace {
 
 // Brings up a real VkEmulation against the bundled software Vulkan driver and exercises the
-// guest-controlled offset/size validation in readBufferToBytes()/updateBufferFromBytes(). The
-// guest controls the offset and size of buffer transfers, so an out-of-range request must be
-// rejected rather than reading or writing past the buffer.
+// guest-controlled offset/size validation in the buffer and color-buffer transfer paths. The guest
+// controls the offset and size of transfers, so an out-of-range request must be rejected rather
+// than reading or writing past the allocation.
 class VkEmulationBufferTransferTest : public ::testing::Test {
    protected:
     static void SetUpTestSuite() {
@@ -97,6 +97,28 @@ TEST_F(VkEmulationBufferTransferTest, AllowsInRangeTransfers) {
                                           scratch.data()));
 
     mVkEmu->teardownVkBuffer(kBufferHandle);
+}
+
+TEST_F(VkEmulationBufferTransferTest, RejectsUndersizedDepthStencilColorBufferTransfers) {
+    constexpr uint32_t kWidth = 8;
+    constexpr uint32_t kHeight = 8;
+    constexpr uint32_t kColorBufferHandle = 3;
+    ASSERT_TRUE(mVkEmu->createVkColorBuffer(kWidth, kHeight, GfxstreamFormat::D32_FLOAT_S8_UINT,
+                                            kColorBufferHandle, /*vulkanOnly=*/true,
+                                            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, /*mipLevels=*/1));
+
+    std::vector<uint8_t> full;
+    ASSERT_TRUE(mVkEmu->readColorBufferToBytes(kColorBufferHandle, &full));
+    ASSERT_GT(full.size(), 1u);
+
+    std::vector<uint8_t> tooSmall(full.size() - 1, 0);
+
+    EXPECT_FALSE(mVkEmu->readColorBufferToBytes(kColorBufferHandle, 0, 0, kWidth, kHeight,
+                                                tooSmall.data(), tooSmall.size()));
+
+    EXPECT_FALSE(mVkEmu->updateColorBufferFromBytes(kColorBufferHandle, tooSmall));
+
+    mVkEmu->teardownVkColorBuffer(kColorBufferHandle);
 }
 
 }  // namespace
