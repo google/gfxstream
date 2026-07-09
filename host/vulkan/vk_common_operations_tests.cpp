@@ -108,6 +108,27 @@ TEST_F(VkEmulationBufferTransferTest, AllowsInRangeTransfers) {
     mVkEmu->teardownVkBuffer(kBufferHandle);
 }
 
+TEST_F(VkEmulationBufferTransferTest, TreatsZeroSizeTransfersAsNoOp) {
+    constexpr uint64_t kBufferSize = 4096;
+    constexpr uint32_t kBufferHandle = 8;
+    ASSERT_TRUE(mVkEmu->setupVkBuffer(kBufferSize, kBufferHandle, /*vulkanOnly=*/true));
+
+    // Zero-size transfers at any in-range offset (including one-past-the-end) succeed as
+    // no-ops. They must not reach the device: Vulkan forbids recording zero-size copies
+    // (VUID-VkBufferCopy-size-01988).
+    uint8_t byte = 0;
+    EXPECT_TRUE(mVkEmu->readBufferToBytes(kBufferHandle, 0, 0, &byte));
+    EXPECT_TRUE(mVkEmu->updateBufferFromBytes(kBufferHandle, 0, 0, &byte));
+    EXPECT_TRUE(mVkEmu->readBufferToBytes(kBufferHandle, kBufferSize, 0, &byte));
+    EXPECT_TRUE(mVkEmu->updateBufferFromBytes(kBufferHandle, kBufferSize, 0, &byte));
+
+    // A zero-size transfer with an out-of-range offset is still rejected.
+    EXPECT_FALSE(mVkEmu->readBufferToBytes(kBufferHandle, kBufferSize + 1, 0, &byte));
+    EXPECT_FALSE(mVkEmu->updateBufferFromBytes(kBufferHandle, kBufferSize + 1, 0, &byte));
+
+    mVkEmu->teardownVkBuffer(kBufferHandle);
+}
+
 TEST_F(VkEmulationBufferTransferTest, RejectsUndersizedDepthStencilColorBufferTransfers) {
     constexpr uint32_t kWidth = 8;
     constexpr uint32_t kHeight = 8;

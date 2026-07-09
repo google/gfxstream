@@ -4663,6 +4663,12 @@ bool VkEmulation::readBufferToBytes(uint32_t bufferHandle, uint64_t offset, uint
         return false;
     }
 
+    // Nothing to transfer. Recording a zero-size copy is not allowed
+    // (VUID-VkBufferCopy-size-01988).
+    if (size == 0) {
+        return true;
+    }
+
     const auto& stagingBufferInfo = mStaging;
     if (size > stagingBufferInfo.mAllocationSize) {
         GFXSTREAM_ERROR("Failed to read from Buffer:%d, staging buffer too small.", bufferHandle);
@@ -4754,6 +4760,12 @@ bool VkEmulation::updateBufferFromBytes(uint32_t bufferHandle, uint64_t offset, 
                         "] out of range of buffer size %" PRIu64 ".",
                         bufferHandle, offset, size, bufferInfo->size);
         return false;
+    }
+
+    // Nothing to transfer. Recording a zero-size copy is not allowed
+    // (VUID-VkBufferCopy-size-01988).
+    if (size == 0) {
+        return true;
     }
 
     const auto& stagingBufferInfo = mStaging;
