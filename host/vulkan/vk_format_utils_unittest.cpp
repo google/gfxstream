@@ -29,6 +29,7 @@ using ::testing::ExplainMatchResult;
 using ::testing::Field;
 using ::testing::IsFalse;
 using ::testing::IsTrue;
+using ::testing::NotNull;
 
 MATCHER_P(EqsVkExtent3D, expected, "") {
     return ExplainMatchResult(AllOf(Field("width", &VkExtent3D::width, Eq(expected.width)),
@@ -252,6 +253,96 @@ TEST(VkFormatUtilsTest, GetTransferInfoYV12OrYV21) {
                                         .depth = 1,
                                     },
                             })));
+}
+
+TEST(VkFormatUtilsTest, GetTransferInfoD24S8) {
+    const VkFormat format = VK_FORMAT_D24_UNORM_S8_UINT;
+    const uint32_t width = 16;
+    const uint32_t height = 16;
+
+    TransferInfo transferInfo;
+    ASSERT_THAT(getFormatTransferInfo(format, {width, height, 1}, &transferInfo), IsTrue());
+    // Staging stores a 4-byte-per-texel depth plane plus a 1-byte-per-texel stencil
+    // plane.
+    EXPECT_THAT(transferInfo.stagingBufferCopySize, Eq(1280));
+    ASSERT_THAT(transferInfo.bufferImageCopies,
+                ElementsAre(EqsVkBufferImageCopy(VkBufferImageCopy{
+                                .bufferOffset = 0,
+                                .bufferRowLength = 16,
+                                .bufferImageHeight = 0,
+                                .imageSubresource =
+                                    {
+                                        .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
+                                        .mipLevel = 0,
+                                        .baseArrayLayer = 0,
+                                        .layerCount = 1,
+                                    },
+                                .imageOffset =
+                                    {
+                                        .x = 0,
+                                        .y = 0,
+                                        .z = 0,
+                                    },
+                                .imageExtent =
+                                    {
+                                        .width = 16,
+                                        .height = 16,
+                                        .depth = 1,
+                                    },
+                            }),
+                            EqsVkBufferImageCopy(VkBufferImageCopy{
+                                .bufferOffset = 1024,
+                                .bufferRowLength = 16,
+                                .bufferImageHeight = 0,
+                                .imageSubresource =
+                                    {
+                                        .aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT,
+                                        .mipLevel = 0,
+                                        .baseArrayLayer = 0,
+                                        .layerCount = 1,
+                                    },
+                                .imageOffset =
+                                    {
+                                        .x = 0,
+                                        .y = 0,
+                                        .z = 0,
+                                    },
+                                .imageExtent =
+                                    {
+                                        .width = 16,
+                                        .height = 16,
+                                        .depth = 1,
+                                    },
+                            })));
+}
+
+TEST(VkFormatUtilsTest, PackUnpackD24S8RoundTrip) {
+    const VkFormat format = VK_FORMAT_D24_UNORM_S8_UINT;
+    const VkExtent3D extent = {4, 4, 1};
+
+    TransferInfo transferInfo;
+    ASSERT_THAT(getFormatTransferInfo(format, extent, &transferInfo), IsTrue());
+    ASSERT_THAT(transferInfo.packFunction, NotNull());
+    ASSERT_THAT(transferInfo.unpackFunction, NotNull());
+
+    // Interleaved D24S8 pixels are 4 bytes each.
+    std::vector<uint8_t> natural(extent.width * extent.height * extent.depth * 4);
+    for (size_t i = 0; i < natural.size(); ++i) {
+        natural[i] = static_cast<uint8_t>(i * 7 + 1);
+    }
+
+    std::vector<uint8_t> staging(transferInfo.stagingBufferCopySize, 0xaa);
+    transferInfo.packFunction(extent, natural.data(), staging.data());
+
+    // The upper byte of each 32-bit depth word must be written as zero.
+    const size_t pixelCount = extent.width * extent.height;
+    for (size_t i = 0; i < pixelCount; ++i) {
+        EXPECT_THAT(staging[i * 4 + 3], Eq(0)) << "depth word " << i;
+    }
+
+    std::vector<uint8_t> roundTripped(natural.size(), 0);
+    transferInfo.unpackFunction(extent, staging.data(), roundTripped.data());
+    EXPECT_THAT(roundTripped, Eq(natural));
 }
 
 TEST(VkFormatUtilsTest, GetTransferInfoDepthStencilWithDepth) {
