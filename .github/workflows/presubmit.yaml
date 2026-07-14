@@ -102,6 +102,23 @@ jobs:
       run: |
         meson compile -C build
 
+  run-gfxstream-meson-build-macos:
+    runs-on: macos-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+    - name: Install toolchain dependencies
+      run: brew install meson ninja molten-vk vulkan-loader
+    - name: Configure Build
+      run: |
+        meson setup \
+          -Ddefault_library=static \
+          -Dgfxstream-build=host \
+          build
+    - name: Build
+      run: |
+        meson compile -C build
+
   run-gfxstream-meson-build-windows:
     runs-on: windows-latest
     defaults:
