@@ -4,6 +4,10 @@
 inc_host_snapshot = include_directories('include')
 
 files_lib_host_snapshot = files()
+if host_machine.system() == 'darwin'
+  # macOS ar requires at least one member per static archive.
+  files_lib_host_snapshot += files('snapshot_stub.cpp')
+endif
 
 lib_host_snapshot = static_library(
   'host_snapshot',

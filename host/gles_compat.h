@@ -19,7 +19,10 @@
 
 typedef unsigned int GLenum;
 typedef int32_t EGLint;
-typedef unsigned int EGLNativeWindowType;
+// Must stay ABI-compatible with the real EGLNativeWindowType from
+// <EGL/eglplatform.h>, which is pointer-sized on 64-bit platforms
+// (e.g. `void*` on Apple); a 32-bit integer here truncates pointers.
+typedef void* EGLNativeWindowType;
 
 namespace gfxstream {
 namespace gl {

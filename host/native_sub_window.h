@@ -21,7 +21,7 @@
 #if GFXSTREAM_ENABLE_HOST_GLES
 #include <EGL/egl.h>
 #else
-#include "GlesCompat.h"
+#include "gles_compat.h"
 #endif
 
 #ifdef __cplusplus

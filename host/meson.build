@@ -94,6 +94,13 @@ if use_gles or use_vulkan
   ]
 endif
 
+# GL include paths are needed even in Vulkan-only builds: the Vulkan server
+# includes the GLES dispatch headers (e.g. for interop declarations), so keep
+# them visible regardless of which decoders are enabled.
+inc_gl_server = include_directories('gl')
+inc_gl_snapshot = include_directories('gl/glsnapshot')
+inc_gl_openglesdispatch = include_directories('gl/OpenGLESDispatch/include')
+
 if use_gles
   subdir('gl')
 

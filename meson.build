@@ -1,7 +1,7 @@
 # Copyright 2023 Android Open Source Project
 # SPDX-License-Identifier: Apache-2.0
 
-project('gfxstream', 'cpp', 'c',
+project('gfxstream', 'cpp', 'c', 'objc', 'objcpp',
          version : '0.1.2',
          license : 'Apache-2.0',
          default_options : ['cpp_std=gnu++17',
