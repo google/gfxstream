@@ -193,7 +193,8 @@ bool YcbcrSamplerPool::init(const VulkanDispatch* ivk, const VulkanDispatch* dvk
     for (const GfxstreamFormat format : kFormatsToPrepopulateSamplersFor) {
         YCbCrSamplerInfo unused;
         if (!getOrCreateSamplerInfo(format, &unused)) {
-            return false;
+            GFXSTREAM_VERBOSE("YcbcrSamplerPool::init: format %s not supported for prepopulation",
+                              ToString(format).c_str());
         }
     }
     return true;
@@ -272,6 +273,16 @@ bool YcbcrSamplerPool::getOrCreateSamplerInfo(GfxstreamFormat format, YCbCrSampl
     VkFormatProperties formatProperties = {};
     mIvk->vkGetPhysicalDeviceFormatProperties(mPhysicalDevice, vkFormat, &formatProperties);
     const VkFormatFeatureFlags formatFeatures = formatProperties.optimalTilingFeatures;
+
+    const VkFormatFeatureFlags kYcbcrFeatures =
+        VK_FORMAT_FEATURE_MIDPOINT_CHROMA_SAMPLES_BIT |
+        VK_FORMAT_FEATURE_COSITED_CHROMA_SAMPLES_BIT |
+        VK_FORMAT_FEATURE_SAMPLED_IMAGE_YCBCR_CONVERSION_LINEAR_FILTER_BIT;
+
+    if ((formatFeatures & kYcbcrFeatures) == 0) {
+        GFXSTREAM_ERROR("Format %s does not support YCbCr sampler conversion", string_VkFormat(vkFormat));
+        return false;
+    }
 
     // VUID-VkSamplerYcbcrConversionCreateInfo-xChromaOffset-01652
     // If the potential format features of the sampler Y′CBCR conversion do not support
