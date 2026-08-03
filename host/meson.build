@@ -52,7 +52,6 @@ link_gfxstream_backend = [
   lib_host_iostream,
   lib_host_library,
   lib_common_logging,
-  lib_host_snapshot,
   lib_host_tracing,
 ]
 

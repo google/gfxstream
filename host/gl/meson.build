@@ -81,6 +81,5 @@ lib_gl_server = static_library(
     lib_host_features,
     lib_host_iostream,
     lib_host_library,
-    lib_host_snapshot,
   ],
 )

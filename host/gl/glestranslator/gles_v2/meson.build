@@ -36,6 +36,5 @@ lib_glesv2_translator = static_library(
     lib_host_common,
     lib_host_decoder_common,
     lib_common_logging,
-    lib_host_snapshot,
   ],
 )

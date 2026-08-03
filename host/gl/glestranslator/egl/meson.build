@@ -76,6 +76,5 @@ lib_egl_translator = static_library(
     lib_host_common,
     lib_host_library,
     lib_common_logging,
-    lib_host_snapshot,
   ],
 )

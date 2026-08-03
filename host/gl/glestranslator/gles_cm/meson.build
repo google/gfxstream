@@ -30,6 +30,5 @@ lib_glescm_translator = static_library(
     lib_common_base,
     lib_host_common,
     lib_common_logging,
-    lib_host_snapshot,
   ],
 )

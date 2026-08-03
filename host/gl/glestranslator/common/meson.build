@@ -50,6 +50,5 @@ lib_gl_common = static_library(
     lib_host_common,
     lib_host_library,
     lib_common_logging,
-    lib_host_snapshot,
   ],
 )
