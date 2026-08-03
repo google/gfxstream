@@ -28,7 +28,6 @@ lib_gles2_dec = static_library(
     lib_common_base,
     lib_gl_snapshot,
     lib_host_common,
-    lib_host_iostream,
     lib_common_logging,
   ],
 )
