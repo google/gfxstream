@@ -450,8 +450,7 @@ VG_EXPORT int stream_renderer_create_blob(uint32_t ctx_id, uint32_t res_handle,
     GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
                           "stream_renderer_create_blob()");
 
-    sFrontend()->createBlob(ctx_id, res_handle, create_blob, handle);
-    return 0;
+    return sFrontend()->createBlob(ctx_id, res_handle, create_blob, handle);
 }
 
 VG_EXPORT int stream_renderer_export_blob(uint32_t res_handle,

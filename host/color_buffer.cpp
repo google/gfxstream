@@ -27,7 +27,9 @@ namespace gfxstream {
 namespace host {
 namespace {
 
+#if GFXSTREAM_ENABLE_HOST_GLES
 using gl::ColorBufferGl;
+#endif
 using vk::ColorBufferVk;
 
 // ColorBufferVk natively supports YUV images. However, ColorBufferGl
@@ -158,7 +160,11 @@ std::unique_ptr<ColorBuffer::Impl> ColorBuffer::Impl::create(
 #endif
 
     if (emulationVk) {
+#if GFXSTREAM_ENABLE_HOST_GLES
         const bool vulkanOnly = colorBuffer->mColorBufferGl == nullptr;
+#else
+        const bool vulkanOnly = true;
+#endif
         const uint32_t memoryProperty = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
         const uint32_t mipLevels = 1;
         colorBuffer->mColorBufferVk = vk::ColorBufferVk::create(
