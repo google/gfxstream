@@ -13,6 +13,13 @@ on:
         type: string
         default: ''
 
+      # Which targets to build. Defaults to everything, but platforms that can
+      # not build the full target graph (e.g. macOS, which lacks the Linux-only
+      # mesa/libdrm/guest dependencies) can override this with a curated list.
+      build-targets:
+        type: string
+        default: '...'
+
       # Whether or not to run the `bazel test` step:
       run-tests:
         type: boolean
@@ -23,6 +30,7 @@ jobs:
     runs-on: ${{ inputs.runner }}
     steps:
     - name: Free disk space
+      if: runner.os == 'Linux'
       uses: jlumbroso/free-disk-space@v1.3.1
       with:
         tool-cache: true
@@ -30,14 +38,21 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
 
-    - name: Install bazel
+    - name: Install bazel (Linux)
+      if: runner.os == 'Linux'
       run: sudo bash toolchain/bazel/install_bazel.sh
 
-    - name: Install toolchain dependencies
+    - name: Install toolchain dependencies (Linux)
+      if: runner.os == 'Linux'
       run: sudo bash toolchain/bazel/install_toolchain_dependencies.sh
 
-    - name: Install runtime dependencies
+    - name: Install runtime dependencies (Linux)
+      if: runner.os == 'Linux'
       run: sudo apt-get install -y libvulkan1
+
+    - name: Install bazel (macOS)
+      if: runner.os == 'macOS'
+      run: brew install bazelisk
 
     - name: Load cache config
       run: cat .config/cache-config.env >> $GITHUB_ENV
@@ -54,7 +69,7 @@ jobs:
 
     - name: Build
       run: |
-        bazel build ... \
+        bazel build ${{ inputs.build-targets }} \
           --disk_cache=$HOME/bazel-disk-cache \
           --graphics_drivers=gles_angle_vulkan_swiftshader \
           --verbose_failures \

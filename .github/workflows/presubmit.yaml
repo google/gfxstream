@@ -60,6 +60,23 @@ jobs:
       # The arm runner is too slow:
       run-tests: false
 
+  run-gfxstream-bazel-build-macos:
+    uses: ./.github/workflows/presubmit_bazel.yml
+    with:
+      runner: macos-26
+      # macOS can not build the full target graph: the Linux-only mesa/libdrm
+      # guest dependencies and swiftshader's bundled LLVM (which has no macOS
+      # config) do not build on Darwin. Build the host backend libraries, which
+      # are the macOS deliverable and mirror the CMake/Meson host builds below.
+      build-targets: >-
+        //host:gfxstream_backend_static
+        //host:gfxstream_backend_shared
+        //host:gfxstream_backend
+      # Nothing is run yet: this job exists to keep the macOS host build
+      # compiling. Tests need a graphics driver environment that macOS does not
+      # have here yet.
+      run-tests: false
+
   run-gfxstream-cmake-build:
     runs-on: ubuntu-22.04
     steps:
@@ -81,6 +98,23 @@ jobs:
         cd build && \
         ninja
 
+  run-gfxstream-cmake-build-macos:
+    runs-on: macos-26
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+    - name: Install toolchain dependencies
+      run: brew install cmake ninja
+    - name: Configure Build
+      run: |
+        mkdir build && \
+        cd build && \
+        cmake .. -G Ninja
+    - name: Build
+      run: |
+        cd build && \
+        ninja
+
   run-gfxstream-meson-build:
     runs-on: ubuntu-22.04
     steps:
@@ -92,6 +126,23 @@ jobs:
       uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
     - name: Install toolchain dependencies
       run: sudo bash toolchain/meson/install_toolchain_dependencies.sh
+    - name: Configure Build
+      run: |
+        meson setup \
+          -Ddefault_library=static \
+          -Dgfxstream-build=host \
+          build
+    - name: Build
+      run: |
+        meson compile -C build
+
+  run-gfxstream-meson-build-macos:
+    runs-on: macos-26
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+    - name: Install toolchain dependencies
+      run: brew install meson ninja molten-vk vulkan-loader
     - name: Configure Build
       run: |
         meson setup \
