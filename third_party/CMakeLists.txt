@@ -17,14 +17,19 @@ if (ASTC_CPU_DECODING)
     set(DECOMPRESSOR ON)   # Disable compression code
     set(CLI OFF)           # Disable the command line interface
 
-    # Compile with the AVX2 instruction set. This is the fastest option available on x86_64.
-    # At run time, if the CPU doesn't support AVX2, the library will simply return an error status
-    # during initialization and we will fall back on the compute shader to decompress ASTC textures.
+    # Select the fastest SIMD ISA for the target architecture.
+    # At run time, if the CPU doesn't support the selected ISA, the library will simply return an
+    # error status during initialization and we will fall back on the compute shader to decompress
+    # ASTC textures.
     #
     # In the future, we should define `ASTCENC_DYNAMIC_LIBRARY` and build multiple versions of the
     # library for each SIMD architecture, and dynamically load the fastest one at run time.
     # See also: https://github.com/ARM-software/astc-encoder/issues/79
-    set(ISA_AVX2 ON)
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|ARM64")
+        set(ISA_NEON ON)
+    else()
+        set(ISA_AVX2 ON)
+    endif()
 
     add_subdirectory(astc-encoder)
 endif ()

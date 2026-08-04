@@ -39,8 +39,10 @@ egl_cpp_args = [
   '-Wno-inconsistent-missing-override',
 ]
 
+egl_deps = []
 if host_machine.system() == 'darwin'
   files_lib_egl_translator += files_egl_darwin
+  egl_deps += dependency('appleframeworks', modules: ['AppKit', 'IOSurface'])
 elif host_machine.system() == 'windows'
   files_lib_egl_translator += files_egl_win32
 elif host_machine.system() == 'linux'
@@ -51,6 +53,9 @@ lib_egl_translator = static_library(
   'egl_translator',
   files_lib_egl_translator,
   cpp_args: egl_cpp_args + gfxstream_host_args,
+  objc_args: egl_cpp_args + gfxstream_host_args,
+  objcpp_args: egl_cpp_args + gfxstream_host_args,
+  dependencies: egl_deps,
   include_directories: [
     inc_host_decoder_common,
     inc_common_base,

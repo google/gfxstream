@@ -25,7 +25,7 @@
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 #else
-#include "GlesCompat.h"
+#include "gles_compat.h"
 #endif  // GFXSTREAM_ENABLE_HOST_GLES
 #include <vulkan/vulkan.h>
 

@@ -1,6 +1,12 @@
 # TODO: fixup shared library usage.
 build --noexperimental_link_static_libraries_once
 
+# Raise the macOS deployment target. The default (10.11) is no longer supported
+# by the current SDK's libc++, which turns into a -Werror build failure. Applies
+# to both target and exec (host) configurations. No effect on non-macOS builds.
+build --macos_minimum_os=11.0
+build --host_macos_minimum_os=11.0
+
 # Graphics testing environments options:
 #
 #  * <default>

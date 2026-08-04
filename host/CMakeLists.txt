@@ -144,10 +144,12 @@ target_link_libraries(
         gfxstream_openglesdispatch
         gfxstream-gl-server
         gfxstream-vulkan-server
-        gfxstream_xcb_headers
         GLES_CM_translator_static
         renderControl_dec
         )
+if(NOT APPLE AND NOT WIN32)
+    target_link_libraries(gfxstream_backend_static PUBLIC gfxstream_xcb_headers)
+endif()
 
 target_include_directories(
         gfxstream_backend_static
@@ -357,18 +359,14 @@ endfunction()
             Vulkan_unittests
             PUBLIC
             "-framework AppKit")
-    endif()
-    discover_tests(
-            Vulkan_unittests
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-
-    if (APPLE)
-        target_compile_definitions(Vulkan_unittests PRIVATE -DVK_USE_PLATFORM_METAL_EXT)
     elseif (QNX)
         target_compile_definitions(Vulkan_unittests PRIVATE -DVK_USE_PLATFORM_SCREEN_QNX)
     elseif (UNIX)
         target_compile_definitions(Vulkan_unittests PRIVATE -DVK_USE_PLATFORM_XCB_KHR)
     endif()
+    discover_tests(
+            Vulkan_unittests
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
 
     file(GLOB Vulkan_unittests_datafiles "vulkan/testdata/*.png")

@@ -107,6 +107,9 @@ objc_library(
     ],
     copts = GFXSTREAM_HOST_COPTS + [
         "-Wno-deprecated-declarations",
+        # These sources use manual reference counting, so disable ARC which
+        # objc_library enables by default.
+        "-fno-objc-arc",
     ],
     defines = GFXSTREAM_HOST_DEFINES,
     sdk_frameworks = [

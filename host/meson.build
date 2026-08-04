@@ -92,6 +92,13 @@ if use_gles or use_vulkan
   ]
 endif
 
+# GL include paths are needed even in Vulkan-only builds: the Vulkan server
+# includes the GLES dispatch headers (e.g. for interop declarations), so keep
+# them visible regardless of which decoders are enabled.
+inc_gl_server = include_directories('gl')
+inc_gl_snapshot = include_directories('gl/glsnapshot')
+inc_gl_openglesdispatch = include_directories('gl/OpenGLESDispatch/include')
+
 if use_gles
   subdir('gl')
 
@@ -155,16 +162,20 @@ endif
 
 deps_gfxstream_backend = []
 
-link_args_gfxstream_backend = ''
+link_args_gfxstream_backend = []
 
 if host_machine.system() == 'linux'
   deps_gfxstream_backend += [
     thread_dep,
   ]
-  link_args_gfxstream_backend = '-Wl,-lpthread,-lrt,-ldl'
-endif
-
-if host_machine.system() == 'qnx'
+  link_args_gfxstream_backend = ['-Wl,-lpthread,-lrt,-ldl']
+elif host_machine.system() == 'darwin'
+  deps_gfxstream_backend += [
+    thread_dep,
+    dependency('appleframeworks', modules: ['AppKit', 'QuartzCore', 'IOSurface']),
+  ]
+  link_args_gfxstream_backend = ['-undefined', 'dynamic_lookup', '-flat_namespace']
+elif host_machine.system() == 'qnx'
   deps_gfxstream_backend += [
     qnx_egl_dep,
     qnx_gles2_dep,
@@ -176,6 +187,7 @@ gfxstream_backend = library(
   'gfxstream_backend',
   files_lib_gfxstream_backend,
   cpp_args: gfxstream_host_args + gfxstream_backend_cpp_args,
+  objcpp_args: gfxstream_host_args + gfxstream_backend_cpp_args,
   include_directories: [inc_gfxstream_backend],
   gnu_symbol_visibility: 'default',
   dependencies: deps_gfxstream_backend,

@@ -87,6 +87,15 @@ cc_library(
             ],
             allow_empty = True,
         ),
+        "@platforms//os:macos": glob(
+            [
+                "glslang/OSDependent/Unix/**/*.c",
+                "glslang/OSDependent/Unix/**/*.cc",
+                "glslang/OSDependent/Unix/**/*.cpp",
+                "glslang/OSDependent/Unix/**/*.h",
+            ],
+            allow_empty = True,
+        ),
         "@platforms//os:windows": glob(
             [
                 "glslang/OSDependent/Windows/**/*.c",
