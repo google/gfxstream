@@ -5965,6 +5965,62 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
+    // Conservatively converts synchronization2 stage masks for the legacy decompression path.
+    static VkPipelineStageFlags toLegacyPipelineStageFlags(VkPipelineStageFlags2 flags) {
+        const uint64_t upperBits = static_cast<uint64_t>(flags) & ~uint64_t{UINT32_MAX};
+        VkPipelineStageFlags result = static_cast<VkPipelineStageFlags>(flags);
+        if (upperBits != 0 || result == 0) {
+            result |= VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+        }
+        return result;
+    }
+
+    // Conservatively converts synchronization2 access masks for legacy image barriers.
+    static VkAccessFlags toLegacyAccessFlags(VkAccessFlags2 flags) {
+        const uint64_t upperBits = static_cast<uint64_t>(flags) & ~uint64_t{UINT32_MAX};
+        VkAccessFlags result = static_cast<VkAccessFlags>(flags);
+        if (upperBits != 0) {
+            result |= VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
+        }
+        return result;
+    }
+
+    // Converts a synchronization2 image barrier for the existing decompression implementation.
+    static VkImageMemoryBarrier toLegacyImageMemoryBarrier(const VkImageMemoryBarrier2& barrier) {
+        return {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = toLegacyAccessFlags(barrier.srcAccessMask),
+            .dstAccessMask = toLegacyAccessFlags(barrier.dstAccessMask),
+            .oldLayout = barrier.oldLayout,
+            .newLayout = barrier.newLayout,
+            .srcQueueFamilyIndex = barrier.srcQueueFamilyIndex,
+            .dstQueueFamilyIndex = barrier.dstQueueFamilyIndex,
+            .image = barrier.image,
+            .subresourceRange = barrier.subresourceRange,
+        };
+    }
+
+    // Converts an expanded legacy image barrier back to synchronization2.
+    static VkImageMemoryBarrier2 toImageMemoryBarrier2(const VkImageMemoryBarrier& barrier,
+                                                       VkPipelineStageFlags2 srcStageMask,
+                                                       VkPipelineStageFlags2 dstStageMask) {
+        return {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+            .pNext = nullptr,
+            .srcStageMask = srcStageMask,
+            .srcAccessMask = barrier.srcAccessMask,
+            .dstStageMask = dstStageMask,
+            .dstAccessMask = barrier.dstAccessMask,
+            .oldLayout = barrier.oldLayout,
+            .newLayout = barrier.newLayout,
+            .srcQueueFamilyIndex = barrier.srcQueueFamilyIndex,
+            .dstQueueFamilyIndex = barrier.dstQueueFamilyIndex,
+            .image = barrier.image,
+            .subresourceRange = barrier.subresourceRange,
+        };
+    }
+
     void on_vkCmdPipelineBarrier2(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
                                   VkCommandBuffer boxed_commandBuffer,
                                   const VkDependencyInfo* pDependencyInfo) {
@@ -5972,11 +6028,13 @@ class VkDecoderGlobalState::Impl {
         auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
 
         for (uint32_t i = 0; i < pDependencyInfo->bufferMemoryBarrierCount; ++i) {
-            convertQueueFamilyForeignToExternal_VkBufferMemoryBarrier2(const_cast<VkBufferMemoryBarrier2&>(pDependencyInfo->pBufferMemoryBarriers[i]));
+            convertQueueFamilyForeignToExternal_VkBufferMemoryBarrier2(
+                const_cast<VkBufferMemoryBarrier2&>(pDependencyInfo->pBufferMemoryBarriers[i]));
         }
 
         for (uint32_t i = 0; i < pDependencyInfo->imageMemoryBarrierCount; ++i) {
-            convertQueueFamilyForeignToExternal_VkImageMemoryBarrier2(const_cast<VkImageMemoryBarrier2&>(pDependencyInfo->pImageMemoryBarriers[i]));
+            convertQueueFamilyForeignToExternal_VkImageMemoryBarrier2(
+                const_cast<VkImageMemoryBarrier2&>(pDependencyInfo->pImageMemoryBarriers[i]));
         }
 
         VkDependencyInfo mappedDependencyInfo = *pDependencyInfo;
@@ -6002,9 +6060,54 @@ class VkDecoderGlobalState::Impl {
         processImageMemoryBarrierLocked(commandBuffer, pDependencyInfo->imageMemoryBarrierCount,
                                         pDependencyInfo->pImageMemoryBarriers);
 
-        // TODO: If this is a decompressed image, handle decompression before calling
-        // VkCmdvkCmdPipelineBarrier2 i.e. match on_vkCmdPipelineBarrier implementation
-        vk->vkCmdPipelineBarrier2(commandBuffer, pDependencyInfo);
+        if (!deviceInfo->emulateTextureEtc2 && !deviceInfo->emulateTextureAstc) {
+            vk->vkCmdPipelineBarrier2(commandBuffer, pDependencyInfo);
+            return;
+        }
+
+        std::vector<VkImageMemoryBarrier2> imageBarriers;
+        bool needRebind = false;
+        for (uint32_t i = 0; i < pDependencyInfo->imageMemoryBarrierCount; ++i) {
+            const VkImageMemoryBarrier2& srcBarrier = pDependencyInfo->pImageMemoryBarriers[i];
+            auto* imageInfo = gfxstream::base::find(mImageInfo, srcBarrier.image);
+            bool needGpuDecompression = false;
+            if (imageInfo && imageInfo->compressInfo) {
+                needGpuDecompression =
+                    !imageInfo->compressInfo->isAstc() || !deviceInfo->useAstcCpuDecompression;
+            }
+            if (!needGpuDecompression) {
+                imageBarriers.push_back(srcBarrier);
+                continue;
+            }
+
+            const VkImageMemoryBarrier legacyBarrier = toLegacyImageMemoryBarrier(srcBarrier);
+            std::vector<VkImageMemoryBarrier> legacyOutputBarriers;
+            needRebind |= imageInfo->compressInfo->decompressIfNeeded(
+                vk, commandBuffer, toLegacyPipelineStageFlags(srcBarrier.srcStageMask),
+                toLegacyPipelineStageFlags(srcBarrier.dstStageMask), legacyBarrier,
+                legacyOutputBarriers);
+            for (const auto& barrier : legacyOutputBarriers) {
+                imageBarriers.push_back(toImageMemoryBarrier2(barrier, srcBarrier.srcStageMask,
+                                                              srcBarrier.dstStageMask));
+            }
+        }
+
+        if (needRebind && cmdBufferInfo->computePipeline) {
+            vk->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+                                  cmdBufferInfo->computePipeline);
+            if (!cmdBufferInfo->currentDescriptorSets.empty()) {
+                vk->vkCmdBindDescriptorSets(
+                    commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, cmdBufferInfo->descriptorLayout,
+                    cmdBufferInfo->firstSet, cmdBufferInfo->currentDescriptorSets.size(),
+                    cmdBufferInfo->currentDescriptorSets.data(),
+                    cmdBufferInfo->dynamicOffsets.size(), cmdBufferInfo->dynamicOffsets.data());
+            }
+        }
+
+        VkDependencyInfo dependencyInfo = *pDependencyInfo;
+        dependencyInfo.imageMemoryBarrierCount = static_cast<uint32_t>(imageBarriers.size());
+        dependencyInfo.pImageMemoryBarriers = imageBarriers.data();
+        vk->vkCmdPipelineBarrier2(commandBuffer, &dependencyInfo);
     }
 
     void on_vkCmdWaitEvents(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
