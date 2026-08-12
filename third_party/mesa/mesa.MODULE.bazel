@@ -1,7 +1,7 @@
 git_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
 git_repository(
-    name = "drm",
+    name = "libdrm",
     build_file = "//third_party/mesa:BUILD.drm.bazel",
     # TODO: b/414448658 - gitlab.freedesktop.org having an outage
     #commit = "998d2a2e81e11043781672494dc3d294c1ecfce0",
@@ -14,7 +14,7 @@ git_repository(
 git_repository(
     name = "mesa",
     build_file = "//third_party/mesa:BUILD.mesa.bazel",
-    commit = "93476c62994245aba4e3fef4acaaad90c91a61be",
+    commit = "541c56aa3fd24027ed46ae350287d21dcd56c901",
     dev_dependency = True,
     patch_args = [
         "-p1",
