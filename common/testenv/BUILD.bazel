@@ -46,7 +46,7 @@ copy_to_directory(
             "//third_party/mesa:vk_lavapipe_icd.json",
             "@angle//:libEGL",
             "@angle//:libGLESv2",
-            "@mesa//:vk_lavapipe",
+            "@mesa//:vulkan_lvp",
         ],
         ":graphics_test_environment_gles_angle_vulkan_swiftshader": [
             "//third_party/angle:libEGL_angle_vendor_icd.json",

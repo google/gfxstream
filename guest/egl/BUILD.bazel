@@ -42,7 +42,7 @@ cc_library(
         "//third_party/android:gfxstream_thirdparty_android_headers",
         "//third_party/opengl:gfxstream_gles3_headers",
         "//third_party/opengl:gfxstream_gles_headers",
-        "@drm//:libdrm",
+        "@libdrm",
         "@mesa//:mesa_gfxstream_guest_android",
         "@mesa//:mesa_gfxstream_guest_platform",
     ],
