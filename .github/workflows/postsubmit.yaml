@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - name: Free disk space
-      uses: jlumbroso/free-disk-space@v1.3.1
+      uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be  # v1.3.1
       with:
         tool-cache: true
     - name: Checkout repository
@@ -26,7 +26,7 @@ jobs:
     - name: Load cache config
       run: cat .config/cache-config.env >> $GITHUB_ENV
     - name: Mount bazel cache
-      uses: actions/cache@v5
+      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
       with:
         path: "~/bazel-disk-cache"
         key: ${{ format('{0}-{1}-bazel-disk-cache-{2}-{3}-{4}-{5}', runner.os, runner.arch, env.CACHE_VERSION, github.ref_name, github.sha, github.event_name) }}
@@ -53,7 +53,7 @@ jobs:
     runs-on: ubuntu-22.04-arm
     steps:
     - name: Free disk space
-      uses: jlumbroso/free-disk-space@v1.3.1
+      uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be  # v1.3.1
       with:
         tool-cache: true
     - name: Checkout repository
@@ -65,7 +65,7 @@ jobs:
     - name: Load cache config
       run: cat .config/cache-config.env >> $GITHUB_ENV
     - name: Mount bazel cache
-      uses: actions/cache@v5
+      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
       with:
         path: "~/bazel-disk-cache"
         key: ${{ format('{0}-{1}-bazel-disk-cache-{2}-debian-package-{3}-{4}-{5}', runner.os, runner.arch, env.CACHE_VERSION, github.ref_name, github.sha, github.event_name) }}
