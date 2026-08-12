@@ -35,7 +35,13 @@ jobs:
           ${{ github.event_name == 'push' && format('{0}-{1}-bazel-disk-cache-{2}-{3}-', runner.os, runner.arch, env.CACHE_VERSION, github.ref_name) || '' }}
           ${{ github.event_name == 'push' && format('{0}-{1}-bazel-disk-cache-{2}-main-', runner.os, runner.arch, env.CACHE_VERSION) || '' }}
           ${{ github.event_name == 'push' && format('{0}-{1}-bazel-disk-cache-{2}-', runner.os, runner.arch, env.CACHE_VERSION) || '' }}
-    - name: Build
+    - name: Build with Lavapipe
+      run: |
+        bazel build ... \
+          --disk_cache=$HOME/bazel-disk-cache \
+          --graphics_drivers=gles_angle_vulkan_lavapipe \
+          --verbose_failures
+    - name: Build with SwiftShader
       run: |
         bazel build ... \
           --disk_cache=$HOME/bazel-disk-cache \
@@ -67,7 +73,13 @@ jobs:
           ${{ github.event_name == 'push' && format('{0}-{1}-bazel-disk-cache-{2}-debian-package-{3}-', runner.os, runner.arch, env.CACHE_VERSION, github.ref_name) || '' }}
           ${{ github.event_name == 'push' && format('{0}-{1}-bazel-disk-cache-{2}-debian-package-main-', runner.os, runner.arch, env.CACHE_VERSION) || '' }}
           ${{ github.event_name == 'push' && format('{0}-{1}-bazel-disk-cache-{2}-debian-package-', runner.os, runner.arch, env.CACHE_VERSION) || '' }}
-    - name: Build
+    - name: Build with Lavapipe
+      run: |
+        bazel build ... \
+          --disk_cache=$HOME/bazel-disk-cache \
+          --graphics_drivers=gles_angle_vulkan_lavapipe \
+          --verbose_failures
+    - name: Build with SwiftShader
       run: |
         bazel build ... \
           --disk_cache=$HOME/bazel-disk-cache \
