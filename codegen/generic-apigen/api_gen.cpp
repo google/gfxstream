@@ -72,7 +72,7 @@ void ApiGen::printHeader(FILE* fp) const {
     fprintf(fp, "//\n");
     fprintf(fp, "// Unless required by applicable law or agreed to in writing, software\n");
     fprintf(fp, "// distributed under the License is distributed on an \"AS IS\" BASIS,\n");
-    fprintf(fp, "// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expresso or implied.\n");
+    fprintf(fp, "// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n");
     fprintf(fp, "// See the License for the specific language governing permissions and\n");
     fprintf(fp, "// limitations under the License.\n");
     fprintf(fp, "\n");

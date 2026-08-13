@@ -1,7 +1,7 @@
 {
     "file_format_version": "1.0.0",
     "ICD": {
-      "library_path": "./libvk_lavapipe.so",
-      "api_version": "1.0.5"
+      "library_path": "./libvulkan_lvp.so",
+      "api_version": "1.4.0"
     }
 }

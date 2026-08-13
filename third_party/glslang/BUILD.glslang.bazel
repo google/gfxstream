@@ -1,167 +1,223 @@
-load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_python//python:defs.bzl", "py_binary")
 
-package(
-    default_visibility = [
-        "@//:gfxstream",
-        "@mesa//:__subpackages__",
+package(default_visibility = ["@//:gfxstream"])
+
+# Build information generation script
+py_binary(
+    name = "build_info",
+    srcs = ["build_info.py"],
+)
+
+genrule(
+    name = "gen_build_info_h",
+    srcs = [
+        "CHANGES.md",
+        "build_info.h.tmpl",
     ],
+    outs = ["glslang/build_info.h"],
+    cmd = "$(location build_info) $$(dirname $(location CHANGES.md)) -i $(location build_info.h.tmpl) -o $(location glslang/build_info.h)",
+    tools = [":build_info"],
+)
+
+# Intrinsics generation script
+py_binary(
+    name = "gen_extension_headers",
+    srcs = ["gen_extension_headers.py"],
+)
+
+genrule(
+    name = "glsl_intrinsic_header_h",
+    srcs = [
+        "glslang/ExtensionHeaders/GL_EXT_shader_realtime_clock.glsl",
+    ],
+    outs = ["glslang/glsl_intrinsic_header.h"],
+    cmd = "$(location gen_extension_headers) -i $$(dirname $(location glslang/ExtensionHeaders/GL_EXT_shader_realtime_clock.glsl)) -o $(location glslang/glsl_intrinsic_header.h)",
+    tools = [":gen_extension_headers"],
 )
 
 cc_library(
-    name = "spirv",
-    srcs = glob(
-        [
-            "SPIRV/*.c",
-            "SPIRV/*.cc",
-            "SPIRV/*.cpp",
-            "SPIRV/*.h",
-        ],
-        allow_empty = True,
-    ),
-    hdrs = glob(
-        [
-            "SPIRV/**/*.h",
-            "SPIRV/**/*.hpp",
-            "SPIRV/**/*.inc",
-        ],
-        allow_empty = True,
-    ),
-    includes = [
-        "SPIRV",
+    name = "generated_headers",
+    hdrs = [
+        ":gen_build_info_h",
+        ":glsl_intrinsic_header_h",
     ],
-    strip_include_prefix = "SPIRV",
-    deps = [
-        ":glslang_headers",
+    copts = [
+        "$(STACK_FRAME_UNLIMITED)",
+        "-Wno-logical-op-parentheses",
+        "-Wno-gnu-redeclared-enum",
+        "-Wno-sometimes-uninitialized",
+        "-Wno-implicit-fallthrough",
+        "-Ithird_party/glslang",
+        # glslang is not clean under certain sanitizers
+        "-fno-sanitize=float-cast-overflow,null,signed-integer-overflow",
     ],
-)
-
-genrule(
-    name = "build_info",
-    srcs = [
-        "build_info.h.tmpl",
-    ],
-    outs = [
-        "glslang/build_info.h",
-    ],
-    cmd = "sed " +
-          "-e \"s/@major@/0/g\" " +
-          "-e \"s/@minor@/0/g\" " +
-          "-e \"s/@patch@/0/g\" " +
-          "-e \"s/@flavor@/test/g\" " +
-          "$< > $@",
-)
-
-genrule(
-    name = "gen_glsl_intrinsic_header",
-    srcs = glob(
-        ["glslang/ExtensionHeaders/*.glsl"],
-        allow_empty = True,
-    ) + [
-        "gen_extension_headers.py",
-    ],
-    outs = ["glslang/glsl_intrinsic_header.h"],
-    cmd = "python3 $(location gen_extension_headers.py) -i $$(dirname $$(echo $(SRCS) | cut -d' ' -f1)) -o $(location glslang/glsl_intrinsic_header.h)",
+    includes = ["."],
+    linkstatic = 1,
 )
 
 cc_library(
     name = "glslang",
     srcs = glob(
         [
-            "glslang/**/*.c",
-            "glslang/**/*.cc",
-            "glslang/**/*.cpp",
-            "glslang/**/*.h",
+            "glslang/CInterface/*.cpp",
+            "glslang/GenericCodeGen/*.cpp",
+            "glslang/HLSL/*.cpp",
+            "glslang/MachineIndependent/*.cpp",
+            "glslang/MachineIndependent/preprocessor/*.cpp",
         ],
-        allow_empty = True,
         exclude = [
-            "glslang/CInterface/**/*",
-            "glslang/OSDependent/*/**/*",
+            "glslang/HLSL/pch.cpp",
+            "glslang/HLSL/pch.h",
+            "glslang/MachineIndependent/pch.cpp",
+            "glslang/MachineIndependent/pch.h",
         ],
-    ) + select({
-        "@platforms//os:linux": glob(
-            [
-                "glslang/OSDependent/Unix/**/*.c",
-                "glslang/OSDependent/Unix/**/*.cc",
-                "glslang/OSDependent/Unix/**/*.cpp",
-                "glslang/OSDependent/Unix/**/*.h",
-            ],
-            allow_empty = True,
-        ),
-        "@platforms//os:macos": glob(
-            [
-                "glslang/OSDependent/Unix/**/*.c",
-                "glslang/OSDependent/Unix/**/*.cc",
-                "glslang/OSDependent/Unix/**/*.cpp",
-                "glslang/OSDependent/Unix/**/*.h",
-            ],
-            allow_empty = True,
-        ),
-        "@platforms//os:windows": glob(
-            [
-                "glslang/OSDependent/Windows/**/*.c",
-                "glslang/OSDependent/Windows/**/*.cc",
-                "glslang/OSDependent/Windows/**/*.cpp",
-                "glslang/OSDependent/Windows/**/*.h",
-            ],
-            allow_empty = True,
-        ),
-    }) + [
-        ":build_info",
-        ":gen_glsl_intrinsic_header",
+    ) + [
+        "glslang/OSDependent/Unix/ossource.cpp",
     ],
-    hdrs = glob(
-        [
-            "glslang/**/*.h",
-            "glslang/**/*.hpp",
-            "glslang/**/*.inc",
-        ],
-        allow_empty = True,
-    ),
+    hdrs = glob([
+        "glslang/HLSL/*.h",
+        "glslang/Include/*.h",
+        "glslang/MachineIndependent/*.h",
+        "glslang/MachineIndependent/preprocessor/*.h",
+    ]) + [
+        "StandAlone/DirStackFileIncluder.h",
+        "glslang/OSDependent/osinclude.h",
+        "glslang/Public/ResourceLimits.h",
+        "glslang/Public/ShaderLang.h",
+    ],
     copts = [
-        "-DENABLE_HLSL",
-        "-DENABLE_OPT=0",
+        "$(STACK_FRAME_UNLIMITED)",
+        "-Wno-logical-op-parentheses",
+        "-Wno-gnu-redeclared-enum",
+        "-Wno-sometimes-uninitialized",
+        "-Wno-implicit-fallthrough",
+        "-Ithird_party/glslang",
+        # glslang is not clean under certain sanitizers
+        "-fno-sanitize=float-cast-overflow,null,signed-integer-overflow",
+        "-Ithird_party/glslang/glslang/MachineIndependent",
     ],
-    includes = [
-        ".",
+    defines = [
+        "AMD_EXTENSIONS",
+        "ENABLE_HLSL",
+        "ENABLE_OPT=1",
+        "ENABLE_SPIRV",
+        "GLSLANG_OSINCLUDE_UNIX",
+        "NV_EXTENSIONS",
+    ],
+    linkstatic = 1,
+    deps = [":generated_headers"],
+)
+
+cc_library(
+    name = "SPIRV_headers",
+    hdrs = [
+        "SPIRV/GLSL.ext.AMD.h",
+        "SPIRV/GLSL.ext.ARM.h",
+        "SPIRV/GLSL.ext.EXT.h",
+        "SPIRV/GLSL.ext.KHR.h",
+        "SPIRV/GLSL.ext.NV.h",
+        "SPIRV/GLSL.ext.QCOM.h",
+        "SPIRV/GLSL.std.450.h",
+        "SPIRV/spirv.hpp11",
+        "SPIRV/spvUtil.h",
+    ],
+    copts = [
+        "$(STACK_FRAME_UNLIMITED)",
+        "-Wno-logical-op-parentheses",
+        "-Wno-gnu-redeclared-enum",
+        "-Wno-sometimes-uninitialized",
+        "-Wno-implicit-fallthrough",
+        "-Ithird_party/glslang",
+        # glslang is not clean under certain sanitizers
+        "-fno-sanitize=float-cast-overflow,null,signed-integer-overflow",
+    ],
+    includes = ["."],
+    linkstatic = 1,
+)
+
+cc_library(
+    name = "SPIRV",
+    srcs = glob([
+        "SPIRV/*.cpp",
+        "SPIRV/CInterface/*.cpp",
+    ]),
+    hdrs = [
+        "SPIRV/GlslangToSpv.h",
+        "SPIRV/Logger.h",
+        "SPIRV/NonSemanticDebugPrintf.h",
+        "SPIRV/NonSemanticShaderDebugInfo.h",
+        "SPIRV/SpvBuilder.h",
+        "SPIRV/SpvTools.h",
+        "SPIRV/bitutils.h",
+        "SPIRV/disassemble.h",
+        "SPIRV/doc.h",
+        "SPIRV/hex_float.h",
+        "SPIRV/spvIR.h",
+    ],
+    copts = [
+        "$(STACK_FRAME_UNLIMITED)",
+        "-Wno-logical-op-parentheses",
+        "-Wno-gnu-redeclared-enum",
+        "-Wno-sometimes-uninitialized",
+        "-Wno-implicit-fallthrough",
+        "-Ithird_party/glslang",
+        # glslang is not clean under certain sanitizers
+        "-fno-sanitize=float-cast-overflow,null,signed-integer-overflow",
+    ],
+    linkstatic = 1,
+    deps = [
+        ":SPIRV_headers",
+        ":generated_headers",
+        ":glslang",
+        "@spirv_tools//:spirv_tools_opt",
     ],
 )
 
 cc_library(
-    name = "glslang_headers",
-    hdrs = glob(
-        [
-            "glslang/Include/**/*.h",
-            "glslang/Include/**/*.hpp",
-            "glslang/Include/**/*.inc",
-        ],
-        allow_empty = True,
-    ),
-    includes = [
-        "glslang/Include",
+    name = "glslang-default-resource-limits",
+    srcs = [
+        "glslang/ResourceLimits/ResourceLimits.cpp",
+        "glslang/ResourceLimits/resource_limits_c.cpp",
     ],
-    strip_include_prefix = "glslang/Include",
-    deps = [
-        "glslang",
+    hdrs = [
+        "glslang/Public/ResourceLimits.h",
+        "glslang/Public/resource_limits_c.h",
     ],
+    copts = [
+        "$(STACK_FRAME_UNLIMITED)",
+        "-Wno-logical-op-parentheses",
+        "-Wno-gnu-redeclared-enum",
+        "-Wno-sometimes-uninitialized",
+        "-Wno-implicit-fallthrough",
+        "-Ithird_party/glslang",
+        # glslang is not clean under certain sanitizers
+        "-fno-sanitize=float-cast-overflow,null,signed-integer-overflow",
+    ],
+    deps = [":glslang"],
 )
 
 cc_binary(
     name = "glslangValidator",
-    srcs = glob(
-        [
-            "StandAlone/*.cpp",
-            "StandAlone/*.h",
-        ],
-        allow_empty = True,
-        exclude = [
-            "StandAlone/spirv-remap.cpp",
-        ],
-    ),
+    srcs = [
+        "StandAlone/StandAlone.cpp",
+        "StandAlone/Worklist.h",
+    ],
     copts = [
-        "-DENABLE_OPT=0",
+        "$(STACK_FRAME_UNLIMITED)",
+        "-Wno-logical-op-parentheses",
+        "-Wno-gnu-redeclared-enum",
+        "-Wno-sometimes-uninitialized",
+        "-Wno-implicit-fallthrough",
+        "-Ithird_party/glslang",
+        # glslang is not clean under certain sanitizers
+        "-fno-sanitize=float-cast-overflow,null,signed-integer-overflow",
     ],
     deps = [
+        ":SPIRV",
         ":glslang",
-        ":spirv",
+        ":glslang-default-resource-limits",
     ],
+    visibility = ["//visibility:public"],
 )

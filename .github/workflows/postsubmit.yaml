@@ -7,6 +7,9 @@ on:
   schedule:
     - cron: '0 */3 * * *'
 
+permissions:
+  contents: read
+
 jobs:
   postsubmit-populate-bazel-cache:
     # Only run in the upstream repository; skip in forks.
@@ -14,7 +17,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - name: Free disk space
-      uses: jlumbroso/free-disk-space@v1.3.1
+      uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be  # v1.3.1
       with:
         tool-cache: true
     - name: Checkout repository
@@ -26,7 +29,7 @@ jobs:
     - name: Load cache config
       run: cat .config/cache-config.env >> $GITHUB_ENV
     - name: Mount bazel cache
-      uses: actions/cache@v5
+      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
       with:
         path: "~/bazel-disk-cache"
         key: ${{ format('{0}-{1}-bazel-disk-cache-{2}-{3}-{4}-{5}', runner.os, runner.arch, env.CACHE_VERSION, github.ref_name, github.sha, github.event_name) }}
@@ -35,7 +38,13 @@ jobs:
           ${{ github.event_name == 'push' && format('{0}-{1}-bazel-disk-cache-{2}-{3}-', runner.os, runner.arch, env.CACHE_VERSION, github.ref_name) || '' }}
           ${{ github.event_name == 'push' && format('{0}-{1}-bazel-disk-cache-{2}-main-', runner.os, runner.arch, env.CACHE_VERSION) || '' }}
           ${{ github.event_name == 'push' && format('{0}-{1}-bazel-disk-cache-{2}-', runner.os, runner.arch, env.CACHE_VERSION) || '' }}
-    - name: Build
+    - name: Build with Lavapipe
+      run: |
+        bazel build ... \
+          --disk_cache=$HOME/bazel-disk-cache \
+          --graphics_drivers=gles_angle_vulkan_lavapipe \
+          --verbose_failures
+    - name: Build with SwiftShader
       run: |
         bazel build ... \
           --disk_cache=$HOME/bazel-disk-cache \
@@ -47,7 +56,7 @@ jobs:
     runs-on: ubuntu-22.04-arm
     steps:
     - name: Free disk space
-      uses: jlumbroso/free-disk-space@v1.3.1
+      uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be  # v1.3.1
       with:
         tool-cache: true
     - name: Checkout repository
@@ -59,7 +68,7 @@ jobs:
     - name: Load cache config
       run: cat .config/cache-config.env >> $GITHUB_ENV
     - name: Mount bazel cache
-      uses: actions/cache@v5
+      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
       with:
         path: "~/bazel-disk-cache"
         key: ${{ format('{0}-{1}-bazel-disk-cache-{2}-debian-package-{3}-{4}-{5}', runner.os, runner.arch, env.CACHE_VERSION, github.ref_name, github.sha, github.event_name) }}
@@ -67,7 +76,13 @@ jobs:
           ${{ github.event_name == 'push' && format('{0}-{1}-bazel-disk-cache-{2}-debian-package-{3}-', runner.os, runner.arch, env.CACHE_VERSION, github.ref_name) || '' }}
           ${{ github.event_name == 'push' && format('{0}-{1}-bazel-disk-cache-{2}-debian-package-main-', runner.os, runner.arch, env.CACHE_VERSION) || '' }}
           ${{ github.event_name == 'push' && format('{0}-{1}-bazel-disk-cache-{2}-debian-package-', runner.os, runner.arch, env.CACHE_VERSION) || '' }}
-    - name: Build
+    - name: Build with Lavapipe
+      run: |
+        bazel build ... \
+          --disk_cache=$HOME/bazel-disk-cache \
+          --graphics_drivers=gles_angle_vulkan_lavapipe \
+          --verbose_failures
+    - name: Build with SwiftShader
       run: |
         bazel build ... \
           --disk_cache=$HOME/bazel-disk-cache \

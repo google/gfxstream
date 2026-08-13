@@ -85,7 +85,6 @@ jobs:
       run: |
         bazel build $BUILD_TARGETS \
           --disk_cache=$HOME/bazel-disk-cache \
-          --graphics_drivers=gles_angle_vulkan_swiftshader \
           --verbose_failures \
           $ADDITIONAL_BAZEL_ARGS
 
@@ -96,7 +95,6 @@ jobs:
       run: |
         bazel test \
           --disk_cache=$HOME/bazel-disk-cache \
-          --graphics_drivers=gles_angle_vulkan_swiftshader \
           --test_output=streamed \
           --verbose_failures \
           host:gfxstream_framebuffer_tests \

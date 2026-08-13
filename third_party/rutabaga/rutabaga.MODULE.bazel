@@ -3,7 +3,7 @@ git_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:git.bzl", "g
 git_repository(
     name = "rutabaga",
     build_file = "//third_party/rutabaga:BUILD.rutabaga.bazel",
-    commit = "10c9ffb974e3d134bf40ddecc20abfd66fb5a99d",
+    commit = "13cde31787f65f1b5521b2a7ab54f56099cdc09b",
     dev_dependency = True,
     remote = "https://github.com/magma-gpu/rutabaga_gfx",
 )

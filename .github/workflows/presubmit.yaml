@@ -47,9 +47,16 @@ jobs:
           exit 1;
         fi
 
-  run-gfxstream-bazel-tests:
+  run-gfxstream-bazel-lavapipe-tests:
     uses: ./.github/workflows/presubmit_bazel.yml
     with:
+      additional-bazel-args: --graphics_drivers=gles_angle_vulkan_lavapipe
+      runner: ubuntu-22.04
+
+  run-gfxstream-bazel-swiftshader-tests:
+    uses: ./.github/workflows/presubmit_bazel.yml
+    with:
+      additional-bazel-args: --graphics_drivers=gles_angle_vulkan_swiftshader
       runner: ubuntu-22.04
 
   run-gfxstream-bazel-tests-asan:
@@ -57,7 +64,7 @@ jobs:
     with:
       # TODO(b/475886246): fix and remove `detect_leaks=0`
       # TODO(b/475885975): fix and remove `detect_odr_violation=0`
-      additional-bazel-args: --config=asan --test_env=ASAN_OPTIONS=detect_leaks=0:detect_odr_violation=0
+      additional-bazel-args: --graphics_drivers=gles_angle_vulkan_swiftshader --config=asan --test_env=ASAN_OPTIONS=detect_leaks=0:detect_odr_violation=0
       runner: ubuntu-22.04
 
   run-gfxstream-bazel-tests-arm:
