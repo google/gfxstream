@@ -48,7 +48,7 @@ namespace host {
 #define VIRGL_FORMAT_YV12                    163
 #define VIRGL_FORMAT_NV12                    166
 #define VIRGL_FORMAT_P010                    314
-#define VIRGL_FORMAT_P210                    317
+#define VIRGL_FORMAT_P210                    481
 // clang-format on
 
 inline std::optional<GfxstreamFormat> ToGfxstreamFormat(uint32_t virglFormat) {
