@@ -3,8 +3,16 @@ git_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:git.bzl", "g
 git_repository(
     name = "rutabaga",
     build_file = "//third_party/rutabaga:BUILD.rutabaga.bazel",
-    commit = "13cde31787f65f1b5521b2a7ab54f56099cdc09b",
+    commit = "8130b61c6a09604260cdca6ede8727ea62eedbad",
     dev_dependency = True,
+    patch_args = [
+        "-p1",
+        "--ignore-whitespace",
+    ],
+    patches = [
+        "//third_party/rutabaga:PATCH.0001_rutabaga_tube_send_owned.patch",
+        "//third_party/rutabaga:PATCH.0002_rutabaga_writepipe_owned.patch",
+    ],
     remote = "https://github.com/magma-gpu/rutabaga_gfx",
 )
 
@@ -81,6 +89,7 @@ rutabaga_crate_deps.spec(
         "net",
         "param",
         "pipe",
+        "shm",
         "thread",
         "use-libc",
         "use-libc-auxv",

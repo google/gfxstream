@@ -1,0 +1,44 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: utzcoz <utzcoz@outlook.com>
+Date: Sat, 22 Aug 2026 11:33:27 +0800
+Subject: [PATCH] magma-gpu-rs: hand the descriptors to Tube::send
+
+Tube::send borrows the descriptors, which is fine where sending duplicates them,
+as SCM_RIGHTS does. A Mach port right is not duplicated: a receive right is
+unique and moves to the peer, so the sender is left holding a descriptor for a
+right it no longer has, and dropping that releases a name it does not own.
+
+Take the descriptors by value, so what a send consumes is in the type. Nothing
+changes for the socket backends, whose callers dropped them right after the send
+in any case.
+---
+ src/cross_domain/common.rs  | 2 +-
+ src/cross_domain/context.rs | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/cross_domain/common.rs b/src/cross_domain/common.rs
+index 3ce75da..1ca75a3 100644
+--- a/src/cross_domain/common.rs
++++ b/src/cross_domain/common.rs
+@@ -96,7 +96,7 @@ impl CrossDomainState {
+     pub fn send_msg(
+         &self,
+         opaque_data: &[u8],
+-        descriptors: &[OwnedDescriptor],
++        descriptors: Vec<OwnedDescriptor>,
+     ) -> RutabagaResult<usize> {
+         match self.connection {
+             Some(ref connection) => connection
+diff --git a/src/cross_domain/context.rs b/src/cross_domain/context.rs
+index 546184f..0cda0d5 100644
+--- a/src/cross_domain/context.rs
++++ b/src/cross_domain/context.rs
+@@ -349,7 +349,7 @@ impl CrossDomainContext {
+         }
+ 
+         if let (Some(state), Some(ref resample_evt)) = (&self.state, &self.resample_evt) {
+-            state.send_msg(opaque_data, &descriptors)?;
++            state.send_msg(opaque_data, descriptors)?;
+ 
+             if let Some(read_pipe_id) = read_pipe_id_opt {
+                 state.add_job(CrossDomainJob::AddReadPipe(read_pipe_id));
