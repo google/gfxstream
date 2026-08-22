@@ -1,0 +1,321 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: utzcoz <utzcoz@outlook.com>
+Date: Fri, 21 Aug 2026 20:59:00 +0800
+Subject: [PATCH] gfxstream/guest: stub the virtio-gpu backend on Apple
+
+Apple has no DRM subsystem, so osCreateVirtGpuDevice and osCreateSyncHelper
+were undefined and the driver did not link.
+
+Add a Darwin platform directory that stubs them, the way Windows and Fuchsia
+do. Backend selection then needs no Apple case of its own, and kumquat is asked
+for through VIRTGPU_KUMQUAT as everywhere else.
+
+Reviewed-by: Gurchetan Singh  <gurchetan.singh.foss@gmail.com>
+---
+ .../guest/platform/darwin/DarwinSync.cpp      | 30 +++++++++
+ .../guest/platform/darwin/DarwinSync.h        | 25 +++++++
+ .../guest/platform/darwin/DarwinVirtGpu.h     | 67 +++++++++++++++++++
+ .../platform/darwin/DarwinVirtGpuBlob.cpp     | 43 ++++++++++++
+ .../darwin/DarwinVirtGpuBlobMapping.cpp       | 14 ++++
+ .../platform/darwin/DarwinVirtGpuDevice.cpp   | 39 +++++++++++
+ .../guest/platform/darwin/meson.build         | 16 +++++
+ src/gfxstream/guest/platform/meson.build      |  3 +
+ 8 files changed, 237 insertions(+)
+ create mode 100644 src/gfxstream/guest/platform/darwin/DarwinSync.cpp
+ create mode 100644 src/gfxstream/guest/platform/darwin/DarwinSync.h
+ create mode 100644 src/gfxstream/guest/platform/darwin/DarwinVirtGpu.h
+ create mode 100644 src/gfxstream/guest/platform/darwin/DarwinVirtGpuBlob.cpp
+ create mode 100644 src/gfxstream/guest/platform/darwin/DarwinVirtGpuBlobMapping.cpp
+ create mode 100644 src/gfxstream/guest/platform/darwin/DarwinVirtGpuDevice.cpp
+ create mode 100644 src/gfxstream/guest/platform/darwin/meson.build
+
+diff --git a/src/gfxstream/guest/platform/darwin/DarwinSync.cpp b/src/gfxstream/guest/platform/darwin/DarwinSync.cpp
+new file mode 100644
+index 00000000000..158e0cdad2e
+--- /dev/null
++++ b/src/gfxstream/guest/platform/darwin/DarwinSync.cpp
+@@ -0,0 +1,30 @@
++/*
++ * Copyright 2026 Mesa3D authors
++ * SPDX-License-Identifier: MIT
++ */
++
++#include "DarwinSync.h"
++
++namespace gfxstream {
++
++DarwinSyncHelper::DarwinSyncHelper() {}
++
++int DarwinSyncHelper::wait(int syncFd, int timeoutMilliseconds) {
++    return -1;  // stub constant
++}
++
++void DarwinSyncHelper::debugPrint(int syncFd) {}
++
++int DarwinSyncHelper::dup(int syncFd) {
++    return -1;  // stub constant
++}
++
++int DarwinSyncHelper::close(int syncFd) {
++    return -1;  // stub constant
++}
++
++SyncHelper* osCreateSyncHelper() {
++    return nullptr;  // stub constant
++}
++
++}  // namespace gfxstream
+diff --git a/src/gfxstream/guest/platform/darwin/DarwinSync.h b/src/gfxstream/guest/platform/darwin/DarwinSync.h
+new file mode 100644
+index 00000000000..f83741b81fb
+--- /dev/null
++++ b/src/gfxstream/guest/platform/darwin/DarwinSync.h
+@@ -0,0 +1,25 @@
++/*
++ * Copyright 2026 Mesa3D authors
++ * SPDX-License-Identifier: MIT
++ */
++
++#pragma once
++
++#include "Sync.h"
++
++namespace gfxstream {
++
++class DarwinSyncHelper : public SyncHelper {
++   public:
++    DarwinSyncHelper();
++
++    int wait(int syncFd, int timeoutMilliseconds) override;
++
++    void debugPrint(int syncFd) override;
++
++    int dup(int syncFd) override;
++
++    int close(int syncFd) override;
++};
++
++}  // namespace gfxstream
+diff --git a/src/gfxstream/guest/platform/darwin/DarwinVirtGpu.h b/src/gfxstream/guest/platform/darwin/DarwinVirtGpu.h
+new file mode 100644
+index 00000000000..1a4662689cc
+--- /dev/null
++++ b/src/gfxstream/guest/platform/darwin/DarwinVirtGpu.h
+@@ -0,0 +1,67 @@
++/*
++ * Copyright 2026 Mesa3D authors
++ * SPDX-License-Identifier: MIT
++ */
++
++#pragma once
++
++#include "VirtGpu.h"
++
++class DarwinVirtGpuResource : public std::enable_shared_from_this<DarwinVirtGpuResource>,
++                              public VirtGpuResource {
++   public:
++    DarwinVirtGpuResource(int64_t deviceHandle, uint32_t blobHandle, uint32_t resourceHandle,
++                          uint64_t size);
++    ~DarwinVirtGpuResource();
++
++    void intoRaw() override;
++    uint32_t getResourceHandle() const override;
++    uint32_t getBlobHandle() const override;
++    uint64_t getSize() const override;
++    int wait() override;
++
++    VirtGpuResourceMappingPtr createMapping(void) override;
++    int exportBlob(struct VirtGpuExternalHandle& handle) override;
++
++    int transferFromHost(uint32_t x, uint32_t y, uint32_t w, uint32_t h) override;
++    int transferToHost(uint32_t x, uint32_t y, uint32_t w, uint32_t h) override;
++
++   private:
++    uint32_t mBlobHandle;
++    uint32_t mResourceHandle;
++    uint64_t mSize;
++};
++
++class DarwinVirtGpuResourceMapping : public VirtGpuResourceMapping {
++   public:
++    DarwinVirtGpuResourceMapping(VirtGpuResourcePtr blob, uint8_t* ptr, uint64_t size);
++    ~DarwinVirtGpuResourceMapping(void);
++
++    uint8_t* asRawPtr(void) override;
++
++   private:
++    VirtGpuResourcePtr mBlob;
++    uint8_t* mPtr;
++};
++
++class DarwinVirtGpuDevice : public VirtGpuDevice {
++   public:
++    DarwinVirtGpuDevice(enum VirtGpuCapset capset, int32_t descriptor = -1);
++    ~DarwinVirtGpuDevice() override;
++
++    int64_t getDeviceHandle(void) override;
++
++    struct VirtGpuCaps getCaps(void) override;
++
++    VirtGpuResourcePtr createBlob(const struct VirtGpuCreateBlob& blobCreate) override;
++    VirtGpuResourcePtr createResource(uint32_t width, uint32_t height, uint32_t stride,
++                                      uint32_t size, uint32_t virglFormat, uint32_t target,
++                                      uint32_t bind) override;
++
++    VirtGpuResourcePtr importBlob(const struct VirtGpuExternalHandle& handle) override;
++    int execBuffer(struct VirtGpuExecBuffer& execbuffer, const VirtGpuResource* blob) override;
++
++   private:
++    int64_t mDeviceHandle;
++    struct VirtGpuCaps mCaps;
++};
+diff --git a/src/gfxstream/guest/platform/darwin/DarwinVirtGpuBlob.cpp b/src/gfxstream/guest/platform/darwin/DarwinVirtGpuBlob.cpp
+new file mode 100644
+index 00000000000..7053bc899ea
+--- /dev/null
++++ b/src/gfxstream/guest/platform/darwin/DarwinVirtGpuBlob.cpp
+@@ -0,0 +1,43 @@
++/*
++ * Copyright 2026 Mesa3D authors
++ * SPDX-License-Identifier: MIT
++ */
++
++#include "DarwinVirtGpu.h"
++
++DarwinVirtGpuResource::DarwinVirtGpuResource(int64_t deviceHandle, uint32_t blobHandle,
++                                             uint32_t resourceHandle, uint64_t size)
++    : mBlobHandle(blobHandle), mResourceHandle(resourceHandle), mSize(size) {}
++
++DarwinVirtGpuResource::~DarwinVirtGpuResource() {}
++
++void DarwinVirtGpuResource::intoRaw() {
++    mBlobHandle = INVALID_DESCRIPTOR;
++    mResourceHandle = INVALID_DESCRIPTOR;
++}
++
++uint32_t DarwinVirtGpuResource::getBlobHandle() const { return mBlobHandle; }
++
++uint32_t DarwinVirtGpuResource::getResourceHandle() const { return mResourceHandle; }
++
++uint64_t DarwinVirtGpuResource::getSize() const { return mSize; }
++
++VirtGpuResourceMappingPtr DarwinVirtGpuResource::createMapping() {
++    return nullptr;  // stub constant
++}
++
++int DarwinVirtGpuResource::exportBlob(struct VirtGpuExternalHandle& handle) {
++    return 0;  // stub constant
++}
++
++int DarwinVirtGpuResource::wait() {
++    return 0;  // stub constant
++}
++
++int DarwinVirtGpuResource::transferToHost(uint32_t x, uint32_t y, uint32_t w, uint32_t h) {
++    return 0;  // stub constant
++}
++
++int DarwinVirtGpuResource::transferFromHost(uint32_t x, uint32_t y, uint32_t w, uint32_t h) {
++    return 0;  // stub constant
++}
+diff --git a/src/gfxstream/guest/platform/darwin/DarwinVirtGpuBlobMapping.cpp b/src/gfxstream/guest/platform/darwin/DarwinVirtGpuBlobMapping.cpp
+new file mode 100644
+index 00000000000..bc6a531de43
+--- /dev/null
++++ b/src/gfxstream/guest/platform/darwin/DarwinVirtGpuBlobMapping.cpp
+@@ -0,0 +1,14 @@
++/*
++ * Copyright 2026 Mesa3D authors
++ * SPDX-License-Identifier: MIT
++ */
++
++#include "DarwinVirtGpu.h"
++
++DarwinVirtGpuResourceMapping::DarwinVirtGpuResourceMapping(VirtGpuResourcePtr blob, uint8_t* ptr,
++                                                           uint64_t size)
++    : mBlob(blob), mPtr(ptr) {}
++
++DarwinVirtGpuResourceMapping::~DarwinVirtGpuResourceMapping(void) {}
++
++uint8_t* DarwinVirtGpuResourceMapping::asRawPtr(void) { return mPtr; }
+diff --git a/src/gfxstream/guest/platform/darwin/DarwinVirtGpuDevice.cpp b/src/gfxstream/guest/platform/darwin/DarwinVirtGpuDevice.cpp
+new file mode 100644
+index 00000000000..9a5b4badd06
+--- /dev/null
++++ b/src/gfxstream/guest/platform/darwin/DarwinVirtGpuDevice.cpp
+@@ -0,0 +1,39 @@
++/*
++ * Copyright 2026 Mesa3D authors
++ * SPDX-License-Identifier: MIT
++ */
++
++#include "DarwinVirtGpu.h"
++
++DarwinVirtGpuDevice::DarwinVirtGpuDevice(enum VirtGpuCapset capset, int32_t descriptor)
++    : VirtGpuDevice(capset) {}
++
++DarwinVirtGpuDevice::~DarwinVirtGpuDevice() {}
++
++struct VirtGpuCaps DarwinVirtGpuDevice::getCaps(void) { return mCaps; }
++
++int64_t DarwinVirtGpuDevice::getDeviceHandle(void) { return mDeviceHandle; }
++
++VirtGpuResourcePtr DarwinVirtGpuDevice::createResource(uint32_t width, uint32_t height,
++                                                       uint32_t stride, uint32_t size,
++                                                       uint32_t virglFormat, uint32_t target,
++                                                       uint32_t bind) {
++    return nullptr;  // stub constant
++}
++
++VirtGpuResourcePtr DarwinVirtGpuDevice::createBlob(const struct VirtGpuCreateBlob& blobCreate) {
++    return nullptr;  // stub constant
++}
++
++VirtGpuResourcePtr DarwinVirtGpuDevice::importBlob(const struct VirtGpuExternalHandle& handle) {
++    return nullptr;  // stub constant
++}
++
++int DarwinVirtGpuDevice::execBuffer(struct VirtGpuExecBuffer& execbuffer,
++                                    const VirtGpuResource* blob) {
++    return 0;  // stub constant
++}
++
++VirtGpuDevice* osCreateVirtGpuDevice(enum VirtGpuCapset capset, int32_t descriptor) {
++    return nullptr;  // stub constant
++}
+diff --git a/src/gfxstream/guest/platform/darwin/meson.build b/src/gfxstream/guest/platform/darwin/meson.build
+new file mode 100644
+index 00000000000..34034a3c81e
+--- /dev/null
++++ b/src/gfxstream/guest/platform/darwin/meson.build
+@@ -0,0 +1,16 @@
++# Copyright 2026 Mesa3D authors
++# SPDX-License-Identifier: MIT
++
++files_libplatform_virtgpu_darwin = files(
++    'DarwinSync.cpp',
++    'DarwinVirtGpuBlob.cpp',
++    'DarwinVirtGpuBlobMapping.cpp',
++    'DarwinVirtGpuDevice.cpp',
++)
++
++libplatform_virtgpu_darwin = static_library(
++    'platform_virtgpu_darwin',
++    files_libplatform_virtgpu_darwin,
++    cpp_args: gfxstream_guest_args,
++    include_directories: [inc_platform_virtgpu, inc_src, inc_include],
++)
+diff --git a/src/gfxstream/guest/platform/meson.build b/src/gfxstream/guest/platform/meson.build
+index f173f6e0b92..53f194dee50 100644
+--- a/src/gfxstream/guest/platform/meson.build
++++ b/src/gfxstream/guest/platform/meson.build
+@@ -13,6 +13,9 @@ if system_has_kms_drm
+ elif host_machine.system() == 'windows'
+     subdir('windows')
+     libplatform_virtgpu += libplatform_virtgpu_windows
++elif host_machine.system() in ['darwin', 'macos', 'ios']
++    subdir('darwin')
++    libplatform_virtgpu += libplatform_virtgpu_darwin
+ endif
+ 
+ files_libplatform_virtgpu = files('VirtGpu.cpp')

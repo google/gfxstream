@@ -1,0 +1,35 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: utzcoz <utzcoz@outlook.com>
+Date: Fri, 21 Aug 2026 20:59:00 +0800
+Subject: [PATCH] subprojects/rustix: enable the features an Apple backend
+ needs
+
+The Apple branch of the rustix wrap asks for fs, net and pipe. A sys backend
+for macOS also needs event for kqueue, mm for mmap, param for the page size,
+and shm for anonymous shared memory.
+
+The features are per-target, so nothing else changes.
+
+Reviewed-by: Gurchetan Singh  <gurchetan.singh.foss@gmail.com>
+---
+ subprojects/packagefiles/rustix-1-rs/meson.build | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/subprojects/packagefiles/rustix-1-rs/meson.build b/subprojects/packagefiles/rustix-1-rs/meson.build
+index 42b83a85410..6e799087d21 100644
+--- a/subprojects/packagefiles/rustix-1-rs/meson.build
++++ b/subprojects/packagefiles/rustix-1-rs/meson.build
+@@ -40,9 +40,13 @@ elif host_machine.system() == 'darwin' or host_machine.system() == 'macos'
+   '--cfg', 'feature="use-libc"',
+   '--cfg', 'feature="std"',
+   '--cfg', 'feature="alloc"',
++  '--cfg', 'feature="event"',
+   '--cfg', 'feature="fs"',
++  '--cfg', 'feature="mm"',
+   '--cfg', 'feature="net"',
++  '--cfg', 'feature="param"',
+   '--cfg', 'feature="pipe"',
++  '--cfg', 'feature="shm"',
+   ]
+ elif host_machine.system() == 'windows'
+   rustix_args += [

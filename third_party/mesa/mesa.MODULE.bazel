@@ -22,6 +22,17 @@ git_repository(
     ],
     patches = [
         "//third_party/mesa:PATCH.0001_disable_vk_envvar_modification_for_testing.patch",
+        "//third_party/mesa:PATCH.0002_gfxstream_guest_no_android_native_buffer_on_apple.patch",
+        "//third_party/mesa:PATCH.0003_subprojects_rustix_apple_features.patch",
+        "//third_party/mesa:PATCH.0004_subprojects_mach2_wrap.patch",
+        "//third_party/mesa:PATCH.0005_magma_gpu_rs_event_pair.patch",
+        "//third_party/mesa:PATCH.0006_magma_gpu_rs_tube_send_owned.patch",
+        "//third_party/mesa:PATCH.0007_magma_gpu_rs_writepipe_owned.patch",
+        "//third_party/mesa:PATCH.0008_magma_gpu_rs_darwin_backend.patch",
+        "//third_party/mesa:PATCH.0009_gfxstream_guest_darwin_virtgpu_stub.patch",
+        "//third_party/mesa:PATCH.0010_gfxstream_guest_macho_link.patch",
+        "//third_party/mesa:PATCH.0011_gfxstream_guest_metal_wsi.patch",
+        "//third_party/mesa:PATCH.0012_gfxstream_guest_map_memory2.patch",
     ],
     remote = "https://android.googlesource.com/platform/external/mesa3d.git",
 )
@@ -42,6 +53,10 @@ mesa_crate_deps.spec(
 mesa_crate_deps.spec(
     package = "libc",
     version = "0.2.116",
+)
+mesa_crate_deps.spec(
+    package = "mach2",
+    version = "0.7.0",
 )
 mesa_crate_deps.spec(
     package = "log",
@@ -68,6 +83,7 @@ mesa_crate_deps.spec(
         "net",
         "param",
         "pipe",
+        "shm",
         "thread",
         "use-libc",
         "use-libc-auxv",
