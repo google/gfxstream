@@ -457,6 +457,11 @@ class VkDecoderGlobalState {
                                          VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
                                          VkImage image, VkMemoryRequirements* pMemoryRequirements);
 
+    void on_vkGetImageSubresourceLayout(gfxstream::base::BumpPool* pool,
+                                        VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+                                        VkImage image, const VkImageSubresource* pSubresource,
+                                        VkSubresourceLayout* pLayout);
+
     void on_vkGetImageMemoryRequirements2(gfxstream::base::BumpPool* pool,
                                           VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
                                           const VkImageMemoryRequirementsInfo2* pInfo,

@@ -5480,6 +5480,15 @@ class VkDecoderGlobalState::Impl {
         physicalDeviceMemHelper->transformToGuestMemoryRequirements(pMemoryRequirements);
     }
 
+    void on_vkGetImageSubresourceLayout(gfxstream::base::BumpPool*, VkSnapshotApiCallHandle,
+                                        VkDevice boxed_device, VkImage image,
+                                        const VkImageSubresource* pSubresource,
+                                        VkSubresourceLayout* pLayout) {
+        auto device = unbox_VkDevice(boxed_device);
+        auto vk = dispatch_VkDevice(boxed_device);
+        vk->vkGetImageSubresourceLayout(device, image, pSubresource, pLayout);
+    }
+
     void on_vkGetImageMemoryRequirements2(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
                                           VkDevice boxed_device,
                                           const VkImageMemoryRequirementsInfo2* pInfo,
@@ -12019,6 +12028,13 @@ void VkDecoderGlobalState::on_vkGetImageMemoryRequirements(
     gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
     VkImage image, VkMemoryRequirements* pMemoryRequirements) {
     mImpl->on_vkGetImageMemoryRequirements(pool, apiCallHandle, device, image, pMemoryRequirements);
+}
+
+void VkDecoderGlobalState::on_vkGetImageSubresourceLayout(
+    gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+    VkImage image, const VkImageSubresource* pSubresource, VkSubresourceLayout* pLayout) {
+    mImpl->on_vkGetImageSubresourceLayout(pool, apiCallHandle, device, image, pSubresource,
+                                          pLayout);
 }
 
 void VkDecoderGlobalState::on_vkGetImageMemoryRequirements2(
