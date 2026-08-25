@@ -13,6 +13,10 @@
 // limitations under the License.
 #pragma once
 
+#ifdef __ANDROID__
+#include <android/hardware_buffer.h>
+#endif
+
 #include <GLES2/gl2.h>
 #include <vulkan/vulkan.h>
 
@@ -205,6 +209,7 @@ class VkEmulation {
     void onVkDeviceLost();
 
     VkExternalMemoryHandleTypeFlagBits getDefaultExternalMemoryHandleType();
+
     void appendExternalMemoryModeDeviceExtensions(std::vector<const char*>& outDeviceExtensions);
     ExternalMemory::Mode getExternalMemoryMode() const;
     bool supportsExternalMemory() {
@@ -739,6 +744,11 @@ class VkEmulation {
     // UdmabufCreator
     std::unique_ptr<UdmabufCreator> mUdmabufCreator;
 };
+
+#ifdef __ANDROID__
+// Allocates an AHardwareBuffer matching an image's create info.
+AHardwareBuffer* allocAhb(const VkImageCreateInfo* imageCreateInfo);
+#endif
 
 }  // namespace vk
 }  // namespace host

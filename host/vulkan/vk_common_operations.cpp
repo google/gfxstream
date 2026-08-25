@@ -2064,7 +2064,7 @@ MTLResource_id VkEmulation::getMtlResourceFromVkDeviceMemory(VulkanDispatch* vk,
 #ifdef __ANDROID__
 // Allocate an AHardwareBuffer matching the given image's format, extent and usage.
 // Returns nullptr on failure (caller falls back to the non-AHB allocation path).
-static AHardwareBuffer* allocAhb(const VkImageCreateInfo* imageCreateInfo) {
+AHardwareBuffer* allocAhb(const VkImageCreateInfo* imageCreateInfo) {
     // Map VkFormat to the corresponding AHB format — must match to avoid tiling mismatch.
     uint32_t ahbFormat;
     switch (imageCreateInfo->format) {

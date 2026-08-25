@@ -16,6 +16,10 @@
 
 #include <vulkan/vulkan.h>
 
+#ifdef __ANDROID__
+#include <android/hardware_buffer.h>
+#endif
+
 #ifdef _WIN32
 #include <malloc.h>
 #endif
@@ -23,6 +27,7 @@
 #include <stdlib.h>
 
 #include <condition_variable>
+#include <memory>
 #include <mutex>
 #include <optional>
 #include <set>
@@ -359,6 +364,20 @@ struct ImageInfo {
     // TODO: might need to use an array of layouts to represent each sub resource
     VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED;
     VkDeviceMemory memory = VK_NULL_HANDLE;
+    // From VkExternalMemoryImageCreateInfo; imageCreateInfoShallow drops pNext.
+    VkExternalMemoryHandleTypeFlags externalHandleTypes = 0;
+#ifdef __ANDROID__
+    // Set when a driver defers an AHB-external image's layout to vkBindImageMemory and reports
+    // size=0 until then. The AHB is shared_ptr-held so every mImageInfo teardown path frees it.
+    struct DeferredLayoutInfo {
+        std::shared_ptr<AHardwareBuffer> ahb;
+        VkDeviceSize size = 0;
+        VkDeviceSize alignment = 0;
+        uint32_t memoryTypeBits = 0;
+        VkDeviceSize rowPitch = 0;
+    };
+    DeferredLayoutInfo deferredLayout;
+#endif
 };
 
 struct ImageViewInfo {

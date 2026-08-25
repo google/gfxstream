@@ -3164,6 +3164,66 @@ class VkDecoderGlobalState::Impl {
         imageInfo.imageCreateInfoShallow = vk_make_orphan_copy(*pCreateInfo);
         imageInfo.layout = pCreateInfo->initialLayout;
         imageInfo.anbInfo = std::move(anbInfo);
+        if (const auto* extMemCreateInfo =
+                vk_find_struct<VkExternalMemoryImageCreateInfo>(pCreateInfo)) {
+            imageInfo.externalHandleTypes = extMemCreateInfo->handleTypes;
+        }
+#ifdef __ANDROID__
+        // Deferred image layout, see ImageInfo::DeferredLayoutInfo. Only for AHB-external
+        // images we are not already backing another way: the ANB path owns its own buffer, and for
+        // compressed images updateImageMemoryRequirementsLocked() overwrites them anyway.
+        if ((imageInfo.externalHandleTypes &
+             VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID) &&
+            !imageInfo.anbInfo && !imageInfo.compressInfo) {
+            VkMemoryRequirements probeReqs = {};
+            vk->vkGetImageMemoryRequirements(device, *pImage, &probeReqs);
+            // Only intervene where the driver actually refused to answer. A driver that reports a
+            // real size needs no help from us, and substituting there would be a regression.
+            if (probeReqs.size == 0) {
+                AHardwareBuffer* rawAhb = allocAhb(pCreateInfo);
+                if (rawAhb) {
+                    VkAndroidHardwareBufferPropertiesANDROID ahbProps = {
+                        .sType = VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_PROPERTIES_ANDROID,
+                        .pNext = nullptr,
+                    };
+                    VkResult propsRes =
+                        vk->vkGetAndroidHardwareBufferPropertiesANDROID(device, rawAhb, &ahbProps);
+                    if (propsRes == VK_SUCCESS && ahbProps.allocationSize > 0) {
+                        imageInfo.deferredLayout.ahb =
+                            std::shared_ptr<AHardwareBuffer>(rawAhb, [](AHardwareBuffer* b) {
+                                if (b) AHardwareBuffer_release(b);
+                            });
+                        imageInfo.deferredLayout.size = ahbProps.allocationSize;
+                        // The driver reported no alignment either; the AHB satisfies its own.
+                        imageInfo.deferredLayout.alignment =
+                            probeReqs.alignment ? probeReqs.alignment : 1;
+                        imageInfo.deferredLayout.memoryTypeBits = ahbProps.memoryTypeBits;
+                        // The driver will also refuse to report rowPitch for this image; the AHB
+                        // knows its own stride (in pixels), so derive the byte pitch from it.
+                        AHardwareBuffer_Desc ahbDesc = {};
+                        AHardwareBuffer_describe(rawAhb, &ahbDesc);
+                        uint32_t bytesPerPixel = 4;  // allocAhb only ever picks 32-bit RGBA/BGRA
+                        imageInfo.deferredLayout.rowPitch =
+                            static_cast<VkDeviceSize>(ahbDesc.stride) * bytesPerPixel;
+                        GFXSTREAM_INFO(
+                            "DL-AHB tracked image=%p size=%llu typeBits=0x%x rowPitch=%llu "
+                            "ahbStridePx=%u (driver said size=0)",
+                            (void*)*pImage, (unsigned long long)imageInfo.deferredLayout.size,
+                            imageInfo.deferredLayout.memoryTypeBits,
+                            (unsigned long long)imageInfo.deferredLayout.rowPitch, ahbDesc.stride);
+                    } else {
+                        GFXSTREAM_ERROR(
+                            "DL-AHB properties query failed (res=%d size=%llu); leaving "
+                            "requirements untouched",
+                            (int)propsRes, (unsigned long long)ahbProps.allocationSize);
+                        AHardwareBuffer_release(rawAhb);
+                    }
+                } else {
+                    GFXSTREAM_ERROR("DL-AHB allocAhb failed for image=%p", (void*)*pImage);
+                }
+            }
+        }
+#endif
 
         if (boxImage) {
             *pImage = new_boxed_non_dispatchable_VkImage(*pImage);
@@ -5454,6 +5514,11 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
+    // An AHB-backed image does not need to be CPU-mappable, and it
+    // must not be: if the guest picks a HOST_VISIBLE memory type, gfxstream has to expose the
+    // allocation as a mappable blob, and crosvm's resource_map_blob() only accepts Mesa handles --
+    // an AHB-backed blob fails with "invalid Mesa handle" and the guest's mmap64 returns EINVAL.
+    // So hand back only the device-local, non-host-visible subset when one exists.
     void on_vkGetImageMemoryRequirements(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
                                          VkDevice boxed_device, VkImage image,
                                          VkMemoryRequirements* pMemoryRequirements) {
@@ -5461,7 +5526,7 @@ class VkDecoderGlobalState::Impl {
         auto vk = dispatch_VkDevice(boxed_device);
         vk->vkGetImageMemoryRequirements(device, image, pMemoryRequirements);
         std::lock_guard<std::mutex> lock(mMutex);
-        updateImageMemorySizeLocked(device, image, pMemoryRequirements);
+        updateImageMemoryRequirementsLocked(device, image, pMemoryRequirements);
 
         auto* deviceInfo = gfxstream::base::find(mDeviceInfo, device);
         if (!deviceInfo) {
@@ -5480,6 +5545,7 @@ class VkDecoderGlobalState::Impl {
         physicalDeviceMemHelper->transformToGuestMemoryRequirements(pMemoryRequirements);
     }
 
+    // A driver that defers the layout also reports rowPitch=0; answer with the AHB's stride.
     void on_vkGetImageSubresourceLayout(gfxstream::base::BumpPool*, VkSnapshotApiCallHandle,
                                         VkDevice boxed_device, VkImage image,
                                         const VkImageSubresource* pSubresource,
@@ -5487,6 +5553,18 @@ class VkDecoderGlobalState::Impl {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
         vk->vkGetImageSubresourceLayout(device, image, pSubresource, pLayout);
+#ifdef __ANDROID__
+        if (pLayout && pLayout->rowPitch == 0) {
+            std::lock_guard<std::mutex> lock(mMutex);
+            auto* dlInfo = gfxstream::base::find(mImageInfo, image);
+            if (dlInfo && dlInfo->deferredLayout.rowPitch > 0) {
+                pLayout->rowPitch = dlInfo->deferredLayout.rowPitch;
+                if (pLayout->size == 0) pLayout->size = dlInfo->deferredLayout.size;
+                GFXSTREAM_INFO("DL-AHB stride image=%p rowPitch=%llu", (void*)image,
+                               (unsigned long long)pLayout->rowPitch);
+            }
+        }
+#endif
     }
 
     void on_vkGetImageMemoryRequirements2(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
@@ -5527,7 +5605,8 @@ class VkDecoderGlobalState::Impl {
                                              &pMemoryRequirements->memoryRequirements);
         }
 
-        updateImageMemorySizeLocked(device, pInfo->image, &pMemoryRequirements->memoryRequirements);
+        updateImageMemoryRequirementsLocked(device, pInfo->image,
+                                            &pMemoryRequirements->memoryRequirements);
 
         auto& physicalDeviceMemHelper = physicalDeviceInfo->memoryPropertiesHelper;
         physicalDeviceMemHelper->transformToGuestMemoryRequirements(
@@ -6320,6 +6399,32 @@ class VkDecoderGlobalState::Impl {
         if (dedicatedAllocInfoPtr) {
             localDedicatedAllocInfo = vk_make_orphan_copy(*dedicatedAllocInfoPtr);
         }
+#ifdef __ANDROID__
+        // The driver only resolves the layout if the bound memory carries an AHB, so import the
+        // image's AHB on its dedicated allocation. Function scope: vk_append_struct() only stores
+        // a pointer and the chain is consumed at vkAllocateMemory below.
+        VkImportAndroidHardwareBufferInfoANDROID importDeferredLayoutAhb = {
+            .sType = VK_STRUCTURE_TYPE_IMPORT_ANDROID_HARDWARE_BUFFER_INFO_ANDROID,
+            .pNext = nullptr,
+            .buffer = nullptr,
+        };
+        // Keeps the AHB alive past the lock: the chain is not consumed until vkAllocateMemory
+        // below, by which point the image may have been destroyed.
+        std::shared_ptr<AHardwareBuffer> deferredAhbHold;
+        if (dedicatedAllocInfoPtr && dedicatedAllocInfoPtr->image != VK_NULL_HANDLE) {
+            std::lock_guard<std::mutex> dlLock(mMutex);
+            auto* dlInfo = gfxstream::base::find(mImageInfo, dedicatedAllocInfoPtr->image);
+            if (dlInfo && dlInfo->deferredLayout.ahb) {
+                deferredAhbHold = dlInfo->deferredLayout.ahb;
+                importDeferredLayoutAhb.buffer = deferredAhbHold.get();
+                vk_append_struct(&structChainIter, &importDeferredLayoutAhb);
+                GFXSTREAM_INFO("DL-AHB import image=%p ahb=%p size=%llu",
+                               (void*)dedicatedAllocInfoPtr->image,
+                               (void*)importDeferredLayoutAhb.buffer,
+                               (unsigned long long)localAllocInfo.allocationSize);
+            }
+        }
+#endif
         if (!usingDirectMapping()) {
             // We copy bytes 1 page at a time from the guest to the host
             // if we are not using direct mapping. This means we can end up
@@ -10354,14 +10459,27 @@ class VkDecoderGlobalState::Impl {
         return false;
     }
 
-    void updateImageMemorySizeLocked(VkDevice device, VkImage image,
-                                     VkMemoryRequirements* pMemoryRequirements) REQUIRES(mMutex) {
+    void updateImageMemoryRequirementsLocked(VkDevice device, VkImage image,
+                                             VkMemoryRequirements* pMemoryRequirements)
+        REQUIRES(mMutex) {
         auto* imageInfo = gfxstream::base::find(mImageInfo, image);
-        if (!imageInfo || !imageInfo->compressInfo) {
+        if (!imageInfo) return;
+
+        if (imageInfo->compressInfo) {
+            *pMemoryRequirements = imageInfo->compressInfo->getMemoryRequirements();
             return;
         }
-
-        *pMemoryRequirements = imageInfo->compressInfo->getMemoryRequirements();
+#ifdef __ANDROID__
+        // A driver that defers an AHB-external image's layout answers size=0 until bind. Answer
+        // with what the image's own AHB needs instead. Host memory type indices here; the caller
+        // must still run transformToGuestMemoryRequirements afterwards.
+        if (pMemoryRequirements && pMemoryRequirements->size == 0 &&
+            imageInfo->deferredLayout.size > 0) {
+            pMemoryRequirements->size = imageInfo->deferredLayout.size;
+            pMemoryRequirements->alignment = imageInfo->deferredLayout.alignment;
+            pMemoryRequirements->memoryTypeBits = imageInfo->deferredLayout.memoryTypeBits;
+        }
+#endif
     }
 
     bool enableEmulatedEtc2() const { return m_vkEmulation->isEtc2EmulationEnabled(); }
@@ -12024,17 +12142,17 @@ void VkDecoderGlobalState::on_vkCmdCopyImageToBuffer2KHR(
     mImpl->on_vkCmdCopyImageToBuffer2KHR(pool, apiCallHandle, commandBuffer, pCopyImageToBufferInfo);
 }
 
-void VkDecoderGlobalState::on_vkGetImageMemoryRequirements(
-    gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
-    VkImage image, VkMemoryRequirements* pMemoryRequirements) {
-    mImpl->on_vkGetImageMemoryRequirements(pool, apiCallHandle, device, image, pMemoryRequirements);
-}
-
 void VkDecoderGlobalState::on_vkGetImageSubresourceLayout(
     gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
     VkImage image, const VkImageSubresource* pSubresource, VkSubresourceLayout* pLayout) {
     mImpl->on_vkGetImageSubresourceLayout(pool, apiCallHandle, device, image, pSubresource,
                                           pLayout);
+}
+
+void VkDecoderGlobalState::on_vkGetImageMemoryRequirements(
+    gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+    VkImage image, VkMemoryRequirements* pMemoryRequirements) {
+    mImpl->on_vkGetImageMemoryRequirements(pool, apiCallHandle, device, image, pMemoryRequirements);
 }
 
 void VkDecoderGlobalState::on_vkGetImageMemoryRequirements2(
