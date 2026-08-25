@@ -50,9 +50,13 @@ namespace host {
 class ColorBuffer : public IColorBuffer, public LazySnapshotObj<ColorBuffer> {
    public:
     static std::shared_ptr<ColorBuffer> create(gl::EmulationGl* emulationGl,
-                                               vk::VkEmulation* emulationVk, uint32_t width,
-                                               uint32_t height, GfxstreamFormat format,
-                                               HandleType handle, Stream* stream = nullptr);
+                                               vk::VkEmulation* emulationVk,
+                                               uint32_t width,
+                                               uint32_t height,
+                                               GfxstreamFormat format,
+                                               HandleType handle,
+                                               Stream* stream = nullptr,
+                                               bool linear = false);
 
     static std::shared_ptr<ColorBuffer> onLoad(gl::EmulationGl* emulationGl,
                                                vk::VkEmulation* emulationVk, Stream* stream);

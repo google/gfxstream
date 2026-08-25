@@ -175,9 +175,10 @@ std::optional<VirtioGpuResource> VirtioGpuResource::Create(
             return std::nullopt;
         }
         auto format = *formatOpt;
+        const bool linear = (args->bind & VIRGL_BIND_LINEAR) != 0;
 
         if (!FrameBuffer::getFB()->createColorBufferWithResourceHandle(args->width, args->height,
-                                                                       format, args->handle)) {
+                                                                       format, args->handle, linear)) {
             const std::string formatString = ToString(format);
             GFXSTREAM_ERROR("Failed to create color buffer with resource handle %d. (%dx%d, format: %s)",
                             args->handle, args->width, args->height, formatString.c_str());
