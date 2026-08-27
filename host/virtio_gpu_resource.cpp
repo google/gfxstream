@@ -252,42 +252,42 @@ std::optional<VirtioGpuResource> VirtioGpuResource::Create(
             return std::nullopt;
         }
         resource.mBlobMemory.emplace(std::move(memory));
-    } else if (features.ExternalBlob.enabled()) {
-        if (createBlobArgs->blob_mem == STREAM_BLOB_MEM_GUEST &&
-            (createBlobArgs->blob_flags & STREAM_BLOB_FLAG_CREATE_GUEST_HANDLE)) {
+    } else if (features.ExternalBlob.enabled() &&
+               createBlobArgs->blob_mem == STREAM_BLOB_MEM_GUEST &&
+               (createBlobArgs->blob_flags & STREAM_BLOB_FLAG_CREATE_GUEST_HANDLE)) {
 #if defined(__ANDROID__)
-            ExternalObjectManager::get()->addBlobDescriptorInfo(
-                contextId, createBlobArgs->blob_id, handle->os_handle, handle->handle_type, 0,
-                std::nullopt);
+        ExternalObjectManager::get()->addBlobDescriptorInfo(
+            contextId, createBlobArgs->blob_id, handle->os_handle, handle->handle_type, 0,
+            std::nullopt);
 #elif defined(__linux__) || defined(__QNX__)
-            ManagedDescriptor managedHandle(handle->os_handle);
-            ExternalObjectManager::get()->addBlobDescriptorInfo(
-                contextId, createBlobArgs->blob_id, std::move(managedHandle), handle->handle_type,
-                0, std::nullopt);
+        ManagedDescriptor managedHandle(handle->os_handle);
+        ExternalObjectManager::get()->addBlobDescriptorInfo(
+            contextId, createBlobArgs->blob_id, std::move(managedHandle), handle->handle_type, 0,
+            std::nullopt);
 #else
-            GFXSTREAM_ERROR("Failed to create blob: unimplemented external blob.");
-            return std::nullopt;
+        GFXSTREAM_ERROR("Failed to create blob: unimplemented external blob.");
+        return std::nullopt;
 #endif
-        } else {
-            if (!descriptorInfoOpt) {
-                descriptorInfoOpt = ExternalObjectManager::get()->removeBlobDescriptorInfo(
-                    contextId, createBlobArgs->blob_id);
-            }
-            if (!descriptorInfoOpt) {
-                GFXSTREAM_ERROR("Failed to create blob: no external blob descriptor.");
-                return std::nullopt;
-            }
+    } else {
+        // ExternalBlob picks the map_blob transport (descriptor vs. host-visible mapping); it
+        // does not gate scanout, so a ColorBuffer's descriptor may be registered regardless of
+        // the feature. Probe for it before falling back to a mapping.
+        if (!descriptorInfoOpt) {
+            descriptorInfoOpt = ExternalObjectManager::get()->removeBlobDescriptorInfo(
+                contextId, createBlobArgs->blob_id);
+        }
+        if (descriptorInfoOpt) {
             resource.mBlobMemory.emplace(
                 std::make_shared<BlobDescriptorInfo>(std::move(*descriptorInfoOpt)));
+        } else {
+            auto memoryMappingOpt =
+                ExternalObjectManager::get()->removeMapping(contextId, createBlobArgs->blob_id);
+            if (!memoryMappingOpt) {
+                GFXSTREAM_ERROR("Failed to create blob: no external blob descriptor or mapping.");
+                return std::nullopt;
+            }
+            resource.mBlobMemory.emplace(std::move(*memoryMappingOpt));
         }
-    } else {
-        auto memoryMappingOpt =
-            ExternalObjectManager::get()->removeMapping(contextId, createBlobArgs->blob_id);
-        if (!memoryMappingOpt) {
-            GFXSTREAM_ERROR("Failed to create blob: no external blob mapping.");
-            return std::nullopt;
-        }
-        resource.mBlobMemory.emplace(std::move(*memoryMappingOpt));
     }
 
     return resource;
