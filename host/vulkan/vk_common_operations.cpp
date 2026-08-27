@@ -2622,7 +2622,18 @@ void VkEmulation::freeExternalMemoryLocked(VulkanDispatch* vk,
 #ifdef _WIN32
         CloseHandle(static_cast<HANDLE>(reinterpret_cast<void*>(info->handleInfo->handle)));
 #elif defined(__ANDROID__)
-        AHardwareBuffer_release(static_cast<AHardwareBuffer*>(reinterpret_cast<void*>(info->handleInfo->handle)));
+        // An Android host is not necessarily in AndroidAHB mode, so the handle has to be released
+        // according to its own type rather than the platform's default one.
+        switch (info->handleInfo->streamHandleType) {
+            case STREAM_HANDLE_TYPE_MEM_OPAQUE_FD:
+            case STREAM_HANDLE_TYPE_MEM_DMABUF:
+                close(static_cast<int>(info->handleInfo->handle));
+                break;
+            default:
+                AHardwareBuffer_release(
+                    static_cast<AHardwareBuffer*>(reinterpret_cast<void*>(info->handleInfo->handle)));
+                break;
+        }
 #else
         switch (info->handleInfo->streamHandleType) {
             case STREAM_HANDLE_TYPE_MEM_OPAQUE_FD:

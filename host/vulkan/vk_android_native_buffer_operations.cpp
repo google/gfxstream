@@ -193,8 +193,9 @@ std::unique_ptr<AndroidNativeBufferInfo> AndroidNativeBufferInfo::create(
             return nullptr;
         }
 
-        // Update create flags to match the color buffer imported
+        // Update create flags and tiling to match the color buffer imported
         createImageCi.flags = importedColorBufferInfo.imageCreateInfoShallow.flags;
+        createImageCi.tiling = importedColorBufferInfo.imageCreateInfoShallow.tiling;
 
         const auto& importedColorBufferMemoryInfo = importedColorBufferInfo.memory;
 
