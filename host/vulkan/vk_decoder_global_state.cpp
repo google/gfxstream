@@ -6412,20 +6412,27 @@ class VkDecoderGlobalState::Impl {
         // Keeps the AHB alive past the lock: the chain is not consumed until vkAllocateMemory
         // below, by which point the image may have been destroyed.
         std::shared_ptr<AHardwareBuffer> deferredAhbHold;
-        // A ColorBuffer import below appends its own AHB import for this same allocation --
-        // skip ours so the chain never carries two VkImportAndroidHardwareBufferInfoANDROID.
-        if (dedicatedAllocInfoPtr && dedicatedAllocInfoPtr->image != VK_NULL_HANDLE &&
-            !vk_find_struct<VkImportColorBufferGOOGLE>(pAllocateInfo)) {
+        if (dedicatedAllocInfoPtr && dedicatedAllocInfoPtr->image != VK_NULL_HANDLE) {
             std::lock_guard<std::mutex> dlLock(mMutex);
             auto* dlInfo = gfxstream::base::find(mImageInfo, dedicatedAllocInfoPtr->image);
             if (dlInfo && dlInfo->deferredLayout.ahb) {
-                deferredAhbHold = dlInfo->deferredLayout.ahb;
-                importDeferredLayoutAhb.buffer = deferredAhbHold.get();
-                vk_append_struct(&structChainIter, &importDeferredLayoutAhb);
-                GFXSTREAM_INFO("DL-AHB import image=%p ahb=%p size=%llu",
-                               (void*)dedicatedAllocInfoPtr->image,
-                               (void*)importDeferredLayoutAhb.buffer,
-                               (unsigned long long)localAllocInfo.allocationSize);
+                // A ColorBuffer import below appends its own AHB import for this same
+                // allocation -- skip ours so the chain never carries two
+                // VkImportAndroidHardwareBufferInfoANDROID structs.
+                if (!vk_find_struct<VkImportColorBufferGOOGLE>(pAllocateInfo)) {
+                    deferredAhbHold = dlInfo->deferredLayout.ahb;
+                    importDeferredLayoutAhb.buffer = deferredAhbHold.get();
+                    vk_append_struct(&structChainIter, &importDeferredLayoutAhb);
+                    GFXSTREAM_INFO("DL-AHB import image=%p ahb=%p size=%llu",
+                                   (void*)dedicatedAllocInfoPtr->image,
+                                   (void*)importDeferredLayoutAhb.buffer,
+                                   (unsigned long long)localAllocInfo.allocationSize);
+                }
+                // Either way, the probe AHB has served its purpose (imported above, or
+                // superseded by a ColorBuffer's own AHB) -- release it now rather than
+                // holding it for the image's lifetime. The cached size/alignment/
+                // memoryTypeBits/rowPitch survive for later requirement/layout queries.
+                dlInfo->deferredLayout.ahb.reset();
             }
         }
 #endif
