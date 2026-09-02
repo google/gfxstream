@@ -4,6 +4,10 @@ package(
     default_visibility = ["//:gfxstream"],
 )
 
+# Note: gfxstream uses the checked-in Vulkan 1.4.350 headers below for core builds.
+# A separate external repository @vulkan_headers (Vulkan 1.4.357) is provided in
+# //third_party/vulkan_headers for building Vulkan-ValidationLayers and
+# Vulkan-Utility-Libraries, which require newer 1.4.357 APIs. See README.md.
 cc_library(
     name = "gfxstream_vulkan_headers",
     hdrs = glob([

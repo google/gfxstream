@@ -1,0 +1,117 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+DEFINES = [
+    "USE_CUSTOM_HASH_MAP",
+    "VK_ENABLE_BETA_EXTENSIONS",
+] + select({
+    "@platforms//os:linux": [
+        "VK_USE_PLATFORM_XLIB_KHR",
+        "VK_USE_PLATFORM_XCB_KHR",
+        "VK_USE_PLATFORM_WAYLAND_KHR",
+    ],
+    "@platforms//os:macos": [
+        "VK_USE_PLATFORM_METAL_EXT",
+        "VK_USE_PLATFORM_MACOS_MVK",
+    ],
+    "@platforms//os:windows": [
+        "WIN32",
+        "_WIN32",
+        "VK_USE_PLATFORM_WIN32_KHR",
+        "NOMINMAX",
+        "WIN32_LEAN_AND_MEAN",
+        "_CRT_SECURE_NO_WARNINGS",
+    ],
+    "//conditions:default": [],
+})
+
+COPTS = select({
+    "@platforms//os:windows": [
+        "/std:c++17",
+        "/wd4100",
+        "/wd4324",
+        "/wd4458",
+        "/wd4457",
+        "/wd4702",
+        "/wd4389",
+    ],
+    "//conditions:default": [
+        "-std=c++17",
+        "-Wno-unused-parameter",
+        "-Wno-unused-variable",
+        "-Wno-unused-function",
+        "-Wno-conversion",
+        "-Wno-implicit-fallthrough",
+        "-Wno-sign-compare",
+        "-Wno-missing-field-initializers",
+    ],
+})
+
+# buildifier: disable=external-path
+cc_library(
+    name = "vvl_srcs",
+    srcs = glob([
+        "layers/**/*.cpp",
+        "layers/**/*.h",
+    ]),
+    copts = COPTS,
+    defines = DEFINES,
+    includes = [
+        "layers",
+        "layers/external",
+        "layers/external/parallel_hashmap",
+        "layers/gpuav",
+        "layers/gpuav/spirv",
+        "layers/vulkan",
+    ],
+    linkstatic = True,
+    deps = [
+        "@spirv_headers//:spirv_c_headers",
+        "@spirv_headers//:spirv_cpp_headers",
+        "@spirv_tools//:spirv_tools_opt",
+        "@vulkan_headers",
+        "@vulkan_utility_libraries",
+    ],
+    alwayslink = True,
+)
+
+cc_binary(
+    name = "VkLayer_khronos_validation",
+    additional_linker_inputs = select({
+        "@platforms//os:linux": [":layers/VkLayer_khronos_validation.map"],
+        "@platforms//os:macos": [":layers/VkLayer_khronos_validation.exp"],
+        "//conditions:default": [],
+    }),
+    copts = COPTS,
+    defines = DEFINES,
+    linkopts = select({
+        "@platforms//os:linux": [
+            "-Wl,--version-script=$(execpath :layers/VkLayer_khronos_validation.map)",
+        ],
+        "@platforms//os:macos": [
+            "-Wl,-exported_symbols_list,$(execpath :layers/VkLayer_khronos_validation.exp)",
+        ],
+        "@platforms//os:windows": [
+            "-DEFAULTLIB:advapi32.lib",
+        ],
+        "//conditions:default": [],
+    }),
+    linkshared = True,
+    win_def_file = select({
+        "@platforms//os:windows": ":layers/VkLayer_khronos_validation.def",
+        "//conditions:default": None,
+    }),
+    deps = [":vvl_srcs"],
+)
+
+genrule(
+    name = "VkLayer_khronos_validation_json",
+    srcs = ["layers/VkLayer_khronos_validation.json.in"],
+    outs = ["VkLayer_khronos_validation.json"],
+    cmd = select({
+        "@platforms//os:macos": "sed -e 's/@JSON_LAYER_NAME@/VK_LAYER_KHRONOS_validation/g' -e 's|@JSON_LIBRARY_PATH@|./libVkLayer_khronos_validation.dylib|g' $< > $@",
+        "@platforms//os:windows": "sed -e 's/@JSON_LAYER_NAME@/VK_LAYER_KHRONOS_validation/g' -e 's|@JSON_LIBRARY_PATH@|.\\\\VkLayer_khronos_validation.dll|g' $< > $@",
+        "//conditions:default": "sed -e 's/@JSON_LAYER_NAME@/VK_LAYER_KHRONOS_validation/g' -e 's|@JSON_LIBRARY_PATH@|./libVkLayer_khronos_validation.so|g' $< > $@",
+    }),
+)

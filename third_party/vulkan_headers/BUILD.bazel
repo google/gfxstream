@@ -1,0 +1,11 @@
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "BUILD.vulkan_headers.bazel",
+    "vulkan_headers.MODULE.bazel",
+])
+
+alias(
+    name = "vulkan_headers",
+    actual = "@vulkan_headers//:vulkan_headers",
+)

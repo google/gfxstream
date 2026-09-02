@@ -1,0 +1,8 @@
+git_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
+git_repository(
+    name = "vulkan_headers",
+    build_file = "//third_party/vulkan_headers:BUILD.vulkan_headers.bazel",
+    commit = "e3b1eec08173d6b825cd3ac88c885a63b621504a",  # vulkan-sdk-1.4.357.0
+    remote = "https://github.com/KhronosGroup/Vulkan-Headers.git",
+)
