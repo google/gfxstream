@@ -1,0 +1,22 @@
+git_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
+git_repository(
+    name = "vulkan-headers",
+    build_file = "//third_party/vvl:BUILD.vulkan_headers.bazel",
+    commit = "e3b1eec08173d6b825cd3ac88c885a63b621504a",  # vulkan-sdk-1.4.357.0
+    remote = "https://github.com/KhronosGroup/Vulkan-Headers.git",
+)
+
+git_repository(
+    name = "vulkan_utility_libraries",
+    build_file = "//third_party/vvl:BUILD.vulkan_utility_libraries.bazel",
+    commit = "e9585c3e3d41ab608ee3b098ce4721d357308fc8",  # vulkan-sdk-1.4.357.0
+    remote = "https://github.com/KhronosGroup/Vulkan-Utility-Libraries.git",
+)
+
+git_repository(
+    name = "vulkan_validation_layers",
+    build_file = "//third_party/vvl:BUILD.vvl.bazel",
+    commit = "f4874eee15c78d7bdb2b7e60659d539f14741500",  # vulkan-sdk-1.4.357.0
+    remote = "https://github.com/KhronosGroup/Vulkan-ValidationLayers.git",
+)
