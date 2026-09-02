@@ -1,0 +1,8 @@
+git_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
+git_repository(
+    name = "vulkan_validation_layers",
+    build_file = "//third_party/vvl:BUILD.vvl.bazel",
+    commit = "f4874eee15c78d7bdb2b7e60659d539f14741500",  # vulkan-sdk-1.4.357.0
+    remote = "https://github.com/KhronosGroup/Vulkan-ValidationLayers.git",
+)
