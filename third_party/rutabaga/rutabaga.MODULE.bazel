@@ -12,6 +12,7 @@ git_repository(
     patches = [
         "//third_party/rutabaga:PATCH.0001_rutabaga_tube_send_owned.patch",
         "//third_party/rutabaga:PATCH.0002_rutabaga_writepipe_owned.patch",
+        "//third_party/rutabaga:PATCH.0003_kumquat_system_blob_apple.patch",
     ],
     remote = "https://github.com/magma-gpu/rutabaga_gfx",
 )

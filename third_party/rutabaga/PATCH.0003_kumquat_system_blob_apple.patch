@@ -1,0 +1,31 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: utzcoz <utzcoz@outlook.com>
+Date: Thu, 3 Sep 2026 22:58:06 +0800
+Subject: [PATCH] kumquat: back host visible memory with shared memory on Apple
+
+vkMapMemory asks the host to export the memory as a blob, and with external
+blobs alone that is an export of the VkDeviceMemory. Metal exports memory only
+as an in-process MTLBuffer or MTLTexture, which cannot be handed to another
+process, so the host stops at "ExternalBlob feature is not supported with
+external memory metal" and the guest waits forever for a reply.
+
+With system blobs the host backs host visible memory with shared memory and
+imports it as a host pointer, which MoltenVK supports, and the guest is handed
+the shared memory descriptor it already knows how to map.
+---
+ kumquat/server/src/kumquat_gpu/mod.rs | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/kumquat/server/src/kumquat_gpu/mod.rs b/kumquat/server/src/kumquat_gpu/mod.rs
+index 4483999..a2854d4 100644
+--- a/kumquat/server/src/kumquat_gpu/mod.rs
++++ b/kumquat/server/src/kumquat_gpu/mod.rs
+@@ -127,6 +127,8 @@ impl KumquatGpu {
+ 
+         let rutabaga = RutabagaBuilder::new(capset_mask, fence_handler)
+             .set_use_external_blob(true)
++            // Metal cannot export memory to another process.
++            .set_use_system_blob(cfg!(target_vendor = "apple"))
+             .set_use_egl(true)
+             .set_wsi(RutabagaWsi::Surfaceless)
+             .set_renderer_features(renderer_features_opt)
