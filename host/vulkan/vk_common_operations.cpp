@@ -3638,13 +3638,21 @@ bool VkEmulation::readColorBufferPixelsScaled(
         return false;
     }
 
-    if (!mCompositorVk){
+    if (mCompositorVk) {
+        if (readColorBufferPixelsScaledGpu(colorBufferHandle, pixelsWidth, pixelsHeight,
+                                           pixelsRotation, rect, pixelsFormat, outPixels,
+                                           colorTransform)) {
+            return true;
+        }
+        GFXSTREAM_WARNING(
+            "%s: Failed to readback ColorBuffer:%u via GPU, falling back to CPU.",
+            __func__, colorBufferHandle);
+    } else {
         GFXSTREAM_VERBOSE("CompositorVk not initialized. Executing image processing on the CPU...");
-        return readColorBufferPixelsScaledCpu(colorBufferHandle, pixelsWidth, pixelsHeight,
-                                          pixelsRotation, rect, pixelsFormat, outPixels, colorTransform);
     }
-     return readColorBufferPixelsScaledGpu(colorBufferHandle, pixelsWidth, pixelsHeight,
-                                          pixelsRotation, rect, pixelsFormat, outPixels, colorTransform);
+    return readColorBufferPixelsScaledCpu(colorBufferHandle, pixelsWidth, pixelsHeight,
+                                          pixelsRotation, rect, pixelsFormat, outPixels,
+                                          colorTransform);
 }
 
 bool VkEmulation::readColorBufferPixelsScaledCpu(uint32_t colorBufferHandle, int pixelsWidth,
@@ -3793,13 +3801,25 @@ bool VkEmulation::readColorBufferPixelsScaledGpu(uint32_t colorBufferHandle, int
         return false;
     }
 
+    if (!sourceCbInfo->image || !sourceCbInfo->imageView) {
+        GFXSTREAM_ERROR("Failed to read from ColorBuffer:%d, invalid image or imageView.",
+                        colorBufferHandle);
+        return false;
+    }
+
+    if (!mStaging.mMappedPtr) {
+        GFXSTREAM_ERROR("Failed to read from ColorBuffer:%d, staging buffer not mapped.",
+                        colorBufferHandle);
+        return false;
+    }
+
     // Check if we need to stage to GPU
     const int outBpp = (pixelsFormat == GfxstreamFormat::R8G8B8_UNORM) ? 3 : 4;
     const uint64_t outPixelsSize = (uint64_t)outBpp * (uint64_t)pixelsWidth * (uint64_t)pixelsHeight;
     const int readbackBpp = 4;
     int readbackWidth = sourceCbInfo->width;
     int readbackHeight = sourceCbInfo->height;
-    const uint64_t readbackPixelsSize = readbackBpp * readbackWidth * readbackHeight;
+    const uint64_t readbackPixelsSize = (uint64_t)readbackBpp * readbackWidth * readbackHeight;
 
     // Check simple readback case - no rotation, no resize, same format - don't submit
     if (readbackBpp == outBpp && pixelsRotation == GFXSTREAM_ROTATION_0 && readbackPixelsSize == outPixelsSize) {
@@ -3826,12 +3846,46 @@ bool VkEmulation::readColorBufferPixelsScaledGpu(uint32_t colorBufferHandle, int
                                              pixelsHeight, outPixels);
     }
 
+    // Verify the staging buffer is large enough for the scaled readback.
+    const VkDeviceSize requiredStagingSize =
+        static_cast<VkDeviceSize>(pixelsWidth) * static_cast<VkDeviceSize>(pixelsHeight) * 4;
+    if (requiredStagingSize > mStaging.mAllocationSize) {
+        GFXSTREAM_ERROR(
+            "%s: Failed to read ColorBuffer:%u, transfer size %" PRIu64
+            " too large for staging buffer size:%" PRIu64 ".",
+            __func__, colorBufferHandle, requiredStagingSize, mStaging.mAllocationSize);
+        return false;
+    }
+
     // 1. Create temporary VkImage, VkImageView, VkRenderPass, VkFramebuffer.
     VkImage tempImage = VK_NULL_HANDLE;
     VkDeviceMemory tempImageMemory = VK_NULL_HANDLE;
     VkImageView tempImageView = VK_NULL_HANDLE;
     VkRenderPass tempRenderPass = VK_NULL_HANDLE;
     VkFramebuffer tempFramebuffer = VK_NULL_HANDLE;
+
+    auto cleanupTemporaryResources = [&]() {
+        if (tempFramebuffer != VK_NULL_HANDLE) {
+            mDvk->vkDestroyFramebuffer(mDevice, tempFramebuffer, nullptr);
+            tempFramebuffer = VK_NULL_HANDLE;
+        }
+        if (tempRenderPass != VK_NULL_HANDLE) {
+            mDvk->vkDestroyRenderPass(mDevice, tempRenderPass, nullptr);
+            tempRenderPass = VK_NULL_HANDLE;
+        }
+        if (tempImageView != VK_NULL_HANDLE) {
+            mDvk->vkDestroyImageView(mDevice, tempImageView, nullptr);
+            tempImageView = VK_NULL_HANDLE;
+        }
+        if (tempImage != VK_NULL_HANDLE) {
+            mDvk->vkDestroyImage(mDevice, tempImage, nullptr);
+            tempImage = VK_NULL_HANDLE;
+        }
+        if (tempImageMemory != VK_NULL_HANDLE) {
+            mDvk->vkFreeMemory(mDevice, tempImageMemory, nullptr);
+            tempImageMemory = VK_NULL_HANDLE;
+        }
+    };
 
     // Image creation info
     VkImageCreateInfo imageCreateInfo = {
@@ -3847,7 +3901,12 @@ bool VkEmulation::readColorBufferPixelsScaledGpu(uint32_t colorBufferHandle, int
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
     };
-    VK_CHECK(mDvk->vkCreateImage(mDevice, &imageCreateInfo, nullptr, &tempImage));
+    VkResult vkRes = mDvk->vkCreateImage(mDevice, &imageCreateInfo, nullptr, &tempImage);
+    if (vkRes != VK_SUCCESS) {
+        GFXSTREAM_ERROR("%s: vkCreateImage failed with %s", __func__, string_VkResult(vkRes));
+        cleanupTemporaryResources();
+        return false;
+    }
     mDebugUtilsHelper.addDebugLabel(tempImage, "readColorBufferPixelsScaledGpu.tempImage");
 
     // Image memory allocation
@@ -3860,8 +3919,18 @@ bool VkEmulation::readColorBufferPixelsScaledGpu(uint32_t colorBufferHandle, int
         .allocationSize = memReqs.size,
         .memoryTypeIndex = memoryTypeIndex,
     };
-    VK_CHECK(mDvk->vkAllocateMemory(mDevice, &memAllocInfo, nullptr, &tempImageMemory));
-    VK_CHECK(mDvk->vkBindImageMemory(mDevice, tempImage, tempImageMemory, 0));
+    vkRes = mDvk->vkAllocateMemory(mDevice, &memAllocInfo, nullptr, &tempImageMemory);
+    if (vkRes != VK_SUCCESS) {
+        GFXSTREAM_ERROR("%s: vkAllocateMemory failed with %s", __func__, string_VkResult(vkRes));
+        cleanupTemporaryResources();
+        return false;
+    }
+    vkRes = mDvk->vkBindImageMemory(mDevice, tempImage, tempImageMemory, 0);
+    if (vkRes != VK_SUCCESS) {
+        GFXSTREAM_ERROR("%s: vkBindImageMemory failed with %s", __func__, string_VkResult(vkRes));
+        cleanupTemporaryResources();
+        return false;
+    }
 
     // Image View creation
     VkImageViewCreateInfo imageViewCreateInfo = {
@@ -3871,7 +3940,12 @@ bool VkEmulation::readColorBufferPixelsScaledGpu(uint32_t colorBufferHandle, int
         .format = VK_FORMAT_R8G8B8A8_UNORM,
         .subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1},
     };
-    VK_CHECK(mDvk->vkCreateImageView(mDevice, &imageViewCreateInfo, nullptr, &tempImageView));
+    vkRes = mDvk->vkCreateImageView(mDevice, &imageViewCreateInfo, nullptr, &tempImageView);
+    if (vkRes != VK_SUCCESS) {
+        GFXSTREAM_ERROR("%s: vkCreateImageView failed with %s", __func__, string_VkResult(vkRes));
+        cleanupTemporaryResources();
+        return false;
+    }
     mDebugUtilsHelper.addDebugLabel(tempImageView, "readColorBufferPixelsScaledGpu.tempImageView");
 
     // Render Pass creation
@@ -3894,13 +3968,23 @@ bool VkEmulation::readColorBufferPixelsScaledGpu(uint32_t colorBufferHandle, int
         .colorAttachmentCount = 1,
         .pColorAttachments = &colorAttachmentRef,
     };
-    VkSubpassDependency dependency = {
-        .srcSubpass = VK_SUBPASS_EXTERNAL,
-        .dstSubpass = 0,
-        .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-        .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-        .srcAccessMask = 0,
-        .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+    VkSubpassDependency dependencies[2] = {
+        {
+            .srcSubpass = VK_SUBPASS_EXTERNAL,
+            .dstSubpass = 0,
+            .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            .srcAccessMask = 0,
+            .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+        },
+        {
+            .srcSubpass = 0,
+            .dstSubpass = VK_SUBPASS_EXTERNAL,
+            .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            .dstStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT,
+            .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
+        },
     };
     VkRenderPassCreateInfo renderPassInfo = {
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
@@ -3908,10 +3992,15 @@ bool VkEmulation::readColorBufferPixelsScaledGpu(uint32_t colorBufferHandle, int
         .pAttachments = &colorAttachment,
         .subpassCount = 1,
         .pSubpasses = &subpass,
-        .dependencyCount = 1,
-        .pDependencies = &dependency,
+        .dependencyCount = 2,
+        .pDependencies = dependencies,
     };
-    VK_CHECK(mDvk->vkCreateRenderPass(mDevice, &renderPassInfo, nullptr, &tempRenderPass));
+    vkRes = mDvk->vkCreateRenderPass(mDevice, &renderPassInfo, nullptr, &tempRenderPass);
+    if (vkRes != VK_SUCCESS) {
+        GFXSTREAM_ERROR("%s: vkCreateRenderPass failed with %s", __func__, string_VkResult(vkRes));
+        cleanupTemporaryResources();
+        return false;
+    }
     mDebugUtilsHelper.addDebugLabel(tempRenderPass, "readColorBufferPixelsScaledGpu.tempRenderPass");
 
     // Framebuffer creation
@@ -3924,28 +4013,66 @@ bool VkEmulation::readColorBufferPixelsScaledGpu(uint32_t colorBufferHandle, int
         .height = (uint32_t)pixelsHeight,
         .layers = 1,
     };
-    VK_CHECK(mDvk->vkCreateFramebuffer(mDevice, &framebufferInfo, nullptr, &tempFramebuffer));
+    vkRes = mDvk->vkCreateFramebuffer(mDevice, &framebufferInfo, nullptr, &tempFramebuffer);
+    if (vkRes != VK_SUCCESS) {
+        GFXSTREAM_ERROR("%s: vkCreateFramebuffer failed with %s", __func__, string_VkResult(vkRes));
+        cleanupTemporaryResources();
+        return false;
+    }
     mDebugUtilsHelper.addDebugLabel(tempFramebuffer, "readColorBufferPixelsScaledGpu.tempFramebuffer");
 
     const VkCommandBufferBeginInfo beginInfo = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
     };
-    VK_CHECK(mDvk->vkBeginCommandBuffer(mCommandBuffer, &beginInfo));
+    vkRes = mDvk->vkBeginCommandBuffer(mCommandBuffer, &beginInfo);
+    if (vkRes != VK_SUCCESS) {
+        GFXSTREAM_ERROR("%s: vkBeginCommandBuffer failed with %s", __func__, string_VkResult(vkRes));
+        cleanupTemporaryResources();
+        return false;
+    }
 
     // Acquire ImmediateModeResources
     CompositorVkBase::ImmediateModeResources* imResources =
         mCompositorVk->acquireImmediateModeResources();
     if (!imResources) {
         GFXSTREAM_ERROR("Failed to acquire immediate mode resources.");
-        // Cleanup before returning
-        VK_CHECK(mDvk->vkEndCommandBuffer(mCommandBuffer));
-        mDvk->vkDestroyFramebuffer(mDevice, tempFramebuffer, nullptr);
-        mDvk->vkDestroyRenderPass(mDevice, tempRenderPass, nullptr);
-        mDvk->vkDestroyImageView(mDevice, tempImageView, nullptr);
-        mDvk->vkDestroyImage(mDevice, tempImage, nullptr);
-        mDvk->vkFreeMemory(mDevice, tempImageMemory, nullptr);
+        mDvk->vkEndCommandBuffer(mCommandBuffer);
+        cleanupTemporaryResources();
         return false;
+    }
+
+    // Transition sourceCbInfo->image to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+    if (sourceCbInfo->currentLayout == VK_IMAGE_LAYOUT_UNDEFINED) {
+        sourceCbInfo->currentLayout = adjustImageLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+    }
+    const VkImageLayout origSourceLayout = sourceCbInfo->currentLayout;
+    const VkImageAspectFlags sourceAspectMask =
+        getFormatAspects(sourceCbInfo->imageCreateInfoShallow.format);
+
+    if (origSourceLayout != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+        const VkImageMemoryBarrier toShaderReadBarrier = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+            .oldLayout = origSourceLayout,
+            .newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = sourceCbInfo->image,
+            .subresourceRange =
+                {
+                    .aspectMask = sourceAspectMask,
+                    .baseMipLevel = 0,
+                    .levelCount = 1,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1,
+                },
+        };
+        mDvk->vkCmdPipelineBarrier(mCommandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                                   VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0,
+                                   nullptr, 1, &toShaderReadBarrier);
     }
 
     // 2. Call m_compositorVk->drawImage for the transformation.
@@ -3962,6 +4089,33 @@ bool VkEmulation::readColorBufferPixelsScaledGpu(uint32_t colorBufferHandle, int
         .colorTransform = colorTransform,
     };
     mCompositorVk->drawImage(drawParams, sourceCbInfo->imageView);
+
+    // Restore sourceCbInfo->image back to its original layout
+    if (origSourceLayout != VK_IMAGE_LAYOUT_UNDEFINED &&
+        origSourceLayout != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+        const VkImageMemoryBarrier toOrigLayoutBarrier = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
+            .dstAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            .newLayout = origSourceLayout,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = sourceCbInfo->image,
+            .subresourceRange =
+                {
+                    .aspectMask = sourceAspectMask,
+                    .baseMipLevel = 0,
+                    .levelCount = 1,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1,
+                },
+        };
+        mDvk->vkCmdPipelineBarrier(mCommandBuffer, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                                   VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0,
+                                   nullptr, 1, &toOrigLayoutBarrier);
+    }
 
     // 3. Perform GPU-side readback from tempImage to staging buffer.
     mDebugUtilsHelper.cmdBeginDebugLabel(mCommandBuffer, "readColorBufferPixelsScaledGpu_Readback");
@@ -3984,7 +4138,13 @@ bool VkEmulation::readColorBufferPixelsScaledGpu(uint32_t colorBufferHandle, int
 
     mDebugUtilsHelper.cmdEndDebugLabel(mCommandBuffer);
 
-    VK_CHECK(mDvk->vkEndCommandBuffer(mCommandBuffer));
+    vkRes = mDvk->vkEndCommandBuffer(mCommandBuffer);
+    if (vkRes != VK_SUCCESS) {
+        GFXSTREAM_ERROR("%s: vkEndCommandBuffer failed with %s", __func__, string_VkResult(vkRes));
+        mCompositorVk->releaseImmediateModeResources(imResources);
+        cleanupTemporaryResources();
+        return false;
+    }
 
     // Submit command buffer and wait
     const VkSubmitInfo submitInfo = {
@@ -3994,11 +4154,34 @@ bool VkEmulation::readColorBufferPixelsScaledGpu(uint32_t colorBufferHandle, int
     };
     {
         gfxstream::base::AutoLock queueLock(*mQueueLock);
-        VK_CHECK(mDvk->vkQueueSubmit(mQueue, 1, &submitInfo, mCommandBufferFence));
+        vkRes = mDvk->vkQueueSubmit(mQueue, 1, &submitInfo, mCommandBufferFence);
     }
+    if (vkRes != VK_SUCCESS) {
+        GFXSTREAM_ERROR("%s: vkQueueSubmit failed with %s", __func__, string_VkResult(vkRes));
+        mCompositorVk->releaseImmediateModeResources(imResources);
+        cleanupTemporaryResources();
+        return false;
+    }
+
     static constexpr uint64_t ANB_MAX_WAIT_NS = 5ULL * 1000ULL * 1000ULL * 1000ULL;
-    VK_CHECK(mDvk->vkWaitForFences(mDevice, 1, &mCommandBufferFence, VK_TRUE, ANB_MAX_WAIT_NS));
-    VK_CHECK(mDvk->vkResetFences(mDevice, 1, &mCommandBufferFence));
+    VkResult waitRes =
+        mDvk->vkWaitForFences(mDevice, 1, &mCommandBufferFence, VK_TRUE, ANB_MAX_WAIT_NS);
+    if (waitRes == VK_TIMEOUT) {
+        GFXSTREAM_ERROR("%s: vkWaitForFences timed out, retrying...", __func__);
+        waitRes =
+            mDvk->vkWaitForFences(mDevice, 1, &mCommandBufferFence, VK_TRUE, ANB_MAX_WAIT_NS * 2);
+    }
+    if (waitRes != VK_SUCCESS) {
+        GFXSTREAM_ERROR("%s: vkWaitForFences failed with %s", __func__, string_VkResult(waitRes));
+        mCompositorVk->releaseImmediateModeResources(imResources);
+        {
+            gfxstream::base::AutoLock queueLock(*mQueueLock);
+            mDvk->vkQueueWaitIdle(mQueue);
+        }
+        cleanupTemporaryResources();
+        return false;
+    }
+    mDvk->vkResetFences(mDevice, 1, &mCommandBufferFence);
 
     // Release ImmediateModeResources after the fence is signaled.
     mCompositorVk->releaseImmediateModeResources(imResources);
@@ -4010,15 +4193,11 @@ bool VkEmulation::readColorBufferPixelsScaledGpu(uint32_t colorBufferHandle, int
             .offset = 0,
             .size = VK_WHOLE_SIZE,
         };
-        VK_CHECK(mDvk->vkInvalidateMappedMemoryRanges(mDevice, 1, &toInvalidate));
+        mDvk->vkInvalidateMappedMemoryRanges(mDevice, 1, &toInvalidate);
     }
 
     // 5. Cleanup temporary resources
-    mDvk->vkDestroyFramebuffer(mDevice, tempFramebuffer, nullptr);
-    mDvk->vkDestroyRenderPass(mDevice, tempRenderPass, nullptr);
-    mDvk->vkDestroyImageView(mDevice, tempImageView, nullptr);
-    mDvk->vkDestroyImage(mDevice, tempImage, nullptr);
-    mDvk->vkFreeMemory(mDevice, tempImageMemory, nullptr);
+    cleanupTemporaryResources();
 
     const uint8_t* srcPixelsBytes = static_cast<const uint8_t*>(mStaging.mMappedPtr);
     return readbackFromR8G8B8A8WithFormatChange(srcPixelsBytes, pixelsFormat, pixelsWidth, pixelsHeight,
