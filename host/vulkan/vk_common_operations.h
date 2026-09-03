@@ -89,6 +89,30 @@ enum class AstcEmulationMode {
     Gpu,       // Decompress ASTC textures on the GPU
 };
 
+#ifdef __ANDROID__
+// The AHardwareBuffer_Desc fields that fully determine an AHB's allocation/property-query
+// result, derived from a VkImageCreateInfo the same way allocAhb() derives its own AHB. Used to
+// match an image against an AHB allocated for a different image of the identical shape.
+struct AhbShapeKey {
+    uint32_t width = 0;
+    uint32_t height = 0;
+    uint32_t ahbFormat = 0;
+    uint64_t ahbUsage = 0;
+
+    bool operator==(const AhbShapeKey& other) const {
+        return width == other.width && height == other.height && ahbFormat == other.ahbFormat &&
+               ahbUsage == other.ahbUsage;
+    }
+};
+struct AhbShapeKeyHash {
+    size_t operator()(const AhbShapeKey& key) const {
+        return (static_cast<size_t>(key.width) << 48) ^ (static_cast<size_t>(key.height) << 32) ^
+               (static_cast<size_t>(key.ahbFormat) << 16) ^ static_cast<size_t>(key.ahbUsage);
+    }
+};
+AhbShapeKey ComputeAhbShapeKey(const VkImageCreateInfo* imageCreateInfo);
+#endif
+
 // Global state that holds a global Vulkan instance along with globally
 // exported memory allocations + images. This is in order to service things
 // like AndroidHardwareBuffer/FuchsiaImagePipeHandle. Each such allocation is
@@ -471,6 +495,23 @@ class VkEmulation {
 
     uint32_t vulkanInstanceVersion() const;
 
+#ifdef __ANDROID__
+    // Stashes an AHB allocated to answer a deferred AHB-external image's zero-size layout query
+    // (see on_vkCreateImage), so that a same-shaped ColorBuffer's own backing allocation can
+    // adopt it instead of allocating a second one -- see allocExternalMemory's AndroidAHB case.
+    // Takes its own reference via AHardwareBuffer_acquire, independent of whatever reference the
+    // caller (the probing image's own DeferredLayoutInfo) already holds.
+    void stashPendingDeferredLayoutAhb(const VkImageCreateInfo* imageCreateInfo,
+                                       AHardwareBuffer* ahb);
+
+    // Withdraws a previously stashed AHB from the pending pool, releasing the pool's reference.
+    // Must be called once the probing image imports the AHB as its own backing memory: at that
+    // point it is in use, and letting a ColorBuffer adopt it would alias two unrelated images
+    // onto one allocation. No-op if it was already adopted or never stashed.
+    void unstashPendingDeferredLayoutAhb(const VkImageCreateInfo* imageCreateInfo,
+                                         AHardwareBuffer* ahb);
+#endif
+
    private:
     VkEmulation() = default;
 
@@ -711,6 +752,23 @@ class VkEmulation {
     // guest in some way, with 1:1 mapping between guest and host external
     // memory handles.
     std::unordered_map<uint32_t, ExternalMemoryInfo> mExternalMemories GUARDED_BY(mMutex);
+
+#ifdef __ANDROID__
+    // AHBs stashed by stashPendingDeferredLayoutAhb(), each holding its own
+    // AHardwareBuffer_acquire()'d reference, waiting for a same-shaped ColorBuffer to adopt
+    // instead of allocating a second AHB (see allocExternalMemory's AndroidAHB case). Any left
+    // unclaimed are released at VkEmulation teardown.
+    std::unordered_multimap<AhbShapeKey, AHardwareBuffer*, AhbShapeKeyHash>
+        mPendingDeferredLayoutAhbs GUARDED_BY(mMutex);
+
+    // Pops one AHB matching imageCreateInfo's shape from mPendingDeferredLayoutAhbs, or nullptr
+    // if none is pending. Caller already holds mMutex -- NO_THREAD_SAFETY_ANALYSIS rather than
+    // REQUIRES(mMutex) because its only caller, allocExternalMemory(), predates thread-safety
+    // annotations itself and isn't annotated, so REQUIRES here would just move the same
+    // unverifiable-by-the-analyzer assumption one frame up instead of removing it.
+    AHardwareBuffer* takePendingDeferredLayoutAhbLocked(const VkImageCreateInfo* imageCreateInfo)
+        NO_THREAD_SAFETY_ANALYSIS;
+#endif
 
     // The host keeps a set of occupied guest memory addresses to avoid a
     // host memory address mapped to guest twice.

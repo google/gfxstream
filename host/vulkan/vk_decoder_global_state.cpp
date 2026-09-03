@@ -3205,6 +3205,11 @@ class VkDecoderGlobalState::Impl {
                         uint32_t bytesPerPixel = 4;  // allocAhb only ever picks 32-bit RGBA/BGRA
                         imageInfo.deferredLayout.rowPitch =
                             static_cast<VkDeviceSize>(ahbDesc.stride) * bytesPerPixel;
+                        // Also offer this AHB to a same-shaped ColorBuffer's own allocation,
+                        // which otherwise pays for a second AHardwareBuffer_allocate() for what
+                        // is usually the very same image a moment later (see the guest's
+                        // vkCreateImage -> vkGetImageSubresourceLayout -> CreateBlob sequence).
+                        m_vkEmulation->stashPendingDeferredLayoutAhb(pCreateInfo, rawAhb);
                         GFXSTREAM_INFO(
                             "DL-AHB tracked image=%p size=%llu typeBits=0x%x rowPitch=%llu "
                             "ahbStridePx=%u (driver said size=0)",
@@ -6412,6 +6417,13 @@ class VkDecoderGlobalState::Impl {
         // Keeps the AHB alive past the lock: the chain is not consumed until vkAllocateMemory
         // below, by which point the image may have been destroyed.
         std::shared_ptr<AHardwareBuffer> deferredAhbHold;
+        // Set when the probe AHB became this image's own backing memory, so it can be withdrawn
+        // from the pending pool below -- an in-use AHB must not be adopted by a ColorBuffer.
+        // Withdrawn after mMutex is dropped: unstashPendingDeferredLayoutAhb() takes
+        // VkEmulation's mutex, and createVkColorBuffer() already holds that one when it reaches
+        // the adopt side, so taking it under mMutex here would invert the two.
+        AHardwareBuffer* importedProbeAhb = nullptr;
+        VkImageCreateInfo importedProbeShape = {};
         if (dedicatedAllocInfoPtr && dedicatedAllocInfoPtr->image != VK_NULL_HANDLE) {
             std::lock_guard<std::mutex> dlLock(mMutex);
             auto* dlInfo = gfxstream::base::find(mImageInfo, dedicatedAllocInfoPtr->image);
@@ -6423,6 +6435,8 @@ class VkDecoderGlobalState::Impl {
                     deferredAhbHold = dlInfo->deferredLayout.ahb;
                     importDeferredLayoutAhb.buffer = deferredAhbHold.get();
                     vk_append_struct(&structChainIter, &importDeferredLayoutAhb);
+                    importedProbeAhb = deferredAhbHold.get();
+                    importedProbeShape = dlInfo->imageCreateInfoShallow;
                     GFXSTREAM_INFO("DL-AHB import image=%p ahb=%p size=%llu",
                                    (void*)dedicatedAllocInfoPtr->image,
                                    (void*)importDeferredLayoutAhb.buffer,
@@ -6434,6 +6448,9 @@ class VkDecoderGlobalState::Impl {
                 // memoryTypeBits/rowPitch survive for later requirement/layout queries.
                 dlInfo->deferredLayout.ahb.reset();
             }
+        }
+        if (importedProbeAhb) {
+            m_vkEmulation->unstashPendingDeferredLayoutAhb(&importedProbeShape, importedProbeAhb);
         }
 #endif
         if (!usingDirectMapping()) {
