@@ -12,3 +12,9 @@ cc_library(
     ]),
     includes = ["include"],
 )
+
+alias(
+    name = "vulkan_headers",
+    actual = "@vulkan-headers//:vulkan_headers",
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,23 @@
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "BUILD.vvl.bazel",
+    "BUILD.vulkan_headers.bazel",
+    "BUILD.vulkan_utility_libraries.bazel",
+    "vvl.MODULE.bazel",
+])
+
+alias(
+    name = "VkLayer_khronos_validation",
+    actual = "@vulkan_validation_layers//:VkLayer_khronos_validation",
+)
+
+alias(
+    name = "VkLayer_khronos_validation_json",
+    actual = "@vulkan_validation_layers//:VkLayer_khronos_validation_json",
+)
+
+alias(
+    name = "vulkan_utility_libraries",
+    actual = "@vulkan_utility_libraries//:vulkan_utility_libraries",
+)
