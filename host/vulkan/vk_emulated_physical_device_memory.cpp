@@ -42,6 +42,42 @@ EmulatedPhysicalDeviceMemoryProperties::EmulatedPhysicalDeviceMemoryProperties(
     }
     mGuestColorBufferMemoryTypeIndex = hostColorBufferMemoryTypeIndex;
 
+    // With system blobs, host visible memory is shared memory imported as a host pointer, and
+    // a tiled image cannot be bound to that. A device whose every memory type is host visible
+    // leaves images nowhere else to go, so the guest gets a device local only type that
+    // allocates from the same host type without the sharing. It goes first: a strict subset
+    // of flags has to precede its superset, which is also what makes it the type an image
+    // is given.
+    if (features.SystemBlob.enabled() && mHostMemoryProperties.memoryTypeCount > 0 &&
+        mHostMemoryProperties.memoryTypeCount < VK_MAX_MEMORY_TYPES) {
+        bool allHostVisible = true;
+        uint32_t hostDeviceLocalIndex = 0;
+        for (uint32_t i = 0; i < mHostMemoryProperties.memoryTypeCount; i++) {
+            const VkMemoryPropertyFlags flags = mHostMemoryProperties.memoryTypes[i].propertyFlags;
+            if (!(flags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)) {
+                allHostVisible = false;
+            }
+            if ((flags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) && hostDeviceLocalIndex == 0) {
+                hostDeviceLocalIndex = i;
+            }
+        }
+        if (allHostVisible) {
+            for (uint32_t i = mGuestMemoryProperties.memoryTypeCount; i > 0; i--) {
+                mGuestMemoryProperties.memoryTypes[i] = mGuestMemoryProperties.memoryTypes[i - 1];
+                mGuestToHostMemoryTypeIndexMap[i] = i - 1;
+                mHostToGuestMemoryTypeIndexMap[i - 1] = i;
+            }
+            mGuestMemoryProperties.memoryTypes[0] = VkMemoryType{
+                .propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                .heapIndex = mHostMemoryProperties.memoryTypes[hostDeviceLocalIndex].heapIndex,
+            };
+            mGuestMemoryProperties.memoryTypeCount++;
+            mGuestToHostMemoryTypeIndexMap[0] = hostDeviceLocalIndex;
+            mGuestDeviceOnlyMemoryTypeIndex = 0;
+            mGuestColorBufferMemoryTypeIndex = hostColorBufferMemoryTypeIndex + 1;
+        }
+    }
+
     // Limit max safe memory heap size if the VulkanMaxSafeHeapSize feature is set to a non-zero
     // value.
     const uint64_t maxSafeHeapSizeLimit = features.VulkanMaxSafeHeapSize.getValue().value_or(0);
@@ -179,6 +215,15 @@ EmulatedPhysicalDeviceMemoryProperties::getHostMemoryInfoFromGuestMemoryTypeInde
         return std::nullopt;
     }
 
+    // The device only type is the host type with its host visibility withheld, so that an
+    // allocation from it is not given host visible emulation.
+    if (mGuestDeviceOnlyMemoryTypeIndex == guestMemoryTypeIndex) {
+        return HostMemoryInfo{
+            .index = hostMemoryTypeIndex,
+            .memoryType = mGuestMemoryProperties.memoryTypes[guestMemoryTypeIndex],
+        };
+    }
+
     return getHostMemoryInfoFromHostMemoryTypeIndex(hostMemoryTypeIndex);
 }
 
@@ -199,6 +244,14 @@ void EmulatedPhysicalDeviceMemoryProperties::transformToGuestMemoryRequirements(
         }
 
         guestMemoryTypeBits |= (1u << guestMemoryTypeIndex);
+    }
+
+    if (mGuestDeviceOnlyMemoryTypeIndex) {
+        const uint32_t hostMemoryTypeIndex =
+            mGuestToHostMemoryTypeIndexMap[*mGuestDeviceOnlyMemoryTypeIndex];
+        if (hostMemoryTypeBits & (1u << hostMemoryTypeIndex)) {
+            guestMemoryTypeBits |= (1u << *mGuestDeviceOnlyMemoryTypeIndex);
+        }
     }
 
     memoryRequirements->memoryTypeBits = guestMemoryTypeBits;
