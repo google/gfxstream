@@ -115,7 +115,15 @@ int SharedMemory::openInternal(int oflag, int mode, bool doMapping) {
     struct stat sb;
     if (mShareType == ShareType::SHARED_MEMORY) {
 #if defined(__APPLE__)
-        mFd = ::shm_open(mName.c_str(), oflag, mode);
+        // An object left behind by a dead process cannot be resized, and one another process
+        // still uses must not be shared by accident: create fresh, replacing whatever has the
+        // name. Its owner, if any, keeps it through its descriptor.
+        const int createFlags = (oflag & O_CREAT) ? (oflag | O_EXCL) : oflag;
+        mFd = ::shm_open(mName.c_str(), createFlags, mode);
+        if (mFd == -1 && errno == EEXIST && (oflag & O_CREAT)) {
+            shm_unlink(mName.c_str());
+            mFd = ::shm_open(mName.c_str(), createFlags, mode);
+        }
 #elif defined(HAVE_MEMFD_CREATE)
         mFd = memfd_create(mName.c_str(), MFD_CLOEXEC | MFD_ALLOW_SEALING);
 #else
