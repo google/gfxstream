@@ -5546,8 +5546,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         auto& physicalDeviceMemHelper = physicalDeviceInfo->memoryPropertiesHelper;
-        updateImageMemoryRequirementsLocked(device, image, pMemoryRequirements,
-                                            physicalDeviceMemHelper.get());
+        updateImageMemoryRequirementsLocked(device, image, pMemoryRequirements);
         physicalDeviceMemHelper->transformToGuestMemoryRequirements(pMemoryRequirements);
     }
 
@@ -5613,8 +5612,7 @@ class VkDecoderGlobalState::Impl {
 
         auto& physicalDeviceMemHelper = physicalDeviceInfo->memoryPropertiesHelper;
         updateImageMemoryRequirementsLocked(device, pInfo->image,
-                                            &pMemoryRequirements->memoryRequirements,
-                                            physicalDeviceMemHelper.get());
+                                            &pMemoryRequirements->memoryRequirements);
         physicalDeviceMemHelper->transformToGuestMemoryRequirements(
             &pMemoryRequirements->memoryRequirements);
     }
@@ -10487,9 +10485,9 @@ class VkDecoderGlobalState::Impl {
         return false;
     }
 
-    void updateImageMemoryRequirementsLocked(
-        VkDevice device, VkImage image, VkMemoryRequirements* pMemoryRequirements,
-        const EmulatedPhysicalDeviceMemoryProperties* memHelper = nullptr) REQUIRES(mMutex) {
+    void updateImageMemoryRequirementsLocked(VkDevice device, VkImage image,
+                                             VkMemoryRequirements* pMemoryRequirements)
+        REQUIRES(mMutex) {
         auto* imageInfo = gfxstream::base::find(mImageInfo, image);
         if (!imageInfo) return;
 
@@ -10505,27 +10503,7 @@ class VkDecoderGlobalState::Impl {
             imageInfo->deferredLayout.size > 0) {
             pMemoryRequirements->size = imageInfo->deferredLayout.size;
             pMemoryRequirements->alignment = imageInfo->deferredLayout.alignment;
-
-            uint32_t typeBits = imageInfo->deferredLayout.memoryTypeBits;
-            // The AHB must not be exposed as a host-visible/mappable type: crosvm's
-            // resource_map_blob() rejects AHB-backed blobs, and on a unified-memory host
-            // (e.g. Intel ANV) most or all of ahbProps.memoryTypeBits can be HOST_VISIBLE.
-            // Prefer the non-host-visible subset; fall back to the full mask if the AHB has
-            // no such type, since some allocation beats failing this call outright.
-            if (memHelper) {
-                const auto& hostProps = memHelper->getHostMemoryProperties();
-                uint32_t deviceLocalOnlyBits = 0;
-                for (uint32_t i = 0; i < hostProps.memoryTypeCount; i++) {
-                    if ((typeBits & (1u << i)) && !(hostProps.memoryTypes[i].propertyFlags &
-                                                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)) {
-                        deviceLocalOnlyBits |= (1u << i);
-                    }
-                }
-                if (deviceLocalOnlyBits != 0) {
-                    typeBits = deviceLocalOnlyBits;
-                }
-            }
-            pMemoryRequirements->memoryTypeBits = typeBits;
+            pMemoryRequirements->memoryTypeBits = imageInfo->deferredLayout.memoryTypeBits;
         }
 #endif
     }
