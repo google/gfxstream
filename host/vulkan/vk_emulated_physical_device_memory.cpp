@@ -24,7 +24,23 @@ namespace host {
 namespace vk {
 namespace {
 
-static constexpr const uint32_t kInvalidMemoryTypeIndex = std::numeric_limits<uint32_t>::max();
+#if defined(__APPLE__)
+// The first device local type, if every type is host visible.
+std::optional<uint32_t> FindDeviceLocalMemoryTypeIfAllAreHostVisible(
+    const VkPhysicalDeviceMemoryProperties& memoryProperties) {
+    std::optional<uint32_t> deviceLocalIndex;
+    for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; i++) {
+        const VkMemoryPropertyFlags flags = memoryProperties.memoryTypes[i].propertyFlags;
+        if (!(flags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)) {
+            return std::nullopt;
+        }
+        if (!deviceLocalIndex && (flags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) {
+            deviceLocalIndex = i;
+        }
+    }
+    return deviceLocalIndex;
+}
+#endif
 
 }  // namespace
 
@@ -34,12 +50,6 @@ EmulatedPhysicalDeviceMemoryProperties::EmulatedPhysicalDeviceMemoryProperties(
     // Start with the original host memory properties:
     mHostMemoryProperties = hostMemoryProperties;
     mGuestMemoryProperties = hostMemoryProperties;
-    std::fill_n(mGuestToHostMemoryTypeIndexMap, VK_MAX_MEMORY_TYPES, kInvalidMemoryTypeIndex);
-    std::fill_n(mHostToGuestMemoryTypeIndexMap, VK_MAX_MEMORY_TYPES, kInvalidMemoryTypeIndex);
-    for (uint32_t i = 0; i < mHostMemoryProperties.memoryTypeCount; i++) {
-        mGuestToHostMemoryTypeIndexMap[i] = i;
-        mHostToGuestMemoryTypeIndexMap[i] = i;
-    }
     mGuestColorBufferMemoryTypeIndex = hostColorBufferMemoryTypeIndex;
 
     // Limit max safe memory heap size if the VulkanMaxSafeHeapSize feature is set to a non-zero
@@ -129,29 +139,83 @@ EmulatedPhysicalDeviceMemoryProperties::EmulatedPhysicalDeviceMemoryProperties(
         }
     }
 
+    for (uint32_t i = 0; i < mGuestMemoryProperties.memoryTypeCount; i++) {
+        mGuestMemoryTypes.push_back(EmulatedGuestMemoryType{
+            .hostMemoryTypeIndex = i,
+            .memoryType = mGuestMemoryProperties.memoryTypes[i],
+        });
+    }
+
+#if defined(__APPLE__)
+    const std::optional<uint32_t> hostDeviceLocalIndex =
+        features.SystemBlob.enabled()
+            ? FindDeviceLocalMemoryTypeIfAllAreHostVisible(hostMemoryProperties)
+            : std::nullopt;
+    if (hostDeviceLocalIndex && mGuestMemoryTypes.size() < VK_MAX_MEMORY_TYPES) {
+        const VkMemoryType memoryType = {
+            .propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            .heapIndex = hostMemoryProperties.memoryTypes[*hostDeviceLocalIndex].heapIndex,
+        };
+        const uint32_t index = findIndexForNewMemoryType(memoryType.propertyFlags);
+        mGuestMemoryTypes.insert(mGuestMemoryTypes.begin() + index,
+                                 EmulatedGuestMemoryType{
+                                     .hostMemoryTypeIndex = *hostDeviceLocalIndex,
+                                     .memoryType = memoryType,
+                                 });
+        mGuestAppleSystemBlobMemoryTypeIndex = index;
+        if (index <= mGuestColorBufferMemoryTypeIndex) {
+            mGuestColorBufferMemoryTypeIndex++;
+        }
+    }
+#endif
+
     // If enabled, reserve an additional memory type for AHB backed buffers and images
     // so that the host can control its memory properties. This ensures that the guest
     // only sees `VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT` and will not try to map the
     // memory.
     if (features.VulkanUseDedicatedAhbMemoryType.enabled()) {
-        if (mGuestMemoryProperties.memoryTypeCount == VK_MAX_MEMORY_TYPES) {
+        if (mGuestMemoryTypes.size() == VK_MAX_MEMORY_TYPES) {
             GFXSTREAM_FATAL(
                 "Unable to create emulated AHB memory type because VK_MAX_MEMORY_TYPES "
                 "already in use.");
         }
 
-        uint32_t ahbMemoryTypeIndex = mGuestMemoryProperties.memoryTypeCount;
-        ++mGuestMemoryProperties.memoryTypeCount;
-
-        VkMemoryType& ahbMemoryType = mGuestMemoryProperties.memoryTypes[ahbMemoryTypeIndex];
-        ahbMemoryType.propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-        ahbMemoryType.heapIndex =
-            mHostMemoryProperties.memoryTypes[hostColorBufferMemoryTypeIndex].heapIndex;
-
-        mGuestToHostMemoryTypeIndexMap[ahbMemoryTypeIndex] = hostColorBufferMemoryTypeIndex;
-
-        mGuestColorBufferMemoryTypeIndex = ahbMemoryTypeIndex;
+        const VkMemoryType memoryType = {
+            .propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            .heapIndex =
+                mHostMemoryProperties.memoryTypes[hostColorBufferMemoryTypeIndex].heapIndex,
+        };
+        const uint32_t index = findIndexForNewMemoryType(memoryType.propertyFlags);
+        mGuestMemoryTypes.insert(mGuestMemoryTypes.begin() + index,
+                                 EmulatedGuestMemoryType{
+                                     .hostMemoryTypeIndex = hostColorBufferMemoryTypeIndex,
+                                     .isReservedForAhbAllocations = true,
+                                     .memoryType = memoryType,
+                                 });
+        mGuestColorBufferMemoryTypeIndex = index;
+        if (mGuestAppleSystemBlobMemoryTypeIndex &&
+            index <= *mGuestAppleSystemBlobMemoryTypeIndex) {
+            ++*mGuestAppleSystemBlobMemoryTypeIndex;
+        }
     }
+
+    mGuestMemoryProperties.memoryTypeCount = static_cast<uint32_t>(mGuestMemoryTypes.size());
+    for (uint32_t i = 0; i < mGuestMemoryProperties.memoryTypeCount; i++) {
+        mGuestMemoryProperties.memoryTypes[i] = mGuestMemoryTypes[i].memoryType;
+    }
+}
+
+uint32_t EmulatedPhysicalDeviceMemoryProperties::findIndexForNewMemoryType(
+    VkMemoryPropertyFlags propertyFlags) const {
+    // A memory type whose flags are a strict subset of another's must come before it, see
+    // https://docs.vulkan.org/refpages/latest/refpages/source/VkPhysicalDeviceMemoryProperties.html
+    for (uint32_t i = 0; i < mGuestMemoryTypes.size(); i++) {
+        const VkMemoryPropertyFlags existingFlags = mGuestMemoryTypes[i].memoryType.propertyFlags;
+        if (existingFlags != propertyFlags && (existingFlags & propertyFlags) == propertyFlags) {
+            return i;
+        }
+    }
+    return static_cast<uint32_t>(mGuestMemoryTypes.size());
 }
 
 std::optional<EmulatedPhysicalDeviceMemoryProperties::HostMemoryInfo>
@@ -174,9 +238,14 @@ EmulatedPhysicalDeviceMemoryProperties::getHostMemoryInfoFromGuestMemoryTypeInde
         return std::nullopt;
     }
 
-    uint32_t hostMemoryTypeIndex = mGuestToHostMemoryTypeIndexMap[guestMemoryTypeIndex];
-    if (hostMemoryTypeIndex == kInvalidMemoryTypeIndex) {
-        return std::nullopt;
+    uint32_t hostMemoryTypeIndex = mGuestMemoryTypes[guestMemoryTypeIndex].hostMemoryTypeIndex;
+
+    // The host type with its host visibility withheld, so no host visible emulation.
+    if (guestMemoryTypeIndex == mGuestAppleSystemBlobMemoryTypeIndex) {
+        return HostMemoryInfo{
+            .index = hostMemoryTypeIndex,
+            .memoryType = mGuestMemoryProperties.memoryTypes[guestMemoryTypeIndex],
+        };
     }
 
     return getHostMemoryInfoFromHostMemoryTypeIndex(hostMemoryTypeIndex);
@@ -187,14 +256,14 @@ void EmulatedPhysicalDeviceMemoryProperties::transformToGuestMemoryRequirements(
     uint32_t guestMemoryTypeBits = 0;
 
     const uint32_t hostMemoryTypeBits = memoryRequirements->memoryTypeBits;
-    for (uint32_t hostMemoryTypeIndex = 0;
-         hostMemoryTypeIndex < mHostMemoryProperties.memoryTypeCount; hostMemoryTypeIndex++) {
+    for (uint32_t guestMemoryTypeIndex = 0; guestMemoryTypeIndex < mGuestMemoryTypes.size();
+         guestMemoryTypeIndex++) {
+        uint32_t hostMemoryTypeIndex = mGuestMemoryTypes[guestMemoryTypeIndex].hostMemoryTypeIndex;
         if (!(hostMemoryTypeBits & (1u << hostMemoryTypeIndex))) {
             continue;
         }
 
-        uint32_t guestMemoryTypeIndex = mHostToGuestMemoryTypeIndexMap[hostMemoryTypeIndex];
-        if (guestMemoryTypeIndex == kInvalidMemoryTypeIndex) {
+        if (mGuestMemoryTypes[guestMemoryTypeIndex].isReservedForAhbAllocations) {
             continue;
         }
 
@@ -202,6 +271,21 @@ void EmulatedPhysicalDeviceMemoryProperties::transformToGuestMemoryRequirements(
     }
 
     memoryRequirements->memoryTypeBits = guestMemoryTypeBits;
+}
+
+void EmulatedPhysicalDeviceMemoryProperties::transformToGuestImageMemoryRequirements(
+    VkImageTiling tiling, VkMemoryRequirements* memoryRequirements) const {
+    transformToGuestMemoryRequirements(memoryRequirements);
+    if (tiling == VK_IMAGE_TILING_LINEAR || !mGuestAppleSystemBlobMemoryTypeIndex) {
+        return;
+    }
+
+    // The type is set only when the host allows the host type behind it, so a tiled image
+    // is left that alone; without it, what the host allows is better than nothing.
+    const uint32_t tiledMemoryTypeBit = 1u << *mGuestAppleSystemBlobMemoryTypeIndex;
+    if (memoryRequirements->memoryTypeBits & tiledMemoryTypeBit) {
+        memoryRequirements->memoryTypeBits = tiledMemoryTypeBit;
+    }
 }
 
 void EmulatedPhysicalDeviceMemoryProperties::clampMemoryBudgetToGuestHeapSizes(
