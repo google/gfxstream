@@ -6716,7 +6716,10 @@ class VkDecoderGlobalState::Impl {
                                     static_cast<unsigned long long>(alignedSize));
                 }
                 localAllocInfo.allocationSize = alignedSize;
-                auto memory = SharedMemory("shared-memory-vk-" + std::to_string(sUniqueShmemId++),
+                // The name is per process: a server that was killed can leave its objects
+                // behind, and a name that already has a size cannot be resized.
+                auto memory = SharedMemory("shared-memory-vk-" + std::to_string(getpid()) + "-" +
+                                               std::to_string(sUniqueShmemId++),
                                            localAllocInfo.allocationSize);
 
                 if (m_vkEmulation->getFeatures().VulkanAllocateHostVisibleAsUdmabuf.enabled()) {

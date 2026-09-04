@@ -136,6 +136,12 @@ int SharedMemory::openInternal(int oflag, int mode, bool doMapping) {
     }
 
     if (oflag & O_CREAT) {
+#if defined(__APPLE__)
+        // The descriptor keeps the object alive; the name is only a leak if the process dies.
+        if (mShareType == ShareType::SHARED_MEMORY) {
+            shm_unlink(mName.c_str());
+        }
+#endif
         if (HANDLE_EINTR(fstat(mFd, &sb)) == -1) {
             err = -errno;
             close();
