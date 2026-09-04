@@ -3399,14 +3399,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkImage image;
                 const VkImageSubresource* pSubresource;
                 VkSubresourceLayout* pLayout;
-                // Begin non wrapped dispatchable handle unboxing for device;
+                // Begin global wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
-                auto unboxed_device = unbox_VkDevice(device);
                 auto vk = dispatch_VkDevice(device);
-                // End manual dispatchable handle unboxing for device;
                 uint64_t cgen_var_1;
                 memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
@@ -3435,7 +3433,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         (unsigned long long)pSubresource, (unsigned long long)pLayout);
                 }
                 if (CC_LIKELY(vk)) {
-                    vk->vkGetImageSubresourceLayout(unboxed_device, image, pSubresource, pLayout);
+                    m_state->on_vkGetImageSubresourceLayout(&m_pool, snapshotApiCallHandle, device,
+                                                            image, pSubresource, pLayout);
                 }
                 vkStream->unsetHandleMapping();
                 if (pLayout) {
