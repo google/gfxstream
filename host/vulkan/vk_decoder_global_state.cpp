@@ -7487,7 +7487,10 @@ class VkDecoderGlobalState::Impl {
             ExternalObjectManager::get()->addBlobDescriptorInfo(
                 virtioGpuContextId, hostBlobId, info->sharedMemory->releaseHandle(),
                 STREAM_HANDLE_TYPE_MEM_SHM, info->caching, std::nullopt);
-        } else if (m_vkEmulation->getFeatures().ExternalBlob.enabled()) {
+        } else if (m_vkEmulation->getFeatures().ExternalBlob.enabled() ||
+                   info->boundColorBuffer.has_value()) {
+            // A ColorBuffer's memory must always be exported for scanout, regardless of
+            // ExternalBlob (which only governs the map_blob transport for non-scanout memory).
 #ifdef __APPLE__
             if (m_vkEmulation->getExternalMemoryMode() == ExternalMemory::Mode::Metal) {
                 GFXSTREAM_FATAL("ExternalBlob feature is not supported with external memory metal");
