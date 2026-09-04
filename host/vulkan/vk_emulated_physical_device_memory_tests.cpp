@@ -116,6 +116,54 @@ TEST(VkGuestMemoryUtilsTest, Passthrough) {
                 EqsVkPhysicalDeviceMemoryProperties(hostMemoryProperties));
 }
 
+#if defined(__APPLE__)
+TEST(VkGuestMemoryUtilsTest, SystemBlobDeviceLocalTypeWhenEverythingIsHostVisible) {
+    const VkPhysicalDeviceMemoryProperties hostMemoryProperties = {
+        .memoryTypeCount = 2,
+        .memoryTypes =
+            {
+                {.propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT},
+                {.propertyFlags =
+                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT},
+            },
+        .memoryHeapCount = 1,
+        .memoryHeaps = {{.size = 0x1000000, .flags = VK_MEMORY_HEAP_DEVICE_LOCAL_BIT}},
+    };
+
+    gfxstream::host::FeatureSet features;
+    features.SystemBlob.setEnabled(true);
+    EmulatedPhysicalDeviceMemoryProperties helper(hostMemoryProperties, 1, features);
+
+    // Device local alone is a strict subset of the second host type, so it goes before it.
+    VkPhysicalDeviceMemoryProperties expectedGuestMemoryProperties = hostMemoryProperties;
+    expectedGuestMemoryProperties.memoryTypeCount = 3;
+    expectedGuestMemoryProperties.memoryTypes[1] = {.propertyFlags =
+                                                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT};
+    expectedGuestMemoryProperties.memoryTypes[2] = hostMemoryProperties.memoryTypes[1];
+    EXPECT_THAT(helper.getGuestMemoryProperties(),
+                EqsVkPhysicalDeviceMemoryProperties(expectedGuestMemoryProperties));
+    EXPECT_THAT(helper.getHostMemoryInfoFromGuestMemoryTypeIndex(1),
+                Optional(EqsHostMemoryInfo(EmulatedPhysicalDeviceMemoryProperties::HostMemoryInfo{
+                    .index = 1,
+                    .memoryType = expectedGuestMemoryProperties.memoryTypes[1],
+                })));
+    EXPECT_EQ(helper.getGuestColorBufferMemoryTypeIndex(), 2u);
+
+    VkMemoryRequirements requirements = {.memoryTypeBits = 0b11};
+    helper.transformToGuestImageMemoryRequirements(VK_IMAGE_TILING_LINEAR, &requirements);
+    EXPECT_EQ(requirements.memoryTypeBits, 0b111u);
+
+    requirements = {.memoryTypeBits = 0b11};
+    helper.transformToGuestImageMemoryRequirements(VK_IMAGE_TILING_OPTIMAL, &requirements);
+    EXPECT_EQ(requirements.memoryTypeBits, 0b010u);
+
+    // Nothing reserved is allowed, so what the host allows stays.
+    requirements = {.memoryTypeBits = 0b01};
+    helper.transformToGuestImageMemoryRequirements(VK_IMAGE_TILING_OPTIMAL, &requirements);
+    EXPECT_EQ(requirements.memoryTypeBits, 0b001u);
+}
+#endif
+
 TEST(VkGuestMemoryUtilsTest, ReserveAHardwareBuffer) {
     const VkPhysicalDeviceMemoryProperties hostMemoryProperties = {
         .memoryTypeCount = 2,
