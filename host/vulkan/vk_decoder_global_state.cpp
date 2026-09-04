@@ -2733,8 +2733,8 @@ class VkDecoderGlobalState::Impl {
         const bool needDecompression =
             (isEtc2(format) || isAstc(format)) && deviceInfo->needEmulatedDecompression(format);
         if (!needDecompression) {
-            physicalDeviceMemHelper->transformToGuestMemoryRequirements(
-                &pMemoryRequirements->memoryRequirements);
+            physicalDeviceMemHelper->transformToGuestImageMemoryRequirements(
+                pInfo->pCreateInfo->tiling, &pMemoryRequirements->memoryRequirements);
             return;
         }
 
@@ -2757,8 +2757,8 @@ class VkDecoderGlobalState::Impl {
         pMemoryRequirements->memoryRequirements = cmpInfo.getMemoryRequirements();
         cmpInfo.destroy(vk);
 
-        physicalDeviceMemHelper->transformToGuestMemoryRequirements(
-            &pMemoryRequirements->memoryRequirements);
+        physicalDeviceMemHelper->transformToGuestImageMemoryRequirements(
+            pInfo->pCreateInfo->tiling, &pMemoryRequirements->memoryRequirements);
     }
 
     void destroyDeviceWithExclusiveInfo(VkDevice device, DeviceInfo& deviceInfo,
@@ -5543,7 +5543,8 @@ class VkDecoderGlobalState::Impl {
 
         auto& physicalDeviceMemHelper = physicalDeviceInfo->memoryPropertiesHelper;
         updateImageMemoryRequirementsLocked(device, image, pMemoryRequirements);
-        physicalDeviceMemHelper->transformToGuestMemoryRequirements(pMemoryRequirements);
+        physicalDeviceMemHelper->transformToGuestImageMemoryRequirements(
+            imageTilingLocked(image), pMemoryRequirements);
     }
 
     // A driver that defers the layout also reports rowPitch=0; answer with the AHB's stride.
@@ -5609,8 +5610,8 @@ class VkDecoderGlobalState::Impl {
         auto& physicalDeviceMemHelper = physicalDeviceInfo->memoryPropertiesHelper;
         updateImageMemoryRequirementsLocked(device, pInfo->image,
                                             &pMemoryRequirements->memoryRequirements);
-        physicalDeviceMemHelper->transformToGuestMemoryRequirements(
-            &pMemoryRequirements->memoryRequirements);
+        physicalDeviceMemHelper->transformToGuestImageMemoryRequirements(
+            imageTilingLocked(pInfo->image), &pMemoryRequirements->memoryRequirements);
     }
 
     void on_vkGetBufferMemoryRequirements(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
@@ -10491,6 +10492,11 @@ class VkDecoderGlobalState::Impl {
         }
 
         return false;
+    }
+
+    VkImageTiling imageTilingLocked(VkImage image) REQUIRES(mMutex) {
+        auto* imageInfo = gfxstream::base::find(mImageInfo, image);
+        return imageInfo ? imageInfo->imageCreateInfoShallow.tiling : VK_IMAGE_TILING_OPTIMAL;
     }
 
     void updateImageMemoryRequirementsLocked(VkDevice device, VkImage image,

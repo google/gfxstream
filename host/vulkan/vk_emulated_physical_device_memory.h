@@ -17,6 +17,7 @@
 #include <vulkan/vulkan.h>
 
 #include <optional>
+#include <vector>
 
 #include "gfxstream/host/features.h"
 
@@ -54,15 +55,30 @@ class EmulatedPhysicalDeviceMemoryProperties {
 
     void transformToGuestMemoryRequirements(VkMemoryRequirements* hostMemoryRequirements) const;
 
+    // As above, but a tiled image is left only the types reserved for it.
+    void transformToGuestImageMemoryRequirements(
+        VkImageTiling tiling, VkMemoryRequirements* hostMemoryRequirements) const;
+
     // Clamp heapBudget/heapUsage to the guest-visible heap sizes. No-op if budgetProps is null.
     void clampMemoryBudgetToGuestHeapSizes(
         VkPhysicalDeviceMemoryBudgetPropertiesEXT* budgetProps) const;
 
    private:
+    uint32_t findIndexForNewMemoryType(VkMemoryPropertyFlags propertyFlags) const;
+
     VkPhysicalDeviceMemoryProperties mGuestMemoryProperties;
     VkPhysicalDeviceMemoryProperties mHostMemoryProperties;
-    uint32_t mGuestToHostMemoryTypeIndexMap[VK_MAX_MEMORY_TYPES];
-    uint32_t mHostToGuestMemoryTypeIndexMap[VK_MAX_MEMORY_TYPES];
+
+    struct EmulatedGuestMemoryType {
+        uint32_t hostMemoryTypeIndex;
+        // Reserved for AHBs with the VulkanUseDedicatedAhbMemoryType feature.
+        bool isReservedForAhbAllocations = false;
+        // Reserved for tiled images on Apple with system blobs.
+        bool isReservedForAppleSystemBlobAllocations = false;
+        // The memory properties reported to the guest.
+        VkMemoryType memoryType;
+    };
+    std::vector<EmulatedGuestMemoryType> mGuestMemoryTypes;
 
     // The memory type index reported to the guest for VkDeviceMemory requirements which would
     // try to import host ColorBuffer allocations
