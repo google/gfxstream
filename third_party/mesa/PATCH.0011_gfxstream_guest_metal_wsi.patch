@@ -1,0 +1,68 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: utzcoz <utzcoz@outlook.com>
+Date: Thu, 3 Sep 2026 23:00:38 +0800
+Subject: [PATCH] gfxstream/guest: present through the Metal WSI on Apple
+
+The driver advertised no surface extension on Apple, so vkcube stopped at
+vkEnumerateInstanceExtensionProperties. mesa already has a Metal WSI, built with
+-Dplatforms=macos; advertise VK_EXT_metal_surface with it.
+
+The WSI presents a drawable by binding its texture to the VkImage, which an
+image that lives on the host cannot do. Its other path maps the image and copies
+it into the drawable, so on Apple the device is a software one to the WSI. That
+only needs host visible memory and a blit, both of which the driver has.
+---
+ src/gfxstream/guest/vulkan/gfxstream_vk_device.cpp | 3 +++
+ src/gfxstream/guest/vulkan/gfxstream_vk_wsi.cpp    | 9 ++++++++-
+ src/gfxstream/guest/vulkan/meson.build             | 4 ++++
+ 3 files changed, 15 insertions(+), 1 deletion(-)
+
+diff --git a/src/gfxstream/guest/vulkan/gfxstream_vk_device.cpp b/src/gfxstream/guest/vulkan/gfxstream_vk_device.cpp
+index d386a64b0d3..434ff4e9a44 100644
+--- a/src/gfxstream/guest/vulkan/gfxstream_vk_device.cpp
++++ b/src/gfxstream/guest/vulkan/gfxstream_vk_device.cpp
+@@ -66,6 +66,9 @@ static const char* const kGuestEmulatedInstanceExtensions[] = {
+ #endif
+ #if defined(GFXSTREAM_VK_X11)
+     VK_KHR_XCB_SURFACE_EXTENSION_NAME,
++#endif
++#if defined(GFXSTREAM_VK_METAL)
++    VK_EXT_METAL_SURFACE_EXTENSION_NAME,
+ #endif
+     VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+ };
+diff --git a/src/gfxstream/guest/vulkan/gfxstream_vk_wsi.cpp b/src/gfxstream/guest/vulkan/gfxstream_vk_wsi.cpp
+index b9ff9f4bb53..d9b384368ca 100644
+--- a/src/gfxstream/guest/vulkan/gfxstream_vk_wsi.cpp
++++ b/src/gfxstream/guest/vulkan/gfxstream_vk_wsi.cpp
+@@ -16,7 +16,14 @@ gfxstream_vk_wsi_proc_addr(VkPhysicalDevice physicalDevice, const char* pName) {
+ VkResult gfxstream_vk_wsi_init(struct gfxstream_vk_physical_device* physical_device) {
+     VkResult result = (VkResult)0;
+ 
+-    const struct wsi_device_options options = {.sw_device = false};
++    const struct wsi_device_options options = {
++#if defined(GFXSTREAM_VK_METAL)
++        // A host image cannot be bound to a Metal drawable; copy instead.
++        .sw_device = true,
++#else
++        .sw_device = false,
++#endif
++    };
+     result = wsi_device_init(
+         &physical_device->wsi_device, gfxstream_vk_physical_device_to_handle(physical_device),
+         gfxstream_vk_wsi_proc_addr, &physical_device->instance->vk.alloc, -1, NULL, &options);
+diff --git a/src/gfxstream/guest/vulkan/meson.build b/src/gfxstream/guest/vulkan/meson.build
+index 3264c1fcfcd..e38c96dfecb 100644
+--- a/src/gfxstream/guest/vulkan/meson.build
++++ b/src/gfxstream/guest/vulkan/meson.build
+@@ -24,6 +24,10 @@ if with_platform_wayland
+     gfxstream_vk_wsi_args += '-DGFXSTREAM_VK_WAYLAND'
+ endif
+ 
++if with_platform_macos
++    gfxstream_vk_wsi_args += '-DGFXSTREAM_VK_METAL'
++endif
++
+ files_vulkan_gfxstream = files_lib_vulkan_gfxstream + files_lib_vulkan_enc
+ files_vulkan_gfxstream += gfxstream_vk_entrypoints
+ 

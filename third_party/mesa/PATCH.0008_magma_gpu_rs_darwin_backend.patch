@@ -1,0 +1,1945 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: utzcoz <utzcoz@outlook.com>
+Date: Fri, 21 Aug 2026 20:59:00 +0800
+Subject: [PATCH] util: implement the sys layer for Darwin
+
+The sys layer resolved to the stub backend on Apple, so every tube, event and
+wait context failed at runtime.
+
+Tubes and events are Mach ports. mach_msg is message oriented, which Darwin's
+sockets are not, and a port descriptor can carry an IOSurface, which they
+cannot. A port right cannot cross a socket, so the two ends still meet on one
+and use it to agree on a name for a single introduction through
+bootstrap_check_in. The name is random per connection and is retired with the
+right it came with.
+
+A receive right and a send right are separate types, since one lets an end wait
+and the other only signal, and a port takes a queue limit of 128 messages.
+Readiness is kqueue: EVFILT_READ for the listener, EVFILT_MACHPORT for a tube.
+EV_EOF means nothing for a port, so a peer hanging up is asked of the kernel
+instead. A raw descriptor is an i64, because a Mach port name does not fit an
+int.
+
+Building and reading a message is a module of its own, which tubes and events
+share. An outgoing message owns the rights it is going to carry until the
+kernel takes them, so one that is never sent releases them instead of leaving
+this task holding names it has given away.
+
+The modules sit under sys/darwin and are selected with target_vendor, so iOS
+takes the same backend.
+
+Reviewed-by: Gurchetan Singh  <gurchetan.singh.foss@gmail.com>
+---
+ src/virtio/magma-gpu-rs/lib/meson.build       |  10 +
+ src/virtio/magma-gpu-rs/lib/util/error.rs     |   2 +-
+ .../util/sys/darwin/atomic_memory_sentinel.rs |  24 ++
+ .../lib/util/sys/darwin/descriptor.rs         | 184 ++++++++++
+ .../magma-gpu-rs/lib/util/sys/darwin/event.rs | 143 ++++++++
+ .../magma-gpu-rs/lib/util/sys/darwin/mach.rs  | 264 ++++++++++++++
+ .../lib/util/sys/darwin/memory_mapping.rs     |  99 +++++
+ .../lib/util/sys/darwin/message.rs            | 343 ++++++++++++++++++
+ .../magma-gpu-rs/lib/util/sys/darwin/mod.rs   |  17 +
+ .../magma-gpu-rs/lib/util/sys/darwin/pipe.rs  |  81 +++++
+ .../magma-gpu-rs/lib/util/sys/darwin/shm.rs   |  58 +++
+ .../magma-gpu-rs/lib/util/sys/darwin/tube.rs  | 312 ++++++++++++++++
+ .../lib/util/sys/darwin/wait_context.rs       | 176 +++++++++
+ src/virtio/magma-gpu-rs/lib/util/sys/mod.rs   |   9 +-
+ .../virtgpu_kumquat/virtgpu_kumquat_impl.rs   |  37 +-
+ 15 files changed, 1733 insertions(+), 26 deletions(-)
+ create mode 100644 src/virtio/magma-gpu-rs/lib/util/sys/darwin/atomic_memory_sentinel.rs
+ create mode 100644 src/virtio/magma-gpu-rs/lib/util/sys/darwin/descriptor.rs
+ create mode 100644 src/virtio/magma-gpu-rs/lib/util/sys/darwin/event.rs
+ create mode 100644 src/virtio/magma-gpu-rs/lib/util/sys/darwin/mach.rs
+ create mode 100644 src/virtio/magma-gpu-rs/lib/util/sys/darwin/memory_mapping.rs
+ create mode 100644 src/virtio/magma-gpu-rs/lib/util/sys/darwin/message.rs
+ create mode 100644 src/virtio/magma-gpu-rs/lib/util/sys/darwin/mod.rs
+ create mode 100644 src/virtio/magma-gpu-rs/lib/util/sys/darwin/pipe.rs
+ create mode 100644 src/virtio/magma-gpu-rs/lib/util/sys/darwin/shm.rs
+ create mode 100644 src/virtio/magma-gpu-rs/lib/util/sys/darwin/tube.rs
+ create mode 100644 src/virtio/magma-gpu-rs/lib/util/sys/darwin/wait_context.rs
+
+diff --git a/src/virtio/magma-gpu-rs/lib/meson.build b/src/virtio/magma-gpu-rs/lib/meson.build
+index 64a5ac619a9..cd5200c1db0 100644
+--- a/src/virtio/magma-gpu-rs/lib/meson.build
++++ b/src/virtio/magma-gpu-rs/lib/meson.build
+@@ -47,6 +47,16 @@ if supported_host_machine
+   dep_magma_gpu_rs += [dep_rustix]
+ endif
+ 
++if host_machine.system() == 'darwin' or host_machine.system() == 'macos'
++  dep_mach2 = dependency('mach2',
++    version: '>= 0.7.0',
++    fallback: ['mach2-0.7-rs', 'dep_mach2'],
++    required: true,
++  )
++
++  dep_magma_gpu_rs += [dep_mach2]
++endif
++
+ libmagma_gpu_rs = static_library(
+   'magma_gpu',
+   'lib.rs',
+diff --git a/src/virtio/magma-gpu-rs/lib/util/error.rs b/src/virtio/magma-gpu-rs/lib/util/error.rs
+index fdc9f70b442..befd6b2453d 100644
+--- a/src/virtio/magma-gpu-rs/lib/util/error.rs
++++ b/src/virtio/magma-gpu-rs/lib/util/error.rs
+@@ -44,7 +44,7 @@ pub enum Error {
+     WithContext(&'static str),
+ }
+ 
+-#[cfg(any(target_os = "android", target_os = "linux"))]
++#[cfg(any(target_os = "android", target_os = "linux", target_vendor = "apple"))]
+ impl From<RustixError> for Error {
+     fn from(e: RustixError) -> Error {
+         Error::RustixError(e)
+diff --git a/src/virtio/magma-gpu-rs/lib/util/sys/darwin/atomic_memory_sentinel.rs b/src/virtio/magma-gpu-rs/lib/util/sys/darwin/atomic_memory_sentinel.rs
+new file mode 100644
+index 00000000000..3b23b0bc2b9
+--- /dev/null
++++ b/src/virtio/magma-gpu-rs/lib/util/sys/darwin/atomic_memory_sentinel.rs
+@@ -0,0 +1,24 @@
++// Copyright 2026 Red Hat, Inc.
++// SPDX-License-Identifier: MIT
++
++//! Stub atomic memory synchronization implementation for Darwin.
++//!
++//! The Linux backend uses futexes for atomic memory synchronization.
++//! This stub implementation allows compilation on Darwin without native support.
++
++use std::sync::atomic::AtomicU32;
++
++/// Stub implementation - no-op on Darwin.
++pub fn wait_bitset(_atomic_val: &AtomicU32, _val: u32, _bitset: u32) {
++    todo!("atomic memory synchronization not implemented on this platform")
++}
++
++/// Stub implementation - no-op on Darwin.
++pub fn wake_bitset(_atomic_val: &AtomicU32, _val: i32, _bitset: u32) {
++    todo!("atomic memory synchronization not implemented on this platform")
++}
++
++/// Stub implementation - no-op on Darwin.
++pub fn wake_all(_atomic_val: &AtomicU32) {
++    todo!("atomic memory synchronization not implemented on this platform")
++}
+diff --git a/src/virtio/magma-gpu-rs/lib/util/sys/darwin/descriptor.rs b/src/virtio/magma-gpu-rs/lib/util/sys/darwin/descriptor.rs
+new file mode 100644
+index 00000000000..6482fddcd3b
+--- /dev/null
++++ b/src/virtio/magma-gpu-rs/lib/util/sys/darwin/descriptor.rs
+@@ -0,0 +1,184 @@
++// Copyright 2026 Mesa3D authors
++// SPDX-License-Identifier: MIT
++
++use std::fs::File;
++use std::io::Error;
++use std::io::ErrorKind;
++use std::io::Result;
++use std::os::fd::AsFd;
++use std::os::fd::OwnedFd;
++use std::os::unix::io::AsRawFd;
++use std::os::unix::io::FromRawFd;
++use std::os::unix::io::IntoRawFd;
++use std::os::unix::io::RawFd;
++
++use rustix::fs::fcntl_getfl;
++use rustix::fs::fstat;
++use rustix::fs::seek;
++use rustix::fs::FileType;
++use rustix::fs::OFlags;
++use rustix::fs::SeekFrom;
++use rustix::net::sockopt::socket_type;
++
++use crate::util::sys::darwin::mach::ReceiveRight;
++use crate::util::sys::darwin::mach::SendRight;
++
++use crate::util::descriptor::AsRawDescriptor;
++use crate::util::descriptor::FromRawDescriptor;
++use crate::util::descriptor::IntoRawDescriptor;
++use crate::util::DescriptorType;
++use crate::util::MAGMA_GPU_HANDLE_TYPE_MEM_SHM;
++use crate::util::MAGMA_MAP_ACCESS_READ;
++use crate::util::MAGMA_MAP_ACCESS_RW;
++use crate::util::MAGMA_MAP_ACCESS_WRITE;
++
++pub type RawDescriptor = i64;
++pub const DEFAULT_RAW_DESCRIPTOR: RawDescriptor = -1;
++
++#[derive(Debug)]
++pub enum OwnedDescriptor {
++    Fd(OwnedFd),
++    MachSend(SendRight),
++    MachReceive(ReceiveRight),
++}
++
++impl OwnedDescriptor {
++    pub fn try_clone(&self) -> Result<OwnedDescriptor> {
++        match self {
++            OwnedDescriptor::Fd(fd) => Ok(OwnedDescriptor::Fd(fd.try_clone()?)),
++            OwnedDescriptor::MachSend(right) => Ok(OwnedDescriptor::MachSend(right.try_clone()?)),
++            OwnedDescriptor::MachReceive(_) => Err(Error::from(ErrorKind::Unsupported)),
++        }
++    }
++
++    pub fn determine_type(&self) -> Result<DescriptorType> {
++        let owned = match self {
++            OwnedDescriptor::MachSend(_) | OwnedDescriptor::MachReceive(_) => {
++                return Ok(DescriptorType::Event)
++            }
++            OwnedDescriptor::Fd(fd) => fd.as_fd(),
++        };
++        if let Ok(fd_stat) = fstat(owned) {
++            match FileType::from_raw_mode(fd_stat.st_mode) {
++                FileType::Socket => {
++                    let ty = socket_type(owned)?;
++                    return Ok(DescriptorType::Socket(ty.try_into()?));
++                }
++                FileType::Fifo => {
++                    let flags = fcntl_getfl(owned)?;
++                    if (flags & OFlags::ACCMODE) == OFlags::WRONLY {
++                        return Ok(DescriptorType::WritePipe);
++                    }
++                }
++                _ => {}
++            }
++        }
++
++        match seek(owned, SeekFrom::End(0)) {
++            Ok(seek_size) => {
++                seek(owned, SeekFrom::Start(0))?;
++                let size: u32 = seek_size
++                    .try_into()
++                    .map_err(|_| Error::from(ErrorKind::Unsupported))?;
++                Ok(DescriptorType::Memory(size, MAGMA_GPU_HANDLE_TYPE_MEM_SHM))
++            }
++            _ => {
++                let flags = fcntl_getfl(owned)?;
++                match flags & OFlags::ACCMODE {
++                    OFlags::WRONLY => Ok(DescriptorType::WritePipe),
++                    _ => Err(Error::from(ErrorKind::Unsupported)),
++                }
++            }
++        }
++    }
++
++    pub fn determine_map_access_mode(&self) -> Result<u32> {
++        let fd = match self {
++            OwnedDescriptor::Fd(fd) => fd.as_fd(),
++            _ => return Err(Error::from(ErrorKind::Unsupported)),
++        };
++
++        let flags = fcntl_getfl(fd)?;
++        let access = match flags & OFlags::ACCMODE {
++            OFlags::RDONLY => MAGMA_MAP_ACCESS_READ,
++            OFlags::WRONLY => MAGMA_MAP_ACCESS_WRITE,
++            OFlags::RDWR => MAGMA_MAP_ACCESS_RW,
++            _ => return Err(Error::from(ErrorKind::Unsupported)),
++        };
++        Ok(access)
++    }
++}
++
++impl AsRawDescriptor for OwnedDescriptor {
++    fn as_raw_descriptor(&self) -> RawDescriptor {
++        match self {
++            OwnedDescriptor::Fd(fd) => fd.as_raw_fd() as RawDescriptor,
++            OwnedDescriptor::MachSend(right) => right.as_raw() as RawDescriptor,
++            OwnedDescriptor::MachReceive(right) => right.as_raw() as RawDescriptor,
++        }
++    }
++}
++
++impl FromRawDescriptor for OwnedDescriptor {
++    // SAFETY:
++    // It is caller's responsibility to ensure that the descriptor is valid and
++    // stays valid for the lifetime of Self
++    unsafe fn from_raw_descriptor(descriptor: RawDescriptor) -> Self {
++        OwnedDescriptor::Fd(OwnedFd::from_raw_fd(descriptor as RawFd))
++    }
++}
++
++impl IntoRawDescriptor for OwnedDescriptor {
++    fn into_raw_descriptor(self) -> RawDescriptor {
++        match self {
++            OwnedDescriptor::Fd(fd) => fd.into_raw_fd() as RawDescriptor,
++            OwnedDescriptor::MachSend(right) => right.into_raw() as RawDescriptor,
++            OwnedDescriptor::MachReceive(right) => right.into_raw() as RawDescriptor,
++        }
++    }
++}
++
++impl AsRawDescriptor for File {
++    fn as_raw_descriptor(&self) -> RawDescriptor {
++        self.as_raw_fd() as RawDescriptor
++    }
++}
++
++impl FromRawDescriptor for File {
++    // SAFETY:
++    // It is caller's responsibility to ensure that the descriptor is valid and
++    // stays valid for the lifetime of Self
++    unsafe fn from_raw_descriptor(descriptor: RawDescriptor) -> Self {
++        File::from_raw_fd(descriptor as RawFd)
++    }
++}
++
++impl IntoRawDescriptor for File {
++    fn into_raw_descriptor(self) -> RawDescriptor {
++        self.into_raw_fd() as RawDescriptor
++    }
++}
++
++impl From<File> for OwnedDescriptor {
++    fn from(f: File) -> OwnedDescriptor {
++        OwnedDescriptor::Fd(f.into())
++    }
++}
++
++impl From<OwnedFd> for OwnedDescriptor {
++    fn from(o: OwnedFd) -> OwnedDescriptor {
++        OwnedDescriptor::Fd(o)
++    }
++}
++
++impl From<ReceiveRight> for OwnedDescriptor {
++    fn from(right: ReceiveRight) -> OwnedDescriptor {
++        OwnedDescriptor::MachReceive(right)
++    }
++}
++
++impl From<SendRight> for OwnedDescriptor {
++    fn from(right: SendRight) -> OwnedDescriptor {
++        OwnedDescriptor::MachSend(right)
++    }
++}
+diff --git a/src/virtio/magma-gpu-rs/lib/util/sys/darwin/event.rs b/src/virtio/magma-gpu-rs/lib/util/sys/darwin/event.rs
+new file mode 100644
+index 00000000000..2356604d04d
+--- /dev/null
++++ b/src/virtio/magma-gpu-rs/lib/util/sys/darwin/event.rs
+@@ -0,0 +1,143 @@
++// Copyright 2026 Mesa3D authors
++// SPDX-License-Identifier: MIT
++
++use crate::util::sys::darwin::mach::ReceiveRight;
++use crate::util::sys::darwin::message::IncomingMessage;
++use crate::util::sys::darwin::message::MessageId;
++use crate::util::sys::darwin::message::MessageReceived;
++use crate::util::sys::darwin::message::OutgoingMessage;
++use crate::util::AsBorrowedDescriptor;
++use crate::util::Error;
++use crate::util::Handle;
++use crate::util::OwnedDescriptor;
++use crate::util::Result as MagmaGpuResult;
++use crate::util::MAGMA_GPU_HANDLE_TYPE_SIGNAL_EVENT_FD;
++
++pub struct EventSignaler {
++    descriptor: OwnedDescriptor,
++}
++
++pub struct EventWaiter {
++    descriptor: OwnedDescriptor,
++}
++
++pub fn create_event_pair() -> MagmaGpuResult<(EventSignaler, EventWaiter)> {
++    let receive = ReceiveRight::new()?;
++    let send = receive.make_send()?;
++
++    Ok((
++        EventSignaler {
++            descriptor: OwnedDescriptor::MachSend(send),
++        },
++        EventWaiter {
++            descriptor: OwnedDescriptor::MachReceive(receive),
++        },
++    ))
++}
++
++impl EventSignaler {
++    pub fn add(&self, value: u64) -> MagmaGpuResult<()> {
++        if value == 0 {
++            return Ok(());
++        }
++
++        let port = match &self.descriptor {
++            OwnedDescriptor::MachSend(right) => right,
++            _ => return Err(Error::WithContext("an event signaller holds a send right")),
++        };
++
++        OutgoingMessage::new(MessageId::Signal)
++            .with_struct(&value)
++            .send(port)
++    }
++
++    pub fn signal(&self) -> MagmaGpuResult<()> {
++        self.add(1)
++    }
++}
++
++impl EventWaiter {
++    pub fn try_clone(&self) -> MagmaGpuResult<EventWaiter> {
++        Err(Error::Unsupported)
++    }
++
++    pub fn signaler(&self) -> MagmaGpuResult<EventSignaler> {
++        let right = match &self.descriptor {
++            OwnedDescriptor::MachReceive(right) => right,
++            _ => return Err(Error::WithContext("an event waiter holds a receive right")),
++        };
++
++        Ok(EventSignaler {
++            descriptor: right.make_send()?.into(),
++        })
++    }
++
++    pub fn wait(&self) -> MagmaGpuResult<u64> {
++        let port = match &self.descriptor {
++            OwnedDescriptor::MachReceive(right) => right,
++            _ => return Err(Error::WithContext("an event waiter holds a receive right")),
++        };
++
++        let signal = IncomingMessage::new(MessageId::Signal).receive::<u64>(0, port)?;
++        let MessageReceived::Success(count, _, _) = signal else {
++            return Err(Error::WithContext("event port has no signaller left"));
++        };
++        Ok(count)
++    }
++}
++
++impl TryFrom<Handle> for EventSignaler {
++    type Error = Error;
++    fn try_from(handle: Handle) -> Result<Self, Self::Error> {
++        if handle.handle_type != MAGMA_GPU_HANDLE_TYPE_SIGNAL_EVENT_FD {
++            return Err(Error::InvalidMagmaHandle);
++        }
++
++        Ok(EventSignaler {
++            descriptor: handle.os_handle,
++        })
++    }
++}
++
++impl TryFrom<Handle> for EventWaiter {
++    type Error = Error;
++    fn try_from(handle: Handle) -> Result<Self, Self::Error> {
++        if handle.handle_type != MAGMA_GPU_HANDLE_TYPE_SIGNAL_EVENT_FD {
++            return Err(Error::InvalidMagmaHandle);
++        }
++
++        Ok(EventWaiter {
++            descriptor: handle.os_handle,
++        })
++    }
++}
++
++impl From<EventSignaler> for Handle {
++    fn from(evt: EventSignaler) -> Self {
++        Handle {
++            os_handle: evt.descriptor,
++            handle_type: MAGMA_GPU_HANDLE_TYPE_SIGNAL_EVENT_FD,
++        }
++    }
++}
++
++impl From<EventWaiter> for Handle {
++    fn from(evt: EventWaiter) -> Self {
++        Handle {
++            os_handle: evt.descriptor,
++            handle_type: MAGMA_GPU_HANDLE_TYPE_SIGNAL_EVENT_FD,
++        }
++    }
++}
++
++impl AsBorrowedDescriptor for EventSignaler {
++    fn as_borrowed_descriptor(&self) -> &OwnedDescriptor {
++        &self.descriptor
++    }
++}
++
++impl AsBorrowedDescriptor for EventWaiter {
++    fn as_borrowed_descriptor(&self) -> &OwnedDescriptor {
++        &self.descriptor
++    }
++}
+diff --git a/src/virtio/magma-gpu-rs/lib/util/sys/darwin/mach.rs b/src/virtio/magma-gpu-rs/lib/util/sys/darwin/mach.rs
+new file mode 100644
+index 00000000000..2aec04f7c07
+--- /dev/null
++++ b/src/virtio/magma-gpu-rs/lib/util/sys/darwin/mach.rs
+@@ -0,0 +1,264 @@
++// Copyright 2026 Mesa3D authors
++// SPDX-License-Identifier: MIT
++
++#![allow(non_camel_case_types)]
++
++use std::io::Error;
++use std::io::Result;
++use std::mem::size_of;
++
++use libc::c_int;
++
++pub use mach2::bootstrap::bootstrap_check_in;
++pub use mach2::bootstrap::bootstrap_look_up;
++pub use mach2::bootstrap::bootstrap_port;
++pub use mach2::kern_return::kern_return_t;
++pub use mach2::kern_return::KERN_SUCCESS;
++pub use mach2::mach_port::mach_port_allocate;
++pub use mach2::mach_port::mach_port_deallocate;
++pub use mach2::mach_port::mach_port_destruct;
++pub use mach2::mach_port::mach_port_get_attributes;
++pub use mach2::mach_port::mach_port_insert_right;
++pub use mach2::mach_port::mach_port_mod_refs;
++pub use mach2::mach_port::mach_port_request_notification;
++pub use mach2::mach_port::mach_port_set_attributes;
++pub use mach2::message::mach_msg;
++pub use mach2::message::mach_msg_audit_trailer_t;
++pub use mach2::message::mach_msg_bits_t;
++pub use mach2::message::mach_msg_header_t;
++pub use mach2::message::mach_msg_id_t;
++pub use mach2::message::mach_msg_size_t;
++pub use mach2::message::mach_msg_type_name_t;
++pub use mach2::message::mach_msg_type_number_t;
++pub use mach2::message::MACH_MSGH_BITS_COMPLEX;
++pub use mach2::message::MACH_MSG_PORT_DESCRIPTOR;
++pub use mach2::message::MACH_MSG_TIMEOUT_NONE;
++pub use mach2::message::MACH_MSG_TYPE_COPY_SEND;
++pub use mach2::message::MACH_MSG_TYPE_MAKE_SEND;
++pub use mach2::message::MACH_MSG_TYPE_MAKE_SEND_ONCE;
++pub use mach2::message::MACH_MSG_TYPE_MOVE_RECEIVE;
++pub use mach2::message::MACH_MSG_TYPE_MOVE_SEND;
++pub use mach2::message::MACH_MSG_TYPE_PORT_RECEIVE;
++pub use mach2::message::MACH_RCV_MSG;
++pub use mach2::message::MACH_SEND_MSG;
++pub use mach2::notify::MACH_NOTIFY_NO_SENDERS;
++pub use mach2::port::mach_port_info_t;
++pub use mach2::port::mach_port_limits_t;
++pub use mach2::port::mach_port_name_t;
++pub use mach2::port::mach_port_t;
++pub use mach2::port::MACH_PORT_LIMITS_INFO;
++pub use mach2::port::MACH_PORT_LIMITS_INFO_COUNT;
++pub use mach2::port::MACH_PORT_NULL;
++pub use mach2::port::MACH_PORT_RECEIVE_STATUS;
++pub use mach2::port::MACH_PORT_RIGHT_RECEIVE;
++pub use mach2::port::MACH_PORT_RIGHT_SEND;
++
++#[repr(C)]
++#[derive(Copy, Clone, Debug, Default)]
++pub struct mach_port_status_t {
++    pub mps_pset: u32,
++    pub mps_seqno: u32,
++    pub mps_mscount: u32,
++    pub mps_qlimit: u32,
++    pub mps_msgcount: u32,
++    pub mps_sorights: u32,
++    pub mps_srights: c_int,
++    pub mps_pdrequest: c_int,
++    pub mps_nsrequest: c_int,
++    pub mps_flags: u32,
++}
++
++pub const MACH_PORT_RECEIVE_STATUS_COUNT: mach_msg_type_number_t =
++    (size_of::<mach_port_status_t>() / size_of::<c_int>()) as mach_msg_type_number_t;
++
++#[repr(C)]
++#[derive(Copy, Clone, Debug, Default)]
++pub struct mach_msg_max_trailer_t {
++    pub base: mach_msg_audit_trailer_t,
++    pub msgh_context: u64,
++    pub msgh_ad: c_int,
++    pub msgh_labels: mach_port_name_t,
++}
++
++pub const PORT_QUEUE_LIMIT: u32 = 128;
++
++pub const fn mach_msgh_bits(
++    remote: mach_msg_type_name_t,
++    local: mach_msg_type_name_t,
++) -> mach_msg_bits_t {
++    remote | (local << 8)
++}
++
++extern "C" {
++    pub fn fileport_makeport(fd: c_int, port: *mut mach_port_t) -> kern_return_t;
++
++    pub fn fileport_makefd(port: mach_port_t) -> c_int;
++}
++
++pub trait KernReturnExt {
++    fn check(self) -> Result<()>;
++}
++
++impl KernReturnExt for kern_return_t {
++    #[track_caller]
++    fn check(self) -> Result<()> {
++        if self == KERN_SUCCESS {
++            return Ok(());
++        }
++        let location = std::panic::Location::caller();
++        Err(Error::other(format!(
++            "mach call failed at {}:{}: {:#x}",
++            location.file(),
++            location.line(),
++            self
++        )))
++    }
++}
++
++#[derive(Debug)]
++pub struct ReceiveRight {
++    name: mach_port_t,
++}
++
++#[derive(Debug)]
++pub struct SendRight {
++    name: mach_port_t,
++}
++
++impl ReceiveRight {
++    pub fn new() -> Result<ReceiveRight> {
++        let mut name: mach_port_name_t = MACH_PORT_NULL;
++        // SAFETY: `name` is a valid out parameter, and the task port is this
++        // task's own, which is always valid.
++        unsafe { mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &mut name) }
++            .check()?;
++
++        let right = ReceiveRight { name };
++        right.set_queue_limit(PORT_QUEUE_LIMIT)?;
++        Ok(right)
++    }
++
++    pub unsafe fn from_raw(name: mach_port_t) -> ReceiveRight {
++        ReceiveRight { name }
++    }
++
++    pub fn into_raw(self) -> mach_port_t {
++        let name = self.name;
++        std::mem::forget(self);
++        name
++    }
++
++    pub(super) fn as_raw(&self) -> mach_port_t {
++        self.name
++    }
++
++    fn set_queue_limit(&self, limit: u32) -> Result<()> {
++        let mut limits = mach_port_limits_t { mpl_qlimit: limit };
++        // SAFETY: `self.name` is owned by this task, and `limits` matches the
++        // flavor and the count being passed.
++        unsafe {
++            mach_port_set_attributes(
++                mach_task_self(),
++                self.name,
++                MACH_PORT_LIMITS_INFO,
++                &mut limits as *mut mach_port_limits_t as mach_port_info_t,
++                MACH_PORT_LIMITS_INFO_COUNT,
++            )
++        }
++        .check()
++    }
++
++    pub fn make_send(&self) -> Result<SendRight> {
++        // SAFETY: `self.name` is owned by this task for as long as `self`
++        // lives, and a receive right is what `MAKE_SEND` requires.
++        unsafe {
++            mach_port_insert_right(
++                mach_task_self(),
++                self.name,
++                self.name,
++                MACH_MSG_TYPE_MAKE_SEND,
++            )
++        }
++        .check()?;
++        // SAFETY: the right just inserted is owned by the returned value.
++        Ok(unsafe { SendRight::from_raw(self.name) })
++    }
++
++    pub fn request_no_senders(&self) -> Result<()> {
++        let mut previous: mach_port_t = MACH_PORT_NULL;
++        // SAFETY: `self.name` names a receive right owned by this task, and
++        // `previous` is a valid out parameter.
++        unsafe {
++            mach_port_request_notification(
++                mach_task_self(),
++                self.name,
++                MACH_NOTIFY_NO_SENDERS,
++                0,
++                self.name,
++                MACH_MSG_TYPE_MAKE_SEND_ONCE,
++                &mut previous,
++            )
++        }
++        .check()
++    }
++}
++
++impl Drop for ReceiveRight {
++    fn drop(&mut self) {
++        if self.name == MACH_PORT_NULL {
++            return;
++        }
++        // Not mach_port_destroy: a task has one name per port, so make_send
++        // leaves a send right under this same name and destroy would take
++        // that too. A send-right delta of 0 leaves it alone.
++        //
++        // SAFETY: this owns the receive right named by `self.name`, the port
++        // is unguarded, and the right is destroyed once.
++        unsafe {
++            mach_port_destruct(mach_task_self(), self.name, 0, 0);
++        }
++    }
++}
++
++impl SendRight {
++    pub unsafe fn from_raw(name: mach_port_t) -> SendRight {
++        SendRight { name }
++    }
++
++    pub fn into_raw(self) -> mach_port_t {
++        let name = self.name;
++        std::mem::forget(self);
++        name
++    }
++
++    pub(super) fn as_raw(&self) -> mach_port_t {
++        self.name
++    }
++
++    pub fn try_clone(&self) -> Result<SendRight> {
++        // SAFETY: `self.name` names a send right owned by this task, and +1
++        // adds a reference to it.
++        unsafe { mach_port_mod_refs(mach_task_self(), self.name, MACH_PORT_RIGHT_SEND, 1) }
++            .check()?;
++        // SAFETY: the reference just added is owned by the clone.
++        Ok(unsafe { SendRight::from_raw(self.name) })
++    }
++}
++
++impl Drop for SendRight {
++    fn drop(&mut self) {
++        if self.name == MACH_PORT_NULL {
++            return;
++        }
++        // SAFETY: this owns a reference to the send right named by
++        // `self.name`, and releases it once.
++        unsafe {
++            mach_port_deallocate(mach_task_self(), self.name);
++        }
++    }
++}
++
++pub fn mach_task_self() -> mach_port_t {
++    // SAFETY: reading that global.
++    unsafe { mach2::traps::mach_task_self() }
++}
+diff --git a/src/virtio/magma-gpu-rs/lib/util/sys/darwin/memory_mapping.rs b/src/virtio/magma-gpu-rs/lib/util/sys/darwin/memory_mapping.rs
+new file mode 100644
+index 00000000000..72cfd0ce78a
+--- /dev/null
++++ b/src/virtio/magma-gpu-rs/lib/util/sys/darwin/memory_mapping.rs
+@@ -0,0 +1,99 @@
++// Copyright 2026 Mesa3D authors
++// SPDX-License-Identifier: MIT
++
++use std::ffi::c_void;
++use std::ptr::null_mut;
++
++use std::os::fd::AsFd;
++
++use rustix::mm::mmap;
++use rustix::mm::munmap;
++use rustix::mm::MapFlags;
++use rustix::mm::ProtFlags;
++
++use crate::util::Error;
++use crate::util::OwnedDescriptor;
++use crate::util::Result as MagmaGpuResult;
++use crate::util::MAGMA_MAP_ACCESS_MASK;
++use crate::util::MAGMA_MAP_ACCESS_READ;
++use crate::util::MAGMA_MAP_ACCESS_RW;
++use crate::util::MAGMA_MAP_ACCESS_WRITE;
++
++/// Wraps an anonymous shared memory mapping in the current process. Provides
++/// RAII semantics including munmap when no longer needed.
++#[derive(Debug)]
++pub struct MemoryMapping {
++    pub addr: *mut c_void,
++    pub size: usize,
++}
++
++// SAFETY:
++// MemoryMapping user must ensure it is used by one thread at a time.
++unsafe impl Sync for MemoryMapping {}
++// SAFETY:
++// MemoryMapping user must ensure it is used by one thread at a time.
++unsafe impl Send for MemoryMapping {}
++
++impl Drop for MemoryMapping {
++    fn drop(&mut self) {
++        // SAFETY:
++        // This is safe because we mmap the area at addr ourselves, and nobody
++        // else is holding a reference to it.
++        unsafe {
++            munmap(self.addr, self.size).unwrap();
++        }
++    }
++}
++
++impl MemoryMapping {
++    fn do_mmap(
++        descriptor: &OwnedDescriptor,
++        offset: usize,
++        size: usize,
++        map_info: u32,
++    ) -> MagmaGpuResult<MemoryMapping> {
++        let prot = match map_info & MAGMA_MAP_ACCESS_MASK {
++            MAGMA_MAP_ACCESS_READ => ProtFlags::READ,
++            MAGMA_MAP_ACCESS_WRITE => ProtFlags::WRITE,
++            MAGMA_MAP_ACCESS_RW => ProtFlags::READ | ProtFlags::WRITE,
++            _ => return Err(Error::WithContext("incorrect access flags")),
++        };
++
++        let fd = match descriptor {
++            OwnedDescriptor::Fd(fd) => fd.as_fd(),
++            _ => return Err(Error::WithContext("cannot mmap a non-file descriptor")),
++        };
++
++        // SAFETY:
++        // The inputs to the mmap() system call have been verified, and
++        // the kernel is trusted to deliver a correct result.
++        let addr = unsafe {
++            mmap(
++                null_mut(),
++                size,
++                prot,
++                MapFlags::SHARED,
++                fd,
++                offset.try_into().unwrap(),
++            )?
++        };
++
++        Ok(MemoryMapping { addr, size })
++    }
++
++    pub fn from_safe_descriptor(
++        descriptor: OwnedDescriptor,
++        size: usize,
++        map_info: u32,
++    ) -> MagmaGpuResult<MemoryMapping> {
++        Self::do_mmap(&descriptor, 0, size, map_info)
++    }
++
++    pub fn from_offset(
++        descriptor: &OwnedDescriptor,
++        offset: usize,
++        size: usize,
++    ) -> MagmaGpuResult<MemoryMapping> {
++        Self::do_mmap(descriptor, offset, size, MAGMA_MAP_ACCESS_RW)
++    }
++}
+diff --git a/src/virtio/magma-gpu-rs/lib/util/sys/darwin/message.rs b/src/virtio/magma-gpu-rs/lib/util/sys/darwin/message.rs
+new file mode 100644
+index 00000000000..e9a74d4f7b5
+--- /dev/null
++++ b/src/virtio/magma-gpu-rs/lib/util/sys/darwin/message.rs
+@@ -0,0 +1,343 @@
++// Copyright 2026 Mesa3D authors
++// SPDX-License-Identifier: MIT
++
++use std::mem::align_of;
++use std::mem::size_of;
++use std::os::fd::AsRawFd;
++use std::os::fd::FromRawFd;
++use std::os::fd::OwnedFd;
++
++use zerocopy::FromBytes;
++use zerocopy::Immutable;
++use zerocopy::IntoBytes;
++use zerocopy::KnownLayout;
++
++use crate::util::sys::darwin::mach::*;
++use crate::util::Error as MagmaGpuError;
++use crate::util::OwnedDescriptor;
++use crate::util::Result as MagmaGpuResult;
++
++pub const MAX_DESCRIPTORS: usize = 28;
++
++#[repr(i32)]
++#[derive(Copy, Clone, Debug, PartialEq, Eq)]
++pub enum MessageId {
++    Payload = 1,
++    Hello = 2,
++    Signal = 3,
++}
++
++#[repr(C, align(4))]
++#[derive(Copy, Clone, Debug, Default, FromBytes, IntoBytes, Immutable, KnownLayout)]
++struct MachMsgHeader {
++    msgh_bits: u32,
++    msgh_size: u32,
++    msgh_remote_port: u32,
++    msgh_local_port: u32,
++    msgh_voucher_port: u32,
++    msgh_id: i32,
++}
++
++#[repr(C, align(4))]
++#[derive(Copy, Clone, Debug, Default, FromBytes, IntoBytes, Immutable, KnownLayout)]
++struct MachMsgBody {
++    msgh_descriptor_count: u32,
++}
++
++#[repr(C, align(4))]
++#[derive(Copy, Clone, Debug, Default, FromBytes, IntoBytes, Immutable, KnownLayout)]
++struct MachMsgPortDescriptor {
++    name: u32,
++    pad1: u32,
++    pad2: u16,
++    disposition: u8,
++    type_: u8,
++}
++
++impl MachMsgPortDescriptor {
++    fn new(name: mach_port_t, disposition: mach_msg_type_name_t) -> MachMsgPortDescriptor {
++        MachMsgPortDescriptor {
++            name,
++            pad1: 0,
++            pad2: 0,
++            disposition: disposition as u8,
++            type_: MACH_MSG_PORT_DESCRIPTOR as u8,
++        }
++    }
++}
++
++struct Words {
++    words: Vec<u32>,
++}
++
++impl Words {
++    fn new() -> Words {
++        let mut words = Words { words: Vec::new() };
++        words.push(MachMsgHeader::default().as_bytes());
++        words
++    }
++
++    fn zeroed(bytes: usize) -> Words {
++        Words {
++            words: vec![0; bytes.div_ceil(size_of::<u32>())],
++        }
++    }
++
++    fn len(&self) -> usize {
++        self.words.len() * size_of::<u32>()
++    }
++
++    fn bytes(&self) -> &[u8] {
++        self.words.as_slice().as_bytes()
++    }
++
++    fn push(&mut self, part: &[u8]) {
++        let start = self.len();
++        let end = (start + part.len()).next_multiple_of(align_of::<mach_msg_header_t>());
++        self.words.resize(end / size_of::<u32>(), 0);
++        self.words.as_mut_slice().as_mut_bytes()[start..start + part.len()].copy_from_slice(part);
++    }
++
++    fn set_header(&mut self, header: &MachMsgHeader) {
++        self.words.as_mut_slice().as_mut_bytes()[..size_of::<MachMsgHeader>()]
++            .copy_from_slice(header.as_bytes());
++    }
++
++    fn as_header(&mut self) -> *mut mach_msg_header_t {
++        self.words.as_mut_ptr() as *mut mach_msg_header_t
++    }
++}
++
++pub struct OutgoingMessage {
++    id: MessageId,
++    descriptors: Vec<OwnedDescriptor>,
++    payload: Vec<u8>,
++}
++
++impl OutgoingMessage {
++    pub fn new(id: MessageId) -> OutgoingMessage {
++        OutgoingMessage {
++            id,
++            descriptors: Vec::new(),
++            payload: Vec::new(),
++        }
++    }
++
++    pub fn with_descriptors(mut self, descriptors: Vec<OwnedDescriptor>) -> OutgoingMessage {
++        self.descriptors = descriptors;
++        self
++    }
++
++    pub fn with_struct<T: IntoBytes + Immutable>(mut self, value: &T) -> OutgoingMessage {
++        self.payload.extend_from_slice(value.as_bytes());
++        self
++    }
++
++    pub fn with_bytes(mut self, bytes: &[u8]) -> OutgoingMessage {
++        self.payload.extend_from_slice(bytes);
++        self
++    }
++
++    pub fn send(self, remote: &SendRight) -> MagmaGpuResult<()> {
++        let count = self.descriptors.len();
++        if count > MAX_DESCRIPTORS {
++            return Err(MagmaGpuError::WithContext(
++                "more rights than one message may carry",
++            ));
++        }
++
++        let mut fileports: Vec<SendRight> = Vec::new();
++
++        let mut words = Words::new();
++        if count > 0 {
++            words.push(
++                MachMsgBody {
++                    msgh_descriptor_count: count as u32,
++                }
++                .as_bytes(),
++            );
++        }
++        for descriptor in &self.descriptors {
++            let (name, disposition) = match descriptor {
++                OwnedDescriptor::Fd(fd) => {
++                    let mut name: mach_port_t = MACH_PORT_NULL;
++                    // SAFETY: `fd` is open across the call and `name` is a
++                    // valid out parameter.
++                    unsafe { fileport_makeport(fd.as_raw_fd(), &mut name) }.check()?;
++                    // SAFETY: the call handed over a right this task owns.
++                    fileports.push(unsafe { SendRight::from_raw(name) });
++                    (name, MACH_MSG_TYPE_MOVE_SEND)
++                }
++                OwnedDescriptor::MachSend(right) => (right.as_raw(), MACH_MSG_TYPE_MOVE_SEND),
++                OwnedDescriptor::MachReceive(right) => (right.as_raw(), MACH_MSG_TYPE_MOVE_RECEIVE),
++            };
++            words.push(MachMsgPortDescriptor::new(name, disposition).as_bytes());
++        }
++        words.push(&self.payload);
++
++        let size = words.len();
++        words.set_header(&MachMsgHeader {
++            msgh_bits: mach_msgh_bits(MACH_MSG_TYPE_COPY_SEND, 0)
++                | if count > 0 { MACH_MSGH_BITS_COMPLEX } else { 0 },
++            msgh_size: size as u32,
++            msgh_remote_port: remote.as_raw(),
++            msgh_local_port: MACH_PORT_NULL,
++            msgh_voucher_port: MACH_PORT_NULL,
++            msgh_id: self.id as mach_msg_id_t,
++        });
++
++        // SAFETY: the buffer holds a complete message of `size` bytes, and
++        // every right named in it is owned by this task until the send
++        // consumes it.
++        unsafe {
++            mach_msg(
++                words.as_header(),
++                MACH_SEND_MSG,
++                size as mach_msg_size_t,
++                0,
++                MACH_PORT_NULL,
++                MACH_MSG_TIMEOUT_NONE,
++                MACH_PORT_NULL,
++            )
++        }
++        .check()?;
++
++        for right in fileports {
++            right.into_raw();
++        }
++        for descriptor in self.descriptors {
++            match descriptor {
++                // fileport_makeport did not consume it, so dropping it here
++                // is what closes it.
++                OwnedDescriptor::Fd(_) => (),
++                OwnedDescriptor::MachSend(right) => {
++                    right.into_raw();
++                }
++                OwnedDescriptor::MachReceive(right) => {
++                    right.into_raw();
++                }
++            }
++        }
++        Ok(())
++    }
++}
++
++pub enum MessageReceived<T> {
++    Success(T, Vec<OwnedDescriptor>, Vec<u8>),
++    PeerClosed,
++}
++
++pub struct IncomingMessage {
++    id: MessageId,
++}
++
++impl IncomingMessage {
++    pub fn new(id: MessageId) -> IncomingMessage {
++        IncomingMessage { id }
++    }
++
++    pub fn receive<T: FromBytes>(
++        self,
++        opaque_data_size: usize,
++        port: &ReceiveRight,
++    ) -> MagmaGpuResult<MessageReceived<T>> {
++        let max_size = size_of::<MachMsgHeader>()
++            + size_of::<MachMsgBody>()
++            + MAX_DESCRIPTORS * size_of::<MachMsgPortDescriptor>()
++            + size_of::<T>()
++            + opaque_data_size
++            + size_of::<mach_msg_max_trailer_t>();
++        let mut words = Words::zeroed(max_size);
++
++        let size = words.len() as mach_msg_size_t;
++        // SAFETY: receiving into a buffer of known size on a port this task
++        // holds the receive right to.
++        unsafe {
++            mach_msg(
++                words.as_header(),
++                MACH_RCV_MSG,
++                0,
++                size,
++                port.as_raw(),
++                MACH_MSG_TIMEOUT_NONE,
++                MACH_PORT_NULL,
++            )
++        }
++        .check()?;
++
++        let (header, _) = MachMsgHeader::read_from_prefix(words.bytes())
++            .map_err(|_| MagmaGpuError::WithContext("message is shorter than a header"))?;
++
++        let message = words
++            .bytes()
++            .get(size_of::<MachMsgHeader>()..header.msgh_size as usize)
++            .ok_or(MagmaGpuError::WithContext(
++                "message is longer than the buffer it arrived in",
++            ))?;
++
++        let (descriptors, rest) = take_descriptors(&header, message)?;
++
++        if header.msgh_id == MACH_NOTIFY_NO_SENDERS {
++            return Ok(MessageReceived::PeerClosed);
++        }
++        if header.msgh_id != self.id as mach_msg_id_t {
++            return Err(MagmaGpuError::WithContext(
++                "message is not the one expected",
++            ));
++        }
++
++        let (payload, trailing) = T::read_from_prefix(rest)
++            .map_err(|_| MagmaGpuError::WithContext("message is shorter than its payload"))?;
++        Ok(MessageReceived::Success(
++            payload,
++            descriptors,
++            trailing.to_vec(),
++        ))
++    }
++}
++
++fn take_descriptors<'a>(
++    header: &MachMsgHeader,
++    rest: &'a [u8],
++) -> MagmaGpuResult<(Vec<OwnedDescriptor>, &'a [u8])> {
++    if header.msgh_bits & MACH_MSGH_BITS_COMPLEX == 0 {
++        return Ok((Vec::new(), rest));
++    }
++
++    let (body, mut rest) = MachMsgBody::read_from_prefix(rest)
++        .map_err(|_| MagmaGpuError::WithContext("complex message has no body"))?;
++    let count = body.msgh_descriptor_count as usize;
++    if count > MAX_DESCRIPTORS {
++        return Err(MagmaGpuError::WithContext(
++            "message declares more rights than are allowed",
++        ));
++    }
++
++    let mut descriptors = Vec::with_capacity(count);
++    for _ in 0..count {
++        let (descriptor, next) = MachMsgPortDescriptor::read_from_prefix(rest)
++            .map_err(|_| MagmaGpuError::WithContext("message has a truncated descriptor"))?;
++        rest = next;
++
++        if descriptor.disposition as u32 == MACH_MSG_TYPE_PORT_RECEIVE {
++            // SAFETY: the descriptor handed over a right this task now owns.
++            let right = unsafe { ReceiveRight::from_raw(descriptor.name) };
++            descriptors.push(OwnedDescriptor::MachReceive(right));
++            continue;
++        }
++
++        // SAFETY: the descriptor handed over a right this task now owns.
++        let right = unsafe { SendRight::from_raw(descriptor.name) };
++        // SAFETY: `right` names a send right this task owns.
++        let fd = unsafe { fileport_makefd(right.as_raw()) };
++        if fd < 0 {
++            descriptors.push(OwnedDescriptor::MachSend(right));
++            continue;
++        }
++
++        drop(right);
++        // SAFETY: `fileport_makefd` returned a descriptor this task owns.
++        descriptors.push(OwnedDescriptor::Fd(unsafe { OwnedFd::from_raw_fd(fd) }));
++    }
++    Ok((descriptors, rest))
++}
+diff --git a/src/virtio/magma-gpu-rs/lib/util/sys/darwin/mod.rs b/src/virtio/magma-gpu-rs/lib/util/sys/darwin/mod.rs
+new file mode 100644
+index 00000000000..864c5f23cdf
+--- /dev/null
++++ b/src/virtio/magma-gpu-rs/lib/util/sys/darwin/mod.rs
+@@ -0,0 +1,17 @@
++// Copyright 2026 Mesa3D authors
++// SPDX-License-Identifier: MIT
++
++pub mod atomic_memory_sentinel;
++pub mod descriptor;
++pub mod event;
++pub mod mach;
++pub mod memory_mapping;
++pub mod message;
++pub mod pipe;
++pub mod shm;
++pub mod tube;
++pub mod wait_context;
++
++pub use memory_mapping::MemoryMapping;
++pub use shm::page_size;
++pub use shm::SharedMemory;
+diff --git a/src/virtio/magma-gpu-rs/lib/util/sys/darwin/pipe.rs b/src/virtio/magma-gpu-rs/lib/util/sys/darwin/pipe.rs
+new file mode 100644
+index 00000000000..bb36ca5d1d7
+--- /dev/null
++++ b/src/virtio/magma-gpu-rs/lib/util/sys/darwin/pipe.rs
+@@ -0,0 +1,81 @@
++// Copyright 2026 Mesa3D authors
++// SPDX-License-Identifier: MIT
++
++use std::os::fd::AsFd;
++
++use rustix::io::read;
++use rustix::io::write;
++use rustix::pipe::pipe;
++
++use crate::util::AsBorrowedDescriptor;
++use crate::util::AsRawDescriptor;
++use crate::util::Error;
++use crate::util::OwnedDescriptor;
++use crate::util::RawDescriptor;
++use crate::util::Result as MagmaGpuResult;
++
++pub struct ReadPipe {
++    descriptor: OwnedDescriptor,
++}
++
++pub struct WritePipe {
++    descriptor: OwnedDescriptor,
++}
++
++pub fn create_pipe() -> MagmaGpuResult<(ReadPipe, WritePipe)> {
++    let (read_pipe, write_pipe) = pipe()?;
++    Ok((
++        ReadPipe {
++            descriptor: read_pipe.into(),
++        },
++        WritePipe {
++            descriptor: write_pipe.into(),
++        },
++    ))
++}
++
++impl ReadPipe {
++    pub fn read(&self, data: &mut [u8]) -> MagmaGpuResult<usize> {
++        let fd = match &self.descriptor {
++            OwnedDescriptor::Fd(fd) => fd.as_fd(),
++            _ => return Err(Error::WithContext("cannot read a non-file descriptor")),
++        };
++
++        let bytes_read = read(fd, data)?;
++        Ok(bytes_read)
++    }
++}
++
++impl AsBorrowedDescriptor for ReadPipe {
++    fn as_borrowed_descriptor(&self) -> &OwnedDescriptor {
++        &self.descriptor
++    }
++}
++
++impl WritePipe {
++    pub fn new(descriptor: OwnedDescriptor) -> WritePipe {
++        WritePipe { descriptor }
++    }
++
++    pub fn write(&self, data: &[u8]) -> MagmaGpuResult<usize> {
++        let fd = match &self.descriptor {
++            OwnedDescriptor::Fd(fd) => fd.as_fd(),
++            _ => return Err(Error::WithContext("cannot write a non-file descriptor")),
++        };
++
++        let bytes_written = write(fd, data)?;
++        Ok(bytes_written)
++    }
++}
++
++impl AsBorrowedDescriptor for WritePipe {
++    fn as_borrowed_descriptor(&self) -> &OwnedDescriptor {
++        &self.descriptor
++    }
++}
++
++impl AsRawDescriptor for WritePipe {
++    fn as_raw_descriptor(&self) -> RawDescriptor {
++        self.descriptor.as_raw_descriptor()
++    }
++}
+diff --git a/src/virtio/magma-gpu-rs/lib/util/sys/darwin/shm.rs b/src/virtio/magma-gpu-rs/lib/util/sys/darwin/shm.rs
+new file mode 100644
+index 00000000000..8999b996d6f
+--- /dev/null
++++ b/src/virtio/magma-gpu-rs/lib/util/sys/darwin/shm.rs
+@@ -0,0 +1,58 @@
++// Copyright 2026 Mesa3D authors
++// SPDX-License-Identifier: MIT
++
++use std::ffi::CStr;
++use std::os::fd::AsRawFd;
++use std::os::fd::IntoRawFd;
++use std::os::unix::io::OwnedFd;
++
++use rustix::fs::ftruncate;
++use rustix::fs::Mode;
++use rustix::shm;
++
++use crate::util::descriptor::AsRawDescriptor;
++use crate::util::descriptor::IntoRawDescriptor;
++use crate::util::RawDescriptor;
++use crate::util::Result as MagmaGpuResult;
++
++pub struct SharedMemory {
++    fd: OwnedFd,
++    size: u64,
++}
++
++impl SharedMemory {
++    pub fn new(debug_name: &CStr, size: u64) -> MagmaGpuResult<SharedMemory> {
++        let name = format!("/{}", debug_name.to_string_lossy());
++
++        let fd = shm::open(
++            name.as_str(),
++            shm::OFlags::CREATE | shm::OFlags::EXCL | shm::OFlags::RDWR,
++            Mode::RUSR | Mode::WUSR,
++        )?;
++        shm::unlink(name.as_str())?;
++
++        ftruncate(&fd, size)?;
++
++        Ok(SharedMemory { fd, size })
++    }
++
++    pub fn size(&self) -> u64 {
++        self.size
++    }
++}
++
++impl AsRawDescriptor for SharedMemory {
++    fn as_raw_descriptor(&self) -> RawDescriptor {
++        self.fd.as_raw_fd() as RawDescriptor
++    }
++}
++
++impl IntoRawDescriptor for SharedMemory {
++    fn into_raw_descriptor(self) -> RawDescriptor {
++        self.fd.into_raw_fd() as RawDescriptor
++    }
++}
++
++pub fn page_size() -> MagmaGpuResult<u64> {
++    Ok(rustix::param::page_size() as _)
++}
+diff --git a/src/virtio/magma-gpu-rs/lib/util/sys/darwin/tube.rs b/src/virtio/magma-gpu-rs/lib/util/sys/darwin/tube.rs
+new file mode 100644
+index 00000000000..76bec6287c0
+--- /dev/null
++++ b/src/virtio/magma-gpu-rs/lib/util/sys/darwin/tube.rs
+@@ -0,0 +1,312 @@
++// Copyright 2026 Mesa3D authors
++// SPDX-License-Identifier: MIT
++
++use std::ffi::CString;
++use std::io::Error;
++use std::io::ErrorKind;
++use std::os::fd::AsFd;
++use std::os::fd::BorrowedFd;
++use std::path::Path;
++use std::sync::atomic::AtomicU64;
++use std::sync::atomic::Ordering;
++
++use rustix::io::fcntl_setfd;
++use rustix::io::read;
++use rustix::io::write;
++use rustix::io::FdFlags;
++use rustix::net::accept;
++use rustix::net::bind;
++use rustix::net::connect;
++use rustix::net::listen;
++use rustix::net::socket_with;
++use rustix::net::AddressFamily;
++use rustix::net::SocketAddrUnix;
++use rustix::net::SocketFlags;
++use rustix::net::SocketType;
++use rustix::path::Arg;
++use zerocopy::FromBytes;
++use zerocopy::Immutable;
++use zerocopy::IntoBytes;
++use zerocopy::KnownLayout;
++
++use crate::util::sys::darwin::mach::*;
++use crate::util::sys::darwin::message::IncomingMessage;
++use crate::util::sys::darwin::message::MessageId;
++use crate::util::sys::darwin::message::MessageReceived;
++use crate::util::sys::darwin::message::OutgoingMessage;
++use crate::util::AsBorrowedDescriptor;
++use crate::util::Error as MagmaGpuError;
++use crate::util::OwnedDescriptor;
++use crate::util::Result as MagmaGpuResult;
++use crate::util::TubeType;
++
++const MAX_PAYLOAD_SIZE: usize = 8192;
++
++const RENDEZVOUS_NAME_SIZE: usize = 128;
++
++impl TryFrom<SocketType> for TubeType {
++    type Error = Error;
++
++    fn try_from(ty: SocketType) -> Result<Self, Error> {
++        match ty {
++            SocketType::STREAM => Ok(TubeType::Packet),
++            ty => {
++                log::warn!("Unsupported socket type {ty:?}");
++                Err(Error::from(ErrorKind::Unsupported))
++            }
++        }
++    }
++}
++
++#[repr(C, align(4))]
++#[derive(Copy, Clone, Debug, Default, FromBytes, IntoBytes, Immutable, KnownLayout)]
++struct TubePayloadHeader {
++    len: u32,
++}
++
++static RENDEZVOUS_COUNTER: AtomicU64 = AtomicU64::new(0);
++
++fn rendezvous_name(path: &str) -> MagmaGpuResult<CString> {
++    let mut name = String::from("org.mesa3d.magma");
++    for part in path.split('/').filter(|part| !part.is_empty()) {
++        name.push('.');
++        name.push_str(part);
++    }
++    let count = RENDEZVOUS_COUNTER.fetch_add(1, Ordering::Relaxed);
++    name.push_str(&format!(".{}.{}", std::process::id(), count));
++    CString::new(name).map_err(MagmaGpuError::from)
++}
++
++fn write_name(socket: BorrowedFd<'_>, name: &CString) -> MagmaGpuResult<()> {
++    let bytes = name.as_bytes_with_nul();
++    if bytes.len() > RENDEZVOUS_NAME_SIZE {
++        return Err(MagmaGpuError::WithContext("rendezvous name is too long"));
++    }
++    let mut frame = [0u8; RENDEZVOUS_NAME_SIZE];
++    frame[..bytes.len()].copy_from_slice(bytes);
++
++    let mut written = 0;
++    while written < frame.len() {
++        match write(socket, &frame[written..])? {
++            0 => return Err(MagmaGpuError::WithContext("peer closed during rendezvous")),
++            n => written += n,
++        }
++    }
++    Ok(())
++}
++
++fn read_name(socket: BorrowedFd<'_>) -> MagmaGpuResult<CString> {
++    let mut frame = [0u8; RENDEZVOUS_NAME_SIZE];
++    let mut filled = 0;
++    while filled < frame.len() {
++        match read(socket, &mut frame[filled..])? {
++            0 => return Err(MagmaGpuError::WithContext("peer closed during rendezvous")),
++            n => filled += n,
++        }
++    }
++
++    let end = frame
++        .iter()
++        .position(|byte| *byte == 0)
++        .ok_or(MagmaGpuError::WithContext(
++            "rendezvous name is not terminated",
++        ))?;
++    CString::new(&frame[..end]).map_err(MagmaGpuError::from)
++}
++
++fn check_in(name: &CString) -> MagmaGpuResult<ReceiveRight> {
++    let mut port: mach_port_t = MACH_PORT_NULL;
++    // SAFETY: `name` outlives the call, and `port` is a valid out parameter.
++    unsafe { bootstrap_check_in(bootstrap_port, name.as_ptr(), &mut port) }.check()?;
++    // SAFETY: the call handed over a receive right this task now owns.
++    Ok(unsafe { ReceiveRight::from_raw(port) })
++}
++
++fn look_up(name: &CString) -> MagmaGpuResult<SendRight> {
++    let mut port: mach_port_t = MACH_PORT_NULL;
++    // SAFETY: `name` outlives the call, and `port` is a valid out parameter.
++    unsafe { bootstrap_look_up(bootstrap_port, name.as_ptr(), &mut port) }.check()?;
++    // SAFETY: the lookup handed over a send right this task now owns.
++    Ok(unsafe { SendRight::from_raw(port) })
++}
++
++fn send_hello(peer: &SendRight, port: &ReceiveRight) -> MagmaGpuResult<()> {
++    OutgoingMessage::new(MessageId::Hello)
++        .with_descriptors(vec![port.make_send()?.into()])
++        .send(peer)
++}
++
++fn accept_hello(port: &ReceiveRight) -> MagmaGpuResult<SendRight> {
++    let hello = IncomingMessage::new(MessageId::Hello).receive::<()>(0, port)?;
++    let MessageReceived::Success(_, descriptors, _) = hello else {
++        return Err(MagmaGpuError::WithContext("peer did not introduce itself"));
++    };
++
++    match descriptors.into_iter().next() {
++        Some(OwnedDescriptor::MachSend(right)) => Ok(right),
++        _ => Err(MagmaGpuError::WithContext("peer sent no reply right")),
++    }
++}
++
++pub struct Tube {
++    receive: OwnedDescriptor,
++    peer: SendRight,
++}
++
++impl Tube {
++    pub fn new<P: AsRef<Path> + Arg>(path: P, kind: TubeType) -> MagmaGpuResult<Tube> {
++        if !matches!(kind, TubeType::Packet) {
++            return Err(MagmaGpuError::Unsupported);
++        }
++
++        let socket = socket_with(
++            AddressFamily::UNIX,
++            SocketType::STREAM,
++            SocketFlags::empty(),
++            None,
++        )?;
++        fcntl_setfd(&socket, FdFlags::CLOEXEC)?;
++        let unix_addr = SocketAddrUnix::new(path)?;
++        connect(&socket, &unix_addr)?;
++
++        let introduction = look_up(&read_name(socket.as_fd())?)?;
++
++        let receive = ReceiveRight::new()?;
++
++        send_hello(&introduction, &receive)?;
++        drop(introduction);
++
++        receive.request_no_senders()?;
++        let peer = accept_hello(&receive)?;
++
++        Ok(Tube {
++            receive: receive.into(),
++            peer,
++        })
++    }
++
++    pub fn send(
++        &self,
++        opaque_data: &[u8],
++        descriptors: Vec<OwnedDescriptor>,
++    ) -> MagmaGpuResult<usize> {
++        let payload_len = opaque_data.len();
++        if payload_len > MAX_PAYLOAD_SIZE {
++            return Err(MagmaGpuError::WithContext(
++                "message exceeds the maximum size",
++            ));
++        }
++
++        OutgoingMessage::new(MessageId::Payload)
++            .with_descriptors(descriptors)
++            .with_struct(&TubePayloadHeader {
++                len: payload_len as u32,
++            })
++            .with_bytes(opaque_data)
++            .send(&self.peer)?;
++
++        Ok(payload_len)
++    }
++
++    pub fn receive(&self, opaque_data: &mut [u8]) -> MagmaGpuResult<(usize, Vec<OwnedDescriptor>)> {
++        let port = self.receive_right()?;
++
++        let message = IncomingMessage::new(MessageId::Payload)
++            .receive::<TubePayloadHeader>(MAX_PAYLOAD_SIZE, port)?;
++
++        let MessageReceived::Success(header, descriptors, payload) = message else {
++            return Ok((0, Vec::new()));
++        };
++
++        let payload_len = header.len as usize;
++        if payload_len > opaque_data.len() || payload_len > payload.len() {
++            return Err(MagmaGpuError::WithContext(
++                "received message exceeds buffer",
++            ));
++        }
++        opaque_data[..payload_len].copy_from_slice(&payload[..payload_len]);
++
++        Ok((payload_len, descriptors))
++    }
++
++    fn receive_right(&self) -> MagmaGpuResult<&ReceiveRight> {
++        match &self.receive {
++            OwnedDescriptor::MachReceive(right) => Ok(right),
++            _ => Err(MagmaGpuError::WithContext("a tube holds a receive right")),
++        }
++    }
++}
++
++impl AsBorrowedDescriptor for Tube {
++    fn as_borrowed_descriptor(&self) -> &OwnedDescriptor {
++        &self.receive
++    }
++}
++
++impl TryFrom<OwnedDescriptor> for Tube {
++    type Error = MagmaGpuError;
++
++    fn try_from(_descriptor: OwnedDescriptor) -> Result<Self, Self::Error> {
++        Err(MagmaGpuError::Unsupported)
++    }
++}
++
++pub struct Listener {
++    socket: OwnedDescriptor,
++    path: String,
++}
++
++impl Listener {
++    pub fn bind<P: AsRef<Path> + Arg>(path: P) -> MagmaGpuResult<Listener> {
++        let socket = socket_with(
++            AddressFamily::UNIX,
++            SocketType::STREAM,
++            SocketFlags::empty(),
++            None,
++        )?;
++        fcntl_setfd(&socket, FdFlags::CLOEXEC)?;
++
++        let name = path.as_ref().to_string_lossy().into_owned();
++        let unix_addr = SocketAddrUnix::new(path)?;
++        bind(&socket, &unix_addr)?;
++        listen(&socket, 128)?;
++
++        Ok(Listener {
++            socket: socket.into(),
++            path: name,
++        })
++    }
++
++    pub fn accept(&self) -> MagmaGpuResult<Tube> {
++        let listening = match &self.socket {
++            OwnedDescriptor::Fd(fd) => fd.as_fd(),
++            _ => return Err(MagmaGpuError::WithContext("a listener holds a socket")),
++        };
++
++        let connection = accept(listening)?;
++
++        let name = rendezvous_name(&self.path)?;
++        let introduction = check_in(&name)?;
++        write_name(connection.as_fd(), &name)?;
++
++        let peer = accept_hello(&introduction)?;
++        drop(introduction);
++
++        let receive = ReceiveRight::new()?;
++        send_hello(&peer, &receive)?;
++        receive.request_no_senders()?;
++
++        drop(connection);
++
++        Ok(Tube {
++            receive: receive.into(),
++            peer,
++        })
++    }
++}
++
++impl AsBorrowedDescriptor for Listener {
++    fn as_borrowed_descriptor(&self) -> &OwnedDescriptor {
++        &self.socket
++    }
++}
+diff --git a/src/virtio/magma-gpu-rs/lib/util/sys/darwin/wait_context.rs b/src/virtio/magma-gpu-rs/lib/util/sys/darwin/wait_context.rs
+new file mode 100644
+index 00000000000..1e845fee0d0
+--- /dev/null
++++ b/src/virtio/magma-gpu-rs/lib/util/sys/darwin/wait_context.rs
+@@ -0,0 +1,176 @@
++// Copyright 2026 Mesa3D authors
++// SPDX-License-Identifier: MIT
++
++use std::io::Error;
++use std::os::fd::AsRawFd;
++use std::os::fd::OwnedFd;
++
++use libc::c_int;
++use libc::c_void;
++use libc::uintptr_t;
++
++use rustix::event::kqueue::kqueue;
++use rustix::io::fcntl_setfd;
++use rustix::io::FdFlags;
++
++use crate::util::sys::darwin::mach::mach_port_get_attributes;
++use crate::util::sys::darwin::mach::mach_port_info_t;
++use crate::util::sys::darwin::mach::mach_port_status_t;
++use crate::util::sys::darwin::mach::mach_port_t;
++use crate::util::sys::darwin::mach::mach_task_self;
++use crate::util::sys::darwin::mach::KernReturnExt;
++use crate::util::sys::darwin::mach::MACH_PORT_RECEIVE_STATUS;
++use crate::util::sys::darwin::mach::MACH_PORT_RECEIVE_STATUS_COUNT;
++use crate::util::AsRawDescriptor;
++use crate::util::Error as MagmaGpuError;
++use crate::util::OwnedDescriptor;
++use crate::util::Result as MagmaGpuResult;
++use crate::util::WaitEvent;
++use crate::util::WaitTimeout;
++use crate::util::WAIT_CONTEXT_MAX;
++
++pub struct WaitContext {
++    kqueue: OwnedFd,
++}
++
++fn filter_for(descriptor: &OwnedDescriptor) -> MagmaGpuResult<i16> {
++    match descriptor {
++        OwnedDescriptor::Fd(_) => Ok(libc::EVFILT_READ),
++        OwnedDescriptor::MachReceive(_) => Ok(libc::EVFILT_MACHPORT),
++        OwnedDescriptor::MachSend(_) => Err(MagmaGpuError::WithContext(
++            "cannot wait on a Mach send right: only receive rights have message queues",
++        )),
++    }
++}
++
++fn mach_port_has_no_senders(port: mach_port_t) -> MagmaGpuResult<bool> {
++    let mut status = mach_port_status_t::default();
++    let mut count = MACH_PORT_RECEIVE_STATUS_COUNT;
++
++    // SAFETY: `status` is large enough for the flavor, and `count` says so.
++    unsafe {
++        mach_port_get_attributes(
++            mach_task_self(),
++            port,
++            MACH_PORT_RECEIVE_STATUS,
++            &mut status as *mut mach_port_status_t as mach_port_info_t,
++            &mut count,
++        )
++    }
++    .check()?;
++
++    Ok(status.mps_srights == 0)
++}
++
++enum ChangeOp {
++    Add { connection_id: u64 },
++    Delete,
++}
++
++impl WaitContext {
++    pub fn new() -> MagmaGpuResult<WaitContext> {
++        let kqueue = kqueue()?;
++        fcntl_setfd(&kqueue, FdFlags::CLOEXEC)?;
++        Ok(WaitContext { kqueue })
++    }
++
++    fn modify(&self, descriptor: &OwnedDescriptor, op: ChangeOp) -> MagmaGpuResult<()> {
++        let filter = filter_for(descriptor)?;
++        let ident = descriptor.as_raw_descriptor() as uintptr_t;
++
++        let (flags, udata) = match op {
++            ChangeOp::Add { connection_id } => {
++                (libc::EV_ADD | libc::EV_ENABLE, connection_id as *mut c_void)
++            }
++            ChangeOp::Delete => (libc::EV_DELETE, std::ptr::null_mut()),
++        };
++
++        let change = libc::kevent {
++            ident,
++            filter,
++            flags,
++            fflags: 0,
++            data: 0,
++            udata,
++        };
++
++        // SAFETY: one well formed change entry, no output entries requested,
++        // naming something the caller owns until it is deleted.
++        let ret = unsafe {
++            libc::kevent(
++                self.kqueue.as_raw_fd(),
++                &change,
++                1,
++                std::ptr::null_mut(),
++                0,
++                std::ptr::null(),
++            )
++        };
++        if ret < 0 {
++            return Err(Error::last_os_error().into());
++        }
++        Ok(())
++    }
++
++    pub fn add(&mut self, connection_id: u64, descriptor: &OwnedDescriptor) -> MagmaGpuResult<()> {
++        self.modify(descriptor, ChangeOp::Add { connection_id })
++    }
++
++    pub fn wait(&mut self, timeout: WaitTimeout) -> MagmaGpuResult<Vec<WaitEvent>> {
++        let timespec = match timeout {
++            WaitTimeout::Finite(duration) => Some(libc::timespec {
++                tv_sec: duration.as_secs() as libc::time_t,
++                tv_nsec: duration.subsec_nanos() as libc::c_long,
++            }),
++            WaitTimeout::NoTimeout => None,
++        };
++
++        let mut buffer: [libc::kevent; WAIT_CONTEXT_MAX] = unsafe { std::mem::zeroed() };
++        let count = loop {
++            // SAFETY: what `add` registered stays valid until `delete`, and
++            // the output buffer holds the number of entries passed.
++            let ret = unsafe {
++                libc::kevent(
++                    self.kqueue.as_raw_fd(),
++                    std::ptr::null(),
++                    0,
++                    buffer.as_mut_ptr(),
++                    buffer.len() as c_int,
++                    timespec
++                        .as_ref()
++                        .map(|t| t as *const libc::timespec)
++                        .unwrap_or(std::ptr::null()),
++                )
++            };
++            if ret < 0 {
++                let err = Error::last_os_error();
++                if err.kind() == std::io::ErrorKind::Interrupted {
++                    continue;
++                }
++                return Err(err.into());
++            }
++            break ret as usize;
++        };
++
++        buffer[..count]
++            .iter()
++            .map(|event| {
++                let hung_up = if event.filter == libc::EVFILT_MACHPORT {
++                    mach_port_has_no_senders(event.ident as mach_port_t)?
++                } else {
++                    (event.flags & libc::EV_EOF) != 0
++                };
++
++                Ok(WaitEvent {
++                    connection_id: event.udata as u64,
++                    readable: true,
++                    hung_up,
++                })
++            })
++            .collect()
++    }
++
++    pub fn delete(&mut self, descriptor: &OwnedDescriptor) -> MagmaGpuResult<()> {
++        self.modify(descriptor, ChangeOp::Delete)
++    }
++}
+diff --git a/src/virtio/magma-gpu-rs/lib/util/sys/mod.rs b/src/virtio/magma-gpu-rs/lib/util/sys/mod.rs
+index bb21d3f2c08..a51318403a5 100644
+--- a/src/virtio/magma-gpu-rs/lib/util/sys/mod.rs
++++ b/src/virtio/magma-gpu-rs/lib/util/sys/mod.rs
+@@ -4,7 +4,10 @@
+ #[cfg(any(target_os = "android", target_os = "linux"))]
+ pub mod linux;
+ 
+-#[cfg(any(target_os = "fuchsia", target_os = "macos", target_os = "nto"))]
++#[cfg(target_vendor = "apple")]
++pub mod darwin;
++
++#[cfg(any(target_os = "fuchsia", target_os = "nto"))]
+ pub mod stub;
+ 
+ #[cfg(windows)]
+@@ -18,7 +21,9 @@ cfg_if::cfg_if! {
+         pub use linux as platform;
+     } else if #[cfg(windows)] {
+         pub use windows as platform;
+-    } else if #[cfg(any(target_os = "fuchsia", target_os = "macos", target_os = "nto"))] {
++    } else if #[cfg(target_vendor = "apple")] {
++        pub use darwin as platform;
++    } else if #[cfg(any(target_os = "fuchsia", target_os = "nto"))] {
+         pub use stub as platform;
+     } else {
+         compile_error!("Unsupported platform");
+diff --git a/src/virtio/magma-gpu-rs/lib/virtgpu_kumquat/virtgpu_kumquat_impl.rs b/src/virtio/magma-gpu-rs/lib/virtgpu_kumquat/virtgpu_kumquat_impl.rs
+index bd7de4396fe..1669c6a7928 100644
+--- a/src/virtio/magma-gpu-rs/lib/virtgpu_kumquat/virtgpu_kumquat_impl.rs
++++ b/src/virtio/magma-gpu-rs/lib/virtgpu_kumquat/virtgpu_kumquat_impl.rs
+@@ -423,8 +423,15 @@ impl VirtGpuKumquat {
+             host_flags = RUTABAGA_FLAG_INFO_RING_IDX;
+         }
+ 
+-        let need_fence =
+-            !bo_handles.is_empty() || (flags & VIRTGPU_KUMQUAT_EXECBUF_FENCE_FD_OUT) != 0;
++        let need_implicit_sync = !bo_handles.is_empty();
++        let need_explicit_sync = (flags & VIRTGPU_KUMQUAT_EXECBUF_FENCE_FD_OUT) != 0;
++        let need_fence = need_implicit_sync || need_explicit_sync;
++
++        // One fence, one holder: a Mach port's receive right cannot be
++        // duplicated, so there is no second fence to give out.
++        if need_implicit_sync && (need_explicit_sync || bo_handles.len() > 1) {
++            return Err(Error::Unsupported);
++        }
+ 
+         let actual_fence = (flags & VIRTGPU_KUMQUAT_EXECBUF_SHAREABLE_OUT) != 0
+             && (flags & VIRTGPU_KUMQUAT_EXECBUF_FENCE_FD_OUT) != 0;
+@@ -465,29 +472,13 @@ impl VirtGpuKumquat {
+                 }
+             };
+ 
+-            // wait() blocks on what is attached here, and waiting is a unique
+-            // capability on platforms where an event is a Mach port, so the
+-            // fence itself is attached rather than a copy of it. The descriptor
+-            // handed out below never waits, so a copy will do for that.
+-            let out_fence = fence.try_clone()?;
+-            let mut fence = Some(fence);
+-
+-            for handle in bo_handles {
+-                // We could support implicit sync with real fences, but the need does not exist.
+-                if actual_fence {
+-                    return Err(Error::Unsupported);
++            match bo_handles.first() {
++                Some(handle) => {
++                    let resource = self.resources.get_mut(handle).ok_or(Error::Unsupported)?;
++                    resource.attached_fences.push(fence);
+                 }
+-
+-                let resource = self.resources.get_mut(handle).ok_or(Error::Unsupported)?;
+-
+-                let attached = match fence.take() {
+-                    Some(fence) => fence,
+-                    None => out_fence.try_clone()?,
+-                };
+-                resource.attached_fences.push(attached);
++                None => fence_opt = Some(fence),
+             }
+-
+-            fence_opt = Some(out_fence);
+         } else {
+             self.stream
+                 .write(KumquatGpuProtocolWrite::CmdWithData(submit_command, data))?;

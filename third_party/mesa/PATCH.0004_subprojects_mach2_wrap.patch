@@ -1,0 +1,62 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: utzcoz <utzcoz@outlook.com>
+Date: Fri, 21 Aug 2026 20:59:00 +0800
+Subject: [PATCH] subprojects: add a wrap for mach2
+
+The Mach IPC calls have no Rust bindings in tree. libc stops at mach_port_t
+and mach_task_self(), and has deprecated even those in favour of a separate
+crate.
+
+mach2 is that crate. It has no dependencies and uses nothing edition 2024
+gives it, so it builds with the same edition as the rest of the Rust here.
+
+Reviewed-by: Gurchetan Singh  <gurchetan.singh.foss@gmail.com>
+---
+ subprojects/mach2-0.7-rs.wrap                 |  6 +++++
+ .../packagefiles/mach2-0.7-rs/meson.build     | 24 +++++++++++++++++++
+ 2 files changed, 30 insertions(+)
+ create mode 100644 subprojects/mach2-0.7-rs.wrap
+ create mode 100644 subprojects/packagefiles/mach2-0.7-rs/meson.build
+
+diff --git a/subprojects/mach2-0.7-rs.wrap b/subprojects/mach2-0.7-rs.wrap
+new file mode 100644
+index 00000000000..7c4489fc842
+--- /dev/null
++++ b/subprojects/mach2-0.7-rs.wrap
+@@ -0,0 +1,6 @@
++[wrap-file]
++directory = mach2-0.7.0
++source_url = https://static.crates.io/crates/mach2/0.7.0/download
++source_filename = mach2-0.7.0.tar.gz
++source_hash = b0d28e293f2b8c9d2b2d1c0193bd3c1cbdc0d2cf396888dc01162f7cf9d6c3f3
++patch_directory = mach2-0.7-rs
+diff --git a/subprojects/packagefiles/mach2-0.7-rs/meson.build b/subprojects/packagefiles/mach2-0.7-rs/meson.build
+new file mode 100644
+index 00000000000..b1514ec4ac5
+--- /dev/null
++++ b/subprojects/packagefiles/mach2-0.7-rs/meson.build
+@@ -0,0 +1,24 @@
++# Copyright © 2026 Mesa3D authors
++# SPDX-License-Identifier: MIT
++
++project(
++  'mach2-0.7-rs',
++  'rust',
++  version : '0.7.0',
++  license : 'BSD-2-Clause OR MIT OR Apache-2.0',
++  meson_version : '>= 1.7.0',
++)
++
++# The crate is edition 2024, but uses nothing from it that 2021 lacks, so it
++# builds with the same edition as the rest of the Rust here and needs no
++# dependencies of its own.
++lib = static_library(
++  'mach2',
++  'src/lib.rs',
++  override_options : ['rust_std=2021', 'build.rust_std=2021', 'warning_level=0'],
++  rust_abi : 'rust',
++)
++
++dep_mach2 = declare_dependency(
++  link_with : [lib],
++)

@@ -1,0 +1,64 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: utzcoz <utzcoz@outlook.com>
+Date: Thu, 27 Aug 2026 22:51:09 +0800
+Subject: [PATCH] magma-gpu-rs: hand the descriptor to WritePipe::new
+
+WritePipe::new took a raw descriptor and made an owned one out of it, so the
+caller had to give up its own copy by hand: cross_domain forgot the descriptor
+after the call, and kumquat turned one into a raw integer to pass it.
+
+Take the OwnedDescriptor, and ownership moves where it is meant to.
+---
+ kumquat/server/src/main.rs | 8 +++++++-
+ src/cross_domain/worker.rs | 4 +---
+ 2 files changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/kumquat/server/src/main.rs b/kumquat/server/src/main.rs
+index 1d39b13..a204076 100644
+--- a/kumquat/server/src/main.rs
++++ b/kumquat/server/src/main.rs
+@@ -7,7 +7,9 @@ mod kumquat_gpu;
+ 
+ use clap::Parser;
+ use kumquat::KumquatBuilder;
++use magma_gpu::util::FromRawDescriptor;
+ use magma_gpu::util::IntoRawDescriptor;
++use magma_gpu::util::OwnedDescriptor;
+ use magma_gpu::util::WritePipe;
+ 
+ use crate::kumquat_gpu::KumquatGpuResult;
+@@ -43,7 +45,11 @@ fn main() -> KumquatGpuResult<()> {
+         .build()?;
+ 
+     if args.pipe_descriptor != 0 {
+-        let write_pipe = WritePipe::new(args.pipe_descriptor.into_raw_descriptor());
++        // SAFETY: the caller passed a descriptor it opened and handed over.
++        let descriptor = unsafe {
++            OwnedDescriptor::from_raw_descriptor(args.pipe_descriptor.into_raw_descriptor())
++        };
++        let write_pipe = WritePipe::new(descriptor);
+         write_pipe.write(&1u64.to_le_bytes())?;
+     }
+ 
+diff --git a/src/cross_domain/worker.rs b/src/cross_domain/worker.rs
+index 7d1ee39..48025cc 100644
+--- a/src/cross_domain/worker.rs
++++ b/src/cross_domain/worker.rs
+@@ -6,7 +6,6 @@ use std::sync::Arc;
+ 
+ use log::error;
+ use magma_gpu::util::AsBorrowedDescriptor;
+-use magma_gpu::util::AsRawDescriptor;
+ use magma_gpu::util::DescriptorType;
+ use magma_gpu::util::Error as MagmaGpuError;
+ use magma_gpu::util::EventWaiter;
+@@ -261,8 +260,7 @@ impl CrossDomainWorker {
+                     DescriptorType::WritePipe => {
+                         *identifier_type = CROSS_DOMAIN_ID_TYPE_WRITE_PIPE;
+                         *identifier_size = 0;
+-                        let write_pipe = WritePipe::new(file.as_raw_descriptor());
+-                        std::mem::forget(file); // WritePipe now owns the descriptor
++                        let write_pipe = WritePipe::new(file);
+                         *identifier = add_item(
+                             &self.item_state,
+                             CrossDomainItem::WaylandWritePipe(write_pipe),
