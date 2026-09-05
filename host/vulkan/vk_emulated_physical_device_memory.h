@@ -68,6 +68,11 @@ class EmulatedPhysicalDeviceMemoryProperties {
     // try to import host ColorBuffer allocations
     // (e.g. vkGetAndroidHardwareBufferPropertiesANDROID()).
     uint32_t mGuestColorBufferMemoryTypeIndex;
+
+    // A guest only memory type that allocates from a host visible host type without host
+    // visible emulation, so that images have somewhere to go on a device whose every memory
+    // type is host visible.
+    std::optional<uint32_t> mGuestDeviceOnlyMemoryTypeIndex;
 };
 
 }  // namespace vk
