@@ -6851,8 +6851,17 @@ class VkDecoderGlobalState::Impl {
 #endif
             } else if (m_vkEmulation->getFeatures().SystemBlob.enabled() ||
                        m_vkEmulation->getFeatures().VulkanAllocateHostVisibleAsUdmabuf.enabled()) {
+                // A system blob is imported as a host pointer, and a driver can ask for a
+                // coarser alignment than a page: Apple silicon pages are 16KB.
+                uint64_t blobAlignment = kPageSizeforBlob;
+                if (m_vkEmulation->supportsExternalMemoryHostProperties()) {
+                    blobAlignment = std::max<uint64_t>(blobAlignment,
+                                                       m_vkEmulation->externalMemoryHostProperties()
+                                                           .minImportedHostPointerAlignment);
+                }
+
                 // Ensure size is page-aligned.
-                VkDeviceSize alignedSize = ALIGN(localAllocInfo.allocationSize, kPageSizeforBlob);
+                VkDeviceSize alignedSize = ALIGN(localAllocInfo.allocationSize, blobAlignment);
                 if (alignedSize != localAllocInfo.allocationSize) {
                     GFXSTREAM_ERROR("Warning: Aligning allocation size from %llu to %llu",
                                     static_cast<unsigned long long>(localAllocInfo.allocationSize),
@@ -6904,8 +6913,7 @@ class VkDecoderGlobalState::Impl {
                         return VK_ERROR_OUT_OF_HOST_MEMORY;
                     }
                     mappedPtr = memory.get();
-                    int mappedPtrAlignment =
-                        reinterpret_cast<uintptr_t>(mappedPtr) % kPageSizeforBlob;
+                    int mappedPtrAlignment = reinterpret_cast<uintptr_t>(mappedPtr) % blobAlignment;
                     if (mappedPtrAlignment != 0) {
                         GFXSTREAM_ERROR(
                             "Warning: Mapped shared memory pointer is not aligned to page size, "
