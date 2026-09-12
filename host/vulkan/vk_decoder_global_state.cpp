@@ -2768,13 +2768,6 @@ class VkDecoderGlobalState::Impl {
             GFXSTREAM_FATAL("%s: function implementation cannot be found!");
         }
 
-        const VkFormat format = pInfo->pCreateInfo->format;
-        bool needDecompression = isEtc2(format) || isAstc(format);
-        if (!needDecompression) {
-            // No modifications needed
-            return;
-        }
-
         std::lock_guard<std::mutex> lock(mMutex);
 
         auto* deviceInfo = gfxstream::base::find(mDeviceInfo, device);
@@ -2783,9 +2776,20 @@ class VkDecoderGlobalState::Impl {
             return;
         }
 
-        needDecompression = deviceInfo->needEmulatedDecompression(format);
+        auto* physicalDeviceInfo = gfxstream::base::find(mPhysdevInfo, deviceInfo->physicalDevice);
+        if (!physicalDeviceInfo) {
+            GFXSTREAM_ERROR("Failed to find physical device info for physical device:%p",
+                            deviceInfo->physicalDevice);
+            return;
+        }
+        auto& physicalDeviceMemHelper = physicalDeviceInfo->memoryPropertiesHelper;
+
+        const VkFormat format = pInfo->pCreateInfo->format;
+        const bool needDecompression =
+            (isEtc2(format) || isAstc(format)) && deviceInfo->needEmulatedDecompression(format);
         if (!needDecompression) {
-            // No modifications needed
+            physicalDeviceMemHelper->transformToGuestMemoryRequirements(
+                &pMemoryRequirements->memoryRequirements);
             return;
         }
 
@@ -2808,14 +2812,6 @@ class VkDecoderGlobalState::Impl {
         pMemoryRequirements->memoryRequirements = cmpInfo.getMemoryRequirements();
         cmpInfo.destroy(vk);
 
-        auto* physicalDeviceInfo = gfxstream::base::find(mPhysdevInfo, deviceInfo->physicalDevice);
-        if (!physicalDeviceInfo) {
-            GFXSTREAM_ERROR("Failed to find physical device info for physical device:%p",
-                            deviceInfo->physicalDevice);
-            return;
-        }
-
-        auto& physicalDeviceMemHelper = physicalDeviceInfo->memoryPropertiesHelper;
         physicalDeviceMemHelper->transformToGuestMemoryRequirements(
             &pMemoryRequirements->memoryRequirements);
     }
