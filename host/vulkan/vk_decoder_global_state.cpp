@@ -6774,7 +6774,8 @@ class VkDecoderGlobalState::Impl {
         uint32_t virtioGpuContextId = 0;
         VkMemoryPropertyFlags memoryPropertyFlags;
 
-        bool deviceHasDmabufExt = false;
+        // Only read where dma-buf exists.
+        [[maybe_unused]] bool deviceHasDmabufExt = false;
 
         // Map guest memory index to host memory index and lookup memory properties:
         {
