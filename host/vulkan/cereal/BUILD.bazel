@@ -13,6 +13,7 @@ cc_library(
         "common/goldfish_vk_dispatch.h",
         "common/goldfish_vk_extension_structs.h",
         "common/goldfish_vk_private_defs.h",
+        "common/goldfish_vk_supported_extensions.h",
         "common/goldfish_vk_transform.h",
         "common/vk_struct_id.h",
     ],
@@ -37,6 +38,7 @@ cc_library(
         "common/goldfish_vk_extension_structs.cpp",
         "common/goldfish_vk_marshaling.cpp",
         "common/goldfish_vk_reserved_marshaling.cpp",
+        "common/goldfish_vk_supported_extensions.cpp",
         "common/goldfish_vk_transform.cpp",
     ],
     hdrs = [
@@ -46,6 +48,7 @@ cc_library(
         "common/goldfish_vk_marshaling.h",
         "common/goldfish_vk_private_defs.h",
         "common/goldfish_vk_reserved_marshaling.h",
+        "common/goldfish_vk_supported_extensions.h",
         "common/goldfish_vk_transform.h",
         "common/vk_struct_id.h",
     ],

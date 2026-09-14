@@ -32,6 +32,7 @@ cc_library_static {
         "common/goldfish_vk_reserved_marshaling.cpp",
         "common/goldfish_vk_deepcopy.cpp",
         "common/goldfish_vk_dispatch.cpp",
+        "common/goldfish_vk_supported_extensions.cpp",
         "common/goldfish_vk_transform.cpp",
     ],
     header_libs: [

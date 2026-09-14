@@ -42,6 +42,7 @@
 #include "common/goldfish_vk_dispatch.h"
 #include "common/goldfish_vk_marshaling.h"
 #include "common/goldfish_vk_reserved_marshaling.h"
+#include "common/goldfish_vk_supported_extensions.h"
 #include "emulated_textures/astc_texture.h"
 #include "emulated_textures/compressed_image_info.h"
 #include "emulated_textures/gpu_decompression_pipeline.h"
@@ -1986,36 +1987,37 @@ class VkDecoderGlobalState::Impl {
         auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
         auto vk = dispatch_VkPhysicalDevice(boxed_physicalDevice);
 
-        bool shouldPassthrough = !m_vkEmulation->isYcbcrEmulationEnabled();
-#if defined(__APPLE__)
-        shouldPassthrough = shouldPassthrough && !(m_vkEmulation->getExternalMemoryMode() ==
-                                                   ExternalMemory::Mode::Metal);
-#endif
+        // Start with host extensions:
+        std::vector<VkExtensionProperties> properties;
+        VkResult result =
+            enumerateDeviceExtensionProperties(vk, physicalDevice, pLayerName, properties);
+        if (result != VK_SUCCESS) {
+            GFXSTREAM_ERROR("Failed to query host device extensions.");
+            return result;
+        }
+
+        // Remove all extensions that are not supported by the host codegen to prevent
+        // guest to host compatibility issues:
+        const auto& supportedDeviceExtensions = GetDeviceExtensionsSupportedByCodegen();
+        properties.erase(
+            std::remove_if(properties.begin(), properties.end(),
+                           [&](const VkExtensionProperties& extension) {
+                               return supportedDeviceExtensions.find(extension.extensionName) ==
+                                      supportedDeviceExtensions.end();
+                           }),
+            properties.end());
+
+        // Add in emulated extensions:
 
 #if defined(_WIN32)
         // Temporary fix to get old system images working with lavapipe
         // TODO(b/409769371): remove this once system images updated or win32 extension is supported
         const bool advertiseHostAllocAsWin32 =
             (m_vkEmulation->getExternalMemoryMode() == ExternalMemory::Mode::HostAllocation);
-        if (advertiseHostAllocAsWin32) {
-            shouldPassthrough = false;
-        }
 #endif
-
-        if (shouldPassthrough) {
-            return vk->vkEnumerateDeviceExtensionProperties(physicalDevice, pLayerName,
-                                                            pPropertyCount, pProperties);
-        }
 
         // If MoltenVK is supported on host, we need to ensure that we include
         // VK_MVK_moltenvk extenstion in returned properties.
-        std::vector<VkExtensionProperties> properties;
-        VkResult result =
-            enumerateDeviceExtensionProperties(vk, physicalDevice, pLayerName, properties);
-        if (result != VK_SUCCESS) {
-            return result;
-        }
-
 #if defined(__APPLE__) && defined(VK_MVK_moltenvk)
         // Guest will check for VK_MVK_moltenvk extension for enabling AHB support
         if ((m_vkEmulation->getExternalMemoryMode() == ExternalMemory::Mode::Metal) &&
