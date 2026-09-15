@@ -45,6 +45,11 @@ COPTS = select({
         "-Wno-implicit-fallthrough",
         "-Wno-sign-compare",
         "-Wno-missing-field-initializers",
+        # Workaround for an ASAN bug in VVL's bundled parallel_hashmap (phmap.h),
+        # which constructs elements into poisoned slots before unpoisoning when
+        # ADDRESS_SANITIZER is defined. Undefine it to disable phmap's manual
+        # slot poisoning while keeping compiler ASAN (-fsanitize=address) enabled.
+        "-UADDRESS_SANITIZER",
     ],
 })
 

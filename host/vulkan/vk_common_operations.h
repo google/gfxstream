@@ -27,6 +27,8 @@
 #include <unordered_set>
 #include <vector>
 
+#include "vk_vvl_configuration.h"
+
 #include "color_buffer_vk.h"
 #include "compositor_vk.h"
 #include "debug_utils_helper.h"
@@ -186,6 +188,10 @@ class VkEmulation {
     VkPhysicalDeviceExternalMemoryHostPropertiesEXT externalMemoryHostProperties() const;
 
     bool isGuestVulkanOnly() const;
+
+    std::unique_ptr<VVLContext> createVVLContext(
+        const std::string& appName, const std::string& engineName,
+        VkDebugUtilsMessengerCreateInfoEXT* outCreateInfo = nullptr) const;
 
     bool commandBufferCheckpointsEnabled() const;
 
@@ -801,6 +807,8 @@ class VkEmulation {
 
     // UdmabufCreator
     std::unique_ptr<UdmabufCreator> mUdmabufCreator;
+
+    std::optional<VVLConfiguration> mVVLConfig;
 };
 
 #ifdef __ANDROID__

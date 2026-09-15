@@ -34,6 +34,8 @@
 #include <string>
 #include <unordered_map>
 
+#include "vk_vvl_configuration.h"
+
 #include "common/goldfish_vk_deepcopy.h"
 #include "debug_utils_helper.h"
 #include "device_op_tracker.h"
@@ -216,6 +218,8 @@ struct InstanceInfo {
     std::string applicationName;
     std::string engineName;
     uint32_t contextId = 0;
+    std::unique_ptr<VVLContext> debugContext;
+    VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
 };
 
 struct PhysicalDeviceInfo {

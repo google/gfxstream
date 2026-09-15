@@ -19,6 +19,7 @@ namespace gfxstream {
 namespace host {
 namespace vk {
 
+void ensureVulkanValidationLayersEnabled();
 VulkanDispatch* vkDispatch(bool forTesting = false);
 bool vkDispatchValid(const VulkanDispatch* vk);
 

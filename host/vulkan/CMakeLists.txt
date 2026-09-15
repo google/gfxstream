@@ -46,6 +46,7 @@ add_library(gfxstream-vulkan-server
             vk_format_utils.cpp
             vk_reconstruction.cpp
             vk_utils.cpp
+            vk_vvl_configuration.cpp
             vulkan_boxed_handles.cpp
             vulkan_dispatch.cpp
             vulkan_handle_mapping.cpp
