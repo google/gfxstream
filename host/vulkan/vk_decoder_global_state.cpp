@@ -6405,54 +6405,6 @@ class VkDecoderGlobalState::Impl {
         if (dedicatedAllocInfoPtr) {
             localDedicatedAllocInfo = vk_make_orphan_copy(*dedicatedAllocInfoPtr);
         }
-#ifdef __ANDROID__
-        // The driver only resolves the layout if the bound memory carries an AHB, so import the
-        // image's AHB on its dedicated allocation. Function scope: vk_append_struct() only stores
-        // a pointer and the chain is consumed at vkAllocateMemory below.
-        VkImportAndroidHardwareBufferInfoANDROID importDeferredLayoutAhb = {
-            .sType = VK_STRUCTURE_TYPE_IMPORT_ANDROID_HARDWARE_BUFFER_INFO_ANDROID,
-            .pNext = nullptr,
-            .buffer = nullptr,
-        };
-        // Keeps the AHB alive past the lock: the chain is not consumed until vkAllocateMemory
-        // below, by which point the image may have been destroyed.
-        std::shared_ptr<AHardwareBuffer> deferredAhbHold;
-        // Set when the probe AHB became this image's own backing memory, so it can be withdrawn
-        // from the pending pool below -- an in-use AHB must not be adopted by a ColorBuffer.
-        // Withdrawn after mMutex is dropped: unstashPendingDeferredLayoutAhb() takes
-        // VkEmulation's mutex, and createVkColorBuffer() already holds that one when it reaches
-        // the adopt side, so taking it under mMutex here would invert the two.
-        AHardwareBuffer* importedProbeAhb = nullptr;
-        VkImageCreateInfo importedProbeShape = {};
-        if (dedicatedAllocInfoPtr && dedicatedAllocInfoPtr->image != VK_NULL_HANDLE) {
-            std::lock_guard<std::mutex> dlLock(mMutex);
-            auto* dlInfo = gfxstream::base::find(mImageInfo, dedicatedAllocInfoPtr->image);
-            if (dlInfo && dlInfo->deferredLayout.ahb) {
-                // A ColorBuffer import below appends its own AHB import for this same
-                // allocation -- skip ours so the chain never carries two
-                // VkImportAndroidHardwareBufferInfoANDROID structs.
-                if (!vk_find_struct<VkImportColorBufferGOOGLE>(pAllocateInfo)) {
-                    deferredAhbHold = dlInfo->deferredLayout.ahb;
-                    importDeferredLayoutAhb.buffer = deferredAhbHold.get();
-                    vk_append_struct(&structChainIter, &importDeferredLayoutAhb);
-                    importedProbeAhb = deferredAhbHold.get();
-                    importedProbeShape = dlInfo->imageCreateInfoShallow;
-                    GFXSTREAM_INFO("DL-AHB import image=%p ahb=%p size=%llu",
-                                   (void*)dedicatedAllocInfoPtr->image,
-                                   (void*)importDeferredLayoutAhb.buffer,
-                                   (unsigned long long)localAllocInfo.allocationSize);
-                }
-                // Either way, the probe AHB has served its purpose (imported above, or
-                // superseded by a ColorBuffer's own AHB) -- release it now rather than
-                // holding it for the image's lifetime. The cached size/alignment/
-                // memoryTypeBits/rowPitch survive for later requirement/layout queries.
-                dlInfo->deferredLayout.ahb.reset();
-            }
-        }
-        if (importedProbeAhb) {
-            m_vkEmulation->unstashPendingDeferredLayoutAhb(&importedProbeShape, importedProbeAhb);
-        }
-#endif
         if (!usingDirectMapping()) {
             // We copy bytes 1 page at a time from the guest to the host
             // if we are not using direct mapping. This means we can end up
