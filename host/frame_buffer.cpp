@@ -1207,6 +1207,12 @@ std::unique_ptr<FrameBuffer::Impl> FrameBuffer::Impl::Create(FrameBuffer* frameb
     // used by underlying EGL driver might become invalid,
     // preventing new contexts from being created that share
     // against those contexts.
+    if (impl->m_features.VulkanValidation.getValue().has_value() ||
+        impl->m_features.VulkanValidationIncludeFilter.getValue().has_value() ||
+        impl->m_features.VulkanValidationExcludeFilter.getValue().has_value()) {
+        vk::ensureVulkanValidationLayersEnabled();
+    }
+
     vk::VulkanDispatch* vkDispatch = nullptr;
     if (impl->m_features.Vulkan.enabled()) {
         vkDispatch = vk::vkDispatch(false /* not for testing */);

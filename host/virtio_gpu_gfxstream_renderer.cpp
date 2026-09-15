@@ -212,6 +212,12 @@ RendererPtr InitRenderer(uint32_t displayWidth,
     GFXSTREAM_DEBUG("Initializing renderer with width:%u height:%u renderer-flags:0x%x",
                     displayWidth, displayHeight, rendererFlags);
 
+    if (features.VulkanValidation.getValue().has_value() ||
+        features.VulkanValidationIncludeFilter.getValue().has_value() ||
+        features.VulkanValidationExcludeFilter.getValue().has_value()) {
+        gfxstream::host::vk::ensureVulkanValidationLayersEnabled();
+    }
+
     gfxstream::host::vk::vkDispatch(false /* don't use test ICD */);
 
     static gfxstream::RenderLibPtr sRendererLibrary = gfxstream::initLibrary();

@@ -93,7 +93,9 @@ std::string TestParams::ToString() const {
     ret += "SampleCount" + std::to_string(samples);
     if (!with_features.empty()) {
         ret += "WithFeatures_";
-        ret += Join(with_features, "_");
+        std::string featuresStr = Join(with_features, "_");
+        std::replace(featuresStr.begin(), featuresStr.end(), ':', '_');
+        ret += featuresStr;
         ret += "_";
     }
     ret += "Over";
@@ -241,11 +243,18 @@ void GfxstreamEnd2EndTest::SetUp() {
     const std::string transportValue = GfxstreamTransportToEnvVar(params.with_transport);
     std::vector<std::string> featureEnables;
     for (const std::string& feature : params.with_features) {
-        featureEnables.push_back(feature + ":enabled");
+        if (feature.find(':') != std::string::npos) {
+            featureEnables.push_back(feature);
+        } else {
+            featureEnables.push_back(feature + ":enabled");
+        }
     }
 
     ASSERT_THAT(gfxstream::testing::SetupGraphicsTestEnvironment(), IsTrue())
         << "Failed to configured graphics test environment!";
+
+    const std::string testdataDirectory = GetTestDataPath("kumquat_virtio").parent_path().string();
+    gfxstream::base::setEnvironmentVariable("GFXSTREAM_TESTDATA_PATH", testdataDirectory.c_str());
 
     ASSERT_THAT(setenv("GFXSTREAM_TRANSPORT", transportValue.c_str(), /*overwrite=*/1), Eq(0));
 

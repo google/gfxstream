@@ -784,6 +784,10 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
     emulation->m_globalState = globalState;
     emulation->mGvk = gvk;
     emulation->setFeatures(features);
+    auto vvlConfig = VVLConfiguration::parse(features);
+    if (vvlConfig.getBehavior() != VVLBehavior::None) {
+        emulation->mVVLConfig.emplace(std::move(vvlConfig));
+    }
 
     std::vector<const char*> getPhysicalDeviceProperties2InstanceExtNames = {
         VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
@@ -1816,6 +1820,15 @@ uint32_t VkEmulation::vulkanInstanceVersion() const { return mVulkanInstanceVers
 
 bool VkEmulation::createResourcesWithRequirementsEnabled() const {
     return mUseCreateResourcesWithRequirements;
+}
+
+std::unique_ptr<VVLContext> VkEmulation::createVVLContext(
+    const std::string& appName, const std::string& engineName,
+    VkDebugUtilsMessengerCreateInfoEXT* outCreateInfo) const {
+    if (!mVVLConfig.has_value()) {
+        return nullptr;
+    }
+    return mVVLConfig->createDebugContext(appName, engineName, outCreateInfo);
 }
 
 bool VkEmulation::supportsGetPhysicalDeviceProperties2() const {

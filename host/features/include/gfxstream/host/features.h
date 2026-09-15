@@ -438,6 +438,21 @@ struct FeatureSet {
         "and the available Vulkan driver extensions.",
         &map,
     };
+    StringFeatureInfo VulkanValidation = {
+        "VulkanValidation",
+        "If set, configures Vulkan validation behavior (off|print|fail|crash).",
+        &map,
+    };
+    StringFeatureInfo VulkanValidationIncludeFilter = {
+        "VulkanValidationIncludeFilter",
+        "Comma-separated, case-insensitive list of exact string filters to include for Vulkan validation. Matches against guest application name or engine name. If empty, all applications are included by default.",
+        &map,
+    };
+    StringFeatureInfo VulkanValidationExcludeFilter = {
+        "VulkanValidationExcludeFilter",
+        "Comma-separated, case-insensitive list of exact string filters to exclude from Vulkan validation. Matches against guest application name or engine name.",
+        &map,
+    };
     BoolFeatureInfo VulkanProtectedMemoryEmulation = {
         "VulkanProtectedMemoryEmulation",
         "If enabled, enables protected memory emulation for the guest.",

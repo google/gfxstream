@@ -58,6 +58,7 @@ cc_test(
         "gfxstream_end2end_tests.cpp",
         "gfxstream_end2end_tests.h",
         "gfxstream_end2end_vk_tests.cpp",
+        "gfxstream_end2end_vvl_tests.cpp",
         "kumquat_instance.cpp",
         "kumquat_instance.h",
         "test_data_utils.cpp",
