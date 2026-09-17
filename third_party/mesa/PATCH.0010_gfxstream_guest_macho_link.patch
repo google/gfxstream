@@ -1,0 +1,48 @@
+From 97d96be40db63f1fc9a3d1543889114a876e9047 Mon Sep 17 00:00:00 2001
+From: utzcoz <utzcoz@outlook.com>
+Date: Sat, 8 Aug 2026 00:26:25 +0800
+Subject: [PATCH] gfxstream/guest: let the Vulkan driver link on Mach-O
+
+The generated entrypoint table names every entrypoint in vk.xml and leaves the
+ones this driver does not implement undefined. An ELF shared library resolves
+those at load time, so the link succeeds; Mach-O rejects an undefined symbol
+outright, and 455 of them fail the link on macOS.
+
+weak_import does not help: it asks for a symbol that may be missing from a
+dylib at runtime, not for one that exists nowhere, and the entrypoints are also
+declared hidden, which a weak import cannot be. Defer the lookup instead, which
+gives the same "resolves to NULL if absent" semantics the table already
+expects.
+---
+ src/gfxstream/guest/vulkan/meson.build | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/src/gfxstream/guest/vulkan/meson.build b/src/gfxstream/guest/vulkan/meson.build
+index 15dac2287cb..b3bc3a4fdc7 100644
+--- a/src/gfxstream/guest/vulkan/meson.build
++++ b/src/gfxstream/guest/vulkan/meson.build
+@@ -39,6 +39,15 @@ gfxstream_vk_generated_args = cpp.get_supported_arguments(
+     '-Wno-error=missing-declarations',
+ )
+ 
++# The entrypoint table leaves the entrypoints this driver does not implement
++# undefined. ELF resolves those at load time; Mach-O rejects them at link time.
++# weak_import does not help - it wants a symbol missing from a dylib, not one
++# missing everywhere - so defer the lookup instead.
++gfxstream_vk_link_args = []
++if host_machine.system() == 'darwin'
++  gfxstream_vk_link_args += '-Wl,-undefined,dynamic_lookup'
++endif
++
+ lib_vulkan_gfxstream = shared_library(
+     'vulkan_gfxstream',
+     files_vulkan_gfxstream,
+@@ -60,7 +69,7 @@ lib_vulkan_gfxstream = shared_library(
+         libconnection_manager,
+         libaemu,
+     ],
+-    link_args: [vulkan_icd_link_args, ld_args_bsymbolic, ld_args_gc_sections],
++    link_args: [vulkan_icd_link_args, ld_args_bsymbolic, ld_args_gc_sections] + gfxstream_vk_link_args,
+     link_depends: vulkan_icd_link_depends,
+     dependencies: gfxstream_deps,
+     install: true,

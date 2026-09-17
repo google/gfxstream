@@ -1,0 +1,87 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: utzcoz <utzcoz@outlook.com>
+Date: Sat, 22 Aug 2026 11:33:45 +0800
+Subject: [PATCH] util: hand the descriptors to Tube::send
+
+Tube::send borrows the descriptors, which is fine where sending duplicates them,
+as SCM_RIGHTS does. A Mach port right is not duplicated: a receive right is
+unique and moves to the peer, so the sender is left holding a descriptor for a
+right it no longer has, and dropping that releases a name it does not own.
+
+Take the descriptors by value, so what a send consumes is in the type. Nothing
+changes for the socket backends, whose callers dropped them right after the send
+in any case.
+---
+ .../magma-gpu-rs/lib/protocols/ipc/kumquat_stream.rs      | 8 ++++----
+ src/virtio/magma-gpu-rs/lib/util/sys/linux/tube.rs        | 2 +-
+ src/virtio/magma-gpu-rs/lib/util/sys/stub/tube.rs         | 2 +-
+ src/virtio/magma-gpu-rs/lib/util/sys/windows/tube.rs      | 2 +-
+ 4 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/src/virtio/magma-gpu-rs/lib/protocols/ipc/kumquat_stream.rs b/src/virtio/magma-gpu-rs/lib/protocols/ipc/kumquat_stream.rs
+index 7d7d0b6b208..e4c4f86a105 100644
+--- a/src/virtio/magma-gpu-rs/lib/protocols/ipc/kumquat_stream.rs
++++ b/src/virtio/magma-gpu-rs/lib/protocols/ipc/kumquat_stream.rs
+@@ -42,19 +42,19 @@ impl KumquatStream {
+     ) -> Result<()> {
+         let mut writer = Writer::new(&mut self.write_buffer);
+ 
+-        let array: &[OwnedDescriptor] = match encode {
++        let array: Vec<OwnedDescriptor> = match encode {
+             KumquatGpuProtocolWrite::Cmd(cmd) => {
+                 writer.write_obj(cmd)?;
+-                &[]
++                Vec::new()
+             }
+             KumquatGpuProtocolWrite::CmdWithHandle(cmd, handle) => {
+                 writer.write_obj(cmd)?;
+-                &[handle.os_handle]
++                vec![handle.os_handle]
+             }
+             KumquatGpuProtocolWrite::CmdWithData(cmd, data) => {
+                 writer.write_obj(cmd)?;
+                 writer.write_all(&data)?;
+-                &[]
++                Vec::new()
+             }
+         };
+ 
+diff --git a/src/virtio/magma-gpu-rs/lib/util/sys/linux/tube.rs b/src/virtio/magma-gpu-rs/lib/util/sys/linux/tube.rs
+index ebc73ba44b6..5d067286cbb 100644
+--- a/src/virtio/magma-gpu-rs/lib/util/sys/linux/tube.rs
++++ b/src/virtio/magma-gpu-rs/lib/util/sys/linux/tube.rs
+@@ -99,7 +99,7 @@ impl Tube {
+     pub fn send(
+         &self,
+         opaque_data: &[u8],
+-        descriptors: &[OwnedDescriptor],
++        descriptors: Vec<OwnedDescriptor>,
+     ) -> MagmaGpuResult<usize> {
+         let mut space = [MaybeUninit::<u8>::uninit(); cmsg_space!(ScmRights(MAX_IDENTIFIERS))];
+         let mut cmsg_buffer = SendAncillaryBuffer::new(&mut space);
+diff --git a/src/virtio/magma-gpu-rs/lib/util/sys/stub/tube.rs b/src/virtio/magma-gpu-rs/lib/util/sys/stub/tube.rs
+index 5f41bab47b7..b6d36ea4d08 100644
+--- a/src/virtio/magma-gpu-rs/lib/util/sys/stub/tube.rs
++++ b/src/virtio/magma-gpu-rs/lib/util/sys/stub/tube.rs
+@@ -28,7 +28,7 @@ impl Tube {
+     pub fn send(
+         &self,
+         _opaque_data: &[u8],
+-        _descriptors: &[OwnedDescriptor],
++        _descriptors: Vec<OwnedDescriptor>,
+     ) -> MagmaGpuResult<usize> {
+         Err(Error::Unsupported)
+     }
+diff --git a/src/virtio/magma-gpu-rs/lib/util/sys/windows/tube.rs b/src/virtio/magma-gpu-rs/lib/util/sys/windows/tube.rs
+index 5f41bab47b7..b6d36ea4d08 100644
+--- a/src/virtio/magma-gpu-rs/lib/util/sys/windows/tube.rs
++++ b/src/virtio/magma-gpu-rs/lib/util/sys/windows/tube.rs
+@@ -28,7 +28,7 @@ impl Tube {
+     pub fn send(
+         &self,
+         _opaque_data: &[u8],
+-        _descriptors: &[OwnedDescriptor],
++        _descriptors: Vec<OwnedDescriptor>,
+     ) -> MagmaGpuResult<usize> {
+         Err(Error::Unsupported)
+     }

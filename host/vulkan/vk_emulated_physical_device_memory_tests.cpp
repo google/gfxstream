@@ -116,6 +116,67 @@ TEST(VkGuestMemoryUtilsTest, Passthrough) {
                 EqsVkPhysicalDeviceMemoryProperties(hostMemoryProperties));
 }
 
+TEST(VkGuestMemoryUtilsTest, SystemBlobDeviceOnlyTypeWhenEverythingIsHostVisible) {
+    // A unified memory device, as Metal reports it.
+    const VkPhysicalDeviceMemoryProperties hostMemoryProperties = {
+        .memoryTypeCount = 1,
+        .memoryTypes =
+            {
+                {
+                    .propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT |
+                                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT |
+                                     VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
+                    .heapIndex = 0,
+                },
+            },
+        .memoryHeapCount = 1,
+        .memoryHeaps =
+            {
+                {
+                    .size = 0x1000000,
+                    .flags = VK_MEMORY_HEAP_DEVICE_LOCAL_BIT,
+                },
+            },
+    };
+
+    gfxstream::host::FeatureSet features;
+    features.SystemBlob.setEnabled(true);
+    features.GlDirectMem.setEnabled(true);
+
+    EmulatedPhysicalDeviceMemoryProperties helper(hostMemoryProperties, 0, features);
+
+    // The guest sees a device local only type first, then the host type.
+    VkPhysicalDeviceMemoryProperties expectedGuestMemoryProperties = hostMemoryProperties;
+    expectedGuestMemoryProperties.memoryTypeCount = 2;
+    expectedGuestMemoryProperties.memoryTypes[0] = {
+        .propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        .heapIndex = 0,
+    };
+    expectedGuestMemoryProperties.memoryTypes[1] = hostMemoryProperties.memoryTypes[0];
+    EXPECT_THAT(helper.getGuestMemoryProperties(),
+                EqsVkPhysicalDeviceMemoryProperties(expectedGuestMemoryProperties));
+
+    // Both allocate from the one host type; the device only one is not host visible.
+    EXPECT_THAT(helper.getHostMemoryInfoFromGuestMemoryTypeIndex(0),
+                Optional(EqsHostMemoryInfo(EmulatedPhysicalDeviceMemoryProperties::HostMemoryInfo{
+                    .index = 0,
+                    .memoryType = expectedGuestMemoryProperties.memoryTypes[0],
+                })));
+    EXPECT_THAT(helper.getHostMemoryInfoFromGuestMemoryTypeIndex(1),
+                Optional(EqsHostMemoryInfo(EmulatedPhysicalDeviceMemoryProperties::HostMemoryInfo{
+                    .index = 0,
+                    .memoryType = hostMemoryProperties.memoryTypes[0],
+                })));
+
+    // Anything the host type can hold, either guest type can.
+    VkMemoryRequirements requirements = {.memoryTypeBits = 0b1};
+    helper.transformToGuestMemoryRequirements(&requirements);
+    EXPECT_EQ(requirements.memoryTypeBits, 0b11u);
+
+    EXPECT_EQ(helper.getGuestColorBufferMemoryTypeIndex(), 1u);
+}
+
 TEST(VkGuestMemoryUtilsTest, ReserveAHardwareBuffer) {
     const VkPhysicalDeviceMemoryProperties hostMemoryProperties = {
         .memoryTypeCount = 2,

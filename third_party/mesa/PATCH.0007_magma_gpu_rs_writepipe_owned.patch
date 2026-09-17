@@ -1,0 +1,70 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: utzcoz <utzcoz@outlook.com>
+Date: Thu, 27 Aug 2026 22:55:43 +0800
+Subject: [PATCH] util: hand the descriptor to WritePipe::new
+
+WritePipe::new took a raw descriptor and made an owned one out of it, so the
+caller had to give up its own by hand. Nothing in the type said so, and a caller
+that forgot left two owners of one descriptor.
+
+Take the OwnedDescriptor, and ownership moves where it is meant to.
+
+Reviewed-by: Gurchetan Singh  <gurchetan.singh.foss@gmail.com>
+---
+ src/virtio/magma-gpu-rs/lib/util/sys/linux/pipe.rs   | 8 ++------
+ src/virtio/magma-gpu-rs/lib/util/sys/stub/pipe.rs    | 2 +-
+ src/virtio/magma-gpu-rs/lib/util/sys/windows/pipe.rs | 2 +-
+ 3 files changed, 4 insertions(+), 8 deletions(-)
+
+diff --git a/src/virtio/magma-gpu-rs/lib/util/sys/linux/pipe.rs b/src/virtio/magma-gpu-rs/lib/util/sys/linux/pipe.rs
+index 910a2af6bbc..76e3e2009db 100644
+--- a/src/virtio/magma-gpu-rs/lib/util/sys/linux/pipe.rs
++++ b/src/virtio/magma-gpu-rs/lib/util/sys/linux/pipe.rs
+@@ -9,7 +9,6 @@ use rustix::pipe::pipe;
+ 
+ use crate::util::AsBorrowedDescriptor;
+ use crate::util::AsRawDescriptor;
+-use crate::util::FromRawDescriptor;
+ use crate::util::OwnedDescriptor;
+ use crate::util::RawDescriptor;
+ use crate::util::Result;
+@@ -48,11 +47,8 @@ impl AsBorrowedDescriptor for ReadPipe {
+ }
+ 
+ impl WritePipe {
+-    pub fn new(descriptor: RawDescriptor) -> WritePipe {
+-        // SAFETY: Safe because we know the underlying OS descriptor is valid and
+-        // owned by us.
+-        let owned = unsafe { OwnedDescriptor::from_raw_descriptor(descriptor) };
+-        WritePipe { descriptor: owned }
++    pub fn new(descriptor: OwnedDescriptor) -> WritePipe {
++        WritePipe { descriptor }
+     }
+ 
+     pub fn write(&self, data: &[u8]) -> Result<usize> {
+diff --git a/src/virtio/magma-gpu-rs/lib/util/sys/stub/pipe.rs b/src/virtio/magma-gpu-rs/lib/util/sys/stub/pipe.rs
+index cb8638650fe..71135b16f55 100644
+--- a/src/virtio/magma-gpu-rs/lib/util/sys/stub/pipe.rs
++++ b/src/virtio/magma-gpu-rs/lib/util/sys/stub/pipe.rs
+@@ -28,7 +28,7 @@ impl AsBorrowedDescriptor for ReadPipe {
+ }
+ 
+ impl WritePipe {
+-    pub fn new(_descriptor: RawDescriptor) -> WritePipe {
++    pub fn new(_descriptor: OwnedDescriptor) -> WritePipe {
+         unimplemented!()
+     }
+ 
+diff --git a/src/virtio/magma-gpu-rs/lib/util/sys/windows/pipe.rs b/src/virtio/magma-gpu-rs/lib/util/sys/windows/pipe.rs
+index cb8638650fe..71135b16f55 100644
+--- a/src/virtio/magma-gpu-rs/lib/util/sys/windows/pipe.rs
++++ b/src/virtio/magma-gpu-rs/lib/util/sys/windows/pipe.rs
+@@ -28,7 +28,7 @@ impl AsBorrowedDescriptor for ReadPipe {
+ }
+ 
+ impl WritePipe {
+-    pub fn new(_descriptor: RawDescriptor) -> WritePipe {
++    pub fn new(_descriptor: OwnedDescriptor) -> WritePipe {
+         unimplemented!()
+     }
+ 

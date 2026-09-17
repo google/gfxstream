@@ -1,0 +1,33 @@
+From e0d0db125952eae8d40a926ced74df690553664c Mon Sep 17 00:00:00 2001
+From: utzcoz <utzcoz@outlook.com>
+Date: Thu, 6 Aug 2026 23:08:38 +0800
+Subject: [PATCH] gfxstream/guest: do not define VK_ANDROID_native_buffer on
+ Apple
+
+cerealgenerator undefines VK_ANDROID_native_buffer for the guest builds that do
+not implement it, so that the dispatch table does not define entrypoints whose
+prototypes the generated header leaves out. Apple was not in that list, so
+func_table.cpp defined the four *ANDROID entrypoints with no visible prototype,
+which -Wmissing-prototypes rejects. Clang applies that warning to C++, so it
+fails an Apple build, while gcc uses -Wmissing-declarations and does not.
+
+Add Apple alongside the others.
+
+Reviewed-by: Gurchetan Singh <gurchetan.singh.foss@gmail.com>
+---
+ src/gfxstream/codegen/scripts/cerealgenerator.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/gfxstream/codegen/scripts/cerealgenerator.py b/src/gfxstream/codegen/scripts/cerealgenerator.py
+index e037f56642f..3ff4bb3d6bb 100644
+--- a/src/gfxstream/codegen/scripts/cerealgenerator.py
++++ b/src/gfxstream/codegen/scripts/cerealgenerator.py
+@@ -405,7 +405,7 @@ class IOStream;
+ // required extensions, but the approach will be to
+ // implement them completely on the guest side.
+ #undef VK_KHR_android_surface
+-#if defined(LINUX_GUEST_BUILD) || DETECT_OS_FUCHSIA || DETECT_OS_WINDOWS
++#if defined(LINUX_GUEST_BUILD) || DETECT_OS_FUCHSIA || DETECT_OS_WINDOWS || DETECT_OS_APPLE
+ #undef VK_ANDROID_native_buffer
+ #endif
+ """

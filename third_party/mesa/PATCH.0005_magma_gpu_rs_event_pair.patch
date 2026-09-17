@@ -1,0 +1,452 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: utzcoz <utzcoz@outlook.com>
+Date: Fri, 21 Aug 2026 20:59:00 +0800
+Subject: [PATCH] util: make the event signaller and waiter explicit
+
+Event assumed eventfd semantics: one object doing both jobs, with try_clone
+handing out another. Nothing said which end was meant to signal and which to
+wait, so the answer lived in the order the callers happened to clone in.
+
+Replace it with create_event_pair(), returning an EventSignaler that only
+signals and an EventWaiter that only waits. The fence paths then read the way
+they work: the end that waits keeps the waiter and the other half goes to the
+peer.
+
+This also gives platforms where the two ends are genuinely different rights
+somewhere to put them. An eventfd is symmetric and does not care.
+---
+ src/virtio/magma-gpu-rs/lib/util/mod.rs       |  4 +-
+ .../magma-gpu-rs/lib/util/sys/linux/event.rs  | 93 +++++++++++++++----
+ .../magma-gpu-rs/lib/util/sys/stub/event.rs   | 54 ++++++++---
+ .../lib/util/sys/windows/event.rs             | 54 ++++++++---
+ .../virtgpu_kumquat/virtgpu_kumquat_impl.rs   | 36 ++++---
+ 5 files changed, 189 insertions(+), 52 deletions(-)
+
+diff --git a/src/virtio/magma-gpu-rs/lib/util/mod.rs b/src/virtio/magma-gpu-rs/lib/util/mod.rs
+index e41a1b2fd2f..106b33b3eb0 100644
+--- a/src/virtio/magma-gpu-rs/lib/util/mod.rs
++++ b/src/virtio/magma-gpu-rs/lib/util/mod.rs
+@@ -27,7 +27,9 @@ pub use shm::SharedMemory;
+ pub use sys::platform::descriptor::OwnedDescriptor;
+ pub use sys::platform::descriptor::RawDescriptor;
+ pub use sys::platform::descriptor::DEFAULT_RAW_DESCRIPTOR;
+-pub use sys::platform::event::Event;
++pub use sys::platform::event::create_event_pair;
++pub use sys::platform::event::EventSignaler;
++pub use sys::platform::event::EventWaiter;
+ pub use sys::platform::pipe::create_pipe;
+ pub use sys::platform::pipe::ReadPipe;
+ pub use sys::platform::pipe::WritePipe;
+diff --git a/src/virtio/magma-gpu-rs/lib/util/sys/linux/event.rs b/src/virtio/magma-gpu-rs/lib/util/sys/linux/event.rs
+index 74161b35180..6ef095fedbf 100644
+--- a/src/virtio/magma-gpu-rs/lib/util/sys/linux/event.rs
++++ b/src/virtio/magma-gpu-rs/lib/util/sys/linux/event.rs
+@@ -15,18 +15,33 @@ use crate::util::OwnedDescriptor;
+ use crate::util::Result as MagmaGpuResult;
+ use crate::util::MAGMA_GPU_HANDLE_TYPE_SIGNAL_EVENT_FD;
+ 
+-pub struct Event {
++/// The end of an event that reports progress.
++pub struct EventSignaler {
+     descriptor: OwnedDescriptor,
+ }
+ 
+-impl Event {
+-    pub fn new() -> MagmaGpuResult<Event> {
+-        let owned: OwnedFd = eventfd(0, EventfdFlags::empty())?;
+-        Ok(Event {
+-            descriptor: owned.into(),
+-        })
+-    }
++/// The end of an event that blocks until progress is reported.
++pub struct EventWaiter {
++    descriptor: OwnedDescriptor,
++}
+ 
++/// Creates the two ends of one event.
++///
++/// An eventfd is symmetric and either end could do either job, but the callers
++/// are not: one signals and the other waits, and which is which is decided
++/// where the pair is created rather than by a later clone.
++pub fn create_event_pair() -> MagmaGpuResult<(EventSignaler, EventWaiter)> {
++    let owned: OwnedFd = eventfd(0, EventfdFlags::empty())?;
++    let waiter = EventWaiter {
++        descriptor: owned.into(),
++    };
++    let signaler = EventSignaler {
++        descriptor: waiter.descriptor.try_clone()?,
++    };
++    Ok((signaler, waiter))
++}
++
++impl EventSignaler {
+     pub fn add(&self, value: u64) -> MagmaGpuResult<()> {
+         let _ = write(&self.descriptor, &value.to_le_bytes())?;
+         Ok(())
+@@ -35,34 +50,65 @@ impl Event {
+     pub fn signal(&self) -> MagmaGpuResult<()> {
+         self.add(1)
+     }
++}
++
++impl EventWaiter {
++    /// Duplicates the waiting end.
++    ///
++    /// An eventfd can be read from two descriptors, so several callers can wait
++    /// on one event. Platforms where waiting is a unique capability cannot do
++    /// this.
++    pub fn try_clone(&self) -> MagmaGpuResult<EventWaiter> {
++        Ok(EventWaiter {
++            descriptor: self.descriptor.try_clone()?,
++        })
++    }
++
++    /// Makes an end that can signal this event.
++    ///
++    /// A caller that holds the waiting end may also have to report on the same
++    /// event, when progress travels in either direction.
++    pub fn signaler(&self) -> MagmaGpuResult<EventSignaler> {
++        Ok(EventSignaler {
++            descriptor: self.descriptor.try_clone()?,
++        })
++    }
+ 
+     pub fn wait(&self) -> MagmaGpuResult<u64> {
+         let mut buf = [0; 8];
+         read(&self.descriptor, &mut buf)?;
+         Ok(u64::from_le_bytes(buf))
+     }
++}
++
++impl TryFrom<Handle> for EventSignaler {
++    type Error = Error;
++    fn try_from(handle: Handle) -> Result<Self, Self::Error> {
++        if handle.handle_type != MAGMA_GPU_HANDLE_TYPE_SIGNAL_EVENT_FD {
++            return Err(Error::InvalidMagmaHandle);
++        }
+ 
+-    pub fn try_clone(&self) -> MagmaGpuResult<Event> {
+-        let clone = self.descriptor.try_clone()?;
+-        Ok(Event { descriptor: clone })
++        Ok(EventSignaler {
++            descriptor: handle.os_handle,
++        })
+     }
+ }
+ 
+-impl TryFrom<Handle> for Event {
++impl TryFrom<Handle> for EventWaiter {
+     type Error = Error;
+     fn try_from(handle: Handle) -> Result<Self, Self::Error> {
+         if handle.handle_type != MAGMA_GPU_HANDLE_TYPE_SIGNAL_EVENT_FD {
+             return Err(Error::InvalidMagmaHandle);
+         }
+ 
+-        Ok(Event {
++        Ok(EventWaiter {
+             descriptor: handle.os_handle,
+         })
+     }
+ }
+ 
+-impl From<Event> for Handle {
+-    fn from(evt: Event) -> Self {
++impl From<EventSignaler> for Handle {
++    fn from(evt: EventSignaler) -> Self {
+         Handle {
+             os_handle: evt.descriptor,
+             handle_type: MAGMA_GPU_HANDLE_TYPE_SIGNAL_EVENT_FD,
+@@ -70,7 +116,22 @@ impl From<Event> for Handle {
+     }
+ }
+ 
+-impl AsBorrowedDescriptor for Event {
++impl From<EventWaiter> for Handle {
++    fn from(evt: EventWaiter) -> Self {
++        Handle {
++            os_handle: evt.descriptor,
++            handle_type: MAGMA_GPU_HANDLE_TYPE_SIGNAL_EVENT_FD,
++        }
++    }
++}
++
++impl AsBorrowedDescriptor for EventSignaler {
++    fn as_borrowed_descriptor(&self) -> &OwnedDescriptor {
++        &self.descriptor
++    }
++}
++
++impl AsBorrowedDescriptor for EventWaiter {
+     fn as_borrowed_descriptor(&self) -> &OwnedDescriptor {
+         &self.descriptor
+     }
+diff --git a/src/virtio/magma-gpu-rs/lib/util/sys/stub/event.rs b/src/virtio/magma-gpu-rs/lib/util/sys/stub/event.rs
+index 4d8e9374d64..2463851905e 100644
+--- a/src/virtio/magma-gpu-rs/lib/util/sys/stub/event.rs
++++ b/src/virtio/magma-gpu-rs/lib/util/sys/stub/event.rs
+@@ -7,13 +7,18 @@ use crate::util::Handle;
+ use crate::util::OwnedDescriptor;
+ use crate::util::Result as MagmaGpuResult;
+ 
+-pub struct Event;
++/// The end of an event that reports progress.
++pub struct EventSignaler;
+ 
+-impl Event {
+-    pub fn new() -> MagmaGpuResult<Event> {
+-        Err(Error::Unsupported)
+-    }
++/// The end of an event that blocks until progress is reported.
++pub struct EventWaiter;
++
++/// Creates the two ends of one event.
++pub fn create_event_pair() -> MagmaGpuResult<(EventSignaler, EventWaiter)> {
++    Err(Error::Unsupported)
++}
+ 
++impl EventSignaler {
+     pub fn add(&self, _value: u64) -> MagmaGpuResult<()> {
+         Err(Error::Unsupported)
+     }
+@@ -21,31 +26,56 @@ impl Event {
+     pub fn signal(&self) -> MagmaGpuResult<()> {
+         Err(Error::Unsupported)
+     }
++}
++
++impl EventWaiter {
++    pub fn try_clone(&self) -> MagmaGpuResult<EventWaiter> {
++        Err(Error::Unsupported)
++    }
++
++    pub fn signaler(&self) -> MagmaGpuResult<EventSignaler> {
++        Err(Error::Unsupported)
++    }
+ 
+     pub fn wait(&self) -> MagmaGpuResult<u64> {
+         Err(Error::Unsupported)
+     }
++}
+ 
+-    pub fn try_clone(&self) -> MagmaGpuResult<Event> {
++impl TryFrom<Handle> for EventSignaler {
++    type Error = Error;
++    fn try_from(_handle: Handle) -> Result<Self, Self::Error> {
+         Err(Error::Unsupported)
+     }
+ }
+ 
+-impl TryFrom<Handle> for Event {
++impl TryFrom<Handle> for EventWaiter {
+     type Error = Error;
+     fn try_from(_handle: Handle) -> Result<Self, Self::Error> {
+         Err(Error::Unsupported)
+     }
+ }
+ 
+-impl From<Event> for Handle {
+-    fn from(_evt: Event) -> Self {
+-        unimplemented!()
++impl From<EventSignaler> for Handle {
++    fn from(_evt: EventSignaler) -> Self {
++        unimplemented!("this platform has no event")
++    }
++}
++
++impl From<EventWaiter> for Handle {
++    fn from(_evt: EventWaiter) -> Self {
++        unimplemented!("this platform has no event")
++    }
++}
++
++impl AsBorrowedDescriptor for EventSignaler {
++    fn as_borrowed_descriptor(&self) -> &OwnedDescriptor {
++        unimplemented!("this platform has no event")
+     }
+ }
+ 
+-impl AsBorrowedDescriptor for Event {
++impl AsBorrowedDescriptor for EventWaiter {
+     fn as_borrowed_descriptor(&self) -> &OwnedDescriptor {
+-        unimplemented!()
++        unimplemented!("this platform has no event")
+     }
+ }
+diff --git a/src/virtio/magma-gpu-rs/lib/util/sys/windows/event.rs b/src/virtio/magma-gpu-rs/lib/util/sys/windows/event.rs
+index 4d8e9374d64..0cea1e23f85 100644
+--- a/src/virtio/magma-gpu-rs/lib/util/sys/windows/event.rs
++++ b/src/virtio/magma-gpu-rs/lib/util/sys/windows/event.rs
+@@ -7,13 +7,18 @@ use crate::util::Handle;
+ use crate::util::OwnedDescriptor;
+ use crate::util::Result as MagmaGpuResult;
+ 
+-pub struct Event;
++/// The end of an event that reports progress.
++pub struct EventSignaler;
+ 
+-impl Event {
+-    pub fn new() -> MagmaGpuResult<Event> {
+-        Err(Error::Unsupported)
+-    }
++/// The end of an event that blocks until progress is reported.
++pub struct EventWaiter;
++
++/// Creates the two ends of one event.
++pub fn create_event_pair() -> MagmaGpuResult<(EventSignaler, EventWaiter)> {
++    Err(Error::Unsupported)
++}
+ 
++impl EventSignaler {
+     pub fn add(&self, _value: u64) -> MagmaGpuResult<()> {
+         Err(Error::Unsupported)
+     }
+@@ -21,31 +26,56 @@ impl Event {
+     pub fn signal(&self) -> MagmaGpuResult<()> {
+         Err(Error::Unsupported)
+     }
++}
++
++impl EventWaiter {
++    pub fn try_clone(&self) -> MagmaGpuResult<EventWaiter> {
++        Err(Error::Unsupported)
++    }
++
++    pub fn signaler(&self) -> MagmaGpuResult<EventSignaler> {
++        Err(Error::Unsupported)
++    }
+ 
+     pub fn wait(&self) -> MagmaGpuResult<u64> {
+         Err(Error::Unsupported)
+     }
++}
+ 
+-    pub fn try_clone(&self) -> MagmaGpuResult<Event> {
++impl TryFrom<Handle> for EventSignaler {
++    type Error = Error;
++    fn try_from(_handle: Handle) -> Result<Self, Self::Error> {
+         Err(Error::Unsupported)
+     }
+ }
+ 
+-impl TryFrom<Handle> for Event {
++impl TryFrom<Handle> for EventWaiter {
+     type Error = Error;
+     fn try_from(_handle: Handle) -> Result<Self, Self::Error> {
+         Err(Error::Unsupported)
+     }
+ }
+ 
+-impl From<Event> for Handle {
+-    fn from(_evt: Event) -> Self {
+-        unimplemented!()
++impl From<EventSignaler> for Handle {
++    fn from(_evt: EventSignaler) -> Self {
++        unimplemented!("Windows has no event")
++    }
++}
++
++impl From<EventWaiter> for Handle {
++    fn from(_evt: EventWaiter) -> Self {
++        unimplemented!("Windows has no event")
++    }
++}
++
++impl AsBorrowedDescriptor for EventSignaler {
++    fn as_borrowed_descriptor(&self) -> &OwnedDescriptor {
++        unimplemented!("Windows has no event")
+     }
+ }
+ 
+-impl AsBorrowedDescriptor for Event {
++impl AsBorrowedDescriptor for EventWaiter {
+     fn as_borrowed_descriptor(&self) -> &OwnedDescriptor {
+-        unimplemented!()
++        unimplemented!("Windows has no event")
+     }
+ }
+diff --git a/src/virtio/magma-gpu-rs/lib/virtgpu_kumquat/virtgpu_kumquat_impl.rs b/src/virtio/magma-gpu-rs/lib/virtgpu_kumquat/virtgpu_kumquat_impl.rs
+index 92fbdef6fbd..0a40ec7f744 100644
+--- a/src/virtio/magma-gpu-rs/lib/virtgpu_kumquat/virtgpu_kumquat_impl.rs
++++ b/src/virtio/magma-gpu-rs/lib/virtgpu_kumquat/virtgpu_kumquat_impl.rs
+@@ -9,7 +9,8 @@ use std::slice::from_raw_parts_mut;
+ use crate::protocols::ipc::KumquatStream;
+ use crate::protocols::kumquat_gpu_protocol::*;
+ use crate::util::Error;
+-use crate::util::Event;
++use crate::util::create_event_pair;
++use crate::util::EventWaiter;
+ use crate::util::Handle;
+ use crate::util::IntoRawDescriptor;
+ use crate::util::MemoryMapping;
+@@ -343,10 +344,11 @@ impl VirtGpuKumquat {
+             .get_mut(&transfer.bo_handle)
+             .ok_or(Error::Unsupported)?;
+ 
+-        let event = Event::new()?;
+-        let emulated_fence: Handle = event.into();
++        // The host signals and this end waits, so the halves go opposite ways.
++        let (signaler, waiter) = create_event_pair()?;
++        let emulated_fence: Handle = signaler.into();
+ 
+-        resource.attached_fences.push(emulated_fence.try_clone()?);
++        resource.attached_fences.push(waiter.into());
+ 
+         let transfer_to_host = kumquat_gpu_protocol_transfer_host_3d {
+             hdr: kumquat_gpu_protocol_ctrl_hdr {
+@@ -376,10 +378,11 @@ impl VirtGpuKumquat {
+             .get_mut(&transfer.bo_handle)
+             .ok_or(Error::Unsupported)?;
+ 
+-        let event = Event::new()?;
+-        let emulated_fence: Handle = event.into();
++        // The host signals and this end waits, so the halves go opposite ways.
++        let (signaler, waiter) = create_event_pair()?;
++        let emulated_fence: Handle = signaler.into();
+ 
+-        resource.attached_fences.push(emulated_fence.try_clone()?);
++        resource.attached_fences.push(waiter.into());
+         let transfer_from_host = kumquat_gpu_protocol_transfer_host_3d {
+             hdr: kumquat_gpu_protocol_ctrl_hdr {
+                 type_: KUMQUAT_GPU_PROTOCOL_TRANSFER_FROM_HOST_3D,
+@@ -462,6 +465,13 @@ impl VirtGpuKumquat {
+                 }
+             };
+ 
++            // wait() blocks on what is attached here, and waiting is a unique
++            // capability on platforms where an event is a Mach port, so the
++            // fence itself is attached rather than a copy of it. The descriptor
++            // handed out below never waits, so a copy will do for that.
++            let out_fence = fence.try_clone()?;
++            let mut fence = Some(fence);
++
+             for handle in bo_handles {
+                 // We could support implicit sync with real fences, but the need does not exist.
+                 if actual_fence {
+@@ -470,10 +480,14 @@ impl VirtGpuKumquat {
+ 
+                 let resource = self.resources.get_mut(handle).ok_or(Error::Unsupported)?;
+ 
+-                resource.attached_fences.push(fence.try_clone()?);
++                let attached = match fence.take() {
++                    Some(fence) => fence,
++                    None => out_fence.try_clone()?,
++                };
++                resource.attached_fences.push(attached);
+             }
+ 
+-            fence_opt = Some(fence);
++            fence_opt = Some(out_fence);
+         } else {
+             self.stream
+                 .write(KumquatGpuProtocolWrite::CmdWithData(submit_command, data))?;
+@@ -497,8 +511,8 @@ impl VirtGpuKumquat {
+ 
+         let new_fences: Vec<Handle> = std::mem::take(&mut resource.attached_fences);
+         for fence in new_fences {
+-            let event: Event = fence.try_into()?;
+-            event.wait()?;
++            let waiter: EventWaiter = fence.try_into()?;
++            waiter.wait()?;
+         }
+ 
+         Ok(())
