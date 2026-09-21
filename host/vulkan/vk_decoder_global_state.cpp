@@ -2816,6 +2816,41 @@ class VkDecoderGlobalState::Impl {
             pInfo->pCreateInfo->tiling, &pMemoryRequirements->memoryRequirements);
     }
 
+    void on_vkGetDeviceBufferMemoryRequirements(gfxstream::base::BumpPool* pool,
+                                                VkSnapshotApiCallHandle apiCallHandle,
+                                                VkDevice boxed_device,
+                                                const VkDeviceBufferMemoryRequirements* pInfo,
+                                                VkMemoryRequirements2* pMemoryRequirements) {
+        auto device = unbox_VkDevice(boxed_device);
+        auto vk = dispatch_VkDevice(boxed_device);
+
+        if (vk->vkGetDeviceBufferMemoryRequirements) {
+            vk->vkGetDeviceBufferMemoryRequirements(device, pInfo, pMemoryRequirements);
+        } else if (vk->vkGetDeviceBufferMemoryRequirementsKHR) {
+            vk->vkGetDeviceBufferMemoryRequirementsKHR(device, pInfo, pMemoryRequirements);
+        } else {
+            GFXSTREAM_FATAL("%s: function implementation cannot be found!", __func__);
+        }
+
+        std::lock_guard<std::mutex> lock(mMutex);
+
+        auto* deviceInfo = gfxstream::base::find(mDeviceInfo, device);
+        if (!deviceInfo) {
+            GFXSTREAM_ERROR("%s: Failed to find device info for device: %p", __func__, device);
+            return;
+        }
+
+        auto* physicalDeviceInfo = gfxstream::base::find(mPhysdevInfo, deviceInfo->physicalDevice);
+        if (!physicalDeviceInfo) {
+            GFXSTREAM_ERROR("Failed to find physical device info for physical device:%p",
+                            deviceInfo->physicalDevice);
+            return;
+        }
+
+        physicalDeviceInfo->memoryPropertiesHelper->transformToGuestMemoryRequirements(
+            &pMemoryRequirements->memoryRequirements);
+    }
+
     void destroyDeviceWithExclusiveInfo(VkDevice device, DeviceInfo& deviceInfo,
                                         std::unordered_map<VkFence, FenceInfo>& fenceInfos,
                                         std::unordered_map<VkQueue, QueueInfo>& queueInfos) {
@@ -11776,6 +11811,20 @@ void VkDecoderGlobalState::on_vkGetDeviceImageMemoryRequirementsKHR(
     const VkDeviceImageMemoryRequirements* pInfo, VkMemoryRequirements2* pMemoryRequirements) {
     mImpl->on_vkGetDeviceImageMemoryRequirements(pool, apiCallHandle, device, pInfo,
                                                  pMemoryRequirements);
+}
+
+void VkDecoderGlobalState::on_vkGetDeviceBufferMemoryRequirements(
+    gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+    const VkDeviceBufferMemoryRequirements* pInfo, VkMemoryRequirements2* pMemoryRequirements) {
+    mImpl->on_vkGetDeviceBufferMemoryRequirements(pool, apiCallHandle, device, pInfo,
+                                                  pMemoryRequirements);
+}
+
+void VkDecoderGlobalState::on_vkGetDeviceBufferMemoryRequirementsKHR(
+    gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+    const VkDeviceBufferMemoryRequirements* pInfo, VkMemoryRequirements2* pMemoryRequirements) {
+    mImpl->on_vkGetDeviceBufferMemoryRequirements(pool, apiCallHandle, device, pInfo,
+                                                  pMemoryRequirements);
 }
 
 void VkDecoderGlobalState::on_vkDestroyDevice(gfxstream::base::BumpPool* pool,
