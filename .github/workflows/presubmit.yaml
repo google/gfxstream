@@ -86,10 +86,13 @@ jobs:
         //host:gfxstream_backend_static
         //host:gfxstream_backend_shared
         //host:gfxstream_backend
-      # Nothing is run yet: this job exists to keep the macOS host build
-      # compiling. Tests need a graphics driver environment that macOS does not
-      # have here yet.
-      run-tests: false
+      # Only tests that need no graphics driver run: macOS has no driver
+      # environment here yet. The WorkerThread case is not run anywhere yet
+      # and fails on every platform, so it stays out until it is fixed.
+      test-targets: >-
+        common/base:gfxstream_common_base_tests
+      additional-bazel-args: >-
+        --test_arg=--gtest_filter=-WorkerThread.TheReturnedFutureFromEnqueueShouldBeReadyBeforeTheWorkerStarts
 
   run-gfxstream-cmake-build:
     runs-on: ubuntu-22.04
