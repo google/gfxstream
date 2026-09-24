@@ -25,6 +25,18 @@ on:
         type: boolean
         default: true
 
+      # Which tests to run. Defaults to the full suite; platforms that can only
+      # build part of the target graph can override this with a curated list.
+      test-targets:
+        type: string
+        default: >-
+          host:gfxstream_framebuffer_tests
+          host/vulkan:gfxstream_compositorvk_tests
+          host/vulkan:gfxstream_emulatedphysicalmemory_tests
+          host/vulkan:vk_common_operations_tests
+          host/vulkan:vk_format_utils_tests
+          tests/end2end:gfxstream_end2end_tests
+
 permissions:
   contents: read
 
@@ -91,16 +103,11 @@ jobs:
     - name: Test
       if: ${{ inputs.run-tests }}
       env:
+        TEST_TARGETS: ${{ inputs.test-targets }}
         ADDITIONAL_BAZEL_ARGS: ${{ inputs.additional-bazel-args }}
       run: |
-        bazel test \
+        bazel test $TEST_TARGETS \
           --disk_cache=$HOME/bazel-disk-cache \
           --test_output=streamed \
           --verbose_failures \
-          host:gfxstream_framebuffer_tests \
-          host/vulkan:gfxstream_compositorvk_tests \
-          host/vulkan:gfxstream_emulatedphysicalmemory_tests \
-          host/vulkan:vk_common_operations_tests \
-          host/vulkan:vk_format_utils_tests \
-          tests/end2end:gfxstream_end2end_tests \
           $ADDITIONAL_BAZEL_ARGS
