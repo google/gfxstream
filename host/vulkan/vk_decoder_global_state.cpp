@@ -2752,6 +2752,65 @@ class VkDecoderGlobalState::Impl {
                                                                       pPropertyCount, pProperties);
     }
 
+    void on_vkGetDeviceBufferMemoryRequirements(gfxstream::base::BumpPool* pool,
+                                                VkSnapshotApiCallHandle apiCallHandle,
+                                                VkDevice boxed_device,
+                                                const VkDeviceBufferMemoryRequirements* pInfo,
+                                                VkMemoryRequirements2* pMemoryRequirements) {
+        auto device = unbox_VkDevice(boxed_device);
+        auto vk = dispatch_VkDevice(boxed_device);
+
+        VkDeviceBufferMemoryRequirements localInfo;
+        VkBufferCreateInfo localCreateInfo;
+        if (snapshotsEnabled()) {
+            localInfo = *pInfo;
+            localCreateInfo = *pInfo->pCreateInfo;
+            if (localCreateInfo.usage & VK_BUFFER_USAGE_TRANSFER_DST_BIT) {
+                localCreateInfo.usage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+            }
+            localInfo.pCreateInfo = &localCreateInfo;
+            pInfo = &localInfo;
+        }
+
+        VkExternalMemoryBufferCreateInfo externalCI = {
+            VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_BUFFER_CREATE_INFO};
+        if (m_vkEmulation->getFeatures().VulkanAllocateHostMemory.enabled()) {
+            localInfo = *pInfo;
+            localCreateInfo = *pInfo->pCreateInfo;
+            externalCI.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT;
+            externalCI.pNext = localCreateInfo.pNext;
+            localCreateInfo.pNext = &externalCI;
+            localInfo.pCreateInfo = &localCreateInfo;
+            pInfo = &localInfo;
+        }
+
+        if (vk->vkGetDeviceBufferMemoryRequirements) {
+            vk->vkGetDeviceBufferMemoryRequirements(device, pInfo, pMemoryRequirements);
+        } else if (vk->vkGetDeviceBufferMemoryRequirementsKHR) {
+            vk->vkGetDeviceBufferMemoryRequirementsKHR(device, pInfo, pMemoryRequirements);
+        } else {
+            GFXSTREAM_FATAL("%s: function implementation cannot be found!", __func__);
+        }
+
+        std::lock_guard<std::mutex> lock(mMutex);
+
+        auto* deviceInfo = gfxstream::base::find(mDeviceInfo, device);
+        if (!deviceInfo) {
+            GFXSTREAM_ERROR("%s: Failed to find device info for device: %p", __func__, device);
+            return;
+        }
+
+        auto* physicalDeviceInfo = gfxstream::base::find(mPhysdevInfo, deviceInfo->physicalDevice);
+        if (!physicalDeviceInfo) {
+            GFXSTREAM_FATAL("No physical device info available for VkPhysicalDevice: %p",
+                            deviceInfo->physicalDevice);
+        }
+
+        auto& physicalDeviceMemHelper = physicalDeviceInfo->memoryPropertiesHelper;
+        physicalDeviceMemHelper->transformToGuestMemoryRequirements(
+            &pMemoryRequirements->memoryRequirements);
+    }
+
     void on_vkGetDeviceImageMemoryRequirements(gfxstream::base::BumpPool* pool,
                                                VkSnapshotApiCallHandle apiCallHandle,
                                                VkDevice boxed_device,
@@ -11751,6 +11810,20 @@ void VkDecoderGlobalState::on_vkGetPhysicalDeviceSparseImageFormatProperties2KHR
         VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo,
         uint32_t* pPropertyCount, VkSparseImageFormatProperties2* pProperties) {
     mImpl->on_vkGetPhysicalDeviceSparseImageFormatProperties2KHR(pool, apiCallHandle, physicalDevice, pFormatInfo, pPropertyCount, pProperties);
+}
+
+void VkDecoderGlobalState::on_vkGetDeviceBufferMemoryRequirements(
+    gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+    const VkDeviceBufferMemoryRequirements* pInfo, VkMemoryRequirements2* pMemoryRequirements) {
+    mImpl->on_vkGetDeviceBufferMemoryRequirements(pool, apiCallHandle, device, pInfo,
+                                                  pMemoryRequirements);
+}
+
+void VkDecoderGlobalState::on_vkGetDeviceBufferMemoryRequirementsKHR(
+    gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+    const VkDeviceBufferMemoryRequirements* pInfo, VkMemoryRequirements2* pMemoryRequirements) {
+    mImpl->on_vkGetDeviceBufferMemoryRequirements(pool, apiCallHandle, device, pInfo,
+                                                  pMemoryRequirements);
 }
 
 void VkDecoderGlobalState::on_vkGetDeviceImageMemoryRequirements(

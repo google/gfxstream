@@ -4312,11 +4312,11 @@ void unmarshal_VkGraphicsPipelineCreateInfo(VulkanStream* vkStream, VkStructureT
     (void)rootType;
     uint32_t hasRasterization = 1;
     if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) {
-        hasRasterization = (const uint32_t)vkStream->getBe32();
+        hasRasterization = (uint32_t)vkStream->getBe32();
     }
     uint32_t hasTessellation = 1;
     if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) {
-        hasTessellation = (const uint32_t)vkStream->getBe32();
+        hasTessellation = (uint32_t)vkStream->getBe32();
     }
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
     if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
