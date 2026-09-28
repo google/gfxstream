@@ -15,6 +15,7 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
+#include "gfxstream/common/logging.h"
 
 #ifdef __cplusplus
 #include <algorithm>

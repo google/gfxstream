@@ -4312,11 +4312,11 @@ void unmarshal_VkGraphicsPipelineCreateInfo(VulkanStream* vkStream, VkStructureT
     (void)rootType;
     uint32_t hasRasterization = 1;
     if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) {
-        hasRasterization = (const uint32_t)vkStream->getBe32();
+        hasRasterization = (uint32_t)vkStream->getBe32();
     }
     uint32_t hasTessellation = 1;
     if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) {
-        hasTessellation = (const uint32_t)vkStream->getBe32();
+        hasTessellation = (uint32_t)vkStream->getBe32();
     }
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
     if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
@@ -22774,9 +22774,8 @@ void marshal_extension_struct(VulkanStream* vkStream, VkStructureType rootType,
 #endif
         default: {
             // fatal; the switch is only taken if the extension struct is known
-            fprintf(stderr, " %s, Unhandled Vulkan structure type %s [%d], aborting.\n", __func__,
-                    string_VkStructureType(VkStructureType(structType)), structType);
-            abort();
+            GFXSTREAM_FATAL("%s, Unhandled Vulkan structure type %s [%d], aborting.", __func__,
+                            string_VkStructureType(VkStructureType(structType)), structType);
         }
     }
 }
@@ -24412,9 +24411,8 @@ void unmarshal_extension_struct(VulkanStream* vkStream, VkStructureType rootType
 #endif
         default: {
             // fatal; the switch is only taken if the extension struct is known
-            fprintf(stderr, " %s, Unhandled Vulkan structure type %s [%d], aborting.\n", __func__,
-                    string_VkStructureType(VkStructureType(structType)), structType);
-            abort();
+            GFXSTREAM_FATAL("%s, Unhandled Vulkan structure type %s [%d], aborting.", __func__,
+                            string_VkStructureType(VkStructureType(structType)), structType);
         }
     }
 }
