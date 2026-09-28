@@ -34,6 +34,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "gfxstream/common/logging.h"
+
 namespace gfxstream {
 namespace host {
 namespace vk {
@@ -3145,28 +3147,27 @@ bool vulkan_dispatch_check_instance_VK_BASE_VERSION_1_0(const VulkanDispatch* vk
 {
     bool good = true;
     if (!vk->vkCreateInstance) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCreateInstance not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkCreateInstance not found");
         good = false;
     }
     if (!vk->vkEnumerateInstanceExtensionProperties) {
-        fprintf(
-            stderr,
-            "VK_BASE_VERSION_1_0 check failed: vkEnumerateInstanceExtensionProperties not found\n");
+        GFXSTREAM_ERROR(
+            "VK_BASE_VERSION_1_0 check failed: vkEnumerateInstanceExtensionProperties not found");
         good = false;
     }
     if (!vk->vkEnumerateInstanceLayerProperties) {
-        fprintf(stderr,
-                "VK_BASE_VERSION_1_0 check failed: vkEnumerateInstanceLayerProperties not found\n");
+        GFXSTREAM_ERROR(
+            "VK_BASE_VERSION_1_0 check failed: vkEnumerateInstanceLayerProperties not found");
         good = false;
     }
     if (!vk->vkGetDeviceProcAddr) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkGetDeviceProcAddr not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkGetDeviceProcAddr not found");
         good = false;
     }
     if (!vk->vkGetPhysicalDeviceSparseImageFormatProperties) {
-        fprintf(stderr,
-                "VK_BASE_VERSION_1_0 check failed: vkGetPhysicalDeviceSparseImageFormatProperties "
-                "not found\n");
+        GFXSTREAM_ERROR(
+            "VK_BASE_VERSION_1_0 check failed: vkGetPhysicalDeviceSparseImageFormatProperties not "
+            "found");
         good = false;
     }
     return good;
@@ -3177,70 +3178,67 @@ bool vulkan_dispatch_check_instance_VK_BASE_VERSION_1_1(const VulkanDispatch* vk
 {
     bool good = true;
     if (!vk->vkEnumerateInstanceVersion) {
-        fprintf(stderr, "VK_BASE_VERSION_1_1 check failed: vkEnumerateInstanceVersion not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_1 check failed: vkEnumerateInstanceVersion not found");
         good = false;
     }
     if (!vk->vkEnumeratePhysicalDeviceGroups) {
-        fprintf(stderr,
-                "VK_BASE_VERSION_1_1 check failed: vkEnumeratePhysicalDeviceGroups not found\n");
+        GFXSTREAM_ERROR(
+            "VK_BASE_VERSION_1_1 check failed: vkEnumeratePhysicalDeviceGroups not found");
         good = false;
     }
     if (!vk->vkGetPhysicalDeviceFeatures2) {
-        fprintf(stderr,
-                "VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceFeatures2 not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceFeatures2 not found");
         good = false;
     }
     if (!vk->vkGetPhysicalDeviceProperties2) {
-        fprintf(stderr,
-                "VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceProperties2 not found\n");
+        GFXSTREAM_ERROR(
+            "VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceProperties2 not found");
         good = false;
     }
     if (!vk->vkGetPhysicalDeviceFormatProperties2) {
-        fprintf(
-            stderr,
-            "VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceFormatProperties2 not found\n");
+        GFXSTREAM_ERROR(
+            "VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceFormatProperties2 not found");
         good = false;
     }
     if (!vk->vkGetPhysicalDeviceImageFormatProperties2) {
-        fprintf(stderr,
-                "VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceImageFormatProperties2 not "
-                "found\n");
+        GFXSTREAM_ERROR(
+            "VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceImageFormatProperties2 not "
+            "found");
         good = false;
     }
     if (!vk->vkGetPhysicalDeviceQueueFamilyProperties2) {
-        fprintf(stderr,
-                "VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceQueueFamilyProperties2 not "
-                "found\n");
+        GFXSTREAM_ERROR(
+            "VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceQueueFamilyProperties2 not "
+            "found");
         good = false;
     }
     if (!vk->vkGetPhysicalDeviceMemoryProperties2) {
-        fprintf(
-            stderr,
-            "VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceMemoryProperties2 not found\n");
+        GFXSTREAM_ERROR(
+            "VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceMemoryProperties2 not found");
         good = false;
     }
     if (!vk->vkGetPhysicalDeviceSparseImageFormatProperties2) {
-        fprintf(stderr,
-                "VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceSparseImageFormatProperties2 "
-                "not found\n");
+        GFXSTREAM_ERROR(
+            "VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceSparseImageFormatProperties2 not "
+            "found");
         good = false;
     }
     if (!vk->vkGetPhysicalDeviceExternalBufferProperties) {
-        fprintf(stderr,
-                "VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceExternalBufferProperties not "
-                "found\n");
+        GFXSTREAM_ERROR(
+            "VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceExternalBufferProperties not "
+            "found");
         good = false;
     }
     if (!vk->vkGetPhysicalDeviceExternalFenceProperties) {
-        fprintf(stderr,
-                "VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceExternalFenceProperties not "
-                "found\n");
+        GFXSTREAM_ERROR(
+            "VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceExternalFenceProperties not "
+            "found");
         good = false;
     }
     if (!vk->vkGetPhysicalDeviceExternalSemaphoreProperties) {
-        fprintf(stderr,
-                "VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceExternalSemaphoreProperties "
-                "not found\n");
+        GFXSTREAM_ERROR(
+            "VK_BASE_VERSION_1_1 check failed: vkGetPhysicalDeviceExternalSemaphoreProperties not "
+            "found");
         good = false;
     }
     return good;
@@ -3251,229 +3249,226 @@ bool vulkan_dispatch_check_device_VK_BASE_VERSION_1_0(const VulkanDispatch* vk)
 {
     bool good = true;
     if (!vk->vkGetDeviceQueue) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkGetDeviceQueue not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkGetDeviceQueue not found");
         good = false;
     }
     if (!vk->vkQueueSubmit) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkQueueSubmit not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkQueueSubmit not found");
         good = false;
     }
     if (!vk->vkQueueWaitIdle) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkQueueWaitIdle not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkQueueWaitIdle not found");
         good = false;
     }
     if (!vk->vkDeviceWaitIdle) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkDeviceWaitIdle not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkDeviceWaitIdle not found");
         good = false;
     }
     if (!vk->vkAllocateMemory) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkAllocateMemory not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkAllocateMemory not found");
         good = false;
     }
     if (!vk->vkFreeMemory) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkFreeMemory not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkFreeMemory not found");
         good = false;
     }
     if (!vk->vkMapMemory) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkMapMemory not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkMapMemory not found");
         good = false;
     }
     if (!vk->vkUnmapMemory) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkUnmapMemory not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkUnmapMemory not found");
         good = false;
     }
     if (!vk->vkFlushMappedMemoryRanges) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkFlushMappedMemoryRanges not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkFlushMappedMemoryRanges not found");
         good = false;
     }
     if (!vk->vkInvalidateMappedMemoryRanges) {
-        fprintf(stderr,
-                "VK_BASE_VERSION_1_0 check failed: vkInvalidateMappedMemoryRanges not found\n");
+        GFXSTREAM_ERROR(
+            "VK_BASE_VERSION_1_0 check failed: vkInvalidateMappedMemoryRanges not found");
         good = false;
     }
     if (!vk->vkGetDeviceMemoryCommitment) {
-        fprintf(stderr,
-                "VK_BASE_VERSION_1_0 check failed: vkGetDeviceMemoryCommitment not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkGetDeviceMemoryCommitment not found");
         good = false;
     }
     if (!vk->vkBindBufferMemory) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkBindBufferMemory not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkBindBufferMemory not found");
         good = false;
     }
     if (!vk->vkBindImageMemory) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkBindImageMemory not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkBindImageMemory not found");
         good = false;
     }
     if (!vk->vkGetBufferMemoryRequirements) {
-        fprintf(stderr,
-                "VK_BASE_VERSION_1_0 check failed: vkGetBufferMemoryRequirements not found\n");
+        GFXSTREAM_ERROR(
+            "VK_BASE_VERSION_1_0 check failed: vkGetBufferMemoryRequirements not found");
         good = false;
     }
     if (!vk->vkGetImageMemoryRequirements) {
-        fprintf(stderr,
-                "VK_BASE_VERSION_1_0 check failed: vkGetImageMemoryRequirements not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkGetImageMemoryRequirements not found");
         good = false;
     }
     if (!vk->vkGetImageSparseMemoryRequirements) {
-        fprintf(stderr,
-                "VK_BASE_VERSION_1_0 check failed: vkGetImageSparseMemoryRequirements not found\n");
+        GFXSTREAM_ERROR(
+            "VK_BASE_VERSION_1_0 check failed: vkGetImageSparseMemoryRequirements not found");
         good = false;
     }
     if (!vk->vkQueueBindSparse) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkQueueBindSparse not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkQueueBindSparse not found");
         good = false;
     }
     if (!vk->vkCreateFence) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCreateFence not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkCreateFence not found");
         good = false;
     }
     if (!vk->vkDestroyFence) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkDestroyFence not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkDestroyFence not found");
         good = false;
     }
     if (!vk->vkResetFences) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkResetFences not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkResetFences not found");
         good = false;
     }
     if (!vk->vkGetFenceStatus) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkGetFenceStatus not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkGetFenceStatus not found");
         good = false;
     }
     if (!vk->vkWaitForFences) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkWaitForFences not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkWaitForFences not found");
         good = false;
     }
     if (!vk->vkCreateSemaphore) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCreateSemaphore not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkCreateSemaphore not found");
         good = false;
     }
     if (!vk->vkDestroySemaphore) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkDestroySemaphore not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkDestroySemaphore not found");
         good = false;
     }
     if (!vk->vkCreateQueryPool) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCreateQueryPool not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkCreateQueryPool not found");
         good = false;
     }
     if (!vk->vkDestroyQueryPool) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkDestroyQueryPool not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkDestroyQueryPool not found");
         good = false;
     }
     if (!vk->vkGetQueryPoolResults) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkGetQueryPoolResults not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkGetQueryPoolResults not found");
         good = false;
     }
     if (!vk->vkCreateBuffer) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCreateBuffer not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkCreateBuffer not found");
         good = false;
     }
     if (!vk->vkDestroyBuffer) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkDestroyBuffer not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkDestroyBuffer not found");
         good = false;
     }
     if (!vk->vkCreateImage) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCreateImage not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkCreateImage not found");
         good = false;
     }
     if (!vk->vkDestroyImage) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkDestroyImage not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkDestroyImage not found");
         good = false;
     }
     if (!vk->vkGetImageSubresourceLayout) {
-        fprintf(stderr,
-                "VK_BASE_VERSION_1_0 check failed: vkGetImageSubresourceLayout not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkGetImageSubresourceLayout not found");
         good = false;
     }
     if (!vk->vkCreateImageView) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCreateImageView not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkCreateImageView not found");
         good = false;
     }
     if (!vk->vkDestroyImageView) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkDestroyImageView not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkDestroyImageView not found");
         good = false;
     }
     if (!vk->vkCreateCommandPool) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCreateCommandPool not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkCreateCommandPool not found");
         good = false;
     }
     if (!vk->vkDestroyCommandPool) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkDestroyCommandPool not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkDestroyCommandPool not found");
         good = false;
     }
     if (!vk->vkResetCommandPool) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkResetCommandPool not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkResetCommandPool not found");
         good = false;
     }
     if (!vk->vkAllocateCommandBuffers) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkAllocateCommandBuffers not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkAllocateCommandBuffers not found");
         good = false;
     }
     if (!vk->vkFreeCommandBuffers) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkFreeCommandBuffers not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkFreeCommandBuffers not found");
         good = false;
     }
     if (!vk->vkBeginCommandBuffer) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkBeginCommandBuffer not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkBeginCommandBuffer not found");
         good = false;
     }
     if (!vk->vkEndCommandBuffer) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkEndCommandBuffer not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkEndCommandBuffer not found");
         good = false;
     }
     if (!vk->vkResetCommandBuffer) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkResetCommandBuffer not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkResetCommandBuffer not found");
         good = false;
     }
     if (!vk->vkCmdCopyBuffer) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCmdCopyBuffer not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkCmdCopyBuffer not found");
         good = false;
     }
     if (!vk->vkCmdCopyImage) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCmdCopyImage not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkCmdCopyImage not found");
         good = false;
     }
     if (!vk->vkCmdCopyBufferToImage) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCmdCopyBufferToImage not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkCmdCopyBufferToImage not found");
         good = false;
     }
     if (!vk->vkCmdCopyImageToBuffer) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCmdCopyImageToBuffer not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkCmdCopyImageToBuffer not found");
         good = false;
     }
     if (!vk->vkCmdUpdateBuffer) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCmdUpdateBuffer not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkCmdUpdateBuffer not found");
         good = false;
     }
     if (!vk->vkCmdFillBuffer) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCmdFillBuffer not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkCmdFillBuffer not found");
         good = false;
     }
     if (!vk->vkCmdPipelineBarrier) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCmdPipelineBarrier not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkCmdPipelineBarrier not found");
         good = false;
     }
     if (!vk->vkCmdBeginQuery) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCmdBeginQuery not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkCmdBeginQuery not found");
         good = false;
     }
     if (!vk->vkCmdEndQuery) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCmdEndQuery not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkCmdEndQuery not found");
         good = false;
     }
     if (!vk->vkCmdResetQueryPool) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCmdResetQueryPool not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkCmdResetQueryPool not found");
         good = false;
     }
     if (!vk->vkCmdWriteTimestamp) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCmdWriteTimestamp not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkCmdWriteTimestamp not found");
         good = false;
     }
     if (!vk->vkCmdCopyQueryPoolResults) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCmdCopyQueryPoolResults not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkCmdCopyQueryPoolResults not found");
         good = false;
     }
     if (!vk->vkCmdExecuteCommands) {
-        fprintf(stderr, "VK_BASE_VERSION_1_0 check failed: vkCmdExecuteCommands not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_0 check failed: vkCmdExecuteCommands not found");
         good = false;
     }
     return good;
@@ -3484,44 +3479,43 @@ bool vulkan_dispatch_check_device_VK_BASE_VERSION_1_1(const VulkanDispatch* vk)
 {
     bool good = true;
     if (!vk->vkBindBufferMemory2) {
-        fprintf(stderr, "VK_BASE_VERSION_1_1 check failed: vkBindBufferMemory2 not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_1 check failed: vkBindBufferMemory2 not found");
         good = false;
     }
     if (!vk->vkBindImageMemory2) {
-        fprintf(stderr, "VK_BASE_VERSION_1_1 check failed: vkBindImageMemory2 not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_1 check failed: vkBindImageMemory2 not found");
         good = false;
     }
     if (!vk->vkGetDeviceGroupPeerMemoryFeatures) {
-        fprintf(stderr,
-                "VK_BASE_VERSION_1_1 check failed: vkGetDeviceGroupPeerMemoryFeatures not found\n");
+        GFXSTREAM_ERROR(
+            "VK_BASE_VERSION_1_1 check failed: vkGetDeviceGroupPeerMemoryFeatures not found");
         good = false;
     }
     if (!vk->vkCmdSetDeviceMask) {
-        fprintf(stderr, "VK_BASE_VERSION_1_1 check failed: vkCmdSetDeviceMask not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_1 check failed: vkCmdSetDeviceMask not found");
         good = false;
     }
     if (!vk->vkGetImageMemoryRequirements2) {
-        fprintf(stderr,
-                "VK_BASE_VERSION_1_1 check failed: vkGetImageMemoryRequirements2 not found\n");
+        GFXSTREAM_ERROR(
+            "VK_BASE_VERSION_1_1 check failed: vkGetImageMemoryRequirements2 not found");
         good = false;
     }
     if (!vk->vkGetBufferMemoryRequirements2) {
-        fprintf(stderr,
-                "VK_BASE_VERSION_1_1 check failed: vkGetBufferMemoryRequirements2 not found\n");
+        GFXSTREAM_ERROR(
+            "VK_BASE_VERSION_1_1 check failed: vkGetBufferMemoryRequirements2 not found");
         good = false;
     }
     if (!vk->vkGetImageSparseMemoryRequirements2) {
-        fprintf(
-            stderr,
-            "VK_BASE_VERSION_1_1 check failed: vkGetImageSparseMemoryRequirements2 not found\n");
+        GFXSTREAM_ERROR(
+            "VK_BASE_VERSION_1_1 check failed: vkGetImageSparseMemoryRequirements2 not found");
         good = false;
     }
     if (!vk->vkTrimCommandPool) {
-        fprintf(stderr, "VK_BASE_VERSION_1_1 check failed: vkTrimCommandPool not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_1 check failed: vkTrimCommandPool not found");
         good = false;
     }
     if (!vk->vkGetDeviceQueue2) {
-        fprintf(stderr, "VK_BASE_VERSION_1_1 check failed: vkGetDeviceQueue2 not found\n");
+        GFXSTREAM_ERROR("VK_BASE_VERSION_1_1 check failed: vkGetDeviceQueue2 not found");
         good = false;
     }
     return good;
