@@ -3194,7 +3194,12 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height,
         VkImageMemoryRequirementsInfo2 info{VK_STRUCTURE_TYPE_IMAGE_MEMORY_REQUIREMENTS_INFO_2,
                                             nullptr, infoPtr->image};
         vk->vkGetImageMemoryRequirements2KHR(mDevice, &info, &reqs);
-        useDedicated = dedicated_reqs.requiresDedicatedAllocation;
+        // Also honor prefersDedicatedAllocation: ColorBuffer memory is exported and bound again
+        // in the guests' VkDevices. On NVIDIA (Windows) a few percent of non-dedicated
+        // ColorBuffers read back as all zero through this VkDevice while other guest devices
+        // see the rendered content.
+        useDedicated = dedicated_reqs.requiresDedicatedAllocation ||
+                       dedicated_reqs.prefersDedicatedAllocation;
         infoPtr->imageMemReqs = reqs.memoryRequirements;
     } else {
         vk->vkGetImageMemoryRequirements(mDevice, infoPtr->image, &infoPtr->imageMemReqs);
