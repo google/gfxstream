@@ -11,80 +11,38 @@ permissions:
   contents: read
 
 jobs:
-  postsubmit-populate-bazel-cache:
-    # Only run in the upstream repository; skip in forks.
-    if: github.repository == 'google/gfxstream'
-    runs-on: ubuntu-22.04
-    steps:
-    - name: Free disk space
-      uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be  # v1.3.1
-      with:
-        tool-cache: true
-    - name: Checkout repository
-      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
-    - name: Install bazel
-      run: sudo bash toolchain/bazel/install_bazel.sh
-    - name: Install toolchain dependencies
-      run: sudo bash toolchain/bazel/install_toolchain_dependencies.sh
-    - name: Load cache config
-      run: cat .config/cache-config.env >> $GITHUB_ENV
-    - name: Mount bazel cache
-      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
-      with:
-        path: "~/bazel-disk-cache"
-        key: ${{ format('{0}-{1}-bazel-disk-cache-{2}-{3}-{4}-{5}', runner.os, runner.arch, env.CACHE_VERSION, github.ref_name, github.sha, github.event_name) }}
-        restore-keys: |
-          ${{ github.event_name == 'push' && format('{0}-{1}-bazel-disk-cache-{2}-{3}-{4}-', runner.os, runner.arch, env.CACHE_VERSION, github.ref_name, github.sha) || '' }}
-          ${{ github.event_name == 'push' && format('{0}-{1}-bazel-disk-cache-{2}-{3}-', runner.os, runner.arch, env.CACHE_VERSION, github.ref_name) || '' }}
-          ${{ github.event_name == 'push' && format('{0}-{1}-bazel-disk-cache-{2}-main-', runner.os, runner.arch, env.CACHE_VERSION) || '' }}
-          ${{ github.event_name == 'push' && format('{0}-{1}-bazel-disk-cache-{2}-', runner.os, runner.arch, env.CACHE_VERSION) || '' }}
-    - name: Build with Lavapipe
-      run: |
-        bazel build ... \
-          --disk_cache=$HOME/bazel-disk-cache \
-          --graphics_drivers=gles_angle_vulkan_lavapipe \
-          --verbose_failures
-    - name: Build with SwiftShader
-      run: |
-        bazel build ... \
-          --disk_cache=$HOME/bazel-disk-cache \
-          --graphics_drivers=gles_angle_vulkan_swiftshader \
-          --verbose_failures
+  postsubmit-populate-bazel-cache-lavapipe:
+    uses: ./.github/workflows/postsubmit_bazel.yml
+    with:
+      additional-bazel-args: --graphics_drivers=gles_angle_vulkan_lavapipe
+      cache-config: lavapipe
+      runner: ubuntu-22.04
+
+  postsubmit-populate-bazel-cache-swiftshader:
+    uses: ./.github/workflows/postsubmit_bazel.yml
+    with:
+      additional-bazel-args: --graphics_drivers=gles_angle_vulkan_swiftshader
+      cache-config: swiftshader
+      runner: ubuntu-22.04
+
+  postsubmit-populate-bazel-cache-swiftshader-asan:
+    uses: ./.github/workflows/postsubmit_bazel.yml
+    with:
+      additional-bazel-args: --graphics_drivers=gles_angle_vulkan_swiftshader --config=asan
+      cache-config: swiftshader-asan
+      runner: ubuntu-22.04
+
   postsubmit-populate-bazel-cache-arm:
-    # Only run in the upstream repository; skip in forks.
-    if: github.repository == 'google/gfxstream'
-    runs-on: ubuntu-22.04-arm
-    steps:
-    - name: Free disk space
-      uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be  # v1.3.1
-      with:
-        tool-cache: true
-    - name: Checkout repository
-      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
-    - name: Install bazel
-      run: sudo bash toolchain/bazel/install_bazel.sh
-    - name: Install toolchain dependencies
-      run: sudo bash toolchain/bazel/install_toolchain_dependencies.sh
-    - name: Load cache config
-      run: cat .config/cache-config.env >> $GITHUB_ENV
-    - name: Mount bazel cache
-      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
-      with:
-        path: "~/bazel-disk-cache"
-        key: ${{ format('{0}-{1}-bazel-disk-cache-{2}-debian-package-{3}-{4}-{5}', runner.os, runner.arch, env.CACHE_VERSION, github.ref_name, github.sha, github.event_name) }}
-        restore-keys: |
-          ${{ github.event_name == 'push' && format('{0}-{1}-bazel-disk-cache-{2}-debian-package-{3}-', runner.os, runner.arch, env.CACHE_VERSION, github.ref_name) || '' }}
-          ${{ github.event_name == 'push' && format('{0}-{1}-bazel-disk-cache-{2}-debian-package-main-', runner.os, runner.arch, env.CACHE_VERSION) || '' }}
-          ${{ github.event_name == 'push' && format('{0}-{1}-bazel-disk-cache-{2}-debian-package-', runner.os, runner.arch, env.CACHE_VERSION) || '' }}
-    - name: Build with Lavapipe
-      run: |
-        bazel build ... \
-          --disk_cache=$HOME/bazel-disk-cache \
-          --graphics_drivers=gles_angle_vulkan_lavapipe \
-          --verbose_failures
-    - name: Build with SwiftShader
-      run: |
-        bazel build ... \
-          --disk_cache=$HOME/bazel-disk-cache \
-          --graphics_drivers=gles_angle_vulkan_swiftshader \
-          --verbose_failures
+    uses: ./.github/workflows/postsubmit_bazel.yml
+    with:
+      runner: ubuntu-22.04-arm
+
+  postsubmit-populate-bazel-cache-macos:
+    uses: ./.github/workflows/postsubmit_bazel.yml
+    with:
+      runner: macos-26
+      build-targets: >-
+        //host:gfxstream_backend_static
+        //host:gfxstream_backend_shared
+        //host:gfxstream_backend
+        //common/base:gfxstream_common_base_tests

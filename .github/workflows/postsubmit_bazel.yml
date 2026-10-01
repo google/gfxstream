@@ -1,4 +1,4 @@
-name: Build and run Gfxstream tests via Bazel
+name: Build and populate Gfxstream Bazel cache
 
 on:
   workflow_call:
@@ -8,13 +8,14 @@ on:
         type: string
         required: true
 
-      # Additional args used in `bazel build <args>` and `bazel test <args>`:
+      # Additional args used in `bazel build <args>`:
       additional-bazel-args:
         type: string
         default: ''
 
       # Cache configuration identifier used to isolate incompatible build
-      # configurations (e.g. 'default' vs 'asan') into separate cache keys:
+      # configurations (e.g. 'default', 'lavapipe', 'swiftshader', 'asan') into
+      # separate cache keys:
       cache-config:
         type: string
         default: 'default'
@@ -26,28 +27,13 @@ on:
         type: string
         default: '...'
 
-      # Whether or not to run the `bazel test` step:
-      run-tests:
-        type: boolean
-        default: true
-
-      # Which tests to run. Defaults to the full suite; platforms that can only
-      # build part of the target graph can override this with a curated list.
-      test-targets:
-        type: string
-        default: >-
-          host:gfxstream_framebuffer_tests
-          host/vulkan:gfxstream_compositorvk_tests
-          host/vulkan:gfxstream_emulatedphysicalmemory_tests
-          host/vulkan:vk_common_operations_tests
-          host/vulkan:vk_format_utils_tests
-          tests/end2end:gfxstream_end2end_tests
-
 permissions:
   contents: read
 
 jobs:
-  presubmit_bazel_workflow:
+  postsubmit_bazel_workflow:
+    # Only run in the upstream repository; skip in forks.
+    if: github.repository == 'google/gfxstream'
     runs-on: ${{ inputs.runner }}
     steps:
     - name: Free disk space
@@ -71,10 +57,6 @@ jobs:
       if: runner.os == 'Linux'
       run: sudo bash toolchain/bazel/install_toolchain_dependencies.sh
 
-    - name: Install runtime dependencies (Linux)
-      if: runner.os == 'Linux'
-      run: sudo apt-get install -y libvulkan1
-
     - name: Install bazel (macOS)
       if: runner.os == 'macOS'
       run: brew install bazelisk
@@ -83,14 +65,15 @@ jobs:
       run: cat .config/cache-config.env >> $GITHUB_ENV
 
     - name: Mount Bazel cache
-      uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25  # v5.1.0
+      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25  # v5.1.0
       with:
         path: "~/bazel-disk-cache"
-        key: ${{ format('{0}-{1}-bazel-disk-cache-{2}-{3}-{4}-{5}-', runner.os, runner.arch, env.CACHE_VERSION, inputs.cache-config, github.ref_name, github.sha) }}
+        key: ${{ format('{0}-{1}-bazel-disk-cache-{2}-{3}-{4}-{5}-{6}', runner.os, runner.arch, env.CACHE_VERSION, inputs.cache-config, github.ref_name, github.sha, github.event_name) }}
         restore-keys: |
-          ${{ format('{0}-{1}-bazel-disk-cache-{2}-{3}-{4}-', runner.os, runner.arch, env.CACHE_VERSION, inputs.cache-config, github.ref_name) || '' }}
-          ${{ format('{0}-{1}-bazel-disk-cache-{2}-{3}-main-', runner.os, runner.arch, env.CACHE_VERSION, inputs.cache-config) || '' }}
-          ${{ format('{0}-{1}-bazel-disk-cache-{2}-{3}-', runner.os, runner.arch, env.CACHE_VERSION, inputs.cache-config) || '' }}
+          ${{ github.event_name == 'push' && format('{0}-{1}-bazel-disk-cache-{2}-{3}-{4}-{5}-', runner.os, runner.arch, env.CACHE_VERSION, inputs.cache-config, github.ref_name, github.sha) || '' }}
+          ${{ github.event_name == 'push' && format('{0}-{1}-bazel-disk-cache-{2}-{3}-{4}-', runner.os, runner.arch, env.CACHE_VERSION, inputs.cache-config, github.ref_name) || '' }}
+          ${{ github.event_name == 'push' && format('{0}-{1}-bazel-disk-cache-{2}-{3}-main-', runner.os, runner.arch, env.CACHE_VERSION, inputs.cache-config) || '' }}
+          ${{ github.event_name == 'push' && format('{0}-{1}-bazel-disk-cache-{2}-{3}-', runner.os, runner.arch, env.CACHE_VERSION, inputs.cache-config) || '' }}
 
     - name: Build
       # Workflow inputs reach the script through the environment rather than
@@ -103,17 +86,5 @@ jobs:
       run: |
         bazel build $BUILD_TARGETS \
           --disk_cache=$HOME/bazel-disk-cache \
-          --verbose_failures \
-          $ADDITIONAL_BAZEL_ARGS
-
-    - name: Test
-      if: ${{ inputs.run-tests }}
-      env:
-        TEST_TARGETS: ${{ inputs.test-targets }}
-        ADDITIONAL_BAZEL_ARGS: ${{ inputs.additional-bazel-args }}
-      run: |
-        bazel test $TEST_TARGETS \
-          --disk_cache=$HOME/bazel-disk-cache \
-          --test_output=streamed \
           --verbose_failures \
           $ADDITIONAL_BAZEL_ARGS
