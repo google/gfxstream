@@ -120,7 +120,47 @@ void validateNewHandleInfoEntry(const std::unordered_map<T, K>& vkObjectMap, con
     }
 }
 
-static VK_EXT_SYNC_HANDLE dupExternalSync(VK_EXT_SYNC_HANDLE h) {
+bool isValidImageLayoutForSnapshot(uint32_t layout) {
+    // TODO(b/535587757): some of these don't make sense in snapshot (e.g. undefined).
+    // For the layouts that don't make sense, we should skip or transition before saving.
+    switch (layout) {
+        case VK_IMAGE_LAYOUT_UNDEFINED: return true;
+        case VK_IMAGE_LAYOUT_GENERAL: return true;
+        case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL: return true;
+        case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL: return true;
+        case VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL: return true;
+        case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL: return true;
+        case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL: return true;
+        case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL: return true;
+        case VK_IMAGE_LAYOUT_PREINITIALIZED: return true;
+        case VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL: return true;
+        case VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL: return true;
+        case VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL: return true;
+        case VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL: return true;
+        case VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL: return true;
+        case VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL: return true;
+        case VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL: return true;
+        case VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL: return true;
+        case VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ: return true;
+        case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR: return true;
+        case VK_IMAGE_LAYOUT_VIDEO_DECODE_DST_KHR: return true;
+        case VK_IMAGE_LAYOUT_VIDEO_DECODE_SRC_KHR: return true;
+        case VK_IMAGE_LAYOUT_VIDEO_DECODE_DPB_KHR: return true;
+        case VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR: return true;
+        case VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT: return true;
+        case VK_IMAGE_LAYOUT_FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL_KHR: return true;
+        case VK_IMAGE_LAYOUT_VIDEO_ENCODE_DST_KHR: return true;
+        case VK_IMAGE_LAYOUT_VIDEO_ENCODE_SRC_KHR: return true;
+        case VK_IMAGE_LAYOUT_VIDEO_ENCODE_DPB_KHR: return true;
+        case VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT: return true;
+        case VK_IMAGE_LAYOUT_TENSOR_ALIASING_ARM: return true;
+        case VK_IMAGE_LAYOUT_VIDEO_ENCODE_QUANTIZATION_MAP_KHR: return true;
+        case VK_IMAGE_LAYOUT_ZERO_INITIALIZED_EXT: return true;
+        default: return false;
+    }
+}
+
+VK_EXT_SYNC_HANDLE dupExternalSync(VK_EXT_SYNC_HANDLE h) {
 #ifdef _WIN32
     auto myProcessHandle = GetCurrentProcess();
     VK_EXT_SYNC_HANDLE res;
@@ -635,11 +675,13 @@ class VkDecoderGlobalState::Impl {
         for (const auto& boxedBuffer : sortedBoxedBuffers) {
             auto unboxedBuffer = try_unbox_VkBuffer(boxedBuffer);
             if (unboxedBuffer == VK_NULL_HANDLE) {
-                // TODO(b/294277842): should return an error here.
-                continue;
+                GFXSTREAM_ERROR("Failed to unbox VkBuffer %p when saving snapshot.", boxedBuffer);
+                return false;
             }
             const BufferInfo& bufferInfo = mBufferInfo[unboxedBuffer];
-            if (bufferInfo.memory == VK_NULL_HANDLE) {
+            const bool hasContentToSave = (bufferInfo.memory != VK_NULL_HANDLE);
+            stream->putBe32(hasContentToSave ? 1 : 0);
+            if (!hasContentToSave) {
                 continue;
             }
             // TODO: add a special case for host mapped memory
@@ -664,19 +706,26 @@ class VkDecoderGlobalState::Impl {
         for (const auto& boxedImage : sortedBoxedImages) {
             auto unboxedImage = try_unbox_VkImage(boxedImage);
             if (unboxedImage == VK_NULL_HANDLE) {
-                // TODO(b/294277842): should return an error here.
-                continue;
+                GFXSTREAM_ERROR("Failed to unbox VkImage %p when saving snapshot.", boxedImage);
+                return false;
             }
             const ImageInfo& imageInfo = mImageInfo[unboxedImage];
-            if (imageInfo.memory == VK_NULL_HANDLE) {
+
+            // Color buffer is saved in ColorBufferVk already
+            const bool hasContentToSave =
+                (imageInfo.memory != VK_NULL_HANDLE) && !isMemoryBoundToColorBuffer(imageInfo.memory);
+            stream->putBe32(hasContentToSave ? 1 : 0);
+            if (!hasContentToSave) {
                 continue;
             }
-            if (isMemoryBoundToColorBuffer(imageInfo.memory)) {
-                // color buffer is saved in ColorBufferVk already
-                continue;
+
+            uint32_t layoutVal = static_cast<uint32_t>(imageInfo.layout);
+            if (!isValidImageLayoutForSnapshot(layoutVal)) {
+                GFXSTREAM_ERROR("Snapshot save: image %p layout %u is invalid", boxedImage, layoutVal);
+                return false;
             }
             // Vulkan command playback doesn't recover image layout. We need to do it here.
-            stream->putBe32(imageInfo.layout);
+            stream->putBe32(layoutVal);
 
             StateBlock stateBlock = createSnapshotStateBlock(imageInfo.device);
             // TODO(b/294277842): make sure the queue is empty before using.
@@ -1050,10 +1099,19 @@ class VkDecoderGlobalState::Impl {
             }
             sort(sortedBoxedBuffers.begin(), sortedBoxedBuffers.end());
             for (const auto& boxedBuffer : sortedBoxedBuffers) {
-                auto unboxedBuffer = unbox_VkBuffer(boxedBuffer);
+                auto unboxedBuffer = try_unbox_VkBuffer(boxedBuffer);
+                if (unboxedBuffer == VK_NULL_HANDLE) {
+                    GFXSTREAM_ERROR("Failed to unbox VkBuffer %p when loading snapshot.", boxedBuffer);
+                    return false;
+                }
                 const BufferInfo& bufferInfo = mBufferInfo[unboxedBuffer];
-                if (bufferInfo.memory == VK_NULL_HANDLE) {
+                const bool hasContentToLoad = stream->getBe32() == 1;
+                if (!hasContentToLoad) {
                     continue;
+                }
+                if (bufferInfo.memory == VK_NULL_HANDLE) {
+                    GFXSTREAM_ERROR("Snapshot load failure: buffer %p has content to load but no memory.", boxedBuffer);
+                    return false;
                 }
                 // TODO: add a special case for host mapped memory
                 StateBlock stateBlock = createSnapshotStateBlock(bufferInfo.device);
@@ -1073,15 +1131,28 @@ class VkDecoderGlobalState::Impl {
             }
             sort(sortedBoxedImages.begin(), sortedBoxedImages.end());
             for (const auto& boxedImage : sortedBoxedImages) {
-                auto unboxedImage = unbox_VkImage(boxedImage);
+                auto unboxedImage = try_unbox_VkImage(boxedImage);
+                if (unboxedImage == VK_NULL_HANDLE) {
+                    GFXSTREAM_ERROR(
+                        "Failed to unbox VkImage %p when loading snapshot.", boxedImage);
+                    return false;
+                }
+
                 ImageInfo& imageInfo = mImageInfo[unboxedImage];
-                if (imageInfo.memory == VK_NULL_HANDLE) {
+
+                const bool hasContentToLoad = (stream->getBe32() == 1);
+                if (!hasContentToLoad) {
                     continue;
                 }
-                if (isMemoryBoundToColorBuffer(imageInfo.memory)) {
-                    // color buffer is loaded in ColorBufferVk already
-                    continue;
+
+                if (imageInfo.memory == VK_NULL_HANDLE || isMemoryBoundToColorBuffer(imageInfo.memory)) {
+                    // Color buffer should have been handled by ColorBufferVk already
+                    // and saved with 'hasContentToSave' set to false.
+                    GFXSTREAM_ERROR("Cannot load image %p with content in the snapshot",
+                                    boxedImage);
+                    return false;
                 }
+
                 // Playback doesn't recover image layout. We need to do it here.
                 //
                 // Layout transform was done by vkCmdPipelineBarrier but we don't record such
@@ -1091,9 +1162,15 @@ class VkDecoderGlobalState::Impl {
                 // We do the layout transform in loadImageContent. There are still use cases where
                 // it should recover the layout but does not.
                 //
-                // TODO(b/323059453): fix corner cases when image contents cannot be properly
-                // loaded.
-                imageInfo.layout = static_cast<VkImageLayout>(stream->getBe32());
+                uint32_t layoutRead = stream->getBe32();
+                if (!isValidImageLayoutForSnapshot(layoutRead)) {
+                    // We check this when saving the layout, so it should never happen here unless
+                    // the stream is corrupted.
+                    GFXSTREAM_ERROR("Snapshot load: image %p layout %u is invalid", boxedImage,
+                                    layoutRead);
+                    return false;
+                }
+                imageInfo.layout = static_cast<VkImageLayout>(layoutRead);
                 StateBlock stateBlock = createSnapshotStateBlock(imageInfo.device);
                 // TODO(b/294277842): make sure the queue is empty before using.
                 if (!loadImageContent(stream, &stateBlock, unboxedImage, &imageInfo)) {
@@ -8799,7 +8876,18 @@ class VkDecoderGlobalState::Impl {
             return imageCreateRes;
         }
 
-        on_vkGetImageMemoryRequirements(pool, apiCallHandle, boxed_device, unbox_VkImage(*pImage),
+        VkImage image = try_unbox_VkImage(*pImage);
+        if (image == VK_NULL_HANDLE) {
+            // This should not happen on valid Vulkan apps and the boxed image
+            // should stay valid until the end of this call even after moving out
+            // of the lock, but better to avoid crashes with invalid inputs.
+            GFXSTREAM_ERROR("Failed to unbox VkImage %p when creating image with requirements.", *pImage);
+            on_vkDestroyImage(pool, apiCallHandle, boxed_device, *pImage, nullptr);
+            *pImage = VK_NULL_HANDLE;
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
+        }
+
+        on_vkGetImageMemoryRequirements(pool, apiCallHandle, boxed_device, image,
                                         pMemoryRequirements);
 
         return imageCreateRes;
@@ -8819,9 +8907,18 @@ class VkDecoderGlobalState::Impl {
         if (bufferCreateRes != VK_SUCCESS) {
             return bufferCreateRes;
         }
+        VkBuffer buffer = try_unbox_VkBuffer(*pBuffer);
+        if (buffer == VK_NULL_HANDLE) {
+            // This should not happen on valid Vulkan apps and the boxed buffer
+            // should stay valid until the end of this call even after moving out
+            // of the lock, but better to avoid crashes with invalid inputs.
+            GFXSTREAM_ERROR("Failed to unbox VkBuffer %p when creating buffer with requirements.", *pBuffer);
+            on_vkDestroyBuffer(pool, apiCallHandle, boxed_device, *pBuffer, nullptr);
+            *pBuffer = VK_NULL_HANDLE;
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
+        }
 
-        on_vkGetBufferMemoryRequirements(pool, apiCallHandle, boxed_device, unbox_VkBuffer(*pBuffer),
-                                         pMemoryRequirements);
+        on_vkGetBufferMemoryRequirements(pool, apiCallHandle, boxed_device, buffer, pMemoryRequirements);
 
         return bufferCreateRes;
     }
