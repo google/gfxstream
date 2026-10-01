@@ -177,6 +177,111 @@ static constexpr uint64_t kPageMaskForBlob = ~(0xfff);
 static std::atomic<uint64_t> sNextHostBlobId{1};
 static std::atomic<uint64_t> sUniqueShmemId = 0;
 
+static bool isDescriptorTypeImageInfo(VkDescriptorType descType) {
+    return (descType == VK_DESCRIPTOR_TYPE_SAMPLER) ||
+           (descType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) ||
+           (descType == VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE) ||
+           (descType == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE) ||
+           (descType == VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT);
+}
+
+static bool isDescriptorTypeBufferInfo(VkDescriptorType descType) {
+    return (descType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) ||
+           (descType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC) ||
+           (descType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER) ||
+           (descType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC);
+}
+
+static bool isDescriptorTypeBufferView(VkDescriptorType descType) {
+    return (descType == VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER) ||
+           (descType == VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER);
+}
+
+static DescriptorUpdateTemplateInfo calcLinearizedDescriptorUpdateTemplateInfo(
+    const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo) {
+    DescriptorUpdateTemplateInfo res;
+    res.createInfo = *pCreateInfo;
+
+    size_t numImageInfos = 0;
+    size_t numBufferInfos = 0;
+    size_t numBufferViews = 0;
+    size_t numInlineUniformBlocks = 0;
+
+    for (uint32_t i = 0; i < pCreateInfo->descriptorUpdateEntryCount; ++i) {
+        const auto& entry = pCreateInfo->pDescriptorUpdateEntries[i];
+        auto type = entry.descriptorType;
+        auto count = entry.descriptorCount;
+        if (isDescriptorTypeImageInfo(type)) {
+            numImageInfos += count;
+        } else if (isDescriptorTypeBufferInfo(type)) {
+            numBufferInfos += count;
+        } else if (isDescriptorTypeBufferView(type)) {
+            numBufferViews += count;
+        } else if (type == VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT) {
+            numInlineUniformBlocks += count;
+        } else {
+            const std::string typeString = string_VkDescriptorType(type);
+            GFXSTREAM_FATAL("Unhandled descriptor type %s.", typeString.c_str());
+        }
+    }
+
+    size_t imageInfoBytes = numImageInfos * sizeof(VkDescriptorImageInfo);
+    size_t bufferInfoBytes = numBufferInfos * sizeof(VkDescriptorBufferInfo);
+    size_t bufferViewBytes = numBufferViews * sizeof(VkBufferView);
+    size_t inlineUniformBlockBytes = numInlineUniformBlocks;
+
+    res.data.resize(imageInfoBytes + bufferInfoBytes + bufferViewBytes + inlineUniformBlockBytes);
+    res.imageInfoStart = 0;
+    res.imageInfoCount = numImageInfos;
+    res.bufferInfoStart = imageInfoBytes;
+    res.bufferInfoCount = numBufferInfos;
+    res.bufferViewStart = imageInfoBytes + bufferInfoBytes;
+    res.bufferViewCount = numBufferViews;
+    res.inlineUniformBlockStart = imageInfoBytes + bufferInfoBytes + bufferViewBytes;
+    res.inlineUniformBlockCount = numInlineUniformBlocks;
+
+    size_t imageInfoCount = 0;
+    size_t bufferInfoCount = 0;
+    size_t bufferViewCount = 0;
+    size_t inlineUniformBlockCount = 0;
+
+    for (uint32_t i = 0; i < pCreateInfo->descriptorUpdateEntryCount; ++i) {
+        const auto& entry = pCreateInfo->pDescriptorUpdateEntries[i];
+        VkDescriptorUpdateTemplateEntry entryForHost = entry;
+
+        auto type = entry.descriptorType;
+
+        if (isDescriptorTypeImageInfo(type)) {
+            entryForHost.offset =
+                res.imageInfoStart + imageInfoCount * sizeof(VkDescriptorImageInfo);
+            entryForHost.stride = sizeof(VkDescriptorImageInfo);
+            ++imageInfoCount;
+        } else if (isDescriptorTypeBufferInfo(type)) {
+            entryForHost.offset =
+                res.bufferInfoStart + bufferInfoCount * sizeof(VkDescriptorBufferInfo);
+            entryForHost.stride = sizeof(VkDescriptorBufferInfo);
+            ++bufferInfoCount;
+        } else if (isDescriptorTypeBufferView(type)) {
+            entryForHost.offset = res.bufferViewStart + bufferViewCount * sizeof(VkBufferView);
+            entryForHost.stride = sizeof(VkBufferView);
+            ++bufferViewCount;
+        } else if (type == VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT) {
+            entryForHost.offset = res.inlineUniformBlockStart + inlineUniformBlockCount;
+            entryForHost.stride = 0;
+            inlineUniformBlockCount += entryForHost.descriptorCount;
+        } else {
+            const std::string typeString = string_VkDescriptorType(type);
+            GFXSTREAM_FATAL("Unhandled descriptor type %s.", typeString.c_str());
+        }
+
+        res.linearizedTemplateEntries.push_back(entryForHost);
+    }
+
+    res.createInfo.pDescriptorUpdateEntries = res.linearizedTemplateEntries.data();
+
+    return res;
+}
+
 class VkDecoderGlobalState::Impl {
    public:
     Impl(VkEmulation* emulation)
@@ -11130,14 +11235,6 @@ class VkDecoderGlobalState::Impl {
                           sBoxedHandleManager.getHandlesCount());
     }
 
-    bool isDescriptorTypeImageInfo(VkDescriptorType descType) {
-        return (descType == VK_DESCRIPTOR_TYPE_SAMPLER) ||
-               (descType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) ||
-               (descType == VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE) ||
-               (descType == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE) ||
-               (descType == VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT);
-    }
-
     bool descriptorTypeContainsImage(VkDescriptorType descType) {
         return (descType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) ||
                (descType == VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE) ||
@@ -11148,18 +11245,6 @@ class VkDecoderGlobalState::Impl {
     bool descriptorTypeContainsSampler(VkDescriptorType descType) {
         return (descType == VK_DESCRIPTOR_TYPE_SAMPLER) ||
                (descType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
-    }
-
-    bool isDescriptorTypeBufferInfo(VkDescriptorType descType) {
-        return (descType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) ||
-               (descType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC) ||
-               (descType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER) ||
-               (descType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC);
-    }
-
-    bool isDescriptorTypeBufferView(VkDescriptorType descType) {
-        return (descType == VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER) ||
-               (descType == VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER);
     }
 
     bool isDescriptorTypeInlineUniformBlock(VkDescriptorType descType) {
@@ -11188,92 +11273,6 @@ class VkDecoderGlobalState::Impl {
             default:
                 return 0;
         }
-    }
-
-    DescriptorUpdateTemplateInfo calcLinearizedDescriptorUpdateTemplateInfo(
-        const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo) {
-        DescriptorUpdateTemplateInfo res;
-        res.createInfo = *pCreateInfo;
-
-        size_t numImageInfos = 0;
-        size_t numBufferInfos = 0;
-        size_t numBufferViews = 0;
-        size_t numInlineUniformBlocks = 0;
-
-        for (uint32_t i = 0; i < pCreateInfo->descriptorUpdateEntryCount; ++i) {
-            const auto& entry = pCreateInfo->pDescriptorUpdateEntries[i];
-            auto type = entry.descriptorType;
-            auto count = entry.descriptorCount;
-            if (isDescriptorTypeImageInfo(type)) {
-                numImageInfos += count;
-            } else if (isDescriptorTypeBufferInfo(type)) {
-                numBufferInfos += count;
-            } else if (isDescriptorTypeBufferView(type)) {
-                numBufferViews += count;
-            } else if (type == VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT) {
-                numInlineUniformBlocks += count;
-            } else {
-                const std::string typeString = string_VkDescriptorType(type);
-                GFXSTREAM_FATAL("Unhandled descriptor type %s.", typeString.c_str());
-            }
-        }
-
-        size_t imageInfoBytes = numImageInfos * sizeof(VkDescriptorImageInfo);
-        size_t bufferInfoBytes = numBufferInfos * sizeof(VkDescriptorBufferInfo);
-        size_t bufferViewBytes = numBufferViews * sizeof(VkBufferView);
-        size_t inlineUniformBlockBytes = numInlineUniformBlocks;
-
-        res.data.resize(imageInfoBytes + bufferInfoBytes + bufferViewBytes +
-                        inlineUniformBlockBytes);
-        res.imageInfoStart = 0;
-        res.imageInfoCount = numImageInfos;
-        res.bufferInfoStart = imageInfoBytes;
-        res.bufferInfoCount = numBufferInfos;
-        res.bufferViewStart = imageInfoBytes + bufferInfoBytes;
-        res.bufferViewCount = numBufferViews;
-        res.inlineUniformBlockStart = imageInfoBytes + bufferInfoBytes + bufferViewBytes;
-        res.inlineUniformBlockCount = numInlineUniformBlocks;
-
-        size_t imageInfoCount = 0;
-        size_t bufferInfoCount = 0;
-        size_t bufferViewCount = 0;
-        size_t inlineUniformBlockCount = 0;
-
-        for (uint32_t i = 0; i < pCreateInfo->descriptorUpdateEntryCount; ++i) {
-            const auto& entry = pCreateInfo->pDescriptorUpdateEntries[i];
-            VkDescriptorUpdateTemplateEntry entryForHost = entry;
-
-            auto type = entry.descriptorType;
-
-            if (isDescriptorTypeImageInfo(type)) {
-                entryForHost.offset =
-                    res.imageInfoStart + imageInfoCount * sizeof(VkDescriptorImageInfo);
-                entryForHost.stride = sizeof(VkDescriptorImageInfo);
-                ++imageInfoCount;
-            } else if (isDescriptorTypeBufferInfo(type)) {
-                entryForHost.offset =
-                    res.bufferInfoStart + bufferInfoCount * sizeof(VkDescriptorBufferInfo);
-                entryForHost.stride = sizeof(VkDescriptorBufferInfo);
-                ++bufferInfoCount;
-            } else if (isDescriptorTypeBufferView(type)) {
-                entryForHost.offset = res.bufferViewStart + bufferViewCount * sizeof(VkBufferView);
-                entryForHost.stride = sizeof(VkBufferView);
-                ++bufferViewCount;
-            } else if (type == VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT) {
-                entryForHost.offset = res.inlineUniformBlockStart + inlineUniformBlockCount;
-                entryForHost.stride = 0;
-                inlineUniformBlockCount += entryForHost.descriptorCount;
-            } else {
-                const std::string typeString = string_VkDescriptorType(type);
-                GFXSTREAM_FATAL("Unhandled descriptor type %s.", typeString.c_str());
-            }
-
-            res.linearizedTemplateEntries.push_back(entryForHost);
-        }
-
-        res.createInfo.pDescriptorUpdateEntries = res.linearizedTemplateEntries.data();
-
-        return res;
     }
 
     void registerDescriptorUpdateTemplate(VkDescriptorUpdateTemplate descriptorUpdateTemplate,
