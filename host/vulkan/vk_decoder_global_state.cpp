@@ -251,20 +251,22 @@ static DescriptorUpdateTemplateInfo calcLinearizedDescriptorUpdateTemplateInfo(
 
         auto type = entry.descriptorType;
 
+        // The guest sends every array element of an entry, in entry order, so an entry
+        // starts after all elements of the entries before it.
         if (isDescriptorTypeImageInfo(type)) {
             entryForHost.offset =
                 res.imageInfoStart + imageInfoCount * sizeof(VkDescriptorImageInfo);
             entryForHost.stride = sizeof(VkDescriptorImageInfo);
-            ++imageInfoCount;
+            imageInfoCount += entryForHost.descriptorCount;
         } else if (isDescriptorTypeBufferInfo(type)) {
             entryForHost.offset =
                 res.bufferInfoStart + bufferInfoCount * sizeof(VkDescriptorBufferInfo);
             entryForHost.stride = sizeof(VkDescriptorBufferInfo);
-            ++bufferInfoCount;
+            bufferInfoCount += entryForHost.descriptorCount;
         } else if (isDescriptorTypeBufferView(type)) {
             entryForHost.offset = res.bufferViewStart + bufferViewCount * sizeof(VkBufferView);
             entryForHost.stride = sizeof(VkBufferView);
-            ++bufferViewCount;
+            bufferViewCount += entryForHost.descriptorCount;
         } else if (type == VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT) {
             entryForHost.offset = res.inlineUniformBlockStart + inlineUniformBlockCount;
             entryForHost.stride = 0;
