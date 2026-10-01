@@ -85,6 +85,7 @@ rutabaga_crate_deps.spec(
         "use-libc",
         "use-libc-auxv",
         "libc_errno",
+        "shm",
     ],
     package = "rustix",
     version = "1.0.7",

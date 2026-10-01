@@ -72,9 +72,14 @@ mesa_crate_deps.spec(
         "use-libc",
         "use-libc-auxv",
         "libc_errno",
+        "shm",
     ],
     package = "rustix",
     version = "1.0.7",
+)
+mesa_crate_deps.spec(
+    package = "mach2",
+    version = "0.7.0",
 )
 mesa_crate_deps.from_specs(
     name = "mesa_crate_deps",
