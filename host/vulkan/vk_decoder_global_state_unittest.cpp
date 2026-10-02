@@ -144,30 +144,101 @@ TEST_F(VkDecoderGlobalStateExternalFenceDeathTest, undestroyedFences) {
             "fences still not destroyed."));
 }
 
-VkDescriptorUpdateTemplateEntry makeTemplateEntry(uint32_t binding, uint32_t descriptorCount,
-                                                  VkDescriptorType descriptorType) {
-    return VkDescriptorUpdateTemplateEntry{
-        .dstBinding = binding,
-        .dstArrayElement = 0,
-        .descriptorCount = descriptorCount,
-        .descriptorType = descriptorType,
-        .offset = 0,
-        .stride = 0,
-    };
-}
-
 TEST(VkDecoderGlobalStateDescriptorUpdateTemplateTest, linearizedEntriesSkipWholeArrays) {
-    // Each array entry is followed by an entry of the same kind, which has to start after
-    // all of the array's elements.
-    const std::vector<VkDescriptorUpdateTemplateEntry> entries = {
-        makeTemplateEntry(0, 3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER),
-        makeTemplateEntry(1, 1, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE),
-        makeTemplateEntry(2, 2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER),
-        makeTemplateEntry(3, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER),
-        makeTemplateEntry(4, 2, VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER),
-        makeTemplateEntry(5, 1, VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER),
-        makeTemplateEntry(6, 16, VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT),
+    constexpr size_t kImageInfoSize = sizeof(VkDescriptorImageInfo);
+    constexpr size_t kBufferInfoSize = sizeof(VkDescriptorBufferInfo);
+    constexpr size_t kBufferViewSize = sizeof(VkBufferView);
+
+    struct TestEntryInfo {
+        uint32_t descriptorBinding;
+        uint32_t descriptorCount;
+        VkDescriptorType descriptorType;
+
+        // Expected offset and stride into the linearized buffer.
+        size_t expectedOffset;
+        size_t expectedStride;
     };
+    // Each array entry is followed by an entry of the same kind, which has to start after all of
+    // the array's elements: every entry's offset is the previous entry's offset plus the size of
+    // the previous entry's descriptor type times its descriptorCount.
+    const std::vector<TestEntryInfo> infos = {
+        {
+            .descriptorBinding = 0,
+            .descriptorCount = 3,
+            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .expectedOffset = 0,
+            .expectedStride = kImageInfoSize,
+        },
+        {
+            .descriptorBinding = 1,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
+            .expectedOffset = 3 * kImageInfoSize,
+            .expectedStride = kImageInfoSize,
+        },
+        {
+            .descriptorBinding = 2,
+            .descriptorCount = 2,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .expectedOffset = 3 * kImageInfoSize +
+                              1 * kImageInfoSize,
+            .expectedStride = kBufferInfoSize,
+        },
+        {
+            .descriptorBinding = 3,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+            .expectedOffset = 3 * kImageInfoSize +
+                              1 * kImageInfoSize +
+                              2 * kBufferInfoSize,
+            .expectedStride = kBufferInfoSize,
+        },
+        {
+            .descriptorBinding = 4,
+            .descriptorCount = 2,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER,
+            .expectedOffset = 3 * kImageInfoSize +
+                              1 * kImageInfoSize +
+                              2 * kBufferInfoSize +
+                              1 * kBufferInfoSize,
+            .expectedStride = kBufferViewSize,
+        },
+        {
+            .descriptorBinding = 5,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER,
+            .expectedOffset = 3 * kImageInfoSize +
+                              1 * kImageInfoSize +
+                              2 * kBufferInfoSize +
+                              1 * kBufferInfoSize +
+                              2 * kBufferViewSize,
+            .expectedStride = kBufferViewSize,
+        },
+        {
+            .descriptorBinding = 6,
+            .descriptorCount = 16,
+            .descriptorType = VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT,
+            .expectedOffset = 3 * kImageInfoSize +
+                              1 * kImageInfoSize +
+                              2 * kBufferInfoSize +
+                              1 * kBufferInfoSize +
+                              2 * kBufferViewSize +
+                              1 * kBufferViewSize,
+            .expectedStride = 0,
+        },
+    };
+
+    std::vector<VkDescriptorUpdateTemplateEntry> entries;
+    for (const TestEntryInfo& info : infos) {
+        entries.push_back(VkDescriptorUpdateTemplateEntry{
+            .dstBinding = info.descriptorBinding,
+            .dstArrayElement = 0,
+            .descriptorCount = info.descriptorCount,
+            .descriptorType = info.descriptorType,
+            .offset = 0,
+            .stride = 0,
+        });
+    }
     const VkDescriptorUpdateTemplateCreateInfo createInfo = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_CREATE_INFO,
         .pNext = nullptr,
@@ -181,51 +252,29 @@ TEST(VkDecoderGlobalStateDescriptorUpdateTemplateTest, linearizedEntriesSkipWhol
         .set = 0,
     };
 
-    const DescriptorUpdateTemplateInfo info =
+    const DescriptorUpdateTemplateInfo templateInfo =
         calcLinearizedDescriptorUpdateTemplateInfo(&createInfo);
 
-    constexpr size_t kImageInfoSize = sizeof(VkDescriptorImageInfo);
-    constexpr size_t kBufferInfoSize = sizeof(VkDescriptorBufferInfo);
-    constexpr size_t kBufferViewSize = sizeof(VkBufferView);
-    constexpr size_t kBufferInfoStart = 4 * kImageInfoSize;
-    constexpr size_t kBufferViewStart = kBufferInfoStart + 3 * kBufferInfoSize;
-    constexpr size_t kInlineUniformBlockStart = kBufferViewStart + 3 * kBufferViewSize;
+    // The image infos, buffer infos, buffer views and inline uniform block bytes each start where
+    // the first entry of that kind starts.
+    EXPECT_EQ(templateInfo.imageInfoStart, infos[0].expectedOffset);
+    EXPECT_EQ(templateInfo.imageInfoCount, 3u + 1u);
+    EXPECT_EQ(templateInfo.bufferInfoStart, infos[2].expectedOffset);
+    EXPECT_EQ(templateInfo.bufferInfoCount, 2u + 1u);
+    EXPECT_EQ(templateInfo.bufferViewStart, infos[4].expectedOffset);
+    EXPECT_EQ(templateInfo.bufferViewCount, 2u + 1u);
+    EXPECT_EQ(templateInfo.inlineUniformBlockStart, infos[6].expectedOffset);
+    EXPECT_EQ(templateInfo.inlineUniformBlockCount, 16u);
+    EXPECT_EQ(templateInfo.data.size(), infos[6].expectedOffset + 16);
 
-    EXPECT_EQ(info.imageInfoStart, 0u);
-    EXPECT_EQ(info.imageInfoCount, 4u);
-    EXPECT_EQ(info.bufferInfoStart, kBufferInfoStart);
-    EXPECT_EQ(info.bufferInfoCount, 3u);
-    EXPECT_EQ(info.bufferViewStart, kBufferViewStart);
-    EXPECT_EQ(info.bufferViewCount, 3u);
-    EXPECT_EQ(info.inlineUniformBlockStart, kInlineUniformBlockStart);
-    EXPECT_EQ(info.inlineUniformBlockCount, 16u);
-    EXPECT_EQ(info.data.size(), kInlineUniformBlockStart + 16);
-
-    const size_t expectedOffsets[] = {
-        0,
-        3 * kImageInfoSize,
-        kBufferInfoStart,
-        kBufferInfoStart + 2 * kBufferInfoSize,
-        kBufferViewStart,
-        kBufferViewStart + 2 * kBufferViewSize,
-        kInlineUniformBlockStart,
-    };
-    const size_t expectedStrides[] = {
-        kImageInfoSize,
-        kImageInfoSize,
-        kBufferInfoSize,
-        kBufferInfoSize,
-        kBufferViewSize,
-        kBufferViewSize,
-        0,
-    };
-    ASSERT_EQ(info.linearizedTemplateEntries.size(), entries.size());
-    for (size_t i = 0; i < entries.size(); ++i) {
-        const VkDescriptorUpdateTemplateEntry& entry = info.linearizedTemplateEntries[i];
-        EXPECT_EQ(entry.dstBinding, entries[i].dstBinding);
-        EXPECT_EQ(entry.descriptorCount, entries[i].descriptorCount);
-        EXPECT_EQ(entry.offset, expectedOffsets[i]) << "entry " << i;
-        EXPECT_EQ(entry.stride, expectedStrides[i]) << "entry " << i;
+    ASSERT_EQ(templateInfo.linearizedTemplateEntries.size(), infos.size());
+    for (size_t i = 0; i < infos.size(); ++i) {
+        const TestEntryInfo& info = infos[i];
+        const VkDescriptorUpdateTemplateEntry& entry = templateInfo.linearizedTemplateEntries[i];
+        EXPECT_EQ(entry.dstBinding, info.descriptorBinding) << "entry " << i;
+        EXPECT_EQ(entry.descriptorCount, info.descriptorCount) << "entry " << i;
+        EXPECT_EQ(entry.offset, info.expectedOffset) << "entry " << i;
+        EXPECT_EQ(entry.stride, info.expectedStride) << "entry " << i;
     }
 }
 
