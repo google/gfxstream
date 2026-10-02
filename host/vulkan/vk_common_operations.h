@@ -139,7 +139,7 @@ class VkEmulation {
         bool enableYcbcrEmulation = false;
         bool guestVulkanOnly = false;
         bool useDedicatedAllocations = false;
-        uint32_t guestVulkanMaxApiVersion = VK_API_VERSION_1_3;
+        uint32_t guestVulkanMaxApiVersion = VK_API_VERSION_1_4;
         bool enableProtectedMemoryEmulation;
     };
     void initFeatures(Features features);
