@@ -912,6 +912,8 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
     };
     std::map<uint32_t, onPost> m_onPost;
     ReadbackWorker* m_readbackWorker = nullptr;
+    // Serializes access to m_onPost[].img when there is no ReadbackWorker.
+    gfxstream::base::Lock m_readbackWithoutWorkerLock;
     gfxstream::base::WorkerThread<Readback> m_readbackThread;
     std::atomic_bool m_readbackThreadStarted = false;
 
@@ -1570,8 +1572,63 @@ FrameBuffer::Impl::~Impl() {
     }
 }
 
+// Synchronously reads |cb| into |img| for a post callback when there is no ReadbackWorker, i.e.
+// when GL emulation is not initialized (GuestVulkanOnly). The output matches what
+// ReadbackWorker::doNextReadbackSync() produces: |width| x |height| 32-bit pixels, rows in the
+// same order as ColorBuffer::readToBytes(), RGBA or BGRA byte order depending on |readBgra|, and
+// opaque alpha for formats without alpha. Only 32-bit RGBA/RGBX/BGRA color buffers of the
+// requested size are handled; for anything else it returns false without touching |img|.
+// ColorBuffer::readToBytes() does not report failures, so a failed Vulkan readback is not detected.
+static bool readbackColorBufferWithoutWorker(ColorBuffer* cb, unsigned char* img, uint32_t width,
+                                             uint32_t height, bool readBgra) {
+    if (!cb || !img || cb->getWidth() != width || cb->getHeight() != height) {
+        return false;
+    }
+    const GfxstreamFormat format = cb->getFormat();
+    const bool srcBgra = format == GfxstreamFormat::B8G8R8A8_UNORM;
+    const bool srcNoAlpha = format == GfxstreamFormat::R8G8B8X8_UNORM;
+    if (!srcBgra && !srcNoAlpha && format != GfxstreamFormat::R8G8B8A8_UNORM) {
+        return false;
+    }
+    const uint64_t size = 4ull * width * height;
+    cb->readToBytes(0, 0, static_cast<int>(width), static_cast<int>(height), format, img, size);
+    const bool swapRedBlue = srcBgra != readBgra;
+    if (swapRedBlue || srcNoAlpha) {
+        for (uint64_t i = 0; i < size; i += 4) {
+            if (swapRedBlue) {
+                std::swap(img[i], img[i + 2]);
+            }
+            if (srcNoAlpha) {
+                img[i + 3] = 0xff;
+            }
+        }
+    }
+    return true;
+}
+
 WorkerProcessingResult FrameBuffer::Impl::sendReadbackWorkerCmd(const Readback& readback) {
     ensureReadbackWorker();
+    if (!m_readbackWorker) {
+        // No GL emulation (GuestVulkanOnly): postImpl() reads each posted frame synchronously
+        // into m_onPost[displayId].img, so there is nothing to set up and GetPixels copies the
+        // last frame.
+        switch (readback.cmd) {
+            case ReadbackCmd::GetPixels: {
+                AutoLock lock(m_readbackWithoutWorkerLock);
+                const auto it = m_onPost.find(readback.displayId);
+                if (it != m_onPost.end() && it->second.img && readback.pixelsOut) {
+                    const uint64_t available = 4ull * it->second.width * it->second.height;
+                    memcpy(readback.pixelsOut, it->second.img,
+                           std::min<uint64_t>(readback.bytes, available));
+                }
+                return WorkerProcessingResult::Continue;
+            }
+            case ReadbackCmd::Exit:
+                return WorkerProcessingResult::Stop;
+            default:
+                return WorkerProcessingResult::Continue;
+        }
+    }
     switch (readback.cmd) {
     case ReadbackCmd::Init:
         m_readbackWorker->init();
@@ -2703,6 +2760,28 @@ AsyncResult FrameBuffer::Impl::postImpl(HandleType p_colorbuffer, Post::Completi
                 if (m_readbackWorker) {
                     m_readbackWorker->doNextReadbackSync(cb.get(), iter.second.img,
                                                          iter.second.readBgra);
+                } else {
+                    // No GL emulation (GuestVulkanOnly): read the posted color buffer through
+                    // ColorBuffer::readToBytes(), the same path as rcReadColorBuffer.
+                    bool updated = false;
+                    {
+                        AutoLock readbackLock(m_readbackWithoutWorkerLock);
+                        updated = readbackColorBufferWithoutWorker(
+                            cb.get(), iter.second.img, iter.second.width, iter.second.height,
+                            iter.second.readBgra);
+                    }
+                    if (!updated) {
+                        // Do not report a stale (or never written) buffer as a new frame.
+                        static std::atomic<bool> sLoggedUnsupported{false};
+                        if (!sLoggedUnsupported.exchange(true)) {
+                            GFXSTREAM_ERROR(
+                                "Display %u: cannot read back ColorBuffer %ux%u %s without GL "
+                                "emulation, skipping post callbacks.",
+                                iter.first, cb->getWidth(), cb->getHeight(),
+                                ToString(cb->getFormat()).c_str());
+                        }
+                        continue;
+                    }
                 }
                 doPostCallback(iter.second.img, iter.first);
             }
@@ -2745,6 +2824,11 @@ void FrameBuffer::Impl::flushReadPipeline(int displayId) {
     }
 
     ensureReadbackWorker();
+    if (!m_readbackWorker) {
+        // Without a ReadbackWorker every post is read back synchronously and its callback has
+        // already delivered the latest frame; there is no pipeline to flush.
+        return;
+    }
 
     const auto status = m_readbackWorker->flushPipeline(displayId);
     if (status == ReadbackWorker::FlushResult::OK_READY_FOR_READ) {
@@ -2755,7 +2839,11 @@ void FrameBuffer::Impl::flushReadPipeline(int displayId) {
 void FrameBuffer::Impl::ensureReadbackWorker() {
 #if GFXSTREAM_ENABLE_HOST_GLES
     if (!m_readbackWorker) {
-        ENSURE_GL_EMULATION_VOID();
+        // Without GL emulation (GuestVulkanOnly) there is no ReadbackWorker and callers fall back
+        // to synchronous readback. This runs for every posted frame, so do not log here.
+        if (!m_emulationGl) {
+            return;
+        }
         m_readbackWorker = m_emulationGl->getReadbackWorker();
     }
 #endif
