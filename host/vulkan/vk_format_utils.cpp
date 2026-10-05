@@ -41,6 +41,11 @@ inline T alignToPower2(T val, T align) {
     return (val + (align - 1)) & ~(align - 1);
 }
 
+template <typename T>
+inline T alignUp(T val, T align) {
+    return ((val + (align - 1)) / align) * align;
+}
+
 struct FormatPlaneLayouts {
     uint32_t horizontalAlignmentPixels = 1;
     uint32_t verticalAlignmentPixels = 1;
@@ -309,24 +314,26 @@ const std::unordered_map<VkFormat, FormatPlaneLayouts>& getFormatPlaneLayoutsMap
         LIST_VK_FORMATS_LINEAR(ADD_SINGLE_PLANE_FORMAT_INFO)
 #undef ADD_SINGLE_PLANE_FORMAT_INFO
 
-#define ADD_BC_FORMAT_INFO(format, blockWidth, blockHeight, bytesPerBlock) \
-    (*map)[format] = FormatPlaneLayouts{                                   \
-        .horizontalAlignmentPixels = blockWidth,                           \
-        .verticalAlignmentPixels = blockHeight,                            \
-        .planeLayouts =                                                    \
-            {                                                              \
-                {                                                          \
-                    .horizontalSubsampling = 1,                            \
-                    .verticalSubsampling = 1,                              \
-                    .texelBlockWidth = blockWidth,                         \
-                    .texelBlockHeight = blockHeight,                       \
-                    .sampleIncrementBytes = bytesPerBlock,                 \
-                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,               \
-                },                                                         \
-            },                                                             \
+#define ADD_COMPRESSED_FORMAT_INFO(format, blockWidth, blockHeight, bytesPerBlock) \
+    (*map)[format] = FormatPlaneLayouts{                                           \
+        .horizontalAlignmentPixels = blockWidth,                                   \
+        .verticalAlignmentPixels = blockHeight,                                    \
+        .planeLayouts =                                                            \
+            {                                                                      \
+                {                                                                  \
+                    .horizontalSubsampling = 1,                                    \
+                    .verticalSubsampling = 1,                                      \
+                    .texelBlockWidth = blockWidth,                                 \
+                    .texelBlockHeight = blockHeight,                               \
+                    .sampleIncrementBytes = bytesPerBlock,                         \
+                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,                       \
+                },                                                                 \
+            },                                                                     \
     };
-        LIST_VK_FORMATS_BC(ADD_BC_FORMAT_INFO)
-#undef ADD_BC_FORMAT_INFO
+        LIST_VK_FORMATS_BC(ADD_COMPRESSED_FORMAT_INFO)
+        LIST_VK_FORMATS_ETC2(ADD_COMPRESSED_FORMAT_INFO)
+        LIST_VK_FORMATS_ASTC(ADD_COMPRESSED_FORMAT_INFO)
+#undef ADD_COMPRESSED_FORMAT_INFO
 
         return map;
     }();
@@ -480,14 +487,14 @@ bool getFormatTransferInfo(VkFormat format, VkExtent3D extent, TransferInfo* out
     }
 
     const VkDeviceSize alignedWidth64 =
-        alignToPower2<VkDeviceSize>(extent.width, alignmentPixels);
+        alignUp<VkDeviceSize>(extent.width, alignmentPixels);
     if (alignedWidth64 > std::numeric_limits<uint32_t>::max()) {
         GFXSTREAM_ERROR("Overflow aligning width %u with alignment %u", extent.width,
                         alignmentPixels);
         return false;
     }
     const VkDeviceSize alignedHeight64 =
-        alignToPower2<VkDeviceSize>(extent.height, formatInfo->verticalAlignmentPixels);
+        alignUp<VkDeviceSize>(extent.height, formatInfo->verticalAlignmentPixels);
     if (alignedHeight64 > std::numeric_limits<uint32_t>::max()) {
         GFXSTREAM_ERROR("Overflow aligning height %u with alignment %u", extent.height,
                         formatInfo->verticalAlignmentPixels);

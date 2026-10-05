@@ -186,6 +186,64 @@ namespace vk {
     f(VK_FORMAT_BC7_UNORM_BLOCK, 4, 4, 16)        \
     f(VK_FORMAT_BC7_SRGB_BLOCK, 4, 4, 16)
 
+// ETC2/EAC compressed formats: f(format, blockWidth, blockHeight, bytesPerBlock)
+#define LIST_VK_FORMATS_ETC2(f)                       \
+    f(VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK, 4, 4, 8)     \
+    f(VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK, 4, 4, 8)      \
+    f(VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK, 4, 4, 8)   \
+    f(VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK, 4, 4, 8)    \
+    f(VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK, 4, 4, 16)  \
+    f(VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK, 4, 4, 16)   \
+    f(VK_FORMAT_EAC_R11_UNORM_BLOCK, 4, 4, 8)         \
+    f(VK_FORMAT_EAC_R11_SNORM_BLOCK, 4, 4, 8)         \
+    f(VK_FORMAT_EAC_R11G11_UNORM_BLOCK, 4, 4, 16)     \
+    f(VK_FORMAT_EAC_R11G11_SNORM_BLOCK, 4, 4, 16)
+
+// ASTC compressed formats: f(format, blockWidth, blockHeight, bytesPerBlock)
+#define LIST_VK_FORMATS_ASTC(f)                       \
+    f(VK_FORMAT_ASTC_4x4_UNORM_BLOCK, 4, 4, 16)       \
+    f(VK_FORMAT_ASTC_4x4_SRGB_BLOCK, 4, 4, 16)        \
+    f(VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK, 4, 4, 16)      \
+    f(VK_FORMAT_ASTC_5x4_UNORM_BLOCK, 5, 4, 16)       \
+    f(VK_FORMAT_ASTC_5x4_SRGB_BLOCK, 5, 4, 16)        \
+    f(VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK, 5, 4, 16)      \
+    f(VK_FORMAT_ASTC_5x5_UNORM_BLOCK, 5, 5, 16)       \
+    f(VK_FORMAT_ASTC_5x5_SRGB_BLOCK, 5, 5, 16)        \
+    f(VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK, 5, 5, 16)      \
+    f(VK_FORMAT_ASTC_6x5_UNORM_BLOCK, 6, 5, 16)       \
+    f(VK_FORMAT_ASTC_6x5_SRGB_BLOCK, 6, 5, 16)        \
+    f(VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK, 6, 5, 16)      \
+    f(VK_FORMAT_ASTC_6x6_UNORM_BLOCK, 6, 6, 16)       \
+    f(VK_FORMAT_ASTC_6x6_SRGB_BLOCK, 6, 6, 16)        \
+    f(VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK, 6, 6, 16)      \
+    f(VK_FORMAT_ASTC_8x5_UNORM_BLOCK, 8, 5, 16)       \
+    f(VK_FORMAT_ASTC_8x5_SRGB_BLOCK, 8, 5, 16)        \
+    f(VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK, 8, 5, 16)      \
+    f(VK_FORMAT_ASTC_8x6_UNORM_BLOCK, 8, 6, 16)       \
+    f(VK_FORMAT_ASTC_8x6_SRGB_BLOCK, 8, 6, 16)        \
+    f(VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK, 8, 6, 16)      \
+    f(VK_FORMAT_ASTC_8x8_UNORM_BLOCK, 8, 8, 16)       \
+    f(VK_FORMAT_ASTC_8x8_SRGB_BLOCK, 8, 8, 16)        \
+    f(VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK, 8, 8, 16)      \
+    f(VK_FORMAT_ASTC_10x5_UNORM_BLOCK, 10, 5, 16)     \
+    f(VK_FORMAT_ASTC_10x5_SRGB_BLOCK, 10, 5, 16)      \
+    f(VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK, 10, 5, 16)    \
+    f(VK_FORMAT_ASTC_10x6_UNORM_BLOCK, 10, 6, 16)     \
+    f(VK_FORMAT_ASTC_10x6_SRGB_BLOCK, 10, 6, 16)      \
+    f(VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK, 10, 6, 16)    \
+    f(VK_FORMAT_ASTC_10x8_UNORM_BLOCK, 10, 8, 16)     \
+    f(VK_FORMAT_ASTC_10x8_SRGB_BLOCK, 10, 8, 16)      \
+    f(VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK, 10, 8, 16)    \
+    f(VK_FORMAT_ASTC_10x10_UNORM_BLOCK, 10, 10, 16)   \
+    f(VK_FORMAT_ASTC_10x10_SRGB_BLOCK, 10, 10, 16)    \
+    f(VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK, 10, 10, 16)  \
+    f(VK_FORMAT_ASTC_12x10_UNORM_BLOCK, 12, 10, 16)   \
+    f(VK_FORMAT_ASTC_12x10_SRGB_BLOCK, 12, 10, 16)    \
+    f(VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK, 12, 10, 16)  \
+    f(VK_FORMAT_ASTC_12x12_UNORM_BLOCK, 12, 12, 16)   \
+    f(VK_FORMAT_ASTC_12x12_SRGB_BLOCK, 12, 12, 16)    \
+    f(VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK, 12, 12, 16)
+
 constexpr uint32_t getBytesPerPixel(VkFormat format) {
 #define VK_FORMAT_BPP(format, bpp) case (format): return (bpp);
     switch(format) {
