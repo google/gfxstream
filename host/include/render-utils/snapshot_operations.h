@@ -37,7 +37,7 @@ namespace gfxstream {
 // any VM state is restored, and they can safely fall back to a cold boot.
 // A mismatch detected inside FrameBuffer::onLoad() is fatal, because by then
 // guest RAM and device state have already been loaded.
-inline constexpr uint32_t kFramebufferSnapshotVersion = 3;
+inline constexpr uint32_t kFramebufferSnapshotVersion = 4;
 
 class ITextureSaver {
   public:
