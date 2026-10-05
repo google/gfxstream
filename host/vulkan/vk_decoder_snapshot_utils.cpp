@@ -717,7 +717,40 @@ bool loadMappedMemoryContent(gfxstream::Stream* stream, MemoryInfo* memoryInfo, 
         return false;
     }
 
-    stream->read(memoryInfo->ptr, size);
+    if (memoryInfo->optimalImageMemoryRanges.empty()) {
+        stream->read(memoryInfo->ptr, size);
+    } else {
+        // TODO(b/546537675): do not save already mapped regions that are saved as
+        // buffer or image data into the snapshots.
+        std::vector<uint8_t> rawData(size);
+        stream->read(rawData.data(), size);
+
+        std::vector<std::pair<VkDeviceSize, VkDeviceSize>> excludedRanges;
+        excludedRanges.reserve(memoryInfo->optimalImageMemoryRanges.size());
+        for (const auto& [image, range] : memoryInfo->optimalImageMemoryRanges) {
+            if (range.size == 0 || range.offset >= size) {
+                continue;
+            }
+            const VkDeviceSize start = range.offset;
+            const VkDeviceSize end = std::min(size, range.offset + range.size);
+            if (start < end) {
+                excludedRanges.emplace_back(start, end);
+            }
+        }
+        std::sort(excludedRanges.begin(), excludedRanges.end());
+
+        auto* dst = static_cast<uint8_t*>(memoryInfo->ptr);
+        VkDeviceSize cursor = 0;
+        for (const auto& [start, end] : excludedRanges) {
+            if (start > cursor) {
+                std::memcpy(dst + cursor, rawData.data() + cursor, start - cursor);
+            }
+            cursor = std::max(cursor, end);
+        }
+        if (cursor < size) {
+            std::memcpy(dst + cursor, rawData.data() + cursor, size - cursor);
+        }
+    }
 
     return !stream->hasErrors();
 }
