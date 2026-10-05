@@ -321,6 +321,7 @@ endfunction()
         vulkan/display_vk_unittest.cpp
         vulkan/swap_chain_state_vk_unittest.cpp
         vulkan/vk_decoder_internal_structs_tests.cpp
+        vulkan/vk_decoder_snapshot_utils_unittests.cpp
         vulkan/vk_emulated_physical_device_memory_tests.cpp
         vulkan/vk_emulated_physical_device_queue_tests.cpp
         vulkan/vk_format_utils_unittest.cpp

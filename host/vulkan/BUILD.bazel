@@ -456,3 +456,23 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+cc_test(
+    name = "gfxstream_vk_decoder_snapshot_utils_tests",
+    srcs = [
+        "vk_decoder_snapshot_utils_unittests.cpp",
+    ],
+    copts = GFXSTREAM_HOST_COPTS,
+    linkopts = GFXSTREAM_HOST_LINKOPTS,
+    deps = [
+        ":gfxstream_vulkan_server",
+        "//common/base:gfxstream_common_base",
+        "//common/testenv:graphics_test_environment_support",
+        "//host:gfxstream_backend_static",
+        "//host/common:gfxstream_host_common",
+        "//host/features:gfxstream_host_features",
+        "//third_party/vulkan:gfxstream_vulkan_headers",
+        "@com_google_googletest//:gtest",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
