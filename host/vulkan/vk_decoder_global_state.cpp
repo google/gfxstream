@@ -983,14 +983,13 @@ class VkDecoderGlobalState::Impl {
                 bool hasPtr = stream->getByte() != 0;
                 if (hasPtr) {
                     VkDeviceSize size = stream->getBe64();
-                    if (size != it->second.size || !it->second.ptr) {
+                    if (!loadMappedMemoryContent(stream, &it->second, size)) {
                         GFXSTREAM_ERROR(
                             "Snapshot load failure: memory size does not match for "
                             "VkDeviceMemory:%p",
                             boxedMemory);
                         return false;
                     }
-                    stream->read(it->second.ptr, size);
                 }
 
                 uint64_t hostmemId = stream->getBe64();
