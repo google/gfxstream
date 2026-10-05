@@ -24,14 +24,21 @@
 #include <string>
 #include <vector>
 
+#include "gfxstream/BumpPool.h"
 #include "gfxstream/common/testing/graphics_test_environment.h"
 #include "gfxstream/host/features.h"
 #include "gfxstream/host/mem_stream.h"
+#include "gfxstream/system/System.h"
+#include "render_thread_info_vk.h"
+#include "vk_common_operations.h"
+#include "vk_decoder_global_state.h"
 #include "vk_decoder_internal_structs.h"
+#include "vk_decoder_snapshot.h"
 #include "vk_decoder_snapshot_utils.h"
 #include "vk_emulated_physical_device_memory.h"
 #include "vk_format_utils.h"
 #include "vk_utils.h"
+#include "vulkan_boxed_handles.h"
 #include "vulkan_dispatch.h"
 
 namespace gfxstream {
@@ -1194,6 +1201,508 @@ TEST_F(VkDecoderSnapshotUtilsTest, LoadMappedMemorySkipsOptimalImageRangesOnUnif
     mDeviceDispatch.vkDestroyImage(mDevice, dstVkImage, nullptr);
     mDeviceDispatch.vkFreeMemory(mDevice, sharedMemory, nullptr);
     destroyTestImage(&srcImage);
+}
+
+//TODO(b/535587757): Refactor snapshot save/load routines to avoid duplicating
+// the save/load logic here.
+TEST_F(VkDecoderSnapshotUtilsTest, SaveAndLoadImageGeneratedByRenderPass) {
+    // Tests saving and restoring an image that is populated and layout-transitioned solely via a
+    // one-off VkRenderPass (e.g., procedural lookup texture / LUT precomputation):
+    // 1. Creates a 2D VK_FORMAT_R16G16_SFLOAT optimal-tiled image with
+    //    usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT
+    //    (without explicit TRANSFER_SRC_BIT / TRANSFER_DST_BIT) and
+    //    initialLayout = VK_IMAGE_LAYOUT_UNDEFINED.
+    // 2. Renders into the image via a VkRenderPass whose attachment description has
+    //    initialLayout = VK_IMAGE_LAYOUT_UNDEFINED and
+    //    finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL.
+    // 3. Submits the command buffer, waits for completion, and destroys the temporary
+    //    VkFramebuffer, VkRenderPass, and VkCommandBuffer without ever issuing a
+    //    vkCmdPipelineBarrier on the image.
+    // 4. Saves and restores the image across a snapshot and verifies the restored image layout
+    //    and pixel contents match the rendered image.
+    gfxstream::host::FeatureSet features;
+    features.GlDirectMem.setEnabled(true);
+    features.VulkanSnapshots.setEnabled(true);
+    features.GuestVulkanOnly.setEnabled(true);
+
+    gfxstream::base::setEnvironmentVariable("ANDROID_EMU_VK_NO_CLEANUP", "1");
+    std::unique_ptr<VkEmulation> vkEmu = VkEmulation::create(sVk, {}, features);
+    ASSERT_NE(vkEmu, nullptr);
+    VkDecoderGlobalState::initialize(vkEmu.get());
+    RenderThreadInfoVk threadInfo;
+    threadInfo.ctx_id = 1;
+
+    VkDecoderGlobalState* vkState = VkDecoderGlobalState::get();
+    ASSERT_NE(vkState, nullptr);
+    gfxstream::base::BumpPool pool;
+    VkDecoderContext decoderContext = {};
+
+    const VkApplicationInfo appInfo = {
+        .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+        .pApplicationName = "RenderPassImageSnapshotTest",
+        .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
+        .pEngineName = "gfxstream",
+        .engineVersion = VK_MAKE_VERSION(1, 0, 0),
+        .apiVersion = VK_API_VERSION_1_1,
+    };
+    const VkInstanceCreateInfo instanceCi = {
+        .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+        .pApplicationInfo = &appInfo,
+    };
+    VkInstance boxedInstance = VK_NULL_HANDLE;
+    ASSERT_EQ(vkState->on_vkCreateInstance(&pool, 0, &instanceCi, nullptr, &boxedInstance),
+              VK_SUCCESS);
+
+    uint32_t physDevCount = 0;
+    ASSERT_EQ(vkState->on_vkEnumeratePhysicalDevices(&pool, 0, boxedInstance, &physDevCount,
+                                                     nullptr),
+              VK_SUCCESS);
+    ASSERT_GT(physDevCount, 0u);
+    std::vector<VkPhysicalDevice> boxedPhysDevs(physDevCount);
+    ASSERT_EQ(vkState->on_vkEnumeratePhysicalDevices(&pool, 0, boxedInstance, &physDevCount,
+                                                     boxedPhysDevs.data()),
+              VK_SUCCESS);
+    VkPhysicalDevice boxedPhysDev = boxedPhysDevs[0];
+
+    const float queuePriority = 1.0f;
+    const VkDeviceQueueCreateInfo queueCi = {
+        .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+        .queueFamilyIndex = mQueueFamilyIndex,
+        .queueCount = 1,
+        .pQueuePriorities = &queuePriority,
+    };
+    const VkDeviceCreateInfo deviceCi = {
+        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+        .queueCreateInfoCount = 1,
+        .pQueueCreateInfos = &queueCi,
+    };
+    VkDevice boxedDevice = VK_NULL_HANDLE;
+    ASSERT_EQ(vkState->on_vkCreateDevice(&pool, 0, boxedPhysDev, &deviceCi, nullptr, &boxedDevice),
+              VK_SUCCESS);
+
+    VkQueue boxedQueue = VK_NULL_HANDLE;
+    vkState->on_vkGetDeviceQueue(&pool, 0, boxedDevice, mQueueFamilyIndex, 0, &boxedQueue);
+    ASSERT_NE(boxedQueue, VK_NULL_HANDLE);
+
+    const VkCommandPoolCreateInfo cmdPoolCi = {
+        .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+        .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+        .queueFamilyIndex = mQueueFamilyIndex,
+    };
+    VkCommandPool boxedCmdPool = VK_NULL_HANDLE;
+    ASSERT_EQ(vkState->on_vkCreateCommandPool(&pool, 0, boxedDevice, &cmdPoolCi, nullptr,
+                                              &boxedCmdPool),
+              VK_SUCCESS);
+
+    constexpr VkFormat kFormat = VK_FORMAT_R16G16_SFLOAT;
+    constexpr uint32_t kDim = 64;
+    const VkExtent3D extent = {kDim, kDim, 1};
+    const VkImageCreateInfo imageCi = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+        .imageType = VK_IMAGE_TYPE_2D,
+        .format = kFormat,
+        .extent = extent,
+        .mipLevels = 1,
+        .arrayLayers = 1,
+        .samples = VK_SAMPLE_COUNT_1_BIT,
+        .tiling = VK_IMAGE_TILING_OPTIMAL,
+        .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+    };
+
+    VkImage boxedSrcImage = VK_NULL_HANDLE;
+    ASSERT_EQ(
+        vkState->on_vkCreateImage(&pool, 0, boxedDevice, &imageCi, nullptr, &boxedSrcImage),
+        VK_SUCCESS);
+
+    VkMemoryRequirements memReqs = {};
+    vkState->on_vkGetImageMemoryRequirements(&pool, 0, boxedDevice, unbox_VkImage(boxedSrcImage),
+                                             &memReqs);
+
+    VkPhysicalDeviceMemoryProperties guestMemProps = {};
+    vkState->on_vkGetPhysicalDeviceMemoryProperties(&pool, 0, boxedPhysDev, &guestMemProps);
+    uint32_t deviceLocalType = UINT32_MAX;
+    for (uint32_t i = 0; i < guestMemProps.memoryTypeCount; ++i) {
+        if ((memReqs.memoryTypeBits & (1u << i)) &&
+            (guestMemProps.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) {
+            deviceLocalType = i;
+            break;
+        }
+    }
+    ASSERT_NE(deviceLocalType, UINT32_MAX);
+
+    const VkMemoryAllocateInfo allocInfo = {
+        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+        .allocationSize = memReqs.size,
+        .memoryTypeIndex = deviceLocalType,
+    };
+    VkDeviceMemory boxedSrcMem = VK_NULL_HANDLE;
+    ASSERT_EQ(vkState->on_vkAllocateMemory(&pool, 0, boxedDevice, &allocInfo, nullptr, &boxedSrcMem),
+              VK_SUCCESS);
+    ASSERT_EQ(vkState->on_vkBindImageMemory(&pool, 0, boxedDevice, unbox_VkImage(boxedSrcImage),
+                                            unbox_VkDeviceMemory(boxedSrcMem), 0),
+              VK_SUCCESS);
+
+    const VkImageViewCreateInfo viewCi = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .image = unbox_VkImage(boxedSrcImage),
+        .viewType = VK_IMAGE_VIEW_TYPE_2D,
+        .format = kFormat,
+        .subresourceRange =
+            {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel = 0,
+                .levelCount = 1,
+                .baseArrayLayer = 0,
+                .layerCount = 1,
+            },
+    };
+    VkImageView boxedSrcView = VK_NULL_HANDLE;
+    ASSERT_EQ(vkState->on_vkCreateImageView(&pool, 0, boxedDevice, &viewCi, nullptr, &boxedSrcView),
+              VK_SUCCESS);
+
+    const VkAttachmentDescription attDesc = {
+        .format = kFormat,
+        .samples = VK_SAMPLE_COUNT_1_BIT,
+        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+        .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+        .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        .finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+    };
+    const VkAttachmentReference colorRef = {
+        .attachment = 0,
+        .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+    };
+    const VkSubpassDescription subpassDesc = {
+        .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+        .colorAttachmentCount = 1,
+        .pColorAttachments = &colorRef,
+    };
+    VkSubpassDependency dependencies[2] = {};
+    dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependencies[0].dstSubpass = 0;
+    dependencies[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+    dependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependencies[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+    dependencies[0].dstAccessMask =
+        VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+    dependencies[1].srcSubpass = 0;
+    dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+    dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependencies[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+    dependencies[1].srcAccessMask =
+        VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    dependencies[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+    dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+    const VkRenderPassCreateInfo rpCi = {
+        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+        .attachmentCount = 1,
+        .pAttachments = &attDesc,
+        .subpassCount = 1,
+        .pSubpasses = &subpassDesc,
+        .dependencyCount = 2,
+        .pDependencies = dependencies,
+    };
+    VkRenderPass boxedRenderPass = VK_NULL_HANDLE;
+    ASSERT_EQ(
+        vkState->on_vkCreateRenderPass(&pool, 0, boxedDevice, &rpCi, nullptr, &boxedRenderPass),
+        VK_SUCCESS);
+
+    VkImageView unboxedAttachmentView = unbox_VkImageView(boxedSrcView);
+    const VkFramebufferCreateInfo fbCi = {
+        .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+        .renderPass = unbox_VkRenderPass(boxedRenderPass),
+        .attachmentCount = 1,
+        .pAttachments = &unboxedAttachmentView,
+        .width = kDim,
+        .height = kDim,
+        .layers = 1,
+    };
+    VkFramebuffer boxedFramebuffer = VK_NULL_HANDLE;
+    ASSERT_EQ(
+        vkState->on_vkCreateFramebuffer(&pool, 0, boxedDevice, &fbCi, nullptr, &boxedFramebuffer),
+        VK_SUCCESS);
+
+    const VkCommandBufferAllocateInfo cmdBufAllocInfo = {
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+        .commandPool = unbox_VkCommandPool(boxedCmdPool),
+        .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+        .commandBufferCount = 1,
+    };
+    VkCommandBuffer boxedCmdBuf = VK_NULL_HANDLE;
+    ASSERT_EQ(vkState->on_vkAllocateCommandBuffers(&pool, 0, boxedDevice, &cmdBufAllocInfo,
+                                                   &boxedCmdBuf),
+              VK_SUCCESS);
+
+    const VkCommandBufferBeginInfo cmdBufBeginInfo = {
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+        .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+    };
+    ASSERT_EQ(vkState->on_vkBeginCommandBuffer(&pool, 0, boxedCmdBuf, &cmdBufBeginInfo,
+                                               decoderContext),
+              VK_SUCCESS);
+
+    VkClearValue clearValue = {};
+    clearValue.color.float32[0] = 0.25f;
+    clearValue.color.float32[1] = 0.75f;
+    clearValue.color.float32[2] = 0.0f;
+    clearValue.color.float32[3] = 1.0f;
+
+    const VkRenderPassBeginInfo rpBeginInfo = {
+        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+        .renderPass = unbox_VkRenderPass(boxedRenderPass),
+        .framebuffer = unbox_VkFramebuffer(boxedFramebuffer),
+        .renderArea = {.offset = {0, 0}, .extent = {kDim, kDim}},
+        .clearValueCount = 1,
+        .pClearValues = &clearValue,
+    };
+    vkState->on_vkCmdBeginRenderPass(&pool, 0, boxedCmdBuf, &rpBeginInfo,
+                                     VK_SUBPASS_CONTENTS_INLINE);
+
+    // Populate sub-regions with additional distinct R16G16_SFLOAT values inside the render pass.
+    VulkanDispatch* cmdVk = dispatch_VkCommandBuffer(boxedCmdBuf);
+    VkCommandBuffer unboxedCmdBuf = unbox_VkCommandBuffer(boxedCmdBuf);
+    VkClearAttachment clearAtt = {
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .colorAttachment = 0,
+    };
+    clearAtt.clearValue.color.float32[0] = 0.5f;
+    clearAtt.clearValue.color.float32[1] = 0.125f;
+    clearAtt.clearValue.color.float32[2] = 0.0f;
+    clearAtt.clearValue.color.float32[3] = 1.0f;
+    VkClearRect clearRect = {
+        .rect = {.offset = {kDim / 2, 0}, .extent = {kDim / 2, kDim / 2}},
+        .baseArrayLayer = 0,
+        .layerCount = 1,
+    };
+    cmdVk->vkCmdClearAttachments(unboxedCmdBuf, 1, &clearAtt, 1, &clearRect);
+
+    clearAtt.clearValue.color.float32[0] = 0.875f;
+    clearAtt.clearValue.color.float32[1] = 0.375f;
+    clearRect.rect.offset = {0, kDim / 2};
+    cmdVk->vkCmdClearAttachments(unboxedCmdBuf, 1, &clearAtt, 1, &clearRect);
+
+    cmdVk->vkCmdEndRenderPass(unboxedCmdBuf);
+    ASSERT_EQ(vkState->on_vkEndCommandBuffer(&pool, 0, boxedCmdBuf, decoderContext), VK_SUCCESS);
+
+    const VkSubmitInfo submitInfo = {
+        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        .commandBufferCount = 1,
+        .pCommandBuffers = &unboxedCmdBuf,
+    };
+    ASSERT_EQ(vkState->on_vkQueueSubmit(&pool, 0, boxedQueue, 1, &submitInfo, VK_NULL_HANDLE),
+              VK_SUCCESS);
+    ASSERT_EQ(vkState->on_vkQueueWaitIdle(&pool, 0, boxedQueue), VK_SUCCESS);
+
+    // Destroy the temporary framebuffer, render pass, and command buffer immediately after queue
+    // wait idle, before taking a snapshot (a common pattern for one-time offscreen/LUT passes).
+    vkState->on_vkDestroyFramebuffer(&pool, 0, boxedDevice, unbox_VkFramebuffer(boxedFramebuffer),
+                                     nullptr);
+    vkState->on_vkDestroyRenderPass(&pool, 0, boxedDevice, unbox_VkRenderPass(boxedRenderPass),
+                                    nullptr);
+    vkState->on_vkFreeCommandBuffers(&pool, 0, boxedDevice, unbox_VkCommandPool(boxedCmdPool), 1,
+                                     &unboxedCmdBuf);
+
+    // Save snapshot via VkDecoderGlobalState::save().
+    MemStream snapshotStream;
+    ASSERT_TRUE(vkState->save(&snapshotStream));
+
+    // Advance snapshotStream past the header to the saved VkImage section.
+    const uint64_t devCount = snapshotStream.getBe64();
+    for (uint64_t i = 0; i < devCount; ++i) {
+        snapshotStream.getBe64();
+        snapshotStream.getBe32();
+    }
+    const uint64_t instCount = snapshotStream.getBe64();
+    for (uint64_t i = 0; i < instCount; ++i) {
+        snapshotStream.getBe64();
+        snapshotStream.getBe32();
+    }
+    snapshotStream.getBe64();  // mNextHostBlobId
+    std::vector<uint64_t> handleReplayBuffer;
+    std::vector<uint8_t> decoderReplayBuffer;
+    VkDecoderSnapshot::loadReplayBuffers(&snapshotStream, &handleReplayBuffer,
+                                         &decoderReplayBuffer);
+    const uint32_t memoryCount = snapshotStream.getBe32();
+    for (uint32_t i = 0; i < memoryCount; ++i) {
+        snapshotStream.getBe64();
+        const bool hasPtr = snapshotStream.getByte() != 0;
+        if (hasPtr) {
+            const uint64_t size = snapshotStream.getBe64();
+            std::vector<uint8_t> discard(size);
+            snapshotStream.read(discard.data(), size);
+        }
+        snapshotStream.getBe64();
+        snapshotStream.getBe64();
+    }
+
+    // Read the saved image layout and load the image content into a fresh destination image
+    // created with the same parameters via VkDecoderGlobalState (mirroring snapshot replay).
+    const bool hasContentToSave = (snapshotStream.getBe32() != 0);
+    ASSERT_TRUE(hasContentToSave);
+    const VkImageLayout savedLayout = static_cast<VkImageLayout>(snapshotStream.getBe32());
+    EXPECT_EQ(savedLayout, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+    VkImage boxedDstImage = VK_NULL_HANDLE;
+    ASSERT_EQ(
+        vkState->on_vkCreateImage(&pool, 0, boxedDevice, &imageCi, nullptr, &boxedDstImage),
+        VK_SUCCESS);
+    VkDeviceMemory boxedDstMem = VK_NULL_HANDLE;
+    ASSERT_EQ(vkState->on_vkAllocateMemory(&pool, 0, boxedDevice, &allocInfo, nullptr, &boxedDstMem),
+              VK_SUCCESS);
+    ASSERT_EQ(vkState->on_vkBindImageMemory(&pool, 0, boxedDevice, unbox_VkImage(boxedDstImage),
+                                            unbox_VkDeviceMemory(boxedDstMem), 0),
+              VK_SUCCESS);
+
+    VkDevice unboxedDevice = unbox_VkDevice(boxedDevice);
+    VulkanDispatch* devDispatch = dispatch_VkDevice(boxedDevice);
+    VkPhysicalDevice unboxedPhysDev = unbox_VkPhysicalDevice(boxedPhysDev);
+    VulkanDispatch* instDispatch = dispatch_VkPhysicalDevice(boxedPhysDev);
+    VkPhysicalDeviceMemoryProperties hostMemProps = {};
+    instDispatch->vkGetPhysicalDeviceMemoryProperties(unboxedPhysDev, &hostMemProps);
+    PhysicalDeviceInfo physDevInfo = {};
+    physDevInfo.instance = unbox_VkInstance(boxedInstance);
+    instDispatch->vkGetPhysicalDeviceProperties(unboxedPhysDev, &physDevInfo.props);
+    physDevInfo.memoryPropertiesHelper =
+        std::make_unique<EmulatedPhysicalDeviceMemoryProperties>(hostMemProps, 0, features);
+
+    StateBlock decoderStateBlock = {
+        .physicalDevice = unboxedPhysDev,
+        .physicalDeviceInfo = &physDevInfo,
+        .device = unboxedDevice,
+        .deviceDispatch = devDispatch,
+        .queue = unbox_VkQueue(boxedQueue),
+        .commandPool = unbox_VkCommandPool(boxedCmdPool),
+    };
+
+    ImageInfo dstImageInfo = {};
+    dstImageInfo.device = unboxedDevice;
+    dstImageInfo.imageCreateInfoShallow = vk_make_orphan_copy(imageCi);
+    dstImageInfo.layout = savedLayout;
+    dstImageInfo.memory = unbox_VkDeviceMemory(boxedDstMem);
+
+    ASSERT_TRUE(loadImageContent(&snapshotStream, &decoderStateBlock, unbox_VkImage(boxedDstImage),
+                                 &dstImageInfo));
+
+    // Read back both the rendered source image and the restored destination image.
+    auto readbackFromDecoderDevice = [&](VkImage img, VkImageLayout currentLayout) {
+        TransferInfo transferInfo;
+        EXPECT_TRUE(getFormatTransferInfo(kFormat, extent, &transferInfo));
+
+        const VkBufferCreateInfo bufCi = {
+            .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+            .size = transferInfo.stagingBufferCopySize,
+            .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        };
+        VkBuffer readbackBuf = VK_NULL_HANDLE;
+        EXPECT_EQ(devDispatch->vkCreateBuffer(unboxedDevice, &bufCi, nullptr, &readbackBuf),
+                  VK_SUCCESS);
+        VkMemoryRequirements bufReqs = {};
+        devDispatch->vkGetBufferMemoryRequirements(unboxedDevice, readbackBuf, &bufReqs);
+        uint32_t hostVisibleType = UINT32_MAX;
+        for (uint32_t i = 0; i < hostMemProps.memoryTypeCount; ++i) {
+            if ((bufReqs.memoryTypeBits & (1u << i)) &&
+                (hostMemProps.memoryTypes[i].propertyFlags &
+                 (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) ==
+                    (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
+                hostVisibleType = i;
+                break;
+            }
+        }
+        const VkMemoryAllocateInfo bufAlloc = {
+            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+            .allocationSize = bufReqs.size,
+            .memoryTypeIndex = hostVisibleType,
+        };
+        VkDeviceMemory readbackMem = VK_NULL_HANDLE;
+        EXPECT_EQ(devDispatch->vkAllocateMemory(unboxedDevice, &bufAlloc, nullptr, &readbackMem),
+                  VK_SUCCESS);
+        EXPECT_EQ(devDispatch->vkBindBufferMemory(unboxedDevice, readbackBuf, readbackMem, 0),
+                  VK_SUCCESS);
+        void* mapped = nullptr;
+        EXPECT_EQ(
+            devDispatch->vkMapMemory(unboxedDevice, readbackMem, 0, VK_WHOLE_SIZE, 0, &mapped),
+            VK_SUCCESS);
+        std::memset(mapped, 0, transferInfo.stagingBufferCopySize);
+
+        VkCommandBuffer cb = VK_NULL_HANDLE;
+        EXPECT_EQ(devDispatch->vkAllocateCommandBuffers(unboxedDevice, &cmdBufAllocInfo, &cb),
+                  VK_SUCCESS);
+        EXPECT_EQ(devDispatch->vkBeginCommandBuffer(cb, &cmdBufBeginInfo), VK_SUCCESS);
+
+        VkImageMemoryBarrier barrier = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
+            .oldLayout = currentLayout,
+            .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = img,
+            .subresourceRange =
+                {
+                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                    .baseMipLevel = 0,
+                    .levelCount = 1,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1,
+                },
+        };
+        devDispatch->vkCmdPipelineBarrier(cb, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                                          VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr,
+                                          1, &barrier);
+        for (const auto& region : transferInfo.bufferImageCopies) {
+            devDispatch->vkCmdCopyImageToBuffer(cb, img, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                                                readbackBuf, 1, &region);
+        }
+        EXPECT_EQ(devDispatch->vkEndCommandBuffer(cb), VK_SUCCESS);
+        const VkSubmitInfo si = {
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            .commandBufferCount = 1,
+            .pCommandBuffers = &cb,
+        };
+        EXPECT_EQ(devDispatch->vkQueueSubmit(unbox_VkQueue(boxedQueue), 1, &si, VK_NULL_HANDLE),
+                  VK_SUCCESS);
+        EXPECT_EQ(devDispatch->vkQueueWaitIdle(unbox_VkQueue(boxedQueue)), VK_SUCCESS);
+
+        std::vector<uint8_t> bytes(transferInfo.stagingBufferCopySize);
+        std::memcpy(bytes.data(), mapped, bytes.size());
+
+        devDispatch->vkFreeCommandBuffers(unboxedDevice, unbox_VkCommandPool(boxedCmdPool), 1, &cb);
+        devDispatch->vkUnmapMemory(unboxedDevice, readbackMem);
+        devDispatch->vkDestroyBuffer(unboxedDevice, readbackBuf, nullptr);
+        devDispatch->vkFreeMemory(unboxedDevice, readbackMem, nullptr);
+        return bytes;
+    };
+
+    const std::vector<uint8_t> expectedPixels = readbackFromDecoderDevice(
+        unbox_VkImage(boxedSrcImage), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    const std::vector<uint8_t> actualPixels = readbackFromDecoderDevice(
+        unbox_VkImage(boxedDstImage), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+    // Ensure the rendered image content is non-zero and matches after snapshot restore.
+    const std::vector<uint8_t> allZeros(expectedPixels.size(), 0);
+    ASSERT_NE(expectedPixels, allZeros);
+    EXPECT_EQ(actualPixels, expectedPixels);
+
+    vkState->on_vkDestroyImageView(&pool, 0, boxedDevice, unbox_VkImageView(boxedSrcView), nullptr);
+    vkState->on_vkDestroyImage(&pool, 0, boxedDevice, unbox_VkImage(boxedDstImage), nullptr);
+    vkState->on_vkFreeMemory(&pool, 0, boxedDevice, unbox_VkDeviceMemory(boxedDstMem), nullptr);
+    vkState->on_vkDestroyImage(&pool, 0, boxedDevice, unbox_VkImage(boxedSrcImage), nullptr);
+    vkState->on_vkFreeMemory(&pool, 0, boxedDevice, unbox_VkDeviceMemory(boxedSrcMem), nullptr);
+    vkState->on_vkDestroyCommandPool(&pool, 0, boxedDevice, unbox_VkCommandPool(boxedCmdPool),
+                                     nullptr);
+    vkState->on_vkDestroyDevice(&pool, 0, boxedDevice, nullptr);
+    sVk->vkDestroyInstance(unbox_VkInstance(boxedInstance), nullptr);
+
+    VkDecoderGlobalState::reset();
+    gfxstream::base::setEnvironmentVariable("ANDROID_EMU_VK_NO_CLEANUP", "");
 }
 
 }  // namespace

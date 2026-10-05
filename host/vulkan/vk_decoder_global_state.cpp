@@ -721,7 +721,8 @@ class VkDecoderGlobalState::Impl {
 
             uint32_t layoutVal = static_cast<uint32_t>(imageInfo.layout);
             if (!isValidImageLayoutForSnapshot(layoutVal)) {
-                GFXSTREAM_ERROR("Snapshot save: image %p layout %u is invalid", boxedImage, layoutVal);
+                GFXSTREAM_ERROR("Snapshot save: image %p layout %s [%u] is invalid", boxedImage,
+                                string_VkImageLayout(imageInfo.layout), layoutVal);
                 return false;
             }
             // Vulkan command playback doesn't recover image layout. We need to do it here.
@@ -1166,7 +1167,8 @@ class VkDecoderGlobalState::Impl {
                 if (!isValidImageLayoutForSnapshot(layoutRead)) {
                     // We check this when saving the layout, so it should never happen here unless
                     // the stream is corrupted.
-                    GFXSTREAM_ERROR("Snapshot load: image %p layout %u is invalid", boxedImage,
+                    GFXSTREAM_ERROR("Snapshot load: image %p layout %s [%u] is invalid", boxedImage,
+                                    string_VkImageLayout(static_cast<VkImageLayout>(layoutRead)),
                                     layoutRead);
                     return false;
                 }
@@ -1638,8 +1640,10 @@ class VkDecoderGlobalState::Impl {
                        info.applicationName.c_str(), info.engineName.c_str());
 
 #ifdef CONFIG_AEMU
-        m_vkEmulation->getGlobalState()->registerVulkanInstance((uint64_t)*pInstance,
-                                                                info.applicationName.c_str());
+        if (m_vkEmulation->getGlobalState()) {
+            m_vkEmulation->getGlobalState()->registerVulkanInstance((uint64_t)*pInstance,
+                                                                    info.applicationName.c_str());
+        }
 #endif
         // Box it up
         VkInstance boxed = new_boxed_VkInstance(*pInstance, nullptr);
@@ -1677,7 +1681,7 @@ class VkDecoderGlobalState::Impl {
 
         *pInstance = (VkInstance)boxed;
 
-        if (vkCleanupEnabled()) {
+        if (vkCleanupEnabled() && m_vkEmulation->getGlobalState()) {
             m_vkEmulation->getGlobalState()->registerProcessCleanupCallback(
                 unbox_VkInstance(boxed), contextId, [this, boxed] {
                     if (snapshotsEnabled()) {
@@ -1737,7 +1741,9 @@ class VkDecoderGlobalState::Impl {
         }
         // The instance should not be used after vkDestroyInstanceImpl is called,
         // remove it from the cleanup callback mapping.
-        m_vkEmulation->getGlobalState()->unregisterProcessCleanupCallback(instance);
+        if (m_vkEmulation->getGlobalState()) {
+            m_vkEmulation->getGlobalState()->unregisterProcessCleanupCallback(instance);
+        }
 
         vkDestroyInstanceImpl(instance);
     }
@@ -4081,8 +4087,9 @@ class VkDecoderGlobalState::Impl {
         }
 
         std::lock_guard<std::mutex> lock(mMutex);
+        const VkImage originalImage = pCreateInfo->image;
         auto* deviceInfo = gfxstream::base::find(mDeviceInfo, device);
-        auto* imageInfo = gfxstream::base::find(mImageInfo, pCreateInfo->image);
+        auto* imageInfo = gfxstream::base::find(mImageInfo, originalImage);
         if (!deviceInfo || !imageInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
         VkImageViewCreateInfo createInfo;
         bool needEmulatedAlpha = false;
@@ -4118,6 +4125,7 @@ class VkDecoderGlobalState::Impl {
         VALIDATE_NEW_HANDLE_INFO_ENTRY(mImageViewInfo, *pView);
         auto& imageViewInfo = mImageViewInfo[*pView];
         imageViewInfo.device = device;
+        imageViewInfo.image = originalImage;
         imageViewInfo.needEmulatedAlpha = needEmulatedAlpha;
         imageViewInfo.boundColorBuffer = imageInfo->boundColorBuffer;
         if (imageViewInfo.boundColorBuffer) {
@@ -8882,7 +8890,6 @@ class VkDecoderGlobalState::Impl {
             // should stay valid until the end of this call even after moving out
             // of the lock, but better to avoid crashes with invalid inputs.
             GFXSTREAM_ERROR("Failed to unbox VkImage %p when creating image with requirements.", *pImage);
-            on_vkDestroyImage(pool, apiCallHandle, boxed_device, *pImage, nullptr);
             *pImage = VK_NULL_HANDLE;
             return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
@@ -8913,7 +8920,6 @@ class VkDecoderGlobalState::Impl {
             // should stay valid until the end of this call even after moving out
             // of the lock, but better to avoid crashes with invalid inputs.
             GFXSTREAM_ERROR("Failed to unbox VkBuffer %p when creating buffer with requirements.", *pBuffer);
-            on_vkDestroyBuffer(pool, apiCallHandle, boxed_device, *pBuffer, nullptr);
             *pBuffer = VK_NULL_HANDLE;
             return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
@@ -9173,6 +9179,13 @@ class VkDecoderGlobalState::Impl {
         VALIDATE_NEW_HANDLE_INFO_ENTRY(mRenderPassInfo, *pRenderPass);
         auto& renderPassInfo = mRenderPassInfo[*pRenderPass];
         renderPassInfo.device = device;
+        if (pCreateInfo->pAttachments) {
+            renderPassInfo.attachmentFinalLayouts.reserve(pCreateInfo->attachmentCount);
+            for (uint32_t i = 0; i < pCreateInfo->attachmentCount; i++) {
+                renderPassInfo.attachmentFinalLayouts.push_back(
+                    pCreateInfo->pAttachments[i].finalLayout);
+            }
+        }
 
         *pRenderPass = new_boxed_non_dispatchable_VkRenderPass(*pRenderPass);
 
@@ -9253,6 +9266,13 @@ class VkDecoderGlobalState::Impl {
         VALIDATE_NEW_HANDLE_INFO_ENTRY(mRenderPassInfo, *pRenderPass);
         auto& renderPassInfo = mRenderPassInfo[*pRenderPass];
         renderPassInfo.device = device;
+        if (pCreateInfo->pAttachments) {
+            renderPassInfo.attachmentFinalLayouts.reserve(pCreateInfo->attachmentCount);
+            for (uint32_t i = 0; i < pCreateInfo->attachmentCount; i++) {
+                renderPassInfo.attachmentFinalLayouts.push_back(
+                    pCreateInfo->pAttachments[i].finalLayout);
+            }
+        }
 
         *pRenderPass = new_boxed_non_dispatchable_VkRenderPass(*pRenderPass);
 
@@ -9310,6 +9330,45 @@ class VkDecoderGlobalState::Impl {
 
         cmdBufferInfo->releasedColorBuffers.insert(fbInfo->attachedColorBuffers.begin(),
                                                    fbInfo->attachedColorBuffers.end());
+
+        RenderPassInfo* rpInfo =
+            gfxstream::base::find(mRenderPassInfo, pRenderPassBegin->renderPass);
+        if (rpInfo) {
+            const VkRenderPassAttachmentBeginInfo* attachmentBeginInfo = nullptr;
+            for (const auto* next =
+                     reinterpret_cast<const VkBaseInStructure*>(pRenderPassBegin->pNext);
+                 next != nullptr; next = next->pNext) {
+                if (next->sType == VK_STRUCTURE_TYPE_RENDER_PASS_ATTACHMENT_BEGIN_INFO) {
+                    attachmentBeginInfo =
+                        reinterpret_cast<const VkRenderPassAttachmentBeginInfo*>(next);
+                    break;
+                }
+            }
+            if (attachmentBeginInfo && attachmentBeginInfo->pAttachments) {
+                const uint32_t count =
+                    std::min<uint32_t>(attachmentBeginInfo->attachmentCount,
+                                       rpInfo->attachmentFinalLayouts.size());
+                for (uint32_t i = 0; i < count; i++) {
+                    auto* imageViewInfo =
+                        gfxstream::base::find(mImageViewInfo, attachmentBeginInfo->pAttachments[i]);
+                    if (imageViewInfo && imageViewInfo->image != VK_NULL_HANDLE &&
+                        rpInfo->attachmentFinalLayouts[i] != VK_IMAGE_LAYOUT_UNDEFINED) {
+                        cmdBufferInfo->imageLayouts[imageViewInfo->image] =
+                            rpInfo->attachmentFinalLayouts[i];
+                    }
+                }
+            } else {
+                const size_t count = std::min(fbInfo->attachedImages.size(),
+                                              rpInfo->attachmentFinalLayouts.size());
+                for (size_t i = 0; i < count; i++) {
+                    VkImage image = fbInfo->attachedImages[i];
+                    if (image != VK_NULL_HANDLE &&
+                        rpInfo->attachmentFinalLayouts[i] != VK_IMAGE_LAYOUT_UNDEFINED) {
+                        cmdBufferInfo->imageLayouts[image] = rpInfo->attachmentFinalLayouts[i];
+                    }
+                }
+            }
+        }
         return true;
     }
 
@@ -9470,13 +9529,20 @@ class VkDecoderGlobalState::Impl {
         auto& framebufferInfo = mFramebufferInfo[*pFramebuffer];
         framebufferInfo.device = device;
 
-        if ((pCreateInfo->flags & VK_FRAMEBUFFER_CREATE_IMAGELESS_BIT) == 0) {
+        if ((pCreateInfo->flags & VK_FRAMEBUFFER_CREATE_IMAGELESS_BIT) == 0 &&
+            pCreateInfo->pAttachments) {
             // b/327522469
             // Track the Colorbuffers that would be written to.
             // It might be better to check for VK_QUEUE_FAMILY_EXTERNAL in pipeline barrier.
             // But the guest does not always add it to pipeline barrier.
+            framebufferInfo.attachedImages.reserve(pCreateInfo->attachmentCount);
             for (uint32_t i = 0; i < pCreateInfo->attachmentCount; i++) {
                 auto* imageViewInfo = gfxstream::base::find(mImageViewInfo, pCreateInfo->pAttachments[i]);
+                if (!imageViewInfo) {
+                    framebufferInfo.attachedImages.push_back(VK_NULL_HANDLE);
+                    continue;
+                }
+                framebufferInfo.attachedImages.push_back(imageViewInfo->image);
                 if (imageViewInfo->boundColorBuffer.has_value()) {
                     framebufferInfo.attachedColorBuffers.push_back(
                         imageViewInfo->boundColorBuffer.value());
@@ -11458,7 +11524,9 @@ class VkDecoderGlobalState::Impl {
                        instanceInfo.applicationName.c_str(), instanceInfo.engineName.c_str());
 
 #ifdef CONFIG_AEMU
-        m_vkEmulation->getGlobalState()->unregisterVulkanInstance((uint64_t)instance);
+        if (m_vkEmulation->getGlobalState()) {
+            m_vkEmulation->getGlobalState()->unregisterVulkanInstance((uint64_t)instance);
+        }
 #endif
         delete_VkInstance(instanceInfo.boxed);
         LOG_CALLS_VERBOSE("destroyInstanceObjects: finished.");
