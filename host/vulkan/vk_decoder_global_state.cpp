@@ -3742,6 +3742,35 @@ class VkDecoderGlobalState::Impl {
         imageInfo.anbInfo.reset();
     }
 
+    void unbindFromOptimalImageLocked(MemoryInfo* memoryInfo, VkImage image) {
+        memoryInfo->optimalImageMemoryRanges.erase(image);
+    }
+
+    void bindToOptimalImageLocked(MemoryInfo* memoryInfo, VkImage image, VkDeviceSize offset,
+                                  VkDeviceSize size) {
+        memoryInfo->optimalImageMemoryRanges[image] = {offset, size};
+    }
+
+    void recordImageMemoryBindLocked(VkDevice device, VulkanDispatch* vk, VkImage image,
+                                     ImageInfo* imageInfo, MemoryInfo* memoryInfo,
+                                     VkDeviceMemory memory, VkDeviceSize memoryOffset)
+        REQUIRES(mMutex) {
+        imageInfo->memory = memory;
+        imageInfo->memoryOffset = memoryOffset;
+        if (imageInfo->imageCreateInfoShallow.tiling == VK_IMAGE_TILING_OPTIMAL &&
+            !imageInfo->anbInfo) {
+            VkMemoryRequirements memReqs = {};
+            if (vk && vk->vkGetImageMemoryRequirements) {
+                vk->vkGetImageMemoryRequirements(device, image, &memReqs);
+            }
+            updateImageMemoryRequirementsLocked(device, image, &memReqs);
+            imageInfo->memorySize = memReqs.size;
+            if (imageInfo->memorySize > 0) {
+                bindToOptimalImageLocked(memoryInfo, image, memoryOffset, imageInfo->memorySize);
+            }
+        }
+    }
+
     void destroyImageLocked(VkDevice device, VulkanDispatch* deviceDispatch, VkImage image)
         REQUIRES(mMutex) {
         auto imageInfoIt = mImageInfo.find(image);
@@ -3749,6 +3778,12 @@ class VkDecoderGlobalState::Impl {
         auto& imageInfo = imageInfoIt->second;
 
         destroyImageWithExclusiveInfo(device, deviceDispatch, image, imageInfo);
+        if (imageInfo.memory != VK_NULL_HANDLE) {
+            auto* memoryInfo = gfxstream::base::find(mMemoryInfo, imageInfo.memory);
+            if (memoryInfo) {
+                unbindFromOptimalImageLocked(memoryInfo, image);
+            }
+        }
 
         mImageInfo.erase(image);
     }
@@ -3849,7 +3884,7 @@ class VkDecoderGlobalState::Impl {
             deviceInfo->debugUtilsHelper.addDebugLabel(image, "ColorBuffer:%d",
                                                        *imageInfo->boundColorBuffer);
         }
-        imageInfo->memory = memory;
+        recordImageMemoryBindLocked(device, vk, image, imageInfo, memoryInfo, memory, memoryOffset);
 
         if (!imageInfo->compressInfo) {
             return VK_SUCCESS;
@@ -3949,7 +3984,8 @@ class VkDecoderGlobalState::Impl {
                     deviceInfo->debugUtilsHelper.addDebugLabel(
                         pBindInfos[i].image, "ColorBuffer:%d", *memoryInfo->boundColorBuffer);
                 }
-                imageInfo->memory = pBindInfos[i].memory;
+                recordImageMemoryBindLocked(device, vk, pBindInfos[i].image, imageInfo, memoryInfo,
+                                            pBindInfos[i].memory, pBindInfos[i].memoryOffset);
             }
         }
 

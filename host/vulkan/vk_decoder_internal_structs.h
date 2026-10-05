@@ -161,6 +161,7 @@ struct MemoryInfo {
     // ColorBuffer, provided via vkAllocateMemory().
     std::optional<HandleType> boundColorBuffer;
     std::unordered_map<VkBuffer, BoundMemoryRange> bufferMemoryRanges;
+    std::unordered_map<VkImage, BoundMemoryRange> optimalImageMemoryRanges;
 };
 
 // to track VkEvent states
@@ -345,6 +346,8 @@ struct ImageInfo {
     // TODO: might need to use an array of layouts to represent each sub resource
     VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED;
     VkDeviceMemory memory = VK_NULL_HANDLE;
+    VkDeviceSize memoryOffset = 0;
+    VkDeviceSize memorySize = 0;
     // From VkExternalMemoryImageCreateInfo; imageCreateInfoShallow drops pNext.
     VkExternalMemoryHandleTypeFlags externalHandleTypes = 0;
 #ifdef __ANDROID__

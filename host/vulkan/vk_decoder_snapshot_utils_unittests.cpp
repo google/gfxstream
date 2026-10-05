@@ -1008,6 +1008,194 @@ TEST_F(VkDecoderSnapshotUtilsTest, SaveAndLoadImageCubeETC2AndASTCWithMipmaps) {
     }
 }
 
+// --- Edge cases & Buffer tests ---
+
+TEST_F(VkDecoderSnapshotUtilsTest, SaveAndLoadImageUndefinedLayoutSkipsContent) {
+    const VkImageCreateInfo imageCi = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+        .imageType = VK_IMAGE_TYPE_2D,
+        .format = VK_FORMAT_R8G8B8A8_UNORM,
+        .extent = {8, 8, 1},
+        .mipLevels = 1,
+        .arrayLayers = 1,
+        .samples = VK_SAMPLE_COUNT_1_BIT,
+        .tiling = VK_IMAGE_TILING_OPTIMAL,
+        .usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                 VK_IMAGE_USAGE_SAMPLED_BIT,
+        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+    };
+
+    AllocatedImage srcImage;
+    AllocatedImage dstImage;
+    createTestImage(imageCi, VK_IMAGE_LAYOUT_UNDEFINED, &srcImage);
+    createTestImage(imageCi, VK_IMAGE_LAYOUT_UNDEFINED, &dstImage);
+
+    MemStream stream;
+    EXPECT_TRUE(saveImageContent(&stream, &mStateBlock, srcImage.image, &srcImage.info));
+    EXPECT_EQ(stream.writtenSize(), sizeof(uint32_t));
+    EXPECT_TRUE(loadImageContent(&stream, &mStateBlock, dstImage.image, &dstImage.info));
+
+    destroyTestImage(&dstImage);
+    destroyTestImage(&srcImage);
+}
+
+TEST_F(VkDecoderSnapshotUtilsTest, SaveAndLoadBufferContent) {
+    constexpr VkDeviceSize kBufferSize = 1024;
+    const VkBufferUsageFlags usage =
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+
+    AllocatedBuffer srcBuffer;
+    AllocatedBuffer dstBuffer;
+    createStagingBuffer(kBufferSize, usage, &srcBuffer);
+    createStagingBuffer(kBufferSize, usage, &dstBuffer);
+
+    std::vector<uint8_t> expected(kBufferSize);
+    for (size_t i = 0; i < kBufferSize; ++i) {
+        expected[i] = static_cast<uint8_t>((i * 41u + 7u) & 0xFFu);
+    }
+    std::memcpy(srcBuffer.mapped, expected.data(), kBufferSize);
+    std::memset(dstBuffer.mapped, 0, kBufferSize);
+
+    MemStream stream;
+    ASSERT_TRUE(saveBufferContent(&stream, &mStateBlock, srcBuffer.buffer, &srcBuffer.info));
+    ASSERT_GT(stream.writtenSize(), kBufferSize);
+
+    ASSERT_TRUE(loadBufferContent(&stream, &mStateBlock, dstBuffer.buffer, &dstBuffer.info));
+
+    std::vector<uint8_t> actual(kBufferSize);
+    std::memcpy(actual.data(), dstBuffer.mapped, kBufferSize);
+    EXPECT_EQ(actual, expected);
+
+    destroyBuffer(&dstBuffer);
+    destroyBuffer(&srcBuffer);
+}
+
+TEST_F(VkDecoderSnapshotUtilsTest, LoadMappedMemorySkipsOptimalImageRangesOnUnifiedMemory) {
+    const VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
+    const VkExtent3D extent = {64, 64, 1};
+    const uint32_t mipLevels = 4;
+    const VkImageLayout layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    const VkImageCreateInfo imageCi = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+        .imageType = VK_IMAGE_TYPE_2D,
+        .format = format,
+        .extent = extent,
+        .mipLevels = mipLevels,
+        .arrayLayers = 1,
+        .samples = VK_SAMPLE_COUNT_1_BIT,
+        .tiling = VK_IMAGE_TILING_OPTIMAL,
+        .usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                 VK_IMAGE_USAGE_SAMPLED_BIT,
+        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+    };
+
+    AllocatedImage srcImage;
+    createTestImage(imageCi, layout, &srcImage);
+
+    std::vector<std::vector<uint8_t>> expectedPatterns(mipLevels);
+    for (uint32_t mip = 0; mip < mipLevels; ++mip) {
+        const VkExtent3D mipExtent = GetMipExtent(extent, mip);
+        TransferInfo transferInfo;
+        ASSERT_TRUE(getFormatTransferInfo(format, mipExtent, &transferInfo));
+        expectedPatterns[mip] = generateMipLayerPattern(format, mipExtent, transferInfo, mip, 0);
+        uploadMipLayer(srcImage.image, format, mipExtent, mip, 0, layout, expectedPatterns[mip]);
+    }
+
+    MemStream imageStream;
+    ASSERT_TRUE(saveImageContent(&imageStream, &mStateBlock, srcImage.image, &srcImage.info));
+
+    // Create a destination optimal-tiled image suballocated inside a shared HOST_VISIBLE
+    // VkDeviceMemory block alongside prefix and suffix host-mapped regions.
+    VkImage dstVkImage = VK_NULL_HANDLE;
+    ASSERT_EQ(mDeviceDispatch.vkCreateImage(mDevice, &imageCi, nullptr, &dstVkImage), VK_SUCCESS);
+
+    VkMemoryRequirements imgMemReqs = {};
+    mDeviceDispatch.vkGetImageMemoryRequirements(mDevice, dstVkImage, &imgMemReqs);
+
+    const VkDeviceSize prefixSize = std::max<VkDeviceSize>(4096, imgMemReqs.alignment);
+    const VkDeviceSize imageOffset = prefixSize;
+    const VkDeviceSize suffixOffset = imageOffset + imgMemReqs.size;
+    const VkDeviceSize suffixSize = 4096;
+    const VkDeviceSize totalMemorySize = suffixOffset + suffixSize;
+
+    VkMemoryRequirements sharedMemReqs = imgMemReqs;
+    sharedMemReqs.size = totalMemorySize;
+    uint32_t hostVisibleType = UINT32_MAX;
+    ASSERT_TRUE(findMemoryType(
+        sharedMemReqs.memoryTypeBits,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        &hostVisibleType));
+
+    VkMemoryAllocateInfo allocInfo = {
+        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+        .allocationSize = totalMemorySize,
+        .memoryTypeIndex = hostVisibleType,
+    };
+    VkDeviceMemory sharedMemory = VK_NULL_HANDLE;
+    ASSERT_EQ(mDeviceDispatch.vkAllocateMemory(mDevice, &allocInfo, nullptr, &sharedMemory),
+              VK_SUCCESS);
+    ASSERT_EQ(
+        mDeviceDispatch.vkBindImageMemory(mDevice, dstVkImage, sharedMemory, imageOffset),
+        VK_SUCCESS);
+
+    void* mappedPtr = nullptr;
+    ASSERT_EQ(mDeviceDispatch.vkMapMemory(mDevice, sharedMemory, 0, totalMemorySize, 0, &mappedPtr),
+              VK_SUCCESS);
+
+    ImageInfo dstImageInfo = {};
+    dstImageInfo.device = mDevice;
+    dstImageInfo.imageCreateInfoShallow = imageCi;
+    dstImageInfo.layout = layout;
+    dstImageInfo.memory = sharedMemory;
+    dstImageInfo.memoryOffset = imageOffset;
+    dstImageInfo.memorySize = imgMemReqs.size;
+
+    MemoryInfo memoryInfo = {};
+    memoryInfo.ptr = mappedPtr;
+    memoryInfo.size = totalMemorySize;
+    memoryInfo.device = mDevice;
+    memoryInfo.optimalImageMemoryRanges[dstVkImage] = {imageOffset, imgMemReqs.size};
+
+    // Restore optimal-tiled image content first, then restore mapped memory from a stream whose
+    // image range is filled with zeros (which would clobber the image on unified memory if not
+    // skipped by loadMappedMemoryContent).
+    ASSERT_TRUE(loadImageContent(&imageStream, &mStateBlock, dstVkImage, &dstImageInfo));
+
+    std::vector<uint8_t> savedRawMemory(totalMemorySize, 0);
+    for (VkDeviceSize i = 0; i < prefixSize; ++i) {
+        savedRawMemory[i] = static_cast<uint8_t>((i * 31u + 7u) & 0xFFu);
+    }
+    for (VkDeviceSize i = 0; i < suffixSize; ++i) {
+        savedRawMemory[suffixOffset + i] = static_cast<uint8_t>((i * 17u + 13u) & 0xFFu);
+    }
+    MemStream memoryStream;
+    memoryStream.write(savedRawMemory.data(), savedRawMemory.size());
+
+    ASSERT_TRUE(loadMappedMemoryContent(&memoryStream, &memoryInfo, totalMemorySize));
+
+    // Verify prefix and suffix host-mapped regions were restored.
+    const auto* mappedBytes = static_cast<const uint8_t*>(mappedPtr);
+    EXPECT_EQ(std::memcmp(mappedBytes, savedRawMemory.data(), prefixSize), 0);
+    EXPECT_EQ(std::memcmp(mappedBytes + suffixOffset, savedRawMemory.data() + suffixOffset,
+                          suffixSize),
+              0);
+
+    // Verify optimal-tiled image mip levels were not overwritten by the zeroed raw memory range.
+    for (uint32_t mip = 0; mip < mipLevels; ++mip) {
+        const VkExtent3D mipExtent = GetMipExtent(extent, mip);
+        const std::vector<uint8_t> actual =
+            readbackMipLayer(dstVkImage, format, mipExtent, mip, 0, layout);
+        EXPECT_EQ(actual, expectedPatterns[mip]) << "Mismatch at mip " << mip;
+    }
+
+    mDeviceDispatch.vkUnmapMemory(mDevice, sharedMemory);
+    mDeviceDispatch.vkDestroyImage(mDevice, dstVkImage, nullptr);
+    mDeviceDispatch.vkFreeMemory(mDevice, sharedMemory, nullptr);
+    destroyTestImage(&srcImage);
+}
+
 }  // namespace
 }  // namespace vk
 }  // namespace host
