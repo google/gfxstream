@@ -3389,6 +3389,295 @@ class VkDecoderGlobalState::Impl {
             &pMemoryRequirements->memoryRequirements);
     }
 
+    static constexpr VkImageUsageFlags kSnapshotTransferUsage =
+        VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+
+    static bool satisfiesImageFormatLimits(const VkImageCreateInfo& ci,
+                                           const VkImageFormatProperties& props) {
+        return ci.extent.width <= props.maxExtent.width &&
+               ci.extent.height <= props.maxExtent.height &&
+               ci.extent.depth <= props.maxExtent.depth &&
+               ci.mipLevels <= props.maxMipLevels &&
+               ci.arrayLayers <= props.maxArrayLayers &&
+               (props.sampleCounts & ci.samples) == ci.samples;
+    }
+
+    bool canAddSnapshotTransferUsageLocked(const DeviceInfo& deviceInfo,
+                                           const VkImageCreateInfo* pCreateInfo) REQUIRES(mMutex) {
+        if (!snapshotsEnabled() || !pCreateInfo) {
+            return false;
+        }
+        if (vk_find_struct<VkNativeBufferANDROID>(pCreateInfo) != nullptr) {
+            return false;
+        }
+        if ((pCreateInfo->usage & VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT) != 0 ||
+            (pCreateInfo->flags & VK_IMAGE_CREATE_SPARSE_BINDING_BIT) != 0) {
+            return false;
+        }
+        // Avoid redundant driver queries when both transfer flags are already requested for all
+        // image aspects. The stencil aspect has its own usage when VkImageStencilUsageCreateInfo
+        // is chained.
+        const auto* stencilUsageInfo = vk_find_struct<VkImageStencilUsageCreateInfo>(pCreateInfo);
+        const bool hasTransferUsage =
+            (pCreateInfo->usage & kSnapshotTransferUsage) == kSnapshotTransferUsage;
+        const bool hasStencilTransferUsage =
+            !stencilUsageInfo ||
+            (stencilUsageInfo->stencilUsage & kSnapshotTransferUsage) == kSnapshotTransferUsage;
+        if (hasTransferUsage && hasStencilTransferUsage) {
+            return false;
+        }
+
+        const PhysicalDeviceInfo* physicalDeviceInfo =
+            gfxstream::base::find(mPhysdevInfo, deviceInfo.physicalDevice);
+        if (!physicalDeviceInfo) {
+            return false;
+        }
+        const InstanceInfo* instanceInfo =
+            gfxstream::base::find(mInstanceInfo, physicalDeviceInfo->instance);
+        if (!instanceInfo || !instanceInfo->boxed) {
+            return false;
+        }
+        // Physical-device commands must be invoked through the instance dispatch table;
+        // vkGetDeviceProcAddr leaves them null on device dispatch tables.
+        VulkanDispatch* ivk = dispatch_VkInstance(instanceInfo->boxed);
+        if (!ivk) {
+            return false;
+        }
+
+        const VkImageUsageFlags targetUsage = pCreateInfo->usage | kSnapshotTransferUsage;
+        if (pCreateInfo->pNext == nullptr &&
+            pCreateInfo->tiling != VK_IMAGE_TILING_DRM_FORMAT_MODIFIER_EXT &&
+            ivk->vkGetPhysicalDeviceImageFormatProperties != nullptr) {
+            VkImageFormatProperties imgFmtProps = {};
+            return ivk->vkGetPhysicalDeviceImageFormatProperties(
+                       deviceInfo.physicalDevice, pCreateInfo->format, pCreateInfo->imageType,
+                       pCreateInfo->tiling, targetUsage, pCreateInfo->flags,
+                       &imgFmtProps) == VK_SUCCESS &&
+                   satisfiesImageFormatLimits(*pCreateInfo, imgFmtProps);
+        }
+
+        PFN_vkGetPhysicalDeviceImageFormatProperties2 getImageFormatProperties2 = nullptr;
+        if (instanceInfo->apiVersion >= VK_MAKE_VERSION(1, 1, 0) &&
+            physicalDeviceInfo->props.apiVersion >= VK_MAKE_VERSION(1, 1, 0)) {
+            getImageFormatProperties2 = ivk->vkGetPhysicalDeviceImageFormatProperties2;
+        }
+        if (!getImageFormatProperties2 &&
+            hasInstanceExtension(physicalDeviceInfo->instance,
+                                 VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME)) {
+            getImageFormatProperties2 = ivk->vkGetPhysicalDeviceImageFormatProperties2KHR;
+        }
+        if (!getImageFormatProperties2) {
+            return false;
+        }
+
+        std::vector<std::shared_ptr<void>> clonedStructs;
+        VkBaseOutStructure* forwardedChainHead = nullptr;
+        VkBaseOutStructure* forwardedChainTail = nullptr;
+        auto appendClonedStruct = [&](const auto* typedSrc) {
+            using StructType = std::decay_t<decltype(*typedSrc)>;
+            auto copy = std::make_shared<StructType>(*typedSrc);
+            auto* base = reinterpret_cast<VkBaseOutStructure*>(copy.get());
+            base->pNext = nullptr;
+            if (!forwardedChainHead) {
+                forwardedChainHead = base;
+            } else {
+                forwardedChainTail->pNext = base;
+            }
+            forwardedChainTail = base;
+            clonedStructs.push_back(std::move(copy));
+        };
+
+        VkExternalMemoryHandleTypeFlags externalHandleTypes = 0;
+        std::vector<uint64_t> drmModifiers;
+        for (const auto* node = reinterpret_cast<const VkBaseInStructure*>(pCreateInfo->pNext);
+             node != nullptr; node = node->pNext) {
+            switch (node->sType) {
+                case VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO:
+                    appendClonedStruct(reinterpret_cast<const VkImageFormatListCreateInfo*>(node));
+                    break;
+                case VK_STRUCTURE_TYPE_IMAGE_STENCIL_USAGE_CREATE_INFO: {
+                    const auto* stencilInfo =
+                        reinterpret_cast<const VkImageStencilUsageCreateInfo*>(node);
+                    if ((stencilInfo->stencilUsage & VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT) !=
+                        0) {
+                        return false;
+                    }
+                    // Snapshot transfers access the stencil aspect too, so its separate usage
+                    // needs the transfer flags as well.
+                    VkImageStencilUsageCreateInfo targetStencilInfo = *stencilInfo;
+                    targetStencilInfo.stencilUsage |= kSnapshotTransferUsage;
+                    appendClonedStruct(&targetStencilInfo);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_IMAGE_COMPRESSION_CONTROL_EXT:
+                    appendClonedStruct(
+                        reinterpret_cast<const VkImageCompressionControlEXT*>(node));
+                    break;
+                case VK_STRUCTURE_TYPE_OPTICAL_FLOW_IMAGE_FORMAT_INFO_NV:
+                    appendClonedStruct(
+                        reinterpret_cast<const VkOpticalFlowImageFormatInfoNV*>(node));
+                    break;
+                case VK_STRUCTURE_TYPE_VIDEO_PROFILE_LIST_INFO_KHR:
+                    appendClonedStruct(reinterpret_cast<const VkVideoProfileListInfoKHR*>(node));
+                    break;
+                case VK_STRUCTURE_TYPE_DATA_GRAPH_OPTICAL_FLOW_IMAGE_FORMAT_INFO_ARM:
+                    appendClonedStruct(
+                        reinterpret_cast<const VkDataGraphOpticalFlowImageFormatInfoARM*>(node));
+                    break;
+                case VK_STRUCTURE_TYPE_IMAGE_CREATE_FLAGS_2_CREATE_INFO_KHR: {
+                    const auto* flags2Info =
+                        reinterpret_cast<const VkImageCreateFlags2CreateInfoKHR*>(node);
+                    // Sparse images can also be requested through the 64-bit create flags.
+                    if ((flags2Info->flags & VK_IMAGE_CREATE_2_SPARSE_BINDING_BIT_KHR) != 0) {
+                        return false;
+                    }
+                    appendClonedStruct(flags2Info);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO: {
+                    const auto* extMemInfo =
+                        reinterpret_cast<const VkExternalMemoryImageCreateInfo*>(node);
+                    if ((extMemInfo->handleTypes &
+                         VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID) != 0) {
+                        return false;
+                    }
+                    externalHandleTypes |= extMemInfo->handleTypes;
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_EXPLICIT_CREATE_INFO_EXT: {
+                    const auto* modInfo =
+                        reinterpret_cast<const VkImageDrmFormatModifierExplicitCreateInfoEXT*>(
+                            node);
+                    drmModifiers.push_back(modInfo->drmFormatModifier);
+                    break;
+                }
+                case VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_LIST_CREATE_INFO_EXT: {
+                    const auto* modList =
+                        reinterpret_cast<const VkImageDrmFormatModifierListCreateInfoEXT*>(node);
+                    if (modList->drmFormatModifierCount == 0 || !modList->pDrmFormatModifiers) {
+                        return false;
+                    }
+                    drmModifiers.insert(
+                        drmModifiers.end(), modList->pDrmFormatModifiers,
+                        modList->pDrmFormatModifiers + modList->drmFormatModifierCount);
+                    break;
+                }
+                default:
+                    // Conservatively avoid modifying usage when unrecognized extension structs are
+                    // chained on VkImageCreateInfo.
+                    return false;
+            }
+        }
+
+        auto querySingleConfig = [&](const void* extraInputPNext) -> bool {
+            if (externalHandleTypes == 0) {
+                VkPhysicalDeviceImageFormatInfo2 formatInfo2 = {
+                    .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_FORMAT_INFO_2,
+                    .pNext = extraInputPNext,
+                    .format = pCreateInfo->format,
+                    .type = pCreateInfo->imageType,
+                    .tiling = pCreateInfo->tiling,
+                    .usage = targetUsage,
+                    .flags = pCreateInfo->flags,
+                };
+                VkImageFormatProperties2 formatProps2 = {
+                    .sType = VK_STRUCTURE_TYPE_IMAGE_FORMAT_PROPERTIES_2,
+                    .pNext = nullptr,
+                };
+                return getImageFormatProperties2(deviceInfo.physicalDevice, &formatInfo2,
+                                                 &formatProps2) == VK_SUCCESS &&
+                       satisfiesImageFormatLimits(*pCreateInfo, formatProps2.imageFormatProperties);
+            }
+
+            uint32_t remaining = externalHandleTypes;
+            while (remaining != 0) {
+                const uint32_t handleBit = remaining & (~remaining + 1u);
+                remaining ^= handleBit;
+
+                VkPhysicalDeviceExternalImageFormatInfo extFormatInfo = {
+                    .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_IMAGE_FORMAT_INFO,
+                    .pNext = extraInputPNext,
+                    .handleType = static_cast<VkExternalMemoryHandleTypeFlagBits>(handleBit),
+                };
+                VkPhysicalDeviceImageFormatInfo2 formatInfo2 = {
+                    .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_FORMAT_INFO_2,
+                    .pNext = &extFormatInfo,
+                    .format = pCreateInfo->format,
+                    .type = pCreateInfo->imageType,
+                    .tiling = pCreateInfo->tiling,
+                    .usage = targetUsage,
+                    .flags = pCreateInfo->flags,
+                };
+                VkExternalImageFormatProperties extFormatProps = {
+                    .sType = VK_STRUCTURE_TYPE_EXTERNAL_IMAGE_FORMAT_PROPERTIES,
+                    .pNext = nullptr,
+                };
+                VkImageFormatProperties2 formatProps2 = {
+                    .sType = VK_STRUCTURE_TYPE_IMAGE_FORMAT_PROPERTIES_2,
+                    .pNext = &extFormatProps,
+                };
+                if (getImageFormatProperties2(deviceInfo.physicalDevice, &formatInfo2,
+                                              &formatProps2) != VK_SUCCESS ||
+                    !satisfiesImageFormatLimits(*pCreateInfo, formatProps2.imageFormatProperties)) {
+                    return false;
+                }
+                const VkExternalMemoryProperties& extMemProps =
+                    extFormatProps.externalMemoryProperties;
+                if ((extMemProps.externalMemoryFeatures &
+                     (VK_EXTERNAL_MEMORY_FEATURE_EXPORTABLE_BIT |
+                      VK_EXTERNAL_MEMORY_FEATURE_IMPORTABLE_BIT)) == 0) {
+                    return false;
+                }
+                if ((extMemProps.compatibleHandleTypes & externalHandleTypes) !=
+                    externalHandleTypes) {
+                    return false;
+                }
+            }
+            return true;
+        };
+
+        if (pCreateInfo->tiling == VK_IMAGE_TILING_DRM_FORMAT_MODIFIER_EXT) {
+            if (drmModifiers.empty()) {
+                return false;
+            }
+            // The driver may select any of the listed modifiers, so all of them must support the
+            // transfer usage.
+            for (uint64_t modifier : drmModifiers) {
+                VkPhysicalDeviceImageDrmFormatModifierInfoEXT drmModifierInfo = {
+                    .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_DRM_FORMAT_MODIFIER_INFO_EXT,
+                    .pNext = forwardedChainHead,
+                    .drmFormatModifier = modifier,
+                    .sharingMode = pCreateInfo->sharingMode,
+                    .queueFamilyIndexCount = pCreateInfo->queueFamilyIndexCount,
+                    .pQueueFamilyIndices = pCreateInfo->pQueueFamilyIndices,
+                };
+                if (!querySingleConfig(&drmModifierInfo)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        return querySingleConfig(forwardedChainHead);
+    }
+
+    // Returns a copy of |createInfo| that also requests kSnapshotTransferUsage for all image
+    // aspects. The pNext chain is deep copied into |pool| only when the separately specified
+    // stencil usage needs the transfer flags as well.
+    static VkImageCreateInfo withSnapshotTransferUsage(gfxstream::base::BumpPool* pool,
+                                                       const VkImageCreateInfo& createInfo) {
+        VkImageCreateInfo result = createInfo;
+        if (vk_find_struct<VkImageStencilUsageCreateInfo>(&createInfo) != nullptr) {
+            deepcopy_VkImageCreateInfo(pool, VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO, &createInfo,
+                                       &result);
+            if (auto* stencilUsageInfo = vk_find_struct<VkImageStencilUsageCreateInfo>(&result)) {
+                stencilUsageInfo->stencilUsage |= kSnapshotTransferUsage;
+            }
+        }
+        result.usage |= kSnapshotTransferUsage;
+        return result;
+    }
+
     void on_vkGetDeviceImageMemoryRequirements(gfxstream::base::BumpPool* pool,
                                                VkSnapshotApiCallHandle apiCallHandle,
                                                VkDevice boxed_device,
@@ -3396,14 +3685,6 @@ class VkDecoderGlobalState::Impl {
                                                VkMemoryRequirements2* pMemoryRequirements) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
-
-        if (vk->vkGetDeviceImageMemoryRequirements) {
-            vk->vkGetDeviceImageMemoryRequirements(device, pInfo, pMemoryRequirements);
-        } else if (vk->vkGetDeviceImageMemoryRequirementsKHR) {
-            vk->vkGetDeviceImageMemoryRequirementsKHR(device, pInfo, pMemoryRequirements);
-        } else {
-            GFXSTREAM_FATAL("%s: function implementation cannot be found!");
-        }
 
         std::lock_guard<std::mutex> lock(mMutex);
 
@@ -3424,6 +3705,25 @@ class VkDecoderGlobalState::Impl {
         const VkFormat format = pInfo->pCreateInfo->format;
         const bool needDecompression =
             (isEtc2(format) || isAstc(format)) && deviceInfo->needEmulatedDecompression(format);
+
+        // With emulated decompression, the snapshot transfer usage is applied to the decompressed
+        // image below instead.
+        VkDeviceImageMemoryRequirements queryInfo = *pInfo;
+        VkImageCreateInfo snapshotCreateInfo;
+        if (!needDecompression &&
+            canAddSnapshotTransferUsageLocked(*deviceInfo, pInfo->pCreateInfo)) {
+            snapshotCreateInfo = withSnapshotTransferUsage(pool, *pInfo->pCreateInfo);
+            queryInfo.pCreateInfo = &snapshotCreateInfo;
+        }
+
+        if (vk->vkGetDeviceImageMemoryRequirements) {
+            vk->vkGetDeviceImageMemoryRequirements(device, &queryInfo, pMemoryRequirements);
+        } else if (vk->vkGetDeviceImageMemoryRequirementsKHR) {
+            vk->vkGetDeviceImageMemoryRequirementsKHR(device, &queryInfo, pMemoryRequirements);
+        } else {
+            GFXSTREAM_FATAL("%s: function implementation cannot be found!", __func__);
+        }
+
         if (!needDecompression) {
             physicalDeviceMemHelper->transformToGuestImageMemoryRequirements(
                 pInfo->pCreateInfo->tiling, &pMemoryRequirements->memoryRequirements);
@@ -3435,10 +3735,17 @@ class VkDecoderGlobalState::Impl {
             CompressedImageInfo(device, *pInfo->pCreateInfo, deviceInfo->decompPipelines.get());
         {
             VkImageCreateInfo decompInfo = cmpInfo.getOutputCreateInfo(*pInfo->pCreateInfo);
+            if (canAddSnapshotTransferUsageLocked(*deviceInfo, &decompInfo)) {
+                decompInfo = withSnapshotTransferUsage(pool, decompInfo);
+            }
             VkImage tempImage;
             VkResult createRes = vk->vkCreateImage(device, &decompInfo, nullptr, &tempImage);
             if (createRes != VK_SUCCESS) {
-                GFXSTREAM_ERROR("%s: Failed to find device info for device: %p", __func__, device);
+                GFXSTREAM_ERROR(
+                    "%s: Failed to create temporary decompressed image with format %s for device "
+                    "%p: %s (%d)",
+                    __func__, string_VkFormat(decompInfo.format), device,
+                    string_VkResult(createRes), createRes);
                 return;
             }
 
@@ -3783,6 +4090,15 @@ class VkDecoderGlobalState::Impl {
         std::unique_ptr<AndroidNativeBufferInfo> anbInfo = nullptr;
         const VkNativeBufferANDROID* nativeBufferANDROID =
             vk_find_struct<VkNativeBufferANDROID>(pCreateInfo);
+
+        // Enable transfer source and destination usage flags for snapshotting when
+        // supported by the driver. It is required for some implementations that don't
+        // enable these flags by default.
+        VkImageCreateInfo snapshotCreateInfo;
+        if (canAddSnapshotTransferUsageLocked(*deviceInfo, pCreateInfo)) {
+            snapshotCreateInfo = withSnapshotTransferUsage(pool, *pCreateInfo);
+            pCreateInfo = &snapshotCreateInfo;
+        }
 
         VkResult createRes = VK_SUCCESS;
 
