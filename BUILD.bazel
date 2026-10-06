@@ -33,3 +33,34 @@ license(
 )
 
 licenses(["notice"])
+
+test_suite(
+    name = "gfxstream_unit_tests",
+    tests = [
+        "//codegen/generic-apigen:parser_test",
+        # Failing / environment-dependent tests disabled below:
+        # "//common/base:gfxstream_common_base_tests",  # WorkerThread assertion failure
+        # "//host:gfxstream_framebuffer_tests",  # Requires EGL/GLES driver config
+        # "//host:gfxstream_unittest",  # Hangs creating native OS window in headless
+        "//host:gfxstream_virtio_gpu_timelines_tests",
+        "//host:gfxstream_vsyncthread_tests",
+        "//host/address_space:gfxstream_host_address_space_tests",
+        "//host/compressed_textures:gfxstream_host_compressed_textures_unittests",
+        "//host/features:gfxstream_features_tests",
+        "//host/renderdoc:gfxstream_host_renderdoc_tests",
+        "//host/vulkan:gfxstream_compositorvk_tests",
+        "//host/vulkan:gfxstream_device_op_tracker_tests",
+        "//host/vulkan:gfxstream_displayvk_tests",
+        "//host/vulkan:gfxstream_emulatedphysicalmemory_tests",
+        "//host/vulkan:gfxstream_emulatedphysicalqueue_tests",
+        "//host/vulkan:gfxstream_swap_chain_state_vk_tests",
+        "//host/vulkan:gfxstream_vk_decoder_internal_structs_tests",
+        "//host/vulkan:gfxstream_vk_format_utils_tests",
+        "//host/vulkan:gfxstream_vk_qsri_timeline_tests",
+        "//host/vulkan:gfxstream_vk_utils_tests",
+        "//host/vulkan:gfxstream_vulkan_tests",
+        "//host/vulkan:vk_common_operations_tests",
+        "//host/vulkan:vk_format_utils_tests",
+    ],
+    visibility = ["//visibility:public"],
+)

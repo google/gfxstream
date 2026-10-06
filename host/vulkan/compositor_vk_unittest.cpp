@@ -51,7 +51,7 @@ std::string GetTestDataPath(const std::string& basename) {
     using rules_cc::cc::runfiles::Runfiles;
     static Runfiles* sRunfiles = []() -> Runfiles* {
         std::string error;
-        auto* runfiles = Runfiles::CreateForTest(&error);
+        auto* runfiles = Runfiles::CreateForTest(BAZEL_CURRENT_REPOSITORY, &error);
         if (runfiles == nullptr) {
             ADD_FAILURE() << "Failed to load runfiles: " << error;
             return nullptr;
@@ -63,6 +63,7 @@ std::string GetTestDataPath(const std::string& basename) {
         return "";
     }
     const std::vector<std::string> possiblePaths = {
+        std::string("gfxstream/host/vulkan/testdata/") + basename,
         std::string("_main/host/vulkan/testdata/") + basename,
         std::string("host/vulkan/testdata/") + basename,
     };

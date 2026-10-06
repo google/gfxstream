@@ -1804,6 +1804,11 @@ VkEmulation::~VkEmulation() {
     if (mGvk && mInstance != VK_NULL_HANDLE) {
         mGvk->vkDestroyInstance(mInstance, nullptr);
     }
+
+    delete mDvk;
+    mDvk = nullptr;
+    delete mIvk;
+    mIvk = nullptr;
 }
 
 bool VkEmulation::isYcbcrEmulationEnabled() const { return mEnableYcbcrEmulation; }
