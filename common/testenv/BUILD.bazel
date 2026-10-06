@@ -12,15 +12,38 @@ string_flag(
     build_setting_default = "host",
     values = [
         "host",
+        "gles_none_vulkan_lavapipe",
         "gles_angle_vulkan_lavapipe",
         "gles_angle_vulkan_swiftshader",
     ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "default_vulkan_lavapipe_drivers",
+    srcs = [
+        "//third_party/mesa:vk_lavapipe_icd.json",
+        "@mesa//:vulkan_lvp",
+    ],
+)
+
+label_flag(
+    name = "vulkan_lavapipe_drivers",
+    build_setting_default = ":default_vulkan_lavapipe_drivers",
+    visibility = ["//visibility:public"],
 )
 
 config_setting(
     name = "graphics_test_environment_host",
     flag_values = {
         ":graphics_test_environment": "host",
+    },
+)
+
+config_setting(
+    name = "graphics_test_environment_gles_none_vulkan_lavapipe",
+    flag_values = {
+        ":graphics_test_environment": "gles_none_vulkan_lavapipe",
     },
 )
 
@@ -41,6 +64,9 @@ config_setting(
 copy_to_directory(
     name = "graphics_test_environment_drivers",
     srcs = select({
+        ":graphics_test_environment_gles_none_vulkan_lavapipe": [
+            ":vulkan_lavapipe_drivers",
+        ],
         ":graphics_test_environment_gles_angle_vulkan_lavapipe": [
             "//third_party/angle:libEGL_angle_vendor_icd.json",
             "//third_party/mesa:vk_lavapipe_icd.json",
@@ -62,6 +88,7 @@ copy_to_directory(
     include_external_repositories = ["*"],
     # Effectively, all of the "prefixes" to flatten/strip.
     root_paths = [
+        "**/lib64/vulkan",
         "common/testenv",
         "third_party/angle",
         "third_party/mesa",
@@ -79,6 +106,9 @@ cc_library(
         "include/gfxstream/common/testing/graphics_test_environment.h",
     ],
     data = select({
+        ":graphics_test_environment_gles_none_vulkan_lavapipe": [
+            ":graphics_test_environment_drivers",
+        ],
         ":graphics_test_environment_gles_angle_vulkan_lavapipe": [
             ":graphics_test_environment_drivers",
         ],
@@ -88,6 +118,9 @@ cc_library(
         "//conditions:default": [],
     }),
     defines = select({
+        ":graphics_test_environment_gles_none_vulkan_lavapipe": [
+            "GFXSTREAM_TESTING_USE_VULKAN_LAVAPIPE",
+        ],
         ":graphics_test_environment_gles_angle_vulkan_lavapipe": [
             "GFXSTREAM_TESTING_USE_GLES_ANGLE",
             "GFXSTREAM_TESTING_USE_VULKAN_LAVAPIPE",
@@ -102,6 +135,9 @@ cc_library(
     }),
     strip_include_prefix = "include",
     deps = select({
+        ":graphics_test_environment_gles_none_vulkan_lavapipe": [
+            "@rules_cc//cc/runfiles",
+        ],
         ":graphics_test_environment_gles_angle_vulkan_lavapipe": [
             "@rules_cc//cc/runfiles",
         ],

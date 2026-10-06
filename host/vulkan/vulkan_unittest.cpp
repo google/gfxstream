@@ -21,6 +21,7 @@
 
 #include "OpenGLESDispatch/OpenGLDispatchLoader.h"
 #include "gfxstream/ArraySize.h"
+#include "gfxstream/common/testing/graphics_test_environment.h"
 #include "gfxstream/files/PathUtils.h"
 #include "gfxstream/host/handle.h"
 #include "gfxstream/host/testing/VkTestUtils.h"
@@ -382,8 +383,14 @@ static void teardownVulkanTest(const VulkanDispatch* vk,
 
 class VulkanTest : public ::testing::Test {
   protected:
+    static void SetUpTestSuite() {
+        ASSERT_TRUE(gfxstream::testing::SetupGraphicsTestEnvironment())
+            << "Failed to configure graphics test environment";
+    }
+
     void SetUp() override {
-        auto dispatch = vkDispatch(true);
+        auto dispatch =
+            vkDispatch(!gfxstream::testing::IsGraphicsTestEnvironmentProvidingVulkanDriver());
         ASSERT_NE(dispatch, nullptr);
         mVk = *dispatch;
 
@@ -424,12 +431,14 @@ TEST_F(VulkanTest, StagingMemoryQuery) {
 
     VkBuffer buffer = VK_NULL_HANDLE;
     VkResult bufCreateRes = mVk.vkCreateBuffer(mDevice, &bufCi, nullptr, &buffer);
-    EXPECT_EQ(VK_SUCCESS, bufCreateRes);
+    ASSERT_EQ(VK_SUCCESS, bufCreateRes);
 
     VkMemoryRequirements memReqs;
     mVk.vkGetBufferMemoryRequirements(mDevice, buffer, &memReqs);
 
     EXPECT_TRUE(getStagingMemoryTypeIndex(&mVk, mDevice, &memProps, memReqs, &typeIndex));
+
+    mVk.vkDestroyBuffer(mDevice, buffer, nullptr);
 }
 
 TEST(VVLConfigurationTest, ExactMatchingCaseInsensitive) {

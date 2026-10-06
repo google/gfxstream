@@ -19,6 +19,10 @@
 #include <optional>
 #include <string>
 
+#if defined(__linux__) || defined(__APPLE__)
+#include <dlfcn.h>
+#endif
+
 #ifdef BAZEL_CURRENT_REPOSITORY
 #include <rules_cc/cc/runfiles/runfiles.h>
 #endif
@@ -30,7 +34,9 @@ namespace gfxstream {
 namespace testing {
 namespace {
 
-#if defined(GFXSTREAM_TESTING_USE_GLES_ANGLE)
+#if defined(GFXSTREAM_TESTING_USE_GLES_ANGLE) || \
+    defined(GFXSTREAM_TESTING_USE_VULKAN_LAVAPIPE) || \
+    defined(GFXSTREAM_TESTING_USE_VULKAN_SWIFTSHADER)
 std::optional<std::filesystem::path> GetGraphicsDriverPath(const std::string& basename) {
 #if defined(BAZEL_CURRENT_REPOSITORY)
     // https://github.com/bazelbuild/rules_cc/blob/main/cc/runfiles/runfiles.h
@@ -49,6 +55,7 @@ std::optional<std::filesystem::path> GetGraphicsDriverPath(const std::string& ba
         return std::nullopt;
     }
     const std::vector<std::string> possiblePaths = {
+        std::string("gfxstream/common/testenv/graphics_test_environment_drivers/") + basename,
         std::string("_main/common/testenv/graphics_test_environment_drivers/") + basename,
     };
     for (const std::string& possiblePath : possiblePaths) {
@@ -64,7 +71,7 @@ std::optional<std::filesystem::path> GetGraphicsDriverPath(const std::string& ba
     return std::nullopt;
 #endif  // defined(BAZEL_CURRENT_REPOSITORY)
 }
-#endif  // defined(GFXSTREAM_TESTING_USE_GLES_ANGLE)
+#endif
 
 }  // namespace
 
@@ -147,11 +154,38 @@ bool SetupGraphicsTestEnvironment() {
         GFXSTREAM_ERROR("Failed to find %s", driverBasename.c_str());
         return false;
     }
-    const auto driverIcdOpt = GetGraphicsDriverPath(driverIcdBasename);
+    auto driverIcdOpt = GetGraphicsDriverPath(driverIcdBasename);
+#if defined(GFXSTREAM_TESTING_USE_VULKAN_LAVAPIPE)
+    if (!driverIcdOpt) {
+        driverIcdOpt = GetGraphicsDriverPath("lvp_icd.json");
+    }
+#endif
     if (!driverIcdOpt) {
         GFXSTREAM_ERROR("Failed to find %s", driverIcdBasename.c_str());
         return false;
     }
+
+    const std::filesystem::path driverDir = driverOpt->parent_path();
+    const std::filesystem::path bundledLoader = driverDir / "libvulkan.so";
+    if (std::filesystem::exists(bundledLoader)) {
+        gfxstream::base::setEnvironmentVariable("ANDROID_EMU_VK_LOADER_PATH",
+                                                bundledLoader.string());
+    }
+
+#if defined(__linux__) || defined(__APPLE__)
+    const std::filesystem::path llvmLib = driverDir / "libLLVM.so";
+    if (std::filesystem::exists(llvmLib)) {
+        if (void* handle = ::dlopen(llvmLib.c_str(), RTLD_NOW | RTLD_GLOBAL | RTLD_NODELETE)) {
+            ::dlclose(handle);
+        }
+    }
+    // Pin the software Vulkan ICD in the process address space with RTLD_NODELETE so
+    // it remains mapped across vkDestroyInstance calls and until process exit.
+    if (void* handle = ::dlopen(driverOpt->c_str(), RTLD_NOW | RTLD_LOCAL | RTLD_NODELETE)) {
+        ::dlclose(handle);
+    }
+#endif
+
     const std::string driverIcd = driverIcdOpt->string();
     gfxstream::base::setEnvironmentVariable("VK_DRIVER_FILES", driverIcd);
     gfxstream::base::setEnvironmentVariable("VK_ICD_FILENAMES", driverIcd);
