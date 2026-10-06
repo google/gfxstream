@@ -37,6 +37,7 @@
 #include "gfxstream/shared_library.h"
 #include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/common/logging.h"
+#include "gfxstream/system/System.h"
 
 #define IS_TRUE(a) \
         do { if (!(a)) return NULL; } while (0)
@@ -264,6 +265,14 @@ HWND createDummyWindow() {
 
     RegisterClassA(&wcx);
 
+    HWND wndParent = NULL;
+    // This improves how the setting changes are made visible to the window, but it's a
+    // risky change as some drivers may fail at SetPixelFormat call on a message-only window.
+    // So, we provide the support as a opt-in setting through an environment variable.
+    if (gfxstream::base::getEnvironmentVariable("GFXSTREAM_USE_MESSAGE_ONLY_WINDOW") == "1") {
+        wndParent = HWND_MESSAGE;
+    }
+
     HWND hwnd = CreateWindowExA(WS_EX_CLIENTEDGE,
                                "DummyWin",
                                "Dummy",
@@ -272,7 +281,7 @@ HWND createDummyWindow() {
                                0,
                                1,
                                1,
-                               NULL,
+                               wndParent,
                                NULL,
                                0,0);
     return hwnd;
