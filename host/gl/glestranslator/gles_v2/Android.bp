@@ -44,4 +44,9 @@ cc_library_static {
         "shader_validator.cpp",
         "transform_feedback_data.cpp",
     ],
+    extra_include_dir_deps: [
+        "gles_v30_imp.cpp",
+        "gles_v31_imp.cpp",
+        "gles_v32_imp.cpp",
+    ],
 }

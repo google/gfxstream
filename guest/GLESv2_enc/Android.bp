@@ -16,6 +16,11 @@ package {
     default_applicable_licenses: ["hardware_google_gfxstream_license"],
 }
 
+filegroup {
+    name: "glesv2_enc_gl2_entry_src",
+    srcs: ["gl2_entry.cpp"],
+}
+
 cc_library {
     name: "libgfxstream_gles2_encoder_program_binary_proto",
     defaults: [

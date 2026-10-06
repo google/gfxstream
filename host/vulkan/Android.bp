@@ -109,6 +109,9 @@ cc_library_static {
     export_include_dirs: [
         ".",
     ],
+    extra_include_dir_deps: [
+        "vk_sub_decoder.cpp",
+    ],
 }
 
 // Run with `atest --host gfxstream_compositorvk_test`

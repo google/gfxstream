@@ -51,4 +51,7 @@ cc_library_shared {
     export_include_dirs: [
         ".",
     ],
+    extra_export_include_dirs_deps: [
+        "gl_entry.cpp",
+    ],
 }

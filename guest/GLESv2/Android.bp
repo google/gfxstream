@@ -41,6 +41,9 @@ cc_library_shared {
     srcs: [
         "gl2.cpp",
     ],
+    extra_include_dir_deps: [
+        ":glesv2_enc_gl2_entry_src",
+    ],
     target: {
         android: {
             relative_install_path: "egl",
