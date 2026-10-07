@@ -62,6 +62,7 @@
 #include "gfxstream/system/System.h"
 #include "host/gl/context_helper.h"
 #include "render-utils/MediaNative.h"
+#include "render-utils/snapshot_operations.h"
 #include "render_thread_info.h"
 #include "sync_thread.h"
 #include "vulkan/display_vk.h"
@@ -131,9 +132,10 @@ static constexpr uint32_t kNumMaxProcessResources = 5000;
 static constexpr uint32_t kNumMaxColorBuffers = 16000;
 
 // Version and magic numbers for framebuffer stream for validity checks.
-// The global snapshot version (e.g. kVersionBase for AEMU) should be updated when changing
-// the framebuffer version to avoid getting errors when loading old, unsupported snapshots.
-static constexpr uint32_t kFramebufferSnapshotVersionNumber = 4;
+// The version lives in render-utils/snapshot_operations.h so that embedders
+// (e.g. AEMU's Snapshot.cpp) can fold it into their top-level snapshot version
+// and reject old snapshots before loading any state.
+static constexpr uint32_t kFramebufferSnapshotVersionNumber = kFramebufferSnapshotVersion;
 static constexpr uint32_t kFramebufferSnapshotMagicNumber = 0xC0FFEEEE;
 
 // A condition variable needed to wait for framebuffer initialization.
