@@ -25,6 +25,20 @@
 
 namespace gfxstream {
 
+// Version of the FrameBuffer snapshot stream format written by
+// FrameBuffer::onSave() and expected by FrameBuffer::onLoad().
+//
+// Bump this whenever the framebuffer stream layout changes in a way that
+// older snapshots can no longer be parsed.
+//
+// This constant is intentionally public: embedders (e.g. the Android
+// Emulator) fold it into their own top-level snapshot version so that a
+// snapshot written with an older framebuffer format is rejected *before*
+// any VM state is restored, and they can safely fall back to a cold boot.
+// A mismatch detected inside FrameBuffer::onLoad() is fatal, because by then
+// guest RAM and device state have already been loaded.
+inline constexpr uint32_t kFramebufferSnapshotVersion = 3;
+
 class ITextureSaver {
   public:
     ITextureSaver() = default;
