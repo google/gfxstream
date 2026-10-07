@@ -48,6 +48,12 @@ struct RenderThreadInfoGl {
     void onSave(gfxstream::Stream* stream);
     bool onLoad(gfxstream::Stream* stream);
 
+    // Must be called on the owning render thread before the snapshot is
+    // saved: waits until all GL commands issued so far on this thread's
+    // current context have completed, so that texture contents read back
+    // from another context by FrameBuffer::onSave are up to date.
+    void finishBeforeSnapshot();
+
     // Sometimes we can load render thread info before
     // FrameBuffer repopulates the contexts.
     void postLoadRefreshCurrentContextSurfacePtrs();

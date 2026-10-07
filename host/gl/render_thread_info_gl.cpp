@@ -16,6 +16,7 @@
 
 #include <unordered_set>
 
+#include "OpenGLESDispatch/DispatchTables.h"
 #include "OpenGLESDispatch/EGLDispatch.h"
 #include "OpenGLESDispatch/GLESv1Dispatch.h"
 #include "OpenGLESDispatch/GLESv2Dispatch.h"
@@ -49,6 +50,21 @@ RenderThreadInfoGl::~RenderThreadInfoGl() {
 }
 
 RenderThreadInfoGl* RenderThreadInfoGl::get() { return tlThreadInfo; }
+
+void RenderThreadInfoGl::finishBeforeSnapshot() {
+    if (!currContext) {
+        return;
+    }
+    // The snapshot is taken from a different context (and thread). Pending
+    // commands in this context - texture uploads, draws into EGLImage
+    // backed textures - are not guaranteed to be visible there until they
+    // have completed, which would otherwise be read back as stale data.
+    if (currContext->clientVersion() > GLESApi_CM) {
+        s_gles2.glFinish();
+    } else {
+        s_gles1.glFinish();
+    }
+}
 
 void RenderThreadInfoGl::onSave(Stream* stream) {
     if (currContext) {

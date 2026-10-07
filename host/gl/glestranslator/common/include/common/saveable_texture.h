@@ -90,6 +90,11 @@ class SaveableTexture : public gfxstream::LazySnapshotObj<SaveableTexture> {
     void restore();
 
 private:
+    // Blocks until the GL commands issued by restore() in the current context
+    // have completed, so that the texture is fully defined before any other
+    // context (render threads, FrameBuffer) can observe its name.
+    void waitForCompletion(GLDispatch& dispatcher);
+
     unsigned int m_target = GL_TEXTURE_2D;
     unsigned int m_width = 0;
     unsigned int m_height = 0;
