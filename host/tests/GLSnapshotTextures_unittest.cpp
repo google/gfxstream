@@ -16,7 +16,11 @@
 #include "gfxstream/host/testing/GLSnapshotTesting.h"
 #include "gfxstream/host/glUtils.h"
 
+#include <GLES2/gl2ext.h>
 #include <gtest/gtest.h>
+
+#include <cstdio>
+#include <utility>
 
 namespace gfxstream {
 namespace host {
@@ -477,6 +481,163 @@ TEST_F(SnapshotGlTextureObjectTest, CreateCubeMap) {
                .target = GL_TEXTURE_CUBE_MAP,
                .images2D = {}, // mingw compiler cannot deal with gaps
                .imagesCubeMap = kGLES2TestTextureCubeMap};
+    doCheckedSnapshot();
+}
+
+// Regression test for b/570806740 / b/557246817: hardware bitmaps and BGRA
+// color buffers are specified by the guest with the sized GL_BGRA8_EXT internal
+// format (GL_EXT_texture_format_BGRA8888). On desktop GL the translator rewrites
+// that to GL_RGBA8 when the texture is first specified, but TextureData keeps
+// GL_BGRA8_EXT, which is what the snapshot records. If restore() does not apply
+// the same rewrite, desktop GL rejects glTexImage2D / glTexStorage2D with
+// GL_INVALID_ENUM, the texture stays incomplete and samples as opaque black.
+//
+// Only reproduces with the translator on top of desktop GL
+// (ANDROID_EMU_TEST_WITH_HOST_GPU=1); GLES-on-GLES backends accept
+// GL_BGRA8_EXT natively, so there the test passes with or without the fix.
+class SnapshotGlBgra8TextureTest : public SnapshotPreserveTest {
+public:
+    enum class SpecifyWith { TexImage2D, TexStorage2D };
+
+    static constexpr GLsizei kWidth = 4;
+    static constexpr GLsizei kHeight = 4;
+
+    void configure(GLint internalFormat, SpecifyWith specifyWith) {
+        m_internalFormat = internalFormat;
+        m_specifyWith = specifyWith;
+
+        // Distinctive pattern: every byte unique and non-zero, so a texture
+        // that comes back black (0,0,0,*) or zero-filled is unmistakable.
+        m_bgraPixels.resize(kWidth * kHeight * 4);
+        for (size_t i = 0; i < m_bgraPixels.size(); ++i) {
+            m_bgraPixels[i] = static_cast<GLubyte>(0x10 + i * 3);
+        }
+        // Readback is done as GL_RGBA, so swap the B and R bytes.
+        m_expectedRgba = m_bgraPixels;
+        for (size_t i = 0; i < m_expectedRgba.size(); i += 4) {
+            std::swap(m_expectedRgba[i], m_expectedRgba[i + 2]);
+        }
+    }
+
+    // Whether the backend accepts GL_BGRA8_EXT as an immutable storage
+    // format. On desktop GL the translator rewrites it to GL_RGBA8, but on
+    // GLES-on-GLES backends glTexStorage2D is passed through, and not all of
+    // them accept it (SwANGLE returns GL_INVALID_ENUM). The probe texture is
+    // deleted and the binding restored so the default state check still holds.
+    bool backendSupportsBgra8TexStorage() {
+        while (gl->glGetError() != GL_NO_ERROR) {
+        }
+        GLuint probe = 0;
+        gl->glGenTextures(1, &probe);
+        gl->glBindTexture(GL_TEXTURE_2D, probe);
+        gl->glTexStorage2D(GL_TEXTURE_2D, 1, GL_BGRA8_EXT, 1, 1);
+        const GLenum err = gl->glGetError();
+        gl->glBindTexture(GL_TEXTURE_2D, 0);
+        gl->glDeleteTextures(1, &probe);
+        while (gl->glGetError() != GL_NO_ERROR) {
+        }
+        return err == GL_NO_ERROR;
+    }
+
+    void defaultStateCheck() override {
+        EXPECT_EQ(GL_FALSE, gl->glIsTexture(m_texture));
+    }
+
+    void changedStateCheck() override {
+        SCOPED_TRACE("BGRA texture " + std::to_string(m_texture) +
+                     ", internalformat " + describeGlEnum(m_internalFormat) +
+                     (m_specifyWith == SpecifyWith::TexStorage2D
+                              ? ", glTexStorage2D"
+                              : ", glTexImage2D"));
+        EXPECT_EQ(GL_TRUE, gl->glIsTexture(m_texture));
+        EXPECT_TRUE(compareGlobalGlInt(gl, GL_TEXTURE_BINDING_2D, m_texture));
+        EXPECT_EQ(GL_NO_ERROR, gl->glGetError());
+
+        std::vector<GLubyte> actual = getTextureImageData(
+                gl, m_texture, GL_TEXTURE_2D, 0, kWidth, kHeight, GL_RGBA,
+                GL_UNSIGNED_BYTE);
+        const GLenum readbackError = gl->glGetError();
+        EXPECT_EQ(GL_NO_ERROR, readbackError)
+                << "reading the texture back through a framebuffer failed; the "
+                   "texture level is most likely missing (restore failed)";
+
+        bool allBlack = true;
+        for (size_t i = 0; i < actual.size(); i += 4) {
+            if (actual[i] || actual[i + 1] || actual[i + 2]) {
+                allBlack = false;
+                break;
+            }
+        }
+        EXPECT_FALSE(allBlack) << "texture contents are all black";
+
+        EXPECT_TRUE(compareVector<GLubyte>(
+                m_expectedRgba, actual,
+                "level 0 contents (uploaded as BGRA, read back as RGBA)"));
+    }
+
+    void stateChange() override {
+        // Record which backend the translator is running on; the bug only
+        // reproduces when it sits on top of desktop GL.
+        printf("[   INFO   ] GL_VENDOR=%s GL_RENDERER=%s GL_VERSION=%s\n",
+               reinterpret_cast<const char*>(gl->glGetString(GL_VENDOR)),
+               reinterpret_cast<const char*>(gl->glGetString(GL_RENDERER)),
+               reinterpret_cast<const char*>(gl->glGetString(GL_VERSION)));
+
+        gl->glGenTextures(1, &m_texture);
+        gl->glActiveTexture(GL_TEXTURE0);
+        gl->glBindTexture(GL_TEXTURE_2D, m_texture);
+        gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        EXPECT_EQ(GL_NO_ERROR, gl->glGetError());
+
+        switch (m_specifyWith) {
+            case SpecifyWith::TexImage2D:
+                gl->glTexImage2D(GL_TEXTURE_2D, 0, m_internalFormat, kWidth,
+                                 kHeight, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE,
+                                 m_bgraPixels.data());
+                break;
+            case SpecifyWith::TexStorage2D:
+                gl->glTexStorage2D(GL_TEXTURE_2D, 1,
+                                   static_cast<GLenum>(m_internalFormat),
+                                   kWidth, kHeight);
+                EXPECT_EQ(GL_NO_ERROR, gl->glGetError());
+                gl->glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, kWidth, kHeight,
+                                    GL_BGRA_EXT, GL_UNSIGNED_BYTE,
+                                    m_bgraPixels.data());
+                break;
+        }
+    }
+
+protected:
+    GLuint m_texture = 0;
+    GLint m_internalFormat = GL_BGRA8_EXT;
+    SpecifyWith m_specifyWith = SpecifyWith::TexImage2D;
+    std::vector<GLubyte> m_bgraPixels;
+    std::vector<GLubyte> m_expectedRgba;
+};
+
+// Sized internal format via glTexImage2D: the path used by hardware bitmaps.
+TEST_F(SnapshotGlBgra8TextureTest, SizedBgra8TexImage2D) {
+    configure(GL_BGRA8_EXT, SpecifyWith::TexImage2D);
+    doCheckedSnapshot();
+}
+
+// Sized internal format via glTexStorage2D (immutable storage).
+TEST_F(SnapshotGlBgra8TextureTest, SizedBgra8TexStorage2D) {
+    if (!backendSupportsBgra8TexStorage()) {
+        GTEST_SKIP() << "backend does not accept GL_BGRA8_EXT in "
+                        "glTexStorage2D (e.g. SwANGLE)";
+    }
+    configure(GL_BGRA8_EXT, SpecifyWith::TexStorage2D);
+    doCheckedSnapshot();
+}
+
+// Control: the unsized GL_BGRA_EXT internal format was already rewritten on
+// restore before the fix, so this is expected to pass regardless.
+TEST_F(SnapshotGlBgra8TextureTest, UnsizedBgraTexImage2D) {
+    configure(GL_BGRA_EXT, SpecifyWith::TexImage2D);
     doCheckedSnapshot();
 }
 

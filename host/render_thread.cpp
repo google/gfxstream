@@ -197,6 +197,15 @@ void RenderThread::save(gfxstream::Stream* stream) {
     }
 }
 
+void RenderThread::waitForPausePreSnapshot() {
+    AutoLock lock(mLock);
+    if (mState != SnapshotState::StartSaving &&
+        mState != SnapshotState::InProgress) {
+        return;
+    }
+    waitForSnapshotCompletion(&lock);
+}
+
 void RenderThread::waitForSnapshotCompletion(AutoLock* lock) {
     while (mState != SnapshotState::Finished &&
            !mFinished.load(std::memory_order_relaxed)) {
@@ -243,6 +252,14 @@ bool RenderThread::loadSnapshot(const SnapshotObjects& objects) {
 
 bool RenderThread::saveSnapshot(const SnapshotObjects& objects) {
     return doSnapshotOp(objects, SnapshotState::StartSaving, [this, &objects] {
+#if GFXSTREAM_ENABLE_HOST_GLES
+        // Make sure everything this thread submitted to the GPU has landed
+        // before FrameBuffer::onSave reads textures back from its own
+        // context; see RenderThreadInfoGl::finishBeforeSnapshot().
+        if (objects.threadInfo->m_glInfo) {
+            objects.threadInfo->m_glInfo->finishBeforeSnapshot();
+        }
+#endif
         objects.readBuffer->onSave(&*mStream);
         if (objects.channelStream) objects.channelStream->save(&*mStream);
         if (objects.ringStream) objects.ringStream->save(&*mStream);

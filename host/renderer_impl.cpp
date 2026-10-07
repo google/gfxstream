@@ -310,6 +310,33 @@ bool RendererImpl::save(gfxstream::Stream* stream,
     if (mStopped) {
         return true;
     }
+
+    // pauseAllPreSave() only asks the render threads to stop; they finish
+    // the packet they are decoding first. FrameBuffer::onSave reads texture
+    // contents back from its own context, so wait until every paused thread
+    // has actually stopped and drained its GPU work (see
+    // RenderThread::saveSnapshot), otherwise the readback can race with
+    // in-flight uploads and draws and capture stale or partial textures.
+    {
+        std::vector<std::shared_ptr<RenderChannelImpl>> channels;
+        {
+            std::lock_guard<std::mutex> lock(mChannelsMutex);
+            channels = mChannels;
+        }
+        for (const auto& c : channels) {
+            c->renderThread()->waitForPausePreSnapshot();
+        }
+    }
+    {
+        // Hold the lock while waiting: the threads are owned by the address
+        // space device and freed by addressSpaceGraphicsConsumerDestroy(),
+        // which must not run concurrently with this iteration.
+        std::lock_guard<std::mutex> lock(mAddressSpaceRenderThreadMutex);
+        for (RenderThread* thread : mAddressSpaceRenderThreads) {
+            thread->waitForPausePreSnapshot();
+        }
+    }
+
     auto fb = FrameBuffer::getFB();
     assert(fb);
     return fb->onSave(stream, textureSaver);

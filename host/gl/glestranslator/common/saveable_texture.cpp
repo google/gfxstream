@@ -17,6 +17,7 @@
 #include "common/saveable_texture.h"
 
 #include <algorithm>
+#include <vector>
 
 #include "common/gles_context.h"
 #include "common/gl_utils.h"
@@ -387,7 +388,23 @@ struct TextureDataReader {
         return false;
     }
 
-    void getTexImage(
+    // Drains and returns the last pending GL error (GL_NO_ERROR if none).
+    static GLenum drainGlErrors() {
+        auto gl = GLEScontext::dispatcher();
+        GLenum last = GL_NO_ERROR;
+        for (int i = 0; i < 16; ++i) {
+            GLenum err = gl.glGetError();
+            if (err == GL_NO_ERROR) break;
+            last = err;
+        }
+        return last;
+    }
+
+    // Reads back the content of one texture level into |data|. Returns false
+    // if the read could not be performed (unsupported format for the
+    // framebuffer read path, incomplete framebuffer, GL error, ...). In that
+    // case the content of |data| is undefined and must not be used.
+    bool getTexImage(
         GLuint globalName, GLenum target, GLenum level, GLenum format, GLenum type,
         GLint width, GLint height, GLint depth, uint8_t* data) {
 
@@ -396,12 +413,34 @@ struct TextureDataReader {
 
         auto gl = GLEScontext::dispatcher();
 
+        // Make sure a stale error from the guest does not get attributed
+        // to the readback below.
+        drainGlErrors();
+
         if (!shouldUseReadPixels(target, level, format, type)) {
             D("with underlying glGetTexImage");
             gl.glGetTexImage(target, level, format, type, data);
-            return;
+            return drainGlErrors() == GL_NO_ERROR;
         }
 
+        bool ok = readPixelsFromTexture(globalName, target, level, format, type, width, height,
+                                        depth, data);
+        if (!ok && gl.glGetTexImage) {
+            // The framebuffer path failed (e.g. the format is not color
+            // renderable on this driver); fall back to glGetTexImage.
+            D("framebuffer read failed, falling back to glGetTexImage");
+            drainGlErrors();
+            gl.glGetTexImage(target, level, format, type, data);
+            ok = drainGlErrors() == GL_NO_ERROR;
+        }
+        return ok;
+    }
+
+    bool readPixelsFromTexture(
+        GLuint globalName, GLenum target, GLenum level, GLenum format, GLenum type,
+        GLint width, GLint height, GLint depth, uint8_t* data) {
+
+        auto gl = GLEScontext::dispatcher();
 
         GLenum attachment = GL_COLOR_ATTACHMENT0;
 
@@ -416,6 +455,22 @@ struct TextureDataReader {
 
         gl.glViewport(0, 0, width, height);
 
+        bool ok = true;
+        // Checks that the texture level attached above is readable and reads
+        // it back. Returns false (and leaves |ok| false) on failure.
+        auto readAttachment = [&](uint8_t* dst) {
+            GLenum status = gl.glCheckFramebufferStatus(fbTarget);
+            if (status != GL_FRAMEBUFFER_COMPLETE) {
+                D("framebuffer incomplete: 0x%x", status);
+                ok = false;
+                return;
+            }
+            gl.glReadPixels(0, 0, width, height, format, type, dst);
+            if (drainGlErrors() != GL_NO_ERROR) {
+                ok = false;
+            }
+        };
+
         switch (target) {
             case GL_TEXTURE_2D:
             case GL_TEXTURE_CUBE_MAP_POSITIVE_X:
@@ -428,9 +483,7 @@ struct TextureDataReader {
                 gl.glFramebufferTexture2D(
                         fbTarget, attachment, target,
                         globalName, level);
-                gl.glReadPixels(0, 0, width, height,
-                        format, type,
-                        data);
+                readAttachment(data);
                 gl.glFramebufferTexture2D(
                         fbTarget, attachment, target,
                         0, level);
@@ -439,14 +492,11 @@ struct TextureDataReader {
                 D("with glFramebufferTexture3DOES + glReadPixels");
                 unsigned int layerImgSize = s_texImageSize(
                         format, type, 1, width, height);
-                for (int d = 0; d < depth; d++) {
+                for (int d = 0; d < depth && ok; d++) {
                     gl.glFramebufferTexture3DOES(
                             fbTarget, attachment, target,
                             globalName, level, d);
-                    gl.glReadPixels(0, 0, width,
-                            height, format,
-                            type, data +
-                            layerImgSize * d);
+                    readAttachment(data + layerImgSize * d);
                     gl.glFramebufferTexture3DOES(
                             fbTarget, attachment, target,
                             0, level, d);
@@ -457,21 +507,25 @@ struct TextureDataReader {
                 D("with glFramebufferTextureLayer + glReadPixels");
                 unsigned int layerImgSize = s_texImageSize(
                         format, type, 1, width, height);
-                for (int d = 0; d < depth; d++) {
+                for (int d = 0; d < depth && ok; d++) {
                     gl.glFramebufferTextureLayer(
                             fbTarget, attachment,
                             globalName, level, d);
-                    gl.glReadPixels(0, 0, width,
-                            height, format,
-                            type, data +
-                            layerImgSize * d);
+                    readAttachment(data + layerImgSize * d);
                     gl.glFramebufferTextureLayer(
                             fbTarget, attachment,
                             0, level, d);
                 }
                 break;
             }
+            default:
+                ok = false;
+                break;
         }
+        // Clear any error left behind by the detach calls so it does not
+        // leak into the guest's error state.
+        drainGlErrors();
+        return ok;
     }
 
     void preSave() {
@@ -716,17 +770,45 @@ void SaveableTexture::onSave(
                     }
                     // Snapshot texture data
                     buffer.clear();
-                    buffer.resize_noinit(
-                            s_texImageSize(m_format, m_type, 1, width, height) *
-                            depth);
-                    if (!buffer.empty()) {
+                    const size_t imageSize =
+                            static_cast<size_t>(s_texImageSize(m_format, m_type, 1,
+                                                               width, height)) *
+                            static_cast<size_t>(depth);
+                    if (imageSize == 0) {
+                        // Either the texture level is empty (0x0) or the
+                        // format/type combination is unknown. In the latter
+                        // case the content cannot be read back and will be
+                        // undefined after load.
+                        if (width && height && depth &&
+                            s_texImageSize(m_format, m_type, 1, 1, 1) == 0) {
+                            GFXSTREAM_WARNING(
+                                "snapshot save: texture %u (target 0x%x level %u %ux%ux%u "
+                                "format 0x%x type 0x%x) has an unsupported format and will "
+                                "not be saved",
+                                m_globalName, target, level, width, height, depth,
+                                m_format, m_type);
+                        }
+                    } else {
+                        buffer.resize_noinit(imageSize);
                         GLenum neededBufferFormat = m_format;
                         if (isCoreProfile()) {
                             neededBufferFormat =
                                 getCoreProfileEmulatedFormat(m_format);
                         }
-                        sTextureDataReader()->getTexImage(
-                            m_globalName, target, level, neededBufferFormat, m_type, width, height, depth, buffer.data());
+                        if (!sTextureDataReader()->getTexImage(
+                                m_globalName, target, level, neededBufferFormat, m_type,
+                                width, height, depth, buffer.data())) {
+                            // The readback failed: save zeros instead of
+                            // uninitialized memory so that the texture at
+                            // least restores deterministically.
+                            GFXSTREAM_WARNING(
+                                "snapshot save: failed to read back texture %u (target "
+                                "0x%x level %u %ux%ux%u format 0x%x type 0x%x); saving "
+                                "zeros",
+                                m_globalName, target, level, width, height, depth,
+                                m_format, m_type);
+                            std::fill(buffer.begin(), buffer.end(), 0);
+                        }
                     }
                 }
             }
@@ -904,28 +986,43 @@ void SaveableTexture::restore() {
                 m_maxMipmapLevel + 1;
         GLint resultInternalFormat = m_internalFormat;
         GLenum resultFormat = m_format;
-        // Desktop OpenGL doesn't support GL_BGRA_EXT as internal format.
+        // Desktop OpenGL doesn't support GL_BGRA_EXT / GL_BGRA8_EXT as
+        // internal format. The translator rewrites the sized variant to
+        // GL_RGBA8 when the texture is first specified (see
+        // sPrepareTexImage2D), but the TextureData keeps the original enum,
+        // which is what gets snapshotted. Mirror that rewrite here, otherwise
+        // glTexImage2D fails with GL_INVALID_ENUM and the texture is restored
+        // incomplete (sampled as opaque black).
         if (!isGles2Gles() && m_type == GL_UNSIGNED_BYTE && m_format == GL_BGRA_EXT &&
             resultInternalFormat == GL_BGRA_EXT) {
             resultInternalFormat = GL_RGBA;
+        } else if (!isGles2Gles() && m_type == GL_UNSIGNED_BYTE &&
+                   m_format == GL_BGRA_EXT && resultInternalFormat == GL_BGRA8_EXT) {
+            resultInternalFormat = GL_RGBA8;
         } else if (isCoreProfile() && isCoreProfileEmulatedFormat(m_format)) {
             resultInternalFormat = getCoreProfileEmulatedInternalFormat(
                     m_format, m_type);
             resultFormat = getCoreProfileEmulatedFormat(m_format);
         }
         if (m_texStorageLevels) {
+            // glTexStorage requires a sized internal format; only the
+            // GL_BGRA8_EXT -> GL_RGBA8 rewrite applies here.
+            GLint storageInternalFormat = m_internalFormat;
+            if (!isGles2Gles() && storageInternalFormat == GL_BGRA8_EXT) {
+                storageInternalFormat = GL_RGBA8;
+            }
             switch (m_target) {
                 case GL_TEXTURE_2D:
                 case GL_TEXTURE_CUBE_MAP:
                     dispatcher.glTexStorage2D(m_target, m_texStorageLevels,
-                            m_internalFormat,
+                            storageInternalFormat,
                             m_levelData[0].get()[0].m_width,
                             m_levelData[0].get()[0].m_height);
                     break;
                 case GL_TEXTURE_3D:
                 case GL_TEXTURE_2D_ARRAY:
                     dispatcher.glTexStorage3D(m_target, m_texStorageLevels,
-                            m_internalFormat,
+                            storageInternalFormat,
                             m_levelData[0].get()[0].m_width,
                             m_levelData[0].get()[0].m_height,
                             m_levelData[0].get()[0].m_depth);
@@ -933,9 +1030,36 @@ void SaveableTexture::restore() {
             }
         }
 
+        // Level 0 of a texture that could not be read back at save time has
+        // no data in the snapshot. Uploading with a null pointer would leave
+        // the texture content undefined (garbage on most discrete GPUs), so
+        // upload zeros instead when the size is known.
+        std::vector<unsigned char> zeroPixels;
+        auto pixelsOrZeros = [this, &zeroPixels](const LevelImageData& levelData,
+                                                 unsigned int level) -> const void* {
+            if (!levelData.m_data.empty()) {
+                return levelData.m_data.data();
+            }
+            const size_t size =
+                    static_cast<size_t>(s_texImageSize(m_format, m_type, 1,
+                                                       levelData.m_width,
+                                                       levelData.m_height)) *
+                    static_cast<size_t>(std::max<unsigned int>(levelData.m_depth, 1));
+            if (size == 0) {
+                return nullptr;
+            }
+            GFXSTREAM_WARNING(
+                "snapshot load: texture %u (target 0x%x level %u %ux%ux%u format 0x%x "
+                "type 0x%x) has no saved content; restoring as zeros",
+                m_globalName, m_target, level, levelData.m_width, levelData.m_height,
+                levelData.m_depth, m_format, m_type);
+            zeroPixels.assign(size, 0);
+            return zeroPixels.data();
+        };
+
         auto restoreTex2D =
                 [this, numLevels, resultInternalFormat,
-                resultFormat, &dispatcher](
+                resultFormat, &dispatcher, &pixelsOrZeros](
                         GLenum target,
                         std::unique_ptr<LevelImageData[]>& levelData) {
                     for (unsigned int level = 0; level < numLevels; level++) {
@@ -944,6 +1068,9 @@ void SaveableTexture::restore() {
                                         ? nullptr
                                         : levelData[level].m_data.data();
                         if (!level || pixels) {
+                            if (!level) {
+                                pixels = pixelsOrZeros(levelData[level], level);
+                            }
                             if (m_texStorageLevels) {
                                 dispatcher.glTexSubImage2D(
                                         target, level, 0, 0,
@@ -961,7 +1088,8 @@ void SaveableTexture::restore() {
                     }
                 };
         auto restoreTex3D =
-                [this, numLevels, resultFormat, &dispatcher](
+                [this, numLevels, resultInternalFormat,
+                resultFormat, &dispatcher, &pixelsOrZeros](
                         GLenum target,
                         std::unique_ptr<LevelImageData[]>& levelData) {
                     for (unsigned int level = 0; level < numLevels; level++) {
@@ -970,6 +1098,9 @@ void SaveableTexture::restore() {
                                         ? nullptr
                                         : levelData[level].m_data.data();
                         if (!level || pixels) {
+                            if (!level) {
+                                pixels = pixelsOrZeros(levelData[level], level);
+                            }
                             if (m_texStorageLevels) {
                                 dispatcher.glTexSubImage3D(
                                         target, level, 0, 0, 0,
@@ -979,7 +1110,7 @@ void SaveableTexture::restore() {
                                         resultFormat, m_type, pixels);
                             } else {
                                 dispatcher.glTexImage3D(
-                                        target, level, m_internalFormat,
+                                        target, level, resultInternalFormat,
                                         levelData[level].m_width,
                                         levelData[level].m_height,
                                         levelData[level].m_depth, m_border,
@@ -1035,6 +1166,48 @@ void SaveableTexture::restore() {
             }
         }
         dispatcher.glBindTexture(m_target, prevTex);
+
+        // The texture may be restored from a context other than the one that
+        // will sample it (GLBackgroundLoader's auxiliary context on its own
+        // thread, or the FrameBuffer context when restored through an
+        // EGLImage). Changes to a shared object are only guaranteed to be
+        // visible to other contexts once the producing commands have
+        // completed (GL 4.6 §5.3.3 / ES 3.2 §5.3). Without this, drivers
+        // with per-context command queues (notably on Windows) can let the
+        // guest sample the texture before its upload has landed, which shows
+        // up as black or garbage textures after a snapshot load.
+        waitForCompletion(dispatcher);
+    }
+}
+
+void SaveableTexture::waitForCompletion(GLDispatch& dispatcher) {
+    if (dispatcher.glFenceSync && dispatcher.glClientWaitSync &&
+        dispatcher.glDeleteSync) {
+        GLsync sync = dispatcher.glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+        if (sync) {
+            // 1s per attempt; keep waiting while the driver reports a
+            // timeout so a busy GPU does not leave the texture incomplete.
+            constexpr GLuint64 kTimeoutNs = 1000000000ull;
+            GLenum status = GL_TIMEOUT_EXPIRED;
+            for (int i = 0; i < 10 && status == GL_TIMEOUT_EXPIRED; ++i) {
+                status = dispatcher.glClientWaitSync(
+                        sync, GL_SYNC_FLUSH_COMMANDS_BIT, kTimeoutNs);
+            }
+            dispatcher.glDeleteSync(sync);
+            if (status == GL_ALREADY_SIGNALED ||
+                status == GL_CONDITION_SATISFIED) {
+                return;
+            }
+            GFXSTREAM_WARNING(
+                "snapshot load: fence wait for texture %u returned 0x%x; "
+                "falling back to glFinish",
+                m_globalName, status);
+        }
+    }
+    if (dispatcher.glFinish) {
+        dispatcher.glFinish();
+    } else if (dispatcher.glFlush) {
+        dispatcher.glFlush();
     }
 }
 

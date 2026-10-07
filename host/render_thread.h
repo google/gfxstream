@@ -57,6 +57,10 @@ class RenderThread : public gfxstream::base::Thread {
     void pausePreSnapshot();
     void resume();
     void save(gfxstream::Stream* stream);
+    // After pausePreSnapshot(): blocks until this thread has stopped
+    // decoding and finished its pending GPU work (or has exited). No-op if
+    // the thread was not paused for a snapshot.
+    void waitForPausePreSnapshot();
 
     // RenderThreads are blocked from exiting after finished to workaround driver bugs.
     // `sendExitSignal` allows us to control when we can allow the thread to exit to synchronize
