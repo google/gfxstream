@@ -2560,6 +2560,18 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
+        if (!m_vkEmulation->getFeatures().BypassVulkanDeviceFeatureOverrides.enabled()) {
+            VkPhysicalDeviceHostImageCopyFeatures* hostImageCopyFeatures =
+                vk_find_struct<VkPhysicalDeviceHostImageCopyFeatures>(&createInfoFiltered);
+            VkPhysicalDeviceVulkan14Features* vulkan14Features =
+                vk_find_struct<VkPhysicalDeviceVulkan14Features>(&createInfoFiltered);
+            if ((hostImageCopyFeatures != nullptr && hostImageCopyFeatures->hostImageCopy) ||
+                (vulkan14Features != nullptr && vulkan14Features->hostImageCopy)) {
+                GFXSTREAM_INFO("%s: Unsupported hostImageCopy feature is requested!", __func__);
+                return VK_ERROR_FEATURE_NOT_PRESENT;
+            }
+        }
+
         VkPhysicalDeviceDiagnosticsConfigFeaturesNV deviceDiagnosticsConfigFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DIAGNOSTICS_CONFIG_FEATURES_NV,
             .diagnosticsConfig = VK_TRUE,

@@ -70,7 +70,6 @@ const std::unordered_set<std::string>& GetDeviceExtensionsSupportedByCodegen() {
             "VK_EXT_fragment_density_map",
             "VK_EXT_frame_boundary",
             "VK_EXT_graphics_pipeline_library",
-            "VK_EXT_host_image_copy",
             "VK_EXT_host_query_reset",
             "VK_EXT_image_compression_control",
             "VK_EXT_image_compression_control_swapchain",
