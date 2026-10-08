@@ -1783,7 +1783,7 @@ class VkDecoderGlobalState::Impl {
 
         // Disable a set of Vulkan features if BypassVulkanDeviceFeatureOverrides is NOT enabled.
         if (!m_vkEmulation->getFeatures().BypassVulkanDeviceFeatureOverrides.enabled()) {
-            VkPhysicalDeviceVulkan11Features* vk11Features =
+            VkPhysicalDeviceVulkan11Features* vulkan11Features =
                 vk_find_struct<VkPhysicalDeviceVulkan11Features>(pFeatures);
             VkPhysicalDeviceVulkan13Features* vulkan13Features =
                 vk_find_struct<VkPhysicalDeviceVulkan13Features>(pFeatures);
@@ -1793,13 +1793,23 @@ class VkDecoderGlobalState::Impl {
                 vk_find_struct<VkPhysicalDeviceProtectedMemoryFeatures>(pFeatures);
             VkPhysicalDevicePipelineProtectedAccessFeatures* pipelineAccessFeatures =
                 vk_find_struct<VkPhysicalDevicePipelineProtectedAccessFeatures>(pFeatures);
+            VkPhysicalDeviceHostImageCopyFeaturesEXT* hostImageCopyFeatures =
+                vk_find_struct<VkPhysicalDeviceHostImageCopyFeaturesEXT>(pFeatures);
+
+            // TODO(b/569943457): Implement support for host image copy extension
+            if (hostImageCopyFeatures) {
+                hostImageCopyFeatures->hostImageCopy = VK_FALSE;
+            }
+            if (vulkan14Features) {
+                vulkan14Features->hostImageCopy = VK_FALSE;
+            }
 
             if (enableProtectedMemoryEmulation() ) {
                 if (protectedMemoryFeatures) {
                     protectedMemoryFeatures->protectedMemory = VK_TRUE;
                 }
-                if (vk11Features) {
-                    vk11Features->protectedMemory = VK_TRUE;
+                if (vulkan11Features) {
+                    vulkan11Features->protectedMemory = VK_TRUE;
                 }
                 if (pipelineAccessFeatures) {
                     pipelineAccessFeatures->pipelineProtectedAccess = VK_TRUE;
@@ -1811,8 +1821,8 @@ class VkDecoderGlobalState::Impl {
                 if (protectedMemoryFeatures) {
                     protectedMemoryFeatures->protectedMemory = VK_FALSE;
                 }
-                if (vk11Features) {
-                    vk11Features->protectedMemory = VK_FALSE;
+                if (vulkan11Features) {
+                    vulkan11Features->protectedMemory = VK_FALSE;
                 }
                 // No need to change pipelineProtectedAccess features as they
                 // can be enabled without enabling 'protectedMemory'
@@ -2488,9 +2498,9 @@ class VkDecoderGlobalState::Impl {
                 protectedMemoryFeatureRequested = true;
             }
 
-            VkPhysicalDeviceVulkan11Features* vk11Features =
+            VkPhysicalDeviceVulkan11Features* vulkan11Features =
                 vk_find_struct<VkPhysicalDeviceVulkan11Features>(&createInfoFiltered);
-            if (vk11Features != nullptr && vk11Features->protectedMemory) {
+            if (vulkan11Features != nullptr && vulkan11Features->protectedMemory) {
                 protectedMemoryFeatureRequested = true;
             }
 
@@ -2507,8 +2517,8 @@ class VkDecoderGlobalState::Impl {
                     protectedMemoryFeatures->protectedMemory) {
                     protectedMemoryFeatures->protectedMemory = false;
                 }
-                if (vk11Features != nullptr && vk11Features->protectedMemory) {
-                    vk11Features->protectedMemory = false;
+                if (vulkan11Features != nullptr && vulkan11Features->protectedMemory) {
+                    vulkan11Features->protectedMemory = false;
                 }
 
                 if (pipelineProtectedAccessFeatureRequested) {
