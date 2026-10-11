@@ -1851,6 +1851,11 @@ class VkDecoderGlobalState::Impl {
         VkImageFormatProperties* pImageFormatProperties) {
         auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
         auto vk = dispatch_VkPhysicalDevice(boxed_physicalDevice);
+        VkResult checkRes = CheckImageFormatPropertiesForUnsupportedExtensions(
+            vk, physicalDevice, format, tiling, usage, flags, pImageFormatProperties);
+        if (checkRes != VK_SUCCESS) {
+            return checkRes;
+        }
         const bool emulatedTexture = isEmulatedCompressedTexture(format, physicalDevice, vk);
         if (emulatedTexture) {
             if (!supportEmulatedCompressedImageFormatProperty(format, type, tiling, usage, flags)) {
@@ -1883,6 +1888,12 @@ class VkDecoderGlobalState::Impl {
         auto vk = dispatch_VkPhysicalDevice(boxed_physicalDevice);
         VkPhysicalDeviceImageFormatInfo2 imageFormatInfo;
         VkFormat format = pImageFormatInfo->format;
+        VkResult checkRes = CheckImageFormatPropertiesForUnsupportedExtensions(
+            vk, physicalDevice, format, pImageFormatInfo->tiling, pImageFormatInfo->usage,
+            pImageFormatInfo->flags, &pImageFormatProperties->imageFormatProperties);
+        if (checkRes != VK_SUCCESS) {
+            return checkRes;
+        }
         const bool emulatedTexture = isEmulatedCompressedTexture(format, physicalDevice, vk);
         if (emulatedTexture) {
             if (!supportEmulatedCompressedImageFormatProperty(
@@ -11138,34 +11149,106 @@ class VkDecoderGlobalState::Impl {
         pFormatProp->formatProperties.bufferFeatures &= kEmulatedTextureBufferFeatureMask;
     }
 
-    static const VkFormatFeatureFlags kUnsupportedFormatFeatureFlags =
-        VK_FORMAT_FEATURE_VIDEO_DECODE_OUTPUT_BIT_KHR |
-        VK_FORMAT_FEATURE_VIDEO_DECODE_DPB_BIT_KHR |
-        VK_FORMAT_FEATURE_VIDEO_ENCODE_INPUT_BIT_KHR |
-        VK_FORMAT_FEATURE_VIDEO_ENCODE_DPB_BIT_KHR;
+    static const VkFormatFeatureFlags kSupportedFormatFeatureFlags =
+        VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT |
+        VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT |
+        VK_FORMAT_FEATURE_STORAGE_IMAGE_ATOMIC_BIT |
+        VK_FORMAT_FEATURE_UNIFORM_TEXEL_BUFFER_BIT |
+        VK_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_BIT |
+        VK_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_ATOMIC_BIT |
+        VK_FORMAT_FEATURE_VERTEX_BUFFER_BIT |
+        VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT |
+        VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT |
+        VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT |
+        VK_FORMAT_FEATURE_BLIT_SRC_BIT |
+        VK_FORMAT_FEATURE_BLIT_DST_BIT |
+        VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT |
+        VK_FORMAT_FEATURE_TRANSFER_SRC_BIT |
+        VK_FORMAT_FEATURE_TRANSFER_DST_BIT |
+        VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_MINMAX_BIT |
+        VK_FORMAT_FEATURE_MIDPOINT_CHROMA_SAMPLES_BIT |
+        VK_FORMAT_FEATURE_SAMPLED_IMAGE_YCBCR_CONVERSION_LINEAR_FILTER_BIT |
+        VK_FORMAT_FEATURE_SAMPLED_IMAGE_YCBCR_CONVERSION_SEPARATE_RECONSTRUCTION_FILTER_BIT |
+        VK_FORMAT_FEATURE_SAMPLED_IMAGE_YCBCR_CONVERSION_CHROMA_RECONSTRUCTION_EXPLICIT_BIT |
+        VK_FORMAT_FEATURE_SAMPLED_IMAGE_YCBCR_CONVERSION_CHROMA_RECONSTRUCTION_EXPLICIT_FORCEABLE_BIT |
+        VK_FORMAT_FEATURE_DISJOINT_BIT |
+        VK_FORMAT_FEATURE_COSITED_CHROMA_SAMPLES_BIT |
+        VK_FORMAT_FEATURE_FRAGMENT_DENSITY_MAP_BIT_EXT;
 
-    static const VkFormatFeatureFlags2 kUnsupportedFormatFeatureFlags2 =
-        VK_FORMAT_FEATURE_2_VIDEO_DECODE_OUTPUT_BIT_KHR |
-        VK_FORMAT_FEATURE_2_VIDEO_DECODE_DPB_BIT_KHR |
-        VK_FORMAT_FEATURE_2_VIDEO_ENCODE_INPUT_BIT_KHR |
-        VK_FORMAT_FEATURE_2_VIDEO_ENCODE_DPB_BIT_KHR |
-        VK_FORMAT_FEATURE_2_VIDEO_ENCODE_QUANTIZATION_DELTA_MAP_BIT_KHR |
-        VK_FORMAT_FEATURE_2_VIDEO_ENCODE_EMPHASIS_MAP_BIT_KHR;
+    static const VkFormatFeatureFlags2 kSupportedFormatFeatureFlags2 =
+        VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_BIT |
+        VK_FORMAT_FEATURE_2_STORAGE_IMAGE_BIT |
+        VK_FORMAT_FEATURE_2_STORAGE_IMAGE_ATOMIC_BIT |
+        VK_FORMAT_FEATURE_2_UNIFORM_TEXEL_BUFFER_BIT |
+        VK_FORMAT_FEATURE_2_STORAGE_TEXEL_BUFFER_BIT |
+        VK_FORMAT_FEATURE_2_STORAGE_TEXEL_BUFFER_ATOMIC_BIT |
+        VK_FORMAT_FEATURE_2_VERTEX_BUFFER_BIT |
+        VK_FORMAT_FEATURE_2_COLOR_ATTACHMENT_BIT |
+        VK_FORMAT_FEATURE_2_COLOR_ATTACHMENT_BLEND_BIT |
+        VK_FORMAT_FEATURE_2_DEPTH_STENCIL_ATTACHMENT_BIT |
+        VK_FORMAT_FEATURE_2_BLIT_SRC_BIT |
+        VK_FORMAT_FEATURE_2_BLIT_DST_BIT |
+        VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_FILTER_LINEAR_BIT |
+        VK_FORMAT_FEATURE_2_TRANSFER_SRC_BIT |
+        VK_FORMAT_FEATURE_2_TRANSFER_DST_BIT |
+        VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_FILTER_MINMAX_BIT |
+        VK_FORMAT_FEATURE_2_MIDPOINT_CHROMA_SAMPLES_BIT |
+        VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_YCBCR_CONVERSION_LINEAR_FILTER_BIT |
+        VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_YCBCR_CONVERSION_SEPARATE_RECONSTRUCTION_FILTER_BIT |
+        VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_YCBCR_CONVERSION_CHROMA_RECONSTRUCTION_EXPLICIT_BIT |
+        VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_YCBCR_CONVERSION_CHROMA_RECONSTRUCTION_EXPLICIT_FORCEABLE_BIT |
+        VK_FORMAT_FEATURE_2_DISJOINT_BIT |
+        VK_FORMAT_FEATURE_2_COSITED_CHROMA_SAMPLES_BIT |
+        VK_FORMAT_FEATURE_2_FRAGMENT_DENSITY_MAP_BIT_EXT |
+        VK_FORMAT_FEATURE_2_STORAGE_READ_WITHOUT_FORMAT_BIT |
+        VK_FORMAT_FEATURE_2_STORAGE_WRITE_WITHOUT_FORMAT_BIT |
+        VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_DEPTH_COMPARISON_BIT |
+        VK_FORMAT_FEATURE_2_HOST_IMAGE_TRANSFER_BIT;
 
     void maskFormatPropertiesForUnsupportedExtensions(VkFormatProperties* pFormatProp) {
-        pFormatProp->linearTilingFeatures &= ~kUnsupportedFormatFeatureFlags;
-        pFormatProp->optimalTilingFeatures &= ~kUnsupportedFormatFeatureFlags;
-        pFormatProp->bufferFeatures &= ~kUnsupportedFormatFeatureFlags;
+        pFormatProp->linearTilingFeatures &= kSupportedFormatFeatureFlags;
+        pFormatProp->optimalTilingFeatures &= kSupportedFormatFeatureFlags;
+        pFormatProp->bufferFeatures &= kSupportedFormatFeatureFlags;
     }
 
     void maskFormatPropertiesForUnsupportedExtensions(VkFormatProperties2* pFormatProp) {
         maskFormatPropertiesForUnsupportedExtensions(&pFormatProp->formatProperties);
         VkFormatProperties3* formatProps3 = vk_find_struct<VkFormatProperties3>(pFormatProp);
         if (formatProps3) {
-            formatProps3->linearTilingFeatures &= ~kUnsupportedFormatFeatureFlags2;
-            formatProps3->optimalTilingFeatures &= ~kUnsupportedFormatFeatureFlags2;
-            formatProps3->bufferFeatures &= ~kUnsupportedFormatFeatureFlags2;
+            formatProps3->linearTilingFeatures &= kSupportedFormatFeatureFlags2;
+            formatProps3->optimalTilingFeatures &= kSupportedFormatFeatureFlags2;
+            formatProps3->bufferFeatures &= kSupportedFormatFeatureFlags2;
         }
+    }
+
+    VkResult CheckImageFormatPropertiesForUnsupportedExtensions(
+        VulkanDispatch* vk, VkPhysicalDevice physicalDevice, VkFormat format, VkImageTiling tiling,
+        VkImageUsageFlags usage, VkImageCreateFlags flags,
+        VkImageFormatProperties* pImageFormatProperties) {
+        // vkGetPhysicalDeviceFormatProperties(2) and vkGetPhysicalDeviceImageFormatProperties(2)
+        // are VkPhysicalDevice-level queries made before vkCreateDevice, so a host driver may
+        // advertise format features and image format support for device extensions supported by the
+        // host physical device (such as VK_NV_linear_color_attachment) even when those extensions
+        // are not exposed to the guest or explicitly enabled on the host VkDevice.
+        //
+        // Specifically, host drivers supporting VK_NV_linear_color_attachment may return VK_SUCCESS
+        // from vkGetPhysicalDeviceImageFormatProperties(2) for VK_IMAGE_TILING_LINEAR with
+        // VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT while setting
+        // VK_FORMAT_FEATURE_2_LINEAR_COLOR_ATTACHMENT_BIT_NV instead of
+        // VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT in linearTilingFeatures (e.g. for
+        // VK_FORMAT_R8G8B8A8_UNORM). Since Gfxstream does not expose VK_NV_linear_color_attachment
+        // to the guest, reject linear color attachment usage when the core
+        // VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT is not present in linearTilingFeatures.
+        if (tiling == VK_IMAGE_TILING_LINEAR && (usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) &&
+            !(flags & VK_IMAGE_CREATE_EXTENDED_USAGE_BIT)) {
+            VkFormatProperties formatProps = {};
+            vk->vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &formatProps);
+            if (!(formatProps.linearTilingFeatures & VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT)) {
+                memset(pImageFormatProperties, 0, sizeof(VkImageFormatProperties));
+                return VK_ERROR_FORMAT_NOT_SUPPORTED;
+            }
+        }
+        return VK_SUCCESS;
     }
 
     void maskImageFormatPropertiesForEmulatedTextures(VkImageFormatProperties* pProperties) {
