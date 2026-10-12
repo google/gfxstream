@@ -4726,6 +4726,14 @@ int32_t VkEmulation::mapGpaToBufferHandle(uint32_t bufferHandle, uint64_t gpa, u
         return VK_ERROR_MEMORY_MAP_FAILED;
     }
 
+    if (memoryInfoPtr->gpa != 0u || mOccupiedGpas.find(gpa) != mOccupiedGpas.end()) {
+        GFXSTREAM_ERROR(
+            "rcMapGpaToBufferHandle: handle %u already mapped (gpa=0x%" PRIxPTR
+            ") or gpa 0x%" PRIx64 " already occupied; refusing.",
+            bufferHandle, memoryInfoPtr->gpa, gpa);
+        return VK_ERROR_MEMORY_MAP_FAILED;
+    }
+
     memoryInfoPtr->gpa = gpa;
     memoryInfoPtr->pageAlignedHva =
         reinterpret_cast<uint8_t*>(memoryInfoPtr->mappedPtr) + memoryInfoPtr->bindOffset;
@@ -4741,11 +4749,6 @@ int32_t VkEmulation::mapGpaToBufferHandle(uint32_t bufferHandle, uint64_t gpa, u
                     ", 0x%" PRIxPTR " ]",
                     memoryInfoPtr->mappedPtr, memoryInfoPtr->pageAlignedHva, memoryInfoPtr->gpa,
                     memoryInfoPtr->gpa + memoryInfoPtr->sizeToPage);
-
-    if (mOccupiedGpas.find(gpa) != mOccupiedGpas.end()) {
-        // emugl::emugl_crash_reporter("FATAL: already mapped gpa 0x%lx! ", gpa);
-        return VK_ERROR_MEMORY_MAP_FAILED;
-    }
 
     get_gfxstream_vm_operations().map_user_memory(gpa, memoryInfoPtr->pageAlignedHva,
                                                memoryInfoPtr->sizeToPage);
