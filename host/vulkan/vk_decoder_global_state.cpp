@@ -3673,19 +3673,20 @@ class VkDecoderGlobalState::Impl {
             pCreateInfo = &decompInfo;
         }
 
-#ifdef __APPLE__
-        // We do some validation on macOS, because it can crash the whole app if exceeded.
+        // We do some validation to avoid undefined behaviors, for stability.
+        // This is needed mainly for Metal backend, as the invalid usage leads
+        // to driver crashes, but it's also required for software backend to avoid
+        // integer overflows and potential vulnerabilities.
         if (pCreateInfo->imageType == VK_IMAGE_TYPE_2D &&
             (pCreateInfo->extent.width > deviceInfo->maxImageDimension2D ||
              pCreateInfo->extent.height > deviceInfo->maxImageDimension2D)) {
             GFXSTREAM_WARNING(
                 "vkCreateImage: requested image dimensions (%u x %u) "
-                "exceeds maxImageDimension2D limit (%u).",
+                "exceed maxImageDimension2D limit (%u).",
                 pCreateInfo->extent.width, pCreateInfo->extent.height,
                 deviceInfo->maxImageDimension2D);
             return VK_ERROR_VALIDATION_FAILED;
         }
-#endif
 
         std::unique_ptr<AndroidNativeBufferInfo> anbInfo = nullptr;
         const VkNativeBufferANDROID* nativeBufferANDROID =
