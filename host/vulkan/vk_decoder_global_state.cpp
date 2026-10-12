@@ -4486,15 +4486,13 @@ class VkDecoderGlobalState::Impl {
         if (exportSyncFd) {
             // Remove VkExportFenceCreateInfo, since host doesn't need to create
             // an exportable fence in this case
-            ExternalFencePool<VulkanDispatch>* externalFencePool = nullptr;
             vk_struct_chain_remove(exportFenceInfoPtr, &localCreateInfo);
             {
                 std::lock_guard<std::mutex> lock(mMutex);
                 auto* deviceInfo = gfxstream::base::find(mDeviceInfo, device);
                 if (!deviceInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
-                externalFencePool = deviceInfo->externalFencePool.get();
+                *pFence = deviceInfo->externalFencePool->pop(&localCreateInfo);
             }
-            *pFence = externalFencePool->pop(&localCreateInfo);
             if (*pFence != VK_NULL_HANDLE) {
                 fenceReused = true;
             }
@@ -8275,10 +8273,10 @@ class VkDecoderGlobalState::Impl {
         std::unordered_set<HandleType> acquiredColorBuffers;
         std::unordered_set<HandleType> releasedColorBuffers;
         VkDevice device = VK_NULL_HANDLE;
-        std::mutex* queueMutex = nullptr;
-        PhysicalQueuePendingOps* pendingOps = nullptr;
+        std::shared_ptr<std::mutex> queueMutex;
+        std::shared_ptr<PhysicalQueuePendingOps> pendingOps;
         bool sharedQueue = false;
-        DeviceOpTracker* deviceOpTracker = nullptr;
+        DeviceOpTrackerPtr deviceOpTracker;
 
         {
             std::lock_guard<std::mutex> lock(mMutex);
@@ -8326,8 +8324,8 @@ class VkDecoderGlobalState::Impl {
                 return VK_ERROR_INITIALIZATION_FAILED;
             }
             device = queueInfo->device;
-            queueMutex = queueInfo->queueMutex.get();
-            pendingOps = queueInfo->pendingOps.get();
+            queueMutex = queueInfo->queueMutex;
+            pendingOps = queueInfo->pendingOps;
             sharedQueue = queueInfo->usingSharedPhysicalQueue;
 
             auto* deviceInfo = gfxstream::base::find(mDeviceInfo, device);
@@ -8336,7 +8334,7 @@ class VkDecoderGlobalState::Impl {
                 return VK_ERROR_INITIALIZATION_FAILED;
             }
 
-            deviceOpTracker = deviceInfo->deviceOpTracker.get();
+            deviceOpTracker = deviceInfo->deviceOpTracker;
 
             if (mRenderDocWithMultipleVkInstances && m_vkEmulation->supportsFrameBoundary()) {
                 // Check if this is a frame boundary submission, only the first submit call
@@ -8596,12 +8594,12 @@ class VkDecoderGlobalState::Impl {
 
         if (!queue) return VK_SUCCESS;
 
-        std::mutex* queueMutex;
+        std::shared_ptr<std::mutex> queueMutex;
         {
             std::lock_guard<std::mutex> lock(mMutex);
             auto* queueInfo = gfxstream::base::find(mQueueInfo, queue);
             if (!queueInfo) return VK_SUCCESS;
-            queueMutex = queueInfo->queueMutex.get();
+            queueMutex = queueInfo->queueMutex;
         }
 
         // TODO(b/379862480): register and track gpu workload to wait only for the
