@@ -690,17 +690,49 @@ bool ColorBufferGl::readPixelsScaled(int width, int height, int rotation, const 
                 }
             }
         }else if (colorTransform.has_value()) {
-            uint8_t* outPixelsBytes = static_cast<uint8_t*>(pixels);
-            for (int h = 0; h < height; h++) {
-                for (int w = 0; w < width; w++) {
-                    float r = outPixelsBytes[0] / 255.0f;
-                    float g = outPixelsBytes[1] / 255.0f;
-                    float b = outPixelsBytes[2] / 255.0f;
-                    const glm::vec4 transformed = colorTransformMat * glm::vec4(r,g,b,1.0f);
-                    outPixelsBytes[0] = std::clamp(transformed[0] * 255, 0.0f, 255.0f);
-                    outPixelsBytes[1] = std::clamp(transformed[1] * 255, 0.0f, 255.0f);
-                    outPixelsBytes[2] = std::clamp(transformed[2] * 255, 0.0f, 255.0f);
-                    outPixelsBytes += 3;
+            // glReadPixels wrote pixels in |pixelDataComponents| /
+            // |pixelDataType|. The per-byte transform below only handles
+            // 8-bit-per-channel RGB/RGBA/BGRA layouts; step by the real pixel
+            // size and honor BGRA channel order (b/571840024).
+            int bytesPerPixel = 0;
+            int rIndex = 0;
+            int bIndex = 2;
+            if (pixelDataType == GL_UNSIGNED_BYTE) {
+                switch (pixelDataComponents) {
+                    case GL_RGB:
+                        bytesPerPixel = 3;
+                        break;
+                    case GL_RGBA:
+                        bytesPerPixel = 4;
+                        break;
+                    case GL_BGRA_EXT:
+                        bytesPerPixel = 4;
+                        rIndex = 2;
+                        bIndex = 0;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            if (bytesPerPixel == 0) {
+                GFXSTREAM_WARNING(
+                    "readPixelsScaled: color transform not supported for components 0x%x "
+                    "type 0x%x, skipping",
+                    pixelDataComponents, pixelDataType);
+            } else {
+                uint8_t* outPixelsBytes = static_cast<uint8_t*>(pixels);
+                for (int h = 0; h < height; h++) {
+                    for (int w = 0; w < width; w++) {
+                        float r = outPixelsBytes[rIndex] / 255.0f;
+                        float g = outPixelsBytes[1] / 255.0f;
+                        float b = outPixelsBytes[bIndex] / 255.0f;
+                        const glm::vec4 transformed =
+                            colorTransformMat * glm::vec4(r, g, b, 1.0f);
+                        outPixelsBytes[rIndex] = std::clamp(transformed[0] * 255, 0.0f, 255.0f);
+                        outPixelsBytes[1] = std::clamp(transformed[1] * 255, 0.0f, 255.0f);
+                        outPixelsBytes[bIndex] = std::clamp(transformed[2] * 255, 0.0f, 255.0f);
+                        outPixelsBytes += bytesPerPixel;
+                    }
                 }
             }
         }

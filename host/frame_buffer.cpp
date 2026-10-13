@@ -317,6 +317,23 @@ static std::optional<std::array<float, 16>> GetColorTransform(uint32_t displayId
     return matrix;
 }
 
+// Returns the color transform of the display that |colorBuffer| is currently
+// assigned to, falling back to display 0 (since composeWithCallback only calls
+// setDisplayColorBuffer for displayId != 0, primary display 0's color buffers
+// are not tracked in MultiDisplay and get_color_buffer_display returns < 0 for
+// them). On a folded Pixel Fold the posted color buffer belongs to the outer
+// display while display 0 is powered off, so applying display 0's (all-zero)
+// transform would black out the outer display (b/571840024).
+static std::optional<std::array<float, 16>> GetColorTransformForColorBuffer(
+        uint32_t colorBuffer) {
+    uint32_t displayId = 0;
+    if (get_gfxstream_multi_display_operations().get_color_buffer_display(colorBuffer,
+                                                                          &displayId) < 0) {
+        displayId = 0;
+    }
+    return GetColorTransform(displayId);
+}
+
 }  // namespace
 
 static HandleType sNextHandle = 0;
@@ -2734,7 +2751,7 @@ AsyncResult FrameBuffer::Impl::postImpl(HandleType p_colorbuffer, Post::Completi
         postCmd.cmd = PostCmd::Post;
         postCmd.cb = colorBuffer.get();
         postCmd.cbHandle = p_colorbuffer;
-        postCmd.colorTransform = GetColorTransform();
+        postCmd.colorTransform = GetColorTransformForColorBuffer(p_colorbuffer);
         postCmd.completionCallback = std::make_unique<Post::CompletionCallback>(callback);
         sendPostWorkerCmd(std::move(postCmd));
         ret = AsyncResult::OK_AND_CALLBACK_SCHEDULED;
@@ -3065,7 +3082,7 @@ int FrameBuffer::Impl::getScreenshot(unsigned int nChannels, unsigned int* width
     scrCmd.screenshot.pixelsFormat = format;
     scrCmd.screenshot.pixels = pixels;
     scrCmd.screenshot.rect = rect;
-    scrCmd.colorTransform = GetColorTransform();
+    scrCmd.colorTransform = GetColorTransformForColorBuffer(cb);
 
     std::future<void> completeFuture = sendPostWorkerCmd(std::move(scrCmd));
 

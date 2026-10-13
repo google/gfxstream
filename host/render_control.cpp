@@ -1404,6 +1404,19 @@ static int rcSetDisplayColorTransform(uint32_t displayId, const mat4x4_ptr color
     return fb->setDisplayColorTransform(displayId, reinterpret_cast<const float*>(colorTransform));
 }
 
+// The guest HWC (device/generic/goldfish hals/hwc3 Display::setPowerMode())
+// sends its own HWC display id to the display power mode calls, not the host
+// display id. By the established guest/host agreement (see
+// kHostDisplayIdStart in HostFrameComposer.cpp), HWC display 0 maps to host
+// display 0 and HWC display N > 0 maps to host display
+// kHostDisplayIdStart + N - 1, e.g. the Pixel Fold outer display (HWC 1) is
+// host display 6 (b/571840024).
+static constexpr uint32_t kHostDisplayIdStart = 6;
+
+static uint32_t hwcDisplayIdToHostDisplayId(uint32_t hwcDisplayId) {
+    return hwcDisplayId == 0 ? 0 : kHostDisplayIdStart + hwcDisplayId - 1;
+}
+
 static int rcGetDisplayPowerMode(uint32_t displayId, uint32_t* mode) {
     FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
@@ -1411,7 +1424,7 @@ static int rcGetDisplayPowerMode(uint32_t displayId, uint32_t* mode) {
         return -1;
     }
 
-    return fb->getDisplayPowerMode(displayId, mode);
+    return fb->getDisplayPowerMode(hwcDisplayIdToHostDisplayId(displayId), mode);
 }
 
 static int rcSetDisplayPowerMode(uint32_t displayId, uint32_t mode) {
@@ -1421,7 +1434,7 @@ static int rcSetDisplayPowerMode(uint32_t displayId, uint32_t mode) {
         return -1;
     }
 
-    return fb->setDisplayPowerMode(displayId, mode);
+    return fb->setDisplayPowerMode(hwcDisplayIdToHostDisplayId(displayId), mode);
 }
 
 
