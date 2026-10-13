@@ -300,6 +300,26 @@ void GLESv1Decoder::s_glDrawElementsOffset(void *self, GLenum mode, GLsizei coun
 void GLESv1Decoder::s_glDrawElementsData(void *self, GLenum mode, GLsizei count, GLenum type, void * data, GLuint datalen)
 {
     GLESv1Decoder *ctx = (GLESv1Decoder *)self;
+    size_t bpv = 0;
+    switch (type) {
+        case GL_UNSIGNED_BYTE:
+            bpv = 1;
+            break;
+        case GL_UNSIGNED_SHORT:
+            bpv = 2;
+            break;
+        case GL_UNSIGNED_INT:
+            bpv = 4;
+            break;
+        default:
+            break;
+    }
+    if (count > 0 && bpv > 0 &&
+        (static_cast<uint64_t>(count) * bpv > static_cast<uint64_t>(datalen) || data == nullptr)) {
+        fprintf(stderr, "%s: dropping draw call: count=%d, bpv=%zu exceeds datalen=%u or data is null\n",
+                __func__, count, bpv, datalen);
+        return;
+    }
     ctx->glDrawElements(mode, count, type, data);
 }
 
