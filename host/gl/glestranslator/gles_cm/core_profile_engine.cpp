@@ -389,15 +389,18 @@ size_t CoreProfileEngine::sizeOfType(GLenum type) {
 
 template <class T>
 static GLsizei sNeededVboCount(GLsizei indicesCount, const T* indices) {
+    if (indicesCount <= 0 || !indices) {
+        return 0;
+    }
     T maxIndex = 0;
     for (GLsizei i = 0; i < indicesCount; i++) {
         T index = indices[i];
         maxIndex = (index > maxIndex) ? index : maxIndex;
     }
-    return (GLsizei)maxIndex + 1;
+    return static_cast<GLsizei>(static_cast<uint64_t>(maxIndex) + 1);
 }
 
-void CoreProfileEngine::setupArrayForDraw(
+bool CoreProfileEngine::setupArrayForDraw(
     GLenum arrayType,
     GLESpointer* p,
     GLint first, GLsizei count,
@@ -434,11 +437,13 @@ void CoreProfileEngine::setupArrayForDraw(
 
         // And send the indices
         gl.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_geometryDrawState.ibo);
-        gl.glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexSize * indicesCount, indices, GL_STREAM_DRAW);
+        gl.glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(indexSize) * indicesCount, indices, GL_STREAM_DRAW);
     } else {
         gl.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         vboCount = count;
     }
+
+    uint64_t totalVerts = static_cast<uint64_t>(first) + static_cast<uint64_t>(vboCount);
 
     if (p->isEnable()) {
         gl.glEnableVertexAttribArray(attribNum);
@@ -453,13 +458,25 @@ void CoreProfileEngine::setupArrayForDraw(
         GLenum dataType = convert ? currentArr.type : p->getType();
         GLsizei stride = convert ? currentArr.stride : p->getStride();
 
+        size_t elemBytes = static_cast<size_t>(size) * sizeOfType(dataType);
         GLsizei effectiveStride =
             stride ? stride :
-                     (size * sizeOfType(dataType));
+                     static_cast<GLsizei>(elemBytes);
 
         char* bufData = convert ? (char*)currentArr.data : (char*)p->getData();
-        uint32_t offset = first * effectiveStride;
-        uint32_t bufSize = offset + vboCount * effectiveStride;
+        if (!bufData) {
+            mCtx->setGLerror(GL_INVALID_OPERATION);
+            gl.glBindVertexArray(0);
+            return false;
+        }
+        GLsizeiptr bufSize = (vboCount > 0 && totalVerts > 0)
+            ? static_cast<GLsizeiptr>((totalVerts - 1) * static_cast<uint64_t>(effectiveStride) + elemBytes)
+            : 0;
+        if (bufSize > static_cast<GLsizeiptr>(INT32_MAX)) {
+            mCtx->setGLerror(GL_INVALID_OPERATION);
+            gl.glBindVertexArray(0);
+            return false;
+        }
 
         gl.glBufferData(GL_ARRAY_BUFFER, bufSize, bufData, GL_STREAM_DRAW);
 
@@ -491,25 +508,31 @@ void CoreProfileEngine::setupArrayForDraw(
             switch (arrayType) {
                 case GL_COLOR_ARRAY:
                     size = 4;
-                    mCtx->getColor(count, buffer);
+                    mCtx->getColor(totalVerts, buffer);
                     break;
                 case GL_NORMAL_ARRAY:
                     size = 3;
-                    mCtx->getNormal(count, buffer);
+                    mCtx->getNormal(totalVerts, buffer);
                     break;
                 case GL_TEXTURE_COORD_ARRAY:
                     size = 4;
-                    mCtx->getMultiTexCoord(count, mCtx->getActiveTextureUnit(), buffer);
+                    mCtx->getMultiTexCoord(totalVerts, mCtx->getActiveTextureUnit(), buffer);
                     break;
                 default:
                     fprintf(stderr, "Error: Invalid array type %d.\n", arrayType);
                     mCtx->setGLerror(GL_INVALID_OPERATION);
-                    return;
+                    gl.glBindVertexArray(0);
+                    return false;
             }
 
-            // We need a buffer large enough to hold `count` copies of the vertex attributes provided
+            // We need a buffer large enough to hold `totalVerts` copies of the vertex attributes provided
             // above.
-            GLsizei bufSize = count * size * sizeof(float);
+            GLsizeiptr bufSize = static_cast<GLsizeiptr>(totalVerts) * size * sizeof(float);
+            if (bufSize > static_cast<GLsizeiptr>(INT32_MAX)) {
+                mCtx->setGLerror(GL_INVALID_OPERATION);
+                gl.glBindVertexArray(0);
+                return false;
+            }
             gl.glBufferData(GL_ARRAY_BUFFER, bufSize, buffer.data(), GL_STREAM_DRAW);
             // Stride is set to 0 to indicate that our values are tightly packed -- the driver will
             // do the calculation.
@@ -521,6 +544,7 @@ void CoreProfileEngine::setupArrayForDraw(
     }
 
     gl.glBindVertexArray(0);
+    return true;
 }
 
 // API

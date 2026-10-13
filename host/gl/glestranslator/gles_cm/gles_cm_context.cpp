@@ -1831,8 +1831,96 @@ void GLEScmContext::color4ub(GLubyte red, GLubyte green, GLubyte blue, GLubyte a
     }
 }
 
+static size_t sGles1DataTypeSize(GLenum type) {
+    switch (type) {
+        case GL_BYTE:
+        case GL_UNSIGNED_BYTE:
+            return 1;
+        case GL_SHORT:
+        case GL_UNSIGNED_SHORT:
+        case GL_HALF_FLOAT_OES:
+            return 2;
+        case GL_INT:
+        case GL_UNSIGNED_INT:
+        case GL_FLOAT:
+        case GL_FIXED:
+        default:
+            return 4;
+    }
+}
+
+bool GLEScmContext::validateArraysForDraw(GLint first, GLsizei count, bool isIndexed, GLenum indicesType, const GLvoid* indices) {
+    if (count <= 0) {
+        return true;
+    }
+    if (!isIndexed && first < 0) {
+        setGLerror(GL_INVALID_VALUE);
+        return false;
+    }
+
+    uint64_t startVertex = isIndexed ? 0 : static_cast<uint64_t>(first);
+    uint64_t vboCount = isIndexed
+                            ? static_cast<uint64_t>(findMaxIndex(count, indicesType, indices)) + 1
+                            : static_cast<uint64_t>(count);
+    uint64_t totalVerts = startVertex + vboCount;
+    if (totalVerts == 0 || totalVerts > static_cast<uint64_t>(INT32_MAX) / 16) {
+        setGLerror(GL_INVALID_OPERATION);
+        return false;
+    }
+
+    auto validatePointer = [&](GLESpointer* p) -> bool {
+        if (!p || !p->isEnable()) {
+            return true;
+        }
+        if (p->getData() == nullptr || p->getSize() <= 0) {
+            return false;
+        }
+        uint64_t elemBytes = static_cast<uint64_t>(p->getSize()) * sGles1DataTypeSize(p->getType());
+        uint64_t inStride = p->getStride() > 0 ? static_cast<uint64_t>(p->getStride()) : elemBytes;
+        uint64_t neededBytes = (totalVerts - 1) * inStride + elemBytes;
+        if (neededBytes > static_cast<uint64_t>(INT32_MAX)) {
+            return false;
+        }
+        bool hasCapacityLimit = p->getAttribType() != GLESpointer::ARRAY || p->getDataCapacity() > 0;
+        return !hasCapacityLimit || neededBytes <= p->getDataCapacity();
+    };
+
+    const GLenum kFixedArrays[] = {
+        GL_VERTEX_ARRAY,
+        GL_NORMAL_ARRAY,
+        GL_COLOR_ARRAY,
+        GL_POINT_SIZE_ARRAY_OES,
+    };
+    for (GLenum arrId : kFixedArrays) {
+        auto it = m_currVaoState.find(arrId);
+        if (it != m_currVaoState.end() && !validatePointer(it->second)) {
+            setGLerror(GL_INVALID_OPERATION);
+            return false;
+        }
+    }
+
+    if (m_coreProfileEngine) {
+        auto it = m_currVaoState.find(GL_TEXTURE_COORD_ARRAY);
+        if (it != m_currVaoState.end() && !validatePointer(it->second)) {
+            setGLerror(GL_INVALID_OPERATION);
+            return false;
+        }
+    } else if (m_texCoords) {
+        for (int i = 0; i < kMaxTextureUnits; ++i) {
+            if (!validatePointer(&m_texCoords[i])) {
+                setGLerror(GL_INVALID_OPERATION);
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
 void GLEScmContext::drawArrays(GLenum mode, GLint first, GLsizei count) {
     if (!isArrEnabled(GL_VERTEX_ARRAY)) return;
+    if (count == 0) return;
+    if (!validateArraysForDraw(first, count, false, 0, nullptr)) return;
 
     drawValidate();
 
@@ -1859,7 +1947,11 @@ void GLEScmContext::drawArrays(GLenum mode, GLint first, GLsizei count) {
                 array_id == GL_COLOR_ARRAY ||
                 array_id == GL_POINT_SIZE_ARRAY_OES ||
                 array_id == GL_TEXTURE_COORD_ARRAY) {
-                core().setupArrayForDraw(array_id, p, first, count, false, 0, nullptr);
+                if (!core().setupArrayForDraw(array_id, p, first, count, false, 0, nullptr)) {
+                    dispatcher().glBindBuffer(GL_ARRAY_BUFFER, prev_vbo);
+                    dispatcher().glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, prev_ibo);
+                    return;
+                }
             }
         }
 
@@ -1884,13 +1976,28 @@ void GLEScmContext::drawArrays(GLenum mode, GLint first, GLsizei count) {
 
 void GLEScmContext::drawElements(GLenum mode, GLsizei count, GLenum type, const GLvoid* indices) {
     if (!isArrEnabled(GL_VERTEX_ARRAY)) return;
+    if (count == 0) return;
 
     drawValidate();
 
     if(isBindedBuffer(GL_ELEMENT_ARRAY_BUFFER)) { // if vbo is binded take the indices from the vbo
         const unsigned char* buf = static_cast<unsigned char *>(getBindedBuffer(GL_ELEMENT_ARRAY_BUFFER));
-        indices = buf + SafeUIntFromPointer(indices);
+        GLint iboSize = 0;
+        getBufferSize(GL_ELEMENT_ARRAY_BUFFER, &iboSize);
+        uint64_t offset = SafeUIntFromPointer(indices);
+        uint64_t indexSize = (type == GL_UNSIGNED_BYTE) ? 1 : (type == GL_UNSIGNED_SHORT ? 2 : 4);
+        if (!buf || iboSize < 0 || offset > static_cast<uint64_t>(iboSize) ||
+            static_cast<uint64_t>(count) * indexSize > static_cast<uint64_t>(iboSize) - offset) {
+            setGLerror(GL_INVALID_OPERATION);
+            return;
+        }
+        indices = buf + offset;
+    } else if (!indices) {
+        setGLerror(GL_INVALID_OPERATION);
+        return;
     }
+
+    if (!validateArraysForDraw(0, count, true, type, indices)) return;
 
     GLuint prev_vbo;
     GLuint prev_ibo;
@@ -1915,7 +2022,11 @@ void GLEScmContext::drawElements(GLenum mode, GLsizei count, GLenum type, const 
                 array_id == GL_COLOR_ARRAY ||
                 array_id == GL_POINT_SIZE_ARRAY_OES ||
                 array_id == GL_TEXTURE_COORD_ARRAY) {
-                core().setupArrayForDraw(array_id, p, 0, count, true, type, indices);
+                if (!core().setupArrayForDraw(array_id, p, 0, count, true, type, indices)) {
+                    dispatcher().glBindBuffer(GL_ARRAY_BUFFER, prev_vbo);
+                    dispatcher().glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, prev_ibo);
+                    return;
+                }
             }
         }
 

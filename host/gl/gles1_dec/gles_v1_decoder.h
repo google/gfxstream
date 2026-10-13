@@ -29,12 +29,14 @@ typedef void (gles1_APIENTRY *glColorPointerWithDataSize_server_proc_t) (GLint, 
 typedef void (gles1_APIENTRY *glNormalPointerWithDataSize_server_proc_t) (GLenum, GLsizei, const GLvoid*, GLsizei);
 typedef void (gles1_APIENTRY *glTexCoordPointerWithDataSize_server_proc_t) (GLint, GLenum, GLsizei, const GLvoid*, GLsizei);
 typedef void (gles1_APIENTRY *glVertexPointerWithDataSize_server_proc_t) (GLint, GLenum, GLsizei, const GLvoid*, GLsizei);
+typedef void (gles1_APIENTRY *glPointSizePointerWithDataSize_server_proc_t) (GLenum, GLsizei, const GLvoid*, GLsizei);
 
 struct gles1_decoder_extended_context : gles1_decoder_context_t {
     glColorPointerWithDataSize_server_proc_t glColorPointerWithDataSize;
     glNormalPointerWithDataSize_server_proc_t glNormalPointerWithDataSize;
     glTexCoordPointerWithDataSize_server_proc_t glTexCoordPointerWithDataSize;
     glVertexPointerWithDataSize_server_proc_t glVertexPointerWithDataSize;
+    glPointSizePointerWithDataSize_server_proc_t glPointSizePointerWithDataSize;
 
     int initDispatch( void *(*getProc)(const char *name, void *userData), void *userData);
 };

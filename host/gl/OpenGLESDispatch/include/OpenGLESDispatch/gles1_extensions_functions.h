@@ -35,6 +35,7 @@
   X(void, glNormalPointerWithDataSize, (GLenum type, GLsizei stride, const GLvoid * pointer, GLsizei dataSize), (type, stride, pointer, dataSize)) \
   X(void, glTexCoordPointerWithDataSize, (GLint size, GLenum type, GLsizei stride, const GLvoid * pointer, GLsizei dataSize), (size, type, stride, pointer, dataSize)) \
   X(void, glVertexPointerWithDataSize, (GLint size, GLenum type, GLsizei stride, const GLvoid * pointer, GLsizei dataSize), (size, type, stride, pointer, dataSize)) \
+  X(void, glPointSizePointerWithDataSize, (GLenum type, GLsizei stride, const GLvoid * pointer, GLsizei dataSize), (type, stride, pointer, dataSize)) \
   X(void, glPointSizePointerOES, (GLenum type, GLsizei stride, const GLvoid * pointer), (type, stride, pointer)) \
   X(void, glBlendEquationSeparateOES, (GLenum modeRGB, GLenum modeAlpha), (modeRGB, modeAlpha)) \
   X(void, glBlendFuncSeparateOES, (GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha), (srcRGB, dstRGB, srcAlpha, dstAlpha)) \

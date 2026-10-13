@@ -85,6 +85,11 @@ void glVertexPointerWithDataSize_dispatchLoggingWrapper(GLint size, GLenum type,
 	GLDispatch::glVertexPointerWithDataSize_underlying(size, type, stride, pointer, dataSize);
 }
 
+void glPointSizePointerWithDataSize_dispatchLoggingWrapper(GLenum type, GLsizei stride, const GLvoid * pointer, GLsizei dataSize) {
+	DISPATCH_DEBUG_LOG("glPointSizePointerWithDataSize(type:0x%X, stride:%d, pointer:%p, dataSize:%d)", type, stride, pointer, dataSize);
+	GLDispatch::glPointSizePointerWithDataSize_underlying(type, stride, pointer, dataSize);
+}
+
 void glPointSizePointerOES_dispatchLoggingWrapper(GLenum type, GLsizei stride, const GLvoid * pointer) {
 	DISPATCH_DEBUG_LOG("glPointSizePointerOES(type:0x%X, stride:%d, pointer:%p)", type, stride, pointer);
 	GLDispatch::glPointSizePointerOES_underlying(type, stride, pointer);

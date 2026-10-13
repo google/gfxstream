@@ -64,6 +64,20 @@ const GLvoid* GLESpointer::getData() const {
     return nullptr;
 }
 
+size_t GLESpointer::getDataCapacity() const {
+    switch (m_attribType) {
+        case ARRAY:
+            return m_dataSize > 0 ? static_cast<size_t>(m_dataSize) : 0;
+        case BUFFER:
+            return (m_buffer && m_buffOffset < m_buffer->getSize())
+                           ? static_cast<size_t>(m_buffer->getSize() - m_buffOffset)
+                           : 0;
+        case VALUE:
+            return m_valueCount > 0 ? static_cast<size_t>(m_valueCount) * sizeof(GLfloat) : 0;
+    }
+    return 0;
+}
+
 void GLESpointer::redirectPointerData() {
     m_ownData.resize(0);
     m_data = getBufferData();

@@ -19,6 +19,7 @@ void glColorPointerWithDataSize(GLint size, GLenum type, GLsizei stride, const G
 void glNormalPointerWithDataSize(GLenum type, GLsizei stride, const GLvoid *pointer, GLsizei dataSize);
 void glTexCoordPointerWithDataSize(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer, GLsizei dataSize);
 void glVertexPointerWithDataSize(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer, GLsizei dataSize);
+void glPointSizePointerWithDataSize(GLenum type, GLsizei stride, const GLvoid *pointer, GLsizei dataSize);
 void glPointSizePointerOES(GLenum type, GLsizei stride, const GLvoid *pointer);
 void glBlendEquationSeparateOES(GLenum modeRGB, GLenum modeAlpha);
 void glBlendFuncSeparateOES(GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha);

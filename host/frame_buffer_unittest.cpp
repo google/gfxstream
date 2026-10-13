@@ -1355,6 +1355,105 @@ TEST_F(FrameBufferTest, DeletedVboInVertexPointerDoesNotUaf) {
     mFb->destroyEmulatedEglWindowSurface(surface);
 }
 
+TEST_F(FrameBufferTest, Gles1DrawArraysOutOfBoundsVertexPointerRejected) {
+    if (!mFb->hasEmulationGl()) {
+        GTEST_SKIP() << "GL emulation not enabled.";
+    }
+
+    HandleType ctx1 = mFb->createEmulatedEglContext(0, 0, gl::GLESApi_CM);
+    ASSERT_NE((HandleType)0, ctx1);
+    HandleType surface = mFb->createEmulatedEglWindowSurface(0, mWidth, mHeight);
+    ASSERT_NE((HandleType)0, surface);
+    EXPECT_TRUE(mFb->bindContext(ctx1, surface, surface));
+
+    auto& gl1 = mRenderThreadInfo->m_glInfo->m_glDec;
+    GLfloat smallVerts[3] = {0.0f, 0.0f, 0.0f};
+    gl1.glEnableClientState(GL_VERTEX_ARRAY);
+    gl1.glVertexPointerData(&gl1, 3, GL_FLOAT, 0, smallVerts, sizeof(smallVerts));
+    (void)gl1.glGetError();
+
+    // Requesting 10000 vertices from a 1-vertex buffer must be rejected.
+    gl1.glDrawArrays(GL_TRIANGLES, 0, 10000);
+    EXPECT_EQ((GLenum)GL_INVALID_OPERATION, gl1.glGetError());
+
+    // Negative first index must be rejected with GL_INVALID_VALUE.
+    gl1.glDrawArrays(GL_TRIANGLES, -1, 1);
+    EXPECT_EQ((GLenum)GL_INVALID_VALUE, gl1.glGetError());
+
+    EXPECT_TRUE(mFb->bindContext(0, 0, 0));
+    mFb->destroyEmulatedEglContext(ctx1);
+    mFb->destroyEmulatedEglWindowSurface(surface);
+}
+
+TEST_F(FrameBufferTest, Gles1DrawArraysNeededBytesExceedingInt32MaxRejected) {
+    if (!mFb->hasEmulationGl()) {
+        GTEST_SKIP() << "GL emulation not enabled.";
+    }
+
+    HandleType ctx1 = mFb->createEmulatedEglContext(0, 0, gl::GLESApi_CM);
+    ASSERT_NE((HandleType)0, ctx1);
+    HandleType surface = mFb->createEmulatedEglWindowSurface(0, mWidth, mHeight);
+    ASSERT_NE((HandleType)0, surface);
+    EXPECT_TRUE(mFb->bindContext(ctx1, surface, surface));
+
+    auto& gl1 = mRenderThreadInfo->m_glInfo->m_glDec;
+    GLfloat smallVerts[6] = {
+        0.0f, 0.0f, 0.0f,
+        1.0f, 0.0f, 0.0f,
+    };
+    gl1.glEnableClientState(GL_VERTEX_ARRAY);
+    // Use a large stride (0x40000000) with a direct client pointer (capacity == 0) so that
+    // totalVerts (3) is within INT32_MAX / 16, but neededBytes ((3 - 1) * 0x40000000 + 12)
+    // exceeds INT32_MAX.
+    gl1.glVertexPointer(3, GL_FLOAT, 0x40000000, smallVerts);
+    (void)gl1.glGetError();
+
+    gl1.glDrawArrays(GL_TRIANGLES, 0, 3);
+    EXPECT_EQ((GLenum)GL_INVALID_OPERATION, gl1.glGetError());
+
+    EXPECT_TRUE(mFb->bindContext(0, 0, 0));
+    mFb->destroyEmulatedEglContext(ctx1);
+    mFb->destroyEmulatedEglWindowSurface(surface);
+}
+
+TEST_F(FrameBufferTest, Gles1DrawElementsOutOfBoundsIboOffsetRejected) {
+    if (!mFb->hasEmulationGl()) {
+        GTEST_SKIP() << "GL emulation not enabled.";
+    }
+
+    HandleType ctx1 = mFb->createEmulatedEglContext(0, 0, gl::GLESApi_CM);
+    ASSERT_NE((HandleType)0, ctx1);
+    HandleType surface = mFb->createEmulatedEglWindowSurface(0, mWidth, mHeight);
+    ASSERT_NE((HandleType)0, surface);
+    EXPECT_TRUE(mFb->bindContext(ctx1, surface, surface));
+
+    auto& gl1 = mRenderThreadInfo->m_glInfo->m_glDec;
+    GLfloat verts[9] = {
+        0.0f, 0.0f, 0.0f,
+        1.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f,
+    };
+    gl1.glEnableClientState(GL_VERTEX_ARRAY);
+    gl1.glVertexPointerData(&gl1, 3, GL_FLOAT, 0, verts, sizeof(verts));
+
+    GLuint ibo = 0;
+    gl1.glGenBuffers(1, &ibo);
+    ASSERT_NE(0u, ibo);
+    gl1.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+    GLushort indices[3] = {0, 1, 2};
+    gl1.glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    (void)gl1.glGetError();
+
+    // Out-of-bounds byte offset into the 6-byte IBO must be rejected.
+    gl1.glDrawElementsOffset(&gl1, GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, 0x100000);
+    EXPECT_EQ((GLenum)GL_INVALID_OPERATION, gl1.glGetError());
+
+    gl1.glDeleteBuffers(1, &ibo);
+    EXPECT_TRUE(mFb->bindContext(0, 0, 0));
+    mFb->destroyEmulatedEglContext(ctx1);
+    mFb->destroyEmulatedEglWindowSurface(surface);
+}
+
 TEST_F(FrameBufferTest, DrawElementsDataExceedingDatalenRejected) {
     if (!mFb->hasEmulationGl()) {
         GTEST_SKIP() << "GL emulation not enabled.";
@@ -1395,6 +1494,38 @@ TEST_F(FrameBufferTest, DrawElementsDataExceedingDatalenRejected) {
     EXPECT_TRUE(mFb->bindContext(0, 0, 0));
     mFb->destroyEmulatedEglContext(ctx1);
     mFb->destroyEmulatedEglContext(ctx2);
+    mFb->destroyEmulatedEglWindowSurface(surface);
+}
+
+TEST_F(FrameBufferTest, Gles1ConvertIndirectLargeUintIndexRejected) {
+    if (!mFb->hasEmulationGl()) {
+        GTEST_SKIP() << "GL emulation not enabled.";
+    }
+
+    HandleType ctx1 = mFb->createEmulatedEglContext(0, 0, gl::GLESApi_CM);
+    ASSERT_NE((HandleType)0, ctx1);
+    HandleType surface = mFb->createEmulatedEglWindowSurface(0, mWidth, mHeight);
+    ASSERT_NE((HandleType)0, surface);
+    EXPECT_TRUE(mFb->bindContext(ctx1, surface, surface));
+
+    auto& gl1 = mRenderThreadInfo->m_glInfo->m_glDec;
+    GLfixed fixedVerts[12] = {
+        0, 0, 0, 0x10000,
+        0x10000, 0, 0, 0x10000,
+        0, 0x10000, 0, 0x10000,
+    };
+    gl1.glEnableClientState(GL_VERTEX_ARRAY);
+    gl1.glVertexPointerData(&gl1, 4, GL_FIXED, 0, fixedVerts, sizeof(fixedVerts));
+    (void)gl1.glGetError();
+
+    // Index 0x40000000u would overflow 32-bit attribSize * maxElements in convertIndirect.
+    GLuint hugeIndices[3] = {0u, 1u, 0x40000000u};
+    gl1.glDrawElementsData(&gl1, GL_TRIANGLES, 3, GL_UNSIGNED_INT, hugeIndices,
+                           sizeof(hugeIndices));
+    EXPECT_EQ((GLenum)GL_INVALID_OPERATION, gl1.glGetError());
+
+    EXPECT_TRUE(mFb->bindContext(0, 0, 0));
+    mFb->destroyEmulatedEglContext(ctx1);
     mFb->destroyEmulatedEglWindowSurface(surface);
 }
 

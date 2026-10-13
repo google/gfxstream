@@ -35,6 +35,7 @@ GL_APICALL void GL_APIENTRY glColorPointerWithDataSize(GLint size, GLenum type, 
 GL_APICALL void GL_APIENTRY glNormalPointerWithDataSize(GLenum type, GLsizei stride, const GLvoid * pointer, GLsizei dataSize);
 GL_APICALL void GL_APIENTRY glTexCoordPointerWithDataSize(GLint size, GLenum type, GLsizei stride, const GLvoid * pointer, GLsizei dataSize);
 GL_APICALL void GL_APIENTRY glVertexPointerWithDataSize(GLint size, GLenum type, GLsizei stride, const GLvoid * pointer, GLsizei dataSize);
+GL_APICALL void GL_APIENTRY glPointSizePointerWithDataSize(GLenum type, GLsizei stride, const GLvoid * pointer, GLsizei dataSize);
 GL_APICALL void GL_APIENTRY glPointSizePointerOES(GLenum type, GLsizei stride, const GLvoid * pointer);
 GL_APICALL void GL_APIENTRY glBlendEquationSeparateOES(GLenum modeRGB, GLenum modeAlpha);
 GL_APICALL void GL_APIENTRY glBlendFuncSeparateOES(GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha);

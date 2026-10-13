@@ -43,6 +43,7 @@ public:
     GLboolean getNormalized() const { return m_normalize ? GL_TRUE : GL_FALSE; }
     const GLvoid* getData() const;
     GLsizei getDataSize() const { return m_dataSize; }
+    size_t getDataCapacity() const;
     unsigned int getBufferOffset() const;
     void redirectPointerData();
     void getBufferConversions(const RangeList& rl, RangeList& rlOut);

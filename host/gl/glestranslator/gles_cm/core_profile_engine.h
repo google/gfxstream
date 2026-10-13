@@ -117,7 +117,7 @@ public:
     }
 
     // Utility functions
-    void setupArrayForDraw(GLenum arrayType, GLESpointer* p, GLint first, GLsizei count, bool isIndexed, GLenum indicesType, const GLvoid* indices);
+    bool setupArrayForDraw(GLenum arrayType, GLESpointer* p, GLint first, GLsizei count, bool isIndexed, GLenum indicesType, const GLvoid* indices);
 
     void preDrawTextureUnitEmulation();
     void postDrawTextureUnitEmulation();
