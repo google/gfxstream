@@ -54,6 +54,7 @@ test_suite(
         "//host/vulkan:gfxstream_emulatedphysicalmemory_tests",
         "//host/vulkan:gfxstream_emulatedphysicalqueue_tests",
         "//host/vulkan:gfxstream_swap_chain_state_vk_tests",
+        "//host/vulkan:gfxstream_vk_decoder_global_state_tests",
         "//host/vulkan:gfxstream_vk_decoder_internal_structs_tests",
         "//host/vulkan:gfxstream_vk_format_utils_tests",
         "//host/vulkan:gfxstream_vk_qsri_timeline_tests",
