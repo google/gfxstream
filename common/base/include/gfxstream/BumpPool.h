@@ -41,16 +41,24 @@ public:
     }
 
     void* alloc(size_t wantedSize) override {
+        size_t padding = sizeof(uint64_t) - 1;
+        if (wantedSize > SIZE_MAX - padding) {
+            return nullptr;
+        }
         size_t wantedSizeRoundedUp =
-            sizeof(uint64_t) * ((wantedSize + sizeof(uint64_t) - 1) / (sizeof(uint64_t)));
+            sizeof(uint64_t) * ((wantedSize + padding) / (sizeof(uint64_t)));
 
-        mTotalWantedThisGeneration += wantedSizeRoundedUp;
-        if (mAllocPos + wantedSizeRoundedUp > mStorage.size() * sizeof(uint64_t)) {
-            mNeedRealloc = true;
+        if (wantedSizeRoundedUp > mStorage.size() * sizeof(uint64_t) - mAllocPos) {
             void* fallbackPtr = malloc(wantedSizeRoundedUp);
+            if (!fallbackPtr) {
+                return nullptr;
+            }
+            mTotalWantedThisGeneration += wantedSizeRoundedUp;
+            mNeedRealloc = true;
             mFallbackPtrs.insert(fallbackPtr);
             return fallbackPtr;
         }
+        mTotalWantedThisGeneration += wantedSizeRoundedUp;
         void* allocPtr = (void*)(((unsigned char*)mStorage.data()) + mAllocPos);
         mAllocPos += wantedSizeRoundedUp;
         return allocPtr;
