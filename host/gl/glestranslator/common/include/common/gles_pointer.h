@@ -57,7 +57,7 @@ public:
     void setBuffer(GLint size,
                    GLenum type,
                    GLsizei stride,
-                   GLESbuffer* buf,
+                   ObjectDataPtr bufObj,
                    GLuint bufferName,
                    int offset,
                    bool normalize = false,
@@ -79,7 +79,7 @@ public:
     bool isIntPointer() const;
     void enable(bool b);
     void onSave(gfxstream::Stream* stream) const;
-    void restoreBufferObj(std::function<GLESbuffer*(GLuint)> getBufferObj);
+    void restoreBufferObj(std::function<ObjectDataPtr(GLuint)> getBufferObj);
 private:
     GLint m_size = 4;
     GLenum m_type = GL_FLOAT;
@@ -89,6 +89,7 @@ private:
     AttribType m_attribType = ARRAY;
     GLsizei m_dataSize = 0;
     const GLvoid* m_data = nullptr;
+    ObjectDataPtr m_bufferObject;
     GLESbuffer* m_buffer = nullptr;
     GLuint m_bufferName = 0;
     unsigned int m_buffOffset = 0;

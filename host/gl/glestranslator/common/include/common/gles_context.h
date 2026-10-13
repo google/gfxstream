@@ -667,9 +667,9 @@ protected:
     GLuint m_textureEmulationVBO = 0;
     GLuint m_textureEmulationSamplerLoc = 0;
 
-    std::function<GLESbuffer*(GLuint)> getBufferObj
-            = [this] (GLuint bufferName) -> GLESbuffer* {
-                return (GLESbuffer*)m_shareGroup->getObjectData(
+    std::function<ObjectDataPtr(GLuint)> getBufferObj
+            = [this] (GLuint bufferName) -> ObjectDataPtr {
+                return m_shareGroup->getObjectDataPtr(
                     NamedObjectType::VERTEXBUFFER,
                     (ObjectLocalName)bufferName);
             };
