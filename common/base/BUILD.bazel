@@ -152,6 +152,7 @@ cc_test(
     srcs = [
         "AlignedBuf_unittest.cpp",
         "ArraySize_unittest.cpp",
+        "BumpPool_unittest.cpp",
         "FileMatcher_unittest.cpp",
         "HybridEntityManager_unittest.cpp",
         "LruCache_unittest.cpp",

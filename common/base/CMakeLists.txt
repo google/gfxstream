@@ -167,6 +167,7 @@ if (ENABLE_VKCEREAL_TESTS)
     add_executable(gfxstream_common_base_unittests
                    AlignedBuf_unittest.cpp
                    ArraySize_unittest.cpp
+                   BumpPool_unittest.cpp
                    FileMatcher_unittest.cpp
                    LruCache_unittest.cpp
                    ManagedDescriptor_unittest.cpp
