@@ -58,6 +58,9 @@ int gles1_decoder_extended_context::initDispatch(
     glVertexPointerWithDataSize =
             (glVertexPointerWithDataSize_server_proc_t)
             getProc("glVertexPointerWithDataSize", userData);
+    glPointSizePointerWithDataSize =
+            (glPointSizePointerWithDataSize_server_proc_t)
+            getProc("glPointSizePointerWithDataSize", userData);
     return 0;
 }
 
@@ -146,51 +149,98 @@ int GLESv1Decoder::s_glFinishRoundTrip(void *self)
 void GLESv1Decoder::s_glVertexPointerOffset(void *self, GLint size, GLenum type, GLsizei stride, GLuint offset)
 {
     GLESv1Decoder *ctx = (GLESv1Decoder *)self;
+    GLint buffer = 0;
+    ctx->glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &buffer);
+    if (buffer == 0) {
+        fprintf(stderr, "%s: dropping call with no GL_ARRAY_BUFFER bound\n", __func__);
+        return;
+    }
     ctx->glVertexPointer(size, type, stride, SafePointerFromUInt(offset));
 }
 
 void GLESv1Decoder::s_glColorPointerOffset(void *self, GLint size, GLenum type, GLsizei stride, GLuint offset)
 {
     GLESv1Decoder *ctx = (GLESv1Decoder *)self;
+    GLint buffer = 0;
+    ctx->glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &buffer);
+    if (buffer == 0) {
+        fprintf(stderr, "%s: dropping call with no GL_ARRAY_BUFFER bound\n", __func__);
+        return;
+    }
     ctx->glColorPointer(size, type, stride, SafePointerFromUInt(offset));
 }
 
 void GLESv1Decoder::s_glTexCoordPointerOffset(void *self, GLint size, GLenum type, GLsizei stride, GLuint offset)
 {
     GLESv1Decoder *ctx = (GLESv1Decoder *)self;
+    GLint buffer = 0;
+    ctx->glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &buffer);
+    if (buffer == 0) {
+        fprintf(stderr, "%s: dropping call with no GL_ARRAY_BUFFER bound\n", __func__);
+        return;
+    }
     ctx->glTexCoordPointer(size, type, stride, SafePointerFromUInt(offset));
 }
 
 void GLESv1Decoder::s_glNormalPointerOffset(void *self, GLenum type, GLsizei stride, GLuint offset)
 {
     GLESv1Decoder *ctx = (GLESv1Decoder *)self;
+    GLint buffer = 0;
+    ctx->glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &buffer);
+    if (buffer == 0) {
+        fprintf(stderr, "%s: dropping call with no GL_ARRAY_BUFFER bound\n", __func__);
+        return;
+    }
     ctx->glNormalPointer(type, stride, SafePointerFromUInt(offset));
 }
 
 void GLESv1Decoder::s_glPointSizePointerOffset(void *self, GLenum type, GLsizei stride, GLuint offset)
 {
     GLESv1Decoder *ctx = (GLESv1Decoder *)self;
+    GLint buffer = 0;
+    ctx->glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &buffer);
+    if (buffer == 0) {
+        fprintf(stderr, "%s: dropping call with no GL_ARRAY_BUFFER bound\n", __func__);
+        return;
+    }
     ctx->glPointSizePointerOES(type, stride, SafePointerFromUInt(offset));
 }
 
 void GLESv1Decoder::s_glWeightPointerOffset(void * self, GLint size, GLenum type, GLsizei stride, GLuint offset)
 {
     GLESv1Decoder *ctx = (GLESv1Decoder *)self;
+    GLint buffer = 0;
+    ctx->glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &buffer);
+    if (buffer == 0) {
+        fprintf(stderr, "%s: dropping call with no GL_ARRAY_BUFFER bound\n", __func__);
+        return;
+    }
     ctx->glWeightPointerOES(size, type, stride, SafePointerFromUInt(offset));
 }
 
 void GLESv1Decoder::s_glMatrixIndexPointerOffset(void * self, GLint size, GLenum type, GLsizei stride, GLuint offset)
 {
     GLESv1Decoder *ctx = (GLESv1Decoder *)self;
+    GLint buffer = 0;
+    ctx->glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &buffer);
+    if (buffer == 0) {
+        fprintf(stderr, "%s: dropping call with no GL_ARRAY_BUFFER bound\n", __func__);
+        return;
+    }
     ctx->glMatrixIndexPointerOES(size, type, stride, SafePointerFromUInt(offset));
 }
 
 
 
 #define STORE_POINTER_DATA_OR_ABORT(location)    \
-    if (ctx->m_contextData != NULL) {   \
+    if (ctx->m_contextData != NULL && datalen > 0) {   \
         ctx->m_contextData->storePointerData((location), data, datalen); \
     } else { \
+        if (ctx->m_contextData == NULL) { \
+            fprintf(stderr, "%s: dropping pointer data with null m_contextData\n", __func__); \
+        } else { \
+            fprintf(stderr, "%s: dropping pointer data with datalen 0\n", __func__); \
+        } \
         return; \
     }
 
@@ -270,7 +320,15 @@ void GLESv1Decoder::s_glPointSizePointerData(void *self, GLenum type, GLsizei st
 
     STORE_POINTER_DATA_OR_ABORT(GLDecoderContextData::POINTSIZE_LOCATION);
 
-    ctx->glPointSizePointerOES(type, 0, ctx->m_contextData->pointerData(GLDecoderContextData::POINTSIZE_LOCATION));
+    if ((void*)ctx->glPointSizePointerWithDataSize != gles1_unimplemented) {
+        ctx->glPointSizePointerWithDataSize(type, 0,
+                ctx->m_contextData->pointerData(GLDecoderContextData::POINTSIZE_LOCATION),
+                datalen);
+    } else {
+        assert(0);
+        ctx->glPointSizePointerOES(type, 0,
+                ctx->m_contextData->pointerData(GLDecoderContextData::POINTSIZE_LOCATION));
+    }
 }
 
 void GLESv1Decoder::s_glWeightPointerData(void * self, GLint size, GLenum type, GLsizei stride, void * data, GLuint datalen)
@@ -294,6 +352,12 @@ void GLESv1Decoder::s_glMatrixIndexPointerData(void * self, GLint size, GLenum t
 void GLESv1Decoder::s_glDrawElementsOffset(void *self, GLenum mode, GLsizei count, GLenum type, GLuint offset)
 {
     GLESv1Decoder *ctx = (GLESv1Decoder *)self;
+    GLint buffer = 0;
+    ctx->glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &buffer);
+    if (buffer == 0) {
+        fprintf(stderr, "%s: dropping call with no GL_ELEMENT_ARRAY_BUFFER bound\n", __func__);
+        return;
+    }
     ctx->glDrawElements(mode, count, type, SafePointerFromUInt(offset));
 }
 

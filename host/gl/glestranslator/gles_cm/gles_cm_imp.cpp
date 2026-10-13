@@ -123,6 +123,8 @@ GL_API void GL_APIENTRY  glTexCoordPointerWithDataSize( GLint size, GLenum type,
         GLsizei stride, const GLvoid *pointer, GLsizei dataSize);
 GL_API void GL_APIENTRY  glVertexPointerWithDataSize( GLint size, GLenum type,
         GLsizei stride, const GLvoid *pointer, GLsizei dataSize);
+GL_API void GL_APIENTRY  glPointSizePointerWithDataSize( GLenum type,
+        GLsizei stride, const GLvoid *pointer, GLsizei dataSize);
 
 GL_API void GL_APIENTRY glBlendEquationOES(GLenum mode);
 GL_API void GL_APIENTRY glBlendEquationSeparateOES (GLenum modeRGB, GLenum modeAlpha);
@@ -316,6 +318,7 @@ static __translatorMustCastToProperFunctionPointerType getProcAddressGles1(const
         (*s_glesExtensions)["glNormalPointerWithDataSize"] = (__translatorMustCastToProperFunctionPointerType)GLES1_NAMESPACED(glNormalPointerWithDataSize);
         (*s_glesExtensions)["glTexCoordPointerWithDataSize"] = (__translatorMustCastToProperFunctionPointerType)GLES1_NAMESPACED(glTexCoordPointerWithDataSize);
         (*s_glesExtensions)["glVertexPointerWithDataSize"] = (__translatorMustCastToProperFunctionPointerType)GLES1_NAMESPACED(glVertexPointerWithDataSize);
+        (*s_glesExtensions)["glPointSizePointerWithDataSize"] = (__translatorMustCastToProperFunctionPointerType)GLES1_NAMESPACED(glPointSizePointerWithDataSize);
     }
     __translatorMustCastToProperFunctionPointerType ret=NULL;
     ProcTableMap::iterator val = s_glesExtensions->find(procName);
@@ -900,7 +903,7 @@ GL_API void GL_APIENTRY  glDisableClientState( GLenum array) {
 GL_API void GL_APIENTRY  glDrawArrays( GLenum mode, GLint first, GLsizei count) {
     GET_CTX_CM()
     GLES_CM_TRACE()
-    SET_ERROR_IF(count < 0,GL_INVALID_VALUE)
+    SET_ERROR_IF(first < 0 || count < 0,GL_INVALID_VALUE)
     SET_ERROR_IF(!GLEScmValidate::drawMode(mode),GL_INVALID_ENUM)
 
     ctx->drawArrays(mode, first, count);
@@ -1784,6 +1787,14 @@ GL_API void GL_APIENTRY  glPointSizePointerOES( GLenum type, GLsizei stride, con
     SET_ERROR_IF(stride < 0,GL_INVALID_VALUE);
     SET_ERROR_IF(!GLEScmValidate::pointPointerType(type),GL_INVALID_ENUM);
     ctx->setPointer(GL_POINT_SIZE_ARRAY_OES,1,type,stride,pointer, 0);
+}
+
+GL_API void GL_APIENTRY  glPointSizePointerWithDataSize( GLenum type, GLsizei stride, const GLvoid *pointer, GLsizei dataSize) {
+    GET_CTX()
+    GLES_CM_TRACE()
+    SET_ERROR_IF(stride < 0,GL_INVALID_VALUE);
+    SET_ERROR_IF(!GLEScmValidate::pointPointerType(type),GL_INVALID_ENUM);
+    ctx->setPointer(GL_POINT_SIZE_ARRAY_OES,1,type,stride,pointer, dataSize);
 }
 
 GL_API void GL_APIENTRY  glPointSizex( GLfixed size) {
