@@ -569,6 +569,20 @@ bool VkEmulation::populateImageFormatExternalMemorySupportInfo(VulkanDispatch* v
     }
 
     VkResult res = mGetImageFormatProperties2Func(physdev, &formatInfo2, &outProps2);
+#ifdef __ANDROID__
+    if (info->tiling == VK_IMAGE_TILING_OPTIMAL) {
+        if (res == VK_ERROR_FORMAT_NOT_SUPPORTED && formatInfo2.flags != 0) {
+            formatInfo2.flags = 0;
+            info->createFlags = 0;
+            res = mGetImageFormatProperties2Func(physdev, &formatInfo2, &outProps2);
+        }
+        if (res == VK_ERROR_FORMAT_NOT_SUPPORTED && formatInfo2.pNext != nullptr) {
+            formatInfo2.pNext = nullptr;
+            outProps2.pNext = nullptr;
+            res = mGetImageFormatProperties2Func(physdev, &formatInfo2, &outProps2);
+        }
+    }
+#endif
 
     if (res != VK_SUCCESS) {
         if (res == VK_ERROR_FORMAT_NOT_SUPPORTED) {
@@ -2087,12 +2101,38 @@ MTLResource_id VkEmulation::getMtlResourceFromVkDeviceMemory(VulkanDispatch* vk,
 // without allocating anything. Shared with the deferred-layout pending-AHB pool so a probe AHB
 // and a ColorBuffer's own AHB request can be matched without ever calling allocAhb() twice.
 AhbShapeKey ComputeAhbShapeKey(const VkImageCreateInfo* imageCreateInfo) {
-    // Map VkFormat to the corresponding AHB format — must match to avoid tiling mismatch.
+    // Map VkFormat to the corresponding AHB format (must match to avoid tiling and BPP mismatch).
+    constexpr uint32_t kAhbFormatB8G8R8A8Unorm = 5;  // AHARDWAREBUFFER_FORMAT_B8G8R8A8_UNORM
     uint32_t ahbFormat;
     switch (imageCreateInfo->format) {
         case VK_FORMAT_B8G8R8A8_UNORM:
         case VK_FORMAT_B8G8R8A8_SRGB:
-            ahbFormat = 5;  // AHARDWAREBUFFER_FORMAT_B8G8R8A8_UNORM
+        case VK_FORMAT_B8G8R8A8_SNORM:
+        case VK_FORMAT_B8G8R8A8_SINT:
+        case VK_FORMAT_B8G8R8A8_UINT:
+        case VK_FORMAT_B8G8R8A8_SSCALED:
+        case VK_FORMAT_B8G8R8A8_USCALED:
+            ahbFormat = kAhbFormatB8G8R8A8Unorm;
+            break;
+        case VK_FORMAT_R16G16B16A16_SFLOAT:
+        case VK_FORMAT_R16G16B16A16_UNORM:
+        case VK_FORMAT_R16G16B16A16_SNORM:
+        case VK_FORMAT_R16G16B16A16_SINT:
+        case VK_FORMAT_R16G16B16A16_UINT:
+        case VK_FORMAT_R16G16B16A16_SSCALED:
+        case VK_FORMAT_R16G16B16A16_USCALED:
+            ahbFormat = AHARDWAREBUFFER_FORMAT_R16G16B16A16_FLOAT;
+            break;
+        case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
+        case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+            ahbFormat = AHARDWAREBUFFER_FORMAT_R10G10B10A2_UNORM;
+            break;
+        case VK_FORMAT_R5G6B5_UNORM_PACK16:
+            ahbFormat = AHARDWAREBUFFER_FORMAT_R5G6B5_UNORM;
+            break;
+        case VK_FORMAT_R8_UNORM:
+        case VK_FORMAT_R8_SRGB:
+            ahbFormat = AHARDWAREBUFFER_FORMAT_R8_UNORM;
             break;
         case VK_FORMAT_R8G8B8A8_UNORM:
         case VK_FORMAT_R8G8B8A8_SRGB:
@@ -2102,23 +2142,15 @@ AhbShapeKey ComputeAhbShapeKey(const VkImageCreateInfo* imageCreateInfo) {
     }
 
     // Translate the common VkImageUsageFlagBits into their corresponding AHB usage bits.
-    uint64_t ahbUsage = 0;
+    // Always include GPU_FRAMEBUFFER | GPU_SAMPLED_IMAGE so that swapchain/dmabuf images can be
+    // both rendered to and sampled by a compositor, and so that ComputeAhbShapeKey matches between
+    // on_vkCreateImage (which may only specify COLOR_ATTACHMENT_BIT) and ColorBuffer creation
+    // (which enables all format-supported usage bits).
+    uint64_t ahbUsage =
+        AHARDWAREBUFFER_USAGE_GPU_FRAMEBUFFER | AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE;
     const VkImageUsageFlags vkUsage = imageCreateInfo->usage;
-    if (vkUsage & VK_IMAGE_USAGE_SAMPLED_BIT) {
-        ahbUsage |= AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE;
-    }
-    if (vkUsage & (VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
-                   VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT |
-                   VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT)) {
-        ahbUsage |= AHARDWAREBUFFER_USAGE_GPU_FRAMEBUFFER;
-    }
     if (vkUsage & VK_IMAGE_USAGE_STORAGE_BIT) {
         ahbUsage |= AHARDWAREBUFFER_USAGE_GPU_DATA_BUFFER;
-    }
-    // ColorBuffers are always at least framebuffer/sampled-capable; default to a usable
-    // combination if the image declared no GPU-relevant usage.
-    if (ahbUsage == 0) {
-        ahbUsage = AHARDWAREBUFFER_USAGE_GPU_FRAMEBUFFER | AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE;
     }
 
     return AhbShapeKey{
@@ -2144,6 +2176,12 @@ AHardwareBuffer* allocAhb(const VkImageCreateInfo* imageCreateInfo) {
 
     AHardwareBuffer* ahb = nullptr;
     int ahbRes = AHardwareBuffer_allocate(&desc, &ahb);
+    if ((ahbRes != 0 || !ahb) && (desc.usage & AHARDWAREBUFFER_USAGE_GPU_FRAMEBUFFER)) {
+        // Some Gralloc backends only register FP16 and 10-bit formats under
+        // GPU_SAMPLED_IMAGE and reject GPU_FRAMEBUFFER.
+        desc.usage &= ~AHARDWAREBUFFER_USAGE_GPU_FRAMEBUFFER;
+        ahbRes = AHardwareBuffer_allocate(&desc, &ahb);
+    }
     if (ahbRes != 0 || !ahb) {
         GFXSTREAM_WARNING("AHardwareBuffer_allocate failed (err=%d) for %ux%u.", ahbRes,
                           imageCreateInfo->extent.width, imageCreateInfo->extent.height);
@@ -2154,6 +2192,7 @@ AHardwareBuffer* allocAhb(const VkImageCreateInfo* imageCreateInfo) {
 
 void VkEmulation::stashPendingDeferredLayoutAhb(const VkImageCreateInfo* imageCreateInfo,
                                                 AHardwareBuffer* ahb) {
+    if (!ahb) return;
     AHardwareBuffer_acquire(ahb);
     std::lock_guard<std::mutex> lock(mMutex);
     mPendingDeferredLayoutAhbs.emplace(ComputeAhbShapeKey(imageCreateInfo), ahb);
@@ -2161,6 +2200,7 @@ void VkEmulation::stashPendingDeferredLayoutAhb(const VkImageCreateInfo* imageCr
 
 void VkEmulation::unstashPendingDeferredLayoutAhb(const VkImageCreateInfo* imageCreateInfo,
                                                   AHardwareBuffer* ahb) {
+    if (!ahb) return;
     std::lock_guard<std::mutex> lock(mMutex);
     auto range = mPendingDeferredLayoutAhbs.equal_range(ComputeAhbShapeKey(imageCreateInfo));
     for (auto it = range.first; it != range.second; ++it) {

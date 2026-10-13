@@ -3395,7 +3395,14 @@ class VkDecoderGlobalState::Impl {
                         // knows its own stride (in pixels), so derive the byte pitch from it.
                         AHardwareBuffer_Desc ahbDesc = {};
                         AHardwareBuffer_describe(rawAhb, &ahbDesc);
-                        uint32_t bytesPerPixel = 4;  // allocAhb only ever picks 32-bit RGBA/BGRA
+                        uint32_t bytesPerPixel = 4;
+                        if (ahbDesc.format == AHARDWAREBUFFER_FORMAT_R16G16B16A16_FLOAT) {
+                            bytesPerPixel = 8;
+                        } else if (ahbDesc.format == AHARDWAREBUFFER_FORMAT_R5G6B5_UNORM) {
+                            bytesPerPixel = 2;
+                        } else if (ahbDesc.format == AHARDWAREBUFFER_FORMAT_R8_UNORM) {
+                            bytesPerPixel = 1;
+                        }
                         imageInfo.deferredLayout.rowPitch =
                             static_cast<VkDeviceSize>(ahbDesc.stride) * bytesPerPixel;
                         // Also offer this AHB to a same-shaped ColorBuffer's own allocation,
@@ -5744,26 +5751,61 @@ class VkDecoderGlobalState::Impl {
             imageTilingLocked(image), pMemoryRequirements);
     }
 
-    // A driver that defers the layout also reports rowPitch=0; answer with the AHB's stride.
+    // A driver that defers the layout also reports rowPitch=0 (or crashes if tiling is
+    // VK_IMAGE_TILING_DRM_FORMAT_MODIFIER_EXT before vkBindImageMemory); answer with the AHB's
+    // stride directly when deferredLayout is present.
     void on_vkGetImageSubresourceLayout(gfxstream::base::BumpPool*, VkSnapshotApiCallHandle,
                                         VkDevice boxed_device, VkImage image,
                                         const VkImageSubresource* pSubresource,
                                         VkSubresourceLayout* pLayout) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
-        vk->vkGetImageSubresourceLayout(device, image, pSubresource, pLayout);
 #ifdef __ANDROID__
-        if (pLayout && pLayout->rowPitch == 0) {
+        if (pLayout) {
             std::lock_guard<std::mutex> lock(mMutex);
             auto* dlInfo = gfxstream::base::find(mImageInfo, image);
             if (dlInfo && dlInfo->deferredLayout.rowPitch > 0) {
+                pLayout->offset = 0;
+                pLayout->size = dlInfo->deferredLayout.size;
                 pLayout->rowPitch = dlInfo->deferredLayout.rowPitch;
-                if (pLayout->size == 0) pLayout->size = dlInfo->deferredLayout.size;
-                GFXSTREAM_INFO("DL-AHB stride image=%p rowPitch=%llu", (void*)image,
-                               (unsigned long long)pLayout->rowPitch);
+                pLayout->arrayPitch = dlInfo->deferredLayout.size;
+                pLayout->depthPitch = dlInfo->deferredLayout.size;
+                GFXSTREAM_DEBUG("DL-AHB stride image=%p rowPitch=%llu size=%llu", (void*)image,
+                                (unsigned long long)pLayout->rowPitch,
+                                (unsigned long long)pLayout->size);
+                return;
+            }
+            if (dlInfo && dlInfo->imageCreateInfoShallow.tiling == VK_IMAGE_TILING_OPTIMAL &&
+                (dlInfo->externalHandleTypes &
+                 VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID)) {
+                AHardwareBuffer* rawAhb = allocAhb(&dlInfo->imageCreateInfoShallow);
+                if (rawAhb) {
+                    AHardwareBuffer_Desc ahbDesc = {};
+                    AHardwareBuffer_describe(rawAhb, &ahbDesc);
+                    uint32_t bytesPerPixel = 4;
+                    if (ahbDesc.format == AHARDWAREBUFFER_FORMAT_R16G16B16A16_FLOAT) {
+                        bytesPerPixel = 8;
+                    } else if (ahbDesc.format == AHARDWAREBUFFER_FORMAT_R5G6B5_UNORM) {
+                        bytesPerPixel = 2;
+                    } else if (ahbDesc.format == AHARDWAREBUFFER_FORMAT_R8_UNORM) {
+                        bytesPerPixel = 1;
+                    }
+                    VkMemoryRequirements reqs = {};
+                    vk->vkGetImageMemoryRequirements(device, image, &reqs);
+                    pLayout->offset = 0;
+                    pLayout->size = reqs.size;
+                    pLayout->rowPitch = static_cast<VkDeviceSize>(ahbDesc.stride) * bytesPerPixel;
+                    pLayout->arrayPitch = reqs.size;
+                    pLayout->depthPitch = reqs.size;
+                    dlInfo->deferredLayout.rowPitch = pLayout->rowPitch;
+                    dlInfo->deferredLayout.size = reqs.size;
+                    AHardwareBuffer_release(rawAhb);
+                    return;
+                }
             }
         }
 #endif
+        vk->vkGetImageSubresourceLayout(device, image, pSubresource, pLayout);
     }
 
     void on_vkGetImageMemoryRequirements2(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
