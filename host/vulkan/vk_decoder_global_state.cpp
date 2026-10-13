@@ -319,6 +319,10 @@ DescriptorUpdateTemplateInfo calcLinearizedDescriptorUpdateTemplateInfo(
 
 class VkDecoderGlobalState::Impl {
    public:
+    friend struct VkDecoderGlobalStateTestPeer;
+
+    Impl() : m_vk(vkDispatch()), m_vkEmulation(nullptr) {}
+
     Impl(VkEmulation* emulation)
         : m_vk(vkDispatch()) {
         if (!emulation || !m_vk) {
@@ -9884,10 +9888,18 @@ class VkDecoderGlobalState::Impl {
         uint64_t poolId, uint32_t pendingAlloc, bool* didAlloc) REQUIRES(mMutex) {
         auto* poolInfo = gfxstream::base::find(mDescriptorPoolInfo, pool);
         if (!poolInfo) {
-            GFXSTREAM_FATAL("VkDescriptorPool:%p not found.", pool);
+            GFXSTREAM_ERROR("VkDescriptorPool:%p not found.", pool);
+            *didAlloc = false;
+            return VK_NULL_HANDLE;
         }
 
         BoxedHandleInfo* setHandleInfo = sBoxedHandleManager.get(poolId);
+        if (!setHandleInfo) {
+            GFXSTREAM_ERROR("Invalid descriptor set poolId 0x%" PRIx64 " for VkDescriptorPool:%p",
+                            poolId, pool);
+            *didAlloc = false;
+            return VK_NULL_HANDLE;
+        }
 
         if (setHandleInfo->underlying) {
             if (pendingAlloc) {
@@ -9918,8 +9930,10 @@ class VkDecoderGlobalState::Impl {
                 *didAlloc = true;
                 return allocedSet;
             } else {
-                GFXSTREAM_FATAL("VkDescriptorPool:%p wanted to get set with id 0x%" PRIx64, pool, poolId);
-                return nullptr;
+                GFXSTREAM_ERROR("VkDescriptorPool:%p wanted to get set with id 0x%" PRIx64, pool,
+                                poolId);
+                *didAlloc = false;
+                return VK_NULL_HANDLE;
             }
         }
     }
@@ -9980,6 +9994,9 @@ class VkDecoderGlobalState::Impl {
             setsToUpdate[i] = getOrAllocateDescriptorSetFromPoolAndIdLocked(
                 vk, device, pDescriptorPools[whichPool], pDescriptorSetLayouts[i], poolId,
                 pendingAlloc, &didAllocThisTime);
+            if (setsToUpdate[i] == VK_NULL_HANDLE) {
+                return;
+            }
 
             if (didAllocThisTime) didAlloc = true;
         }
