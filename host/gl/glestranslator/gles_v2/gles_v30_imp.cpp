@@ -341,7 +341,7 @@ GL_APICALL void GL_APIENTRY glVertexAttribDivisor(GLuint index, GLuint divisor) 
 
 GL_APICALL void GL_APIENTRY glDrawArraysInstanced(GLenum mode, GLint first, GLsizei count, GLsizei primcount) {
     GET_CTX_V2();
-    SET_ERROR_IF(count < 0,GL_INVALID_VALUE)
+    SET_ERROR_IF(first < 0 || count < 0 || primcount < 0,GL_INVALID_VALUE)
     SET_ERROR_IF(!(GLESv2Validate::drawMode(mode)),GL_INVALID_ENUM);
     if (ctx->vertexAttributesBufferBacked()) {
         s_glDrawPre(ctx, mode);
@@ -357,7 +357,7 @@ GL_APICALL void GL_APIENTRY glDrawArraysInstanced(GLenum mode, GLint first, GLsi
 
 GL_APICALL void GL_APIENTRY glDrawElementsInstanced(GLenum mode, GLsizei count, GLenum type, const void * indices, GLsizei primcount) {
     GET_CTX_V2();
-    SET_ERROR_IF(count < 0,GL_INVALID_VALUE)
+    SET_ERROR_IF(count < 0 || primcount < 0,GL_INVALID_VALUE)
     SET_ERROR_IF(!(GLESv2Validate::drawMode(mode) && GLESv2Validate::drawType(type)),GL_INVALID_ENUM);
 
     if (ctx->isBindedBuffer(GL_ELEMENT_ARRAY_BUFFER) &&

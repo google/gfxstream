@@ -336,9 +336,29 @@ void GLESv2Decoder::s_glVertexAttribPointerOffset(void *self, GLuint indx, GLint
 }
 
 
+static size_t sDrawElementsBytesPerIndex(GLenum type) {
+    switch (type) {
+        case GL_UNSIGNED_BYTE:
+            return 1;
+        case GL_UNSIGNED_SHORT:
+            return 2;
+        case GL_UNSIGNED_INT:
+            return 4;
+        default:
+            return 0;
+    }
+}
+
 void GLESv2Decoder::s_glDrawElementsData(void *self, GLenum mode, GLsizei count, GLenum type, void * data, GLuint datalen)
 {
     GLESv2Decoder *ctx = (GLESv2Decoder *)self;
+    size_t bpv = sDrawElementsBytesPerIndex(type);
+    if (count > 0 && bpv > 0 &&
+        (static_cast<uint64_t>(count) * bpv > static_cast<uint64_t>(datalen) || data == nullptr)) {
+        fprintf(stderr, "%s: dropping draw call: count=%d, bpv=%zu exceeds datalen=%u or data is null\n",
+                __func__, count, bpv, datalen);
+        return;
+    }
     ctx->glDrawElements(mode, count, type, data);
 }
 
@@ -352,6 +372,13 @@ void GLESv2Decoder::s_glDrawElementsOffset(void *self, GLenum mode, GLsizei coun
 void GLESv2Decoder::s_glDrawElementsDataNullAEMU(void *self, GLenum mode, GLsizei count, GLenum type, void * data, GLuint datalen)
 {
     GLESv2Decoder *ctx = (GLESv2Decoder *)self;
+    size_t bpv = sDrawElementsBytesPerIndex(type);
+    if (count > 0 && bpv > 0 &&
+        (static_cast<uint64_t>(count) * bpv > static_cast<uint64_t>(datalen) || data == nullptr)) {
+        fprintf(stderr, "%s: dropping draw call: count=%d, bpv=%zu exceeds datalen=%u or data is null\n",
+                __func__, count, bpv, datalen);
+        return;
+    }
     ctx->glDrawElementsNullAEMU(mode, count, type, data);
 }
 
@@ -643,6 +670,13 @@ void GLESv2Decoder::s_glDrawElementsInstancedOffsetAEMU(void* self, GLenum mode,
 
 void GLESv2Decoder::s_glDrawElementsInstancedDataAEMU(void* self, GLenum mode, GLsizei count, GLenum type, const void* indices, GLsizei primcount, GLsizei datalen) {
     GLESv2Decoder *ctx = (GLESv2Decoder *)self;
+    size_t bpv = sDrawElementsBytesPerIndex(type);
+    if (count > 0 && bpv > 0 &&
+        (datalen < 0 || static_cast<uint64_t>(count) * bpv > static_cast<uint64_t>(datalen) || indices == nullptr)) {
+        fprintf(stderr, "%s: dropping draw call: count=%d, bpv=%zu exceeds datalen=%d or indices is null\n",
+                __func__, count, bpv, datalen);
+        return;
+    }
     ctx->glDrawElementsInstanced(mode, count, type, indices, primcount);
 }
 

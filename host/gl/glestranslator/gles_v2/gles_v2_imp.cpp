@@ -1588,7 +1588,7 @@ static void s_glDrawPost(GLESv2Context* ctx, GLenum mode) {
 
 GL_APICALL void  GL_APIENTRY glDrawArrays(GLenum mode, GLint first, GLsizei count){
     GET_CTX_V2();
-    SET_ERROR_IF(count < 0,GL_INVALID_VALUE)
+    SET_ERROR_IF(first < 0 || count < 0,GL_INVALID_VALUE)
     SET_ERROR_IF(!GLESv2Validate::drawMode(mode),GL_INVALID_ENUM);
 
     if (ctx->vertexAttributesBufferBacked()) {
@@ -1605,7 +1605,7 @@ GL_APICALL void  GL_APIENTRY glDrawArrays(GLenum mode, GLint first, GLsizei coun
 
 GL_APICALL void  GL_APIENTRY glDrawArraysNullAEMU(GLenum mode, GLint first, GLsizei count) {
     GET_CTX_V2();
-    SET_ERROR_IF(count < 0,GL_INVALID_VALUE)
+    SET_ERROR_IF(first < 0 || count < 0,GL_INVALID_VALUE)
     SET_ERROR_IF(!GLESv2Validate::drawMode(mode),GL_INVALID_ENUM);
 
     if (ctx->vertexAttributesBufferBacked()) {

@@ -1355,6 +1355,102 @@ TEST_F(FrameBufferTest, DeletedVboInVertexPointerDoesNotUaf) {
     mFb->destroyEmulatedEglWindowSurface(surface);
 }
 
+TEST_F(FrameBufferTest, DrawElementsDataExceedingDatalenRejected) {
+    if (!mFb->hasEmulationGl()) {
+        GTEST_SKIP() << "GL emulation not enabled.";
+    }
+
+    HandleType ctx1 = mFb->createEmulatedEglContext(0, 0, gl::GLESApi_CM);
+    ASSERT_NE((HandleType)0, ctx1);
+    HandleType ctx2 = mFb->createEmulatedEglContext(0, 0, gl::GLESApi_3_0);
+    ASSERT_NE((HandleType)0, ctx2);
+    HandleType surface = mFb->createEmulatedEglWindowSurface(0, mWidth, mHeight);
+    ASSERT_NE((HandleType)0, surface);
+
+    GLfloat verts[12] = {
+        0.0f, 0.0f, 0.0f, 1.0f,
+        1.0f, 0.0f, 0.0f, 1.0f,
+        0.0f, 1.0f, 0.0f, 1.0f,
+    };
+    GLushort smallIndices[3] = {0, 1, 2};
+
+    // GLES1 s_glDrawElementsData with count * 2 > datalen must return without OOB read.
+    EXPECT_TRUE(mFb->bindContext(ctx1, surface, surface));
+    auto& gl1 = mRenderThreadInfo->m_glInfo->m_glDec;
+    gl1.glEnableClientState(GL_VERTEX_ARRAY);
+    gl1.glVertexPointerData(&gl1, 4, GL_FLOAT, 0, verts, sizeof(verts));
+    gl1.glDrawElementsData(&gl1, GL_TRIANGLES, 100000, GL_UNSIGNED_SHORT, smallIndices,
+                           sizeof(smallIndices));
+
+    // GLES2/3 s_glDrawElementsData and s_glDrawElementsInstancedDataAEMU with count * 2 > datalen.
+    EXPECT_TRUE(mFb->bindContext(ctx2, surface, surface));
+    auto& gl2 = mRenderThreadInfo->m_glInfo->m_gl2Dec;
+    gl2.glEnableVertexAttribArray(0);
+    gl2.glVertexAttribPointerData(&gl2, 0, 4, GL_FLOAT, GL_FALSE, 0, verts, sizeof(verts));
+    gl2.glDrawElementsData(&gl2, GL_TRIANGLES, 100000, GL_UNSIGNED_SHORT, smallIndices,
+                           sizeof(smallIndices));
+    gl2.glDrawElementsInstancedDataAEMU(&gl2, GL_TRIANGLES, 100000, GL_UNSIGNED_SHORT, smallIndices,
+                                        1, sizeof(smallIndices));
+
+    EXPECT_TRUE(mFb->bindContext(0, 0, 0));
+    mFb->destroyEmulatedEglContext(ctx1);
+    mFb->destroyEmulatedEglContext(ctx2);
+    mFb->destroyEmulatedEglWindowSurface(surface);
+}
+
+TEST_F(FrameBufferTest, Gles2ValidateAtt0PreDrawLargeUintIndexDoesNotOverflow) {
+    if (!mFb->hasEmulationGl()) {
+        GTEST_SKIP() << "GL emulation not enabled.";
+    }
+
+    HandleType ctx2 = mFb->createEmulatedEglContext(0, 0, gl::GLESApi_2);
+    ASSERT_NE((HandleType)0, ctx2);
+    HandleType surface = mFb->createEmulatedEglWindowSurface(0, mWidth, mHeight);
+    ASSERT_NE((HandleType)0, surface);
+    EXPECT_TRUE(mFb->bindContext(ctx2, surface, surface));
+
+    auto& gl2 = mRenderThreadInfo->m_glInfo->m_gl2Dec;
+    GLfloat verts[12] = {
+        0.0f, 0.0f, 0.0f, 1.0f,
+        1.0f, 0.0f, 0.0f, 1.0f,
+        0.0f, 1.0f, 0.0f, 1.0f,
+    };
+    // Leave attribute 0 disabled and enable attribute 1 with a client array so
+    // drawWithEmulations enters both needClientVBOSetup and needAtt0PreDrawValidation().
+    gl2.glDisableVertexAttribArray(0);
+    gl2.glEnableVertexAttribArray(1);
+    gl2.glVertexAttribPointerData(&gl2, 1, 4, GL_FLOAT, GL_FALSE, 0, verts, sizeof(verts));
+    (void)gl2.glGetError();
+
+    // Huge GL_UNSIGNED_INT index must be rejected with GL_OUT_OF_MEMORY instead of overflowing 4 * newLen.
+    GLuint hugeIndices[3] = {0u, 1u, 0x40000000u};
+    gl2.glDrawElementsData(&gl2, GL_TRIANGLES, 3, GL_UNSIGNED_INT, hugeIndices,
+                           sizeof(hugeIndices));
+    EXPECT_EQ((GLenum)GL_OUT_OF_MEMORY, gl2.glGetError());
+
+    // Bound IBO with non-zero byte offset must resolve against the IBO buffer rather than
+    // dereferencing the integer offset as a host pointer.
+    GLuint ibo = 0;
+    gl2.glGenBuffers(1, &ibo);
+    ASSERT_NE(0u, ibo);
+    gl2.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+    GLushort paddedIndices[5] = {0xffff, 0xffff, 0, 1, 2};
+    gl2.glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(paddedIndices), paddedIndices, GL_STATIC_DRAW);
+    (void)gl2.glGetError();
+
+    gl2.glDrawElementsOffset(&gl2, GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, 4);
+    EXPECT_EQ((GLenum)GL_NO_ERROR, gl2.glGetError());
+
+    // Out-of-bounds IBO offset must fail with GL_INVALID_OPERATION.
+    gl2.glDrawElementsOffset(&gl2, GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, 0x10000);
+    EXPECT_EQ((GLenum)GL_INVALID_OPERATION, gl2.glGetError());
+
+    gl2.glDeleteBuffers(1, &ibo);
+    EXPECT_TRUE(mFb->bindContext(0, 0, 0));
+    mFb->destroyEmulatedEglContext(ctx2);
+    mFb->destroyEmulatedEglWindowSurface(surface);
+}
+
 }  // namespace
 }  // namespace host
 }  // namespace gfxstream

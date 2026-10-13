@@ -459,21 +459,30 @@ bool GLESv2Context::needAtt0PreDrawValidation()
     return !isArrEnabled(0);
 }
 
+static constexpr unsigned int kMaxAtt0Vertices = 16 * 1024 * 1024;
+
 void GLESv2Context::validateAtt0PreDraw(unsigned int count)
 {
     if (count == 0) {
         return;
     }
+    if (count > kMaxAtt0Vertices) {
+        setGLerror(GL_OUT_OF_MEMORY);
+        return;
+    }
 
     if (count > m_att0ArrayLength) {
-        const unsigned newLen = std::max(count, 2 * m_att0ArrayLength);
-        m_att0Array.reset(new GLfloat[4 * newLen]);
+        const uint64_t doubled = 2ULL * static_cast<uint64_t>(m_att0ArrayLength);
+        const uint64_t newLen64 = std::min<uint64_t>(
+            kMaxAtt0Vertices, std::max<uint64_t>(count, doubled));
+        const unsigned int newLen = static_cast<unsigned int>(newLen64);
+        m_att0Array.reset(new GLfloat[4 * static_cast<size_t>(newLen)]);
         m_att0ArrayLength = newLen;
         m_attribute0valueChanged = true;
     }
     if (m_attribute0valueChanged) {
-        for(unsigned int i = 0; i<m_att0ArrayLength; i++) {
-            memcpy(m_att0Array.get()+i*4, m_attribute0value,
+        for(size_t i = 0; i < m_att0ArrayLength; i++) {
+            memcpy(m_att0Array.get() + i * 4, m_attribute0value,
                     sizeof(m_attribute0value));
         }
         m_attribute0valueChanged = false;
@@ -483,7 +492,11 @@ void GLESv2Context::validateAtt0PreDraw(unsigned int count)
     s_glDispatch.glGetIntegerv(GL_ARRAY_BUFFER_BINDING, (GLint*)&prevArrayBuffer);
 
     s_glDispatch.glBindBuffer(GL_ARRAY_BUFFER, m_emulatedClientVBOs[0]);
-    s_glDispatch.glBufferData(GL_ARRAY_BUFFER, m_att0ArrayLength * sizeof(GLfloat), m_att0Array.get(), GL_STREAM_DRAW);
+    s_glDispatch.glBufferData(
+        GL_ARRAY_BUFFER,
+        static_cast<GLsizeiptr>(m_att0ArrayLength) * 4 * sizeof(GLfloat),
+        m_att0Array.get(),
+        GL_STREAM_DRAW);
 
     s_glDispatch.glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
     s_glDispatch.glEnableVertexAttribArray(0);
@@ -517,11 +530,49 @@ void GLESv2Context::drawWithEmulations(
     }
 
     bool needClientVBOSetup = !vertexAttributesBufferBacked();
-
-    bool needClientIBOSetup =
+    bool isIndexed =
         (cmd != DrawCallCmd::Arrays &&
-         cmd != DrawCallCmd::ArraysInstanced) &&
+         cmd != DrawCallCmd::ArraysInstanced);
+    bool needClientIBOSetup =
+        isIndexed &&
         !isBindedBuffer(GL_ELEMENT_ARRAY_BUFFER);
+
+    uint64_t att0Count = 0;
+    if (needClientVBOSetup && needAtt0PreDrawValidation() && count > 0) {
+        if (isIndexed) {
+            if (isBindedBuffer(GL_ELEMENT_ARRAY_BUFFER)) {
+                const unsigned char* buf =
+                    static_cast<const unsigned char*>(getBindedBuffer(GL_ELEMENT_ARRAY_BUFFER));
+                GLint iboSize = 0;
+                getBufferSize(GL_ELEMENT_ARRAY_BUFFER, &iboSize);
+                uint64_t offset = SafeUIntFromPointer(indices);
+                uint64_t bpv = (type == GL_UNSIGNED_BYTE) ? 1 : (type == GL_UNSIGNED_SHORT ? 2 : 4);
+                if (!buf || iboSize < 0 || offset > static_cast<uint64_t>(iboSize) ||
+                    static_cast<uint64_t>(count) * bpv > static_cast<uint64_t>(iboSize) - offset) {
+                    setGLerror(GL_INVALID_OPERATION);
+                    return;
+                }
+                att0Count = static_cast<uint64_t>(findMaxIndex(count, type, buf + offset)) + 1;
+            } else {
+                if (!indices) {
+                    setGLerror(GL_INVALID_OPERATION);
+                    return;
+                }
+                att0Count = static_cast<uint64_t>(findMaxIndex(count, type, indices)) + 1;
+            }
+        } else {
+            if (first < 0) {
+                setGLerror(GL_INVALID_VALUE);
+                return;
+            }
+            att0Count = static_cast<uint64_t>(first) + static_cast<uint64_t>(count);
+        }
+        if (att0Count > kMaxAtt0Vertices) {
+            setGLerror(GL_OUT_OF_MEMORY);
+            return;
+        }
+    }
+
     bool needPointEmulation = mode == GL_POINTS && !isGles2Gles();
 
 #ifdef __APPLE__
@@ -555,11 +606,7 @@ void GLESv2Context::drawWithEmulations(
             s_glDispatch.glResumeTransformFeedback();
         }
         if (needAtt0PreDrawValidation()) {
-            if (indices) {
-                validateAtt0PreDraw(findMaxIndex(count, type, indices));
-            } else {
-                validateAtt0PreDraw(count);
-            }
+            validateAtt0PreDraw(static_cast<unsigned int>(att0Count));
         }
     }
 
