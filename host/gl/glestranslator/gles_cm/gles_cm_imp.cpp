@@ -1338,7 +1338,8 @@ GL_API void GL_APIENTRY  glGetLightfv( GLenum light, GLenum pname, GLfloat *para
 GL_API void GL_APIENTRY  glGetLightxv( GLenum light, GLenum pname, GLfixed *params) {
     GET_CTX_CM()
     GLES_CM_TRACE()
-    GLfloat tmpParams[4];
+    SET_ERROR_IF(light < GL_LIGHT0 || light >= GL_LIGHT0 + GLEScmContext::kMaxLights, GL_INVALID_ENUM);
+    GLfloat tmpParams[4] = {};
 
     ctx->getLightfv(light,pname,tmpParams);
     switch (pname){
@@ -1350,13 +1351,14 @@ GL_API void GL_APIENTRY  glGetLightxv( GLenum light, GLenum pname, GLfixed *para
             [[fallthrough]];
         case GL_SPOT_DIRECTION:
             params[2] = F2X(tmpParams[2]);
+            params[1] = F2X(tmpParams[1]);
             [[fallthrough]];
         case GL_SPOT_EXPONENT:
         case GL_SPOT_CUTOFF:
         case GL_CONSTANT_ATTENUATION:
         case GL_LINEAR_ATTENUATION:
         case GL_QUADRATIC_ATTENUATION:
-            params[1] = F2X(tmpParams[1]);
+            params[0] = F2X(tmpParams[0]);
             break;
         default:{
             ctx->setGLerror(GL_INVALID_ENUM);
@@ -1364,7 +1366,6 @@ GL_API void GL_APIENTRY  glGetLightxv( GLenum light, GLenum pname, GLfixed *para
         }
 
     }
-    params[0] = F2X(tmpParams[0]);
 }
 
 GL_API void GL_APIENTRY  glGetMaterialfv( GLenum face, GLenum pname, GLfloat *params) {
@@ -1376,20 +1377,20 @@ GL_API void GL_APIENTRY  glGetMaterialfv( GLenum face, GLenum pname, GLfloat *pa
 GL_API void GL_APIENTRY  glGetMaterialxv( GLenum face, GLenum pname, GLfixed *params) {
     GET_CTX_CM()
     GLES_CM_TRACE()
-    GLfloat tmpParams[4];
+    SET_ERROR_IF(face != GL_FRONT && face != GL_BACK, GL_INVALID_ENUM);
+    GLfloat tmpParams[4] = {};
     ctx->getMaterialfv(face,pname,tmpParams);
     switch(pname){
     case GL_AMBIENT:
     case GL_DIFFUSE:
     case GL_SPECULAR:
     case GL_EMISSION:
-    case GL_AMBIENT_AND_DIFFUSE:
-        params[3] = tmpParams[3];
-        params[2] = tmpParams[2];
-        params[1] = tmpParams[1];
+        params[3] = F2X(tmpParams[3]);
+        params[2] = F2X(tmpParams[2]);
+        params[1] = F2X(tmpParams[1]);
         [[fallthrough]];
     case GL_SHININESS:
-        params[0] = tmpParams[0];
+        params[0] = F2X(tmpParams[0]);
         break;
     default:{
             ctx->setGLerror(GL_INVALID_ENUM);
@@ -1417,6 +1418,7 @@ GL_API void GL_APIENTRY  glGetPointerv( GLenum pname, void **params) {
 GL_API void GL_APIENTRY  glGetTexEnvfv( GLenum env, GLenum pname, GLfloat *params) {
     GET_CTX_CM()
     GLES_CM_TRACE()
+    SET_ERROR_IF(!GLEScmValidate::texEnv(env,pname),GL_INVALID_ENUM);
 
     ctx->getTexEnvfv(env, pname, params);
 }
@@ -1424,6 +1426,7 @@ GL_API void GL_APIENTRY  glGetTexEnvfv( GLenum env, GLenum pname, GLfloat *param
 GL_API void GL_APIENTRY  glGetTexEnviv( GLenum env, GLenum pname, GLint *params) {
     GET_CTX_CM()
     GLES_CM_TRACE()
+    SET_ERROR_IF(!GLEScmValidate::texEnv(env,pname),GL_INVALID_ENUM);
 
     ctx->getTexEnviv(env, pname, params);
 }
@@ -1431,15 +1434,19 @@ GL_API void GL_APIENTRY  glGetTexEnviv( GLenum env, GLenum pname, GLint *params)
 GL_API void GL_APIENTRY  glGetTexEnvxv( GLenum env, GLenum pname, GLfixed *params) {
     GET_CTX_CM()
     GLES_CM_TRACE()
-    GLfloat tmpParams[4];
+    SET_ERROR_IF(!GLEScmValidate::texEnv(env,pname),GL_INVALID_ENUM);
+    GLfloat tmpParams[4] = {};
 
     ctx->getTexEnvfv(env, pname, tmpParams);
 
-    if(pname == GL_TEXTURE_ENV_MODE) {
-        params[0] = static_cast<GLfixed>(tmpParams[0]);
-    } else {
-        for(int i=0 ; i < 4 ; i++)
+    if (pname == GL_TEXTURE_ENV_COLOR) {
+        for(int i = 0; i < 4; i++) {
             params[i] = F2X(tmpParams[i]);
+        }
+    } else if (pname == GL_RGB_SCALE || pname == GL_ALPHA_SCALE) {
+        params[0] = F2X(tmpParams[0]);
+    } else {
+        params[0] = static_cast<GLfixed>(tmpParams[0]);
     }
 }
 
@@ -1481,7 +1488,7 @@ GL_API void GL_APIENTRY  glGetTexParameterxv( GLenum target, GLenum pname, GLfix
         params[i] = F2X(texData->crop_rect[i]);
     }
     else {
-      GLfloat tmpParam;
+      GLfloat tmpParam = 0.0f;
       ctx->dispatcher().glGetTexParameterfv(target,pname,&tmpParam);
       params[0] = static_cast<GLfixed>(tmpParam);
     }
@@ -1523,7 +1530,7 @@ GL_API void GL_APIENTRY  glLightModelx( GLenum pname, GLfixed param) {
 GL_API void GL_APIENTRY  glLightModelxv( GLenum pname, const GLfixed *params) {
     GET_CTX_CM()
     GLES_CM_TRACE()
-    GLfloat tmpParams[4];
+    GLfloat tmpParams[4] = {};
     if(pname == GL_LIGHT_MODEL_TWO_SIDE) {
         tmpParams[0] = X2F(params[0]);
     } else if (pname == GL_LIGHT_MODEL_AMBIENT) {
@@ -1556,13 +1563,12 @@ GL_API void GL_APIENTRY  glLightx( GLenum light, GLenum pname, GLfixed param) {
 GL_API void GL_APIENTRY  glLightxv( GLenum light, GLenum pname, const GLfixed *params) {
     GET_CTX_CM()
     GLES_CM_TRACE()
-    GLfloat tmpParams[4];
+    GLfloat tmpParams[4] = {};
 
     switch (pname) {
         case GL_AMBIENT:
         case GL_DIFFUSE:
         case GL_SPECULAR:
-        case GL_EMISSION:
         case GL_POSITION:
             tmpParams[3] = X2F(params[3]);
             [[fallthrough]];
@@ -1652,10 +1658,24 @@ GL_API void GL_APIENTRY  glMaterialx( GLenum face, GLenum pname, GLfixed param) 
 GL_API void GL_APIENTRY  glMaterialxv( GLenum face, GLenum pname, const GLfixed *params) {
     GET_CTX_CM()
     GLES_CM_TRACE()
-    GLfloat tmpParams[4];
+    GLfloat tmpParams[4] = {};
 
-    for(int i=0; i< 4; i++) {
-        tmpParams[i] = X2F(params[i]);
+    switch (pname) {
+    case GL_AMBIENT:
+    case GL_DIFFUSE:
+    case GL_AMBIENT_AND_DIFFUSE:
+    case GL_SPECULAR:
+    case GL_EMISSION:
+        for (int i = 0; i < 4; i++) {
+            tmpParams[i] = X2F(params[i]);
+        }
+        break;
+    case GL_SHININESS:
+        tmpParams[0] = X2F(params[0]);
+        break;
+    default:
+        ctx->setGLerror(GL_INVALID_ENUM);
+        return;
     }
 
     ctx->materialfv(face, pname, tmpParams);
@@ -2907,20 +2927,27 @@ GL_API void GL_APIENTRY glTexGenxvOES (GLenum coord, GLenum pname, const GLfixed
 GL_API void GL_APIENTRY glGetTexGenfvOES (GLenum coord, GLenum pname, GLfloat *params) {
     GET_CTX_CM()
     GLES_CM_TRACE()
+    SET_ERROR_IF(!GLEScmValidate::texGen(coord,pname),GL_INVALID_ENUM);
     ctx->getTexGenfv(coord, pname, params);
 }
 GL_API void GL_APIENTRY glGetTexGenivOES (GLenum coord, GLenum pname, GLint *params) {
     GET_CTX_CM()
     GLES_CM_TRACE()
+    SET_ERROR_IF(!GLEScmValidate::texGen(coord,pname),GL_INVALID_ENUM);
     ctx->getTexGeniv(coord, pname, params);
 }
 
 GL_API void GL_APIENTRY glGetTexGenxvOES (GLenum coord, GLenum pname, GLfixed *params) {
     GET_CTX_CM()
     GLES_CM_TRACE()
-    GLfloat tmpParams[1];
+    SET_ERROR_IF(!GLEScmValidate::texGen(coord,pname),GL_INVALID_ENUM);
+    GLfloat tmpParams[4] = {};
     ctx->getTexGenfv(coord, pname, tmpParams);
-    params[0] = F2X(tmpParams[0]);
+    if (pname == GL_TEXTURE_GEN_MODE_OES) {
+        params[0] = static_cast<GLfixed>(tmpParams[0]);
+    } else {
+        params[0] = F2X(tmpParams[0]);
+    }
 }
 
 

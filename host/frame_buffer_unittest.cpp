@@ -1618,6 +1618,92 @@ TEST_F(FrameBufferTest, Gles1CompressedTexSubImage2DOverflowRejected) {
     mFb->destroyEmulatedEglWindowSurface(surface);
 }
 
+TEST_F(FrameBufferTest, Gles1GetLightAndMaterialInvalidEnumDoesNotLeakStack) {
+    if (!mFb->hasEmulationGl()) {
+        GTEST_SKIP() << "GL emulation not enabled.";
+    }
+
+    HandleType ctx1 = mFb->createEmulatedEglContext(0, 0, gl::GLESApi_CM);
+    ASSERT_NE((HandleType)0, ctx1);
+    HandleType surface = mFb->createEmulatedEglWindowSurface(0, mWidth, mHeight);
+    ASSERT_NE((HandleType)0, surface);
+    EXPECT_TRUE(mFb->bindContext(ctx1, surface, surface));
+
+    auto& gl1 = mRenderThreadInfo->m_glInfo->m_glDec;
+    (void)gl1.glGetError();
+
+    // Invalid light index must fail with GL_INVALID_ENUM and leave params untouched.
+    GLfixed lightParams[4] = {-12345, -12345, -12345, -12345};
+    gl1.glGetLightxv(GL_LIGHT0 + 8, GL_AMBIENT, lightParams);
+    EXPECT_EQ((GLenum)GL_INVALID_ENUM, gl1.glGetError());
+    for (int i = 0; i < 4; ++i) {
+        EXPECT_EQ(-12345, lightParams[i]);
+    }
+
+    // 1-component light query (GL_SPOT_EXPONENT) must only write params[0] and not clobber params[1].
+    gl1.glLightx(GL_LIGHT0, GL_SPOT_EXPONENT, 5 << 16);
+    EXPECT_EQ((GLenum)GL_NO_ERROR, gl1.glGetError());
+    GLfixed spotExpAndSentinel[2] = {-1, 0x77777777};
+    gl1.glGetLightxv(GL_LIGHT0, GL_SPOT_EXPONENT, spotExpAndSentinel);
+    EXPECT_EQ((GLenum)GL_NO_ERROR, gl1.glGetError());
+    EXPECT_EQ(5 << 16, spotExpAndSentinel[0]);
+    EXPECT_EQ(0x77777777, spotExpAndSentinel[1]);
+
+    // Invalid material face must fail with GL_INVALID_ENUM and leave params untouched.
+    GLfixed matParams[4] = {-54321, -54321, -54321, -54321};
+    gl1.glGetMaterialxv(0, GL_AMBIENT, matParams);
+    EXPECT_EQ((GLenum)GL_INVALID_ENUM, gl1.glGetError());
+    for (int i = 0; i < 4; ++i) {
+        EXPECT_EQ(-54321, matParams[i]);
+    }
+
+    // Valid glGetMaterialxv must convert floats to fixed-point via F2X.
+    gl1.glGetMaterialxv(GL_FRONT, GL_DIFFUSE, matParams);
+    EXPECT_EQ((GLenum)GL_NO_ERROR, gl1.glGetError());
+    EXPECT_EQ(0x10000, matParams[3]);
+
+    // GL_AMBIENT_AND_DIFFUSE is not a valid getter parameter for glGetMaterial(f/x)v per
+    // Section 6.1.3 of the GLES 1.1 spec, and must fail with GL_INVALID_ENUM leaving params untouched.
+    GLfixed ambientAndDiffuseParams[4] = {-999, -999, -999, -999};
+    gl1.glGetMaterialxv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, ambientAndDiffuseParams);
+    EXPECT_EQ((GLenum)GL_INVALID_ENUM, gl1.glGetError());
+    for (int i = 0; i < 4; ++i) {
+        EXPECT_EQ(-999, ambientAndDiffuseParams[i]);
+    }
+
+    // GL_EMISSION is not a valid glLightxv parameter and must fail with GL_INVALID_ENUM without
+    // reading past a 1-element buffer.
+    GLfixed oneFixed = 0x10000;
+    gl1.glLightxv(GL_LIGHT0, GL_EMISSION, &oneFixed);
+    EXPECT_EQ((GLenum)GL_INVALID_ENUM, gl1.glGetError());
+
+    // glTexEnviv + glGetTexEnviv / glGetTexEnvfv on GL_TEXTURE_ENV_COLOR must copy all 4 elements
+    // and convert properly across int/float types.
+    GLint envColorIn[4] = {10, 20, 30, 40};
+    gl1.glTexEnviv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, envColorIn);
+    GLint envColorOutI[4] = {};
+    gl1.glGetTexEnviv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, envColorOutI);
+    for (int i = 0; i < 4; ++i) {
+        EXPECT_EQ(envColorIn[i], envColorOutI[i]);
+    }
+    GLfixed envModeX[2] = {-1, 0x55555555};
+    gl1.glGetTexEnvxv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, envModeX);
+    EXPECT_EQ((GLfixed)GL_MODULATE, envModeX[0]);
+    EXPECT_EQ(0x55555555, envModeX[1]);
+
+    // glGetTexGenxvOES / glGetTexGenfvOES on GL_TEXTURE_GEN_MODE_OES must return the unscaled
+    // enum value and only write params[0].
+    gl1.glTexGeniOES(GL_TEXTURE_GEN_STR_OES, GL_TEXTURE_GEN_MODE_OES, GL_REFLECTION_MAP_OES);
+    GLfixed texGenModeX[2] = {-1, 0x66666666};
+    gl1.glGetTexGenxvOES(GL_TEXTURE_GEN_STR_OES, GL_TEXTURE_GEN_MODE_OES, texGenModeX);
+    EXPECT_EQ((GLfixed)GL_REFLECTION_MAP_OES, texGenModeX[0]);
+    EXPECT_EQ(0x66666666, texGenModeX[1]);
+
+    EXPECT_TRUE(mFb->bindContext(0, 0, 0));
+    mFb->destroyEmulatedEglContext(ctx1);
+    mFb->destroyEmulatedEglWindowSurface(surface);
+}
+
 }  // namespace
 }  // namespace host
 }  // namespace gfxstream

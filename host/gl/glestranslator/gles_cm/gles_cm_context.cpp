@@ -1064,8 +1064,15 @@ void GLEScmContext::texEnvi(GLenum target, GLenum pname, GLint param) {
 }
 
 void GLEScmContext::texEnviv(GLenum target, GLenum pname, const GLint* params) {
-    mTexUnitEnvs[m_activeTexture][pname].val.intVal[0] = params[0];
-    mTexUnitEnvs[m_activeTexture][pname].type = GL_INT;
+    if (pname == GL_TEXTURE_ENV_COLOR) {
+        for (int i = 0; i < 4; i++) {
+            mTexUnitEnvs[m_activeTexture][pname].val.intVal[i] = params[i];
+            mTexUnitEnvs[m_activeTexture][pname].type = GL_INT;
+        }
+    } else {
+        mTexUnitEnvs[m_activeTexture][pname].val.intVal[0] = params[0];
+        mTexUnitEnvs[m_activeTexture][pname].type = GL_INT;
+    }
 
     if (m_coreProfileEngine) {
         core().texEnviv(target, pname, params);
@@ -1075,7 +1082,13 @@ void GLEScmContext::texEnviv(GLenum target, GLenum pname, const GLint* params) {
 }
 
 void GLEScmContext::getTexEnvfv(GLenum env, GLenum pname, GLfloat* params) {
-    *params = mTexUnitEnvs[m_activeTexture][pname].val.floatVal[0];
+    const auto& entry = mTexUnitEnvs[m_activeTexture][pname];
+    int count = (pname == GL_TEXTURE_ENV_COLOR) ? 4 : 1;
+    for (int i = 0; i < count; i++) {
+        params[i] = (entry.type == GL_INT)
+                        ? static_cast<GLfloat>(entry.val.intVal[i])
+                        : entry.val.floatVal[i];
+    }
 
     if (m_coreProfileEngine) {
         core().getTexEnvfv(env, pname, params);
@@ -1085,7 +1098,13 @@ void GLEScmContext::getTexEnvfv(GLenum env, GLenum pname, GLfloat* params) {
 }
 
 void GLEScmContext::getTexEnviv(GLenum env, GLenum pname, GLint* params) {
-    *params = mTexUnitEnvs[m_activeTexture][pname].val.intVal[0];
+    const auto& entry = mTexUnitEnvs[m_activeTexture][pname];
+    int count = (pname == GL_TEXTURE_ENV_COLOR) ? 4 : 1;
+    for (int i = 0; i < count; i++) {
+        params[i] = (entry.type == GL_FLOAT)
+                        ? static_cast<GLint>(entry.val.floatVal[i])
+                        : entry.val.intVal[i];
+    }
 
     if (m_coreProfileEngine) {
         core().getTexEnviv(env, pname, params);
@@ -1163,7 +1182,10 @@ void GLEScmContext::texGeniv(GLenum coord, GLenum pname, const GLint* params) {
 }
 
 void GLEScmContext::getTexGeniv(GLenum coord, GLenum pname, GLint* params) {
-    *params = mTexGens[m_activeTexture][pname].val.intVal[0];
+    const auto& entry = mTexGens[m_activeTexture][pname];
+    *params = (entry.type == GL_FLOAT)
+                  ? static_cast<GLint>(entry.val.floatVal[0])
+                  : entry.val.intVal[0];
 
     if (m_coreProfileEngine) {
         core().getTexGeniv(coord, pname, params);
@@ -1183,10 +1205,10 @@ void GLEScmContext::getTexGeniv(GLenum coord, GLenum pname, GLint* params) {
 }
 
 void GLEScmContext::getTexGenfv(GLenum coord, GLenum pname, GLfloat* params) {
-    params[0] = mTexGens[m_activeTexture][pname].val.floatVal[0];
-    params[1] = mTexGens[m_activeTexture][pname].val.floatVal[1];
-    params[2] = mTexGens[m_activeTexture][pname].val.floatVal[2];
-    params[3] = mTexGens[m_activeTexture][pname].val.floatVal[3];
+    const auto& entry = mTexGens[m_activeTexture][pname];
+    *params = (entry.type == GL_INT)
+                  ? static_cast<GLfloat>(entry.val.intVal[0])
+                  : entry.val.floatVal[0];
 
     if (m_coreProfileEngine) {
         core().getTexGenfv(coord, pname, params);
