@@ -32,15 +32,23 @@
 
 #define GET_CTX_CM()                                                          \
     FAIL_IF(!s_eglIface, "null s_eglIface")                                   \
-    GLEScmContext* ctx =                                                      \
-            static_cast<GLEScmContext*>(s_eglIface->getGLESContext());        \
-    FAIL_IF(!ctx, "null ctx")
+    GLEScontext* baseCtx = s_eglIface->getGLESContext();                      \
+    FAIL_IF(!baseCtx, "null ctx")                                             \
+    if (baseCtx->getMajorVersion() != 1) {                                    \
+        baseCtx->setGLerror(GL_INVALID_OPERATION);                            \
+        FAIL_IF(true, "invalid GLEScm context version")                       \
+    }                                                                         \
+    GLEScmContext* ctx = static_cast<GLEScmContext*>(baseCtx);
 
 #define GET_CTX_V2()                                                          \
     FAIL_IF(!s_eglIface, "null s_eglIface")                                   \
-    GLESv2Context* ctx =                                                      \
-            static_cast<GLESv2Context*>(s_eglIface->getGLESContext());        \
-    FAIL_IF(!ctx, "null ctx")
+    GLEScontext* baseCtx = s_eglIface->getGLESContext();                      \
+    FAIL_IF(!baseCtx, "null ctx")                                             \
+    if (baseCtx->getMajorVersion() < 2) {                                     \
+        baseCtx->setGLerror(GL_INVALID_OPERATION);                            \
+        FAIL_IF(true, "invalid GLESv2 context version")                       \
+    }                                                                         \
+    GLESv2Context* ctx = static_cast<GLESv2Context*>(baseCtx);
 
 #define GET_CTX_RET(failure_ret)                                              \
     RET_AND_FAIL_IF(!s_eglIface, "null s_eglIface", failure_ret)              \
@@ -49,15 +57,23 @@
 
 #define GET_CTX_CM_RET(failure_ret)                                           \
     RET_AND_FAIL_IF(!s_eglIface, "null s_eglIface", failure_ret)              \
-    GLEScmContext* ctx =                                                      \
-            static_cast<GLEScmContext*>(s_eglIface->getGLESContext());        \
-    RET_AND_FAIL_IF(!ctx, "null ctx", failure_ret)
+    GLEScontext* baseCtx = s_eglIface->getGLESContext();                      \
+    RET_AND_FAIL_IF(!baseCtx, "null ctx", failure_ret)                        \
+    if (baseCtx->getMajorVersion() != 1) {                                    \
+        baseCtx->setGLerror(GL_INVALID_OPERATION);                            \
+        RET_AND_FAIL_IF(true, "invalid GLEScm context version", failure_ret)  \
+    }                                                                         \
+    GLEScmContext* ctx = static_cast<GLEScmContext*>(baseCtx);
 
 #define GET_CTX_V2_RET(failure_ret)                                           \
     RET_AND_FAIL_IF(!s_eglIface, "null s_eglIface", failure_ret)              \
-    GLESv2Context* ctx =                                                      \
-            static_cast<GLESv2Context*>(s_eglIface->getGLESContext());        \
-    RET_AND_FAIL_IF(!ctx, "null ctx", failure_ret)
+    GLEScontext* baseCtx = s_eglIface->getGLESContext();                      \
+    RET_AND_FAIL_IF(!baseCtx, "null ctx", failure_ret)                        \
+    if (baseCtx->getMajorVersion() < 2) {                                     \
+        baseCtx->setGLerror(GL_INVALID_OPERATION);                            \
+        RET_AND_FAIL_IF(true, "invalid GLESv2 context version", failure_ret)  \
+    }                                                                         \
+    GLESv2Context* ctx = static_cast<GLESv2Context*>(baseCtx);
 
 #define SET_ERROR_IF(condition,err) if((condition)) {                            \
                         fprintf(stderr, "%s:%s:%d error 0x%x\n", __FILE__, __FUNCTION__, __LINE__, err); \

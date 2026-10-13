@@ -480,7 +480,7 @@ namespace translator {
 namespace gles2 {
 
 GL_APICALL void  GL_APIENTRY glActiveTexture(GLenum texture){
-    GET_CTX_V2();
+    GET_CTX();
     SET_ERROR_IF (!GLESv2Validate::textureEnum(texture,ctx->getMaxCombinedTexUnits()),GL_INVALID_ENUM);
     ctx->setActiveTexture(texture);
     ctx->dispatcher().glActiveTexture(texture);
@@ -539,7 +539,7 @@ GL_APICALL void  GL_APIENTRY glBindAttribLocation(GLuint program, GLuint index, 
 }
 
 GL_APICALL void  GL_APIENTRY glBindBuffer(GLenum target, GLuint buffer){
-    GET_CTX_V2();
+    GET_CTX();
     SET_ERROR_IF(!GLESv2Validate::bufferTarget(ctx, target), GL_INVALID_ENUM);
 
     GLuint globalBufferName = ctx->bindBuffer(target,buffer);
@@ -566,7 +566,7 @@ static bool sIsFboTextureTarget(GLenum target) {
 }
 
 template <class T>
-static bool sHasAttachmentWithFormat(const GLESv2Context* ctx,
+static bool sHasAttachmentWithFormat(const GLEScontext* ctx,
                                      FramebufferData* fbData,
                                      const T& attachments,
                                      const std::initializer_list<GLenum> formats) {
@@ -604,7 +604,7 @@ static bool sHasAttachmentWithFormat(const GLESv2Context* ctx,
 }
 
 
-static void sSetDesktopGLEnable(const GLESv2Context* ctx, bool enable, GLenum cap) {
+static void sSetDesktopGLEnable(const GLEScontext* ctx, bool enable, GLenum cap) {
     if (enable)
         ctx->dispatcher().glEnable(cap);
     else
@@ -616,7 +616,7 @@ static void sSetDesktopGLEnable(const GLESv2Context* ctx, bool enable, GLenum ca
 // than that of OpenGL ES. In OpenGL ES, some implicit operations can happen
 // depending on the internal format and attachment combinations of the
 // framebuffer object.
-static void sUpdateFboEmulation(GLESv2Context* ctx) {
+static void sUpdateFboEmulation(GLEScontext* ctx) {
     if (ctx->getMajorVersion() < 3 || isGles2Gles()) {
         return;
     }
@@ -660,7 +660,7 @@ static void sUpdateFboEmulation(GLESv2Context* ctx) {
 }
 
 GL_APICALL void  GL_APIENTRY glBindFramebuffer(GLenum target, GLuint framebuffer){
-    GET_CTX_V2();
+    GET_CTX();
     SET_ERROR_IF(!GLESv2Validate::framebufferTarget(ctx, target),GL_INVALID_ENUM);
 
     GLuint globalFrameBufferName;
@@ -724,14 +724,14 @@ GL_APICALL void  GL_APIENTRY glBindRenderbuffer(GLenum target, GLuint renderbuff
 }
 
 GL_APICALL GLuint GL_APIENTRY glGetGlobalTexName(GLuint localName) {
-    GET_CTX_V2_RET(0);
+    GET_CTX_RET(0);
     GLuint globalTextureName = ctx->shareGroup()->getGlobalName(
             NamedObjectType::TEXTURE, localName);
     return globalTextureName;
 }
 
 GL_APICALL void  GL_APIENTRY glBindTexture(GLenum target, GLuint texture){
-    GET_CTX_V2();
+    GET_CTX();
     SET_ERROR_IF(!GLESv2Validate::textureTarget(ctx, target), GL_INVALID_ENUM);
 
     //for handling default texture (0)
@@ -785,14 +785,14 @@ GL_APICALL void  GL_APIENTRY glBlendColor(GLclampf red, GLclampf green, GLclampf
 }
 
 GL_APICALL void  GL_APIENTRY glBlendEquation( GLenum mode ){
-    GET_CTX_V2();
+    GET_CTX();
     SET_ERROR_IF(!GLESv2Validate::blendEquationMode(ctx, mode), GL_INVALID_ENUM);
     ctx->setBlendEquationSeparate(mode, mode);
     ctx->dispatcher().glBlendEquation(mode);
 }
 
 GL_APICALL void  GL_APIENTRY glBlendEquationSeparate(GLenum modeRGB, GLenum modeAlpha){
-    GET_CTX_V2();
+    GET_CTX();
     SET_ERROR_IF(!(GLESv2Validate::blendEquationMode(ctx, modeRGB) &&
                    GLESv2Validate::blendEquationMode(ctx, modeAlpha)), GL_INVALID_ENUM);
     ctx->setBlendEquationSeparate(modeRGB, modeAlpha);
@@ -815,7 +815,7 @@ GL_APICALL void  GL_APIENTRY glBlendFuncSeparate(GLenum srcRGB, GLenum dstRGB, G
 }
 
 GL_APICALL void  GL_APIENTRY glBufferData(GLenum target, GLsizeiptr size, const GLvoid* data, GLenum usage){
-    GET_CTX_V2();
+    GET_CTX();
     SET_ERROR_IF(!GLESv2Validate::bufferTarget(ctx, target), GL_INVALID_ENUM);
     SET_ERROR_IF(!ctx->isBindedBuffer(target),GL_INVALID_OPERATION);
     SET_ERROR_IF(!GLESv2Validate::bufferUsage(ctx, usage), GL_INVALID_ENUM);
@@ -824,7 +824,7 @@ GL_APICALL void  GL_APIENTRY glBufferData(GLenum target, GLsizeiptr size, const 
 }
 
 GL_APICALL void  GL_APIENTRY glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const GLvoid* data){
-    GET_CTX_V2();
+    GET_CTX();
     SET_ERROR_IF(!GLESv2Validate::bufferTarget(ctx, target), GL_INVALID_ENUM);
     SET_ERROR_IF(!ctx->isBindedBuffer(target),GL_INVALID_OPERATION);
     SET_ERROR_IF(!ctx->setBufferSubData(target,offset,size,data),GL_INVALID_VALUE);
@@ -833,7 +833,7 @@ GL_APICALL void  GL_APIENTRY glBufferSubData(GLenum target, GLintptr offset, GLs
 
 
 GL_APICALL GLenum GL_APIENTRY glCheckFramebufferStatus(GLenum target){
-    GET_CTX_V2_RET(GL_FRAMEBUFFER_COMPLETE);
+    GET_CTX_RET(GL_FRAMEBUFFER_COMPLETE);
     RET_AND_SET_ERROR_IF(!GLESv2Validate::framebufferTarget(ctx, target), GL_INVALID_ENUM, GL_FRAMEBUFFER_COMPLETE);
     // We used to issue ctx->drawValidate() here, but it can corrupt the status of
     // separately bound draw/read framebuffer objects. So we just don't call it now.
@@ -1073,7 +1073,7 @@ void s_glInitTexImage3D(GLenum target, GLint level, GLint internalformat,
 }
 
 GL_APICALL void  GL_APIENTRY glCopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border){
-    GET_CTX_V2();
+    GET_CTX();
     SET_ERROR_IF(!(GLESv2Validate::pixelFrmt(ctx,internalformat) &&
                    (GLESv2Validate::textureTarget(ctx, target) ||
                     GLESv2Validate::textureTargetEx(ctx, target))), GL_INVALID_ENUM);
@@ -1104,7 +1104,7 @@ GL_APICALL void  GL_APIENTRY glCopyTexImage2D(GLenum target, GLint level, GLenum
 }
 
 GL_APICALL void  GL_APIENTRY glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height){
-    GET_CTX_V2();
+    GET_CTX();
     SET_ERROR_IF(!(GLESv2Validate::textureTarget(ctx, target) ||
                    GLESv2Validate::textureTargetEx(ctx, target)), GL_INVALID_ENUM);
     TextureData* texData = getTextureTargetData(target);
@@ -1322,7 +1322,7 @@ GL_APICALL void  GL_APIENTRY glDeleteBuffers(GLsizei n, const GLuint* buffers){
 }
 
 GL_APICALL void  GL_APIENTRY glDeleteFramebuffers(GLsizei n, const GLuint* framebuffers){
-    GET_CTX_V2();
+    GET_CTX();
     SET_ERROR_IF(n < 0, GL_INVALID_VALUE);
     for (int i = 0; i < n; i++) {
         if (ctx->getFramebufferBinding(GL_FRAMEBUFFER) == framebuffers[i]) {
@@ -1698,7 +1698,7 @@ GL_APICALL void  GL_APIENTRY glFlush(void){
 
 
 GL_APICALL void  GL_APIENTRY glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer){
-    GET_CTX_V2();
+    GET_CTX();
     SET_ERROR_IF(!(GLESv2Validate::framebufferTarget(ctx, target) &&
                    GLESv2Validate::renderbufferTarget(renderbuffertarget) &&
                    GLESv2Validate::framebufferAttachment(ctx, attachment)), GL_INVALID_ENUM);
@@ -1759,7 +1759,7 @@ GL_APICALL void  GL_APIENTRY glFramebufferRenderbuffer(GLenum target, GLenum att
 }
 
 GL_APICALL void  GL_APIENTRY glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level){
-    GET_CTX_V2();
+    GET_CTX();
     SET_ERROR_IF(!(GLESv2Validate::framebufferTarget(ctx, target) &&
                    GLESv2Validate::textureTargetEx(ctx, textarget)  &&
                    GLESv2Validate::framebufferAttachment(ctx, attachment)), GL_INVALID_ENUM);
@@ -1823,7 +1823,7 @@ static int maxMipmapLevel(GLsizei width, GLsizei height) {
 }
 
 GL_APICALL void  GL_APIENTRY glGenerateMipmap(GLenum target){
-    GET_CTX_V2();
+    GET_CTX();
     SET_ERROR_IF(!GLESv2Validate::textureTarget(ctx, target), GL_INVALID_ENUM);
     // Assuming we advertised GL_OES_texture_npot
     if (ctx->shareGroup().get()) {
@@ -2047,12 +2047,12 @@ static void s_glGetFloatv_wrapper(GLenum pname, GLfloat* params) {
 }
 
 static void s_glGetIntegeri_v_wrapper(GLenum pname, GLuint index, GLint* data) {
-    GET_CTX_V2();
+    GET_CTX();
     ctx->dispatcher().glGetIntegeri_v(pname, index, data);
 }
 
 static void s_glGetInteger64i_v_wrapper(GLenum pname, GLuint index, GLint64* data) {
-    GET_CTX_V2();
+    GET_CTX();
     ctx->dispatcher().glGetInteger64i_v(pname, index, data);
 }
 
@@ -2060,7 +2060,7 @@ template <class T>
 static void s_glStateQueryTv(bool es2, GLenum pname, T* params, GLStateQueryFunc<T> getter) {
     T i;
     GLint iparams[4];
-    GET_CTX_V2();
+    GET_CTX();
     switch (pname) {
     case GL_VIEWPORT:
         ctx->getViewport(iparams);
@@ -2070,8 +2070,8 @@ static void s_glStateQueryTv(bool es2, GLenum pname, T* params, GLStateQueryFunc
         params[3] = (T)iparams[3];
         break;
     case GL_CURRENT_PROGRAM:
-        if (ctx->shareGroup().get()) {
-            *params = (T)ctx->getCurrentProgram();
+        if (ctx->shareGroup().get() && ctx->getMajorVersion() >= 2) {
+            *params = (T)static_cast<GLESv2Context*>(ctx)->getCurrentProgram();
         }
         break;
     case GL_FRAMEBUFFER_BINDING:
@@ -2120,7 +2120,11 @@ static void s_glStateQueryTv(bool es2, GLenum pname, T* params, GLStateQueryFunc
         *params = ctx->getBuffer(GL_PIXEL_UNPACK_BUFFER);
         break;
     case GL_TRANSFORM_FEEDBACK_BINDING:
-        *params = ctx->getTransformFeedbackBinding();
+        if (ctx->getMajorVersion() >= 2) {
+            *params = static_cast<GLESv2Context*>(ctx)->getTransformFeedbackBinding();
+        } else {
+            *params = 0;
+        }
         break;
     case GL_TRANSFORM_FEEDBACK_BUFFER_BINDING:
         *params = ctx->getBuffer(GL_TRANSFORM_FEEDBACK_BUFFER);
@@ -2281,7 +2285,7 @@ static void s_glStateQueryTv(bool es2, GLenum pname, T* params, GLStateQueryFunc
 
 template <typename T>
 static void s_glStateQueryTi_v(GLenum pname, GLuint index, T* params, GLStateQueryFuncIndexed<T> getter) {
-    GET_CTX_V2();
+    GET_CTX();
     switch (pname) {
     case GL_TRANSFORM_FEEDBACK_BUFFER_BINDING:
         *params = ctx->getIndexedBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, index);
@@ -2307,7 +2311,7 @@ static void s_glStateQueryTi_v(GLenum pname, GLuint index, T* params, GLStateQue
 }
 
 GL_APICALL void  GL_APIENTRY glGetBooleanv(GLenum pname, GLboolean* params){
-    GET_CTX_V2();
+    GET_CTX();
 #define TO_GLBOOL(params, x) \
     *params = x ? GL_TRUE : GL_FALSE; \
 
@@ -2349,7 +2353,11 @@ GL_APICALL void  GL_APIENTRY glGetBooleanv(GLenum pname, GLboolean* params){
         TO_GLBOOL(params, ctx->getBuffer(GL_PIXEL_UNPACK_BUFFER));
         break;
     case GL_TRANSFORM_FEEDBACK_BINDING:
-        TO_GLBOOL(params, ctx->getTransformFeedbackBinding());
+        if (ctx->getMajorVersion() >= 2) {
+            TO_GLBOOL(params, static_cast<GLESv2Context*>(ctx)->getTransformFeedbackBinding());
+        } else {
+            *params = GL_FALSE;
+        }
         break;
     case GL_TRANSFORM_FEEDBACK_BUFFER_BINDING:
         TO_GLBOOL(params, ctx->getBuffer(GL_TRANSFORM_FEEDBACK_BUFFER));
@@ -2437,7 +2445,7 @@ GL_APICALL void  GL_APIENTRY glGetBooleanv(GLenum pname, GLboolean* params){
 }
 
 GL_APICALL void  GL_APIENTRY glGetBufferParameteriv(GLenum target, GLenum pname, GLint* params){
-    GET_CTX_V2();
+    GET_CTX();
     SET_ERROR_IF(!GLESv2Validate::bufferTarget(ctx, target), GL_INVALID_ENUM);
     SET_ERROR_IF(!GLESv2Validate::bufferParam(ctx, pname), GL_INVALID_ENUM);
     SET_ERROR_IF(!ctx->isBindedBuffer(target),GL_INVALID_OPERATION);
@@ -2529,7 +2537,7 @@ GL_APICALL void  GL_APIENTRY glGetIntegerv(GLenum pname, GLint* params){
 }
 
 GL_APICALL void  GL_APIENTRY glGetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenum pname, GLint* params){
-    GET_CTX_V2();
+    GET_CTX();
 
     //
     // Take the attachment attribute from our state - if available
@@ -2587,7 +2595,7 @@ GL_APICALL void  GL_APIENTRY glGetFramebufferAttachmentParameteriv(GLenum target
 }
 
 GL_APICALL void  GL_APIENTRY glGetRenderbufferParameteriv(GLenum target, GLenum pname, GLint* params){
-    GET_CTX_V2();
+    GET_CTX();
     SET_ERROR_IF(!(GLESv2Validate::renderbufferTarget(target) &&
                    GLESv2Validate::renderbufferParam(ctx, pname)), GL_INVALID_ENUM);
 
@@ -2879,7 +2887,7 @@ GL_APICALL void  GL_APIENTRY glGetShaderSource(GLuint shader, GLsizei bufsize, G
 
 
 GL_APICALL const GLubyte* GL_APIENTRY glGetString(GLenum name){
-    GET_CTX_V2_RET(NULL)
+    GET_CTX_RET(NULL)
     static const GLubyte SHADING[] = "OpenGL ES GLSL ES 1.0.17";
     static const GLubyte SHADING30[] = "OpenGL ES GLSL ES 3.00";
     static const GLubyte SHADING31[] = "OpenGL ES GLSL ES 3.10";
@@ -2920,7 +2928,7 @@ static bool sShouldEmulateSwizzles(TextureData* texData, GLenum target, GLenum p
 }
 
 GL_APICALL void  GL_APIENTRY glGetTexParameterfv(GLenum target, GLenum pname, GLfloat* params){
-    GET_CTX_V2();
+    GET_CTX();
     SET_ERROR_IF(!(GLESv2Validate::textureTarget(ctx, target) &&
                    GLESv2Validate::textureParams(ctx, pname)),
                  GL_INVALID_ENUM);
@@ -2934,7 +2942,7 @@ GL_APICALL void  GL_APIENTRY glGetTexParameterfv(GLenum target, GLenum pname, GL
 }
 
 GL_APICALL void  GL_APIENTRY glGetTexParameteriv(GLenum target, GLenum pname, GLint* params){
-    GET_CTX_V2();
+    GET_CTX();
     SET_ERROR_IF(!(GLESv2Validate::textureTarget(ctx, target) &&
                    GLESv2Validate::textureParams(ctx, pname)),
                  GL_INVALID_ENUM);
@@ -3269,7 +3277,7 @@ GL_APICALL void  GL_APIENTRY glLinkProgram(GLuint program){
 }
 
 GL_APICALL void  GL_APIENTRY glPixelStorei(GLenum pname, GLint param){
-    GET_CTX_V2();
+    GET_CTX();
     SET_ERROR_IF(!GLESv2Validate::pixelStoreParam(ctx, pname), GL_INVALID_ENUM);
     switch (pname) {
     case GL_PACK_ALIGNMENT:
@@ -3294,7 +3302,7 @@ GL_APICALL void  GL_APIENTRY glRenderbufferStorage(GLenum target, GLenum interna
 GL_APICALL void GL_APIENTRY glBlitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
 
 GL_APICALL void  GL_APIENTRY glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid* pixels){
-    GET_CTX_V2();
+    GET_CTX();
     SET_ERROR_IF(!(GLESv2Validate::pixelOp(format,type)),GL_INVALID_OPERATION);
     SET_ERROR_IF(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE, GL_INVALID_FRAMEBUFFER_OPERATION);
     if (ctx->isDefaultFBOBound(GL_READ_FRAMEBUFFER) &&
@@ -3361,7 +3369,7 @@ GL_APICALL void  GL_APIENTRY glReleaseShaderCompiler(void){
 
 static GLenum sPrepareRenderbufferStorage(GLenum internalformat, GLsizei width,
         GLsizei height, GLint samples, GLint* err) {
-    GET_CTX_V2_RET(GL_NONE);
+    GET_CTX_RET(GL_NONE);
     GLenum internal = internalformat;
     if (!isGles2Gles() && ctx->getMajorVersion() < 3) {
         switch (internalformat) {
@@ -3532,7 +3540,7 @@ static void sPrepareTexImage2D(GLenum target, GLsizei level, GLint internalforma
                                GLenum* type_out,
                                GLint* internalformat_out,
                                GLint* err_out) {
-    GET_CTX_V2();
+    GET_CTX();
 #define VALIDATE(cond, err) do { if (cond) { *err_out = err; fprintf(stderr, "%s:%d failed validation\n", __FUNCTION__, __LINE__); return; } } while(0) \
 
     bool isCompressedFormat =
@@ -3585,7 +3593,7 @@ static void sPrepareTexImage2D(GLenum target, GLsizei level, GLint internalforma
 }
 
 GL_APICALL void  GL_APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid* pixels){
-    GET_CTX_V2();
+    GET_CTX();
     // clear previous error
     GLint err = ctx->dispatcher().glGetError();
     if (err != GL_NO_ERROR) {
@@ -3613,7 +3621,7 @@ GL_APICALL void  GL_APIENTRY glTexImage2D(GLenum target, GLint level, GLint inte
 
 static void sEmulateUserTextureSwizzle(TextureData* texData,
                                        GLenum target, GLenum pname, GLint param) {
-    GET_CTX_V2();
+    GET_CTX();
     TextureSwizzle emulatedBaseSwizzle =
         getSwizzleForEmulatedFormat(texData->format);
     GLenum userSwz =
@@ -3624,7 +3632,7 @@ static void sEmulateUserTextureSwizzle(TextureData* texData,
 }
 
 GL_APICALL void  GL_APIENTRY glTexParameterf(GLenum target, GLenum pname, GLfloat param){
-    GET_CTX_V2();
+    GET_CTX();
     SET_ERROR_IF(!(GLESv2Validate::textureTarget(ctx, target) &&
                    GLESv2Validate::textureParams(ctx, pname)),
                  GL_INVALID_ENUM);
@@ -3642,7 +3650,7 @@ GL_APICALL void  GL_APIENTRY glTexParameterf(GLenum target, GLenum pname, GLfloa
 }
 
 GL_APICALL void  GL_APIENTRY glTexParameterfv(GLenum target, GLenum pname, const GLfloat* params){
-    GET_CTX_V2();
+    GET_CTX();
     SET_ERROR_IF(!(GLESv2Validate::textureTarget(ctx, target) &&
                    GLESv2Validate::textureParams(ctx, pname)),
                  GL_INVALID_ENUM);
@@ -3660,7 +3668,7 @@ GL_APICALL void  GL_APIENTRY glTexParameterfv(GLenum target, GLenum pname, const
 }
 
 GL_APICALL void  GL_APIENTRY glTexParameteri(GLenum target, GLenum pname, GLint param){
-    GET_CTX_V2();
+    GET_CTX();
     SET_ERROR_IF(!(GLESv2Validate::textureTarget(ctx, target) &&
                    GLESv2Validate::textureParams(ctx, pname)),
                  GL_INVALID_ENUM);
@@ -3678,7 +3686,7 @@ GL_APICALL void  GL_APIENTRY glTexParameteri(GLenum target, GLenum pname, GLint 
 }
 
 GL_APICALL void  GL_APIENTRY glTexParameteriv(GLenum target, GLenum pname, const GLint* params){
-    GET_CTX_V2();
+    GET_CTX();
     SET_ERROR_IF(!(GLESv2Validate::textureTarget(ctx, target) &&
                    GLESv2Validate::textureParams(ctx, pname)),
                  GL_INVALID_ENUM);
@@ -3696,7 +3704,7 @@ GL_APICALL void  GL_APIENTRY glTexParameteriv(GLenum target, GLenum pname, const
 }
 
 GL_APICALL void  GL_APIENTRY glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, GLvoid* pixels){
-    GET_CTX_V2();
+    GET_CTX();
     SET_ERROR_IF(!(GLESv2Validate::textureTarget(ctx, target) ||
                    GLESv2Validate::textureTargetEx(ctx, target)), GL_INVALID_ENUM);
     SET_ERROR_IF(!GLESv2Validate::pixelFrmt(ctx,format), GL_INVALID_ENUM);
@@ -3819,37 +3827,37 @@ GL_APICALL void  GL_APIENTRY glGetTexImage(GLenum target, GLint level, GLenum fo
 }
 
 GL_APICALL void GL_APIENTRY glDebugMessageControlKHR(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint* ids, GLboolean enabled) {
-    GET_CTX_V2();
+    GET_CTX();
     ctx->dispatcher().glDebugMessageControlKHR(source, type, severity, count, ids, enabled);
 }
 
 GL_APICALL void GL_APIENTRY glDebugMessageInsertKHR(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* buf) {
-    GET_CTX_V2();
+    GET_CTX();
     ctx->dispatcher().glDebugMessageInsertKHR(source, type, id, severity, length, buf);
 }
 
 GL_APICALL void GL_APIENTRY glDebugMessageCallbackKHR(GLDEBUGPROCKHR callback, const void* userdata) {
-    GET_CTX_V2();
+    GET_CTX();
     ctx->dispatcher().glDebugMessageCallbackKHR(callback, userdata);
 }
 
 GL_APICALL GLuint GL_APIENTRY glGetDebugMessageLogKHR(GLuint count, GLsizei size, GLenum* sources, GLenum* types, GLuint* ids, GLenum* severities, GLsizei* lengths, GLchar* log) {
-    GET_CTX_V2_RET(0);
+    GET_CTX_RET(0);
     return ctx->dispatcher().glGetDebugMessageLogKHR(count, size, sources, types, ids, severities, lengths, log);
 }
 
 GL_APICALL void GL_APIENTRY glPushDebugGroupKHR(GLenum source, GLuint id, GLsizei length, const GLchar* message) {
-    GET_CTX_V2();
+    GET_CTX();
     ctx->dispatcher().glPushDebugGroupKHR(source, id, length, message);
 }
 
 GL_APICALL void GL_APIENTRY glPopDebugGroupKHR(void) {
-    GET_CTX_V2();
+    GET_CTX();
     ctx->dispatcher().glPopDebugGroupKHR();
 }
 
 GL_APICALL void  GL_APIENTRY glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid* pixels){
-    GET_CTX_V2();
+    GET_CTX();
     SET_ERROR_IF(!(GLESv2Validate::textureTarget(ctx, target) ||
                    GLESv2Validate::textureTargetEx(ctx, target)), GL_INVALID_ENUM);
     SET_ERROR_IF(!GLESv2Validate::pixelFrmt(ctx,format), GL_INVALID_ENUM);
@@ -4233,7 +4241,7 @@ GL_APICALL void  GL_APIENTRY glViewport(GLint x, GLint y, GLsizei width, GLsizei
 
 GL_APICALL void GL_APIENTRY glEGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image)
 {
-    GET_CTX_V2();
+    GET_CTX();
     SET_ERROR_IF(!GLESv2Validate::textureTargetLimited(target),GL_INVALID_ENUM);
     unsigned int imagehndl = SafeUIntFromPointer(image);
     ImagePtr img = s_eglIface->getEGLImage(imagehndl);
@@ -4372,7 +4380,7 @@ GL_APICALL void GL_APIENTRY glEGLImageTargetRenderbufferStorageOES(GLenum target
 
 // Extension: Vertex array objects
 GL_APICALL void GL_APIENTRY glGenVertexArraysOES(GLsizei n, GLuint* arrays) {
-    GET_CTX_V2();
+    GET_CTX();
     SET_ERROR_IF(n < 0,GL_INVALID_VALUE);
     for (GLsizei i = 0; i < n; i++) {
         arrays[i] = ctx->genVAOName(0, true);
@@ -4381,7 +4389,7 @@ GL_APICALL void GL_APIENTRY glGenVertexArraysOES(GLsizei n, GLuint* arrays) {
 }
 
 GL_APICALL void GL_APIENTRY glBindVertexArrayOES(GLuint array) {
-    GET_CTX_V2();
+    GET_CTX();
     if (ctx->setVertexArrayObject(array)) {
         // TODO: This could be useful for a glIsVertexArray
         // that doesn't use the host GPU, but currently, it doesn't
@@ -4394,7 +4402,7 @@ GL_APICALL void GL_APIENTRY glBindVertexArrayOES(GLuint array) {
 }
 
 GL_APICALL void GL_APIENTRY glDeleteVertexArraysOES(GLsizei n, const GLuint * arrays) {
-    GET_CTX_V2();
+    GET_CTX();
     SET_ERROR_IF(n < 0,GL_INVALID_VALUE);
     ctx->removeVertexArrayObjects(n, arrays);
     for (GLsizei i = 0; i < n; i++) {
@@ -4403,7 +4411,7 @@ GL_APICALL void GL_APIENTRY glDeleteVertexArraysOES(GLsizei n, const GLuint * ar
 }
 
 GL_APICALL GLboolean GL_APIENTRY glIsVertexArrayOES(GLuint array) {
-    GET_CTX_V2_RET(0);
+    GET_CTX_RET(0);
     if (!array) return GL_FALSE;
     // TODO: Figure out how to answer this completely in software.
     // Currently, state gets weird so we need to ask the GPU directly.
@@ -4477,7 +4485,7 @@ GL_APICALL void GL_APIENTRY
 glTestHostDriverPerformance(GLuint count,
                             uint64_t* duration_us,
                             uint64_t* duration_cpu_us) {
-    GET_CTX_V2();
+    GET_CTX();
     auto gl = &(ctx->dispatcher());
 
     constexpr char vshaderSrcEs[] = R"(#version 300 es
@@ -4623,7 +4631,7 @@ glTestHostDriverPerformance(GLuint count,
 // https://www.khronos.org/registry/OpenGL/extensions/EXT/EXT_external_objects.txt
 // Common between GL_EXT_memory_object and GL_EXT_semaphore
 GL_APICALL void GL_APIENTRY glGetUnsignedBytevEXT(GLenum pname, GLubyte* data) {
-    GET_CTX_V2();
+    GET_CTX();
     if (!ctx->dispatcher().glGetUnsignedBytevEXT) {
         return;
     }
@@ -4631,7 +4639,7 @@ GL_APICALL void GL_APIENTRY glGetUnsignedBytevEXT(GLenum pname, GLubyte* data) {
 }
 
 GL_APICALL void GL_APIENTRY glGetUnsignedBytei_vEXT(GLenum target, GLuint index, GLubyte* data) {
-    GET_CTX_V2();
+    GET_CTX();
     if (!ctx->dispatcher().glGetUnsignedBytei_vEXT) {
         return;
     }
@@ -4640,42 +4648,42 @@ GL_APICALL void GL_APIENTRY glGetUnsignedBytei_vEXT(GLenum target, GLuint index,
 
 // GL_EXT_memory_object
 GL_APICALL void GL_APIENTRY glImportMemoryFdEXT(GLuint memory, GLuint64 size, GLenum handleType, GLint fd) {
-    GET_CTX_V2();
+    GET_CTX();
     ctx->dispatcher().glImportMemoryFdEXT(memory, size, handleType, fd);
 }
 
 GL_APICALL void GL_APIENTRY glImportMemoryWin32HandleEXT(GLuint memory, GLuint64 size, GLenum handleType, void* handle) {
-    GET_CTX_V2();
+    GET_CTX();
     ctx->dispatcher().glImportMemoryWin32HandleEXT(memory, size, handleType, handle);
 }
 
 GL_APICALL void GL_APIENTRY glDeleteMemoryObjectsEXT(GLsizei n, const GLuint *memoryObjects) {
-    GET_CTX_V2();
+    GET_CTX();
     ctx->dispatcher().glDeleteMemoryObjectsEXT(n, memoryObjects);
 }
 
 GL_APICALL GLboolean GL_APIENTRY glIsMemoryObjectEXT(GLuint memoryObject) {
-    GET_CTX_V2_RET(GL_FALSE);
+    GET_CTX_RET(GL_FALSE);
     return ctx->dispatcher().glIsMemoryObjectEXT(memoryObject);
 }
 
 GL_APICALL void GL_APIENTRY glCreateMemoryObjectsEXT(GLsizei n, GLuint *memoryObjects) {
-    GET_CTX_V2();
+    GET_CTX();
     ctx->dispatcher().glCreateMemoryObjectsEXT(n, memoryObjects);
 }
 
 GL_APICALL void GL_APIENTRY glMemoryObjectParameterivEXT(GLuint memoryObject, GLenum pname, const GLint *params) {
-    GET_CTX_V2();
+    GET_CTX();
     ctx->dispatcher().glMemoryObjectParameterivEXT(memoryObject, pname, params);
 }
 
 GL_APICALL void GL_APIENTRY glGetMemoryObjectParameterivEXT(GLuint memoryObject, GLenum pname, GLint *params) {
-    GET_CTX_V2();
+    GET_CTX();
     ctx->dispatcher().glGetMemoryObjectParameterivEXT(memoryObject, pname, params);
 }
 
 GL_APICALL void GL_APIENTRY glTexStorageMem2DEXT(GLenum target, GLsizei levels, GLenum internalFormat, GLsizei width, GLsizei height, GLuint memory, GLuint64 offset) {
-    GET_CTX_V2();
+    GET_CTX();
     GLint err = GL_NO_ERROR;
     GLenum format, type;
     GLESv2Validate::getCompatibleFormatTypeForInternalFormat(internalFormat, &format, &type);
@@ -4687,27 +4695,27 @@ GL_APICALL void GL_APIENTRY glTexStorageMem2DEXT(GLenum target, GLsizei levels, 
 }
 
 GL_APICALL void GL_APIENTRY glTexStorageMem2DMultisampleEXT(GLenum target, GLsizei samples, GLenum internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations, GLuint memory, GLuint64 offset) {
-    GET_CTX_V2();
+    GET_CTX();
     ctx->dispatcher().glTexStorageMem2DMultisampleEXT(target, samples, internalFormat, width, height, fixedSampleLocations, memory, offset);
 }
 
 GL_APICALL void GL_APIENTRY glTexStorageMem3DEXT(GLenum target, GLsizei levels, GLenum internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLuint memory, GLuint64 offset) {
-    GET_CTX_V2();
+    GET_CTX();
     ctx->dispatcher().glTexStorageMem3DEXT(target, levels, internalFormat, width, height, depth, memory, offset);
 }
 
 GL_APICALL void GL_APIENTRY glTexStorageMem3DMultisampleEXT(GLenum target, GLsizei samples, GLenum internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations, GLuint memory, GLuint64 offset) {
-    GET_CTX_V2();
+    GET_CTX();
     ctx->dispatcher().glTexStorageMem3DMultisampleEXT(target, samples, internalFormat, width, height, depth, fixedSampleLocations, memory, offset);
 }
 
 GL_APICALL void GL_APIENTRY glBufferStorageMemEXT(GLenum target, GLsizeiptr size, GLuint memory, GLuint64 offset) {
-    GET_CTX_V2();
+    GET_CTX();
     ctx->dispatcher().glBufferStorageMemEXT(target, size, memory, offset);
 }
 
 GL_APICALL void GL_APIENTRY glTexParameteriHOST(GLenum target, GLenum pname, GLint param) {
-    GET_CTX_V2();
+    GET_CTX();
     ctx->dispatcher().glTexParameteri(target, pname, param);
 }
 
@@ -4715,57 +4723,57 @@ GL_APICALL void GL_APIENTRY glTexParameteriHOST(GLenum target, GLenum pname, GLi
 
 // GL_EXT_semaphore
 GL_APICALL void GL_APIENTRY glImportSemaphoreFdEXT(GLuint semaphore, GLenum handleType, GLint fd) {
-    GET_CTX_V2();
+    GET_CTX();
     ctx->dispatcher().glImportSemaphoreFdEXT(semaphore, handleType, fd);
 }
 
 GL_APICALL void GL_APIENTRY glImportSemaphoreWin32HandleEXT(GLuint semaphore, GLenum handleType, void* handle) {
-    GET_CTX_V2();
+    GET_CTX();
     ctx->dispatcher().glImportSemaphoreWin32HandleEXT(semaphore, handleType, handle);
 }
 
 GL_APICALL void GL_APIENTRY glGenSemaphoresEXT(GLsizei n, GLuint *semaphores) {
-    GET_CTX_V2();
+    GET_CTX();
     ctx->dispatcher().glGenSemaphoresEXT(n, semaphores);
 }
 
 GL_APICALL void GL_APIENTRY glDeleteSemaphoresEXT(GLsizei n, const GLuint *semaphores) {
-    GET_CTX_V2();
+    GET_CTX();
     ctx->dispatcher().glDeleteSemaphoresEXT(n, semaphores);
 }
 
 GL_APICALL GLboolean glIsSemaphoreEXT(GLuint semaphore) {
-    GET_CTX_V2_RET(GL_FALSE);
+    GET_CTX_RET(GL_FALSE);
     return ctx->dispatcher().glIsSemaphoreEXT(semaphore);
 }
 
 GL_APICALL void GL_APIENTRY glSemaphoreParameterui64vEXT(GLuint semaphore, GLenum pname, const GLuint64 *params) {
-    GET_CTX_V2();
+    GET_CTX();
     ctx->dispatcher().glSemaphoreParameterui64vEXT(semaphore, pname, params);
 }
 
 GL_APICALL void GL_APIENTRY glGetSemaphoreParameterui64vEXT(GLuint semaphore, GLenum pname, GLuint64 *params) {
-    GET_CTX_V2();
+    GET_CTX();
     ctx->dispatcher().glGetSemaphoreParameterui64vEXT(semaphore, pname, params);
 }
 
 GL_APICALL void GL_APIENTRY glWaitSemaphoreEXT(GLuint semaphore, GLuint numBufferBarriers, const GLuint *buffers, GLuint numTextureBarriers, const GLuint *textures, const GLenum *srcLayouts) {
-    GET_CTX_V2();
+    GET_CTX();
     ctx->dispatcher().glWaitSemaphoreEXT(semaphore, numBufferBarriers, buffers, numTextureBarriers, textures, srcLayouts);
 }
 
 GL_APICALL void GL_APIENTRY glSignalSemaphoreEXT(GLuint semaphore, GLuint numBufferBarriers, const GLuint *buffers, GLuint numTextureBarriers, const GLuint *textures, const GLenum *dstLayouts) {
-    GET_CTX_V2();
+    GET_CTX();
     ctx->dispatcher().glSignalSemaphoreEXT(semaphore, numBufferBarriers, buffers, numTextureBarriers, textures, dstLayouts);
 }
 
 GL_APICALL void GL_APIENTRY glPrimitiveRestartIndex(GLuint index) {
-    GET_CTX_V2();
+    GET_CTX();
     ctx->dispatcher().glPrimitiveRestartIndex(index);
 }
 
 GL_APICALL GLenum GL_APIENTRY glGetGraphicsResetStatusEXT() {
-    GET_CTX_V2_RET(GL_NO_ERROR);
+    GET_CTX_RET(GL_NO_ERROR);
     GLenum error = ctx->dispatcher().glGetError();
     if (error && !ctx->getGLerror()) {
         ctx->setGLerror(error);

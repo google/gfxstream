@@ -1244,6 +1244,81 @@ TEST_F(FrameBufferTest, ReusePuidBeforeAsyncCleanupCompletes) {
     EXPECT_TRUE(secondCleanupRan);
 }
 
+TEST_F(FrameBufferTest, CrossVersionRebindClearsContextData) {
+    if (!mFb->hasEmulationGl()) {
+        GTEST_SKIP() << "GL emulation not enabled.";
+    }
+
+    HandleType ctx2 = mFb->createEmulatedEglContext(0, 0, gl::GLESApi_2);
+    ASSERT_NE((HandleType)0, ctx2);
+    HandleType ctx1 = mFb->createEmulatedEglContext(0, 0, gl::GLESApi_CM);
+    ASSERT_NE((HandleType)0, ctx1);
+    HandleType surface = mFb->createEmulatedEglWindowSurface(0, mWidth, mHeight);
+    ASSERT_NE((HandleType)0, surface);
+
+    // Bind GLES2 context, then rebind to GLES1 context and destroy GLES2 context.
+    EXPECT_TRUE(mFb->bindContext(ctx2, surface, surface));
+    EXPECT_TRUE(mFb->bindContext(ctx1, surface, surface));
+    mFb->destroyEmulatedEglContext(ctx2);
+
+    float dummyData[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+    // m_gl2Dec.m_contextData must have been cleared on cross-version rebind so this does not UAF.
+    mRenderThreadInfo->m_glInfo->m_gl2Dec.glVertexAttribPointerData(
+        &mRenderThreadInfo->m_glInfo->m_gl2Dec, 0, 4, GL_FLOAT, GL_FALSE, 0, dummyData,
+        sizeof(dummyData));
+
+    // Reverse direction: rebind from GLES1 to a new GLES2 context and destroy GLES1 context.
+    HandleType ctx2b = mFb->createEmulatedEglContext(0, 0, gl::GLESApi_2);
+    ASSERT_NE((HandleType)0, ctx2b);
+    EXPECT_TRUE(mFb->bindContext(ctx2b, surface, surface));
+    mFb->destroyEmulatedEglContext(ctx1);
+
+    mRenderThreadInfo->m_glInfo->m_glDec.glVertexPointerData(
+        &mRenderThreadInfo->m_glInfo->m_glDec, 4, GL_FLOAT, 0, dummyData, sizeof(dummyData));
+
+    EXPECT_TRUE(mFb->bindContext(0, 0, 0));
+    mFb->destroyEmulatedEglContext(ctx2b);
+    mFb->destroyEmulatedEglWindowSurface(surface);
+}
+
+TEST_F(FrameBufferTest, CrossVersionTranslatorCallRejected) {
+    if (!mFb->hasEmulationGl()) {
+        GTEST_SKIP() << "GL emulation not enabled.";
+    }
+
+    HandleType ctx2 = mFb->createEmulatedEglContext(0, 0, gl::GLESApi_2);
+    ASSERT_NE((HandleType)0, ctx2);
+    HandleType ctx1 = mFb->createEmulatedEglContext(0, 0, gl::GLESApi_CM);
+    ASSERT_NE((HandleType)0, ctx1);
+    HandleType surface = mFb->createEmulatedEglWindowSurface(0, mWidth, mHeight);
+    ASSERT_NE((HandleType)0, surface);
+
+    // Bind GLES2 context and invoke GLES1 GET_CTX_CM() entry points via m_glDec.
+    EXPECT_TRUE(mFb->bindContext(ctx2, surface, surface));
+    (void)mRenderThreadInfo->m_glInfo->m_gl2Dec.glGetError();
+
+    const GLfloat ambient[4] = {0.2f, 0.3f, 0.4f, 1.0f};
+    GLfloat outParams[4] = {-1.0f, -1.0f, -1.0f, -1.0f};
+    mRenderThreadInfo->m_glInfo->m_glDec.glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
+    EXPECT_EQ((GLenum)GL_INVALID_OPERATION, mRenderThreadInfo->m_glInfo->m_gl2Dec.glGetError());
+
+    mRenderThreadInfo->m_glInfo->m_glDec.glGetLightfv(GL_LIGHT0, GL_AMBIENT, outParams);
+    EXPECT_EQ((GLenum)GL_INVALID_OPERATION, mRenderThreadInfo->m_glInfo->m_gl2Dec.glGetError());
+    EXPECT_EQ(-1.0f, outParams[0]);
+
+    // Bind GLES1 context and invoke a GLES2 GET_CTX_V2() entry point via m_gl2Dec.
+    EXPECT_TRUE(mFb->bindContext(ctx1, surface, surface));
+    (void)mRenderThreadInfo->m_glInfo->m_glDec.glGetError();
+
+    mRenderThreadInfo->m_glInfo->m_gl2Dec.glUseProgram(0);
+    EXPECT_EQ((GLenum)GL_INVALID_OPERATION, mRenderThreadInfo->m_glInfo->m_glDec.glGetError());
+
+    EXPECT_TRUE(mFb->bindContext(0, 0, 0));
+    mFb->destroyEmulatedEglContext(ctx1);
+    mFb->destroyEmulatedEglContext(ctx2);
+    mFb->destroyEmulatedEglWindowSurface(surface);
+}
+
 }  // namespace
 }  // namespace host
 }  // namespace gfxstream

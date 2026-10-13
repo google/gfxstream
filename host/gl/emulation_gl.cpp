@@ -1199,13 +1199,16 @@ bool EmulationGl::bindContext(HandleType contextHandle, HandleType drawSurfaceHa
     tinfo->currDrawSurf = draw;
     tinfo->currReadSurf = read;
     if (ctx) {
-        if (ctx->clientVersion() > GLESApi_CM)
+        if (ctx->clientVersion() > GLESApi_CM) {
             tinfo->m_gl2Dec.setContextData(&ctx->decoderContextData());
-        else
+            tinfo->m_glDec.setContextData(nullptr);
+        } else {
             tinfo->m_glDec.setContextData(&ctx->decoderContextData());
+            tinfo->m_gl2Dec.setContextData(nullptr);
+        }
     } else {
-        tinfo->m_glDec.setContextData(NULL);
-        tinfo->m_gl2Dec.setContextData(NULL);
+        tinfo->m_glDec.setContextData(nullptr);
+        tinfo->m_gl2Dec.setContextData(nullptr);
     }
     return true;
 }
