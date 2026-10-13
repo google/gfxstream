@@ -14,7 +14,11 @@
 * limitations under the License.
 */
 #include "common/palette_texture.h"
+#include <limits.h>
+#include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 
 
@@ -77,7 +81,7 @@ static void getPaletteInfo(GLenum internalFormat,unsigned int& indexSizeBits,uns
 
 static Color paletteColor(const unsigned char* pallete,unsigned int index,GLenum format)
 {
-        short s;
+        uint16_t s = 0;
         switch(format) {
         //RGB
     case GL_PALETTE4_RGB8_OES:
@@ -85,7 +89,7 @@ static Color paletteColor(const unsigned char* pallete,unsigned int index,GLenum
             return Color(pallete[index],pallete[index+1],pallete[index+2],0);
     case GL_PALETTE8_R5_G6_B5_OES:
     case GL_PALETTE4_R5_G6_B5_OES:
-            s = *((short *)(pallete+index));
+            memcpy(&s, pallete + index, sizeof(uint16_t));
             return Color((s >> 11)*255/31,((s >> 5) & 0x3f)*255/63 ,(s & 0x1f)*255/31,0);
 
         //RGBA
@@ -94,11 +98,11 @@ static Color paletteColor(const unsigned char* pallete,unsigned int index,GLenum
             return Color(pallete[index],pallete[index+1],pallete[index+2],pallete[index+3]);
     case GL_PALETTE4_RGBA4_OES:
     case GL_PALETTE8_RGBA4_OES:
-            s = *((short *)(pallete+index));
+            memcpy(&s, pallete + index, sizeof(uint16_t));
             return Color(((s >> 12) & 0xf)*255/15,((s >> 8) & 0xf)*255/15,((s >> 4) & 0xf)*255/15 ,(s & 0xf)*255/15);
     case GL_PALETTE4_RGB5_A1_OES:
     case GL_PALETTE8_RGB5_A1_OES:
-            s = *((short *)(pallete+index));
+            memcpy(&s, pallete + index, sizeof(uint16_t));
             return Color(((s >> 11) & 0x1f)*255/31,((s >> 6) & 0x1f)*255/31,((s >> 1) & 0x1f)*255/31 ,(s & 0x1) * 255);
         default:
             return Color(255,255,255,255);
@@ -111,37 +115,55 @@ unsigned char* uncompressTexture(GLenum internalformat,GLenum& formatOut,GLsizei
     unsigned int colorSizeBytes = 0; //the size of each color cell in the pallete
 
     getPaletteInfo(internalformat,indexSizeBits,colorSizeBytes,formatOut);
-    if(!data)
+    if (!data || width <= 0 || height <= 0 || level < 0 || imageSize < 0 ||
+        indexSizeBits == 0 || colorSizeBytes == 0)
     {
         return NULL;
     }
 
     const unsigned char* palette = static_cast<const unsigned char *>(data);
+    const unsigned char* dataEnd = palette + imageSize;
 
     //the pallete positioned in the begininng of the data
     // so we jump over it to get to the colos indices in the palette
 
-    int nColors = 2 << (indexSizeBits -1); //2^indexSizeBits
-    int paletteSizeBytes = nColors*colorSizeBytes;
-    const unsigned char* imageIndices =  palette + paletteSizeBytes;
+    int nColors = 2 << (indexSizeBits - 1); //2^indexSizeBits
+    int paletteSizeBytes = nColors * colorSizeBytes;
+    if (imageSize < paletteSizeBytes) {
+        return NULL;
+    }
+    const unsigned char* imageIndices = palette + paletteSizeBytes;
 
     //jumping to the the correct mipmap level
     for(int i=0;i<level;i++) {
-        imageIndices+= (width*height*indexSizeBits)/8;
-        width  = width  >> 1;
-        height = height >> 1;
+        uint64_t levelBytes =
+            (static_cast<uint64_t>(width) * static_cast<uint64_t>(height) * indexSizeBits + 7) / 8;
+        if (levelBytes > static_cast<uint64_t>(dataEnd - imageIndices)) {
+            return NULL;
+        }
+        imageIndices += levelBytes;
+        width  = (width >> 1) ? (width >> 1) : 1;
+        height = (height >> 1) ? (height >> 1) : 1;
     }
 
     int colorSizeOut = (formatOut == GL_RGB? 3:4);
-    int nPixels = width*height;
-    unsigned char* pixelsOut = new unsigned char[nPixels*colorSizeOut];
+    uint64_t nPixels64 = static_cast<uint64_t>(width) * static_cast<uint64_t>(height);
+    uint64_t outBytes64 = nPixels64 * static_cast<uint64_t>(colorSizeOut);
+    if (outBytes64 == 0 || outBytes64 > static_cast<uint64_t>(INT32_MAX)) {
+        return NULL;
+    }
+    int nPixels = static_cast<int>(nPixels64);
+    unsigned char* pixelsOut = new unsigned char[static_cast<size_t>(outBytes64)];
     if(!pixelsOut) return NULL;
+    memset(pixelsOut, 0, static_cast<size_t>(outBytes64));
 
-    int leftBytes = ((palette + imageSize) /* the end of data pointer*/
-                      - imageIndices);
-    int leftPixels = (leftBytes * 8 )/indexSizeBits;
+    ptrdiff_t leftBytes = dataEnd - imageIndices;
+    if (leftBytes < 0) {
+        leftBytes = 0;
+    }
+    uint64_t leftPixels64 = (static_cast<uint64_t>(leftBytes) * 8) / indexSizeBits;
 
-    int maxIndices = (leftPixels < nPixels) ? leftPixels:nPixels;
+    int maxIndices = (leftPixels64 < nPixels64) ? static_cast<int>(leftPixels64) : nPixels;
 
     //filling the pixels array
     for(int i =0 ; i < maxIndices ; i++) {
