@@ -16,6 +16,7 @@
 
 #include <vector>
 
+#include "gfxstream/host/iostream.h"
 #include "gfxstream/host/testing/OSWindow.h"
 #include "gfxstream/system/System.h"
 #include "gfxstream/virtio-gpu-gfxstream-renderer-unstable.h"
@@ -255,4 +256,37 @@ TEST_F(GfxStreamBackendTest, RenderThreadTracking) {
 
     EXPECT_EQ(stream_renderer_get_metrics(&metrics), 0);
     EXPECT_EQ(metrics.render_thread_count, initialRenderThreads);
+}
+
+namespace {
+class FakeIOStream : public gfxstream::IOStream {
+   public:
+    explicit FakeIOStream(size_t bufSize) : IOStream(bufSize) {}
+
+    void* allocBuffer(size_t minSize) override {
+        lastRequestedMinSize = minSize;
+        return &dummyByte;
+    }
+    int commitBuffer(size_t size) override { return 0; }
+    int writeFully(const void* buf, size_t len) override { return 0; }
+    const unsigned char* readFully(void* buf, size_t len) override { return nullptr; }
+    void* getDmaForReading(uint64_t guest_paddr) override { return nullptr; }
+    void unlockDma(uint64_t guest_paddr) override {}
+
+    size_t lastRequestedMinSize = 0;
+    unsigned char dummyByte = 0;
+
+   protected:
+    const unsigned char* readRaw(void* buf, size_t* inout_len) override { return nullptr; }
+    void onSave(gfxstream::Stream* stream) override {}
+    unsigned char* onLoad(gfxstream::Stream* stream) override { return nullptr; }
+};
+}  // namespace
+
+TEST(IOStreamTest, AllocDoesNotTruncateSizeToInt) {
+    FakeIOStream stream(16);
+    const size_t largeLen = 0x80000004ULL;
+    unsigned char* ptr = stream.alloc(largeLen);
+    EXPECT_NE(ptr, nullptr);
+    EXPECT_EQ(stream.lastRequestedMinSize, largeLen);
 }
