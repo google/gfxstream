@@ -1319,6 +1319,42 @@ TEST_F(FrameBufferTest, CrossVersionTranslatorCallRejected) {
     mFb->destroyEmulatedEglWindowSurface(surface);
 }
 
+TEST_F(FrameBufferTest, DeletedVboInVertexPointerDoesNotUaf) {
+    if (!mFb->hasEmulationGl()) {
+        GTEST_SKIP() << "GL emulation not enabled.";
+    }
+
+    HandleType ctx1 = mFb->createEmulatedEglContext(0, 0, gl::GLESApi_CM);
+    ASSERT_NE((HandleType)0, ctx1);
+    HandleType surface = mFb->createEmulatedEglWindowSurface(0, mWidth, mHeight);
+    ASSERT_NE((HandleType)0, surface);
+    EXPECT_TRUE(mFb->bindContext(ctx1, surface, surface));
+
+    auto& gl1 = mRenderThreadInfo->m_glInfo->m_glDec;
+    GLuint vbo = 0;
+    gl1.glGenBuffers(1, &vbo);
+    ASSERT_NE(0u, vbo);
+    gl1.glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+    GLfixed verts[9] = {
+        0, 0, 0,
+        0x10000, 0, 0,
+        0, 0x10000, 0,
+    };
+    gl1.glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
+    gl1.glEnableClientState(GL_VERTEX_ARRAY);
+    gl1.glVertexPointerOffset(&gl1, 3, GL_FIXED, 0, 0);
+
+    // Deleting the VBO must not leave GLESpointer with a dangling GLESbuffer* pointer.
+    gl1.glDeleteBuffers(1, &vbo);
+    gl1.glDrawArrays(GL_TRIANGLES, 0, 3);
+    EXPECT_EQ((GLenum)GL_NO_ERROR, gl1.glGetError());
+
+    EXPECT_TRUE(mFb->bindContext(0, 0, 0));
+    mFb->destroyEmulatedEglContext(ctx1);
+    mFb->destroyEmulatedEglWindowSurface(surface);
+}
+
 }  // namespace
 }  // namespace host
 }  // namespace gfxstream

@@ -110,6 +110,7 @@ void GLESpointer::setArray(GLint size,
     m_stride = stride;
     m_dataSize = dataSize;
     m_data = data;
+    m_bufferObject.reset();
     m_buffer = nullptr;
     m_bufferName = 0;
     m_buffOffset = 0;
@@ -121,7 +122,7 @@ void GLESpointer::setArray(GLint size,
 void GLESpointer::setBuffer(GLint size,
                             GLenum type,
                             GLsizei stride,
-                            GLESbuffer* buf,
+                            ObjectDataPtr bufObj,
                             GLuint bufferName,
                             int offset,
                             bool normalize,
@@ -132,7 +133,8 @@ void GLESpointer::setBuffer(GLint size,
     m_stride = stride;
     m_dataSize = 0;
     m_data = nullptr;
-    m_buffer = buf;
+    m_bufferObject = std::move(bufObj);
+    m_buffer = static_cast<GLESbuffer*>(m_bufferObject.get());
     m_bufferName = bufferName;
     m_buffOffset = offset;
     m_normalize = normalize;
@@ -145,6 +147,7 @@ void GLESpointer::setValue(unsigned int count, const GLfloat* val) {
     m_valueCount = count;
     m_attribType = VALUE;
     m_data = nullptr;
+    m_bufferObject.reset();
     m_buffer = nullptr;
 }
 
@@ -176,9 +179,10 @@ GLESpointer::GLESpointer(gfxstream::Stream* stream) {
 }
 
 void GLESpointer::restoreBufferObj(
-        std::function<GLESbuffer*(GLuint)> getBufferObj) {
+        std::function<ObjectDataPtr(GLuint)> getBufferObj) {
     if (m_attribType != BUFFER) return;
-    m_buffer = getBufferObj(m_bufferName);
+    m_bufferObject = getBufferObj(m_bufferName);
+    m_buffer = static_cast<GLESbuffer*>(m_bufferObject.get());
 }
 
 void GLESpointer::onLoad(gfxstream::Stream* stream) {

@@ -976,10 +976,12 @@ const GLvoid* GLEScontext::setPointer(GLenum arrType,GLint size,GLenum type,GLsi
 
     if(bufferName) {
         unsigned int offset = SafeUIntFromPointer(data);
-        GLESbuffer* vbo = static_cast<GLESbuffer*>(
-                m_shareGroup
-                        ->getObjectData(NamedObjectType::VERTEXBUFFER,
-                                        bufferName));
+        ObjectDataPtr vboObj = m_shareGroup->getObjectDataPtr(
+                NamedObjectType::VERTEXBUFFER, bufferName);
+        if (!vboObj) {
+            return nullptr;
+        }
+        GLESbuffer* vbo = static_cast<GLESbuffer*>(vboObj.get());
         if(offset >= vbo->getSize() || ((int)(vbo->getSize() - offset) < size)) {
 #ifdef _DEBUG
             GFXSTREAM_ERROR("Warning: Invalid pointer offset %u, arrType %d, type %d", offset,
@@ -988,7 +990,7 @@ const GLvoid* GLEScontext::setPointer(GLenum arrType,GLint size,GLenum type,GLsi
             return nullptr;
         }
 
-        glesPointer->setBuffer(size,type,stride,vbo,bufferName,offset,normalize, isInt);
+        glesPointer->setBuffer(size,type,stride,std::move(vboObj),bufferName,offset,normalize, isInt);
 
         return  static_cast<const unsigned char*>(vbo->getData()) +  offset;
     }
