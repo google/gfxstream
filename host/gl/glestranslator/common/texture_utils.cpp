@@ -404,6 +404,10 @@ void doCompressedTexImage2D(GLEScontext* ctx, GLenum target, GLint level,
 
     glTexImage2DPtr_t glTexImage2DPtr;
     glTexImage2DPtr = (glTexImage2DPtr_t)funcPtr;*/
+    SET_ERROR_IF(width < 0 || height < 0 ||
+                 width > ctx->getMaxTexSize() + 2 || height > ctx->getMaxTexSize() + 2 ||
+                 imageSize < 0,
+                 GL_INVALID_VALUE);
     bool needUnpackBuffer = false;
     if (ctx->getMajorVersion() >= 3) {
         GLint unpackBuffer = 0;
@@ -479,15 +483,15 @@ void doCompressedTexImage2D(GLEScontext* ctx, GLenum target, GLint level,
             }
         }
 
-        const int32_t align = unpackAlignment - 1;
-        const int32_t bpr = ((width * pixelSize) + align) & ~align;
-        const size_t size = bpr * height;
+        const size_t align = static_cast<size_t>(unpackAlignment - 1);
+        const size_t bpr = ((static_cast<size_t>(width) * static_cast<size_t>(pixelSize)) + align) & ~align;
+        const size_t size = bpr * static_cast<size_t>(height);
         std::unique_ptr<etc1_byte[]> pOut(new etc1_byte[size]);
 
         int res =
             etc2_decode_image(
                     (const etc1_byte*)data, etcFormat, pOut.get(),
-                    width, height, bpr);
+                    width, height, static_cast<int32_t>(bpr));
         SET_ERROR_IF(res!=0, GL_INVALID_VALUE);
 
         glTexImage2DPtr(target, level, convertedInternalFormat,
@@ -511,9 +515,9 @@ void doCompressedTexImage2D(GLEScontext* ctx, GLenum target, GLint level,
         bool srgb;
         getAstcFormatInfo(internalformat, &blockWidth, &blockHeight, &srgb);
 
-        const int32_t align = unpackAlignment - 1;
-        const int32_t stride = ((width * 4) + align) & ~align;
-        const size_t size = stride * height;
+        const size_t align = static_cast<size_t>(unpackAlignment - 1);
+        const size_t stride = ((static_cast<size_t>(width) * 4) + align) & ~align;
+        const size_t size = stride * static_cast<size_t>(height);
 
         AlignedBuf<uint8_t, 64> alignedUncompressedData(size);
 
@@ -528,7 +532,7 @@ void doCompressedTexImage2D(GLEScontext* ctx, GLenum target, GLint level,
     } else if (isPaletteFormat(internalformat)) {
         // TODO: fix the case when GL_PIXEL_UNPACK_BUFFER is bound
         SET_ERROR_IF(
-            level > log2(ctx->getMaxTexSize()) ||
+            level < -log2(ctx->getMaxTexSize()) ||
             border !=0 || level > 0 ||
             !GLESvalidate::texImgDim(
                 width, height, ctx->getMaxTexSize() + 2),
@@ -546,11 +550,12 @@ void doCompressedTexImage2D(GLEScontext* ctx, GLenum target, GLint level,
             unsigned char* uncompressed =
                 uncompressTexture(internalformat, uncompressedFrmt,
                                   width, height, imageSize, data, i);
+            SET_ERROR_IF(!uncompressed, GL_INVALID_VALUE);
             glTexImage2DPtr(target, i, uncompressedFrmt,
                             tmpWidth, tmpHeight, border,
                             uncompressedFrmt, GL_UNSIGNED_BYTE, uncompressed);
-            tmpWidth /= 2;
-            tmpHeight /= 2;
+            tmpWidth = (tmpWidth >> 1) ? (tmpWidth >> 1) : 1;
+            tmpHeight = (tmpHeight >> 1) ? (tmpHeight >> 1) : 1;
             delete [] uncompressed;
         }
     } else if (isRgtcFormat(internalformat)) {
@@ -595,13 +600,13 @@ void doCompressedTexImage2D(GLEScontext* ctx, GLenum target, GLint level,
                 data = emulatedData.get();
             }
         }
-        const int32_t align = unpackAlignment - 1;
-        const int32_t bpr = ((width * pixelSize) + align) & ~align;
-        const size_t size = bpr * height;
+        const size_t align = static_cast<size_t>(unpackAlignment - 1);
+        const size_t bpr = ((static_cast<size_t>(width) * pixelSize) + align) & ~align;
+        const size_t size = bpr * static_cast<size_t>(height);
         std::unique_ptr<uint8_t[]> pOut(new uint8_t[size]);
 
         int res =
-            rgtc_decode_image((const uint8_t*)data, rgtcFormat, pOut.get(), width, height, bpr);
+            rgtc_decode_image((const uint8_t*)data, rgtcFormat, pOut.get(), width, height, static_cast<int32_t>(bpr));
         SET_ERROR_IF(res != 0, GL_INVALID_VALUE);
         glTexImage2DPtr(target, level, convertedInternalFormat, width, height, border, format, type,
                         pOut.get());

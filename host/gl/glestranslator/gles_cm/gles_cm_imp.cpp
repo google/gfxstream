@@ -755,6 +755,9 @@ GL_API void GL_APIENTRY  glCompressedTexSubImage2D( GLenum target, GLint level, 
     GLES_CM_TRACE()
     SET_ERROR_IF(!(GLEScmValidate::texCompImgFrmt(format) && GLEScmValidate::textureTargetEx(target)),GL_INVALID_ENUM);
     SET_ERROR_IF(level < 0 || level > log2(ctx->getMaxTexSize()),GL_INVALID_VALUE)
+    SET_ERROR_IF(xoffset < 0 || yoffset < 0 || imageSize < 0 ||
+                 !GLEScmValidate::texImgDim(width, height, ctx->getMaxTexSize() + 2),
+                 GL_INVALID_VALUE);
     SET_ERROR_IF(!data,GL_INVALID_OPERATION);
 
     if (shouldPassthroughCompressedFormat(ctx, format)) {
@@ -762,9 +765,10 @@ GL_API void GL_APIENTRY  glCompressedTexSubImage2D( GLenum target, GLint level, 
                                              height, format, imageSize, data);
     } else {
         GLenum uncompressedFrmt;
-        unsigned char* uncompressed = uncompressTexture(format,uncompressedFrmt,width,height,imageSize,data,level);
+        unsigned char* uncompressed = uncompressTexture(format,uncompressedFrmt,width,height,imageSize,data,0);
+        SET_ERROR_IF(!uncompressed, GL_INVALID_VALUE);
         ctx->dispatcher().glTexSubImage2D(target,level,xoffset,yoffset,width,height,uncompressedFrmt,GL_UNSIGNED_BYTE,uncompressed);
-        delete uncompressed;
+        delete[] uncompressed;
     }
 
     TextureData* texData = getTextureTargetData(target);

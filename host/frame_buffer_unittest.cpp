@@ -1582,6 +1582,42 @@ TEST_F(FrameBufferTest, Gles2ValidateAtt0PreDrawLargeUintIndexDoesNotOverflow) {
     mFb->destroyEmulatedEglWindowSurface(surface);
 }
 
+TEST_F(FrameBufferTest, Gles1CompressedTexSubImage2DOverflowRejected) {
+    if (!mFb->hasEmulationGl()) {
+        GTEST_SKIP() << "GL emulation not enabled.";
+    }
+
+    HandleType ctx1 = mFb->createEmulatedEglContext(0, 0, gl::GLESApi_CM);
+    ASSERT_NE((HandleType)0, ctx1);
+    HandleType surface = mFb->createEmulatedEglWindowSurface(0, mWidth, mHeight);
+    ASSERT_NE((HandleType)0, surface);
+    EXPECT_TRUE(mFb->bindContext(ctx1, surface, surface));
+
+    auto& gl1 = mRenderThreadInfo->m_glInfo->m_glDec;
+    std::vector<uint8_t> dummyData(1024 + 64, 0);
+    (void)gl1.glGetError();
+
+    // width = 0x40000010, height = 1 would overflow 32-bit width * height * 4 in uncompressTexture.
+    gl1.glCompressedTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0x40000010, 1, GL_PALETTE8_RGBA8_OES,
+                                  static_cast<GLsizei>(dummyData.size()), dummyData.data());
+    EXPECT_EQ((GLenum)GL_INVALID_VALUE, gl1.glGetError());
+
+    // imageSize smaller than the 1024-byte palette for GL_PALETTE8_RGBA8_OES must also be rejected.
+    gl1.glCompressedTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 4, 4, GL_PALETTE8_RGBA8_OES, 16,
+                                  dummyData.data());
+    EXPECT_EQ((GLenum)GL_INVALID_VALUE, gl1.glGetError());
+
+    // level > 0 in glCompressedTexSubImage2D must allocate for the full width x height rather
+    // than shifting width/height down by level and causing glTexSubImage2D to overread.
+    gl1.glCompressedTexSubImage2D(GL_TEXTURE_2D, 1, 0, 0, 8, 8, GL_PALETTE8_RGBA8_OES,
+                                  static_cast<GLsizei>(dummyData.size()), dummyData.data());
+    (void)gl1.glGetError();
+
+    EXPECT_TRUE(mFb->bindContext(0, 0, 0));
+    mFb->destroyEmulatedEglContext(ctx1);
+    mFb->destroyEmulatedEglWindowSurface(surface);
+}
+
 }  // namespace
 }  // namespace host
 }  // namespace gfxstream
