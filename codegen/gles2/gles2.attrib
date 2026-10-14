@@ -443,6 +443,7 @@ glMultiDrawElementsEXT
 #void glShaderSource(GLuint shader, GLsizei count, GLstr *string, const GLint *length)
 glShaderSource
     flag unsupported
+    flag custom_decoder
 
 
 #void glGetPerfMonitorGroupsAMD(GLint *numGroups, GLsizei groupsSize, GLuint *groups)
@@ -737,6 +738,7 @@ glGetUniformBlockIndex
 
 glGetUniformIndices
     flag unsupported
+    flag custom_decoder
 
 glGetUniformIndicesAEMU
     dir packedUniformNames in
@@ -1090,6 +1092,7 @@ glGetProgramPipelineInfoLog
 
 glCreateShaderProgramv
     flag unsupported
+    flag custom_decoder
 
 glCreateShaderProgramvAEMU
     len packedStrings packedLen
@@ -1516,4 +1519,7 @@ glBlendFuncSeparateiEXT
 glColorMaskiEXT
     flag custom_decoder
 glIsEnablediEXT
+    flag custom_decoder
+
+glGetError
     flag custom_decoder

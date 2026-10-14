@@ -1447,7 +1447,7 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 #endif  // ifdef CHECK_GL_ERRORS
 			DECODER_DEBUG_LOG("gles2(%p): glGetError()", stream);
-			GLenum function_call_retval = 			this->glGetError();
+			GLenum function_call_retval = 			this->glGetError_dec(this);
 			std::memcpy(&tmpBuf[0], &function_call_retval, sizeof(GLenum));
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);
@@ -2469,7 +2469,7 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 #endif  // ifdef CHECK_GL_ERRORS
 			DECODER_DEBUG_LOG("gles2(%p): glShaderSource(shader:%u count:%d string:%p(%u) length:%p(%u) )", stream, var_shader, var_count, (const GLchar* const*)(inptr_string.get()), size_string, (const GLint*)(inptr_length.get()), size_length);
-			this->glShaderSource(var_shader, var_count, (const GLchar* const*)(inptr_string.get()), (const GLint*)(inptr_length.get()));
+			this->glShaderSource_dec(this, var_shader, var_count, (const GLchar* const*)(inptr_string.get()), (const GLint*)(inptr_length.get()));
 			SET_LASTCALL("glShaderSource");
 			gfxstream::base::endTrace();
 			break;
@@ -5617,7 +5617,7 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 #endif  // ifdef CHECK_GL_ERRORS
 			DECODER_DEBUG_LOG("gles2(%p): glGetUniformIndices(program:%u uniformCount:%d uniformNames:%p(%u) uniformIndices:%p(%u) )", stream, var_program, var_uniformCount, (const GLchar**)(inptr_uniformNames.get()), size_uniformNames, (GLuint*)(inptr_uniformIndices.get()), size_uniformIndices);
-			this->glGetUniformIndices(var_program, var_uniformCount, (const GLchar**)(inptr_uniformNames.get()), (GLuint*)(inptr_uniformIndices.get()));
+			this->glGetUniformIndices_dec(this, var_program, var_uniformCount, (const GLchar**)(inptr_uniformNames.get()), (GLuint*)(inptr_uniformIndices.get()));
 			SET_LASTCALL("glGetUniformIndices");
 			gfxstream::base::endTrace();
 			break;
@@ -8518,7 +8518,7 @@ size_t gles2_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 #endif  // ifdef CHECK_GL_ERRORS
 			DECODER_DEBUG_LOG("gles2(%p): glCreateShaderProgramv(type:0x%08x count:%d strings:%p(%u) )", stream, var_type, var_count, (const char**)(inptr_strings.get()), size_strings);
-			GLuint function_call_retval = 			this->glCreateShaderProgramv(var_type, var_count, (const char**)(inptr_strings.get()));
+			GLuint function_call_retval = 			this->glCreateShaderProgramv_dec(this, var_type, var_count, (const char**)(inptr_strings.get()));
 			std::memcpy(&tmpBuf[0], &function_call_retval, sizeof(GLuint));
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);

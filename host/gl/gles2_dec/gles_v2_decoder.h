@@ -48,14 +48,20 @@ public:
     ~GLESv2Decoder();
     int initGL(get_proc_func_t getProcFunc, void *getProcFuncData);
     void setContextData(GLDecoderContextData *contextData) { m_contextData = contextData; }
+    void setGLerror(GLenum err);
+    GLenum getGLerror();
 protected:
  snapshot::GLSnapshotState* m_snapshot;
 
 private:
+    void rejectUnsupportedOpcode(const char* rawOpcode, const char* replacementOpcode);
+
     GLDecoderContextData *m_contextData;
     gfxstream::host::SharedLibrary* m_GL2library;
+    GLenum m_pendingError = GL_NO_ERROR;
 
     static void *s_getProc(const char *name, void *userData);
+    static GLenum gles2_APIENTRY s_glGetError(void *self);
     static void gles2_APIENTRY s_glGetCompressedTextureFormats(void *self, int count, GLint *formats);
     static void gles2_APIENTRY s_glVertexAttribPointerData(void *self, GLuint indx, GLint size, GLenum type,
                                       GLboolean normalized, GLsizei stride,  void * data, GLuint datalen);
@@ -159,6 +165,7 @@ private:
     static void gles2_APIENTRY s_glDeleteProgramPipelines(void* self, GLsizei n, const GLuint *pipelines);
 
     // Shaders and programs=======================================
+    static void gles2_APIENTRY s_glShaderSource(void* self, GLuint shader, GLsizei count, const GLchar* const* string, const GLint* length);
     static void gles2_APIENTRY s_glShaderString(void *self, GLuint shader, const GLchar* string, GLsizei len);
     static void gles2_APIENTRY s_glCompileShader(void* self, GLuint shader);
     static void gles2_APIENTRY s_glAttachShader(void* self, GLuint program, GLuint shader);
@@ -191,6 +198,7 @@ private:
 
     static void gles2_APIENTRY s_glUniformBlockBinding(void* self, GLuint program, GLuint uniformBlockIndex, GLuint uniformBlockBinding);
     static GLuint gles2_APIENTRY s_glGetUniformBlockIndex(void* self, GLuint program, const GLchar* uniformBlockName);
+    static void gles2_APIENTRY s_glGetUniformIndices(void* self, GLuint program, GLsizei uniformCount, const GLchar** uniformNames, GLuint* uniformIndices);
     static void gles2_APIENTRY s_glGetUniformIndicesAEMU(void* self, GLuint program, GLsizei uniformCount, const GLchar* packedNames, GLsizei packedLen, GLuint* uniformIndices);
 
     static void gles2_APIENTRY s_glGetActiveUniformBlockiv(void* self, GLuint program, GLuint uniformBlockIndex, GLenum pname, GLint *params);

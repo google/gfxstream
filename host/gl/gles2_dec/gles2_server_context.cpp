@@ -84,7 +84,7 @@ int gles2_server_context_t::initDispatchByName(void *(*getProc)(const char *, vo
 	glGetAttribLocation = (glGetAttribLocation_dec_server_proc_t) getProc("glGetAttribLocation", userData);
 	glGetBooleanv = (glGetBooleanv_server_proc_t) getProc("glGetBooleanv", userData);
 	glGetBufferParameteriv = (glGetBufferParameteriv_server_proc_t) getProc("glGetBufferParameteriv", userData);
-	glGetError = (glGetError_server_proc_t) getProc("glGetError", userData);
+	glGetError = (glGetError_dec_server_proc_t) getProc("glGetError", userData);
 	glGetFloatv = (glGetFloatv_server_proc_t) getProc("glGetFloatv", userData);
 	glGetFramebufferAttachmentParameteriv = (glGetFramebufferAttachmentParameteriv_server_proc_t) getProc("glGetFramebufferAttachmentParameteriv", userData);
 	glGetIntegerv = (glGetIntegerv_server_proc_t) getProc("glGetIntegerv", userData);
@@ -122,7 +122,7 @@ int gles2_server_context_t::initDispatchByName(void *(*getProc)(const char *, vo
 	glSampleCoverage = (glSampleCoverage_server_proc_t) getProc("glSampleCoverage", userData);
 	glScissor = (glScissor_server_proc_t) getProc("glScissor", userData);
 	glShaderBinary = (glShaderBinary_server_proc_t) getProc("glShaderBinary", userData);
-	glShaderSource = (glShaderSource_server_proc_t) getProc("glShaderSource", userData);
+	glShaderSource = (glShaderSource_dec_server_proc_t) getProc("glShaderSource", userData);
 	glStencilFunc = (glStencilFunc_server_proc_t) getProc("glStencilFunc", userData);
 	glStencilFuncSeparate = (glStencilFuncSeparate_server_proc_t) getProc("glStencilFuncSeparate", userData);
 	glStencilMask = (glStencilMask_server_proc_t) getProc("glStencilMask", userData);
@@ -258,7 +258,7 @@ int gles2_server_context_t::initDispatchByName(void *(*getProc)(const char *, vo
 	glGetBufferPointerv = (glGetBufferPointerv_server_proc_t) getProc("glGetBufferPointerv", userData);
 	glUniformBlockBinding = (glUniformBlockBinding_dec_server_proc_t) getProc("glUniformBlockBinding", userData);
 	glGetUniformBlockIndex = (glGetUniformBlockIndex_dec_server_proc_t) getProc("glGetUniformBlockIndex", userData);
-	glGetUniformIndices = (glGetUniformIndices_server_proc_t) getProc("glGetUniformIndices", userData);
+	glGetUniformIndices = (glGetUniformIndices_dec_server_proc_t) getProc("glGetUniformIndices", userData);
 	glGetUniformIndicesAEMU = (glGetUniformIndicesAEMU_server_proc_t) getProc("glGetUniformIndicesAEMU", userData);
 	glGetActiveUniformBlockiv = (glGetActiveUniformBlockiv_dec_server_proc_t) getProc("glGetActiveUniformBlockiv", userData);
 	glGetActiveUniformBlockName = (glGetActiveUniformBlockName_dec_server_proc_t) getProc("glGetActiveUniformBlockName", userData);
@@ -374,7 +374,7 @@ int gles2_server_context_t::initDispatchByName(void *(*getProc)(const char *, vo
 	glIsProgramPipeline = (glIsProgramPipeline_server_proc_t) getProc("glIsProgramPipeline", userData);
 	glUseProgramStages = (glUseProgramStages_dec_server_proc_t) getProc("glUseProgramStages", userData);
 	glActiveShaderProgram = (glActiveShaderProgram_dec_server_proc_t) getProc("glActiveShaderProgram", userData);
-	glCreateShaderProgramv = (glCreateShaderProgramv_server_proc_t) getProc("glCreateShaderProgramv", userData);
+	glCreateShaderProgramv = (glCreateShaderProgramv_dec_server_proc_t) getProc("glCreateShaderProgramv", userData);
 	glCreateShaderProgramvAEMU = (glCreateShaderProgramvAEMU_server_proc_t) getProc("glCreateShaderProgramvAEMU", userData);
 	glProgramUniform1f = (glProgramUniform1f_dec_server_proc_t) getProc("glProgramUniform1f", userData);
 	glProgramUniform2f = (glProgramUniform2f_dec_server_proc_t) getProc("glProgramUniform2f", userData);

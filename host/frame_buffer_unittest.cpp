@@ -39,8 +39,11 @@
 #include "gfxstream/host/address_space_graphics.h"
 #include "gfxstream/host/graphics_driver_lock.h"
 #include "common/gles_pointer.h"
+#include "host/gl/gles2_dec/gles2_opcodes.h"
+#undef OP_last
 #include "host/gl/emulation_gl.h"
 #include "host/gl/yuv_converter.h"
+#include "host/vulkan/trivial_stream.h"
 #include "render_channel_impl.h"
 #include "render_thread_info.h"
 
@@ -2053,6 +2056,75 @@ TEST_F(FrameBufferTest, Gles2DetachShaderWithProgramHandleDoesNotConfuseTypes) {
     gl2.glDeleteShader_dec(&gl2, vs);
     gl2.glDeleteProgram_dec(&gl2, prog1);
     gl2.glDeleteProgram_dec(&gl2, prog2);
+    EXPECT_TRUE(mFb->bindContext(0, 0, 0));
+    mFb->destroyEmulatedEglContext(ctx);
+    mFb->destroyEmulatedEglWindowSurface(surface);
+}
+
+TEST_F(FrameBufferTest, Gles2RawArrayOfPointersOpcodesRejectedWithInvalidOperation) {
+    if (!mFb->hasEmulationGl()) {
+        GTEST_SKIP() << "GL emulation not enabled.";
+    }
+
+    HandleType ctx = mFb->createEmulatedEglContext(0, 0, gl::GLESApi_3_0);
+    ASSERT_NE((HandleType)0, ctx);
+    HandleType surface = mFb->createEmulatedEglWindowSurface(0, mWidth, mHeight);
+    ASSERT_NE((HandleType)0, surface);
+    EXPECT_TRUE(mFb->bindContext(ctx, surface, surface));
+
+    auto& gl2 = mRenderThreadInfo->m_glInfo->m_gl2Dec;
+    vk::TrivialStream ioStream;
+    ChecksumCalculator checksumCalc;
+    (void)gl2.getGLerror();
+
+    struct RawPointerArrayCase {
+        uint32_t opcode;
+        uint32_t lastWord;
+    };
+    const RawPointerArrayCase kCases[] = {
+        {OP_glShaderSource, 0},                                   // size_length = 0
+        {OP_glGetUniformIndices, 0},                              // size_uniformIndices = 0
+        {OP_glTransformFeedbackVaryings, GL_INTERLEAVED_ATTRIBS}, // bufferMode
+    };
+    for (const auto& testCase : kCases) {
+        uint32_t packet[8] = {
+            testCase.opcode,
+            32,                  // packetLen
+            1,                   // shader / program
+            1,                   // count / uniformCount
+            8,                   // byte size of pointer array
+            0xdeadbeefu,         // bogus pointer low 32 bits
+            0xdeadbeefu,         // bogus pointer high 32 bits
+            testCase.lastWord,
+        };
+        EXPECT_EQ(sizeof(packet), gl2.decode(packet, sizeof(packet), &ioStream, &checksumCalc));
+        EXPECT_EQ((GLenum)GL_INVALID_OPERATION, gl2.getGLerror());
+        EXPECT_EQ((GLenum)GL_NO_ERROR, gl2.getGLerror());
+    }
+
+    // OP_glCreateShaderProgramv with bogus guest pointer address 0xdeadbeefdeadbeef.
+    // Also verify OP_glGetError over the wire drains the pending GL_INVALID_OPERATION.
+    {
+        uint32_t packet[7] = {
+            OP_glCreateShaderProgramv,
+            28,                // packetLen
+            GL_VERTEX_SHADER,  // type
+            1,                 // count
+            8,                 // size_strings
+            0xdeadbeefu,       // bogus pointer low 32 bits
+            0xdeadbeefu,       // bogus pointer high 32 bits
+        };
+        EXPECT_EQ(sizeof(packet), gl2.decode(packet, sizeof(packet), &ioStream, &checksumCalc));
+        EXPECT_EQ((GLenum)GL_INVALID_OPERATION, gl2.getGLerror());
+        EXPECT_EQ((GLenum)GL_NO_ERROR, gl2.getGLerror());
+
+        EXPECT_EQ(sizeof(packet), gl2.decode(packet, sizeof(packet), &ioStream, &checksumCalc));
+        uint32_t getErrPacket[2] = {OP_glGetError, 8};
+        EXPECT_EQ(sizeof(getErrPacket),
+                  gl2.decode(getErrPacket, sizeof(getErrPacket), &ioStream, &checksumCalc));
+        EXPECT_EQ((GLenum)GL_NO_ERROR, gl2.getGLerror());
+    }
+
     EXPECT_TRUE(mFb->bindContext(0, 0, 0));
     mFb->destroyEmulatedEglContext(ctx);
     mFb->destroyEmulatedEglWindowSurface(surface);

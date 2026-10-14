@@ -27,6 +27,7 @@
 #include <GLES3/gl3.h>
 #include <GLES3/gl31.h>
 
+#include "gfxstream/common/logging.h"
 #include "gfxstream/host/address_space_operations.h"
 #include "gfxstream/host/dma_device.h"
 #include "gfxstream/host/vm_operations.h"
@@ -84,6 +85,37 @@ GLESv2Decoder::GLESv2Decoder()
 
 GLESv2Decoder::~GLESv2Decoder()
 {
+}
+
+void GLESv2Decoder::setGLerror(GLenum err) {
+    if (m_pendingError == GL_NO_ERROR) {
+        m_pendingError = err;
+    }
+}
+
+GLenum GLESv2Decoder::getGLerror() {
+    if (m_pendingError != GL_NO_ERROR) {
+        GLenum err = m_pendingError;
+        m_pendingError = GL_NO_ERROR;
+        return err;
+    }
+    return this->glGetError();
+}
+
+void GLESv2Decoder::rejectUnsupportedOpcode(const char* rawOpcode,
+                                            const char* replacementOpcode) {
+    // These raw wire opcodes pass arrays of pointers (e.g. const char**). In the GLES
+    // guest-to-host wire protocol, the guest cannot pass host virtual memory addresses;
+    // legitimate guests always emit the packed AEMU/String variants instead. Calling the raw
+    // opcode over the wire attempts to reinterpret guest bytes as host addresses (b/510366366),
+    // so reject with GL_INVALID_OPERATION without dereferencing the pointer array.
+    GFXSTREAM_ERROR("gles2: unsupported raw %s; use %s", rawOpcode, replacementOpcode);
+    setGLerror(GL_INVALID_OPERATION);
+}
+
+GLenum GLESv2Decoder::s_glGetError(void* self) {
+    GLESv2Decoder* ctx = static_cast<GLESv2Decoder*>(self);
+    return ctx->getGLerror();
 }
 
 void *GLESv2Decoder::s_getProc(const char *name, void *userData)
@@ -164,6 +196,8 @@ int GLESv2Decoder::initGL(get_proc_func_t getProcFunc, void *getProcFuncData)
 
     glBufferDataSyncAEMU = s_glBufferDataSyncAEMU;
 
+    OVERRIDE_DEC(glGetError)
+
     OVERRIDE_DEC(glCreateShader)
     OVERRIDE_DEC(glCreateProgram)
 
@@ -198,6 +232,7 @@ int GLESv2Decoder::initGL(get_proc_func_t getProcFunc, void *getProcFuncData)
     OVERRIDE_DEC(glDeleteProgramPipelines)
 
     // Shaders and programs
+    OVERRIDE_DEC(glShaderSource)
     OVERRIDE_DEC(glCompileShader)
     OVERRIDE_DEC(glAttachShader)
     OVERRIDE_DEC(glDetachShader)
@@ -223,6 +258,7 @@ int GLESv2Decoder::initGL(get_proc_func_t getProcFunc, void *getProcFuncData)
     OVERRIDE_DEC(glProgramBinaryOES)
     OVERRIDE_DEC(glUniformBlockBinding)
     OVERRIDE_DEC(glGetUniformBlockIndex)
+    OVERRIDE_DEC(glGetUniformIndices)
     OVERRIDE_DEC(glGetActiveUniformBlockiv)
     OVERRIDE_DEC(glGetActiveUniformBlockName)
     OVERRIDE_DEC(glGetUniformuiv)
@@ -235,6 +271,7 @@ int GLESv2Decoder::initGL(get_proc_func_t getProcFunc, void *getProcFuncData)
     OVERRIDE_DEC(glGetFragDataLocation)
     OVERRIDE_DEC(glUseProgramStages)
     OVERRIDE_DEC(glActiveShaderProgram)
+    OVERRIDE_DEC(glCreateShaderProgramv)
     OVERRIDE_DEC(glProgramUniform1f)
     OVERRIDE_DEC(glProgramUniform2f)
     OVERRIDE_DEC(glProgramUniform3f)
@@ -1056,7 +1093,49 @@ SNAPSHOT_PROGRAM_CALL(glGetActiveUniformBlockiv, (void* self,  GLuint program, G
 SNAPSHOT_PROGRAM_CALL(glGetActiveUniformBlockName, (void* self,  GLuint program, GLuint uniformBlockIndex, GLsizei bufSize, GLsizei* length, GLchar* uniformBlockName), (program, uniformBlockIndex, bufSize, length, uniformBlockName))
 SNAPSHOT_PROGRAM_CALL(glGetUniformuiv, (void* self,  GLuint program, GLint location, GLuint* params), (program, location, params))
 SNAPSHOT_PROGRAM_CALL(glGetActiveUniformsiv, (void* self,  GLuint program, GLsizei uniformCount, const GLuint* uniformIndices, GLenum pname, GLint* params), (program, uniformCount, uniformIndices, pname, params))
-SNAPSHOT_PROGRAM_CALL(glTransformFeedbackVaryings, (void* self,  GLuint program, GLsizei count, const char** varyings, GLenum bufferMode), (program, count, varyings, bufferMode))
+
+void GLESv2Decoder::s_glShaderSource(void* self, GLuint shader, GLsizei count,
+                                     const GLchar* const* string, const GLint* length) {
+    GLESv2Decoder* ctx = static_cast<GLESv2Decoder*>(self);
+    (void)shader;
+    (void)count;
+    (void)string;
+    (void)length;
+    ctx->rejectUnsupportedOpcode("OP_glShaderSource", "OP_glShaderString");
+}
+
+void GLESv2Decoder::s_glGetUniformIndices(void* self, GLuint program, GLsizei uniformCount,
+                                          const GLchar** uniformNames, GLuint* uniformIndices) {
+    GLESv2Decoder* ctx = static_cast<GLESv2Decoder*>(self);
+    (void)program;
+    (void)uniformCount;
+    (void)uniformNames;
+    (void)uniformIndices;
+    ctx->rejectUnsupportedOpcode("OP_glGetUniformIndices", "OP_glGetUniformIndicesAEMU");
+}
+
+void GLESv2Decoder::s_glTransformFeedbackVaryings(void* self, GLuint program, GLsizei count,
+                                                  const char** varyings, GLenum bufferMode) {
+    GLESv2Decoder* ctx = static_cast<GLESv2Decoder*>(self);
+    (void)program;
+    (void)count;
+    (void)varyings;
+    (void)bufferMode;
+    ctx->rejectUnsupportedOpcode("OP_glTransformFeedbackVaryings",
+                                 "OP_glTransformFeedbackVaryingsAEMU");
+}
+
+GLuint GLESv2Decoder::s_glCreateShaderProgramv(void* self, GLenum type, GLsizei count,
+                                               const char** strings) {
+    GLESv2Decoder* ctx = static_cast<GLESv2Decoder*>(self);
+    (void)type;
+    (void)count;
+    (void)strings;
+    ctx->rejectUnsupportedOpcode("OP_glCreateShaderProgramv",
+                                 "OP_glCreateShaderProgramvAEMU");
+    return 0;
+}
+
 SNAPSHOT_PROGRAM_CALL(glGetTransformFeedbackVarying, (void* self,  GLuint program, GLuint index, GLsizei bufSize, GLsizei* length, GLsizei* size, GLenum* type, char* name), (program, index, bufSize, length, size, type, name))
 SNAPSHOT_PROGRAM_CALL(glProgramParameteri, (void* self,  GLuint program, GLenum pname, GLint value), (program, pname, value))
 SNAPSHOT_PROGRAM_CALL(glProgramBinary, (void* self,  GLuint program, GLenum binaryFormat, const void* binary, GLsizei length), (program, binaryFormat, binary, length))

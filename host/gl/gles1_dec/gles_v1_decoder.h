@@ -51,6 +51,7 @@ public:
     void setContextData(GLDecoderContextData *contextData) { m_contextData = contextData; }
 
 private:
+    static GLenum gles1_APIENTRY s_glGetError(void *self);
     static void gles1_APIENTRY s_glGetCompressedTextureFormats(void * self, GLint cont, GLint *data);
     static void gles1_APIENTRY s_glVertexPointerData(void *self, GLint size, GLenum type, GLsizei stride, void *data, GLuint datalen);
     static void gles1_APIENTRY s_glVertexPointerOffset(void *self, GLint size, GLenum type, GLsizei stride, GLuint offset);

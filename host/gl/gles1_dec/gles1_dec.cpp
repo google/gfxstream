@@ -1855,7 +1855,7 @@ size_t gles1_decoder_context_t::decode(void *buf, size_t len, IOStream *stream, 
 			}
 #endif  // ifdef CHECK_GL_ERRORS
 			DECODER_DEBUG_LOG("gles1(%p): glGetError()", stream);
-			GLenum function_call_retval = 			this->glGetError();
+			GLenum function_call_retval = 			this->glGetError_dec(this);
 			std::memcpy(&tmpBuf[0], &function_call_retval, sizeof(GLenum));
 			if (useChecksum) {
 				ChecksumCalculatorThreadInfo::writeChecksum(checksumCalc, &tmpBuf[0], totalTmpSize - checksumSize, &tmpBuf[totalTmpSize - checksumSize], checksumSize);

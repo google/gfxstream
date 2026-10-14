@@ -104,7 +104,8 @@ struct gles2_server_context_t {
 	glGetAttribLocation_server_proc_t glGetAttribLocation_dec;
 	glGetBooleanv_server_proc_t glGetBooleanv;
 	glGetBufferParameteriv_server_proc_t glGetBufferParameteriv;
-	glGetError_server_proc_t glGetError;
+	glGetError_dec_server_proc_t glGetError;
+	glGetError_server_proc_t glGetError_dec;
 	glGetFloatv_server_proc_t glGetFloatv;
 	glGetFramebufferAttachmentParameteriv_server_proc_t glGetFramebufferAttachmentParameteriv;
 	glGetIntegerv_server_proc_t glGetIntegerv;
@@ -153,7 +154,8 @@ struct gles2_server_context_t {
 	glSampleCoverage_server_proc_t glSampleCoverage;
 	glScissor_server_proc_t glScissor;
 	glShaderBinary_server_proc_t glShaderBinary;
-	glShaderSource_server_proc_t glShaderSource;
+	glShaderSource_dec_server_proc_t glShaderSource;
+	glShaderSource_server_proc_t glShaderSource_dec;
 	glStencilFunc_server_proc_t glStencilFunc;
 	glStencilFuncSeparate_server_proc_t glStencilFuncSeparate;
 	glStencilMask_server_proc_t glStencilMask;
@@ -299,7 +301,8 @@ struct gles2_server_context_t {
 	glUniformBlockBinding_server_proc_t glUniformBlockBinding_dec;
 	glGetUniformBlockIndex_dec_server_proc_t glGetUniformBlockIndex;
 	glGetUniformBlockIndex_server_proc_t glGetUniformBlockIndex_dec;
-	glGetUniformIndices_server_proc_t glGetUniformIndices;
+	glGetUniformIndices_dec_server_proc_t glGetUniformIndices;
+	glGetUniformIndices_server_proc_t glGetUniformIndices_dec;
 	glGetUniformIndicesAEMU_server_proc_t glGetUniformIndicesAEMU;
 	glGetActiveUniformBlockiv_dec_server_proc_t glGetActiveUniformBlockiv;
 	glGetActiveUniformBlockiv_server_proc_t glGetActiveUniformBlockiv_dec;
@@ -435,7 +438,8 @@ struct gles2_server_context_t {
 	glUseProgramStages_server_proc_t glUseProgramStages_dec;
 	glActiveShaderProgram_dec_server_proc_t glActiveShaderProgram;
 	glActiveShaderProgram_server_proc_t glActiveShaderProgram_dec;
-	glCreateShaderProgramv_server_proc_t glCreateShaderProgramv;
+	glCreateShaderProgramv_dec_server_proc_t glCreateShaderProgramv;
+	glCreateShaderProgramv_server_proc_t glCreateShaderProgramv_dec;
 	glCreateShaderProgramvAEMU_server_proc_t glCreateShaderProgramvAEMU;
 	glProgramUniform1f_dec_server_proc_t glProgramUniform1f;
 	glProgramUniform1f_server_proc_t glProgramUniform1f_dec;
