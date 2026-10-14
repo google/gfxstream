@@ -611,6 +611,7 @@ EXTERN_PART GL_APICALL void GL_APIENTRY glBindVertexBuffer(GLuint bindingindex, 
 
 GL_APICALL void GL_APIENTRY glVertexAttribBinding(GLuint attribindex, GLuint bindingindex) {
     GET_CTX_V2();
+    SET_ERROR_IF((!GLESv2Validate::arrayIndex(ctx, attribindex)), GL_INVALID_VALUE);
     SET_ERROR_IF_DISPATCHER_NOT_SUPPORT(glVertexAttribBinding);
     ctx->setVertexAttribBindingIndex(attribindex, bindingindex);
     ctx->dispatcher().glVertexAttribBinding(attribindex, bindingindex);
@@ -618,6 +619,7 @@ GL_APICALL void GL_APIENTRY glVertexAttribBinding(GLuint attribindex, GLuint bin
 
 GL_APICALL void GL_APIENTRY glVertexAttribFormat(GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset) {
     GET_CTX_V2();
+    SET_ERROR_IF((!GLESv2Validate::arrayIndex(ctx, attribindex)), GL_INVALID_VALUE);
     SET_ERROR_IF_DISPATCHER_NOT_SUPPORT(glVertexAttribFormat);
     ctx->setVertexAttribFormat(attribindex, size, type, normalized, relativeoffset, false);
     ctx->dispatcher().glVertexAttribFormat(attribindex, size, type, normalized, relativeoffset);
@@ -625,6 +627,7 @@ GL_APICALL void GL_APIENTRY glVertexAttribFormat(GLuint attribindex, GLint size,
 
 GL_APICALL void GL_APIENTRY glVertexAttribIFormat(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset) {
     GET_CTX_V2();
+    SET_ERROR_IF((!GLESv2Validate::arrayIndex(ctx, attribindex)), GL_INVALID_VALUE);
     SET_ERROR_IF_DISPATCHER_NOT_SUPPORT(glVertexAttribIFormat);
     ctx->setVertexAttribFormat(attribindex, size, type, GL_FALSE, relativeoffset, true);
     ctx->dispatcher().glVertexAttribIFormat(attribindex, size, type, relativeoffset);

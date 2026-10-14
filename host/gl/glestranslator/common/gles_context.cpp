@@ -970,7 +970,7 @@ const GLvoid* GLEScontext::setPointer(GLenum arrType,GLint size,GLenum type,GLsi
         glesPointer = m_currVaoState[arrType];
     } else {
         uint32_t attribIndex = (uint32_t)arrType;
-        if (attribIndex > kMaxVertexAttributes) return nullptr;
+        if (attribIndex >= kMaxVertexAttributes) return nullptr;
         glesPointer = m_currVaoState.attribInfo().data() + (uint32_t)arrType;
     }
 
@@ -995,7 +995,7 @@ const GLvoid* GLEScontext::setPointer(GLenum arrType,GLint size,GLenum type,GLsi
         return  static_cast<const unsigned char*>(vbo->getData()) +  offset;
     }
     glesPointer->setArray(size,type,stride,data,dataSize,normalize,isInt);
-    return data;
+    return glesPointer->getArrayData();
 }
 
 void GLEScontext::enableArr(GLenum arr,bool enable) {
@@ -1009,7 +1009,7 @@ bool GLEScontext::isArrEnabled(GLenum arr) {
     if (m_currVaoState.it->second.legacy) {
         return m_currVaoState[arr]->isEnable();
     } else {
-        if ((uint32_t)arr > kMaxVertexAttributes) return false;
+        if ((uint32_t)arr >= kMaxVertexAttributes) return false;
         return m_currVaoState.attribInfo()[(uint32_t)arr].isEnable();
     }
 }
@@ -1460,12 +1460,16 @@ GLuint GLEScontext::getBuffer(GLenum target) {
 GLuint GLEScontext::getIndexedBuffer(GLenum target, GLuint index) {
     switch (target) {
     case GL_UNIFORM_BUFFER:
+        if (index >= m_indexedUniformBuffers.size()) return 0;
         return m_indexedUniformBuffers[index].buffer;
     case GL_ATOMIC_COUNTER_BUFFER:
+        if (index >= m_indexedAtomicCounterBuffers.size()) return 0;
         return m_indexedAtomicCounterBuffers[index].buffer;
     case GL_SHADER_STORAGE_BUFFER:
+        if (index >= m_indexedShaderStorageBuffers.size()) return 0;
         return m_indexedShaderStorageBuffers[index].buffer;
     default:
+        if (index >= m_currVaoState.bufferBindings().size()) return 0;
         return m_currVaoState.bufferBindings()[index].buffer;
     }
 }
