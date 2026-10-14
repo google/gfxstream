@@ -28,12 +28,12 @@ using IoResult = RenderChannel::IoResult;
 
 ChannelStream::ChannelStream(RenderChannelImpl* channel, size_t bufSize)
     : IOStream(bufSize), mChannel(channel) {
-    mWriteBuffer.resize_noinit(bufSize);
+    mWriteBuffer.resize(bufSize);
 }
 
 void* ChannelStream::allocBuffer(size_t minSize) {
     if (mWriteBuffer.size() < minSize) {
-        mWriteBuffer.resize_noinit(minSize);
+        mWriteBuffer.resize(minSize);
     }
     return mWriteBuffer.data();
 }

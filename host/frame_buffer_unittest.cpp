@@ -393,6 +393,32 @@ TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_RGB565) {
     mFb->closeColorBuffer(colorBufferHandle);
 }
 
+TEST_F(FrameBufferTest, ReadColorBufferDeprecatedRejectsUndersizedBuffer) {
+    HandleType handle = mFb->createColorBuffer(mWidth, mHeight, GfxstreamFormat::R8G8B8A8_UNORM);
+    ASSERT_NE((HandleType)0, handle);
+    EXPECT_EQ(0, mFb->openColorBuffer(handle));
+
+    TestTexture forUpdate = createTestPatternRGBA8888(mWidth, mHeight);
+    mFb->updateColorBuffer(handle, 0, 0, mWidth, mHeight, GfxstreamFormat::R8G8B8A8_UNORM,
+                           forUpdate.data());
+
+    const size_t fullBytes = static_cast<size_t>(mWidth) * mHeight * 4;
+    const size_t smallBytes = 16;
+    constexpr uint8_t kSentinel = 0xAA;
+    std::vector<uint8_t> bufWithGuard(fullBytes, kSentinel);
+
+    // Passing pixelsSize smaller than width * height * bpp must not write past pixelsSize
+    // (b/288556299).
+    mFb->readColorBufferDeprecated(handle, 0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE,
+                                   bufWithGuard.data(), smallBytes);
+
+    for (size_t i = smallBytes; i < bufWithGuard.size(); ++i) {
+        ASSERT_EQ(kSentinel, bufWithGuard[i]) << "OOB write at byte " << i;
+    }
+
+    mFb->closeColorBuffer(handle);
+}
+
 // Tests obtaining EGL configs from FrameBuffer.
 TEST_F(FrameBufferTest, Configs) {
     EGLint numConfigs = 0;
