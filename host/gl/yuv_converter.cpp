@@ -785,15 +785,28 @@ void YUVConverter::restoreGLState() {
 }
 
 uint32_t YUVConverter::getDataSize() {
-    uint32_t align = (mFormat == GfxstreamFormat::YV12) ? 16 : 1;
-    uint32_t yStrideBytes = (mWidth + (align - 1)) & ~(align - 1);
-    uint32_t uvStride = (yStrideBytes / 2 + (align - 1)) & ~(align - 1);
-    uint32_t uvHeight = mHeight / 2;
-    uint32_t dataSize = yStrideBytes * mHeight + 2 * (uvHeight * uvStride);
-    return dataSize;
+    uint32_t yWidth = 0, yHeight = 0, yOffsetBytes = 0, yStridePixels = 0, yStrideBytes = 0;
+    uint32_t uWidth = 0, uHeight = 0, uOffsetBytes = 0, uStridePixels = 0, uStrideBytes = 0;
+    uint32_t vWidth = 0, vHeight = 0, vOffsetBytes = 0, vStridePixels = 0, vStrideBytes = 0;
+    getYUVOffsets(mWidth, mHeight, mFormat,
+                  &yWidth, &yHeight, &yOffsetBytes, &yStridePixels, &yStrideBytes,
+                  &uWidth, &uHeight, &uOffsetBytes, &uStridePixels, &uStrideBytes,
+                  &vWidth, &vHeight, &vOffsetBytes, &vStridePixels, &vStrideBytes);
+
+    return yStrideBytes * yHeight + uStrideBytes * uHeight + vStrideBytes * vHeight;
 }
 
 void YUVConverter::readPixels(uint8_t* pixels, uint32_t pixels_size) {
+    const uint32_t needed = getDataSize();
+    if (pixels_size < needed) {
+        const std::string formatString = ToString(mFormat);
+        GFXSTREAM_ERROR(
+            "YUVConverter::readPixels failed for %dx%d (%s): output buffer size %u bytes is "
+            "smaller than required %u bytes.",
+            mWidth, mHeight, formatString.c_str(), pixels_size, needed);
+        return;
+    }
+
     uint32_t yWidth, yHeight, yOffsetBytes, yStridePixels, yStrideBytes;
     uint32_t uWidth, uHeight, uOffsetBytes, uStridePixels, uStrideBytes;
     uint32_t vWidth, vHeight, vOffsetBytes, vStridePixels, vStrideBytes;

@@ -874,6 +874,15 @@ bool ColorBufferGl::subUpdate(int x, int y, int width, int height,
 }
 
 bool ColorBufferGl::replaceContents(const void* newContents, size_t numBytes) {
+    const size_t needed = m_yuv_converter ? m_yuv_converter->getDataSize() : m_numBytes;
+    if (numBytes < needed) {
+        const std::string formatString = ToString(m_format);
+        GFXSTREAM_ERROR(
+            "ColorBufferGl::replaceContents failed for ColorBuffer:%d (%ux%u, %s): input buffer "
+            "size %zu bytes is smaller than required %zu bytes.",
+            mHndl, m_width, m_height, formatString.c_str(), numBytes, needed);
+        return false;
+    }
     return subUpdate(0, 0, m_width, m_height, m_format, newContents);
 }
 
@@ -1366,7 +1375,7 @@ bool ColorBufferGl::importMemory(ManagedDescriptor externalDescriptor, uint64_t 
             m_display, s_egl.eglGetCurrentContext(), EGL_GL_TEXTURE_2D_KHR,
             (EGLClientBuffer)SafePointerFromUInt(m_tex), NULL);
 
-    replaceContents(prevContents.data(), m_numBytes);
+    replaceContents(prevContents.data(), prevContents.size());
 
     return true;
 }
@@ -1414,7 +1423,7 @@ bool ColorBufferGl::importEglNativePixmap(void* pixmap, bool preserveContent) {
     s_gles2.glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, (GLeglImageOES)m_eglImage);
 
     if (preserveContent) {
-        replaceContents(contents.data(), m_numBytes);
+        replaceContents(contents.data(), contents.size());
     }
 
     return true;
