@@ -15,8 +15,79 @@
 */
 #include "common/gles_pointer.h"
 
+#include <algorithm>
+#include <iterator>
 #include <stdlib.h>
 #include <string.h>
+
+void GLESpointer::rebindArrayData() {
+    if (m_attribType == ARRAY && !m_ownData.empty()) {
+        m_data = m_ownData.data();
+    }
+}
+
+GLESpointer::GLESpointer(const GLESpointer& other) {
+    *this = other;
+}
+
+GLESpointer& GLESpointer::operator=(const GLESpointer& other) {
+    if (this != &other) {
+        m_size = other.m_size;
+        m_type = other.m_type;
+        m_stride = other.m_stride;
+        m_enabled = other.m_enabled;
+        m_normalize = other.m_normalize;
+        m_attribType = other.m_attribType;
+        m_dataSize = other.m_dataSize;
+        m_data = other.m_data;
+        m_bufferObject = other.m_bufferObject;
+        m_buffer = other.m_buffer;
+        m_bufferName = other.m_bufferName;
+        m_buffOffset = other.m_buffOffset;
+        m_isInt = other.m_isInt;
+        m_divisor = other.m_divisor;
+        m_bindingIndex = other.m_bindingIndex;
+        m_reloffset = other.m_reloffset;
+        m_ownData = other.m_ownData;
+        m_valueCount = other.m_valueCount;
+        memcpy(m_values, other.m_values, sizeof(m_values));
+        rebindArrayData();
+    }
+    return *this;
+}
+
+GLESpointer::GLESpointer(GLESpointer&& other) noexcept {
+    *this = std::move(other);
+}
+
+GLESpointer& GLESpointer::operator=(GLESpointer&& other) noexcept {
+    if (this != &other) {
+        m_size = other.m_size;
+        m_type = other.m_type;
+        m_stride = other.m_stride;
+        m_enabled = other.m_enabled;
+        m_normalize = other.m_normalize;
+        m_attribType = other.m_attribType;
+        m_dataSize = other.m_dataSize;
+        m_data = other.m_data;
+        m_bufferObject = std::move(other.m_bufferObject);
+        m_buffer = other.m_buffer;
+        m_bufferName = other.m_bufferName;
+        m_buffOffset = other.m_buffOffset;
+        m_isInt = other.m_isInt;
+        m_divisor = other.m_divisor;
+        m_bindingIndex = other.m_bindingIndex;
+        m_reloffset = other.m_reloffset;
+        m_ownData = std::move(other.m_ownData);
+        m_valueCount = other.m_valueCount;
+        memcpy(m_values, other.m_values, sizeof(m_values));
+        rebindArrayData();
+        other.m_data = nullptr;
+        other.m_dataSize = 0;
+        other.m_buffer = nullptr;
+    }
+    return *this;
+}
 
 GLenum GLESpointer::getType() const {
     return m_type;
@@ -31,6 +102,9 @@ GLsizei GLESpointer::getStride() const {
 }
 
 const GLvoid* GLESpointer::getArrayData() const {
+    if (m_attribType == ARRAY && !m_ownData.empty()) {
+        return m_ownData.data();
+    }
     return m_data;
 }
 
@@ -118,12 +192,19 @@ void GLESpointer::setArray(GLint size,
                            GLsizei dataSize,
                            bool normalize,
                            bool isInt) {
-    m_ownData.clear();
+    if (data && dataSize > 0) {
+        m_ownData.assign(reinterpret_cast<const unsigned char*>(data),
+                         reinterpret_cast<const unsigned char*>(data) + dataSize);
+        m_data = m_ownData.data();
+        m_dataSize = dataSize;
+    } else {
+        m_ownData.clear();
+        m_data = data;
+        m_dataSize = (data != nullptr) ? dataSize : 0;
+    }
     m_size = size;
     m_type = type;
     m_stride = stride;
-    m_dataSize = dataSize;
-    m_data = data;
     m_bufferObject.reset();
     m_buffer = nullptr;
     m_bufferName = 0;
@@ -157,6 +238,8 @@ void GLESpointer::setBuffer(GLint size,
 }
 
 void GLESpointer::setValue(unsigned int count, const GLfloat* val) {
+    m_ownData.clear();
+    m_dataSize = 0;
     memcpy(m_values, val, sizeof(GLfloat) * count);
     m_valueCount = count;
     m_attribType = VALUE;
@@ -209,17 +292,43 @@ void GLESpointer::onLoad(gfxstream::Stream* stream) {
     m_bufferName = stream->getBe32();
     if (m_attribType == ARRAY) {
         m_dataSize = stream->getBe32();
-        m_ownData.resize(m_dataSize);
-        stream->read(m_ownData.data(), m_dataSize);
-        m_data = m_ownData.data();
+        if (m_dataSize > 0) {
+            m_ownData.resize(m_dataSize);
+            stream->read(m_ownData.data(), m_dataSize);
+        } else {
+            m_ownData.clear();
+            m_dataSize = 0;
+        }
+        m_data = !m_ownData.empty() ? m_ownData.data() : nullptr;
+    } else {
+        m_ownData.clear();
+        m_dataSize = 0;
+        m_data = nullptr;
     }
     m_buffOffset = stream->getBe32();
     m_isInt = stream->getByte();
     m_divisor = stream->getBe32();
     m_bindingIndex = stream->getBe32();
     m_reloffset = stream->getBe32();
-    m_valueCount = stream->getBe32();
-    stream->read(m_values, sizeof(GLfloat) * m_valueCount);
+    uint32_t valueCount = stream->getBe32();
+    constexpr uint32_t kMaxValueCount =
+        static_cast<uint32_t>(sizeof(m_values) / sizeof(m_values[0]));
+    uint32_t toRead = std::min(valueCount, kMaxValueCount);
+    stream->read(m_values, sizeof(GLfloat) * toRead);
+    if (valueCount > kMaxValueCount) {
+        // Skip remaining floats to maintain stream alignment.
+        uint32_t toSkip = valueCount - kMaxValueCount;
+        constexpr size_t kScratchFloats = 64;
+        GLfloat scratch[kScratchFloats];
+        while (toSkip > 0 && !stream->hasErrors()) {
+            uint32_t chunk = std::min<uint32_t>(toSkip, static_cast<uint32_t>(kScratchFloats));
+            if (stream->read(scratch, chunk * sizeof(GLfloat)) <= 0) {
+                break;
+            }
+            toSkip -= chunk;
+        }
+    }
+    m_valueCount = static_cast<GLsizei>(toRead);
 }
 
 void GLESpointer::onSave(gfxstream::Stream* stream) const {
@@ -231,8 +340,13 @@ void GLESpointer::onSave(gfxstream::Stream* stream) const {
     stream->putByte(m_attribType);
     stream->putBe32(m_bufferName);
     if (m_attribType == ARRAY) {
-        stream->putBe32(m_dataSize);
-        stream->write(m_data, m_dataSize);
+        const GLvoid* data = getArrayData();
+        if (data && m_dataSize > 0) {
+            stream->putBe32(m_dataSize);
+            stream->write(data, m_dataSize);
+        } else {
+            stream->putBe32(0);
+        }
     }
     stream->putBe32(m_buffOffset);
     stream->putByte(m_isInt);

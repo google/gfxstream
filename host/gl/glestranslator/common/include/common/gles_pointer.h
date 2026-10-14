@@ -29,6 +29,10 @@ public:
         ARRAY, BUFFER, VALUE
     };
     GLESpointer() = default;
+    GLESpointer(const GLESpointer& other);
+    GLESpointer& operator=(const GLESpointer& other);
+    GLESpointer(GLESpointer&& other) noexcept;
+    GLESpointer& operator=(GLESpointer&& other) noexcept;
     GLESpointer(gfxstream::Stream* stream);
     void onLoad(gfxstream::Stream* stream);
     GLenum getType() const;
@@ -82,6 +86,8 @@ public:
     void onSave(gfxstream::Stream* stream) const;
     void restoreBufferObj(std::function<ObjectDataPtr(GLuint)> getBufferObj);
 private:
+    void rebindArrayData();
+
     GLint m_size = 4;
     GLenum m_type = GL_FLOAT;
     GLsizei m_stride = 0;
@@ -98,9 +104,8 @@ private:
     GLuint m_divisor = 0;
     GLuint m_bindingIndex = 0;
     GLuint m_reloffset = 0;
-    // m_ownData is only used when loading from a snapshot
     std::vector<unsigned char> m_ownData;
     GLsizei m_valueCount = 0;
-    GLfloat m_values[4];
+    GLfloat m_values[4] = {};
 };
 #endif
