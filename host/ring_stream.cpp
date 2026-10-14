@@ -94,7 +94,7 @@ void RingStream::reloadRingConfig() {
 
 void* RingStream::allocBuffer(size_t minSize) {
     if (mWriteBuffer.size() < minSize) {
-        mWriteBuffer.resize_noinit(minSize);
+        mWriteBuffer.resize(minSize);
     }
     return mWriteBuffer.data();
 }

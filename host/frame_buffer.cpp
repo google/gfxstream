@@ -2599,7 +2599,7 @@ void FrameBuffer::Impl::readColorBufferDeprecated(HandleType colorbuffer, int x,
         return;
     }
     auto format = *formatOpt;
-    readColorBuffer(colorbuffer, x, y, width, height, format, pixels);
+    readColorBuffer(colorbuffer, x, y, width, height, format, pixels, pixelsSize);
 }
 
 void FrameBuffer::Impl::readColorBufferYUV(HandleType p_colorbuffer, int x, int y, int width,
