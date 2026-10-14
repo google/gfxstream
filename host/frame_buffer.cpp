@@ -397,7 +397,7 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
 
     void createGraphicsProcessResources(uint64_t puid);
 
-    std::unique_ptr<ProcessResources> removeGraphicsProcessResources(uint64_t puid);
+    std::shared_ptr<ProcessResources> removeGraphicsProcessResources(uint64_t puid);
 
     void signalGuestProcessDead(uint64_t puid);
     void enqueueAsyncCleanup(std::function<void()> cleanup);
@@ -570,7 +570,7 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
     CancelableFuture scheduleAsyncWork(std::function<void()> work,
                                        std::string_view description) override;
 
-    const ProcessResources* getProcessResources(uint64_t puid);
+    std::shared_ptr<const ProcessResources> getProcessResources(uint64_t puid) override;
 
     int createDisplay(uint32_t* displayId);
     int createDisplay(uint32_t displayId);
@@ -937,7 +937,7 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
     std::string m_graphicsApiExtensions;
     std::string m_graphicsDeviceExtensions;
     std::mutex m_guestProcessResourcesLock;
-    std::unordered_map<uint64_t, std::unique_ptr<GuestProcessResources>> m_guestProcessResources
+    std::unordered_map<uint64_t, std::shared_ptr<GuestProcessResources>> m_guestProcessResources
         GUARDED_BY(m_guestProcessResourcesLock);
 
     // This object manages the cleanup of guest process resources when the process
@@ -2411,8 +2411,8 @@ void FrameBuffer::Impl::createGraphicsProcessResources(uint64_t puid) {
     }
 }
 
-std::unique_ptr<ProcessResources> FrameBuffer::Impl::removeGraphicsProcessResources(uint64_t puid) {
-    std::unique_ptr<ProcessResources> res;
+std::shared_ptr<ProcessResources> FrameBuffer::Impl::removeGraphicsProcessResources(uint64_t puid) {
+    std::shared_ptr<ProcessResources> res;
     {
         std::lock_guard<std::mutex> lock(m_guestProcessResourcesLock);
         if (auto node = m_guestProcessResources.extract(puid)) {
@@ -2428,6 +2428,9 @@ std::unique_ptr<ProcessResources> FrameBuffer::Impl::removeGraphicsProcessResour
 
 void FrameBuffer::Impl::signalGuestProcessDead(uint64_t puid) {
     std::shared_ptr<GuestProcessResources> processResources = removeGraphicsProcessResources(puid);
+    if (processResources) {
+        processResources->setGuestProcessDead(true);
+    }
 
     enqueueAsyncCleanup([this, puid, processResources = std::move(processResources)]() {
         this->cleanupGuestProcess(puid, processResources.get());
@@ -2451,7 +2454,7 @@ void FrameBuffer::Impl::cleanupGuestProcess(uint64_t puid,
         RenderThreadInfo::forAllRenderThreadInfos(
             [puid, guestProcessResources, &renderThreadWithThisPuidExists](RenderThreadInfo* i) {
                 if ((guestProcessResources && i->m_processResources)
-                        ? (i->m_processResources == guestProcessResources)
+                        ? (i->m_processResources.get() == guestProcessResources)
                         : (i->m_puid == puid)) {
                     renderThreadWithThisPuidExists = true;
                 }
@@ -3809,7 +3812,7 @@ bool FrameBuffer::Impl::unregisterProcessCleanupCallback(void* key) {
     {
         std::lock_guard<std::mutex> lock(m_guestProcessResourcesLock);
         for (const auto& [_, processResources] : m_guestProcessResources) {
-            if (tInfo && processResources.get() == tInfo->m_processResources) {
+            if (tInfo && processResources == tInfo->m_processResources) {
                 continue;
             }
             if (processResources->removeCleanupCallback(key)) {
@@ -3851,12 +3854,12 @@ CancelableFuture FrameBuffer::Impl::scheduleAsyncWork(std::function<void()> work
     return future;
 }
 
-const ProcessResources* FrameBuffer::Impl::getProcessResources(uint64_t puid) {
+std::shared_ptr<const ProcessResources> FrameBuffer::Impl::getProcessResources(uint64_t puid) {
     {
         std::lock_guard<std::mutex> lock(m_guestProcessResourcesLock);
         auto i = m_guestProcessResources.find(puid);
         if (i != m_guestProcessResources.end()) {
-            return i->second.get();
+            return i->second;
         }
     }
     GFXSTREAM_ERROR("Failed to find process owned resources for puid %" PRIu64 ".", puid);
@@ -4773,7 +4776,7 @@ void FrameBuffer::createGraphicsProcessResources(uint64_t puid) {
     mImpl->createGraphicsProcessResources(puid);
 }
 
-std::unique_ptr<ProcessResources> FrameBuffer::removeGraphicsProcessResources(uint64_t puid) {
+std::shared_ptr<ProcessResources> FrameBuffer::removeGraphicsProcessResources(uint64_t puid) {
     return mImpl->removeGraphicsProcessResources(puid);
 }
 
@@ -4975,7 +4978,7 @@ bool FrameBuffer::unregisterProcessCleanupCallback(void* key) {
     return mImpl->unregisterProcessCleanupCallback(key);
 }
 
-const ProcessResources* FrameBuffer::getProcessResources(uint64_t puid) {
+std::shared_ptr<const ProcessResources> FrameBuffer::getProcessResources(uint64_t puid) {
     return mImpl->getProcessResources(puid);
 }
 

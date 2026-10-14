@@ -40,6 +40,13 @@ class ProcessResources {
     ~ProcessResources() = default;
     std::atomic<uint32_t>* getSequenceNumberPtr() const { return &mSequenceNumber; }
 
+    void setGuestProcessDead(bool dead = true) const {
+        mGuestProcessDead.store(dead, std::memory_order_relaxed);
+    }
+    bool isGuestProcessDead() const {
+        return mGuestProcessDead.load(std::memory_order_relaxed);
+    }
+
     bool addCleanupCallback(void* key, std::function<void()> callback) const {
         std::lock_guard<std::mutex> lock(mCleanupCallbacksMutex);
         return mCleanupCallbacks.try_emplace(key, std::move(callback)).second;
@@ -69,6 +76,7 @@ class ProcessResources {
    private:
     ProcessResources() : mSequenceNumber(0) {}
     mutable std::atomic<uint32_t> mSequenceNumber;
+    mutable std::atomic<bool> mGuestProcessDead{false};
     mutable std::mutex mCleanupCallbacksMutex;
     mutable std::unordered_map<void*, std::function<void()>> mCleanupCallbacks
         GUARDED_BY(mCleanupCallbacksMutex);

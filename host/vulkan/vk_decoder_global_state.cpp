@@ -4545,13 +4545,63 @@ class VkDecoderGlobalState::Impl {
         destroySemaphoreLocked(device, deviceDispatch, semaphore);
     }
 
+    std::shared_ptr<const ProcessResources> getCurrentProcessResources() const {
+        auto* renderThreadInfo = RenderThreadInfoVk::get();
+        if (!renderThreadInfo) {
+            return nullptr;
+        }
+        if (renderThreadInfo->m_processResources) {
+            return renderThreadInfo->m_processResources;
+        }
+        if (!m_vkEmulation || !m_vkEmulation->getGlobalState() || renderThreadInfo->ctx_id == 0) {
+            return nullptr;
+        }
+        renderThreadInfo->m_processResources =
+            m_vkEmulation->getGlobalState()->getProcessResources(renderThreadInfo->ctx_id);
+        return renderThreadInfo->m_processResources;
+    }
+
+    template <typename WaitFn>
+    VkResult waitWithProcessDeathCheck(uint64_t timeoutNs, WaitFn&& waitFn) {
+        constexpr uint64_t kStepTimeoutNs = 1ULL * 1000ULL * 1000ULL * 1000ULL;  // 1s
+
+        std::shared_ptr<const ProcessResources> processResources = getCurrentProcessResources();
+        uint64_t remainingTimeoutNs = timeoutNs;
+        auto lastTime = std::chrono::steady_clock::now();
+        while (true) {
+            if (processResources && processResources->isGuestProcessDead()) {
+                return VK_TIMEOUT;
+            }
+            const uint64_t stepTimeoutNs = std::min(remainingTimeoutNs, kStepTimeoutNs);
+            VkResult result = waitFn(stepTimeoutNs);
+            if (result != VK_TIMEOUT) {
+                return result;
+            }
+            if (stepTimeoutNs == remainingTimeoutNs) {
+                return VK_TIMEOUT;
+            }
+            if (timeoutNs != UINT64_MAX) {
+                const auto now = std::chrono::steady_clock::now();
+                const uint64_t elapsedNs =
+                    std::chrono::duration_cast<std::chrono::nanoseconds>(now - lastTime).count();
+                lastTime = now;
+                if (elapsedNs >= remainingTimeoutNs) {
+                    return VK_TIMEOUT;
+                }
+                remainingTimeoutNs -= elapsedNs;
+            }
+        }
+    }
+
     VkResult on_vkWaitSemaphores(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
                                  VkDevice boxed_device, const VkSemaphoreWaitInfo* pWaitInfo,
                                  uint64_t timeout) {
         auto device = unbox_VkDevice(boxed_device);
         auto deviceDispatch = dispatch_VkDevice(boxed_device);
 
-        return deviceDispatch->vkWaitSemaphores(device, pWaitInfo, timeout);
+        return waitWithProcessDeathCheck(timeout, [&](uint64_t stepTimeoutNs) {
+            return deviceDispatch->vkWaitSemaphores(device, pWaitInfo, stepTimeoutNs);
+        });
     }
 
     VkResult onSemaphoreSignalledOnSharedQueue(VulkanDispatch* deviceDispatch,
@@ -10274,7 +10324,7 @@ class VkDecoderGlobalState::Impl {
             return VK_SUCCESS;
         }
 
-        const auto startTime = std::chrono::system_clock::now();
+        const auto startTime = std::chrono::steady_clock::now();
         for (uint32_t i = 0; i < fenceCount; i++) {
             VkFence fence = pFences[i];
             {
@@ -10332,10 +10382,13 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
-        const auto endTime = std::chrono::system_clock::now();
+        const auto endTime = std::chrono::steady_clock::now();
         const uint64_t timePassed = std::chrono::nanoseconds(endTime - startTime).count();
-        const uint64_t timeoutLeft = (timeout > timePassed) ? timeout - timePassed : 0;
-        return vk->vkWaitForFences(unboxed_device, fenceCount, pFences, waitAll, timeoutLeft);
+        const uint64_t timeoutLeft =
+            (timeout == UINT64_MAX) ? UINT64_MAX : ((timeout > timePassed) ? timeout - timePassed : 0);
+        return waitWithProcessDeathCheck(timeoutLeft, [&](uint64_t stepTimeoutNs) {
+            return vk->vkWaitForFences(unboxed_device, fenceCount, pFences, waitAll, stepTimeoutNs);
+        });
     }
 
     VkResult waitForFence(VkFence fence, uint64_t timeout) {

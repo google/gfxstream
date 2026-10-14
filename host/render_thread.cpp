@@ -352,7 +352,7 @@ intptr_t RenderThread::main() {
         tInfo->m_vkInfo.emplace();
     }
 
-    const ProcessResources* processResources = nullptr;
+    std::shared_ptr<const ProcessResources> processResources;
     if (mContextId && mContextId != INVALID_CONTEXT_ID) {
         tInfo->setPuid(mContextId);
         processResources = FrameBuffer::getFB()->getProcessResources(mContextId);
@@ -489,7 +489,7 @@ intptr_t RenderThread::main() {
                     .shouldExit = &mDecodersShouldStop,
                 };
                 last = tInfo->m_vkInfo->m_vkDec.decode(readBuf.buf(), readBuf.validData(), ioStream,
-                                                      processResources, context);
+                                                      processResources.get(), context);
                 if (last > 0) {
                     if (!processResources) {
                         GFXSTREAM_ERROR(

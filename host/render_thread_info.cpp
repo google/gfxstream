@@ -82,11 +82,12 @@ void RenderThreadInfo::setPuid(uint64_t puid) {
     }
 }
 
-void RenderThreadInfo::setProcessResources(const ProcessResources* processResources) {
+void RenderThreadInfo::setProcessResources(
+    std::shared_ptr<const ProcessResources> processResources) {
     AutoLock lock(sRegistry.lock);
-    m_processResources = processResources;
+    m_processResources = std::move(processResources);
     if (m_vkInfo) {
-        m_vkInfo->m_processResources = processResources;
+        m_vkInfo->m_processResources = m_processResources;
     }
 }
 

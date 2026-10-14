@@ -1066,6 +1066,56 @@ TEST_F(FrameBufferTest, CleanupProcGLObjects) {
     EXPECT_FALSE(mFb->getEmulationGl()->hasContextsOrWindowSurfaces());
 }
 
+TEST_F(FrameBufferTest, ReusePuidBeforeAsyncCleanupCompletes) {
+    const uint64_t testPuid = 99;
+    mFb->createGraphicsProcessResources(testPuid);
+    std::shared_ptr<const ProcessResources> firstProcResources = mFb->getProcessResources(testPuid);
+    ASSERT_NE(nullptr, firstProcResources);
+    EXPECT_FALSE(firstProcResources->isGuestProcessDead());
+
+    mRenderThreadInfo->setPuid(testPuid);
+    mRenderThreadInfo->setProcessResources(firstProcResources);
+
+    bool firstCleanupRan = false;
+    int firstKey = 1;
+    mFb->registerProcessCleanupCallback(&firstKey, testPuid, [&]() {
+        firstCleanupRan = true;
+    });
+
+    // Signal first process dead while its RenderThreadInfo is still active.
+    mFb->signalGuestProcessDead(testPuid);
+    EXPECT_TRUE(firstProcResources->isGuestProcessDead());
+
+    // Immediately reuse the same puid for a new guest process before the first cleanup finishes.
+    mFb->createGraphicsProcessResources(testPuid);
+    std::shared_ptr<const ProcessResources> secondProcResources =
+        mFb->getProcessResources(testPuid);
+    ASSERT_NE(nullptr, secondProcResources);
+    EXPECT_NE(firstProcResources, secondProcResources);
+    EXPECT_FALSE(secondProcResources->isGuestProcessDead());
+
+    bool secondCleanupRan = false;
+    int secondKey = 2;
+    mRenderThreadInfo->setProcessResources(secondProcResources);
+    mFb->registerProcessCleanupCallback(&secondKey, testPuid, [&]() {
+        secondCleanupRan = true;
+    });
+
+    // Having switched mRenderThreadInfo to secondProcResources, the first process has no active
+    // RenderThreadInfo anymore, so its async cleanup can complete without touching secondProcResources.
+    mFb->waitForAllPendingCleanups();
+    EXPECT_TRUE(firstCleanupRan);
+    EXPECT_FALSE(secondCleanupRan);
+    EXPECT_EQ(secondProcResources, mFb->getProcessResources(testPuid));
+
+    // Now clean up the second process.
+    mRenderThreadInfo->setProcessResources(nullptr);
+    mRenderThreadInfo->setPuid(0);
+    mFb->signalGuestProcessDead(testPuid);
+    mFb->waitForAllPendingCleanups();
+    EXPECT_TRUE(secondCleanupRan);
+}
+
 }  // namespace
 }  // namespace host
 }  // namespace gfxstream

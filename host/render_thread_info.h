@@ -56,12 +56,14 @@ struct RenderThreadInfo {
 
     void setPuid(uint64_t puid);
     uint64_t getPuid() const { return m_puid; };
-    void setProcessResources(const ProcessResources* processResources);
-    const ProcessResources* getProcessResources() const { return m_processResources; }
+    void setProcessResources(std::shared_ptr<const ProcessResources> processResources);
+    std::shared_ptr<const ProcessResources> getProcessResources() const {
+        return m_processResources;
+    }
 
     // The unique id of owner guest process of this render thread
     uint64_t m_puid = 0;
-    const ProcessResources* m_processResources = nullptr;
+    std::shared_ptr<const ProcessResources> m_processResources;
     std::optional<std::string> m_processName;
 
 #if GFXSTREAM_ENABLE_HOST_GLES

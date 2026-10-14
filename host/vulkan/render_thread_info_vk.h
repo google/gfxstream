@@ -40,7 +40,7 @@ struct RenderThreadInfoVk {
     bool onLoad(gfxstream::Stream* stream);
 
     uint32_t ctx_id = 0;
-    const ProcessResources* m_processResources = nullptr;
+    std::shared_ptr<const ProcessResources> m_processResources;
     VkDecoder m_vkDec;
 };
 
