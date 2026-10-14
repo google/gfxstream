@@ -29,6 +29,7 @@
 #include <stdio.h>
 
 #include <numeric>
+#include <optional>
 #include <unordered_map>
 
 #include "angle_shader_parser.h"
@@ -2056,6 +2057,100 @@ static void s_glGetInteger64i_v_wrapper(GLenum pname, GLuint index, GLint64* dat
     ctx->dispatcher().glGetInteger64i_v(pname, index, data);
 }
 
+static GLint s_getReadBufferInternalFormat(GLEScontext* ctx) {
+    if (!ctx) return 0;
+    GLuint readFboBinding = ctx->getFramebufferBinding(GL_READ_FRAMEBUFFER);
+    if (readFboBinding == 0) {
+        return ctx->getDefaultFBOColorFormat();
+    }
+    FramebufferData* fbData = (FramebufferData*)(ctx->getFBODataPtr(readFboBinding).get());
+    return fbData ? fbData->getAttachmentInternalFormat(ctx, fbData->getReadBuffer()) : 0;
+}
+
+static bool s_isReadBufferHalfFloat(GLEScontext* ctx) {
+    if (!ctx) return false;
+    GLint internalFormat = s_getReadBufferInternalFormat(ctx);
+    switch (internalFormat) {
+        case GL_RGBA16F:
+        case GL_RGB16F:
+        case GL_RG16F:
+        case GL_R16F:
+            return true;
+        default:
+            break;
+    }
+    GLuint readFboBinding = ctx->getFramebufferBinding(GL_READ_FRAMEBUFFER);
+    FramebufferData* fbData =
+        readFboBinding == 0 ? nullptr : (FramebufferData*)(ctx->getFBODataPtr(readFboBinding).get());
+    if (fbData && ctx->shareGroup().get()) {
+        GLenum target = 0;
+        GLuint name = fbData->getAttachment(fbData->getReadBuffer(), &target, nullptr);
+        if (name && target != GL_RENDERBUFFER) {
+            TextureData* texData = (TextureData*)ctx->shareGroup()->getObjectData(
+                NamedObjectType::TEXTURE, name);
+            if (texData &&
+                (texData->type == GL_HALF_FLOAT || texData->type == GL_HALF_FLOAT_OES) &&
+                (internalFormat == GL_RGBA || internalFormat == GL_RGB ||
+                 internalFormat == GL_RG || internalFormat == GL_RED ||
+                 internalFormat == GL_LUMINANCE_ALPHA || internalFormat == GL_LUMINANCE ||
+                 internalFormat == GL_ALPHA)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+static GLenum s_fallbackImplementationColorReadFormat(GLint internalFormat) {
+    switch (internalFormat) {
+        case GL_BGRA_EXT:
+        case GL_BGRA8_EXT:
+            return GL_BGRA_EXT;
+        default:
+            return baseFormatOfInternalFormat(internalFormat);
+    }
+}
+
+static GLenum s_fallbackImplementationColorReadType(GLEScontext* ctx, GLint internalFormat) {
+    if (s_isReadBufferHalfFloat(ctx)) {
+        return GL_HALF_FLOAT;
+    }
+    switch (internalFormat) {
+        case GL_R8I:
+        case GL_R16I:
+        case GL_R32I:
+        case GL_RG8I:
+        case GL_RG16I:
+        case GL_RG32I:
+        case GL_RGB8I:
+        case GL_RGB16I:
+        case GL_RGB32I:
+        case GL_RGBA8I:
+        case GL_RGBA16I:
+        case GL_RGBA32I:
+            return GL_INT;
+        case GL_R8UI:
+        case GL_R16UI:
+        case GL_R32UI:
+        case GL_RG8UI:
+        case GL_RG16UI:
+        case GL_RG32UI:
+        case GL_RGB8UI:
+        case GL_RGB16UI:
+        case GL_RGB32UI:
+        case GL_RGBA8UI:
+        case GL_RGBA16UI:
+        case GL_RGBA32UI:
+        case GL_RGB10_A2UI:
+            return GL_UNSIGNED_INT;
+        case GL_BGRA_EXT:
+        case GL_BGRA8_EXT:
+            return GL_UNSIGNED_BYTE;
+        default:
+            return accurateTypeOfInternalFormat(internalFormat);
+    }
+}
+
 template <class T>
 static void s_glStateQueryTv(bool es2, GLenum pname, T* params, GLStateQueryFunc<T> getter) {
     T i;
@@ -2277,6 +2372,39 @@ static void s_glStateQueryTv(bool es2, GLenum pname, T* params, GLStateQueryFunc
             getter(pname, params);
         }
         break;
+    case GL_IMPLEMENTATION_COLOR_READ_FORMAT:
+    case GL_IMPLEMENTATION_COLOR_READ_TYPE:
+        {
+            GLenum preErr = ctx->dispatcher().glGetError();
+            if (preErr != GL_NO_ERROR && ctx->getGLerror() == GL_NO_ERROR) {
+                ctx->setGLerror(preErr);
+            }
+
+            T val = 0;
+            getter(pname, &val);
+            GLenum queryErr = ctx->dispatcher().glGetError();
+
+            if (queryErr == GL_NO_ERROR && val != 0) {
+                if (pname == GL_IMPLEMENTATION_COLOR_READ_TYPE && s_isReadBufferHalfFloat(ctx)) {
+                    val = (T)GL_HALF_FLOAT;
+                }
+                *params = val;
+            } else {
+                GLint internalFormat = s_getReadBufferInternalFormat(ctx);
+                if (ctx->dispatcher().glCheckFramebufferStatus(GL_READ_FRAMEBUFFER) ==
+                        GL_FRAMEBUFFER_COMPLETE &&
+                    internalFormat != 0) {
+                    if (pname == GL_IMPLEMENTATION_COLOR_READ_FORMAT) {
+                        *params = (T)s_fallbackImplementationColorReadFormat(internalFormat);
+                    } else {
+                        *params = (T)s_fallbackImplementationColorReadType(ctx, internalFormat);
+                    }
+                } else if (ctx->getGLerror() == GL_NO_ERROR) {
+                    ctx->setGLerror(queryErr != GL_NO_ERROR ? queryErr : GL_INVALID_OPERATION);
+                }
+            }
+        }
+        break;
     default:
         getter(pname,params);
         break;
@@ -2436,6 +2564,13 @@ GL_APICALL void  GL_APIENTRY glGetBooleanv(GLenum pname, GLboolean* params){
             s_glGetBooleanv_wrapper(GL_POINT_SIZE_RANGE, params);
         } else {
             s_glGetBooleanv_wrapper(pname, params);
+        }
+        break;
+    case GL_IMPLEMENTATION_COLOR_READ_FORMAT:
+    case GL_IMPLEMENTATION_COLOR_READ_TYPE:
+        s_glStateQueryTv<GLint>(true, pname, &i, s_glGetIntegerv_wrapper);
+        if (i != 0) {
+            TO_GLBOOL(params, i);
         }
         break;
     default:
@@ -3301,6 +3436,328 @@ GL_APICALL void  GL_APIENTRY glPolygonOffset(GLfloat factor, GLfloat units){
 GL_APICALL void  GL_APIENTRY glRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height);
 GL_APICALL void GL_APIENTRY glBlitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
 
+static uint16_t s_floatToHalf(float value) {
+    uint32_t fbits = 0;
+    memcpy(&fbits, &value, sizeof(fbits));
+    uint32_t sign = (fbits >> 16) & 0x8000u;
+    uint32_t exp = (fbits >> 23) & 0xFFu;
+    uint32_t mantissa = fbits & 0x007FFFFFu;
+
+    if (exp == 0xFFu) {
+        if (mantissa != 0) {
+            uint16_t nanMantissa = static_cast<uint16_t>(mantissa >> 13);
+            if (nanMantissa == 0) {
+                nanMantissa = 1;
+            }
+            return static_cast<uint16_t>(sign | 0x7C00u | nanMantissa);
+        }
+        return static_cast<uint16_t>(sign | 0x7C00u);
+    }
+
+    int32_t halfExp = static_cast<int32_t>(exp) - 127 + 15;
+    if (halfExp >= 0x1F) {
+        return static_cast<uint16_t>(sign | 0x7C00u);
+    }
+
+    if (halfExp <= 0) {
+        if (halfExp < -10) {
+            return static_cast<uint16_t>(sign);
+        }
+        mantissa |= 0x00800000u;
+        uint32_t shift = static_cast<uint32_t>(14 - halfExp);
+        uint32_t halfMantissa = mantissa >> shift;
+        uint32_t remainderMask = (1u << shift) - 1u;
+        uint32_t remainder = mantissa & remainderMask;
+        uint32_t halfway = 1u << (shift - 1u);
+        if (remainder > halfway || (remainder == halfway && (halfMantissa & 1u))) {
+            halfMantissa++;
+        }
+        return static_cast<uint16_t>(sign | halfMantissa);
+    }
+
+    uint32_t halfMantissa = mantissa >> 13;
+    uint32_t remainder = mantissa & 0x1FFFu;
+    if (remainder > 0x1000u || (remainder == 0x1000u && (halfMantissa & 1u))) {
+        halfMantissa++;
+        if (halfMantissa == 0x0400u) {
+            halfMantissa = 0;
+            halfExp++;
+            if (halfExp >= 0x1F) {
+                return static_cast<uint16_t>(sign | 0x7C00u);
+            }
+        }
+    }
+
+    return static_cast<uint16_t>(sign | (static_cast<uint32_t>(halfExp) << 10) | halfMantissa);
+}
+
+static int s_componentsOfReadFormat(GLenum format) {
+    switch (format) {
+        case GL_RGBA:
+            return 4;
+        case GL_RGB:
+            return 3;
+        case GL_RG:
+        case GL_LUMINANCE_ALPHA:
+            return 2;
+        case GL_RED:
+        case GL_ALPHA:
+        case GL_LUMINANCE:
+            return 1;
+        default:
+            return 0;
+    }
+}
+
+struct ReadParams {
+    GLint packAlignment = 4;
+    GLint packRowLength = 0;
+    GLint packSkipPixels = 0;
+    GLint packSkipRows = 0;
+    size_t rowElements = 0;
+    size_t totalElements = 0;
+    size_t rowStride = 0;
+    size_t startOffset = 0;
+    size_t totalWriteBytes = 0;
+};
+
+static std::optional<ReadParams> s_getEmulatedReadParams(GLEScontext* ctx, GLsizei width,
+                                                         GLsizei height, GLenum format) {
+    const int components = s_componentsOfReadFormat(format);
+    if (width <= 0 || height <= 0 || components <= 0) {
+        return std::nullopt;
+    }
+
+    GLint fbWidth = 0;
+    GLint fbHeight = 0;
+    GLuint readFboBinding = ctx->getFramebufferBinding(GL_READ_FRAMEBUFFER);
+    if (readFboBinding == 0) {
+        fbWidth = ctx->getDefaultFBOWidth();
+        fbHeight = ctx->getDefaultFBOHeight();
+    } else {
+        FramebufferData* fbData = (FramebufferData*)(ctx->getFBODataPtr(readFboBinding).get());
+        if (fbData) {
+            fbData->getAttachmentDimensions(ctx, fbData->getReadBuffer(), &fbWidth, &fbHeight);
+        }
+    }
+    const GLint maxTexSize = ctx->getMaxTexSize();
+    const GLint maxWidth = (fbWidth > 0) ? fbWidth : maxTexSize;
+    const GLint maxHeight = (fbHeight > 0) ? fbHeight : maxTexSize;
+    if (maxWidth <= 0 || maxHeight <= 0 || width > maxWidth || height > maxHeight) {
+        return std::nullopt;
+    }
+
+    GLint packAlignment = 4;
+    GLint packRowLength = 0;
+    GLint packSkipPixels = 0;
+    GLint packSkipRows = 0;
+    ctx->dispatcher().glGetIntegerv(GL_PACK_ALIGNMENT, &packAlignment);
+    if (ctx->getMajorVersion() >= 3) {
+        ctx->dispatcher().glGetIntegerv(GL_PACK_ROW_LENGTH, &packRowLength);
+        ctx->dispatcher().glGetIntegerv(GL_PACK_SKIP_PIXELS, &packSkipPixels);
+        ctx->dispatcher().glGetIntegerv(GL_PACK_SKIP_ROWS, &packSkipRows);
+    }
+    if (packAlignment <= 0 || packRowLength < 0 || packSkipPixels < 0 || packSkipRows < 0 ||
+        (packRowLength > 0 && packRowLength < width)) {
+        return std::nullopt;
+    }
+
+    const size_t rowPixels =
+        (packRowLength > 0)
+            ? std::max(static_cast<size_t>(width), static_cast<size_t>(packRowLength))
+            : static_cast<size_t>(width);
+    const size_t bytesPerPixel = static_cast<size_t>(components) * sizeof(uint16_t);
+    const size_t maxSize = static_cast<size_t>(INT32_MAX);
+    if (rowPixels > maxSize / bytesPerPixel) {
+        return std::nullopt;
+    }
+
+    const size_t rowBytes = rowPixels * bytesPerPixel;
+    const size_t align = (packAlignment > 0) ? static_cast<size_t>(packAlignment) : 4;
+    if (rowBytes > maxSize - (align - 1)) {
+        return std::nullopt;
+    }
+    const size_t rowStride = ((rowBytes + align - 1) / align) * align;
+
+    const size_t skipRows = static_cast<size_t>(packSkipRows);
+    const size_t skipPixels = static_cast<size_t>(packSkipPixels);
+    if ((rowStride > 0 && skipRows > maxSize / rowStride) ||
+        skipPixels > maxSize / bytesPerPixel) {
+        return std::nullopt;
+    }
+    const size_t skipRowsBytes = skipRows * rowStride;
+    const size_t skipPixelsBytes = skipPixels * bytesPerPixel;
+    if (skipRowsBytes > maxSize - skipPixelsBytes) {
+        return std::nullopt;
+    }
+    const size_t startOffset = skipRowsBytes + skipPixelsBytes;
+    if (rowStride > 0 && static_cast<size_t>(height) > (maxSize - startOffset) / rowStride) {
+        return std::nullopt;
+    }
+
+    const size_t rowElements = static_cast<size_t>(width) * static_cast<size_t>(components);
+    if (static_cast<size_t>(height) > maxSize / (rowElements * sizeof(float))) {
+        return std::nullopt;
+    }
+    const size_t totalElements = static_cast<size_t>(height) * rowElements;
+    const size_t totalWriteBytes =
+        (static_cast<size_t>(height) - 1) * rowStride + rowElements * sizeof(uint16_t);
+
+    return ReadParams{
+        .packAlignment = packAlignment,
+        .packRowLength = packRowLength,
+        .packSkipPixels = packSkipPixels,
+        .packSkipRows = packSkipRows,
+        .rowElements = rowElements,
+        .totalElements = totalElements,
+        .rowStride = rowStride,
+        .startOffset = startOffset,
+        .totalWriteBytes = totalWriteBytes,
+    };
+}
+
+static void s_doEmulatedReadHalfFloatPixels(GLEScontext* ctx, GLint x, GLint y, GLsizei width,
+                                            GLsizei height, GLenum format, GLenum type,
+                                            GLvoid* pixels) {
+    auto op = s_getEmulatedReadParams(ctx, width, height, format);
+    if (!op) {
+        // Fallback and hope for the best.
+        ctx->dispatcher().glReadPixels(x, y, width, height, format, type, pixels);
+        return;
+    }
+    const ReadParams& params = *op;
+
+    GLuint pbo = (ctx->getMajorVersion() >= 3) ? ctx->getBuffer(GL_PIXEL_PACK_BUFFER) : 0;
+    GLuint globalPbo =
+        (pbo != 0 && ctx->shareGroup().get())
+            ? ctx->shareGroup()->getGlobalName(NamedObjectType::VERTEXBUFFER, pbo)
+            : 0;
+    if (pbo != 0) {
+        ctx->dispatcher().glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+    }
+    if (params.packAlignment != 4) {
+        ctx->dispatcher().glPixelStorei(GL_PACK_ALIGNMENT, 4);
+    }
+    if (params.packRowLength != 0) {
+        ctx->dispatcher().glPixelStorei(GL_PACK_ROW_LENGTH, 0);
+    }
+    if (params.packSkipPixels != 0) {
+        ctx->dispatcher().glPixelStorei(GL_PACK_SKIP_PIXELS, 0);
+    }
+    if (params.packSkipRows != 0) {
+        ctx->dispatcher().glPixelStorei(GL_PACK_SKIP_ROWS, 0);
+    }
+
+    std::vector<float> tmpFloats(params.totalElements);
+    ctx->dispatcher().glReadPixels(x, y, width, height, format, GL_FLOAT, tmpFloats.data());
+    GLenum readErr = ctx->dispatcher().glGetError();
+
+    if (params.packAlignment != 4) {
+        ctx->dispatcher().glPixelStorei(GL_PACK_ALIGNMENT, params.packAlignment);
+    }
+    if (params.packRowLength != 0) {
+        ctx->dispatcher().glPixelStorei(GL_PACK_ROW_LENGTH, params.packRowLength);
+    }
+    if (params.packSkipPixels != 0) {
+        ctx->dispatcher().glPixelStorei(GL_PACK_SKIP_PIXELS, params.packSkipPixels);
+    }
+    if (params.packSkipRows != 0) {
+        ctx->dispatcher().glPixelStorei(GL_PACK_SKIP_ROWS, params.packSkipRows);
+    }
+    if (pbo != 0) {
+        ctx->dispatcher().glBindBuffer(GL_PIXEL_PACK_BUFFER, globalPbo);
+    }
+
+    if (readErr != GL_NO_ERROR) {
+        if (ctx->getGLerror() == GL_NO_ERROR) {
+            ctx->setGLerror(readErr);
+        }
+        return;
+    }
+
+    uint8_t* dstBase = nullptr;
+    std::vector<uint8_t> pboBuffer;
+    if (pbo != 0) {
+        pboBuffer.resize(params.totalWriteBytes);
+        dstBase = pboBuffer.data();
+    } else if (pixels != nullptr) {
+        dstBase = static_cast<uint8_t*>(pixels) + params.startOffset;
+    }
+
+    if (dstBase != nullptr) {
+        for (GLsizei row = 0; row < height; ++row) {
+            const float* srcRow = tmpFloats.data() + static_cast<size_t>(row) * params.rowElements;
+            uint16_t* dstRow = reinterpret_cast<uint16_t*>(
+                dstBase + static_cast<size_t>(row) * params.rowStride);
+            for (size_t i = 0; i < params.rowElements; ++i) {
+                dstRow[i] = s_floatToHalf(srcRow[i]);
+            }
+        }
+    }
+
+    if (pbo != 0) {
+        uintptr_t baseOffset = reinterpret_cast<uintptr_t>(pixels) + params.startOffset;
+        ctx->dispatcher().glBufferSubData(GL_PIXEL_PACK_BUFFER, static_cast<GLintptr>(baseOffset),
+                                          static_cast<GLsizeiptr>(pboBuffer.size()),
+                                          pboBuffer.data());
+        readErr = ctx->dispatcher().glGetError();
+        if (readErr != GL_NO_ERROR && ctx->getGLerror() == GL_NO_ERROR) {
+            ctx->setGLerror(readErr);
+        }
+    }
+}
+
+static void s_doReadHalfFloatPixels(GLEScontext* ctx, GLint x, GLint y, GLsizei width,
+                                    GLsizei height, GLenum format, GLenum type, GLvoid* pixels) {
+    GLenum preErr = ctx->dispatcher().glGetError();
+    if (preErr != GL_NO_ERROR && ctx->getGLerror() == GL_NO_ERROR) {
+        ctx->setGLerror(preErr);
+    }
+
+    GLint hostReadType = 0;
+    ctx->dispatcher().glGetIntegerv(GL_IMPLEMENTATION_COLOR_READ_TYPE, &hostReadType);
+    GLenum queryErr = ctx->dispatcher().glGetError();
+
+    const bool needsEmulationRead =
+        (queryErr == GL_NO_ERROR && hostReadType != 0 &&
+         hostReadType != GL_HALF_FLOAT && hostReadType != GL_HALF_FLOAT_OES);
+    if (needsEmulationRead) {
+        s_doEmulatedReadHalfFloatPixels(ctx, x, y, width, height, format, type, pixels);
+        return;
+    }
+
+    ctx->dispatcher().glReadPixels(x, y, width, height, format, type, pixels);
+    GLenum readErr = ctx->dispatcher().glGetError();
+    if (readErr == GL_INVALID_OPERATION || readErr == GL_INVALID_ENUM) {
+        s_doEmulatedReadHalfFloatPixels(ctx, x, y, width, height, format, type, pixels);
+        return;
+    }
+    if (readErr != GL_NO_ERROR && ctx->getGLerror() == GL_NO_ERROR) {
+        ctx->setGLerror(readErr);
+    }
+}
+
+static void s_doReadPixels(GLEScontext* ctx, GLint x, GLint y, GLsizei width, GLsizei height,
+                           GLenum format, GLenum type, GLvoid* pixels) {
+    if (!isGles2Gles() && type == GL_HALF_FLOAT_OES) {
+        type = GL_HALF_FLOAT;
+    }
+
+    if (width == 0 || height == 0) {
+        // no-op
+        return;
+    }
+
+    if (width > 0 && height > 0 &&
+        (type == GL_HALF_FLOAT || type == GL_HALF_FLOAT_OES) &&
+        s_isReadBufferHalfFloat(ctx)) {
+        s_doReadHalfFloatPixels(ctx, x, y, width, height, format, type, pixels);
+        return;
+    }
+
+    ctx->dispatcher().glReadPixels(x, y, width, height, format, type, pixels);
+}
+
 GL_APICALL void  GL_APIENTRY glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid* pixels){
     GET_CTX();
     SET_ERROR_IF(!(GLESv2Validate::pixelOp(format,type)),GL_INVALID_OPERATION);
@@ -3340,7 +3797,7 @@ GL_APICALL void  GL_APIENTRY glReadPixels(GLint x, GLint y, GLsizei width, GLsiz
 
         glBindFramebuffer(GL_READ_FRAMEBUFFER, resolve_fbo);
 
-        ctx->dispatcher().glReadPixels(x,y,width,height,format,type,pixels);
+        s_doReadPixels(ctx, x, y, width, height, format, type, pixels);
 
         glDeleteRenderbuffers(1, &resolve_rbo);
         glDeleteFramebuffers(1, &resolve_fbo);
@@ -3350,7 +3807,7 @@ GL_APICALL void  GL_APIENTRY glReadPixels(GLint x, GLint y, GLsizei width, GLsiz
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prev_bound_draw_fbo);
         glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
     } else {
-        ctx->dispatcher().glReadPixels(x,y,width,height,format,type,pixels);
+        s_doReadPixels(ctx, x, y, width, height, format, type, pixels);
     }
 }
 
@@ -4330,15 +4787,6 @@ GL_APICALL void GL_APIENTRY glEGLImageTargetRenderbufferStorageOES(GLenum target
     SET_ERROR_IF(!img,GL_INVALID_VALUE);
     SET_ERROR_IF(!ctx->shareGroup().get(),GL_INVALID_OPERATION);
 
-    if (img->isNative) {
-        if (!ctx->dispatcher().glEGLImageTargetRenderbufferStorageOES) {
-            fprintf(stderr, "%s: warning, glEGLImageTargetRenderbufferStorageOES not found\n", __func__);
-        } else {
-            ctx->dispatcher().glEGLImageTargetRenderbufferStorageOES(target, (GLeglImageOES)img->nativeImage);
-        }
-        return;
-    }
-
     // Get current bounded renderbuffer
     // raise INVALID_OPERATIOn if no renderbuffer is bounded
     GLuint rb = ctx->getRenderbufferBinding();
@@ -4347,6 +4795,19 @@ GL_APICALL void GL_APIENTRY glEGLImageTargetRenderbufferStorageOES(GLenum target
             ctx->shareGroup()->getObjectData(NamedObjectType::RENDERBUFFER, rb);
     RenderbufferData *rbData = (RenderbufferData *)objData;
     SET_ERROR_IF(!rbData,GL_INVALID_OPERATION);
+
+    rbData->internalformat = img->internalFormat;
+    rbData->width = img->width;
+    rbData->height = img->height;
+
+    if (img->isNative) {
+        if (!ctx->dispatcher().glEGLImageTargetRenderbufferStorageOES) {
+            fprintf(stderr, "%s: warning, glEGLImageTargetRenderbufferStorageOES not found\n", __func__);
+        } else {
+            ctx->dispatcher().glEGLImageTargetRenderbufferStorageOES(target, (GLeglImageOES)img->nativeImage);
+        }
+        return;
+    }
 
     //
     // acquire the texture in the renderbufferData that it is an eglImage target
