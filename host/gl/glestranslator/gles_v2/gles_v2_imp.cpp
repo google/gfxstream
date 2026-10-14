@@ -445,8 +445,8 @@ static void s_detachShader(GLEScontext* ctx, GLuint program, GLuint shader) {
     if (ctx && shader && ctx->shareGroup().get()) {
         auto shaderData = ctx->shareGroup()->getObjectData(
                 NamedObjectType::SHADER_OR_PROGRAM, shader);
-        if (!shaderData) return;
-        ShaderParser* shaderParser = (ShaderParser*)shaderData;
+        if (!shaderData || shaderData->getDataType() != SHADER_DATA) return;
+        ShaderParser* shaderParser = static_cast<ShaderParser*>(shaderData);
         shaderParser->detachProgram(program);
         if (shaderParser->getDeleteStatus()
                 && !shaderParser->hasAttachedPrograms()) {
@@ -3898,9 +3898,11 @@ static int s_getHostLocOrSetError(GLESv2Context* ctx, GLint location) {
 static int s_getHostLocOrSetError(GLESv2Context* ctx, GLuint program,
         GLint location) {
     if (!ctx) return -1;
-    ProgramData* pData = (ProgramData*)ctx->shareGroup()->getObjectDataPtr(
-            NamedObjectType::SHADER_OR_PROGRAM, program).get();
-    RET_AND_SET_ERROR_IF(!pData, GL_INVALID_OPERATION, -2);
+    auto objData = ctx->shareGroup()->getObjectDataPtr(
+            NamedObjectType::SHADER_OR_PROGRAM, program);
+    RET_AND_SET_ERROR_IF(!objData || objData->getDataType() != PROGRAM_DATA,
+                         GL_INVALID_OPERATION, -2);
+    ProgramData* pData = static_cast<ProgramData*>(objData.get());
     return pData->getHostUniformLocation(location);
 }
 
