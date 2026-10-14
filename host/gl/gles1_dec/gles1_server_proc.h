@@ -111,7 +111,8 @@ typedef void (gles1_APIENTRY *glGenBuffers_server_proc_t) (void *ctx, GLsizei, G
 typedef void (gles1_APIENTRY *glGenBuffers_dec_server_proc_t) (GLsizei, GLuint*);
 typedef void (gles1_APIENTRY *glGenTextures_server_proc_t) (void *ctx, GLsizei, GLuint*);
 typedef void (gles1_APIENTRY *glGenTextures_dec_server_proc_t) (GLsizei, GLuint*);
-typedef GLenum (gles1_APIENTRY *glGetError_server_proc_t) ();
+typedef GLenum (gles1_APIENTRY *glGetError_server_proc_t) (void *ctx);
+typedef GLenum (gles1_APIENTRY *glGetError_dec_server_proc_t) ();
 typedef void (gles1_APIENTRY *glGetFixedv_server_proc_t) (GLenum, GLfixed*);
 typedef void (gles1_APIENTRY *glGetIntegerv_server_proc_t) (GLenum, GLint*);
 typedef void (gles1_APIENTRY *glGetLightxv_server_proc_t) (GLenum, GLenum, GLfixed*);

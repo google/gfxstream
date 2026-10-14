@@ -707,3 +707,6 @@ glExtGetProgramBinarySourceQCOM
 glReadnPixelsEXT
     dir data out
     len data bufSize
+
+glGetError
+    flag custom_decoder

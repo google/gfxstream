@@ -105,7 +105,7 @@ int gles1_server_context_t::initDispatchByName(void *(*getProc)(const char *, vo
 	glClipPlanex = (glClipPlanex_server_proc_t) getProc("glClipPlanex", userData);
 	glGenBuffers = (glGenBuffers_dec_server_proc_t) getProc("glGenBuffers", userData);
 	glGenTextures = (glGenTextures_dec_server_proc_t) getProc("glGenTextures", userData);
-	glGetError = (glGetError_server_proc_t) getProc("glGetError", userData);
+	glGetError = (glGetError_dec_server_proc_t) getProc("glGetError", userData);
 	glGetFixedv = (glGetFixedv_server_proc_t) getProc("glGetFixedv", userData);
 	glGetIntegerv = (glGetIntegerv_server_proc_t) getProc("glGetIntegerv", userData);
 	glGetLightxv = (glGetLightxv_server_proc_t) getProc("glGetLightxv", userData);

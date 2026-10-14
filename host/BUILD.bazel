@@ -245,6 +245,7 @@ cc_test(
         "//host/common:gfxstream_host_common",
         "//host/features:gfxstream_host_features",
         "//host/gl:gfxstream_opengl_server",
+        "//host/gl/gles2_dec:gfxstream_gles2_dec",
         "//host/gl/glestranslator/common:gfxstream_glestranslator_common_headers",
         "//host/testlibs/oswindow:gfxstream_oswindow_test_support",
         "//host/testlibs/support:gfxstream_host_testing_support",

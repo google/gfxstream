@@ -106,7 +106,8 @@ typedef int (gles2_APIENTRY *glGetAttribLocation_server_proc_t) (void *ctx, GLui
 typedef int (gles2_APIENTRY *glGetAttribLocation_dec_server_proc_t) (GLuint, const GLchar*);
 typedef void (gles2_APIENTRY *glGetBooleanv_server_proc_t) (GLenum, GLboolean*);
 typedef void (gles2_APIENTRY *glGetBufferParameteriv_server_proc_t) (GLenum, GLenum, GLint*);
-typedef GLenum (gles2_APIENTRY *glGetError_server_proc_t) ();
+typedef GLenum (gles2_APIENTRY *glGetError_server_proc_t) (void *ctx);
+typedef GLenum (gles2_APIENTRY *glGetError_dec_server_proc_t) ();
 typedef void (gles2_APIENTRY *glGetFloatv_server_proc_t) (GLenum, GLfloat*);
 typedef void (gles2_APIENTRY *glGetFramebufferAttachmentParameteriv_server_proc_t) (GLenum, GLenum, GLenum, GLint*);
 typedef void (gles2_APIENTRY *glGetIntegerv_server_proc_t) (GLenum, GLint*);
@@ -155,7 +156,8 @@ typedef void (gles2_APIENTRY *glRenderbufferStorage_server_proc_t) (GLenum, GLen
 typedef void (gles2_APIENTRY *glSampleCoverage_server_proc_t) (GLclampf, GLboolean);
 typedef void (gles2_APIENTRY *glScissor_server_proc_t) (GLint, GLint, GLsizei, GLsizei);
 typedef void (gles2_APIENTRY *glShaderBinary_server_proc_t) (GLsizei, const GLuint*, GLenum, const GLvoid*, GLsizei);
-typedef void (gles2_APIENTRY *glShaderSource_server_proc_t) (GLuint, GLsizei, const GLchar* const*, const GLint*);
+typedef void (gles2_APIENTRY *glShaderSource_server_proc_t) (void *ctx, GLuint, GLsizei, const GLchar* const*, const GLint*);
+typedef void (gles2_APIENTRY *glShaderSource_dec_server_proc_t) (GLuint, GLsizei, const GLchar* const*, const GLint*);
 typedef void (gles2_APIENTRY *glStencilFunc_server_proc_t) (GLenum, GLint, GLuint);
 typedef void (gles2_APIENTRY *glStencilFuncSeparate_server_proc_t) (GLenum, GLenum, GLint, GLuint);
 typedef void (gles2_APIENTRY *glStencilMask_server_proc_t) (GLuint);
@@ -301,7 +303,8 @@ typedef void (gles2_APIENTRY *glUniformBlockBinding_server_proc_t) (void *ctx, G
 typedef void (gles2_APIENTRY *glUniformBlockBinding_dec_server_proc_t) (GLuint, GLuint, GLuint);
 typedef GLuint (gles2_APIENTRY *glGetUniformBlockIndex_server_proc_t) (void *ctx, GLuint, const GLchar*);
 typedef GLuint (gles2_APIENTRY *glGetUniformBlockIndex_dec_server_proc_t) (GLuint, const GLchar*);
-typedef void (gles2_APIENTRY *glGetUniformIndices_server_proc_t) (GLuint, GLsizei, const GLchar**, GLuint*);
+typedef void (gles2_APIENTRY *glGetUniformIndices_server_proc_t) (void *ctx, GLuint, GLsizei, const GLchar**, GLuint*);
+typedef void (gles2_APIENTRY *glGetUniformIndices_dec_server_proc_t) (GLuint, GLsizei, const GLchar**, GLuint*);
 typedef void (gles2_APIENTRY *glGetUniformIndicesAEMU_server_proc_t) (void *ctx, GLuint, GLsizei, const GLchar*, GLsizei, GLuint*);
 typedef void (gles2_APIENTRY *glGetActiveUniformBlockiv_server_proc_t) (void *ctx, GLuint, GLuint, GLenum, GLint*);
 typedef void (gles2_APIENTRY *glGetActiveUniformBlockiv_dec_server_proc_t) (GLuint, GLuint, GLenum, GLint*);
@@ -437,7 +440,8 @@ typedef void (gles2_APIENTRY *glUseProgramStages_server_proc_t) (void *ctx, GLui
 typedef void (gles2_APIENTRY *glUseProgramStages_dec_server_proc_t) (GLuint, GLbitfield, GLuint);
 typedef void (gles2_APIENTRY *glActiveShaderProgram_server_proc_t) (void *ctx, GLuint, GLuint);
 typedef void (gles2_APIENTRY *glActiveShaderProgram_dec_server_proc_t) (GLuint, GLuint);
-typedef GLuint (gles2_APIENTRY *glCreateShaderProgramv_server_proc_t) (GLenum, GLsizei, const char**);
+typedef GLuint (gles2_APIENTRY *glCreateShaderProgramv_server_proc_t) (void *ctx, GLenum, GLsizei, const char**);
+typedef GLuint (gles2_APIENTRY *glCreateShaderProgramv_dec_server_proc_t) (GLenum, GLsizei, const char**);
 typedef GLuint (gles2_APIENTRY *glCreateShaderProgramvAEMU_server_proc_t) (void *ctx, GLenum, GLsizei, const char*, GLuint);
 typedef void (gles2_APIENTRY *glProgramUniform1f_server_proc_t) (void *ctx, GLuint, GLint, GLfloat);
 typedef void (gles2_APIENTRY *glProgramUniform1f_dec_server_proc_t) (GLuint, GLint, GLfloat);

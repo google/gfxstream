@@ -136,7 +136,15 @@ int GLESv1Decoder::initGL(get_proc_func_t getProcFunc, void *getProcFuncData)
     glDeleteFramebuffersOES_dec = s_glDeleteFramebuffersOES;
     glDeleteVertexArraysOES_dec = s_glDeleteVertexArraysOES;
 
+    glGetError_dec = s_glGetError;
+
     return 0;
+}
+
+GLenum GLESv1Decoder::s_glGetError(void *self)
+{
+    GLESv1Decoder *ctx = (GLESv1Decoder *)self;
+    return ctx->glGetError();
 }
 
 int GLESv1Decoder::s_glFinishRoundTrip(void *self)

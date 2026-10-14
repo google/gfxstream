@@ -109,7 +109,8 @@ struct gles1_server_context_t {
 	glGenBuffers_server_proc_t glGenBuffers_dec;
 	glGenTextures_dec_server_proc_t glGenTextures;
 	glGenTextures_server_proc_t glGenTextures_dec;
-	glGetError_server_proc_t glGetError;
+	glGetError_dec_server_proc_t glGetError;
+	glGetError_server_proc_t glGetError_dec;
 	glGetFixedv_server_proc_t glGetFixedv;
 	glGetIntegerv_server_proc_t glGetIntegerv;
 	glGetLightxv_server_proc_t glGetLightxv;
