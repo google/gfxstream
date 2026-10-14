@@ -1954,6 +1954,57 @@ TEST_F(FrameBufferTest, GlesPointerSetArrayAndCopyMoveSemantics) {
     EXPECT_EQ(valueMoved.getValues(), valueMoved.getData());
 }
 
+
+TEST_F(FrameBufferTest, Gles3GetIntegeriVAndVertexAttribMaxIndexBoundsChecked) {
+    if (!mFb->hasEmulationGl()) {
+        GTEST_SKIP() << "GL emulation not enabled.";
+    }
+
+    HandleType ctx = mFb->createEmulatedEglContext(0, 0, gl::GLESApi_3_1);
+    ASSERT_NE((HandleType)0, ctx);
+    HandleType surface = mFb->createEmulatedEglWindowSurface(0, mWidth, mHeight);
+    ASSERT_NE((HandleType)0, surface);
+    EXPECT_TRUE(mFb->bindContext(ctx, surface, surface));
+
+    auto& gl2 = mRenderThreadInfo->m_glInfo->m_gl2Dec;
+    const GLenum kIndexedTargets[] = {
+        GL_TRANSFORM_FEEDBACK_BUFFER_BINDING,
+        GL_UNIFORM_BUFFER_BINDING,
+        GL_ATOMIC_COUNTER_BUFFER_BINDING,
+        GL_SHADER_STORAGE_BUFFER_BINDING,
+    };
+    for (GLenum target : kIndexedTargets) {
+        GLint val32 = -1;
+        gl2.glGetIntegeri_v(target, 0x7fffffffu, &val32);
+        EXPECT_EQ(0, val32);
+
+        GLint64 val64 = -1;
+        gl2.glGetInteger64i_v(target, 0x7fffffffu, &val64);
+        EXPECT_EQ(0, val64);
+    }
+
+    // Attribute index 16 (== kMaxVertexAttributes) must not index past the 16-element
+    // VAO attribute vector.
+    constexpr GLuint kOutOfBoundsAttrib = 16;
+    GLfloat verts[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+    (void)gl2.glGetError();
+    gl2.glEnableVertexAttribArray(kOutOfBoundsAttrib);
+    EXPECT_EQ((GLenum)GL_INVALID_VALUE, gl2.glGetError());
+    gl2.glDisableVertexAttribArray(kOutOfBoundsAttrib);
+    EXPECT_EQ((GLenum)GL_INVALID_VALUE, gl2.glGetError());
+    gl2.glVertexAttribPointerData(&gl2, kOutOfBoundsAttrib, 4, GL_FLOAT, GL_FALSE, 0, verts,
+                                  sizeof(verts));
+    EXPECT_EQ((GLenum)GL_INVALID_VALUE, gl2.glGetError());
+    gl2.glVertexAttribBinding(kOutOfBoundsAttrib, 0);
+    EXPECT_EQ((GLenum)GL_INVALID_VALUE, gl2.glGetError());
+    gl2.glVertexAttribFormat(kOutOfBoundsAttrib, 4, GL_FLOAT, GL_FALSE, 0);
+    EXPECT_EQ((GLenum)GL_INVALID_VALUE, gl2.glGetError());
+
+    EXPECT_TRUE(mFb->bindContext(0, 0, 0));
+    mFb->destroyEmulatedEglContext(ctx);
+    mFb->destroyEmulatedEglWindowSurface(surface);
+}
+
 }  // namespace
 }  // namespace host
 }  // namespace gfxstream

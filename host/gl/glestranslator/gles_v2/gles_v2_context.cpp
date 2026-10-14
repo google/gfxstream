@@ -224,13 +224,13 @@ void GLESv2Context::addVertexArrayObject(GLuint array) {
 
 void GLESv2Context::enableArr(GLenum arrType, bool enable) {
     uint32_t index = (uint32_t)arrType;
-    if (index > kMaxVertexAttributes) return;
+    if (index >= kMaxVertexAttributes) return;
     m_currVaoState.attribInfo()[index].enable(enable);
 }
 
 const GLESpointer* GLESv2Context::getPointer(GLenum arrType) {
     uint32_t index = (uint32_t)arrType;
-    if (index > kMaxVertexAttributes) return nullptr;
+    if (index >= kMaxVertexAttributes) return nullptr;
     return m_currVaoState.attribInfo().data() + index;
 }
 
@@ -749,13 +749,13 @@ void GLESv2Context::setVertexAttribDivisor(GLuint bindingindex, GLuint divisor) 
 }
 
 void GLESv2Context::setVertexAttribBindingIndex(GLuint attribindex, GLuint bindingindex) {
-    if (attribindex > kMaxVertexAttributes) return;
+    if (attribindex >= kMaxVertexAttributes) return;
 
     m_currVaoState.attribInfo()[attribindex].setBindingIndex(bindingindex);
 }
 
 void GLESv2Context::setVertexAttribFormat(GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint reloffset, bool isInt) {
-    if (attribindex > kMaxVertexAttributes) return;
+    if (attribindex >= kMaxVertexAttributes) return;
     m_currVaoState.attribInfo()[attribindex].setFormat(size, type, normalized == GL_TRUE, reloffset, isInt);
 }
 

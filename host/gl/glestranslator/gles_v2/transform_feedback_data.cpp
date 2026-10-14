@@ -86,5 +86,6 @@ void TransformFeedbackData::unbindBuffer(GLuint buffer) {
 }
 
 GLuint TransformFeedbackData::getIndexedBuffer(GLuint index) {
+    if (index >= m_indexedTransformFeedbackBuffers.size()) return 0;
     return m_indexedTransformFeedbackBuffers[index].buffer;
 }
