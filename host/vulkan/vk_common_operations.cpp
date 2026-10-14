@@ -2233,21 +2233,6 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
 
     auto allocInfoChain = vk_make_chain_iterator(&allocInfo);
 
-    // HostAllocation mode uses host side allocation and should not add VkExportMemoryAllocateInfo.
-    // AndroidAHB mode uses AHardwareBuffer_allocate + import instead of export (see switch below).
-    if (mDeviceInfo.supportsExternalMemoryExport &&
-        getExternalMemoryMode() != ExternalMemory::Mode::HostAllocation &&
-        getExternalMemoryMode() != ExternalMemory::Mode::AndroidAHB) {
-        exportAi.handleTypes =
-            static_cast<VkExternalMemoryHandleTypeFlags>(getDefaultExternalMemoryHandleType());
-
-        if (mDeviceInfo.supportsDmaBuf) {
-            exportAi.handleTypes |= VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
-        }
-
-        vk_append_struct(&allocInfoChain, &exportAi);
-    }
-
     if (bufferForDedicatedAllocation.hasValue() || imageForDedicatedAllocation.hasValue()) {
         info->dedicatedAllocation = true;
         if (bufferForDedicatedAllocation.hasValue()) {
@@ -2489,6 +2474,29 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
             break;
     }
 
+    // HostAllocation mode uses host side allocation and should not add VkExportMemoryAllocateInfo.
+    // AndroidAHB mode uses AHardwareBuffer_allocate + import for ColorBuffers instead of export.
+    // Non-ColorBuffer allocations (e.g. VkBuffer in setupVkBuffer) or when AHB import was not used
+    // (e.g. allocAhb failure) still rely on export, so they must add VkExportMemoryAllocateInfo.
+    bool isAndroidAhbImport = false;
+#ifdef __ANDROID__
+    isAndroidAhbImport = (getExternalMemoryMode() == ExternalMemory::Mode::AndroidAHB &&
+                          importAhbInfo.buffer != nullptr);
+#endif
+
+    if (mDeviceInfo.supportsExternalMemoryExport &&
+        getExternalMemoryMode() != ExternalMemory::Mode::HostAllocation &&
+        !isAndroidAhbImport) {
+        exportAi.handleTypes =
+            static_cast<VkExternalMemoryHandleTypeFlags>(getDefaultExternalMemoryHandleType());
+
+        if (mDeviceInfo.supportsDmaBuf) {
+            exportAi.handleTypes |= VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
+        }
+
+        vk_append_struct(&allocInfoChain, &exportAi);
+    }
+
     bool memoryAllocated = false;
     std::vector<VkDeviceMemory> allocationAttempts;
     constexpr size_t kMaxAllocationAttempts = 20u;
@@ -2626,10 +2634,12 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
                 exportRes =
                     vk->vkGetMemoryAndroidHardwareBufferANDROID(mDevice, &getAhbInfo, &exportHandle);
                 validHandle = (VK_SUCCESS == exportRes) && (NULL != exportHandle);
-                info->handleInfo = ExternalHandleInfo{
-                    .handle = reinterpret_cast<ExternalHandleType>(exportHandle),
-                    .streamHandleType = STREAM_HANDLE_TYPE_PLATFORM_AHB,
-                };
+                if (validHandle) {
+                    info->handleInfo = ExternalHandleInfo{
+                        .handle = reinterpret_cast<ExternalHandleType>(exportHandle),
+                        .streamHandleType = STREAM_HANDLE_TYPE_PLATFORM_AHB,
+                    };
+                }
             }
 #endif
             break;
