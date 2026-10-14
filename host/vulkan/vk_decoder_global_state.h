@@ -80,6 +80,8 @@ class VkDecoderGlobalState {
     // Snapshot save/load
     bool snapshotsEnabled() const;
     bool isSnapshotCurrentlyLoading() const;
+    void setSnapshotLoadError();
+    bool hasSnapshotLoadError() const;
 
     bool batchedDescriptorSetUpdateEnabled() const;
 
