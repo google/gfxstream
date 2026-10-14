@@ -2005,6 +2005,59 @@ TEST_F(FrameBufferTest, Gles3GetIntegeriVAndVertexAttribMaxIndexBoundsChecked) {
     mFb->destroyEmulatedEglWindowSurface(surface);
 }
 
+TEST_F(FrameBufferTest, Gles2DetachShaderWithProgramHandleDoesNotConfuseTypes) {
+    if (!mFb->hasEmulationGl()) {
+        GTEST_SKIP() << "GL emulation not enabled.";
+    }
+
+    HandleType ctx = mFb->createEmulatedEglContext(0, 0, gl::GLESApi_3_1);
+    ASSERT_NE((HandleType)0, ctx);
+    HandleType surface = mFb->createEmulatedEglWindowSurface(0, mWidth, mHeight);
+    ASSERT_NE((HandleType)0, surface);
+    EXPECT_TRUE(mFb->bindContext(ctx, surface, surface));
+
+    auto& gl2 = mRenderThreadInfo->m_glInfo->m_gl2Dec;
+    GLuint prog1 = gl2.glCreateProgram_dec(&gl2);
+    GLuint prog2 = gl2.glCreateProgram_dec(&gl2);
+    ASSERT_NE(0u, prog1);
+    ASSERT_NE(0u, prog2);
+    (void)gl2.glGetError();
+
+    // 1. Attempting to attach a program handle as a shader must fail with GL_INVALID_OPERATION.
+    gl2.glAttachShader_dec(&gl2, prog1, prog2);
+    EXPECT_EQ((GLenum)GL_INVALID_OPERATION, gl2.glGetError());
+
+    // 2. Attempting to detach a program handle as a shader must fail with GL_INVALID_OPERATION.
+    gl2.glDetachShader_dec(&gl2, prog1, prog2);
+    EXPECT_EQ((GLenum)GL_INVALID_OPERATION, gl2.glGetError());
+
+    // 3. Attaching and detaching a valid shader handle exercises s_detachShader cleanly.
+    GLuint vs = gl2.glCreateShader_dec(&gl2, GL_VERTEX_SHADER);
+    ASSERT_NE(0u, vs);
+    gl2.glAttachShader_dec(&gl2, prog1, vs);
+    EXPECT_EQ((GLenum)GL_NO_ERROR, gl2.glGetError());
+    gl2.glDetachShader_dec(&gl2, prog1, vs);
+    EXPECT_EQ((GLenum)GL_NO_ERROR, gl2.glGetError());
+
+    // 4. Passing a shader handle instead of a program handle to program APIs must be
+    // rejected with GL_INVALID_OPERATION without type confusion.
+    gl2.glUseProgram_dec(&gl2, vs);
+    EXPECT_EQ((GLenum)GL_INVALID_OPERATION, gl2.glGetError());
+
+    (void)gl2.glGetUniformLocation_dec(&gl2, vs, "u_test");
+    EXPECT_EQ((GLenum)GL_INVALID_OPERATION, gl2.glGetError());
+
+    gl2.glProgramUniform1i_dec(&gl2, vs, 0, 1);
+    EXPECT_EQ((GLenum)GL_INVALID_OPERATION, gl2.glGetError());
+
+    gl2.glDeleteShader_dec(&gl2, vs);
+    gl2.glDeleteProgram_dec(&gl2, prog1);
+    gl2.glDeleteProgram_dec(&gl2, prog2);
+    EXPECT_TRUE(mFb->bindContext(0, 0, 0));
+    mFb->destroyEmulatedEglContext(ctx);
+    mFb->destroyEmulatedEglWindowSurface(surface);
+}
+
 }  // namespace
 }  // namespace host
 }  // namespace gfxstream

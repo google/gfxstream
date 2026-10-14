@@ -370,9 +370,14 @@ void ProgramData::onSave(gfxstream::Stream* stream, unsigned int globalName) con
 
 void ProgramData::postLoad(const getObjDataPtr_t& getObjDataPtr) {
     for (auto& s : attachedShaders) {
-        if (s.localName) {
-            s.shader = (ShaderParser*)getObjDataPtr(
-                    NamedObjectType::SHADER_OR_PROGRAM, s.localName).get();
+        if (!s.localName) continue;
+        ObjectData* od = getObjDataPtr(
+                NamedObjectType::SHADER_OR_PROGRAM, s.localName).get();
+        if (od && od->getDataType() == SHADER_DATA) {
+            s.shader = static_cast<ShaderParser*>(od);
+        } else {
+            s.shader = nullptr;
+            s.localName = 0;
         }
     }
 }
