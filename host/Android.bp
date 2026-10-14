@@ -196,6 +196,7 @@ cc_test_host {
         "libgfxstream_common_image",
         "libgfxstream_common_logging",
         "libgfxstream_common_testenv",
+        "libgfxstream_host_glestranslator_glcommon",
         "libgfxstream_host_test_support",
         "libgfxstream_host_vulkan_server",
         "libgfxstream_host_address_space",
