@@ -39,6 +39,7 @@
 #include "gfxstream/host/address_space_graphics.h"
 #include "gfxstream/host/graphics_driver_lock.h"
 #include "host/gl/emulation_gl.h"
+#include "host/gl/yuv_converter.h"
 #include "render_channel_impl.h"
 #include "render_thread_info.h"
 
@@ -344,6 +345,35 @@ TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_ReadYV12) {
                              forRead.data()));
 
     mFb->closeColorBuffer(handle);
+}
+
+TEST_F(FrameBufferTest, ColorBufferGlReplaceContentsRejectsUndersizedBuffer) {
+    if (!mFb->hasEmulationGl()) {
+        GTEST_SKIP() << "GL emulation not enabled.";
+    }
+
+    // 100x100 YV12 requires 16-byte (or 32-byte under minigbm) luma/chroma row alignment
+    // (>= 17,600 bytes), whereas an unaligned 4:2:0 buffer is only 15,000 bytes (b/511631253).
+    constexpr uint32_t kYv12Width = 100;
+    constexpr uint32_t kYv12Height = 100;
+    gl::YUVConverter yv12Converter(kYv12Width, kYv12Height, GfxstreamFormat::YV12);
+    const uint32_t yv12NeededBytes = yv12Converter.getDataSize();
+    constexpr size_t kUnalignedYv12Bytes = kYv12Width * kYv12Height * 3 / 2;
+    EXPECT_GT(yv12NeededBytes, kUnalignedYv12Bytes);
+
+    // P010 uses 2 bytes per sample (3 * w * h bytes total).
+    gl::YUVConverter p010Converter(16, 16, GfxstreamFormat::P010);
+    EXPECT_EQ(p010Converter.getDataSize(), 16u * 16u * 3u);
+
+    auto yv12Cb = mFb->getEmulationGl()->createColorBuffer(
+        kYv12Width, kYv12Height, GfxstreamFormat::YV12, /*handle=*/1001);
+    ASSERT_NE(nullptr, yv12Cb);
+
+    std::vector<uint8_t> undersizedBuf(kUnalignedYv12Bytes, 0);
+    EXPECT_FALSE(yv12Cb->replaceContents(undersizedBuf.data(), undersizedBuf.size()));
+
+    std::vector<uint8_t> fullBuf(yv12NeededBytes, 0);
+    EXPECT_TRUE(yv12Cb->replaceContents(fullBuf.data(), fullBuf.size()));
 }
 
 // bug: 110105029
