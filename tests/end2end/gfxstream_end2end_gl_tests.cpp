@@ -1657,6 +1657,50 @@ TEST_P(GfxstreamEnd2EndGlTest, AhbExternalOesTextureBlitProgramBinary) {
     }
 }
 
+TEST_P(GfxstreamEnd2EndGlTest, ReadPixelsHalfFloatFromRgba16fFramebuffer) {
+    const GLsizei width = 4;
+    const GLsizei height = 4;
+
+    ScopedGlFramebuffer fbo(*mGl);
+    mGl->glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+    ScopedGlTexture tex16f(*mGl);
+    mGl->glBindTexture(GL_TEXTURE_2D, tex16f);
+    mGl->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_HALF_FLOAT,
+                      nullptr);
+    mGl->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex16f, 0);
+    ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+    ASSERT_THAT(mGl->glCheckFramebufferStatus(GL_FRAMEBUFFER), Eq(GL_FRAMEBUFFER_COMPLETE));
+
+    GLint readFormat = 0;
+    GLint readType = 0;
+    mGl->glGetIntegerv(GL_IMPLEMENTATION_COLOR_READ_FORMAT, &readFormat);
+    ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+    mGl->glGetIntegerv(GL_IMPLEMENTATION_COLOR_READ_TYPE, &readType);
+    ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+    EXPECT_THAT(readFormat, Eq(GL_RGBA));
+    EXPECT_THAT(readType, Eq(GL_HALF_FLOAT));
+
+    mGl->glViewport(0, 0, width, height);
+    mGl->glClearColor(1.0f, 0.5f, 0.25f, 1.0f);
+    mGl->glClear(GL_COLOR_BUFFER_BIT);
+    ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+    std::vector<uint16_t> halfPixels(width * height * 4, 0);
+    mGl->glReadPixels(0, 0, width, height, GL_RGBA, GL_HALF_FLOAT, halfPixels.data());
+    ASSERT_THAT(mGl->glGetError(), Eq(GL_NO_ERROR));
+
+    // IEEE 754 binary16: 1.0f = 0x3C00, 0.5f = 0x3800, 0.25f = 0x3400
+    for (int i = 0; i < width * height; ++i) {
+        EXPECT_THAT(halfPixels[i * 4 + 0], Eq(0x3C00));
+        EXPECT_THAT(halfPixels[i * 4 + 1], Eq(0x3800));
+        EXPECT_THAT(halfPixels[i * 4 + 2], Eq(0x3400));
+        EXPECT_THAT(halfPixels[i * 4 + 3], Eq(0x3C00));
+    }
+
+    mGl->glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 INSTANTIATE_TEST_SUITE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndGlTest,
                          ::testing::ValuesIn({
                              TestParams{
