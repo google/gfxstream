@@ -417,19 +417,30 @@ VkObjectT unbox_VkType(VkObjectT boxed) {
     VkObjectT unboxed = VK_NULL_HANDLE;
 
     if constexpr (std::is_same_v<VkObjectT, VkQueue>) {
+        // Queue handles require special unboxing due to virtual queue support
         unboxed = unbox_VkQueueImpl(boxed);
+        if (unboxed == VK_NULL_HANDLE) {
+            GFXSTREAM_ERROR("Failed to unbox %s %p", GetTypeStr<VkObjectT>(), boxed);
+            if (VkDecoderGlobalState::get()->isSnapshotCurrentlyLoading()) {
+                VkDecoderGlobalState::get()->setSnapshotLoadError();
+            }
+        }
     } else {
         BoxedHandleInfo* info = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);
         if (info == nullptr) {
-            if constexpr (std::is_same_v<VkObjectT, VkCommandBuffer> ||
-                          std::is_same_v<VkObjectT, VkDevice> ||
-                          std::is_same_v<VkObjectT, VkInstance> ||
-                          std::is_same_v<VkObjectT, VkPhysicalDevice> ||
-                          std::is_same_v<VkObjectT, VkQueue>) {
+            if (VkDecoderGlobalState::get()->isSnapshotCurrentlyLoading()) {
+                // During snapshot load, do not crash the emulator, just log the error
+                // The caller will handle it and fail snapshot loading.
+                GFXSTREAM_ERROR("Failed to unbox %s %p during snapshot load", GetTypeStr<VkObjectT>(), boxed);
+                VkDecoderGlobalState::get()->setSnapshotLoadError();
+            } else if constexpr (std::is_same_v<VkObjectT, VkCommandBuffer> ||
+                                 std::is_same_v<VkObjectT, VkDevice> ||
+                                 std::is_same_v<VkObjectT, VkInstance> ||
+                                 std::is_same_v<VkObjectT, VkFence> ||
+                                 std::is_same_v<VkObjectT, VkPhysicalDevice>) {
                 GFXSTREAM_ERROR("Failed to unbox %s %p", GetTypeStr<VkObjectT>(), boxed);
-            } else if constexpr (std::is_same_v<VkObjectT, VkFence>) {
-                // TODO: investigate.
             } else {
+                // This should not happen during runtime
                 GFXSTREAM_FATAL("Failed to unbox %s %p", GetTypeStr<VkObjectT>(), boxed);
             }
             unboxed = VK_NULL_HANDLE;
@@ -516,6 +527,9 @@ VulkanDispatch* get_dispatch_VkType(VkObjectT boxed) {
     BoxedHandleInfo* info = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);
     if (info == nullptr) {
         GFXSTREAM_ERROR("Failed to unbox %s %p", GetTypeStr<VkObjectT>(), boxed);
+        if (VkDecoderGlobalState::get()->isSnapshotCurrentlyLoading()) {
+            VkDecoderGlobalState::get()->setSnapshotLoadError();
+        }
         return nullptr;
     }
     return info->dispatch;

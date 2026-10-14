@@ -105,6 +105,12 @@ using gfxstream::host::GfxApiLogger;
 template <typename T>
 void validateRequiredHandle(const char* api_name, const char* parameter_name, T value) {
     if (value == VK_NULL_HANDLE) {
+        if (VkDecoderGlobalState::get()->isSnapshotCurrentlyLoading()) {
+            GFXSTREAM_ERROR("Invalid required handle for %s param %s during snapshot load",
+                            api_name, parameter_name);
+            VkDecoderGlobalState::get()->setSnapshotLoadError();
+            return;
+        }
         GFXSTREAM_FATAL("Invalid required handle for %s param %s", api_name, parameter_name);
     }
 }
@@ -609,7 +615,15 @@ class VkDecoderGlobalState::Impl {
         GFXSTREAM_DEBUG("VulkanSnapshots save (begin)");
         std::lock_guard<std::mutex> lock(mMutex);
 
-        mSnapshotState = SnapshotState::Saving;
+        struct ScopedSnapshotSaveState {
+            Impl* self;
+            ScopedSnapshotSaveState(Impl* impl) : self(impl) {
+                self->mSnapshotState = SnapshotState::Saving;
+            }
+            ~ScopedSnapshotSaveState() {
+                self->mSnapshotState = SnapshotState::Normal;
+            }
+        } scopedSnapshotSaveState(this);
 
 #ifdef CONFIG_AEMU
         if (!mInstanceInfo.empty()) {
@@ -927,7 +941,6 @@ class VkDecoderGlobalState::Impl {
         // Semaphores
         saveSemaphores(stream);
 
-        mSnapshotState = SnapshotState::Normal;
         GFXSTREAM_DEBUG("VulkanSnapshots save (end)");
         if (stream && stream->hasErrors()) {
             GFXSTREAM_ERROR("VulkanSnapshots save failed due to stream errors: %s",
@@ -942,6 +955,17 @@ class VkDecoderGlobalState::Impl {
         // from FrameBuffer's onLoad method.
         GFXSTREAM_DEBUG("VulkanSnapshots load (begin)");
 
+        struct ScopedSnapshotLoadState {
+            Impl* self;
+            ~ScopedSnapshotLoadState() {
+                std::lock_guard<std::mutex> lock(self->mMutex);
+                self->mSnapshotLoadVkDeviceToVirtioCpuContextId.reset();
+                self->mSnapshotLoadBoxedInstance2ContextId.clear();
+                self->mSnapshotState = SnapshotState::Normal;
+                sBoxedHandleManager.replayHandles({});
+            }
+        } scopedSnapshotLoadState{this};
+
         // destroy all current internal data structures
         GFXSTREAM_DEBUG("snapshot load: setup internal structures");
         {
@@ -950,6 +974,7 @@ class VkDecoderGlobalState::Impl {
             clearLocked();
 
             mSnapshotState = SnapshotState::Loading;
+            mSnapshotLoadHasError = false;
 
             // This needs to happen before the replay in the decoder so that virtio gpu context ids
             // are available for operations involving `ExternalObjectManager`.
@@ -1004,6 +1029,10 @@ class VkDecoderGlobalState::Impl {
             if (consumed != decoderReplayBuffer.size()) {
                 GFXSTREAM_ERROR("Failed to completely decode snapshot replay buffer. Consumed %zu of %zu bytes",
                                 consumed, decoderReplayBuffer.size());
+                return false;
+            }
+            if (mSnapshotLoadHasError) {
+                GFXSTREAM_ERROR("Failed to decode snapshot replay buffer due to errors.");
                 return false;
             }
         }
@@ -1434,11 +1463,12 @@ class VkDecoderGlobalState::Impl {
 
             // semaphores
             loadSemaphores(stream);
-
-            mSnapshotLoadBoxedInstance2ContextId.clear();
-            mSnapshotState = SnapshotState::Normal;
         }
         GFXSTREAM_DEBUG("VulkanSnapshots load (end)");
+        if (hasSnapshotLoadError()) {
+            GFXSTREAM_ERROR("VulkanSnapshots load failed due to handle unboxing errors.");
+            return false;
+        }
         if (stream && stream->hasErrors()) {
             GFXSTREAM_ERROR("VulkanSnapshots load failed due to stream errors: %s",
                             stream->getErrors().value_or("unknown error").c_str());
@@ -3016,11 +3046,15 @@ class VkDecoderGlobalState::Impl {
 
         if (mSnapshotState == SnapshotState::Loading) {
             if (!mSnapshotLoadVkDeviceToVirtioCpuContextId) {
-                GFXSTREAM_FATAL("Missing device to context id map during snapshot load.");
+                GFXSTREAM_ERROR("Missing device to context id map during snapshot load.");
+                setSnapshotLoadError();
+                return VK_ERROR_INITIALIZATION_FAILED;
             }
             auto contextIdIt = mSnapshotLoadVkDeviceToVirtioCpuContextId->find(boxedDevice);
             if (contextIdIt == mSnapshotLoadVkDeviceToVirtioCpuContextId->end()) {
-                GFXSTREAM_FATAL("Missing context id for VkDevice:%p", boxedDevice);
+                GFXSTREAM_ERROR("Missing context id for VkDevice:%p", boxedDevice);
+                setSnapshotLoadError();
+                return VK_ERROR_INITIALIZATION_FAILED;
             }
             deviceInfo.virtioGpuContextId = contextIdIt->second;
         } else {
@@ -10674,6 +10708,8 @@ class VkDecoderGlobalState::Impl {
     VkDecoderSnapshot* snapshot() { return &mSnapshot; }
 
     bool isSnapshotCurrentlyLoading() const { return mSnapshotState == SnapshotState::Loading; }
+    void setSnapshotLoadError() { mSnapshotLoadHasError = true; }
+    bool hasSnapshotLoadError() const { return mSnapshotLoadHasError; }
 
    private:
     bool isEmulatedInstanceExtension(const char* name) const {
@@ -11768,6 +11804,7 @@ class VkDecoderGlobalState::Impl {
         Loading,
     };
     SnapshotState mSnapshotState = SnapshotState::Normal;
+    std::atomic<bool> mSnapshotLoadHasError = false;
 
     // NOTE: Only present during snapshot loading. This is needed to associate
     // `VkDevice`s with Virtio GPU context ids because API calls are not currently
@@ -11876,6 +11913,14 @@ uint64_t VkDecoderGlobalState::newGlobalVkGenericHandle(BoxedHandleTypeTag typeT
 
 bool VkDecoderGlobalState::isSnapshotCurrentlyLoading() const {
     return mImpl->isSnapshotCurrentlyLoading();
+}
+
+void VkDecoderGlobalState::setSnapshotLoadError() {
+    mImpl->setSnapshotLoadError();
+}
+
+bool VkDecoderGlobalState::hasSnapshotLoadError() const {
+    return mImpl->hasSnapshotLoadError();
 }
 
 const gfxstream::host::FeatureSet& VkDecoderGlobalState::getFeatures() const { return mImpl->getFeatures(); }
