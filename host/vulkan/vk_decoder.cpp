@@ -163,7 +163,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
             if (seqnoPtr && !m_forSnapshotLoad) {
                 {
                     while ((seqno - seqnoPtr->load(std::memory_order_seq_cst) != 1)) {
-                        if (shouldExit.load(std::memory_order_relaxed)) {
+                        if (shouldExit.load(std::memory_order_relaxed) ||
+                            (processResources && processResources->isGuestProcessDead())) {
                             GFXSTREAM_WARNING(
                                 "Process=%s is exitting. Skip processing seqno=%d on thread=0x%x.",
                                 processName ? processName : "null", seqno,

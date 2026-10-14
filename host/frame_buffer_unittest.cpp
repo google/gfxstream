@@ -36,6 +36,8 @@
 #include "gfxstream/host/testing/ShaderUtils.h"
 #include "gfxstream/host/window_operations.h"
 #include "gfxstream/system/System.h"
+#include "gfxstream/host/address_space_graphics.h"
+#include "gfxstream/host/graphics_driver_lock.h"
 #include "host/gl/emulation_gl.h"
 #include "render_channel_impl.h"
 #include "render_thread_info.h"
@@ -901,6 +903,8 @@ class RenderThreadDeadlockTest : public ::testing::Test {
     }
 
     void TearDown() override {
+        AddressSpaceGraphicsContext::clear();
+        AddressSpaceGraphicsContext::setConsumer({});
         FrameBuffer::finalize();
     }
 };
@@ -934,14 +938,17 @@ TEST_F(RenderThreadDeadlockTest, ReproDeadlockOnTeardown) {
 
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-    std::promise<void> teardownPromise;
-    std::future<void> teardownFuture = teardownPromise.get_future();
+    auto teardownPromise = std::make_shared<std::promise<void>>();
+    std::future<void> teardownFuture = teardownPromise->get_future();
 
-    std::thread teardownThread([&]() {
-        channel->stop();
-        channel.reset();
-        teardownPromise.set_value();
-    });
+    std::thread teardownThread(
+        [fb, channel = std::move(channel), teardownPromise]() mutable {
+            fb->signalGuestProcessDead(contextId);
+            fb->waitForAllPendingCleanups();
+            channel->stop();
+            channel.reset();
+            teardownPromise->set_value();
+        });
 
     std::future_status status = teardownFuture.wait_for(std::chrono::seconds(3));
     if (status == std::future_status::timeout) {
@@ -950,8 +957,109 @@ TEST_F(RenderThreadDeadlockTest, ReproDeadlockOnTeardown) {
     } else {
         teardownThread.join();
     }
+}
 
-    fb->removeGraphicsProcessResources(contextId);
+TEST_F(RenderThreadDeadlockTest, ReproAsgFullMessageChannelDeadlockOnTeardown) {
+    auto fb = FrameBuffer::getFB();
+    ASSERT_NE(nullptr, fb);
+    if (!fb->hasEmulationVk()) {
+        GTEST_SKIP() << "Vulkan emulation not supported on this host.";
+    }
+
+    AddressSpaceGraphicsContext::setConsumer(ConsumerInterface{
+        .create = [](const AsgConsumerCreateInfo& info, Stream* loadStream) -> ConsumerHandle {
+            auto* thread = new RenderThread(info, loadStream);
+            thread->start();
+            return static_cast<void*>(thread);
+        },
+        .destroy = [](void* consumer) {
+            auto* thread = static_cast<RenderThread*>(consumer);
+            thread->waitForFinished();
+            {
+                gfxstream::base::AutoLock driverLock(*graphicsDriverLock());
+                thread->sendExitSignal();
+                thread->wait();
+            }
+            delete thread;
+        },
+        .preSave = [](void*) {},
+        .globalPreSave = []() {},
+        .save = [](void*, Stream*) {},
+        .globalPostSave = []() {},
+        .postSave = [](void*) {},
+        .postLoad = [](void*) {},
+        .globalPreLoad = []() {},
+        .reloadRingConfig = [](void*) {},
+    });
+
+    const uint32_t contextId = 12346;
+    fb->createGraphicsProcessResources(contextId);
+
+    auto asgMemory =
+        std::make_shared<std::vector<uint8_t>>(kAsgConsumerRingStorageSize + kAsgWriteBufferSize, 0);
+    AddressSpaceCreateInfo createInfo = {
+        .handle = 1,
+        .type = ADDRESS_SPACE_CONTEXT_TYPE_VIRTIO_GPU_GRAPHICS,
+        .createRenderThread = true,
+        .externalAddr = asgMemory->data(),
+        .externalAddrSize = static_cast<uint64_t>(asgMemory->size()),
+        .virtioGpuContextId = contextId,
+        .virtioGpuCapsetId = 0,
+        .contextName = "test-asg",
+        .contextNameSize = 8,
+    };
+    auto asg = std::make_unique<AddressSpaceGraphicsContext>(createInfo);
+
+    char* ringStorage = reinterpret_cast<char*>(asgMemory->data());
+    char* writeBuffer = ringStorage + kAsgConsumerRingStorageSize;
+    auto* toHostRing = reinterpret_cast<struct ring_buffer*>(
+        ringStorage + offsetof(struct asg_ring_storage, to_host));
+
+    uint32_t flags = 0;
+    uint32_t opcode = 200000000;  // OP_vkCreateInstance
+    uint32_t packetLen = 12;
+    uint32_t seqno = 2;
+    std::memcpy(writeBuffer, &flags, sizeof(flags));
+    std::memcpy(writeBuffer + 4, &opcode, sizeof(opcode));
+    std::memcpy(writeBuffer + 8, &packetLen, sizeof(packetLen));
+    std::memcpy(writeBuffer + 12, &seqno, sizeof(seqno));
+
+    asg_type1_xfer xfer = {
+        .offset = 0,
+        .size = 16,
+    };
+    ASSERT_EQ(1, ring_buffer_write(toHostRing, &xfer, sizeof(xfer), 1));
+
+    // Wake up RenderThread so it enters VkDecoder::Impl::decode and spins on seqno = 2,
+    // then send additional ASG_NOTIFY_AVAILABLE pings to fill mConsumerMessages (capacity 4).
+    AddressSpaceDevicePingInfo pingInfo = {
+        .metadata = ASG_NOTIFY_AVAILABLE,
+    };
+    asg->perform(&pingInfo);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    for (int i = 0; i < 6; ++i) {
+        asg->perform(&pingInfo);
+    }
+
+    auto teardownPromise = std::make_shared<std::promise<void>>();
+    std::future<void> teardownFuture = teardownPromise->get_future();
+
+    std::thread teardownThread(
+        [fb, asg = std::move(asg), asgMemory, teardownPromise]() mutable {
+            fb->signalGuestProcessDead(contextId);
+            asg.reset();
+            fb->waitForAllPendingCleanups();
+            AddressSpaceGraphicsContext::clear();
+            teardownPromise->set_value();
+        });
+
+    std::future_status status = teardownFuture.wait_for(std::chrono::seconds(3));
+    if (status == std::future_status::timeout) {
+        teardownThread.detach();
+        ADD_FAILURE() << "Deadlock detected! ASG teardown timed out after 3 seconds.";
+    } else {
+        teardownThread.join();
+    }
 }
 
 // ASGs historically used a fixed capacity message queue which would lead to deadlocks

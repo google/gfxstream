@@ -567,6 +567,10 @@ intptr_t RenderThread::main() {
             }
 #endif
         } while (progress);
+
+        if (processResources && processResources->isGuestProcessDead()) {
+            break;
+        }
     }
 
 #if GFXSTREAM_ENABLE_HOST_GLES
