@@ -279,7 +279,7 @@ class Renderer {
     virtual void cleanupProcGLObjects(uint64_t puid) = 0;
 
     // Wait for cleanupProcGLObjects to finish.
-    virtual void waitForProcessCleanup() = 0;
+    virtual bool waitForProcessCleanup() = 0;
 
     virtual struct AndroidVirtioGpuOps* getVirtioGpuOps(void) = 0;
 
@@ -292,7 +292,7 @@ class Renderer {
     virtual void finish() = 0;
 
     // Pauses all channels to prepare for snapshot saving.
-    virtual void pauseAllPreSave() = 0;
+    virtual bool pauseAllPreSave() = 0;
 
     // Resumes all channels after snapshot saving or loading.
     virtual void resumeAll() = 0;

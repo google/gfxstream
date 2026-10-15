@@ -53,6 +53,7 @@ using gfxstream::base::SharedMemory;
 using gfxstream::host::snapshot::VirtioGpuContextSnapshot;
 using gfxstream::host::snapshot::VirtioGpuFrontendSnapshot;
 using gfxstream::host::snapshot::VirtioGpuResourceSnapshot;
+
 #endif  // ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
 
 // Helper for printing very detailed debug logs
@@ -1087,7 +1088,14 @@ int VirtioGpuFrontend::snapshot(const char* directory) {
         GFXSTREAM_ERROR("Failed to restore renderer: renderer not available.");
         return -EINVAL;
     }
-    mRenderer->pauseAllPreSave();
+    if (!mRenderer->pauseAllPreSave()) {
+        GFXSTREAM_ERROR("Failed to save snapshot: failed to pause renderer pre-save.");
+        return -ETIMEDOUT;
+    }
+    struct ScopedResume {
+        RendererPtr& renderer;
+        ~ScopedResume() { renderer->resumeAll(); }
+    } scopedResume{mRenderer};
 
     int ret = snapshotRenderer(directory);
     if (ret) {

@@ -18,7 +18,9 @@
 
 #include <stdint.h>
 
+#include <chrono>
 #include <memory>
+#include <optional>
 
 #if GFXSTREAM_ENABLE_HOST_GLES
 #include <EGL/egl.h>
@@ -196,7 +198,8 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
     std::shared_ptr<ProcessResources> removeGraphicsProcessResources(uint64_t puid);
     void signalGuestProcessDead(uint64_t puid);
     void enqueueAsyncCleanup(std::function<void()> cleanup);
-    void waitForAllPendingCleanups();
+    bool waitForAllPendingCleanups(
+        std::optional<std::chrono::milliseconds> timeout = std::nullopt);
 
     // Read the content of a given Buffer into client memory.
     // |p_buffer| is the Buffer's handle value.

@@ -57,6 +57,7 @@ namespace host {
 //   in the context of RenderWindow thread, which will become blocked on the UI
 //   thread, which may in turn be blocked on something else.
 static const bool kUseSubwindowThread = false;
+static constexpr auto kCleanupTimeout = std::chrono::milliseconds(15000);
 
 RendererImpl::RendererImpl() = default;
 
@@ -170,10 +171,11 @@ void RendererImpl::cleanupRenderThreads() {
     }
 }
 
-void RendererImpl::waitForProcessCleanup() {
+bool RendererImpl::waitForProcessCleanup() {
     if (auto* fb = FrameBuffer::getFB()) {
-        fb->waitForAllPendingCleanups();
+        return fb->waitForAllPendingCleanups(kCleanupTimeout);
     }
+    return true;
 }
 
 RenderChannelPtr RendererImpl::createRenderChannel(
@@ -267,17 +269,26 @@ void RendererImpl::addressSpaceGraphicsConsumerReloadRingConfig(void* consumer) 
     thread->addressSpaceGraphicsReloadRingConfig();
 }
 
-void RendererImpl::pauseAllPreSave() {
+bool RendererImpl::pauseAllPreSave() {
     {
         std::lock_guard<std::mutex> lock(mChannelsMutex);
         if (mStopped) {
-            return;
+            return true;
+        }
+    }
+    if (!waitForProcessCleanup()) {
+        return false;
+    }
+    {
+        std::lock_guard<std::mutex> lock(mChannelsMutex);
+        if (mStopped) {
+            return true;
         }
         for (const auto& c : mChannels) {
             c->renderThread()->pausePreSnapshot();
         }
     }
-    waitForProcessCleanup();
+    return true;
 }
 
 void RendererImpl::resumeAll() {
@@ -344,7 +355,10 @@ bool RendererImpl::save(gfxstream::Stream* stream,
 
 bool RendererImpl::load(gfxstream::Stream* stream,
                         const ITextureLoaderPtr& textureLoader) {
-    waitForProcessCleanup();
+    if (!waitForProcessCleanup()) {
+        GFXSTREAM_ERROR("Failed to load snapshot: timed out waiting for process cleanup.");
+        return false;
+    }
 
     mStopped = stream->getByte();
     if (mStopped) {

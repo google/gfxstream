@@ -420,7 +420,8 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
 
     void signalGuestProcessDead(uint64_t puid);
     void enqueueAsyncCleanup(std::function<void()> cleanup);
-    void waitForAllPendingCleanups();
+    bool waitForAllPendingCleanups(
+        std::optional<std::chrono::milliseconds> timeout = std::nullopt);
 
     void readBuffer(HandleType p_buffer, uint64_t offset, uint64_t size, void* bytes);
 
@@ -996,7 +997,10 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
             mCleanupWorker.join();
         }
 
-        void waitForCleanup() { mCleanupWorker.waitQueuedItems(); }
+        bool waitForCleanup(
+            std::optional<std::chrono::milliseconds> timeout = std::nullopt) {
+            return mCleanupWorker.waitQueuedItems(timeout);
+        }
 
        private:
         struct Exit {};
@@ -1008,7 +1012,7 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
     ProcessCleanupThread m_processCleanupThread;
 
     // Flag set when emulator is shutting down.
-    bool m_shuttingDown = false;
+    std::atomic_bool m_shuttingDown = false;
 
     // When this feature is enabled, open/close operations from gralloc in guest
     // will no longer control the reference counting of color buffers on host.
@@ -2460,8 +2464,9 @@ void FrameBuffer::Impl::enqueueAsyncCleanup(std::function<void()> cleanup) {
     m_processCleanupThread.enqueueCleanup(std::move(cleanup));
 }
 
-void FrameBuffer::Impl::waitForAllPendingCleanups() {
-    m_processCleanupThread.waitForCleanup();
+bool FrameBuffer::Impl::waitForAllPendingCleanups(
+    std::optional<std::chrono::milliseconds> timeout) {
+    return m_processCleanupThread.waitForCleanup(timeout);
 }
 
 void FrameBuffer::Impl::cleanupGuestProcess(uint64_t puid,
@@ -2478,10 +2483,10 @@ void FrameBuffer::Impl::cleanupGuestProcess(uint64_t puid,
                     renderThreadWithThisPuidExists = true;
                 }
             });
-        if (renderThreadWithThisPuidExists) {
+        if (renderThreadWithThisPuidExists && !m_shuttingDown) {
             gfxstream::base::sleepUs(10000);
         }
-    } while (renderThreadWithThisPuidExists);
+    } while (renderThreadWithThisPuidExists && !m_shuttingDown);
 
     AutoLock mutex(m_lock);
 
@@ -4805,7 +4810,10 @@ void FrameBuffer::enqueueAsyncCleanup(std::function<void()> cleanup) {
     mImpl->enqueueAsyncCleanup(std::move(cleanup));
 }
 
-void FrameBuffer::waitForAllPendingCleanups() { mImpl->waitForAllPendingCleanups(); }
+bool FrameBuffer::waitForAllPendingCleanups(
+    std::optional<std::chrono::milliseconds> timeout) {
+    return mImpl->waitForAllPendingCleanups(timeout);
+}
 
 void FrameBuffer::readBuffer(HandleType p_buffer, uint64_t offset, uint64_t size, void* bytes) {
     mImpl->readBuffer(p_buffer, offset, size, bytes);
