@@ -4143,13 +4143,18 @@ void FrameBuffer::Impl::createEmulatedEglFenceSync(EGLenum type, int destroyWhen
     }
 }
 
-void FrameBuffer::Impl::drainGlRenderThreadResources() {
+void FrameBuffer::Impl::drainGlRenderThreadResources() NO_THREAD_SAFETY_ANALYSIS {
     // If we're already exiting then snapshot should not contain
     // this thread information at all.
     if (isShuttingDown()) {
         return;
     }
 
+    // Draining binds the shared pbuffer context and closes ColorBuffers, so
+    // it must hold m_lock like every other user of that context. Otherwise
+    // another thread (e.g. a ColorBuffer update from the media decoder)
+    // fails to make the context current and runs its GL calls without one.
+    AutoLock mutex(m_lock);
     if (m_emulationGl) {
         m_emulationGl->drainRenderThreadResources();
     }
