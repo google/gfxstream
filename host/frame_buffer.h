@@ -375,9 +375,9 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
     IColorBufferRef findColorBuffer(HandleType p_colorbuffer);
     BufferPtr findBuffer(HandleType p_buffer);
 
-    void registerProcessCleanupCallback(void* key, uint64_t contextId,
+    bool registerProcessCleanupCallback(void* key, uint64_t contextId,
                                         std::function<void()> callback);
-    void unregisterProcessCleanupCallback(void* key);
+    bool unregisterProcessCleanupCallback(void* key);
 
     const ProcessResources* getProcessResources(uint64_t puid);
 

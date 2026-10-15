@@ -32,6 +32,7 @@
 namespace gfxstream {
 namespace host {
 class GlobalState;
+class ProcessResources;
 
 // A class used to model the state of each RenderThread related
 struct RenderThreadInfo {
@@ -55,9 +56,12 @@ struct RenderThreadInfo {
 
     void setPuid(uint64_t puid);
     uint64_t getPuid() const { return m_puid; };
+    void setProcessResources(const ProcessResources* processResources);
+    const ProcessResources* getProcessResources() const { return m_processResources; }
 
     // The unique id of owner guest process of this render thread
     uint64_t m_puid = 0;
+    const ProcessResources* m_processResources = nullptr;
     std::optional<std::string> m_processName;
 
 #if GFXSTREAM_ENABLE_HOST_GLES

@@ -33,9 +33,9 @@ class GlobalState {
     virtual bool closeColorBufferByWindow(uint32_t colorBufferHandle) = 0;
     virtual uint32_t genHandleLocked() = 0;
 
-    virtual void registerProcessCleanupCallback(void* key, uint64_t contextId,
+    virtual bool registerProcessCleanupCallback(void* key, uint64_t contextId,
                                                 std::function<void()> callback) = 0;
-    virtual void unregisterProcessCleanupCallback(void* key) = 0;
+    virtual bool unregisterProcessCleanupCallback(void* key) = 0;
 
     virtual gfxstream::base::Lock& getGlobalLock() = 0;
     virtual void lockGlobalState() ACQUIRE(getGlobalLock()) = 0;

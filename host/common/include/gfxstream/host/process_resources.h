@@ -17,8 +17,13 @@
 #define _PROCESS_RESOURCES_H
 
 #include <atomic>
+#include <functional>
 #include <memory>
+#include <mutex>
+#include <unordered_map>
+#include <vector>
 #include "gfxstream/Compiler.h"
+#include "gfxstream/ThreadAnnotations.h"
 
 namespace gfxstream {
 namespace host {
@@ -35,9 +40,38 @@ class ProcessResources {
     ~ProcessResources() = default;
     std::atomic<uint32_t>* getSequenceNumberPtr() const { return &mSequenceNumber; }
 
+    bool addCleanupCallback(void* key, std::function<void()> callback) const {
+        std::lock_guard<std::mutex> lock(mCleanupCallbacksMutex);
+        return mCleanupCallbacks.try_emplace(key, std::move(callback)).second;
+    }
+
+    bool removeCleanupCallback(void* key) const {
+        std::lock_guard<std::mutex> lock(mCleanupCallbacksMutex);
+        return mCleanupCallbacks.erase(key) > 0;
+    }
+
+    bool hasCleanupCallbacks() const {
+        std::lock_guard<std::mutex> lock(mCleanupCallbacksMutex);
+        return !mCleanupCallbacks.empty();
+    }
+
+    std::vector<std::function<void()>> takeCleanupCallbacks() const {
+        std::lock_guard<std::mutex> lock(mCleanupCallbacksMutex);
+        std::vector<std::function<void()>> callbacks;
+        callbacks.reserve(mCleanupCallbacks.size());
+        for (auto& [_, callback] : mCleanupCallbacks) {
+            callbacks.push_back(std::move(callback));
+        }
+        mCleanupCallbacks.clear();
+        return callbacks;
+    }
+
    private:
     ProcessResources() : mSequenceNumber(0) {}
     mutable std::atomic<uint32_t> mSequenceNumber;
+    mutable std::mutex mCleanupCallbacksMutex;
+    mutable std::unordered_map<void*, std::function<void()>> mCleanupCallbacks
+        GUARDED_BY(mCleanupCallbacksMutex);
 };
 
 // Alias to help make it clear this is the representative place for

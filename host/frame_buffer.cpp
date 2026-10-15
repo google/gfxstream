@@ -342,9 +342,6 @@ typedef std::unordered_multiset<HandleType> BufferSet;
 typedef std::unordered_map<uint64_t, BufferSet> ProcOwnedBuffers;
 typedef std::unordered_map<uint64_t, ColorBufferSet> ProcOwnedColorBuffers;
 
-typedef std::unordered_map<void*, std::function<void()>> CallbackMap;
-typedef std::unordered_map<uint64_t, CallbackMap> ProcOwnedCleanupCallbacks;
-
 class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<FrameBufferChangeEvent>,
                           public GlobalState {
    public:
@@ -557,9 +554,9 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
     uint32_t genHandleLocked() override;
     BufferPtr findBuffer(HandleType p_buffer);
 
-    void registerProcessCleanupCallback(void* key, uint64_t contextId,
+    bool registerProcessCleanupCallback(void* key, uint64_t contextId,
                                         std::function<void()> callback) override;
-    void unregisterProcessCleanupCallback(void* key) override;
+    bool unregisterProcessCleanupCallback(void* key) override;
 
     gfxstream::base::Lock& getGlobalLock() override LOCK_RETURNED(m_lock);
     void lockGlobalState() override ACQUIRE(getGlobalLock());
@@ -807,7 +804,7 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
          bool useSubWindow);
 
     bool removeSubWindow_locked();
-    void cleanupGuestProcess(uint64_t puid);
+    void cleanupGuestProcess(uint64_t puid, const GuestProcessResources* guestProcessResources);
     // Returns the set of ColorBuffers destroyed (for further cleanup)
     std::vector<HandleType> cleanupProcGLObjects_locked(uint64_t puid, bool forced = false);
 
@@ -1071,7 +1068,6 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
     // cleanup. Guest processes are identified with a host generated unique ID.
     // TODO(kaiyili): move all those resources to the ProcessResources struct.
     ProcOwnedColorBuffers m_procOwnedColorBuffers;
-    ProcOwnedCleanupCallbacks m_procOwnedCleanupCallbacks;
 
     // ScreenBackground, copy of the CPU data
     // TODO: keep and use the GPU blended display image for screenshots and remove this
@@ -1600,17 +1596,19 @@ FrameBuffer::Impl::~Impl() {
     // Run other cleanup callbacks
     // Avoid deadlock by first storing a separate list of callbacks
     std::vector<std::function<void()>> callbacks;
-    for (auto procIte : m_procOwnedCleanupCallbacks)
     {
-        for (auto it : procIte.second) {
-            callbacks.push_back(it.second);
+        std::lock_guard<std::mutex> lock(m_guestProcessResourcesLock);
+        for (auto& [_, processResources] : m_guestProcessResources) {
+            auto procCallbacks = processResources->takeCleanupCallbacks();
+            callbacks.insert(callbacks.end(),
+                             std::make_move_iterator(procCallbacks.begin()),
+                             std::make_move_iterator(procCallbacks.end()));
         }
     }
-    m_procOwnedCleanupCallbacks.clear();
 
     fbLock.unlock();
 
-    for (auto cb : callbacks) {
+    for (auto& cb : callbacks) {
         cb();
     }
 
@@ -2429,30 +2427,33 @@ std::unique_ptr<ProcessResources> FrameBuffer::Impl::removeGraphicsProcessResour
 
 void FrameBuffer::Impl::signalGuestProcessDead(uint64_t puid) {
     std::shared_ptr<GuestProcessResources> processResources = removeGraphicsProcessResources(puid);
-    m_processCleanupThread.enqueueCleanup(
-        [this, puid, processResources = std::move(processResources)]() {
-            this->cleanupGuestProcess(puid);
-        });
+    m_processCleanupThread.enqueueCleanup([this, puid, processResources = std::move(processResources)]() {
+        this->cleanupGuestProcess(puid, processResources.get());
+    });
 }
 
 void FrameBuffer::Impl::waitForProcessCleanup() {
     m_processCleanupThread.waitForCleanup();
 }
 
-void FrameBuffer::Impl::cleanupGuestProcess(uint64_t puid) {
+void FrameBuffer::Impl::cleanupGuestProcess(uint64_t puid,
+                                            const GuestProcessResources* guestProcessResources) {
     bool renderThreadWithThisPuidExists = false;
 
     do {
         renderThreadWithThisPuidExists = false;
         RenderThreadInfo::forAllRenderThreadInfos(
-            [puid, &renderThreadWithThisPuidExists](RenderThreadInfo* i) {
-            if (i->m_puid == puid) {
-                renderThreadWithThisPuidExists = true;
-            }
-        });
-        gfxstream::base::sleepUs(10000);
+            [puid, guestProcessResources, &renderThreadWithThisPuidExists](RenderThreadInfo* i) {
+                if ((guestProcessResources && i->m_processResources)
+                        ? (i->m_processResources == guestProcessResources)
+                        : (i->m_puid == puid)) {
+                    renderThreadWithThisPuidExists = true;
+                }
+            });
+        if (renderThreadWithThisPuidExists) {
+            gfxstream::base::sleepUs(10000);
+        }
     } while (renderThreadWithThisPuidExists);
-
 
     AutoLock mutex(m_lock);
 
@@ -2461,20 +2462,13 @@ void FrameBuffer::Impl::cleanupGuestProcess(uint64_t puid) {
     // Run other cleanup callbacks
     // Avoid deadlock by first storing a separate list of callbacks
     std::vector<std::function<void()>> callbacks;
-
-    {
-        auto procIte = m_procOwnedCleanupCallbacks.find(puid);
-        if (procIte != m_procOwnedCleanupCallbacks.end()) {
-            for (auto it : procIte->second) {
-                callbacks.push_back(it.second);
-            }
-            m_procOwnedCleanupCallbacks.erase(procIte);
-        }
+    if (guestProcessResources) {
+        callbacks = guestProcessResources->takeCleanupCallbacks();
     }
 
     mutex.unlock();
 
-    for (auto cb : callbacks) {
+    for (auto& cb : callbacks) {
         cb();
     }
 }
@@ -3429,9 +3423,19 @@ bool FrameBuffer::Impl::onLoad(Stream* stream,
 #endif
 
         bool cleanupComplete = false;
+        bool hasCleanupCallbacks = false;
+        {
+            std::lock_guard<std::mutex> lockGuestProcessResources(m_guestProcessResourcesLock);
+            for (const auto& [_, processResources] : m_guestProcessResources) {
+                if (processResources->hasCleanupCallbacks()) {
+                    hasCleanupCallbacks = true;
+                    break;
+                }
+            }
+        }
         {
             AutoLock colorBufferMapLock(m_colorBufferMapLock);
-            if (m_procOwnedCleanupCallbacks.empty() && m_procOwnedColorBuffers.empty() &&
+            if (!hasCleanupCallbacks && m_procOwnedColorBuffers.empty() &&
 #if GFXSTREAM_ENABLE_HOST_GLES
                 (!m_emulationGl || !m_emulationGl->hasProcOwnedResources()) &&
 #endif
@@ -3472,19 +3476,14 @@ bool FrameBuffer::Impl::onLoad(Stream* stream,
             }
 
             std::vector<std::function<void()>> cleanupCallbacks;
-
-            while (m_procOwnedCleanupCallbacks.size()) {
-                auto it = m_procOwnedCleanupCallbacks.begin();
-                while (it != m_procOwnedCleanupCallbacks.end()) {
-                    for (auto it2 : it->second) {
-                        cleanupCallbacks.push_back(it2.second);
-                    }
-                    it = m_procOwnedCleanupCallbacks.erase(it);
-                }
-            }
-
             {
                 std::lock_guard<std::mutex> lockGuestProcessResources(m_guestProcessResourcesLock);
+                for (auto& [_, processResources] : m_guestProcessResources) {
+                    auto procCallbacks = processResources->takeCleanupCallbacks();
+                    cleanupCallbacks.insert(cleanupCallbacks.end(),
+                                            std::make_move_iterator(procCallbacks.begin()),
+                                            std::make_move_iterator(procCallbacks.end()));
+                }
                 m_guestProcessResources.clear();
             }
 
@@ -3492,7 +3491,7 @@ bool FrameBuffer::Impl::onLoad(Stream* stream,
 
             lock.unlock();
 
-            for (auto cb : cleanupCallbacks) {
+            for (auto& cb : cleanupCallbacks) {
                 cb();
             }
 
@@ -3768,29 +3767,56 @@ BufferPtr FrameBuffer::Impl::findBuffer(HandleType p_buffer) {
     return it->second.buffer;
 }
 
-void FrameBuffer::Impl::registerProcessCleanupCallback(void* key, uint64_t contextId,
+bool FrameBuffer::Impl::registerProcessCleanupCallback(void* key, uint64_t contextId,
                                                        std::function<void()> cb) {
-    AutoLock mutex(m_lock);
-
-    auto& callbackMap = m_procOwnedCleanupCallbacks[contextId];
-    if (!callbackMap.insert({key, std::move(cb)}).second) {
-        GFXSTREAM_ERROR("%s: tried to override existing key %p ", __func__, key);
+    RenderThreadInfo* tInfo = RenderThreadInfo::get();
+    if (tInfo && tInfo->m_puid == contextId && tInfo->m_processResources) {
+        if (!tInfo->m_processResources->addCleanupCallback(key, std::move(cb))) {
+            GFXSTREAM_ERROR("%s: tried to override existing key %p ", __func__, key);
+            return false;
+        }
+        return true;
     }
+
+    std::lock_guard<std::mutex> lock(m_guestProcessResourcesLock);
+    auto it = m_guestProcessResources.find(contextId);
+    if (it == m_guestProcessResources.end()) {
+        GFXSTREAM_ERROR("%s: failed to find process resources for context %llu", __func__,
+                        (unsigned long long)contextId);
+        return false;
+    }
+    if (!it->second->addCleanupCallback(key, std::move(cb))) {
+        GFXSTREAM_ERROR("%s: tried to override existing key %p ", __func__, key);
+        return false;
+    }
+    return true;
 }
 
-void FrameBuffer::Impl::unregisterProcessCleanupCallback(void* key) {
-    AutoLock mutex(m_lock);
+bool FrameBuffer::Impl::unregisterProcessCleanupCallback(void* key) {
     RenderThreadInfo* tInfo = RenderThreadInfo::get();
-    if (!tInfo) return;
-
-    auto& callbackMap = m_procOwnedCleanupCallbacks[tInfo->m_puid];
-    auto erasedCount = callbackMap.erase(key);
-    if (erasedCount == 0) {
-        GFXSTREAM_ERROR(
-            "%s: tried to erase nonexistent key %p "
-            "associated with process %llu",
-            __func__, key, (unsigned long long)(tInfo->m_puid));
+    if (tInfo && tInfo->m_processResources) {
+        if (tInfo->m_processResources->removeCleanupCallback(key)) {
+            return true;
+        }
     }
+
+    {
+        std::lock_guard<std::mutex> lock(m_guestProcessResourcesLock);
+        for (const auto& [_, processResources] : m_guestProcessResources) {
+            if (tInfo && processResources.get() == tInfo->m_processResources) {
+                continue;
+            }
+            if (processResources->removeCleanupCallback(key)) {
+                return true;
+            }
+        }
+    }
+
+    GFXSTREAM_ERROR(
+        "%s: tried to erase nonexistent key %p "
+        "associated with process %llu",
+        __func__, key, (unsigned long long)(tInfo ? tInfo->m_puid : 0));
+    return false;
 }
 
 void FrameBuffer::Impl::invalidateColorBuffer(uint32_t colorBufferHandle) {
@@ -4930,13 +4956,13 @@ IColorBufferRef FrameBuffer::findColorBuffer(HandleType p_colorbuffer) {
 
 BufferPtr FrameBuffer::findBuffer(HandleType p_buffer) { return mImpl->findBuffer(p_buffer); }
 
-void FrameBuffer::registerProcessCleanupCallback(void* key, uint64_t contextId,
+bool FrameBuffer::registerProcessCleanupCallback(void* key, uint64_t contextId,
                                                  std::function<void()> callback) {
-    mImpl->registerProcessCleanupCallback(key, contextId, callback);
+    return mImpl->registerProcessCleanupCallback(key, contextId, std::move(callback));
 }
 
-void FrameBuffer::unregisterProcessCleanupCallback(void* key) {
-    mImpl->unregisterProcessCleanupCallback(key);
+bool FrameBuffer::unregisterProcessCleanupCallback(void* key) {
+    return mImpl->unregisterProcessCleanupCallback(key);
 }
 
 const ProcessResources* FrameBuffer::getProcessResources(uint64_t puid) {
