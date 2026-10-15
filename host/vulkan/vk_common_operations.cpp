@@ -2157,19 +2157,6 @@ void VkEmulation::stashPendingDeferredLayoutAhb(const VkImageCreateInfo* imageCr
     mPendingDeferredLayoutAhbs.emplace(ComputeAhbShapeKey(imageCreateInfo), ahb);
 }
 
-void VkEmulation::unstashPendingDeferredLayoutAhb(const VkImageCreateInfo* imageCreateInfo,
-                                                  AHardwareBuffer* ahb) {
-    std::lock_guard<std::mutex> lock(mMutex);
-    auto range = mPendingDeferredLayoutAhbs.equal_range(ComputeAhbShapeKey(imageCreateInfo));
-    for (auto it = range.first; it != range.second; ++it) {
-        if (it->second == ahb) {
-            mPendingDeferredLayoutAhbs.erase(it);
-            AHardwareBuffer_release(ahb);
-            return;
-        }
-    }
-}
-
 AHardwareBuffer* VkEmulation::takePendingDeferredLayoutAhbLocked(
     const VkImageCreateInfo* imageCreateInfo) {
     auto it = mPendingDeferredLayoutAhbs.find(ComputeAhbShapeKey(imageCreateInfo));
