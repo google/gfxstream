@@ -40,6 +40,9 @@ void* ChannelStream::allocBuffer(size_t minSize) {
 
 int ChannelStream::commitBuffer(size_t size) {
     assert(size <= mWriteBuffer.size());
+    if (size > mWriteBuffer.size()) {
+        size = mWriteBuffer.size();
+    }
     if (mWriteBuffer.isAllocated()) {
         mWriteBuffer.resize(size);
         mChannel->writeToGuest(std::move(mWriteBuffer));
@@ -119,6 +122,12 @@ unsigned char* ChannelStream::onLoad(gfxstream::Stream* stream) {
     gfxstream::host::loadBuffer(stream, &mReadBuffer);
     mReadBufferLeft = mReadBuffer.size();
     gfxstream::host::loadBuffer(stream, &mWriteBuffer);
+    if (m_bufsize > mWriteBuffer.size()) {
+        m_bufsize = mWriteBuffer.size();
+    }
+    if (m_free > m_bufsize) {
+        m_free = m_bufsize;
+    }
     return reinterpret_cast<unsigned char*>(mWriteBuffer.data());
 }
 

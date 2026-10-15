@@ -69,12 +69,21 @@ void SaveAsgContext(Stream* stream, const struct asg_context& context) {
     stream->write(context.buffer, context.buffer_size);
 }
 
-void LoadAsgContext(Stream* stream, struct asg_context* context) {
+void LoadAsgContext(Stream* stream, struct asg_context* context, uint32_t max_buffer_size) {
     stream->read(context->to_host, sizeof(struct ring_buffer));
     stream->read(context->to_host_large_xfer.ring, sizeof(struct ring_buffer));
     stream->read(context->from_host_large_xfer.ring, sizeof(struct ring_buffer));
-    context->buffer_size = stream->getBe32();
-    stream->read(context->buffer, context->buffer_size);
+    // context->buffer was allocated by the host with max_buffer_size bytes;
+    // never let a snapshot-supplied size exceed it. The guest-visible
+    // ring_config is restored separately via reloadRingConfig().
+    uint32_t loaded_buffer_size = stream->getBe32();
+    if (loaded_buffer_size > max_buffer_size) {
+        GFXSTREAM_ERROR("LoadAsgContext: snapshot buffer_size %u exceeds allocated %u\n",
+                        loaded_buffer_size, max_buffer_size);
+        loaded_buffer_size = max_buffer_size;
+    }
+    context->buffer_size = max_buffer_size;
+    stream->read(context->buffer, loaded_buffer_size);
 }
 
 }  // namespace
@@ -453,12 +462,21 @@ unsigned char* RingStream::onLoad(gfxstream::Stream* stream) {
     mReadBufferLeft = mReadBuffer.size();
 
     gfxstream::host::loadBuffer(stream, &mWriteBuffer);
+    if (m_bufsize > mWriteBuffer.size()) {
+        m_bufsize = mWriteBuffer.size();
+    }
+    if (m_free > m_bufsize) {
+        m_free = m_bufsize;
+    }
 
     mUnavailableReadCount = stream->getBe32();
 
     LoadRingConfig(stream, &mSavedRingConfig);
+    if (mSavedRingConfig.buffer_size > mBufSize) {
+        mSavedRingConfig.buffer_size = mBufSize;
+    }
 
-    LoadAsgContext(stream, &mContext);
+    LoadAsgContext(stream, &mContext, mBufSize);
 
     return reinterpret_cast<unsigned char*>(mWriteBuffer.data());
 }

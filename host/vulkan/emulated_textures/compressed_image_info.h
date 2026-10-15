@@ -112,7 +112,12 @@ class CompressedImageInfo {
     bool isEtc2() const;
     bool isAstc() const;
     VkDevice device() const { return mDevice; }
-    VkImage compressedMipmap(uint32_t level) { return mCompressedMipmaps[level]; }
+    VkImage compressedMipmap(uint32_t level) const {
+        if (level >= mCompressedMipmaps.size()) {
+            return VK_NULL_HANDLE;
+        }
+        return mCompressedMipmaps[level];
+    }
     VkImage outputImage() { return mOutputImage; }
     void setOutputImage(VkImage image) { mOutputImage = image; }
     bool canDecompressOnCpu() { return mAstcTexture != nullptr; }

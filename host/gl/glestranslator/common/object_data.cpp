@@ -38,8 +38,9 @@ NamedObjectType ObjectDataType2NamedObjectType(ObjectDataType objDataType) {
     }
 }
 
-ObjectData::ObjectData(gfxstream::Stream* stream) {
-    m_dataType = (ObjectDataType)stream->getBe32();
+ObjectData::ObjectData(gfxstream::Stream* stream, ObjectDataType expectedType) {
+    ObjectDataType streamDataType = (ObjectDataType)stream->getBe32();
+    m_dataType = (expectedType != UNDEFINED_DATA) ? expectedType : streamDataType;
     m_needRestore = true;
 }
 

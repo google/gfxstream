@@ -127,7 +127,12 @@ void ReadBuffer::onLoad(gfxstream::Stream* stream) {
     }
     m_readPtr = m_buf;
     m_validData = stream->getBe32();
-    assert(m_validData <= m_size);
+    if (m_buf == nullptr || m_validData > m_size) {
+        GFXSTREAM_ERROR("ReadBuffer::onLoad: invalid m_validData=%zu m_size=%zu\n",
+                        m_validData, m_size);
+        m_validData = 0;
+        return;
+    }
     stream->read(m_readPtr, m_validData);
 }
 

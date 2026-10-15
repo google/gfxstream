@@ -95,8 +95,14 @@ public:
     void load(gfxstream::Stream* stream) {
         m_bufsize = stream->getBe32();
         m_free = stream->getBe32();
+        if (m_free > m_bufsize) {
+            m_free = m_bufsize;
+        }
         const bool haveBuf = stream->getByte();
         const auto buf = onLoad(stream);
+        if (m_free > m_bufsize) {
+            m_free = m_bufsize;
+        }
         m_buf = haveBuf ? buf : nullptr;
     }
 

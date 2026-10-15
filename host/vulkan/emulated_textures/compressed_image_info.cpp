@@ -631,7 +631,7 @@ std::vector<VkImageMemoryBarrier> CompressedImageInfo::getImageBarriers(
     mipmapBarrier.subresourceRange.levelCount = 1;
     imageBarriers.insert(imageBarriers.begin(), range.levelCount, mipmapBarrier);
     for (uint32_t j = 0; j < range.levelCount; j++) {
-        imageBarriers[j].image = mCompressedMipmaps[range.baseMipLevel + j];
+        imageBarriers[j].image = compressedMipmap(range.baseMipLevel + j);
     }
 
     // Add a barrier for the output image
@@ -644,11 +644,19 @@ std::vector<VkImageMemoryBarrier> CompressedImageInfo::getImageBarriers(
 VkImageSubresourceRange CompressedImageInfo::getImageSubresourceRange(
     const VkImageSubresourceRange& range) const {
     VkImageSubresourceRange result = range;
-    if (result.levelCount == VK_REMAINING_MIP_LEVELS) {
-        result.levelCount = mMipLevels - range.baseMipLevel;
+    if (result.baseMipLevel >= mMipLevels) {
+        result.baseMipLevel = mMipLevels;
+        result.levelCount = 0;
+    } else if (result.levelCount == VK_REMAINING_MIP_LEVELS ||
+               result.levelCount > mMipLevels - result.baseMipLevel) {
+        result.levelCount = mMipLevels - result.baseMipLevel;
     }
-    if (result.layerCount == VK_REMAINING_ARRAY_LAYERS) {
-        result.layerCount = mLayerCount - range.baseArrayLayer;
+    if (result.baseArrayLayer >= mLayerCount) {
+        result.baseArrayLayer = mLayerCount;
+        result.layerCount = 0;
+    } else if (result.layerCount == VK_REMAINING_ARRAY_LAYERS ||
+               result.layerCount > mLayerCount - result.baseArrayLayer) {
+        result.layerCount = mLayerCount - result.baseArrayLayer;
     }
     return result;
 }
@@ -774,7 +782,10 @@ void CompressedImageInfo::decompress(VulkanDispatch* vk, VkCommandBuffer command
         // The old shader is per-block, the new shaders are per-pixel
         perPixel = GpuDecompressionPipelineManager::astcDecoder() != AstcDecoder::Old;
     }
-    for (uint32_t i = range.baseMipLevel; i < range.baseMipLevel + range.levelCount; i++) {
+    const uint32_t endMipLevel = std::min<uint32_t>(
+        range.baseMipLevel + range.levelCount,
+        static_cast<uint32_t>(mDecompDescriptorSets.size()));
+    for (uint32_t i = range.baseMipLevel; i < endMipLevel; i++) {
         vk->vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
                                     mDecompPipeline->pipelineLayout(), 0, 1,
                                     mDecompDescriptorSets.data() + i, 0, nullptr);
@@ -785,10 +796,11 @@ void CompressedImageInfo::decompress(VulkanDispatch* vk, VkCommandBuffer command
 }
 
 VkExtent3D CompressedImageInfo::mipmapExtent(uint32_t level) const {
+    const uint32_t shift = std::min<uint32_t>(level, 31);
     return {
-        .width = std::max<uint32_t>(mExtent.width >> level, 1),
-        .height = std::max<uint32_t>(mExtent.height >> level, 1),
-        .depth = std::max<uint32_t>(mExtent.depth >> level, 1),
+        .width = std::max<uint32_t>(mExtent.width >> shift, 1),
+        .height = std::max<uint32_t>(mExtent.height >> shift, 1),
+        .depth = std::max<uint32_t>(mExtent.depth >> shift, 1),
     };
 }
 
