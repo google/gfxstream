@@ -161,6 +161,9 @@ static constexpr const char* const kEmulatedDeviceExtensions[] = {
     VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME,
     VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME,
 #endif
+#if defined(__ANDROID__)
+    VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME,
+#endif
 };
 
 // A list of instance extensions that should not be passed to the host driver.
@@ -1797,6 +1800,22 @@ class VkDecoderGlobalState::Impl {
             const_cast<VkPhysicalDeviceExternalImageFormatInfo*>(extImageFormatInfo)->handleType =
                 m_vkEmulation->getDefaultExternalMemoryHandleType();
         }
+#ifdef __ANDROID__
+        if (extImageFormatInfo &&
+            (extImageFormatInfo->handleType &
+             VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID) &&
+            pImageFormatInfo->tiling != VK_IMAGE_TILING_OPTIMAL) {
+            deepcopy_VkPhysicalDeviceImageFormatInfo2(
+                pool, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_FORMAT_INFO_2, pImageFormatInfo,
+                &imageFormatInfo);
+            pImageFormatInfo = &imageFormatInfo;
+            imageFormatInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+            if (auto* modifierInfo =
+                    vk_find_struct<VkPhysicalDeviceImageDrmFormatModifierInfoEXT>(&imageFormatInfo)) {
+                vk_struct_chain_remove(modifierInfo, &imageFormatInfo);
+            }
+        }
+#endif
         VkResult res = VK_ERROR_INITIALIZATION_FAILED;
 
         std::lock_guard<std::mutex> lock(mMutex);
@@ -2162,6 +2181,12 @@ class VkDecoderGlobalState::Impl {
         properties.erase(
             std::remove_if(properties.begin(), properties.end(),
                            [&](const VkExtensionProperties& extension) {
+#if defined(__ANDROID__)
+                               if (strcmp(extension.extensionName,
+                                          VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME) == 0) {
+                                   return true;
+                               }
+#endif
                                return supportedDeviceExtensions.find(extension.extensionName) ==
                                       supportedDeviceExtensions.end();
                            }),
@@ -3314,6 +3339,9 @@ class VkDecoderGlobalState::Impl {
             vk_find_struct<VkNativeBufferANDROID>(pCreateInfo);
 
         VkResult createRes = VK_SUCCESS;
+#ifdef __ANDROID__
+        VkImageCreateInfo ahbOptimalCreateInfo;
+#endif
 
         if (nativeBufferANDROID) {
             auto* physicalDeviceInfo =
@@ -3336,6 +3364,28 @@ class VkDecoderGlobalState::Impl {
                 *pImage = anbInfo->getImage();
             }
         } else {
+#ifdef __ANDROID__
+            if (const auto* extMemCi = vk_find_struct<VkExternalMemoryImageCreateInfo>(pCreateInfo)) {
+                if ((extMemCi->handleTypes &
+                     VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID) &&
+                    pCreateInfo->tiling != VK_IMAGE_TILING_OPTIMAL) {
+                    deepcopy_VkImageCreateInfo(pool, VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+                                               pCreateInfo, &ahbOptimalCreateInfo);
+                    ahbOptimalCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+                    if (auto* modifierList =
+                            vk_find_struct<VkImageDrmFormatModifierListCreateInfoEXT>(
+                                &ahbOptimalCreateInfo)) {
+                        vk_struct_chain_remove(modifierList, &ahbOptimalCreateInfo);
+                    }
+                    if (auto* modifierExplicit =
+                            vk_find_struct<VkImageDrmFormatModifierExplicitCreateInfoEXT>(
+                                &ahbOptimalCreateInfo)) {
+                        vk_struct_chain_remove(modifierExplicit, &ahbOptimalCreateInfo);
+                    }
+                    pCreateInfo = &ahbOptimalCreateInfo;
+                }
+            }
+#endif
             createRes = vk->vkCreateImage(device, pCreateInfo, nullptr, pImage);
         }
 
@@ -10241,18 +10291,21 @@ class VkDecoderGlobalState::Impl {
                 const_cast<VkImageCreateInfo&>(pImageCreateInfos[i]);
             VkExternalMemoryImageCreateInfo* pExternalMemoryImageCi =
                 vk_find_struct<VkExternalMemoryImageCreateInfo>(&imageCreateInfo);
+            if (pExternalMemoryImageCi && pExternalMemoryImageCi->handleTypes &
+                                              VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT) {
+#ifdef __ANDROID__
+                pExternalMemoryImageCi->handleTypes &=
+                    ~VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
+#endif
+                pExternalMemoryImageCi->handleTypes |=
+                    m_vkEmulation->getDefaultExternalMemoryHandleType();
+            }
             bool importAndroidHardwareBuffer =
                 pExternalMemoryImageCi &&
                 (pExternalMemoryImageCi->handleTypes &
                  VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID);
             const VkNativeBufferANDROID* pNativeBufferANDROID =
                 vk_find_struct<VkNativeBufferANDROID>(&imageCreateInfo);
-
-            if (pExternalMemoryImageCi && pExternalMemoryImageCi->handleTypes &
-                                              VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT) {
-                pExternalMemoryImageCi->handleTypes |=
-                    m_vkEmulation->getDefaultExternalMemoryHandleType();
-            }
 
             // If the VkImage is going to bind to a ColorBuffer, we have to make sure the VkImage
             // that backs the ColorBuffer is created with identical parameters. From the spec: If
@@ -10287,6 +10340,19 @@ class VkDecoderGlobalState::Impl {
                     resolvedFormat = imageCreateInfo.format;
             }
             if (importAndroidHardwareBuffer) {
+#ifdef __ANDROID__
+                imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+                if (auto* modifierList =
+                        vk_find_struct<VkImageDrmFormatModifierListCreateInfoEXT>(
+                            &imageCreateInfo)) {
+                    vk_struct_chain_remove(modifierList, &imageCreateInfo);
+                }
+                if (auto* modifierExplicit =
+                        vk_find_struct<VkImageDrmFormatModifierExplicitCreateInfoEXT>(
+                            &imageCreateInfo)) {
+                    vk_struct_chain_remove(modifierExplicit, &imageCreateInfo);
+                }
+#endif
                 // For AHardwareBufferImage binding, we can't know which ColorBuffer this
                 // to-be-created VkImage will bind to, so we try our best to infer the creation
                 // parameters.
@@ -10540,7 +10606,9 @@ class VkDecoderGlobalState::Impl {
                 // the host's Vulkan loader architecture, this could in NULL function pointer access
                 // (i.e. on vkGetImageDrmFormatModifierPropertiesEXT()). So just enable it if it's
                 // available.
+#if !defined(__ANDROID__)
                 VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME,
+#endif
 #ifdef _WIN32
                 VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME,
 #elif defined(__QNX__) || defined(__unix__)
