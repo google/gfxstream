@@ -40,7 +40,7 @@ GenNameInfo ShaderParser::getGenNameInfo() const {
     }
 }
 
-ShaderParser::ShaderParser(gfxstream::Stream* stream) : ObjectData(stream) {
+ShaderParser::ShaderParser(gfxstream::Stream* stream) : ObjectData(stream, SHADER_DATA) {
     m_originalSrc = stream->getString();
     m_src = stream->getString();
     m_parsedSrc = stream->getString();

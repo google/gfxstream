@@ -78,7 +78,7 @@ ProgramData::ProgramData(int glesMaj, int glesMin)
       mGlesMinorVersion(glesMin) {}
 
 ProgramData::ProgramData(gfxstream::Stream* stream) :
-    ObjectData(stream) {
+    ObjectData(stream, PROGRAM_DATA) {
     auto loadAttribLocs = [](gfxstream::Stream* stream) {
                 std::string attrib = stream->getString();
                 GLuint loc = stream->getBe32();

@@ -43,7 +43,7 @@ class ObjectData
 {
 public:
     ObjectData(ObjectDataType type = UNDEFINED_DATA): m_dataType(type) {}
-    ObjectData(gfxstream::Stream* stream);
+    ObjectData(gfxstream::Stream* stream, ObjectDataType expectedType = UNDEFINED_DATA);
     ObjectDataType getDataType() { return m_dataType; };
     virtual ~ObjectData() = default;
     virtual void onSave(gfxstream::Stream* stream, unsigned int globalName) const = 0;
