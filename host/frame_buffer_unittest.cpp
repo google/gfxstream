@@ -2142,6 +2142,50 @@ TEST_F(FrameBufferTest, Gles2RawArrayOfPointersOpcodesRejectedWithInvalidOperati
     mFb->destroyEmulatedEglWindowSurface(surface);
 }
 
+TEST_F(FrameBufferTest, Gles2MapAndUnmapBufferDirectRejectedWithInvalidOperation) {
+    if (!mFb->hasEmulationGl()) {
+        GTEST_SKIP() << "GL emulation not enabled.";
+    }
+
+    HandleType ctx = mFb->createEmulatedEglContext(0, 0, gl::GLESApi_3_0);
+    ASSERT_NE((HandleType)0, ctx);
+    HandleType surface = mFb->createEmulatedEglWindowSurface(0, mWidth, mHeight);
+    ASSERT_NE((HandleType)0, surface);
+    EXPECT_TRUE(mFb->bindContext(ctx, surface, surface));
+
+    auto& gl2 = mRenderThreadInfo->m_glInfo->m_gl2Dec;
+    GLuint vbo = 0;
+    gl2.glGenBuffers_dec(&gl2, 1, &vbo);
+    ASSERT_NE(0u, vbo);
+    gl2.glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    uint8_t initData[64] = {};
+    gl2.glBufferData(GL_ARRAY_BUFFER, sizeof(initData), initData, GL_DYNAMIC_DRAW);
+    (void)gl2.getGLerror();
+
+    uint64_t mappedAddr = gl2.glMapBufferRangeDirect(&gl2, GL_ARRAY_BUFFER, 0, sizeof(initData),
+                                                     GL_MAP_WRITE_BIT, 0x100000);
+    EXPECT_EQ(0u, mappedAddr);
+    EXPECT_EQ((GLenum)GL_INVALID_OPERATION, gl2.getGLerror());
+    EXPECT_EQ((GLenum)GL_NO_ERROR, gl2.getGLerror());
+
+    GLboolean unmapRes = GL_TRUE;
+    gl2.glUnmapBufferDirect(&gl2, GL_ARRAY_BUFFER, 0, sizeof(initData), GL_MAP_WRITE_BIT,
+                            0x100000, 0xdeadbeef0000ULL, &unmapRes);
+    EXPECT_EQ((GLboolean)GL_FALSE, unmapRes);
+    EXPECT_EQ((GLenum)GL_INVALID_OPERATION, gl2.getGLerror());
+    EXPECT_EQ((GLenum)GL_NO_ERROR, gl2.getGLerror());
+
+    gl2.glFlushMappedBufferRangeDirect(&gl2, GL_ARRAY_BUFFER, 0, sizeof(initData),
+                                       GL_MAP_WRITE_BIT);
+    EXPECT_EQ((GLenum)GL_INVALID_OPERATION, gl2.getGLerror());
+    EXPECT_EQ((GLenum)GL_NO_ERROR, gl2.getGLerror());
+
+    gl2.glBindBuffer(GL_ARRAY_BUFFER, 0);
+    gl2.glDeleteBuffers_dec(&gl2, 1, &vbo);
+    EXPECT_TRUE(mFb->bindContext(0, 0, 0));
+    mFb->destroyEmulatedEglContext(ctx);
+    mFb->destroyEmulatedEglWindowSurface(surface);
+}
 }  // namespace
 }  // namespace host
 }  // namespace gfxstream

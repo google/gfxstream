@@ -515,52 +515,40 @@ void GLESv2Decoder::s_glUnmapBufferDMA(void* self, GLenum target, GLintptr offse
     }
 }
 
-static std::pair<void*, GLsizeiptr> align_pointer_size(void* ptr, GLsizeiptr length)
-{
-    const size_t page_size = gfxstream::host::get_gfxstream_guest_page_size();
-    const size_t page_offset_mask = page_size - 1;
-
-    uintptr_t addr = reinterpret_cast<uintptr_t>(ptr);
-    uintptr_t page_offset = addr & page_offset_mask;
-
-    return { reinterpret_cast<void*>(addr - page_offset),
-             (GLsizeiptr)((length + page_offset + page_size - 1) & ~page_offset_mask)
-           };
-}
-
 uint64_t GLESv2Decoder::s_glMapBufferRangeDirect(void* self, GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access, uint64_t paddr)
 {
     GLESv2Decoder *ctx = (GLESv2Decoder *)self;
-    // Check if this is a read or write request and not an invalidate one.
-    if (access & (GL_MAP_READ_BIT | GL_MAP_WRITE_BIT)) {
-        void* gpu_ptr = ctx->glMapBufferRange(target, offset, length, access);
-
-        if (gpu_ptr) {
-            std::pair<void*, GLsizeiptr> aligned = align_pointer_size(gpu_ptr, length);
-            get_gfxstream_vm_operations().map_user_memory(paddr, aligned.first, aligned.second);
-            return reinterpret_cast<uint64_t>(gpu_ptr);
-        } else {
-            fprintf(stderr, "%s: error: could not map host gpu buffer\n", __func__);
-            return 0;
-        }
-    } else {
-        // if writing while not wanting to preserve previous contents,
-        // let |mapped| stay as garbage.
-        return 0;
-    }
+    (void)target;
+    (void)offset;
+    (void)length;
+    (void)access;
+    (void)paddr;
+    // Guest encoders (GL2Encoder) exclusively use OP_glMapBufferRangeAEMU and never emit
+    // OP_glMapBufferRangeDirect. Mapping host GL driver buffer pointers directly into guest
+    // physical memory without lifetime tracking or page isolation causes host UAF, heap page
+    // over-mapping, and ASLR leaks (b/509610756).
+    GFXSTREAM_ERROR("%s: unsupported OP_glMapBufferRangeDirect; use OP_glMapBufferRangeAEMU",
+                    __func__);
+    ctx->setGLerror(GL_INVALID_OPERATION);
+    return 0;
 }
 
 void GLESv2Decoder::s_glUnmapBufferDirect(void* self, GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access, uint64_t paddr, uint64_t gpu_ptr, GLboolean* out_res)
 {
     GLESv2Decoder *ctx = (GLESv2Decoder *)self;
-    GLboolean res = GL_TRUE;
-
-    if (access & (GL_MAP_READ_BIT | GL_MAP_WRITE_BIT)) {
-        get_gfxstream_vm_operations().unmap_user_memory(paddr, align_pointer_size(reinterpret_cast<void*>(gpu_ptr), length).second);
-        res = ctx->glUnmapBuffer(target);
+    (void)target;
+    (void)offset;
+    (void)length;
+    (void)access;
+    (void)paddr;
+    (void)gpu_ptr;
+    // Guest encoders exclusively use OP_glUnmapBufferAEMU / OP_glUnmapBufferAsyncAEMU and never
+    // emit OP_glUnmapBufferDirect (b/509610756).
+    GFXSTREAM_ERROR("%s: unsupported OP_glUnmapBufferDirect; use OP_glUnmapBufferAEMU", __func__);
+    ctx->setGLerror(GL_INVALID_OPERATION);
+    if (out_res) {
+        *out_res = GL_FALSE;
     }
-
-    *out_res = res;
 }
 
 void GLESv2Decoder::s_glFlushMappedBufferRangeAEMU(void* self, GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access, void* guest_buffer) {
@@ -585,7 +573,16 @@ void GLESv2Decoder::s_glFlushMappedBufferRangeAEMU(void* self, GLenum target, GL
 
 void GLESv2Decoder::s_glFlushMappedBufferRangeDirect(void* self, GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access) {
     GLESv2Decoder *ctx = (GLESv2Decoder *)self;
-    ctx->glFlushMappedBufferRange(target, offset, length);
+    (void)target;
+    (void)offset;
+    (void)length;
+    (void)access;
+    // Guest encoders exclusively use OP_glFlushMappedBufferRangeAEMU /
+    // OP_glFlushMappedBufferRangeAEMU2 and never emit OP_glFlushMappedBufferRangeDirect
+    // (b/509610756).
+    GFXSTREAM_ERROR("%s: unsupported OP_glFlushMappedBufferRangeDirect; use OP_glFlushMappedBufferRangeAEMU",
+                    __func__);
+    ctx->setGLerror(GL_INVALID_OPERATION);
 }
 
 void GLESv2Decoder::s_glCompressedTexImage2DOffsetAEMU(void* self, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, GLuint offset) {
