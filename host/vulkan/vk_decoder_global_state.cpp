@@ -3430,6 +3430,14 @@ class VkDecoderGlobalState::Impl {
         return createRes;
     }
 
+#ifdef __ANDROID__
+    void waitForDeviceQueuesIdleLocked(VkDevice device, VulkanDispatch* deviceDispatch)
+        REQUIRES(mMutex) {
+        if (!deviceDispatch || !deviceDispatch->vkDeviceWaitIdle) return;
+        deviceDispatch->vkDeviceWaitIdle(device);
+    }
+#endif
+
     void destroyImageWithExclusiveInfo(VkDevice device, VulkanDispatch* deviceDispatch,
                                        VkImage image, ImageInfo& imageInfo) {
         if (!imageInfo.anbInfo) {
@@ -3442,6 +3450,17 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
+#ifdef __ANDROID__
+        if (imageInfo.deferredLayout.ahb) {
+            m_vkEmulation->unstashPendingDeferredLayoutAhb(&imageInfo.imageCreateInfoShallow,
+                                                           imageInfo.deferredLayout.ahb.get());
+            imageInfo.deferredLayout.ahb.reset();
+        }
+        if (imageInfo.deferredLayout.ownedMemory != VK_NULL_HANDLE) {
+            deviceDispatch->vkFreeMemory(device, imageInfo.deferredLayout.ownedMemory, nullptr);
+            imageInfo.deferredLayout.ownedMemory = VK_NULL_HANDLE;
+        }
+#endif
         imageInfo.anbInfo.reset();
     }
 
@@ -3450,6 +3469,15 @@ class VkDecoderGlobalState::Impl {
         auto imageInfoIt = mImageInfo.find(image);
         if (imageInfoIt == mImageInfo.end()) return;
         auto& imageInfo = imageInfoIt->second;
+
+#ifdef __ANDROID__
+        if (imageInfo.boundColorBuffer.has_value() ||
+            imageInfo.deferredLayout.ownedMemory != VK_NULL_HANDLE ||
+            imageInfo.deferredLayout.ahb != nullptr ||
+            imageInfo.deferredLayout.size > 0) {
+            waitForDeviceQueuesIdleLocked(device, deviceDispatch);
+        }
+#endif
 
         destroyImageWithExclusiveInfo(device, deviceDispatch, image, imageInfo);
 
@@ -3532,6 +3560,136 @@ class VkDecoderGlobalState::Impl {
         auto vk = dispatch_VkDevice(boxed_device);
 
         VALIDATE_REQUIRED_HANDLE(memory);
+#ifdef __ANDROID__
+        {
+            std::shared_ptr<AHardwareBuffer> pendingAhb;
+            VkDeviceSize dlSize = 0;
+            uint32_t dlTypeBits = 0;
+            uint32_t preferredMemTypeIdx = 0;
+            VkImageCreateInfo dlCreateInfoShallow = {};
+            std::optional<uint32_t> boundCb;
+            bool needsDedicatedAhbBind = false;
+            {
+                std::lock_guard<std::mutex> lock(mMutex);
+                auto* imageInfo = gfxstream::base::find(mImageInfo, image);
+                auto* memoryInfo = gfxstream::base::find(mMemoryInfo, memory);
+                if (imageInfo && imageInfo->deferredLayout.ownedMemory == VK_NULL_HANDLE &&
+                    !imageInfo->boundColorBuffer) {
+                    if (memoryInfo) {
+                        boundCb = memoryInfo->boundColorBuffer;
+                        preferredMemTypeIdx = memoryInfo->memoryIndex;
+                    }
+                    if (imageInfo->deferredLayout.ahb) {
+                        pendingAhb = std::move(imageInfo->deferredLayout.ahb);
+                        dlSize = imageInfo->deferredLayout.size;
+                        dlTypeBits = imageInfo->deferredLayout.memoryTypeBits;
+                        dlCreateInfoShallow = imageInfo->imageCreateInfoShallow;
+                        needsDedicatedAhbBind = true;
+                    } else if (boundCb.has_value() &&
+                               (imageInfo->externalHandleTypes &
+                                VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID)) {
+                        needsDedicatedAhbBind = true;
+                    }
+                }
+            }
+            if (pendingAhb) {
+                m_vkEmulation->unstashPendingDeferredLayoutAhb(&dlCreateInfoShallow,
+                                                               pendingAhb.get());
+            }
+            if (needsDedicatedAhbBind) {
+                AHardwareBuffer* targetAhb = pendingAhb.get();
+                if (boundCb) {
+                    auto dupHandleInfo = m_vkEmulation->dupColorBufferExtMemoryHandle(*boundCb);
+                    if (dupHandleInfo && dupHandleInfo->handle) {
+                        targetAhb = static_cast<AHardwareBuffer*>(
+                            reinterpret_cast<void*>(dupHandleInfo->handle));
+                    }
+                }
+                if (targetAhb) {
+                    VkAndroidHardwareBufferPropertiesANDROID ahbProps = {
+                        .sType = VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_PROPERTIES_ANDROID,
+                        .pNext = nullptr,
+                    };
+                    if (vk->vkGetAndroidHardwareBufferPropertiesANDROID(
+                            device, targetAhb, &ahbProps) == VK_SUCCESS &&
+                        ahbProps.allocationSize > 0) {
+                        dlSize = ahbProps.allocationSize;
+                        dlTypeBits = ahbProps.memoryTypeBits;
+                    }
+                    VkImportAndroidHardwareBufferInfoANDROID importAhb = {
+                        .sType = VK_STRUCTURE_TYPE_IMPORT_ANDROID_HARDWARE_BUFFER_INFO_ANDROID,
+                        .pNext = nullptr,
+                        .buffer = targetAhb,
+                    };
+                    VkMemoryDedicatedAllocateInfo dedicatedInfo = {
+                        .sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO,
+                        .pNext = &importAhb,
+                        .image = image,
+                        .buffer = VK_NULL_HANDLE,
+                    };
+                    uint32_t memTypeIdx = preferredMemTypeIdx;
+                    if (dlTypeBits && !(dlTypeBits & (1u << memTypeIdx))) {
+                        memTypeIdx = static_cast<uint32_t>(__builtin_ctz(dlTypeBits));
+                    }
+                    if (dlSize == 0) {
+                        GFXSTREAM_ERROR(
+                            "performBindImageMemory: failed to allocate dedicated AHB memory "
+                            "for image=%p: allocationSize is 0",
+                            image);
+                        return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+                    }
+                    VkMemoryAllocateInfo allocInfo = {
+                        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+                        .pNext = &dedicatedInfo,
+                        .allocationSize = dlSize,
+                        .memoryTypeIndex = memTypeIdx,
+                    };
+                    VkDeviceMemory dedicatedMem = VK_NULL_HANDLE;
+                    VkResult allocRes =
+                        vk->vkAllocateMemory(device, &allocInfo, nullptr, &dedicatedMem);
+                    pendingAhb.reset();
+                    if (allocRes != VK_SUCCESS || dedicatedMem == VK_NULL_HANDLE) {
+                        GFXSTREAM_ERROR(
+                            "performBindImageMemory: failed to allocate dedicated AHB memory "
+                            "for image=%p: %s",
+                            image, string_VkResult(allocRes));
+                        return allocRes != VK_SUCCESS ? allocRes : VK_ERROR_OUT_OF_DEVICE_MEMORY;
+                    }
+                    VkResult bindRes = vk->vkBindImageMemory(device, image, dedicatedMem, 0);
+                    if (bindRes != VK_SUCCESS) {
+                        vk->vkFreeMemory(device, dedicatedMem, nullptr);
+                        return bindRes;
+                    }
+                    GFXSTREAM_DEBUG(
+                        "performBindImageMemory: bound AHB (%s) image=%p "
+                        "dedicatedMem=%p cb=%u",
+                        boundCb ? "ColorBuffer" : "standalone", image, dedicatedMem,
+                        boundCb.value_or(0));
+                    std::lock_guard<std::mutex> lock(mMutex);
+                    auto* deviceInfo = gfxstream::base::find(mDeviceInfo, device);
+                    auto* memoryInfo = gfxstream::base::find(mMemoryInfo, memory);
+                    auto* imageInfo = gfxstream::base::find(mImageInfo, image);
+                    if (!deviceInfo || !memoryInfo || !imageInfo) {
+                        vk->vkFreeMemory(device, dedicatedMem, nullptr);
+                        return VK_ERROR_OUT_OF_HOST_MEMORY;
+                    }
+                    imageInfo->deferredLayout.ownedMemory = dedicatedMem;
+                    imageInfo->boundColorBuffer = memoryInfo->boundColorBuffer;
+                    if (imageInfo->boundColorBuffer) {
+                        deviceInfo->debugUtilsHelper.addDebugLabel(image, "ColorBuffer:%d",
+                                                                   *imageInfo->boundColorBuffer);
+                    }
+                    imageInfo->memory = memory;
+                    if (!imageInfo->compressInfo) {
+                        return VK_SUCCESS;
+                    }
+                    return imageInfo->compressInfo->bindCompressedMipmapsMemory(
+                        vk, memory, memoryOffset);
+                }
+            }
+            pendingAhb.reset();
+        }
+#endif
         VkResult result = vk->vkBindImageMemory(device, image, memory, memoryOffset);
         if (result != VK_SUCCESS) {
             return result;
@@ -3616,6 +3774,15 @@ class VkDecoderGlobalState::Impl {
                     needEmulation = true;
                     break;
                 }
+#ifdef __ANDROID__
+                if (imageInfo->deferredLayout.ahb ||
+                    (!imageInfo->boundColorBuffer &&
+                     (imageInfo->externalHandleTypes &
+                      VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID))) {
+                    needEmulation = true;
+                    break;
+                }
+#endif
             }
         }
 
@@ -5809,6 +5976,19 @@ class VkDecoderGlobalState::Impl {
                                             &pMemoryRequirements->memoryRequirements);
         physicalDeviceMemHelper->transformToGuestImageMemoryRequirements(
             imageTilingLocked(pInfo->image), &pMemoryRequirements->memoryRequirements);
+#ifdef __ANDROID__
+        if (auto* dedicatedReqs =
+                vk_find_struct<VkMemoryDedicatedRequirements>(pMemoryRequirements)) {
+            auto* imageInfo = gfxstream::base::find(mImageInfo, pInfo->image);
+            if (imageInfo &&
+                (imageInfo->deferredLayout.size > 0 ||
+                 (imageInfo->externalHandleTypes &
+                  VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID))) {
+                dedicatedReqs->prefersDedicatedAllocation = VK_TRUE;
+                dedicatedReqs->requiresDedicatedAllocation = VK_TRUE;
+            }
+        }
+#endif
     }
 
     void on_vkGetBufferMemoryRequirements(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
@@ -6665,6 +6845,12 @@ class VkDecoderGlobalState::Impl {
             .pNext = nullptr,
             .buffer = nullptr,
         };
+        VkImportAndroidHardwareBufferInfoANDROID importDeferredLayoutAhb = {
+            .sType = VK_STRUCTURE_TYPE_IMPORT_ANDROID_HARDWARE_BUFFER_INFO_ANDROID,
+            .pNext = nullptr,
+            .buffer = nullptr,
+        };
+        std::shared_ptr<AHardwareBuffer> deferredLayoutAhbHold;
 #endif
         VkImportMemoryFdInfoKHR importFdInfo{
             VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR,
@@ -6784,9 +6970,31 @@ class VkDecoderGlobalState::Impl {
                         managedHandle.get().value_or(static_cast<HANDLE>(NULL));
                     vk_append_struct(&structChainIter, &importWin32HandleInfo);
 #elif defined(__ANDROID__)
-                    importInfo.buffer = static_cast<AHardwareBuffer*>(
-                        reinterpret_cast<void*>(dupHandleInfo->handle));
-                    vk_append_struct(&structChainIter, &importInfo);
+                    if (shouldUseDedicatedAllocInfo &&
+                        localDedicatedAllocInfo.image != VK_NULL_HANDLE) {
+                        importInfo.buffer = static_cast<AHardwareBuffer*>(
+                            reinterpret_cast<void*>(dupHandleInfo->handle));
+                        vk_append_struct(&structChainIter, &importInfo);
+                        std::shared_ptr<AHardwareBuffer> dlAhbToUnstash;
+                        VkImageCreateInfo dlCreateInfoShallow = {};
+                        {
+                            std::lock_guard<std::mutex> lock(mMutex);
+                            auto* dlInfo =
+                                gfxstream::base::find(mImageInfo, localDedicatedAllocInfo.image);
+                            if (dlInfo && dlInfo->deferredLayout.ahb) {
+                                dlAhbToUnstash = std::move(dlInfo->deferredLayout.ahb);
+                                dlCreateInfoShallow = dlInfo->imageCreateInfoShallow;
+                            }
+                        }
+                        if (dlAhbToUnstash) {
+                            m_vkEmulation->unstashPendingDeferredLayoutAhb(
+                                &dlCreateInfoShallow, dlAhbToUnstash.get());
+                            dlAhbToUnstash.reset();
+                        }
+                    } else {
+                        localAllocInfo.allocationSize = 4096;
+                        shouldUseDedicatedAllocInfo = false;
+                    }
 #else
                     importFdInfo.fd = dupHandleInfo->getFd();
                     vk_append_struct(&structChainIter, &importFdInfo);
@@ -6871,12 +7079,47 @@ class VkDecoderGlobalState::Impl {
                 importWin32HandleInfo.handle =
                     managedHandle.get().value_or(static_cast<HANDLE>(NULL));
                 vk_append_struct(&structChainIter, &importWin32HandleInfo);
-#elif !defined(__ANDROID__)
+#elif defined(__ANDROID__)
+                importInfo.buffer = static_cast<AHardwareBuffer*>(
+                    reinterpret_cast<void*>(dupHandleInfo->handle));
+                vk_append_struct(&structChainIter, &importInfo);
+#else
                 importFdInfo.fd = dupHandleInfo->getFd();
                 vk_append_struct(&structChainIter, &importFdInfo);
 #endif
             }
         }
+#if defined(__ANDROID__)
+        else if (dedicatedAllocInfoPtr && dedicatedAllocInfoPtr->image != VK_NULL_HANDLE) {
+            std::shared_ptr<AHardwareBuffer> dlAhb;
+            VkDeviceSize dlSize = 0;
+            VkImageCreateInfo dlCreateInfoShallow = {};
+            {
+                std::lock_guard<std::mutex> lock(mMutex);
+                auto* dlInfo = gfxstream::base::find(mImageInfo, localDedicatedAllocInfo.image);
+                if (dlInfo && dlInfo->deferredLayout.ahb && !dlInfo->boundColorBuffer) {
+                    dlAhb = std::move(dlInfo->deferredLayout.ahb);
+                    dlSize = dlInfo->deferredLayout.size;
+                    dlCreateInfoShallow = dlInfo->imageCreateInfoShallow;
+                }
+            }
+            if (dlAhb) {
+                m_vkEmulation->unstashPendingDeferredLayoutAhb(&dlCreateInfoShallow, dlAhb.get());
+                deferredLayoutAhbHold = std::move(dlAhb);
+                importDeferredLayoutAhb.buffer = deferredLayoutAhbHold.get();
+                vk_append_struct(&structChainIter, &importDeferredLayoutAhb);
+                if (dlSize > 0) {
+                    localAllocInfo.allocationSize = dlSize;
+                }
+                shouldUseDedicatedAllocInfo = true;
+                GFXSTREAM_DEBUG(
+                    "on_vkAllocateMemory: importing standalone deferredLayout AHB for image=%p "
+                    "size=%llu",
+                    localDedicatedAllocInfo.image,
+                    static_cast<unsigned long long>(localAllocInfo.allocationSize));
+            }
+        }
+#endif
 
         uint32_t virtioGpuContextId = 0;
         VkMemoryPropertyFlags memoryPropertyFlags;
@@ -6949,6 +7192,10 @@ class VkDecoderGlobalState::Impl {
         //    the future.
         const bool hostVisible = memoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
         bool importEmulatedExternalMemory = importCbInfoPtr || importBufferInfoPtr;
+#if defined(__ANDROID__)
+        importEmulatedExternalMemory |=
+            (importInfo.buffer != nullptr) || (importDeferredLayoutAhb.buffer != nullptr);
+#endif
         const bool emulateHostVisible = hostVisible && !importEmulatedExternalMemory;
 
         std::optional<SharedMemory> sharedMemory = std::nullopt;
@@ -7178,9 +7425,22 @@ class VkDecoderGlobalState::Impl {
 
         if (importCbInfoPtr) {
             memoryInfo.boundColorBuffer = importCbInfoPtr->colorBuffer;
+#if defined(__ANDROID__)
+            if (importInfo.buffer != nullptr && shouldUseDedicatedAllocInfo &&
+                localDedicatedAllocInfo.image != VK_NULL_HANDLE) {
+                if (auto* dlInfo =
+                        gfxstream::base::find(mImageInfo, localDedicatedAllocInfo.image)) {
+                    dlInfo->boundColorBuffer = importCbInfoPtr->colorBuffer;
+                }
+            }
+#endif
         }
 
+#if defined(__ANDROID__)
+        if (!hostVisible || importEmulatedExternalMemory) {
+#else
         if (!hostVisible) {
+#endif
             *pMemory = new_boxed_non_dispatchable_VkDeviceMemory(*pMemory);
             return result;
         }
@@ -7265,6 +7525,12 @@ class VkDecoderGlobalState::Impl {
         auto memoryInfoIt = mMemoryInfo.find(memory);
         if (memoryInfoIt == mMemoryInfo.end()) return;
         auto& memoryInfo = memoryInfoIt->second;
+
+#ifdef __ANDROID__
+        if (memoryInfo.boundColorBuffer.has_value()) {
+            waitForDeviceQueuesIdleLocked(device, deviceDispatch);
+        }
+#endif
 
         destroyMemoryWithExclusiveInfo(device, deviceDispatch, memory, memoryInfo);
 

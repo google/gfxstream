@@ -375,6 +375,7 @@ struct ImageInfo {
     // size=0 until then. The AHB is shared_ptr-held so every mImageInfo teardown path frees it.
     struct DeferredLayoutInfo {
         std::shared_ptr<AHardwareBuffer> ahb;
+        VkDeviceMemory ownedMemory = VK_NULL_HANDLE;
         VkDeviceSize size = 0;
         VkDeviceSize alignment = 0;
         uint32_t memoryTypeBits = 0;

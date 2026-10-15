@@ -2445,8 +2445,10 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
                 }
 
                 // Find a memory type that satisfies both the image and AHB requirements
-                uint32_t combinedBits = ahbProps.memoryTypeBits &
-                                        cbInfoPtr->imageMemReqs.memoryTypeBits;
+                uint32_t imgTypeBits = cbInfoPtr->imageMemReqs.memoryTypeBits
+                                           ? cbInfoPtr->imageMemReqs.memoryTypeBits
+                                           : ahbProps.memoryTypeBits;
+                uint32_t combinedBits = ahbProps.memoryTypeBits & imgTypeBits;
                 if (!combinedBits) {
                     GFXSTREAM_WARNING(
                         "No common memory type for AHB (0x%x) and image (0x%x). "
@@ -2461,6 +2463,15 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
                 allocInfo.memoryTypeIndex = info->typeIndex;
                 info->size = ahbProps.allocationSize;
                 allocInfo.allocationSize = ahbProps.allocationSize;
+                if (cbInfoPtr->imageMemReqs.size == 0) {
+                    cbInfoPtr->imageMemReqs.size = ahbProps.allocationSize;
+                }
+
+                if (!info->dedicatedAllocation && cbInfoPtr->image != VK_NULL_HANDLE) {
+                    info->dedicatedAllocation = true;
+                    dedicatedAllocInfo.image = cbInfoPtr->image;
+                    vk_append_struct(&allocInfoChain, &dedicatedAllocInfo);
+                }
 
                 // Chain the import info (declared at function scope above so it outlives
                 // the vkAllocateMemory call that consumes allocInfoChain).
@@ -2480,6 +2491,60 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
                     cbInfoPtr->handle, cbInfoPtr->width, cbInfoPtr->height,
                     string_VkFormat(cbInfoPtr->imageCreateInfoShallow.format), info->typeIndex,
                     (uint64_t)ahbProps.allocationSize);
+            } else if (info->size > 0) {
+                if (info->size > UINT32_MAX) {
+                    GFXSTREAM_WARNING(
+                        "Buffer size %" PRIu64 " exceeds maximum AHardwareBuffer size limit.",
+                        (uint64_t)info->size);
+                    break;
+                }
+                AHardwareBuffer_Desc desc = {
+                    .width = static_cast<uint32_t>(info->size),
+                    .height = 1,
+                    .layers = 1,
+                    .format = AHARDWAREBUFFER_FORMAT_BLOB,
+                    .usage = AHARDWAREBUFFER_USAGE_GPU_DATA_BUFFER |
+                             AHARDWAREBUFFER_USAGE_CPU_READ_OFTEN |
+                             AHARDWAREBUFFER_USAGE_CPU_WRITE_OFTEN,
+                };
+                AHardwareBuffer* ahb = nullptr;
+                if (AHardwareBuffer_allocate(&desc, &ahb) != 0 || !ahb) {
+                    desc.usage = AHARDWAREBUFFER_USAGE_GPU_DATA_BUFFER;
+                    AHardwareBuffer_allocate(&desc, &ahb);
+                }
+                if (!ahb) {
+                    GFXSTREAM_WARNING(
+                        "Falling back to non-exportable allocation for Buffer (size=%" PRIu64 ").",
+                        (uint64_t)info->size);
+                    break;
+                }
+
+                VkAndroidHardwareBufferPropertiesANDROID ahbProps = {
+                    .sType = VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_PROPERTIES_ANDROID,
+                };
+                VkResult propsRes =
+                    vk->vkGetAndroidHardwareBufferPropertiesANDROID(mDevice, ahb, &ahbProps);
+                if (propsRes != VK_SUCCESS || ahbProps.memoryTypeBits == 0) {
+                    GFXSTREAM_WARNING(
+                        "vkGetAndroidHardwareBufferPropertiesANDROID failed for Buffer: %s.",
+                        string_VkResult(propsRes));
+                    AHardwareBuffer_release(ahb);
+                    break;
+                }
+
+                info->typeIndex =
+                    getValidMemoryTypeIndex(ahbProps.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+                allocInfo.memoryTypeIndex = info->typeIndex;
+                info->size = ahbProps.allocationSize;
+                allocInfo.allocationSize = ahbProps.allocationSize;
+
+                importAhbInfo.buffer = ahb;
+                vk_append_struct(&allocInfoChain, &importAhbInfo);
+
+                info->handleInfo = ExternalHandleInfo{
+                    .handle = reinterpret_cast<ExternalHandleType>(ahb),
+                    .streamHandleType = STREAM_HANDLE_TYPE_PLATFORM_AHB,
+                };
             }
 #endif
             break;
@@ -2503,8 +2568,13 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
             break;
         }
 
-        if (mDeviceInfo.memProps.memoryTypes[info->typeIndex].propertyFlags &
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
+        bool isImportedAhb = false;
+#ifdef __ANDROID__
+        isImportedAhb = (importAhbInfo.buffer != nullptr);
+#endif
+        if (!isImportedAhb &&
+            (mDeviceInfo.memProps.memoryTypes[info->typeIndex].propertyFlags &
+             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)) {
             VkResult mapRes =
                 vk->vkMapMemory(mDevice, info->memory, 0, info->size, 0, &info->mappedPtr);
             if (mapRes != VK_SUCCESS) {
@@ -2553,6 +2623,12 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
         vk->vkFreeMemory(mDevice, mem, nullptr /* allocator */);
     }
     if (!memoryAllocated) {
+#ifdef __ANDROID__
+        if (importAhbInfo.buffer != nullptr) {
+            AHardwareBuffer_release(importAhbInfo.buffer);
+            info->handleInfo = std::nullopt;
+        }
+#endif
         return false;
     }
 
@@ -2618,20 +2694,11 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
                 validHandle = true;
                 exportRes = VK_SUCCESS;
             } else {
-                // Fallback: use the old export path if AHB import wasn't used
-                VkMemoryGetAndroidHardwareBufferInfoANDROID getAhbInfo = {
-                    .sType = VK_STRUCTURE_TYPE_MEMORY_GET_ANDROID_HARDWARE_BUFFER_INFO_ANDROID,
-                    .pNext = nullptr,
-                    .memory = info->memory,
-                };
-                AHardwareBuffer* exportHandle = nullptr;
-                exportRes =
-                    vk->vkGetMemoryAndroidHardwareBufferANDROID(mDevice, &getAhbInfo, &exportHandle);
-                validHandle = (VK_SUCCESS == exportRes) && (NULL != exportHandle);
-                info->handleInfo = ExternalHandleInfo{
-                    .handle = reinterpret_cast<ExternalHandleType>(exportHandle),
-                    .streamHandleType = STREAM_HANDLE_TYPE_PLATFORM_AHB,
-                };
+                // Do not call vkGetMemoryAndroidHardwareBufferANDROID when no AHB was imported
+                // and VkExportMemoryAllocateInfo was omitted, as some drivers dereference
+                // a null AHardwareBuffer pointer inside vkGetMemoryAndroidHardwareBufferANDROID.
+                validHandle = false;
+                exportRes = VK_ERROR_INVALID_EXTERNAL_HANDLE;
             }
 #endif
             break;
@@ -3154,6 +3221,7 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height,
     // pNext will be filled later.
     if (imageCi == nullptr) {
         // it can happen if the format is not supported
+        mColorBuffers.erase(colorBufferHandle);
         return false;
     }
     imageCi->sharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -3180,6 +3248,7 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height,
     if (createRes != VK_SUCCESS) {
         GFXSTREAM_ERROR("Failed to create Vulkan image for ColorBuffer %d, error: %s",
                         colorBufferHandle, string_VkResult(createRes));
+        mColorBuffers.erase(colorBufferHandle);
         return false;
     }
 
@@ -3216,8 +3285,12 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height,
     infoPtr->memory.size = infoPtr->imageMemReqs.size;
 
     // Determine memory type.
-    infoPtr->memory.typeIndex =
-        getValidMemoryTypeIndex(infoPtr->imageMemReqs.memoryTypeBits, infoPtr->memoryProperty);
+    if (infoPtr->imageMemReqs.memoryTypeBits != 0) {
+        infoPtr->memory.typeIndex =
+            getValidMemoryTypeIndex(infoPtr->imageMemReqs.memoryTypeBits, infoPtr->memoryProperty);
+    } else {
+        infoPtr->memory.typeIndex = 0;
+    }
 
     const VkFormat imageVkFormat = infoPtr->imageCreateInfoShallow.format;
     GFXSTREAM_DEBUG(
@@ -3238,6 +3311,8 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height,
                                         deviceAlignment, kNullopt, dedicatedImage, infoPtr);
     if (!allocRes) {
         GFXSTREAM_ERROR("Failed to allocate ColorBuffer with Vulkan backing.");
+        vk->vkDestroyImage(mDevice, infoPtr->image, nullptr);
+        mColorBuffers.erase(colorBufferHandle);
         return false;
     }
 
@@ -3256,6 +3331,9 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height,
     if (bindImageMemoryRes != VK_SUCCESS) {
         GFXSTREAM_ERROR("Failed to bind image memory. Error: %s",
                         string_VkResult(bindImageMemoryRes));
+        freeExternalMemoryLocked(vk, &infoPtr->memory);
+        vk->vkDestroyImage(mDevice, infoPtr->image, nullptr);
+        mColorBuffers.erase(colorBufferHandle);
         return false;
     }
 
@@ -3303,6 +3381,9 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height,
     if (createRes != VK_SUCCESS) {
         GFXSTREAM_ERROR("Failed to create Vulkan image view for ColorBuffer %d, Error: %s",
                         colorBufferHandle, string_VkResult(createRes));
+        freeExternalMemoryLocked(vk, &infoPtr->memory);
+        vk->vkDestroyImage(mDevice, infoPtr->image, nullptr);
+        mColorBuffers.erase(colorBufferHandle);
         return false;
     }
 
@@ -4635,7 +4716,9 @@ bool VkEmulation::setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulka
     bool allocRes = allocExternalMemory(vk, &res.memory, deviceAlignment, dedicated_buffer);
 
     if (!allocRes) {
-        GFXSTREAM_WARNING("Failed to allocate ColorBuffer with Vulkan backing.");
+        GFXSTREAM_WARNING("Failed to allocate Buffer with Vulkan backing.");
+        vk->vkDestroyBuffer(mDevice, res.buffer, nullptr);
+        return false;
     }
 
     res.memory.pageOffset = reinterpret_cast<uint64_t>(res.memory.mappedPtr) % kPageSize;
@@ -4647,18 +4730,25 @@ bool VkEmulation::setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulka
     if (bindBufferMemoryRes != VK_SUCCESS) {
         GFXSTREAM_ERROR("Failed to bind buffer memory. Error: %s\n",
                         string_VkResult(bindBufferMemoryRes));
-        return bindBufferMemoryRes;
+        vk->vkDestroyBuffer(mDevice, res.buffer, nullptr);
+        freeExternalMemoryLocked(vk, &res.memory);
+        return false;
     }
 
     bool isHostVisibleMemory = memoryProperty & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+    bool isImportedAhb =
+        res.memory.handleInfo &&
+        res.memory.handleInfo->streamHandleType == STREAM_HANDLE_TYPE_PLATFORM_AHB;
 
-    if (isHostVisibleMemory) {
+    if (isHostVisibleMemory && !res.memory.mappedPtr && !isImportedAhb) {
         VkResult mapMemoryRes = vk->vkMapMemory(mDevice, res.memory.memory, 0, res.memory.size, {},
                                                 &res.memory.mappedPtr);
 
         if (mapMemoryRes != VK_SUCCESS) {
-            GFXSTREAM_ERROR("Failed to map image memory. Error: %s\n",
+            GFXSTREAM_ERROR("Failed to map buffer memory. Error: %s\n",
                             string_VkResult(mapMemoryRes));
+            vk->vkDestroyBuffer(mDevice, res.buffer, nullptr);
+            freeExternalMemoryLocked(vk, &res.memory);
             return false;
         }
     }
