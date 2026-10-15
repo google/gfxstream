@@ -3093,14 +3093,6 @@ class VkDecoderGlobalState::Impl {
         return result;
     }
 
-    void unbindFromBufferLocked(MemoryInfo* memoryInfo, VkBuffer buffer) {
-        memoryInfo->bufferMemoryRanges.erase(buffer);
-    }
-
-    void bindToBufferLocked(MemoryInfo* memoryInfo, VkBuffer buffer, VkDeviceSize offset, VkDeviceSize size) {
-        memoryInfo->bufferMemoryRanges[buffer] = {offset, size};
-    }
-
     void destroyBufferWithExclusiveInfo(VkDevice device, VulkanDispatch* deviceDispatch,
                                         VkBuffer buffer, BufferInfo& bufferInfo) {
         deviceDispatch->vkDestroyBuffer(device, buffer, nullptr);
@@ -3113,10 +3105,6 @@ class VkDecoderGlobalState::Impl {
         auto& bufferInfo = bufferInfoIt->second;
 
         destroyBufferWithExclusiveInfo(device, deviceDispatch, buffer, bufferInfo);
-        auto* memoryInfo = gfxstream::base::find(mMemoryInfo, bufferInfo.memory);
-        if (memoryInfo && m_vkEmulation->getFeatures().VulkanDisableCoherentMemoryAndEmulate.enabled()) {
-            unbindFromBufferLocked(memoryInfo, buffer);
-        }
 
         mBufferInfo.erase(buffer);
     }
@@ -3144,9 +3132,6 @@ class VkDecoderGlobalState::Impl {
         if (!memoryInfo) {
             GFXSTREAM_WARNING("Failed to find VkDeviceMemory:%p", memory);
             return VK_ERROR_OUT_OF_HOST_MEMORY;
-        }
-        if (m_vkEmulation->getFeatures().VulkanDisableCoherentMemoryAndEmulate.enabled()) {
-            bindToBufferLocked(memoryInfo, buffer, memoryOffset, bufferInfo->size);
         }
         if (memoryInfo->boundBuffer) {
             auto* deviceInfo = gfxstream::base::find(mDeviceInfo, device);
@@ -4083,7 +4068,11 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
-        return vk->vkGetFenceStatus(device, fence);
+        VkResult res = vk->vkGetFenceStatus(device, fence);
+        if (res == VK_SUCCESS) {
+            invalidateEmulatedCoherentMemory(device, vk);
+        }
+        return res;
     }
 
     VkResult on_vkWaitForFences(gfxstream::base::BumpPool*, VkSnapshotApiCallHandle,
@@ -7201,10 +7190,14 @@ class VkDecoderGlobalState::Impl {
         // in the same process as the guest.
         // When external blobs are on, we want to map memory only if a workaround is using it in
         // the gfxstream process. This happens when ASTC CPU emulation is on.
+        bool needToMapForCoherentEmulation =
+            emulateHostVisible &&
+            m_vkEmulation->getFeatures().VulkanDisableCoherentMemoryAndEmulate.enabled();
         bool needToMap =
-            (!m_vkEmulation->getFeatures().ExternalBlob.enabled() ||
-             (deviceInfo->useAstcCpuDecompression && deviceInfo->emulateTextureAstc)) &&
-            !createBlobInfoPtr;
+            ((!m_vkEmulation->getFeatures().ExternalBlob.enabled() ||
+              (deviceInfo->useAstcCpuDecompression && deviceInfo->emulateTextureAstc)) &&
+             !createBlobInfoPtr) ||
+            needToMapForCoherentEmulation;
 
         // Some cases provide a mappedPtr, so we only map if we still don't have a pointer here.
         if (!mappedPtr && needToMap) {
@@ -7220,16 +7213,16 @@ class VkDecoderGlobalState::Impl {
             // Since we didn't call vkMapMemory, unmapping is not needed (don't own mappedPtr).
             memoryInfo.needUnmap = false;
             memoryInfo.ptr = mappedPtr;
-
-            if (createBlobInfoPtr) {
-                memoryInfo.blobId = createBlobInfoPtr->blobId;
-            }
-
-            // Always assign the shared memory into memoryInfo. If it was used, then it will have
-            // ownership transferred.
-            memoryInfo.sharedMemory = std::exchange(sharedMemory, std::nullopt);
-            memoryInfo.privateMemory = privateMemory;
         }
+
+        if (createBlobInfoPtr) {
+            memoryInfo.blobId = createBlobInfoPtr->blobId;
+        }
+
+        // Always assign the shared memory into memoryInfo. If it was used, then it will have
+        // ownership transferred.
+        memoryInfo.sharedMemory = std::exchange(sharedMemory, std::nullopt);
+        memoryInfo.privateMemory = privateMemory;
 
         *pMemory = new_boxed_non_dispatchable_VkDeviceMemory(*pMemory);
 
@@ -7689,16 +7682,16 @@ class VkDecoderGlobalState::Impl {
                 virtioGpuContextId, hostBlobId, std::move(descriptor),
                 exportedMemory.streamHandleType, info->caching,
                 std::optional<VulkanInfo>(vulkanInfo));
-        } else if (!info->needUnmap) {
-            VkResult mapResult = vk->vkMapMemory(device, memory, 0, info->size, 0, &info->ptr);
-            if (mapResult != VK_SUCCESS) {
-                return VK_ERROR_OUT_OF_HOST_MEMORY;
+        } else {
+            if (!info->needUnmap) {
+                VkResult mapResult = vk->vkMapMemory(device, memory, 0, info->size, 0, &info->ptr);
+                if (mapResult != VK_SUCCESS) {
+                    return VK_ERROR_OUT_OF_HOST_MEMORY;
+                }
+
+                info->needUnmap = true;
             }
 
-            info->needUnmap = true;
-        }
-
-        if (info->needUnmap) {
             uint64_t hva = (uint64_t)(uintptr_t)(info->ptr);
             uint64_t alignedHva = hva & kPageMaskForBlob;
 
@@ -7715,7 +7708,8 @@ class VkDecoderGlobalState::Impl {
                 return VK_ERROR_OUT_OF_HOST_MEMORY;
             }
             ExternalObjectManager::get()->addMapping(virtioGpuContextId, hostBlobId,
-                                                     (void*)(uintptr_t)alignedHva, info->caching);
+                                                     (void*)(uintptr_t)alignedHva,
+                                                     info->caching);
             info->virtioGpuMapped = true;
             info->hostmemId = hostBlobId;
         }
@@ -8190,25 +8184,21 @@ class VkDecoderGlobalState::Impl {
         }
 
         if (m_vkEmulation->getFeatures().VulkanDisableCoherentMemoryAndEmulate.enabled()) {
-            std::lock_guard<std::mutex> lock(mMutex);
             std::vector<VkMappedMemoryRange> memoryRangesToFlush;
-            for (auto& it: mMemoryInfo) {
-                auto pMemory = it.first;
-                auto& mappedData = it.second;
-                if (mappedData.device != device) {
-                    continue;
-                }
-                if (mappedData.bufferMemoryRanges.empty()) {
-                    continue;
-                }
-                // TODO(b/424729656): this logic should run only for emulated memory
-                for (const auto& pair : mappedData.bufferMemoryRanges) {
+            {
+                std::lock_guard<std::mutex> lock(mMutex);
+                for (auto& it : mMemoryInfo) {
+                    auto pMemory = it.first;
+                    auto& mappedData = it.second;
+                    if (mappedData.device != device || !mappedData.needUnmap || !mappedData.ptr) {
+                        continue;
+                    }
                     memoryRangesToFlush.push_back({
                         .sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
                         .pNext = nullptr,
                         .memory = pMemory,
-                        .offset = pair.second.offset,
-                        .size = pair.second.size,
+                        .offset = 0,
+                        .size = VK_WHOLE_SIZE,
                     });
                 }
             }
@@ -8423,11 +8413,13 @@ class VkDecoderGlobalState::Impl {
         if (!queue) return VK_SUCCESS;
 
         std::mutex* queueMutex;
+        VkDevice device = VK_NULL_HANDLE;
         {
             std::lock_guard<std::mutex> lock(mMutex);
             auto* queueInfo = gfxstream::base::find(mQueueInfo, queue);
             if (!queueInfo) return VK_SUCCESS;
             queueMutex = queueInfo->queueMutex.get();
+            device = queueInfo->device;
         }
 
         // TODO(b/379862480): register and track gpu workload to wait only for the
@@ -8435,8 +8427,15 @@ class VkDecoderGlobalState::Impl {
         // other fences/work. It should not hold the queue lock/ql while waiting to allow
         // submissions and other operations on the virtualized queue
 
-        std::lock_guard<std::mutex> queueLock(*queueMutex);
-        return vk->vkQueueWaitIdle(queue);
+        VkResult res;
+        {
+            std::lock_guard<std::mutex> queueLock(*queueMutex);
+            res = vk->vkQueueWaitIdle(queue);
+        }
+        if (res == VK_SUCCESS && device != VK_NULL_HANDLE) {
+            invalidateEmulatedCoherentMemory(device, vk);
+        }
+        return res;
     }
 
     VkResult on_vkResetCommandBuffer(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
@@ -10073,6 +10072,38 @@ class VkDecoderGlobalState::Impl {
         GFXSTREAM_FATAL("Encountered device lost.");
     }
 
+    void invalidateEmulatedCoherentMemory(VkDevice unboxed_device, VulkanDispatch* vk) {
+        if (!m_vkEmulation->getFeatures().VulkanDisableCoherentMemoryAndEmulate.enabled()) {
+            return;
+        }
+        if (!vk || !vk->vkInvalidateMappedMemoryRanges) {
+            return;
+        }
+        std::vector<VkMappedMemoryRange> memoryRangesToInvalidate;
+        {
+            std::lock_guard<std::mutex> lock(mMutex);
+            for (auto& it : mMemoryInfo) {
+                auto pMemory = it.first;
+                auto& mappedData = it.second;
+                if (mappedData.device != unboxed_device || !mappedData.needUnmap || !mappedData.ptr) {
+                    continue;
+                }
+                memoryRangesToInvalidate.push_back({
+                    .sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
+                    .pNext = nullptr,
+                    .memory = pMemory,
+                    .offset = 0,
+                    .size = VK_WHOLE_SIZE,
+                });
+            }
+        }
+        if (!memoryRangesToInvalidate.empty()) {
+            vk->vkInvalidateMappedMemoryRanges(
+                unboxed_device, static_cast<uint32_t>(memoryRangesToInvalidate.size()),
+                memoryRangesToInvalidate.data());
+        }
+    }
+
     VkResult waitForFences(VkDevice unboxed_device, VulkanDispatch* vk, uint32_t fenceCount,
                            const VkFence* pFences, VkBool32 waitAll, uint64_t timeout, bool checkWaitState) {
         if (!fenceCount) {
@@ -10140,7 +10171,11 @@ class VkDecoderGlobalState::Impl {
         const auto endTime = std::chrono::system_clock::now();
         const uint64_t timePassed = std::chrono::nanoseconds(endTime - startTime).count();
         const uint64_t timeoutLeft = (timeout > timePassed) ? timeout - timePassed : 0;
-        return vk->vkWaitForFences(unboxed_device, fenceCount, pFences, waitAll, timeoutLeft);
+        VkResult res = vk->vkWaitForFences(unboxed_device, fenceCount, pFences, waitAll, timeoutLeft);
+        if (res == VK_SUCCESS) {
+            invalidateEmulatedCoherentMemory(unboxed_device, vk);
+        }
+        return res;
     }
 
     VkResult waitForFence(VkFence fence, uint64_t timeout) {
