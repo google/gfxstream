@@ -42,6 +42,30 @@ TEST(WorkerThread, TheReturnedFutureFromEnqueueShouldBeReadyBeforeTheWorkerStart
               std::future_status::ready);
 }
 
+TEST(WorkerThread, WaitQueuedItemsTimesOutWhenBlocked) {
+    struct Item {
+        bool stop = false;
+    };
+    std::promise<void> unblockPromise;
+    std::shared_future<void> unblockFuture = unblockPromise.get_future().share();
+    WorkerThread<Item> worker(
+        []() {},
+        [unblockFuture](Item&& item) {
+            if (item.stop) {
+                return WorkerProcessingResult::Stop;
+            }
+            unblockFuture.wait();
+            return WorkerProcessingResult::Continue;
+        });
+    worker.start();
+    worker.enqueue(Item{false});
+    EXPECT_FALSE(worker.waitQueuedItems(std::chrono::milliseconds(10)));
+    unblockPromise.set_value();
+    EXPECT_TRUE(worker.waitQueuedItems(std::chrono::milliseconds(500)));
+    worker.enqueue(Item{true});
+    worker.join();
+}
+
 }  // namespace
 }  // namespace base
 }  // namespace android

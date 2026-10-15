@@ -100,10 +100,10 @@ public:
     void onGuestGraphicsProcessCreate(uint64_t puid) final;
     // TODO(kaiyili): rename this interface to onGuestGraphicsProcessDestroy.
     void cleanupProcGLObjects(uint64_t puid) final;
-    void waitForProcessCleanup() final;
+    bool waitForProcessCleanup() final;
     struct AndroidVirtioGpuOps* getVirtioGpuOps() final;
 
-    void pauseAllPreSave() final;
+    bool pauseAllPreSave() final;
     void resumeAll() final;
 
     bool save(gfxstream::Stream* stream,

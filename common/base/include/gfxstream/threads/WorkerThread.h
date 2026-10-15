@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <condition_variable>
 #include <functional>
 #include <future>
@@ -93,10 +94,14 @@ class WorkerThread {
     }
 
     // Waits for all enqueue()'d items to finish or the worker stops.
-    void waitQueuedItems() {
+    bool waitQueuedItems(std::optional<std::chrono::milliseconds> timeout = std::nullopt) {
         // Enqueue an empty sync command.
         std::future<void> completeFuture = enqueueImpl(Command());
+        if (timeout.has_value()) {
+            return completeFuture.wait_for(*timeout) == std::future_status::ready;
+        }
         completeFuture.wait();
+        return true;
     }
 
     // Moves the |item| into internal queue for processing. If the command is enqueued after the

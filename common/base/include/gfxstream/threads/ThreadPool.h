@@ -165,12 +165,16 @@ public:
         }
     }
 
-    void waitAllItems() {
-        if (0 == mValidWorkersCount) return;
+    bool waitAllItems(std::optional<std::chrono::milliseconds> timeout = std::nullopt) {
+        if (0 == mValidWorkersCount) return true;
+        bool allSucceeded = true;
         for (auto& workerOpt : mWorkers) {
             if (!workerOpt) continue;
-            workerOpt->waitQueuedItems();
+            if (!workerOpt->waitQueuedItems(timeout)) {
+                allSucceeded = false;
+            }
         }
+        return allSucceeded;
     }
 
     int numWorkers() const { return mValidWorkersCount; }
