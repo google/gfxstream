@@ -195,7 +195,8 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
     // The process resource is returned so that we can destroy it on a separate thread.
     std::unique_ptr<ProcessResources> removeGraphicsProcessResources(uint64_t puid);
     void signalGuestProcessDead(uint64_t puid);
-    void waitForProcessCleanup();
+    void enqueueAsyncCleanup(std::function<void()> cleanup);
+    void waitForAllPendingCleanups();
 
     // Read the content of a given Buffer into client memory.
     // |p_buffer| is the Buffer's handle value.

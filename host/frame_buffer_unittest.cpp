@@ -972,7 +972,7 @@ TEST_F(FrameBufferTest, CleanupProcGLObjects) {
     // Simulate render thread exit for this process before cleanupProcGLObjects
     mRenderThreadInfo->setPuid(0);
     mFb->signalGuestProcessDead(testPuid);
-    mFb->waitForProcessCleanup();
+    mFb->waitForAllPendingCleanups();
 
     EXPECT_FALSE(mFb->getEmulationGl()->hasProcOwnedResources());
     EXPECT_FALSE(mFb->getEmulationGl()->hasContextsOrWindowSurfaces());

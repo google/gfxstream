@@ -400,7 +400,8 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
     std::unique_ptr<ProcessResources> removeGraphicsProcessResources(uint64_t puid);
 
     void signalGuestProcessDead(uint64_t puid);
-    void waitForProcessCleanup();
+    void enqueueAsyncCleanup(std::function<void()> cleanup);
+    void waitForAllPendingCleanups();
 
     void readBuffer(HandleType p_buffer, uint64_t offset, uint64_t size, void* bytes);
 
@@ -2427,12 +2428,17 @@ std::unique_ptr<ProcessResources> FrameBuffer::Impl::removeGraphicsProcessResour
 
 void FrameBuffer::Impl::signalGuestProcessDead(uint64_t puid) {
     std::shared_ptr<GuestProcessResources> processResources = removeGraphicsProcessResources(puid);
-    m_processCleanupThread.enqueueCleanup([this, puid, processResources = std::move(processResources)]() {
+
+    enqueueAsyncCleanup([this, puid, processResources = std::move(processResources)]() {
         this->cleanupGuestProcess(puid, processResources.get());
     });
 }
 
-void FrameBuffer::Impl::waitForProcessCleanup() {
+void FrameBuffer::Impl::enqueueAsyncCleanup(std::function<void()> cleanup) {
+    m_processCleanupThread.enqueueCleanup(std::move(cleanup));
+}
+
+void FrameBuffer::Impl::waitForAllPendingCleanups() {
     m_processCleanupThread.waitForCleanup();
 }
 
@@ -3225,7 +3231,7 @@ AsyncResult FrameBuffer::Impl::composeWithCallback(uint32_t bufferSize, void* bu
 
 bool FrameBuffer::Impl::onSave(Stream* stream,
                                const ITextureSaverPtr& textureSaver) NO_THREAD_SAFETY_ANALYSIS {
-    waitForProcessCleanup();
+    waitForAllPendingCleanups();
 
     AutoLock mutex(m_lock);
 
@@ -4773,7 +4779,11 @@ std::unique_ptr<ProcessResources> FrameBuffer::removeGraphicsProcessResources(ui
 
 void FrameBuffer::signalGuestProcessDead(uint64_t puid) { mImpl->signalGuestProcessDead(puid); }
 
-void FrameBuffer::waitForProcessCleanup() { mImpl->waitForProcessCleanup(); }
+void FrameBuffer::enqueueAsyncCleanup(std::function<void()> cleanup) {
+    mImpl->enqueueAsyncCleanup(std::move(cleanup));
+}
+
+void FrameBuffer::waitForAllPendingCleanups() { mImpl->waitForAllPendingCleanups(); }
 
 void FrameBuffer::readBuffer(HandleType p_buffer, uint64_t offset, uint64_t size, void* bytes) {
     mImpl->readBuffer(p_buffer, offset, size, bytes);

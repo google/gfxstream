@@ -38,8 +38,6 @@ extern "C" {
 namespace gfxstream {
 namespace host {
 
-class CleanupThread;
-
 class VirtioGpuFrontend {
    public:
     VirtioGpuFrontend();
@@ -155,7 +153,6 @@ class VirtioGpuFrontend {
     std::unique_ptr<VirtioGpuTimelines> mVirtioGpuTimelines = nullptr;
     // LINT.ThenChange(VirtioGpuFrontend.h:virtio_gpu_frontend)
 
-    std::unique_ptr<CleanupThread> mCleanupThread;
     bool mLogCalls = false;
 };
 
