@@ -4508,6 +4508,7 @@ void FrameBuffer::Impl::unregisterVulkanInstance(uint64_t /*id*/) const {}
 void FrameBuffer::Impl::createTrivialContext(HandleType shared, HandleType* contextOut,
                                              HandleType* surfOut) NO_THREAD_SAFETY_ANALYSIS {
     AutoLock mutex(m_lock);
+    AutoLock colorBufferMapLock(m_colorBufferMapLock);
     if (m_emulationGl) {
         m_emulationGl->createTrivialContext(shared, contextOut, surfOut);
     }
@@ -4645,6 +4646,18 @@ void FrameBuffer::Impl::createEmulatedEglFenceSync(EGLenum type, int destroyWhen
 
     if (m_emulationGl) {
         if (outSync) {
+            gl::RenderThreadInfoGl* const info = gl::RenderThreadInfoGl::get();
+            if (!info) {
+                GFXSTREAM_FATAL("RenderThreadGL not available.");
+            }
+            if (!info->currContext) {
+                uint32_t syncContext;
+                uint32_t syncSurface;
+                createTrivialContext(0,  // There is no context to share.
+                                     &syncContext, &syncSurface);
+                bindContext(syncContext, syncSurface, syncSurface);
+                // This context is then cleaned up when the render thread exits.
+            }
             *outSync = m_emulationGl->createEmulatedEglFenceSync(type, destroyWhenSignaled);
         }
     } else if (m_emulationVk) {
@@ -4665,6 +4678,8 @@ void FrameBuffer::Impl::drainGlRenderThreadResources() {
         return;
     }
 
+    AutoLock mutex(m_lock);
+    sweepColorBuffersLocked();
     if (m_emulationGl) {
         m_emulationGl->drainRenderThreadResources();
     }

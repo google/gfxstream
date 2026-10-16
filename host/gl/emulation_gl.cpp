@@ -878,19 +878,6 @@ std::unique_ptr<EmulatedEglContext> EmulationGl::loadEmulatedEglContext(
 }
 
 uint64_t EmulationGl::createEmulatedEglFenceSync(EGLenum type, int destroyWhenSignaled) {
-    RenderThreadInfoGl* const info = RenderThreadInfoGl::get();
-    if (!info) {
-        GFXSTREAM_FATAL("RenderThreadGL not available.");
-    }
-    if (!info->currContext) {
-        uint32_t syncContext;
-        uint32_t syncSurface;
-        createTrivialContext(0,  // There is no context to share.
-                             &syncContext, &syncSurface);
-        bindContext(syncContext, syncSurface, syncSurface);
-        // This context is then cleaned up when the render thread exits.
-    }
-
     const bool hasNativeFence = type == EGL_SYNC_NATIVE_FENCE_ANDROID;
     auto sync = EmulatedEglFenceSync::create(mEglDisplay, hasNativeFence, destroyWhenSignaled);
     return sync ? (uint64_t)(uintptr_t)sync.release() : 0;
@@ -1433,11 +1420,14 @@ std::vector<uint64_t> EmulationGl::getGLPUIDs() const {
 }
 
 void EmulationGl::drainRenderThreadContexts() {
-    gfxstream::base::AutoWriteLock contextLock(mContextStructureLock);
     RenderThreadInfoGl* const tinfo = RenderThreadInfoGl::get();
     if (!tinfo) {
         GFXSTREAM_FATAL("RenderThreadGL not available.");
     }
+    if (tinfo->m_contextSet.empty()) {
+        return;
+    }
+    gfxstream::base::AutoWriteLock contextLock(mContextStructureLock);
     for (const HandleType contextHandle : tinfo->m_contextSet) {
         mContexts.erase(contextHandle);
     }
@@ -1448,6 +1438,9 @@ void EmulationGl::drainRenderThreadSurfaces() {
     RenderThreadInfoGl* const tinfo = RenderThreadInfoGl::get();
     if (!tinfo) {
         GFXSTREAM_FATAL("RenderThreadGL not available.");
+    }
+    if (tinfo->m_windowSet.empty()) {
+        return;
     }
     std::vector<HandleType> colorBuffersToClose;
     {
