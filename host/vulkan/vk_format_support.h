@@ -28,11 +28,11 @@ struct ImageSupportInfo {
     VkFormat format;
     VkImageType type;
     VkImageTiling tiling;
-    VkImageUsageFlags usageFlags;
     VkImageCreateFlags createFlags;
 
     // Output parameters
     bool supported = false;
+    VkImageUsageFlags usageFlags = 0;
     VkFormatProperties2 formatProps2{};
     std::optional<VkSamplerYcbcrConversionImageFormatProperties> samplerYcbcrConversionFormatProps;
 };

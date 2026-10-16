@@ -428,6 +428,31 @@ void VkEmulation::appendExternalMemoryModeDeviceExtensions(
     }
 }
 
+static VkImageUsageFlags getSupportedImageUsageFlags(const VkFormatProperties& formatProperties,
+                                                     VkImageTiling tiling) {
+    constexpr std::pair<VkFormatFeatureFlags, VkImageUsageFlags> kFormatUsagePairs[] = {
+        {VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT,
+         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT},
+        {VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT,
+         VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT},
+        {VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT, VK_IMAGE_USAGE_SAMPLED_BIT},
+        {VK_FORMAT_FEATURE_TRANSFER_SRC_BIT, VK_IMAGE_USAGE_TRANSFER_SRC_BIT},
+        {VK_FORMAT_FEATURE_TRANSFER_DST_BIT, VK_IMAGE_USAGE_TRANSFER_DST_BIT},
+        {VK_FORMAT_FEATURE_BLIT_SRC_BIT, VK_IMAGE_USAGE_TRANSFER_SRC_BIT},
+    };
+    const VkFormatFeatureFlags tilingFeatures = (tiling == VK_IMAGE_TILING_OPTIMAL)
+                                                    ? formatProperties.optimalTilingFeatures
+                                                    : formatProperties.linearTilingFeatures;
+
+    VkImageUsageFlags usage = 0;
+    for (const auto& [featureFlags, usageFlags] : kFormatUsagePairs) {
+        if (tilingFeatures & featureFlags) {
+            usage |= usageFlags;
+        }
+    }
+    return usage;
+}
+
 bool VkEmulation::populateImageFormatExternalMemorySupportInfo(VulkanDispatch* vk,
                                                                VkPhysicalDevice physdev,
                                                                ImageSupportInfo* info) {
@@ -439,9 +464,15 @@ bool VkEmulation::populateImageFormatExternalMemorySupportInfo(VulkanDispatch* v
 
     info->formatProps2 = {
         VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_2,
-        0,
+        nullptr,
         outFormatProps,
     };
+
+    info->usageFlags = getSupportedImageUsageFlags(outFormatProps, info->tiling);
+    if (info->usageFlags == 0) {
+        info->supported = false;
+        return true;
+    }
 
     if (!mInstanceSupportsExternalMemoryCapabilities) {
         VkImageFormatProperties outImageFormatProps;
@@ -468,7 +499,7 @@ bool VkEmulation::populateImageFormatExternalMemorySupportInfo(VulkanDispatch* v
 
         GFXSTREAM_DEBUG("Supported (not externally): %s %s %s %s", string_VkFormat(info->format),
                         string_VkImageType(info->type), string_VkImageTiling(info->tiling),
-                        string_VkImageUsageFlagBits((VkImageUsageFlagBits)info->usageFlags));
+                        string_VkImageUsageFlags(info->usageFlags).c_str());
 
         return true;
     }
@@ -513,7 +544,7 @@ bool VkEmulation::populateImageFormatExternalMemorySupportInfo(VulkanDispatch* v
         if (res == VK_ERROR_FORMAT_NOT_SUPPORTED) {
             GFXSTREAM_DEBUG("Not Supported: %s %s %s %s", string_VkFormat(info->format),
                             string_VkImageType(info->type), string_VkImageTiling(info->tiling),
-                            string_VkImageUsageFlagBits((VkImageUsageFlagBits)info->usageFlags));
+                            string_VkImageUsageFlags(info->usageFlags).c_str());
 
             info->supported = false;
             return true;
@@ -547,7 +578,7 @@ bool VkEmulation::populateImageFormatExternalMemorySupportInfo(VulkanDispatch* v
     GFXSTREAM_DEBUG("Supported: %s %s %s %s, supportsExternalMemory? %d, requiresDedicated? %d",
                     string_VkFormat(info->format), string_VkImageType(info->type),
                     string_VkImageTiling(info->tiling),
-                    string_VkImageUsageFlagBits((VkImageUsageFlagBits)info->usageFlags),
+                    string_VkImageUsageFlags(info->usageFlags).c_str(),
                     externalMemorySupported, requiresDedicatedAllocation);
 
     return true;
@@ -2918,26 +2949,8 @@ std::unique_ptr<VkImageCreateInfo> VkEmulation::generateColorBufferVkImageCreate
     }
     const ImageSupportInfo& imageSupportInfo = *maybeImageSupportInfo;
 
-    const VkFormatProperties& formatProperties = imageSupportInfo.formatProps2.formatProperties;
-
-    constexpr std::pair<VkFormatFeatureFlags, VkImageUsageFlags> formatUsagePairs[] = {
-        {VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT,
-         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT},
-        {VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT,
-         VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT},
-        {VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT, VK_IMAGE_USAGE_SAMPLED_BIT},
-        {VK_FORMAT_FEATURE_TRANSFER_SRC_BIT, VK_IMAGE_USAGE_TRANSFER_SRC_BIT},
-        {VK_FORMAT_FEATURE_TRANSFER_DST_BIT, VK_IMAGE_USAGE_TRANSFER_DST_BIT},
-        {VK_FORMAT_FEATURE_BLIT_SRC_BIT, VK_IMAGE_USAGE_TRANSFER_SRC_BIT},
-    };
-    VkFormatFeatureFlags tilingFeatures = (tiling == VK_IMAGE_TILING_OPTIMAL)
-                                              ? formatProperties.optimalTilingFeatures
-                                              : formatProperties.linearTilingFeatures;
-
-    VkImageUsageFlags usage = 0;
-    for (const auto& formatUsage : formatUsagePairs) {
-        usage |= (tilingFeatures & formatUsage.first) ? formatUsage.second : 0u;
-    }
+    const VkImageUsageFlags usage =
+        getSupportedImageUsageFlags(imageSupportInfo.formatProps2.formatProperties, tiling);
 
     return std::make_unique<VkImageCreateInfo>(VkImageCreateInfo{
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,

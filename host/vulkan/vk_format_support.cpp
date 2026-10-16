@@ -81,26 +81,17 @@ namespace vk {
         VK_IMAGE_TILING_OPTIMAL,
     };
 
-    std::vector<VkImageUsageFlags> usageFlags = {
-        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
-        VK_IMAGE_USAGE_SAMPLED_BIT,          VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-        VK_IMAGE_USAGE_TRANSFER_DST_BIT,
-    };
-
     ImageSupport imageSupport = {};
 
     for (auto combo : combos) {
         for (auto t : types) {
             for (auto ti : tilings) {
-                for (auto u : usageFlags) {
-                    imageSupport.mSupportInfos.emplace_back(ImageSupportInfo{
-                        .format = combo.format,
-                        .type = t,
-                        .tiling = ti,
-                        .usageFlags = u,
-                        .createFlags = combo.createFlags,
-                    });
-                }
+                imageSupport.mSupportInfos.emplace_back(ImageSupportInfo{
+                    .format = combo.format,
+                    .type = t,
+                    .tiling = ti,
+                    .createFlags = combo.createFlags,
+                });
             }
         }
     }
@@ -115,23 +106,14 @@ namespace vk {
         {VK_FORMAT_D32_SFLOAT_S8_UINT},
     };
 
-    std::vector<VkImageUsageFlags> depthUsageFlags = {
-        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
-        VK_IMAGE_USAGE_SAMPLED_BIT,          VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-        VK_IMAGE_USAGE_TRANSFER_DST_BIT,
-    };
-
     for (auto combo : depthCombos) {
         for (auto t : types) {
-            for (auto u : depthUsageFlags) {
-                imageSupport.mSupportInfos.emplace_back(ImageSupportInfo{
-                    .format = combo.format,
-                    .type = t,
-                    .tiling = VK_IMAGE_TILING_OPTIMAL,
-                    .usageFlags = u,
-                    .createFlags = combo.createFlags,
-                });
-            }
+            imageSupport.mSupportInfos.emplace_back(ImageSupportInfo{
+                .format = combo.format,
+                .type = t,
+                .tiling = VK_IMAGE_TILING_OPTIMAL,
+                .createFlags = combo.createFlags,
+            });
         }
     }
 
