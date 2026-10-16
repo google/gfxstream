@@ -71,6 +71,12 @@ class VkReconstruction {
     void addHandleDependency(const VkObjectHandle* childHandles, uint32_t childHandlesCount,
                              VkObjectHandle parentHandle,
                              HandleState childState = CREATED, HandleState parentState = CREATED);
+    void addHandleDependency(const VkObjectHandle* childHandles, uint32_t childHandlesCount,
+                             uint32_t imageInfoCount, const VkDescriptorImageInfo* pImageInfos);
+    void addHandleDependency(const VkObjectHandle* childHandles, uint32_t childHandlesCount,
+                             uint32_t bufferInfoCount, const VkDescriptorBufferInfo* pBufferInfos);
+    void addHandleDependency(const VkObjectHandle* childHandles, uint32_t childHandlesCount,
+                             uint32_t bufferViewCount, const VkBufferView* pBufferViews);
 
     void setCreatedHandlesForApi(VkSnapshotApiCallHandle handle , const uint64_t* created,
                                  uint32_t count);
