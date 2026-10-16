@@ -79,7 +79,7 @@ class BoxedHandleManager {
 
     BoxedHandle add(BoxedHandleInfo item, BoxedHandleTypeTag tag);
 
-    void update(BoxedHandle handle, BoxedHandleInfo item, BoxedHandleTypeTag tag);
+    void update(BoxedHandle handle, BoxedHandleInfo item);
 
     void remove(BoxedHandle h);
     void removeDelayed(uint64_t h, VkDevice device, std::function<void()> callback);
@@ -103,6 +103,9 @@ class BoxedHandleManager {
     uint64_t getHandlesCount() const;
 
    private:
+    // Erases the |unboxed| -> |boxed| reverse mapping, but only if it is still owned by |boxed|.
+    void eraseReverseMappingLocked(UnboxedHandle unboxed, BoxedHandle boxed) REQUIRES(mMutex);
+
     Store mStore;
 
     mutable std::mutex mMutex;

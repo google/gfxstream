@@ -54,30 +54,78 @@ BoxedHandle BoxedHandleManager::add(BoxedHandleInfo item, BoxedHandleTypeTag tag
         handle = (BoxedHandle)mStore.add(std::move(item), (size_t)tag);
     }
 
-    std::lock_guard<std::mutex> lock(mMutex);
-    mReverseMap[underlying] = handle;
+    // VK_NULL_HANDLE is never a valid reverse-lookup key (see eraseReverseMappingLocked), so
+    // don't record one that could later be returned for getBoxedFromUnboxed(0).
+    if (underlying) {
+        std::lock_guard<std::mutex> lock(mMutex);
+        mReverseMap[underlying] = handle;
+    }
     return handle;
 }
 
-void BoxedHandleManager::update(BoxedHandle handle, BoxedHandleInfo item,
-                                BoxedHandleTypeTag tag) {
-    auto storedItem = mStore.get(handle);
-    UnboxedHandle oldHandle = (UnboxedHandle)storedItem->underlying;
-    UnboxedHandle newHandle = (UnboxedHandle)item.underlying;
-    *storedItem = std::move(item);
-    std::lock_guard<std::mutex> lock(mMutex);
-    if (oldHandle) {
-        mReverseMap.erase(oldHandle);
+void BoxedHandleManager::eraseReverseMappingLocked(UnboxedHandle unboxed, BoxedHandle boxed) {
+    if (!unboxed) {
+        return;
     }
-    mReverseMap[newHandle] = handle;
+    // Only erase the reverse mapping if it still points at |boxed|. The host driver may reuse
+    // an unboxed handle value as soon as the underlying object is destroyed, and a new boxed
+    // handle may already have been registered for it by another thread before the old boxed
+    // handle is removed (e.g. on_vkDestroyImage releases the global state lock before the decoder
+    // calls delete_VkImage). Unconditionally erasing would drop the new object's reverse mapping
+    // and break unboxed_to_boxed_* lookups (and with them snapshot dependency tracking).
+    auto it = mReverseMap.find(unboxed);
+    if (it != mReverseMap.end() && it->second == boxed) {
+        mReverseMap.erase(it);
+    }
+}
+
+void BoxedHandleManager::update(BoxedHandle handle, BoxedHandleInfo item) {
+    const UnboxedHandle newHandle = (UnboxedHandle)item.underlying;
+    // Declared before the lock so it is destroyed after mMutex is released: its members may run
+    // arbitrary destructors.
+    BoxedHandleInfo previous;
+    // mMutex is held across the store swap and the reverse-map update so that update() and
+    // remove() on the same boxed handle are atomic with respect to each other; otherwise a
+    // remove() interleaved between the two steps could leave mReverseMap pointing at a dead
+    // handle. mMutex is never taken while the store lock is held, so the nesting is safe.
+    std::lock_guard<std::mutex> lock(mMutex);
+    const bool live = mStore.withLocked(handle, [&](BoxedHandleInfo* stored) {
+        if (!stored) {
+            return false;
+        }
+        previous = std::move(*stored);
+        *stored = std::move(item);
+        return true;
+    });
+    if (!live) {
+        return;
+    }
+    eraseReverseMappingLocked((UnboxedHandle)previous.underlying, handle);
+    if (newHandle) {
+        mReverseMap[newHandle] = handle;
+    }
 }
 
 void BoxedHandleManager::remove(BoxedHandle h) {
-    auto item = get(h);
-    if (item) {
-        std::lock_guard<std::mutex> lock(mMutex);
-        mReverseMap.erase((UnboxedHandle)(item->underlying));
+    // As in update(): declared before the lock so its destructors run after mMutex is released.
+    BoxedHandleInfo removed;
+    // mMutex covers the store lookup, the reverse-map erase and the store removal so that no
+    // concurrent update(h) can slip in between and leave a stale reverse mapping. The info is
+    // moved out under the store lock, as get() hands out a raw pointer that a concurrent
+    // remove(h) could otherwise free before it is dereferenced.
+    std::lock_guard<std::mutex> lock(mMutex);
+    const bool live = mStore.withLocked(h, [&](BoxedHandleInfo* stored) {
+        if (!stored) {
+            return false;
+        }
+        removed = std::move(*stored);
+        *stored = {};
+        return true;
+    });
+    if (!live) {
+        return;
     }
+    eraseReverseMappingLocked((UnboxedHandle)removed.underlying, h);
     mStore.remove(h);
 }
 
@@ -108,7 +156,7 @@ void BoxedHandleManager::processDelayedRemoves(VkDevice device) {
             r.callback();
         }
 
-        mStore.remove(h);
+        remove(h);
     }
 }
 
@@ -465,7 +513,7 @@ template <typename VkObjectT>
 void set_boxed_non_dispatchable_VkType(VkObjectT boxed, VkObjectT new_unboxed) {
     BoxedHandleInfo info;
     info.underlying = (uint64_t)new_unboxed;
-    sBoxedHandleManager.update((uint64_t)boxed, std::move(info), GetTag<VkObjectT>());
+    sBoxedHandleManager.update((uint64_t)boxed, std::move(info));
 }
 
 template <typename VkObjectT>
