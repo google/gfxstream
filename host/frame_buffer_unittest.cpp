@@ -42,6 +42,7 @@
 #include "common/gles_pointer.h"
 #include "host/gl/gles2_dec/gles2_opcodes.h"
 #undef OP_last
+#include "host/gl/emulated_egl_fence_sync.h"
 #include "host/gl/emulation_gl.h"
 #include "host/gl/yuv_converter.h"
 #include "host/vulkan/trivial_stream.h"
@@ -1325,11 +1326,41 @@ TEST_F(FrameBufferTest, CleanupProcGLObjects) {
     EXPECT_FALSE(mFb->getEmulationGl()->hasProcOwnedResources());
     EXPECT_FALSE(mFb->getEmulationGl()->hasContextsOrWindowSurfaces());
 
-    // Verify fallback thread context tracking when puid == 0
+    // Verify fallback thread context and surface tracking when puid == 0
     HandleType threadContext = mFb->createEmulatedEglContext(0, 0, gl::GLESApi_2);
     EXPECT_NE((HandleType)0, threadContext);
+    HandleType threadSurface = mFb->createEmulatedEglWindowSurface(0, mWidth, mHeight);
+    EXPECT_NE((HandleType)0, threadSurface);
     EXPECT_TRUE(mFb->getEmulationGl()->hasContextsOrWindowSurfaces());
-    mFb->getEmulationGl()->drainRenderThreadContexts();
+    mFb->drainGlRenderThreadResources();
+    EXPECT_FALSE(mFb->getEmulationGl()->hasContextsOrWindowSurfaces());
+}
+
+TEST_F(FrameBufferTest, CreateEmulatedEglFenceSyncWithoutCurrentContext) {
+    if (!mFb->hasEmulationGl()) {
+        GTEST_SKIP() << "GL emulation not enabled.";
+    }
+
+    auto& glInfo = *mRenderThreadInfo->m_glInfo;
+    ASSERT_EQ(nullptr, glInfo.currContext);
+    ASSERT_FALSE(mFb->getEmulationGl()->hasContextsOrWindowSurfaces());
+
+    uint64_t sync = 0;
+    mFb->createEmulatedEglFenceSync(EGL_SYNC_FENCE_KHR, false, &sync);
+    EXPECT_NE(0u, sync);
+
+    EXPECT_NE(nullptr, glInfo.currContext);
+    EXPECT_EQ(1u, glInfo.m_contextSet.size());
+    EXPECT_EQ(1u, glInfo.m_windowSet.size());
+
+    gl::EmulatedEglFenceSync* fenceSync = gl::EmulatedEglFenceSync::getFromHandle(sync);
+    ASSERT_NE(nullptr, fenceSync);
+    fenceSync->decRef();
+
+    mFb->drainGlRenderThreadResources();
+    EXPECT_EQ(nullptr, glInfo.currContext);
+    EXPECT_TRUE(glInfo.m_contextSet.empty());
+    EXPECT_TRUE(glInfo.m_windowSet.empty());
     EXPECT_FALSE(mFb->getEmulationGl()->hasContextsOrWindowSurfaces());
 }
 
