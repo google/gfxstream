@@ -25,9 +25,18 @@ namespace vk {
 struct VkDecoderGlobalStateTestPeer {
     VkDecoderGlobalState::Impl impl;
 
-    void registerDescriptorPool(VkDescriptorPool pool) {
+    void registerDescriptorPool(VkDescriptorPool pool, std::vector<uint64_t> poolIds = {}) {
         std::lock_guard<std::mutex> lock(impl.mMutex);
-        impl.mDescriptorPoolInfo[pool] = DescriptorPoolInfo{};
+        DescriptorPoolInfo info;
+        info.preallocatedBoxedSets = std::move(poolIds);
+        impl.mDescriptorPoolInfo[pool] = std::move(info);
+    }
+
+    void collectDescriptorPoolIds(gfxstream::base::BumpPool* pool, VkDevice device,
+                                  VkDescriptorPool descriptorPool, uint32_t* pPoolIdCount,
+                                  uint64_t* pPoolIds) {
+        impl.on_vkCollectDescriptorPoolIdsGOOGLE(pool, kInvalidSnapshotApiCallHandle, device,
+                                                 descriptorPool, pPoolIdCount, pPoolIds);
     }
 
     VkDescriptorSet getOrAllocateDescriptorSetFromPoolAndId(
@@ -116,6 +125,34 @@ TEST(VkDecoderGlobalStateDescriptorSetPoolIdTest, UnallocatedAndAllocatedPoolIdH
                   &vk, device, pool, setLayout, validPoolId, /*pendingAlloc=*/0, &didAlloc));
     EXPECT_FALSE(didAlloc);
     delete_VkDescriptorSet(boxedValidSet);
+}
+
+TEST(VkDecoderGlobalStateDescriptorSetPoolIdTest, CollectDescriptorPoolIdsClampsCount) {
+    VkDecoderGlobalStateTestPeer peer;
+    gfxstream::base::BumpPool bumpPool;
+    VkDevice device = reinterpret_cast<VkDevice>(0x1111'0000);
+    VkDescriptorPool pool = reinterpret_cast<VkDescriptorPool>(0x2222'0000);
+
+    peer.registerDescriptorPool(pool, {101, 102, 103, 104});
+
+    uint32_t count = 0;
+    peer.collectDescriptorPoolIds(&bumpPool, device, pool, &count, nullptr);
+    EXPECT_EQ(4u, count);
+
+    uint64_t outIds[4] = {0, 0, 0, 0};
+    count = 1;
+    peer.collectDescriptorPoolIds(&bumpPool, device, pool, &count, outIds);
+    EXPECT_EQ(1u, count);
+    EXPECT_EQ(101u, outIds[0]);
+    EXPECT_EQ(0u, outIds[1]);
+
+    count = 10;
+    peer.collectDescriptorPoolIds(&bumpPool, device, pool, &count, outIds);
+    EXPECT_EQ(4u, count);
+    EXPECT_EQ(101u, outIds[0]);
+    EXPECT_EQ(102u, outIds[1]);
+    EXPECT_EQ(103u, outIds[2]);
+    EXPECT_EQ(104u, outIds[3]);
 }
 
 }  // namespace
