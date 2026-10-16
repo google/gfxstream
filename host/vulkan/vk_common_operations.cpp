@@ -532,9 +532,22 @@ bool VkEmulation::populateImageFormatExternalMemorySupportInfo(VulkanDispatch* v
         {},
     };
 
+    const bool queryYcbcrConversionProps =
+        mDeviceInfo.supportsSamplerYcbcrConversion &&
+        formatRequiresSamplerYcbcrConversion(info->format);
+    VkSamplerYcbcrConversionImageFormatProperties outYcbcrProps = {
+        VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_IMAGE_FORMAT_PROPERTIES,
+        nullptr,
+        0,
+    };
+
+    if (queryYcbcrConversionProps) {
+        outProps2.pNext = &outYcbcrProps;
+    }
     if (supportsExternalMemory()) {
         extInfo.handleType = getDefaultExternalMemoryHandleType();
         formatInfo2.pNext = &extInfo;
+        outExternalProps.pNext = outProps2.pNext;
         outProps2.pNext = &outExternalProps;
     }
 
@@ -560,6 +573,10 @@ bool VkEmulation::populateImageFormatExternalMemorySupportInfo(VulkanDispatch* v
     }
 
     info->supported = true;
+    if (queryYcbcrConversionProps) {
+        info->combinedImageSamplerDescriptorCount =
+            outYcbcrProps.combinedImageSamplerDescriptorCount;
+    }
 
     VkExternalMemoryFeatureFlags featureFlags =
         outExternalProps.externalMemoryProperties.externalMemoryFeatures;

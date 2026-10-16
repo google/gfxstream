@@ -155,25 +155,14 @@ std::optional<uint32_t> ImageSupport::GetNumberOfNeededCombinedImageSamplerDescr
         return 1;
     }
 
-    std::optional<uint32_t> needed;
+    uint32_t needed = 0;
     for (const ImageSupportInfo& info : mSupportInfos) {
-        if (info.format != format) {
-            continue;
-        }
-        if (!info.supported) {
-            continue;
-        }
-        if (!info.samplerYcbcrConversionFormatProps) {
-            continue;
-        }
-        if (needed) {
-            needed = std::max(*needed, info.samplerYcbcrConversionFormatProps->combinedImageSamplerDescriptorCount);
-        } else {
-            needed = info.samplerYcbcrConversionFormatProps->combinedImageSamplerDescriptorCount;
+        if (info.format == format && info.supported) {
+            needed = std::max(needed, info.combinedImageSamplerDescriptorCount);
         }
     }
 
-    return needed;
+    return needed > 0 ? std::optional<uint32_t>(needed) : std::nullopt;
 }
 
 }  // namespace vk

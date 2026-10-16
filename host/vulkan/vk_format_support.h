@@ -34,7 +34,7 @@ struct ImageSupportInfo {
     bool supported = false;
     VkImageUsageFlags usageFlags = 0;
     VkFormatProperties2 formatProps2{};
-    std::optional<VkSamplerYcbcrConversionImageFormatProperties> samplerYcbcrConversionFormatProps;
+    uint32_t combinedImageSamplerDescriptorCount = 0;
 };
 
 class ImageSupport {
