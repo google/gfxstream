@@ -516,12 +516,8 @@ class VkEmulation {
     std::optional<host::RepresentativeColorBufferMemoryTypeInfo>
     findRepresentativeColorBufferMemoryTypeIndexLocked() REQUIRES(mMutex);
 
-    // For a given ImageSupportInfo, populates usageWithExternalHandles and
-    // requiresDedicatedAllocation. memoryTypeBits are populated later once the
-    // device is created, because that needs a test image to be created.
-    // If we don't support external memory, it's assumed dedicated allocations are
-    // not needed.
-    // Precondition: sVkEmulation instance has been created and ext memory caps known.
+    // Populates format and image support properties for a given ImageSupportInfo.
+    // Precondition: sVkEmulation instance has been created and device caps known.
     // Returns false if the query failed.
     bool populateImageFormatExternalMemorySupportInfo(VulkanDispatch* vk, VkPhysicalDevice physdev,
                                                       ImageSupportInfo* info);

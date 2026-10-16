@@ -444,9 +444,6 @@ bool VkEmulation::populateImageFormatExternalMemorySupportInfo(VulkanDispatch* v
     };
 
     if (!mInstanceSupportsExternalMemoryCapabilities) {
-        info->supportsExternalMemory = false;
-        info->requiresDedicatedAllocation = false;
-
         VkImageFormatProperties outImageFormatProps;
         VkResult res = vk->vkGetPhysicalDeviceImageFormatProperties(
             physdev, info->format, info->type, info->tiling, info->usageFlags, info->createFlags,
@@ -459,7 +456,7 @@ bool VkEmulation::populateImageFormatExternalMemorySupportInfo(VulkanDispatch* v
             } else {
                 GFXSTREAM_ERROR(
                     "vkGetPhysicalDeviceImageFormatProperties query "
-                    "failed with %s"
+                    "failed with %s "
                     "for format 0x%x type 0x%x usage 0x%x flags 0x%x",
                     string_VkResult(res), info->format, info->type, info->usageFlags,
                     info->createFlags);
@@ -469,19 +466,12 @@ bool VkEmulation::populateImageFormatExternalMemorySupportInfo(VulkanDispatch* v
 
         info->supported = true;
 
-        info->imageFormatProps2 = {
-            VK_STRUCTURE_TYPE_IMAGE_FORMAT_PROPERTIES_2,
-            0,
-            outImageFormatProps,
-        };
-
         GFXSTREAM_DEBUG("Supported (not externally): %s %s %s %s", string_VkFormat(info->format),
                         string_VkImageType(info->type), string_VkImageTiling(info->tiling),
                         string_VkImageUsageFlagBits((VkImageUsageFlagBits)info->usageFlags));
 
         return true;
     }
-
 
     VkPhysicalDeviceImageFormatInfo2 formatInfo2 = {
         VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_FORMAT_INFO_2,
@@ -493,35 +483,28 @@ bool VkEmulation::populateImageFormatExternalMemorySupportInfo(VulkanDispatch* v
         info->createFlags,
     };
 
-    VkImageFormatProperties2 outProps2 = {VK_STRUCTURE_TYPE_IMAGE_FORMAT_PROPERTIES_2,
-                                          nullptr,
-                                          {
-                                              {0, 0, 0},
-                                              0,
-                                              0,
-                                              1,
-                                              0,
-                                          }};
+    VkImageFormatProperties2 outProps2 = {
+        VK_STRUCTURE_TYPE_IMAGE_FORMAT_PROPERTIES_2,
+        nullptr,
+        {},
+    };
 
     VkPhysicalDeviceExternalImageFormatInfo extInfo = {
-        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_IMAGE_FORMAT_INFO
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_IMAGE_FORMAT_INFO,
+        nullptr,
+        static_cast<VkExternalMemoryHandleTypeFlagBits>(0),
     };
 
     VkExternalImageFormatProperties outExternalProps = {
         VK_STRUCTURE_TYPE_EXTERNAL_IMAGE_FORMAT_PROPERTIES,
-        0,
-        {
-            (VkExternalMemoryFeatureFlags)0,
-            (VkExternalMemoryHandleTypeFlags)0,
-            (VkExternalMemoryHandleTypeFlags)0,
-        },
+        nullptr,
+        {},
     };
 
     if (supportsExternalMemory()) {
         extInfo.handleType = getDefaultExternalMemoryHandleType();
-
         formatInfo2.pNext = &extInfo;
-        outProps2.pNext= &outExternalProps;
+        outProps2.pNext = &outExternalProps;
     }
 
     VkResult res = mGetImageFormatProperties2Func(physdev, &formatInfo2, &outProps2);
@@ -550,32 +533,22 @@ bool VkEmulation::populateImageFormatExternalMemorySupportInfo(VulkanDispatch* v
     VkExternalMemoryFeatureFlags featureFlags =
         outExternalProps.externalMemoryProperties.externalMemoryFeatures;
 
-    VkExternalMemoryHandleTypeFlags exportImportedFlags =
-        outExternalProps.externalMemoryProperties.exportFromImportedHandleTypes;
-
-    // Don't really care about export form imported handle types yet
-    (void)exportImportedFlags;
-
     VkExternalMemoryHandleTypeFlags compatibleHandleTypes =
         outExternalProps.externalMemoryProperties.compatibleHandleTypes;
 
-    info->supportsExternalMemory = supportsExternalMemory() &&
-                                (getDefaultExternalMemoryHandleType() & compatibleHandleTypes) &&
-                                (VK_EXTERNAL_MEMORY_FEATURE_EXPORTABLE_BIT & featureFlags) &&
-                                (VK_EXTERNAL_MEMORY_FEATURE_IMPORTABLE_BIT & featureFlags);
+    bool externalMemorySupported = supportsExternalMemory() &&
+                                   (getDefaultExternalMemoryHandleType() & compatibleHandleTypes) &&
+                                   (VK_EXTERNAL_MEMORY_FEATURE_EXPORTABLE_BIT & featureFlags) &&
+                                   (VK_EXTERNAL_MEMORY_FEATURE_IMPORTABLE_BIT & featureFlags);
 
-    info->requiresDedicatedAllocation =
+    bool requiresDedicatedAllocation =
         (VK_EXTERNAL_MEMORY_FEATURE_DEDICATED_ONLY_BIT & featureFlags);
-
-    info->imageFormatProps2 = outProps2;
-    info->extFormatProps = outExternalProps;
-    info->imageFormatProps2.pNext = &info->extFormatProps;
 
     GFXSTREAM_DEBUG("Supported: %s %s %s %s, supportsExternalMemory? %d, requiresDedicated? %d",
                     string_VkFormat(info->format), string_VkImageType(info->type),
                     string_VkImageTiling(info->tiling),
                     string_VkImageUsageFlagBits((VkImageUsageFlagBits)info->usageFlags),
-                    info->supportsExternalMemory, info->requiresDedicatedAllocation);
+                    externalMemorySupported, requiresDedicatedAllocation);
 
     return true;
 }

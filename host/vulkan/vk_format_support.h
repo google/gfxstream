@@ -33,11 +33,7 @@ struct ImageSupportInfo {
 
     // Output parameters
     bool supported = false;
-    bool supportsExternalMemory = false;
-    bool requiresDedicatedAllocation = false;
     VkFormatProperties2 formatProps2{};
-    VkImageFormatProperties2 imageFormatProps2{};
-    VkExternalImageFormatProperties extFormatProps{};
     std::optional<VkSamplerYcbcrConversionImageFormatProperties> samplerYcbcrConversionFormatProps;
 };
 
