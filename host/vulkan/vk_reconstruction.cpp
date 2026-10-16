@@ -214,6 +214,57 @@ void VkReconstruction::addHandleDependency(const uint64_t* handles, uint32_t cou
     mGraph.addNodeIdDependencies(handles, count, parentHandle);
 }
 
+void VkReconstruction::addHandleDependency(const uint64_t* handles, uint32_t count,
+                                           uint32_t imageInfoCount,
+                                           const VkDescriptorImageInfo* pImageInfos) {
+    if (!handles || !pImageInfos) return;
+
+    for (uint32_t i = 0; i < imageInfoCount; ++i) {
+        if (pImageInfos[i].imageView) {
+            addHandleDependency(
+                handles, count,
+                (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkImageView(
+                    pImageInfos[i].imageView));
+        }
+        if (pImageInfos[i].sampler) {
+            addHandleDependency(
+                handles, count,
+                (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkSampler(
+                    pImageInfos[i].sampler));
+        }
+    }
+}
+
+void VkReconstruction::addHandleDependency(const uint64_t* handles, uint32_t count,
+                                           uint32_t bufferInfoCount,
+                                           const VkDescriptorBufferInfo* pBufferInfos) {
+    if (!handles || !pBufferInfos) return;
+
+    for (uint32_t i = 0; i < bufferInfoCount; ++i) {
+        if (pBufferInfos[i].buffer) {
+            addHandleDependency(
+                handles, count,
+                (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkBuffer(
+                    pBufferInfos[i].buffer));
+        }
+    }
+}
+
+void VkReconstruction::addHandleDependency(const uint64_t* handles, uint32_t count,
+                                           uint32_t bufferViewCount,
+                                           const VkBufferView* pBufferViews) {
+    if (!handles || !pBufferViews) return;
+
+    for (uint32_t i = 0; i < bufferViewCount; ++i) {
+        if (pBufferViews[i]) {
+            addHandleDependency(
+                handles, count,
+                (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkBufferView(
+                    pBufferViews[i]));
+        }
+    }
+}
+
 void VkReconstruction::setCreatedHandlesForApi(uint64_t apiHandle, const uint64_t* created,
                                                uint32_t count) {
     if (!created) return;

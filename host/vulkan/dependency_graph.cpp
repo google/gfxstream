@@ -47,6 +47,7 @@ void DependencyGraph::removeDescendantsOfHandle(const NodeId id) {
         for (auto child : nd->childNodeIds) {
             removeNodeAndDescendants(child);
         }
+        nd->childNodeIds.clear();
     }
 }
 
