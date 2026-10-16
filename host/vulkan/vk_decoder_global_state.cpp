@@ -1934,19 +1934,19 @@ class VkDecoderGlobalState::Impl {
         if (extImageFormatInfo) {
             if (extImageFormatInfo->handleType &
                 VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID) {
-                VkFormat resolvedFormat = resolveAhbFormat(pImageFormatInfo->format);
                 std::unique_ptr<VkImageCreateInfo> colorBufferVkImageCi =
                     m_vkEmulation->generateColorBufferVkImageCreateInfo(
-                        resolvedFormat, 1, 1, pImageFormatInfo->tiling, 1);
-                if (colorBufferVkImageCi) {
-                    if (pImageFormatInfo != &imageFormatInfo) {
-                        imageFormatInfo = *pImageFormatInfo;
-                        pImageFormatInfo = &imageFormatInfo;
-                    }
-                    imageFormatInfo.format = resolvedFormat;
-                    imageFormatInfo.flags |= colorBufferVkImageCi->flags;
-                    imageFormatInfo.usage |= colorBufferVkImageCi->usage;
+                        pImageFormatInfo->format, 1, 1, pImageFormatInfo->tiling, 1);
+                if (!colorBufferVkImageCi) {
+                    return VK_ERROR_FORMAT_NOT_SUPPORTED;
                 }
+                if (pImageFormatInfo != &imageFormatInfo) {
+                    imageFormatInfo = *pImageFormatInfo;
+                    pImageFormatInfo = &imageFormatInfo;
+                }
+                imageFormatInfo.format = colorBufferVkImageCi->format;
+                imageFormatInfo.flags |= colorBufferVkImageCi->flags;
+                imageFormatInfo.usage |= colorBufferVkImageCi->usage;
             }
 
             auto* mutExtImageFormatInfo =
@@ -10501,22 +10501,6 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    VkFormat resolveAhbFormat(VkFormat format) {
-        // Use UNORM formats for SRGB format requests.
-        switch (format) {
-            case VK_FORMAT_R8G8B8A8_SRGB:
-                return VK_FORMAT_R8G8B8A8_UNORM;
-            case VK_FORMAT_R8G8B8_SRGB:
-                return VK_FORMAT_R8G8B8_UNORM;
-            case VK_FORMAT_B8G8R8A8_SRGB:
-                return VK_FORMAT_B8G8R8A8_UNORM;
-            case VK_FORMAT_R8_SRGB:
-                return VK_FORMAT_R8_UNORM;
-            default:
-                return format;
-        }
-    }
-
     void transformImpl_VkImageCreateInfo_tohost(const VkImageCreateInfo* pImageCreateInfos,
                                                 uint32_t count) {
         for (uint32_t i = 0; i < count; i++) {
@@ -10557,7 +10541,7 @@ class VkDecoderGlobalState::Impl {
                 // to-be-created VkImage will bind to, so we try our best to infer the creation
                 // parameters.
                 colorBufferVkImageCi = m_vkEmulation->generateColorBufferVkImageCreateInfo(
-                    resolvedFormat, imageCreateInfo.extent.width, imageCreateInfo.extent.height,
+                    imageCreateInfo.format, imageCreateInfo.extent.width, imageCreateInfo.extent.height,
                     imageCreateInfo.tiling, imageCreateInfo.mipLevels);
                 importSourceDebug = "AHardwareBuffer";
             } else if (pNativeBufferANDROID) {

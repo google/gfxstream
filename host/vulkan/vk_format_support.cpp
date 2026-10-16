@@ -28,13 +28,16 @@ namespace vk {
     // Set the mutable flag for RGB UNORM formats so that the created image can also be sampled in
     // the sRGB Colorspace. See
     // https://chromium-review.googlesource.com/c/chromiumos/platform/minigbm/+/3827672/comments/77db9cb3_60663a6a
-    // for details.
+    // for details. Keep each unflagged fallback entry after its flagged entry because
+    // GetSupportedInfo() returns the first supported match.
     std::vector<ImageFeatureCombo> combos = {
         // Cover all the gralloc formats
         {VK_FORMAT_R8G8B8A8_UNORM,
          VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT | VK_IMAGE_CREATE_EXTENDED_USAGE_BIT},
+        {VK_FORMAT_R8G8B8A8_UNORM},
         {VK_FORMAT_R8G8B8_UNORM,
          VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT | VK_IMAGE_CREATE_EXTENDED_USAGE_BIT},
+        {VK_FORMAT_R8G8B8_UNORM},
 
         {VK_FORMAT_R5G6B5_UNORM_PACK16},
         {VK_FORMAT_A1R5G5B5_UNORM_PACK16},
@@ -44,16 +47,21 @@ namespace vk {
 
         {VK_FORMAT_B8G8R8A8_UNORM,
          VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT | VK_IMAGE_CREATE_EXTENDED_USAGE_BIT},
+        {VK_FORMAT_B8G8R8A8_UNORM},
 
         {VK_FORMAT_B4G4R4A4_UNORM_PACK16,
          VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT | VK_IMAGE_CREATE_EXTENDED_USAGE_BIT},
+        {VK_FORMAT_B4G4R4A4_UNORM_PACK16},
         {VK_FORMAT_R4G4B4A4_UNORM_PACK16,
          VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT | VK_IMAGE_CREATE_EXTENDED_USAGE_BIT},
+        {VK_FORMAT_R4G4B4A4_UNORM_PACK16},
 
         {VK_FORMAT_R8_UNORM,
          VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT | VK_IMAGE_CREATE_EXTENDED_USAGE_BIT},
+        {VK_FORMAT_R8_UNORM},
         {VK_FORMAT_R16_UNORM,
          VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT | VK_IMAGE_CREATE_EXTENDED_USAGE_BIT},
+        {VK_FORMAT_R16_UNORM},
 
         {VK_FORMAT_A2R10G10B10_UINT_PACK32},
         {VK_FORMAT_A2R10G10B10_UNORM_PACK32},

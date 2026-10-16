@@ -497,9 +497,10 @@ bool VkEmulation::populateImageFormatExternalMemorySupportInfo(VulkanDispatch* v
 
         info->supported = true;
 
-        GFXSTREAM_DEBUG("Supported (not externally): %s %s %s %s", string_VkFormat(info->format),
+        GFXSTREAM_DEBUG("Supported (not externally): %s %s %s %s %s", string_VkFormat(info->format),
                         string_VkImageType(info->type), string_VkImageTiling(info->tiling),
-                        string_VkImageUsageFlags(info->usageFlags).c_str());
+                        string_VkImageUsageFlags(info->usageFlags).c_str(),
+                        string_VkImageCreateFlags(info->createFlags).c_str());
 
         return true;
     }
@@ -555,9 +556,10 @@ bool VkEmulation::populateImageFormatExternalMemorySupportInfo(VulkanDispatch* v
 
     if (res != VK_SUCCESS) {
         if (res == VK_ERROR_FORMAT_NOT_SUPPORTED) {
-            GFXSTREAM_DEBUG("Not Supported: %s %s %s %s", string_VkFormat(info->format),
+            GFXSTREAM_DEBUG("Not Supported: %s %s %s %s %s", string_VkFormat(info->format),
                             string_VkImageType(info->type), string_VkImageTiling(info->tiling),
-                            string_VkImageUsageFlags(info->usageFlags).c_str());
+                            string_VkImageUsageFlags(info->usageFlags).c_str(),
+                            string_VkImageCreateFlags(info->createFlags).c_str());
 
             info->supported = false;
             return true;
@@ -592,10 +594,11 @@ bool VkEmulation::populateImageFormatExternalMemorySupportInfo(VulkanDispatch* v
     bool requiresDedicatedAllocation =
         (VK_EXTERNAL_MEMORY_FEATURE_DEDICATED_ONLY_BIT & featureFlags);
 
-    GFXSTREAM_DEBUG("Supported: %s %s %s %s, supportsExternalMemory? %d, requiresDedicated? %d",
+    GFXSTREAM_DEBUG("Supported: %s %s %s %s %s, supportsExternalMemory? %d, requiresDedicated? %d",
                     string_VkFormat(info->format), string_VkImageType(info->type),
                     string_VkImageTiling(info->tiling),
                     string_VkImageUsageFlags(info->usageFlags).c_str(),
+                    string_VkImageCreateFlags(info->createFlags).c_str(),
                     externalMemorySupported, requiresDedicatedAllocation);
 
     return true;
@@ -2959,13 +2962,22 @@ uint32_t VkEmulation::getValidMemoryTypeIndex(uint32_t requiredMemoryTypeBits,
 std::unique_ptr<VkImageCreateInfo> VkEmulation::generateColorBufferVkImageCreateInfoLocked(
         VkFormat format, uint32_t width, uint32_t height, VkImageTiling tiling,
         uint32_t mipLevels) {
+    const VkFormat resolvedFormat = resolveAhbFormat(format);
     const ImageSupportInfo* maybeImageSupportInfo =
-        mImageSupportInfo.GetSupportedInfo(format, tiling);
+        mImageSupportInfo.GetSupportedInfo(resolvedFormat, tiling);
     if (!maybeImageSupportInfo) {
         GFXSTREAM_ERROR("Format %s [%d] is not supported.", string_VkFormat(format), format);
         return nullptr;
     }
     const ImageSupportInfo& imageSupportInfo = *maybeImageSupportInfo;
+    if (resolvedFormat != format &&
+        !(imageSupportInfo.createFlags & VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT)) {
+        GFXSTREAM_ERROR(
+            "Format %s [%d] is not supported because %s [%d] does not support "
+            "VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT.",
+            string_VkFormat(format), format, string_VkFormat(resolvedFormat), resolvedFormat);
+        return nullptr;
+    }
 
     const VkImageUsageFlags usage =
         getSupportedImageUsageFlags(imageSupportInfo.formatProps2.formatProperties, tiling);
@@ -2976,7 +2988,7 @@ std::unique_ptr<VkImageCreateInfo> VkEmulation::generateColorBufferVkImageCreate
         .pNext = nullptr,
         .flags = imageSupportInfo.createFlags,
         .imageType = VK_IMAGE_TYPE_2D,
-        .format = format,
+        .format = resolvedFormat,
         .extent =
             {
                 .width = width,
