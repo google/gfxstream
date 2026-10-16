@@ -2942,7 +2942,8 @@ uint32_t VkEmulation::getValidMemoryTypeIndex(uint32_t requiredMemoryTypeBits,
 std::unique_ptr<VkImageCreateInfo> VkEmulation::generateColorBufferVkImageCreateInfoLocked(
         VkFormat format, uint32_t width, uint32_t height, VkImageTiling tiling,
         uint32_t mipLevels) {
-    const ImageSupportInfo* maybeImageSupportInfo = mImageSupportInfo.GetSupportedInfo(format);
+    const ImageSupportInfo* maybeImageSupportInfo =
+        mImageSupportInfo.GetSupportedInfo(format, tiling);
     if (!maybeImageSupportInfo) {
         GFXSTREAM_ERROR("Format %s [%d] is not supported.", string_VkFormat(format), format);
         return nullptr;

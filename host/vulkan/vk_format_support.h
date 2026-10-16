@@ -43,7 +43,7 @@ class ImageSupport {
 
     bool IsFormatSupported(VkFormat format) const;
 
-    const ImageSupportInfo* GetSupportedInfo(VkFormat format) const;
+    const ImageSupportInfo* GetSupportedInfo(VkFormat format, VkImageTiling tiling) const;
 
     std::optional<uint32_t> GetNumberOfNeededCombinedImageSamplerDescriptors(VkFormat format) const;
 
