@@ -5900,12 +5900,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pipelineLayout,
                                    (unsigned long long)pAllocator);
                 }
-                std::function<void()> delayed_remove_callback = [vk, device, pipelineLayout,
-                                                                 pAllocator]() {
+                std::function<void()> delayed_remove_callback = [vk, device, pipelineLayout]() {
                     auto m_state = VkDecoderGlobalState::get();
                     if (CC_LIKELY(vk)) {
                         m_state->on_vkDestroyPipelineLayout(nullptr, kInvalidSnapshotApiCallHandle,
-                                                            device, pipelineLayout, pAllocator);
+                                                            device, pipelineLayout, nullptr);
                     }
                 };
                 vkStream->unsetHandleMapping();
