@@ -1358,13 +1358,13 @@ class VkDecoderGlobalState::Impl {
                                 inlineUniformBlock.pData =
                                     tmpInlineUniformBlockBuffers.back().data();
                                 writeDescriptorSet.pNext = &inlineUniformBlock;
-                                // Note: following is redundant, as arrayElement is guarantee to be
+                                // Note: following is redundant, as arrayElement is guaranteed to be
                                 // 0 due to the way descriptor is handled in snapshot. it just
                                 // serves to clarify that we are updating the whole buffer, to
                                 // account the possibility of accumulative updating
                                 writeDescriptorSet.dstArrayElement = 0;
                                 // Note: following is important to indicate we are updating
-                                // the whole buffer, as it could accumulate multiple update before
+                                // the whole buffer, as it could accumulate multiple updates before
                                 // snapshot is taken
                                 writeDescriptorSet.descriptorCount = dataSize;
                             } break;
@@ -1595,7 +1595,7 @@ class VkDecoderGlobalState::Impl {
             m_vkEmulation->createVVLContext(vvlAppName, vvlEngineName, &debugInfo);
 
         if (debugContext) {
-            GFXSTREAM_INFO("Enabling VVL for %s %s", vvlAppName.c_str(), vvlEngineName.c_str());
+            GFXSTREAM_INFO("VVL: Enabling for %s %s", vvlAppName.c_str(), vvlEngineName.c_str());
 
             bool hasDebugUtils = false;
             for (const char* ext : finalExts) {
@@ -1607,8 +1607,8 @@ class VkDecoderGlobalState::Impl {
             if (!hasDebugUtils) {
                 finalExts.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
             }
-        } else {
-            GFXSTREAM_VERBOSE("Not enabling VVL for %s %s", vvlAppName.c_str(), vvlEngineName.c_str());
+        } else if (!vvlAppName.empty() || !vvlEngineName.empty()) {
+            GFXSTREAM_VERBOSE("VVL: Not enabling for %s %s", vvlAppName.c_str(), vvlEngineName.c_str());
         }
 
         createInfoFiltered.enabledExtensionCount = static_cast<uint32_t>(finalExts.size());
@@ -2578,7 +2578,7 @@ class VkDecoderGlobalState::Impl {
 #endif
 
         // If MoltenVK is supported on host, we need to ensure that we include
-        // VK_MVK_moltenvk extenstion in returned properties.
+        // VK_MVK_moltenvk extension in returned properties.
 #if defined(__APPLE__) && defined(VK_MVK_moltenvk)
         // Guest will check for VK_MVK_moltenvk extension for enabling AHB support
         if ((m_vkEmulation->getExternalMemoryMode() == ExternalMemory::Mode::Metal) &&
@@ -3128,7 +3128,7 @@ class VkDecoderGlobalState::Impl {
                     const uint64_t physicalQueue64 = reinterpret_cast<uint64_t>(physicalQueue);
 
                     if ((physicalQueue64 & QueueInfo::kVirtualQueueBit) != 0) {
-                        // Cannot use queue virtualization on this GPU, where the pysical handle
+                        // Cannot use queue virtualization on this GPU, where the physical handle
                         // values generated are not 2-byte aligned. This is very unusual, but the
                         // spec is not enforcing handle values to be aligned and the driver is free
                         // to use a similar logic to use the last bit for other purposes.
@@ -3504,7 +3504,7 @@ class VkDecoderGlobalState::Impl {
             //   c) use storage and compute shaders.
             //
             // (a) is covered by memory snapshot. (b) requires an extra vkCmdCopyBuffer
-            // command on snapshot, thuse we need to add transfer_src for (b) so that
+            // command on snapshot, thus we need to add transfer_src for (b) so that
             // they could be loaded back on snapshot save. (c) is still future work.
             if (localCreateInfo.usage & VK_BUFFER_USAGE_TRANSFER_DST_BIT) {
                 localCreateInfo.usage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
@@ -4366,7 +4366,7 @@ class VkDecoderGlobalState::Impl {
             if (!hasDeviceExtension(device, VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME)) {
                 // Note: VK_KHR_external_semaphore_fd might be advertised in the guest,
                 // because SYNC_FD handling is performed guest-side only. But still need
-                // need to error out here when handling a non-sync, opaque FD.
+                // to error out here when handling a non-sync, opaque FD.
                 return VK_ERROR_OUT_OF_HOST_MEMORY;
             }
         }
@@ -4600,7 +4600,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         // Ensure that any host operations that reference this fence have completed
-        // before reseting.
+        // before resetting.
         while (!pendingUses.empty()) {
             {
                 std::lock_guard<std::mutex> lock(mMutex);
@@ -4710,7 +4710,7 @@ class VkDecoderGlobalState::Impl {
             if (!hasDeviceExtension(device, VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME)) {
                 // Note: VK_KHR_external_semaphore_fd might be advertised in the guest,
                 // because SYNC_FD handling is performed guest-side only. But still need
-                // need to error out here when handling a non-sync, opaque FD.
+                // to error out here when handling a non-sync, opaque FD.
                 return VK_ERROR_OUT_OF_HOST_MEMORY;
             }
         }
@@ -4913,7 +4913,7 @@ class VkDecoderGlobalState::Impl {
             std::lock_guard<std::mutex> lock(mMutex);
             auto semaphoreInfo = gfxstream::base::find(mSemaphoreInfo, semaphore);
             if (!semaphoreInfo) {
-                GFXSTREAM_VERBOSE("%f: cound not find semaphore info for %p", __func__, semaphore);
+                GFXSTREAM_VERBOSE("%s: could not find semaphore info for %p", __func__, semaphore);
                 return VK_SUCCESS;
             }
 
@@ -4932,7 +4932,7 @@ class VkDecoderGlobalState::Impl {
             // Check if any of the pending submissions can now be executed
             auto deviceInfo = gfxstream::base::find(mDeviceInfo, semaphoreInfo->device);
             if (!deviceInfo) {
-                GFXSTREAM_VERBOSE("%f: cound not find device info for %p", __func__,
+                GFXSTREAM_VERBOSE("%s: could not find device info for %p", __func__,
                                   semaphoreInfo->device);
                 return VK_SUCCESS;
             }
@@ -4941,7 +4941,7 @@ class VkDecoderGlobalState::Impl {
                 for (auto& unboxed_queue : queue_iter.second) {
                     auto queueInfo = gfxstream::base::find(mQueueInfo, unboxed_queue);
                     if (!queueInfo) {
-                        GFXSTREAM_VERBOSE("%f: cound not find queue info for %p", __func__,
+                        GFXSTREAM_VERBOSE("%s: could not find queue info for %p", __func__,
                                           unboxed_queue);
                         continue;
                     }
@@ -8423,7 +8423,7 @@ class VkDecoderGlobalState::Impl {
                 // semaphore signaling is made.
                 // We cannot partially send some of the submissions, as that'd break the fence
                 // signalling, so we defer all the operations for this call.
-                // For other post-submit operations, we treat this submissions as if it has been
+                // For other post-submit operations, we treat this submission as if it has been
                 // sent to the GPU, because all the object lifetimes (e.g. semaphores, fences,
                 // command buffers) need to be managed correctly by the app side until actual
                 // GPU operation is started.
@@ -8699,7 +8699,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         if (m_vkEmulation->getFeatures().VulkanExternalSync.enabled()) {
-            // Cannot forward this call to driver because nVidia linux driver crahses on it.
+            // Cannot forward this call to driver because nVidia linux driver crashes on it.
             switch (pExternalSemaphoreInfo->handleType) {
                 case VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT:
                     pExternalSemaphoreProperties->exportFromImportedHandleTypes =
@@ -10799,7 +10799,7 @@ class VkDecoderGlobalState::Impl {
                 // ppEnabledExtensionNames. Mesa WSI (in Linux) does this, because it has certain
                 // assumptions about the Vulkan loader architecture it is using. However, depending
                 // on
-                // the host's Vulkan loader architecture, this could in NULL function pointer access
+                // the host's Vulkan loader architecture, this could result in NULL function pointer access
                 // (i.e. on vkGetImageDrmFormatModifierPropertiesEXT()). So just enable it if it's
                 // available.
                 VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME,
