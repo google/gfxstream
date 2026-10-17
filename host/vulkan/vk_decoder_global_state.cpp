@@ -6880,6 +6880,7 @@ class VkDecoderGlobalState::Impl {
 
         uint32_t virtioGpuContextId = 0;
         VkMemoryPropertyFlags memoryPropertyFlags;
+        std::optional<EmulatedPhysicalDeviceMemoryProperties::HostMemoryInfo> replacementMemoryInfo;
 
         // Only read where dma-buf exists.
         [[maybe_unused]] bool deviceHasDmabufExt = false;
@@ -6916,12 +6917,48 @@ class VkDecoderGlobalState::Impl {
             localAllocInfo.memoryTypeIndex = hostMemoryInfo.index;
             memoryPropertyFlags = hostMemoryInfo.memoryType.propertyFlags;
 
+            // Imported memory and blobs keep their memory type. So does all host visible memory
+            // with ExternalBlob, SystemBlob, udmabuf or VulkanAllocateHostMemory, which
+            // getHostMemoryInfoForAllocation() checks.
+            if (!importCbInfoPtr && !importBufferInfoPtr && !createBlobInfoPtr) {
+                replacementMemoryInfo =
+                    physicalDeviceInfo->memoryPropertiesHelper->getHostMemoryInfoForAllocation(
+                        hostMemoryInfo);
+            }
+
             auto virtioGpuContextIdOpt = getContextIdForDeviceLocked(device);
             if (!virtioGpuContextIdOpt) {
                 GFXSTREAM_ERROR("VkDevice:%p missing context id for vkAllocateMemory().");
                 return VK_ERROR_DEVICE_LOST;
             }
             virtioGpuContextId = *virtioGpuContextIdOpt;
+        }
+
+        // The resource of a dedicated allocation is known, so it only gets the replacement memory
+        // type if the resource allows that type.
+        if (replacementMemoryInfo &&
+            replacementMemoryInfo->index != localAllocInfo.memoryTypeIndex) {
+            uint32_t allowedMemoryTypeBits = ~0u;
+            VkMemoryRequirements requirements = {};
+            if (dedicatedAllocInfoPtr && dedicatedAllocInfoPtr->image != VK_NULL_HANDLE) {
+                vk->vkGetImageMemoryRequirements(device, dedicatedAllocInfoPtr->image,
+                                                 &requirements);
+                {
+                    // Emulated compressed images also bind their mipmap images to this memory.
+                    std::lock_guard<std::mutex> lock(mMutex);
+                    updateImageMemoryRequirementsLocked(device, dedicatedAllocInfoPtr->image,
+                                                        &requirements);
+                }
+                allowedMemoryTypeBits = requirements.memoryTypeBits;
+            } else if (dedicatedAllocInfoPtr && dedicatedAllocInfoPtr->buffer != VK_NULL_HANDLE) {
+                vk->vkGetBufferMemoryRequirements(device, dedicatedAllocInfoPtr->buffer,
+                                                  &requirements);
+                allowedMemoryTypeBits = requirements.memoryTypeBits;
+            }
+            if (allowedMemoryTypeBits & (1u << replacementMemoryInfo->index)) {
+                localAllocInfo.memoryTypeIndex = replacementMemoryInfo->index;
+                memoryPropertyFlags = replacementMemoryInfo->memoryType.propertyFlags;
+            }
         }
 
         if (shouldUseDedicatedAllocInfo) {
