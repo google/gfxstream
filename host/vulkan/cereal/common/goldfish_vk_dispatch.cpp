@@ -137,6 +137,10 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
         (PFN_vkGetPhysicalDeviceWin32PresentationSupportKHR)dlSymFunc(
             lib, "vkGetPhysicalDeviceWin32PresentationSupportKHR");
 #endif
+#ifdef VK_KHR_device_group_creation
+    out->vkEnumeratePhysicalDeviceGroupsKHR = (PFN_vkEnumeratePhysicalDeviceGroupsKHR)dlSymFunc(
+        lib, "vkEnumeratePhysicalDeviceGroupsKHR");
+#endif
 #ifdef VK_EXT_debug_report
     out->vkCreateDebugReportCallbackEXT =
         (PFN_vkCreateDebugReportCallbackEXT)dlSymFunc(lib, "vkCreateDebugReportCallbackEXT");
@@ -528,6 +532,13 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
         (PFN_vkGetPhysicalDeviceSparseImageFormatProperties2KHR)dlSymFunc(
             lib, "vkGetPhysicalDeviceSparseImageFormatProperties2KHR");
 #endif
+#ifdef VK_KHR_device_group
+    out->vkGetDeviceGroupPeerMemoryFeaturesKHR =
+        (PFN_vkGetDeviceGroupPeerMemoryFeaturesKHR)dlSymFunc(
+            lib, "vkGetDeviceGroupPeerMemoryFeaturesKHR");
+    out->vkCmdSetDeviceMaskKHR = (PFN_vkCmdSetDeviceMaskKHR)dlSymFunc(lib, "vkCmdSetDeviceMaskKHR");
+    out->vkCmdDispatchBaseKHR = (PFN_vkCmdDispatchBaseKHR)dlSymFunc(lib, "vkCmdDispatchBaseKHR");
+#endif
 #ifdef VK_KHR_maintenance1
     out->vkTrimCommandPoolKHR = (PFN_vkTrimCommandPoolKHR)dlSymFunc(lib, "vkTrimCommandPoolKHR");
 #endif
@@ -563,6 +574,13 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
         (PFN_vkImportSemaphoreFdKHR)dlSymFunc(lib, "vkImportSemaphoreFdKHR");
     out->vkGetSemaphoreFdKHR = (PFN_vkGetSemaphoreFdKHR)dlSymFunc(lib, "vkGetSemaphoreFdKHR");
 #endif
+#ifdef VK_KHR_push_descriptor
+    out->vkCmdPushDescriptorSetKHR =
+        (PFN_vkCmdPushDescriptorSetKHR)dlSymFunc(lib, "vkCmdPushDescriptorSetKHR");
+    out->vkCmdPushDescriptorSetWithTemplateKHR =
+        (PFN_vkCmdPushDescriptorSetWithTemplateKHR)dlSymFunc(
+            lib, "vkCmdPushDescriptorSetWithTemplateKHR");
+#endif
 #ifdef VK_KHR_descriptor_update_template
     out->vkCreateDescriptorUpdateTemplateKHR = (PFN_vkCreateDescriptorUpdateTemplateKHR)dlSymFunc(
         lib, "vkCreateDescriptorUpdateTemplateKHR");
@@ -570,9 +588,6 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
         lib, "vkDestroyDescriptorUpdateTemplateKHR");
     out->vkUpdateDescriptorSetWithTemplateKHR = (PFN_vkUpdateDescriptorSetWithTemplateKHR)dlSymFunc(
         lib, "vkUpdateDescriptorSetWithTemplateKHR");
-    out->vkCmdPushDescriptorSetWithTemplateKHR =
-        (PFN_vkCmdPushDescriptorSetWithTemplateKHR)dlSymFunc(
-            lib, "vkCmdPushDescriptorSetWithTemplateKHR");
 #endif
 #ifdef VK_KHR_create_renderpass2
     out->vkCreateRenderPass2KHR =
@@ -616,6 +631,26 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
     out->vkGetDescriptorSetLayoutSupportKHR = (PFN_vkGetDescriptorSetLayoutSupportKHR)dlSymFunc(
         lib, "vkGetDescriptorSetLayoutSupportKHR");
 #endif
+#ifdef VK_KHR_draw_indirect_count
+    out->vkCmdDrawIndirectCountKHR =
+        (PFN_vkCmdDrawIndirectCountKHR)dlSymFunc(lib, "vkCmdDrawIndirectCountKHR");
+    out->vkCmdDrawIndexedIndirectCountKHR =
+        (PFN_vkCmdDrawIndexedIndirectCountKHR)dlSymFunc(lib, "vkCmdDrawIndexedIndirectCountKHR");
+#endif
+#ifdef VK_KHR_timeline_semaphore
+    out->vkGetSemaphoreCounterValueKHR =
+        (PFN_vkGetSemaphoreCounterValueKHR)dlSymFunc(lib, "vkGetSemaphoreCounterValueKHR");
+    out->vkWaitSemaphoresKHR = (PFN_vkWaitSemaphoresKHR)dlSymFunc(lib, "vkWaitSemaphoresKHR");
+    out->vkSignalSemaphoreKHR = (PFN_vkSignalSemaphoreKHR)dlSymFunc(lib, "vkSignalSemaphoreKHR");
+#endif
+#ifdef VK_KHR_dynamic_rendering_local_read
+    out->vkCmdSetRenderingAttachmentLocationsKHR =
+        (PFN_vkCmdSetRenderingAttachmentLocationsKHR)dlSymFunc(
+            lib, "vkCmdSetRenderingAttachmentLocationsKHR");
+    out->vkCmdSetRenderingInputAttachmentIndicesKHR =
+        (PFN_vkCmdSetRenderingInputAttachmentIndicesKHR)dlSymFunc(
+            lib, "vkCmdSetRenderingInputAttachmentIndicesKHR");
+#endif
 #ifdef VK_KHR_buffer_device_address
     out->vkGetBufferDeviceAddressKHR =
         (PFN_vkGetBufferDeviceAddressKHR)dlSymFunc(lib, "vkGetBufferDeviceAddressKHR");
@@ -633,6 +668,10 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
     out->vkGetPipelineExecutableInternalRepresentationsKHR =
         (PFN_vkGetPipelineExecutableInternalRepresentationsKHR)dlSymFunc(
             lib, "vkGetPipelineExecutableInternalRepresentationsKHR");
+#endif
+#ifdef VK_KHR_map_memory2
+    out->vkMapMemory2KHR = (PFN_vkMapMemory2KHR)dlSymFunc(lib, "vkMapMemory2KHR");
+    out->vkUnmapMemory2KHR = (PFN_vkUnmapMemory2KHR)dlSymFunc(lib, "vkUnmapMemory2KHR");
 #endif
 #ifdef VK_KHR_synchronization2
     out->vkCmdSetEvent2KHR = (PFN_vkCmdSetEvent2KHR)dlSymFunc(lib, "vkCmdSetEvent2KHR");
@@ -771,6 +810,9 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
 #ifdef VK_EXT_line_rasterization
     out->vkCmdSetLineStippleEXT =
         (PFN_vkCmdSetLineStippleEXT)dlSymFunc(lib, "vkCmdSetLineStippleEXT");
+#endif
+#ifdef VK_EXT_host_query_reset
+    out->vkResetQueryPoolEXT = (PFN_vkResetQueryPoolEXT)dlSymFunc(lib, "vkResetQueryPoolEXT");
 #endif
 #ifdef VK_EXT_extended_dynamic_state
     out->vkCmdSetCullModeEXT = (PFN_vkCmdSetCullModeEXT)dlSymFunc(lib, "vkCmdSetCullModeEXT");
@@ -1044,6 +1086,11 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
     out->vkGetPhysicalDeviceWin32PresentationSupportKHR =
         (PFN_vkGetPhysicalDeviceWin32PresentationSupportKHR)vk->vkGetInstanceProcAddr(
             instance, "vkGetPhysicalDeviceWin32PresentationSupportKHR");
+#endif
+#ifdef VK_KHR_device_group_creation
+    out->vkEnumeratePhysicalDeviceGroupsKHR =
+        (PFN_vkEnumeratePhysicalDeviceGroupsKHR)vk->vkGetInstanceProcAddr(
+            instance, "vkEnumeratePhysicalDeviceGroupsKHR");
 #endif
 #ifdef VK_EXT_debug_report
     out->vkCreateDebugReportCallbackEXT =
@@ -1572,6 +1619,15 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
         (PFN_vkGetPhysicalDeviceSparseImageFormatProperties2KHR)vk->vkGetInstanceProcAddr(
             instance, "vkGetPhysicalDeviceSparseImageFormatProperties2KHR");
 #endif
+#ifdef VK_KHR_device_group
+    out->vkGetDeviceGroupPeerMemoryFeaturesKHR =
+        (PFN_vkGetDeviceGroupPeerMemoryFeaturesKHR)vk->vkGetInstanceProcAddr(
+            instance, "vkGetDeviceGroupPeerMemoryFeaturesKHR");
+    out->vkCmdSetDeviceMaskKHR =
+        (PFN_vkCmdSetDeviceMaskKHR)vk->vkGetInstanceProcAddr(instance, "vkCmdSetDeviceMaskKHR");
+    out->vkCmdDispatchBaseKHR =
+        (PFN_vkCmdDispatchBaseKHR)vk->vkGetInstanceProcAddr(instance, "vkCmdDispatchBaseKHR");
+#endif
 #ifdef VK_KHR_maintenance1
     out->vkTrimCommandPoolKHR =
         (PFN_vkTrimCommandPoolKHR)vk->vkGetInstanceProcAddr(instance, "vkTrimCommandPoolKHR");
@@ -1612,6 +1668,13 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
     out->vkGetSemaphoreFdKHR =
         (PFN_vkGetSemaphoreFdKHR)vk->vkGetInstanceProcAddr(instance, "vkGetSemaphoreFdKHR");
 #endif
+#ifdef VK_KHR_push_descriptor
+    out->vkCmdPushDescriptorSetKHR = (PFN_vkCmdPushDescriptorSetKHR)vk->vkGetInstanceProcAddr(
+        instance, "vkCmdPushDescriptorSetKHR");
+    out->vkCmdPushDescriptorSetWithTemplateKHR =
+        (PFN_vkCmdPushDescriptorSetWithTemplateKHR)vk->vkGetInstanceProcAddr(
+            instance, "vkCmdPushDescriptorSetWithTemplateKHR");
+#endif
 #ifdef VK_KHR_descriptor_update_template
     out->vkCreateDescriptorUpdateTemplateKHR =
         (PFN_vkCreateDescriptorUpdateTemplateKHR)vk->vkGetInstanceProcAddr(
@@ -1622,9 +1685,6 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
     out->vkUpdateDescriptorSetWithTemplateKHR =
         (PFN_vkUpdateDescriptorSetWithTemplateKHR)vk->vkGetInstanceProcAddr(
             instance, "vkUpdateDescriptorSetWithTemplateKHR");
-    out->vkCmdPushDescriptorSetWithTemplateKHR =
-        (PFN_vkCmdPushDescriptorSetWithTemplateKHR)vk->vkGetInstanceProcAddr(
-            instance, "vkCmdPushDescriptorSetWithTemplateKHR");
 #endif
 #ifdef VK_KHR_create_renderpass2
     out->vkCreateRenderPass2KHR =
@@ -1677,6 +1737,30 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
         (PFN_vkGetDescriptorSetLayoutSupportKHR)vk->vkGetInstanceProcAddr(
             instance, "vkGetDescriptorSetLayoutSupportKHR");
 #endif
+#ifdef VK_KHR_draw_indirect_count
+    out->vkCmdDrawIndirectCountKHR = (PFN_vkCmdDrawIndirectCountKHR)vk->vkGetInstanceProcAddr(
+        instance, "vkCmdDrawIndirectCountKHR");
+    out->vkCmdDrawIndexedIndirectCountKHR =
+        (PFN_vkCmdDrawIndexedIndirectCountKHR)vk->vkGetInstanceProcAddr(
+            instance, "vkCmdDrawIndexedIndirectCountKHR");
+#endif
+#ifdef VK_KHR_timeline_semaphore
+    out->vkGetSemaphoreCounterValueKHR =
+        (PFN_vkGetSemaphoreCounterValueKHR)vk->vkGetInstanceProcAddr(
+            instance, "vkGetSemaphoreCounterValueKHR");
+    out->vkWaitSemaphoresKHR =
+        (PFN_vkWaitSemaphoresKHR)vk->vkGetInstanceProcAddr(instance, "vkWaitSemaphoresKHR");
+    out->vkSignalSemaphoreKHR =
+        (PFN_vkSignalSemaphoreKHR)vk->vkGetInstanceProcAddr(instance, "vkSignalSemaphoreKHR");
+#endif
+#ifdef VK_KHR_dynamic_rendering_local_read
+    out->vkCmdSetRenderingAttachmentLocationsKHR =
+        (PFN_vkCmdSetRenderingAttachmentLocationsKHR)vk->vkGetInstanceProcAddr(
+            instance, "vkCmdSetRenderingAttachmentLocationsKHR");
+    out->vkCmdSetRenderingInputAttachmentIndicesKHR =
+        (PFN_vkCmdSetRenderingInputAttachmentIndicesKHR)vk->vkGetInstanceProcAddr(
+            instance, "vkCmdSetRenderingInputAttachmentIndicesKHR");
+#endif
 #ifdef VK_KHR_buffer_device_address
     out->vkGetBufferDeviceAddressKHR = (PFN_vkGetBufferDeviceAddressKHR)vk->vkGetInstanceProcAddr(
         instance, "vkGetBufferDeviceAddressKHR");
@@ -1697,6 +1781,12 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
     out->vkGetPipelineExecutableInternalRepresentationsKHR =
         (PFN_vkGetPipelineExecutableInternalRepresentationsKHR)vk->vkGetInstanceProcAddr(
             instance, "vkGetPipelineExecutableInternalRepresentationsKHR");
+#endif
+#ifdef VK_KHR_map_memory2
+    out->vkMapMemory2KHR =
+        (PFN_vkMapMemory2KHR)vk->vkGetInstanceProcAddr(instance, "vkMapMemory2KHR");
+    out->vkUnmapMemory2KHR =
+        (PFN_vkUnmapMemory2KHR)vk->vkGetInstanceProcAddr(instance, "vkUnmapMemory2KHR");
 #endif
 #ifdef VK_KHR_synchronization2
     out->vkCmdSetEvent2KHR =
@@ -1860,6 +1950,10 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
 #ifdef VK_EXT_line_rasterization
     out->vkCmdSetLineStippleEXT =
         (PFN_vkCmdSetLineStippleEXT)vk->vkGetInstanceProcAddr(instance, "vkCmdSetLineStippleEXT");
+#endif
+#ifdef VK_EXT_host_query_reset
+    out->vkResetQueryPoolEXT =
+        (PFN_vkResetQueryPoolEXT)vk->vkGetInstanceProcAddr(instance, "vkResetQueryPoolEXT");
 #endif
 #ifdef VK_EXT_extended_dynamic_state
     out->vkCmdSetCullModeEXT =
@@ -2162,6 +2256,11 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
     out->vkGetPhysicalDeviceWin32PresentationSupportKHR =
         (PFN_vkGetPhysicalDeviceWin32PresentationSupportKHR)vk->vkGetDeviceProcAddr(
             device, "vkGetPhysicalDeviceWin32PresentationSupportKHR");
+#endif
+#ifdef VK_KHR_device_group_creation
+    out->vkEnumeratePhysicalDeviceGroupsKHR =
+        (PFN_vkEnumeratePhysicalDeviceGroupsKHR)vk->vkGetDeviceProcAddr(
+            device, "vkEnumeratePhysicalDeviceGroupsKHR");
 #endif
 #ifdef VK_EXT_debug_report
     out->vkCreateDebugReportCallbackEXT =
@@ -2673,6 +2772,15 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
         (PFN_vkGetPhysicalDeviceSparseImageFormatProperties2KHR)vk->vkGetDeviceProcAddr(
             device, "vkGetPhysicalDeviceSparseImageFormatProperties2KHR");
 #endif
+#ifdef VK_KHR_device_group
+    out->vkGetDeviceGroupPeerMemoryFeaturesKHR =
+        (PFN_vkGetDeviceGroupPeerMemoryFeaturesKHR)vk->vkGetDeviceProcAddr(
+            device, "vkGetDeviceGroupPeerMemoryFeaturesKHR");
+    out->vkCmdSetDeviceMaskKHR =
+        (PFN_vkCmdSetDeviceMaskKHR)vk->vkGetDeviceProcAddr(device, "vkCmdSetDeviceMaskKHR");
+    out->vkCmdDispatchBaseKHR =
+        (PFN_vkCmdDispatchBaseKHR)vk->vkGetDeviceProcAddr(device, "vkCmdDispatchBaseKHR");
+#endif
 #ifdef VK_KHR_maintenance1
     out->vkTrimCommandPoolKHR =
         (PFN_vkTrimCommandPoolKHR)vk->vkGetDeviceProcAddr(device, "vkTrimCommandPoolKHR");
@@ -2713,6 +2821,13 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
     out->vkGetSemaphoreFdKHR =
         (PFN_vkGetSemaphoreFdKHR)vk->vkGetDeviceProcAddr(device, "vkGetSemaphoreFdKHR");
 #endif
+#ifdef VK_KHR_push_descriptor
+    out->vkCmdPushDescriptorSetKHR =
+        (PFN_vkCmdPushDescriptorSetKHR)vk->vkGetDeviceProcAddr(device, "vkCmdPushDescriptorSetKHR");
+    out->vkCmdPushDescriptorSetWithTemplateKHR =
+        (PFN_vkCmdPushDescriptorSetWithTemplateKHR)vk->vkGetDeviceProcAddr(
+            device, "vkCmdPushDescriptorSetWithTemplateKHR");
+#endif
 #ifdef VK_KHR_descriptor_update_template
     out->vkCreateDescriptorUpdateTemplateKHR =
         (PFN_vkCreateDescriptorUpdateTemplateKHR)vk->vkGetDeviceProcAddr(
@@ -2723,9 +2838,6 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
     out->vkUpdateDescriptorSetWithTemplateKHR =
         (PFN_vkUpdateDescriptorSetWithTemplateKHR)vk->vkGetDeviceProcAddr(
             device, "vkUpdateDescriptorSetWithTemplateKHR");
-    out->vkCmdPushDescriptorSetWithTemplateKHR =
-        (PFN_vkCmdPushDescriptorSetWithTemplateKHR)vk->vkGetDeviceProcAddr(
-            device, "vkCmdPushDescriptorSetWithTemplateKHR");
 #endif
 #ifdef VK_KHR_create_renderpass2
     out->vkCreateRenderPass2KHR =
@@ -2777,6 +2889,29 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
         (PFN_vkGetDescriptorSetLayoutSupportKHR)vk->vkGetDeviceProcAddr(
             device, "vkGetDescriptorSetLayoutSupportKHR");
 #endif
+#ifdef VK_KHR_draw_indirect_count
+    out->vkCmdDrawIndirectCountKHR =
+        (PFN_vkCmdDrawIndirectCountKHR)vk->vkGetDeviceProcAddr(device, "vkCmdDrawIndirectCountKHR");
+    out->vkCmdDrawIndexedIndirectCountKHR =
+        (PFN_vkCmdDrawIndexedIndirectCountKHR)vk->vkGetDeviceProcAddr(
+            device, "vkCmdDrawIndexedIndirectCountKHR");
+#endif
+#ifdef VK_KHR_timeline_semaphore
+    out->vkGetSemaphoreCounterValueKHR = (PFN_vkGetSemaphoreCounterValueKHR)vk->vkGetDeviceProcAddr(
+        device, "vkGetSemaphoreCounterValueKHR");
+    out->vkWaitSemaphoresKHR =
+        (PFN_vkWaitSemaphoresKHR)vk->vkGetDeviceProcAddr(device, "vkWaitSemaphoresKHR");
+    out->vkSignalSemaphoreKHR =
+        (PFN_vkSignalSemaphoreKHR)vk->vkGetDeviceProcAddr(device, "vkSignalSemaphoreKHR");
+#endif
+#ifdef VK_KHR_dynamic_rendering_local_read
+    out->vkCmdSetRenderingAttachmentLocationsKHR =
+        (PFN_vkCmdSetRenderingAttachmentLocationsKHR)vk->vkGetDeviceProcAddr(
+            device, "vkCmdSetRenderingAttachmentLocationsKHR");
+    out->vkCmdSetRenderingInputAttachmentIndicesKHR =
+        (PFN_vkCmdSetRenderingInputAttachmentIndicesKHR)vk->vkGetDeviceProcAddr(
+            device, "vkCmdSetRenderingInputAttachmentIndicesKHR");
+#endif
 #ifdef VK_KHR_buffer_device_address
     out->vkGetBufferDeviceAddressKHR = (PFN_vkGetBufferDeviceAddressKHR)vk->vkGetDeviceProcAddr(
         device, "vkGetBufferDeviceAddressKHR");
@@ -2797,6 +2932,11 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
     out->vkGetPipelineExecutableInternalRepresentationsKHR =
         (PFN_vkGetPipelineExecutableInternalRepresentationsKHR)vk->vkGetDeviceProcAddr(
             device, "vkGetPipelineExecutableInternalRepresentationsKHR");
+#endif
+#ifdef VK_KHR_map_memory2
+    out->vkMapMemory2KHR = (PFN_vkMapMemory2KHR)vk->vkGetDeviceProcAddr(device, "vkMapMemory2KHR");
+    out->vkUnmapMemory2KHR =
+        (PFN_vkUnmapMemory2KHR)vk->vkGetDeviceProcAddr(device, "vkUnmapMemory2KHR");
 #endif
 #ifdef VK_KHR_synchronization2
     out->vkCmdSetEvent2KHR =
@@ -2958,6 +3098,10 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
 #ifdef VK_EXT_line_rasterization
     out->vkCmdSetLineStippleEXT =
         (PFN_vkCmdSetLineStippleEXT)vk->vkGetDeviceProcAddr(device, "vkCmdSetLineStippleEXT");
+#endif
+#ifdef VK_EXT_host_query_reset
+    out->vkResetQueryPoolEXT =
+        (PFN_vkResetQueryPoolEXT)vk->vkGetDeviceProcAddr(device, "vkResetQueryPoolEXT");
 #endif
 #ifdef VK_EXT_extended_dynamic_state
     out->vkCmdSetCullModeEXT =

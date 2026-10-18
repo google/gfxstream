@@ -3007,7 +3007,110 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 break;
             }
 #endif
-#ifdef VK_KHR_descriptor_update_template
+#ifdef VK_KHR_device_group
+            case OP_vkCmdSetDeviceMaskKHR: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdSetDeviceMaskKHR");
+                uint32_t deviceMask;
+                memcpy((uint32_t*)&deviceMask, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetDeviceMaskKHR((VkCommandBuffer)dispatchHandle, deviceMask);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetDeviceMaskKHR(pool, snapshotApiCallHandle, nullptr, 0,
+                                                            (VkCommandBuffer)(boxed_dispatchHandle),
+                                                            deviceMask);
+                }
+                break;
+            }
+            case OP_vkCmdDispatchBaseKHR: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdDispatchBaseKHR");
+                uint32_t baseGroupX;
+                uint32_t baseGroupY;
+                uint32_t baseGroupZ;
+                uint32_t groupCountX;
+                uint32_t groupCountY;
+                uint32_t groupCountZ;
+                memcpy((uint32_t*)&baseGroupX, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&baseGroupY, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&baseGroupZ, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&groupCountX, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&groupCountY, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&groupCountZ, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdDispatchBaseKHR((VkCommandBuffer)dispatchHandle, baseGroupX,
+                                             baseGroupY, baseGroupZ, groupCountX, groupCountY,
+                                             groupCountZ);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdDispatchBaseKHR(pool, snapshotApiCallHandle, nullptr, 0,
+                                                           (VkCommandBuffer)(boxed_dispatchHandle),
+                                                           baseGroupX, baseGroupY, baseGroupZ,
+                                                           groupCountX, groupCountY, groupCountZ);
+                }
+                break;
+            }
+#endif
+#ifdef VK_KHR_push_descriptor
+            case OP_vkCmdPushDescriptorSetKHR: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdPushDescriptorSetKHR");
+                VkPipelineBindPoint pipelineBindPoint;
+                VkPipelineLayout layout;
+                uint32_t set;
+                uint32_t descriptorWriteCount;
+                const VkWriteDescriptorSet* pDescriptorWrites;
+                VkWriteDescriptorSet stack_pDescriptorWrites[MAX_STACK_ITEMS];
+                memcpy((VkPipelineBindPoint*)&pipelineBindPoint, *readStreamPtrPtr,
+                       sizeof(VkPipelineBindPoint));
+                *readStreamPtrPtr += sizeof(VkPipelineBindPoint);
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkPipelineLayout*)&layout =
+                    (VkPipelineLayout)unbox_VkPipelineLayout((VkPipelineLayout)(*&cgen_var_0));
+                memcpy((uint32_t*)&set, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&descriptorWriteCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (descriptorWriteCount <= MAX_STACK_ITEMS) {
+                    pDescriptorWrites = (VkWriteDescriptorSet*)stack_pDescriptorWrites;
+                } else {
+                    readStream->alloc((void**)&pDescriptorWrites,
+                                      descriptorWriteCount * sizeof(const VkWriteDescriptorSet));
+                }
+                for (uint32_t i = 0; i < (uint32_t)descriptorWriteCount; ++i) {
+                    reservedunmarshal_VkWriteDescriptorSet(
+                        readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                        (VkWriteDescriptorSet*)(pDescriptorWrites + i), readStreamPtrPtr);
+                }
+                if (pDescriptorWrites) {
+                    for (uint32_t i = 0; i < (uint32_t)descriptorWriteCount; ++i) {
+                        transform_tohost_VkWriteDescriptorSet(
+                            globalstate, (VkWriteDescriptorSet*)(pDescriptorWrites + i));
+                    }
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdPushDescriptorSetKHR((VkCommandBuffer)dispatchHandle,
+                                                  pipelineBindPoint, layout, set,
+                                                  descriptorWriteCount, pDescriptorWrites);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdPushDescriptorSetKHR(
+                        pool, snapshotApiCallHandle, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), pipelineBindPoint, layout, set,
+                        descriptorWriteCount, pDescriptorWrites);
+                }
+                break;
+            }
             case OP_vkCmdPushDescriptorSetWithTemplateKHR: {
                 GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
                                       "VkSubDecoder vkCmdPushDescriptorSetWithTemplateKHR");
@@ -3143,6 +3246,137 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                     this->snapshot()->vkCmdEndRenderPass2KHR(
                         pool, snapshotApiCallHandle, nullptr, 0,
                         (VkCommandBuffer)(boxed_dispatchHandle), pSubpassEndInfo);
+                }
+                break;
+            }
+#endif
+#ifdef VK_KHR_draw_indirect_count
+            case OP_vkCmdDrawIndirectCountKHR: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdDrawIndirectCountKHR");
+                VkBuffer buffer;
+                VkDeviceSize offset;
+                VkBuffer countBuffer;
+                VkDeviceSize countBufferOffset;
+                uint32_t maxDrawCount;
+                uint32_t stride;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkBuffer*)&buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
+                memcpy((VkDeviceSize*)&offset, *readStreamPtrPtr, sizeof(VkDeviceSize));
+                *readStreamPtrPtr += sizeof(VkDeviceSize);
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkBuffer*)&countBuffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_1));
+                memcpy((VkDeviceSize*)&countBufferOffset, *readStreamPtrPtr, sizeof(VkDeviceSize));
+                *readStreamPtrPtr += sizeof(VkDeviceSize);
+                memcpy((uint32_t*)&maxDrawCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&stride, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdDrawIndirectCountKHR((VkCommandBuffer)dispatchHandle, buffer, offset,
+                                                  countBuffer, countBufferOffset, maxDrawCount,
+                                                  stride);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdDrawIndirectCountKHR(
+                        pool, snapshotApiCallHandle, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), buffer, offset, countBuffer,
+                        countBufferOffset, maxDrawCount, stride);
+                }
+                break;
+            }
+            case OP_vkCmdDrawIndexedIndirectCountKHR: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdDrawIndexedIndirectCountKHR");
+                VkBuffer buffer;
+                VkDeviceSize offset;
+                VkBuffer countBuffer;
+                VkDeviceSize countBufferOffset;
+                uint32_t maxDrawCount;
+                uint32_t stride;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkBuffer*)&buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
+                memcpy((VkDeviceSize*)&offset, *readStreamPtrPtr, sizeof(VkDeviceSize));
+                *readStreamPtrPtr += sizeof(VkDeviceSize);
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkBuffer*)&countBuffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_1));
+                memcpy((VkDeviceSize*)&countBufferOffset, *readStreamPtrPtr, sizeof(VkDeviceSize));
+                *readStreamPtrPtr += sizeof(VkDeviceSize);
+                memcpy((uint32_t*)&maxDrawCount, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint32_t*)&stride, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdDrawIndexedIndirectCountKHR((VkCommandBuffer)dispatchHandle, buffer,
+                                                         offset, countBuffer, countBufferOffset,
+                                                         maxDrawCount, stride);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdDrawIndexedIndirectCountKHR(
+                        pool, snapshotApiCallHandle, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), buffer, offset, countBuffer,
+                        countBufferOffset, maxDrawCount, stride);
+                }
+                break;
+            }
+#endif
+#ifdef VK_KHR_dynamic_rendering_local_read
+            case OP_vkCmdSetRenderingAttachmentLocationsKHR: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdSetRenderingAttachmentLocationsKHR");
+                const VkRenderingAttachmentLocationInfo* pLocationInfo;
+                VkRenderingAttachmentLocationInfo stack_pLocationInfo[1];
+                pLocationInfo = (VkRenderingAttachmentLocationInfo*)stack_pLocationInfo;
+                reservedunmarshal_VkRenderingAttachmentLocationInfo(
+                    readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkRenderingAttachmentLocationInfo*)(pLocationInfo), readStreamPtrPtr);
+                if (pLocationInfo) {
+                    transform_tohost_VkRenderingAttachmentLocationInfo(
+                        globalstate, (VkRenderingAttachmentLocationInfo*)(pLocationInfo));
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetRenderingAttachmentLocationsKHR((VkCommandBuffer)dispatchHandle,
+                                                                pLocationInfo);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetRenderingAttachmentLocationsKHR(
+                        pool, snapshotApiCallHandle, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), pLocationInfo);
+                }
+                break;
+            }
+            case OP_vkCmdSetRenderingInputAttachmentIndicesKHR: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdSetRenderingInputAttachmentIndicesKHR");
+                const VkRenderingInputAttachmentIndexInfo* pInputAttachmentIndexInfo;
+                VkRenderingInputAttachmentIndexInfo stack_pInputAttachmentIndexInfo[1];
+                pInputAttachmentIndexInfo =
+                    (VkRenderingInputAttachmentIndexInfo*)stack_pInputAttachmentIndexInfo;
+                reservedunmarshal_VkRenderingInputAttachmentIndexInfo(
+                    readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
+                    (VkRenderingInputAttachmentIndexInfo*)(pInputAttachmentIndexInfo),
+                    readStreamPtrPtr);
+                if (pInputAttachmentIndexInfo) {
+                    transform_tohost_VkRenderingInputAttachmentIndexInfo(
+                        globalstate,
+                        (VkRenderingInputAttachmentIndexInfo*)(pInputAttachmentIndexInfo));
+                }
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetRenderingInputAttachmentIndicesKHR((VkCommandBuffer)dispatchHandle,
+                                                                   pInputAttachmentIndexInfo);
+                }
+                if (snapshotsEnabled()) {
+                    this->snapshot()->vkCmdSetRenderingInputAttachmentIndicesKHR(
+                        pool, snapshotApiCallHandle, nullptr, 0,
+                        (VkCommandBuffer)(boxed_dispatchHandle), pInputAttachmentIndexInfo);
                 }
                 break;
             }

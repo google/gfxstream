@@ -2743,8 +2743,65 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceSparseImageFormatInfo2,
 #define OP_vkGetPhysicalDeviceMemoryProperties2KHR 20203
 #define OP_vkGetPhysicalDeviceSparseImageFormatProperties2KHR 20204
 #endif
+#ifdef VK_KHR_device_group
+DEFINE_ALIAS_FUNCTION(marshal_VkMemoryAllocateFlagsInfo, marshal_VkMemoryAllocateFlagsInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkMemoryAllocateFlagsInfo, unmarshal_VkMemoryAllocateFlagsInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkDeviceGroupRenderPassBeginInfo,
+                      marshal_VkDeviceGroupRenderPassBeginInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkDeviceGroupRenderPassBeginInfo,
+                      unmarshal_VkDeviceGroupRenderPassBeginInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkDeviceGroupCommandBufferBeginInfo,
+                      marshal_VkDeviceGroupCommandBufferBeginInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkDeviceGroupCommandBufferBeginInfo,
+                      unmarshal_VkDeviceGroupCommandBufferBeginInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkDeviceGroupSubmitInfo, marshal_VkDeviceGroupSubmitInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkDeviceGroupSubmitInfo, unmarshal_VkDeviceGroupSubmitInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkDeviceGroupBindSparseInfo, marshal_VkDeviceGroupBindSparseInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkDeviceGroupBindSparseInfo,
+                      unmarshal_VkDeviceGroupBindSparseInfoKHR)
+
+#define OP_vkGetDeviceGroupPeerMemoryFeaturesKHR 20205
+#define OP_vkCmdSetDeviceMaskKHR 20206
+#define OP_vkCmdDispatchBaseKHR 20207
+DEFINE_ALIAS_FUNCTION(marshal_VkBindBufferMemoryDeviceGroupInfo,
+                      marshal_VkBindBufferMemoryDeviceGroupInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkBindBufferMemoryDeviceGroupInfo,
+                      unmarshal_VkBindBufferMemoryDeviceGroupInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkBindImageMemoryDeviceGroupInfo,
+                      marshal_VkBindImageMemoryDeviceGroupInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkBindImageMemoryDeviceGroupInfo,
+                      unmarshal_VkBindImageMemoryDeviceGroupInfoKHR)
+
+#endif
 #ifdef VK_KHR_maintenance1
 #define OP_vkTrimCommandPoolKHR 20208
+#endif
+#ifdef VK_KHR_device_group_creation
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceGroupProperties,
+                      marshal_VkPhysicalDeviceGroupPropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceGroupProperties,
+                      unmarshal_VkPhysicalDeviceGroupPropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkDeviceGroupDeviceCreateInfo,
+                      marshal_VkDeviceGroupDeviceCreateInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkDeviceGroupDeviceCreateInfo,
+                      unmarshal_VkDeviceGroupDeviceCreateInfoKHR)
+
+#define OP_vkEnumeratePhysicalDeviceGroupsKHR 20209
 #endif
 #ifdef VK_KHR_external_memory_capabilities
 DEFINE_ALIAS_FUNCTION(marshal_VkExternalMemoryProperties, marshal_VkExternalMemoryPropertiesKHR)
@@ -2836,6 +2893,16 @@ void unmarshal_VkSemaphoreGetFdInfoKHR(VulkanStream* vkStream, VkStructureType r
 #define OP_vkImportSemaphoreFdKHR 20218
 #define OP_vkGetSemaphoreFdKHR 20219
 #endif
+#ifdef VK_KHR_push_descriptor
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDevicePushDescriptorProperties,
+                      marshal_VkPhysicalDevicePushDescriptorPropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDevicePushDescriptorProperties,
+                      unmarshal_VkPhysicalDevicePushDescriptorPropertiesKHR)
+
+#define OP_vkCmdPushDescriptorSetKHR 20220
+#define OP_vkCmdPushDescriptorSetWithTemplateKHR 20221
+#endif
 #ifdef VK_KHR_shader_float16_int8
 DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceShaderFloat16Int8Features,
                       marshal_VkPhysicalDeviceShaderFloat16Int8FeaturesKHR)
@@ -2848,6 +2915,14 @@ DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceShaderFloat16Int8Features,
 
 DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceShaderFloat16Int8Features,
                       unmarshal_VkPhysicalDeviceFloat16Int8FeaturesKHR)
+
+#endif
+#ifdef VK_KHR_16bit_storage
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDevice16BitStorageFeatures,
+                      marshal_VkPhysicalDevice16BitStorageFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDevice16BitStorageFeatures,
+                      unmarshal_VkPhysicalDevice16BitStorageFeaturesKHR)
 
 #endif
 #ifdef VK_KHR_incremental_present
@@ -2886,7 +2961,6 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkDescriptorUpdateTemplateCreateInfo,
 #define OP_vkCreateDescriptorUpdateTemplateKHR 20222
 #define OP_vkDestroyDescriptorUpdateTemplateKHR 20223
 #define OP_vkUpdateDescriptorSetWithTemplateKHR 20224
-#define OP_vkCmdPushDescriptorSetWithTemplateKHR 20221
 #endif
 #ifdef VK_KHR_imageless_framebuffer
 DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceImagelessFramebufferFeatures,
@@ -3013,6 +3087,20 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkPipelineTessellationDomainOriginStateCreateInf
                       unmarshal_VkPipelineTessellationDomainOriginStateCreateInfoKHR)
 
 #endif
+#ifdef VK_KHR_variable_pointers
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceVariablePointersFeatures,
+                      marshal_VkPhysicalDeviceVariablePointerFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceVariablePointersFeatures,
+                      unmarshal_VkPhysicalDeviceVariablePointerFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceVariablePointersFeatures,
+                      marshal_VkPhysicalDeviceVariablePointersFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceVariablePointersFeatures,
+                      unmarshal_VkPhysicalDeviceVariablePointersFeaturesKHR)
+
+#endif
 #ifdef VK_KHR_dedicated_allocation
 DEFINE_ALIAS_FUNCTION(marshal_VkMemoryDedicatedRequirements,
                       marshal_VkMemoryDedicatedRequirementsKHR)
@@ -3130,12 +3218,32 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkDescriptorSetLayoutSupport,
 
 #define OP_vkGetDescriptorSetLayoutSupportKHR 20248
 #endif
+#ifdef VK_KHR_draw_indirect_count
+#define OP_vkCmdDrawIndirectCountKHR 20249
+#define OP_vkCmdDrawIndexedIndirectCountKHR 20250
+#endif
 #ifdef VK_KHR_shader_subgroup_extended_types
 DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures,
                       marshal_VkPhysicalDeviceShaderSubgroupExtendedTypesFeaturesKHR)
 
 DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures,
                       unmarshal_VkPhysicalDeviceShaderSubgroupExtendedTypesFeaturesKHR)
+
+#endif
+#ifdef VK_KHR_8bit_storage
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDevice8BitStorageFeatures,
+                      marshal_VkPhysicalDevice8BitStorageFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDevice8BitStorageFeatures,
+                      unmarshal_VkPhysicalDevice8BitStorageFeaturesKHR)
+
+#endif
+#ifdef VK_KHR_shader_atomic_int64
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceShaderAtomicInt64Features,
+                      marshal_VkPhysicalDeviceShaderAtomicInt64FeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceShaderAtomicInt64Features,
+                      unmarshal_VkPhysicalDeviceShaderAtomicInt64FeaturesKHR)
 
 #endif
 #ifdef VK_KHR_global_priority
@@ -3158,6 +3266,75 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkQueueFamilyGlobalPriorityProperties,
                       unmarshal_VkQueueFamilyGlobalPriorityPropertiesKHR)
 
 #endif
+#ifdef VK_KHR_driver_properties
+DEFINE_ALIAS_FUNCTION(marshal_VkConformanceVersion, marshal_VkConformanceVersionKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkConformanceVersion, unmarshal_VkConformanceVersionKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceDriverProperties,
+                      marshal_VkPhysicalDeviceDriverPropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceDriverProperties,
+                      unmarshal_VkPhysicalDeviceDriverPropertiesKHR)
+
+#endif
+#ifdef VK_KHR_shader_float_controls
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceFloatControlsProperties,
+                      marshal_VkPhysicalDeviceFloatControlsPropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceFloatControlsProperties,
+                      unmarshal_VkPhysicalDeviceFloatControlsPropertiesKHR)
+
+#endif
+#ifdef VK_KHR_depth_stencil_resolve
+DEFINE_ALIAS_FUNCTION(marshal_VkSubpassDescriptionDepthStencilResolve,
+                      marshal_VkSubpassDescriptionDepthStencilResolveKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkSubpassDescriptionDepthStencilResolve,
+                      unmarshal_VkSubpassDescriptionDepthStencilResolveKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceDepthStencilResolveProperties,
+                      marshal_VkPhysicalDeviceDepthStencilResolvePropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceDepthStencilResolveProperties,
+                      unmarshal_VkPhysicalDeviceDepthStencilResolvePropertiesKHR)
+
+#endif
+#ifdef VK_KHR_timeline_semaphore
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceTimelineSemaphoreFeatures,
+                      marshal_VkPhysicalDeviceTimelineSemaphoreFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceTimelineSemaphoreFeatures,
+                      unmarshal_VkPhysicalDeviceTimelineSemaphoreFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceTimelineSemaphoreProperties,
+                      marshal_VkPhysicalDeviceTimelineSemaphorePropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceTimelineSemaphoreProperties,
+                      unmarshal_VkPhysicalDeviceTimelineSemaphorePropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkSemaphoreTypeCreateInfo, marshal_VkSemaphoreTypeCreateInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkSemaphoreTypeCreateInfo, unmarshal_VkSemaphoreTypeCreateInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkTimelineSemaphoreSubmitInfo,
+                      marshal_VkTimelineSemaphoreSubmitInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkTimelineSemaphoreSubmitInfo,
+                      unmarshal_VkTimelineSemaphoreSubmitInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkSemaphoreWaitInfo, marshal_VkSemaphoreWaitInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkSemaphoreWaitInfo, unmarshal_VkSemaphoreWaitInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkSemaphoreSignalInfo, marshal_VkSemaphoreSignalInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkSemaphoreSignalInfo, unmarshal_VkSemaphoreSignalInfoKHR)
+
+#define OP_vkGetSemaphoreCounterValueKHR 229059496
+#define OP_vkWaitSemaphoresKHR 263904357
+#define OP_vkSignalSemaphoreKHR 269919108
+#endif
 #ifdef VK_KHR_vulkan_memory_model
 DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceVulkanMemoryModelFeatures,
                       marshal_VkPhysicalDeviceVulkanMemoryModelFeaturesKHR)
@@ -3172,6 +3349,56 @@ DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceShaderTerminateInvocationFeatures,
 
 DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceShaderTerminateInvocationFeatures,
                       unmarshal_VkPhysicalDeviceShaderTerminateInvocationFeaturesKHR)
+
+#endif
+#ifdef VK_KHR_dynamic_rendering_local_read
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceDynamicRenderingLocalReadFeatures,
+                      marshal_VkPhysicalDeviceDynamicRenderingLocalReadFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceDynamicRenderingLocalReadFeatures,
+                      unmarshal_VkPhysicalDeviceDynamicRenderingLocalReadFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkRenderingAttachmentLocationInfo,
+                      marshal_VkRenderingAttachmentLocationInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkRenderingAttachmentLocationInfo,
+                      unmarshal_VkRenderingAttachmentLocationInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkRenderingInputAttachmentIndexInfo,
+                      marshal_VkRenderingInputAttachmentIndexInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkRenderingInputAttachmentIndexInfo,
+                      unmarshal_VkRenderingInputAttachmentIndexInfoKHR)
+
+#define OP_vkCmdSetRenderingAttachmentLocationsKHR 232117923
+#define OP_vkCmdSetRenderingInputAttachmentIndicesKHR 250486843
+#endif
+#ifdef VK_KHR_separate_depth_stencil_layouts
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures,
+                      marshal_VkPhysicalDeviceSeparateDepthStencilLayoutsFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures,
+                      unmarshal_VkPhysicalDeviceSeparateDepthStencilLayoutsFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkAttachmentReferenceStencilLayout,
+                      marshal_VkAttachmentReferenceStencilLayoutKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkAttachmentReferenceStencilLayout,
+                      unmarshal_VkAttachmentReferenceStencilLayoutKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkAttachmentDescriptionStencilLayout,
+                      marshal_VkAttachmentDescriptionStencilLayoutKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkAttachmentDescriptionStencilLayout,
+                      unmarshal_VkAttachmentDescriptionStencilLayoutKHR)
+
+#endif
+#ifdef VK_KHR_uniform_buffer_standard_layout
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceUniformBufferStandardLayoutFeatures,
+                      marshal_VkPhysicalDeviceUniformBufferStandardLayoutFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceUniformBufferStandardLayoutFeatures,
+                      unmarshal_VkPhysicalDeviceUniformBufferStandardLayoutFeaturesKHR)
 
 #endif
 #ifdef VK_KHR_buffer_device_address
@@ -3262,6 +3489,18 @@ void unmarshal_VkPipelineExecutableInternalRepresentationKHR(
 #define OP_vkGetPipelineExecutablePropertiesKHR 269458798
 #define OP_vkGetPipelineExecutableStatisticsKHR 271191699
 #define OP_vkGetPipelineExecutableInternalRepresentationsKHR 274148497
+#endif
+#ifdef VK_KHR_map_memory2
+DEFINE_ALIAS_FUNCTION(marshal_VkMemoryMapInfo, marshal_VkMemoryMapInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkMemoryMapInfo, unmarshal_VkMemoryMapInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkMemoryUnmapInfo, marshal_VkMemoryUnmapInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkMemoryUnmapInfo, unmarshal_VkMemoryUnmapInfoKHR)
+
+#define OP_vkMapMemory2KHR 233122956
+#define OP_vkUnmapMemory2KHR 229780379
 #endif
 #ifdef VK_KHR_shader_integer_dot_product
 DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceShaderIntegerDotProductFeatures,
@@ -3422,6 +3661,14 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkDeviceImageMemoryRequirements,
 #define OP_vkGetDeviceImageMemoryRequirementsKHR 243155021
 #define OP_vkGetDeviceImageSparseMemoryRequirementsKHR 275585477
 #endif
+#ifdef VK_KHR_shader_subgroup_rotate
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceShaderSubgroupRotateFeatures,
+                      marshal_VkPhysicalDeviceShaderSubgroupRotateFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceShaderSubgroupRotateFeatures,
+                      unmarshal_VkPhysicalDeviceShaderSubgroupRotateFeaturesKHR)
+
+#endif
 #ifdef VK_KHR_maintenance5
 DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceMaintenance5Features,
                       marshal_VkPhysicalDeviceMaintenance5FeaturesKHR)
@@ -3514,6 +3761,48 @@ void unmarshal_VkReleaseSwapchainImagesInfoKHR(VulkanStream* vkStream, VkStructu
 
 #define OP_vkReleaseSwapchainImagesKHR 249625009
 #endif
+#ifdef VK_KHR_vertex_attribute_divisor
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceVertexAttributeDivisorProperties,
+                      marshal_VkPhysicalDeviceVertexAttributeDivisorPropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceVertexAttributeDivisorProperties,
+                      unmarshal_VkPhysicalDeviceVertexAttributeDivisorPropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkVertexInputBindingDivisorDescription,
+                      marshal_VkVertexInputBindingDivisorDescriptionKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkVertexInputBindingDivisorDescription,
+                      unmarshal_VkVertexInputBindingDivisorDescriptionKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPipelineVertexInputDivisorStateCreateInfo,
+                      marshal_VkPipelineVertexInputDivisorStateCreateInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPipelineVertexInputDivisorStateCreateInfo,
+                      unmarshal_VkPipelineVertexInputDivisorStateCreateInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceVertexAttributeDivisorFeatures,
+                      marshal_VkPhysicalDeviceVertexAttributeDivisorFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceVertexAttributeDivisorFeatures,
+                      unmarshal_VkPhysicalDeviceVertexAttributeDivisorFeaturesKHR)
+
+#endif
+#ifdef VK_KHR_shader_float_controls2
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceShaderFloatControls2Features,
+                      marshal_VkPhysicalDeviceShaderFloatControls2FeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceShaderFloatControls2Features,
+                      unmarshal_VkPhysicalDeviceShaderFloatControls2FeaturesKHR)
+
+#endif
+#ifdef VK_KHR_index_type_uint8
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceIndexTypeUint8Features,
+                      marshal_VkPhysicalDeviceIndexTypeUint8FeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceIndexTypeUint8Features,
+                      unmarshal_VkPhysicalDeviceIndexTypeUint8FeaturesKHR)
+
+#endif
 #ifdef VK_KHR_line_rasterization
 DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceLineRasterizationFeatures,
                       marshal_VkPhysicalDeviceLineRasterizationFeaturesKHR)
@@ -3534,6 +3823,14 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkPipelineRasterizationLineStateCreateInfo,
                       unmarshal_VkPipelineRasterizationLineStateCreateInfoKHR)
 
 #define OP_vkCmdSetLineStippleKHR 219923286
+#endif
+#ifdef VK_KHR_shader_expect_assume
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceShaderExpectAssumeFeatures,
+                      marshal_VkPhysicalDeviceShaderExpectAssumeFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceShaderExpectAssumeFeatures,
+                      unmarshal_VkPhysicalDeviceShaderExpectAssumeFeaturesKHR)
+
 #endif
 #ifdef VK_KHR_maintenance6
 DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceMaintenance6Features,
@@ -3764,6 +4061,26 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceTextureCompressionASTCHDRFeature
                       unmarshal_VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT)
 
 #endif
+#ifdef VK_EXT_pipeline_robustness
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDevicePipelineRobustnessFeatures,
+                      marshal_VkPhysicalDevicePipelineRobustnessFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDevicePipelineRobustnessFeatures,
+                      unmarshal_VkPhysicalDevicePipelineRobustnessFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDevicePipelineRobustnessProperties,
+                      marshal_VkPhysicalDevicePipelineRobustnessPropertiesEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDevicePipelineRobustnessProperties,
+                      unmarshal_VkPhysicalDevicePipelineRobustnessPropertiesEXT)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPipelineRobustnessCreateInfo,
+                      marshal_VkPipelineRobustnessCreateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPipelineRobustnessCreateInfo,
+                      unmarshal_VkPipelineRobustnessCreateInfoEXT)
+
+#endif
 #ifdef VK_EXT_depth_clip_enable
 void marshal_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
     VulkanStream* vkStream, VkStructureType rootType,
@@ -3828,6 +4145,20 @@ void unmarshal_VkDebugUtilsObjectTagInfoEXT(VulkanStream* vkStream, VkStructureT
 #define OP_vkCreateDebugUtilsMessengerEXT 20302
 #define OP_vkDestroyDebugUtilsMessengerEXT 20303
 #define OP_vkSubmitDebugUtilsMessageEXT 20304
+#endif
+#ifdef VK_EXT_sampler_filter_minmax
+DEFINE_ALIAS_FUNCTION(marshal_VkSamplerReductionModeCreateInfo,
+                      marshal_VkSamplerReductionModeCreateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkSamplerReductionModeCreateInfo,
+                      unmarshal_VkSamplerReductionModeCreateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceSamplerFilterMinmaxProperties,
+                      marshal_VkPhysicalDeviceSamplerFilterMinmaxPropertiesEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceSamplerFilterMinmaxProperties,
+                      unmarshal_VkPhysicalDeviceSamplerFilterMinmaxPropertiesEXT)
+
 #endif
 #ifdef VK_EXT_inline_uniform_block
 DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceInlineUniformBlockFeatures,
@@ -3945,6 +4276,38 @@ void marshal_VkDrmFormatModifierPropertiesList2EXT(
 void unmarshal_VkDrmFormatModifierPropertiesList2EXT(
     VulkanStream* vkStream, VkStructureType rootType,
     VkDrmFormatModifierPropertiesList2EXT* forUnmarshaling);
+
+#endif
+#ifdef VK_EXT_descriptor_indexing
+DEFINE_ALIAS_FUNCTION(marshal_VkDescriptorSetLayoutBindingFlagsCreateInfo,
+                      marshal_VkDescriptorSetLayoutBindingFlagsCreateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkDescriptorSetLayoutBindingFlagsCreateInfo,
+                      unmarshal_VkDescriptorSetLayoutBindingFlagsCreateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceDescriptorIndexingFeatures,
+                      marshal_VkPhysicalDeviceDescriptorIndexingFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceDescriptorIndexingFeatures,
+                      unmarshal_VkPhysicalDeviceDescriptorIndexingFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceDescriptorIndexingProperties,
+                      marshal_VkPhysicalDeviceDescriptorIndexingPropertiesEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceDescriptorIndexingProperties,
+                      unmarshal_VkPhysicalDeviceDescriptorIndexingPropertiesEXT)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkDescriptorSetVariableDescriptorCountAllocateInfo,
+                      marshal_VkDescriptorSetVariableDescriptorCountAllocateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkDescriptorSetVariableDescriptorCountAllocateInfo,
+                      unmarshal_VkDescriptorSetVariableDescriptorCountAllocateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkDescriptorSetVariableDescriptorCountLayoutSupport,
+                      marshal_VkDescriptorSetVariableDescriptorCountLayoutSupportEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkDescriptorSetVariableDescriptorCountLayoutSupport,
+                      unmarshal_VkDescriptorSetVariableDescriptorCountLayoutSupportEXT)
 
 #endif
 #ifdef VK_EXT_external_memory_host
@@ -4093,6 +4456,14 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceToolProperties,
 
 #define OP_vkGetPhysicalDeviceToolPropertiesEXT 282247593
 #endif
+#ifdef VK_EXT_separate_stencil_usage
+DEFINE_ALIAS_FUNCTION(marshal_VkImageStencilUsageCreateInfo,
+                      marshal_VkImageStencilUsageCreateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkImageStencilUsageCreateInfo,
+                      unmarshal_VkImageStencilUsageCreateInfoEXT)
+
+#endif
 #ifdef VK_EXT_validation_features
 void marshal_VkValidationFeaturesEXT(VulkanStream* vkStream, VkStructureType rootType,
                                      const VkValidationFeaturesEXT* forMarshaling);
@@ -4147,6 +4518,15 @@ DEFINE_ALIAS_FUNCTION(unmarshal_VkPipelineRasterizationLineStateCreateInfo,
                       unmarshal_VkPipelineRasterizationLineStateCreateInfoEXT)
 
 #define OP_vkCmdSetLineStippleEXT 263855692
+#endif
+#ifdef VK_EXT_host_query_reset
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceHostQueryResetFeatures,
+                      marshal_VkPhysicalDeviceHostQueryResetFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceHostQueryResetFeatures,
+                      unmarshal_VkPhysicalDeviceHostQueryResetFeaturesEXT)
+
+#define OP_vkResetQueryPoolEXT 242995959
 #endif
 #ifdef VK_EXT_index_type_uint8
 DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceIndexTypeUint8Features,

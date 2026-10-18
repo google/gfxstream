@@ -25028,9 +25028,25 @@ const char* api_opcode_to_string(const uint32_t opcode) {
             return "OP_vkGetPhysicalDeviceSparseImageFormatProperties2KHR";
         }
 #endif
+#ifdef VK_KHR_device_group
+        case OP_vkGetDeviceGroupPeerMemoryFeaturesKHR: {
+            return "OP_vkGetDeviceGroupPeerMemoryFeaturesKHR";
+        }
+        case OP_vkCmdSetDeviceMaskKHR: {
+            return "OP_vkCmdSetDeviceMaskKHR";
+        }
+        case OP_vkCmdDispatchBaseKHR: {
+            return "OP_vkCmdDispatchBaseKHR";
+        }
+#endif
 #ifdef VK_KHR_maintenance1
         case OP_vkTrimCommandPoolKHR: {
             return "OP_vkTrimCommandPoolKHR";
+        }
+#endif
+#ifdef VK_KHR_device_group_creation
+        case OP_vkEnumeratePhysicalDeviceGroupsKHR: {
+            return "OP_vkEnumeratePhysicalDeviceGroupsKHR";
         }
 #endif
 #ifdef VK_KHR_external_memory_capabilities
@@ -25051,10 +25067,15 @@ const char* api_opcode_to_string(const uint32_t opcode) {
             return "OP_vkGetSemaphoreFdKHR";
         }
 #endif
-#ifdef VK_KHR_descriptor_update_template
+#ifdef VK_KHR_push_descriptor
+        case OP_vkCmdPushDescriptorSetKHR: {
+            return "OP_vkCmdPushDescriptorSetKHR";
+        }
         case OP_vkCmdPushDescriptorSetWithTemplateKHR: {
             return "OP_vkCmdPushDescriptorSetWithTemplateKHR";
         }
+#endif
+#ifdef VK_KHR_descriptor_update_template
         case OP_vkCreateDescriptorUpdateTemplateKHR: {
             return "OP_vkCreateDescriptorUpdateTemplateKHR";
         }
@@ -25122,6 +25143,14 @@ const char* api_opcode_to_string(const uint32_t opcode) {
 #ifdef VK_KHR_maintenance3
         case OP_vkGetDescriptorSetLayoutSupportKHR: {
             return "OP_vkGetDescriptorSetLayoutSupportKHR";
+        }
+#endif
+#ifdef VK_KHR_draw_indirect_count
+        case OP_vkCmdDrawIndirectCountKHR: {
+            return "OP_vkCmdDrawIndirectCountKHR";
+        }
+        case OP_vkCmdDrawIndexedIndirectCountKHR: {
+            return "OP_vkCmdDrawIndexedIndirectCountKHR";
         }
 #endif
 #ifdef VK_ANDROID_native_buffer
@@ -25440,6 +25469,16 @@ const char* api_opcode_to_string(const uint32_t opcode) {
             return "OP_vkCmdCopyImage2KHR";
         }
 #endif
+#ifdef VK_KHR_timeline_semaphore
+        case OP_vkGetSemaphoreCounterValueKHR: {
+            return "OP_vkGetSemaphoreCounterValueKHR";
+        }
+#endif
+#ifdef VK_KHR_map_memory2
+        case OP_vkUnmapMemory2KHR: {
+            return "OP_vkUnmapMemory2KHR";
+        }
+#endif
 #ifdef VK_BASE_VERSION_1_4
         case OP_vkUnmapMemory2: {
             return "OP_vkUnmapMemory2";
@@ -25465,9 +25504,19 @@ const char* api_opcode_to_string(const uint32_t opcode) {
             return "OP_vkReleaseSwapchainImagesEXT";
         }
 #endif
+#ifdef VK_KHR_dynamic_rendering_local_read
+        case OP_vkCmdSetRenderingAttachmentLocationsKHR: {
+            return "OP_vkCmdSetRenderingAttachmentLocationsKHR";
+        }
+#endif
 #ifdef VK_COMPUTE_VERSION_1_3
         case OP_vkCmdSetEvent2: {
             return "OP_vkCmdSetEvent2";
+        }
+#endif
+#ifdef VK_KHR_map_memory2
+        case OP_vkMapMemory2KHR: {
+            return "OP_vkMapMemory2KHR";
         }
 #endif
 #ifdef VK_BASE_VERSION_1_3
@@ -25531,6 +25580,11 @@ const char* api_opcode_to_string(const uint32_t opcode) {
 #ifdef VK_EXT_host_image_copy
         case OP_vkTransitionImageLayoutEXT: {
             return "OP_vkTransitionImageLayoutEXT";
+        }
+#endif
+#ifdef VK_EXT_host_query_reset
+        case OP_vkResetQueryPoolEXT: {
+            return "OP_vkResetQueryPoolEXT";
         }
 #endif
 #ifdef VK_KHR_maintenance4
@@ -25619,6 +25673,11 @@ const char* api_opcode_to_string(const uint32_t opcode) {
 #ifdef VK_KHR_swapchain_maintenance1
         case OP_vkReleaseSwapchainImagesKHR: {
             return "OP_vkReleaseSwapchainImagesKHR";
+        }
+#endif
+#ifdef VK_KHR_dynamic_rendering_local_read
+        case OP_vkCmdSetRenderingInputAttachmentIndicesKHR: {
+            return "OP_vkCmdSetRenderingInputAttachmentIndicesKHR";
         }
 #endif
 #ifdef VK_EXT_image_drm_format_modifier
@@ -25711,6 +25770,11 @@ const char* api_opcode_to_string(const uint32_t opcode) {
             return "OP_vkCmdSetLineStippleEXT";
         }
 #endif
+#ifdef VK_KHR_timeline_semaphore
+        case OP_vkWaitSemaphoresKHR: {
+            return "OP_vkWaitSemaphoresKHR";
+        }
+#endif
 #ifdef VK_EXT_extended_dynamic_state
         case OP_vkCmdSetCullModeEXT: {
             return "OP_vkCmdSetCullModeEXT";
@@ -25767,6 +25831,11 @@ const char* api_opcode_to_string(const uint32_t opcode) {
 #ifdef VK_COMPUTE_VERSION_1_4
         case OP_vkCmdPushDescriptorSet2: {
             return "OP_vkCmdPushDescriptorSet2";
+        }
+#endif
+#ifdef VK_KHR_timeline_semaphore
+        case OP_vkSignalSemaphoreKHR: {
+            return "OP_vkSignalSemaphoreKHR";
         }
 #endif
 #ifdef VK_BASE_VERSION_1_4

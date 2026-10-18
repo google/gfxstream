@@ -1454,6 +1454,34 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceSparseImageFormatInfo2,
                       deepcopy_VkPhysicalDeviceSparseImageFormatInfo2KHR)
 
 #endif
+#ifdef VK_KHR_device_group
+DEFINE_ALIAS_FUNCTION(deepcopy_VkMemoryAllocateFlagsInfo, deepcopy_VkMemoryAllocateFlagsInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkDeviceGroupRenderPassBeginInfo,
+                      deepcopy_VkDeviceGroupRenderPassBeginInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkDeviceGroupCommandBufferBeginInfo,
+                      deepcopy_VkDeviceGroupCommandBufferBeginInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkDeviceGroupSubmitInfo, deepcopy_VkDeviceGroupSubmitInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkDeviceGroupBindSparseInfo, deepcopy_VkDeviceGroupBindSparseInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkBindBufferMemoryDeviceGroupInfo,
+                      deepcopy_VkBindBufferMemoryDeviceGroupInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkBindImageMemoryDeviceGroupInfo,
+                      deepcopy_VkBindImageMemoryDeviceGroupInfoKHR)
+
+#endif
+#ifdef VK_KHR_device_group_creation
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceGroupProperties,
+                      deepcopy_VkPhysicalDeviceGroupPropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkDeviceGroupDeviceCreateInfo,
+                      deepcopy_VkDeviceGroupDeviceCreateInfoKHR)
+
+#endif
 #ifdef VK_KHR_external_memory_capabilities
 DEFINE_ALIAS_FUNCTION(deepcopy_VkExternalMemoryProperties, deepcopy_VkExternalMemoryPropertiesKHR)
 
@@ -1504,12 +1532,22 @@ void deepcopy_VkSemaphoreGetFdInfoKHR(Allocator* alloc, VkStructureType rootType
                                       VkSemaphoreGetFdInfoKHR* to);
 
 #endif
+#ifdef VK_KHR_push_descriptor
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDevicePushDescriptorProperties,
+                      deepcopy_VkPhysicalDevicePushDescriptorPropertiesKHR)
+
+#endif
 #ifdef VK_KHR_shader_float16_int8
 DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceShaderFloat16Int8Features,
                       deepcopy_VkPhysicalDeviceShaderFloat16Int8FeaturesKHR)
 
 DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceShaderFloat16Int8Features,
                       deepcopy_VkPhysicalDeviceFloat16Int8FeaturesKHR)
+
+#endif
+#ifdef VK_KHR_16bit_storage
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDevice16BitStorageFeatures,
+                      deepcopy_VkPhysicalDevice16BitStorageFeaturesKHR)
 
 #endif
 #ifdef VK_KHR_incremental_present
@@ -1597,6 +1635,14 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkPipelineTessellationDomainOriginStateCreateInfo
                       deepcopy_VkPipelineTessellationDomainOriginStateCreateInfoKHR)
 
 #endif
+#ifdef VK_KHR_variable_pointers
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceVariablePointersFeatures,
+                      deepcopy_VkPhysicalDeviceVariablePointerFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceVariablePointersFeatures,
+                      deepcopy_VkPhysicalDeviceVariablePointersFeaturesKHR)
+
+#endif
 #ifdef VK_KHR_dedicated_allocation
 DEFINE_ALIAS_FUNCTION(deepcopy_VkMemoryDedicatedRequirements,
                       deepcopy_VkMemoryDedicatedRequirementsKHR)
@@ -1663,6 +1709,16 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceShaderSubgroupExtendedTypesFeatur
                       deepcopy_VkPhysicalDeviceShaderSubgroupExtendedTypesFeaturesKHR)
 
 #endif
+#ifdef VK_KHR_8bit_storage
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDevice8BitStorageFeatures,
+                      deepcopy_VkPhysicalDevice8BitStorageFeaturesKHR)
+
+#endif
+#ifdef VK_KHR_shader_atomic_int64
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceShaderAtomicInt64Features,
+                      deepcopy_VkPhysicalDeviceShaderAtomicInt64FeaturesKHR)
+
+#endif
 #ifdef VK_KHR_global_priority
 DEFINE_ALIAS_FUNCTION(deepcopy_VkDeviceQueueGlobalPriorityCreateInfo,
                       deepcopy_VkDeviceQueueGlobalPriorityCreateInfoKHR)
@@ -1674,6 +1730,43 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkQueueFamilyGlobalPriorityProperties,
                       deepcopy_VkQueueFamilyGlobalPriorityPropertiesKHR)
 
 #endif
+#ifdef VK_KHR_driver_properties
+DEFINE_ALIAS_FUNCTION(deepcopy_VkConformanceVersion, deepcopy_VkConformanceVersionKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceDriverProperties,
+                      deepcopy_VkPhysicalDeviceDriverPropertiesKHR)
+
+#endif
+#ifdef VK_KHR_shader_float_controls
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceFloatControlsProperties,
+                      deepcopy_VkPhysicalDeviceFloatControlsPropertiesKHR)
+
+#endif
+#ifdef VK_KHR_depth_stencil_resolve
+DEFINE_ALIAS_FUNCTION(deepcopy_VkSubpassDescriptionDepthStencilResolve,
+                      deepcopy_VkSubpassDescriptionDepthStencilResolveKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceDepthStencilResolveProperties,
+                      deepcopy_VkPhysicalDeviceDepthStencilResolvePropertiesKHR)
+
+#endif
+#ifdef VK_KHR_timeline_semaphore
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceTimelineSemaphoreFeatures,
+                      deepcopy_VkPhysicalDeviceTimelineSemaphoreFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceTimelineSemaphoreProperties,
+                      deepcopy_VkPhysicalDeviceTimelineSemaphorePropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkSemaphoreTypeCreateInfo, deepcopy_VkSemaphoreTypeCreateInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkTimelineSemaphoreSubmitInfo,
+                      deepcopy_VkTimelineSemaphoreSubmitInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkSemaphoreWaitInfo, deepcopy_VkSemaphoreWaitInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkSemaphoreSignalInfo, deepcopy_VkSemaphoreSignalInfoKHR)
+
+#endif
 #ifdef VK_KHR_vulkan_memory_model
 DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceVulkanMemoryModelFeatures,
                       deepcopy_VkPhysicalDeviceVulkanMemoryModelFeaturesKHR)
@@ -1682,6 +1775,33 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceVulkanMemoryModelFeatures,
 #ifdef VK_KHR_shader_terminate_invocation
 DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceShaderTerminateInvocationFeatures,
                       deepcopy_VkPhysicalDeviceShaderTerminateInvocationFeaturesKHR)
+
+#endif
+#ifdef VK_KHR_dynamic_rendering_local_read
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceDynamicRenderingLocalReadFeatures,
+                      deepcopy_VkPhysicalDeviceDynamicRenderingLocalReadFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkRenderingAttachmentLocationInfo,
+                      deepcopy_VkRenderingAttachmentLocationInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkRenderingInputAttachmentIndexInfo,
+                      deepcopy_VkRenderingInputAttachmentIndexInfoKHR)
+
+#endif
+#ifdef VK_KHR_separate_depth_stencil_layouts
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures,
+                      deepcopy_VkPhysicalDeviceSeparateDepthStencilLayoutsFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkAttachmentReferenceStencilLayout,
+                      deepcopy_VkAttachmentReferenceStencilLayoutKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkAttachmentDescriptionStencilLayout,
+                      deepcopy_VkAttachmentDescriptionStencilLayoutKHR)
+
+#endif
+#ifdef VK_KHR_uniform_buffer_standard_layout
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceUniformBufferStandardLayoutFeatures,
+                      deepcopy_VkPhysicalDeviceUniformBufferStandardLayoutFeaturesKHR)
 
 #endif
 #ifdef VK_KHR_buffer_device_address
@@ -1729,6 +1849,12 @@ void deepcopy_VkPipelineExecutableInternalRepresentationKHR(
     Allocator* alloc, VkStructureType rootType,
     const VkPipelineExecutableInternalRepresentationKHR* from,
     VkPipelineExecutableInternalRepresentationKHR* to);
+
+#endif
+#ifdef VK_KHR_map_memory2
+DEFINE_ALIAS_FUNCTION(deepcopy_VkMemoryMapInfo, deepcopy_VkMemoryMapInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkMemoryUnmapInfo, deepcopy_VkMemoryUnmapInfoKHR)
 
 #endif
 #ifdef VK_KHR_shader_integer_dot_product
@@ -1811,6 +1937,11 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkDeviceImageMemoryRequirements,
                       deepcopy_VkDeviceImageMemoryRequirementsKHR)
 
 #endif
+#ifdef VK_KHR_shader_subgroup_rotate
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceShaderSubgroupRotateFeatures,
+                      deepcopy_VkPhysicalDeviceShaderSubgroupRotateFeaturesKHR)
+
+#endif
 #ifdef VK_KHR_maintenance5
 DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceMaintenance5Features,
                       deepcopy_VkPhysicalDeviceMaintenance5FeaturesKHR)
@@ -1861,6 +1992,30 @@ void deepcopy_VkReleaseSwapchainImagesInfoKHR(Allocator* alloc, VkStructureType 
                                               VkReleaseSwapchainImagesInfoKHR* to);
 
 #endif
+#ifdef VK_KHR_vertex_attribute_divisor
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceVertexAttributeDivisorProperties,
+                      deepcopy_VkPhysicalDeviceVertexAttributeDivisorPropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkVertexInputBindingDivisorDescription,
+                      deepcopy_VkVertexInputBindingDivisorDescriptionKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPipelineVertexInputDivisorStateCreateInfo,
+                      deepcopy_VkPipelineVertexInputDivisorStateCreateInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceVertexAttributeDivisorFeatures,
+                      deepcopy_VkPhysicalDeviceVertexAttributeDivisorFeaturesKHR)
+
+#endif
+#ifdef VK_KHR_shader_float_controls2
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceShaderFloatControls2Features,
+                      deepcopy_VkPhysicalDeviceShaderFloatControls2FeaturesKHR)
+
+#endif
+#ifdef VK_KHR_index_type_uint8
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceIndexTypeUint8Features,
+                      deepcopy_VkPhysicalDeviceIndexTypeUint8FeaturesKHR)
+
+#endif
 #ifdef VK_KHR_line_rasterization
 DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceLineRasterizationFeatures,
                       deepcopy_VkPhysicalDeviceLineRasterizationFeaturesKHR)
@@ -1870,6 +2025,11 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceLineRasterizationProperties,
 
 DEFINE_ALIAS_FUNCTION(deepcopy_VkPipelineRasterizationLineStateCreateInfo,
                       deepcopy_VkPipelineRasterizationLineStateCreateInfoKHR)
+
+#endif
+#ifdef VK_KHR_shader_expect_assume
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceShaderExpectAssumeFeatures,
+                      deepcopy_VkPhysicalDeviceShaderExpectAssumeFeaturesKHR)
 
 #endif
 #ifdef VK_KHR_maintenance6
@@ -1997,6 +2157,17 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceTextureCompressionASTCHDRFeatures
                       deepcopy_VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT)
 
 #endif
+#ifdef VK_EXT_pipeline_robustness
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDevicePipelineRobustnessFeatures,
+                      deepcopy_VkPhysicalDevicePipelineRobustnessFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDevicePipelineRobustnessProperties,
+                      deepcopy_VkPhysicalDevicePipelineRobustnessPropertiesEXT)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPipelineRobustnessCreateInfo,
+                      deepcopy_VkPipelineRobustnessCreateInfoEXT)
+
+#endif
 #ifdef VK_EXT_depth_clip_enable
 void deepcopy_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
     Allocator* alloc, VkStructureType rootType,
@@ -2028,6 +2199,14 @@ void deepcopy_VkDebugUtilsMessengerCreateInfoEXT(Allocator* alloc, VkStructureTy
 void deepcopy_VkDebugUtilsObjectTagInfoEXT(Allocator* alloc, VkStructureType rootType,
                                            const VkDebugUtilsObjectTagInfoEXT* from,
                                            VkDebugUtilsObjectTagInfoEXT* to);
+
+#endif
+#ifdef VK_EXT_sampler_filter_minmax
+DEFINE_ALIAS_FUNCTION(deepcopy_VkSamplerReductionModeCreateInfo,
+                      deepcopy_VkSamplerReductionModeCreateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceSamplerFilterMinmaxProperties,
+                      deepcopy_VkPhysicalDeviceSamplerFilterMinmaxPropertiesEXT)
 
 #endif
 #ifdef VK_EXT_inline_uniform_block
@@ -2096,6 +2275,23 @@ void deepcopy_VkDrmFormatModifierProperties2EXT(Allocator* alloc, VkStructureTyp
 void deepcopy_VkDrmFormatModifierPropertiesList2EXT(
     Allocator* alloc, VkStructureType rootType, const VkDrmFormatModifierPropertiesList2EXT* from,
     VkDrmFormatModifierPropertiesList2EXT* to);
+
+#endif
+#ifdef VK_EXT_descriptor_indexing
+DEFINE_ALIAS_FUNCTION(deepcopy_VkDescriptorSetLayoutBindingFlagsCreateInfo,
+                      deepcopy_VkDescriptorSetLayoutBindingFlagsCreateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceDescriptorIndexingFeatures,
+                      deepcopy_VkPhysicalDeviceDescriptorIndexingFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceDescriptorIndexingProperties,
+                      deepcopy_VkPhysicalDeviceDescriptorIndexingPropertiesEXT)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkDescriptorSetVariableDescriptorCountAllocateInfo,
+                      deepcopy_VkDescriptorSetVariableDescriptorCountAllocateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkDescriptorSetVariableDescriptorCountLayoutSupport,
+                      deepcopy_VkDescriptorSetVariableDescriptorCountLayoutSupportEXT)
 
 #endif
 #ifdef VK_EXT_external_memory_host
@@ -2186,6 +2382,11 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceToolProperties,
                       deepcopy_VkPhysicalDeviceToolPropertiesEXT)
 
 #endif
+#ifdef VK_EXT_separate_stencil_usage
+DEFINE_ALIAS_FUNCTION(deepcopy_VkImageStencilUsageCreateInfo,
+                      deepcopy_VkImageStencilUsageCreateInfoEXT)
+
+#endif
 #ifdef VK_EXT_validation_features
 void deepcopy_VkValidationFeaturesEXT(Allocator* alloc, VkStructureType rootType,
                                       const VkValidationFeaturesEXT* from,
@@ -2218,6 +2419,11 @@ DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceLineRasterizationProperties,
 
 DEFINE_ALIAS_FUNCTION(deepcopy_VkPipelineRasterizationLineStateCreateInfo,
                       deepcopy_VkPipelineRasterizationLineStateCreateInfoEXT)
+
+#endif
+#ifdef VK_EXT_host_query_reset
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceHostQueryResetFeatures,
+                      deepcopy_VkPhysicalDeviceHostQueryResetFeaturesEXT)
 
 #endif
 #ifdef VK_EXT_index_type_uint8
