@@ -44,6 +44,11 @@ class EmulatedPhysicalDeviceMemoryProperties {
     std::optional<HostMemoryInfo> getHostMemoryInfoFromGuestMemoryTypeIndex(
         uint32_t guestMemoryTypeIndex) const;
 
+    // The host memory type to allocate from for a guest allocation of the given host memory
+    // type that is not imported and not a blob. It is the given type, unless the
+    // VulkanAllocateUncachedHostVisibleAsCached feature replaces it.
+    HostMemoryInfo getHostMemoryInfoForAllocation(const HostMemoryInfo& hostMemoryInfo) const;
+
     const VkPhysicalDeviceMemoryProperties& getGuestMemoryProperties() const {
         return mGuestMemoryProperties;
     }
@@ -86,6 +91,10 @@ class EmulatedPhysicalDeviceMemoryProperties {
     // The memory type index reported to the guest for tiled images on Apple with system
     // blobs: device local only, so that the host never imports shared memory for them.
     std::optional<uint32_t> mGuestAppleSystemBlobMemoryTypeIndex;
+
+    // Whether the VulkanAllocateUncachedHostVisibleAsCached feature is on and host visible memory
+    // is allocated by gfxstream and mapped with vkMapMemory().
+    bool mAllocateUncachedHostVisibleAsCached = false;
 };
 
 }  // namespace vk

@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <limits>
+#include <mutex>
 
 #include "gfxstream/common/logging.h"
 
@@ -51,6 +52,27 @@ EmulatedPhysicalDeviceMemoryProperties::EmulatedPhysicalDeviceMemoryProperties(
     mHostMemoryProperties = hostMemoryProperties;
     mGuestMemoryProperties = hostMemoryProperties;
     mGuestColorBufferMemoryTypeIndex = hostColorBufferMemoryTypeIndex;
+
+    // Only replace the memory type when gfxstream allocates host visible memory itself and maps
+    // it with vkMapMemory(). With these features, host visible memory is exported or is host
+    // memory that gfxstream imports, and it keeps its memory type.
+    const bool hostVisibleMemoryIsExportedOrImported =
+        features.ExternalBlob.enabled() || features.SystemBlob.enabled() ||
+        features.VulkanAllocateHostVisibleAsUdmabuf.enabled() ||
+        features.VulkanAllocateHostMemory.enabled();
+    if (features.VulkanAllocateUncachedHostVisibleAsCached.enabled()) {
+        if (hostVisibleMemoryIsExportedOrImported) {
+            // This is built again for every vkEnumeratePhysicalDevices(), so warn only once.
+            static std::once_flag sWarnOnce;
+            std::call_once(sWarnOnce, [] {
+                GFXSTREAM_WARNING(
+                    "VulkanAllocateUncachedHostVisibleAsCached has no effect with ExternalBlob, "
+                    "SystemBlob, VulkanAllocateHostVisibleAsUdmabuf or VulkanAllocateHostMemory.");
+            });
+        } else {
+            mAllocateUncachedHostVisibleAsCached = true;
+        }
+    }
 
     // Limit max safe memory heap size if the VulkanMaxSafeHeapSize feature is set to a non-zero
     // value.
@@ -249,6 +271,46 @@ EmulatedPhysicalDeviceMemoryProperties::getHostMemoryInfoFromGuestMemoryTypeInde
     }
 
     return getHostMemoryInfoFromHostMemoryTypeIndex(hostMemoryTypeIndex);
+}
+
+EmulatedPhysicalDeviceMemoryProperties::HostMemoryInfo
+EmulatedPhysicalDeviceMemoryProperties::getHostMemoryInfoForAllocation(
+    const HostMemoryInfo& hostMemoryInfo) const {
+    if (!mAllocateUncachedHostVisibleAsCached) {
+        return hostMemoryInfo;
+    }
+
+    // Host visible memory that is neither cached nor device local is typically write-combined
+    // system memory, e.g. on NVIDIA. The guest writes into it through its mapping, which we
+    // measured to be much slower than cached memory under WHPX, so use a cached coherent type on
+    // the same heap instead.
+    // The host does not know what a non-dedicated allocation will be bound to, so this assumes
+    // that resources that allow the original type also allow the replacement. The Vulkan spec
+    // does not guarantee that; it holds for the NVIDIA memory types this was tested on.
+    const VkMemoryPropertyFlags flags = hostMemoryInfo.memoryType.propertyFlags;
+    if (!(flags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) ||
+        (flags & (VK_MEMORY_PROPERTY_HOST_CACHED_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))) {
+        return hostMemoryInfo;
+    }
+
+    constexpr VkMemoryPropertyFlags kCachedCoherent = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT |
+                                                      VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+    for (uint32_t i = 0; i < mHostMemoryProperties.memoryTypeCount; i++) {
+        const VkMemoryType& candidate = mHostMemoryProperties.memoryTypes[i];
+        if (candidate.heapIndex == hostMemoryInfo.memoryType.heapIndex &&
+            (candidate.propertyFlags & kCachedCoherent) == kCachedCoherent &&
+            !(candidate.propertyFlags &
+              (VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD |
+               VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD))) {
+            return HostMemoryInfo{
+                .index = i,
+                .memoryType = candidate,
+            };
+        }
+    }
+
+    return hostMemoryInfo;
 }
 
 void EmulatedPhysicalDeviceMemoryProperties::transformToGuestMemoryRequirements(
