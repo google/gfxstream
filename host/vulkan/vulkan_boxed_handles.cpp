@@ -116,6 +116,17 @@ BoxedHandleInfo* BoxedHandleManager::get(BoxedHandle handle) {
     return (BoxedHandleInfo*)mStore.get_const(handle);
 }
 
+std::shared_ptr<OrderMaintenanceInfo> BoxedHandleManager::getOrderMaintenanceInfo(
+    BoxedHandle handle) {
+    return mStore.withLocked(
+        handle, [](BoxedHandleInfo* info) -> std::shared_ptr<OrderMaintenanceInfo> {
+            if (info == nullptr) {
+                return nullptr;
+            }
+            return info->ordMaintInfo;
+        });
+}
+
 BoxedHandle BoxedHandleManager::getBoxedFromUnboxed(UnboxedHandle unboxed) {
     std::lock_guard<std::mutex> lock(mMutex);
 
@@ -321,7 +332,7 @@ VkObjectT new_boxed_VkType(VkObjectT underlying, bool dispatchable = false, Vulk
             info.dispatch = new VulkanDispatch();
             info.ownDispatch = true;
         }
-        info.ordMaintInfo = new OrderMaintenanceInfo();
+        info.ordMaintInfo = std::make_shared<OrderMaintenanceInfo>();
     }
     return (VkObjectT)sBoxedHandleManager.add(std::move(info), GetTag<VkObjectT>());
 }
@@ -336,8 +347,6 @@ void delete_VkType(VkObjectT boxed) {
     if (info == nullptr) {
         return;
     }
-
-    releaseOrderMaintInfo(info->ordMaintInfo);
 
     if (info->ownDispatch) {
         delete info->dispatch;
@@ -460,19 +469,8 @@ void set_boxed_non_dispatchable_VkType(VkObjectT boxed, VkObjectT new_unboxed) {
 }
 
 template <typename VkObjectT>
-OrderMaintenanceInfo* get_order_maintenance_info_VkType(VkObjectT boxed) {
-    BoxedHandleInfo* info = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);
-    if (info == nullptr) {
-        return nullptr;
-    }
-
-    if (info->ordMaintInfo == nullptr) {
-        return nullptr;
-    }
-
-    acquireOrderMaintInfo(info->ordMaintInfo);
-
-    return info->ordMaintInfo;
+std::shared_ptr<OrderMaintenanceInfo> get_order_maintenance_info_VkType(VkObjectT boxed) {
+    return sBoxedHandleManager.getOrderMaintenanceInfo((uint64_t)(uintptr_t)boxed);
 }
 
 template <typename VkObjectT>
@@ -527,7 +525,7 @@ VkInstance unboxed_to_boxed_VkInstance(VkInstance unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkInstance>(unboxed);
 }
 
-OrderMaintenanceInfo* ordmaint_VkInstance(VkInstance boxed) {
+std::shared_ptr<OrderMaintenanceInfo> ordmaint_VkInstance(VkInstance boxed) {
     return get_order_maintenance_info_VkType<VkInstance>(boxed);
 }
 
@@ -559,7 +557,7 @@ VkPhysicalDevice unboxed_to_boxed_VkPhysicalDevice(VkPhysicalDevice unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkPhysicalDevice>(unboxed);
 }
 
-OrderMaintenanceInfo* ordmaint_VkPhysicalDevice(VkPhysicalDevice boxed) {
+std::shared_ptr<OrderMaintenanceInfo> ordmaint_VkPhysicalDevice(VkPhysicalDevice boxed) {
     return get_order_maintenance_info_VkType<VkPhysicalDevice>(boxed);
 }
 
@@ -591,7 +589,7 @@ VkDevice unboxed_to_boxed_VkDevice(VkDevice unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkDevice>(unboxed);
 }
 
-OrderMaintenanceInfo* ordmaint_VkDevice(VkDevice boxed) {
+std::shared_ptr<OrderMaintenanceInfo> ordmaint_VkDevice(VkDevice boxed) {
     return get_order_maintenance_info_VkType<VkDevice>(boxed);
 }
 
@@ -623,7 +621,7 @@ VkCommandBuffer unboxed_to_boxed_VkCommandBuffer(VkCommandBuffer unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkCommandBuffer>(unboxed);
 }
 
-OrderMaintenanceInfo* ordmaint_VkCommandBuffer(VkCommandBuffer boxed) {
+std::shared_ptr<OrderMaintenanceInfo> ordmaint_VkCommandBuffer(VkCommandBuffer boxed) {
     return get_order_maintenance_info_VkType<VkCommandBuffer>(boxed);
 }
 
@@ -655,7 +653,7 @@ VkQueue unboxed_to_boxed_VkQueue(VkQueue unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkQueue>(unboxed);
 }
 
-OrderMaintenanceInfo* ordmaint_VkQueue(VkQueue boxed) {
+std::shared_ptr<OrderMaintenanceInfo> ordmaint_VkQueue(VkQueue boxed) {
     return get_order_maintenance_info_VkType<VkQueue>(boxed);
 }
 

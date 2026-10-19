@@ -54,30 +54,14 @@ struct OrderMaintenanceInfo {
     uint32_t sequenceNumber = 0;
     gfxstream::base::Lock lock;
     gfxstream::base::ConditionVariable cv;
-
-    uint32_t refcount = 1;
-
-    void incRef() { __atomic_add_fetch(&refcount, 1, __ATOMIC_SEQ_CST); }
-
-    bool decRef() { return 0 == __atomic_sub_fetch(&refcount, 1, __ATOMIC_SEQ_CST); }
 };
-
-inline void acquireOrderMaintInfo(OrderMaintenanceInfo* ord) {
-    if (!ord) return;
-    ord->incRef();
-}
-
-inline void releaseOrderMaintInfo(OrderMaintenanceInfo* ord) {
-    if (!ord) return;
-    if (ord->decRef()) delete ord;
-}
 
 class BoxedHandleInfo {
    public:
     UnboxedHandle underlying{0};
     VulkanDispatch* dispatch = nullptr;
     bool ownDispatch = false;
-    OrderMaintenanceInfo* ordMaintInfo = nullptr;
+    std::shared_ptr<OrderMaintenanceInfo> ordMaintInfo;
     std::unique_ptr<VulkanMemReadingStream> readStream;
 };
 
@@ -107,6 +91,11 @@ class BoxedHandleManager {
     BoxedHandleInfo* get(BoxedHandle handle);
     BoxedHandle getBoxedFromUnboxed(UnboxedHandle unboxed);
 
+    // Returns nullptr if |handle| is not live. The lookup and the copy are done
+    // under the store lock, so a concurrent remove() can not release the
+    // OrderMaintenanceInfo in between.
+    std::shared_ptr<OrderMaintenanceInfo> getOrderMaintenanceInfo(BoxedHandle handle);
+
     void replayHandles(std::vector<BoxedHandle> handles);
 
     void clear();
@@ -134,14 +123,14 @@ class BoxedHandleManager {
 
 extern BoxedHandleManager sBoxedHandleManager;
 
-#define DEFINE_BOXED_DISPATCHABLE_HANDLE_API_DECL(type)               \
-    type new_boxed_##type(type underlying, VulkanDispatch* dispatch); \
-    void delete_##type(type boxed);                                   \
-    type unbox_##type(type boxed);                                    \
-    type try_unbox_##type(type boxed);                                \
-    type unboxed_to_boxed_##type(type boxed);                         \
-    VulkanDispatch* dispatch_##type(type boxed);                      \
-    OrderMaintenanceInfo* ordmaint_##type(type boxed);                \
+#define DEFINE_BOXED_DISPATCHABLE_HANDLE_API_DECL(type)                \
+    type new_boxed_##type(type underlying, VulkanDispatch* dispatch);  \
+    void delete_##type(type boxed);                                    \
+    type unbox_##type(type boxed);                                     \
+    type try_unbox_##type(type boxed);                                 \
+    type unboxed_to_boxed_##type(type boxed);                          \
+    VulkanDispatch* dispatch_##type(type boxed);                       \
+    std::shared_ptr<OrderMaintenanceInfo> ordmaint_##type(type boxed); \
     VulkanMemReadingStream* readstream_##type(type boxed);
 
 #define DEFINE_BOXED_NON_DISPATCHABLE_HANDLE_API_DECL(type)                                  \

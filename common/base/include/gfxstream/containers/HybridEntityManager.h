@@ -137,6 +137,23 @@ public:
         }
     }
 
+    // Calls |func| with a pointer to the data at |index|, or nullptr if there is
+    // no live entry, and returns its result. Unlike get() and get_const(), the
+    // lock serializing add(), remove() and clear() is held while |func| runs, so
+    // the entry can not be modified or destroyed concurrently. |func| must not
+    // call back into this HybridEntityManager.
+    template <typename Func>
+    auto withLocked(IndexType index, Func&& func) {
+        uint64_t index_u64 = (uint64_t)EM::getHandleIndex(index);
+        if (index_u64 < maxIndex) {
+            SeqLock::ScopedWrite sw(&mEntityManagerLock);
+            return func(mEntityManager.get(index));
+        } else {
+            AutoLock lock(mMapLock);
+            return func(gfxstream::base::find(mMap, index_u64));
+        }
+    }
+
     Data* getExceptZero(IndexType index) {
         Data* res = get(index);
         if (!res) return nullptr;

@@ -15,6 +15,8 @@
 
 #include <gtest/gtest.h>
 
+#include <vector>
+
 namespace gfxstream {
 namespace base {
 
@@ -65,6 +67,29 @@ TEST(HybridEntityManager, MoveOnlyAndDestruction) {
     EXPECT_EQ(1, aliveCount);
     m.clear();
     EXPECT_EQ(0, aliveCount);
+}
+
+TEST(HybridEntityManager, WithLocked) {
+    TestHCM m;
+    std::vector<uint64_t> linearHandles;
+    for (uint32_t i = 0; i < kTestMaxIndex; i++) {
+        linearHandles.push_back(m.add(i, 1));
+    }
+    uint64_t mapHandle = m.add(100, 1);
+
+    auto readValue = [](int* data) { return data ? *data : -1; };
+    EXPECT_EQ(3, m.withLocked(linearHandles[3], readValue));
+    EXPECT_EQ(100, m.withLocked(mapHandle, readValue));
+
+    m.withLocked(linearHandles[3], [](int* data) { *data = 30; });
+    m.withLocked(mapHandle, [](int* data) { *data = 200; });
+    EXPECT_EQ(30, *m.get_const(linearHandles[3]));
+    EXPECT_EQ(200, *m.get_const(mapHandle));
+
+    m.remove(linearHandles[3]);
+    m.remove(mapHandle);
+    EXPECT_EQ(-1, m.withLocked(linearHandles[3], readValue));
+    EXPECT_EQ(-1, m.withLocked(mapHandle, readValue));
 }
 
 }

@@ -17,6 +17,9 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <atomic>
+#include <thread>
+
 #include "gfxstream/testing/TestUtils.h"
 
 namespace gfxstream {
@@ -153,6 +156,45 @@ TEST(VkDecoderGlobalStateDescriptorSetPoolIdTest, CollectDescriptorPoolIdsClamps
     EXPECT_EQ(102u, outIds[1]);
     EXPECT_EQ(103u, outIds[2]);
     EXPECT_EQ(104u, outIds[3]);
+}
+
+TEST(VkDecoderGlobalStateBoxedHandleTest, OrderMaintenanceInfoOutlivesDeletedHandle) {
+    VkCommandBuffer boxed =
+        new_boxed_VkCommandBuffer(reinterpret_cast<VkCommandBuffer>(0x5555'0000), nullptr);
+    std::shared_ptr<OrderMaintenanceInfo> order = ordmaint_VkCommandBuffer(boxed);
+    ASSERT_NE(nullptr, order);
+    EXPECT_EQ(order, ordmaint_VkCommandBuffer(boxed));
+
+    delete_VkCommandBuffer(boxed);
+    EXPECT_EQ(nullptr, ordmaint_VkCommandBuffer(boxed));
+    EXPECT_EQ(1, order.use_count());
+}
+
+TEST(VkDecoderGlobalStateBoxedHandleTest, ConcurrentOrderMaintenanceInfoLookupAndDelete) {
+    constexpr int kIterations = 20000;
+    std::atomic<uint64_t> currentHandle{0};
+    std::atomic<bool> done{false};
+
+    std::thread reader([&]() {
+        while (!done.load(std::memory_order_acquire)) {
+            VkCommandBuffer boxed =
+                reinterpret_cast<VkCommandBuffer>(currentHandle.load(std::memory_order_acquire));
+            std::shared_ptr<OrderMaintenanceInfo> order = ordmaint_VkCommandBuffer(boxed);
+            if (order) {
+                EXPECT_EQ(0u, __atomic_load_n(&order->sequenceNumber, __ATOMIC_ACQUIRE));
+            }
+        }
+    });
+
+    for (int i = 0; i < kIterations; ++i) {
+        VkCommandBuffer boxed =
+            new_boxed_VkCommandBuffer(reinterpret_cast<VkCommandBuffer>(0x5555'0000), nullptr);
+        currentHandle.store(reinterpret_cast<uint64_t>(boxed), std::memory_order_release);
+        delete_VkCommandBuffer(boxed);
+    }
+
+    done.store(true, std::memory_order_release);
+    reader.join();
 }
 
 }  // namespace
