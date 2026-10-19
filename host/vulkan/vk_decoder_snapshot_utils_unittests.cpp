@@ -1507,6 +1507,7 @@ TEST_F(VkDecoderSnapshotUtilsTest, SaveAndLoadImageGeneratedByRenderPass) {
                                     nullptr);
     vkState->on_vkFreeCommandBuffers(&pool, 0, boxedDevice, unbox_VkCommandPool(boxedCmdPool), 1,
                                      &unboxedCmdBuf);
+    delete_VkCommandBuffer(boxedCmdBuf);
 
     // Save snapshot via VkDecoderGlobalState::save().
     MemStream snapshotStream;
@@ -1699,7 +1700,7 @@ TEST_F(VkDecoderSnapshotUtilsTest, SaveAndLoadImageGeneratedByRenderPass) {
     vkState->on_vkDestroyCommandPool(&pool, 0, boxedDevice, unbox_VkCommandPool(boxedCmdPool),
                                      nullptr);
     vkState->on_vkDestroyDevice(&pool, 0, boxedDevice, nullptr);
-    sVk->vkDestroyInstance(unbox_VkInstance(boxedInstance), nullptr);
+    vkState->on_vkDestroyInstance(&pool, 0, boxedInstance, nullptr);
 
     VkDecoderGlobalState::reset();
     gfxstream::base::setEnvironmentVariable("ANDROID_EMU_VK_NO_CLEANUP", "");
