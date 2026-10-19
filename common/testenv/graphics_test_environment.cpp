@@ -118,6 +118,7 @@ bool SetupGraphicsTestEnvironment() {
     const std::string currentLdLibraryPath = gfxstream::base::getEnvironmentVariable("LD_LIBRARY_PATH");
     const std::string updatedLdLibraryPath = driverDirectory.string() + ":" + currentLdLibraryPath;
     gfxstream::base::setEnvironmentVariable("LD_LIBRARY_PATH", updatedLdLibraryPath);
+    gfxstream::base::setEnvironmentVariable("ANDROID_EMU_HEADLESS", "1");
 #else
     GFXSTREAM_INFO("GraphicsTestEnvironment: not changing host EGL/GLES driver configuration.");
 #endif  // defined(GFXSTREAM_TESTING_USE_GLES_ANGLE)
@@ -192,6 +193,16 @@ bool SetupGraphicsTestEnvironment() {
 #endif  // defined(GFXSTREAM_TESTING_USE_VULKAN_LAVAPIPE) || defined(GFXSTREAM_TESTING_USE_VULKAN_SWIFTSHADER)
 
     return true;
+}
+
+bool IsGraphicsTestEnvironmentProvidingGlesDriver() {
+#if defined(GFXSTREAM_TESTING_USE_GLES_ANGLE)
+    return true;
+#elif defined(GFXSTREAM_TESTING_USE_VULKAN_LAVAPIPE) || defined(GFXSTREAM_TESTING_USE_VULKAN_SWIFTSHADER)
+    return false;
+#else
+    return true;
+#endif
 }
 
 bool IsGraphicsTestEnvironmentProvidingVulkanDriver() {

@@ -931,7 +931,9 @@ void pixelFormatToConfig(WinGlobals* globals,
         globals->setNontrivialDC(WinPixelFormat::from(info.frmt));
     }
 
-    (*addConfigFunc)(addConfigOpaque, &info);
+    if (!(*addConfigFunc)(addConfigOpaque, &info)) {
+        delete info.frmt;
+    }
 }
 
 class WglDisplay : public EglOS::Display {

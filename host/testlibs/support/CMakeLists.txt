@@ -39,6 +39,7 @@ if (ENABLE_VKCEREAL_TESTS)
         gfxstream_host_testing_support
         PUBLIC
         gfxstream_common_image
+        gfxstream_common_testenv
         gfxstream_backend_static
         gfxstream_host_testing_oswindow_support
         gfxstream_stb

@@ -48,12 +48,12 @@ class GLTest : public ::testing::Test {
     virtual void SetUp();
     virtual void TearDown();
 
-    const GLESv1Dispatch* gles1;
-    const GLESv2Dispatch* gl;
-    EGLDisplay m_display;
-    EGLConfig m_config;
-    EGLSurface m_surface;
-    EGLContext m_context;
+    const GLESv1Dispatch* gles1 = nullptr;
+    const GLESv2Dispatch* gl = nullptr;
+    EGLDisplay m_display = EGL_NO_DISPLAY;
+    EGLConfig m_config = nullptr;
+    EGLSurface m_surface = EGL_NO_SURFACE;
+    EGLContext m_context = EGL_NO_CONTEXT;
 };
 
 

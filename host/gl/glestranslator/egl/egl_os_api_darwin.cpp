@@ -180,7 +180,9 @@ void pixelFormatToConfig(int index,
     info.frmt = new MacPixelFormat(
             index, info.red_size, info.green_size, info.blue_size);
 
-    (*addConfigFunc)(addConfigOpaque, &info);
+    if (!(*addConfigFunc)(addConfigOpaque, &info)) {
+        delete info.frmt;
+    }
 }
 
 

@@ -271,7 +271,9 @@ void pixelFormatToConfig(EGLNativeDisplayType dpy,
     }
 
     info.frmt = new GlxPixelFormat(frmt);
-    (*addConfigFunc)(addConfigOpaque, &info);
+    if (!(*addConfigFunc)(addConfigOpaque, &info)) {
+        delete info.frmt;
+    }
 }
 
 // Implementation of EglOS::Context based on GLX.

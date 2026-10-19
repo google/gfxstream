@@ -15,6 +15,7 @@
 #include "gfxstream/host/testing/OpenGLTestContext.h"
 
 #include "OpenGLESDispatch/OpenGLDispatchLoader.h"
+#include "gfxstream/common/testing/graphics_test_environment.h"
 #include "gfxstream/host/testing/SampleApplication.h"
 
 namespace gfxstream {
@@ -118,6 +119,10 @@ void destroyDisplay(EGLDisplay dpy) {
 }
 
 void GLTest::SetUp() {
+    ASSERT_TRUE(gfxstream::testing::SetupGraphicsTestEnvironment());
+    if (!gfxstream::testing::IsGraphicsTestEnvironmentProvidingGlesDriver()) {
+        GTEST_SKIP() << "Skipping GLES test in gles_none test environment.";
+    }
     // setupStandaloneLibrarySearchPaths();
 
     const EGLDispatch* egl = LazyLoadedEGLDispatch::get();
@@ -137,12 +142,16 @@ void GLTest::SetUp() {
 }
 
 void GLTest::TearDown() {
+    if (m_display == EGL_NO_DISPLAY) {
+        return;
+    }
     const EGLDispatch* egl = LazyLoadedEGLDispatch::get();
     egl->eglMakeCurrent(m_display, EGL_NO_SURFACE, EGL_NO_SURFACE,
                         EGL_NO_CONTEXT);
     destroyContext(m_display, m_context);
     destroySurface(m_display, m_surface);
     destroyDisplay(m_display);
+    m_display = EGL_NO_DISPLAY;
 
     EXPECT_EQ(EGL_SUCCESS, egl->eglGetError())
             << "GLTest TearDown found EGL error";

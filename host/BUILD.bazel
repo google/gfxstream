@@ -308,6 +308,7 @@ cc_test(
         ":gfxstream_backend_shared",
         ":gfxstream_backend_static",
         "//common/base:gfxstream_common_base",
+        "//common/testenv:graphics_test_environment_support",
         "//host/iostream:gfxstream_host_iostream",
         "//host/testlibs/oswindow:gfxstream_oswindow_test_support",
         "//host/testlibs/support:gfxstream_host_testing_support",

@@ -602,7 +602,7 @@ EglOS::Context* EglDisplay::getGlobalSharedContext() const {
 }
 
 // static
-void EglDisplay::addConfig(void* opaque, const EglOS::ConfigInfo* info) {
+bool EglDisplay::addConfig(void* opaque, const EglOS::ConfigInfo* info) {
     EglDisplay* display = static_cast<EglDisplay*>(opaque);
 
     // Greater than 24 bits of color,
@@ -616,7 +616,7 @@ void EglDisplay::addConfig(void* opaque, const EglOS::ConfigInfo* info) {
         info->depth_size < 24 ||
         info->stencil_size < 8 ||
         info->samples_per_pixel > 2) {
-        return;
+        return false;
     }
 
     std::unique_ptr<EglConfig> config(new EglConfig(
@@ -647,6 +647,10 @@ void EglDisplay::addConfig(void* opaque, const EglOS::ConfigInfo* info) {
 
     if (display->m_uniqueConfigs.insert(*config).second) {
         display->m_configs.emplace_back(config.release());
+        return true;
+    } else {
+        config->releaseNativeFormat();
+        return false;
     }
 }
 

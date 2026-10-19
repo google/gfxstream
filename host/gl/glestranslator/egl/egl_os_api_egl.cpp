@@ -18,6 +18,7 @@
 
 #include <cstring>
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include "common/gl_library.h"
@@ -42,7 +43,20 @@
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
+#include <EGL/eglext_angle.h>
 #include <GLES2/gl2.h>
+
+#if defined(__has_feature)
+#if __has_feature(address_sanitizer) || __has_feature(leak_sanitizer)
+#define GFXSTREAM_HAS_LSAN 1
+#endif
+#endif
+#if !defined(GFXSTREAM_HAS_LSAN) && (defined(__SANITIZE_ADDRESS__) || defined(__SANITIZE_LEAK__))
+#define GFXSTREAM_HAS_LSAN 1
+#endif
+#if defined(GFXSTREAM_HAS_LSAN)
+#include <sanitizer/lsan_interface.h>
+#endif
 
 #define DEBUG 0
 #if DEBUG
@@ -118,7 +132,7 @@ static const char* kGLES2LibName = "libGLESv2.dylib";
       (EGLDisplay display, EGLint * major, EGLint * minor))                    \
     X(EGLBoolean, eglMakeCurrent,                                              \
       (EGLDisplay display, EGLSurface draw, EGLSurface read,                   \
-       EGLContext context))                                                    \
+        EGLContext context))                                                    \
     X(EGLBoolean, eglSwapBuffers, (EGLDisplay display, EGLSurface surface))    \
     X(EGLSurface, eglCreateWindowSurface,                                      \
       (EGLDisplay display, EGLConfig config,                                   \
@@ -184,12 +198,47 @@ public:
           #function_name);                                             \
     }
 
+        if (mLib) {
+            mIsAngle = mLib->findSymbol("eglCreateDeviceANGLE") != nullptr;
+        }
+
+#if defined(GFXSTREAM_HAS_LSAN)
+        // TODO(b/575782372): remove with llvmpipe
+        std::optional<__lsan::ScopedDisabler> disabler;
+        if (mIsAngle) {
+            disabler.emplace();
+        }
+#endif
         LIST_EGL_FUNCTIONS(LOAD_EGL_POINTER);
+        ensureThreadInitialized();
     }
     ~EglOsEglDispatcher() = default;
 
+    // Upstream ANGLE intentionally allocates a per-OS-thread egl::Thread object
+    // in egl::GetCurrentThread() (and a process-wide sEntryPointsLib in
+    // EnsureEGLLoaded()) that is never freed, using ANGLE_SCOPED_DISABLE_LSAN().
+    // Because prebuilt ANGLE libraries are compiled without -fsanitize=address,
+    // their internal LSan disabler is compiled out; disable LSan on the first
+    // no-op eglGetError() call on each thread so only that one-time thread-local
+    // registration is ignored by LSan.
+    void ensureThreadInitialized() const {
+#if defined(GFXSTREAM_HAS_LSAN)
+        // TODO(b/575782372): remove with llvmpipe
+        if (!mIsAngle) {
+            return;
+        }
+        thread_local bool sThreadInitialized = false;
+        if (!sThreadInitialized && this->eglGetError) {
+            sThreadInitialized = true;
+            __lsan::ScopedDisabler disabler;
+            this->eglGetError();
+        }
+#endif
+    }
+
 private:
     gfxstream::host::SharedLibrary* mLib = nullptr;
+    bool mIsAngle = false;
 };
 
 class EglOsGlLibrary : public GlLibrary {
@@ -251,6 +300,7 @@ public:
 
     virtual ~EglOsEglContext() {
         D("%s %p\n", __FUNCTION__, mNativeCtx);
+        mDispatcher->ensureThreadInitialized();
         if (!mDispatcher->eglDestroyContext(mDisplay, mNativeCtx)) {
             // TODO: print a better error message
         }
@@ -319,10 +369,12 @@ public:
                                      unsigned int* width,
                                      unsigned int* height);
     void* eglGetProcAddress(const char* func) {
+        mDispatcher.ensureThreadInitialized();
         return mDispatcher.eglGetProcAddress(func);
     }
 
     EGLint eglDebugMessageControlKHR(EGLDEBUGPROCKHR callback, const EGLAttrib* attribs) {
+        mDispatcher.ensureThreadInitialized();
         return mDispatcher.eglDebugMessageControlKHR(callback, attribs);
     }
 
@@ -332,7 +384,7 @@ private:
     bool mHeadless = false;
     std::string mClientExts;
     std::string mVendor;
-    GlesVersion mGlesVersion;
+    GlesVersion mGlesVersion = GlesVersion::ES2;
 
 #ifdef __linux__
     ::Display* mGlxDisplay = nullptr;
@@ -340,6 +392,7 @@ private:
 };
 
 EglOsEglDisplay::EglOsEglDisplay(bool nullEgl) {
+    mDispatcher.ensureThreadInitialized();
     if (nullEgl) {
 #ifdef EGL_ANGLE_platform_angle
         const EGLAttrib attr[] = {
@@ -378,10 +431,41 @@ EglOsEglDisplay::EglOsEglDisplay(bool nullEgl) {
 #endif
     }
 
-    if (mDisplay == EGL_NO_DISPLAY)
+    if (mDisplay == EGL_NO_DISPLAY) {
         mDisplay = mDispatcher.eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    }
 
-    mDispatcher.eglInitialize(mDisplay, nullptr, nullptr);
+    if (!mDispatcher.eglInitialize(mDisplay, nullptr, nullptr)) {
+        mDisplay = EGL_NO_DISPLAY;
+#ifdef EGL_ANGLE_platform_angle
+        if (mDispatcher.eglGetPlatformDisplay) {
+#ifndef EGL_PLATFORM_ANGLE_NATIVE_PLATFORM_TYPE_ANGLE
+#define EGL_PLATFORM_ANGLE_NATIVE_PLATFORM_TYPE_ANGLE 0x348F
+#endif
+#ifndef EGL_PLATFORM_VULKAN_DISPLAY_MODE_HEADLESS_ANGLE
+#define EGL_PLATFORM_VULKAN_DISPLAY_MODE_HEADLESS_ANGLE 0x34A5
+#endif
+            const EGLAttrib attr[] = {
+                EGL_PLATFORM_ANGLE_TYPE_ANGLE,
+                EGL_PLATFORM_ANGLE_TYPE_VULKAN_ANGLE,
+                EGL_PLATFORM_ANGLE_NATIVE_PLATFORM_TYPE_ANGLE,
+                EGL_PLATFORM_VULKAN_DISPLAY_MODE_HEADLESS_ANGLE,
+                EGL_NONE,
+            };
+            mDisplay = mDispatcher.eglGetPlatformDisplay(
+                EGL_PLATFORM_ANGLE_ANGLE, (void*)EGL_DEFAULT_DISPLAY, attr);
+            if (mDisplay != EGL_NO_DISPLAY &&
+                !mDispatcher.eglInitialize(mDisplay, nullptr, nullptr)) {
+                mDisplay = EGL_NO_DISPLAY;
+            }
+        }
+#endif
+    }
+
+    if (mDisplay == EGL_NO_DISPLAY) {
+        return;
+    }
+
     mDispatcher.eglSwapInterval(mDisplay, 0);
     auto clientExts = mDispatcher.eglQueryString(mDisplay, EGL_EXTENSIONS);
     auto vendor = mDispatcher.eglQueryString(mDisplay, EGL_VENDOR);
@@ -485,6 +569,7 @@ EGLImage EglOsEglDisplay::createImageKHR(
         EGLenum target,
         EGLClientBuffer buffer,
         const EGLint *attrib_list) {
+    mDispatcher.ensureThreadInitialized();
     if (mDispatcher.eglCreateImageKHR) {
         return mDispatcher.eglCreateImageKHR(dpy, ctx, target, buffer, attrib_list);
     } else {
@@ -495,7 +580,8 @@ EGLImage EglOsEglDisplay::createImageKHR(
 EGLBoolean EglOsEglDisplay::destroyImageKHR(
         EGLDisplay dpy,
         EGLImage image) {
-    if (mDispatcher.eglDestroyImage) {
+    mDispatcher.ensureThreadInitialized();
+    if (mDispatcher.eglDestroyImageKHR) {
         return mDispatcher.eglDestroyImageKHR(dpy, image);
     } else {
         return EGL_FALSE;
@@ -510,6 +596,7 @@ void EglOsEglDisplay::queryConfigs(int renderableType,
                                    AddConfigCallback* addConfigFunc,
                                    void* addConfigOpaque) {
     D("%s\n", __FUNCTION__);
+    mDispatcher.ensureThreadInitialized();
 
     const EGLint framebuffer_config_attributes[] = {
         EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
@@ -600,7 +687,10 @@ void EglOsEglDisplay::queryConfigs(int renderableType,
         ((EglOsEglPixelFormat*)configInfo.frmt)->mGreenSize = configInfo.green_size;
         ((EglOsEglPixelFormat*)configInfo.frmt)->mBlueSize = configInfo.blue_size;
 #endif // __APPLE__
-        addConfigFunc(addConfigOpaque, &configInfo);
+        if (!addConfigFunc(addConfigOpaque, &configInfo)) {
+            GFXSTREAM_INFO("%s: Host EGL config %p was not added", __func__, cfg);
+            delete configInfo.frmt;
+        }
     }
     D("Host gets %d configs\n", numConfigs);
 }
@@ -612,6 +702,7 @@ EglOsEglDisplay::createContext(EGLint profileMask,
     (void)profileMask;
 
     D("%s\n", __FUNCTION__);
+    mDispatcher.ensureThreadInitialized();
     const EglOsEglPixelFormat* format = (const EglOsEglPixelFormat*)pixelFormat;
     D("with config %p\n", format->mConfigId);
 
@@ -651,6 +742,7 @@ EglOsEglDisplay::createContext(EGLint profileMask,
 
 Surface* EglOsEglDisplay::createPbufferSurface(const PixelFormat* pixelFormat,
                                                const PbufferInfo* info) {
+    mDispatcher.ensureThreadInitialized();
     // D("%s\n", __FUNCTION__);
     // const EglOsEglPixelFormat* format = (const EglOsEglPixelFormat*)pixelFormat;
     // EGLint attrib[] = {EGL_WIDTH,
@@ -680,6 +772,7 @@ Surface* EglOsEglDisplay::createPbufferSurface(const PixelFormat* pixelFormat,
 Surface* EglOsEglDisplay::createWindowSurface(PixelFormat* pf,
                                               EGLNativeWindowType win) {
     D("%s\n", __FUNCTION__);
+    mDispatcher.ensureThreadInitialized();
     std::vector<EGLint> surface_attribs;
     auto exts = mDispatcher.eglQueryString(mDisplay, EGL_EXTENSIONS);
     if (exts != nullptr && HasExtension(exts, "EGL_ANGLE_direct_composition")) {
@@ -705,6 +798,7 @@ Surface* EglOsEglDisplay::createWindowSurface(PixelFormat* pf,
 
 bool EglOsEglDisplay::releasePbuffer(Surface* pb) {
     D("%s\n", __FUNCTION__);
+    mDispatcher.ensureThreadInitialized();
     if (!pb)
         return false;
     EglOsEglSurface* surface = (EglOsEglSurface*)pb;
@@ -725,6 +819,7 @@ bool EglOsEglDisplay::makeCurrent(Surface* read,
                                   Surface* draw,
                                   Context* context) {
     D("%s\n", __FUNCTION__);
+    mDispatcher.ensureThreadInitialized();
     EglOsEglSurface* readSfc = (EglOsEglSurface*)read;
     EglOsEglSurface* drawSfc = (EglOsEglSurface*)draw;
     EglOsEglContext* ctx = (EglOsEglContext*)context;
@@ -748,12 +843,14 @@ bool EglOsEglDisplay::makeCurrent(Surface* read,
 
 void EglOsEglDisplay::swapBuffers(Surface* surface) {
     D("%s\n", __FUNCTION__);
+    mDispatcher.ensureThreadInitialized();
     EglOsEglSurface* sfc = (EglOsEglSurface*)surface;
     mDispatcher.eglSwapBuffers(mDisplay, sfc->getHndl());
 }
 
 EGLBoolean EglOsEglDisplay::releaseThread() {
     D("%s\n", __FUNCTION__);
+    mDispatcher.ensureThreadInitialized();
     return mDispatcher.eglReleaseThread();
 }
 
