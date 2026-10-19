@@ -16,6 +16,7 @@
 
 #include <vector>
 
+#include "gfxstream/common/testing/graphics_test_environment.h"
 #include "gfxstream/host/iostream.h"
 #include "gfxstream/host/testing/OSWindow.h"
 #include "gfxstream/system/System.h"
@@ -60,6 +61,7 @@ class GfxStreamBackendTest : public ::testing::Test {
                                 {STREAM_RENDERER_PARAM_RENDERER_FLAGS, surfacelessFlags}} {}
 
     static void SetUpTestSuite() {
+        ASSERT_TRUE(gfxstream::testing::SetupGraphicsTestEnvironment());
         if (useWindow) {
             window.reset(CreateOSWindow());
         }
@@ -68,6 +70,9 @@ class GfxStreamBackendTest : public ::testing::Test {
     static void TearDownTestSuite() { window.reset(nullptr); }
 
     void SetUp() override {
+        if (!gfxstream::testing::IsGraphicsTestEnvironmentProvidingGlesDriver()) {
+            GTEST_SKIP() << "Skipping GLES test in gles_none test environment.";
+        }
         gfxstream::base::setEnvironmentVariable("ANDROID_GFXSTREAM_EGL", "1");
         if (useWindow) {
             window->initialize("GfxStreamBackendTestWindow", width, height);
@@ -77,6 +82,9 @@ class GfxStreamBackendTest : public ::testing::Test {
     }
 
     void TearDown() override {
+        if (IsSkipped()) {
+            return;
+        }
         // Ensure background threads aren't mid-initialization.
         sleepMs(100);
         if (useWindow) {

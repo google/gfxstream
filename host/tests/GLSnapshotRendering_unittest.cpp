@@ -15,6 +15,7 @@
 #include <gtest/gtest.h>
 
 #include "frame_buffer.h"
+#include "gfxstream/common/testing/graphics_test_environment.h"
 #include "gfxstream/host/testing/HelloTriangle.h"
 #include "gfxstream/host/testing/GLSnapshotTestDispatch.h"
 #include "gfxstream/host/testing/GLSnapshotTesting.h"
@@ -26,6 +27,10 @@ namespace gl {
 namespace {
 
 TEST(SnapshotGlRenderingSampleTest, OverrideDispatch) {
+    ASSERT_TRUE(gfxstream::testing::SetupGraphicsTestEnvironment());
+    if (!gfxstream::testing::IsGraphicsTestEnvironmentProvidingGlesDriver()) {
+        GTEST_SKIP() << "Skipping GLES test in gles_none test environment.";
+    }
     const GLESv2Dispatch* gl = LazyLoadedGLESv2Dispatch::get();
     const GLESv2Dispatch* testGl = getSnapshotTestDispatch();
     EXPECT_NE(nullptr, gl);
@@ -61,6 +66,10 @@ template <typename T>
 class SnapshotGlRenderingSampleTest : public ::testing::Test {
   protected:
     virtual void SetUp() override {
+        ASSERT_TRUE(gfxstream::testing::SetupGraphicsTestEnvironment());
+        if (!gfxstream::testing::IsGraphicsTestEnvironmentProvidingGlesDriver()) {
+            GTEST_SKIP() << "Skipping GLES test in gles_none test environment.";
+        }
         // setupStandaloneLibrarySearchPaths();
         //const EGLDispatch* egl = LazyLoadedEGLDispatch::get();
 
@@ -71,6 +80,9 @@ class SnapshotGlRenderingSampleTest : public ::testing::Test {
     }
 
     virtual void TearDown() override {
+        if (!mApp) {
+            return;
+        }
         mApp.reset();
         EXPECT_EQ(EGL_SUCCESS, LazyLoadedEGLDispatch::get()->eglGetError())
                 << "SnapshotGlRenderingSampleTest TearDown found an EGL error";

@@ -156,7 +156,7 @@ public:
     void setProgramBinaryLinkStatusEnabled(bool enabled);
 
 private:
-    static void addConfig(void* opaque, const EglOS::ConfigInfo* configInfo);
+    static bool addConfig(void* opaque, const EglOS::ConfigInfo* configInfo);
 
     int doChooseConfigs(const EglConfig& dummy,EGLConfig* configs,int config_size) const;
     EglConfig* addSimplePixelFormat(int red_size, int green_size, int blue_size, int alpha_size, int sample_per_pixel);

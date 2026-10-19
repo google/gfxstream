@@ -249,6 +249,7 @@ endfunction()
         gfxstream_backend_unittests
         PRIVATE
         gfxstream_backend
+        gfxstream_common_testenv
         gfxstream_host_testing_oswindow_support
         ${GFXSTREAM_BASE_LIB}
         gtest_main)

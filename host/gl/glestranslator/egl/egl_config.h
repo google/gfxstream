@@ -150,6 +150,10 @@ public:
         delete m_nativeFormat;
     }
 
+    void releaseNativeFormat() {
+        m_nativeFormat = nullptr;
+    }
+
     // We need to track which EGL config attributes were requested by the user
     // versus others which are just part of the actual config itself.
     // addWantedAttrib()/isWantedAttrib() are used in sorting configs

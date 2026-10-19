@@ -16,6 +16,7 @@ namespace gfxstream {
 namespace testing {
 
 bool SetupGraphicsTestEnvironment();
+bool IsGraphicsTestEnvironmentProvidingGlesDriver();
 bool IsGraphicsTestEnvironmentProvidingVulkanDriver();
 
 }  // namespace testing

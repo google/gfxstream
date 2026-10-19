@@ -40,6 +40,7 @@ cc_library(
     strip_include_prefix = "include",
     deps = [
         "//common/base:gfxstream_common_base",
+        "//common/testenv:graphics_test_environment_support",
         "//host:gfxstream_backend_headers",
         "//host:gfxstream_backend_static",
         "//host/common:gfxstream_host_common",

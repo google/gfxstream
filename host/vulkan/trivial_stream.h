@@ -14,7 +14,9 @@
 
 #pragma once
 
+#include <cstdint>
 #include <cstdlib>
+#include <vector>
 
 #include "gfxstream/host/iostream.h"
 
@@ -27,42 +29,33 @@ class TrivialStream : public IOStream {
     TrivialStream() : IOStream(4) {}
     virtual ~TrivialStream() = default;
 
-    void* allocBuffer(size_t minSize) {
+    void* allocBuffer(size_t minSize) override {
         size_t allocSize = (m_bufsize < minSize ? minSize : m_bufsize);
-        if (!m_buf) {
-            m_buf = (unsigned char*)malloc(allocSize);
-        } else if (m_bufsize < allocSize) {
-            unsigned char* p = (unsigned char*)realloc(m_buf, allocSize);
-            if (p != NULL) {
-                m_buf = p;
-                m_bufsize = allocSize;
-            } else {
-                GFXSTREAM_ERROR("realloc (%zu) failed", allocSize);
-                free(m_buf);
-                m_buf = NULL;
-                m_bufsize = 0;
-            }
+        if (mWriteBuffer.size() < allocSize) {
+            mWriteBuffer.resize(allocSize);
         }
-
-        return m_buf;
+        return mWriteBuffer.data();
     }
 
-    int commitBuffer(size_t size) {
+    int commitBuffer(size_t size) override {
         if (size == 0) return 0;
-        return writeFully(m_buf, size);
+        return writeFully(mWriteBuffer.data(), size);
     }
 
-    int writeFully(const void* buf, size_t len) { return 0; }
+    int writeFully(const void* buf, size_t len) override { return 0; }
 
-    const unsigned char* readFully(void* buf, size_t len) { return NULL; }
+    const unsigned char* readFully(void* buf, size_t len) override { return NULL; }
 
-    virtual void* getDmaForReading(uint64_t guest_paddr) { return nullptr; }
-    virtual void unlockDma(uint64_t guest_paddr) {}
+    virtual void* getDmaForReading(uint64_t guest_paddr) override { return nullptr; }
+    virtual void unlockDma(uint64_t guest_paddr) override {}
 
    protected:
-    virtual const unsigned char* readRaw(void* buf, size_t* inout_len) { return nullptr; }
-    virtual void onSave(gfxstream::Stream* stream) {}
-    virtual unsigned char* onLoad(gfxstream::Stream* stream) { return nullptr; }
+    virtual const unsigned char* readRaw(void* buf, size_t* inout_len) override { return nullptr; }
+    virtual void onSave(gfxstream::Stream* stream) override {}
+    virtual unsigned char* onLoad(gfxstream::Stream* stream) override { return nullptr; }
+
+   private:
+    std::vector<uint8_t> mWriteBuffer;
 };
 
 }  // namespace vk

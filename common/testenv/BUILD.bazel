@@ -20,6 +20,21 @@ string_flag(
 )
 
 filegroup(
+    name = "default_gles_angle_drivers",
+    srcs = [
+        "//third_party/angle:libEGL_angle_vendor_icd.json",
+        "@angle//:libEGL",
+        "@angle//:libGLESv2",
+    ],
+)
+
+label_flag(
+    name = "gles_angle_drivers",
+    build_setting_default = ":default_gles_angle_drivers",
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
     name = "default_vulkan_lavapipe_drivers",
     srcs = [
         "//third_party/mesa:vk_lavapipe_icd.json",
@@ -68,17 +83,12 @@ copy_to_directory(
             ":vulkan_lavapipe_drivers",
         ],
         ":graphics_test_environment_gles_angle_vulkan_lavapipe": [
-            "//third_party/angle:libEGL_angle_vendor_icd.json",
-            "//third_party/mesa:vk_lavapipe_icd.json",
-            "@angle//:libEGL",
-            "@angle//:libGLESv2",
-            "@mesa//:vulkan_lvp",
+            ":gles_angle_drivers",
+            ":vulkan_lavapipe_drivers",
         ],
         ":graphics_test_environment_gles_angle_vulkan_swiftshader": [
-            "//third_party/angle:libEGL_angle_vendor_icd.json",
+            ":gles_angle_drivers",
             "//third_party/swiftshader:vk_swiftshader_icd.json",
-            "@angle//:libEGL",
-            "@angle//:libGLESv2",
             "@swiftshader//:vk_swiftshader",
         ],
         "//conditions:default": [
@@ -89,6 +99,7 @@ copy_to_directory(
     # Effectively, all of the "prefixes" to flatten/strip.
     root_paths = [
         "**/lib64/vulkan",
+        "**/linux-x86_64/lib",
         "common/testenv",
         "third_party/angle",
         "third_party/mesa",
