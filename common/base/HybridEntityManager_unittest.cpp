@@ -41,5 +41,31 @@ TEST(HybridEntityManager, UpdateIndex) {
     EXPECT_EQ(3, *m.get_const(indices[3]));
 }
 
+TEST(HybridEntityManager, MoveOnlyAndDestruction) {
+    struct Tracked {
+        int* aliveCount;
+        explicit Tracked(int* count) : aliveCount(count) { ++(*aliveCount); }
+        ~Tracked() { --(*aliveCount); }
+    };
+
+    int aliveCount = 0;
+    HybridEntityManager<kTestMaxIndex, uint64_t, std::unique_ptr<Tracked>> m;
+
+    uint64_t linearHandle = m.add(std::make_unique<Tracked>(&aliveCount), 1);
+    uint64_t mapHandle = m.addFixed(kTestMaxIndex + 5, std::make_unique<Tracked>(&aliveCount), 1);
+    EXPECT_EQ(2, aliveCount);
+
+    m.remove(linearHandle);
+    EXPECT_EQ(1, aliveCount);
+
+    m.remove(mapHandle);
+    EXPECT_EQ(0, aliveCount);
+
+    m.add(std::make_unique<Tracked>(&aliveCount), 1);
+    EXPECT_EQ(1, aliveCount);
+    m.clear();
+    EXPECT_EQ(0, aliveCount);
+}
+
 }
 }

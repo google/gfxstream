@@ -123,7 +123,7 @@ public:
         return mFirstFreeIndex;
     }
 
-    EntityHandle add(const Item& item, size_t type) {
+    EntityHandle add(Item item, size_t type) {
 
         if (!type) return INVALID_ENTITY_HANDLE;
 
@@ -158,7 +158,7 @@ public:
 
         mEntries[newIndex].handle =
             makeHandle(newIndex, mEntries[newIndex].liveGeneration, type);
-        mEntries[newIndex].item = item;
+        mEntries[newIndex].item = std::move(item);
 
         mFirstFreeIndex = mEntries[newIndex].nextFreeIndex;
         EM_DBG("created. new first free: %zu", mFirstFreeIndex);
@@ -170,7 +170,7 @@ public:
         return mEntries[newIndex].handle;
     }
 
-    EntityHandle addFixed(EntityHandle fixedHandle, const Item& item, size_t type) {
+    EntityHandle addFixed(EntityHandle fixedHandle, Item item, size_t type) {
         // 3 cases:
         // 1. handle is not allocated and doesn't correspond to mFirstFreeIndex
         bool isFreeListNonHead = false;
@@ -226,7 +226,7 @@ public:
 
         mEntries[newIndex].handle = fixedHandle;
         mEntries[newIndex].liveGeneration = getHandleGeneration(fixedHandle);
-        mEntries[newIndex].item = item;
+        mEntries[newIndex].item = std::move(item);
 
         EM_DBG("new index: %zu", newIndex);
 
@@ -288,6 +288,7 @@ public:
             entry.liveGeneration = 1;
         }
 
+        entry.item = Item();
         entry.nextFreeIndex = mFirstFreeIndex;
 
         mFirstFreeIndex = index;
@@ -377,6 +378,7 @@ private:
                     (mEntries[i].liveGeneration == (1ULL << generationBits))) {
                 mEntries[i].liveGeneration = 1;
             }
+            mEntries[i].item = Item();
             EM_DBG("new un-init entry: index %zu nextFree %zu",
                     i, i + 1);
         }

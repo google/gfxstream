@@ -15,6 +15,7 @@
 #pragma once
 
 #include <deque>
+#include <memory>
 #include <mutex>
 
 #include "vulkan_dispatch.h"
@@ -77,7 +78,7 @@ class BoxedHandleInfo {
     VulkanDispatch* dispatch = nullptr;
     bool ownDispatch = false;
     OrderMaintenanceInfo* ordMaintInfo = nullptr;
-    VulkanMemReadingStream* readStream = nullptr;
+    std::unique_ptr<VulkanMemReadingStream> readStream;
 };
 
 class BoxedHandleManager {
@@ -92,9 +93,9 @@ class BoxedHandleManager {
     // dEQP object management tests.
     using Store = gfxstream::base::HybridEntityManager<16000, BoxedHandle, BoxedHandleInfo>;
 
-    BoxedHandle add(const BoxedHandleInfo& item, BoxedHandleTypeTag tag);
+    BoxedHandle add(BoxedHandleInfo item, BoxedHandleTypeTag tag);
 
-    void update(BoxedHandle handle, const BoxedHandleInfo& item, BoxedHandleTypeTag tag);
+    void update(BoxedHandle handle, BoxedHandleInfo item, BoxedHandleTypeTag tag);
 
     void remove(BoxedHandle h);
     void removeDelayed(uint64_t h, VkDevice device, std::function<void()> callback);

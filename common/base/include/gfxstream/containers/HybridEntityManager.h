@@ -37,13 +37,13 @@ public:
     HybridEntityManager() : mEntityManager(maxIndex + 1) { }
     ~HybridEntityManager() { clear(); }
 
-    uint64_t add(const Data& data, size_t type) {
+    uint64_t add(Data data, size_t type) {
         uint64_t nextIndex = 0;
         {
             SeqLock::ScopedWrite sw(&mEntityManagerLock);
             nextIndex = (uint64_t)mEntityManager.nextFreeIndex();
             if (nextIndex < maxIndex) {
-                uint64_t resultHandle = mEntityManager.add(data, type);
+                uint64_t resultHandle = mEntityManager.add(std::move(data), type);
                 if (EM::getHandleIndex(resultHandle) != nextIndex) {
                     fprintf(stderr, "%s: fatal: handle indices mismatch. wanted 0x%llx got 0x%llx\n", __func__,
                             (unsigned long long)nextIndex,
@@ -59,7 +59,7 @@ public:
             mIndexForMap = maxIndex;
         }
         nextIndex = mIndexForMap;
-        auto emplaced = mMap.emplace(nextIndex, data);
+        auto emplaced = mMap.emplace(nextIndex, std::move(data));
         if (!emplaced.second) {
             fprintf(stderr, "%s: fatal: trying to insert duplicated entry 0x%llx\n", __func__,
                     (unsigned long long)nextIndex);
@@ -69,16 +69,16 @@ public:
         return EM::makeHandle(nextIndex, 1, type);
     }
 
-    uint64_t addFixed(IndexType index, const Data& data, size_t type) {
+    uint64_t addFixed(IndexType index, Data data, size_t type) {
         uint64_t index_u64 = (uint64_t)EM::getHandleIndex(index);
         if (index_u64 < maxIndex) {
             SeqLock::ScopedWrite sw(&mEntityManagerLock);
-            return mEntityManager.addFixed(index, data, type);
+            return mEntityManager.addFixed(index, std::move(data), type);
         } else {
             AutoLock lock(mMapLock);
             // Fixed allocations require us to update mIndexForMap to catch up with it.
             mIndexForMap = std::max(index_u64 + 1, mIndexForMap);
-            auto emplaced = mMap.emplace(index_u64, data);
+            auto emplaced = mMap.emplace(index_u64, std::move(data));
             if (!emplaced.second) {
                 fprintf(stderr, "%s: fatal: trying to insert duplicated entry 0x%llx\n", __func__,
                         (unsigned long long)index_u64);
@@ -158,7 +158,7 @@ public:
         }
 
         AutoLock lock(mMapLock);
-        for (auto it : mMap) {
+        for (auto& it : mMap) {
             auto handle = index2Handle(it.first);
             func(true /* live */, handle, handle, it.second);
         }
@@ -171,7 +171,7 @@ public:
         }
 
         AutoLock lock(mMapLock);
-        for (auto it : mMap) {
+        for (auto& it : mMap) {
             auto handle = index2Handle(it.first);
             func(true /* live */, handle, it.second);
         }
@@ -185,7 +185,7 @@ public:
         });
 
         AutoLock lock(mMapLock);
-        for (const auto it : mMap) {
+        for (const auto& it : mMap) {
             auto handle = index2Handle(it.first);
             func(true /* live */, handle, it.second);
         }
