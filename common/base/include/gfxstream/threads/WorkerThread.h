@@ -88,7 +88,10 @@ class WorkerThread {
     bool start() {
         std::lock_guard<std::mutex> lock(mThreadMutex);
         if (!mThread) {
+            std::lock_guard<std::mutex> queueLock(mMutex);
             mThread.emplace([this]() { ThreadLoop(); });
+            mStarted = true;
+            mExiting = false;
         }
         return true;
     }
@@ -134,8 +137,8 @@ class WorkerThread {
     std::future<void> enqueueImpl(Command command) {
         std::lock_guard<std::mutex> lock(mMutex);
 
-        // Do not enqueue any new items if exiting.
-        if (mExiting) {
+        // Do not enqueue any new items if not started or exiting.
+        if (!mStarted || mExiting) {
             command.mCompletedPromise.set_value();
             return command.mCompletedPromise.get_future();
         }
@@ -175,12 +178,14 @@ class WorkerThread {
             if (shouldStop) {
                 std::lock_guard<std::mutex> lock(mMutex);
 
+                mStarted = false;
                 mExiting = true;
 
                 // Signal pending tasks as if they are completed.
                 for (Command& item : mQueue) {
                     item.mCompletedPromise.set_value();
                 }
+                mQueue.clear();
 
                 return;
             }
@@ -198,6 +203,7 @@ class WorkerThread {
     std::mutex mMutex;
     std::condition_variable mCv GUARDED_BY(mMutex);
     std::vector<Command> mQueue GUARDED_BY(mMutex);
+    bool mStarted GUARDED_BY(mMutex) = false;
     bool mExiting GUARDED_BY(mMutex) = false;
 };
 

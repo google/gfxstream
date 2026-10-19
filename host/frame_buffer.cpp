@@ -1763,9 +1763,9 @@ WorkerProcessingResult FrameBuffer::Impl::postWorkerFunc(Post& post) {
 }
 
 std::future<void> FrameBuffer::Impl::sendPostWorkerCmd(Post post) {
-    bool expectedPostThreadStarted = false;
-    if (m_postThreadStarted.compare_exchange_strong(expectedPostThreadStarted, true)) {
+    if (!m_postThreadStarted.load(std::memory_order_acquire)) {
         m_postThread.start();
+        m_postThreadStarted.store(true, std::memory_order_release);
     }
 
     bool shouldPostOnlyOnMainThread = postOnlyOnMainThread();
@@ -1808,6 +1808,11 @@ void FrameBuffer::Impl::setPostCallback(Renderer::OnPostCallback onPost, void* o
             GFXSTREAM_ERROR("display %d already configured for recording", displayId);
             return;
         }
+        if (!m_readbackThreadStarted.load(std::memory_order_acquire)) {
+            m_readbackThread.start();
+            m_readbackThread.enqueue({ ReadbackCmd::Init });
+            m_readbackThreadStarted.store(true, std::memory_order_release);
+        }
         m_onPost[displayId].cb = onPost;
         m_onPost[displayId].context = onPostContext;
         m_onPost[displayId].displayId = displayId;
@@ -1815,11 +1820,6 @@ void FrameBuffer::Impl::setPostCallback(Renderer::OnPostCallback onPost, void* o
         m_onPost[displayId].height = h;
         m_onPost[displayId].img = new unsigned char[4 * w * h];
         m_onPost[displayId].readBgra = useBgraReadback;
-        bool expectedReadbackThreadStarted = false;
-        if (m_readbackThreadStarted.compare_exchange_strong(expectedReadbackThreadStarted, true)) {
-            m_readbackThread.start();
-            m_readbackThread.enqueue({ ReadbackCmd::Init });
-        }
         std::future<void> completeFuture = m_readbackThread.enqueue(
             {ReadbackCmd::AddRecordDisplay, displayId, nullptr, 0, w, h});
         completeFuture.wait();

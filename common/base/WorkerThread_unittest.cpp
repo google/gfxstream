@@ -66,6 +66,31 @@ TEST(WorkerThread, WaitQueuedItemsTimesOutWhenBlocked) {
     worker.join();
 }
 
+TEST(WorkerThread, CanRestartAfterStopAndJoin) {
+    struct Item {
+        bool stop = false;
+    };
+    int processedCount = 0;
+    WorkerThread<Item> worker(
+        []() {},
+        [&processedCount](Item&& item) {
+            ++processedCount;
+            return item.stop ? WorkerProcessingResult::Stop
+                             : WorkerProcessingResult::Continue;
+        });
+    worker.start();
+    worker.enqueue(Item{.stop = false}).wait();
+    worker.enqueue(Item{.stop = true}).wait();
+    worker.join();
+    EXPECT_EQ(processedCount, 2);
+
+    worker.start();
+    worker.enqueue(Item{.stop = false}).wait();
+    worker.enqueue(Item{.stop = true}).wait();
+    worker.join();
+    EXPECT_EQ(processedCount, 4);
+}
+
 }  // namespace
 }  // namespace base
 }  // namespace android
