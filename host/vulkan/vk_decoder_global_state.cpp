@@ -7211,6 +7211,8 @@ class VkDecoderGlobalState::Impl {
                                         __func__);
                     }
                     importHostInfo.pHostPointer = mappedPtr;
+                    localAllocInfo.memoryTypeIndex = selectSystemBlobHostPointerMemoryTypeIndex(
+                        vk, device, mappedPtr, localAllocInfo.memoryTypeIndex);
                     vk_append_struct(&structChainIter, &importHostInfo);
                 }
 

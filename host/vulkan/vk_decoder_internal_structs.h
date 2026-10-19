@@ -519,6 +519,34 @@ struct DescriptorUpdateTemplateInfo {
 DescriptorUpdateTemplateInfo calcLinearizedDescriptorUpdateTemplateInfo(
     const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo);
 
+template <class TDispatch>
+uint32_t selectSystemBlobHostPointerMemoryTypeIndex(TDispatch* vk, VkDevice device,
+                                                    void* hostPointer,
+                                                    uint32_t requestedMemoryTypeIndex) {
+    VkMemoryHostPointerPropertiesEXT memoryHostPointerProperties = {
+        .sType = VK_STRUCTURE_TYPE_MEMORY_HOST_POINTER_PROPERTIES_EXT,
+        .pNext = NULL,
+        .memoryTypeBits = 0,
+    };
+    vk->vkGetMemoryHostPointerPropertiesEXT(
+        device, VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT, hostPointer,
+        &memoryHostPointerProperties);
+    if (memoryHostPointerProperties.memoryTypeBits != 0 &&
+        ((1u << requestedMemoryTypeIndex) & memoryHostPointerProperties.memoryTypeBits) == 0) {
+        for (uint32_t i = 0; i <= 31; ++i) {
+            if ((memoryHostPointerProperties.memoryTypeBits & (1u << i)) == 0) {
+                continue;
+            }
+            GFXSTREAM_DEBUG(
+                "Detected memoryTypeIndex violation on requested host memory import. "
+                "Switching to a supported memory index %u",
+                i);
+            return i;
+        }
+    }
+    return requestedMemoryTypeIndex;
+}
+
 struct DescriptorPoolInfo {
     VkDevice device = 0;
     VkDescriptorPool boxed = 0;
