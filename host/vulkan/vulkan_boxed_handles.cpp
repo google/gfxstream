@@ -20,41 +20,6 @@
 namespace gfxstream {
 namespace host {
 namespace vk {
-namespace {
-
-struct ReadStreamRegistry {
-    gfxstream::base::Lock mLock;
-
-    std::vector<VulkanMemReadingStream*> freeStreams;
-
-    ReadStreamRegistry() { freeStreams.reserve(100); }
-
-    ~ReadStreamRegistry() {
-        for (VulkanMemReadingStream* stream : freeStreams) {
-            delete stream;
-        }
-    }
-
-    VulkanMemReadingStream* pop(const gfxstream::host::FeatureSet& features) {
-        gfxstream::base::AutoLock lock(mLock);
-        if (freeStreams.empty()) {
-            return new VulkanMemReadingStream(nullptr, features);
-        } else {
-            VulkanMemReadingStream* res = freeStreams.back();
-            freeStreams.pop_back();
-            return res;
-        }
-    }
-
-    void push(VulkanMemReadingStream* stream) {
-        gfxstream::base::AutoLock lock(mLock);
-        freeStreams.push_back(stream);
-    }
-};
-
-static ReadStreamRegistry sReadStreamRegistry;
-
-}  // namespace
 
 void BoxedHandleManager::replayHandles(std::vector<BoxedHandle> handles) {
     mHandleReplayQueue.clear();
@@ -379,7 +344,7 @@ void delete_VkType(VkObjectT boxed) {
     }
 
     if (info->readStream) {
-        sReadStreamRegistry.push(info->readStream);
+        delete info->readStream;
         info->readStream = nullptr;
     }
 
@@ -522,7 +487,8 @@ VulkanMemReadingStream* get_read_stream_VkType(VkObjectT boxed) {
     }
 
     if (info->readStream == nullptr) {
-        info->readStream = sReadStreamRegistry.pop(VkDecoderGlobalState::get()->getFeatures());
+        info->readStream =
+            new VulkanMemReadingStream(nullptr, VkDecoderGlobalState::get()->getFeatures());
     }
 
     return info->readStream;
