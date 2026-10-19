@@ -40,34 +40,36 @@ uint64_t BoxedHandleManager::getHandlesCount() const {
     return mReverseMap.size();
 }
 
-BoxedHandle BoxedHandleManager::add(const BoxedHandleInfo& item, BoxedHandleTypeTag tag) {
+BoxedHandle BoxedHandleManager::add(BoxedHandleInfo item, BoxedHandleTypeTag tag) {
     BoxedHandle handle;
+    UnboxedHandle underlying = item.underlying;
 
     if (mHandleReplay) {
         handle = mHandleReplayQueue.front();
         mHandleReplayQueue.pop_front();
         mHandleReplay = !mHandleReplayQueue.empty();
 
-        handle = (BoxedHandle)mStore.addFixed(handle, item, (size_t)tag);
+        handle = (BoxedHandle)mStore.addFixed(handle, std::move(item), (size_t)tag);
     } else {
-        handle = (BoxedHandle)mStore.add(item, (size_t)tag);
+        handle = (BoxedHandle)mStore.add(std::move(item), (size_t)tag);
     }
 
     std::lock_guard<std::mutex> lock(mMutex);
-    mReverseMap[(BoxedHandle)(item.underlying)] = handle;
+    mReverseMap[underlying] = handle;
     return handle;
 }
 
-void BoxedHandleManager::update(BoxedHandle handle, const BoxedHandleInfo& item,
+void BoxedHandleManager::update(BoxedHandle handle, BoxedHandleInfo item,
                                 BoxedHandleTypeTag tag) {
     auto storedItem = mStore.get(handle);
     UnboxedHandle oldHandle = (UnboxedHandle)storedItem->underlying;
-    *storedItem = item;
+    UnboxedHandle newHandle = (UnboxedHandle)item.underlying;
+    *storedItem = std::move(item);
     std::lock_guard<std::mutex> lock(mMutex);
     if (oldHandle) {
         mReverseMap.erase(oldHandle);
     }
-    mReverseMap[(UnboxedHandle)(item.underlying)] = handle;
+    mReverseMap[newHandle] = handle;
 }
 
 void BoxedHandleManager::remove(BoxedHandle h) {
@@ -320,9 +322,8 @@ VkObjectT new_boxed_VkType(VkObjectT underlying, bool dispatchable = false, Vulk
             info.ownDispatch = true;
         }
         info.ordMaintInfo = new OrderMaintenanceInfo();
-        info.readStream = nullptr;
     }
-    return (VkObjectT)sBoxedHandleManager.add(info, GetTag<VkObjectT>());
+    return (VkObjectT)sBoxedHandleManager.add(std::move(info), GetTag<VkObjectT>());
 }
 
 template <typename VkObjectT>
@@ -341,11 +342,6 @@ void delete_VkType(VkObjectT boxed) {
     if (info->ownDispatch) {
         delete info->dispatch;
         info->dispatch = nullptr;
-    }
-
-    if (info->readStream) {
-        delete info->readStream;
-        info->readStream = nullptr;
     }
 
     sBoxedHandleManager.remove((uint64_t)boxed);
@@ -460,7 +456,7 @@ template <typename VkObjectT>
 void set_boxed_non_dispatchable_VkType(VkObjectT boxed, VkObjectT new_unboxed) {
     BoxedHandleInfo info;
     info.underlying = (uint64_t)new_unboxed;
-    sBoxedHandleManager.update((uint64_t)boxed, info, GetTag<VkObjectT>());
+    sBoxedHandleManager.update((uint64_t)boxed, std::move(info), GetTag<VkObjectT>());
 }
 
 template <typename VkObjectT>
@@ -487,11 +483,11 @@ VulkanMemReadingStream* get_read_stream_VkType(VkObjectT boxed) {
     }
 
     if (info->readStream == nullptr) {
-        info->readStream =
-            new VulkanMemReadingStream(nullptr, VkDecoderGlobalState::get()->getFeatures());
+        info->readStream = std::make_unique<VulkanMemReadingStream>(
+            nullptr, VkDecoderGlobalState::get()->getFeatures());
     }
 
-    return info->readStream;
+    return info->readStream.get();
 }
 
 template <typename VkObjectT>
