@@ -27,7 +27,13 @@ struct ReadStreamRegistry {
 
     std::vector<VulkanMemReadingStream*> freeStreams;
 
-    ReadStreamRegistry() { freeStreams.reserve(100); };
+    ReadStreamRegistry() { freeStreams.reserve(100); }
+
+    ~ReadStreamRegistry() {
+        for (VulkanMemReadingStream* stream : freeStreams) {
+            delete stream;
+        }
+    }
 
     VulkanMemReadingStream* pop(const gfxstream::host::FeatureSet& features) {
         gfxstream::base::AutoLock lock(mLock);
