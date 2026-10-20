@@ -65,9 +65,9 @@ cc_library(
         "//conditions:default": [],
     }),
     copts = GFXSTREAM_HOST_COPTS,
-    defines = GFXSTREAM_HOST_DEFINES,
     includes = ["glestranslator/egl"],
     linkopts = GFXSTREAM_HOST_LINKOPTS,
+    local_defines = GFXSTREAM_HOST_DEFINES,
     deps = [
         "//common/base:gfxstream_common_base",
         "//host:gfxstream_backend_headers",
@@ -153,8 +153,8 @@ cc_library(
         ],
         "//conditions:default": [],
     }),
-    defines = GFXSTREAM_HOST_DEFINES,
     linkopts = GFXSTREAM_HOST_LINKOPTS,
+    local_defines = GFXSTREAM_HOST_DEFINES,
     textual_hdrs = [
         "client_api_exts.in",
     ],

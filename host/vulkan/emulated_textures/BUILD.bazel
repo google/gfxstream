@@ -20,8 +20,8 @@ cc_library(
         "gpu_decompression_pipeline.h",
     ],
     copts = GFXSTREAM_HOST_COPTS,
-    defines = GFXSTREAM_HOST_DEFINES,
     linkopts = GFXSTREAM_HOST_LINKOPTS,
+    local_defines = GFXSTREAM_HOST_DEFINES,
     textual_hdrs = glob([
         "**/*.inl",
     ]),

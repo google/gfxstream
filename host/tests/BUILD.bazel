@@ -40,8 +40,8 @@ cc_test(
         "GLSnapshot_unittest.cpp",
     ],
     copts = GFXSTREAM_HOST_COPTS,
-    defines = GFXSTREAM_HOST_DEFINES,
     linkopts = GFXSTREAM_HOST_LINKOPTS,
+    local_defines = GFXSTREAM_HOST_DEFINES,
     deps = [
         "//common/testenv:graphics_test_environment_support",
         "//host:gfxstream_backend_static",

@@ -11,9 +11,9 @@ cc_library(
     srcs = ["features.cpp"],
     hdrs = glob(["include/**/*.h"]),
     copts = GFXSTREAM_HOST_COPTS,
-    defines = GFXSTREAM_HOST_DEFINES,
     includes = ["include"],
     linkopts = GFXSTREAM_HOST_LINKOPTS,
+    local_defines = GFXSTREAM_HOST_DEFINES,
     deps = [
         "//common/logging:gfxstream_common_logging",
         "//common/utils:gfxstream_common_utils",
@@ -27,6 +27,7 @@ cc_test(
     ],
     copts = GFXSTREAM_HOST_COPTS,
     linkopts = GFXSTREAM_HOST_LINKOPTS,
+    local_defines = GFXSTREAM_HOST_DEFINES,
     deps = [
         ":gfxstream_host_features",
         "@com_google_googletest//:gtest",

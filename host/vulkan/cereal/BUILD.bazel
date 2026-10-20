@@ -18,9 +18,9 @@ cc_library(
         "common/vk_struct_id.h",
     ],
     copts = GFXSTREAM_HOST_COPTS,
-    defines = GFXSTREAM_HOST_DEFINES,
     includes = ["common"],
     linkopts = GFXSTREAM_HOST_LINKOPTS,
+    local_defines = GFXSTREAM_HOST_DEFINES,
     deps = [
         "//common/base:gfxstream_common_base",
         "//common/logging:gfxstream_common_logging",
@@ -53,9 +53,9 @@ cc_library(
         "common/vk_struct_id.h",
     ],
     copts = GFXSTREAM_HOST_COPTS,
-    defines = GFXSTREAM_HOST_DEFINES,
     includes = ["common"],
     linkopts = GFXSTREAM_HOST_LINKOPTS,
+    local_defines = GFXSTREAM_HOST_DEFINES,
     deps = [
         "//common/base:gfxstream_common_base",
         "//common/logging:gfxstream_common_logging",

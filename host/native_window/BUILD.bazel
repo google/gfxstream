@@ -53,9 +53,9 @@ cc_library(
         "include/gfxstream/host/native_sub_window.h",
     ],
     copts = GFXSTREAM_HOST_COPTS,
-    defines = GFXSTREAM_HOST_DEFINES,
     includes = ["include"],
     linkopts = GFXSTREAM_HOST_LINKOPTS,
+    local_defines = GFXSTREAM_HOST_DEFINES,
     deps = select({
         "@platforms//os:macos": [
             ":gfxstream_host_native_window-darwin",
