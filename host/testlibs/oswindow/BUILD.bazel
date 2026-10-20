@@ -12,12 +12,48 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "objc_library")
 load("//:build_variables.bzl", "GFXSTREAM_HOST_COPTS", "GFXSTREAM_HOST_DEFINES", "GFXSTREAM_HOST_LINKOPTS")
 
 package(
     default_applicable_licenses = ["//:gfxstream_license"],
     default_visibility = ["//:gfxstream"],
+)
+
+objc_library(
+    name = "gfxstream_oswindow_test_support_darwin",
+    testonly = True,
+    srcs = [
+        "osx/OSXWindow.mm",
+    ],
+    hdrs = glob(["include/**/*.h"]) + [
+        "osx/OSXWindow.h",
+    ],
+    copts = GFXSTREAM_HOST_COPTS + [
+        "-Wno-deprecated-declarations",
+        "-fno-objc-arc",
+        "-std=c++20",
+    ],
+    defines = GFXSTREAM_HOST_DEFINES,
+    includes = [
+        ".",
+        "include",
+    ],
+    sdk_frameworks = [
+        "AppKit",
+        "Carbon",
+        "Cocoa",
+        "CoreGraphics",
+        "QuartzCore",
+    ],
+    target_compatible_with = [
+        "@platforms//os:macos",
+    ],
+    deps = [
+        "//common/logging:gfxstream_common_logging",
+        "//third_party/opengl:gfxstream_egl_headers",
+    ],
+    alwayslink = True,
 )
 
 cc_library(
@@ -27,7 +63,6 @@ cc_library(
         "OSWindow.cpp",
     ] + select({
         "@platforms//os:macos": [
-            "osx/OSXWindow.h",
         ],
         "@platforms//os:windows": [
             "windows/Windows_system_utils.cpp",
@@ -59,5 +94,10 @@ cc_library(
     deps = [
         "//common/logging:gfxstream_common_logging",
         "//third_party/opengl:gfxstream_egl_headers",
-    ],
+    ] + select({
+        "@platforms//os:macos": [
+            ":gfxstream_oswindow_test_support_darwin",
+        ],
+        "//conditions:default": [],
+    }),
 )
