@@ -2324,6 +2324,20 @@ class VkDecoderGlobalState::Impl {
                            }),
             properties.end());
 
+        // In AndroidAHB mode, guest dmabufs are backed by AHardwareBuffers whose layout is
+        // chosen by gralloc, so native DRM format modifiers can't be honored. Hide the
+        // extension so the guest falls back to its DRM_FORMAT_MOD_LINEAR emulation.
+        if (m_vkEmulation->getExternalMemoryMode() == ExternalMemory::Mode::AndroidAHB) {
+            properties.erase(
+                std::remove_if(properties.begin(), properties.end(),
+                               [](const VkExtensionProperties& extension) {
+                                   return strcmp(extension.extensionName,
+                                                 VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME) ==
+                                          0;
+                               }),
+                properties.end());
+        }
+
         // Add in emulated extensions:
 
 #if defined(_WIN32)
