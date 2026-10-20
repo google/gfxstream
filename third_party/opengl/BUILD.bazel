@@ -1,7 +1,10 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
 package(
-    default_visibility = ["//:gfxstream"],
+    default_visibility = [
+        "//:gfxstream",
+        "@deqp//:__subpackages__",
+    ],
 )
 
 cc_library(

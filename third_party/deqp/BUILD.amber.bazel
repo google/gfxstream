@@ -1,0 +1,87 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_python//python:defs.bzl", "py_binary")
+
+package(default_visibility = ["//visibility:public"])
+
+py_binary(
+    name = "update_vk_wrappers",
+    srcs = ["tools/update_vk_wrappers.py"],
+    main = "tools/update_vk_wrappers.py",
+)
+
+genrule(
+    name = "deqp_amber_gen_vk_wrappers",
+    srcs = [
+        "src/vulkan/vk-funcs-1-0.inc",
+        "src/vulkan/vk-funcs-1-1.inc",
+    ],
+    outs = [
+        "vk-wrappers-1-0.inc",
+        "vk-wrappers-1-0.h",
+        "vk-wrappers-1-1.inc",
+        "vk-wrappers-1-1.h",
+    ],
+    cmd = "$(execpath :update_vk_wrappers) $(@D) $$(dirname $(execpath src/vulkan/vk-funcs-1-0.inc))/../..",
+    tools = [":update_vk_wrappers"],
+)
+
+cc_library(
+    name = "amber",
+    srcs = glob(
+        [
+            "src/*.h",
+            "src/*.cc",
+            "src/amberscript/*.h",
+            "src/amberscript/*.cc",
+            "src/vkscript/*.h",
+            "src/vkscript/*.cc",
+            "src/vulkan/*.h",
+            "src/vulkan/*.cc",
+        ],
+        allow_empty = True,
+        exclude = [
+            "src/*_test.cc",
+            "src/amberscript/*_test.cc",
+            "src/vkscript/*_test.cc",
+            "src/vulkan/*_test.cc",
+            "src/clspv_helper.h",
+            "src/clspv_helper.cc",
+            "src/dawn_engine_config.cc",
+            "src/dxc_helper.h",
+            "src/dxc_helper.cc",
+        ],
+    ),
+    hdrs = glob(
+        ["include/**/*.h"],
+        allow_empty = True,
+        exclude = ["include/amber/amber_dawn.h"],
+    ) + [":deqp_amber_gen_vk_wrappers"],
+    copts = [
+        "-std=c++17",
+        "-fexceptions",
+        "-DAMBER_CTS_VULKAN_HEADER=1",
+        "-DAMBER_ENABLE_CLSPV=0",
+        "-DAMBER_ENABLE_DXC=0",
+        "-DAMBER_ENABLE_LODEPNG=1",
+        "-DAMBER_ENABLE_RTTI=1",
+        "-DAMBER_ENABLE_SHADERC=0",
+        "-DAMBER_ENABLE_SPIRV_TOOLS=0",
+        "-DAMBER_ENABLE_VK_DEBUGGING=0",
+        "-DAMBER_ENGINE_DAWN=0",
+        "-DAMBER_ENGINE_VULKAN=1",
+        "-DCTS_USES_VULKAN",
+        "-Wno-unused-parameter",
+        "-Wno-missing-field-initializers",
+    ],
+    defines = [
+        "AMBER_CTS_VULKAN_HEADER=1",
+    ],
+    includes = [
+        ".",
+        "include",
+    ],
+    linkstatic = True,
+    deps = [
+        "@deqp//:deqp_vulkan_headers",
+    ],
+)
