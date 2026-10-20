@@ -1,0 +1,30 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "libpng",
+    srcs = glob(
+        ["*.c"],
+        exclude = [
+            "example.c",
+            "pngtest.c",
+        ],
+    ) + select({
+        "@platforms//cpu:x86_64": glob(["intel/*.c"]),
+        "@platforms//cpu:aarch64": glob(["arm/*.c"]),
+        "//conditions:default": [],
+    }),
+    hdrs = glob(["*.h"]),
+    copts = [
+        "-std=gnu89",
+        "-Wno-unused-parameter",
+    ] + select({
+        "@platforms//cpu:x86_64": ["-DPNG_INTEL_SSE_OPT=1"],
+        "//conditions:default": [],
+    }),
+    includes = ["."],
+    linkopts = ["-lm"],
+    linkstatic = True,
+    deps = ["@zlib"],
+)

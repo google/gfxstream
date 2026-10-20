@@ -2,7 +2,6 @@ load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_shared_library.bzl", "cc_shared_library")
 load("@rules_python//python:defs.bzl", "py_binary")
-load("@rules_python//python:defs.bzl", "py_binary")
 load("@rules_rust//rust:defs.bzl", "rust_library", "rust_static_library")
 
 package(
@@ -49,6 +48,7 @@ MESA_DEFAULT_COPTS = [
     "-DHAVE_PTHREAD=1",
     "-DHAVE_REALLOCARRAY",
     "-DHAVE_SECURE_GETENV",
+    "-DHAVE_SC_PHYS_PAGES",
     "-DHAVE_STRUCT_TIMESPEC",
     "-DHAVE_SYSCONF",
     "-DHAVE_TIMESPEC_GET",
@@ -118,8 +118,6 @@ MESA_DEFAULT_COPTS = [
     "-Wno-unused-private-field",
     "-Wno-visibility",
 ]
-
-MESA_DEFAULT_CXXOPTS = []
 
 cc_library(
     name = "mesa_gfxstream_guest_iostream",
@@ -200,8 +198,8 @@ cc_library(
         ":mesa_util",
         ":mesa_virtgpu_kumquat_ffi",
         ":vulkan_util",
-        "@libdrm",
         "@//third_party/android:gfxstream_thirdparty_android_headers",
+        "@libdrm",
     ],
 )
 
@@ -277,10 +275,10 @@ genrule(
         "src/gfxstream/guest/vulkan_enc/gfxstream_vk_entrypoints.c",
         "src/gfxstream/guest/vulkan_enc/gfxstream_vk_entrypoints.h",
     ],
-    cmd = "python3 $(location :vk_entrypoints_gen) " +
-          "--xml $(location src/vulkan/registry/vk.xml) --proto --weak " +
-          "--out-c $(location src/gfxstream/guest/vulkan_enc/gfxstream_vk_entrypoints.c) " +
-          "--out-h $(location src/gfxstream/guest/vulkan_enc/gfxstream_vk_entrypoints.h) " +
+    cmd = "python3 $(execpath :vk_entrypoints_gen) " +
+          "--xml $(execpath src/vulkan/registry/vk.xml) --proto --weak " +
+          "--out-c $(execpath src/gfxstream/guest/vulkan_enc/gfxstream_vk_entrypoints.c) " +
+          "--out-h $(execpath src/gfxstream/guest/vulkan_enc/gfxstream_vk_entrypoints.h) " +
           "--prefix gfxstream_vk " +
           "--beta false",
     tools = [":vk_entrypoints_gen"],
@@ -301,37 +299,9 @@ cc_library(
 
 py_binary(
     name = "genvk_py_binary",
-    srcs = [
-        "src/gfxstream/codegen/scripts/cereal/__init__.py",
-        "src/gfxstream/codegen/scripts/cereal/api_log_decoder.py",
-        "src/gfxstream/codegen/scripts/cereal/common/__init__.py",
-        "src/gfxstream/codegen/scripts/cereal/common/codegen.py",
-        "src/gfxstream/codegen/scripts/cereal/common/vulkantypes.py",
-        "src/gfxstream/codegen/scripts/cereal/counting.py",
-        "src/gfxstream/codegen/scripts/cereal/decoder.py",
-        "src/gfxstream/codegen/scripts/cereal/decodersnapshot.py",
-        "src/gfxstream/codegen/scripts/cereal/deepcopy.py",
-        "src/gfxstream/codegen/scripts/cereal/dispatch.py",
-        "src/gfxstream/codegen/scripts/cereal/encoder.py",
-        "src/gfxstream/codegen/scripts/cereal/extensionstructs.py",
-        "src/gfxstream/codegen/scripts/cereal/frontend.py",
-        "src/gfxstream/codegen/scripts/cereal/functable.py",
-        "src/gfxstream/codegen/scripts/cereal/handlemap.py",
-        "src/gfxstream/codegen/scripts/cereal/marshaling.py",
-        "src/gfxstream/codegen/scripts/cereal/marshalingdefs.py",
-        "src/gfxstream/codegen/scripts/cereal/reservedmarshaling.py",
-        "src/gfxstream/codegen/scripts/cereal/subdecode.py",
-        "src/gfxstream/codegen/scripts/cereal/testing.py",
-        "src/gfxstream/codegen/scripts/cereal/transform.py",
-        "src/gfxstream/codegen/scripts/cereal/unbox.py",
-        "src/gfxstream/codegen/scripts/cereal/vkextensionstructuretype.py",
-        "src/gfxstream/codegen/scripts/cereal/wrapperdefs.py",
-        "src/gfxstream/codegen/scripts/cerealgenerator.py",
-        "src/gfxstream/codegen/scripts/cgenerator.py",
-        "src/gfxstream/codegen/scripts/generator.py",
-        "src/gfxstream/codegen/scripts/genvk.py",
-        "src/gfxstream/codegen/scripts/reg.py",
-    ],
+    srcs = glob([
+        "src/gfxstream/codegen/scripts/**/*.py",
+    ]),
     imports = [
         "src/gfxstream/codegen/scripts",
     ],
@@ -345,9 +315,9 @@ genrule(
     name = "gen_vulkan_gfxstream_header",
     srcs = ["src/gfxstream/codegen/xml/vk_gfxstream.xml"],
     outs = ["src/gfxstream/guest/vulkan_enc/vulkan_gfxstream.h"],
-    cmd = "GFXSTREAM_NO_CLANG_FMT=1 CEREAL_VARIANT=guest python3 $(location :genvk_py_binary) " +
-          "-registry $(location src/gfxstream/codegen/xml/vk_gfxstream.xml) vulkan_gfxstream.h " +
-          "-o $$(dirname $(location src/gfxstream/guest/vulkan_enc/vulkan_gfxstream.h))",
+    cmd = "GFXSTREAM_NO_CLANG_FMT=1 CEREAL_VARIANT=guest python3 $(execpath :genvk_py_binary) " +
+          "-registry $(execpath src/gfxstream/codegen/xml/vk_gfxstream.xml) vulkan_gfxstream.h " +
+          "-o $$(dirname $(execpath src/gfxstream/guest/vulkan_enc/vulkan_gfxstream.h))",
     tools = [":genvk_py_binary"],
 )
 
@@ -368,11 +338,11 @@ genrule(
         "src/gfxstream/guest/vulkan_enc/vulkan_gfxstream_structure_type.h",
     ],
     cmd = "GFXSTREAM_NO_CLANG_FMT=1 CEREAL_VARIANT=guest " +
-          "GFXSTREAM_GUEST_ENCODER_DIR=$$(cd $$(dirname $(location src/gfxstream/guest/vulkan_enc/VkEncoder.h)) && pwd) " +
-          "python3 $(location :genvk_py_binary) " +
-          "-registry $(location src/vulkan/registry/vk.xml) " +
-          "-registryGfxstream $(location src/gfxstream/codegen/xml/vk_gfxstream.xml) " +
-          "cereal -o $$(cd $$(dirname $(location src/gfxstream/guest/vulkan_enc/VkEncoder.h)) && pwd)/host/vulkan/cereal",
+          "GFXSTREAM_GUEST_ENCODER_DIR=$$(cd $$(dirname $(execpath src/gfxstream/guest/vulkan_enc/VkEncoder.h)) && pwd) " +
+          "python3 $(execpath :genvk_py_binary) " +
+          "-registry $(execpath src/vulkan/registry/vk.xml) " +
+          "-registryGfxstream $(execpath src/gfxstream/codegen/xml/vk_gfxstream.xml) " +
+          "cereal -o $$(cd $$(dirname $(execpath src/gfxstream/guest/vulkan_enc/VkEncoder.h)) && pwd)/host/vulkan/cereal",
     tools = [":genvk_py_binary"],
 )
 
@@ -393,11 +363,11 @@ genrule(
         "src/gfxstream/guest/vulkan_enc/goldfish_vk_transform_guest.cpp",
     ],
     cmd = "GFXSTREAM_NO_CLANG_FMT=1 CEREAL_VARIANT=guest " +
-          "GFXSTREAM_GUEST_ENCODER_DIR=$$(cd $$(dirname $(location src/gfxstream/guest/vulkan_enc/VkEncoder.cpp)) && pwd) " +
-          "python3 $(location :genvk_py_binary) " +
-          "-registry $(location src/vulkan/registry/vk.xml) " +
-          "-registryGfxstream $(location src/gfxstream/codegen/xml/vk_gfxstream.xml) " +
-          "cereal -o $$(cd $$(dirname $(location src/gfxstream/guest/vulkan_enc/VkEncoder.cpp)) && pwd)/host/vulkan/cereal",
+          "GFXSTREAM_GUEST_ENCODER_DIR=$$(cd $$(dirname $(execpath src/gfxstream/guest/vulkan_enc/VkEncoder.cpp)) && pwd) " +
+          "python3 $(execpath :genvk_py_binary) " +
+          "-registry $(execpath src/vulkan/registry/vk.xml) " +
+          "-registryGfxstream $(execpath src/gfxstream/codegen/xml/vk_gfxstream.xml) " +
+          "cereal -o $$(cd $$(dirname $(execpath src/gfxstream/guest/vulkan_enc/VkEncoder.cpp)) && pwd)/host/vulkan/cereal",
     tools = [":genvk_py_binary"],
 )
 
@@ -426,8 +396,6 @@ cc_library(
         "src/gfxstream/guest/vulkan_enc/Validation.cpp",
         "src/gfxstream/guest/vulkan_enc/Validation.h",
         "src/gfxstream/guest/vulkan_enc/VkEncoder.h.inl",
-        "src/gfxstream/guest/vulkan_enc/VulkanHandleMapping.cpp",
-        "src/gfxstream/guest/vulkan_enc/VulkanHandleMapping.h",
         "src/gfxstream/guest/vulkan_enc/VulkanHandles.h",
         "src/gfxstream/guest/vulkan_enc/VulkanStreamGuest.cpp",
         "src/gfxstream/guest/vulkan_enc/VulkanStreamGuest.h",
@@ -469,7 +437,6 @@ cc_library(
         ":mesa_util",
         ":vulkan_instance",
         ":vulkan_lite_runtime",
-        ":vulkan_runtime",
         ":vulkan_util",
         ":vulkan_wsi",
     ],
@@ -478,6 +445,9 @@ cc_library(
 cc_shared_library(
     name = "mesa_gfxstream_guest_vulkan",
     shared_lib_name = "vulkan.ranchu.so",
+    user_link_flags = [
+        "-Wl,--defsym=vkGetInstanceProcAddr=vk_icdGetInstanceProcAddr",
+    ],
     deps = [
         ":mesa_gfxstream_guest_vulkan_impl",
     ],
@@ -547,7 +517,7 @@ genrule(
     name = "gen_git_sha1_h",
     srcs = ["bin/git_sha1_gen.py"],
     outs = ["src/git_sha1.h"],
-    cmd = "$(location :git_sha1_gen) --output $(location src/git_sha1.h)",
+    cmd = "$(execpath :git_sha1_gen) --output $(execpath src/git_sha1.h)",
     tools = [":git_sha1_gen"],
 )
 
@@ -685,7 +655,7 @@ genrule(
     name = "gen_ir_expression_operation_h",
     srcs = ["src/compiler/glsl/ir_expression_operation.py"],
     outs = ["src/compiler/ir_expression_operation.h"],
-    cmd = "$(location :ir_expression_operation) enum > $(location src/compiler/ir_expression_operation.h)",
+    cmd = "$(execpath :ir_expression_operation) enum > $(execpath src/compiler/ir_expression_operation.h)",
     tools = [":ir_expression_operation"],
 )
 
@@ -813,7 +783,7 @@ genrule(
     name = "gen_builtin_types_h",
     srcs = ["src/compiler/builtin_types.py"],
     outs = ["src/compiler/builtin_types.h"],
-    cmd = "$(location :builtin_types_h) $(location src/compiler/builtin_types.h)",
+    cmd = "$(execpath :builtin_types_h) $(execpath src/compiler/builtin_types.h)",
     tools = [":builtin_types_h"],
 )
 
@@ -821,7 +791,7 @@ genrule(
     name = "gen_builtin_types_c",
     srcs = ["src/compiler/builtin_types.py"],
     outs = ["src/compiler/builtin_types.c"],
-    cmd = "$(location :builtin_types_c) $(location src/compiler/builtin_types.c)",
+    cmd = "$(execpath :builtin_types_c) $(execpath src/compiler/builtin_types.c)",
     tools = [":builtin_types_c"],
 )
 
@@ -932,7 +902,7 @@ genrule(
     name = "gen_nir_intrinsics_indices_h",
     srcs = ["src/compiler/nir/nir_intrinsics.py"],
     outs = ["src/compiler/nir/nir_intrinsics_indices.h"],
-    cmd = "$(location :nir_intrinsics_indices_h) --out $(location src/compiler/nir/nir_intrinsics_indices.h)",
+    cmd = "$(execpath :nir_intrinsics_indices_h) --out $(execpath src/compiler/nir/nir_intrinsics_indices.h)",
     tools = [":nir_intrinsics_indices_h"],
 )
 
@@ -943,7 +913,7 @@ genrule(
         "src/compiler/nir/nir_opcodes.py",
     ],
     outs = ["src/compiler/nir/nir_constant_expressions.c"],
-    cmd = "$(location :nir_constant_expressions) > $(location src/compiler/nir/nir_constant_expressions.c)",
+    cmd = "$(execpath :nir_constant_expressions) > $(execpath src/compiler/nir/nir_constant_expressions.c)",
     tools = [":nir_constant_expressions"],
 )
 
@@ -954,7 +924,7 @@ genrule(
         "src/compiler/nir/nir_opcodes.py",
     ],
     outs = ["src/compiler/nir/nir_opcodes.h"],
-    cmd = "$(location :nir_opcodes_h) > $(location src/compiler/nir/nir_opcodes.h)",
+    cmd = "$(execpath :nir_opcodes_h) > $(execpath src/compiler/nir/nir_opcodes.h)",
     tools = [":nir_opcodes_h"],
 )
 
@@ -965,7 +935,7 @@ genrule(
         "src/compiler/nir/nir_opcodes.py",
     ],
     outs = ["src/compiler/nir/nir_opcodes.c"],
-    cmd = "$(location :nir_opcodes_c) > $(location src/compiler/nir/nir_opcodes.c)",
+    cmd = "$(execpath :nir_opcodes_c) > $(execpath src/compiler/nir/nir_opcodes.c)",
     tools = [":nir_opcodes_c"],
 )
 
@@ -1000,7 +970,7 @@ genrule(
         "src/compiler/nir/nir_opcodes.py",
     ],
     outs = ["src/compiler/nir/nir_builder_opcodes.h"],
-    cmd = "$(location :nir_builder_opcodes_h) > $(location src/compiler/nir/nir_builder_opcodes.h)",
+    cmd = "$(execpath :nir_builder_opcodes_h) > $(execpath src/compiler/nir/nir_builder_opcodes.h)",
     tools = [":nir_builder_opcodes_h"],
 )
 
@@ -1011,7 +981,7 @@ genrule(
         "src/compiler/nir/nir_opcodes.py",
     ],
     outs = ["src/compiler/nir/nir_opt_algebraic.c"],
-    cmd = "$(location :nir_opt_algebraic) --out $(location src/compiler/nir/nir_opt_algebraic.c)",
+    cmd = "$(execpath :nir_opt_algebraic) --out $(execpath src/compiler/nir/nir_opt_algebraic.c)",
     tools = [":nir_opt_algebraic"],
 )
 
@@ -1221,10 +1191,12 @@ cc_library(
         "src/compiler/nir/nir_opt_reassociate_bfi.c",
         "src/compiler/nir/nir_opt_rematerialize_compares.c",
         "src/compiler/nir/nir_opt_remove_phis.c",
+        "src/compiler/nir/nir_opt_scalar_array_vars_to_vec.c",
         "src/compiler/nir/nir_opt_shared_vars_to_subgroup.c",
         "src/compiler/nir/nir_opt_shrink_stores.c",
         "src/compiler/nir/nir_opt_shrink_vectors.c",
         "src/compiler/nir/nir_opt_sink.c",
+        "src/compiler/nir/nir_opt_uadd_carry.c",
         "src/compiler/nir/nir_opt_undef.c",
         "src/compiler/nir/nir_opt_uniform_atomics.c",
         "src/compiler/nir/nir_opt_uniform_subgroup.c",
@@ -1442,7 +1414,7 @@ genrule(
     name = "gen_nir_intrinsic_c",
     srcs = ["src/compiler/nir/nir_intrinsics.py"],
     outs = ["src/compiler/nir/nir_intrinsics.c"],
-    cmd = "$(location :nir_intrinsics_c) --out $(location src/compiler/nir/nir_intrinsics.c)",
+    cmd = "$(execpath :nir_intrinsics_c) --out $(execpath src/compiler/nir/nir_intrinsics.c)",
     tools = [":nir_intrinsics_c"],
 )
 
@@ -1473,7 +1445,7 @@ genrule(
     name = "gen_nir_intrinsics_h",
     srcs = ["src/compiler/nir/nir_intrinsics.py"],
     outs = ["src/compiler/nir/nir_intrinsics.h"],
-    cmd = "$(location :nir_intrinsics_h) --out $(location src/compiler/nir/nir_intrinsics.h)",
+    cmd = "$(execpath :nir_intrinsics_h) --out $(execpath src/compiler/nir/nir_intrinsics.h)",
     tools = [":nir_intrinsics_h"],
 )
 
@@ -1492,7 +1464,7 @@ genrule(
     name = "gen_vtn_generator_ids_h",
     srcs = ["src/compiler/spirv/spir-v.xml"],
     outs = ["src/compiler/spirv/vtn_generator_ids.h"],
-    cmd = "$(location :vtn_generator_ids_h) $(location src/compiler/spirv/spir-v.xml) $(location src/compiler/spirv/vtn_generator_ids.h)",
+    cmd = "$(execpath :vtn_generator_ids_h) $(execpath src/compiler/spirv/spir-v.xml) $(execpath src/compiler/spirv/vtn_generator_ids.h)",
     tools = [":vtn_generator_ids_h"],
 )
 
@@ -1665,7 +1637,7 @@ genrule(
         "src/compiler/spirv/spirv_info.h",
         "src/compiler/spirv/spirv_info.c",
     ],
-    cmd = "$(location :spirv_info_gen) --json $(location src/compiler/spirv/spirv.core.grammar.json) --out-h $(location src/compiler/spirv/spirv_info.h) --out-c $(location src/compiler/spirv/spirv_info.c)",
+    cmd = "$(execpath :spirv_info_gen) --json $(execpath src/compiler/spirv/spirv.core.grammar.json) --out-h $(execpath src/compiler/spirv/spirv_info.h) --out-c $(execpath src/compiler/spirv/spirv_info.c)",
     tools = [":spirv_info_gen"],
 )
 
@@ -1833,7 +1805,7 @@ genrule(
     name = "gen_vtn_gather_types_c",
     srcs = ["src/compiler/spirv/spirv.core.grammar.json"],
     outs = ["src/compiler/spirv/vtn_gather_types.c"],
-    cmd = "$(location :vtn_gather_types_c) $(location src/compiler/spirv/spirv.core.grammar.json) $(location src/compiler/spirv/vtn_gather_types.c)",
+    cmd = "$(execpath :vtn_gather_types_c) $(execpath src/compiler/spirv/spirv.core.grammar.json) $(execpath src/compiler/spirv/vtn_gather_types.c)",
     tools = [":vtn_gather_types_c"],
 )
 
@@ -1955,7 +1927,6 @@ cc_library(
         "src/gallium/auxiliary/draw/draw_pipe_cull.c",
         "src/gallium/auxiliary/draw/draw_pipe_flatshade.c",
         "src/gallium/auxiliary/draw/draw_pipe_offset.c",
-        "src/gallium/auxiliary/draw/draw_pipe_pstipple.c",
         "src/gallium/auxiliary/draw/draw_pipe_stipple.c",
         "src/gallium/auxiliary/draw/draw_pipe_twoside.c",
         "src/gallium/auxiliary/draw/draw_pipe_unfilled.c",
@@ -1986,6 +1957,7 @@ cc_library(
         "src/gallium/auxiliary/driver_ddebug/dd_context.c",
         "src/gallium/auxiliary/driver_ddebug/dd_draw.c",
         "src/gallium/auxiliary/driver_ddebug/dd_screen.c",
+        "src/gallium/auxiliary/driver_ddebug/dd_util.c",
         "src/gallium/auxiliary/driver_noop/noop_pipe.c",
         "src/gallium/auxiliary/driver_noop/noop_state.c",
         "src/gallium/auxiliary/driver_trace/tr_context.c",
@@ -2434,7 +2406,7 @@ genrule(
     name = "gen_u_tracepoints_c",
     srcs = ["src/util/perf/u_trace.py"],
     outs = ["src/gallium/auxiliary/u_tracepoints.c"],
-    cmd = "$(location :u_tracepoints) -p $$(dirname \"$(location src/util/perf/u_trace.py)\") -C $(location src/gallium/auxiliary/u_tracepoints.c)",
+    cmd = "$(execpath :u_tracepoints) -p $$(dirname \"$(execpath src/util/perf/u_trace.py)\") -C $(execpath src/gallium/auxiliary/u_tracepoints.c)",
     tools = [":u_tracepoints"],
 )
 
@@ -2565,7 +2537,7 @@ genrule(
     name = "gen_u_unfilled_gen_c",
     srcs = [],
     outs = ["src/gallium/auxiliary/u_unfilled_gen.c"],
-    cmd = "$(location :u_unfilled_gen) $(location src/gallium/auxiliary/u_unfilled_gen.c)",
+    cmd = "$(execpath :u_unfilled_gen) $(execpath src/gallium/auxiliary/u_unfilled_gen.c)",
     tools = [":u_unfilled_gen"],
 )
 
@@ -2603,7 +2575,7 @@ genrule(
         "src/gallium/auxiliary/tr_util.c",
         "src/gallium/auxiliary/tr_util.h",
     ],
-    cmd = "$(location :enums2names) $(location src/gallium/include/pipe/p_defines.h) $(location src/gallium/include/pipe/p_video_enums.h) $(location src/util/blend.h) -C $(location src/gallium/auxiliary/tr_util.c) -H $(location src/gallium/auxiliary/tr_util.h)",
+    cmd = "$(execpath :enums2names) $(execpath src/gallium/include/pipe/p_defines.h) $(execpath src/gallium/include/pipe/p_video_enums.h) $(execpath src/util/blend.h) -C $(execpath src/gallium/auxiliary/tr_util.c) -H $(execpath src/gallium/auxiliary/tr_util.h)",
     tools = [":enums2names"],
 )
 
@@ -2771,7 +2743,7 @@ genrule(
         "src/compiler/nir/nir_opcodes.py",
     ],
     outs = ["src/gallium/auxiliary/lp_bld_nir_no_integer_algebraic.c"],
-    cmd = "$(location :lp_bld_nir_no_integer_algebraic) -p $$(dirname \"$(location src/compiler/nir/nir_algebraic.py)\") > $(location src/gallium/auxiliary/lp_bld_nir_no_integer_algebraic.c)",
+    cmd = "$(execpath :lp_bld_nir_no_integer_algebraic) -p $$(dirname \"$(execpath src/compiler/nir/nir_algebraic.py)\") > $(execpath src/gallium/auxiliary/lp_bld_nir_no_integer_algebraic.c)",
     tools = [":lp_bld_nir_no_integer_algebraic"],
 )
 
@@ -2815,7 +2787,7 @@ genrule(
         "src/compiler/nir/nir_opcodes.py",
     ],
     outs = ["src/gallium/auxiliary/draw_nir_lower_opcodes.c"],
-    cmd = "$(location :draw_nir_lower_opcodes) -p $$(dirname \"$(location src/compiler/nir/nir_algebraic.py)\") > $(location src/gallium/auxiliary/draw_nir_lower_opcodes.c)",
+    cmd = "$(execpath :draw_nir_lower_opcodes) -p $$(dirname \"$(execpath src/compiler/nir/nir_algebraic.py)\") > $(execpath src/gallium/auxiliary/draw_nir_lower_opcodes.c)",
     tools = [":draw_nir_lower_opcodes"],
 )
 
@@ -2823,7 +2795,7 @@ genrule(
     name = "gen_u_tracepoints_h",
     srcs = ["src/util/perf/u_trace.py"],
     outs = ["src/gallium/auxiliary/u_tracepoints.h"],
-    cmd = "$(location :u_tracepoints) -p $$(dirname \"$(location src/util/perf/u_trace.py)\") -H $(location src/gallium/auxiliary/u_tracepoints.h)",
+    cmd = "$(execpath :u_tracepoints) -p $$(dirname \"$(execpath src/util/perf/u_trace.py)\") -H $(execpath src/gallium/auxiliary/u_tracepoints.h)",
     tools = [":u_tracepoints"],
 )
 
@@ -2958,7 +2930,7 @@ genrule(
     name = "gen_u_indices_gen_c",
     srcs = [],
     outs = ["src/gallium/auxiliary/u_indices_gen.c"],
-    cmd = "$(location :u_indices_gen) $(location src/gallium/auxiliary/u_indices_gen.c)",
+    cmd = "$(execpath :u_indices_gen) $(execpath src/gallium/auxiliary/u_indices_gen.c)",
     tools = [":u_indices_gen"],
 )
 
@@ -3422,6 +3394,8 @@ cc_library(
         "src/vulkan/runtime/vk_cmd_enqueue_entrypoints.h",
         "src/vulkan/runtime/vk_cmd_queue.h",
         "src/vulkan/runtime/vk_common_entrypoints.h",
+        "src/vulkan/runtime/vk_dispatch_trampolines.h",
+        "src/vulkan/runtime/vk_format_info.h",
         "src/vulkan/runtime/vk_physical_device_features.h",
         "src/vulkan/runtime/vk_physical_device_properties.h",
         "src/vulkan/util/vk_dispatch_table.h",
@@ -3587,7 +3561,7 @@ genrule(
         "src/gallium/frontends/lavapipe/lvp_entrypoints.h",
         "src/gallium/frontends/lavapipe/lvp_entrypoints.c",
     ],
-    cmd = "$(location :vk_entrypoints_gen) --xml $(location src/vulkan/registry/vk.xml) --proto --weak --out-h $(location src/gallium/frontends/lavapipe/lvp_entrypoints.h) --out-c $(location src/gallium/frontends/lavapipe/lvp_entrypoints.c) --prefix lvp --beta false",
+    cmd = "$(execpath :vk_entrypoints_gen) --xml $(execpath src/vulkan/registry/vk.xml) --proto --weak --out-h $(execpath src/gallium/frontends/lavapipe/lvp_entrypoints.h) --out-c $(execpath src/gallium/frontends/lavapipe/lvp_entrypoints.c) --prefix lvp --beta false",
     tools = [":vk_entrypoints_gen"],
 )
 
@@ -3601,7 +3575,7 @@ genrule(
         "src/gallium/frontends/lavapipe/lvp_drirc.c",
         "src/gallium/frontends/lavapipe/lvp_drirc.h",
     ],
-    cmd = "$(location :lvp_drirc_gen) --import-path $$(dirname $(location src/util/drirc_gen.py)) --drirc-src $(location src/gallium/frontends/lavapipe/lvp_drirc.c) --drirc-hdr $(location src/gallium/frontends/lavapipe/lvp_drirc.h) --validate $(location src/gallium/frontends/lavapipe/00-lavapipe-defaults.conf)",
+    cmd = "$(execpath :lvp_drirc_gen) --import-path $$(dirname $(execpath src/util/drirc_gen.py)) --drirc-src $(execpath src/gallium/frontends/lavapipe/lvp_drirc.c) --drirc-hdr $(execpath src/gallium/frontends/lavapipe/lvp_drirc.h) --validate $(execpath src/gallium/frontends/lavapipe/00-lavapipe-defaults.conf)",
     tools = [":lvp_drirc_gen"],
 )
 
@@ -3776,7 +3750,7 @@ genrule(
         "src/vulkan/util/vk_icd_gen.py",
     ],
     outs = ["src/gallium/targets/lavapipe/lvp_icd.json"],
-    cmd = "$(location :vk_icd_gen) --api-version 1.4 --xml $(location src/vulkan/registry/vk.xml) --sizeof-pointer 8 --icd-lib-path /usr/local/lib --icd-filename libvulkan_lvp.so --out $(location src/gallium/targets/lavapipe/lvp_icd.json)",
+    cmd = "$(execpath :vk_icd_gen) --api-version 1.4 --xml $(execpath src/vulkan/registry/vk.xml) --sizeof-pointer 8 --icd-lib-path /usr/local/lib --icd-filename libvulkan_lvp.so --out $(execpath src/gallium/targets/lavapipe/lvp_icd.json)",
     tools = [":vk_icd_gen"],
 )
 
@@ -3804,7 +3778,7 @@ cc_shared_library(
     name = "vulkan_lvp",
     additional_linker_inputs = ["src/vulkan/vulkan.sym"],
     user_link_flags = [
-        "-Wl,--version-script=$(location src/vulkan/vulkan.sym)",
+        "-Wl,--version-script=$(execpath src/vulkan/vulkan.sym)",
         "-Wl,--gc-sections",
         "-Wl,--no-undefined",
     ],
@@ -4487,6 +4461,7 @@ cc_library(
         "HAVE_REALLOCARRAY",
         "HAVE_RENDERDOC_INTEGRATION=1",
         "HAVE_SECURE_GETENV",
+        "HAVE_SC_PHYS_PAGES",
         "HAVE_STRTOF",
         "HAVE_STRTOK_R",
         "HAVE_STRUCT_TIMESPEC",
@@ -4565,7 +4540,7 @@ genrule(
         "src/util/shader_stats.xml",
     ],
     outs = ["src/util/shader_stats.h"],
-    cmd = "$(location :process_shader_stats) $(location src/util/shader_stats.rnc) $(location src/util/shader_stats.xml) > $(location src/util/shader_stats.h)",
+    cmd = "$(execpath :process_shader_stats) $(execpath src/util/shader_stats.rnc) $(execpath src/util/shader_stats.xml) > $(execpath src/util/shader_stats.h)",
     tools = [":process_shader_stats"],
 )
 
@@ -4808,7 +4783,7 @@ genrule(
     name = "gen_format_srgb",
     srcs = [],
     outs = ["src/util/format_srgb.c"],
-    cmd = "$(location :format_srgb) > $(location src/util/format_srgb.c)",
+    cmd = "$(execpath :format_srgb) > $(execpath src/util/format_srgb.c)",
     tools = [":format_srgb"],
 )
 
@@ -4939,7 +4914,7 @@ genrule(
         "src/util/00-mesa-defaults.conf",
     ],
     outs = ["src/util/driconf_static.h"],
-    cmd = "$(location :driconf_static) $(location src/util/00-mesa-defaults.conf) $(location src/gallium/frontends/lavapipe/00-lavapipe-defaults.conf) $(location src/util/driconf_static.h)",
+    cmd = "$(execpath :driconf_static) $(execpath src/util/00-mesa-defaults.conf) $(execpath src/gallium/frontends/lavapipe/00-lavapipe-defaults.conf) $(execpath src/util/driconf_static.h)",
     tools = [":driconf_static"],
 )
 
@@ -5268,7 +5243,7 @@ genrule(
         "src/util/format/u_format_parse.py",
     ],
     outs = ["src/util/format/u_format_table.c"],
-    cmd = "$(location :u_format_table) $(location src/util/format/u_format.yaml) > $(location src/util/format/u_format_table.c)",
+    cmd = "$(execpath :u_format_table) $(execpath src/util/format/u_format.yaml) > $(execpath src/util/format/u_format_table.c)",
     tools = [":u_format_table"],
 )
 
@@ -5280,7 +5255,7 @@ genrule(
         "src/util/format/u_format_parse.py",
     ],
     outs = ["src/util/format/u_format_gen.h"],
-    cmd = "$(location :u_format_table) $(location src/util/format/u_format.yaml) --enums > $(location src/util/format/u_format_gen.h)",
+    cmd = "$(execpath :u_format_table) $(execpath src/util/format/u_format.yaml) --enums > $(execpath src/util/format/u_format_gen.h)",
     tools = [":u_format_table"],
 )
 
@@ -5315,7 +5290,7 @@ genrule(
         "src/util/format/u_format_parse.py",
     ],
     outs = ["src/util/format/u_format_pack.h"],
-    cmd = "$(location :u_format_table) $(location src/util/format/u_format.yaml) --header > $(location src/util/format/u_format_pack.h)",
+    cmd = "$(execpath :u_format_table) $(execpath src/util/format/u_format.yaml) --header > $(execpath src/util/format/u_format_pack.h)",
     tools = [":u_format_table"],
 )
 
@@ -5327,8 +5302,8 @@ genrule(
     ],
     outs = ["src/vulkan/vulkan_api.def"],
     cmd = select({
-        "@platforms//cpu:arm64": "$(location :gen_vs_module_defs) --in_file $(location src/vulkan/vulkan_api.def.in) --out_file $(location src/vulkan/vulkan_api.def) --compiler_abi gcc --compiler_id clang --cpu_family aarch64",
-        "@platforms//cpu:x86_64": "$(location :gen_vs_module_defs) --in_file $(location src/vulkan/vulkan_api.def.in) --out_file $(location src/vulkan/vulkan_api.def) --compiler_abi gcc --compiler_id clang --cpu_family x86_64",
+        "@platforms//cpu:arm64": "$(execpath :gen_vs_module_defs) --in_file $(execpath src/vulkan/vulkan_api.def.in) --out_file $(execpath src/vulkan/vulkan_api.def) --compiler_abi gcc --compiler_id clang --cpu_family aarch64",
+        "@platforms//cpu:x86_64": "$(execpath :gen_vs_module_defs) --in_file $(execpath src/vulkan/vulkan_api.def.in) --out_file $(execpath src/vulkan/vulkan_api.def) --compiler_abi gcc --compiler_id clang --cpu_family x86_64",
     }),
     tools = [":gen_vs_module_defs"],
 )
@@ -5370,7 +5345,7 @@ genrule(
         "src/vulkan/runtime/vk_dispatch_trampolines.c",
         "src/vulkan/runtime/vk_dispatch_trampolines.h",
     ],
-    cmd = "$(location :vk_dispatch_trampolines_gen) --xml $(location src/vulkan/registry/vk.xml) --out-c $(location src/vulkan/runtime/vk_dispatch_trampolines.c) --out-h $(location src/vulkan/runtime/vk_dispatch_trampolines.h) --beta false",
+    cmd = "$(execpath :vk_dispatch_trampolines_gen) --xml $(execpath src/vulkan/registry/vk.xml) --out-c $(execpath src/vulkan/runtime/vk_dispatch_trampolines.c) --out-h $(execpath src/vulkan/runtime/vk_dispatch_trampolines.h) --beta false",
     tools = [":vk_dispatch_trampolines_gen"],
 )
 
@@ -5385,7 +5360,7 @@ genrule(
         "src/vulkan/runtime/vk_physical_device_properties.c",
         "src/vulkan/runtime/vk_physical_device_properties.h",
     ],
-    cmd = "$(location :vk_physical_device_properties_gen) --xml $(location src/vulkan/registry/vk.xml) --out-c $(location src/vulkan/runtime/vk_physical_device_properties.c) --out-h $(location src/vulkan/runtime/vk_physical_device_properties.h) --beta false",
+    cmd = "$(execpath :vk_physical_device_properties_gen) --xml $(execpath src/vulkan/registry/vk.xml) --out-c $(execpath src/vulkan/runtime/vk_physical_device_properties.c) --out-h $(execpath src/vulkan/runtime/vk_physical_device_properties.h) --beta false",
     tools = [":vk_physical_device_properties_gen"],
 )
 
@@ -5397,7 +5372,7 @@ genrule(
         "src/vulkan/util/vk_synchronization_helpers_gen.py",
     ],
     outs = ["src/vulkan/runtime/vk_synchronization_helpers.c"],
-    cmd = "$(location :vk_synchronization_helpers_gen) --xml $(location src/vulkan/registry/vk.xml) --out-c $(location src/vulkan/runtime/vk_synchronization_helpers.c) --beta false",
+    cmd = "$(execpath :vk_synchronization_helpers_gen) --xml $(execpath src/vulkan/registry/vk.xml) --out-c $(execpath src/vulkan/runtime/vk_synchronization_helpers.c) --beta false",
     tools = [":vk_synchronization_helpers_gen"],
 )
 
@@ -5548,8 +5523,6 @@ cc_library(
         ":include_directory_src_compiler_nir",
         ":include_directory_src_vulkan_runtime",
         ":include_directory_src_vulkan_runtime_bvh",
-        ":include_directory_src_vulkan_runtime_radix_sort",
-        ":include_directory_src_vulkan_runtime_radix_sort_shaders",
         ":include_directory_src_vulkan_util",
         ":mesa_util",
         ":mesa_util_c11",
@@ -5566,20 +5539,6 @@ cc_library(
     name = "vulkan_runtime",
     srcs = [
         "src/compiler/spirv/spirv_info.h",
-        "src/vulkan/runtime/radix_sort/common/macros.h",
-        "src/vulkan/runtime/radix_sort/common/util.c",
-        "src/vulkan/runtime/radix_sort/common/util.h",
-        "src/vulkan/runtime/radix_sort/common/vk/barrier.c",
-        "src/vulkan/runtime/radix_sort/common/vk/barrier.h",
-        "src/vulkan/runtime/radix_sort/radix_sort_u64.c",
-        "src/vulkan/runtime/radix_sort/radix_sort_u64.h",
-        "src/vulkan/runtime/radix_sort/radix_sort_u96.c",
-        "src/vulkan/runtime/radix_sort/radix_sort_vk.c",
-        "src/vulkan/runtime/radix_sort/radix_sort_vk.h",
-        "src/vulkan/runtime/radix_sort/radix_sort_vk_devaddr.h",
-        "src/vulkan/runtime/radix_sort/radix_sort_vk_ext.h",
-        "src/vulkan/runtime/radix_sort/shaders/push.h",
-        "src/vulkan/runtime/radix_sort/target.h",
         "src/vulkan/runtime/vk_acceleration_structure.c",
         "src/vulkan/runtime/vk_meta.c",
         "src/vulkan/runtime/vk_meta_blit_resolve.c",
@@ -5602,14 +5561,14 @@ cc_library(
         "src/vulkan/util/vk_struct_type_cast.h",
         ":gen_astc_spv_h",
         ":gen_builtin_types_h",
-        ":gen_fill_spv_h",
         ":gen_hploc_internal_spv_h",
         ":gen_id_prefix_sum_spv_h",
         ":gen_ir_expression_operation_h",
         ":gen_lbvh_generate_ir_spv_h",
         ":gen_lbvh_main_spv_h",
         ":gen_leaf_spv_h",
-        ":gen_morton_spv_h",
+        ":gen_morton_sort_32_spv_h",
+        ":gen_morton_sort_64_spv_h",
         ":gen_nir_builder_opcodes_h",
         ":gen_nir_intrinsics_h",
         ":gen_nir_intrinsics_indices_h",
@@ -5617,22 +5576,6 @@ cc_library(
         ":gen_pair_triangles_spv_h",
         ":gen_ploc_internal_spv_h",
         ":gen_shader_stats_h",
-        ":gen_u64_histogram_spv_h",
-        ":gen_u64_init_spv_h",
-        ":gen_u64_prefix_spv_h",
-        ":gen_u64_scatter_0_even_spv_h",
-        ":gen_u64_scatter_0_odd_spv_h",
-        ":gen_u64_scatter_1_even_spv_h",
-        ":gen_u64_scatter_1_odd_spv_h",
-        ":gen_u96_histogram_spv_h",
-        ":gen_u96_init_spv_h",
-        ":gen_u96_prefix_spv_h",
-        ":gen_u96_scatter_0_even_spv_h",
-        ":gen_u96_scatter_0_odd_spv_h",
-        ":gen_u96_scatter_1_even_spv_h",
-        ":gen_u96_scatter_1_odd_spv_h",
-        ":gen_u96_scatter_2_even_spv_h",
-        ":gen_u96_scatter_2_odd_spv_h",
         ":gen_u_format_gen_h",
     ],
     hdrs = [
@@ -5754,8 +5697,6 @@ cc_library(
         ":include_directory_src_compiler_nir",
         ":include_directory_src_vulkan_runtime",
         ":include_directory_src_vulkan_runtime_bvh",
-        ":include_directory_src_vulkan_runtime_radix_sort",
-        ":include_directory_src_vulkan_runtime_radix_sort_shaders",
         ":include_directory_src_vulkan_util",
         ":mesa_util",
         ":mesa_util_c11",
@@ -5780,7 +5721,7 @@ genrule(
         "src/vulkan/runtime/vk_cmd_queue.c",
         "src/vulkan/runtime/vk_cmd_queue.h",
     ],
-    cmd = "$(location :vk_cmd_queue_gen) --xml $(location src/vulkan/registry/vk.xml) --out-c $(location src/vulkan/runtime/vk_cmd_queue.c) --out-h $(location src/vulkan/runtime/vk_cmd_queue.h) --beta false",
+    cmd = "$(execpath :vk_cmd_queue_gen) --xml $(execpath src/vulkan/registry/vk.xml) --out-c $(execpath src/vulkan/runtime/vk_cmd_queue.c) --out-h $(execpath src/vulkan/runtime/vk_cmd_queue.h) --beta false",
     tools = [":vk_cmd_queue_gen"],
 )
 
@@ -5826,7 +5767,7 @@ genrule(
         "src/vulkan/runtime/vk_common_entrypoints.h",
         "src/vulkan/runtime/vk_common_entrypoints.c",
     ],
-    cmd = "$(location :vk_entrypoints_gen) --xml $(location src/vulkan/registry/vk.xml) --proto --weak --out-h $(location src/vulkan/runtime/vk_common_entrypoints.h) --out-c $(location src/vulkan/runtime/vk_common_entrypoints.c) --prefix vk_common --beta false",
+    cmd = "$(execpath :vk_entrypoints_gen) --xml $(execpath src/vulkan/registry/vk.xml) --proto --weak --out-h $(execpath src/vulkan/runtime/vk_common_entrypoints.h) --out-c $(execpath src/vulkan/runtime/vk_common_entrypoints.c) --prefix vk_common --beta false",
     tools = [":vk_entrypoints_gen"],
 )
 
@@ -5837,7 +5778,7 @@ genrule(
         "src/vulkan/runtime/vk_format_info.c",
         "src/vulkan/runtime/vk_format_info.h",
     ],
-    cmd = "$(location :vk_format_info_gen) --xml $(location src/vulkan/registry/vk.xml) --out-c $(location src/vulkan/runtime/vk_format_info.c) --out-h $(location src/vulkan/runtime/vk_format_info.h)",
+    cmd = "$(execpath :vk_format_info_gen) --xml $(execpath src/vulkan/registry/vk.xml) --out-c $(execpath src/vulkan/runtime/vk_format_info.c) --out-h $(execpath src/vulkan/runtime/vk_format_info.h)",
     tools = [":vk_format_info_gen"],
 )
 
@@ -5979,8 +5920,6 @@ cc_library(
         ":include_directory_src_compiler_nir",
         ":include_directory_src_vulkan_runtime",
         ":include_directory_src_vulkan_runtime_bvh",
-        ":include_directory_src_vulkan_runtime_radix_sort",
-        ":include_directory_src_vulkan_runtime_radix_sort_shaders",
         ":include_directory_src_vulkan_util",
         ":mesa_util",
         ":mesa_util_c11",
@@ -5995,7 +5934,7 @@ genrule(
     name = "gen_astc_spv_h",
     srcs = ["src/compiler/glsl/astc_decoder.glsl"],
     outs = ["src/vulkan/runtime/astc_spv.h"],
-    cmd = "$(location @glslang//:glslangValidator) -V -S comp -x -o $(location src/vulkan/runtime/astc_spv.h) $(location src/compiler/glsl/astc_decoder.glsl) --quiet --depfile @DEPFILE@ -I.",
+    cmd = "$(execpath @glslang//:glslangValidator) -V -S comp -x -o $(execpath src/vulkan/runtime/astc_spv.h) $(execpath src/compiler/glsl/astc_decoder.glsl) --quiet --depfile @DEPFILE@ -I.",
     tools = ["@glslang//:glslangValidator"],
 )
 
@@ -6023,6 +5962,7 @@ cc_library(
         "src/vulkan/runtime/vk_device_memory.c",
         "src/vulkan/runtime/vk_drm_syncobj.c",
         "src/vulkan/runtime/vk_fence.c",
+        "src/vulkan/runtime/vk_frame_pacer.c",
         "src/vulkan/runtime/vk_framebuffer.c",
         "src/vulkan/runtime/vk_graphics_state.c",
         "src/vulkan/runtime/vk_image.c",
@@ -6186,8 +6126,6 @@ cc_library(
         ":include_directory_src_compiler_nir",
         ":include_directory_src_vulkan_runtime",
         ":include_directory_src_vulkan_runtime_bvh",
-        ":include_directory_src_vulkan_runtime_radix_sort",
-        ":include_directory_src_vulkan_runtime_radix_sort_shaders",
         ":include_directory_src_vulkan_util",
         ":include_directory_src_vulkan_wsi",
         ":mesa_util",
@@ -6208,7 +6146,7 @@ genrule(
         "src/vulkan/util/vk_physical_device_spirv_caps_gen.py",
     ],
     outs = ["src/vulkan/runtime/vk_physical_device_spirv_caps.c"],
-    cmd = "$(location :vk_physical_device_spirv_caps_gen) --xml $(location src/vulkan/registry/vk.xml) --out-c $(location src/vulkan/runtime/vk_physical_device_spirv_caps.c) --beta false",
+    cmd = "$(execpath :vk_physical_device_spirv_caps_gen) --xml $(execpath src/vulkan/registry/vk.xml) --out-c $(execpath src/vulkan/runtime/vk_physical_device_spirv_caps.c) --beta false",
     tools = [":vk_physical_device_spirv_caps_gen"],
 )
 
@@ -6223,7 +6161,7 @@ genrule(
         "src/vulkan/runtime/vk_physical_device_features.c",
         "src/vulkan/runtime/vk_physical_device_features.h",
     ],
-    cmd = "$(location :vk_physical_device_features_gen) --xml $(location src/vulkan/registry/vk.xml) --out-c $(location src/vulkan/runtime/vk_physical_device_features.c) --out-h $(location src/vulkan/runtime/vk_physical_device_features.h) --beta false",
+    cmd = "$(execpath :vk_physical_device_features_gen) --xml $(execpath src/vulkan/registry/vk.xml) --out-c $(execpath src/vulkan/runtime/vk_physical_device_features.c) --out-h $(execpath src/vulkan/runtime/vk_physical_device_features.h) --beta false",
     tools = [":vk_physical_device_features_gen"],
 )
 
@@ -6239,7 +6177,7 @@ genrule(
         "src/vulkan/runtime/vk_cmd_enqueue_entrypoints.h",
         "src/vulkan/runtime/vk_cmd_enqueue_entrypoints.c",
     ],
-    cmd = "$(location :vk_entrypoints_gen) --xml $(location src/vulkan/registry/vk.xml) --proto --weak --out-h $(location src/vulkan/runtime/vk_cmd_enqueue_entrypoints.h) --out-c $(location src/vulkan/runtime/vk_cmd_enqueue_entrypoints.c) --prefix vk_cmd_enqueue --prefix vk_cmd_enqueue_unless_primary --beta false",
+    cmd = "$(execpath :vk_entrypoints_gen) --xml $(execpath src/vulkan/registry/vk.xml) --proto --weak --out-h $(execpath src/vulkan/runtime/vk_cmd_enqueue_entrypoints.h) --out-c $(execpath src/vulkan/runtime/vk_cmd_enqueue_entrypoints.c) --prefix vk_cmd_enqueue --prefix vk_cmd_enqueue_unless_primary --beta false",
     tools = [":vk_entrypoints_gen"],
 )
 
@@ -6255,7 +6193,7 @@ genrule(
         "src/vulkan/runtime/bvh/vk_debug.h",
     ],
     outs = ["src/vulkan/runtime/bvh/pair_triangles.spv.h"],
-    cmd = "$(location @glslang//:glslangValidator) -V -Isrc/vulkan/runtime/bvh -Isrc/compiler/spirv --target-env spirv1.5 -x -o $(location src/vulkan/runtime/bvh/pair_triangles.spv.h) $(location src/vulkan/runtime/bvh/pair_triangles.comp) --quiet '-P#extension GL_GOOGLE_include_directive : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int16 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int32 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require' '-P#extension GL_EXT_scalar_block_layout : require' '-P#extension GL_EXT_buffer_reference : require' '-P#extension GL_EXT_buffer_reference2 : require' '-P#extension GL_KHR_memory_scope_semantics : require' '-P#extension GL_KHR_shader_subgroup_arithmetic : require' '-P#extension GL_KHR_shader_subgroup_basic : require' '-P#extension GL_KHR_shader_subgroup_shuffle : require' '-P#extension GL_KHR_shader_subgroup_ballot : require' '-P#extension GL_KHR_shader_subgroup_clustered : require' '-P#extension GL_KHR_shader_subgroup_vote : require' '-P#extension GL_EXT_shader_atomic_int64 : require' '-P#extension GL_EXT_spirv_intrinsics : require' -I.",
+    cmd = "$(execpath @glslang//:glslangValidator) -V -Isrc/vulkan/runtime/bvh -Isrc/compiler/spirv --target-env spirv1.5 -x -o $(execpath src/vulkan/runtime/bvh/pair_triangles.spv.h) $(execpath src/vulkan/runtime/bvh/pair_triangles.comp) --quiet '-P#extension GL_GOOGLE_include_directive : require' '-P#extension GL_EXT_control_flow_attributes : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int16 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int32 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require' '-P#extension GL_EXT_scalar_block_layout : require' '-P#extension GL_EXT_buffer_reference : require' '-P#extension GL_EXT_buffer_reference2 : require' '-P#extension GL_KHR_memory_scope_semantics : require' '-P#extension GL_KHR_shader_subgroup_arithmetic : require' '-P#extension GL_KHR_shader_subgroup_basic : require' '-P#extension GL_KHR_shader_subgroup_shuffle : require' '-P#extension GL_KHR_shader_subgroup_ballot : require' '-P#extension GL_KHR_shader_subgroup_clustered : require' '-P#extension GL_KHR_shader_subgroup_vote : require' '-P#extension GL_EXT_shader_atomic_int64 : require' '-P#extension GL_EXT_spirv_intrinsics : require' '-P#extension GL_EXT_shared_memory_block : require' -I.",
     tools = ["@glslang//:glslangValidator"],
 )
 
@@ -6280,7 +6218,8 @@ cc_library(
         ":gen_lbvh_generate_ir_spv_h",
         ":gen_lbvh_main_spv_h",
         ":gen_leaf_spv_h",
-        ":gen_morton_spv_h",
+        ":gen_morton_sort_32_spv_h",
+        ":gen_morton_sort_64_spv_h",
         ":gen_pair_triangles_spv_h",
         ":gen_ploc_internal_spv_h",
         ":gen_hploc_internal_spv_h",
@@ -6300,7 +6239,7 @@ genrule(
         "src/vulkan/runtime/bvh/vk_debug.h",
     ],
     outs = ["src/vulkan/runtime/bvh/leaf.spv.h"],
-    cmd = "$(location @glslang//:glslangValidator) -V -Isrc/vulkan/runtime/bvh -Isrc/compiler/spirv --target-env spirv1.5 -x -o $(location src/vulkan/runtime/bvh/leaf.spv.h) $(location src/vulkan/runtime/bvh/leaf.comp) --quiet '-P#extension GL_GOOGLE_include_directive : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int16 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int32 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require' '-P#extension GL_EXT_scalar_block_layout : require' '-P#extension GL_EXT_buffer_reference : require' '-P#extension GL_EXT_buffer_reference2 : require' '-P#extension GL_KHR_memory_scope_semantics : require' '-P#extension GL_KHR_shader_subgroup_arithmetic : require' '-P#extension GL_KHR_shader_subgroup_basic : require' '-P#extension GL_KHR_shader_subgroup_shuffle : require' '-P#extension GL_KHR_shader_subgroup_ballot : require' '-P#extension GL_KHR_shader_subgroup_clustered : require' '-P#extension GL_KHR_shader_subgroup_vote : require' '-P#extension GL_EXT_shader_atomic_int64 : require' '-P#extension GL_EXT_spirv_intrinsics : require' -I.",
+    cmd = "$(execpath @glslang//:glslangValidator) -V -Isrc/vulkan/runtime/bvh -Isrc/compiler/spirv --target-env spirv1.5 -x -o $(execpath src/vulkan/runtime/bvh/leaf.spv.h) $(execpath src/vulkan/runtime/bvh/leaf.comp) --quiet '-P#extension GL_GOOGLE_include_directive : require' '-P#extension GL_EXT_control_flow_attributes : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int16 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int32 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require' '-P#extension GL_EXT_scalar_block_layout : require' '-P#extension GL_EXT_buffer_reference : require' '-P#extension GL_EXT_buffer_reference2 : require' '-P#extension GL_KHR_memory_scope_semantics : require' '-P#extension GL_KHR_shader_subgroup_arithmetic : require' '-P#extension GL_KHR_shader_subgroup_basic : require' '-P#extension GL_KHR_shader_subgroup_shuffle : require' '-P#extension GL_KHR_shader_subgroup_ballot : require' '-P#extension GL_KHR_shader_subgroup_clustered : require' '-P#extension GL_KHR_shader_subgroup_vote : require' '-P#extension GL_EXT_shader_atomic_int64 : require' '-P#extension GL_EXT_spirv_intrinsics : require' '-P#extension GL_EXT_shared_memory_block : require' -I.",
     tools = ["@glslang//:glslangValidator"],
 )
 
@@ -6316,23 +6255,39 @@ genrule(
         "src/vulkan/runtime/bvh/vk_debug.h",
     ],
     outs = ["src/vulkan/runtime/bvh/id_prefix_sum.spv.h"],
-    cmd = "$(location @glslang//:glslangValidator) -V -Isrc/vulkan/runtime/bvh -Isrc/compiler/spirv --target-env spirv1.5 -x -o $(location src/vulkan/runtime/bvh/id_prefix_sum.spv.h) $(location src/vulkan/runtime/bvh/id_prefix_sum.comp) --quiet '-P#extension GL_GOOGLE_include_directive : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int16 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int32 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require' '-P#extension GL_EXT_scalar_block_layout : require' '-P#extension GL_EXT_buffer_reference : require' '-P#extension GL_EXT_buffer_reference2 : require' '-P#extension GL_KHR_memory_scope_semantics : require' '-P#extension GL_KHR_shader_subgroup_arithmetic : require' '-P#extension GL_KHR_shader_subgroup_basic : require' '-P#extension GL_KHR_shader_subgroup_shuffle : require' '-P#extension GL_KHR_shader_subgroup_ballot : require' '-P#extension GL_KHR_shader_subgroup_clustered : require' '-P#extension GL_KHR_shader_subgroup_vote : require' '-P#extension GL_EXT_shader_atomic_int64 : require' '-P#extension GL_EXT_spirv_intrinsics : require' -I.",
+    cmd = "$(execpath @glslang//:glslangValidator) -V -Isrc/vulkan/runtime/bvh -Isrc/compiler/spirv --target-env spirv1.5 -x -o $(execpath src/vulkan/runtime/bvh/id_prefix_sum.spv.h) $(execpath src/vulkan/runtime/bvh/id_prefix_sum.comp) --quiet '-P#extension GL_GOOGLE_include_directive : require' '-P#extension GL_EXT_control_flow_attributes : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int16 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int32 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require' '-P#extension GL_EXT_scalar_block_layout : require' '-P#extension GL_EXT_buffer_reference : require' '-P#extension GL_EXT_buffer_reference2 : require' '-P#extension GL_KHR_memory_scope_semantics : require' '-P#extension GL_KHR_shader_subgroup_arithmetic : require' '-P#extension GL_KHR_shader_subgroup_basic : require' '-P#extension GL_KHR_shader_subgroup_shuffle : require' '-P#extension GL_KHR_shader_subgroup_ballot : require' '-P#extension GL_KHR_shader_subgroup_clustered : require' '-P#extension GL_KHR_shader_subgroup_vote : require' '-P#extension GL_EXT_shader_atomic_int64 : require' '-P#extension GL_EXT_spirv_intrinsics : require' '-P#extension GL_EXT_shared_memory_block : require' -I.",
     tools = ["@glslang//:glslangValidator"],
 )
 
 genrule(
-    name = "gen_morton_spv_h",
+    name = "gen_morton_sort_32_spv_h",
     srcs = [
         "src/compiler/spirv/spirv_internal_exts.h",
         "src/vulkan/runtime/bvh/leaf.h",
-        "src/vulkan/runtime/bvh/morton.comp",
+        "src/vulkan/runtime/bvh/morton_sort.comp",
         "src/vulkan/runtime/bvh/pair_triangles.h",
         "src/vulkan/runtime/bvh/vk_bvh_defines.h",
         "src/vulkan/runtime/bvh/vk_bvh_helpers.h",
         "src/vulkan/runtime/bvh/vk_debug.h",
     ],
-    outs = ["src/vulkan/runtime/bvh/morton.spv.h"],
-    cmd = "$(location @glslang//:glslangValidator) -V -Isrc/vulkan/runtime/bvh -Isrc/compiler/spirv --target-env spirv1.5 -x -o $(location src/vulkan/runtime/bvh/morton.spv.h) $(location src/vulkan/runtime/bvh/morton.comp) --quiet '-P#extension GL_GOOGLE_include_directive : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int16 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int32 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require' '-P#extension GL_EXT_scalar_block_layout : require' '-P#extension GL_EXT_buffer_reference : require' '-P#extension GL_EXT_buffer_reference2 : require' '-P#extension GL_KHR_memory_scope_semantics : require' '-P#extension GL_KHR_shader_subgroup_arithmetic : require' '-P#extension GL_KHR_shader_subgroup_basic : require' '-P#extension GL_KHR_shader_subgroup_shuffle : require' '-P#extension GL_KHR_shader_subgroup_ballot : require' '-P#extension GL_KHR_shader_subgroup_clustered : require' '-P#extension GL_KHR_shader_subgroup_vote : require' '-P#extension GL_EXT_shader_atomic_int64 : require' '-P#extension GL_EXT_spirv_intrinsics : require' -I.",
+    outs = ["src/vulkan/runtime/bvh/morton_sort_32.spv.h"],
+    cmd = "$(execpath @glslang//:glslangValidator) -V -Isrc/vulkan/runtime/bvh -Isrc/compiler/spirv --target-env spirv1.5 -x -o $(execpath src/vulkan/runtime/bvh/morton_sort_32.spv.h) $(execpath src/vulkan/runtime/bvh/morton_sort.comp) --quiet '-P#extension GL_GOOGLE_include_directive : require' '-P#extension GL_EXT_control_flow_attributes : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int16 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int32 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require' '-P#extension GL_EXT_scalar_block_layout : require' '-P#extension GL_EXT_buffer_reference : require' '-P#extension GL_EXT_buffer_reference2 : require' '-P#extension GL_KHR_memory_scope_semantics : require' '-P#extension GL_KHR_shader_subgroup_arithmetic : require' '-P#extension GL_KHR_shader_subgroup_basic : require' '-P#extension GL_KHR_shader_subgroup_shuffle : require' '-P#extension GL_KHR_shader_subgroup_ballot : require' '-P#extension GL_KHR_shader_subgroup_clustered : require' '-P#extension GL_KHR_shader_subgroup_vote : require' '-P#extension GL_EXT_shader_atomic_int64 : require' '-P#extension GL_EXT_spirv_intrinsics : require' '-P#extension GL_EXT_shared_memory_block : require' -I.",
+    tools = ["@glslang//:glslangValidator"],
+)
+
+genrule(
+    name = "gen_morton_sort_64_spv_h",
+    srcs = [
+        "src/compiler/spirv/spirv_internal_exts.h",
+        "src/vulkan/runtime/bvh/leaf.h",
+        "src/vulkan/runtime/bvh/morton_sort.comp",
+        "src/vulkan/runtime/bvh/pair_triangles.h",
+        "src/vulkan/runtime/bvh/vk_bvh_defines.h",
+        "src/vulkan/runtime/bvh/vk_bvh_helpers.h",
+        "src/vulkan/runtime/bvh/vk_debug.h",
+    ],
+    outs = ["src/vulkan/runtime/bvh/morton_sort_64.spv.h"],
+    cmd = "$(execpath @glslang//:glslangValidator) -V -Isrc/vulkan/runtime/bvh -Isrc/compiler/spirv --target-env spirv1.5 -x -o $(execpath src/vulkan/runtime/bvh/morton_sort_64.spv.h) $(execpath src/vulkan/runtime/bvh/morton_sort.comp) --quiet '-P#extension GL_GOOGLE_include_directive : require' '-P#extension GL_EXT_control_flow_attributes : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int16 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int32 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require' '-P#extension GL_EXT_scalar_block_layout : require' '-P#extension GL_EXT_buffer_reference : require' '-P#extension GL_EXT_buffer_reference2 : require' '-P#extension GL_KHR_memory_scope_semantics : require' '-P#extension GL_KHR_shader_subgroup_arithmetic : require' '-P#extension GL_KHR_shader_subgroup_basic : require' '-P#extension GL_KHR_shader_subgroup_shuffle : require' '-P#extension GL_KHR_shader_subgroup_ballot : require' '-P#extension GL_KHR_shader_subgroup_clustered : require' '-P#extension GL_KHR_shader_subgroup_vote : require' '-P#extension GL_EXT_shader_atomic_int64 : require' '-P#extension GL_EXT_spirv_intrinsics : require' '-P#extension GL_EXT_shared_memory_block : require' -DMORTON_SORT_KEY64=1 -I.",
     tools = ["@glslang//:glslangValidator"],
 )
 
@@ -6348,7 +6303,7 @@ genrule(
         "src/vulkan/runtime/bvh/vk_debug.h",
     ],
     outs = ["src/vulkan/runtime/bvh/hploc_internal.spv.h"],
-    cmd = "$(location @glslang//:glslangValidator) -V -Isrc/vulkan/runtime/bvh -Isrc/compiler/spirv --target-env spirv1.5 -x -o $(location src/vulkan/runtime/bvh/hploc_internal.spv.h) $(location src/vulkan/runtime/bvh/hploc_internal.comp) --quiet '-P#extension GL_GOOGLE_include_directive : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int16 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int32 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require' '-P#extension GL_EXT_scalar_block_layout : require' '-P#extension GL_EXT_buffer_reference : require' '-P#extension GL_EXT_buffer_reference2 : require' '-P#extension GL_KHR_memory_scope_semantics : require' '-P#extension GL_KHR_shader_subgroup_arithmetic : require' '-P#extension GL_KHR_shader_subgroup_basic : require' '-P#extension GL_KHR_shader_subgroup_shuffle : require' '-P#extension GL_KHR_shader_subgroup_ballot : require' '-P#extension GL_KHR_shader_subgroup_clustered : require' '-P#extension GL_KHR_shader_subgroup_vote : require' '-P#extension GL_EXT_shader_atomic_int64 : require' '-P#extension GL_EXT_spirv_intrinsics : require' -I.",
+    cmd = "$(execpath @glslang//:glslangValidator) -V -Isrc/vulkan/runtime/bvh -Isrc/compiler/spirv --target-env spirv1.5 -x -o $(execpath src/vulkan/runtime/bvh/hploc_internal.spv.h) $(execpath src/vulkan/runtime/bvh/hploc_internal.comp) --quiet '-P#extension GL_GOOGLE_include_directive : require' '-P#extension GL_EXT_control_flow_attributes : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int16 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int32 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require' '-P#extension GL_EXT_scalar_block_layout : require' '-P#extension GL_EXT_buffer_reference : require' '-P#extension GL_EXT_buffer_reference2 : require' '-P#extension GL_KHR_memory_scope_semantics : require' '-P#extension GL_KHR_shader_subgroup_arithmetic : require' '-P#extension GL_KHR_shader_subgroup_basic : require' '-P#extension GL_KHR_shader_subgroup_shuffle : require' '-P#extension GL_KHR_shader_subgroup_ballot : require' '-P#extension GL_KHR_shader_subgroup_clustered : require' '-P#extension GL_KHR_shader_subgroup_vote : require' '-P#extension GL_EXT_shader_atomic_int64 : require' '-P#extension GL_EXT_spirv_intrinsics : require' '-P#extension GL_EXT_shared_memory_block : require' -I.",
     tools = ["@glslang//:glslangValidator"],
 )
 
@@ -6364,7 +6319,7 @@ genrule(
         "src/vulkan/runtime/bvh/vk_debug.h",
     ],
     outs = ["src/vulkan/runtime/bvh/lbvh_generate_ir.spv.h"],
-    cmd = "$(location @glslang//:glslangValidator) -V -Isrc/vulkan/runtime/bvh -Isrc/compiler/spirv --target-env spirv1.5 -x -o $(location src/vulkan/runtime/bvh/lbvh_generate_ir.spv.h) $(location src/vulkan/runtime/bvh/lbvh_generate_ir.comp) --quiet '-P#extension GL_GOOGLE_include_directive : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int16 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int32 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require' '-P#extension GL_EXT_scalar_block_layout : require' '-P#extension GL_EXT_buffer_reference : require' '-P#extension GL_EXT_buffer_reference2 : require' '-P#extension GL_KHR_memory_scope_semantics : require' '-P#extension GL_KHR_shader_subgroup_arithmetic : require' '-P#extension GL_KHR_shader_subgroup_basic : require' '-P#extension GL_KHR_shader_subgroup_shuffle : require' '-P#extension GL_KHR_shader_subgroup_ballot : require' '-P#extension GL_KHR_shader_subgroup_clustered : require' '-P#extension GL_KHR_shader_subgroup_vote : require' '-P#extension GL_EXT_shader_atomic_int64 : require' '-P#extension GL_EXT_spirv_intrinsics : require' -I.",
+    cmd = "$(execpath @glslang//:glslangValidator) -V -Isrc/vulkan/runtime/bvh -Isrc/compiler/spirv --target-env spirv1.5 -x -o $(execpath src/vulkan/runtime/bvh/lbvh_generate_ir.spv.h) $(execpath src/vulkan/runtime/bvh/lbvh_generate_ir.comp) --quiet '-P#extension GL_GOOGLE_include_directive : require' '-P#extension GL_EXT_control_flow_attributes : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int16 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int32 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require' '-P#extension GL_EXT_scalar_block_layout : require' '-P#extension GL_EXT_buffer_reference : require' '-P#extension GL_EXT_buffer_reference2 : require' '-P#extension GL_KHR_memory_scope_semantics : require' '-P#extension GL_KHR_shader_subgroup_arithmetic : require' '-P#extension GL_KHR_shader_subgroup_basic : require' '-P#extension GL_KHR_shader_subgroup_shuffle : require' '-P#extension GL_KHR_shader_subgroup_ballot : require' '-P#extension GL_KHR_shader_subgroup_clustered : require' '-P#extension GL_KHR_shader_subgroup_vote : require' '-P#extension GL_EXT_shader_atomic_int64 : require' '-P#extension GL_EXT_spirv_intrinsics : require' '-P#extension GL_EXT_shared_memory_block : require' -I.",
     tools = ["@glslang//:glslangValidator"],
 )
 
@@ -6380,7 +6335,7 @@ genrule(
         "src/vulkan/runtime/bvh/vk_debug.h",
     ],
     outs = ["src/vulkan/runtime/bvh/lbvh_main.spv.h"],
-    cmd = "$(location @glslang//:glslangValidator) -V -Isrc/vulkan/runtime/bvh -Isrc/compiler/spirv --target-env spirv1.5 -x -o $(location src/vulkan/runtime/bvh/lbvh_main.spv.h) $(location src/vulkan/runtime/bvh/lbvh_main.comp) --quiet '-P#extension GL_GOOGLE_include_directive : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int16 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int32 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require' '-P#extension GL_EXT_scalar_block_layout : require' '-P#extension GL_EXT_buffer_reference : require' '-P#extension GL_EXT_buffer_reference2 : require' '-P#extension GL_KHR_memory_scope_semantics : require' '-P#extension GL_KHR_shader_subgroup_arithmetic : require' '-P#extension GL_KHR_shader_subgroup_basic : require' '-P#extension GL_KHR_shader_subgroup_shuffle : require' '-P#extension GL_KHR_shader_subgroup_ballot : require' '-P#extension GL_KHR_shader_subgroup_clustered : require' '-P#extension GL_KHR_shader_subgroup_vote : require' '-P#extension GL_EXT_shader_atomic_int64 : require' '-P#extension GL_EXT_spirv_intrinsics : require' -I.",
+    cmd = "$(execpath @glslang//:glslangValidator) -V -Isrc/vulkan/runtime/bvh -Isrc/compiler/spirv --target-env spirv1.5 -x -o $(execpath src/vulkan/runtime/bvh/lbvh_main.spv.h) $(execpath src/vulkan/runtime/bvh/lbvh_main.comp) --quiet '-P#extension GL_GOOGLE_include_directive : require' '-P#extension GL_EXT_control_flow_attributes : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int16 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int32 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require' '-P#extension GL_EXT_scalar_block_layout : require' '-P#extension GL_EXT_buffer_reference : require' '-P#extension GL_EXT_buffer_reference2 : require' '-P#extension GL_KHR_memory_scope_semantics : require' '-P#extension GL_KHR_shader_subgroup_arithmetic : require' '-P#extension GL_KHR_shader_subgroup_basic : require' '-P#extension GL_KHR_shader_subgroup_shuffle : require' '-P#extension GL_KHR_shader_subgroup_ballot : require' '-P#extension GL_KHR_shader_subgroup_clustered : require' '-P#extension GL_KHR_shader_subgroup_vote : require' '-P#extension GL_EXT_shader_atomic_int64 : require' '-P#extension GL_EXT_spirv_intrinsics : require' '-P#extension GL_EXT_shared_memory_block : require' -I.",
     tools = ["@glslang//:glslangValidator"],
 )
 
@@ -6396,337 +6351,7 @@ genrule(
         "src/vulkan/runtime/bvh/vk_debug.h",
     ],
     outs = ["src/vulkan/runtime/bvh/ploc_internal.spv.h"],
-    cmd = "$(location @glslang//:glslangValidator) -V -Isrc/vulkan/runtime/bvh -Isrc/compiler/spirv --target-env spirv1.5 -x -o $(location src/vulkan/runtime/bvh/ploc_internal.spv.h) $(location src/vulkan/runtime/bvh/ploc_internal.comp) --quiet '-P#extension GL_GOOGLE_include_directive : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int16 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int32 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require' '-P#extension GL_EXT_scalar_block_layout : require' '-P#extension GL_EXT_buffer_reference : require' '-P#extension GL_EXT_buffer_reference2 : require' '-P#extension GL_KHR_memory_scope_semantics : require' '-P#extension GL_KHR_shader_subgroup_arithmetic : require' '-P#extension GL_KHR_shader_subgroup_basic : require' '-P#extension GL_KHR_shader_subgroup_shuffle : require' '-P#extension GL_KHR_shader_subgroup_ballot : require' '-P#extension GL_KHR_shader_subgroup_clustered : require' '-P#extension GL_KHR_shader_subgroup_vote : require' '-P#extension GL_EXT_shader_atomic_int64 : require' '-P#extension GL_EXT_spirv_intrinsics : require' -I.",
-    tools = ["@glslang//:glslangValidator"],
-)
-
-cc_library(
-    name = "include_directory_src_vulkan_runtime_radix_sort",
-    copts = [
-        "-Wno-string-conversion",
-        "-Wno-unused-variable",
-        "-Wno-return-type",
-        "-Wno-sometimes-uninitialized",
-    ],
-    features = [
-        "-layering_check",
-        "-parse_headers",
-    ],
-    includes = ["src/vulkan/runtime/radix_sort/."],
-    textual_hdrs = glob(
-        ["src/vulkan/runtime/radix_sort/**/*.h"],
-        allow_empty = True,
-    ),
-    visibility = ["//visibility:public"],
-)
-
-genrule(
-    name = "gen_u64_scatter_0_odd_spv_h",
-    srcs = [
-        "src/vulkan/runtime/radix_sort/shaders/bufref.h",
-        "src/vulkan/runtime/radix_sort/shaders/config.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix_limits.h",
-        "src/vulkan/runtime/radix_sort/shaders/push.h",
-        "src/vulkan/runtime/radix_sort/shaders/scatter.glsl",
-        "src/vulkan/runtime/radix_sort/shaders/scatter_0_odd.comp",
-    ],
-    outs = ["src/vulkan/runtime/radix_sort/shaders/u64_scatter_0_odd.spv.h"],
-    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u64_scatter_0_odd.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/scatter_0_odd.comp) -DRS_KEYVAL_DWORDS=2 --quiet -I.",
-    tools = ["@glslang//:glslangValidator"],
-)
-
-genrule(
-    name = "gen_u96_scatter_2_odd_spv_h",
-    srcs = [
-        "src/vulkan/runtime/radix_sort/shaders/bufref.h",
-        "src/vulkan/runtime/radix_sort/shaders/config.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix_limits.h",
-        "src/vulkan/runtime/radix_sort/shaders/push.h",
-        "src/vulkan/runtime/radix_sort/shaders/scatter.glsl",
-        "src/vulkan/runtime/radix_sort/shaders/scatter_2_odd.comp",
-    ],
-    outs = ["src/vulkan/runtime/radix_sort/shaders/u96_scatter_2_odd.spv.h"],
-    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u96_scatter_2_odd.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/scatter_2_odd.comp) -DRS_KEYVAL_DWORDS=3 --quiet -I.",
-    tools = ["@glslang//:glslangValidator"],
-)
-
-genrule(
-    name = "gen_fill_spv_h",
-    srcs = [
-        "src/vulkan/runtime/radix_sort/shaders/bufref.h",
-        "src/vulkan/runtime/radix_sort/shaders/config.h",
-        "src/vulkan/runtime/radix_sort/shaders/fill.comp",
-        "src/vulkan/runtime/radix_sort/shaders/prefix.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix_limits.h",
-        "src/vulkan/runtime/radix_sort/shaders/push.h",
-        "src/vulkan/runtime/radix_sort/shaders/scatter.glsl",
-    ],
-    outs = ["src/vulkan/runtime/radix_sort/shaders/fill.spv.h"],
-    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/fill.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/fill.comp) --quiet -I.",
-    tools = ["@glslang//:glslangValidator"],
-)
-
-genrule(
-    name = "gen_u64_histogram_spv_h",
-    srcs = [
-        "src/vulkan/runtime/radix_sort/shaders/bufref.h",
-        "src/vulkan/runtime/radix_sort/shaders/config.h",
-        "src/vulkan/runtime/radix_sort/shaders/histogram.comp",
-        "src/vulkan/runtime/radix_sort/shaders/prefix.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix_limits.h",
-        "src/vulkan/runtime/radix_sort/shaders/push.h",
-        "src/vulkan/runtime/radix_sort/shaders/scatter.glsl",
-    ],
-    outs = ["src/vulkan/runtime/radix_sort/shaders/u64_histogram.spv.h"],
-    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u64_histogram.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/histogram.comp) -DRS_KEYVAL_DWORDS=2 --quiet -I.",
-    tools = ["@glslang//:glslangValidator"],
-)
-
-genrule(
-    name = "gen_u96_scatter_1_even_spv_h",
-    srcs = [
-        "src/vulkan/runtime/radix_sort/shaders/bufref.h",
-        "src/vulkan/runtime/radix_sort/shaders/config.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix_limits.h",
-        "src/vulkan/runtime/radix_sort/shaders/push.h",
-        "src/vulkan/runtime/radix_sort/shaders/scatter.glsl",
-        "src/vulkan/runtime/radix_sort/shaders/scatter_1_even.comp",
-    ],
-    outs = ["src/vulkan/runtime/radix_sort/shaders/u96_scatter_1_even.spv.h"],
-    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u96_scatter_1_even.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/scatter_1_even.comp) -DRS_KEYVAL_DWORDS=3 --quiet -I.",
-    tools = ["@glslang//:glslangValidator"],
-)
-
-genrule(
-    name = "gen_u96_scatter_0_odd_spv_h",
-    srcs = [
-        "src/vulkan/runtime/radix_sort/shaders/bufref.h",
-        "src/vulkan/runtime/radix_sort/shaders/config.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix_limits.h",
-        "src/vulkan/runtime/radix_sort/shaders/push.h",
-        "src/vulkan/runtime/radix_sort/shaders/scatter.glsl",
-        "src/vulkan/runtime/radix_sort/shaders/scatter_0_odd.comp",
-    ],
-    outs = ["src/vulkan/runtime/radix_sort/shaders/u96_scatter_0_odd.spv.h"],
-    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u96_scatter_0_odd.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/scatter_0_odd.comp) -DRS_KEYVAL_DWORDS=3 --quiet -I.",
-    tools = ["@glslang//:glslangValidator"],
-)
-
-genrule(
-    name = "gen_u64_scatter_1_odd_spv_h",
-    srcs = [
-        "src/vulkan/runtime/radix_sort/shaders/bufref.h",
-        "src/vulkan/runtime/radix_sort/shaders/config.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix_limits.h",
-        "src/vulkan/runtime/radix_sort/shaders/push.h",
-        "src/vulkan/runtime/radix_sort/shaders/scatter.glsl",
-        "src/vulkan/runtime/radix_sort/shaders/scatter_1_odd.comp",
-    ],
-    outs = ["src/vulkan/runtime/radix_sort/shaders/u64_scatter_1_odd.spv.h"],
-    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u64_scatter_1_odd.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/scatter_1_odd.comp) -DRS_KEYVAL_DWORDS=2 --quiet -I.",
-    tools = ["@glslang//:glslangValidator"],
-)
-
-genrule(
-    name = "gen_u96_scatter_1_odd_spv_h",
-    srcs = [
-        "src/vulkan/runtime/radix_sort/shaders/bufref.h",
-        "src/vulkan/runtime/radix_sort/shaders/config.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix_limits.h",
-        "src/vulkan/runtime/radix_sort/shaders/push.h",
-        "src/vulkan/runtime/radix_sort/shaders/scatter.glsl",
-        "src/vulkan/runtime/radix_sort/shaders/scatter_1_odd.comp",
-    ],
-    outs = ["src/vulkan/runtime/radix_sort/shaders/u96_scatter_1_odd.spv.h"],
-    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u96_scatter_1_odd.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/scatter_1_odd.comp) -DRS_KEYVAL_DWORDS=3 --quiet -I.",
-    tools = ["@glslang//:glslangValidator"],
-)
-
-genrule(
-    name = "gen_u96_scatter_2_even_spv_h",
-    srcs = [
-        "src/vulkan/runtime/radix_sort/shaders/bufref.h",
-        "src/vulkan/runtime/radix_sort/shaders/config.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix_limits.h",
-        "src/vulkan/runtime/radix_sort/shaders/push.h",
-        "src/vulkan/runtime/radix_sort/shaders/scatter.glsl",
-        "src/vulkan/runtime/radix_sort/shaders/scatter_2_even.comp",
-    ],
-    outs = ["src/vulkan/runtime/radix_sort/shaders/u96_scatter_2_even.spv.h"],
-    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u96_scatter_2_even.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/scatter_2_even.comp) -DRS_KEYVAL_DWORDS=3 --quiet -I.",
-    tools = ["@glslang//:glslangValidator"],
-)
-
-genrule(
-    name = "gen_u64_init_spv_h",
-    srcs = [
-        "src/vulkan/runtime/radix_sort/shaders/bufref.h",
-        "src/vulkan/runtime/radix_sort/shaders/config.h",
-        "src/vulkan/runtime/radix_sort/shaders/init.comp",
-        "src/vulkan/runtime/radix_sort/shaders/prefix.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix_limits.h",
-        "src/vulkan/runtime/radix_sort/shaders/push.h",
-        "src/vulkan/runtime/radix_sort/shaders/scatter.glsl",
-    ],
-    outs = ["src/vulkan/runtime/radix_sort/shaders/u64_init.spv.h"],
-    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u64_init.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/init.comp) -DRS_KEYVAL_DWORDS=2 --quiet -I.",
-    tools = ["@glslang//:glslangValidator"],
-)
-
-genrule(
-    name = "gen_u64_prefix_spv_h",
-    srcs = [
-        "src/vulkan/runtime/radix_sort/shaders/bufref.h",
-        "src/vulkan/runtime/radix_sort/shaders/config.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix.comp",
-        "src/vulkan/runtime/radix_sort/shaders/prefix.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix_limits.h",
-        "src/vulkan/runtime/radix_sort/shaders/push.h",
-        "src/vulkan/runtime/radix_sort/shaders/scatter.glsl",
-    ],
-    outs = ["src/vulkan/runtime/radix_sort/shaders/u64_prefix.spv.h"],
-    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u64_prefix.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/prefix.comp) -DRS_KEYVAL_DWORDS=2 --quiet -I.",
-    tools = ["@glslang//:glslangValidator"],
-)
-
-genrule(
-    name = "gen_u64_scatter_1_even_spv_h",
-    srcs = [
-        "src/vulkan/runtime/radix_sort/shaders/bufref.h",
-        "src/vulkan/runtime/radix_sort/shaders/config.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix_limits.h",
-        "src/vulkan/runtime/radix_sort/shaders/push.h",
-        "src/vulkan/runtime/radix_sort/shaders/scatter.glsl",
-        "src/vulkan/runtime/radix_sort/shaders/scatter_1_even.comp",
-    ],
-    outs = ["src/vulkan/runtime/radix_sort/shaders/u64_scatter_1_even.spv.h"],
-    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u64_scatter_1_even.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/scatter_1_even.comp) -DRS_KEYVAL_DWORDS=2 --quiet -I.",
-    tools = ["@glslang//:glslangValidator"],
-)
-
-cc_library(
-    name = "include_directory_src_vulkan_runtime_radix_sort_shaders",
-    copts = [
-        "-Wno-string-conversion",
-        "-Wno-unused-variable",
-        "-Wno-return-type",
-        "-Wno-sometimes-uninitialized",
-    ],
-    features = [
-        "-layering_check",
-        "-parse_headers",
-    ],
-    includes = ["src/vulkan/runtime/radix_sort/shaders/."],
-    textual_hdrs = glob(
-        ["src/vulkan/runtime/radix_sort/shaders/**/*.h"],
-        allow_empty = True,
-    ) + [
-        ":gen_u64_init_spv_h",
-        ":gen_u96_init_spv_h",
-        ":gen_fill_spv_h",
-        ":gen_u64_histogram_spv_h",
-        ":gen_u96_histogram_spv_h",
-        ":gen_u64_prefix_spv_h",
-        ":gen_u96_prefix_spv_h",
-        ":gen_u64_scatter_0_even_spv_h",
-        ":gen_u96_scatter_0_even_spv_h",
-        ":gen_u64_scatter_0_odd_spv_h",
-        ":gen_u96_scatter_0_odd_spv_h",
-        ":gen_u64_scatter_1_even_spv_h",
-        ":gen_u96_scatter_1_even_spv_h",
-        ":gen_u64_scatter_1_odd_spv_h",
-        ":gen_u96_scatter_1_odd_spv_h",
-        ":gen_u96_scatter_2_even_spv_h",
-        ":gen_u96_scatter_2_odd_spv_h",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-genrule(
-    name = "gen_u96_histogram_spv_h",
-    srcs = [
-        "src/vulkan/runtime/radix_sort/shaders/bufref.h",
-        "src/vulkan/runtime/radix_sort/shaders/config.h",
-        "src/vulkan/runtime/radix_sort/shaders/histogram.comp",
-        "src/vulkan/runtime/radix_sort/shaders/prefix.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix_limits.h",
-        "src/vulkan/runtime/radix_sort/shaders/push.h",
-        "src/vulkan/runtime/radix_sort/shaders/scatter.glsl",
-    ],
-    outs = ["src/vulkan/runtime/radix_sort/shaders/u96_histogram.spv.h"],
-    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u96_histogram.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/histogram.comp) -DRS_KEYVAL_DWORDS=3 --quiet -I.",
-    tools = ["@glslang//:glslangValidator"],
-)
-
-genrule(
-    name = "gen_u96_init_spv_h",
-    srcs = [
-        "src/vulkan/runtime/radix_sort/shaders/bufref.h",
-        "src/vulkan/runtime/radix_sort/shaders/config.h",
-        "src/vulkan/runtime/radix_sort/shaders/init.comp",
-        "src/vulkan/runtime/radix_sort/shaders/prefix.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix_limits.h",
-        "src/vulkan/runtime/radix_sort/shaders/push.h",
-        "src/vulkan/runtime/radix_sort/shaders/scatter.glsl",
-    ],
-    outs = ["src/vulkan/runtime/radix_sort/shaders/u96_init.spv.h"],
-    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u96_init.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/init.comp) -DRS_KEYVAL_DWORDS=3 --quiet -I.",
-    tools = ["@glslang//:glslangValidator"],
-)
-
-genrule(
-    name = "gen_u96_prefix_spv_h",
-    srcs = [
-        "src/vulkan/runtime/radix_sort/shaders/bufref.h",
-        "src/vulkan/runtime/radix_sort/shaders/config.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix.comp",
-        "src/vulkan/runtime/radix_sort/shaders/prefix.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix_limits.h",
-        "src/vulkan/runtime/radix_sort/shaders/push.h",
-        "src/vulkan/runtime/radix_sort/shaders/scatter.glsl",
-    ],
-    outs = ["src/vulkan/runtime/radix_sort/shaders/u96_prefix.spv.h"],
-    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u96_prefix.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/prefix.comp) -DRS_KEYVAL_DWORDS=3 --quiet -I.",
-    tools = ["@glslang//:glslangValidator"],
-)
-
-genrule(
-    name = "gen_u64_scatter_0_even_spv_h",
-    srcs = [
-        "src/vulkan/runtime/radix_sort/shaders/bufref.h",
-        "src/vulkan/runtime/radix_sort/shaders/config.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix_limits.h",
-        "src/vulkan/runtime/radix_sort/shaders/push.h",
-        "src/vulkan/runtime/radix_sort/shaders/scatter.glsl",
-        "src/vulkan/runtime/radix_sort/shaders/scatter_0_even.comp",
-    ],
-    outs = ["src/vulkan/runtime/radix_sort/shaders/u64_scatter_0_even.spv.h"],
-    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u64_scatter_0_even.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/scatter_0_even.comp) -DRS_KEYVAL_DWORDS=2 --quiet -I.",
-    tools = ["@glslang//:glslangValidator"],
-)
-
-genrule(
-    name = "gen_u96_scatter_0_even_spv_h",
-    srcs = [
-        "src/vulkan/runtime/radix_sort/shaders/bufref.h",
-        "src/vulkan/runtime/radix_sort/shaders/config.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix.h",
-        "src/vulkan/runtime/radix_sort/shaders/prefix_limits.h",
-        "src/vulkan/runtime/radix_sort/shaders/push.h",
-        "src/vulkan/runtime/radix_sort/shaders/scatter.glsl",
-        "src/vulkan/runtime/radix_sort/shaders/scatter_0_even.comp",
-    ],
-    outs = ["src/vulkan/runtime/radix_sort/shaders/u96_scatter_0_even.spv.h"],
-    cmd = "$(location @glslang//:glslangValidator) -V --target-env spirv1.5 -x -o $(location src/vulkan/runtime/radix_sort/shaders/u96_scatter_0_even.spv.h) $(location src/vulkan/runtime/radix_sort/shaders/scatter_0_even.comp) -DRS_KEYVAL_DWORDS=3 --quiet -I.",
+    cmd = "$(execpath @glslang//:glslangValidator) -V -Isrc/vulkan/runtime/bvh -Isrc/compiler/spirv --target-env spirv1.5 -x -o $(execpath src/vulkan/runtime/bvh/ploc_internal.spv.h) $(execpath src/vulkan/runtime/bvh/ploc_internal.comp) --quiet '-P#extension GL_GOOGLE_include_directive : require' '-P#extension GL_EXT_control_flow_attributes : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int16 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int32 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require' '-P#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require' '-P#extension GL_EXT_scalar_block_layout : require' '-P#extension GL_EXT_buffer_reference : require' '-P#extension GL_EXT_buffer_reference2 : require' '-P#extension GL_KHR_memory_scope_semantics : require' '-P#extension GL_KHR_shader_subgroup_arithmetic : require' '-P#extension GL_KHR_shader_subgroup_basic : require' '-P#extension GL_KHR_shader_subgroup_shuffle : require' '-P#extension GL_KHR_shader_subgroup_ballot : require' '-P#extension GL_KHR_shader_subgroup_clustered : require' '-P#extension GL_KHR_shader_subgroup_vote : require' '-P#extension GL_EXT_shader_atomic_int64 : require' '-P#extension GL_EXT_spirv_intrinsics : require' '-P#extension GL_EXT_shared_memory_block : require' -I.",
     tools = ["@glslang//:glslangValidator"],
 )
 
@@ -6737,7 +6362,7 @@ genrule(
         "src/vulkan/util/vk_extensions.py",
     ],
     outs = ["src/vulkan/util/vk_struct_type_cast.h"],
-    cmd = "$(location :vk_struct_type_cast_gen) --xml $(location src/vulkan/registry/vk.xml) --out $(location src/vulkan/util/vk_struct_type_cast.h) --beta false",
+    cmd = "$(execpath :vk_struct_type_cast_gen) --xml $(execpath src/vulkan/registry/vk.xml) --out $(execpath src/vulkan/util/vk_struct_type_cast.h) --beta false",
     tools = [":vk_struct_type_cast_gen"],
 )
 
@@ -6763,7 +6388,7 @@ genrule(
         "src/vulkan/util/vk_dispatch_table.c",
         "src/vulkan/util/vk_dispatch_table.h",
     ],
-    cmd = "$(location :vk_dispatch_table_gen) --xml $(location src/vulkan/registry/vk.xml) --out-c $(location src/vulkan/util/vk_dispatch_table.c) --out-h $(location src/vulkan/util/vk_dispatch_table.h) --beta false",
+    cmd = "$(execpath :vk_dispatch_table_gen) --xml $(execpath src/vulkan/registry/vk.xml) --out-c $(execpath src/vulkan/util/vk_dispatch_table.c) --out-h $(execpath src/vulkan/util/vk_dispatch_table.h) --beta false",
     tools = [":vk_dispatch_table_gen"],
 )
 
@@ -6801,7 +6426,7 @@ genrule(
         "src/vulkan/util/vk_enum_to_str.h",
         "src/vulkan/util/vk_enum_defines.h",
     ],
-    cmd = "$(location :gen_enum_to_str) --xml $(location src/vulkan/registry/vk.xml) --out-c $(location src/vulkan/util/vk_enum_to_str.c) --out-h $(location src/vulkan/util/vk_enum_to_str.h) --out-d $(location src/vulkan/util/vk_enum_defines.h) --beta false",
+    cmd = "$(execpath :gen_enum_to_str) --xml $(execpath src/vulkan/registry/vk.xml) --out-c $(execpath src/vulkan/util/vk_enum_to_str.c) --out-h $(execpath src/vulkan/util/vk_enum_to_str.h) --out-d $(execpath src/vulkan/util/vk_enum_defines.h) --beta false",
     tools = [":gen_enum_to_str"],
 )
 
@@ -6845,7 +6470,7 @@ genrule(
         "src/vulkan/util/vk_extensions.c",
         "src/vulkan/util/vk_extensions.h",
     ],
-    cmd = "$(location :vk_extensions_gen) --xml $(location src/vulkan/registry/vk.xml) --out-c $(location src/vulkan/util/vk_extensions.c) --out-h $(location src/vulkan/util/vk_extensions.h)",
+    cmd = "$(execpath :vk_extensions_gen) --xml $(execpath src/vulkan/registry/vk.xml) --out-c $(execpath src/vulkan/util/vk_extensions.c) --out-h $(execpath src/vulkan/util/vk_extensions.h)",
     tools = [":vk_extensions_gen"],
 )
 
@@ -7109,7 +6734,7 @@ genrule(
         "src/vulkan/wsi/wsi_common_entrypoints.h",
         "src/vulkan/wsi/wsi_common_entrypoints.c",
     ],
-    cmd = "$(location :vk_entrypoints_gen) --xml $(location src/vulkan/registry/vk.xml) --proto --weak --out-h $(location src/vulkan/wsi/wsi_common_entrypoints.h) --out-c $(location src/vulkan/wsi/wsi_common_entrypoints.c) --prefix wsi --beta false",
+    cmd = "$(execpath :vk_entrypoints_gen) --xml $(execpath src/vulkan/registry/vk.xml) --proto --weak --out-h $(execpath src/vulkan/wsi/wsi_common_entrypoints.h) --out-c $(execpath src/vulkan/wsi/wsi_common_entrypoints.c) --prefix wsi --beta false",
     tools = [":vk_entrypoints_gen"],
 )
 

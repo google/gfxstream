@@ -2,7 +2,12 @@ load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_python//python:defs.bzl", "py_binary")
 
-package(default_visibility = ["@//:gfxstream"])
+package(
+    default_visibility = [
+        "@//:gfxstream",
+        "@deqp//:__subpackages__",
+    ],
+)
 
 # Build information generation script
 py_binary(
@@ -17,7 +22,7 @@ genrule(
         "build_info.h.tmpl",
     ],
     outs = ["glslang/build_info.h"],
-    cmd = "$(location build_info) $$(dirname $(location CHANGES.md)) -i $(location build_info.h.tmpl) -o $(location glslang/build_info.h)",
+    cmd = "$(execpath :build_info) $$(dirname $(execpath CHANGES.md)) -i $(execpath build_info.h.tmpl) -o $(execpath glslang/build_info.h)",
     tools = [":build_info"],
 )
 
@@ -33,7 +38,7 @@ genrule(
         "glslang/ExtensionHeaders/GL_EXT_shader_realtime_clock.glsl",
     ],
     outs = ["glslang/glsl_intrinsic_header.h"],
-    cmd = "$(location gen_extension_headers) -i $$(dirname $(location glslang/ExtensionHeaders/GL_EXT_shader_realtime_clock.glsl)) -o $(location glslang/glsl_intrinsic_header.h)",
+    cmd = "$(execpath :gen_extension_headers) -i $$(dirname $(execpath glslang/ExtensionHeaders/GL_EXT_shader_realtime_clock.glsl)) -o $(execpath glslang/glsl_intrinsic_header.h)",
     tools = [":gen_extension_headers"],
 )
 
@@ -214,10 +219,10 @@ cc_binary(
         # glslang is not clean under certain sanitizers
         "-fno-sanitize=float-cast-overflow,null,signed-integer-overflow",
     ],
+    visibility = ["//visibility:public"],
     deps = [
         ":SPIRV",
         ":glslang",
         ":glslang-default-resource-limits",
     ],
-    visibility = ["//visibility:public"],
 )

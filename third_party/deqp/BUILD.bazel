@@ -1,0 +1,6 @@
+exports_files([
+    "BUILD.amber.bazel",
+    "BUILD.deqp.bazel",
+    "BUILD.libpng.bazel",
+    "deqp.MODULE.bazel",
+])

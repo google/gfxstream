@@ -14,7 +14,7 @@ git_repository(
 git_repository(
     name = "mesa",
     build_file = "//third_party/mesa:BUILD.mesa.bazel",
-    commit = "541c56aa3fd24027ed46ae350287d21dcd56c901",
+    commit = "6e4a77089e1db6cb6269ec694de3a1a131f96689",
     dev_dependency = True,
     patch_args = [
         "-p1",
