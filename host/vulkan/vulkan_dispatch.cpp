@@ -100,11 +100,7 @@ static void initIcdPaths(bool forTesting) {
 
 #ifdef CONFIG_AEMU
     if (forTesting) {
-#if defined(__APPLE__) && !defined(__arm64__) || defined(__WIN32__)
-        const char* testingICD = "swiftshader";
-#else
         const char* testingICD = "lavapipe";
-#endif
         if (!androidIcd.empty()) {
             GFXSTREAM_WARNING(
                 "%s: In test environment, enforcing %s ICD, existing ANDROID_EMU_VK_ICD "
