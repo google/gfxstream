@@ -10,9 +10,9 @@ cc_library(
     name = "gfxstream_glestranslator_common_headers",
     hdrs = glob(["include/**/*.h"]),
     copts = GFXSTREAM_HOST_COPTS,
-    defines = GFXSTREAM_HOST_DEFINES,
     includes = ["include"],
     linkopts = GFXSTREAM_HOST_LINKOPTS,
+    local_defines = GFXSTREAM_HOST_DEFINES,
     deps = [
         "//common/base:gfxstream_common_base",
         "//common/etc:gfxstream_etc",
@@ -55,8 +55,8 @@ cc_library(
     copts = GFXSTREAM_HOST_COPTS + [
         "-Wno-extern-c-compat",
     ],
-    defines = GFXSTREAM_HOST_DEFINES,
     linkopts = GFXSTREAM_HOST_LINKOPTS,
+    local_defines = GFXSTREAM_HOST_DEFINES,
     deps = [
         "//common/base:gfxstream_common_base",
         "//common/etc:gfxstream_etc",

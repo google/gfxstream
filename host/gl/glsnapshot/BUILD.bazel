@@ -13,9 +13,9 @@ cc_library(
     copts = GFXSTREAM_HOST_COPTS + [
         "-Wno-extern-c-compat",
     ],
-    defines = GFXSTREAM_HOST_DEFINES,
     includes = ["."],
     linkopts = GFXSTREAM_HOST_LINKOPTS,
+    local_defines = GFXSTREAM_HOST_DEFINES,
     deps = [
         "//host/decoder_common:gfxstream_host_decoder_common",
         "//host/gl/OpenGLESDispatch:gfxstream_host_openglesdispatch",

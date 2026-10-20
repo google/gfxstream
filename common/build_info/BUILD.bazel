@@ -11,10 +11,9 @@ cc_library(
     srcs = ["build_info.cpp"],
     hdrs = glob(["include/**/*.h"]),
     copts = GFXSTREAM_HOST_COPTS,
-    defines = GFXSTREAM_HOST_DEFINES,
     includes = ["include"],
     linkopts = GFXSTREAM_HOST_LINKOPTS,
-    local_defines = [
+    local_defines = GFXSTREAM_HOST_DEFINES + [
         "GFXSTREAM_BUILD_INFO_USE_CUSTOM_STRING=1",
         "GFXSTREAM_BUILD_INFO_CUSTOM_STRING_VALUE=\"\\\"Bazel Build\\\"\"",
     ],

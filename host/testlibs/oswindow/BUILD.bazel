@@ -53,8 +53,8 @@ cc_library(
         ],
     }),
     copts = GFXSTREAM_HOST_COPTS,
-    defines = GFXSTREAM_HOST_DEFINES,
     linkopts = GFXSTREAM_HOST_LINKOPTS,
+    local_defines = GFXSTREAM_HOST_DEFINES,
     strip_include_prefix = "include",
     deps = [
         "//common/logging:gfxstream_common_logging",

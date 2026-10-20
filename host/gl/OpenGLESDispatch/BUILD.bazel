@@ -17,9 +17,9 @@ cc_library(
         "include/OpenGLESDispatch/StaticDispatch.h",
     ],
     copts = GFXSTREAM_HOST_COPTS,
-    defines = GFXSTREAM_HOST_DEFINES,
     includes = ["include"],
     linkopts = GFXSTREAM_HOST_LINKOPTS,
+    local_defines = GFXSTREAM_HOST_DEFINES,
     textual_hdrs = [
         "include/OpenGLESDispatch/gldefs.h",
         "include/OpenGLESDispatch/gles_common_for_gles1_static_translator_namespaced_header.h",
@@ -79,8 +79,8 @@ cc_library(
         "-Wno-extern-c-compat",
         "-Wno-missing-prototypes",
     ],
-    defines = GFXSTREAM_HOST_DEFINES,
     linkopts = GFXSTREAM_HOST_LINKOPTS,
+    local_defines = GFXSTREAM_HOST_DEFINES,
     deps = [
         ":gfxstream_host_openglesdispatch_headers",
         "//host/common:gfxstream_host_common",

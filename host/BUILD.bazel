@@ -1,7 +1,7 @@
 load("@protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@protobuf//bazel:proto_library.bzl", "proto_library")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
-load("//:build_variables.bzl", "GFXSTREAM_HOST_COPTS", "GFXSTREAM_HOST_DEFINES", "GFXSTREAM_HOST_LINKOPTS")
+load("//:build_variables.bzl", "GFXSTREAM_HOST_COPTS", "GFXSTREAM_HOST_DEFINES", "GFXSTREAM_HOST_FEATURE_DEFINES", "GFXSTREAM_HOST_LINKOPTS")
 
 package(
     default_applicable_licenses = ["//:gfxstream_license"],
@@ -53,7 +53,7 @@ cc_library(
         "include/render-utils/window_operations.h",
     ],
     copts = GFXSTREAM_HOST_COPTS,
-    defines = GFXSTREAM_HOST_DEFINES,
+    defines = GFXSTREAM_HOST_FEATURE_DEFINES,
     features = ["-parse_headers"],
     includes = ["include"],
     linkopts = GFXSTREAM_HOST_LINKOPTS,
@@ -120,12 +120,13 @@ cc_library(
         "-Wno-return-type-c-linkage",
         "-Wno-unused-private-field",
     ],
-    defines = GFXSTREAM_HOST_DEFINES + ["QEMU_NEXT"],
+    defines = GFXSTREAM_HOST_FEATURE_DEFINES,
     includes = [
         ".",
     ],
     linkopts = GFXSTREAM_HOST_LINKOPTS,
     linkstatic = True,
+    local_defines = GFXSTREAM_HOST_DEFINES + ["QEMU_NEXT"],
     visibility = ["//visibility:public"],
     deps = [
         ":gfxstream_backend_headers",
@@ -177,9 +178,9 @@ cc_library(
         "-Wno-extern-c-compat",
         "-Wno-return-type-c-linkage",
     ],
-    defines = GFXSTREAM_HOST_DEFINES,
     linkopts = GFXSTREAM_HOST_LINKOPTS,
     linkstatic = True,
+    local_defines = GFXSTREAM_HOST_DEFINES,
     visibility = ["//visibility:public"],
     deps = [
         ":gfxstream_backend_headers",
@@ -207,9 +208,9 @@ cc_binary(
         "virtio_gpu_gfxstream_renderer.cpp",
     ],
     copts = GFXSTREAM_HOST_COPTS,
-    defines = GFXSTREAM_HOST_DEFINES,
     linkopts = GFXSTREAM_HOST_LINKOPTS,
     linkshared = True,
+    local_defines = GFXSTREAM_HOST_DEFINES,
     visibility = ["//visibility:public"],
     deps = [
         ":gfxstream_backend_headers",
@@ -237,6 +238,7 @@ cc_test(
     ],
     copts = GFXSTREAM_HOST_COPTS,
     linkopts = GFXSTREAM_HOST_LINKOPTS,
+    local_defines = GFXSTREAM_HOST_DEFINES,
     deps = [
         ":gfxstream_backend_static",
         "//common/base:gfxstream_common_base",
@@ -262,6 +264,7 @@ cc_test(
     ],
     copts = GFXSTREAM_HOST_COPTS,
     linkopts = GFXSTREAM_HOST_LINKOPTS,
+    local_defines = GFXSTREAM_HOST_DEFINES,
     deps = [
         ":gfxstream_backend_static",
         "//host/testlibs/support:gfxstream_host_testing_support",
@@ -276,6 +279,7 @@ cc_test(
         "virtio_gpu_timelines_tests.cpp",
     ],
     copts = GFXSTREAM_HOST_COPTS,
+    local_defines = GFXSTREAM_HOST_DEFINES,
     deps = [
         ":gfxstream_backend_static",
         "@com_google_googletest//:gtest",
@@ -289,6 +293,7 @@ cc_test(
         "virtio_gpu_resource_unittest.cpp",
     ],
     copts = GFXSTREAM_HOST_COPTS,
+    local_defines = GFXSTREAM_HOST_DEFINES,
     deps = [
         ":gfxstream_backend_headers",
         ":gfxstream_backend_static",
@@ -303,6 +308,7 @@ cc_test(
         "gfxstream_unittest.cpp",
     ],
     copts = GFXSTREAM_HOST_COPTS,
+    local_defines = GFXSTREAM_HOST_DEFINES,
     deps = [
         ":gfxstream_backend_headers",
         ":gfxstream_backend_shared",
