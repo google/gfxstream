@@ -9558,6 +9558,24 @@ void transform_fromhost_VkDebugMetadataGuestThreadIdGOOGLE(
     }
 }
 
+void transform_tohost_VkGuestCapabilitiesGOOGLE(VkDecoderGlobalState* resourceTracker,
+                                                VkGuestCapabilitiesGOOGLE* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkGuestCapabilitiesGOOGLE(VkDecoderGlobalState* resourceTracker,
+                                                  VkGuestCapabilitiesGOOGLE* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
 void transform_tohost_VkDebugMetadataGOOGLE(VkDecoderGlobalState* resourceTracker,
                                             VkDebugMetadataGOOGLE* toTransform) {
     (void)resourceTracker;
@@ -11121,6 +11139,11 @@ void transform_tohost_extension_struct(VkDecoderGlobalState* resourceTracker,
                 reinterpret_cast<VkDebugMetadataGuestThreadIdGOOGLE*>(structExtension_out));
             break;
         }
+        case VK_STRUCTURE_TYPE_GUEST_CAPABILITIES_GOOGLE: {
+            transform_tohost_VkGuestCapabilitiesGOOGLE(
+                resourceTracker, reinterpret_cast<VkGuestCapabilitiesGOOGLE*>(structExtension_out));
+            break;
+        }
 #endif
 #ifdef VK_EXT_border_color_swizzle
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BORDER_COLOR_SWIZZLE_FEATURES_EXT: {
@@ -12626,6 +12649,11 @@ void transform_fromhost_extension_struct(VkDecoderGlobalState* resourceTracker,
             transform_fromhost_VkDebugMetadataGuestThreadIdGOOGLE(
                 resourceTracker,
                 reinterpret_cast<VkDebugMetadataGuestThreadIdGOOGLE*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_GUEST_CAPABILITIES_GOOGLE: {
+            transform_fromhost_VkGuestCapabilitiesGOOGLE(
+                resourceTracker, reinterpret_cast<VkGuestCapabilitiesGOOGLE*>(structExtension_out));
             break;
         }
 #endif

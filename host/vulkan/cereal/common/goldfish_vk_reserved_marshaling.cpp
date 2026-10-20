@@ -16389,6 +16389,36 @@ void reservedunmarshal_VkDebugMetadataGuestThreadIdGOOGLE(
     *ptr += sizeof(uint64_t);
 }
 
+void reservedunmarshal_VkGuestCapabilitiesGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
+                                                 VkGuestCapabilitiesGOOGLE* forUnmarshaling,
+                                                 uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    gfxstream::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkGuestCapabilityFlagsGOOGLE*)&forUnmarshaling->capabilities, *ptr,
+           sizeof(VkGuestCapabilityFlagsGOOGLE));
+    *ptr += sizeof(VkGuestCapabilityFlagsGOOGLE);
+}
+
 void reservedunmarshal_VkDebugMetadataGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
                                              VkDebugMetadataGOOGLE* forUnmarshaling,
                                              uint8_t** ptr) {
@@ -18241,6 +18271,12 @@ void reservedunmarshal_extension_struct(VulkanStream* vkStream, VkStructureType 
             reservedunmarshal_VkDebugMetadataGuestThreadIdGOOGLE(
                 vkStream, rootType,
                 reinterpret_cast<VkDebugMetadataGuestThreadIdGOOGLE*>(structExtension_out), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_GUEST_CAPABILITIES_GOOGLE: {
+            reservedunmarshal_VkGuestCapabilitiesGOOGLE(
+                vkStream, rootType,
+                reinterpret_cast<VkGuestCapabilitiesGOOGLE*>(structExtension_out), ptr);
             break;
         }
 #endif

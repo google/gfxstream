@@ -4994,6 +4994,12 @@ void unmarshal_VkDebugMetadataGuestThreadIdGOOGLE(
     VulkanStream* vkStream, VkStructureType rootType,
     VkDebugMetadataGuestThreadIdGOOGLE* forUnmarshaling);
 
+void marshal_VkGuestCapabilitiesGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
+                                       const VkGuestCapabilitiesGOOGLE* forMarshaling);
+
+void unmarshal_VkGuestCapabilitiesGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
+                                         VkGuestCapabilitiesGOOGLE* forUnmarshaling);
+
 #define OP_vkMapMemoryIntoAddressSpaceGOOGLE 20317
 #define OP_vkUpdateDescriptorSetWithTemplateSizedGOOGLE 20320
 #define OP_vkBeginCommandBufferAsyncGOOGLE 20321

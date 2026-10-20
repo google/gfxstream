@@ -1421,6 +1421,7 @@ class VkDecoderGlobalState::Impl {
 
         vk_struct_chain_filter<VkDebugReportCallbackCreateInfoEXT>(&createInfoFiltered);
         vk_struct_chain_filter<VkDebugUtilsMessengerCreateInfoEXT>(&createInfoFiltered);
+        vk_struct_chain_filter<VkGuestCapabilitiesGOOGLE>(&createInfoFiltered);
 
         if (debugContext) {
             auto chainIter = vk_make_chain_iterator(&createInfoFiltered);
@@ -1462,6 +1463,11 @@ class VkDecoderGlobalState::Impl {
         }
         for (uint32_t i = 0; i < createInfoFiltered.enabledExtensionCount; ++i) {
             info.enabledExtensionNames.push_back(createInfoFiltered.ppEnabledExtensionNames[i]);
+        }
+        const VkGuestCapabilitiesGOOGLE* guestCapabilities =
+            vk_find_struct<VkGuestCapabilitiesGOOGLE>(pCreateInfo);
+        if (guestCapabilities != nullptr) {
+            info.guestCapabilities = guestCapabilities->capabilities;
         }
 
         GFXSTREAM_INFO("Created VkInstance:%p for application:'%s' engine:'%s'.", *pInstance,
@@ -1828,8 +1834,9 @@ class VkDecoderGlobalState::Impl {
                 // can be enabled without enabling 'protectedMemory'
             }
 
-            if (m_vkEmulation->getFeatures().VulkanBatchedDescriptorSetUpdate.enabled()) {
-                // Currently not supporting IUB with descriptor set optimizations.
+            if (m_vkEmulation->getFeatures().VulkanBatchedDescriptorSetUpdate.enabled() &&
+                !instanceInfo->hasGuestCapability(
+                    VK_GUEST_CAPABILITY_BATCHED_INLINE_UNIFORM_BLOCK_BIT_GOOGLE)) {
                 VkPhysicalDeviceInlineUniformBlockFeatures* iubFeatures =
                     vk_find_struct<VkPhysicalDeviceInlineUniformBlockFeatures>(pFeatures);
                 if (iubFeatures != nullptr) {

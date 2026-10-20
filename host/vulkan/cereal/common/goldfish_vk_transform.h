@@ -4452,6 +4452,12 @@ void transform_tohost_VkDebugMetadataGuestThreadIdGOOGLE(
 void transform_fromhost_VkDebugMetadataGuestThreadIdGOOGLE(
     VkDecoderGlobalState* resourceTracker, VkDebugMetadataGuestThreadIdGOOGLE* toTransform);
 
+void transform_tohost_VkGuestCapabilitiesGOOGLE(VkDecoderGlobalState* resourceTracker,
+                                                VkGuestCapabilitiesGOOGLE* toTransform);
+
+void transform_fromhost_VkGuestCapabilitiesGOOGLE(VkDecoderGlobalState* resourceTracker,
+                                                  VkGuestCapabilitiesGOOGLE* toTransform);
+
 void transform_tohost_VkDebugMetadataGOOGLE(VkDecoderGlobalState* resourceTracker,
                                             VkDebugMetadataGOOGLE* toTransform);
 

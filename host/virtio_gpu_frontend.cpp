@@ -673,6 +673,7 @@ void VirtioGpuFrontend::fillCaps(uint32_t set, void* caps) {
 
             capset->hasTraceAsyncCommand = 1;
             capset->hasSetMetadataCommand = 1;
+            capset->hasGuestCapabilities = 1;
 
             break;
         }

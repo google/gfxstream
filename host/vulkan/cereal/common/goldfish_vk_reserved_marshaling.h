@@ -2658,6 +2658,10 @@ void reservedunmarshal_VkDebugMetadataGuestThreadIdGOOGLE(
     VulkanStream* vkStream, VkStructureType rootType,
     VkDebugMetadataGuestThreadIdGOOGLE* forUnmarshaling, uint8_t** ptr);
 
+void reservedunmarshal_VkGuestCapabilitiesGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
+                                                 VkGuestCapabilitiesGOOGLE* forUnmarshaling,
+                                                 uint8_t** ptr);
+
 void reservedunmarshal_VkDebugMetadataGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
                                              VkDebugMetadataGOOGLE* forUnmarshaling, uint8_t** ptr);
 

@@ -220,6 +220,11 @@ struct InstanceInfo {
     uint32_t contextId = 0;
     std::unique_ptr<VVLContext> debugContext;
     VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
+    VkGuestCapabilityFlagsGOOGLE guestCapabilities = 0;
+
+    bool hasGuestCapability(VkGuestCapabilityFlagBitsGOOGLE capability) const {
+        return (guestCapabilities & capability) != 0;
+    }
 };
 
 struct PhysicalDeviceInfo {

@@ -24,6 +24,11 @@ extern "C" {
 #define VK_GOOGLE_GFXSTREAM_SPEC_VERSION 0
 #define VK_GOOGLE_GFXSTREAM_NUMBER 386
 #define VK_GOOGLE_GFXSTREAM_EXTENSION_NAME "VK_GOOGLE_gfxstream"
+typedef enum VkGuestCapabilityFlagBitsGOOGLE {
+    VK_GUEST_CAPABILITY_BATCHED_INLINE_UNIFORM_BLOCK_BIT_GOOGLE = 0x00000001,
+} VkGuestCapabilityFlagBitsGOOGLE;
+
+typedef VkFlags VkGuestCapabilityFlagsGOOGLE;
 typedef struct VkImportColorBufferGOOGLE {
     VkStructureType sType;
     void* pNext;
@@ -67,6 +72,12 @@ typedef struct VkDebugMetadataGuestThreadIdGOOGLE {
     const void* pNext;
     uint64_t id;
 } VkDebugMetadataGuestThreadIdGOOGLE;
+
+typedef struct VkGuestCapabilitiesGOOGLE {
+    VkStructureType sType;
+    const void* pNext;
+    VkGuestCapabilityFlagsGOOGLE capabilities;
+} VkGuestCapabilitiesGOOGLE;
 
 typedef struct VkDebugMetadataGOOGLE {
     VkStructureType sType;
