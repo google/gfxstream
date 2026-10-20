@@ -172,21 +172,6 @@ SharedLibrary* SharedLibrary::do_open(const char* libraryName,
 
     dlerror();  // clear error.
 
-#ifdef __APPLE__
-    // On OSX, some libraries don't include an extension (notably OpenGL)
-    // On OSX we try to open |libraryName| first.  If that doesn't exist,
-    // we try |libraryName|.dylib
-    GFXSTREAM_VERBOSE("SharedLibrary::open for [%s] (posix,darwin): call dlopen", libraryName);
-    void* lib = dlopen(libraryName, RTLD_NOW);
-    if (lib == NULL) {
-        GFXSTREAM_VERBOSE(
-            "SharedLibrary::open for [%s] (posix,darwin): failed, "
-            "try again with [%s]",
-            libraryName, libPath);
-        lib = dlopen(libPath, RTLD_NOW);
-    }
-#else
-    GFXSTREAM_VERBOSE("SharedLibrary::open for [%s] (posix,linux): call dlopen on [%s]", libraryName, libPath);
     void* lib = nullptr;
     const std::vector<std::string> ldLibraryPaths =
         gfxstream::Split(gfxstream::base::getEnvironmentVariable("LD_LIBRARY_PATH"), ":");
@@ -194,6 +179,17 @@ SharedLibrary* SharedLibrary::do_open(const char* libraryName,
         if (ldLibraryPath.empty()) {
             continue;
         }
+
+#ifdef __APPLE__
+        if (strcmp(libraryName, libPath) != 0) {
+            const std::string fullpathNoExt = PathUtils::join(ldLibraryPath, libraryName);
+            GFXSTREAM_VERBOSE("Calling dlopen on %s.", fullpathNoExt.c_str());
+            lib = dlopen(fullpathNoExt.c_str(), RTLD_NOW);
+            if (lib != nullptr) {
+                break;
+            }
+        }
+#endif
 
         const std::string fullpath = PathUtils::join(ldLibraryPath, libPath);
         GFXSTREAM_VERBOSE("Calling dlopen on %s.", fullpath.c_str());
@@ -203,7 +199,25 @@ SharedLibrary* SharedLibrary::do_open(const char* libraryName,
             break;
         }
     }
+
+#ifdef __APPLE__
+    // On OSX, some libraries don't include an extension (notably OpenGL)
+    // On OSX we try to open |libraryName| first.  If that doesn't exist,
+    // we try |libraryName|.dylib
     if (lib == nullptr) {
+        GFXSTREAM_VERBOSE("SharedLibrary::open for [%s] (posix,darwin): call dlopen", libraryName);
+        lib = dlopen(libraryName, RTLD_NOW);
+    }
+    if (lib == nullptr) {
+        GFXSTREAM_VERBOSE(
+            "SharedLibrary::open for [%s] (posix,darwin): failed, "
+            "try again with [%s]",
+            libraryName, libPath);
+        lib = dlopen(libPath, RTLD_NOW);
+    }
+#else
+    if (lib == nullptr) {
+        GFXSTREAM_VERBOSE("SharedLibrary::open for [%s] (posix,linux): call dlopen on [%s]", libraryName, libPath);
         lib = dlopen(libPath, RTLD_NOW);
     }
 #endif

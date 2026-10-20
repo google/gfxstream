@@ -102,14 +102,21 @@ bool SetupGraphicsTestEnvironment() {
     //     gfxstream::base::setEnvironmentVariable("__EGL_VENDOR_LIBRARY_FILENAMES", driverEglIcd);
     //
     // For now, assume the ANGLE libs are directly used:
-    const auto driverGlesOpt = GetGraphicsDriverPath("libGLESv2.so");
+#if defined(__APPLE__)
+    constexpr const char* kGlesDriverBasename = "libGLESv2.dylib";
+    constexpr const char* kEglDriverBasename = "libEGL.dylib";
+#else
+    constexpr const char* kGlesDriverBasename = "libGLESv2.so";
+    constexpr const char* kEglDriverBasename = "libEGL.so";
+#endif
+    const auto driverGlesOpt = GetGraphicsDriverPath(kGlesDriverBasename);
     if (!driverGlesOpt) {
-        GFXSTREAM_ERROR("Failed to find libGLESv2.so.");
+        GFXSTREAM_ERROR("Failed to find %s.", kGlesDriverBasename);
         return false;
     }
-    const auto driverEglOpt = GetGraphicsDriverPath("libEGL.so");
+    const auto driverEglOpt = GetGraphicsDriverPath(kEglDriverBasename);
     if (!driverEglOpt) {
-        GFXSTREAM_ERROR("Failed to find libEGL.so");
+        GFXSTREAM_ERROR("Failed to find %s", kEglDriverBasename);
         return false;
     }
     const std::filesystem::path driverEgl = *driverEglOpt;
@@ -119,6 +126,10 @@ bool SetupGraphicsTestEnvironment() {
     const std::string updatedLdLibraryPath = driverDirectory.string() + ":" + currentLdLibraryPath;
     gfxstream::base::setEnvironmentVariable("LD_LIBRARY_PATH", updatedLdLibraryPath);
     gfxstream::base::setEnvironmentVariable("ANDROID_EMU_HEADLESS", "1");
+#if defined(GFXSTREAM_TESTING_USE_VULKAN_LAVAPIPE) || \
+    defined(GFXSTREAM_TESTING_USE_VULKAN_SWIFTSHADER)
+    gfxstream::base::setEnvironmentVariable("ANGLE_DEFAULT_PLATFORM", "vulkan");
+#endif
 #else
     GFXSTREAM_INFO("GraphicsTestEnvironment: not changing host EGL/GLES driver configuration.");
 #endif  // defined(GFXSTREAM_TESTING_USE_GLES_ANGLE)
@@ -134,9 +145,17 @@ bool SetupGraphicsTestEnvironment() {
 #if defined(GFXSTREAM_TESTING_USE_VULKAN_LAVAPIPE) || defined(GFXSTREAM_TESTING_USE_VULKAN_SWIFTSHADER)
     const std::string driverBasename =
 #if defined(GFXSTREAM_TESTING_USE_VULKAN_LAVAPIPE)
+#if defined(__APPLE__)
+        "libvulkan_lvp.dylib";
+#else
         "libvulkan_lvp.so";
+#endif
 #elif defined(GFXSTREAM_TESTING_USE_VULKAN_SWIFTSHADER)
+#if defined(__APPLE__)
+        "libvk_swiftshader.dylib";
+#else
         "libvk_swiftshader.so";
+#endif
 #else
 #error "Unhandled driver."
 #endif
@@ -166,15 +185,22 @@ bool SetupGraphicsTestEnvironment() {
         return false;
     }
 
+#if defined(__APPLE__)
+    constexpr const char* kVulkanLoaderBasename = "libvulkan.dylib";
+    constexpr const char* kLlvmLibBasename = "libLLVM.dylib";
+#else
+    constexpr const char* kVulkanLoaderBasename = "libvulkan.so";
+    constexpr const char* kLlvmLibBasename = "libLLVM.so";
+#endif
     const std::filesystem::path driverDir = driverOpt->parent_path();
-    const std::filesystem::path bundledLoader = driverDir / "libvulkan.so";
+    const std::filesystem::path bundledLoader = driverDir / kVulkanLoaderBasename;
     if (std::filesystem::exists(bundledLoader)) {
         gfxstream::base::setEnvironmentVariable("ANDROID_EMU_VK_LOADER_PATH",
                                                 bundledLoader.string());
     }
 
 #if defined(__linux__) || defined(__APPLE__)
-    const std::filesystem::path llvmLib = driverDir / "libLLVM.so";
+    const std::filesystem::path llvmLib = driverDir / kLlvmLibBasename;
     if (std::filesystem::exists(llvmLib)) {
         if (void* handle = ::dlopen(llvmLib.c_str(), RTLD_NOW | RTLD_GLOBAL | RTLD_NODELETE)) {
             ::dlclose(handle);

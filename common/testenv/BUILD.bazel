@@ -98,6 +98,7 @@ copy_to_directory(
     include_external_repositories = ["*"],
     # Effectively, all of the "prefixes" to flatten/strip.
     root_paths = [
+        "**/darwin-aarch64/lib",
         "**/lib64/vulkan",
         "**/linux-x86_64/lib",
         "common/testenv",
