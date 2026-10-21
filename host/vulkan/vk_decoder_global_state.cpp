@@ -99,20 +99,27 @@ using gfxstream::base::StaticLock;
 using gfxstream::base::UdmabufCreator;
 using gfxstream::host::GfxApiLogger;
 
-#define VALIDATE_REQUIRED_HANDLE(parameter) \
-    validateRequiredHandle(__FUNCTION__, #parameter, parameter)
+#define VALIDATE_REQUIRED_HANDLE(parameter)                                                    \
+    do {                                                                                       \
+        VkResult validateResult = validateRequiredHandle(__FUNCTION__, #parameter, parameter); \
+        if (validateResult != VK_SUCCESS) {                                                    \
+            return validateResult;                                                             \
+        }                                                                                      \
+    } while (0)
 
 template <typename T>
-void validateRequiredHandle(const char* api_name, const char* parameter_name, T value) {
+VkResult validateRequiredHandle(const char* api_name, const char* parameter_name, T value) {
     if (value == VK_NULL_HANDLE) {
         if (VkDecoderGlobalState::get()->isSnapshotCurrentlyLoading()) {
             GFXSTREAM_ERROR("Invalid required handle for %s param %s during snapshot load",
                             api_name, parameter_name);
             VkDecoderGlobalState::get()->setSnapshotLoadError();
-            return;
+            return VK_ERROR_VALIDATION_FAILED;
         }
         GFXSTREAM_FATAL("Invalid required handle for %s param %s", api_name, parameter_name);
+        return VK_ERROR_VALIDATION_FAILED;
     }
+    return VK_SUCCESS;
 }
 
 #define VALIDATE_NEW_HANDLE_INFO_ENTRY(objectMap, newEntry) \
@@ -3987,6 +3994,7 @@ class VkDecoderGlobalState::Impl {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
 
+        VALIDATE_REQUIRED_HANDLE(image);
         VALIDATE_REQUIRED_HANDLE(memory);
         VkResult result = vk->vkBindImageMemory(device, image, memory, memoryOffset);
         if (result != VK_SUCCESS) {
