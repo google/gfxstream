@@ -338,7 +338,7 @@ class Globals {
         }
     }
 
-private:
+  private:
 
     void saveBlockLocked(
         gfxstream::Stream* stream,
@@ -560,8 +560,11 @@ AddressSpaceGraphicsContext::AddressSpaceGraphicsContext(
 
 AddressSpaceGraphicsContext::~AddressSpaceGraphicsContext() {
     if (mCurrentConsumer) {
-        mExiting = 1;
-        mConsumerMessages.send(ConsumerCommand::Exit);
+        {
+            std::lock_guard<std::mutex> lock(mConsumerStateMutex);
+            mConsumerState.exiting = true;
+        }
+        mConsumerStateCv.notify_all();
         mConsumerInterface.destroy(mCurrentConsumer);
     }
 
@@ -610,7 +613,11 @@ void AddressSpaceGraphicsContext::perform(AddressSpaceDevicePingInfo* info) {
         break;
     }
     case ASG_NOTIFY_AVAILABLE:
-        mConsumerMessages.trySend(ConsumerCommand::Wakeup);
+        {
+            std::lock_guard<std::mutex> lock(mConsumerStateMutex);
+            mConsumerState.wakeupRequested = true;
+        }
+        mConsumerStateCv.notify_one();
         info->metadata = 0;
         break;
     case ASG_GET_CONFIG:
@@ -620,20 +627,29 @@ void AddressSpaceGraphicsContext::perform(AddressSpaceDevicePingInfo* info) {
 }
 
 AsgOnUnavailableReadStatus AddressSpaceGraphicsContext::onUnavailableRead() {
-    ConsumerCommand cmd;
-    mConsumerMessages.receive(&cmd);
-    switch (cmd) {
-        case ConsumerCommand::Wakeup:
-            return AsgOnUnavailableReadStatus::kContinue;
-        case ConsumerCommand::Exit:
-            return AsgOnUnavailableReadStatus::kExit;
-        case ConsumerCommand::Sleep:
-            return AsgOnUnavailableReadStatus::kSleep;
-        case ConsumerCommand::PausePreSnapshot:
-            return AsgOnUnavailableReadStatus::kPauseForSnapshot;
-        case ConsumerCommand::ResumePostSnapshot:
-            return AsgOnUnavailableReadStatus::kResumeAfterSnapshot;
+    std::unique_lock<std::mutex> lock(mConsumerStateMutex);
+    gfxstream::base::ScopedLockAssertion lockAssertion(mConsumerStateMutex);
+    mConsumerStateCv.wait(lock, [this]() {
+        gfxstream::base::ScopedLockAssertion lockAssertion(mConsumerStateMutex);
+        return mConsumerState.hasPendingWork();
+    });
+
+    if (mConsumerState.exiting) {
+        return AsgOnUnavailableReadStatus::kExit;
     }
+    if (mConsumerState.pausePreSnapshotRequested) {
+        mConsumerState.pausePreSnapshotRequested = false;
+        return AsgOnUnavailableReadStatus::kPauseForSnapshot;
+    }
+    if (mConsumerState.resumePostSnapshotRequested) {
+        mConsumerState.resumePostSnapshotRequested = false;
+        return AsgOnUnavailableReadStatus::kResumeAfterSnapshot;
+    }
+    if (mConsumerState.wakeupRequested) {
+        mConsumerState.wakeupRequested = false;
+        return AsgOnUnavailableReadStatus::kContinue;
+    }
+    return AsgOnUnavailableReadStatus::kContinue;
 }
 
 AddressSpaceDeviceType AddressSpaceGraphicsContext::getDeviceType() const {
@@ -643,7 +659,12 @@ AddressSpaceDeviceType AddressSpaceGraphicsContext::getDeviceType() const {
 void AddressSpaceGraphicsContext::preSave() const {
     if (mCurrentConsumer) {
         mConsumerInterface.preSave(mCurrentConsumer);
-        mConsumerMessages.send(ConsumerCommand::PausePreSnapshot);
+        {
+            std::lock_guard<std::mutex> lock(mConsumerStateMutex);
+            mConsumerState.resumePostSnapshotRequested = false;
+            mConsumerState.pausePreSnapshotRequested = true;
+        }
+        mConsumerStateCv.notify_all();
     }
 }
 
@@ -664,7 +685,10 @@ void AddressSpaceGraphicsContext::save(gfxstream::Stream* stream) const {
     }
 
     stream->putBe32(mVersion);
-    stream->putBe32(mExiting);
+    {
+        std::lock_guard<std::mutex> lock(mConsumerStateMutex);
+        stream->putBe32(mConsumerState.exiting ? 1 : 0);
+    }
 
     saveAllocation(stream, mRingAllocation);
     saveAllocation(stream, mBufferAllocation);
@@ -680,7 +704,12 @@ void AddressSpaceGraphicsContext::save(gfxstream::Stream* stream) const {
 
 void AddressSpaceGraphicsContext::postSave() const {
     if (mCurrentConsumer) {
-        mConsumerMessages.send(ConsumerCommand::ResumePostSnapshot);
+        {
+            std::lock_guard<std::mutex> lock(mConsumerStateMutex);
+            mConsumerState.pausePreSnapshotRequested = false;
+            mConsumerState.resumePostSnapshotRequested = true;
+        }
+        mConsumerStateCv.notify_all();
         mConsumerInterface.postSave(mCurrentConsumer);
     }
 }
@@ -699,7 +728,11 @@ bool AddressSpaceGraphicsContext::load(gfxstream::Stream* stream) {
     }
 
     mVersion = stream->getBe32();
-    mExiting = stream->getBe32();
+    {
+        std::lock_guard<std::mutex> lock(mConsumerStateMutex);
+        mConsumerState = ConsumerState{};
+        mConsumerState.exiting = (stream->getBe32() != 0);
+    }
 
     loadAllocation(stream, mRingAllocation);
     loadAllocation(stream, mBufferAllocation);

@@ -22,6 +22,7 @@
 
 #include "gfxstream/common/testing/graphics_test_environment.h"
 #include "gfxstream/files/PathUtils.h"
+#include "gfxstream/host/address_space_graphics.h"
 #include "gfxstream/host/color_buffer_interface.h"
 #include "gfxstream/host/display_operations.h"
 #include "gfxstream/host/features.h"
@@ -951,6 +952,86 @@ TEST_F(RenderThreadDeadlockTest, ReproDeadlockOnTeardown) {
     }
 
     fb->removeGraphicsProcessResources(contextId);
+}
+
+// ASGs historically used a fixed capacity message queue which would lead to deadlocks
+// if the queue became full but the consumer could not be awoken until the queue was
+// drained (e.g. b/329287602).
+TEST_F(RenderThreadDeadlockTest, CoalescedAsgConsumerStateFlags) {
+    ConsumerCallbacks capturedCallbacks = {};
+    bool destroyObservedExitStatus = false;
+
+    ConsumerInterface iface = {
+        .create = [&](const AsgConsumerCreateInfo& info, Stream*) -> ConsumerHandle {
+            capturedCallbacks = info.callbacks;
+            return reinterpret_cast<ConsumerHandle>(0x1);
+        },
+        .destroy = [&](ConsumerHandle) {
+            if (capturedCallbacks.onUnavailableRead) {
+                destroyObservedExitStatus =
+                    (capturedCallbacks.onUnavailableRead() == AsgOnUnavailableReadStatus::kExit);
+            }
+        },
+        .preSave = [](ConsumerHandle) {},
+        .globalPreSave = []() {},
+        .save = [](ConsumerHandle, Stream*) {},
+        .globalPostSave = []() {},
+        .postSave = [](ConsumerHandle) {},
+        .postLoad = [](ConsumerHandle) {},
+        .globalPreLoad = []() {},
+        .reloadRingConfig = [](ConsumerHandle) {},
+    };
+    AddressSpaceGraphicsContext::setConsumer(iface);
+
+    std::vector<char> externalStorage(kAsgConsumerRingStorageSize + kAsgWriteBufferSize, 0);
+    AddressSpaceCreateInfo createInfo = {};
+    createInfo.handle = 1;
+    createInfo.type = static_cast<uint32_t>(AddressSpaceDeviceType::VirtioGpuGraphics);
+    createInfo.createRenderThread = true;
+    createInfo.externalAddr = externalStorage.data();
+    createInfo.externalAddrSize = externalStorage.size();
+    createInfo.virtioGpuContextId = 1;
+
+    auto context = std::make_unique<AddressSpaceGraphicsContext>(createInfo);
+    ASSERT_TRUE(static_cast<bool>(capturedCallbacks.onUnavailableRead));
+
+    // Sending more than 4 ASG_NOTIFY_AVAILABLE pings without the consumer draining
+    // onUnavailableRead() must not block and should coalesce into a single wakeup.
+    for (int i = 0; i < 16; ++i) {
+        AddressSpaceDevicePingInfo pingInfo = {};
+        pingInfo.metadata = ASG_NOTIFY_AVAILABLE;
+        context->perform(&pingInfo);
+    }
+    EXPECT_EQ(AsgOnUnavailableReadStatus::kContinue, capturedCallbacks.onUnavailableRead());
+
+    // Subsequent notifications + snapshot transitions must not block and must preserve
+    // priority ordering (PreSave -> PostSave -> Wakeup).
+    for (int i = 0; i < 16; ++i) {
+        AddressSpaceDevicePingInfo pingInfo = {};
+        pingInfo.metadata = ASG_NOTIFY_AVAILABLE;
+        context->perform(&pingInfo);
+    }
+    context->preSave();
+    EXPECT_EQ(AsgOnUnavailableReadStatus::kPauseForSnapshot,
+              capturedCallbacks.onUnavailableRead());
+
+    context->postSave();
+    EXPECT_EQ(AsgOnUnavailableReadStatus::kResumeAfterSnapshot,
+              capturedCallbacks.onUnavailableRead());
+    EXPECT_EQ(AsgOnUnavailableReadStatus::kContinue, capturedCallbacks.onUnavailableRead());
+
+    // Flood notifications again and destroy context without draining wakeup; exit must take
+    // precedence and never block.
+    for (int i = 0; i < 16; ++i) {
+        AddressSpaceDevicePingInfo pingInfo = {};
+        pingInfo.metadata = ASG_NOTIFY_AVAILABLE;
+        context->perform(&pingInfo);
+    }
+    context.reset();
+    EXPECT_TRUE(destroyObservedExitStatus);
+
+    AddressSpaceGraphicsContext::clear();
+    AddressSpaceGraphicsContext::setConsumer({});
 }
 
 TEST_F(FrameBufferTest, CleanupProcGLObjects) {

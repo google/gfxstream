@@ -13,14 +13,17 @@
 // limitations under the License.
 #pragma once
 
+#include <condition_variable>
+#include <cstdint>
 #include <functional>
+#include <mutex>
 #include <optional>
 #include <vector>
 
+#include "gfxstream/ThreadAnnotations.h"
 #include "gfxstream/host/address_space_device.h"
 #include "gfxstream/host/address_space_graphics_types.h"
 #include "gfxstream/host/address_space_service.h"
-#include "gfxstream/synchronization/MessageChannel.h"
 #include "render-utils/address_space_graphics_types.h"
 #include "render-utils/address_space_operations.h"
 
@@ -71,15 +74,6 @@ class AddressSpaceGraphicsContext : public AddressSpaceDeviceContext {
     void saveAllocation(gfxstream::Stream* stream, const Allocation& alloc) const;
     void loadAllocation(gfxstream::Stream* stream, Allocation& alloc);
 
-    // For consumer communication
-    enum ConsumerCommand {
-        Wakeup = 0,
-        Sleep = 1,
-        Exit = 2,
-        PausePreSnapshot = 3,
-        ResumePostSnapshot = 4,
-    };
-
     // For ConsumerCallbacks
     AsgOnUnavailableReadStatus onUnavailableRead();
 
@@ -95,8 +89,20 @@ class AddressSpaceGraphicsContext : public AddressSpaceDeviceContext {
     void* mCurrentConsumer = 0;
 
     // Communication with consumer
-    mutable gfxstream::base::MessageChannel<ConsumerCommand, 4> mConsumerMessages;
-    uint32_t mExiting = 0;
+    struct ConsumerState {
+        bool wakeupRequested = false;
+        bool pausePreSnapshotRequested = false;
+        bool resumePostSnapshotRequested = false;
+        bool exiting = false;
+
+        bool hasPendingWork() const {
+            return wakeupRequested || pausePreSnapshotRequested ||
+                   resumePostSnapshotRequested || exiting;
+        }
+    };
+    mutable std::mutex mConsumerStateMutex;
+    mutable std::condition_variable mConsumerStateCv;
+    mutable ConsumerState mConsumerState GUARDED_BY(mConsumerStateMutex);
 
     struct VirtioGpuInfo {
         uint32_t contextId = 0;
