@@ -14,7 +14,7 @@ git_repository(
 git_repository(
     name = "mesa",
     build_file = "//third_party/mesa:BUILD.mesa.bazel",
-    commit = "541c56aa3fd24027ed46ae350287d21dcd56c901",
+    commit = "9ac80d5c43c46e85700a75ca34bd1036ee15467e",
     dev_dependency = True,
     patch_args = [
         "-p1",
@@ -72,9 +72,14 @@ mesa_crate_deps.spec(
         "use-libc",
         "use-libc-auxv",
         "libc_errno",
+        "shm",
     ],
     package = "rustix",
     version = "1.0.7",
+)
+mesa_crate_deps.spec(
+    package = "mach2",
+    version = "0.7.0",
 )
 mesa_crate_deps.from_specs(
     name = "mesa_crate_deps",

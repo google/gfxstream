@@ -29,7 +29,6 @@
 //
 
 #include "goldfish_vk_supported_extensions.h"
-
 namespace gfxstream {
 namespace host {
 namespace vk {
