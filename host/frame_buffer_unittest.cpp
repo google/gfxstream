@@ -198,6 +198,26 @@ TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer) {
     mFb->closeColorBuffer(handle);
 }
 
+TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_BGRA8888) {
+    HandleType handle =
+        mFb->createColorBuffer(mWidth, mHeight, GfxstreamFormat::B8G8R8A8_UNORM);
+    EXPECT_NE((HandleType)0, handle);
+    EXPECT_EQ(0, mFb->openColorBuffer(handle));
+
+    TestTexture forUpdate = createTestPatternRGBA8888(mWidth, mHeight);
+    mFb->updateColorBuffer(handle, 0, 0, mWidth, mHeight, GfxstreamFormat::B8G8R8A8_UNORM,
+                           forUpdate.data());
+
+    TestTexture forRead =
+        createTestTextureRGBA8888SingleColor(mWidth, mHeight, 0.0f, 0.0f, 0.0f, 0.0f);
+    mFb->readColorBuffer(handle, 0, 0, mWidth, mHeight, GfxstreamFormat::B8G8R8A8_UNORM,
+                         forRead.data(), forRead.size());
+
+    EXPECT_TRUE(ImageMatches(mWidth, mHeight, 4, mWidth, forUpdate.data(), forRead.data()));
+
+    mFb->closeColorBuffer(handle);
+}
+
 TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_ReadYUV420) {
     HandleType handle = mFb->createColorBuffer(mWidth, mHeight, GfxstreamFormat::YV21);
     EXPECT_NE((HandleType)0, handle);

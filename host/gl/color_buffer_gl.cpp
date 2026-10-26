@@ -468,7 +468,7 @@ ColorBufferGl::~ColorBufferGl() {
 }
 
 
-static void convertRgbaToRgbPixels(void* dst, const void* src, uint32_t w, uint32_t h, GfxstreamFormat format) {
+static void convertRgbaPixels(void* dst, const void* src, uint32_t w, uint32_t h, GfxstreamFormat format) {
     const size_t pixelCount = w * h;
     const uint32_t* srcPixels = reinterpret_cast<const uint32_t*>(src);
 
@@ -495,6 +495,14 @@ static void convertRgbaToRgbPixels(void* dst, const void* src, uint32_t w, uint3
                 ((pixel & 0xf8) << 8) // r5 (upper 5-bits of r8 channel) shifted to upper bits 11-15
                 | ((pixel & 0xfc00) >> 5)  // g6 (upper 6-bits of g8 channel) shifted to bits 5-10
                 | ((pixel & 0xf80000) >> 19); // b5 (upper 5-bits of b8 channel) shifted to bits 0-4
+        }
+    } else if (format == GfxstreamFormat::B8G8R8A8_UNORM) {
+        uint32_t* dstPixels = reinterpret_cast<uint32_t*>(dst);
+        for (size_t i = 0; i < pixelCount; ++i) {
+            const uint32_t pixel = *(srcPixels++);
+            *(dstPixels++) = (pixel & 0xff00ff00) |
+                             ((pixel & 0x00ff0000) >> 16) |
+                             ((pixel & 0x000000ff) << 16);
         }
     }
 }
@@ -570,7 +578,10 @@ bool ColorBufferGl::readPixels(int x, int y, int width, int height, GfxstreamFor
             pixelFormat == GfxstreamFormat::R8G8B8_UNORM) {
             std::vector<uint8_t> tmpPixels(width * height * 4);
             s_gles2.glReadPixels(x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, tmpPixels.data());
-            convertRgbaToRgbPixels(pixels, tmpPixels.data(), width, height, pixelFormat);
+            convertRgbaPixels(pixels, tmpPixels.data(), width, height, pixelFormat);
+        } else if (pixelFormat == GfxstreamFormat::B8G8R8A8_UNORM) {
+            s_gles2.glReadPixels(x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+            convertRgbaPixels(pixels, pixels, width, height, pixelFormat);
         } else {
             GFXSTREAM_ERROR(
                 "UNIMPLEMENTED: GLES driver doesn't support readback for "
