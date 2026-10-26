@@ -29,6 +29,7 @@
 #include <set>
 #include <string>
 #include <unordered_map>
+#include <variant>
 
 #include "vk_vvl_configuration.h"
 
@@ -352,9 +353,82 @@ struct ImageInfo {
     std::optional<HandleType> boundColorBuffer;
     // TODO: might need to use an array of layouts to represent each sub resource
     VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED;
-    VkDeviceMemory memory = VK_NULL_HANDLE;
     VkDeviceSize memoryOffset = 0;
     VkDeviceSize memorySize = 0;
+
+    // Android guests allocate AHBs that combine GPU rendering/sampling with
+    // CPU access or scanout:
+    //
+    // * GRALLOC_USAGE_HW_COMPOSER
+    // * GRALLOC_USAGE_HW_RENDER
+    // * GRALLOC_USAGE_HW_TEXTURE
+    // * GRALLOC_USAGE_SW_READ_* / GRALLOC_USAGE_SW_WRITE_*
+    //
+    // In the guest Vulkan driver, these images are created with:
+    //
+    // * VK_IMAGE_TILING_OPTIMAL
+    // * VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
+    // * VK_IMAGE_USAGE_SAMPLED_BIT
+    //
+    // while the backing virtio-gpu resource / ColorBuffer memory is allocated
+    // for host/CPU or display access with:
+    //
+    // * VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+    // * VK_IMAGE_USAGE_TRANSFER_SRC_BIT
+    // * VK_IMAGE_TILING_LINEAR
+    //
+    // Nvidia does not natively support the COLOR_ATTACHMENT usage for images
+    // with HOST_VISIBLE + TILING_LINEAR without VK_NV_linear_color_attachment,
+    // and does not allow binding a TILING_OPTIMAL image to HOST_VISIBLE memory.
+    //
+    // To support this flow, we bind the guest's VK_IMAGE_TILING_OPTIMAL image
+    // (`optimalImage`) to newly allocated device-local `optimalImageMemory`
+    // (VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT), introduce a `linearImage` with
+    // VK_IMAGE_TILING_LINEAR bound to `linearImageMemory` (the guest-supplied
+    // HOST_VISIBLE memory backing the ColorBuffer / virtio-gpu resource), and
+    // insert the appropriate `vkCmdCopyImage()`s during:
+    //
+    //  * vkCmdPipelineBarrier()
+    //  * vkCmdPipelineBarrier2() / vkCmdPipelineBarrier2KHR()
+    //  * vkEndCommandBuffer()
+    //
+    // to sync the contents between `linearImage` (backed by `linearImageMemory`)
+    // and `optimalImage` (backed by `optimalImageMemory`).
+    struct ShadowedImageMemory {
+        // The Gfxstream-created VkImage with VK_IMAGE_TILING_LINEAR for vkCmdCopyImage
+        // transfers which is bound to `linearImageMemory`.
+        VkImage linearImage = VK_NULL_HANDLE;
+
+        // The guest-supplied VkDeviceMemory bound to `linearImage` which is backed
+        // by the underlying ColorBuffer / virtio gpu resource memory.
+        VkDeviceMemory linearImageMemory = VK_NULL_HANDLE;
+
+        // Current layout of `linearImage` (starts as VK_IMAGE_LAYOUT_PREINITIALIZED,
+        // transitioned to VK_IMAGE_LAYOUT_GENERAL after transfer copies).
+        VkImageLayout linearImageLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
+
+        // The guest-created VkImage (VK_IMAGE_TILING_OPTIMAL, key of mImageInfo) used for
+        // rendering and sampling.
+        VkImage optimalImage = VK_NULL_HANDLE;
+
+        // The Gfxstream-created VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT memory bound to
+        // `optimalImage` used for rendering-to and sampling-from.
+        VkDeviceMemory optimalImageMemory = VK_NULL_HANDLE;
+    };
+    struct NormalImageMemory {
+        VkDeviceMemory memory = VK_NULL_HANDLE;
+    };
+    std::variant<std::monostate, NormalImageMemory, ShadowedImageMemory> memoryState;
+
+    VkDeviceMemory getBoundMemory() const {
+        if (const auto* normal = std::get_if<NormalImageMemory>(&memoryState)) {
+            return normal->memory;
+        }
+        if (const auto* shadowed = std::get_if<ShadowedImageMemory>(&memoryState)) {
+            return shadowed->linearImageMemory;
+        }
+        return VK_NULL_HANDLE;
+    }
     // From VkExternalMemoryImageCreateInfo; imageCreateInfoShallow drops pNext.
     VkExternalMemoryHandleTypeFlags externalHandleTypes = 0;
 #ifdef __ANDROID__
@@ -629,8 +703,10 @@ struct CommandBufferInfo {
     std::vector<uint32_t> dynamicOffsets;
     std::unordered_set<HandleType> acquiredColorBuffers;
     std::unordered_set<HandleType> releasedColorBuffers;
+    std::unordered_set<VkImage> renderedShadowImages;
     std::unordered_map<HandleType, VkImageLayout> cbLayouts;
     std::unordered_map<VkImage, VkImageLayout> imageLayouts;
+    std::unordered_map<VkImage, VkImageLayout> shadowLinearImageLayouts;
 
     std::unordered_set<VkEvent> eventsSet;
     std::unordered_set<VkEvent> eventsReset;
@@ -645,8 +721,10 @@ struct CommandBufferInfo {
         dynamicOffsets.clear();
         acquiredColorBuffers.clear();
         releasedColorBuffers.clear();
+        renderedShadowImages.clear();
         cbLayouts.clear();
         imageLayouts.clear();
+        shadowLinearImageLayouts.clear();
     }
 };
 

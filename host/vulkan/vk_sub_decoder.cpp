@@ -2204,7 +2204,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                                                      (VkRenderingInfo*)(pRenderingInfo));
                 }
                 if (CC_LIKELY(vk)) {
-                    vk->vkCmdBeginRendering((VkCommandBuffer)dispatchHandle, pRenderingInfo);
+                    this->on_vkCmdBeginRendering(pool, snapshotApiCallHandle,
+                                                 (VkCommandBuffer)(boxed_dispatchHandle),
+                                                 pRenderingInfo);
                 }
                 if (snapshotsEnabled()) {
                     this->snapshot()->vkCmdBeginRendering(pool, snapshotApiCallHandle, nullptr, 0,
@@ -2898,7 +2900,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                                                      (VkRenderingInfo*)(pRenderingInfo));
                 }
                 if (CC_LIKELY(vk)) {
-                    vk->vkCmdBeginRenderingKHR((VkCommandBuffer)dispatchHandle, pRenderingInfo);
+                    this->on_vkCmdBeginRenderingKHR(pool, snapshotApiCallHandle,
+                                                    (VkCommandBuffer)(boxed_dispatchHandle),
+                                                    pRenderingInfo);
                 }
                 if (snapshotsEnabled()) {
                     this->snapshot()->vkCmdBeginRenderingKHR(
@@ -3411,7 +3415,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                                                       (VkDependencyInfo*)(pDependencyInfo));
                 }
                 if (CC_LIKELY(vk)) {
-                    vk->vkCmdPipelineBarrier2KHR((VkCommandBuffer)dispatchHandle, pDependencyInfo);
+                    this->on_vkCmdPipelineBarrier2KHR(pool, snapshotApiCallHandle,
+                                                      (VkCommandBuffer)(boxed_dispatchHandle),
+                                                      pDependencyInfo);
                 }
                 if (snapshotsEnabled()) {
                     this->snapshot()->vkCmdPipelineBarrier2KHR(

@@ -861,6 +861,14 @@ class VkDecoderGlobalState {
                                      VkCommandBuffer commandBuffer,
                                      const VkRenderPassBeginInfo* pRenderPassBegin,
                                      const VkSubpassBeginInfo* pSubpassBeginInfo);
+    void on_vkCmdBeginRendering(gfxstream::base::BumpPool* pool,
+                                VkSnapshotApiCallHandle apiCallHandle,
+                                VkCommandBuffer commandBuffer,
+                                const VkRenderingInfo* pRenderingInfo);
+    void on_vkCmdBeginRenderingKHR(gfxstream::base::BumpPool* pool,
+                                   VkSnapshotApiCallHandle apiCallHandle,
+                                   VkCommandBuffer commandBuffer,
+                                   const VkRenderingInfo* pRenderingInfo);
 
     VkResult on_vkCreateEvent(gfxstream::base::BumpPool* pool,
                               VkSnapshotApiCallHandle apiCallHandle, VkDevice device,

@@ -196,6 +196,13 @@ std::unique_ptr<AndroidNativeBufferInfo> AndroidNativeBufferInfo::create(
         // Update create flags and tiling to match the color buffer imported
         createImageCi.flags = importedColorBufferInfo.imageCreateInfoShallow.flags;
         createImageCi.tiling = importedColorBufferInfo.imageCreateInfoShallow.tiling;
+        if (createImageCi.tiling == VK_IMAGE_TILING_LINEAR &&
+            (createImageCi.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) != 0 &&
+            (importedColorBufferInfo.imageCreateInfoShallow.usage &
+             VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) == 0) {
+            createImageCi.tiling = VK_IMAGE_TILING_OPTIMAL;
+        }
+        createImageCi.usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 
         const auto& importedColorBufferMemoryInfo = importedColorBufferInfo.memory;
 
@@ -212,19 +219,36 @@ std::unique_ptr<AndroidNativeBufferInfo> AndroidNativeBufferInfo::create(
         VkExternalMemoryImageCreateInfo extImageCi = {
             VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO,
             0,
-            static_cast<VkExternalMemoryHandleTypeFlags>(emu->getDefaultExternalMemoryHandleType()),
+            (importedColorBufferMemoryInfo.handleInfo &&
+             importedColorBufferMemoryInfo.handleInfo->streamHandleType ==
+                 STREAM_HANDLE_TYPE_MEM_DMABUF)
+                ? static_cast<VkExternalMemoryHandleTypeFlags>(
+                      VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT)
+                : static_cast<VkExternalMemoryHandleTypeFlags>(
+                      emu->getDefaultExternalMemoryHandleType()),
         };
-        vk_insert_struct(createImageCi, extImageCi);
+        if (createImageCi.tiling == importedColorBufferInfo.imageCreateInfoShallow.tiling) {
+            vk_insert_struct(createImageCi, extImageCi);
+        }
 
         VkResult createResult =
             vk->vkCreateImage(out->mDevice, &createImageCi, pAllocator, &out->mImage);
+        if (createResult != VK_SUCCESS && createImageCi.tiling == VK_IMAGE_TILING_LINEAR) {
+            vk_struct_chain_remove(&extImageCi, &createImageCi);
+            createImageCi.tiling = VK_IMAGE_TILING_OPTIMAL;
+            createResult =
+                vk->vkCreateImage(out->mDevice, &createImageCi, pAllocator, &out->mImage);
+        }
         if (createResult != VK_SUCCESS) {
             return nullptr;
         }
 
         vk->vkGetImageMemoryRequirements(out->mDevice, out->mImage, &out->mImageMemoryRequirements);
 
-        if (out->mImageMemoryRequirements.size > importedColorBufferMemoryInfo.size) {
+        const bool tilingMatchesColorBuffer =
+            createImageCi.tiling == importedColorBufferInfo.imageCreateInfoShallow.tiling;
+        if (tilingMatchesColorBuffer &&
+            out->mImageMemoryRequirements.size > importedColorBufferMemoryInfo.size) {
             VK_ANB_ERR(
                 "Failed to prepare ANB image: attempted to import memory that is not large enough "
                 "for the VkImage: image memory requirements size:%llu vs actual memory size:%llu, "
@@ -236,7 +260,8 @@ std::unique_ptr<AndroidNativeBufferInfo> AndroidNativeBufferInfo::create(
             return nullptr;
         }
 
-        if (out->mImageMemoryRequirements.size < importedColorBufferMemoryInfo.size) {
+        if (tilingMatchesColorBuffer &&
+            out->mImageMemoryRequirements.size < importedColorBufferMemoryInfo.size) {
             out->mImageMemoryRequirements.size = importedColorBufferMemoryInfo.size;
         }
 
@@ -252,15 +277,50 @@ std::unique_ptr<AndroidNativeBufferInfo> AndroidNativeBufferInfo::create(
             dedicatedInfoPtr = &dedicatedInfo;
         }
 
-        if (!emu->importExternalMemory(out->mDeviceDispatch, out->mDevice,
-                                       &importedColorBufferMemoryInfo, dedicatedInfoPtr,
-                                       &out->mImageMemory)) {
-            VK_ANB_ERR("VK_ANDROID_native_buffer: Failed to import external memory%s",
-                       importedColorBufferMemoryInfo.dedicatedAllocation ? " (dedicated)" : "");
-            return nullptr;
+        const bool memTypeCompatible =
+            tilingMatchesColorBuffer &&
+            importedColorBufferMemoryInfo.typeIndex < VK_MAX_MEMORY_TYPES &&
+            (out->mImageMemoryRequirements.memoryTypeBits &
+             (1u << importedColorBufferMemoryInfo.typeIndex)) != 0;
+        if (memTypeCompatible &&
+            emu->importExternalMemory(out->mDeviceDispatch, out->mDevice,
+                                      &importedColorBufferMemoryInfo, dedicatedInfoPtr,
+                                      &out->mImageMemory)) {
+            bindOffset = importedColorBufferMemoryInfo.bindOffset;
+        } else {
+            out->mUseVulkanNativeImage = false;
+            uint32_t imageMemoryTypeIndex = 0;
+            bool imageMemoryTypeIndexFound = false;
+            for (uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; ++i) {
+                if (out->mImageMemoryRequirements.memoryTypeBits & (1u << i)) {
+                    imageMemoryTypeIndex = i;
+                    imageMemoryTypeIndexFound = true;
+                    break;
+                }
+            }
+            if (!imageMemoryTypeIndexFound) {
+                VK_ANB_ERR("VK_ANDROID_native_buffer: could not obtain image memory type index");
+                return nullptr;
+            }
+            out->mImageMemoryTypeIndex = imageMemoryTypeIndex;
+            const VkMemoryAllocateInfo allocInfo = {
+                VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+                nullptr,
+                out->mImageMemoryRequirements.size,
+                out->mImageMemoryTypeIndex,
+            };
+            VkResult allocRes =
+                vk->vkAllocateMemory(device, &allocInfo, nullptr, &out->mImageMemory);
+            if (allocRes != VK_SUCCESS) {
+                VK_ANB_ERR(
+                    "VK_ANDROID_native_buffer: could not allocate fallback image memory "
+                    "(size=%llu, memoryTypeIndex=%u): %s (%d)",
+                    static_cast<unsigned long long>(allocInfo.allocationSize),
+                    allocInfo.memoryTypeIndex, string_VkResult(allocRes), allocRes);
+                return nullptr;
+            }
+            bindOffset = 0;
         }
-
-        bindOffset = importedColorBufferMemoryInfo.bindOffset;
     } else {
         // delete the info struct and pass to vkCreateImage, and also add
         // transfer src capability to allow us to copy to CPU.

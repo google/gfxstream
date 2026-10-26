@@ -735,10 +735,11 @@ class VkDecoderGlobalState::Impl {
                 return false;
             }
             const ImageInfo& imageInfo = mImageInfo[unboxedImage];
+            const VkDeviceMemory memory = imageInfo.getBoundMemory();
 
             // Color buffer is saved in ColorBufferVk already
             const bool hasContentToSave =
-                (imageInfo.memory != VK_NULL_HANDLE) && !isMemoryBoundToColorBuffer(imageInfo.memory);
+                (memory != VK_NULL_HANDLE) && !isMemoryBoundToColorBuffer(memory);
             stream->putBe32(hasContentToSave ? 1 : 0);
             if (!hasContentToSave) {
                 continue;
@@ -1186,7 +1187,8 @@ class VkDecoderGlobalState::Impl {
                     continue;
                 }
 
-                if (imageInfo.memory == VK_NULL_HANDLE || isMemoryBoundToColorBuffer(imageInfo.memory)) {
+                const VkDeviceMemory memory = imageInfo.getBoundMemory();
+                if (memory == VK_NULL_HANDLE || isMemoryBoundToColorBuffer(memory)) {
                     // Color buffer should have been handled by ColorBufferVk already
                     // and saved with 'hasContentToSave' set to false.
                     GFXSTREAM_ERROR("Cannot load image %p with content in the snapshot",
@@ -3900,6 +3902,15 @@ class VkDecoderGlobalState::Impl {
 
     void destroyImageWithExclusiveInfo(VkDevice device, VulkanDispatch* deviceDispatch,
                                        VkImage image, ImageInfo& imageInfo) {
+        if (auto* shadowed = std::get_if<ImageInfo::ShadowedImageMemory>(&imageInfo.memoryState)) {
+            if (shadowed->linearImage != VK_NULL_HANDLE) {
+                deviceDispatch->vkDestroyImage(device, shadowed->linearImage, nullptr);
+            }
+            if (shadowed->optimalImageMemory != VK_NULL_HANDLE) {
+                deviceDispatch->vkFreeMemory(device, shadowed->optimalImageMemory, nullptr);
+            }
+            imageInfo.memoryState = std::monostate{};
+        }
         if (!imageInfo.anbInfo) {
             if (!imageInfo.compressInfo || image != imageInfo.compressInfo->outputImage()) {
                 deviceDispatch->vkDestroyImage(device, image, nullptr);
@@ -3926,10 +3937,13 @@ class VkDecoderGlobalState::Impl {
                                      ImageInfo* imageInfo, MemoryInfo* memoryInfo,
                                      VkDeviceMemory memory, VkDeviceSize memoryOffset)
         REQUIRES(mMutex) {
-        imageInfo->memory = memory;
+        if (!std::holds_alternative<ImageInfo::ShadowedImageMemory>(imageInfo->memoryState)) {
+            imageInfo->memoryState = ImageInfo::NormalImageMemory{.memory = memory};
+        }
         imageInfo->memoryOffset = memoryOffset;
         if (imageInfo->imageCreateInfoShallow.tiling == VK_IMAGE_TILING_OPTIMAL &&
-            !imageInfo->anbInfo) {
+            !imageInfo->anbInfo &&
+            !std::holds_alternative<ImageInfo::ShadowedImageMemory>(imageInfo->memoryState)) {
             VkMemoryRequirements memReqs = {};
             if (vk && vk->vkGetImageMemoryRequirements) {
                 vk->vkGetImageMemoryRequirements(device, image, &memReqs);
@@ -3948,9 +3962,10 @@ class VkDecoderGlobalState::Impl {
         if (imageInfoIt == mImageInfo.end()) return;
         auto& imageInfo = imageInfoIt->second;
 
+        VkDeviceMemory boundMemory = imageInfo.getBoundMemory();
         destroyImageWithExclusiveInfo(device, deviceDispatch, image, imageInfo);
-        if (imageInfo.memory != VK_NULL_HANDLE) {
-            auto* memoryInfo = gfxstream::base::find(mMemoryInfo, imageInfo.memory);
+        if (boundMemory != VK_NULL_HANDLE) {
+            auto* memoryInfo = gfxstream::base::find(mMemoryInfo, boundMemory);
             if (memoryInfo) {
                 unbindFromOptimalImageLocked(memoryInfo, image);
             }
@@ -4019,6 +4034,292 @@ class VkDecoderGlobalState::Impl {
         return VK_SUCCESS;
     }
 
+    // See `ImageInfo::ShadowedImageMemory`.
+    bool needsShadowImageBindLocked(VulkanDispatch* vk, VkDevice device,
+                                    const MemoryInfo* memoryInfo, VkImage image,
+                                    const ImageInfo* imageInfo) REQUIRES(mMutex) {
+        if (!memoryInfo->boundColorBuffer.has_value()) {
+            return false;
+        }
+
+        auto colorBufferInfoOpt = m_vkEmulation->getColorBufferInfo(*memoryInfo->boundColorBuffer);
+        if (!colorBufferInfoOpt) {
+            return false;
+        }
+        auto& colorBufferInfo = *colorBufferInfoOpt;
+
+        const bool colorBufferIsLinearlyTiled =
+            (colorBufferInfo.memoryProperty & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0 ||
+            colorBufferInfo.imageCreateInfoShallow.tiling == VK_IMAGE_TILING_LINEAR;
+
+        VkMemoryRequirements imageMemoryRequirements{};
+        vk->vkGetImageMemoryRequirements(device, image, &imageMemoryRequirements);
+
+        const bool guestSuppliedMemorySupportsImageUsages =
+            memoryInfo->memoryIndex < VK_MAX_MEMORY_TYPES &&
+            (imageMemoryRequirements.memoryTypeBits & (1u << memoryInfo->memoryIndex)) != 0;
+        const bool guestSuppliedImageIsLinearlyTiled =
+            imageInfo->imageCreateInfoShallow.tiling == VK_IMAGE_TILING_LINEAR;
+
+        if (guestSuppliedMemorySupportsImageUsages &&
+            (!colorBufferIsLinearlyTiled || guestSuppliedImageIsLinearlyTiled)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    // See `ImageInfo::ShadowedImageMemory`.
+    bool performShadowImageBindLocked(VulkanDispatch* vk, VkDevice device,
+                                      const DeviceInfo* deviceInfo,
+                                      const MemoryInfo* memoryInfo, VkImage* image,
+                                      ImageInfo** imageInfo, VkDeviceMemory memory,
+                                      VkDeviceSize memoryOffset) REQUIRES(mMutex) {
+        VkExternalMemoryHandleTypeFlags externalHandleTypes =
+            (*imageInfo)->externalHandleTypes |
+            static_cast<VkExternalMemoryHandleTypeFlags>(
+                m_vkEmulation->getDefaultExternalMemoryHandleType());
+        if (m_vkEmulation->supportsDmaBuf()) {
+            externalHandleTypes |= VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
+        }
+        if (memoryInfo->boundColorBuffer.has_value()) {
+            auto cbInfoOpt = m_vkEmulation->getColorBufferInfo(*memoryInfo->boundColorBuffer);
+            if (cbInfoOpt && cbInfoOpt->memory.handleInfo &&
+                cbInfoOpt->memory.handleInfo->streamHandleType == STREAM_HANDLE_TYPE_MEM_DMABUF) {
+                externalHandleTypes |= VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
+            }
+        }
+
+        const auto* physicalDeviceInfo =
+            gfxstream::base::find(mPhysdevInfo, deviceInfo->physicalDevice);
+        const auto* instanceInfo =
+            physicalDeviceInfo ? gfxstream::base::find(mInstanceInfo, physicalDeviceInfo->instance)
+                               : nullptr;
+        VulkanDispatch* ivk = (instanceInfo && instanceInfo->boxed != VK_NULL_HANDLE)
+                                  ? dispatch_VkInstance(instanceInfo->boxed)
+                                  : m_vk;
+
+        const bool guestSuppliedImageHasColorAttachmentUsage =
+            ((*imageInfo)->imageCreateInfoShallow.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) != 0;
+        VkFormatProperties formatProps = {};
+        if (ivk && ivk->vkGetPhysicalDeviceFormatProperties) {
+            ivk->vkGetPhysicalDeviceFormatProperties(deviceInfo->physicalDevice,
+                                                     (*imageInfo)->imageCreateInfoShallow.format,
+                                                     &formatProps);
+        }
+        const bool hostSupportsLinearColorAttachment =
+            (formatProps.linearTilingFeatures & VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT) != 0;
+        const bool canReplaceWithLinearImage =
+            !snapshotsEnabled() &&
+            (*imageInfo)->imageCreateInfoShallow.imageType == VK_IMAGE_TYPE_2D &&
+            (*imageInfo)->imageCreateInfoShallow.mipLevels == 1 &&
+            (*imageInfo)->imageCreateInfoShallow.arrayLayers == 1 &&
+            (*imageInfo)->imageCreateInfoShallow.samples == VK_SAMPLE_COUNT_1_BIT &&
+            (!guestSuppliedImageHasColorAttachmentUsage || hostSupportsLinearColorAttachment);
+        if (canReplaceWithLinearImage) {
+            VkExternalMemoryImageCreateInfo extImageCi = {
+                .sType = VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO,
+                .pNext = nullptr,
+                .handleTypes = externalHandleTypes,
+            };
+            VkImageCreateInfo linearCi = (*imageInfo)->imageCreateInfoShallow;
+            linearCi.pNext = &extImageCi;
+            linearCi.tiling = VK_IMAGE_TILING_LINEAR;
+
+            VkImage replacementImage = VK_NULL_HANDLE;
+            if (vk->vkCreateImage(device, &linearCi, nullptr, &replacementImage) == VK_SUCCESS) {
+                VkMemoryRequirements linearReqs{};
+                vk->vkGetImageMemoryRequirements(device, replacementImage, &linearReqs);
+                if (memoryInfo->memoryIndex < VK_MAX_MEMORY_TYPES &&
+                    (linearReqs.memoryTypeBits & (1u << memoryInfo->memoryIndex)) != 0 &&
+                    linearReqs.alignment > 0 &&
+                    (memoryOffset % linearReqs.alignment) == 0 &&
+                    memoryOffset <= memoryInfo->size &&
+                    linearReqs.size <= (memoryInfo->size - memoryOffset) &&
+                    vk->vkBindImageMemory(device, replacementImage, memory, memoryOffset) ==
+                        VK_SUCCESS) {
+                    VkImage boxedImage = (*imageInfo)->boxed;
+                    if (boxedImage == VK_NULL_HANDLE) {
+                        boxedImage = unboxed_to_boxed_non_dispatchable_VkImage(*image);
+                    }
+                    ImageInfo movedInfo = std::move(**imageInfo);
+                    movedInfo.imageCreateInfoShallow.tiling = VK_IMAGE_TILING_LINEAR;
+                    movedInfo.memoryState = ImageInfo::NormalImageMemory{.memory = memory};
+                    vk->vkDestroyImage(device, *image, nullptr);
+                    mImageInfo.erase(*image);
+                    mImageInfo[replacementImage] = std::move(movedInfo);
+                    if (boxedImage != VK_NULL_HANDLE) {
+                        set_boxed_non_dispatchable_VkImage(boxedImage, replacementImage);
+                    }
+                    *image = replacementImage;
+                    *imageInfo = gfxstream::base::find(mImageInfo, *image);
+                    return true;
+                }
+                vk->vkDestroyImage(device, replacementImage, nullptr);
+            }
+        }
+
+        VkMemoryDedicatedRequirements optimalDedicatedReqs = {
+            .sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS,
+            .pNext = nullptr,
+        };
+        VkMemoryRequirements2 optimalReqs2 = {
+            .sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2,
+            .pNext = &optimalDedicatedReqs,
+        };
+        VkMemoryRequirements imageMemoryRequirements{};
+        const VkImageMemoryRequirementsInfo2 reqsInfo2 = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_REQUIREMENTS_INFO_2,
+            .pNext = nullptr,
+            .image = *image,
+        };
+        if (vk->vkGetImageMemoryRequirements2) {
+            vk->vkGetImageMemoryRequirements2(device, &reqsInfo2, &optimalReqs2);
+            imageMemoryRequirements = optimalReqs2.memoryRequirements;
+        } else if (vk->vkGetImageMemoryRequirements2KHR) {
+            vk->vkGetImageMemoryRequirements2KHR(device, &reqsInfo2, &optimalReqs2);
+            imageMemoryRequirements = optimalReqs2.memoryRequirements;
+        } else {
+            vk->vkGetImageMemoryRequirements(device, *image, &imageMemoryRequirements);
+        }
+
+        std::optional<uint32_t> optimalMemTypeIdx;
+        if (physicalDeviceInfo && physicalDeviceInfo->memoryPropertiesHelper) {
+            const auto& hostMemProps =
+                physicalDeviceInfo->memoryPropertiesHelper->getHostMemoryProperties();
+            for (uint32_t i = 0; i < hostMemProps.memoryTypeCount; ++i) {
+                if ((imageMemoryRequirements.memoryTypeBits & (1u << i)) != 0 &&
+                    (hostMemProps.memoryTypes[i].propertyFlags &
+                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) != 0) {
+                    optimalMemTypeIdx = i;
+                    break;
+                }
+            }
+        }
+        if (!optimalMemTypeIdx.has_value()) {
+            for (uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; ++i) {
+                if (imageMemoryRequirements.memoryTypeBits & (1u << i)) {
+                    optimalMemTypeIdx = i;
+                    break;
+                }
+            }
+        }
+        if (!optimalMemTypeIdx.has_value()) {
+            GFXSTREAM_ERROR(
+                "performShadowImageBindLocked: no suitable memory type for optimalImage "
+                "(memoryTypeBits=0x%x)",
+                imageMemoryRequirements.memoryTypeBits);
+            return false;
+        }
+
+        ImageInfo::ShadowedImageMemory shadowed = {
+            .linearImage = VK_NULL_HANDLE,
+            .linearImageMemory = memory,
+            .linearImageLayout = VK_IMAGE_LAYOUT_PREINITIALIZED,
+            .optimalImage = *image,
+            .optimalImageMemory = VK_NULL_HANDLE,
+        };
+
+        VkExternalMemoryImageCreateInfo extImageCi = {
+            .sType = VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO,
+            .pNext = nullptr,
+            .handleTypes = externalHandleTypes,
+        };
+        VkImageCreateInfo linearImageCi = (*imageInfo)->imageCreateInfoShallow;
+        linearImageCi.pNext = &extImageCi;
+        linearImageCi.flags = 0;
+        linearImageCi.mipLevels = 1;
+        linearImageCi.arrayLayers = 1;
+        linearImageCi.samples = VK_SAMPLE_COUNT_1_BIT;
+        linearImageCi.tiling = VK_IMAGE_TILING_LINEAR;
+        linearImageCi.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+        linearImageCi.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        linearImageCi.queueFamilyIndexCount = 0;
+        linearImageCi.pQueueFamilyIndices = nullptr;
+        linearImageCi.initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
+        VkResult createLinearRes =
+            vk->vkCreateImage(device, &linearImageCi, nullptr, &shadowed.linearImage);
+        if (createLinearRes != VK_SUCCESS) {
+            GFXSTREAM_ERROR(
+                "performShadowImageBindLocked: vkCreateImage(linearImage) failed: %s [%d]",
+                string_VkResult(createLinearRes), createLinearRes);
+            return false;
+        }
+
+        VkMemoryRequirements linearImageMemoryRequirements{};
+        vk->vkGetImageMemoryRequirements(device, shadowed.linearImage,
+                                         &linearImageMemoryRequirements);
+        if (memoryInfo->memoryIndex >= VK_MAX_MEMORY_TYPES ||
+            (linearImageMemoryRequirements.memoryTypeBits & (1u << memoryInfo->memoryIndex)) == 0 ||
+            linearImageMemoryRequirements.alignment == 0 ||
+            (memoryOffset % linearImageMemoryRequirements.alignment) != 0 ||
+            memoryOffset > memoryInfo->size ||
+            linearImageMemoryRequirements.size > (memoryInfo->size - memoryOffset)) {
+            GFXSTREAM_ERROR(
+                "performShadowImageBindLocked: linearImage memory requirements mismatch "
+                "(reqSize=%llu, reqAlignment=%llu, reqTypeBits=0x%x, memSize=%llu, memOffset=%llu, "
+                "memTypeIndex=%u)",
+                (unsigned long long)linearImageMemoryRequirements.size,
+                (unsigned long long)linearImageMemoryRequirements.alignment,
+                linearImageMemoryRequirements.memoryTypeBits,
+                (unsigned long long)memoryInfo->size, (unsigned long long)memoryOffset,
+                memoryInfo->memoryIndex);
+            vk->vkDestroyImage(device, shadowed.linearImage, nullptr);
+            return false;
+        }
+
+        VkResult bindLinearRes = vk->vkBindImageMemory(
+            device, shadowed.linearImage, shadowed.linearImageMemory, memoryOffset);
+        if (bindLinearRes != VK_SUCCESS) {
+            GFXSTREAM_ERROR(
+                "performShadowImageBindLocked: vkBindImageMemory(linearImage) failed: %s [%d]",
+                string_VkResult(bindLinearRes), bindLinearRes);
+            vk->vkDestroyImage(device, shadowed.linearImage, nullptr);
+            return false;
+        }
+
+        const VkMemoryDedicatedAllocateInfo dedicatedAllocInfo = {
+            .sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO,
+            .pNext = nullptr,
+            .image = shadowed.optimalImage,
+            .buffer = VK_NULL_HANDLE,
+        };
+        const bool useDedicatedAlloc = optimalDedicatedReqs.requiresDedicatedAllocation ||
+                                       optimalDedicatedReqs.prefersDedicatedAllocation;
+        const VkMemoryAllocateInfo optimalAllocInfo = {
+            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+            .pNext = useDedicatedAlloc ? &dedicatedAllocInfo : nullptr,
+            .allocationSize = imageMemoryRequirements.size,
+            .memoryTypeIndex = *optimalMemTypeIdx,
+        };
+        VkResult allocOptimalRes = vk->vkAllocateMemory(device, &optimalAllocInfo, nullptr,
+                                                        &shadowed.optimalImageMemory);
+        if (allocOptimalRes != VK_SUCCESS) {
+            GFXSTREAM_ERROR(
+                "performShadowImageBindLocked: vkAllocateMemory(optimalImageMemory, size=%llu, "
+                "typeIndex=%u) failed: %s [%d]",
+                (unsigned long long)optimalAllocInfo.allocationSize,
+                optimalAllocInfo.memoryTypeIndex, string_VkResult(allocOptimalRes),
+                allocOptimalRes);
+            vk->vkDestroyImage(device, shadowed.linearImage, nullptr);
+            return false;
+        }
+
+        VkResult bindOptimalRes =
+            vk->vkBindImageMemory(device, shadowed.optimalImage, shadowed.optimalImageMemory, 0);
+        if (bindOptimalRes != VK_SUCCESS) {
+            GFXSTREAM_ERROR(
+                "performShadowImageBindLocked: vkBindImageMemory(optimalImage) failed: %s [%d]",
+                string_VkResult(bindOptimalRes), bindOptimalRes);
+            vk->vkDestroyImage(device, shadowed.linearImage, nullptr);
+            vk->vkFreeMemory(device, shadowed.optimalImageMemory, nullptr);
+            return false;
+        }
+
+        (*imageInfo)->memoryState = shadowed;
+        return true;
+    }
+
     VkResult performBindImageMemory(gfxstream::base::BumpPool* pool,
                                     VkSnapshotApiCallHandle apiCallHandle, VkDevice boxed_device,
                                     const VkBindImageMemoryInfo* bimi) EXCLUDES(mMutex) {
@@ -4036,10 +4337,6 @@ class VkDecoderGlobalState::Impl {
 
         VALIDATE_REQUIRED_HANDLE(image);
         VALIDATE_REQUIRED_HANDLE(memory);
-        VkResult result = vk->vkBindImageMemory(device, image, memory, memoryOffset);
-        if (result != VK_SUCCESS) {
-            return result;
-        }
 
         std::lock_guard<std::mutex> lock(mMutex);
 
@@ -4051,6 +4348,21 @@ class VkDecoderGlobalState::Impl {
 
         auto* imageInfo = gfxstream::base::find(mImageInfo, image);
         if (!imageInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
+
+        if (needsShadowImageBindLocked(vk, device, memoryInfo, image, imageInfo)) {
+            if (!performShadowImageBindLocked(vk, device, deviceInfo, memoryInfo, &image,
+                                              &imageInfo, memory, memoryOffset)) {
+                return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+            }
+            const_cast<VkBindImageMemoryInfo*>(bimi)->image = image;
+        } else {
+            VkResult result = vk->vkBindImageMemory(device, image, memory, memoryOffset);
+            if (result != VK_SUCCESS) {
+                return result;
+            }
+            imageInfo->memoryState = ImageInfo::NormalImageMemory{.memory = memory};
+        }
+
         imageInfo->boundColorBuffer = memoryInfo->boundColorBuffer;
         if (imageInfo->boundColorBuffer) {
             deviceInfo->debugUtilsHelper.addDebugLabel(image, "ColorBuffer:%d",
@@ -4069,7 +4381,7 @@ class VkDecoderGlobalState::Impl {
                                   VkSnapshotApiCallHandle apiCallHandle, VkDevice boxed_device,
                                   VkImage image, VkDeviceMemory memory, VkDeviceSize memoryOffset)
         EXCLUDES(mMutex) {
-        const VkBindImageMemoryInfo bimi = {
+        VkBindImageMemoryInfo bimi = {
             .sType = VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_INFO,
             .pNext = nullptr,
             .image = image,
@@ -4119,6 +4431,14 @@ class VkDecoderGlobalState::Impl {
                 if (imageInfo->compressInfo) {
                     needEmulation = true;
                     break;
+                }
+
+                if (pBindInfos[i].memory != VK_NULL_HANDLE) {
+                    auto* memoryInfo = gfxstream::base::find(mMemoryInfo, pBindInfos[i].memory);
+                    if (memoryInfo && memoryInfo->boundColorBuffer.has_value()) {
+                        needEmulation = true;
+                        break;
+                    }
                 }
             }
         }
@@ -6742,13 +7062,20 @@ class VkDecoderGlobalState::Impl {
         if (!cmdBufferInfo) return;
 
         for (uint32_t i = 0; i < imageMemoryBarrierCount; i++) {
-            auto* imageInfo = gfxstream::base::find(mImageInfo, getIMBImage(pImageMemoryBarriers[i]));
+            VkImage img = getIMBImage(pImageMemoryBarriers[i]);
+            auto* imageInfo = gfxstream::base::find(mImageInfo, img);
             if (!imageInfo) {
                 continue;
             }
-            // Update image layout in ImageInfo
-            cmdBufferInfo->imageLayouts[getIMBImage(pImageMemoryBarriers[i])] =
-                getIMBNewLayout(pImageMemoryBarriers[i]);
+            const VkImageLayout newLayout = getIMBNewLayout(pImageMemoryBarriers[i]);
+            const bool isLayoutTransition = (pImageMemoryBarriers[i].oldLayout != newLayout);
+            // Update image layout in CommandBufferInfo (do not overwrite an existing layout on a
+            // same-layout barrier such as an in-renderpass subpass self-dependency, which would
+            // clobber the renderpass's attachmentFinalLayouts).
+            if (isLayoutTransition ||
+                cmdBufferInfo->imageLayouts.find(img) == cmdBufferInfo->imageLayouts.end()) {
+                cmdBufferInfo->imageLayouts[img] = newLayout;
+            }
 
             if (!imageInfo->boundColorBuffer.has_value()) {
                 continue;
@@ -6760,8 +7087,245 @@ class VkDecoderGlobalState::Impl {
             if (getIMBDstQueueFamilyIndex(pImageMemoryBarriers[i]) == VK_QUEUE_FAMILY_EXTERNAL) {
                 cmdBufferInfo->releasedColorBuffers.insert(cb);
             }
-            cmdBufferInfo->cbLayouts[cb] = getIMBNewLayout(pImageMemoryBarriers[i]);
+            if (isLayoutTransition ||
+                cmdBufferInfo->cbLayouts.find(cb) == cmdBufferInfo->cbLayouts.end()) {
+                cmdBufferInfo->cbLayouts[cb] = newLayout;
+            }
         }
+    }
+
+    template <typename BarrierType>
+    void stripExternalQueueFamilyForShadowedImagesLocked(
+        uint32_t count, const BarrierType** barriers,
+        std::vector<BarrierType>* mappedBarriers) REQUIRES(mMutex) {
+        bool needsStrip = false;
+        for (uint32_t i = 0; i < count; ++i) {
+            if ((*barriers)[i].srcQueueFamilyIndex != VK_QUEUE_FAMILY_EXTERNAL &&
+                (*barriers)[i].dstQueueFamilyIndex != VK_QUEUE_FAMILY_EXTERNAL) {
+                continue;
+            }
+            const auto* imageInfo = gfxstream::base::find(mImageInfo, getIMBImage((*barriers)[i]));
+            if (imageInfo &&
+                std::holds_alternative<ImageInfo::ShadowedImageMemory>(imageInfo->memoryState)) {
+                needsStrip = true;
+                break;
+            }
+        }
+        if (!needsStrip) {
+            return;
+        }
+        if (mappedBarriers->empty()) {
+            mappedBarriers->assign(*barriers, *barriers + count);
+            *barriers = mappedBarriers->data();
+        }
+        for (uint32_t i = 0; i < count; ++i) {
+            const auto* imageInfo =
+                gfxstream::base::find(mImageInfo, getIMBImage((*mappedBarriers)[i]));
+            if (imageInfo &&
+                std::holds_alternative<ImageInfo::ShadowedImageMemory>(imageInfo->memoryState)) {
+                if ((*mappedBarriers)[i].srcQueueFamilyIndex == VK_QUEUE_FAMILY_EXTERNAL ||
+                    (*mappedBarriers)[i].dstQueueFamilyIndex == VK_QUEUE_FAMILY_EXTERNAL) {
+                    (*mappedBarriers)[i].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+                    (*mappedBarriers)[i].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+                }
+            }
+        }
+    }
+
+    // See `ImageInfo::ShadowedImageMemory`.
+    void recordShadowImageCopyLocked(VulkanDispatch* vk, VkCommandBuffer commandBuffer,
+                                     CommandBufferInfo* cmdBufferInfo, VkImage img,
+                                     const ImageInfo* imageInfo,
+                                     ImageInfo::ShadowedImageMemory* shadowed, bool isRelease,
+                                     VkImageLayout currentLayout) REQUIRES(mMutex) {
+        VkImageLayout linearOldLayout = shadowed->linearImageLayout;
+        if (cmdBufferInfo) {
+            auto it = cmdBufferInfo->shadowLinearImageLayouts.find(img);
+            if (it != cmdBufferInfo->shadowLinearImageLayouts.end()) {
+                linearOldLayout = it->second;
+            }
+        }
+        const VkImageLayout optimalTransferLayout =
+            isRelease ? VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL
+                      : VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        const VkImageLayout linearTransferLayout =
+            isRelease ? VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
+                      : VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        VkImageMemoryBarrier toTransfer[2] = {
+            {
+                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                .pNext = nullptr,
+                .srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT |
+                                 VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+                .dstAccessMask =
+                    isRelease ? static_cast<VkAccessFlags>(VK_ACCESS_TRANSFER_READ_BIT)
+                              : static_cast<VkAccessFlags>(VK_ACCESS_TRANSFER_WRITE_BIT),
+                .oldLayout = isRelease ? currentLayout : VK_IMAGE_LAYOUT_UNDEFINED,
+                .newLayout = optimalTransferLayout,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .image = shadowed->optimalImage,
+                .subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1},
+            },
+            {
+                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                .pNext = nullptr,
+                .srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT,
+                .dstAccessMask =
+                    isRelease ? static_cast<VkAccessFlags>(VK_ACCESS_TRANSFER_WRITE_BIT)
+                              : static_cast<VkAccessFlags>(VK_ACCESS_TRANSFER_READ_BIT),
+                .oldLayout = isRelease ? VK_IMAGE_LAYOUT_UNDEFINED : linearOldLayout,
+                .newLayout = linearTransferLayout,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .image = shadowed->linearImage,
+                .subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1},
+            },
+        };
+        vk->vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                                 VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 2,
+                                 toTransfer);
+
+        const VkImageCopy region = {
+            .srcSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
+            .srcOffset = {0, 0, 0},
+            .dstSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
+            .dstOffset = {0, 0, 0},
+            .extent = imageInfo->imageCreateInfoShallow.extent,
+        };
+        if (isRelease) {
+            vk->vkCmdCopyImage(commandBuffer, shadowed->optimalImage, optimalTransferLayout,
+                               shadowed->linearImage, linearTransferLayout, 1, &region);
+        } else {
+            vk->vkCmdCopyImage(commandBuffer, shadowed->linearImage, linearTransferLayout,
+                               shadowed->optimalImage, optimalTransferLayout, 1, &region);
+        }
+
+        VkImageMemoryBarrier fromTransfer[2] = {
+            {
+                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                .pNext = nullptr,
+                .srcAccessMask =
+                    isRelease ? static_cast<VkAccessFlags>(VK_ACCESS_TRANSFER_READ_BIT)
+                              : static_cast<VkAccessFlags>(VK_ACCESS_TRANSFER_WRITE_BIT),
+                .dstAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
+                .oldLayout = optimalTransferLayout,
+                .newLayout = currentLayout,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .image = shadowed->optimalImage,
+                .subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1},
+            },
+            {
+                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                .pNext = nullptr,
+                .srcAccessMask =
+                    isRelease ? static_cast<VkAccessFlags>(VK_ACCESS_TRANSFER_WRITE_BIT)
+                              : static_cast<VkAccessFlags>(VK_ACCESS_TRANSFER_READ_BIT),
+                .dstAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT |
+                                 VK_ACCESS_HOST_READ_BIT,
+                .oldLayout = linearTransferLayout,
+                .newLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .image = shadowed->linearImage,
+                .subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1},
+            },
+        };
+        vk->vkCmdPipelineBarrier(
+            commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
+            VK_PIPELINE_STAGE_ALL_COMMANDS_BIT | VK_PIPELINE_STAGE_HOST_BIT, 0, 0, nullptr, 0,
+            nullptr, 2, fromTransfer);
+        if (cmdBufferInfo) {
+            cmdBufferInfo->shadowLinearImageLayouts[img] = VK_IMAGE_LAYOUT_GENERAL;
+        } else {
+            shadowed->linearImageLayout = VK_IMAGE_LAYOUT_GENERAL;
+        }
+    }
+
+    // See `ImageInfo::ShadowedImageMemory`.
+    template <typename VkImageMemoryBarrierType>
+    void syncShadowImageForImageBarriersLocked(
+        VulkanDispatch* vk, VkCommandBuffer commandBuffer, uint32_t imageMemoryBarrierCount,
+        const VkImageMemoryBarrierType* pGuestImageMemoryBarriers) REQUIRES(mMutex) {
+        CommandBufferInfo* cmdBufferInfo = gfxstream::base::find(mCommandBufferInfo, commandBuffer);
+        for (uint32_t i = 0; i < imageMemoryBarrierCount; i++) {
+            VkImage img = getIMBImage(pGuestImageMemoryBarriers[i]);
+            auto* imageInfo = gfxstream::base::find(mImageInfo, img);
+            if (!imageInfo) {
+                continue;
+            }
+            const VkImageLayout guestOldLayout = pGuestImageMemoryBarriers[i].oldLayout;
+            const VkImageLayout guestNewLayout = getIMBNewLayout(pGuestImageMemoryBarriers[i]);
+            const VkImageLayout adjustedNewLayout = m_vkEmulation->adjustImageLayout(guestNewLayout);
+            const bool isLayoutTransition = (guestOldLayout != guestNewLayout);
+            auto* shadowed =
+                std::get_if<ImageInfo::ShadowedImageMemory>(&imageInfo->memoryState);
+            if (!shadowed) {
+                continue;
+            }
+            const bool isExternalRelease =
+                getIMBDstQueueFamilyIndex(pGuestImageMemoryBarriers[i]) == VK_QUEUE_FAMILY_EXTERNAL;
+            const bool isExternalAcquire =
+                getIMBSrcQueueFamilyIndex(pGuestImageMemoryBarriers[i]) == VK_QUEUE_FAMILY_EXTERNAL;
+            const bool isRelease =
+                isExternalRelease ||
+                (!isExternalAcquire && isLayoutTransition &&
+                 (guestOldLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL ||
+                  guestOldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL ||
+                  guestNewLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR ||
+                  guestNewLayout == VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR));
+            const bool isAcquire =
+                !isRelease &&
+                (isExternalAcquire ||
+                 (isLayoutTransition &&
+                  (guestNewLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL ||
+                   guestNewLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL ||
+                   (guestOldLayout == VK_IMAGE_LAYOUT_UNDEFINED &&
+                    guestNewLayout == VK_IMAGE_LAYOUT_GENERAL))));
+            if (!isRelease && !isAcquire) {
+                continue;
+            }
+            if (isRelease && cmdBufferInfo) {
+                cmdBufferInfo->renderedShadowImages.erase(img);
+            }
+            VkImageLayout currentLayout = adjustedNewLayout;
+            if (currentLayout == VK_IMAGE_LAYOUT_UNDEFINED ||
+                currentLayout == VK_IMAGE_LAYOUT_PREINITIALIZED) {
+                currentLayout = VK_IMAGE_LAYOUT_GENERAL;
+            }
+            recordShadowImageCopyLocked(vk, commandBuffer, cmdBufferInfo, img, imageInfo, shadowed,
+                                        isRelease, currentLayout);
+        }
+    }
+
+    // See `ImageInfo::ShadowedImageMemory`.
+    void syncShadowImageForCommandBufferLocked(VulkanDispatch* vk, VkCommandBuffer commandBuffer,
+                                               CommandBufferInfo* commandBufferInfo)
+        REQUIRES(mMutex) {
+        for (VkImage img : commandBufferInfo->renderedShadowImages) {
+            auto* imageInfo = gfxstream::base::find(mImageInfo, img);
+            if (!imageInfo) {
+                continue;
+            }
+            auto* shadowed =
+                std::get_if<ImageInfo::ShadowedImageMemory>(&imageInfo->memoryState);
+            if (!shadowed) {
+                continue;
+            }
+            VkImageLayout currentLayout = imageInfo->layout;
+            auto layoutIt = commandBufferInfo->imageLayouts.find(img);
+            if (layoutIt != commandBufferInfo->imageLayouts.end()) {
+                currentLayout = layoutIt->second;
+            }
+            if (currentLayout == VK_IMAGE_LAYOUT_UNDEFINED ||
+                currentLayout == VK_IMAGE_LAYOUT_PREINITIALIZED) {
+                currentLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            }
+            recordShadowImageCopyLocked(vk, commandBuffer, commandBufferInfo, img, imageInfo,
+                                        shadowed, /*isRelease=*/true, currentLayout);
+        }
+        commandBufferInfo->renderedShadowImages.clear();
     }
 
     void on_vkCmdPipelineBarrier(
@@ -6782,19 +7346,21 @@ class VkDecoderGlobalState::Impl {
             convertQueueFamilyForeignToExternal_VkImageMemoryBarrier(const_cast<VkImageMemoryBarrier&>(pImageMemoryBarriers[i]));
         }
 
+        const VkImageMemoryBarrier* guestImageMemoryBarriers = pImageMemoryBarriers;
+        const VkImageMemoryBarrier* hostImageMemoryBarriers = pImageMemoryBarriers;
         std::vector<VkImageMemoryBarrier> mappedImageMemoryBarriers;
         if (needsImageLayoutAdjustment(imageMemoryBarrierCount, pImageMemoryBarriers)) {
             mappedImageMemoryBarriers.assign(pImageMemoryBarriers,
                                              pImageMemoryBarriers + imageMemoryBarrierCount);
             adjustImageLayout(imageMemoryBarrierCount, mappedImageMemoryBarriers.data());
-            pImageMemoryBarriers = mappedImageMemoryBarriers.data();
+            hostImageMemoryBarriers = mappedImageMemoryBarriers.data();
         }
 
         if (imageMemoryBarrierCount == 0) {
             vk->vkCmdPipelineBarrier(commandBuffer, srcStageMask, dstStageMask, dependencyFlags,
                                      memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount,
                                      pBufferMemoryBarriers, imageMemoryBarrierCount,
-                                     pImageMemoryBarriers);
+                                     hostImageMemoryBarriers);
             return;
         }
         std::lock_guard<std::mutex> lock(mMutex);
@@ -6805,13 +7371,17 @@ class VkDecoderGlobalState::Impl {
         if (!deviceInfo) return;
 
         processImageMemoryBarrierLocked(commandBuffer, imageMemoryBarrierCount,
-                                        pImageMemoryBarriers);
+                                        hostImageMemoryBarriers);
+        stripExternalQueueFamilyForShadowedImagesLocked(
+            imageMemoryBarrierCount, &hostImageMemoryBarriers, &mappedImageMemoryBarriers);
 
         if (!deviceInfo->emulateTextureEtc2 && !deviceInfo->emulateTextureAstc) {
             vk->vkCmdPipelineBarrier(commandBuffer, srcStageMask, dstStageMask, dependencyFlags,
                                      memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount,
                                      pBufferMemoryBarriers, imageMemoryBarrierCount,
-                                     pImageMemoryBarriers);
+                                     hostImageMemoryBarriers);
+            syncShadowImageForImageBarriersLocked(vk, commandBuffer, imageMemoryBarrierCount,
+                                                  guestImageMemoryBarriers);
             return;
         }
 
@@ -6821,7 +7391,7 @@ class VkDecoderGlobalState::Impl {
         bool needRebind = false;
 
         for (uint32_t i = 0; i < imageMemoryBarrierCount; i++) {
-            const VkImageMemoryBarrier& srcBarrier = pImageMemoryBarriers[i];
+            const VkImageMemoryBarrier& srcBarrier = hostImageMemoryBarriers[i];
             auto* imageInfo = gfxstream::base::find(mImageInfo, srcBarrier.image);
 
             // If the image doesn't need GPU decompression, nothing to do.
@@ -6863,6 +7433,8 @@ class VkDecoderGlobalState::Impl {
                                      pBufferMemoryBarriers, imageBarriers.size(),
                                      imageBarriers.data());
         }
+        syncShadowImageForImageBarriersLocked(vk, commandBuffer, imageMemoryBarrierCount,
+                                              guestImageMemoryBarriers);
     }
 
     // Conservatively converts synchronization2 stage masks for the legacy decompression path.
@@ -6946,6 +7518,8 @@ class VkDecoderGlobalState::Impl {
                 const_cast<VkImageMemoryBarrier2&>(pDependencyInfo->pImageMemoryBarriers[i]));
         }
 
+        const VkImageMemoryBarrier2* guestImageMemoryBarriers =
+            pDependencyInfo->pImageMemoryBarriers;
         VkDependencyInfo mappedDependencyInfo = *pDependencyInfo;
         std::vector<VkImageMemoryBarrier2> mappedImageMemoryBarriers;
         if (needsImageLayoutAdjustment(pDependencyInfo->imageMemoryBarrierCount,
@@ -6969,8 +7543,21 @@ class VkDecoderGlobalState::Impl {
         processImageMemoryBarrierLocked(commandBuffer, pDependencyInfo->imageMemoryBarrierCount,
                                         pDependencyInfo->pImageMemoryBarriers);
 
+        const VkImageMemoryBarrier2* hostImageMemoryBarriers =
+            pDependencyInfo->pImageMemoryBarriers;
+        stripExternalQueueFamilyForShadowedImagesLocked(pDependencyInfo->imageMemoryBarrierCount,
+                                                        &hostImageMemoryBarriers,
+                                                        &mappedImageMemoryBarriers);
+        if (hostImageMemoryBarriers != pDependencyInfo->pImageMemoryBarriers) {
+            mappedDependencyInfo.pImageMemoryBarriers = hostImageMemoryBarriers;
+            pDependencyInfo = &mappedDependencyInfo;
+        }
+
         if (!deviceInfo->emulateTextureEtc2 && !deviceInfo->emulateTextureAstc) {
             dispatchCmdPipelineBarrier2(pDependencyInfo);
+            syncShadowImageForImageBarriersLocked(vk, commandBuffer,
+                                                  pDependencyInfo->imageMemoryBarrierCount,
+                                                  guestImageMemoryBarriers);
             return;
         }
 
@@ -7017,6 +7604,16 @@ class VkDecoderGlobalState::Impl {
         dependencyInfo.imageMemoryBarrierCount = static_cast<uint32_t>(imageBarriers.size());
         dependencyInfo.pImageMemoryBarriers = imageBarriers.data();
         dispatchCmdPipelineBarrier2(&dependencyInfo);
+        syncShadowImageForImageBarriersLocked(vk, commandBuffer,
+                                              pDependencyInfo->imageMemoryBarrierCount,
+                                              guestImageMemoryBarriers);
+    }
+
+    void on_vkCmdPipelineBarrier2KHR(gfxstream::base::BumpPool* pool,
+                                     VkSnapshotApiCallHandle apiCallHandle,
+                                     VkCommandBuffer boxed_commandBuffer,
+                                     const VkDependencyInfo* pDependencyInfo) {
+        on_vkCmdPipelineBarrier2(pool, apiCallHandle, boxed_commandBuffer, pDependencyInfo);
     }
 
     void on_vkCmdWaitEvents(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
@@ -8529,6 +9126,16 @@ class VkDecoderGlobalState::Impl {
                         }
                         imageIte->second.layout = ite.second;
                     }
+                    for (const auto& ite : cmdBufferInfo->shadowLinearImageLayouts) {
+                        auto imageIte = mImageInfo.find(ite.first);
+                        if (imageIte == mImageInfo.end()) {
+                            continue;
+                        }
+                        if (auto* shadowed = std::get_if<ImageInfo::ShadowedImageMemory>(
+                                &imageIte->second.memoryState)) {
+                            shadowed->linearImageLayout = ite.second;
+                        }
+                    }
                 }
             }
             // Update latestUse for all wait/signal semaphores, to ensure that they
@@ -9094,6 +9701,8 @@ class VkDecoderGlobalState::Impl {
         auto* commandBufferInfo = gfxstream::base::find(mCommandBufferInfo, commandBuffer);
         if (!commandBufferInfo) return VK_ERROR_UNKNOWN;
 
+        syncShadowImageForCommandBufferLocked(vk, commandBuffer, commandBufferInfo);
+
         if (context.processName) {
             commandBufferInfo->debugUtilsHelper.cmdEndDebugLabel(commandBuffer);
         }
@@ -9298,7 +9907,7 @@ class VkDecoderGlobalState::Impl {
             renderPassInfo.attachmentFinalLayouts.reserve(pCreateInfo->attachmentCount);
             for (uint32_t i = 0; i < pCreateInfo->attachmentCount; i++) {
                 renderPassInfo.attachmentFinalLayouts.push_back(
-                    pCreateInfo->pAttachments[i].finalLayout);
+                    m_vkEmulation->adjustImageLayout(pCreateInfo->pAttachments[i].finalLayout));
             }
         }
 
@@ -9386,7 +9995,7 @@ class VkDecoderGlobalState::Impl {
             renderPassInfo.attachmentFinalLayouts.reserve(pCreateInfo->attachmentCount);
             for (uint32_t i = 0; i < pCreateInfo->attachmentCount; i++) {
                 renderPassInfo.attachmentFinalLayouts.push_back(
-                    pCreateInfo->pAttachments[i].finalLayout);
+                    m_vkEmulation->adjustImageLayout(pCreateInfo->pAttachments[i].finalLayout));
             }
         }
 
@@ -9450,39 +10059,58 @@ class VkDecoderGlobalState::Impl {
 
         RenderPassInfo* rpInfo =
             gfxstream::base::find(mRenderPassInfo, pRenderPassBegin->renderPass);
-        if (rpInfo) {
-            const VkRenderPassAttachmentBeginInfo* attachmentBeginInfo = nullptr;
-            for (const auto* next =
-                     reinterpret_cast<const VkBaseInStructure*>(pRenderPassBegin->pNext);
-                 next != nullptr; next = next->pNext) {
-                if (next->sType == VK_STRUCTURE_TYPE_RENDER_PASS_ATTACHMENT_BEGIN_INFO) {
-                    attachmentBeginInfo =
-                        reinterpret_cast<const VkRenderPassAttachmentBeginInfo*>(next);
-                    break;
+        const VkRenderPassAttachmentBeginInfo* attachmentBeginInfo = nullptr;
+        for (const auto* next =
+                 reinterpret_cast<const VkBaseInStructure*>(pRenderPassBegin->pNext);
+             next != nullptr; next = next->pNext) {
+            if (next->sType == VK_STRUCTURE_TYPE_RENDER_PASS_ATTACHMENT_BEGIN_INFO) {
+                attachmentBeginInfo =
+                    reinterpret_cast<const VkRenderPassAttachmentBeginInfo*>(next);
+                break;
+            }
+        }
+
+        if (attachmentBeginInfo && attachmentBeginInfo->pAttachments) {
+            for (uint32_t i = 0; i < attachmentBeginInfo->attachmentCount; i++) {
+                auto* imageViewInfo =
+                    gfxstream::base::find(mImageViewInfo, attachmentBeginInfo->pAttachments[i]);
+                if (!imageViewInfo) {
+                    continue;
+                }
+                if (imageViewInfo->boundColorBuffer.has_value()) {
+                    cmdBufferInfo->releasedColorBuffers.insert(
+                        imageViewInfo->boundColorBuffer.value());
+                }
+                VkImage image = imageViewInfo->image;
+                if (image == VK_NULL_HANDLE) {
+                    continue;
+                }
+                if (rpInfo && i < rpInfo->attachmentFinalLayouts.size() &&
+                    rpInfo->attachmentFinalLayouts[i] != VK_IMAGE_LAYOUT_UNDEFINED) {
+                    cmdBufferInfo->imageLayouts[image] = rpInfo->attachmentFinalLayouts[i];
+                }
+                auto* imageInfo = gfxstream::base::find(mImageInfo, image);
+                if (imageInfo &&
+                    std::holds_alternative<ImageInfo::ShadowedImageMemory>(
+                        imageInfo->memoryState)) {
+                    cmdBufferInfo->renderedShadowImages.insert(image);
                 }
             }
-            if (attachmentBeginInfo && attachmentBeginInfo->pAttachments) {
-                const uint32_t count =
-                    std::min<uint32_t>(attachmentBeginInfo->attachmentCount,
-                                       rpInfo->attachmentFinalLayouts.size());
-                for (uint32_t i = 0; i < count; i++) {
-                    auto* imageViewInfo =
-                        gfxstream::base::find(mImageViewInfo, attachmentBeginInfo->pAttachments[i]);
-                    if (imageViewInfo && imageViewInfo->image != VK_NULL_HANDLE &&
-                        rpInfo->attachmentFinalLayouts[i] != VK_IMAGE_LAYOUT_UNDEFINED) {
-                        cmdBufferInfo->imageLayouts[imageViewInfo->image] =
-                            rpInfo->attachmentFinalLayouts[i];
-                    }
+        } else {
+            for (size_t i = 0; i < fbInfo->attachedImages.size(); i++) {
+                VkImage image = fbInfo->attachedImages[i];
+                if (image == VK_NULL_HANDLE) {
+                    continue;
                 }
-            } else {
-                const size_t count = std::min(fbInfo->attachedImages.size(),
-                                              rpInfo->attachmentFinalLayouts.size());
-                for (size_t i = 0; i < count; i++) {
-                    VkImage image = fbInfo->attachedImages[i];
-                    if (image != VK_NULL_HANDLE &&
-                        rpInfo->attachmentFinalLayouts[i] != VK_IMAGE_LAYOUT_UNDEFINED) {
-                        cmdBufferInfo->imageLayouts[image] = rpInfo->attachmentFinalLayouts[i];
-                    }
+                if (rpInfo && i < rpInfo->attachmentFinalLayouts.size() &&
+                    rpInfo->attachmentFinalLayouts[i] != VK_IMAGE_LAYOUT_UNDEFINED) {
+                    cmdBufferInfo->imageLayouts[image] = rpInfo->attachmentFinalLayouts[i];
+                }
+                auto* imageInfo = gfxstream::base::find(mImageInfo, image);
+                if (imageInfo &&
+                    std::holds_alternative<ImageInfo::ShadowedImageMemory>(
+                        imageInfo->memoryState)) {
+                    cmdBufferInfo->renderedShadowImages.insert(image);
                 }
             }
         }
@@ -9518,6 +10146,94 @@ class VkDecoderGlobalState::Impl {
                                      const VkSubpassBeginInfo* pSubpassBeginInfo) {
         on_vkCmdBeginRenderPass2(pool, apiCallHandle, boxed_commandBuffer, pRenderPassBegin,
                                  pSubpassBeginInfo);
+    }
+
+    void registerRenderingImageViewLocked(CommandBufferInfo* cmdBufferInfo, VkImageView imageView,
+                                          VkImageLayout imageLayout) REQUIRES(mMutex) {
+        if (imageView == VK_NULL_HANDLE) {
+            return;
+        }
+        auto* imageViewInfo = gfxstream::base::find(mImageViewInfo, imageView);
+        if (!imageViewInfo) {
+            return;
+        }
+        if (imageViewInfo->boundColorBuffer.has_value()) {
+            cmdBufferInfo->releasedColorBuffers.insert(imageViewInfo->boundColorBuffer.value());
+        }
+        VkImage image = imageViewInfo->image;
+        if (image == VK_NULL_HANDLE) {
+            return;
+        }
+        if (imageLayout != VK_IMAGE_LAYOUT_UNDEFINED) {
+            cmdBufferInfo->imageLayouts[image] = m_vkEmulation->adjustImageLayout(imageLayout);
+        }
+        auto* imageInfo = gfxstream::base::find(mImageInfo, image);
+        if (imageInfo &&
+            std::holds_alternative<ImageInfo::ShadowedImageMemory>(imageInfo->memoryState)) {
+            cmdBufferInfo->renderedShadowImages.insert(image);
+        }
+    }
+
+    void registerRenderingAttachmentLocked(CommandBufferInfo* cmdBufferInfo,
+                                           const VkRenderingAttachmentInfo* attachment)
+        REQUIRES(mMutex) {
+        if (!attachment) {
+            return;
+        }
+        registerRenderingImageViewLocked(cmdBufferInfo, attachment->imageView,
+                                         attachment->imageLayout);
+        if (attachment->resolveMode != VK_RESOLVE_MODE_NONE) {
+            registerRenderingImageViewLocked(cmdBufferInfo, attachment->resolveImageView,
+                                             attachment->resolveImageLayout);
+        }
+    }
+
+    bool registerRenderingInfo(VkCommandBuffer commandBuffer,
+                               const VkRenderingInfo* pRenderingInfo) {
+        if (!pRenderingInfo) {
+            GFXSTREAM_ERROR("pRenderingInfo is null");
+            return false;
+        }
+
+        std::lock_guard<std::mutex> lock(mMutex);
+        CommandBufferInfo* cmdBufferInfo = gfxstream::base::find(mCommandBufferInfo, commandBuffer);
+        if (!cmdBufferInfo) {
+            GFXSTREAM_ERROR("VkCommandBuffer=%p not found in mCommandBufferInfo", commandBuffer);
+            return false;
+        }
+
+        if (pRenderingInfo->pColorAttachments) {
+            for (uint32_t i = 0; i < pRenderingInfo->colorAttachmentCount; ++i) {
+                registerRenderingAttachmentLocked(cmdBufferInfo,
+                                                  &pRenderingInfo->pColorAttachments[i]);
+            }
+        }
+        registerRenderingAttachmentLocked(cmdBufferInfo, pRenderingInfo->pDepthAttachment);
+        registerRenderingAttachmentLocked(cmdBufferInfo, pRenderingInfo->pStencilAttachment);
+        return true;
+    }
+
+    void on_vkCmdBeginRendering(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
+                                VkCommandBuffer boxed_commandBuffer,
+                                const VkRenderingInfo* pRenderingInfo) {
+        auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
+        auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
+        if (registerRenderingInfo(commandBuffer, pRenderingInfo)) {
+            if (vk->vkCmdBeginRendering) {
+                vk->vkCmdBeginRendering(commandBuffer, pRenderingInfo);
+            } else if (vk->vkCmdBeginRenderingKHR) {
+                vk->vkCmdBeginRenderingKHR(commandBuffer, pRenderingInfo);
+            } else {
+                GFXSTREAM_FATAL("%s: function implementation cannot be found!", __func__);
+            }
+        }
+    }
+
+    void on_vkCmdBeginRenderingKHR(gfxstream::base::BumpPool* pool,
+                                   VkSnapshotApiCallHandle apiCallHandle,
+                                   VkCommandBuffer boxed_commandBuffer,
+                                   const VkRenderingInfo* pRenderingInfo) {
+        on_vkCmdBeginRendering(pool, apiCallHandle, boxed_commandBuffer, pRenderingInfo);
     }
 
     void on_vkCmdCopyQueryPoolResults(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
@@ -10605,6 +11321,10 @@ class VkDecoderGlobalState::Impl {
             const VkNativeBufferANDROID* pNativeBufferANDROID =
                 vk_find_struct<VkNativeBufferANDROID>(&imageCreateInfo);
 
+            if (pExternalMemoryImageCi) {
+                imageCreateInfo.usage |=
+                    VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+            }
             if (pExternalMemoryImageCi && pExternalMemoryImageCi->handleTypes &
                                               VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT) {
                 const VkExternalMemoryHandleTypeFlagBits defaultHandleType =
@@ -10784,6 +11504,26 @@ class VkDecoderGlobalState::Impl {
         }                                                                                       \
     }
 
+#define DEFINE_EXTERNAL_HANDLE_TYPE_FLAGS_TRANSFORM(type, field)                                \
+    void transformImpl_##type##_tohost(const type* props, uint32_t count) {                     \
+        type* mut = (type*)props;                                                               \
+        for (uint32_t i = 0; i < count; ++i) {                                                  \
+            mut[i].field =                                                                      \
+                m_vkEmulation->transformExternalMemoryHandleTypeFlags_tohost(mut[i].field);     \
+            if (m_vkEmulation->supportsDmaBuf() &&                                              \
+                (mut[i].field & VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT)) {                \
+                mut[i].field |= VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;                 \
+            }                                                                                   \
+        }                                                                                       \
+    }                                                                                           \
+    void transformImpl_##type##_fromhost(const type* props, uint32_t count) {                   \
+        type* mut = (type*)props;                                                               \
+        for (uint32_t i = 0; i < count; ++i) {                                                  \
+            mut[i].field = m_vkEmulation->transformExternalMemoryHandleTypeFlags_fromhost(      \
+                mut[i].field, GUEST_EXTERNAL_MEMORY_HANDLE_TYPES);                              \
+        }                                                                                       \
+    }
+
 #define DEFINE_EXTERNAL_MEMORY_PROPERTIES_TRANSFORM(type)                                 \
     void transformImpl_##type##_tohost(const type* props, uint32_t count) {               \
         type* mut = (type*)props;                                                         \
@@ -10807,9 +11547,9 @@ class VkDecoderGlobalState::Impl {
     void transformImpl_VkPhysicalDeviceExternalImageFormatInfo_fromhost(
         const VkPhysicalDeviceExternalImageFormatInfo*, uint32_t) {}
     DEFINE_EXTERNAL_HANDLE_TYPE_TRANSFORM(VkPhysicalDeviceExternalBufferInfo, handleType)
-    DEFINE_EXTERNAL_HANDLE_TYPE_TRANSFORM(VkExternalMemoryImageCreateInfo, handleTypes)
-    DEFINE_EXTERNAL_HANDLE_TYPE_TRANSFORM(VkExternalMemoryBufferCreateInfo, handleTypes)
-    DEFINE_EXTERNAL_HANDLE_TYPE_TRANSFORM(VkExportMemoryAllocateInfo, handleTypes)
+    DEFINE_EXTERNAL_HANDLE_TYPE_FLAGS_TRANSFORM(VkExternalMemoryImageCreateInfo, handleTypes)
+    DEFINE_EXTERNAL_HANDLE_TYPE_FLAGS_TRANSFORM(VkExternalMemoryBufferCreateInfo, handleTypes)
+    DEFINE_EXTERNAL_HANDLE_TYPE_FLAGS_TRANSFORM(VkExportMemoryAllocateInfo, handleTypes)
     DEFINE_EXTERNAL_MEMORY_PROPERTIES_TRANSFORM(VkExternalImageFormatProperties)
     DEFINE_EXTERNAL_MEMORY_PROPERTIES_TRANSFORM(VkExternalBufferProperties)
 
@@ -10914,9 +11654,7 @@ class VkDecoderGlobalState::Impl {
 #if defined(__linux__)
         // A dma-buf is a Linux kernel construct, commonly used with open-source DRM drivers.
         // See https://docs.kernel.org/driver-api/dma-buf.html for details.
-        if (m_vkEmulation->supportsDmaBuf()) {
-            hostAlwaysDeviceExtensions.push_back(VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME);
-        }
+        hostAlwaysDeviceExtensions.push_back(VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME);
 #endif
 
         // Enable all the device extensions that should always be enabled on the host (if available)
@@ -11127,7 +11865,8 @@ class VkDecoderGlobalState::Impl {
         const auto extMemMode = m_vkEmulation->getExternalMemoryMode();
         switch (extMemMode) {
 #if defined(__unix__) && !defined(__ANDROID__)
-            case ExternalMemory::Mode::OpaqueFd: {
+            case ExternalMemory::Mode::OpaqueFd:
+            case ExternalMemory::Mode::DmaBuf: {
                 if (!vk->vkGetMemoryFdKHR) {
                     GFXSTREAM_ERROR("%s: External memory function not supported.", __func__);
                     return std::nullopt;
@@ -11136,9 +11875,13 @@ class VkDecoderGlobalState::Impl {
                     .sType = VK_STRUCTURE_TYPE_MEMORY_GET_FD_INFO_KHR,
                     .pNext = nullptr,
                     .memory = memory,
-                    .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
+                    .handleType = extMemMode == ExternalMemory::Mode::OpaqueFd
+                                      ? VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT
+                                      : VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT,
                 };
-                ret.streamHandleType = STREAM_HANDLE_TYPE_MEM_OPAQUE_FD;
+                ret.streamHandleType = extMemMode == ExternalMemory::Mode::OpaqueFd
+                                           ? STREAM_HANDLE_TYPE_MEM_OPAQUE_FD
+                                           : STREAM_HANDLE_TYPE_MEM_DMABUF;
 
 #if defined(__linux__)
                 if (m_vkEmulation->supportsDmaBuf()) {
@@ -13315,6 +14058,20 @@ void VkDecoderGlobalState::on_vkCmdBeginRenderPass2KHR(
     const VkSubpassBeginInfo* pSubpassBeginInfo) {
     return mImpl->on_vkCmdBeginRenderPass2(pool, apiCallHandle, commandBuffer, pRenderPassBegin,
                                            pSubpassBeginInfo);
+}
+
+void VkDecoderGlobalState::on_vkCmdBeginRendering(gfxstream::base::BumpPool* pool,
+                                                  VkSnapshotApiCallHandle apiCallHandle,
+                                                  VkCommandBuffer commandBuffer,
+                                                  const VkRenderingInfo* pRenderingInfo) {
+    mImpl->on_vkCmdBeginRendering(pool, apiCallHandle, commandBuffer, pRenderingInfo);
+}
+
+void VkDecoderGlobalState::on_vkCmdBeginRenderingKHR(gfxstream::base::BumpPool* pool,
+                                                     VkSnapshotApiCallHandle apiCallHandle,
+                                                     VkCommandBuffer commandBuffer,
+                                                     const VkRenderingInfo* pRenderingInfo) {
+    mImpl->on_vkCmdBeginRenderingKHR(pool, apiCallHandle, commandBuffer, pRenderingInfo);
 }
 
 VkResult VkDecoderGlobalState::on_vkCreateFramebuffer(gfxstream::base::BumpPool* pool,

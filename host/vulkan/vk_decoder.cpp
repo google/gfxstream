@@ -11681,15 +11681,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                       "VkDecoder vkCmdBeginRendering");
                 VkCommandBuffer commandBuffer;
                 const VkRenderingInfo* pRenderingInfo;
-                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                // Begin global wrapped dispatchable handle unboxing for commandBuffer;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
                 *readStreamPtrPtr += 8;
                 *(VkCommandBuffer*)&commandBuffer =
                     (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
-                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
                 auto vk = dispatch_VkCommandBuffer(commandBuffer);
-                // End manual dispatchable handle unboxing for commandBuffer;
                 vkReadStream->alloc((void**)&pRenderingInfo, sizeof(const VkRenderingInfo));
                 reservedunmarshal_VkRenderingInfo(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                   (VkRenderingInfo*)(pRenderingInfo),
@@ -11703,7 +11701,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pRenderingInfo);
                 }
                 if (CC_LIKELY(vk)) {
-                    vk->vkCmdBeginRendering(unboxed_commandBuffer, pRenderingInfo);
+                    m_state->on_vkCmdBeginRendering(&m_pool, snapshotApiCallHandle, commandBuffer,
+                                                    pRenderingInfo);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
@@ -13933,15 +13932,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                       "VkDecoder vkCmdBeginRenderingKHR");
                 VkCommandBuffer commandBuffer;
                 const VkRenderingInfo* pRenderingInfo;
-                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                // Begin global wrapped dispatchable handle unboxing for commandBuffer;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
                 *readStreamPtrPtr += 8;
                 *(VkCommandBuffer*)&commandBuffer =
                     (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
-                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
                 auto vk = dispatch_VkCommandBuffer(commandBuffer);
-                // End manual dispatchable handle unboxing for commandBuffer;
                 vkReadStream->alloc((void**)&pRenderingInfo, sizeof(const VkRenderingInfo));
                 reservedunmarshal_VkRenderingInfo(vkReadStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                   (VkRenderingInfo*)(pRenderingInfo),
@@ -13955,7 +13952,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                    (unsigned long long)pRenderingInfo);
                 }
                 if (CC_LIKELY(vk)) {
-                    vk->vkCmdBeginRenderingKHR(unboxed_commandBuffer, pRenderingInfo);
+                    m_state->on_vkCmdBeginRenderingKHR(&m_pool, snapshotApiCallHandle,
+                                                       commandBuffer, pRenderingInfo);
                 }
                 vkStream->unsetHandleMapping();
                 if (m_snapshotsEnabled) {
