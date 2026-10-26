@@ -33,6 +33,10 @@ namespace gfxstream {
 namespace host {
 namespace vk {
 
+// Records the Vulkan API calls needed to recreate the live guest objects on
+// snapshot load, and the dependencies between those objects.
+//
+// Not thread safe: the owner (VkDecoderSnapshot) must serialize all calls.
 class VkReconstruction {
    public:
     VkReconstruction();
@@ -108,7 +112,13 @@ class VkReconstruction {
                                              const VkObjectHandle* boxedHandles,
                                              uint32_t boxedHandlesCount);
 
+    bool hasApiCall(VkSnapshotApiCallHandle apiCallHandle) const;
+
    private:
+    void removeUnusedApiCalls(const std::vector<uint64_t>& unusedApiHandles);
+    // Reused across calls so freeing API traces does not allocate on the hot
+    // create/destroy paths.
+    std::vector<uint64_t> mUnusedApiHandlesScratch;
     struct VkSnapshotApiCallInfo {
         VkSnapshotApiCallHandle handle = kInvalidSnapshotApiCallHandle;
 

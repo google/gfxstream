@@ -20,6 +20,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "render-utils/small_vector.h"
+
 namespace gfxstream {
 namespace host {
 namespace vk {
@@ -40,8 +42,7 @@ class DependencyGraph {
         // the api that created this DepNode; 0 is invalid
         ApiCallId apiCallId{0};
         std::set<NodeId> childNodeIds;
-        // there could be only one parent, 0 is invalid
-        NodeId parentNodeId{0};
+        gfxstream::SmallFixedVector<NodeId, 4> parentNodeIds;
 
         // the increasing timestamp when this node is created
         // used by map to sort nodes
@@ -54,7 +55,7 @@ class DependencyGraph {
     struct ApiNode {
         // id of this api node, 0 is invalid
         ApiCallId id{0};
-        std::set<NodeId> createdNodeIds;
+        gfxstream::SmallFixedVector<NodeId, 4> createdNodeIds;
     };
 
     void addNodes(const NodeId* ids, uint32_t count);
@@ -63,7 +64,15 @@ class DependencyGraph {
 
     uint64_t getNodeIdType(NodeId handle) const;
 
-    void associateWithApiCall(const NodeId* nodeIds, uint32_t count, ApiCallId apiCallId);
+    // If a node moves from an older API call to `apiCallId` and that older call
+    // no longer creates any node, its id is appended to `outUnusedApiIds` so the
+    // caller can free its trace.
+    void associateWithApiCall(const NodeId* nodeIds, uint32_t count, ApiCallId apiCallId,
+                              std::vector<ApiCallId>* outUnusedApiIds = nullptr);
+    void associateWithApiCall(NodeId nodeId, ApiCallId apiCallId,
+                              std::vector<ApiCallId>* outUnusedApiIds = nullptr) {
+        associateWithApiCall(&nodeId, 1, apiCallId, outUnusedApiIds);
+    }
 
     void clear();
 
@@ -75,20 +84,30 @@ class DependencyGraph {
 
     void clearChildDependencies(NodeId id);
 
-    void removeGrandChildren(const NodeId id);
-    void removeNodesAndDescendants(const NodeId* toRemove, uint32_t count);
+    void removeGrandChildren(const NodeId id, std::vector<ApiCallId>* outUnusedApiIds = nullptr);
+    void removeNodesAndDescendants(const NodeId* toRemove, uint32_t count,
+                                   std::vector<ApiCallId>* outUnusedApiIds = nullptr);
     bool isDeleteDelayedType(NodeId id) const;
-    void removeDescendantsOfHandle(const NodeId handle);
+    void removeDescendantsOfHandle(const NodeId handle,
+                                   std::vector<ApiCallId>* outUnusedApiIds = nullptr);
 
-    void setCreatedNodeIdsForApi(ApiCallId apiCallId, const NodeId* nodeIds, uint32_t count);
-    void addApiNode(ApiCallId id);
+    // See associateWithApiCall() for the meaning of `outUnusedApiIds`.
+    void setCreatedNodeIdsForApi(ApiCallId apiCallId, const NodeId* nodeIds, uint32_t count,
+                                 std::vector<ApiCallId>* outUnusedApiIds = nullptr);
+    // Returns the existing ApiNode for `id`, creating it if needed.
+    ApiNode* addApiNode(ApiCallId id);
     void removeApiNode(ApiCallId id);
     void addDepNode(NodeId id);
 
     void getIdsByTimestamp(std::vector<ApiCallId>& uniqApiRefsByTimestamp);
 
+    size_t getDepNodeCount() const { return mDepId2DepNode.size(); }
+    size_t getApiNodeCount() const { return mApiId2ApiNode.size(); }
+
    private:
-    void removeNodeAndDescendants(NodeId id);
+    void removeNodeAndDescendants(NodeId id, std::vector<ApiCallId>* outUnusedApiIds);
+    void unlinkNodeFromApiCall(NodeId nodeId, ApiCallId apiCallId,
+                               std::vector<ApiCallId>* outUnusedApiIds);
     std::atomic<uint64_t> mTimestamp{DepNode::kInvalidNodeId};
     std::unordered_map<NodeId, std::unique_ptr<DepNode>> mDepId2DepNode;
     std::unordered_map<ApiCallId, std::unique_ptr<ApiNode>> mApiId2ApiNode;

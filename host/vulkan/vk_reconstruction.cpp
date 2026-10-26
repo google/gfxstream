@@ -134,7 +134,7 @@ void VkReconstruction::destroyApiCallInfoIfUnused(VkSnapshotApiCallHandle handle
     VkSnapshotApiCallInfo* info = mApiCallManager.get(handle);
     if (!info) return;
 
-    if (info->packet.empty()) {
+    if (info->packet.empty() || !mGraph.getApiNode(handle)) {
         mApiCallManager.remove(handle);
         mGraph.removeApiNode(handle);
         return;
@@ -145,6 +145,16 @@ void VkReconstruction::destroyApiCallInfoIfUnused(VkSnapshotApiCallHandle handle
                                     info->extraCreatedHandles.begin(),
                                     info->extraCreatedHandles.end());
         info->extraCreatedHandles.clear();
+    }
+}
+
+bool VkReconstruction::hasApiCall(VkSnapshotApiCallHandle apiCallHandle) const {
+    return mApiCallManager.get_const(apiCallHandle) != nullptr;
+}
+
+void VkReconstruction::removeUnusedApiCalls(const std::vector<uint64_t>& unusedApiHandles) {
+    for (uint64_t apiHandle : unusedApiHandles) {
+        mApiCallManager.remove(apiHandle);
     }
 }
 
@@ -166,7 +176,10 @@ void VkReconstruction::addHandles(const uint64_t* toAdd, uint32_t count) {
 void VkReconstruction::removeHandles(const uint64_t* toRemove, uint32_t count, bool recursive) {
     if (!toRemove) return;
 
-    mGraph.removeNodesAndDescendants(toRemove, count);
+    std::vector<uint64_t>& unusedApiHandles = mUnusedApiHandlesScratch;
+    unusedApiHandles.clear();
+    mGraph.removeNodesAndDescendants(toRemove, count, &unusedApiHandles);
+    removeUnusedApiCalls(unusedApiHandles);
 }
 
 void VkReconstruction::forEachHandleAddApi(const uint64_t* toProcess, uint32_t count,
@@ -174,16 +187,25 @@ void VkReconstruction::forEachHandleAddApi(const uint64_t* toProcess, uint32_t c
     if (!toProcess) return;
 
     if (state == VkReconstruction::CREATED) {
-        mGraph.associateWithApiCall(toProcess, count, apiHandle);
+        std::vector<uint64_t>& unusedApiHandles = mUnusedApiHandlesScratch;
+        unusedApiHandles.clear();
+        mGraph.associateWithApiCall(toProcess, count, apiHandle, &unusedApiHandles);
+        removeUnusedApiCalls(unusedApiHandles);
     }
 }
 
 void VkReconstruction::removeDescendantsOfHandle(const uint64_t handle) {
-    mGraph.removeDescendantsOfHandle(handle);
+    std::vector<uint64_t>& unusedApiHandles = mUnusedApiHandlesScratch;
+    unusedApiHandles.clear();
+    mGraph.removeDescendantsOfHandle(handle, &unusedApiHandles);
+    removeUnusedApiCalls(unusedApiHandles);
 }
 
 void VkReconstruction::removeGrandChildren(const uint64_t handle) {
-    mGraph.removeGrandChildren(handle);
+    std::vector<uint64_t>& unusedApiHandles = mUnusedApiHandlesScratch;
+    unusedApiHandles.clear();
+    mGraph.removeGrandChildren(handle, &unusedApiHandles);
+    removeUnusedApiCalls(unusedApiHandles);
 }
 
 void VkReconstruction::addApiCallDependencyOnVkObject(VkSnapshotApiCallHandle handle,
@@ -269,7 +291,10 @@ void VkReconstruction::setCreatedHandlesForApi(uint64_t apiHandle, const uint64_
                                                uint32_t count) {
     if (!created) return;
 
-    mGraph.setCreatedNodeIdsForApi(apiHandle, created, count);
+    std::vector<uint64_t>& unusedApiHandles = mUnusedApiHandlesScratch;
+    unusedApiHandles.clear();
+    mGraph.setCreatedNodeIdsForApi(apiHandle, created, count, &unusedApiHandles);
+    removeUnusedApiCalls(unusedApiHandles);
     auto item = mApiCallManager.get(apiHandle);
 
     if (!item) return;

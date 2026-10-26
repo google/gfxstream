@@ -409,6 +409,39 @@ cc_test(
 )
 
 cc_test(
+    name = "gfxstream_dependency_graph_tests",
+    srcs = [
+        "dependency_graph_tests.cpp",
+    ],
+    copts = GFXSTREAM_HOST_COPTS,
+    local_defines = GFXSTREAM_HOST_DEFINES,
+    deps = [
+        ":gfxstream_vulkan_server",
+        "//common/base:gfxstream_common_base",
+        "//host:gfxstream_backend_static",
+        "@com_google_googletest//:gtest",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "gfxstream_vk_decoder_snapshot_tests",
+    srcs = [
+        "vk_decoder_snapshot_tests.cpp",
+    ],
+    copts = GFXSTREAM_HOST_COPTS,
+    local_defines = GFXSTREAM_HOST_DEFINES,
+    deps = [
+        ":gfxstream_vulkan_server",
+        "//common/base:gfxstream_common_base",
+        "//host:gfxstream_backend_static",
+        "//third_party/vulkan:gfxstream_vulkan_headers",
+        "@com_google_googletest//:gtest",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
     name = "gfxstream_vk_decoder_internal_structs_tests",
     srcs = [
         "vk_decoder_internal_structs_tests.cpp",
