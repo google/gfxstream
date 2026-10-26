@@ -375,10 +375,9 @@ VkObjectT new_boxed_VkType(VkObjectT underlying, bool dispatchable = false, Vulk
     if (dispatchable) {
         if (dispatch != nullptr) {
             info.dispatch = dispatch;
-            info.ownDispatch = false;
         } else {
-            info.dispatch = new VulkanDispatch();
-            info.ownDispatch = true;
+            info.ownedDispatch = std::make_unique<VulkanDispatch>();
+            info.dispatch = info.ownedDispatch.get();
         }
         info.ordMaintInfo = std::make_shared<OrderMaintenanceInfo>();
     }
@@ -391,17 +390,7 @@ void delete_VkType(VkObjectT boxed) {
         return;
     }
 
-    BoxedHandleInfo* info = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);
-    if (info == nullptr) {
-        return;
-    }
-
-    if (info->ownDispatch) {
-        delete info->dispatch;
-        info->dispatch = nullptr;
-    }
-
-    sBoxedHandleManager.remove((uint64_t)boxed);
+    sBoxedHandleManager.remove((uint64_t)(uintptr_t)boxed);
 }
 
 template <typename VkObjectT>

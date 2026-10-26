@@ -60,7 +60,7 @@ class BoxedHandleInfo {
    public:
     UnboxedHandle underlying{0};
     VulkanDispatch* dispatch = nullptr;
-    bool ownDispatch = false;
+    std::unique_ptr<VulkanDispatch> ownedDispatch;
     std::shared_ptr<OrderMaintenanceInfo> ordMaintInfo;
     std::unique_ptr<VulkanMemReadingStream> readStream;
 };
