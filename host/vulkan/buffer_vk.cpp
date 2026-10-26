@@ -31,6 +31,19 @@ std::unique_ptr<BufferVk> BufferVk::create(VkEmulation& vkEmulation, uint32_t ha
     return std::unique_ptr<BufferVk>(new BufferVk(vkEmulation, handle));
 }
 
+/*static*/
+std::unique_ptr<BufferVk> BufferVk::import(
+    VkEmulation& vkEmulation, uint32_t handle,
+    const struct ::stream_renderer_handle* importHandle,
+    const struct ::stream_renderer_import_data* importData) {
+    if (!vkEmulation.importBuffer(handle, importHandle, importData)) {
+        GFXSTREAM_ERROR("Failed to import BufferVk:%d", handle);
+        return nullptr;
+    }
+
+    return std::unique_ptr<BufferVk>(new BufferVk(vkEmulation, handle));
+}
+
 BufferVk::BufferVk(VkEmulation& vkEmulation, uint32_t handle)
     : mVkEmulation(vkEmulation), mHandle(handle) {}
 
@@ -49,6 +62,10 @@ bool BufferVk::updateFromBytes(uint64_t offset, uint64_t size, const void* bytes
 }
 
 std::optional<BlobDescriptorInfo> BufferVk::exportBlob() {
+    uint32_t memoryTypeIndex = 0;
+    if (!mVkEmulation.getBufferAllocationInfo(mHandle, nullptr, &memoryTypeIndex, nullptr)) {
+        return std::nullopt;
+    }
     auto dupHandleInfo = mVkEmulation.dupBufferExtMemoryHandle(mHandle);
     if (!dupHandleInfo) {
         return std::nullopt;
@@ -64,7 +81,7 @@ std::optional<BlobDescriptorInfo> BufferVk::exportBlob() {
                 .streamHandleType = dupHandleInfo->streamHandleType,
             },
         .caching = 0,
-        .vulkanInfoOpt = std::nullopt,
+        .vulkanInfoOpt = mVkEmulation.getVulkanInfo(memoryTypeIndex),
     };
 }
 

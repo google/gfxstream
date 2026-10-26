@@ -63,6 +63,11 @@ class ColorBuffer::Impl : public LazySnapshotObj<ColorBuffer::Impl> {
                                         HandleType handle, gfxstream::Stream* stream = nullptr,
                                         bool linear = false);
 
+    static std::unique_ptr<Impl> import(gl::EmulationGl* emulationGl, vk::VkEmulation* emulationVk,
+                                        HandleType handle,
+                                        const struct stream_renderer_handle* importHandle,
+                                        const struct stream_renderer_import_data* importData);
+
     static std::unique_ptr<Impl> onLoad(gl::EmulationGl* emulationGl, vk::VkEmulation* emulationVk,
                                         gfxstream::Stream* stream);
 
@@ -214,6 +219,46 @@ std::unique_ptr<ColorBuffer::Impl> ColorBuffer::Impl::create(
         }
     }
 
+    return colorBuffer;
+}
+
+/*static*/
+std::unique_ptr<ColorBuffer::Impl> ColorBuffer::Impl::import(
+    gl::EmulationGl* emulationGl, vk::VkEmulation* emulationVk, HandleType handle,
+    const struct stream_renderer_handle* importHandle,
+    const struct stream_renderer_import_data* importData) {
+    if (emulationGl) {
+        GFXSTREAM_ERROR("Failed to import ColorBuffer:%u: EmulationGl not supported.", handle);
+        return nullptr;
+    }
+    if (!emulationVk) {
+        GFXSTREAM_ERROR("Failed to import ColorBuffer:%u: VkEmulation not available.", handle);
+        return nullptr;
+    }
+    if (!importHandle || !importData) {
+        GFXSTREAM_ERROR("Failed to import ColorBuffer:%u: missing import data.", handle);
+        return nullptr;
+    }
+
+    auto formatOpt = GetGfxstreamFormatFromDrmFormat(importData->info_3d.drm_fourcc);
+    if (!formatOpt) {
+        GFXSTREAM_ERROR("Failed to import ColorBuffer:%u: unsupported drm_fourcc %u.", handle,
+                        importData->info_3d.drm_fourcc);
+        return nullptr;
+    }
+    const GfxstreamFormat format = *formatOpt;
+
+    auto colorBufferVk = vk::ColorBufferVk::import(*emulationVk, handle, importHandle, importData);
+    if (!colorBufferVk) {
+        GFXSTREAM_ERROR("Failed to import ColorBufferVk:%u.", handle);
+        return nullptr;
+    }
+
+    const uint32_t width = importData->info_3d.width ? importData->info_3d.width : 1;
+    const uint32_t height = importData->info_3d.height ? importData->info_3d.height : 1;
+
+    std::unique_ptr<Impl> colorBuffer(new Impl(handle, width, height, format));
+    colorBuffer->mColorBufferVk = std::move(colorBufferVk);
     return colorBuffer;
 }
 
@@ -532,6 +577,22 @@ std::shared_ptr<ColorBuffer> ColorBuffer::create(gl::EmulationGl* emulationGl,
     if (stream && stream->hasErrors()) {
         GFXSTREAM_ERROR("ColorBuffer::create failed due to stream errors: %s",
                         stream->getErrors().value_or("unknown error").c_str());
+        return nullptr;
+    }
+
+    return colorbuffer;
+}
+
+/*static*/
+std::shared_ptr<ColorBuffer> ColorBuffer::import(
+    gl::EmulationGl* emulationGl, vk::VkEmulation* emulationVk, HandleType handle,
+    const struct stream_renderer_handle* importHandle,
+    const struct stream_renderer_import_data* importData) {
+    std::shared_ptr<ColorBuffer> colorbuffer(new ColorBuffer());
+
+    colorbuffer->mImpl =
+        ColorBuffer::Impl::import(emulationGl, emulationVk, handle, importHandle, importData);
+    if (!colorbuffer->mImpl) {
         return nullptr;
     }
 

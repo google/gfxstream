@@ -23,7 +23,8 @@ if (NOT TARGET gfxstream_host_common)
     target_link_libraries(
         gfxstream_host_common.headers
         INTERFACE
-        gfxstream_backend_headers)
+        gfxstream_backend_headers
+        gfxstream_drm_headers)
 
     add_library(
         gfxstream_host_common

@@ -127,6 +127,16 @@ VirtioGpuResourceType GetResourceType(const struct stream_renderer_resource_crea
     return VirtioGpuResourceType::BUFFER;
 }
 
+VirtioGpuResourceType GetResourceType(const struct stream_renderer_import_data& importData) {
+    if (!(importData.flags & STREAM_RENDERER_IMPORT_FLAG_3D_INFO)) {
+        return VirtioGpuResourceType::BUFFER;
+    }
+    if (importData.info_3d.drm_fourcc == DRM_FORMAT_R8 && importData.info_3d.height == 1) {
+        return VirtioGpuResourceType::BUFFER;
+    }
+    return VirtioGpuResourceType::COLOR_BUFFER;
+}
+
 // Fills `outHandle` from an exported descriptor, consolidating the platform
 // `#ifdef`s: on Android the descriptor is an opaque handle taken by value; on
 // other platforms it is a ManagedDescriptor whose ownership is released to the
@@ -297,6 +307,44 @@ std::optional<VirtioGpuResource> VirtioGpuResource::Create(
         }
     }
 
+    return resource;
+}
+
+/*static*/ std::optional<VirtioGpuResource> VirtioGpuResource::Create(
+    uint32_t resourceId, const struct stream_renderer_handle* importHandle,
+    const struct stream_renderer_import_data* importData) {
+    if (!importHandle || !importData) {
+        GFXSTREAM_ERROR("Failed to import resource %u: missing import handle or data.", resourceId);
+        return std::nullopt;
+    }
+
+    if (!FrameBuffer::getFB()) {
+        GFXSTREAM_ERROR("Failed to import resource %u: FrameBuffer not initialized.", resourceId);
+        return std::nullopt;
+    }
+
+    const auto resourceType = GetResourceType(*importData);
+    if (resourceType == VirtioGpuResourceType::BUFFER) {
+        if (!FrameBuffer::getFB()->importBuffer(resourceId, importHandle, importData)) {
+            GFXSTREAM_ERROR("Failed to import buffer %u into FrameBuffer.", resourceId);
+            return std::nullopt;
+        }
+    } else if (resourceType == VirtioGpuResourceType::COLOR_BUFFER) {
+        if (!FrameBuffer::getFB()->importColorBuffer(resourceId, importHandle, importData)) {
+            GFXSTREAM_ERROR("Failed to import color buffer %u into FrameBuffer.", resourceId);
+            return std::nullopt;
+        }
+        FrameBuffer::getFB()->setGuestManagedColorBufferLifetime(true /* guest manages lifetime */);
+        FrameBuffer::getFB()->openColorBuffer(resourceId);
+    } else {
+        GFXSTREAM_ERROR("Failed to import resource %u: unhandled type %d.", resourceId,
+                        static_cast<int>(resourceType));
+        return std::nullopt;
+    }
+
+    VirtioGpuResource resource;
+    resource.mId = resourceId;
+    resource.mResourceType = resourceType;
     return resource;
 }
 

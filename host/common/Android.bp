@@ -43,9 +43,11 @@ cc_library_static {
     ],
     header_libs: [
         "libgfxstream_backend_headers",
+        "libgfxstream_thirdparty_drm_headers",
     ],
     export_header_lib_headers: [
         "libgfxstream_backend_headers",
+        "libgfxstream_thirdparty_drm_headers",
     ],
     static_libs: [
         "libgfxstream_common_utils",

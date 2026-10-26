@@ -414,6 +414,11 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
 
     void closeBuffer(HandleType p_colorbuffer);
 
+    bool importBuffer(HandleType handle, const struct stream_renderer_handle* importHandle,
+                      const struct stream_renderer_import_data* importData);
+    bool importColorBuffer(HandleType handle, const struct stream_renderer_handle* importHandle,
+                           const struct stream_renderer_import_data* importData);
+
     void createGraphicsProcessResources(uint64_t puid);
 
     std::shared_ptr<ProcessResources> removeGraphicsProcessResources(uint64_t puid);
@@ -852,6 +857,7 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
     bool createColorBufferWithResourceHandleLocked(int p_width, int p_height,
                                                    GfxstreamFormat format, HandleType handle,
                                                    bool linear = false);
+    void registerColorBufferLocked(HandleType handle, ColorBufferPtr cb);
     bool createBufferWithResourceHandleLocked(uint64_t p_size, HandleType handle,
                                               uint32_t memoryProperty);
 
@@ -2187,18 +2193,7 @@ bool FrameBuffer::Impl::createColorBufferWithResourceHandleDeprecated(
     return createColorBufferWithResourceHandle(width, height, format, handle);
 }
 
-bool FrameBuffer::Impl::createColorBufferWithResourceHandleLocked(int p_width, int p_height,
-                                                                  GfxstreamFormat format,
-                                                                  HandleType handle,
-                                                                  bool linear) {
-    ColorBufferPtr cb = ColorBuffer::create(m_emulationGl.get(), m_emulationVk.get(), p_width,
-                                            p_height, format, handle, nullptr /*stream*/, linear);
-    if (cb.get() == nullptr) {
-        GFXSTREAM_ERROR("Failed to create ColorBuffer:%d format:%d with:%d height:%d", handle,
-                        format, p_width, p_height);
-        return false;
-    }
-
+void FrameBuffer::Impl::registerColorBufferLocked(HandleType handle, ColorBufferPtr cb) {
     assert(m_colorbuffers.count(handle) == 0);
     // When guest feature flag RefCountPipe is on, no reference counting is
     // needed. We only memoize the mapping from handle to ColorBuffer.
@@ -2215,17 +2210,30 @@ bool FrameBuffer::Impl::createColorBufferWithResourceHandleLocked(int p_width, i
                                        ReferenceCountedColorBuffer{std::move(cb), 1, false, 0});
 
             RenderThreadInfo* tInfo = RenderThreadInfo::get();
-            uint64_t puid = tInfo->m_puid;
+            uint64_t puid = tInfo ? tInfo->m_puid : 0;
             if (puid) {
                 m_procOwnedColorBuffers[puid].insert(handle);
             }
-
         } else {
             m_colorbuffers.try_emplace(handle,
                                        ReferenceCountedColorBuffer{std::move(cb), 0, false, 0});
         }
     }
+}
 
+bool FrameBuffer::Impl::createColorBufferWithResourceHandleLocked(int p_width, int p_height,
+                                                                  GfxstreamFormat format,
+                                                                  HandleType handle,
+                                                                  bool linear) {
+    ColorBufferPtr cb = ColorBuffer::create(m_emulationGl.get(), m_emulationVk.get(), p_width,
+                                            p_height, format, handle, nullptr /*stream*/, linear);
+    if (cb.get() == nullptr) {
+        GFXSTREAM_ERROR("Failed to create ColorBuffer:%d format:%d with:%d height:%d", handle,
+                        format, p_width, p_height);
+        return false;
+    }
+
+    registerColorBufferLocked(handle, std::move(cb));
     return true;
 }
 
@@ -2334,6 +2342,53 @@ void FrameBuffer::Impl::closeBuffer(HandleType p_buffer) {
     }
 
     m_buffers.erase(it);
+}
+
+bool FrameBuffer::Impl::importBuffer(
+    HandleType handle, const struct stream_renderer_handle* importHandle,
+    const struct stream_renderer_import_data* importData) {
+    AutoLock mutex(m_lock);
+    AutoLock colorBufferMapLock(m_colorBufferMapLock);
+
+    if (m_buffers.count(handle) != 0) {
+        GFXSTREAM_ERROR("Buffer already exists with handle %d", handle);
+        return false;
+    }
+
+    BufferPtr buffer(
+        Buffer::import(m_emulationGl.get(), m_emulationVk.get(), handle, importHandle, importData));
+    if (!buffer) {
+        GFXSTREAM_ERROR("Import buffer %d failed.", handle);
+        return false;
+    }
+
+    m_buffers[handle] = {std::move(buffer)};
+
+    return true;
+}
+
+bool FrameBuffer::Impl::importColorBuffer(
+    HandleType handle, const struct stream_renderer_handle* importHandle,
+    const struct stream_renderer_import_data* importData) {
+    AutoLock mutex(m_lock);
+    sweepColorBuffersLocked();
+
+    AutoLock colorBufferMapLock(m_colorBufferMapLock);
+
+    if (m_colorbuffers.count(handle) != 0) {
+        GFXSTREAM_ERROR("ColorBuffer:%d already exists!", handle);
+        return false;
+    }
+
+    ColorBufferPtr cb = ColorBuffer::import(m_emulationGl.get(), m_emulationVk.get(), handle,
+                                            importHandle, importData);
+    if (cb.get() == nullptr) {
+        GFXSTREAM_ERROR("Failed to import ColorBuffer:%d", handle);
+        return false;
+    }
+
+    registerColorBufferLocked(handle, std::move(cb));
+    return true;
 }
 
 bool FrameBuffer::Impl::closeColorBufferLocked(HandleType p_colorbuffer, bool forced) {
@@ -4812,6 +4867,17 @@ void FrameBuffer::closeColorBuffer(HandleType p_colorbuffer) {
 }
 
 void FrameBuffer::closeBuffer(HandleType p_buffer) { mImpl->closeBuffer(p_buffer); }
+
+bool FrameBuffer::importBuffer(HandleType handle, const struct stream_renderer_handle* importHandle,
+                               const struct stream_renderer_import_data* importData) {
+    return mImpl->importBuffer(handle, importHandle, importData);
+}
+
+bool FrameBuffer::importColorBuffer(HandleType handle,
+                                    const struct stream_renderer_handle* importHandle,
+                                    const struct stream_renderer_import_data* importData) {
+    return mImpl->importColorBuffer(handle, importHandle, importData);
+}
 
 void FrameBuffer::createGraphicsProcessResources(uint64_t puid) {
     mImpl->createGraphicsProcessResources(puid);

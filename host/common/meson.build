@@ -30,6 +30,7 @@ lib_host_common = static_library(
     inc_common_base,
     inc_common_logging,
     inc_common_utils,
+    inc_drm_headers,
     inc_gfxstream_server,
     inc_host_address_space,
     inc_host_common,

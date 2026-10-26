@@ -29,6 +29,9 @@
 #include <cerrno>
 #include <cstdint>
 #include <cstring>
+#if !defined(_WIN32)
+#include <unistd.h>
+#endif
 
 #include "frame_buffer.h"
 #include "gfxstream/host/address_space_operations.h"
@@ -473,12 +476,24 @@ int VirtioGpuFrontend::importResource(uint32_t res_handle,
                         res_handle);
         return -EINVAL;
     } else if (!(import_data->flags & STREAM_RENDERER_IMPORT_FLAG_RESOURCE_EXISTS)) {
-        GFXSTREAM_ERROR(
-            "import_data::flags did not specify STREAM_RENDERER_IMPORT_FLAG_RESOURCE_EXISTS. "
-            "Implementation only supports importing to a resource that already exists (res_handle: "
-            "%d)",
-            res_handle);
-        return -EINVAL;
+        auto resourceIt = mResources.find(res_handle);
+        if (resourceIt != mResources.end()) {
+#if !defined(_WIN32)
+            if ((import_handle->handle_type == STREAM_HANDLE_TYPE_MEM_OPAQUE_FD ||
+                 import_handle->handle_type == STREAM_HANDLE_TYPE_MEM_DMABUF) &&
+                import_handle->os_handle >= 0) {
+                close(static_cast<int>(import_handle->os_handle));
+            }
+#endif
+            return 0;
+        }
+        auto resourceOpt = VirtioGpuResource::Create(res_handle, import_handle, import_data);
+        if (!resourceOpt) {
+            GFXSTREAM_ERROR("Failed to import new resource %u.", res_handle);
+            return -EINVAL;
+        }
+        mResources[res_handle] = std::move(*resourceOpt);
+        return 0;
     }
 
     auto resourceIt = mResources.find(res_handle);
@@ -602,7 +617,7 @@ void VirtioGpuFrontend::fillCaps(uint32_t set, void* caps) {
             capset->bufferSize = 1048576;
 
             auto* fb = FrameBuffer::getFB();
-            if (fb->hasEmulationVk()) {
+            if (fb && fb->hasEmulationVk()) {
                 const auto info = fb->getRepresentativeColorBufferMemoryTypeInfo();
                 capset->colorBufferMemoryIndex = info.guestMemoryTypeIndex;
                 capset->deferredMapping = 1;
@@ -668,7 +683,7 @@ void VirtioGpuFrontend::fillCaps(uint32_t set, void* caps) {
                 }
                 auto format = *formatOpt;
 
-                const bool supported = FrameBuffer::getFB()->isFormatSupported(format);
+                const bool supported = fb ? fb->isFormatSupported(format) : true;
                 set_virgl_format_supported(capset->virglSupportedFormats, possibleFormat.format,
                                            supported);
 

@@ -110,6 +110,7 @@ struct stream_renderer_import_data {
     uint32_t flags;
     struct stream_renderer_3d_info info_3d;
     struct stream_renderer_vulkan_info info_vulkan;
+    uint64_t size;
 };
 
 VG_EXPORT int stream_renderer_import_resource(

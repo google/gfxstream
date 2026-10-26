@@ -14,15 +14,22 @@
 
 #include "virtio_gpu_resource.h"
 
+#include <cerrno>
 #include <cstdint>
 #include <limits>
 #include <memory>
 #include <vector>
 
+#if !defined(_WIN32)
+#include <fcntl.h>
+#include <unistd.h>
+#endif
+
 #include <gtest/gtest.h>
 
 #include "gfxstream/virtio-gpu-gfxstream-renderer.h"
 #include "virtio_gpu_format_utils.h"
+#include "virtio_gpu_frontend.h"
 #include "virtio_gpu_pipe.h"
 
 namespace gfxstream {
@@ -61,6 +68,98 @@ TEST(VirtioGpuFormatUtilsSecurityTest, GetTransferOffsetAndSize64BitNoOverflow) 
     // Zero width/height must never underflow (h - 1U)
     EXPECT_EQ(GetTransferSize(VIRGL_FORMAT_R8G8B8A8_UNORM, 16, 16, 0, 0, 16, 0), 0U);
     EXPECT_EQ(GetTransferSize(VIRGL_FORMAT_R8G8B8A8_UNORM, 0, 16, 0, 0, 16, 16), 0U);
+}
+
+TEST(VirtioGpuFormatUtilsTest, GetGfxstreamFormatFromDrmFormat) {
+    EXPECT_EQ(GetGfxstreamFormatFromDrmFormat(DRM_FORMAT_ABGR8888),
+              GfxstreamFormat::R8G8B8A8_UNORM);
+    EXPECT_EQ(GetGfxstreamFormatFromDrmFormat(DRM_FORMAT_XBGR8888),
+              GfxstreamFormat::R8G8B8X8_UNORM);
+    EXPECT_EQ(GetGfxstreamFormatFromDrmFormat(DRM_FORMAT_ARGB8888),
+              GfxstreamFormat::B8G8R8A8_UNORM);
+    EXPECT_EQ(GetGfxstreamFormatFromDrmFormat(DRM_FORMAT_XRGB8888),
+              GfxstreamFormat::B8G8R8A8_UNORM);
+    EXPECT_EQ(GetGfxstreamFormatFromDrmFormat(DRM_FORMAT_BGR888), GfxstreamFormat::R8G8B8_UNORM);
+    EXPECT_EQ(GetGfxstreamFormatFromDrmFormat(DRM_FORMAT_RGB888), GfxstreamFormat::R8G8B8_UNORM);
+    EXPECT_EQ(GetGfxstreamFormatFromDrmFormat(DRM_FORMAT_RGB565), GfxstreamFormat::R5G6B5_UNORM);
+    EXPECT_EQ(GetGfxstreamFormatFromDrmFormat(DRM_FORMAT_RG88), GfxstreamFormat::R8G8_UNORM);
+    EXPECT_EQ(GetGfxstreamFormatFromDrmFormat(DRM_FORMAT_GR88), GfxstreamFormat::R8G8_UNORM);
+    EXPECT_EQ(GetGfxstreamFormatFromDrmFormat(DRM_FORMAT_R8), GfxstreamFormat::R8_UNORM);
+    EXPECT_EQ(GetGfxstreamFormatFromDrmFormat(DRM_FORMAT_R16), GfxstreamFormat::R16_UNORM);
+    EXPECT_EQ(GetGfxstreamFormatFromDrmFormat(DRM_FORMAT_ABGR16161616F),
+              GfxstreamFormat::R16G16B16A16_FLOAT);
+    EXPECT_EQ(GetGfxstreamFormatFromDrmFormat(DRM_FORMAT_ABGR2101010),
+              GfxstreamFormat::R10G10B10A2_UNORM);
+    EXPECT_EQ(GetGfxstreamFormatFromDrmFormat(DRM_FORMAT_XBGR2101010),
+              GfxstreamFormat::R10G10B10A2_UNORM);
+    EXPECT_EQ(GetGfxstreamFormatFromDrmFormat(DRM_FORMAT_ARGB2101010),
+              GfxstreamFormat::B10G10R10A2_UNORM);
+    EXPECT_EQ(GetGfxstreamFormatFromDrmFormat(DRM_FORMAT_XRGB2101010),
+              GfxstreamFormat::B10G10R10A2_UNORM);
+    EXPECT_EQ(GetGfxstreamFormatFromDrmFormat(DRM_FORMAT_NV12), GfxstreamFormat::NV12);
+    EXPECT_EQ(GetGfxstreamFormatFromDrmFormat(DRM_FORMAT_NV21), GfxstreamFormat::NV21);
+    EXPECT_EQ(GetGfxstreamFormatFromDrmFormat(DRM_FORMAT_P010), GfxstreamFormat::P010);
+    EXPECT_EQ(GetGfxstreamFormatFromDrmFormat(DRM_FORMAT_P210), GfxstreamFormat::P210);
+    EXPECT_EQ(GetGfxstreamFormatFromDrmFormat(DRM_FORMAT_YUV420), GfxstreamFormat::YV21);
+    EXPECT_EQ(GetGfxstreamFormatFromDrmFormat(DRM_FORMAT_YVU420), GfxstreamFormat::YV12);
+    EXPECT_EQ(GetGfxstreamFormatFromDrmFormat(0), std::nullopt);
+}
+
+TEST(VirtioGpuFrontendImportResourceTest, ValidatesImportArgumentsAndHandlesExistingResource) {
+    VirtioGpuFrontend frontend;
+
+    struct stream_renderer_handle dummyHandle = {
+        .os_handle = -1,
+        .handle_type = STREAM_HANDLE_TYPE_MEM_DMABUF,
+    };
+    struct stream_renderer_import_data dummyData = {
+        .flags = 0,
+        .size = 4096,
+    };
+
+    // Null import_handle or import_data must return -EINVAL.
+    EXPECT_EQ(frontend.importResource(1, nullptr, &dummyData), -EINVAL);
+    EXPECT_EQ(frontend.importResource(1, &dummyHandle, nullptr), -EINVAL);
+
+    // Null arguments to VirtioGpuResource::Create must return std::nullopt.
+    EXPECT_FALSE(VirtioGpuResource::Create(1, nullptr, &dummyData).has_value());
+    EXPECT_FALSE(VirtioGpuResource::Create(1, &dummyHandle, nullptr).has_value());
+
+    // STREAM_RENDERER_IMPORT_FLAG_RESOURCE_EXISTS on non-existent resource must return -EINVAL.
+    struct stream_renderer_import_data existsData = {
+        .flags = STREAM_RENDERER_IMPORT_FLAG_RESOURCE_EXISTS,
+        .size = 4096,
+    };
+    EXPECT_EQ(frontend.importResource(999, &dummyHandle, &existsData), -EINVAL);
+
+    // Create a PIPE resource with handle 1.
+    struct stream_renderer_resource_create_args createArgs = {
+        .handle = 1,
+        .target = 0,
+        .format = VIRGL_FORMAT_R8_UNORM,
+        .bind = VIRGL_BIND_CUSTOM,
+        .width = 64,
+        .height = 1,
+        .depth = 1,
+        .array_size = 1,
+    };
+    ASSERT_EQ(frontend.createResource(&createArgs, nullptr, 0), 0);
+
+#if !defined(_WIN32)
+    // Importing an already-existing resource without STREAM_RENDERER_IMPORT_FLAG_RESOURCE_EXISTS
+    // succeeds (returns 0) and closes the transferred file descriptor.
+    int pipeFds[2] = {-1, -1};
+    ASSERT_EQ(pipe(pipeFds), 0);
+    close(pipeFds[1]);
+
+    struct stream_renderer_handle transferredHandle = {
+        .os_handle = pipeFds[0],
+        .handle_type = STREAM_HANDLE_TYPE_MEM_DMABUF,
+    };
+    EXPECT_EQ(frontend.importResource(1, &transferredHandle, &dummyData), 0);
+    EXPECT_EQ(fcntl(pipeFds[0], F_GETFD), -1);
+    EXPECT_EQ(errno, EBADF);
+#endif
 }
 
 TEST(VirtioGpuResourceSecurityTest, RejectsPipeTransferReadAndWriteOutOfBoundsAndOverflow) {

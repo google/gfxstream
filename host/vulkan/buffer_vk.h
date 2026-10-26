@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "gfxstream/host/external_object_manager.h"
+#include "gfxstream/virtio-gpu-gfxstream-renderer-unstable.h"
 
 namespace gfxstream {
 namespace host {
@@ -27,6 +28,11 @@ class BufferVk {
    public:
     static std::unique_ptr<BufferVk> create(VkEmulation& vkEmulation, uint32_t handle,
                                             uint64_t size, bool vulkanOnly);
+
+    static std::unique_ptr<BufferVk> import(
+        VkEmulation& vkEmulation, uint32_t handle,
+        const struct ::stream_renderer_handle* importHandle,
+        const struct ::stream_renderer_import_data* importData);
 
     ~BufferVk();
 

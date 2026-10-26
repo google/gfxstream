@@ -19,6 +19,7 @@
 #include "gfxstream/host/external_object_manager.h"
 #include "gfxstream/host/handle.h"
 #include "gfxstream/host/lazy_snapshot_object.h"
+#include "gfxstream/virtio-gpu-gfxstream-renderer-unstable.h"
 #include "render-utils/stream.h"
 
 namespace gfxstream {
@@ -45,6 +46,11 @@ class Buffer : public LazySnapshotObj<Buffer> {
     static std::shared_ptr<Buffer> create(gl::EmulationGl* emulationGl,
                                           vk::VkEmulation* emulationVk, uint64_t size,
                                           HandleType handle);
+
+    static std::shared_ptr<Buffer> import(gl::EmulationGl* emulationGl,
+                                          vk::VkEmulation* emulationVk, HandleType handle,
+                                          const struct stream_renderer_handle* importHandle,
+                                          const struct stream_renderer_import_data* importData);
 
     static std::shared_ptr<Buffer> onLoad(gl::EmulationGl* emulationGl,
                                           vk::VkEmulation* emulationVk,
