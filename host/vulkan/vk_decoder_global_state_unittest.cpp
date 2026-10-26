@@ -25,6 +25,13 @@
 namespace gfxstream {
 namespace host {
 namespace vk {
+
+// Handles the device-cleanup test needs to inspect after teardown.
+struct CommandBufferCleanupProbe {
+    VkCommandBuffer boxedCmdBuf = VK_NULL_HANDLE;
+    std::shared_ptr<OrderMaintenanceInfo> cmdBufOrder;
+};
+
 struct VkDecoderGlobalStateTestPeer {
     VkDecoderGlobalState::Impl impl;
 
@@ -64,6 +71,205 @@ struct VkDecoderGlobalStateTestPeer {
             descriptorSetCount, pDescriptorSetLayouts, pDescriptorSetPoolIds,
             pDescriptorSetWhichPool, pDescriptorSetPendingAllocation,
             pDescriptorWriteStartingIndices, pendingDescriptorWriteCount, pPendingDescriptorWrites);
+    }
+
+    void destroyCommandPoolWithExclusiveInfo(
+        VkDevice device, VulkanDispatch* deviceDispatch, VkCommandPool commandPool,
+        CommandPoolInfo& commandPoolInfo,
+        std::unordered_map<VkCommandBuffer, CommandBufferInfo>& commandBufferInfos) {
+        impl.destroyCommandPoolWithExclusiveInfo(device, deviceDispatch, commandPool,
+                                                 commandPoolInfo, commandBufferInfos);
+    }
+
+    // Boxes one object of each device-owned type and registers it in the Impl
+    // info maps, as if the guest had created it on `unboxedDevice`.
+    CommandBufferCleanupProbe registerDeviceObjectsForCleanupTest(VulkanDispatch* globalVk,
+                                                                  VulkanDispatch* deviceVk,
+                                                                  VkDevice unboxedDevice) {
+        impl.m_vk = globalVk;
+
+        VkDevice boxedDevice = new_boxed_VkDevice(unboxedDevice, deviceVk);
+        VkCommandPool unboxedCmdPool = reinterpret_cast<VkCommandPool>(0xa001'0000ULL);
+        VkCommandPool boxedCmdPool = new_boxed_non_dispatchable_VkCommandPool(unboxedCmdPool);
+        VkCommandBuffer unboxedCmdBuf = reinterpret_cast<VkCommandBuffer>(0xa002'0000ULL);
+        VkCommandBuffer boxedCmdBuf = new_boxed_VkCommandBuffer(unboxedCmdBuf, deviceVk);
+        BoxedHandleInfo* cmdBufBoxedInfo =
+            sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedCmdBuf));
+        EXPECT_NE(nullptr, cmdBufBoxedInfo);
+        if (cmdBufBoxedInfo) {
+            cmdBufBoxedInfo->readStream =
+                std::make_unique<VulkanMemReadingStream>(nullptr, gfxstream::host::FeatureSet{});
+        }
+        CommandBufferCleanupProbe probe;
+        probe.boxedCmdBuf = boxedCmdBuf;
+        probe.cmdBufOrder = ordmaint_VkCommandBuffer(boxedCmdBuf);
+
+        VkBuffer unboxedBuffer = reinterpret_cast<VkBuffer>(0xa003'0000ULL);
+        VkBuffer boxedBuffer = new_boxed_non_dispatchable_VkBuffer(unboxedBuffer);
+        VkDeviceMemory unboxedMem = reinterpret_cast<VkDeviceMemory>(0xa004'0000ULL);
+        VkDeviceMemory boxedMem = new_boxed_non_dispatchable_VkDeviceMemory(unboxedMem);
+        VkDescriptorPool unboxedDescPool = reinterpret_cast<VkDescriptorPool>(0xa005'0000ULL);
+        VkDescriptorPool boxedDescPool =
+            new_boxed_non_dispatchable_VkDescriptorPool(unboxedDescPool);
+        VkDescriptorUpdateTemplate unboxedTemplate =
+            reinterpret_cast<VkDescriptorUpdateTemplate>(0xa006'0000ULL);
+        VkDescriptorUpdateTemplate boxedTemplate =
+            new_boxed_non_dispatchable_VkDescriptorUpdateTemplate(unboxedTemplate);
+        VkSamplerYcbcrConversion unboxedYcbcr =
+            reinterpret_cast<VkSamplerYcbcrConversion>(0xa007'0000ULL);
+        VkSamplerYcbcrConversion boxedYcbcr =
+            new_boxed_non_dispatchable_VkSamplerYcbcrConversion(unboxedYcbcr);
+        VkShaderModule unboxedShader = reinterpret_cast<VkShaderModule>(0xa008'0000ULL);
+        VkShaderModule boxedShader = new_boxed_non_dispatchable_VkShaderModule(unboxedShader);
+        VkPipeline unboxedPipeline = reinterpret_cast<VkPipeline>(0xa009'0000ULL);
+        VkPipeline boxedPipeline = new_boxed_non_dispatchable_VkPipeline(unboxedPipeline);
+        VkPipelineCache unboxedCache = reinterpret_cast<VkPipelineCache>(0xa00a'0000ULL);
+        VkPipelineCache boxedCache = new_boxed_non_dispatchable_VkPipelineCache(unboxedCache);
+        VkPipelineLayout unboxedLayout = reinterpret_cast<VkPipelineLayout>(0xa00b'0000ULL);
+        VkPipelineLayout boxedLayout = new_boxed_non_dispatchable_VkPipelineLayout(unboxedLayout);
+        VkFramebuffer unboxedFb = reinterpret_cast<VkFramebuffer>(0xa00c'0000ULL);
+        VkFramebuffer boxedFb = new_boxed_non_dispatchable_VkFramebuffer(unboxedFb);
+        VkRenderPass unboxedRp = reinterpret_cast<VkRenderPass>(0xa00d'0000ULL);
+        VkRenderPass boxedRp = new_boxed_non_dispatchable_VkRenderPass(unboxedRp);
+
+        {
+            std::lock_guard<std::mutex> lock(impl.mMutex);
+            DeviceInfo& devInfo = impl.mDeviceInfo[unboxedDevice];
+            devInfo.boxed = boxedDevice;
+            devInfo.decompPipelines =
+                std::make_unique<GpuDecompressionPipelineManager>(deviceVk, unboxedDevice);
+            devInfo.deviceOpTracker = std::make_shared<DeviceOpTracker>(unboxedDevice, deviceVk);
+            devInfo.externalFencePool =
+                std::make_unique<ExternalFencePool<VulkanDispatch>>(deviceVk, unboxedDevice);
+
+            CommandPoolInfo& poolInfo = impl.mCommandPoolInfo[unboxedCmdPool];
+            poolInfo.device = unboxedDevice;
+            poolInfo.boxed = boxedCmdPool;
+            poolInfo.cmdBuffers.insert(unboxedCmdBuf);
+
+            CommandBufferInfo& cmdInfo = impl.mCommandBufferInfo[unboxedCmdBuf];
+            cmdInfo.device = unboxedDevice;
+            cmdInfo.cmdPool = unboxedCmdPool;
+            cmdInfo.boxed = boxedCmdBuf;
+
+            BufferInfo& bufInfo = impl.mBufferInfo[unboxedBuffer];
+            bufInfo.device = unboxedDevice;
+            bufInfo.boxed = boxedBuffer;
+
+            MemoryInfo& memInfo = impl.mMemoryInfo[unboxedMem];
+            memInfo.device = unboxedDevice;
+            memInfo.boxed = boxedMem;
+            memInfo.directMapped = true;
+
+            DescriptorPoolInfo& descPoolInfo = impl.mDescriptorPoolInfo[unboxedDescPool];
+            descPoolInfo.device = unboxedDevice;
+            descPoolInfo.boxed = boxedDescPool;
+
+            DescriptorUpdateTemplateInfo& tmplInfo =
+                impl.mDescriptorUpdateTemplateInfo[unboxedTemplate];
+            tmplInfo.device = unboxedDevice;
+            tmplInfo.boxed = boxedTemplate;
+            tmplInfo.data.resize(256, 0xab);
+
+            SamplerYcbcrConversionInfo& ycbcrInfo = impl.mSamplerYcbcrConversionInfo[unboxedYcbcr];
+            ycbcrInfo.device = unboxedDevice;
+            ycbcrInfo.boxed = boxedYcbcr;
+
+            ShaderModuleInfo& shaderInfo = impl.mShaderModuleInfo[unboxedShader];
+            shaderInfo.device = unboxedDevice;
+            shaderInfo.boxed = boxedShader;
+
+            PipelineInfo& pipeInfo = impl.mPipelineInfo[unboxedPipeline];
+            pipeInfo.device = unboxedDevice;
+            pipeInfo.boxed = boxedPipeline;
+
+            PipelineCacheInfo& cacheInfo = impl.mPipelineCacheInfo[unboxedCache];
+            cacheInfo.device = unboxedDevice;
+            cacheInfo.boxed = boxedCache;
+
+            PipelineLayoutInfo& layoutInfo = impl.mPipelineLayoutInfo[unboxedLayout];
+            layoutInfo.device = unboxedDevice;
+            layoutInfo.boxed = boxedLayout;
+
+            FramebufferInfo& fbInfo = impl.mFramebufferInfo[unboxedFb];
+            fbInfo.device = unboxedDevice;
+            fbInfo.boxed = boxedFb;
+
+            RenderPassInfo& rpInfo = impl.mRenderPassInfo[unboxedRp];
+            rpInfo.device = unboxedDevice;
+            rpInfo.boxed = boxedRp;
+        }
+        return probe;
+    }
+
+    // Mirrors process cleanup: extracts the device and every object it owns
+    // from the Impl info maps.
+    InstanceObjects::DeviceObjects extractDeviceObjectsForCleanupTest(VkDevice unboxedDevice) {
+        InstanceObjects::DeviceObjects deviceObjects;
+        std::lock_guard<std::mutex> lock(impl.mMutex);
+        auto devIt = impl.mDeviceInfo.find(unboxedDevice);
+        deviceObjects.device = impl.mDeviceInfo.extract(devIt);
+        impl.extractDeviceAndDependenciesLocked(unboxedDevice, deviceObjects);
+        return deviceObjects;
+    }
+
+    size_t descriptorUpdateTemplateInfoCount() {
+        std::lock_guard<std::mutex> lock(impl.mMutex);
+        return impl.mDescriptorUpdateTemplateInfo.size();
+    }
+
+    size_t samplerYcbcrConversionInfoCount() {
+        std::lock_guard<std::mutex> lock(impl.mMutex);
+        return impl.mSamplerYcbcrConversionInfo.size();
+    }
+
+    void destroyDeviceObjects(InstanceObjects::DeviceObjects& deviceObjects) {
+        impl.destroyDeviceObjects(deviceObjects);
+    }
+
+    // Registers `unboxedInstance` with already boxed physical devices, as if
+    // the first vkEnumeratePhysicalDevices call had populated them. Returns
+    // the boxed instance handle.
+    VkInstance registerInstanceWithPhysicalDevicesForCleanupTest(
+        VulkanDispatch* globalVk, VkInstance unboxedInstance,
+        const std::vector<VkPhysicalDevice>& unboxedPhysicalDevices,
+        std::vector<VkPhysicalDevice> boxedPhysicalDevices) {
+        impl.m_vk = globalVk;
+        VkInstance boxedInstance = new_boxed_VkInstance(unboxedInstance, globalVk);
+
+        std::lock_guard<std::mutex> lock(impl.mMutex);
+        InstanceInfo& instanceInfo = impl.mInstanceInfo[unboxedInstance];
+        instanceInfo.boxed = boxedInstance;
+        instanceInfo.boxedPhysicalDevices = std::move(boxedPhysicalDevices);
+        for (VkPhysicalDevice unboxedPhysicalDevice : unboxedPhysicalDevices) {
+            impl.mPhysdevInfo[unboxedPhysicalDevice].instance = unboxedInstance;
+        }
+        return boxedInstance;
+    }
+
+    VkResult enumeratePhysicalDevices(VkInstance boxedInstance, uint32_t* pPhysicalDeviceCount,
+                                      VkPhysicalDevice* pPhysicalDevices) {
+        return impl.on_vkEnumeratePhysicalDevices(nullptr, kInvalidSnapshotApiCallHandle,
+                                                  boxedInstance, pPhysicalDeviceCount,
+                                                  pPhysicalDevices);
+    }
+
+    size_t physicalDeviceInfoCount() {
+        std::lock_guard<std::mutex> lock(impl.mMutex);
+        return impl.mPhysdevInfo.size();
+    }
+
+    // Mirrors vkDestroyInstanceImpl: extracts the instance and everything it
+    // owns from the Impl info maps.
+    InstanceObjects extractInstanceObjectsForCleanupTest(VkInstance unboxedInstance) {
+        InstanceObjects instanceObjects;
+        std::lock_guard<std::mutex> lock(impl.mMutex);
+        impl.extractInstanceAndDependenciesLocked(unboxedInstance, instanceObjects);
+        return instanceObjects;
+    }
+
+    void destroyInstanceObjects(InstanceObjects& instanceObjects) {
+        impl.destroyInstanceObjects(instanceObjects);
     }
 };
 
@@ -278,6 +484,188 @@ TEST(BoxedHandleManagerReverseMapTest, DelayedRemoveClearsReverseMapping) {
     sBoxedHandleManager.processDelayedRemoves(device);
     EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxed)));
     EXPECT_EQ(VK_NULL_HANDLE, unboxed_to_boxed_non_dispatchable_VkSampler(underlying));
+}
+
+TEST(VkDecoderGlobalStateProcessCleanupLeakTest, DestroyCommandPoolDeletesBoxedCommandBuffers) {
+    VkDecoderGlobalStateTestPeer peer;
+    const uint64_t baselineHandles = sBoxedHandleManager.getHandlesCount();
+
+    static int sDestroyedPools = 0;
+    sDestroyedPools = 0;
+    VulkanDispatch deviceVk = {};
+    deviceVk.vkDestroyCommandPool = [](VkDevice, VkCommandPool, const VkAllocationCallbacks*) {
+        ++sDestroyedPools;
+    };
+
+    VkDevice unboxedDevice = reinterpret_cast<VkDevice>(0xb001'0000ULL);
+    VkCommandPool unboxedPool = reinterpret_cast<VkCommandPool>(0xb002'0000ULL);
+    VkCommandPool boxedPool = new_boxed_non_dispatchable_VkCommandPool(unboxedPool);
+    VkCommandBuffer unboxedCmdBuf = reinterpret_cast<VkCommandBuffer>(0xb003'0000ULL);
+    VkCommandBuffer boxedCmdBuf = new_boxed_VkCommandBuffer(unboxedCmdBuf, &deviceVk);
+    BoxedHandleInfo* cmdBufBoxedInfo =
+        sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedCmdBuf));
+    ASSERT_NE(nullptr, cmdBufBoxedInfo);
+    cmdBufBoxedInfo->readStream =
+        std::make_unique<VulkanMemReadingStream>(nullptr, gfxstream::host::FeatureSet{});
+    std::shared_ptr<OrderMaintenanceInfo> cmdBufOrder = ordmaint_VkCommandBuffer(boxedCmdBuf);
+    ASSERT_NE(nullptr, cmdBufOrder);
+    EXPECT_EQ(2, cmdBufOrder.use_count());
+
+    CommandPoolInfo poolInfo;
+    poolInfo.device = unboxedDevice;
+    poolInfo.boxed = boxedPool;
+    poolInfo.cmdBuffers.insert(unboxedCmdBuf);
+
+    std::unordered_map<VkCommandBuffer, CommandBufferInfo> cmdBufferInfos;
+    CommandBufferInfo& cmdInfo = cmdBufferInfos[unboxedCmdBuf];
+    cmdInfo.device = unboxedDevice;
+    cmdInfo.cmdPool = unboxedPool;
+    cmdInfo.boxed = boxedCmdBuf;
+
+    peer.destroyCommandPoolWithExclusiveInfo(unboxedDevice, &deviceVk, unboxedPool, poolInfo,
+                                             cmdBufferInfos);
+    delete_VkCommandPool(boxedPool);
+
+    EXPECT_EQ(1, sDestroyedPools);
+    EXPECT_TRUE(cmdBufferInfos.empty());
+    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedCmdBuf)));
+    EXPECT_EQ(1, cmdBufOrder.use_count());
+    EXPECT_EQ(baselineHandles, sBoxedHandleManager.getHandlesCount());
+}
+
+TEST(VkDecoderGlobalStateProcessCleanupLeakTest, DeviceCleanupDeletesAllExtractedBoxedHandles) {
+    VkDecoderGlobalStateTestPeer peer;
+    const uint64_t baselineHandles = sBoxedHandleManager.getHandlesCount();
+
+    static int sDestroyCalls = 0;
+    sDestroyCalls = 0;
+    VulkanDispatch globalVk = {};
+    globalVk.vkDestroyDevice = [](VkDevice, const VkAllocationCallbacks*) { ++sDestroyCalls; };
+    VulkanDispatch deviceVk = {};
+    deviceVk.vkDeviceWaitIdle = [](VkDevice) -> VkResult { return VK_SUCCESS; };
+    deviceVk.vkDestroyBuffer = [](VkDevice, VkBuffer, const VkAllocationCallbacks*) {
+        ++sDestroyCalls;
+    };
+    deviceVk.vkFreeMemory = [](VkDevice, VkDeviceMemory, const VkAllocationCallbacks*) {
+        ++sDestroyCalls;
+    };
+    deviceVk.vkFreeCommandBuffers = [](VkDevice, VkCommandPool, uint32_t, const VkCommandBuffer*) {
+        ++sDestroyCalls;
+    };
+    deviceVk.vkDestroyCommandPool = [](VkDevice, VkCommandPool, const VkAllocationCallbacks*) {
+        ++sDestroyCalls;
+    };
+    deviceVk.vkDestroyDescriptorPool =
+        [](VkDevice, VkDescriptorPool, const VkAllocationCallbacks*) { ++sDestroyCalls; };
+    deviceVk.vkDestroyDescriptorSetLayout =
+        [](VkDevice, VkDescriptorSetLayout layout, const VkAllocationCallbacks*) {
+            if (layout != VK_NULL_HANDLE) ++sDestroyCalls;
+        };
+    deviceVk.vkDestroyDescriptorUpdateTemplate =
+        [](VkDevice, VkDescriptorUpdateTemplate, const VkAllocationCallbacks*) { ++sDestroyCalls; };
+    deviceVk.vkDestroySamplerYcbcrConversion =
+        [](VkDevice, VkSamplerYcbcrConversion, const VkAllocationCallbacks*) { ++sDestroyCalls; };
+    deviceVk.vkDestroyShaderModule = [](VkDevice, VkShaderModule, const VkAllocationCallbacks*) {
+        ++sDestroyCalls;
+    };
+    deviceVk.vkDestroyPipeline = [](VkDevice, VkPipeline, const VkAllocationCallbacks*) {
+        ++sDestroyCalls;
+    };
+    deviceVk.vkDestroyPipelineCache = [](VkDevice, VkPipelineCache, const VkAllocationCallbacks*) {
+        ++sDestroyCalls;
+    };
+    deviceVk.vkDestroyPipelineLayout =
+        [](VkDevice, VkPipelineLayout layout, const VkAllocationCallbacks*) {
+            if (layout != VK_NULL_HANDLE) ++sDestroyCalls;
+        };
+    deviceVk.vkDestroyFramebuffer = [](VkDevice, VkFramebuffer, const VkAllocationCallbacks*) {
+        ++sDestroyCalls;
+    };
+    deviceVk.vkDestroyRenderPass = [](VkDevice, VkRenderPass, const VkAllocationCallbacks*) {
+        ++sDestroyCalls;
+    };
+
+    VkDevice unboxedDevice = reinterpret_cast<VkDevice>(0xc001'0000ULL);
+    CommandBufferCleanupProbe probe =
+        peer.registerDeviceObjectsForCleanupTest(&globalVk, &deviceVk, unboxedDevice);
+
+    InstanceObjects::DeviceObjects deviceObjects =
+        peer.extractDeviceObjectsForCleanupTest(unboxedDevice);
+    EXPECT_EQ(0u, peer.descriptorUpdateTemplateInfoCount());
+    EXPECT_EQ(0u, peer.samplerYcbcrConversionInfoCount());
+
+    peer.destroyDeviceObjects(deviceObjects);
+
+    EXPECT_EQ(14, sDestroyCalls);
+    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(probe.boxedCmdBuf)));
+    ASSERT_NE(nullptr, probe.cmdBufOrder);
+    EXPECT_EQ(1, probe.cmdBufOrder.use_count());
+    EXPECT_EQ(baselineHandles, sBoxedHandleManager.getHandlesCount());
+}
+
+TEST(VkDecoderGlobalStateProcessCleanupLeakTest,
+     EnumeratePhysicalDevicesReturnsInstanceOwnedHandlesUntilInstanceDestroyed) {
+    VkDecoderGlobalStateTestPeer peer;
+    const uint64_t baselineHandles = sBoxedHandleManager.getHandlesCount();
+
+    static int sDestroyedInstances = 0;
+    sDestroyedInstances = 0;
+    VulkanDispatch globalVk = {};
+    globalVk.vkDestroyInstance = [](VkInstance, const VkAllocationCallbacks*) {
+        ++sDestroyedInstances;
+    };
+
+    VkInstance unboxedInstance = reinterpret_cast<VkInstance>(0xd001'0000ULL);
+    const std::vector<VkPhysicalDevice> unboxedPhysicalDevices = {
+        reinterpret_cast<VkPhysicalDevice>(0xd002'0000ULL),
+        reinterpret_cast<VkPhysicalDevice>(0xd003'0000ULL),
+    };
+    const std::vector<VkPhysicalDevice> boxedPhysicalDevices = {
+        new_boxed_VkPhysicalDevice(unboxedPhysicalDevices[0], &globalVk),
+        new_boxed_VkPhysicalDevice(unboxedPhysicalDevices[1], &globalVk),
+    };
+    VkInstance boxedInstance = peer.registerInstanceWithPhysicalDevicesForCleanupTest(
+        &globalVk, unboxedInstance, unboxedPhysicalDevices, boxedPhysicalDevices);
+    EXPECT_EQ(2u, peer.physicalDeviceInfoCount());
+
+    // Count-only query reports every physical device without writing handles.
+    uint32_t count = 0;
+    EXPECT_EQ(VK_SUCCESS, peer.enumeratePhysicalDevices(boxedInstance, &count, nullptr));
+    EXPECT_EQ(2u, count);
+
+    // An array that is too small gets only as many handles as it can hold,
+    // the count is updated to the number written and VK_INCOMPLETE returned.
+    VkPhysicalDevice out[2] = {VK_NULL_HANDLE, VK_NULL_HANDLE};
+    count = 1;
+    EXPECT_EQ(VK_INCOMPLETE, peer.enumeratePhysicalDevices(boxedInstance, &count, out));
+    EXPECT_EQ(1u, count);
+    EXPECT_EQ(boxedPhysicalDevices[0], out[0]);
+    EXPECT_EQ(VK_NULL_HANDLE, out[1]);
+
+    // Repeated enumeration on the same instance returns the same boxed
+    // handles and does not box new ones.
+    for (int i = 0; i < 2; ++i) {
+        out[0] = out[1] = VK_NULL_HANDLE;
+        count = 2;
+        EXPECT_EQ(VK_SUCCESS, peer.enumeratePhysicalDevices(boxedInstance, &count, out));
+        EXPECT_EQ(2u, count);
+        EXPECT_EQ(boxedPhysicalDevices[0], out[0]);
+        EXPECT_EQ(boxedPhysicalDevices[1], out[1]);
+    }
+    EXPECT_EQ(baselineHandles + 3, sBoxedHandleManager.getHandlesCount());
+
+    // Destroying the instance releases its physical devices with it.
+    InstanceObjects instanceObjects = peer.extractInstanceObjectsForCleanupTest(unboxedInstance);
+    EXPECT_EQ(0u, peer.physicalDeviceInfoCount());
+    peer.destroyInstanceObjects(instanceObjects);
+
+    EXPECT_EQ(1, sDestroyedInstances);
+    for (VkPhysicalDevice boxedPhysicalDevice : boxedPhysicalDevices) {
+        EXPECT_EQ(nullptr,
+                  sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedPhysicalDevice)));
+    }
+    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedInstance)));
+    EXPECT_EQ(baselineHandles, sBoxedHandleManager.getHandlesCount());
 }
 
 }  // namespace

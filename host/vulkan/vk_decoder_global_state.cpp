@@ -1859,6 +1859,59 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
+    // Enumerates the host physical devices visible to `instance`, records their
+    // properties in mPhysdevInfo and boxes them into
+    // `instanceInfo.boxedPhysicalDevices`. Called once per instance: the boxed
+    // handles live as long as the instance and are released with it.
+    VkResult populatePhysicalDevicesLocked(VkInstance instance, VulkanDispatch* vk,
+                                           InstanceInfo& instanceInfo) REQUIRES(mMutex) {
+        std::vector<VkPhysicalDevice> physicalDevices;
+        VkResult res = GetPhysicalDevices(instance, vk, physicalDevices);
+        if (res != VK_SUCCESS) {
+            return res;
+        }
+
+        FilterPhysicalDevicesLocked(instance, vk, physicalDevices);
+
+        instanceInfo.boxedPhysicalDevices.reserve(physicalDevices.size());
+        for (VkPhysicalDevice physicalDevice : physicalDevices) {
+            VALIDATE_NEW_HANDLE_INFO_ENTRY(mPhysdevInfo, physicalDevice);
+            auto& physdevInfo = mPhysdevInfo[physicalDevice];
+            physdevInfo.instance = instance;
+
+            vk->vkGetPhysicalDeviceProperties(physicalDevice, &physdevInfo.props);
+
+            m_vkEmulation->applyApiVersionLimits(physdevInfo.props.apiVersion);
+
+            VkPhysicalDeviceMemoryProperties hostMemoryProperties;
+            vk->vkGetPhysicalDeviceMemoryProperties(physicalDevice, &hostMemoryProperties);
+
+            physdevInfo.memoryPropertiesHelper =
+                std::make_unique<EmulatedPhysicalDeviceMemoryProperties>(
+                    hostMemoryProperties,
+                    m_vkEmulation->getRepresentativeColorBufferMemoryTypeInfo()
+                        .hostMemoryTypeIndex,
+                    getFeatures());
+
+            std::vector<VkQueueFamilyProperties> queueFamilyProperties;
+            uint32_t queueFamilyPropCount = 0;
+            vk->vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyPropCount,
+                                                         nullptr);
+            queueFamilyProperties.resize((size_t)queueFamilyPropCount);
+            vk->vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyPropCount,
+                                                         queueFamilyProperties.data());
+
+            physdevInfo.queuePropertiesHelper =
+                std::make_unique<EmulatedPhysicalDeviceQueueProperties>(queueFamilyProperties,
+                                                                        getFeatures());
+
+            instanceInfo.boxedPhysicalDevices.push_back(
+                new_boxed_VkPhysicalDevice(physicalDevice, vk));
+        }
+
+        return VK_SUCCESS;
+    }
+
     VkResult on_vkEnumeratePhysicalDevices(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
                                            VkInstance boxed_instance,
                                            uint32_t* pPhysicalDeviceCount,
@@ -1866,67 +1919,48 @@ class VkDecoderGlobalState::Impl {
         auto instance = unbox_VkInstance(boxed_instance);
         auto vk = dispatch_VkInstance(boxed_instance);
 
-        std::vector<VkPhysicalDevice> physicalDevices;
-        auto res = GetPhysicalDevices(instance, vk, physicalDevices);
-        if (res != VK_SUCCESS) {
-            return res;
-        }
-
         std::lock_guard<std::mutex> lock(mMutex);
 
-        FilterPhysicalDevicesLocked(instance, vk, physicalDevices);
+        auto* instanceInfo = gfxstream::base::find(mInstanceInfo, instance);
+        if (!instanceInfo) {
+            GFXSTREAM_ERROR("%s: unknown VkInstance %p.", __func__, instance);
+            return VK_ERROR_INITIALIZATION_FAILED;
+        }
 
-        const uint32_t requestedCount = pPhysicalDeviceCount ? *pPhysicalDeviceCount : 0;
-        const uint32_t availableCount = static_cast<uint32_t>(physicalDevices.size());
+        // The physical devices are owned by the instance: box them on the first
+        // call and hand out the same boxed handles afterwards, as Vulkan requires
+        // repeated enumeration on the same instance to return the same handles.
+        if (instanceInfo->boxedPhysicalDevices.empty()) {
+            VkResult res = populatePhysicalDevicesLocked(instance, vk, *instanceInfo);
+            if (res != VK_SUCCESS) {
+                return res;
+            }
+        }
 
-        if (pPhysicalDeviceCount) {
+        const std::vector<VkPhysicalDevice>& boxedPhysicalDevices =
+            instanceInfo->boxedPhysicalDevices;
+        const uint32_t availableCount = static_cast<uint32_t>(boxedPhysicalDevices.size());
+
+        if (!pPhysicalDeviceCount) {
+            return VK_SUCCESS;
+        }
+
+        if (!pPhysicalDevices) {
             *pPhysicalDeviceCount = availableCount;
+            return VK_SUCCESS;
         }
 
-        if (pPhysicalDeviceCount && pPhysicalDevices) {
-            // Box them up
-            for (uint32_t i = 0; i < std::min(requestedCount, availableCount); ++i) {
-                VALIDATE_NEW_HANDLE_INFO_ENTRY(mPhysdevInfo, physicalDevices[i]);
-                auto& physdevInfo = mPhysdevInfo[physicalDevices[i]];
-                physdevInfo.instance = instance;
-                physdevInfo.boxed = new_boxed_VkPhysicalDevice(physicalDevices[i], vk);
+        // Standard Vulkan two-call pattern: write at most *pPhysicalDeviceCount
+        // handles, report how many were actually written, and return
+        // VK_INCOMPLETE if the array was too small. The decoder writes exactly
+        // *pPhysicalDeviceCount handles back to the guest, so it must match the
+        // number copied here.
+        const uint32_t requestedCount = *pPhysicalDeviceCount;
+        const uint32_t writtenCount = std::min(requestedCount, availableCount);
+        std::copy_n(boxedPhysicalDevices.begin(), writtenCount, pPhysicalDevices);
+        *pPhysicalDeviceCount = writtenCount;
 
-                vk->vkGetPhysicalDeviceProperties(physicalDevices[i], &physdevInfo.props);
-
-                m_vkEmulation->applyApiVersionLimits(physdevInfo.props.apiVersion);
-
-                VkPhysicalDeviceMemoryProperties hostMemoryProperties;
-                vk->vkGetPhysicalDeviceMemoryProperties(physicalDevices[i], &hostMemoryProperties);
-
-                physdevInfo.memoryPropertiesHelper =
-                    std::make_unique<EmulatedPhysicalDeviceMemoryProperties>(
-                        hostMemoryProperties,
-                        m_vkEmulation->getRepresentativeColorBufferMemoryTypeInfo()
-                            .hostMemoryTypeIndex,
-                        getFeatures());
-
-                std::vector<VkQueueFamilyProperties> queueFamilyProperties;
-                uint32_t queueFamilyPropCount = 0;
-                vk->vkGetPhysicalDeviceQueueFamilyProperties(physicalDevices[i],
-                                                             &queueFamilyPropCount, nullptr);
-                queueFamilyProperties.resize((size_t)queueFamilyPropCount);
-                vk->vkGetPhysicalDeviceQueueFamilyProperties(
-                    physicalDevices[i], &queueFamilyPropCount,
-                    queueFamilyProperties.data());
-
-                physdevInfo.queuePropertiesHelper =
-                    std::make_unique<EmulatedPhysicalDeviceQueueProperties>(
-                        queueFamilyProperties,
-                        getFeatures());
-
-                pPhysicalDevices[i] = (VkPhysicalDevice)physdevInfo.boxed;
-            }
-            if (requestedCount < availableCount) {
-                res = VK_INCOMPLETE;
-            }
-        }
-
-        return res;
+        return writtenCount < availableCount ? VK_INCOMPLETE : VK_SUCCESS;
     }
 
     void on_vkGetPhysicalDeviceFeatures(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
@@ -3417,7 +3451,9 @@ class VkDecoderGlobalState::Impl {
     void destroyDeviceWithExclusiveInfo(VkDevice device, DeviceInfo& deviceInfo,
                                         std::unordered_map<VkFence, FenceInfo>& fenceInfos,
                                         std::unordered_map<VkQueue, QueueInfo>& queueInfos) {
-        m_vkEmulation->getDeviceLostHelper().onDeviceDestroyed(device);
+        if (m_vkEmulation) {
+            m_vkEmulation->getDeviceLostHelper().onDeviceDestroyed(device);
+        }
 
         deviceInfo.decompPipelines->clear();
 
@@ -3544,6 +3580,7 @@ class VkDecoderGlobalState::Impl {
             bufInfo.usage = pCreateInfo->usage;
             bufInfo.size = pCreateInfo->size;
             *pBuffer = new_boxed_non_dispatchable_VkBuffer(*pBuffer);
+            bufInfo.boxed = *pBuffer;
         }
 
         return result;
@@ -5257,12 +5294,12 @@ class VkDecoderGlobalState::Impl {
             auto unboxedSet = it.first;
             auto boxedSet = it.second;
             descriptorSetInfos.erase(unboxedSet);
-            if (!m_vkEmulation->getFeatures().VulkanBatchedDescriptorSetUpdate.enabled()) {
+            if (!mBatchedDescriptorSetUpdateEnabled) {
                 delete_VkDescriptorSet(boxedSet);
             }
         }
 
-        if (m_vkEmulation->getFeatures().VulkanBatchedDescriptorSetUpdate.enabled()) {
+        if (mBatchedDescriptorSetUpdateEnabled) {
             if (isDestroy) {
                 for (auto boxedSet : descriptorPoolInfo.preallocatedBoxedSets) {
                     delete_VkDescriptorSet((VkDescriptorSet)boxedSet);
@@ -5806,6 +5843,7 @@ class VkDecoderGlobalState::Impl {
         shaderModuleInfo.device = device;
 
         *pShaderModule = new_boxed_non_dispatchable_VkShaderModule(*pShaderModule);
+        shaderModuleInfo.boxed = *pShaderModule;
 
         return result;
     }
@@ -5858,6 +5896,7 @@ class VkDecoderGlobalState::Impl {
         pipelineCacheInfo.device = device;
 
         *pPipelineCache = new_boxed_non_dispatchable_VkPipelineCache(*pPipelineCache);
+        pipelineCacheInfo.boxed = *pPipelineCache;
 
         return result;
     }
@@ -5911,6 +5950,7 @@ class VkDecoderGlobalState::Impl {
         pipelineLayoutInfo.device = device;
 
         *pPipelineLayout = new_boxed_non_dispatchable_VkPipelineLayout(*pPipelineLayout);
+        pipelineLayoutInfo.boxed = *pPipelineLayout;
 
         return result;
     }
@@ -5970,6 +6010,7 @@ class VkDecoderGlobalState::Impl {
             pipelineInfo.device = device;
 
             pPipelines[i] = new_boxed_non_dispatchable_VkPipeline(pPipelines[i]);
+            pipelineInfo.boxed = pPipelines[i];
         }
 
         return result;
@@ -6000,6 +6041,7 @@ class VkDecoderGlobalState::Impl {
             pipelineInfo.device = device;
 
             pPipelines[i] = new_boxed_non_dispatchable_VkPipeline(pPipelines[i]);
+            pipelineInfo.boxed = pPipelines[i];
         }
 
         return result;
@@ -7341,6 +7383,7 @@ class VkDecoderGlobalState::Impl {
 
         if (!plan.isHostVisible()) {
             *pMemory = new_boxed_non_dispatchable_VkDeviceMemory(*pMemory);
+            memoryInfo.boxed = *pMemory;
             return result;
         }
 
@@ -7363,6 +7406,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         *pMemory = new_boxed_non_dispatchable_VkDeviceMemory(*pMemory);
+        memoryInfo.boxed = *pMemory;
 
         return result;
     }
@@ -7996,8 +8040,9 @@ class VkDecoderGlobalState::Impl {
         for (const VkCommandBuffer commandBuffer : commandPoolInfo.cmdBuffers) {
             auto commandBufferIt = commandBufferInfos.find(commandBuffer);
             if (commandBufferIt != commandBufferInfos.end()) {
+                VkCommandBuffer boxedCommandBuffer = commandBufferIt->second.boxed;
                 commandBufferInfos.erase(commandBufferIt);
-                delete_VkCommandBuffer(commandBuffer);
+                delete_VkCommandBuffer(boxedCommandBuffer);
             } else {
                 GFXSTREAM_ERROR("Cannot find command buffer reference (%p).", commandBuffer);
             }
@@ -8748,10 +8793,12 @@ class VkDecoderGlobalState::Impl {
             device, &descriptorUpdateTemplateInfo.createInfo, nullptr, pDescriptorUpdateTemplate);
 
         if (res == VK_SUCCESS) {
-            registerDescriptorUpdateTemplate(*pDescriptorUpdateTemplate,
-                                             descriptorUpdateTemplateInfo);
+            VkDescriptorUpdateTemplate unboxedTemplate = *pDescriptorUpdateTemplate;
             *pDescriptorUpdateTemplate =
-                new_boxed_non_dispatchable_VkDescriptorUpdateTemplate(*pDescriptorUpdateTemplate);
+                new_boxed_non_dispatchable_VkDescriptorUpdateTemplate(unboxedTemplate);
+            descriptorUpdateTemplateInfo.device = device;
+            descriptorUpdateTemplateInfo.boxed = *pDescriptorUpdateTemplate;
+            registerDescriptorUpdateTemplate(unboxedTemplate, descriptorUpdateTemplateInfo);
         }
 
         return res;
@@ -8770,10 +8817,12 @@ class VkDecoderGlobalState::Impl {
             device, &descriptorUpdateTemplateInfo.createInfo, nullptr, pDescriptorUpdateTemplate);
 
         if (res == VK_SUCCESS) {
-            registerDescriptorUpdateTemplate(*pDescriptorUpdateTemplate,
-                                             descriptorUpdateTemplateInfo);
+            VkDescriptorUpdateTemplate unboxedTemplate = *pDescriptorUpdateTemplate;
             *pDescriptorUpdateTemplate =
-                new_boxed_non_dispatchable_VkDescriptorUpdateTemplate(*pDescriptorUpdateTemplate);
+                new_boxed_non_dispatchable_VkDescriptorUpdateTemplate(unboxedTemplate);
+            descriptorUpdateTemplateInfo.device = device;
+            descriptorUpdateTemplateInfo.boxed = *pDescriptorUpdateTemplate;
+            registerDescriptorUpdateTemplate(unboxedTemplate, descriptorUpdateTemplateInfo);
         }
 
         return res;
@@ -9251,6 +9300,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         *pRenderPass = new_boxed_non_dispatchable_VkRenderPass(*pRenderPass);
+        renderPassInfo.boxed = *pRenderPass;
 
         return res;
     }
@@ -9338,6 +9388,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         *pRenderPass = new_boxed_non_dispatchable_VkRenderPass(*pRenderPass);
+        renderPassInfo.boxed = *pRenderPass;
 
         return res;
     }
@@ -9614,6 +9665,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         *pFramebuffer = new_boxed_non_dispatchable_VkFramebuffer(*pFramebuffer);
+        framebufferInfo.boxed = *pFramebuffer;
 
         return result;
     }
@@ -10168,6 +10220,7 @@ class VkDecoderGlobalState::Impl {
         ycbcrConversionInfo.device = device;
 
         *pYcbcrConversion = new_boxed_non_dispatchable_VkSamplerYcbcrConversion(*pYcbcrConversion);
+        ycbcrConversionInfo.boxed = *pYcbcrConversion;
         return VK_SUCCESS;
     }
 
@@ -10175,7 +10228,37 @@ class VkDecoderGlobalState::Impl {
                                                         VulkanDispatch* deviceDispatch,
                                                         VkSamplerYcbcrConversion ycbcrConversion,
                                                         SamplerYcbcrConversionInfo&) {
-        deviceDispatch->vkDestroySamplerYcbcrConversion(device, ycbcrConversion, nullptr);
+        if (deviceDispatch->vkDestroySamplerYcbcrConversion) {
+            deviceDispatch->vkDestroySamplerYcbcrConversion(device, ycbcrConversion, nullptr);
+        } else if (deviceDispatch->vkDestroySamplerYcbcrConversionKHR) {
+            deviceDispatch->vkDestroySamplerYcbcrConversionKHR(device, ycbcrConversion, nullptr);
+        } else {
+            GFXSTREAM_ERROR(
+                "Failed to destroy VkSamplerYcbcrConversion %p on device %p: neither "
+                "vkDestroySamplerYcbcrConversion nor vkDestroySamplerYcbcrConversionKHR is "
+                "loaded, so the host object will leak. Enable Vulkan 1.1 or "
+                "VK_KHR_sampler_ycbcr_conversion on the device.",
+                ycbcrConversion, device);
+        }
+    }
+
+    void destroyDescriptorUpdateTemplateWithExclusiveInfo(
+        VkDevice device, VulkanDispatch* deviceDispatch,
+        VkDescriptorUpdateTemplate descriptorUpdateTemplate, DescriptorUpdateTemplateInfo&) {
+        if (deviceDispatch->vkDestroyDescriptorUpdateTemplate) {
+            deviceDispatch->vkDestroyDescriptorUpdateTemplate(device, descriptorUpdateTemplate,
+                                                              nullptr);
+        } else if (deviceDispatch->vkDestroyDescriptorUpdateTemplateKHR) {
+            deviceDispatch->vkDestroyDescriptorUpdateTemplateKHR(device, descriptorUpdateTemplate,
+                                                                 nullptr);
+        } else {
+            GFXSTREAM_ERROR(
+                "Failed to destroy VkDescriptorUpdateTemplate %p on device %p: neither "
+                "vkDestroyDescriptorUpdateTemplate nor vkDestroyDescriptorUpdateTemplateKHR is "
+                "loaded, so the host object will leak. Enable Vulkan 1.1 or "
+                "VK_KHR_descriptor_update_template on the device.",
+                descriptorUpdateTemplate, device);
+        }
     }
 
     void destroySamplerYcbcrConversionLocked(VkDevice device, VulkanDispatch* deviceDispatch,
@@ -11397,6 +11480,8 @@ class VkDecoderGlobalState::Impl {
         extractInfosWithDeviceInto(device, mDescriptorSetInfo, deviceObjects.descriptorSets);
         extractInfosWithDeviceInto(device, mDescriptorSetLayoutInfo,
                                    deviceObjects.descriptorSetLayouts);
+        extractInfosWithDeviceInto(device, mDescriptorUpdateTemplateInfo,
+                                   deviceObjects.descriptorUpdateTemplates);
         extractInfosWithDeviceInto(device, mMemoryInfo, deviceObjects.memories);
         extractInfosWithDeviceInto(device, mFenceInfo, deviceObjects.fences);
         extractInfosWithDeviceInto(device, mFramebufferInfo, deviceObjects.framebuffers);
@@ -11435,10 +11520,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         for (auto it = mPhysdevInfo.begin(); it != mPhysdevInfo.end();) {
-            auto physicalDevice = it->first;
-            auto& physDevInfo = it->second;
-            if (physDevInfo.instance == instance) {
-                delete_VkPhysicalDevice(mPhysdevInfo[physicalDevice].boxed);
+            if (it->second.instance == instance) {
                 it = mPhysdevInfo.erase(it);
             } else {
                 // Only increment if not erased
@@ -11487,6 +11569,7 @@ class VkDecoderGlobalState::Impl {
             LOG_CALLS_VERBOSE("%s: %zu buffers.", __func__, deviceObjects.buffers.size());
             for (auto& [buffer, bufferInfo] : deviceObjects.buffers) {
                 destroyBufferWithExclusiveInfo(device, deviceDispatch, buffer, bufferInfo);
+                delete_VkBuffer(bufferInfo.boxed);
             }
 
             LOG_CALLS_VERBOSE("%s: %zu imageViews.", __func__, deviceObjects.imageViews.size());
@@ -11511,18 +11594,30 @@ class VkDecoderGlobalState::Impl {
             LOG_CALLS_VERBOSE("%s: %zu memories.", __func__, deviceObjects.memories.size());
             for (auto& [memory, memoryInfo] : deviceObjects.memories) {
                 destroyMemoryWithExclusiveInfo(device, deviceDispatch, memory, memoryInfo);
+                delete_VkDeviceMemory(memoryInfo.boxed);
             }
 
             LOG_CALLS_VERBOSE("%s: %zu commandBuffers.", __func__, deviceObjects.commandBuffers.size());
             for (auto& [commandBuffer, commandBufferInfo] : deviceObjects.commandBuffers) {
                 freeCommandBufferWithExclusiveInfos(device, deviceDispatch, commandBuffer,
                                                     commandBufferInfo, deviceObjects.commandPools);
+                delete_VkCommandBuffer(commandBufferInfo.boxed);
             }
 
             LOG_CALLS_VERBOSE("%s: %zu commandPools.", __func__, deviceObjects.commandPools.size());
             for (auto& [commandPool, commandPoolInfo] : deviceObjects.commandPools) {
                 destroyCommandPoolWithExclusiveInfo(device, deviceDispatch, commandPool,
                                                     commandPoolInfo, deviceObjects.commandBuffers);
+                delete_VkCommandPool(commandPoolInfo.boxed);
+            }
+
+            LOG_CALLS_VERBOSE("%s: %zu descriptorUpdateTemplates.", __func__,
+                              deviceObjects.descriptorUpdateTemplates.size());
+            for (auto& [descriptorUpdateTemplate, templateInfo] :
+                 deviceObjects.descriptorUpdateTemplates) {
+                destroyDescriptorUpdateTemplateWithExclusiveInfo(
+                    device, deviceDispatch, descriptorUpdateTemplate, templateInfo);
+                delete_VkDescriptorUpdateTemplate(templateInfo.boxed);
             }
 
             LOG_CALLS_VERBOSE("%s: %zu descriptorPools.", __func__, deviceObjects.descriptorPools.size());
@@ -11530,6 +11625,7 @@ class VkDecoderGlobalState::Impl {
                 destroyDescriptorPoolWithExclusiveInfo(device, deviceDispatch, descriptorPool,
                                                        descriptorPoolInfo,
                                                        deviceObjects.descriptorSets);
+                delete_VkDescriptorPool(descriptorPoolInfo.boxed);
             }
 
             LOG_CALLS_VERBOSE("%s: %zu descriptorSetLayouts.", __func__, deviceObjects.descriptorSetLayouts.size());
@@ -11540,39 +11636,54 @@ class VkDecoderGlobalState::Impl {
                 delete_VkDescriptorSetLayout(descriptorSetLayoutInfo.boxed);
             }
 
+            LOG_CALLS_VERBOSE("%s: %zu samplerYcbcrConversions.", __func__,
+                              deviceObjects.samplerYcbcrConversions.size());
+            for (auto& [ycbcrConversion, ycbcrConversionInfo] :
+                 deviceObjects.samplerYcbcrConversions) {
+                destroySamplerYcbcrConversionWithExclusiveInfo(
+                    device, deviceDispatch, ycbcrConversion, ycbcrConversionInfo);
+                delete_VkSamplerYcbcrConversion(ycbcrConversionInfo.boxed);
+            }
+
             LOG_CALLS_VERBOSE("%s: %zu shaderModules.", __func__, deviceObjects.shaderModules.size());
             for (auto& [shaderModule, shaderModuleInfo] : deviceObjects.shaderModules) {
                 destroyShaderModuleWithExclusiveInfo(device, deviceDispatch, shaderModule,
                                                      shaderModuleInfo);
+                delete_VkShaderModule(shaderModuleInfo.boxed);
             }
 
             LOG_CALLS_VERBOSE("%s: %zu pipelines.", __func__, deviceObjects.pipelines.size());
             for (auto& [pipeline, pipelineInfo] : deviceObjects.pipelines) {
                 destroyPipelineWithExclusiveInfo(device, deviceDispatch, pipeline, pipelineInfo);
+                delete_VkPipeline(pipelineInfo.boxed);
             }
 
             LOG_CALLS_VERBOSE("%s: %zu pipelineCaches.", __func__, deviceObjects.pipelineCaches.size());
             for (auto& [pipelineCache, pipelineCacheInfo] : deviceObjects.pipelineCaches) {
                 destroyPipelineCacheWithExclusiveInfo(device, deviceDispatch, pipelineCache,
                                                       pipelineCacheInfo);
+                delete_VkPipelineCache(pipelineCacheInfo.boxed);
             }
 
             LOG_CALLS_VERBOSE("%s: %zu pipelineLayouts.", __func__, deviceObjects.pipelineLayouts.size());
             for (auto& [pipelineLayout, pipelineLayoutInfo] : deviceObjects.pipelineLayouts) {
                 destroyPipelineLayoutWithExclusiveInfo(device, deviceDispatch, pipelineLayout,
                                                        pipelineLayoutInfo);
+                delete_VkPipelineLayout(pipelineLayoutInfo.boxed);
             }
 
             LOG_CALLS_VERBOSE("%s: %zu framebuffers.", __func__, deviceObjects.framebuffers.size());
             for (auto& [framebuffer, framebufferInfo] : deviceObjects.framebuffers) {
                 destroyFramebufferWithExclusiveInfo(device, deviceDispatch, framebuffer,
                                                     framebufferInfo);
+                delete_VkFramebuffer(framebufferInfo.boxed);
             }
 
             LOG_CALLS_VERBOSE("%s: %zu renderPasses.", __func__, deviceObjects.renderPasses.size());
             for (auto& [renderPass, renderPassInfo] : deviceObjects.renderPasses) {
                 destroyRenderPassWithExclusiveInfo(device, deviceDispatch, renderPass,
                                                    renderPassInfo);
+                delete_VkRenderPass(renderPassInfo.boxed);
             }
 
             destroyDeviceWithExclusiveInfo(device, deviceInfo, deviceObjects.fences,
@@ -11604,10 +11715,15 @@ class VkDecoderGlobalState::Impl {
                        instanceInfo.applicationName.c_str(), instanceInfo.engineName.c_str());
 
 #ifdef CONFIG_AEMU
-        if (m_vkEmulation->getGlobalState()) {
+        if (m_vkEmulation && m_vkEmulation->getGlobalState()) {
             m_vkEmulation->getGlobalState()->unregisterVulkanInstance((uint64_t)instance);
         }
 #endif
+        // The boxed physical devices are owned by the instance; release them
+        // together with it.
+        for (VkPhysicalDevice boxedPhysicalDevice : instanceInfo.boxedPhysicalDevices) {
+            delete_VkPhysicalDevice(boxedPhysicalDevice);
+        }
         delete_VkInstance(instanceInfo.boxed);
         LOG_CALLS_VERBOSE("destroyInstanceObjects: finished.");
 
