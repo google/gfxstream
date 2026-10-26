@@ -36,6 +36,7 @@
 #include "gfxstream/host/vm_operations.h"
 #include "gfxstream/synchronization/Lock.h"
 #include "gfxstream/system/System.h"
+#include "gfxstream/virtio-gpu-gfxstream-renderer-unstable.h"
 #include "render-utils/Renderer.h"
 #include "vk_decoder_global_state.h"
 #include "vk_emulated_physical_device_memory.h"
@@ -1986,6 +1987,21 @@ std::optional<std::array<uint8_t, VK_UUID_SIZE>> VkEmulation::getDriverUuid() {
     return uuid;
 }
 
+VulkanInfo VkEmulation::getVulkanInfo(uint32_t memoryTypeIndex) {
+    VulkanInfo vulkanInfo = {
+        .memoryIndex = memoryTypeIndex,
+    };
+    auto deviceUuidOpt = getDeviceUuid();
+    if (deviceUuidOpt) {
+        std::memcpy(vulkanInfo.deviceUUID, deviceUuidOpt->data(), sizeof(vulkanInfo.deviceUUID));
+    }
+    auto driverUuidOpt = getDriverUuid();
+    if (driverUuidOpt) {
+        std::memcpy(vulkanInfo.driverUUID, driverUuidOpt->data(), sizeof(vulkanInfo.driverUUID));
+    }
+    return vulkanInfo;
+}
+
 std::string VkEmulation::getGpuVendor() const { return mDeviceInfo.driverVendor; }
 
 std::string VkEmulation::getGpuName() const { return mDeviceInfo.physdevProps.deviceName; }
@@ -2762,26 +2778,26 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
 
 void VkEmulation::freeExternalMemoryLocked(VulkanDispatch* vk,
                                            VkEmulation::ExternalMemoryInfo* info) {
-    if (!info->memory) return;
+    if (info->memory) {
+        if (mDeviceInfo.memProps.memoryTypes[info->typeIndex].propertyFlags &
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
+            if (mOccupiedGpas.find(info->gpa) != mOccupiedGpas.end()) {
+                mOccupiedGpas.erase(info->gpa);
+                get_gfxstream_vm_operations().unmap_user_memory_async(info->gpa, info->sizeToPage);
+                info->gpa = 0u;
+            }
 
-    if (mDeviceInfo.memProps.memoryTypes[info->typeIndex].propertyFlags &
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
-        if (mOccupiedGpas.find(info->gpa) != mOccupiedGpas.end()) {
-            mOccupiedGpas.erase(info->gpa);
-            get_gfxstream_vm_operations().unmap_user_memory_async(info->gpa, info->sizeToPage);
-            info->gpa = 0u;
+            if (info->mappedPtr != nullptr) {
+                vk->vkUnmapMemory(mDevice, info->memory);
+                info->mappedPtr = nullptr;
+                info->pageAlignedHva = nullptr;
+            }
         }
 
-        if (info->mappedPtr != nullptr) {
-            vk->vkUnmapMemory(mDevice, info->memory);
-            info->mappedPtr = nullptr;
-            info->pageAlignedHva = nullptr;
-        }
+        vk->vkFreeMemory(mDevice, info->memory, nullptr);
+
+        info->memory = VK_NULL_HANDLE;
     }
-
-    vk->vkFreeMemory(mDevice, info->memory, nullptr);
-
-    info->memory = VK_NULL_HANDLE;
 
     if (info->handleInfo) {
 #ifdef _WIN32
@@ -2990,7 +3006,7 @@ bool VkEmulation::getColorBufferAllocationInfoLocked(uint32_t colorBufferHandle,
         return false;
     }
 
-    if (outSize) {
+    if (outSize && info->memory.size > 0) {
         *outSize = info->memory.size;
     }
 
@@ -3503,12 +3519,15 @@ bool VkEmulation::teardownVkColorBufferLocked(uint32_t colorBufferHandle) {
 
     if (infoPtr->initialized) {
         auto& info = *infoPtr;
-        {
-            gfxstream::base::AutoLock queueLock(*mQueueLock);
-            VK_CHECK(vk->vkQueueWaitIdle(mQueue));
+        if (info.image != VK_NULL_HANDLE || info.imageView != VK_NULL_HANDLE ||
+            info.memory.memory != VK_NULL_HANDLE) {
+            {
+                gfxstream::base::AutoLock queueLock(*mQueueLock);
+                VK_CHECK(vk->vkQueueWaitIdle(mQueue));
+            }
+            vk->vkDestroyImageView(mDevice, info.imageView, nullptr);
+            vk->vkDestroyImage(mDevice, info.image, nullptr);
         }
-        vk->vkDestroyImageView(mDevice, info.imageView, nullptr);
-        vk->vkDestroyImage(mDevice, info.image, nullptr);
         freeExternalMemoryLocked(vk, &info.memory);
     }
 
@@ -4860,7 +4879,7 @@ bool VkEmulation::getBufferAllocationInfo(uint32_t bufferHandle, VkDeviceSize* o
         return false;
     }
 
-    if (outSize) {
+    if (outSize && info->memory.size > 0) {
         *outSize = info->memory.size;
     }
 
@@ -5025,17 +5044,219 @@ bool VkEmulation::teardownVkBuffer(uint32_t bufferHandle) {
 
     auto infoPtr = gfxstream::base::find(mBuffers, bufferHandle);
     if (!infoPtr) return false;
-    {
+    auto& info = *infoPtr;
+
+    if (info.buffer != VK_NULL_HANDLE || info.memory.memory != VK_NULL_HANDLE) {
         gfxstream::base::AutoLock queueLock(*mQueueLock);
         VK_CHECK(vk->vkQueueWaitIdle(mQueue));
     }
-    auto& info = *infoPtr;
 
-    vk->vkDestroyBuffer(mDevice, info.buffer, nullptr);
+    if (info.buffer != VK_NULL_HANDLE) {
+        vk->vkDestroyBuffer(mDevice, info.buffer, nullptr);
+    }
     freeExternalMemoryLocked(vk, &info.memory);
     mBuffers.erase(bufferHandle);
 
     return true;
+}
+
+bool VkEmulation::importBuffer(uint32_t handle,
+                               const struct ::stream_renderer_handle* importHandle,
+                               const struct ::stream_renderer_import_data* importData) {
+    if (!importHandle || !importData) {
+        return false;
+    }
+
+    std::lock_guard<std::mutex> lock(mMutex);
+
+#ifdef _WIN32
+    return false;
+#else
+    if (!(importData->flags & STREAM_RENDERER_IMPORT_FLAG_VULKAN_INFO)) {
+        GFXSTREAM_ERROR("Failed to import Buffer %u: missing Vulkan info.", handle);
+        return false;
+    }
+
+    if (importHandle->handle_type != STREAM_HANDLE_TYPE_MEM_OPAQUE_FD &&
+        importHandle->handle_type != STREAM_HANDLE_TYPE_MEM_DMABUF) {
+        GFXSTREAM_ERROR("Failed to import Buffer %u: unsupported handle_type %u.", handle,
+                        importHandle->handle_type);
+        return false;
+    }
+
+    if (importHandle->os_handle < 0) {
+        GFXSTREAM_ERROR("Failed to import Buffer %u: invalid os_handle %lld.", handle,
+                        static_cast<long long>(importHandle->os_handle));
+        return false;
+    }
+
+    if (importData->size == 0) {
+        GFXSTREAM_ERROR("Failed to import Buffer %u: invalid size 0.", handle);
+        return false;
+    }
+
+    if (std::memcmp(importData->info_vulkan.device_id.device_uuid,
+                    mDeviceInfo.idProps.deviceUUID, VK_UUID_SIZE) != 0 ||
+        std::memcmp(importData->info_vulkan.device_id.driver_uuid,
+                    mDeviceInfo.idProps.driverUUID, VK_UUID_SIZE) != 0) {
+        GFXSTREAM_ERROR("Failed to import Buffer %u: Vulkan device_id mismatch.", handle);
+        return false;
+    }
+
+    const uint32_t typeIndex = importData->info_vulkan.memory_index;
+    if (typeIndex >= mDeviceInfo.memProps.memoryTypeCount) {
+        GFXSTREAM_ERROR("Failed to import Buffer %u: invalid memory_index %u.", handle, typeIndex);
+        return false;
+    }
+
+    ExternalHandleInfo handleInfo = {
+        .handle = static_cast<ExternalHandleType>(importHandle->os_handle),
+        .streamHandleType = importHandle->handle_type,
+    };
+
+    VkEmulation::BufferInfo bufInfo;
+    bufInfo.handle = handle;
+    bufInfo.size = importData->size;
+    bufInfo.glExported = false;
+    bufInfo.vulkanMode = VkEmulation::VulkanMode::VulkanOnly;
+    bufInfo.memory.size = importData->size;
+    bufInfo.memory.typeIndex = typeIndex;
+    bufInfo.memory.dedicatedAllocation = false;
+    bufInfo.memory.handleInfo = handleInfo;
+    mBuffers[handle] = bufInfo;
+
+    return true;
+#endif
+}
+
+bool VkEmulation::importColorBuffer(uint32_t handle,
+                                    const struct ::stream_renderer_handle* importHandle,
+                                    const struct ::stream_renderer_import_data* importData) {
+    if (!importHandle || !importData) {
+        return false;
+    }
+
+    std::lock_guard<std::mutex> lock(mMutex);
+
+#ifdef _WIN32
+    return false;
+#else
+    if (!(importData->flags & STREAM_RENDERER_IMPORT_FLAG_3D_INFO)) {
+        GFXSTREAM_ERROR("Failed to import ColorBuffer %u: missing 3D info.", handle);
+        return false;
+    }
+
+    if (!(importData->flags & STREAM_RENDERER_IMPORT_FLAG_VULKAN_INFO)) {
+        GFXSTREAM_ERROR("Failed to import ColorBuffer %u: missing Vulkan info.", handle);
+        return false;
+    }
+
+    if (importHandle->handle_type != STREAM_HANDLE_TYPE_MEM_OPAQUE_FD &&
+        importHandle->handle_type != STREAM_HANDLE_TYPE_MEM_DMABUF) {
+        GFXSTREAM_ERROR("Failed to import ColorBuffer %u: unsupported handle_type %u.", handle,
+                        importHandle->handle_type);
+        return false;
+    }
+
+    if (importHandle->os_handle < 0) {
+        GFXSTREAM_ERROR("Failed to import ColorBuffer %u: invalid os_handle %lld.", handle,
+                        static_cast<long long>(importHandle->os_handle));
+        return false;
+    }
+
+    if (importData->size == 0) {
+        GFXSTREAM_ERROR("Failed to import ColorBuffer %u: invalid size 0.", handle);
+        return false;
+    }
+
+    if (std::memcmp(importData->info_vulkan.device_id.device_uuid,
+                    mDeviceInfo.idProps.deviceUUID, VK_UUID_SIZE) != 0 ||
+        std::memcmp(importData->info_vulkan.device_id.driver_uuid,
+                    mDeviceInfo.idProps.driverUUID, VK_UUID_SIZE) != 0) {
+        GFXSTREAM_ERROR("Failed to import ColorBuffer %u: Vulkan device_id mismatch.", handle);
+        return false;
+    }
+
+    const uint32_t typeIndex = importData->info_vulkan.memory_index;
+    if (typeIndex >= mDeviceInfo.memProps.memoryTypeCount) {
+        GFXSTREAM_ERROR("Failed to import ColorBuffer %u: invalid memory_index %u.", handle,
+                        typeIndex);
+        return false;
+    }
+
+    auto formatOpt = GetGfxstreamFormatFromDrmFormat(importData->info_3d.drm_fourcc);
+    if (!formatOpt) {
+        GFXSTREAM_ERROR("Failed to import ColorBuffer %u: unsupported drm_fourcc %u.", handle,
+                        importData->info_3d.drm_fourcc);
+        return false;
+    }
+    const GfxstreamFormat format = *formatOpt;
+
+    auto internalFormatOpt = GetInternalFormatLocked(format);
+    if (!internalFormatOpt) {
+        const std::string formatString = ToString(format);
+        GFXSTREAM_ERROR("Failed to import ColorBuffer %u: unsupported format %s.", handle,
+                        formatString.c_str());
+        return false;
+    }
+    const GfxstreamFormat internalFormat = *internalFormatOpt;
+
+    auto vkFormatOpt = ToVkFormat(internalFormat);
+    if (!vkFormatOpt) {
+        const std::string internalFormatString = ToString(internalFormat);
+        GFXSTREAM_ERROR("Failed to import ColorBuffer %u: unsupported internal format %s.", handle,
+                        internalFormatString.c_str());
+        return false;
+    }
+    const VkFormat vkFormat = *vkFormatOpt;
+
+    const uint32_t width = importData->info_3d.width ? importData->info_3d.width : 1;
+    const uint32_t height = importData->info_3d.height ? importData->info_3d.height : 1;
+    const VkMemoryPropertyFlags memoryProperty =
+        mDeviceInfo.memProps.memoryTypes[typeIndex].propertyFlags;
+    const bool isHostVisible = (memoryProperty & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0;
+
+    auto imageCi = generateColorBufferVkImageCreateInfoLocked(
+        vkFormat, width, height,
+        isHostVisible ? VK_IMAGE_TILING_LINEAR : VK_IMAGE_TILING_OPTIMAL, 1);
+    if (!imageCi) {
+        GFXSTREAM_ERROR("Failed to generate VkImageCreateInfo for ColorBuffer %u.", handle);
+        return false;
+    }
+
+    ExternalHandleInfo handleInfo = {
+        .handle = static_cast<ExternalHandleType>(importHandle->os_handle),
+        .streamHandleType = importHandle->handle_type,
+    };
+
+    VkEmulation::ColorBufferInfo cbInfo;
+    cbInfo.handle = handle;
+    cbInfo.width = width;
+    cbInfo.height = height;
+    cbInfo.format = format;
+    cbInfo.internalFormat = internalFormat;
+    cbInfo.vulkanMode = VkEmulation::VulkanMode::VulkanOnly;
+    cbInfo.glExported = false;
+    cbInfo.externalMemoryCompatible = true;
+    cbInfo.initialized = true;
+    cbInfo.memory.size = importData->size;
+    cbInfo.memory.typeIndex = typeIndex;
+    cbInfo.memory.dedicatedAllocation = false;
+    cbInfo.memory.handleInfo = handleInfo;
+    cbInfo.memoryProperty = memoryProperty;
+    cbInfo.imageCreateInfoShallow = *imageCi;
+    cbInfo.imageCreateInfoShallow.usage |=
+        VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+        VK_IMAGE_USAGE_SAMPLED_BIT;
+    if (!isHostVisible) {
+        cbInfo.imageCreateInfoShallow.usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    }
+    cbInfo.imageCreateInfoShallow.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    cbInfo.imageCreateInfoShallow.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    mColorBuffers[handle] = cbInfo;
+
+    return true;
+#endif
 }
 
 std::optional<ExternalHandleInfo> VkEmulation::dupBufferExtMemoryHandle(uint32_t bufferHandle) {
@@ -5095,6 +5316,11 @@ bool VkEmulation::readBufferToBytes(uint32_t bufferHandle, uint64_t offset, uint
     auto bufferInfo = gfxstream::base::find(mBuffers, bufferHandle);
     if (!bufferInfo) {
         GFXSTREAM_ERROR("Failed to read from Buffer:%d, not found.", bufferHandle);
+        return false;
+    }
+
+    if (bufferInfo->buffer == VK_NULL_HANDLE) {
+        GFXSTREAM_ERROR("Failed to read from Buffer:%d, VkBuffer is null.", bufferHandle);
         return false;
     }
 
@@ -5194,6 +5420,11 @@ bool VkEmulation::updateBufferFromBytes(uint32_t bufferHandle, uint64_t offset, 
     auto bufferInfo = gfxstream::base::find(mBuffers, bufferHandle);
     if (!bufferInfo) {
         GFXSTREAM_ERROR("Failed to update Buffer:%d, not found.", bufferHandle);
+        return false;
+    }
+
+    if (bufferInfo->buffer == VK_NULL_HANDLE) {
+        GFXSTREAM_ERROR("Failed to update Buffer:%d, VkBuffer is null.", bufferHandle);
         return false;
     }
 
@@ -5463,6 +5694,12 @@ void VkEmulation::releaseColorBufferForGuestUse(uint32_t colorBufferHandle) {
     }
 
     const auto kGuestUseDefaultImageLayout = adjustImageLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+    if (infoPtr->image == VK_NULL_HANDLE) {
+        infoPtr->currentLayout = kGuestUseDefaultImageLayout;
+        infoPtr->currentQueueFamilyIndex = VK_QUEUE_FAMILY_EXTERNAL;
+        return;
+    }
+
     std::optional<VkImageMemoryBarrier> layoutTransitionBarrier;
     if (infoPtr->currentLayout != kGuestUseDefaultImageLayout) {
         layoutTransitionBarrier = VkImageMemoryBarrier{
@@ -5576,6 +5813,12 @@ std::unique_ptr<ColorBufferVkImageInfo> VkEmulation::prepareColorBufferForCompos
         return nullptr;
     }
 
+    if (colorBufferInfo->image == VK_NULL_HANDLE || colorBufferInfo->imageView == VK_NULL_HANDLE) {
+        GFXSTREAM_ERROR("ColorBuffer %d has no VkImage or VkImageView.",
+                        static_cast<int>(colorBufferHandle));
+        return nullptr;
+    }
+
     auto compositorInfo = std::make_unique<ColorBufferVkImageInfo>();
     compositorInfo->id = colorBufferInfo->handle;
     compositorInfo->width = colorBufferInfo->imageCreateInfoShallow.extent.width;
@@ -5615,6 +5858,12 @@ std::unique_ptr<ColorBufferVkImageInfo> VkEmulation::prepareColorBufferForDispla
     auto colorBufferInfo = gfxstream::base::find(mColorBuffers, colorBufferHandle);
     if (!colorBufferInfo) {
         GFXSTREAM_ERROR("Invalid ColorBuffer handle %d.", static_cast<int>(colorBufferHandle));
+        return nullptr;
+    }
+
+    if (colorBufferInfo->image == VK_NULL_HANDLE || colorBufferInfo->imageView == VK_NULL_HANDLE) {
+        GFXSTREAM_ERROR("ColorBuffer %d has no VkImage or VkImageView.",
+                        static_cast<int>(colorBufferHandle));
         return nullptr;
     }
 

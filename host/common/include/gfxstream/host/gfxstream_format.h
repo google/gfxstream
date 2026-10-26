@@ -14,9 +14,21 @@
 
 #pragma once
 
+#include <drm/drm_fourcc.h>
+
 #include <cstdint>
 #include <optional>
 #include <string>
+
+#ifndef DRM_FORMAT_ABGR16161616F
+#define DRM_FORMAT_ABGR16161616F fourcc_code('A', 'B', '4', 'H')
+#endif
+#ifndef DRM_FORMAT_P010
+#define DRM_FORMAT_P010 fourcc_code('P', '0', '1', '0')
+#endif
+#ifndef DRM_FORMAT_P210
+#define DRM_FORMAT_P210 fourcc_code('P', '2', '1', '0')
+#endif
 
 namespace gfxstream {
 namespace host {
@@ -553,6 +565,52 @@ inline std::optional<uint32_t> GetBpp(GfxstreamFormat format) {
             return 2;
         case GfxstreamFormat::A8_UNORM:
             return 1;
+    }
+}
+
+inline std::optional<GfxstreamFormat> GetGfxstreamFormatFromDrmFormat(uint32_t drm_fourcc) {
+    switch (drm_fourcc) {
+        case DRM_FORMAT_ABGR8888:
+            return GfxstreamFormat::R8G8B8A8_UNORM;
+        case DRM_FORMAT_XBGR8888:
+            return GfxstreamFormat::R8G8B8X8_UNORM;
+        case DRM_FORMAT_ARGB8888:
+        case DRM_FORMAT_XRGB8888:
+            return GfxstreamFormat::B8G8R8A8_UNORM;
+        case DRM_FORMAT_BGR888:
+        case DRM_FORMAT_RGB888:
+            return GfxstreamFormat::R8G8B8_UNORM;
+        case DRM_FORMAT_RGB565:
+            return GfxstreamFormat::R5G6B5_UNORM;
+        case DRM_FORMAT_RG88:
+        case DRM_FORMAT_GR88:
+            return GfxstreamFormat::R8G8_UNORM;
+        case DRM_FORMAT_R8:
+            return GfxstreamFormat::R8_UNORM;
+        case DRM_FORMAT_R16:
+            return GfxstreamFormat::R16_UNORM;
+        case DRM_FORMAT_ABGR16161616F:
+            return GfxstreamFormat::R16G16B16A16_FLOAT;
+        case DRM_FORMAT_ABGR2101010:
+        case DRM_FORMAT_XBGR2101010:
+            return GfxstreamFormat::R10G10B10A2_UNORM;
+        case DRM_FORMAT_ARGB2101010:
+        case DRM_FORMAT_XRGB2101010:
+            return GfxstreamFormat::B10G10R10A2_UNORM;
+        case DRM_FORMAT_NV12:
+            return GfxstreamFormat::NV12;
+        case DRM_FORMAT_NV21:
+            return GfxstreamFormat::NV21;
+        case DRM_FORMAT_P010:
+            return GfxstreamFormat::P010;
+        case DRM_FORMAT_P210:
+            return GfxstreamFormat::P210;
+        case DRM_FORMAT_YUV420:
+            return GfxstreamFormat::YV21;
+        case DRM_FORMAT_YVU420:
+            return GfxstreamFormat::YV12;
+        default:
+            return std::nullopt;
     }
 }
 

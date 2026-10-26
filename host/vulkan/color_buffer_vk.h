@@ -21,6 +21,7 @@
 
 #include "gfxstream/host/external_object_manager.h"
 #include "gfxstream/host/gfxstream_format.h"
+#include "gfxstream/virtio-gpu-gfxstream-renderer-unstable.h"
 #include "render-utils/Renderer.h"
 #include "render-utils/stream.h"
 
@@ -60,6 +61,11 @@ class ColorBufferVk {
                                                  uint32_t width, uint32_t height,
                                                  GfxstreamFormat format, bool vulkanOnly,
                                                  uint32_t memoryProperty, uint32_t mipLevels);
+
+    static std::unique_ptr<ColorBufferVk> import(
+        VkEmulation& emulationVk, uint32_t handle,
+        const struct ::stream_renderer_handle* importHandle,
+        const struct ::stream_renderer_import_data* importData);
 
     ~ColorBufferVk();
 

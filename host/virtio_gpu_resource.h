@@ -63,6 +63,10 @@ class VirtioGpuResource {
         const struct stream_renderer_create_blob* createBlobArgs,
         const struct stream_renderer_handle* handle);
 
+    static std::optional<VirtioGpuResource> Create(
+        uint32_t resourceId, const struct stream_renderer_handle* importHandle,
+        const struct stream_renderer_import_data* importData);
+
     int Destroy();
 
     int ImportHandle(const stream_renderer_handle* handle,

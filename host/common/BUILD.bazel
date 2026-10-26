@@ -38,5 +38,6 @@ cc_library(
         "//common/utils:gfxstream_common_utils",
         "//host:gfxstream_backend_headers",
         "//host/address_space:gfxstream_host_address_space",
+        "//third_party/drm:gfxstream_drm_headers",
     ],
 )

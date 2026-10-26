@@ -30,6 +30,11 @@ class Buffer::Impl : public LazySnapshotObj<Buffer::Impl> {
     static std::unique_ptr<Impl> create(gl::EmulationGl* emulationGl, vk::VkEmulation* emulationVk,
                                         uint64_t size, HandleType handle);
 
+    static std::unique_ptr<Impl> import(gl::EmulationGl* emulationGl, vk::VkEmulation* emulationVk,
+                                        HandleType handle,
+                                        const struct stream_renderer_handle* importHandle,
+                                        const struct stream_renderer_import_data* importData);
+
     static std::unique_ptr<Impl> onLoad(gl::EmulationGl* emulationGl, vk::VkEmulation* emulationVk,
                                         gfxstream::Stream* stream);
 
@@ -95,6 +100,34 @@ std::unique_ptr<Buffer::Impl> Buffer::Impl::create(gl::EmulationGl* emulationGl,
         }
     }
 
+    return buffer;
+}
+
+/*static*/
+std::unique_ptr<Buffer::Impl> Buffer::Impl::import(
+    gl::EmulationGl* emulationGl, vk::VkEmulation* emulationVk, HandleType handle,
+    const struct stream_renderer_handle* importHandle,
+    const struct stream_renderer_import_data* importData) {
+    if (emulationGl) {
+        GFXSTREAM_ERROR("Failed to import Buffer:%u: EmulationGl not supported.", handle);
+        return nullptr;
+    }
+    if (!emulationVk) {
+        GFXSTREAM_ERROR("Failed to import Buffer:%u: VkEmulation not available.", handle);
+        return nullptr;
+    }
+
+    auto bufferVk = vk::BufferVk::import(*emulationVk, handle, importHandle, importData);
+    if (!bufferVk) {
+        GFXSTREAM_ERROR("Failed to import BufferVk:%u.", handle);
+        return nullptr;
+    }
+
+    VkDeviceSize size = 0;
+    emulationVk->getBufferAllocationInfo(handle, &size, nullptr, nullptr);
+
+    std::unique_ptr<Buffer::Impl> buffer(new Buffer::Impl(handle, size));
+    buffer->mBufferVk = std::move(bufferVk);
     return buffer;
 }
 
@@ -183,6 +216,19 @@ std::shared_ptr<Buffer> Buffer::create(gl::EmulationGl* emulationGl, vk::VkEmula
                                        uint64_t size, HandleType handle) {
     std::shared_ptr<Buffer> buffer(new Buffer());
     buffer->mImpl = Buffer::Impl::create(emulationGl, emulationVk, size, handle);
+    if (!buffer->mImpl) {
+        return nullptr;
+    }
+    return buffer;
+}
+
+/*static*/
+std::shared_ptr<Buffer> Buffer::import(gl::EmulationGl* emulationGl, vk::VkEmulation* emulationVk,
+                                       HandleType handle,
+                                       const struct stream_renderer_handle* importHandle,
+                                       const struct stream_renderer_import_data* importData) {
+    std::shared_ptr<Buffer> buffer(new Buffer());
+    buffer->mImpl = Buffer::Impl::import(emulationGl, emulationVk, handle, importHandle, importData);
     if (!buffer->mImpl) {
         return nullptr;
     }

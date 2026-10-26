@@ -24,6 +24,7 @@
 #include "gfxstream/host/gfxstream_format.h"
 #include "gfxstream/host/hwc2.h"
 #include "gfxstream/host/handle.h"
+#include "gfxstream/virtio-gpu-gfxstream-renderer-unstable.h"
 #include "render-utils/Renderer.h"
 #include "render-utils/stream.h"
 #include "gfxstream/host/lazy_snapshot_object.h"
@@ -57,6 +58,12 @@ class ColorBuffer : public IColorBuffer, public LazySnapshotObj<ColorBuffer> {
                                                HandleType handle,
                                                Stream* stream = nullptr,
                                                bool linear = false);
+
+    static std::shared_ptr<ColorBuffer> import(gl::EmulationGl* emulationGl,
+                                               vk::VkEmulation* emulationVk,
+                                               HandleType handle,
+                                               const struct stream_renderer_handle* importHandle,
+                                               const struct stream_renderer_import_data* importData);
 
     static std::shared_ptr<ColorBuffer> onLoad(gl::EmulationGl* emulationGl,
                                                vk::VkEmulation* emulationVk, Stream* stream);

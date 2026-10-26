@@ -43,6 +43,8 @@
 #include "gfxstream/host/post_commands.h"
 #include "gfxstream/host/process_resources.h"
 #include "gfxstream/host/vk_enums.h"
+#include "gfxstream/virtio-gpu-gfxstream-renderer-unstable.h"
+#include "gfxstream/virtio-gpu-gfxstream-renderer.h"
 #include "render-utils/Renderer.h"
 #include "render-utils/render_api.h"
 #include "render-utils/stream.h"
@@ -190,6 +192,11 @@ class FrameBuffer : public gfxstream::base::EventNotificationSupport<FrameBuffer
     // Destroy a Buffer created previously. |p_buffer| is its handle value as
     // returned by createBuffer().
     void closeBuffer(HandleType p_colorbuffer);
+
+    bool importBuffer(HandleType handle, const struct stream_renderer_handle* importHandle,
+                      const struct stream_renderer_import_data* importData);
+    bool importColorBuffer(HandleType handle, const struct stream_renderer_handle* importHandle,
+                           const struct stream_renderer_import_data* importData);
 
     // The caller mustn't refer to this puid before this function returns, i.e. the creation of the
     // host process pipe must be blocked until this function returns.

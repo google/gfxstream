@@ -33,6 +33,18 @@ std::unique_ptr<ColorBufferVk> ColorBufferVk::create(VkEmulation& vkEmulation, u
     return std::unique_ptr<ColorBufferVk>(new ColorBufferVk(vkEmulation, handle));
 }
 
+/*static*/
+std::unique_ptr<ColorBufferVk> ColorBufferVk::import(
+    VkEmulation& vkEmulation, uint32_t handle,
+    const struct ::stream_renderer_handle* importHandle,
+    const struct ::stream_renderer_import_data* importData) {
+    if (!vkEmulation.importColorBuffer(handle, importHandle, importData)) {
+        GFXSTREAM_ERROR("Failed to import ColorBufferVk:%d", handle);
+        return nullptr;
+    }
+    return std::unique_ptr<ColorBufferVk>(new ColorBufferVk(vkEmulation, handle));
+}
+
 bool ColorBufferVk::onLoad(gfxstream::Stream* stream, LoadImageBehavior behavior) {
     if (!mVkEmulation.getFeatures().VulkanSnapshots.enabled() || !stream) {
         return true;
@@ -165,6 +177,11 @@ std::unique_ptr<ColorBufferVkImageInfo> ColorBufferVk::prepareForDisplay() {
 }
 
 std::optional<BlobDescriptorInfo> ColorBufferVk::exportBlob() {
+    uint32_t memoryTypeIndex = 0;
+    if (!mVkEmulation.getColorBufferAllocationInfo(mHandle, nullptr, &memoryTypeIndex, nullptr,
+                                                   nullptr)) {
+        return std::nullopt;
+    }
     auto info = mVkEmulation.exportColorBufferMemory(mHandle);
     if (info) {
         return BlobDescriptorInfo{
@@ -178,7 +195,7 @@ std::optional<BlobDescriptorInfo> ColorBufferVk::exportBlob() {
                     .streamHandleType = info->handleInfo.streamHandleType,
                 },
             .caching = 0,
-            .vulkanInfoOpt = std::nullopt,
+            .vulkanInfoOpt = mVkEmulation.getVulkanInfo(memoryTypeIndex),
         };
     } else {
         return std::nullopt;

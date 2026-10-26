@@ -48,6 +48,8 @@
 #include "gfxstream/host/global_state.h"
 #include "gfxstream/host/vk_enums.h"
 #include "gfxstream/memory/UdmabufCreator.h"
+#include "gfxstream/virtio-gpu-gfxstream-renderer-unstable.h"
+#include "gfxstream/virtio-gpu-gfxstream-renderer.h"
 #include "goldfish_vk_private_defs.h"
 #include "render-utils/Renderer.h"
 #include "vk_format_support.h"
@@ -178,6 +180,7 @@ class VkEmulation {
 
     std::optional<std::array<uint8_t, VK_UUID_SIZE>> getDeviceUuid();
     std::optional<std::array<uint8_t, VK_UUID_SIZE>> getDriverUuid();
+    VulkanInfo getVulkanInfo(uint32_t memoryTypeIndex);
 
     bool supportsPrivateData() const;
 
@@ -465,6 +468,11 @@ class VkEmulation {
     bool setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulkanOnly = false,
                        uint32_t memoryProperty = 0);
     bool teardownVkBuffer(uint32_t bufferHandle);
+
+    bool importBuffer(uint32_t handle, const struct ::stream_renderer_handle* importHandle,
+                      const struct ::stream_renderer_import_data* importData);
+    bool importColorBuffer(uint32_t handle, const struct ::stream_renderer_handle* importHandle,
+                           const struct ::stream_renderer_import_data* importData);
 
     std::optional<ExternalHandleInfo> dupBufferExtMemoryHandle(uint32_t bufferHandle);
     void* getBufferHostPointer(uint32_t bufferHandle);
