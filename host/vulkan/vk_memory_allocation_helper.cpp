@@ -431,7 +431,10 @@ VkResult executeResourceImport(uint32_t handle,
         outNode->pNextStruct = VkImportMemoryFdInfoKHR{
             .sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR,
             .pNext = nullptr,
-            .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
+            .handleType =
+                (dupHandleInfo->streamHandleType == STREAM_HANDLE_TYPE_MEM_DMABUF)
+                    ? VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT
+                    : VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
             .fd = rawFd,
         };
 #endif

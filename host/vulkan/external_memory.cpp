@@ -28,6 +28,8 @@ const char* ExternalMemory::to_string(const ExternalMemory::Mode mode) {
             return "NotSupported";
         case Mode::OpaqueFd:
             return "OpaqueFd";
+        case Mode::DmaBuf:
+            return "DmaBuf";
         case Mode::OpaqueWin32:
             return "OpaqueWin32";
         case Mode::Metal:
@@ -138,6 +140,8 @@ VkExternalMemoryHandleTypeFlagBits ExternalMemory::getHandleType(const ExternalM
     switch (mode) {
         case Mode::OpaqueFd:
             return VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
+        case Mode::DmaBuf:
+            return VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
         case Mode::OpaqueWin32:
             return VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT;
         case Mode::Metal:
@@ -167,6 +171,10 @@ void ExternalMemory::getDeviceExtensionsForMode(const ExternalMemory::Mode mode,
     switch (mode) {
         case Mode::OpaqueFd:
             outDeviceExtensions.push_back(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME);
+            break;
+        case Mode::DmaBuf:
+            outDeviceExtensions.push_back(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME);
+            outDeviceExtensions.push_back(VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME);
             break;
 #ifdef VK_USE_PLATFORM_WIN32_KHR
         case Mode::OpaqueWin32:

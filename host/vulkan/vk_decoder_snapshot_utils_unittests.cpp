@@ -191,7 +191,7 @@ class VkDecoderSnapshotUtilsTest : public ::testing::Test {
         outImage->info.device = mDevice;
         outImage->info.imageCreateInfoShallow = vk_make_orphan_copy(imageCi);
         outImage->info.layout = layout;
-        outImage->info.memory = outImage->memory;
+        outImage->info.memoryState = ImageInfo::NormalImageMemory{.memory = outImage->memory};
     }
 
     void destroyTestImage(AllocatedImage* img) {
@@ -1155,7 +1155,7 @@ TEST_F(VkDecoderSnapshotUtilsTest, LoadMappedMemorySkipsOptimalImageRangesOnUnif
     dstImageInfo.device = mDevice;
     dstImageInfo.imageCreateInfoShallow = imageCi;
     dstImageInfo.layout = layout;
-    dstImageInfo.memory = sharedMemory;
+    dstImageInfo.memoryState = ImageInfo::NormalImageMemory{.memory = sharedMemory};
     dstImageInfo.memoryOffset = imageOffset;
     dstImageInfo.memorySize = imgMemReqs.size;
 
@@ -1585,7 +1585,8 @@ TEST_F(VkDecoderSnapshotUtilsTest, SaveAndLoadImageGeneratedByRenderPass) {
     dstImageInfo.device = unboxedDevice;
     dstImageInfo.imageCreateInfoShallow = vk_make_orphan_copy(imageCi);
     dstImageInfo.layout = savedLayout;
-    dstImageInfo.memory = unbox_VkDeviceMemory(boxedDstMem);
+    dstImageInfo.memoryState =
+        ImageInfo::NormalImageMemory{.memory = unbox_VkDeviceMemory(boxedDstMem)};
 
     ASSERT_TRUE(loadImageContent(&snapshotStream, &decoderStateBlock, unbox_VkImage(boxedDstImage),
                                  &dstImageInfo));

@@ -30,6 +30,7 @@ class ExternalMemory {
         Unknown = 0,
         NotSupported,
         OpaqueFd,         // VK_KHR_external_memory_fd
+        DmaBuf,           // VK_EXT_external_memory_dma_buf
         OpaqueWin32,      // VK_KHR_external_memory_win32
         Metal,            // VK_EXT_external_memory_metal
         AndroidAHB,       // VK_ANDROID_external_memory_android_hardware_buffer
@@ -37,9 +38,9 @@ class ExternalMemory {
         HostAllocation,   // VK_EXT_external_memory_host
     };
 
-    static inline const auto kAllValidModes = {Mode::OpaqueFd,        Mode::OpaqueWin32,
-                                               Mode::Metal,           Mode::AndroidAHB,
-                                               Mode::QnxScreenBuffer, Mode::HostAllocation};
+    static inline const auto kAllValidModes = {
+        Mode::OpaqueFd,   Mode::DmaBuf,          Mode::OpaqueWin32,     Mode::Metal,
+        Mode::AndroidAHB, Mode::QnxScreenBuffer, Mode::HostAllocation};
 
     static const char* to_string(const Mode mode);
     static Mode calculateMode(const std::vector<VkExtensionProperties>& deviceExts,
