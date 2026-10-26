@@ -249,6 +249,7 @@ cc_test(
         "//host/gl:gfxstream_opengl_server",
         "//host/gl/gles2_dec:gfxstream_gles2_dec",
         "//host/gl/glestranslator/common:gfxstream_glestranslator_common_headers",
+        "//host/renderControl_dec",
         "//host/testlibs/oswindow:gfxstream_oswindow_test_support",
         "//host/testlibs/support:gfxstream_host_testing_support",
         "//host/vulkan:gfxstream_vulkan_server",
