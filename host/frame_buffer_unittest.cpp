@@ -44,6 +44,8 @@
 #include "host/gl/emulation_gl.h"
 #include "host/gl/yuv_converter.h"
 #include "host/vulkan/trivial_stream.h"
+#include "host/renderControl_dec/renderControl_opcodes.h"
+#undef OP_last
 #include "render_channel_impl.h"
 #include "render_thread_info.h"
 
@@ -1232,6 +1234,70 @@ TEST_F(RenderThreadDeadlockTest, CoalescedAsgConsumerStateFlags) {
 
     AddressSpaceGraphicsContext::clear();
     AddressSpaceGraphicsContext::setConsumer({});
+}
+
+TEST_F(RenderThreadDeadlockTest, ReloadProcessResourcesAfterRcSetPuid) {
+    auto fb = FrameBuffer::getFB();
+    ASSERT_NE(nullptr, fb);
+
+    const uint32_t contextId = 12347;
+    const uint64_t collidingPuid = 1;
+    fb->createGraphicsProcessResources(contextId);
+    fb->createGraphicsProcessResources(collidingPuid);
+
+    auto channel = std::make_unique<RenderChannelImpl>(nullptr, contextId);
+    ASSERT_NE(nullptr, channel->renderThread());
+
+    // First packet on a RenderChannel starts with a 4-byte flags header.
+    RenderChannel::Buffer initAndSetPuid;
+    const uint32_t flags = 0;
+    const uint32_t setPuidOpcode = OP_rcSetPuid;
+    const uint32_t setPuidPacketLen = 16;
+    initAndSetPuid.resize(sizeof(flags) + setPuidPacketLen);
+    std::memcpy(initAndSetPuid.data(), &flags, sizeof(flags));
+    std::memcpy(initAndSetPuid.data() + 4, &setPuidOpcode, sizeof(setPuidOpcode));
+    std::memcpy(initAndSetPuid.data() + 8, &setPuidPacketLen, sizeof(setPuidPacketLen));
+    std::memcpy(initAndSetPuid.data() + 12, &collidingPuid, sizeof(collidingPuid));
+    ASSERT_EQ(RenderChannel::IoResult::Ok, channel->tryWrite(std::move(initAndSetPuid)));
+
+    auto sendRcGetRendererVersionAndWait = [&]() {
+        RenderChannel::Buffer req;
+        const uint32_t opcode = OP_rcGetRendererVersion;
+        const uint32_t packetLen = 8;
+        req.resize(packetLen);
+        std::memcpy(req.data(), &opcode, sizeof(opcode));
+        std::memcpy(req.data() + 4, &packetLen, sizeof(packetLen));
+        ASSERT_EQ(RenderChannel::IoResult::Ok, channel->tryWrite(std::move(req)));
+
+        size_t bytesRead = 0;
+        const auto deadlineUs = gfxstream::base::getUnixTimeUs() + 3'000'000;
+        while (bytesRead < sizeof(GLint)) {
+            RenderChannel::Buffer resp;
+            ASSERT_EQ(RenderChannel::IoResult::Ok, channel->readBefore(&resp, deadlineUs));
+            bytesRead += resp.size();
+        }
+    };
+
+    sendRcGetRendererVersionAndWait();
+
+    channel->renderThread()->pausePreSnapshot();
+    MemStream stream;
+    channel->onSave(&stream);
+    channel->renderThread()->resume();
+
+    // Trigger mNeedReloadProcessResources in the render loop.
+    sendRcGetRendererVersionAndWait();
+
+    // Destroying the colliding pipe puid must not block on this channel's RenderThread,
+    // nor cause this channel's RenderThread to exit.
+    fb->signalGuestProcessDead(collidingPuid);
+    EXPECT_TRUE(fb->waitForAllPendingCleanups(std::chrono::milliseconds(500)));
+    EXPECT_FALSE(channel->renderThread()->isFinished());
+
+    fb->signalGuestProcessDead(contextId);
+    channel->stop();
+    channel.reset();
+    EXPECT_TRUE(fb->waitForAllPendingCleanups(std::chrono::milliseconds(500)));
 }
 
 TEST_F(FrameBufferTest, CleanupProcGLObjects) {

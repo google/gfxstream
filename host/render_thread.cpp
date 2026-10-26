@@ -485,9 +485,17 @@ intptr_t RenderThread::main() {
                 tInfo->setPuid(mContextId);
             }
 
-            if (!processResources && tInfo->m_puid && tInfo->m_puid != INVALID_CONTEXT_ID) {
-                processResources = FrameBuffer::getFB()->getProcessResources(tInfo->m_puid);
-                tInfo->setProcessResources(processResources);
+            if (!processResources) {
+                // With virtio-gpu, process resources are keyed by the context id. m_puid may
+                // have been overwritten by rcSetPuid() with an unrelated GLProcessPipe id.
+                const uint64_t processResourcesId =
+                    (mContextId && mContextId != INVALID_CONTEXT_ID) ? mContextId
+                                                                    : tInfo->m_puid;
+                if (processResourcesId && processResourcesId != INVALID_CONTEXT_ID) {
+                    processResources =
+                        FrameBuffer::getFB()->getProcessResources(processResourcesId);
+                    tInfo->setProcessResources(processResources);
+                }
             }
 
             progress = false;
