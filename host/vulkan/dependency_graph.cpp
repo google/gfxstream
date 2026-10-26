@@ -15,6 +15,8 @@
 
 #include <string.h>
 
+#include <algorithm>
+
 #include "vulkan_boxed_handles.h"
 
 namespace gfxstream {
@@ -33,21 +35,26 @@ namespace vk {
 
 #endif
 
-void DependencyGraph::removeGrandChildren(const NodeId id) {
+void DependencyGraph::removeGrandChildren(const NodeId id,
+                                          std::vector<ApiCallId>* outUnusedApiIds) {
     auto* nd = getDepNode(id);
-    if (!nd) return;
-    for (auto child : nd->childNodeIds) {
-        removeDescendantsOfHandle(child);
+    if (!nd || nd->childNodeIds.empty()) return;
+    const std::vector<NodeId> children(nd->childNodeIds.begin(), nd->childNodeIds.end());
+    for (NodeId child : children) {
+        removeDescendantsOfHandle(child, outUnusedApiIds);
     }
 }
 
-void DependencyGraph::removeDescendantsOfHandle(const NodeId id) {
+void DependencyGraph::removeDescendantsOfHandle(const NodeId id,
+                                                std::vector<ApiCallId>* outUnusedApiIds) {
     auto* nd = getDepNode(id);
-    if (nd) {
-        for (auto child : nd->childNodeIds) {
-            removeNodeAndDescendants(child);
-        }
-        nd->childNodeIds.clear();
+    if (!nd || nd->childNodeIds.empty()) return;
+    const std::vector<NodeId> children(nd->childNodeIds.begin(), nd->childNodeIds.end());
+    for (NodeId child : children) {
+        removeNodeAndDescendants(child, outUnusedApiIds);
+    }
+    if (auto* refreshed = getDepNode(id)) {
+        refreshed->childNodeIds.clear();
     }
 }
 
@@ -68,18 +75,62 @@ bool DependencyGraph::isDeleteDelayedType(NodeId id) const {
 
 // TODO: b/559186898, This potentially keeps alive many vk objects. Replace
 // with proper parent-child object dependencies.
-void DependencyGraph::removeNodesAndDescendants(const NodeId* toRemove, uint32_t count) {
+void DependencyGraph::removeNodesAndDescendants(const NodeId* toRemove, uint32_t count,
+                                                std::vector<ApiCallId>* outUnusedApiIds) {
     for (uint32_t i = 0; i < count; ++i) {
         if (isDeleteDelayedType(toRemove[i])) {
             continue;
         }
-        removeNodeAndDescendants(toRemove[i]);
+        removeNodeAndDescendants(toRemove[i], outUnusedApiIds);
     }
 }
 
-void DependencyGraph::removeNodeAndDescendants(NodeId id) {
-    removeDescendantsOfHandle(id);
-    mDepId2DepNode.erase(id);
+void DependencyGraph::unlinkNodeFromApiCall(NodeId nodeId, ApiCallId apiCallId,
+                                            std::vector<ApiCallId>* outUnusedApiIds) {
+    if (apiCallId == 0) {
+        return;
+    }
+    auto apiIt = mApiId2ApiNode.find(apiCallId);
+    if (apiIt == mApiId2ApiNode.end()) {
+        return;
+    }
+    auto& created = apiIt->second->createdNodeIds;
+    auto it = std::find(created.begin(), created.end(), nodeId);
+    if (it != created.end()) {
+        *it = created.back();
+        created.pop_back();
+    }
+    if (created.empty()) {
+        mApiId2ApiNode.erase(apiIt);
+        if (outUnusedApiIds) {
+            outUnusedApiIds->push_back(apiCallId);
+        }
+    }
+}
+
+void DependencyGraph::removeNodeAndDescendants(NodeId id,
+                                               std::vector<ApiCallId>* outUnusedApiIds) {
+    auto it = mDepId2DepNode.find(id);
+    if (it == mDepId2DepNode.end()) {
+        return;
+    }
+    if (!it->second->childNodeIds.empty()) {
+        removeDescendantsOfHandle(id, outUnusedApiIds);
+        it = mDepId2DepNode.find(id);
+        if (it == mDepId2DepNode.end()) {
+            return;
+        }
+    }
+
+    for (NodeId parentId : it->second->parentNodeIds) {
+        if (auto* parent = getDepNode(parentId)) {
+            parent->childNodeIds.erase(id);
+        }
+    }
+
+    const ApiCallId apiCallId = it->second->apiCallId;
+    mDepId2DepNode.erase(it);
+    unlinkNodeFromApiCall(id, apiCallId, outUnusedApiIds);
 }
 
 void DependencyGraph::addNodes(const NodeId* ids, uint32_t count) {
@@ -89,7 +140,8 @@ void DependencyGraph::addNodes(const NodeId* ids, uint32_t count) {
 }
 
 void DependencyGraph::addDepNode(NodeId id) {
-    if (getDepNode(id)) {
+    auto [it, inserted] = mDepId2DepNode.try_emplace(id);
+    if (!inserted) {
         // this can happen, e.g.
         // vkGetDeviceQueue, can be called
         // multiple times with same queue
@@ -101,7 +153,7 @@ void DependencyGraph::addDepNode(NodeId id) {
     auto nd = std::make_unique<DepNode>();
     nd->id = id;
     nd->timestamp = mTimestamp;
-    mDepId2DepNode[id] = std::move(nd);
+    it->second = std::move(nd);
 }
 
 uint64_t DependencyGraph::getNodeIdType(NodeId nodeId) const { return (nodeId >> 48) & 0xFF; }
@@ -129,53 +181,78 @@ void DependencyGraph::getIdsByTimestamp(std::vector<NodeId>& uniqApiRefsByTopoOr
 }
 
 DependencyGraph::DepNode* DependencyGraph::getDepNode(NodeId id) {
-    if (mDepId2DepNode.find(id) == mDepId2DepNode.end()) return nullptr;
-    auto& nd = mDepId2DepNode[id];
-    return nd.get();
+    auto it = mDepId2DepNode.find(id);
+    return it == mDepId2DepNode.end() ? nullptr : it->second.get();
 }
 
 DependencyGraph::ApiNode* DependencyGraph::getApiNode(NodeId id) {
-    if (mApiId2ApiNode.find(id) == mApiId2ApiNode.end()) return nullptr;
-    auto& nd = mApiId2ApiNode[id];
-    return nd.get();
+    auto it = mApiId2ApiNode.find(id);
+    return it == mApiId2ApiNode.end() ? nullptr : it->second.get();
 }
 
 void DependencyGraph::setCreatedNodeIdsForApi(ApiCallId apiCallId, const NodeId* nodeIds,
-                                              uint32_t count) {
-    addApiNode(apiCallId);
-    auto* apiNode = getApiNode(apiCallId);
-    if (apiNode) {
-        for (uint32_t i = 0; i < count; ++i) {
-            apiNode->createdNodeIds.insert(nodeIds[i]);
-        }
-    }
+                                              uint32_t count,
+                                              std::vector<ApiCallId>* outUnusedApiIds) {
+    associateWithApiCall(nodeIds, count, apiCallId, outUnusedApiIds);
 }
-void DependencyGraph::addApiNode(ApiCallId id) {
-    if (getApiNode(id)) return;
-    auto nd = std::make_unique<ApiNode>();
-    nd->id = id;
-    mApiId2ApiNode[id] = std::move(nd);
+DependencyGraph::ApiNode* DependencyGraph::addApiNode(ApiCallId id) {
+    auto [it, inserted] = mApiId2ApiNode.try_emplace(id);
+    if (inserted) {
+        auto nd = std::make_unique<ApiNode>();
+        nd->id = id;
+        it->second = std::move(nd);
+    }
+    return it->second.get();
 }
 void DependencyGraph::removeApiNode(ApiCallId id) {
-    auto* nd = getApiNode(id);
-    if (nd) {
-        mApiId2ApiNode.erase(id);
-    }
+    mApiId2ApiNode.erase(id);
 }
 void DependencyGraph::clearChildDependencies(NodeId parentId) {
     auto* nd = getDepNode(parentId);
-    if (nd) {
+    if (nd && !nd->childNodeIds.empty()) {
+        for (NodeId childId : nd->childNodeIds) {
+            if (auto* child = getDepNode(childId)) {
+                auto& parents = child->parentNodeIds;
+                auto it = std::find(parents.begin(), parents.end(), parentId);
+                if (it != parents.end()) {
+                    *it = parents.back();
+                    parents.pop_back();
+                }
+            }
+        }
         nd->childNodeIds.clear();
     }
 }
 
 void DependencyGraph::associateWithApiCall(const NodeId* nodeIds, uint32_t count,
-                                           ApiCallId apiCallId) {
+                                           ApiCallId apiCallId,
+                                           std::vector<ApiCallId>* outUnusedApiIds) {
+    if (apiCallId == 0 || !nodeIds || count == 0) {
+        return;
+    }
+    ApiNode* apiNode = nullptr;
     for (uint64_t i = 0; i < count; ++i) {
         auto* nd = getDepNode(nodeIds[i]);
-        if (nd) {
-            nd->apiCallId = apiCallId;
+        if (!nd || nd->apiCallId == apiCallId) {
+            // Unknown node, or already linked to this call (setCreatedNodeIdsForApi
+            // usually follows forEachHandleAddApi for the same call).
+            continue;
         }
+        if (!apiNode) {
+            apiNode = addApiNode(apiCallId);
+        }
+        if (nd->apiCallId != 0) {
+            unlinkNodeFromApiCall(nodeIds[i], nd->apiCallId, outUnusedApiIds);
+        }
+        // Only the creating call changes; the node keeps its timestamp. The new
+        // call recreates the same handle (e.g. a repeated vkGetDeviceQueue or
+        // vkEnumeratePhysicalDevices), so on replay it must still run at the
+        // node's original position, ahead of the calls that created the node's
+        // children in the meantime.
+        nd->apiCallId = apiCallId;
+        // The node was not linked to this call (checked above), so it cannot be
+        // in createdNodeIds yet.
+        apiNode->createdNodeIds.push_back(nodeIds[i]);
     }
 }
 
@@ -226,7 +303,10 @@ void DependencyGraph::addDep(NodeId child_id, NodeId parent_id) {
         }
     }
 
-    child->parentNodeId = parent_id;
+    auto& parents = child->parentNodeIds;
+    if (std::find(parents.begin(), parents.end(), parent_id) == parents.end()) {
+        parents.push_back(parent_id);
+    }
     parent->childNodeIds.insert(child_id);
 }
 
