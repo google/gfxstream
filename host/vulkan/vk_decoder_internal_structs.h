@@ -538,8 +538,17 @@ struct DescriptorPoolInfo {
     uint32_t usedSets;
     std::vector<PoolState> pools;
 
-    std::unordered_map<VkDescriptorSet, VkDescriptorSet> allocedSetsToBoxed;
-    std::vector<uint64_t> poolIds;
+    // Unboxed VkDescriptorSet -> boxed VkDescriptorSet for every set currently
+    // allocated from this pool.
+    std::unordered_map<VkDescriptorSet, VkDescriptorSet> allocatedSetsUnboxedToBoxed;
+    // Only used when VulkanBatchedDescriptorSetUpdate is enabled: boxed
+    // VkDescriptorSet handles pre-minted at vkCreateDescriptorPool time (one per
+    // maxSets slot) and handed to the guest through
+    // vkCollectDescriptorPoolIdsGOOGLE, so that the guest can "allocate" sets
+    // without a host round trip. A slot is free while its boxed handle's
+    // underlying host set is VK_NULL_HANDLE. The guest-facing API calls these
+    // "pool ids"; they are descriptor set handles, not descriptor pool handles.
+    std::vector<uint64_t> preallocatedBoxedSets;
 };
 
 struct DescriptorSetInfo {
