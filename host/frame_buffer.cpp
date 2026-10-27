@@ -133,7 +133,7 @@ static constexpr uint32_t kNumMaxColorBuffers = 16000;
 // Version and magic numbers for framebuffer stream for validity checks.
 // The global snapshot version (e.g. kVersionBase for AEMU) should be updated when changing
 // the framebuffer version to avoid getting errors when loading old, unsupported snapshots.
-static constexpr uint32_t kFramebufferSnapshotVersionNumber = 3;
+static constexpr uint32_t kFramebufferSnapshotVersionNumber = 4;
 static constexpr uint32_t kFramebufferSnapshotMagicNumber = 0xC0FFEEEE;
 
 // A condition variable needed to wait for framebuffer initialization.
