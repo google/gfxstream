@@ -4558,70 +4558,6 @@ void unmarshal_VkPhysicalDeviceExtendedDynamicStateFeaturesEXT(
 #define OP_vkCmdSetStencilTestEnableEXT 286438749
 #define OP_vkCmdSetStencilOpEXT 277159578
 #endif
-#ifdef VK_EXT_host_image_copy
-DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceHostImageCopyFeatures,
-                      marshal_VkPhysicalDeviceHostImageCopyFeaturesEXT)
-
-DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceHostImageCopyFeatures,
-                      unmarshal_VkPhysicalDeviceHostImageCopyFeaturesEXT)
-
-DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceHostImageCopyProperties,
-                      marshal_VkPhysicalDeviceHostImageCopyPropertiesEXT)
-
-DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceHostImageCopyProperties,
-                      unmarshal_VkPhysicalDeviceHostImageCopyPropertiesEXT)
-
-DEFINE_ALIAS_FUNCTION(marshal_VkMemoryToImageCopy, marshal_VkMemoryToImageCopyEXT)
-
-DEFINE_ALIAS_FUNCTION(unmarshal_VkMemoryToImageCopy, unmarshal_VkMemoryToImageCopyEXT)
-
-DEFINE_ALIAS_FUNCTION(marshal_VkImageToMemoryCopy, marshal_VkImageToMemoryCopyEXT)
-
-DEFINE_ALIAS_FUNCTION(unmarshal_VkImageToMemoryCopy, unmarshal_VkImageToMemoryCopyEXT)
-
-DEFINE_ALIAS_FUNCTION(marshal_VkCopyMemoryToImageInfo, marshal_VkCopyMemoryToImageInfoEXT)
-
-DEFINE_ALIAS_FUNCTION(unmarshal_VkCopyMemoryToImageInfo, unmarshal_VkCopyMemoryToImageInfoEXT)
-
-DEFINE_ALIAS_FUNCTION(marshal_VkCopyImageToMemoryInfo, marshal_VkCopyImageToMemoryInfoEXT)
-
-DEFINE_ALIAS_FUNCTION(unmarshal_VkCopyImageToMemoryInfo, unmarshal_VkCopyImageToMemoryInfoEXT)
-
-DEFINE_ALIAS_FUNCTION(marshal_VkCopyImageToImageInfo, marshal_VkCopyImageToImageInfoEXT)
-
-DEFINE_ALIAS_FUNCTION(unmarshal_VkCopyImageToImageInfo, unmarshal_VkCopyImageToImageInfoEXT)
-
-DEFINE_ALIAS_FUNCTION(marshal_VkHostImageLayoutTransitionInfo,
-                      marshal_VkHostImageLayoutTransitionInfoEXT)
-
-DEFINE_ALIAS_FUNCTION(unmarshal_VkHostImageLayoutTransitionInfo,
-                      unmarshal_VkHostImageLayoutTransitionInfoEXT)
-
-DEFINE_ALIAS_FUNCTION(marshal_VkSubresourceHostMemcpySize, marshal_VkSubresourceHostMemcpySizeEXT)
-
-DEFINE_ALIAS_FUNCTION(unmarshal_VkSubresourceHostMemcpySize,
-                      unmarshal_VkSubresourceHostMemcpySizeEXT)
-
-DEFINE_ALIAS_FUNCTION(marshal_VkHostImageCopyDevicePerformanceQuery,
-                      marshal_VkHostImageCopyDevicePerformanceQueryEXT)
-
-DEFINE_ALIAS_FUNCTION(unmarshal_VkHostImageCopyDevicePerformanceQuery,
-                      unmarshal_VkHostImageCopyDevicePerformanceQueryEXT)
-
-DEFINE_ALIAS_FUNCTION(marshal_VkSubresourceLayout2, marshal_VkSubresourceLayout2EXT)
-
-DEFINE_ALIAS_FUNCTION(unmarshal_VkSubresourceLayout2, unmarshal_VkSubresourceLayout2EXT)
-
-DEFINE_ALIAS_FUNCTION(marshal_VkImageSubresource2, marshal_VkImageSubresource2EXT)
-
-DEFINE_ALIAS_FUNCTION(unmarshal_VkImageSubresource2, unmarshal_VkImageSubresource2EXT)
-
-#define OP_vkCopyMemoryToImageEXT 218832495
-#define OP_vkCopyImageToMemoryEXT 204695490
-#define OP_vkCopyImageToImageEXT 223534798
-#define OP_vkTransitionImageLayoutEXT 242817558
-#define OP_vkGetImageSubresourceLayout2EXT 296152177
-#endif
 #ifdef VK_EXT_swapchain_maintenance1
 DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceSwapchainMaintenance1FeaturesKHR,
                       marshal_VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT)
@@ -4856,12 +4792,21 @@ void marshal_VkImageCompressionControlEXT(VulkanStream* vkStream, VkStructureTyp
 void unmarshal_VkImageCompressionControlEXT(VulkanStream* vkStream, VkStructureType rootType,
                                             VkImageCompressionControlEXT* forUnmarshaling);
 
+DEFINE_ALIAS_FUNCTION(marshal_VkSubresourceLayout2, marshal_VkSubresourceLayout2EXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkSubresourceLayout2, unmarshal_VkSubresourceLayout2EXT)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkImageSubresource2, marshal_VkImageSubresource2EXT)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkImageSubresource2, unmarshal_VkImageSubresource2EXT)
+
 void marshal_VkImageCompressionPropertiesEXT(VulkanStream* vkStream, VkStructureType rootType,
                                              const VkImageCompressionPropertiesEXT* forMarshaling);
 
 void unmarshal_VkImageCompressionPropertiesEXT(VulkanStream* vkStream, VkStructureType rootType,
                                                VkImageCompressionPropertiesEXT* forUnmarshaling);
 
+#define OP_vkGetImageSubresourceLayout2EXT 296152177
 #endif
 #ifdef VK_EXT_4444_formats
 void marshal_VkPhysicalDevice4444FormatsFeaturesEXT(

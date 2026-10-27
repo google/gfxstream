@@ -837,17 +837,6 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
         (PFN_vkCmdSetStencilTestEnableEXT)dlSymFunc(lib, "vkCmdSetStencilTestEnableEXT");
     out->vkCmdSetStencilOpEXT = (PFN_vkCmdSetStencilOpEXT)dlSymFunc(lib, "vkCmdSetStencilOpEXT");
 #endif
-#ifdef VK_EXT_host_image_copy
-    out->vkCopyMemoryToImageEXT =
-        (PFN_vkCopyMemoryToImageEXT)dlSymFunc(lib, "vkCopyMemoryToImageEXT");
-    out->vkCopyImageToMemoryEXT =
-        (PFN_vkCopyImageToMemoryEXT)dlSymFunc(lib, "vkCopyImageToMemoryEXT");
-    out->vkCopyImageToImageEXT = (PFN_vkCopyImageToImageEXT)dlSymFunc(lib, "vkCopyImageToImageEXT");
-    out->vkTransitionImageLayoutEXT =
-        (PFN_vkTransitionImageLayoutEXT)dlSymFunc(lib, "vkTransitionImageLayoutEXT");
-    out->vkGetImageSubresourceLayout2EXT =
-        (PFN_vkGetImageSubresourceLayout2EXT)dlSymFunc(lib, "vkGetImageSubresourceLayout2EXT");
-#endif
 #ifdef VK_EXT_swapchain_maintenance1
     out->vkReleaseSwapchainImagesEXT =
         (PFN_vkReleaseSwapchainImagesEXT)dlSymFunc(lib, "vkReleaseSwapchainImagesEXT");
@@ -863,6 +852,10 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
 #ifdef VK_EXT_metal_objects
     out->vkExportMetalObjectsEXT =
         (PFN_vkExportMetalObjectsEXT)dlSymFunc(lib, "vkExportMetalObjectsEXT");
+#endif
+#ifdef VK_EXT_image_compression_control
+    out->vkGetImageSubresourceLayout2EXT =
+        (PFN_vkGetImageSubresourceLayout2EXT)dlSymFunc(lib, "vkGetImageSubresourceLayout2EXT");
 #endif
 #ifdef VK_EXT_extended_dynamic_state2
     out->vkCmdSetPatchControlPointsEXT =
@@ -1982,19 +1975,6 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
     out->vkCmdSetStencilOpEXT =
         (PFN_vkCmdSetStencilOpEXT)vk->vkGetInstanceProcAddr(instance, "vkCmdSetStencilOpEXT");
 #endif
-#ifdef VK_EXT_host_image_copy
-    out->vkCopyMemoryToImageEXT =
-        (PFN_vkCopyMemoryToImageEXT)vk->vkGetInstanceProcAddr(instance, "vkCopyMemoryToImageEXT");
-    out->vkCopyImageToMemoryEXT =
-        (PFN_vkCopyImageToMemoryEXT)vk->vkGetInstanceProcAddr(instance, "vkCopyImageToMemoryEXT");
-    out->vkCopyImageToImageEXT =
-        (PFN_vkCopyImageToImageEXT)vk->vkGetInstanceProcAddr(instance, "vkCopyImageToImageEXT");
-    out->vkTransitionImageLayoutEXT = (PFN_vkTransitionImageLayoutEXT)vk->vkGetInstanceProcAddr(
-        instance, "vkTransitionImageLayoutEXT");
-    out->vkGetImageSubresourceLayout2EXT =
-        (PFN_vkGetImageSubresourceLayout2EXT)vk->vkGetInstanceProcAddr(
-            instance, "vkGetImageSubresourceLayout2EXT");
-#endif
 #ifdef VK_EXT_swapchain_maintenance1
     out->vkReleaseSwapchainImagesEXT = (PFN_vkReleaseSwapchainImagesEXT)vk->vkGetInstanceProcAddr(
         instance, "vkReleaseSwapchainImagesEXT");
@@ -2012,6 +1992,11 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
 #ifdef VK_EXT_metal_objects
     out->vkExportMetalObjectsEXT =
         (PFN_vkExportMetalObjectsEXT)vk->vkGetInstanceProcAddr(instance, "vkExportMetalObjectsEXT");
+#endif
+#ifdef VK_EXT_image_compression_control
+    out->vkGetImageSubresourceLayout2EXT =
+        (PFN_vkGetImageSubresourceLayout2EXT)vk->vkGetInstanceProcAddr(
+            instance, "vkGetImageSubresourceLayout2EXT");
 #endif
 #ifdef VK_EXT_extended_dynamic_state2
     out->vkCmdSetPatchControlPointsEXT =
@@ -3130,19 +3115,6 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
     out->vkCmdSetStencilOpEXT =
         (PFN_vkCmdSetStencilOpEXT)vk->vkGetDeviceProcAddr(device, "vkCmdSetStencilOpEXT");
 #endif
-#ifdef VK_EXT_host_image_copy
-    out->vkCopyMemoryToImageEXT =
-        (PFN_vkCopyMemoryToImageEXT)vk->vkGetDeviceProcAddr(device, "vkCopyMemoryToImageEXT");
-    out->vkCopyImageToMemoryEXT =
-        (PFN_vkCopyImageToMemoryEXT)vk->vkGetDeviceProcAddr(device, "vkCopyImageToMemoryEXT");
-    out->vkCopyImageToImageEXT =
-        (PFN_vkCopyImageToImageEXT)vk->vkGetDeviceProcAddr(device, "vkCopyImageToImageEXT");
-    out->vkTransitionImageLayoutEXT = (PFN_vkTransitionImageLayoutEXT)vk->vkGetDeviceProcAddr(
-        device, "vkTransitionImageLayoutEXT");
-    out->vkGetImageSubresourceLayout2EXT =
-        (PFN_vkGetImageSubresourceLayout2EXT)vk->vkGetDeviceProcAddr(
-            device, "vkGetImageSubresourceLayout2EXT");
-#endif
 #ifdef VK_EXT_swapchain_maintenance1
     out->vkReleaseSwapchainImagesEXT = (PFN_vkReleaseSwapchainImagesEXT)vk->vkGetDeviceProcAddr(
         device, "vkReleaseSwapchainImagesEXT");
@@ -3160,6 +3132,11 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
 #ifdef VK_EXT_metal_objects
     out->vkExportMetalObjectsEXT =
         (PFN_vkExportMetalObjectsEXT)vk->vkGetDeviceProcAddr(device, "vkExportMetalObjectsEXT");
+#endif
+#ifdef VK_EXT_image_compression_control
+    out->vkGetImageSubresourceLayout2EXT =
+        (PFN_vkGetImageSubresourceLayout2EXT)vk->vkGetDeviceProcAddr(
+            device, "vkGetImageSubresourceLayout2EXT");
 #endif
 #ifdef VK_EXT_extended_dynamic_state2
     out->vkCmdSetPatchControlPointsEXT = (PFN_vkCmdSetPatchControlPointsEXT)vk->vkGetDeviceProcAddr(
