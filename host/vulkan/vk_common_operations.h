@@ -181,6 +181,8 @@ class VkEmulation {
 
     bool isLavapipe() const;
 
+    bool isShaderFloatControls2Disabled() const;
+
     std::optional<VkPhysicalDeviceRobustness2FeaturesEXT> getRobustness2Features() const;
 
     VkPhysicalDeviceExternalMemoryHostPropertiesEXT externalMemoryHostProperties() const;

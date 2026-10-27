@@ -36,6 +36,7 @@
 #include <memory>
 #include <mutex>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "common/goldfish_vk_deepcopy.h"
@@ -1886,6 +1887,9 @@ class VkDecoderGlobalState::Impl {
             if (vulkan14Features) {
                 vulkan14Features->hostImageCopy = VK_FALSE;
             }
+            if (m_vkEmulation->isShaderFloatControls2Disabled()) {
+                vk_util::clearShaderFloatControls2Features(pFeatures);
+            }
 
             if (enableProtectedMemoryEmulation() ) {
                 if (protectedMemoryFeatures) {
@@ -2399,28 +2403,27 @@ class VkDecoderGlobalState::Impl {
 
         // Remove all extensions that are not supported by the host codegen to prevent
         // guest to host compatibility issues:
-        const auto& supportedDeviceExtensions = GetDeviceExtensionsSupportedByCodegen();
-        properties.erase(
-            std::remove_if(properties.begin(), properties.end(),
-                           [&](const VkExtensionProperties& extension) {
-                               return supportedDeviceExtensions.find(extension.extensionName) ==
-                                      supportedDeviceExtensions.end();
-                           }),
-            properties.end());
+        std::unordered_set<std::string> allowedDeviceExtensions =
+            GetDeviceExtensionsSupportedByCodegen();
 
         // In AndroidAHB mode, guest dmabufs are backed by AHardwareBuffers whose layout is
         // chosen by gralloc, so native DRM format modifiers can't be honored. Hide the
         // extension so the guest falls back to its DRM_FORMAT_MOD_LINEAR emulation.
         if (m_vkEmulation->getExternalMemoryMode() == ExternalMemory::Mode::AndroidAHB) {
-            properties.erase(
-                std::remove_if(properties.begin(), properties.end(),
-                               [](const VkExtensionProperties& extension) {
-                                   return strcmp(extension.extensionName,
-                                                 VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME) ==
-                                          0;
-                               }),
-                properties.end());
+            allowedDeviceExtensions.erase(VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME);
         }
+
+        if (m_vkEmulation->isShaderFloatControls2Disabled()) {
+            allowedDeviceExtensions.erase(VK_KHR_SHADER_FLOAT_CONTROLS_2_EXTENSION_NAME);
+        }
+
+        properties.erase(
+            std::remove_if(properties.begin(), properties.end(),
+                           [&](const VkExtensionProperties& extension) {
+                               return allowedDeviceExtensions.find(extension.extensionName) ==
+                                      allowedDeviceExtensions.end();
+                           }),
+            properties.end());
 
         // Add in emulated extensions:
 
@@ -2499,6 +2502,13 @@ class VkDecoderGlobalState::Impl {
                                VkDevice* pDevice) {
         auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
         auto vk = dispatch_VkPhysicalDevice(boxed_physicalDevice);
+
+        if (m_vkEmulation->isShaderFloatControls2Disabled()) {
+            VkResult validationRes = vk_util::validateShaderFloatControls2CreateInfo(pCreateInfo);
+            if (validationRes != VK_SUCCESS) {
+                return validationRes;
+            }
+        }
 
         std::vector<const char*> updatedDeviceExtensions =
             filteredDeviceExtensionNames(vk, physicalDevice, pCreateInfo->enabledExtensionCount,

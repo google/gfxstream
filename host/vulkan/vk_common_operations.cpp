@@ -1665,6 +1665,18 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
 void VkEmulation::initFeatures(Features features) {
     std::lock_guard<std::mutex> lock(mMutex);
 
+    if (!mFeatures.VulkanDisableShaderFloatControls2.enabled() &&
+        mFeatures.VulkanDisableShaderFloatControls2.getReason() == "Default reason") {
+        // TODO(b/578322411): Remove (or gate on driverVersion) once affected host
+        // drivers fix SPIR-V compilation of OpExecutionModeId FPFastMathDefault.
+        GFXSTREAM_SET_BOOL_FEATURE_ON_CONDITION(
+            &mFeatures, VulkanDisableShaderFloatControls2,
+            (vk_util::extensionSupported(mDeviceInfo.extensions,
+                                         VK_KHR_SHADER_FLOAT_CONTROLS_2_EXTENSION_NAME) ||
+             mDeviceInfo.physdevProps.apiVersion >= VK_API_VERSION_1_4) &&
+                mDeviceInfo.physdevProps.vendorID == 0x1010);
+    }
+
     if (!mFeatures.MinimalLogging.enabled()) {
         GFXSTREAM_INFO("Initializing VkEmulation features:");
         GFXSTREAM_INFO("    glInteropSupported: %s",
@@ -1688,6 +1700,10 @@ void VkEmulation::initFeatures(Features features) {
                        VK_API_VERSION_PATCH(features.guestVulkanMaxApiVersion));
         GFXSTREAM_INFO("    enableProtectedMemoryEmulation: %s",
                        features.enableProtectedMemoryEmulation ? "true" : "false");
+        GFXSTREAM_INFO("    %s: %s (%s)",
+                       mFeatures.VulkanDisableShaderFloatControls2.getName().c_str(),
+                       mFeatures.VulkanDisableShaderFloatControls2.getValueReadable().c_str(),
+                       mFeatures.VulkanDisableShaderFloatControls2.getReason().c_str());
     }
 
     mDeviceInfo.glInteropSupported = features.glInteropSupported;
@@ -1698,6 +1714,14 @@ void VkEmulation::initFeatures(Features features) {
     mGuestVulkanOnly = features.guestVulkanOnly;
     mUseDedicatedAllocations = features.useDedicatedAllocations;
     mGuestVulkanMaxApiVersion = features.guestVulkanMaxApiVersion;
+    if (isShaderFloatControls2Disabled() && mGuestVulkanMaxApiVersion > VK_API_VERSION_1_3) {
+        // VK_KHR_shader_float_controls2 was promoted to core in Vulkan 1.4.
+        mGuestVulkanMaxApiVersion = VK_API_VERSION_1_3;
+        if (!mFeatures.MinimalLogging.enabled()) {
+            GFXSTREAM_INFO(
+                "    guestVulkanMaxApiVersion clamped to 1.3.0 (VulkanDisableShaderFloatControls2)");
+        }
+    }
     mEnableProtectedMemoryEmulation = features.enableProtectedMemoryEmulation;
 
     if (features.useVulkanComposition) {
@@ -1848,6 +1872,11 @@ bool VkEmulation::supportsExternalMemoryHostProperties() const {
 bool VkEmulation::isSwapchainEnabled() const { return mSwapchainEnabled; }
 
 bool VkEmulation::isLavapipe() const { return mDeviceInfo.isLavapipe; }
+
+bool VkEmulation::isShaderFloatControls2Disabled() const {
+    return mFeatures.VulkanDisableShaderFloatControls2.enabled() &&
+           !mFeatures.BypassVulkanDeviceFeatureOverrides.enabled();
+}
 
 std::optional<VkPhysicalDeviceRobustness2FeaturesEXT> VkEmulation::getRobustness2Features() const {
     return mDeviceInfo.robustness2Features;

@@ -327,6 +327,7 @@ cc_test(
         ":gfxstream_vulkan_server",
         "//common/base:gfxstream_common_base",
         "//host:gfxstream_backend_static",
+        "//host/features:gfxstream_host_features",
         "//third_party/vulkan:gfxstream_vulkan_headers",
         "@com_google_googletest//:gtest",
         "@com_google_googletest//:gtest_main",
