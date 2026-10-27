@@ -20,6 +20,8 @@
 #include <gtest/gtest.h>
 #include <vulkan/vulkan_core.h>
 
+#include "gfxstream/host/features.h"
+
 namespace gfxstream {
 namespace host {
 namespace vk {
@@ -287,6 +289,114 @@ TEST(vk_util, vk_insert_struct) {
     ASSERT_EQ(base, reinterpret_cast<VkBaseInStructure*>(&physicalDeviceFeature));
     base = base->pNext;
     ASSERT_EQ(base, nullptr);
+}
+
+TEST(ShaderFloatControls2WorkaroundTest, FeatureSetRegistersAndTogglesFeature) {
+    gfxstream::host::FeatureSet features;
+    EXPECT_FALSE(features.VulkanDisableShaderFloatControls2.enabled());
+    EXPECT_EQ(features.VulkanDisableShaderFloatControls2.getReason(), "Default reason");
+    ASSERT_NE(features.map.find("VulkanDisableShaderFloatControls2"), features.map.end());
+
+    const uint32_t kAffectedVendorId = 0x1010;
+    const uint32_t kDummyVendorId = 0x1234;
+    uint32_t vendorId = kDummyVendorId;
+    bool hasExtension = true;
+
+    GFXSTREAM_SET_BOOL_FEATURE_ON_CONDITION(&features, VulkanDisableShaderFloatControls2,
+                                            hasExtension && vendorId == kAffectedVendorId);
+    EXPECT_FALSE(features.VulkanDisableShaderFloatControls2.enabled());
+    EXPECT_EQ(features.VulkanDisableShaderFloatControls2.getReason(),
+              "hasExtension && vendorId == kAffectedVendorId");
+
+    vendorId = kAffectedVendorId;
+    GFXSTREAM_SET_BOOL_FEATURE_ON_CONDITION(&features, VulkanDisableShaderFloatControls2,
+                                            hasExtension && vendorId == kAffectedVendorId);
+    EXPECT_TRUE(features.VulkanDisableShaderFloatControls2.enabled());
+
+    EXPECT_TRUE(
+        features.processFeatureString("VulkanDisableShaderFloatControls2:disabled", "CLI override"));
+    EXPECT_FALSE(features.VulkanDisableShaderFloatControls2.enabled());
+    EXPECT_EQ(features.VulkanDisableShaderFloatControls2.getReason(), "CLI override");
+
+    EXPECT_TRUE(
+        features.processFeatureString("VulkanDisableShaderFloatControls2:enabled", "CLI override"));
+    EXPECT_TRUE(features.VulkanDisableShaderFloatControls2.enabled());
+}
+
+TEST(ShaderFloatControls2WorkaroundTest, ClearsFeatureInExtensionAndVulkan14Structs) {
+    clearShaderFloatControls2Features(nullptr);
+
+    VkPhysicalDeviceVulkan14Features vk14Features = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES,
+        .pNext = nullptr,
+        .shaderFloatControls2 = VK_TRUE,
+        .maintenance5 = VK_TRUE,
+    };
+    VkPhysicalDeviceShaderFloatControls2Features fc2Features = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_FLOAT_CONTROLS_2_FEATURES,
+        .pNext = &vk14Features,
+        .shaderFloatControls2 = VK_TRUE,
+    };
+    VkPhysicalDeviceFeatures2 features2 = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+        .pNext = &fc2Features,
+    };
+
+    clearShaderFloatControls2Features(&features2);
+
+    EXPECT_EQ(fc2Features.shaderFloatControls2, static_cast<VkBool32>(VK_FALSE));
+    EXPECT_EQ(vk14Features.shaderFloatControls2, static_cast<VkBool32>(VK_FALSE));
+    EXPECT_EQ(vk14Features.maintenance5, static_cast<VkBool32>(VK_TRUE));
+}
+
+TEST(ShaderFloatControls2WorkaroundTest, ValidatesDeviceCreateInfoExtensionsAndFeatures) {
+    EXPECT_EQ(validateShaderFloatControls2CreateInfo(nullptr), VK_SUCCESS);
+
+    const char* kBlockedExts[] = {
+        VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME,
+        VK_KHR_SHADER_FLOAT_CONTROLS_2_EXTENSION_NAME,
+    };
+    VkDeviceCreateInfo createInfoWithBlockedExt = {
+        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+        .enabledExtensionCount = 2,
+        .ppEnabledExtensionNames = kBlockedExts,
+    };
+    EXPECT_EQ(validateShaderFloatControls2CreateInfo(&createInfoWithBlockedExt),
+              VK_ERROR_EXTENSION_NOT_PRESENT);
+
+    const char* kAllowedExts[] = {VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME};
+    VkPhysicalDeviceShaderFloatControls2Features fc2Features = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_FLOAT_CONTROLS_2_FEATURES,
+        .pNext = nullptr,
+        .shaderFloatControls2 = VK_TRUE,
+    };
+    VkDeviceCreateInfo createInfoWithFc2Feature = {
+        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+        .pNext = &fc2Features,
+        .enabledExtensionCount = 1,
+        .ppEnabledExtensionNames = kAllowedExts,
+    };
+    EXPECT_EQ(validateShaderFloatControls2CreateInfo(&createInfoWithFc2Feature),
+              VK_ERROR_FEATURE_NOT_PRESENT);
+
+    fc2Features.shaderFloatControls2 = VK_FALSE;
+    VkPhysicalDeviceVulkan14Features vk14Features = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES,
+        .pNext = &fc2Features,
+        .shaderFloatControls2 = VK_TRUE,
+        .maintenance5 = VK_TRUE,
+    };
+    VkDeviceCreateInfo createInfoWithVk14Feature = {
+        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+        .pNext = &vk14Features,
+        .enabledExtensionCount = 1,
+        .ppEnabledExtensionNames = kAllowedExts,
+    };
+    EXPECT_EQ(validateShaderFloatControls2CreateInfo(&createInfoWithVk14Feature),
+              VK_ERROR_FEATURE_NOT_PRESENT);
+
+    vk14Features.shaderFloatControls2 = VK_FALSE;
+    EXPECT_EQ(validateShaderFloatControls2CreateInfo(&createInfoWithVk14Feature), VK_SUCCESS);
 }
 
 }  // namespace

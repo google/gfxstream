@@ -165,6 +165,41 @@ uint32_t getMissingFeatures(const VkPhysicalDeviceFeatures& supported,
     return numMissing;
 }
 
+void clearShaderFloatControls2Features(VkPhysicalDeviceFeatures2* pFeatures) {
+    if (!pFeatures) {
+        return;
+    }
+    if (auto* fc2Features =
+            vk_find_struct<VkPhysicalDeviceShaderFloatControls2Features>(pFeatures)) {
+        fc2Features->shaderFloatControls2 = VK_FALSE;
+    }
+    if (auto* vulkan14Features = vk_find_struct<VkPhysicalDeviceVulkan14Features>(pFeatures)) {
+        vulkan14Features->shaderFloatControls2 = VK_FALSE;
+    }
+}
+
+VkResult validateShaderFloatControls2CreateInfo(const VkDeviceCreateInfo* pCreateInfo) {
+    if (!pCreateInfo) {
+        return VK_SUCCESS;
+    }
+    for (uint32_t i = 0; i < pCreateInfo->enabledExtensionCount; ++i) {
+        const char* extName =
+            pCreateInfo->ppEnabledExtensionNames ? pCreateInfo->ppEnabledExtensionNames[i] : nullptr;
+        if (extName && strcmp(extName, VK_KHR_SHADER_FLOAT_CONTROLS_2_EXTENSION_NAME) == 0) {
+            return VK_ERROR_EXTENSION_NOT_PRESENT;
+        }
+    }
+    const auto* fc2Features =
+        vk_find_struct<VkPhysicalDeviceShaderFloatControls2Features>(pCreateInfo);
+    const auto* vulkan14Features =
+        vk_find_struct<VkPhysicalDeviceVulkan14Features>(pCreateInfo);
+    if ((fc2Features != nullptr && fc2Features->shaderFloatControls2) ||
+        (vulkan14Features != nullptr && vulkan14Features->shaderFloatControls2)) {
+        return VK_ERROR_FEATURE_NOT_PRESENT;
+    }
+    return VK_SUCCESS;
+}
+
 bool YcbcrSamplerPool::init(const VulkanDispatch* ivk, const VulkanDispatch* dvk,
                             VkPhysicalDevice physicalDevice, VkDevice device) {
     if (mDvk) {

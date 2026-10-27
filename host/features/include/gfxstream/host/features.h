@@ -487,6 +487,13 @@ struct FeatureSet {
         "If set to a non-zero value, limits the memory heap size reported to the guest (in bytes).",
         &map,
     };
+    BoolFeatureInfo VulkanDisableShaderFloatControls2 = {
+        "VulkanDisableShaderFloatControls2",
+        "If enabled, hides VK_KHR_shader_float_controls2 from the guest, clamps the guest-visible "
+        "Vulkan API version to 1.3, clears shaderFloatControls2 feature bits, and rejects device "
+        "creation requests that enable the extension or feature.",
+        &map,
+    };
 };
 
 #define GFXSTREAM_SET_BOOL_FEATURE_ON_CONDITION(set, feature, condition) \

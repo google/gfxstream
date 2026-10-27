@@ -377,6 +377,10 @@ uint32_t getMissingFeatures(const VkPhysicalDeviceFeatures& supported,
                             const VkPhysicalDeviceFeatures& requested,
                             std::string& outMissingFeatures);
 
+void clearShaderFloatControls2Features(VkPhysicalDeviceFeatures2* pFeatures);
+
+VkResult validateShaderFloatControls2CreateInfo(const VkDeviceCreateInfo* pCreateInfo);
+
 class YcbcrSamplerPool {
    public:
     YcbcrSamplerPool() {}
