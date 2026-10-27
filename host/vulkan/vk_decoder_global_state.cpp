@@ -6874,6 +6874,8 @@ class VkDecoderGlobalState::Impl {
             vk_find_struct<VkImportColorBufferGOOGLE>(pAllocateInfo);
         const VkImportBufferGOOGLE* importBufferInfoPtr =
             vk_find_struct<VkImportBufferGOOGLE>(pAllocateInfo);
+        const bool importEmulatedExternalMemory =
+            importCbInfoPtr || importBufferInfoPtr;
 
         const VkCreateBlobGOOGLE* createBlobInfoPtr =
             vk_find_struct<VkCreateBlobGOOGLE>(pAllocateInfo);
@@ -7148,8 +7150,11 @@ class VkDecoderGlobalState::Impl {
                 hasDeviceExtension(device, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME);
 
             const auto hostMemoryInfoOpt =
-                physicalDeviceInfo->memoryPropertiesHelper
-                    ->getHostMemoryInfoFromGuestMemoryTypeIndex(localAllocInfo.memoryTypeIndex);
+                importEmulatedExternalMemory
+                    ? physicalDeviceInfo->memoryPropertiesHelper
+                              ->getHostMemoryInfoFromHostMemoryTypeIndex(localAllocInfo.memoryTypeIndex)
+                    : physicalDeviceInfo->memoryPropertiesHelper
+                          ->getHostMemoryInfoFromGuestMemoryTypeIndex(localAllocInfo.memoryTypeIndex);
             if (!hostMemoryInfoOpt) {
                 GFXSTREAM_ERROR("Failed to get host memory info.");
                 return VK_ERROR_INCOMPATIBLE_DRIVER;
@@ -7191,7 +7196,6 @@ class VkDecoderGlobalState::Impl {
         //  * For complete correctness, we may need "getGuestOsLogic" logic somewhere in
         //    the future.
         const bool hostVisible = memoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-        bool importEmulatedExternalMemory = importCbInfoPtr || importBufferInfoPtr;
         const bool emulateHostVisible = hostVisible && !importEmulatedExternalMemory;
 
         std::optional<SharedMemory> sharedMemory = std::nullopt;
