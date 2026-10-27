@@ -589,13 +589,6 @@ struct VulkanDispatch {
     PFN_vkCmdSetStencilTestEnableEXT vkCmdSetStencilTestEnableEXT;
     PFN_vkCmdSetStencilOpEXT vkCmdSetStencilOpEXT;
 #endif
-#ifdef VK_EXT_host_image_copy
-    PFN_vkCopyMemoryToImageEXT vkCopyMemoryToImageEXT;
-    PFN_vkCopyImageToMemoryEXT vkCopyImageToMemoryEXT;
-    PFN_vkCopyImageToImageEXT vkCopyImageToImageEXT;
-    PFN_vkTransitionImageLayoutEXT vkTransitionImageLayoutEXT;
-    PFN_vkGetImageSubresourceLayout2EXT vkGetImageSubresourceLayout2EXT;
-#endif
 #ifdef VK_EXT_swapchain_maintenance1
     PFN_vkReleaseSwapchainImagesEXT vkReleaseSwapchainImagesEXT;
 #endif
@@ -607,6 +600,9 @@ struct VulkanDispatch {
 #endif
 #ifdef VK_EXT_metal_objects
     PFN_vkExportMetalObjectsEXT vkExportMetalObjectsEXT;
+#endif
+#ifdef VK_EXT_image_compression_control
+    PFN_vkGetImageSubresourceLayout2EXT vkGetImageSubresourceLayout2EXT;
 #endif
 #ifdef VK_EXT_extended_dynamic_state2
     PFN_vkCmdSetPatchControlPointsEXT vkCmdSetPatchControlPointsEXT;

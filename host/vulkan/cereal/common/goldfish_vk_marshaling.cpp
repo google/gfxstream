@@ -25359,11 +25359,6 @@ const char* api_opcode_to_string(const uint32_t opcode) {
             return "OP_vkCmdSetScissorWithCountEXT";
         }
 #endif
-#ifdef VK_EXT_host_image_copy
-        case OP_vkCopyImageToMemoryEXT: {
-            return "OP_vkCopyImageToMemoryEXT";
-        }
-#endif
 #ifdef VK_GRAPHICS_VERSION_1_4
         case OP_vkCmdSetRenderingAttachmentLocations: {
             return "OP_vkCmdSetRenderingAttachmentLocations";
@@ -25429,11 +25424,6 @@ const char* api_opcode_to_string(const uint32_t opcode) {
             return "OP_vkCmdSetDepthWriteEnableEXT";
         }
 #endif
-#ifdef VK_EXT_host_image_copy
-        case OP_vkCopyMemoryToImageEXT: {
-            return "OP_vkCopyMemoryToImageEXT";
-        }
-#endif
 #ifdef VK_KHR_buffer_device_address
         case OP_vkGetBufferDeviceAddressKHR: {
             return "OP_vkGetBufferDeviceAddressKHR";
@@ -25480,11 +25470,6 @@ const char* api_opcode_to_string(const uint32_t opcode) {
 #ifdef VK_BASE_VERSION_1_4
         case OP_vkCopyImageToImage: {
             return "OP_vkCopyImageToImage";
-        }
-#endif
-#ifdef VK_EXT_host_image_copy
-        case OP_vkCopyImageToImageEXT: {
-            return "OP_vkCopyImageToImageEXT";
         }
 #endif
 #ifdef VK_BASE_VERSION_1_3
@@ -25623,11 +25608,6 @@ const char* api_opcode_to_string(const uint32_t opcode) {
 #ifdef VK_BASE_VERSION_1_3
         case OP_vkSetPrivateData: {
             return "OP_vkSetPrivateData";
-        }
-#endif
-#ifdef VK_EXT_host_image_copy
-        case OP_vkTransitionImageLayoutEXT: {
-            return "OP_vkTransitionImageLayoutEXT";
         }
 #endif
 #ifdef VK_EXT_host_query_reset
@@ -26086,7 +26066,7 @@ const char* api_opcode_to_string(const uint32_t opcode) {
             return "OP_vkGetDeviceMemoryOpaqueCaptureAddressKHR";
         }
 #endif
-#ifdef VK_EXT_host_image_copy
+#ifdef VK_EXT_image_compression_control
         case OP_vkGetImageSubresourceLayout2EXT: {
             return "OP_vkGetImageSubresourceLayout2EXT";
         }
