@@ -142,7 +142,13 @@ rust_library(
         "@mesa_crate_deps//:rustix",
         "@mesa_crate_deps//:thiserror",
         "@mesa_crate_deps//:zerocopy",
-    ],
+    ] + select({
+        # The Darwin backend is Mach IPC, and mach2 only builds on Apple.
+        "@platforms//os:macos": [
+            "@mesa_crate_deps//:mach2",
+        ],
+        "//conditions:default": [],
+    }),
 )
 
 rust_static_library(
