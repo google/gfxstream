@@ -1038,14 +1038,14 @@ class VkDecoderGlobalState {
     void on_DeviceLost();
 
     // Fence waits
-    VkResult waitForFence(VkFence boxed_fence, uint64_t timeout);
+    VkResult waitForFence(Boxed<VkFence> boxed_fence, uint64_t timeout);
 
     // Wait for present (vkQueueSignalReleaseImageANDROID). This explicitly
     // requires the image to be presented again versus how many times it's been
     // presented so far, so it ends up incrementing a "target present count"
     // for this image, and then waiting for the image to get vkQSRI'ed at least
     // that many times.
-    AsyncResult registerQsriCallback(VkImage boxed_image, VkQsriTimeline::Callback callback);
+    AsyncResult registerQsriCallback(Boxed<VkImage> boxed_image, VkQsriTimeline::Callback callback);
 
     // Transformations
     void deviceMemoryTransform_tohost(VkDeviceMemory* memory, uint32_t memoryCount,

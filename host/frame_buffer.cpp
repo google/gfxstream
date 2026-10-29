@@ -3986,12 +3986,14 @@ std::future<void> FrameBuffer::Impl::blockPostWorker(std::future<void> continueS
 void FrameBuffer::Impl::asyncWaitForGpuVulkanWithCb(uint64_t deviceHandle, uint64_t fenceHandle,
                                                     FenceCompletionCallback cb) {
     (void)deviceHandle;
-    SyncThread::get()->triggerWaitVkWithCompletionCallback((VkFence)fenceHandle, std::move(cb));
+    SyncThread::get()->triggerWaitVkWithCompletionCallback(
+        vk::Boxed<VkFence>::fromRaw(fenceHandle), std::move(cb));
 }
 
 void FrameBuffer::Impl::asyncWaitForGpuVulkanQsriWithCb(uint64_t image,
                                                         FenceCompletionCallback cb) {
-    SyncThread::get()->triggerWaitVkQsriWithCompletionCallback((VkImage)image, std::move(cb));
+    SyncThread::get()->triggerWaitVkQsriWithCompletionCallback(
+        vk::Boxed<VkImage>::fromRaw(image), std::move(cb));
 }
 
 void FrameBuffer::Impl::setGuestManagedColorBufferLifetime(bool guestManaged) {

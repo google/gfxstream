@@ -47,6 +47,7 @@
 #include "vk_emulated_physical_device_memory.h"
 #include "vk_emulated_physical_device_queue.h"
 #include "vk_format_utils.h"
+#include "vulkan_boxed_handles.h"
 
 namespace gfxstream {
 namespace host {
@@ -406,7 +407,7 @@ struct SamplerInfo {
 
 struct FenceInfo {
     VkDevice device = VK_NULL_HANDLE;
-    VkFence boxed = VK_NULL_HANDLE;
+    Boxed<VkFence> boxed;
     VulkanDispatch* vk = nullptr;
 
     std::mutex mutex;

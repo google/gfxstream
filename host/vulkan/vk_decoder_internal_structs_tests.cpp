@@ -278,6 +278,20 @@ TEST(VkDecoderGlobalStateDescriptorUpdateTemplateTest, linearizedEntriesSkipWhol
     }
 }
 
+TEST(BoxedHandleTest, BoxedWrapperFromRawAndValue) {
+    Boxed<VkFence> empty;
+    EXPECT_FALSE(static_cast<bool>(empty));
+    EXPECT_EQ(VK_NULL_HANDLE, empty.value());
+    EXPECT_EQ(Boxed<VkFence>(), empty);
+
+    constexpr uint64_t kRawFence = 0x1234'5678ULL;
+    Boxed<VkFence> fromRaw = Boxed<VkFence>::fromRaw(kRawFence);
+    EXPECT_TRUE(static_cast<bool>(fromRaw));
+    EXPECT_EQ(reinterpret_cast<VkFence>(static_cast<uintptr_t>(kRawFence)), fromRaw.value());
+    EXPECT_EQ(Boxed<VkFence>(fromRaw.value()), fromRaw);
+    EXPECT_NE(empty, fromRaw);
+}
+
 }  // namespace
 }  // namespace vk
 }  // namespace host
