@@ -1717,12 +1717,11 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
             wantedMinorVersion = true;
             break;
         case EGL_CONTEXT_FLAGS_KHR:
-            if ((attrib_val & EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR) ||
-                (attrib_val & EGL_CONTEXT_OPENGL_FORWARD_COMPATIBLE_BIT_KHR)  ||
-                (attrib_val & EGL_CONTEXT_OPENGL_ROBUST_ACCESS_BIT_KHR)) {
-                // Valid.
-            } else {
-                RETURN_ERROR(EGL_NO_CONTEXT,EGL_BAD_ATTRIBUTE);
+            // Zero is the default; only bits this implementation does not know are invalid.
+            if (attrib_val & ~(EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR |
+                               EGL_CONTEXT_OPENGL_FORWARD_COMPATIBLE_BIT_KHR |
+                               EGL_CONTEXT_OPENGL_ROBUST_ACCESS_BIT_KHR)) {
+                RETURN_ERROR(EGL_NO_CONTEXT, EGL_BAD_ATTRIBUTE);
             }
             break;
         case EGL_CONTEXT_OPENGL_PROFILE_MASK_KHR:
