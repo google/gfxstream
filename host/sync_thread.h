@@ -62,7 +62,7 @@ class SyncThread : public gfxstream::base::Thread {
     // which should signal the guest-side fence FD / Zircon eventpair.
     // This method is how the goldfish sync virtual device
     // knows when to increment timelines / signal native fence FD's.
-    void triggerWaitVk(VkFence vkFence, uint64_t timeline);
+    void triggerWaitVk(vk::Boxed<VkFence> vkFence, uint64_t timeline);
 
 #if GFXSTREAM_ENABLE_HOST_GLES
     // |triggerWait|: async wait with a given EmulatedEglFenceSync object.
@@ -88,10 +88,12 @@ class SyncThread : public gfxstream::base::Thread {
 #endif
 
     // This increments the timeline after the QSRI completes.
-    void triggerWaitVkQsri(VkImage vkImage, uint64_t timeline);
+    void triggerWaitVkQsri(vk::Boxed<VkImage> vkImage, uint64_t timeline);
 
-    void triggerWaitVkWithCompletionCallback(VkFence fenceHandle, FenceCompletionCallback);
-    void triggerWaitVkQsriWithCompletionCallback(VkImage image, FenceCompletionCallback);
+    void triggerWaitVkWithCompletionCallback(vk::Boxed<VkFence> fenceHandle,
+                                             FenceCompletionCallback);
+    void triggerWaitVkQsriWithCompletionCallback(vk::Boxed<VkImage> image,
+                                                 FenceCompletionCallback);
     void triggerGeneral(FenceCompletionCallback, std::string description);
 
     // |cleanup|: for use with destructors and other cleanup functions.
@@ -133,7 +135,7 @@ class SyncThread : public gfxstream::base::Thread {
     // |doSyncThreadCmd| execute the actual task. These run on the sync thread.
     void doSyncThreadCmd(Command&& command, ThreadPool::WorkerId);
 
-    static int doSyncWaitVk(VkFence, std::function<void()> onComplete);
+    static int doSyncWaitVk(vk::Boxed<VkFence>, std::function<void()> onComplete);
 
     // EGL objects / object handles specific to
     // a sync thread.

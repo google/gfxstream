@@ -278,9 +278,9 @@ void SyncThread::doSyncWait(EmulatedEglFenceSync* fenceSync, std::function<void(
 
 #endif
 
-void SyncThread::triggerWaitVk(VkFence vkFence, uint64_t timeline) {
+void SyncThread::triggerWaitVk(vk::Boxed<VkFence> vkFence, uint64_t timeline) {
     std::stringstream ss;
-    ss << "triggerWaitVk vkFence=0x" << std::hex << reinterpret_cast<uintptr_t>(vkFence)
+    ss << "triggerWaitVk vkFence=0x" << std::hex << reinterpret_cast<uintptr_t>(vkFence.value())
        << " timeline=0x" << std::hex << timeline;
     sendAsync(
         [vkFence, timeline](WorkerId) {
@@ -292,18 +292,20 @@ void SyncThread::triggerWaitVk(VkFence vkFence, uint64_t timeline) {
         ss.str());
 }
 
-void SyncThread::triggerWaitVkWithCompletionCallback(VkFence vkFence, FenceCompletionCallback cb) {
+void SyncThread::triggerWaitVkWithCompletionCallback(vk::Boxed<VkFence> vkFence,
+                                                     FenceCompletionCallback cb) {
     std::stringstream ss;
     ss << "triggerWaitVkWithCompletionCallback vkFence=0x" << std::hex
-       << reinterpret_cast<uintptr_t>(vkFence);
+       << reinterpret_cast<uintptr_t>(vkFence.value());
     sendAsync([vkFence, cb = std::move(cb)](WorkerId) { doSyncWaitVk(vkFence, std::move(cb)); },
               ss.str());
 }
 
-void SyncThread::triggerWaitVkQsriWithCompletionCallback(VkImage vkImage, FenceCompletionCallback cb) {
+void SyncThread::triggerWaitVkQsriWithCompletionCallback(vk::Boxed<VkImage> vkImage,
+                                                         FenceCompletionCallback cb) {
     std::stringstream ss;
     ss << "triggerWaitVkQsriWithCompletionCallback vkImage=0x"
-       << reinterpret_cast<uintptr_t>(vkImage);
+       << reinterpret_cast<uintptr_t>(vkImage.value());
     sendAsync(
         [vkImage, cb = std::move(cb)](WorkerId) {
             auto decoder = vk::VkDecoderGlobalState::get();
@@ -317,9 +319,9 @@ void SyncThread::triggerWaitVkQsriWithCompletionCallback(VkImage vkImage, FenceC
         ss.str());
 }
 
-void SyncThread::triggerWaitVkQsri(VkImage vkImage, uint64_t timeline) {
+void SyncThread::triggerWaitVkQsri(vk::Boxed<VkImage> vkImage, uint64_t timeline) {
      std::stringstream ss;
-    ss << "triggerWaitVkQsri vkImage=0x" << std::hex << vkImage
+    ss << "triggerWaitVkQsri vkImage=0x" << std::hex << vkImage.value()
        << " timeline=0x" << std::hex << timeline;
     sendAsync(
         [vkImage, timeline](WorkerId) {
@@ -431,15 +433,15 @@ void SyncThread::doSyncThreadCmd(Command&& command, WorkerId workerId) {
     command.mTask(workerId);
 }
 
-int SyncThread::doSyncWaitVk(VkFence vkFence, std::function<void()> onComplete) {
+int SyncThread::doSyncWaitVk(vk::Boxed<VkFence> vkFence, std::function<void()> onComplete) {
     DPRINT("enter");
 
     auto decoder = vk::VkDecoderGlobalState::get();
     auto result = decoder->waitForFence(vkFence, kDefaultTimeoutNsecs);
     if (result == VK_TIMEOUT) {
-        DPRINT("SYNC_WAIT_VK timeout: vkFence=%p", vkFence);
+        DPRINT("SYNC_WAIT_VK timeout: vkFence=%p", vkFence.value());
     } else if (result != VK_SUCCESS) {
-        DPRINT("SYNC_WAIT_VK error: %d vkFence=%p", result, vkFence);
+        DPRINT("SYNC_WAIT_VK error: %d vkFence=%p", result, vkFence.value());
     }
 
     DPRINT("issue timeline increment");

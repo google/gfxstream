@@ -1092,12 +1092,12 @@ static void rcTriggerWait(uint64_t eglsync_ptr,
         // just signal right away for now
         EGLSYNC_DPRINT("GOLDFISH_SYNC_VULKAN_SEMAPHORE_SYNC - vkFence=0x%llx timeline=0x%llx", eglsync_ptr,
                        thread_ptr, timeline);
-        SyncThread::get()->triggerWaitVk(reinterpret_cast<VkFence>(eglsync_ptr),
+        SyncThread::get()->triggerWaitVk(vk::Boxed<VkFence>::fromRaw(eglsync_ptr),
                                          timeline);
     } else if (thread_ptr == GOLDFISH_SYNC_VULKAN_QSRI) {
         EGLSYNC_DPRINT("GOLDFISH_SYNC_VULKAN_QSRI - VkImage=0x%llx timeline=0x%llx", eglsync_ptr,
                        thread_ptr, timeline);
-        SyncThread::get()->triggerWaitVkQsri(reinterpret_cast<VkImage>(eglsync_ptr), timeline);
+        SyncThread::get()->triggerWaitVkQsri(vk::Boxed<VkImage>::fromRaw(eglsync_ptr), timeline);
     } else {
         EmulatedEglFenceSync* fenceSync = EmulatedEglFenceSync::getFromHandle(eglsync_ptr);
         FrameBuffer* fb = FrameBuffer::getFB();

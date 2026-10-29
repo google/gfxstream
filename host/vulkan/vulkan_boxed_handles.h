@@ -14,9 +14,11 @@
 
 #pragma once
 
+#include <cstdint>
 #include <deque>
 #include <memory>
 #include <mutex>
+#include <type_traits>
 
 #include "vulkan_dispatch.h"
 #include "vulkan_handles.h"
@@ -49,6 +51,59 @@ enum BoxedHandleTypeTag {
 
 using BoxedHandle = uint64_t;
 using UnboxedHandle = uint64_t;
+
+template <typename VkT>
+class Boxed {
+   public:
+    constexpr Boxed() noexcept = default;
+    explicit constexpr Boxed(VkT handle) noexcept : mHandle(handle) {}
+
+    static Boxed fromRaw(uint64_t raw) noexcept {
+        if constexpr (std::is_pointer_v<VkT>) {
+            return Boxed(reinterpret_cast<VkT>(static_cast<uintptr_t>(raw)));
+        } else {
+            return Boxed(static_cast<VkT>(raw));
+        }
+    }
+
+    constexpr VkT value() const noexcept { return mHandle; }
+
+    explicit constexpr operator bool() const noexcept { return mHandle != VK_NULL_HANDLE; }
+
+    friend constexpr bool operator==(Boxed a, Boxed b) noexcept { return a.mHandle == b.mHandle; }
+    friend constexpr bool operator!=(Boxed a, Boxed b) noexcept { return a.mHandle != b.mHandle; }
+
+   private:
+    VkT mHandle = VK_NULL_HANDLE;
+};
+
+// Boxed<VkT> must add no size or layout overhead for either handle kind:
+// non-dispatchable (VkFence) and dispatchable (VkDevice, always a pointer).
+static_assert(sizeof(Boxed<VkFence>) == sizeof(VkFence),
+              "Boxed<VkFence> must have zero size overhead");
+static_assert(std::is_standard_layout_v<Boxed<VkFence>>,
+              "Boxed<VkFence> must be standard-layout");
+static_assert(std::is_trivially_copyable_v<Boxed<VkFence>>,
+              "Boxed<VkFence> must be trivially copyable");
+static_assert(sizeof(Boxed<VkDevice>) == sizeof(VkDevice),
+              "Boxed<VkDevice> must have zero size overhead");
+static_assert(std::is_standard_layout_v<Boxed<VkDevice>>,
+              "Boxed<VkDevice> must be standard-layout");
+static_assert(std::is_trivially_copyable_v<Boxed<VkDevice>>,
+              "Boxed<VkDevice> must be trivially copyable");
+
+// Boxed handles are 64-bit EntityManager handles, and both handle kinds
+// round-trip through the uint64_t BoxedHandle and UnboxedHandle aliases. For
+// dispatchable handles this requires 64-bit pointers; every gfxstream host
+// build is 64-bit.
+static_assert(sizeof(Boxed<VkFence>) == sizeof(BoxedHandle),
+              "Boxed<VkFence> must be the same size as BoxedHandle");
+static_assert(sizeof(VkFence) == sizeof(UnboxedHandle),
+              "VkFence must be the same size as UnboxedHandle");
+static_assert(sizeof(Boxed<VkDevice>) == sizeof(BoxedHandle),
+              "Boxed<VkDevice> must match the 64-bit BoxedHandle; gfxstream hosts are 64-bit");
+static_assert(sizeof(VkDevice) == sizeof(UnboxedHandle),
+              "VkDevice must match the 64-bit UnboxedHandle; gfxstream hosts are 64-bit");
 
 struct OrderMaintenanceInfo {
     uint32_t sequenceNumber = 0;
