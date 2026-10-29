@@ -399,6 +399,25 @@ TEST(ShaderFloatControls2WorkaroundTest, ValidatesDeviceCreateInfoExtensionsAndF
     EXPECT_EQ(validateShaderFloatControls2CreateInfo(&createInfoWithVk14Feature), VK_SUCCESS);
 }
 
+TEST(AhbFormatMappingTest, MapsVkFormatsAndBytesPerPixelConsistently) {
+    EXPECT_EQ(vkFormatToAhbFormat(VK_FORMAT_R8G8B8A8_UNORM), 1u);
+    EXPECT_EQ(vkFormatToAhbFormat(VK_FORMAT_B8G8R8A8_UNORM), 5u);
+    EXPECT_EQ(vkFormatToAhbFormat(VK_FORMAT_R5G6B5_UNORM_PACK16), 4u);
+    EXPECT_EQ(vkFormatToAhbFormat(VK_FORMAT_R16G16B16A16_SFLOAT), 0x16u);
+    EXPECT_EQ(vkFormatToAhbFormat(VK_FORMAT_A2B10G10R10_UNORM_PACK32), 0x2bu);
+    EXPECT_EQ(vkFormatToAhbFormat(VK_FORMAT_R8_UNORM), 0x38u);
+    EXPECT_EQ(vkFormatToAhbFormat(VK_FORMAT_UNDEFINED), 0u);
+
+    EXPECT_EQ(ahbFormatBytesPerPixel(1u), 4u);
+    EXPECT_EQ(ahbFormatBytesPerPixel(5u), 4u);
+    EXPECT_EQ(ahbFormatBytesPerPixel(3u), 3u);
+    EXPECT_EQ(ahbFormatBytesPerPixel(4u), 2u);
+    EXPECT_EQ(ahbFormatBytesPerPixel(0x16u), 8u);
+    EXPECT_EQ(ahbFormatBytesPerPixel(0x2bu), 4u);
+    EXPECT_EQ(ahbFormatBytesPerPixel(0x38u), 1u);
+    EXPECT_EQ(ahbFormatBytesPerPixel(0u), 0u);
+}
+
 }  // namespace
 }  // namespace vk_fn_info
 }  // namespace vk_util
