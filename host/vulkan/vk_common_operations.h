@@ -98,17 +98,19 @@ enum class AstcEmulationMode {
 struct AhbShapeKey {
     uint32_t width = 0;
     uint32_t height = 0;
+    uint32_t layers = 1;
     uint32_t ahbFormat = 0;
     uint64_t ahbUsage = 0;
 
     bool operator==(const AhbShapeKey& other) const {
-        return width == other.width && height == other.height && ahbFormat == other.ahbFormat &&
-               ahbUsage == other.ahbUsage;
+        return width == other.width && height == other.height && layers == other.layers &&
+               ahbFormat == other.ahbFormat && ahbUsage == other.ahbUsage;
     }
 };
 struct AhbShapeKeyHash {
     size_t operator()(const AhbShapeKey& key) const {
         return (static_cast<size_t>(key.width) << 48) ^ (static_cast<size_t>(key.height) << 32) ^
+               (static_cast<size_t>(key.layers) << 24) ^
                (static_cast<size_t>(key.ahbFormat) << 16) ^ static_cast<size_t>(key.ahbUsage);
     }
 };

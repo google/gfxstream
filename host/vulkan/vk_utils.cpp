@@ -539,6 +539,67 @@ void addNeededBarriersToUseImage(VkImage image, uint32_t preQueueFamilyIndex,
     }
 }
 
+uint32_t vkFormatToAhbFormat(VkFormat format) {
+    switch (format) {
+        case VK_FORMAT_R8G8B8A8_UNORM:
+        case VK_FORMAT_R8G8B8A8_SRGB:
+            return 1;  // AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNORM
+        case VK_FORMAT_R8G8B8_UNORM:
+            return 3;  // AHARDWAREBUFFER_FORMAT_R8G8B8_UNORM
+        case VK_FORMAT_R5G6B5_UNORM_PACK16:
+            return 4;  // AHARDWAREBUFFER_FORMAT_R5G6B5_UNORM
+        case VK_FORMAT_B8G8R8A8_UNORM:
+        case VK_FORMAT_B8G8R8A8_SRGB:
+            return 5;  // AHARDWAREBUFFER_FORMAT_B8G8R8A8_UNORM
+        case VK_FORMAT_R16G16B16A16_SFLOAT:
+            return 0x16;  // AHARDWAREBUFFER_FORMAT_R16G16B16A16_FLOAT
+        case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+            return 0x2b;  // AHARDWAREBUFFER_FORMAT_R10G10B10A2_UNORM
+        case VK_FORMAT_D16_UNORM:
+            return 0x30;  // AHARDWAREBUFFER_FORMAT_D16_UNORM
+        case VK_FORMAT_X8_D24_UNORM_PACK32:
+            return 0x31;  // AHARDWAREBUFFER_FORMAT_D24_UNORM
+        case VK_FORMAT_D24_UNORM_S8_UINT:
+            return 0x32;  // AHARDWAREBUFFER_FORMAT_D24_UNORM_S8_UINT
+        case VK_FORMAT_D32_SFLOAT:
+            return 0x33;  // AHARDWAREBUFFER_FORMAT_D32_FLOAT
+        case VK_FORMAT_D32_SFLOAT_S8_UINT:
+            return 0x34;  // AHARDWAREBUFFER_FORMAT_D32_FLOAT_S8_UINT
+        case VK_FORMAT_S8_UINT:
+            return 0x35;  // AHARDWAREBUFFER_FORMAT_S8_UINT
+        case VK_FORMAT_R8_UNORM:
+            return 0x38;  // AHARDWAREBUFFER_FORMAT_R8_UNORM
+        default:
+            return 0;
+    }
+}
+
+uint32_t ahbFormatBytesPerPixel(uint32_t ahbFormat) {
+    switch (ahbFormat) {
+        case 1:     // AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNORM
+        case 2:     // AHARDWAREBUFFER_FORMAT_R8G8B8X8_UNORM
+        case 5:     // AHARDWAREBUFFER_FORMAT_B8G8R8A8_UNORM
+        case 0x2b:  // AHARDWAREBUFFER_FORMAT_R10G10B10A2_UNORM
+        case 0x31:  // AHARDWAREBUFFER_FORMAT_D24_UNORM
+        case 0x32:  // AHARDWAREBUFFER_FORMAT_D24_UNORM_S8_UINT
+        case 0x33:  // AHARDWAREBUFFER_FORMAT_D32_FLOAT
+            return 4;
+        case 3:  // AHARDWAREBUFFER_FORMAT_R8G8B8_UNORM
+            return 3;
+        case 4:     // AHARDWAREBUFFER_FORMAT_R5G6B5_UNORM
+        case 0x30:  // AHARDWAREBUFFER_FORMAT_D16_UNORM
+            return 2;
+        case 0x16:  // AHARDWAREBUFFER_FORMAT_R16G16B16A16_FLOAT
+        case 0x34:  // AHARDWAREBUFFER_FORMAT_D32_FLOAT_S8_UINT
+            return 8;
+        case 0x35:  // AHARDWAREBUFFER_FORMAT_S8_UINT
+        case 0x38:  // AHARDWAREBUFFER_FORMAT_R8_UNORM
+            return 1;
+        default:
+            return 0;
+    }
+}
+
 }  // namespace vk_util
 }  // namespace vk
 }  // namespace host

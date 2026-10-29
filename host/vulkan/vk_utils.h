@@ -421,6 +421,9 @@ void addNeededBarriersToUseImage(VkImage image, uint32_t preQueueFamilyIndex,
                                  std::vector<VkImageMemoryBarrier>* postUseLayoutTransitionBarriers,
                                  std::vector<VkImageMemoryBarrier>* postUseQueueTransferBarriers);
 
+uint32_t vkFormatToAhbFormat(VkFormat format);
+uint32_t ahbFormatBytesPerPixel(uint32_t ahbFormat);
+
 }  // namespace vk_util
 }  // namespace vk
 }  // namespace host

@@ -2095,28 +2095,16 @@ MTLResource_id VkEmulation::getMtlResourceFromVkDeviceMemory(VulkanDispatch* vk,
 // and a ColorBuffer's own AHB request can be matched without ever calling allocAhb() twice.
 AhbShapeKey ComputeAhbShapeKey(const VkImageCreateInfo* imageCreateInfo) {
     // Map VkFormat to the corresponding AHB format — must match to avoid tiling mismatch.
-    uint32_t ahbFormat;
-    switch (imageCreateInfo->format) {
-        case VK_FORMAT_B8G8R8A8_UNORM:
-        case VK_FORMAT_B8G8R8A8_SRGB:
-            ahbFormat = 5;  // AHARDWAREBUFFER_FORMAT_B8G8R8A8_UNORM
-            break;
-        case VK_FORMAT_R8G8B8A8_UNORM:
-        case VK_FORMAT_R8G8B8A8_SRGB:
-        default:
-            ahbFormat = AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNORM;
-            break;
-    }
+    const uint32_t ahbFormat = vk_util::vkFormatToAhbFormat(imageCreateInfo->format);
 
     // Translate the common VkImageUsageFlagBits into their corresponding AHB usage bits.
     uint64_t ahbUsage = 0;
     const VkImageUsageFlags vkUsage = imageCreateInfo->usage;
-    if (vkUsage & VK_IMAGE_USAGE_SAMPLED_BIT) {
+    if (vkUsage & (VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT)) {
         ahbUsage |= AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE;
     }
     if (vkUsage & (VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
-                   VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT |
-                   VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT)) {
+                   VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)) {
         ahbUsage |= AHARDWAREBUFFER_USAGE_GPU_FRAMEBUFFER;
     }
     if (vkUsage & VK_IMAGE_USAGE_STORAGE_BIT) {
@@ -2131,6 +2119,7 @@ AhbShapeKey ComputeAhbShapeKey(const VkImageCreateInfo* imageCreateInfo) {
     return AhbShapeKey{
         .width = imageCreateInfo->extent.width,
         .height = imageCreateInfo->extent.height,
+        .layers = std::max(1u, imageCreateInfo->arrayLayers),
         .ahbFormat = ahbFormat,
         .ahbUsage = ahbUsage,
     };
@@ -2140,11 +2129,14 @@ AhbShapeKey ComputeAhbShapeKey(const VkImageCreateInfo* imageCreateInfo) {
 // Returns nullptr on failure (caller falls back to the non-AHB allocation path).
 AHardwareBuffer* allocAhb(const VkImageCreateInfo* imageCreateInfo) {
     const AhbShapeKey shape = ComputeAhbShapeKey(imageCreateInfo);
+    if (shape.ahbFormat == 0 || imageCreateInfo->mipLevels > 1) {
+        return nullptr;
+    }
 
     AHardwareBuffer_Desc desc = {
         .width = shape.width,
         .height = shape.height,
-        .layers = 1,
+        .layers = shape.layers,
         .format = shape.ahbFormat,
         .usage = shape.ahbUsage,
     };
@@ -2423,9 +2415,13 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
                     break;
                 }
 
-                // Find a memory type that satisfies both the image and AHB requirements
-                uint32_t combinedBits = ahbProps.memoryTypeBits &
-                                        cbInfoPtr->imageMemReqs.memoryTypeBits;
+                // Find a memory type that satisfies both the image and AHB requirements.
+                // When the host driver defers image memory requirements until bind,
+                // imageMemReqs.memoryTypeBits is 0; fall back to ahbProps.memoryTypeBits.
+                const uint32_t imageTypeBits = cbInfoPtr->imageMemReqs.memoryTypeBits
+                                                   ? cbInfoPtr->imageMemReqs.memoryTypeBits
+                                                   : ahbProps.memoryTypeBits;
+                uint32_t combinedBits = ahbProps.memoryTypeBits & imageTypeBits;
                 if (!combinedBits) {
                     GFXSTREAM_WARNING(
                         "No common memory type for AHB (0x%x) and image (0x%x). "
@@ -2440,6 +2436,17 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
                 allocInfo.memoryTypeIndex = info->typeIndex;
                 info->size = ahbProps.allocationSize;
                 allocInfo.allocationSize = ahbProps.allocationSize;
+                if (cbInfoPtr->imageMemReqs.size == 0) {
+                    cbInfoPtr->imageMemReqs.size = ahbProps.allocationSize;
+                }
+
+                // Importing an AHardwareBuffer for an image requires a dedicated allocation on
+                // drivers that enforce dedicated image AHB imports.
+                if (!info->dedicatedAllocation && cbInfoPtr->image != VK_NULL_HANDLE) {
+                    info->dedicatedAllocation = true;
+                    dedicatedAllocInfo.image = cbInfoPtr->image;
+                    vk_append_struct(&allocInfoChain, &dedicatedAllocInfo);
+                }
 
                 // Chain the import info (declared at function scope above so it outlives
                 // the vkAllocateMemory call that consumes allocInfoChain).
@@ -2555,6 +2562,13 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
         vk->vkFreeMemory(mDevice, mem, nullptr /* allocator */);
     }
     if (!memoryAllocated) {
+#ifdef __ANDROID__
+        if (importAhbInfo.buffer != nullptr) {
+            AHardwareBuffer_release(importAhbInfo.buffer);
+            importAhbInfo.buffer = nullptr;
+            info->handleInfo = std::nullopt;
+        }
+#endif
         return false;
     }
 
@@ -3212,9 +3226,13 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height,
 
     infoPtr->memory.size = infoPtr->imageMemReqs.size;
 
-    // Determine memory type.
+    // Determine memory type. When the driver defers AHB image memory requirements until bind,
+    // imageMemReqs.memoryTypeBits is 0 here and will be resolved from ahbProps in
+    // allocExternalMemory().
     infoPtr->memory.typeIndex =
-        getValidMemoryTypeIndex(infoPtr->imageMemReqs.memoryTypeBits, infoPtr->memoryProperty);
+        infoPtr->imageMemReqs.memoryTypeBits != 0
+            ? getValidMemoryTypeIndex(infoPtr->imageMemReqs.memoryTypeBits, infoPtr->memoryProperty)
+            : 0;
 
     const VkFormat imageVkFormat = infoPtr->imageCreateInfoShallow.format;
     GFXSTREAM_DEBUG(
