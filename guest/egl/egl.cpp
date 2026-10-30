@@ -1725,11 +1725,10 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
             }
             break;
         case EGL_CONTEXT_OPENGL_PROFILE_MASK_KHR:
-            if ((attrib_val | EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT_KHR) ||
-                (attrib_val | EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT_KHR)) {
-                // Valid
-            } else {
-                RETURN_ERROR(EGL_NO_CONTEXT,EGL_BAD_ATTRIBUTE);
+            // Zero is accepted; only bits this implementation does not know are invalid.
+            if (attrib_val & ~(EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT_KHR |
+                               EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT_KHR)) {
+                RETURN_ERROR(EGL_NO_CONTEXT, EGL_BAD_ATTRIBUTE);
             }
             break;
         case EGL_CONTEXT_PRIORITY_LEVEL_IMG:
