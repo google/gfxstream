@@ -78,6 +78,7 @@ class PostWorker {
     virtual void viewportImpl(int width, int height) = 0;
     virtual void clearImpl() = 0;
     virtual void exitImpl() = 0;
+    virtual void unbindContext() {}
     virtual std::shared_future<void> composeImpl(const FlatComposeRequest& composeRequest);
 
    protected:

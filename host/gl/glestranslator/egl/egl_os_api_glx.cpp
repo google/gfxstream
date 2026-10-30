@@ -539,6 +539,13 @@ public:
         }
     }
 
+    bool releaseWindowSurface(EglOS::Surface* s) override {
+        gfxstream::base::AutoLock lock(mPbufLock);
+        mDisabledVsyncWindows.erase(s);
+        delete s;
+        return true;
+    }
+
     virtual bool makeCurrent(EglOS::Surface* read,
                              EglOS::Surface* draw,
                              EglOS::Context* context) {

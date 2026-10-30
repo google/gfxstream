@@ -322,6 +322,10 @@ void PostWorkerGl::setupContext() {
 }
 
 void PostWorkerGl::exitImpl() {
+    unbindContext();
+}
+
+void PostWorkerGl::unbindContext() {
     if (!mContextBound) {
         return;
     }

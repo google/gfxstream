@@ -865,7 +865,11 @@ EGLAPI EGLBoolean EGLAPIENTRY eglDestroySurface(EGLDisplay display, EGLSurface s
     if(!srfc.get()) {
         RETURN_ERROR(EGL_FALSE,EGL_BAD_SURFACE);
     }
-    g_eglInfo->markSurfaceForDestroy(dpy, surface);
+    if (srfc->type() == EglSurface::WINDOW) {
+        dpy->removeSurface(surface);
+    } else {
+        g_eglInfo->markSurfaceForDestroy(dpy, surface);
+    }
     return EGL_TRUE;
 }
 
