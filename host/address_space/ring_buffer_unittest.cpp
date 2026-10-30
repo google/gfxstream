@@ -97,18 +97,15 @@ TEST(ring_buffer, ProduceConsume) {
     EXPECT_EQ(elements, result);
 }
 
+static constexpr uint64_t kRingBufferTestTimeoutUs = 10ULL * 1000ULL * 1000ULL;
+
 // General function to read/write data completely to/from a ring buffer in a separate thread.
 static void writeTest(ring_buffer* r, const uint8_t* data, size_t stepSize, size_t numSteps) {
     size_t stepsWritten = 0;
-    size_t bytes = stepSize * numSteps;
-    int i = 0;
+    const uint64_t deadlineUs = gfxstream::base::getHighResTimeUs() + kRingBufferTestTimeoutUs;
     while (stepsWritten < numSteps) {
-        ++i;
-
-        // Safety factor; we do not expect the ring buffer
-        // implementation to be this hangy if used this way.
-        if (i > bytes * 10) {
-            FAIL() << "Error: too many iterations. Hanging?";
+        if (gfxstream::base::getHighResTimeUs() > deadlineUs) {
+            FAIL() << "Error: timed out waiting to write to ring buffer. Hanging?";
             return;
         }
 
@@ -121,21 +118,17 @@ static void writeTest(ring_buffer* r, const uint8_t* data, size_t stepSize, size
 
         if (stepsWrittenThisTime < stepsRemaining) {
             EXPECT_EQ(-EAGAIN, errno);
+            ring_buffer_yield();
         }
     }
 }
 
 static void readTest(ring_buffer* r, uint8_t* data, size_t stepSize, size_t numSteps) {
     size_t stepsRead = 0;
-    size_t bytes = stepSize * numSteps;
-    int i = 0;
+    const uint64_t deadlineUs = gfxstream::base::getHighResTimeUs() + kRingBufferTestTimeoutUs;
     while (stepsRead < numSteps) {
-        ++i;
-
-        // Safety factor; we do not expect the ring buffer
-        // implementation to be this hangy if used this way.
-        if (i > bytes * 10) {
-            FAIL() << "Error: too many iterations. Hanging?";
+        if (gfxstream::base::getHighResTimeUs() > deadlineUs) {
+            FAIL() << "Error: timed out waiting to read from ring buffer. Hanging?";
             return;
         }
 
@@ -148,6 +141,7 @@ static void readTest(ring_buffer* r, uint8_t* data, size_t stepSize, size_t numS
 
         if (stepsReadThisTime < stepsRemaining) {
             EXPECT_EQ(-EAGAIN, errno);
+            ring_buffer_yield();
         }
     }
 }
@@ -233,15 +227,10 @@ TEST(ring_buffer, DISABLED_ProduceConsumeMultiThreadVaryingStepSize) {
 
 static void viewWriteTest(ring_buffer* r, ring_buffer_view* v, const uint8_t* data, size_t stepSize, size_t numSteps) {
     size_t stepsWritten = 0;
-    size_t bytes = stepSize * numSteps;
-    int i = 0;
+    const uint64_t deadlineUs = gfxstream::base::getHighResTimeUs() + kRingBufferTestTimeoutUs;
     while (stepsWritten < numSteps) {
-        ++i;
-
-        // Safety factor; we do not expect the ring buffer
-        // implementation to be this hangy if used this way.
-        if (i > bytes * 10) {
-            FAIL() << "Error: too many iterations. Hanging?";
+        if (gfxstream::base::getHighResTimeUs() > deadlineUs) {
+            FAIL() << "Error: timed out waiting to write to ring buffer view. Hanging?";
             return;
         }
 
@@ -254,21 +243,17 @@ static void viewWriteTest(ring_buffer* r, ring_buffer_view* v, const uint8_t* da
 
         if (stepsWrittenThisTime < stepsRemaining) {
             EXPECT_EQ(-EAGAIN, errno);
+            ring_buffer_yield();
         }
     }
 }
 
 static void viewReadTest(ring_buffer* r, ring_buffer_view* v, uint8_t* data, size_t stepSize, size_t numSteps) {
     size_t stepsRead = 0;
-    size_t bytes = stepSize * numSteps;
-    int i = 0;
+    const uint64_t deadlineUs = gfxstream::base::getHighResTimeUs() + kRingBufferTestTimeoutUs;
     while (stepsRead < numSteps) {
-        ++i;
-
-        // Safety factor; we do not expect the ring buffer
-        // implementation to be this hangy if used this way.
-        if (i > bytes * 10) {
-            FAIL() << "Error: too many iterations. Hanging?";
+        if (gfxstream::base::getHighResTimeUs() > deadlineUs) {
+            FAIL() << "Error: timed out waiting to read from ring buffer view. Hanging?";
             return;
         }
 
@@ -281,6 +266,7 @@ static void viewReadTest(ring_buffer* r, ring_buffer_view* v, uint8_t* data, siz
 
         if (stepsReadThisTime < stepsRemaining) {
             EXPECT_EQ(-EAGAIN, errno);
+            ring_buffer_yield();
         }
     }
 }
