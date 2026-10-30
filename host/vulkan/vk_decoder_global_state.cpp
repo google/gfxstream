@@ -466,7 +466,7 @@ class VkDecoderGlobalState::Impl {
 
             auto& queueinfo = *q2Info[boxed_queue];
             unboxed_device = queueinfo.device;
-            unboxed_queue_of_event = unboxed_to_boxed_VkQueue(boxed_queue);
+            unboxed_queue_of_event = unbox_VkQueue(boxed_queue);
             queueFamilyIndex = queueinfo.queueFamilyIndex;
             StateBlock stateBlock =
                 createSnapshotStateBlock(unboxed_device, unboxed_queue_of_event, queueFamilyIndex);
