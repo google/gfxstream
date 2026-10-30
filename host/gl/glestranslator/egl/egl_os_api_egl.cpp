@@ -435,31 +435,59 @@ EglOsEglDisplay::EglOsEglDisplay(bool nullEgl) {
         mDisplay = mDispatcher.eglGetDisplay(EGL_DEFAULT_DISPLAY);
     }
 
-    if (!mDispatcher.eglInitialize(mDisplay, nullptr, nullptr)) {
-        mDisplay = EGL_NO_DISPLAY;
+    {
+        // TODO(b/42050004): make sure ANGLE checks and sets VK_DRIVER_FILES
+        // When ANGLE_DEFAULT_PLATFORM=swiftshader is used alongside a software Vulkan ICD
+        // (e.g. Lavapipe via setIcdPaths), VK_DRIVER_FILES is set in the environment.
+        // ANGLE's ScopedVkLoaderEnvironment sets VK_ICD_FILENAMES to vk_swiftshader_icd.json
+        // during eglInitialize, but the Khronos Vulkan Loader prioritizes VK_DRIVER_FILES over
+        // VK_ICD_FILENAMES. Temporarily clear VK_DRIVER_FILES during eglInitialize so ANGLE
+        // loads SwiftShader as intended.
+        struct ScopedClearVkDriverFilesForSwiftShader {
+            std::string savedVkDriverFiles;
+            ScopedClearVkDriverFilesForSwiftShader() {
+                if (gfxstream::base::getEnvironmentVariable("ANGLE_DEFAULT_PLATFORM") ==
+                    "swiftshader") {
+                    savedVkDriverFiles =
+                        gfxstream::base::getEnvironmentVariable("VK_DRIVER_FILES");
+                    if (!savedVkDriverFiles.empty()) {
+                        gfxstream::base::setEnvironmentVariable("VK_DRIVER_FILES", "");
+                    }
+                }
+            }
+            ~ScopedClearVkDriverFilesForSwiftShader() {
+                if (!savedVkDriverFiles.empty()) {
+                    gfxstream::base::setEnvironmentVariable("VK_DRIVER_FILES", savedVkDriverFiles);
+                }
+            }
+        } scopedVkDriverFiles;
+
+        if (!mDispatcher.eglInitialize(mDisplay, nullptr, nullptr)) {
+            mDisplay = EGL_NO_DISPLAY;
 #ifdef EGL_ANGLE_platform_angle
-        if (mDispatcher.eglGetPlatformDisplay) {
+            if (mDispatcher.eglGetPlatformDisplay) {
 #ifndef EGL_PLATFORM_ANGLE_NATIVE_PLATFORM_TYPE_ANGLE
 #define EGL_PLATFORM_ANGLE_NATIVE_PLATFORM_TYPE_ANGLE 0x348F
 #endif
 #ifndef EGL_PLATFORM_VULKAN_DISPLAY_MODE_HEADLESS_ANGLE
 #define EGL_PLATFORM_VULKAN_DISPLAY_MODE_HEADLESS_ANGLE 0x34A5
 #endif
-            const EGLAttrib attr[] = {
-                EGL_PLATFORM_ANGLE_TYPE_ANGLE,
-                EGL_PLATFORM_ANGLE_TYPE_VULKAN_ANGLE,
-                EGL_PLATFORM_ANGLE_NATIVE_PLATFORM_TYPE_ANGLE,
-                EGL_PLATFORM_VULKAN_DISPLAY_MODE_HEADLESS_ANGLE,
-                EGL_NONE,
-            };
-            mDisplay = mDispatcher.eglGetPlatformDisplay(
-                EGL_PLATFORM_ANGLE_ANGLE, (void*)EGL_DEFAULT_DISPLAY, attr);
-            if (mDisplay != EGL_NO_DISPLAY &&
-                !mDispatcher.eglInitialize(mDisplay, nullptr, nullptr)) {
-                mDisplay = EGL_NO_DISPLAY;
+                const EGLAttrib attr[] = {
+                    EGL_PLATFORM_ANGLE_TYPE_ANGLE,
+                    EGL_PLATFORM_ANGLE_TYPE_VULKAN_ANGLE,
+                    EGL_PLATFORM_ANGLE_NATIVE_PLATFORM_TYPE_ANGLE,
+                    EGL_PLATFORM_VULKAN_DISPLAY_MODE_HEADLESS_ANGLE,
+                    EGL_NONE,
+                };
+                mDisplay = mDispatcher.eglGetPlatformDisplay(
+                    EGL_PLATFORM_ANGLE_ANGLE, (void*)EGL_DEFAULT_DISPLAY, attr);
+                if (mDisplay != EGL_NO_DISPLAY &&
+                    !mDispatcher.eglInitialize(mDisplay, nullptr, nullptr)) {
+                    mDisplay = EGL_NO_DISPLAY;
+                }
             }
-        }
 #endif
+        }
     }
 
     if (mDisplay == EGL_NO_DISPLAY) {
