@@ -325,10 +325,13 @@ public:
         : EglOS::Surface(type), mHndl(eglSurface), mWin(win) {}
     EGLSurface getHndl() { return mHndl; }
     EGLNativeWindowType getWin() { return mWin; }
+    bool everMadeCurrent() const { return mEverMadeCurrent; }
+    void setEverMadeCurrent() { mEverMadeCurrent = true; }
 
 private:
     EGLSurface mHndl;
     EGLNativeWindowType mWin;
+    bool mEverMadeCurrent = false;
 };
 
 class EglOsEglDisplay : public EglOS::Display {
@@ -359,6 +362,7 @@ public:
                                   const PbufferInfo* info);
     Surface* createWindowSurface(PixelFormat* pf, EGLNativeWindowType win);
     bool releasePbuffer(Surface* pb);
+    bool releaseWindowSurface(Surface* s) override { return releasePbuffer(s); }
     bool makeCurrent(Surface* read, Surface* draw, Context* context);
     EGLBoolean releaseThread();
     void swapBuffers(Surface* srfc);
@@ -860,6 +864,13 @@ bool EglOsEglDisplay::makeCurrent(Surface* read,
             mDisplay, drawSfc ? drawSfc->getHndl() : EGL_NO_SURFACE,
             readSfc ? readSfc->getHndl() : EGL_NO_SURFACE,
             ctx ? ctx->context() : EGL_NO_CONTEXT);
+    if (ret && drawSfc && drawSfc->type() == EglOS::Surface::WINDOW &&
+        !drawSfc->everMadeCurrent()) {
+        if (mDispatcher.eglSwapInterval) {
+            mDispatcher.eglSwapInterval(mDisplay, 0);
+        }
+        drawSfc->setEverMadeCurrent();
+    }
     if (readSfc) {
         D("make current surface type %d %d\n", readSfc->type(),
           drawSfc->type());
