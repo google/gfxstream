@@ -145,6 +145,9 @@ cc_library(
             # Default does not change anything and uses host drivers.
         ],
     }),
+    # Linked into the test binary so its sanitizer hooks (e.g.
+    # __tsan_default_suppressions) override the runtime's weak defaults.
+    linkstatic = True,
     strip_include_prefix = "include",
     deps = select({
         ":graphics_test_environment_gles_none_vulkan_lavapipe": [

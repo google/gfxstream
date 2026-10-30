@@ -30,6 +30,19 @@
 #include "gfxstream/common/logging.h"
 #include "gfxstream/system/System.h"
 
+#if defined(__has_feature)
+#if __has_feature(thread_sanitizer)
+// TSAN reads its suppressions at runtime startup before main() runs.
+// Lavapipe (@mesa//:vulkan_lvp) is built without -fsanitize=thread, and TSAN's
+// POSIX interceptors report false-positive races in lp_fence_destroy() and
+// util_queue_thread_func() (b/573994192, b/579560506).
+extern "C" const char* __tsan_default_suppressions() {
+    return "race:lp_fence_destroy\n"
+           "race:util_queue_thread_func\n";
+}
+#endif
+#endif
+
 namespace gfxstream {
 namespace testing {
 namespace {
