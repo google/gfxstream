@@ -7135,7 +7135,9 @@ class VkDecoderGlobalState::Impl {
 #elif defined(__ANDROID__)
                     importInfo.buffer = static_cast<AHardwareBuffer*>(
                         reinterpret_cast<void*>(dupHandleInfo->handle));
-                    vk_append_struct(&structChainIter, &importInfo);
+                    if (importInfo.buffer != nullptr) {
+                        vk_append_struct(&structChainIter, &importInfo);
+                    }
 #else
                     importFdInfo.fd = dupHandleInfo->getFd();
                     vk_append_struct(&structChainIter, &importFdInfo);
@@ -7299,8 +7301,13 @@ class VkDecoderGlobalState::Impl {
         //    buffers are not mapped by the guest, so no actual issues have been observed.
         //  * For complete correctness, we may need "getGuestOsLogic" logic somewhere in
         //    the future.
+        bool skipHostMapForAndroidAhb = false;
+#if defined(__ANDROID__)
+        skipHostMapForAndroidAhb = (importInfo.buffer != nullptr);
+#endif
         const bool hostVisible = memoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-        const bool emulateHostVisible = hostVisible && !importEmulatedExternalMemory;
+        const bool emulateHostVisible =
+            hostVisible && !importEmulatedExternalMemory && !skipHostMapForAndroidAhb;
 
         std::optional<SharedMemory> sharedMemory = std::nullopt;
         std::optional<VkExportMemoryAllocateInfo> exportAllocateInfo;
@@ -7555,7 +7562,7 @@ class VkDecoderGlobalState::Impl {
         bool needToMap =
             (!m_vkEmulation->getFeatures().ExternalBlob.enabled() ||
              (deviceInfo->useAstcCpuDecompression && deviceInfo->emulateTextureAstc)) &&
-            !createBlobInfoPtr;
+            !createBlobInfoPtr && !skipHostMapForAndroidAhb;
 
         // Some cases provide a mappedPtr, so we only map if we still don't have a pointer here.
         if (!mappedPtr && needToMap) {

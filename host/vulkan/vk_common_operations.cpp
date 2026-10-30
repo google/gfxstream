@@ -2512,8 +2512,9 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
             break;
         }
 
-        if (mDeviceInfo.memProps.memoryTypes[info->typeIndex].propertyFlags &
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
+        if (!isAndroidAhbImport &&
+            (mDeviceInfo.memProps.memoryTypes[info->typeIndex].propertyFlags &
+             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)) {
             VkResult mapRes =
                 vk->vkMapMemory(mDevice, info->memory, 0, info->size, 0, &info->mappedPtr);
             if (mapRes != VK_SUCCESS) {
