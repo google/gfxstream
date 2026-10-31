@@ -278,6 +278,49 @@ TEST(VkDecoderGlobalStateDescriptorUpdateTemplateTest, linearizedEntriesSkipWhol
     }
 }
 
+class VkDecoderGlobalStateSystemBlobHostPointerTest : public Test {
+   protected:
+    class MockHostPointerDispatch {
+       public:
+        MOCK_METHOD(VkResult,
+                    vkGetMemoryHostPointerPropertiesEXT,
+                    (VkDevice device, VkExternalMemoryHandleTypeFlagBits handleType,
+                     const void* pHostPointer,
+                     VkMemoryHostPointerPropertiesEXT* pMemoryHostPointerProperties),
+                    ());
+    };
+
+    MockHostPointerDispatch mMockDispatch;
+    VkDevice mDevice = reinterpret_cast<VkDevice>(0x2222'0000);
+    void* mHostPtr = reinterpret_cast<void*>(0x7fff'0001'0000ULL);
+};
+
+TEST_F(VkDecoderGlobalStateSystemBlobHostPointerTest, preservesSupportedMemoryTypeIndex) {
+    EXPECT_CALL(mMockDispatch,
+                vkGetMemoryHostPointerPropertiesEXT(
+                    mDevice, VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT, mHostPtr, _))
+        .WillOnce([](VkDevice, VkExternalMemoryHandleTypeFlagBits, const void*,
+                     VkMemoryHostPointerPropertiesEXT* props) {
+            props->memoryTypeBits = (1u << 2) | (1u << 5);
+            return VK_SUCCESS;
+        });
+
+    EXPECT_EQ(5u, selectSystemBlobHostPointerMemoryTypeIndex(&mMockDispatch, mDevice, mHostPtr, 5));
+}
+
+TEST_F(VkDecoderGlobalStateSystemBlobHostPointerTest, switchesUnsupportedMemoryTypeIndexToLowestValidBit) {
+    EXPECT_CALL(mMockDispatch,
+                vkGetMemoryHostPointerPropertiesEXT(
+                    mDevice, VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT, mHostPtr, _))
+        .WillOnce([](VkDevice, VkExternalMemoryHandleTypeFlagBits, const void*,
+                     VkMemoryHostPointerPropertiesEXT* props) {
+            props->memoryTypeBits = (1u << 3) | (1u << 6);
+            return VK_SUCCESS;
+        });
+
+    EXPECT_EQ(3u, selectSystemBlobHostPointerMemoryTypeIndex(&mMockDispatch, mDevice, mHostPtr, 1));
+}
+
 }  // namespace
 }  // namespace vk
 }  // namespace host
