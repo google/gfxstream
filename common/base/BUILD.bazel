@@ -64,6 +64,7 @@ cc_library(
         "System.cpp",
         "Tracing.cpp",
         "UdmabufCreator_stub.cpp",
+        "heap_memory.cpp",
     ] + select({
         "@platforms//os:windows": [
             "SharedMemory_win32.cpp",

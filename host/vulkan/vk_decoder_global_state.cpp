@@ -7311,7 +7311,7 @@ class VkDecoderGlobalState::Impl {
 
         std::optional<SharedMemory> sharedMemory = std::nullopt;
         std::optional<VkExportMemoryAllocateInfo> exportAllocateInfo;
-        std::shared_ptr<PrivateMemory> privateMemory = {};
+        std::optional<gfxstream::base::HeapMemory> heapMemory = std::nullopt;
 
         if (emulateHostVisible) {
             if (createBlobInfoPtr && createBlobInfoPtr->blobMem == STREAM_BLOB_MEM_GUEST &&
@@ -7458,7 +7458,7 @@ class VkDecoderGlobalState::Impl {
                     return VK_ERROR_INCOMPATIBLE_DRIVER;
                 }
 
-                // Determine size and alignment requirements and allocate a PrivateMemory
+                // Determine size and alignment requirements and allocate a HeapMemory
                 VkDeviceSize alignmentSize =
                     m_vkEmulation->externalMemoryHostProperties().minImportedHostPointerAlignment;
                 const size_t guestPageSize = gfxstream::host::get_gfxstream_guest_page_size();
@@ -7469,9 +7469,8 @@ class VkDecoderGlobalState::Impl {
 
                 VkDeviceSize alignedSize = ALIGN(localAllocInfo.allocationSize, alignmentSize);
                 localAllocInfo.allocationSize = alignedSize;
-                privateMemory =
-                    std::make_shared<PrivateMemory>(alignmentSize, localAllocInfo.allocationSize);
-                mappedPtr = privateMemory->getAddr();
+                heapMemory.emplace(alignmentSize, localAllocInfo.allocationSize);
+                mappedPtr = heapMemory->getAddr();
 
                 if (importHostInfo.pHostPointer != nullptr) {
                     GFXSTREAM_ERROR("%s: Host pointer info is already used for import operation!",
@@ -7586,7 +7585,7 @@ class VkDecoderGlobalState::Impl {
             // Always assign the shared memory into memoryInfo. If it was used, then it will have
             // ownership transferred.
             memoryInfo.sharedMemory = std::exchange(sharedMemory, std::nullopt);
-            memoryInfo.privateMemory = privateMemory;
+            memoryInfo.heapMemory = std::exchange(heapMemory, std::nullopt);
         }
 
         *pMemory = new_boxed_non_dispatchable_VkDeviceMemory(*pMemory);

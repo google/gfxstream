@@ -20,10 +20,6 @@
 #include <android/hardware_buffer.h>
 #endif
 
-#ifdef _WIN32
-#include <malloc.h>
-#endif
-
 #include <stdlib.h>
 
 #include <condition_variable>
@@ -43,6 +39,7 @@
 #include "gfxstream/common/logging.h"
 #include "gfxstream/host/handle.h"
 #include "gfxstream/memory/SharedMemory.h"
+#include "gfxstream/memory/heap_memory.h"
 #include "gfxstream/synchronization/ConditionVariable.h"
 #include "gfxstream/synchronization/Lock.h"
 #include "render-utils/stream.h"
@@ -125,32 +122,6 @@ class ExternalFencePool {
     size_t mMaxSize;
 };
 
-class PrivateMemory {
-public:
-    PrivateMemory(size_t alignment, size_t size) {
-#ifdef _WIN32
-        mAddr = _aligned_malloc(size, alignment);
-#else
-        mAddr = aligned_alloc(alignment, size);
-#endif
-    }
-    ~PrivateMemory() {
-        if (mAddr) {
-#ifdef _WIN32
-            _aligned_free(mAddr);
-#else
-            free(mAddr);
-#endif
-            mAddr = nullptr;
-        }
-    }
-    void* getAddr() {
-        return mAddr;
-    }
-private:
-    void* mAddr{nullptr};
-};
-
 struct BoundMemoryRange {
    VkDeviceSize offset;
    VkDeviceSize size;
@@ -181,7 +152,7 @@ struct MemoryInfo {
     // Set if the memory is backed by shared memory.
     std::optional<gfxstream::base::SharedMemory> sharedMemory;
 
-    std::shared_ptr<PrivateMemory> privateMemory;
+    std::optional<gfxstream::base::HeapMemory> heapMemory;
     // virtio-gpu blobs
     uint64_t blobId = 0;
 
