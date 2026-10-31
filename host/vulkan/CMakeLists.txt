@@ -44,6 +44,7 @@ add_library(gfxstream-vulkan-server
             vk_emulated_physical_device_queue.cpp
             vk_format_support.cpp
             vk_format_utils.cpp
+            vk_memory_allocation_helper.cpp
             vk_reconstruction.cpp
             vk_utils.cpp
             vk_vvl_configuration.cpp

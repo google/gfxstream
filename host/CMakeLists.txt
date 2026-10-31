@@ -324,6 +324,7 @@ endfunction()
         vulkan/vk_emulated_physical_device_memory_tests.cpp
         vulkan/vk_emulated_physical_device_queue_tests.cpp
         vulkan/vk_format_utils_unittest.cpp
+        vulkan/vk_memory_allocation_helper_tests.cpp
         vulkan/vk_qsri_timeline_unittest.cpp
         vulkan/vk_utils_tests.cpp
         vulkan/vulkan_unittest.cpp
