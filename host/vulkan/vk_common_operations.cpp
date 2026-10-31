@@ -2233,7 +2233,7 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
     switch (getExternalMemoryMode()) {
         // For host-allocation external memory mode, allocate host side memory first, then import
         case ExternalMemory::Mode::HostAllocation: {
-            // TODO(b/409769371): use PrivateMemory?
+            // TODO(b/409769371): use HeapMemory?
             VkDeviceSize alignment = externalMemoryHostProperties().minImportedHostPointerAlignment;
             VkDeviceSize alignedSize = ALIGN(allocInfo.allocationSize, alignment);
 #ifdef _WIN32
