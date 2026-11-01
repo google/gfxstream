@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <limits>
+#include <mutex>
 
 #include "gfxstream/common/logging.h"
 
@@ -41,6 +42,38 @@ std::optional<uint32_t> FindDeviceLocalMemoryTypeIfAllAreHostVisible(
     return deviceLocalIndex;
 }
 #endif
+
+// The host memory type to allocate from instead of the given one with the
+// VulkanAllocateUncachedHostVisibleAsCached feature.
+//
+// Host visible memory that is neither cached nor device local is typically write-combined system
+// memory, e.g. on NVIDIA. The guest writes into it through its mapping, which we measured to be
+// much slower than cached memory under WHPX, so use a cached coherent type on the same heap
+// instead, if there is one.
+uint32_t FindReplacementCachedHostMemoryTypeIndex(
+    const VkPhysicalDeviceMemoryProperties& hostMemoryProperties, uint32_t hostMemoryTypeIndex) {
+    const VkMemoryType& memoryType = hostMemoryProperties.memoryTypes[hostMemoryTypeIndex];
+    if (!(memoryType.propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) ||
+        (memoryType.propertyFlags &
+         (VK_MEMORY_PROPERTY_HOST_CACHED_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))) {
+        return hostMemoryTypeIndex;
+    }
+
+    constexpr VkMemoryPropertyFlags kCachedCoherent = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT |
+                                                      VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+    for (uint32_t i = 0; i < hostMemoryProperties.memoryTypeCount; i++) {
+        const VkMemoryType& candidate = hostMemoryProperties.memoryTypes[i];
+        if (candidate.heapIndex == memoryType.heapIndex &&
+            (candidate.propertyFlags & kCachedCoherent) == kCachedCoherent &&
+            !(candidate.propertyFlags &
+              (VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD |
+               VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD))) {
+            return i;
+        }
+    }
+    return hostMemoryTypeIndex;
+}
 
 }  // namespace
 
@@ -139,9 +172,38 @@ EmulatedPhysicalDeviceMemoryProperties::EmulatedPhysicalDeviceMemoryProperties(
         }
     }
 
+    // Only replace the memory type when gfxstream allocates host visible memory itself and maps
+    // it with vkMapMemory(). With these features, host visible memory is exported or is host
+    // memory that gfxstream imports, and it keeps its memory type.
+    const bool hostVisibleMemoryIsExportedOrImported =
+        features.ExternalBlob.enabled() || features.SystemBlob.enabled() ||
+        features.VulkanAllocateHostVisibleAsUdmabuf.enabled() ||
+        features.VulkanAllocateHostMemory.enabled();
+    bool allocateUncachedHostVisibleAsCached = false;
+    if (features.VulkanAllocateUncachedHostVisibleAsCached.enabled()) {
+        if (hostVisibleMemoryIsExportedOrImported) {
+            // This is built again for every vkEnumeratePhysicalDevices(), so warn only once.
+            static std::once_flag sWarnOnce;
+            std::call_once(sWarnOnce, [] {
+                GFXSTREAM_WARNING(
+                    "VulkanAllocateUncachedHostVisibleAsCached has no effect with ExternalBlob, "
+                    "SystemBlob, VulkanAllocateHostVisibleAsUdmabuf or VulkanAllocateHostMemory.");
+            });
+        } else {
+            allocateUncachedHostVisibleAsCached = true;
+        }
+    }
+
     for (uint32_t i = 0; i < mGuestMemoryProperties.memoryTypeCount; i++) {
+        // A replaced guest memory type keeps the flags of the original host memory type, and
+        // transformToGuestMemoryRequirements() only offers it for resources that allow the
+        // replacement.
+        const uint32_t hostMemoryTypeIndex =
+            allocateUncachedHostVisibleAsCached
+                ? FindReplacementCachedHostMemoryTypeIndex(mHostMemoryProperties, i)
+                : i;
         mGuestMemoryTypes.push_back(EmulatedGuestMemoryType{
-            .hostMemoryTypeIndex = i,
+            .hostMemoryTypeIndex = hostMemoryTypeIndex,
             .memoryType = mGuestMemoryProperties.memoryTypes[i],
         });
     }

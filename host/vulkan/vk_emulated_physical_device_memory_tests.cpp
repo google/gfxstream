@@ -15,6 +15,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <ios>
 #include <vector>
 
 #include "gfxstream/host/features.h"
@@ -557,6 +558,212 @@ TEST(VkGuestMemoryUtilsTest, VulkanEnsureCachedCoherentMemoryAvailable) {
     const auto actualGuestMemoryProperties = helper.getGuestMemoryProperties();
     EXPECT_THAT(actualGuestMemoryProperties,
                 EqsVkPhysicalDeviceMemoryProperties(expectedGuestMemoryProperties));
+}
+
+TEST(VkGuestMemoryUtilsTest, VulkanAllocateUncachedHostVisibleAsCached) {
+    constexpr VkMemoryPropertyFlags kDeviceLocal = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+    constexpr VkMemoryPropertyFlags kVisibleCoherent =
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    constexpr VkMemoryPropertyFlags kVisibleCoherentCached =
+        kVisibleCoherent | VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+
+    // The memory types of an NVIDIA RTX 4070 SUPER on Windows: heap 0 is VRAM and heap 1 is
+    // system memory. Type 2 is write-combined system memory and type 4 is ReBAR.
+    const std::vector<VkMemoryType> kNvidiaTypes = {
+        {.propertyFlags = 0, .heapIndex = 1},
+        {.propertyFlags = kDeviceLocal, .heapIndex = 0},
+        {.propertyFlags = kVisibleCoherent, .heapIndex = 1},
+        {.propertyFlags = kVisibleCoherentCached, .heapIndex = 1},
+        {.propertyFlags = kDeviceLocal | kVisibleCoherent, .heapIndex = 0},
+    };
+    // The only cached coherent type is on the other heap.
+    const std::vector<VkMemoryType> kCachedTypeOnOtherHeap = {
+        {.propertyFlags = kVisibleCoherent, .heapIndex = 1},
+        {.propertyFlags = kVisibleCoherentCached, .heapIndex = 0},
+    };
+    // The only cached coherent type is device local.
+    const std::vector<VkMemoryType> kCachedTypeIsDeviceLocal = {
+        {.propertyFlags = kVisibleCoherent, .heapIndex = 1},
+        {.propertyFlags = kDeviceLocal | kVisibleCoherentCached, .heapIndex = 1},
+    };
+    // The only cached coherent type is AMD device uncached memory.
+    const std::vector<VkMemoryType> kCachedTypeIsAmdDeviceUncached = {
+        {.propertyFlags = kVisibleCoherent, .heapIndex = 1},
+        {.propertyFlags = kVisibleCoherentCached | VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD,
+         .heapIndex = 1},
+    };
+    // The only cached type is not coherent.
+    const std::vector<VkMemoryType> kCachedTypeIsNotCoherent = {
+        {.propertyFlags = kVisibleCoherent, .heapIndex = 1},
+        {.propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
+         .heapIndex = 1},
+    };
+
+    const auto makeHostMemoryProperties = [](const std::vector<VkMemoryType>& memoryTypes) {
+        VkPhysicalDeviceMemoryProperties hostMemoryProperties = {};
+        hostMemoryProperties.memoryTypeCount = static_cast<uint32_t>(memoryTypes.size());
+        for (uint32_t i = 0; i < hostMemoryProperties.memoryTypeCount; i++) {
+            hostMemoryProperties.memoryTypes[i] = memoryTypes[i];
+        }
+        hostMemoryProperties.memoryHeapCount = 2;
+        hostMemoryProperties.memoryHeaps[0] = {.size = 0x2edd00000,
+                                               .flags = VK_MEMORY_HEAP_DEVICE_LOCAL_BIT};
+        hostMemoryProperties.memoryHeaps[1] = {.size = 0x7e3a7a000, .flags = 0};
+        return hostMemoryProperties;
+    };
+
+    using Features = gfxstream::host::FeatureSet;
+    using Feature = gfxstream::host::BoolFeatureInfo Features::*;
+    const Feature kAsCached = &Features::VulkanAllocateUncachedHostVisibleAsCached;
+
+    struct TestCase {
+        const char* name;
+        std::vector<VkMemoryType> hostMemoryTypes;
+        std::vector<Feature> enabledFeatures;
+        // No memory types are added in these cases, so guest memory type i has the flags of host
+        // memory type i.
+        uint32_t guestMemoryTypeIndex;
+        uint32_t expectedHostMemoryTypeIndex;
+    };
+    const std::vector<TestCase> testCases = {
+        {.name = "WriteCombinedUsesCachedTypeOnSameHeap",
+         .hostMemoryTypes = kNvidiaTypes,
+         .enabledFeatures = {kAsCached},
+         .guestMemoryTypeIndex = 2,
+         .expectedHostMemoryTypeIndex = 3},
+        {.name = "FeatureDisabled",
+         .hostMemoryTypes = kNvidiaTypes,
+         .enabledFeatures = {},
+         .guestMemoryTypeIndex = 2,
+         .expectedHostMemoryTypeIndex = 2},
+        {.name = "AlreadyCached",
+         .hostMemoryTypes = kNvidiaTypes,
+         .enabledFeatures = {kAsCached},
+         .guestMemoryTypeIndex = 3,
+         .expectedHostMemoryTypeIndex = 3},
+        {.name = "DeviceLocal",
+         .hostMemoryTypes = kNvidiaTypes,
+         .enabledFeatures = {kAsCached},
+         .guestMemoryTypeIndex = 1,
+         .expectedHostMemoryTypeIndex = 1},
+        {.name = "DeviceLocalHostVisible",
+         .hostMemoryTypes = kNvidiaTypes,
+         .enabledFeatures = {kAsCached},
+         .guestMemoryTypeIndex = 4,
+         .expectedHostMemoryTypeIndex = 4},
+        {.name = "NotHostVisible",
+         .hostMemoryTypes = kNvidiaTypes,
+         .enabledFeatures = {kAsCached},
+         .guestMemoryTypeIndex = 0,
+         .expectedHostMemoryTypeIndex = 0},
+        {.name = "CachedTypeOnOtherHeap",
+         .hostMemoryTypes = kCachedTypeOnOtherHeap,
+         .enabledFeatures = {kAsCached},
+         .guestMemoryTypeIndex = 0,
+         .expectedHostMemoryTypeIndex = 0},
+        {.name = "CachedTypeIsDeviceLocal",
+         .hostMemoryTypes = kCachedTypeIsDeviceLocal,
+         .enabledFeatures = {kAsCached},
+         .guestMemoryTypeIndex = 0,
+         .expectedHostMemoryTypeIndex = 0},
+        {.name = "CachedTypeIsAmdDeviceUncached",
+         .hostMemoryTypes = kCachedTypeIsAmdDeviceUncached,
+         .enabledFeatures = {kAsCached},
+         .guestMemoryTypeIndex = 0,
+         .expectedHostMemoryTypeIndex = 0},
+        {.name = "CachedTypeIsNotCoherent",
+         .hostMemoryTypes = kCachedTypeIsNotCoherent,
+         .enabledFeatures = {kAsCached},
+         .guestMemoryTypeIndex = 0,
+         .expectedHostMemoryTypeIndex = 0},
+        // Host visible memory that is exported or imported keeps its type.
+        {.name = "ExternalBlob",
+         .hostMemoryTypes = kNvidiaTypes,
+         .enabledFeatures = {kAsCached, &Features::ExternalBlob},
+         .guestMemoryTypeIndex = 2,
+         .expectedHostMemoryTypeIndex = 2},
+        {.name = "SystemBlob",
+         .hostMemoryTypes = kNvidiaTypes,
+         .enabledFeatures = {kAsCached, &Features::SystemBlob},
+         .guestMemoryTypeIndex = 2,
+         .expectedHostMemoryTypeIndex = 2},
+        {.name = "VulkanAllocateHostVisibleAsUdmabuf",
+         .hostMemoryTypes = kNvidiaTypes,
+         .enabledFeatures = {kAsCached, &Features::VulkanAllocateHostVisibleAsUdmabuf},
+         .guestMemoryTypeIndex = 2,
+         .expectedHostMemoryTypeIndex = 2},
+        {.name = "VulkanAllocateHostMemory",
+         .hostMemoryTypes = kNvidiaTypes,
+         .enabledFeatures = {kAsCached, &Features::VulkanAllocateHostMemory},
+         .guestMemoryTypeIndex = 2,
+         .expectedHostMemoryTypeIndex = 2},
+    };
+
+    for (const TestCase& testCase : testCases) {
+        SCOPED_TRACE(testCase.name);
+
+        const VkPhysicalDeviceMemoryProperties hostMemoryProperties =
+            makeHostMemoryProperties(testCase.hostMemoryTypes);
+
+        gfxstream::host::FeatureSet features;
+        for (const Feature feature : testCase.enabledFeatures) {
+            (features.*feature).setEnabled(true);
+        }
+        EmulatedPhysicalDeviceMemoryProperties helper(hostMemoryProperties, 0, features);
+
+        // The feature never changes what the guest sees.
+        gfxstream::host::FeatureSet featuresWithoutAsCached = features;
+        featuresWithoutAsCached.VulkanAllocateUncachedHostVisibleAsCached.setEnabled(false);
+        EmulatedPhysicalDeviceMemoryProperties withoutAsCached(hostMemoryProperties, 0,
+                                                               featuresWithoutAsCached);
+        EXPECT_THAT(
+            helper.getGuestMemoryProperties(),
+            EqsVkPhysicalDeviceMemoryProperties(withoutAsCached.getGuestMemoryProperties()));
+
+        EXPECT_THAT(
+            helper.getHostMemoryInfoFromGuestMemoryTypeIndex(testCase.guestMemoryTypeIndex),
+            Optional(EqsHostMemoryInfo(EmulatedPhysicalDeviceMemoryProperties::HostMemoryInfo{
+                .index = testCase.expectedHostMemoryTypeIndex,
+                .memoryType = testCase.hostMemoryTypes[testCase.expectedHostMemoryTypeIndex],
+            })));
+
+        // The guest memory type is offered for a resource exactly when the resource allows the
+        // host memory type that it is allocated from.
+        const uint32_t allHostMemoryTypeBits = (1u << hostMemoryProperties.memoryTypeCount) - 1;
+        const uint32_t expectedHostMemoryTypeBit = 1u << testCase.expectedHostMemoryTypeIndex;
+        const uint32_t guestMemoryTypeBit = 1u << testCase.guestMemoryTypeIndex;
+        for (const uint32_t hostMemoryTypeBits :
+             {allHostMemoryTypeBits, expectedHostMemoryTypeBit,
+              allHostMemoryTypeBits & ~expectedHostMemoryTypeBit}) {
+            VkMemoryRequirements requirements = {.memoryTypeBits = hostMemoryTypeBits};
+            helper.transformToGuestMemoryRequirements(&requirements);
+            EXPECT_EQ(requirements.memoryTypeBits & guestMemoryTypeBit,
+                      (hostMemoryTypeBits & expectedHostMemoryTypeBit) ? guestMemoryTypeBit : 0u)
+                << "host memory type bits 0x" << std::hex << hostMemoryTypeBits;
+        }
+    }
+
+    // With the NVIDIA memory types, guest memory types 2 and 3 are both allocated from host memory
+    // type 3.
+    gfxstream::host::FeatureSet features;
+    features.VulkanAllocateUncachedHostVisibleAsCached.setEnabled(true);
+    EmulatedPhysicalDeviceMemoryProperties helper(makeHostMemoryProperties(kNvidiaTypes), 0,
+                                                  features);
+    const struct {
+        uint32_t hostMemoryTypeBits;
+        uint32_t expectedGuestMemoryTypeBits;
+    } kRequirements[] = {
+        {0b11111, 0b11111},
+        {0b01000, 0b01100},
+        // Allows the write-combined type but not the cached one.
+        {0b00110, 0b00010},
+    };
+    for (const auto& [hostMemoryTypeBits, expectedGuestMemoryTypeBits] : kRequirements) {
+        VkMemoryRequirements requirements = {.memoryTypeBits = hostMemoryTypeBits};
+        helper.transformToGuestMemoryRequirements(&requirements);
+        EXPECT_EQ(requirements.memoryTypeBits, expectedGuestMemoryTypeBits)
+            << "host memory type bits 0x" << std::hex << hostMemoryTypeBits;
+    }
 }
 
 TEST(VkGuestMemoryUtilsTest, VulkanAMDCoherentFlagsNotLeakedToGuest) {

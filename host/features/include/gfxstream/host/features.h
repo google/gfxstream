@@ -431,6 +431,14 @@ struct FeatureSet {
         "app-compatiblity for common graphics layers in the guest.",
         &map,
     };
+    BoolFeatureInfo VulkanAllocateUncachedHostVisibleAsCached = {
+        "VulkanAllocateUncachedHostVisibleAsCached",
+        "If enabled, guest allocations from a host visible memory type that is neither host "
+        "cached nor device local (e.g. write-combined system memory) are made from a host "
+        "visible, coherent and cached memory type on the same heap. Has no effect with "
+        "ExternalBlob, SystemBlob, VulkanAllocateHostVisibleAsUdmabuf or VulkanAllocateHostMemory.",
+        &map,
+    };
     StringFeatureInfo VulkanExternalMemoryMode = {
         "VulkanExternalMemoryMode",
         "A string specifying the ExternalMemoryMode for VkEmulation to use, "
