@@ -1,6 +1,8 @@
+include("//third_party/amber:amber.MODULE.bazel")
 include("//third_party/angle:angle.MODULE.bazel")
 include("//third_party/deqp:deqp.MODULE.bazel")
 include("//third_party/glslang:glslang.MODULE.bazel")
+include("//third_party/libpng:libpng.MODULE.bazel")
 include("//third_party/mako:mako.MODULE.bazel")
 include("//third_party/markupsafe:markupsafe.MODULE.bazel")
 include("//third_party/mesa:mesa.MODULE.bazel")
