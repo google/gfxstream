@@ -217,3 +217,32 @@ jobs:
         run: meson setup build
       - name: Build
         run: meson compile -C build
+
+  presubmit-success:
+    name: presubmit-success
+    if: always()
+    runs-on: ubuntu-22.04
+    needs:
+      - run-buildozer
+      - run-gfxstream-bazel-lavapipe-tests
+      - run-gfxstream-bazel-swiftshader-tests
+      - run-gfxstream-bazel-swiftshader-tests-asan
+      - run-gfxstream-bazel-tests-arm
+      - run-gfxstream-bazel-build-macos
+      - run-gfxstream-cmake-build
+      - run-gfxstream-cmake-build-macos
+      - run-gfxstream-meson-build
+      - run-gfxstream-meson-build-macos
+      - run-gfxstream-meson-build-windows
+    steps:
+      - name: Fail if any dependency failed or was cancelled
+        run: |
+          results='${{ join(needs.*.result, ' ') }}'
+          echo "dependency results: ${results}"
+          for r in ${results}; do
+            case "${r}" in
+              failure|cancelled)
+                echo "A required job did not pass."; exit 1;;
+            esac
+          done
+
