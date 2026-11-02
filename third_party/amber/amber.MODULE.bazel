@@ -1,0 +1,9 @@
+git_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
+git_repository(
+    name = "amber",
+    build_file = "//third_party/amber:BUILD.amber.bazel",
+    commit = "dea530a75fa98b268141bc4367980bccb3485f4b",
+    dev_dependency = True,
+    remote = "https://android.googlesource.com/platform/external/deqp-deps/amber.git",
+)

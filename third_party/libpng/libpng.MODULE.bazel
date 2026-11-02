@@ -1,0 +1,9 @@
+git_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
+git_repository(
+    name = "libpng",
+    build_file = "//third_party/libpng:BUILD.libpng.bazel",
+    commit = "8349ac41b77b8de948120fc2ed1b492ffb3b16f6",
+    dev_dependency = True,
+    remote = "https://android.googlesource.com/platform/external/libpng.git",
+)

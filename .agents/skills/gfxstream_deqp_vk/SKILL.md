@@ -38,7 +38,7 @@ This skill enables fast edit-compile-test iterations for Vulkan CTS (`deqp-vk`) 
     - `tests/deqp/tooling/deqp_wrapper.sh`
     - `tests/deqp/tooling/deqp_qpa_to_test_xml.py` & `tests/deqp/tooling/deqp_qpa_to_test_xml_main.py`
     - `tests/deqp/BUILD.bazel` (`//tests/deqp:deqp_vk_smoke_tests`)
-  - **dEQP Bazel Build Definitions**: `third_party/deqp/` (`deqp.MODULE.bazel`, `BUILD.deqp.bazel`, `BUILD.amber.bazel`, `BUILD.libpng.bazel`)
+  - **dEQP Bazel Build Definitions**: `third_party/deqp/`, `third_party/amber/`, `third_party/libpng/`
   - **Mesa Bazel Build Definitions**: `third_party/mesa/` (`mesa.MODULE.bazel`, `BUILD.mesa.bazel`)
 - **Gfxstream Guest Vulkan ICD (`vulkan.ranchu.so`)**: `external/mesa3d/src/gfxstream`
   - **Guest Vulkan Driver & Encoder**: `src/gfxstream/guest/vulkan/` and `src/gfxstream/guest/vulkan_enc/` (`ResourceTracker.cpp`, `VkEncoder.cpp`, `gfxstream_vk_device.cpp`, `gfxstream_vk_cmd.cpp`, etc.)

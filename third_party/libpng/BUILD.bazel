@@ -1,0 +1,4 @@
+exports_files([
+    "BUILD.libpng.bazel",
+    "libpng.MODULE.bazel",
+])

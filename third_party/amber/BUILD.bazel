@@ -1,0 +1,4 @@
+exports_files([
+    "BUILD.amber.bazel",
+    "amber.MODULE.bazel",
+])
