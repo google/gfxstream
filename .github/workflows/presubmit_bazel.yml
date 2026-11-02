@@ -41,6 +41,7 @@ on:
           host/vulkan:gfxstream_emulatedphysicalmemory_tests
           host/vulkan:vk_common_operations_tests
           host/vulkan:vk_format_utils_tests
+          tests/deqp/...
           tests/end2end:gfxstream_end2end_tests
 
 permissions:

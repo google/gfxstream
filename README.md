@@ -150,6 +150,14 @@ or
 bazel test tests/end2end:gfxstream_end2end_tests
 ```
 
+You can run dEQP tests with
+
+```
+bazel test \
+    --graphics_drivers=gles_angle_vulkan_swiftshader \
+    //tests/deqp:deqp_vk_smoke_tests
+```
+
 #### Soong
 
 From within an Android repo, run:
