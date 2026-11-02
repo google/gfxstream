@@ -16,7 +16,7 @@
 import argparse
 import xml.etree.ElementTree as ET
 
-from tests.end2end import deqp_qpa_to_test_xml
+from tests.deqp.tooling import deqp_qpa_to_test_xml
 
 
 def main() -> None:

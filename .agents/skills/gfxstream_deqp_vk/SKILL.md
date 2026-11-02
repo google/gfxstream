@@ -34,10 +34,10 @@ This skill enables fast edit-compile-test iterations for Vulkan CTS (`deqp-vk`) 
   - **Host Vulkan Decoder**: `host/vulkan/` (`VkDecoder.cpp`, `VkDecoderGlobalState.cpp`, `VkSubDecoder.cpp`, etc.)
   - **Host Vulkan Codegen**: `codegen/scripts/` and `host/vulkan/cereal/`
   - **Bazel dEQP Test Macro & Wrapper**:
-    - `tests/end2end/deqp.bzl` (`gfxstream_deqp_vk_test`)
-    - `tests/end2end/deqp_wrapper.sh`
-    - `tests/end2end/deqp_qpa_to_test_xml.py` & `tests/end2end/deqp_qpa_to_test_xml_main.py`
-    - `tests/end2end/BUILD.bazel` (`//tests/end2end:deqp_vk_smoke_tests`)
+    - `tests/deqp/tooling/deqp.bzl` (`gfxstream_deqp_vk_test`)
+    - `tests/deqp/tooling/deqp_wrapper.sh`
+    - `tests/deqp/tooling/deqp_qpa_to_test_xml.py` & `tests/deqp/tooling/deqp_qpa_to_test_xml_main.py`
+    - `tests/deqp/BUILD.bazel` (`//tests/deqp:deqp_vk_smoke_tests`)
   - **dEQP Bazel Build Definitions**: `third_party/deqp/` (`deqp.MODULE.bazel`, `BUILD.deqp.bazel`, `BUILD.amber.bazel`, `BUILD.libpng.bazel`)
   - **Mesa Bazel Build Definitions**: `third_party/mesa/` (`mesa.MODULE.bazel`, `BUILD.mesa.bazel`)
 - **Gfxstream Guest Vulkan ICD (`vulkan.ranchu.so`)**: `external/mesa3d/src/gfxstream`
@@ -83,22 +83,22 @@ Bazel automatically fetches and builds `@deqp//:deqp-vk`, `@deqp//:data`, `@mesa
 
 ```bash
 # Run default smoke tests (dEQP-VK.api.smoke.*) against host Vulkan driver:
-bazel test //tests/end2end:deqp_vk_smoke_tests \
+bazel test //tests/deqp:deqp_vk_smoke_tests \
   --test_output=streamed
 
 # Run smoke tests against hermetic Lavapipe software Vulkan driver:
-bazel test //tests/end2end:deqp_vk_smoke_tests \
+bazel test //tests/deqp:deqp_vk_smoke_tests \
   --graphics_drivers=gles_angle_vulkan_lavapipe \
   --test_output=streamed
 
 # Run a single test or custom comma-separated wildcard pattern via --test_arg:
-bazel test //tests/end2end:deqp_vk_smoke_tests \
+bazel test //tests/deqp:deqp_vk_smoke_tests \
   --graphics_drivers=gles_angle_vulkan_lavapipe \
   --test_output=streamed \
   --test_arg=--deqp_cases="dEQP-VK.api.smoke.triangle"
 
 # Pass custom Kumquat --renderer-features (e.g. VulkanValidation:print):
-bazel test //tests/end2end:deqp_vk_smoke_tests \
+bazel test //tests/deqp:deqp_vk_smoke_tests \
   --graphics_drivers=gles_angle_vulkan_lavapipe \
   --test_output=streamed \
   --test_arg=--renderer_features="VulkanValidation:print" \
@@ -107,7 +107,7 @@ bazel test //tests/end2end:deqp_vk_smoke_tests \
 
 ### 2. Defining Sharded Test Targets with `gfxstream_deqp_vk_test`
 
-`gfxstream_deqp_vk_test` in `tests/end2end/deqp.bzl` supports native Bazel test sharding (`shard_count` / `TEST_TOTAL_SHARDS` / `TEST_SHARD_INDEX`):
+`gfxstream_deqp_vk_test` in `tests/deqp/tooling/deqp.bzl` supports native Bazel test sharding (`shard_count` / `TEST_TOTAL_SHARDS` / `TEST_SHARD_INDEX`):
 
 ```python
 gfxstream_deqp_vk_test(
@@ -130,7 +130,7 @@ To build and test against local source modifications in `<workspace_root>/extern
    ```
 2. Pass `--override_repository=+git_repository+mesa=$(realpath ../../external/mesa3d)` to `bazel test`:
    ```bash
-   bazel test //tests/end2end:deqp_vk_smoke_tests \
+   bazel test //tests/deqp:deqp_vk_smoke_tests \
      --graphics_drivers=gles_angle_vulkan_lavapipe \
      --override_repository=+git_repository+mesa=$(realpath ../../external/mesa3d) \
      --test_output=streamed \
@@ -145,7 +145,7 @@ To build and test against local source modifications in `<workspace_root>/extern
    ```
 2. Pass `--override_repository=+git_repository+deqp=$(realpath ../../external/deqp)` to `bazel test`:
    ```bash
-   bazel test //tests/end2end:deqp_vk_smoke_tests \
+   bazel test //tests/deqp:deqp_vk_smoke_tests \
      --graphics_drivers=gles_angle_vulkan_lavapipe \
      --override_repository=+git_repository+deqp=$(realpath ../../external/deqp) \
      --test_output=streamed \
@@ -156,7 +156,7 @@ To build and test against local source modifications in `<workspace_root>/extern
 
 ## Collecting & Analyzing Logs
 
-Every `bazel test //tests/end2end:deqp_vk_smoke_tests` invocation writes test results and diagnostic artifacts under `bazel-testlogs/tests/end2end/deqp_vk_smoke_tests/`:
+Every `bazel test //tests/deqp:deqp_vk_smoke_tests` invocation writes test results and diagnostic artifacts under `bazel-testlogs/tests/deqp/deqp_vk_smoke_tests/`:
 
 1. **`test.xml`**:
    - JUnit XML converted from `TestResults.qpa` by `deqp_qpa_to_test_xml_main`, listing per-case pass/fail/skip/crash status and failure details.
@@ -173,13 +173,13 @@ Every `bazel test //tests/end2end:deqp_vk_smoke_tests` invocation writes test re
 
 1. **Reproduce**: Run the failing test case in isolation:
    ```bash
-   bazel test //tests/end2end:deqp_vk_smoke_tests \
+   bazel test //tests/deqp:deqp_vk_smoke_tests \
      --graphics_drivers=gles_angle_vulkan_lavapipe \
      --test_output=streamed \
      --test_arg=--deqp_cases="dEQP-VK.<failing_test>"
    ```
 2. **Inspect Logs**:
-   - Check `bazel-testlogs/tests/end2end/deqp_vk_smoke_tests/test.xml`, `test.log`, and `test.outputs/` (`TestResults.qpa`, `kumquat_logs.txt`) for dEQP failure details and guest encoder vs. host decoder errors.
+   - Check `bazel-testlogs/tests/deqp/deqp_vk_smoke_tests/test.xml`, `test.log`, and `test.outputs/` (`TestResults.qpa`, `kumquat_logs.txt`) for dEQP failure details and guest encoder vs. host decoder errors.
 3. **Modify Code**:
    - For host-side Vulkan decoding/emulation issues: edit files under `hardware/google/gfxstream/host/vulkan/`.
    - For guest-side Vulkan encoding/resource tracking issues: edit files under `external/mesa3d/src/gfxstream/guest/` and run with `--override_repository=+git_repository+mesa=...`.
