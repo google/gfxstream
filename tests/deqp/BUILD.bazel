@@ -1,0 +1,11 @@
+load("//tests/deqp/tooling:deqp.bzl", "gfxstream_deqp_vk_test")
+
+package(
+    default_applicable_licenses = ["//:gfxstream_license"],
+    default_visibility = ["//:gfxstream"],
+)
+
+gfxstream_deqp_vk_test(
+    name = "deqp_vk_smoke_tests",
+    deqp_cases = ["dEQP-VK.api.smoke.*"],
+)

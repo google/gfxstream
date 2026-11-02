@@ -21,18 +21,18 @@ def gfxstream_deqp_vk_test(
         **kwargs):
     sh_test(
         name = name,
-        srcs = ["//tests/end2end:deqp_wrapper.sh"],
+        srcs = ["//tests/deqp/tooling:deqp_wrapper.sh"],
         args = [
             "--deqp_binary=$(location @deqp//:deqp-vk)",
             "--deqp_cases=" + ",".join(deqp_cases),
-            "--deqp_qpa_to_test_xml=$(location //tests/end2end:deqp_qpa_to_test_xml_main)",
+            "--deqp_qpa_to_test_xml=$(location //tests/deqp/tooling:deqp_qpa_to_test_xml_main)",
             "--graphics_drivers_dir=$(location //common/testenv:graphics_test_environment_drivers)",
             "--kumquat_binary=$(location @rutabaga//:rutabaga_gfx_kumquat_server)",
             "--vulkan_driver=$(location @mesa//:mesa_gfxstream_guest_vulkan)",
         ],
         data = [
             "//common/testenv:graphics_test_environment_drivers",
-            "//tests/end2end:deqp_qpa_to_test_xml_main",
+            "//tests/deqp/tooling:deqp_qpa_to_test_xml_main",
             "@deqp//:data",
             "@deqp//:deqp-vk",
             "@mesa//:mesa_gfxstream_guest_vulkan",

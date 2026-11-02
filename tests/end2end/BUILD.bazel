@@ -1,7 +1,5 @@
 load("@aspect_bazel_lib//lib:copy_to_directory.bzl", "copy_to_directory")
 load("@rules_cc//cc:defs.bzl", "cc_test")
-load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
-load(":deqp.bzl", "gfxstream_deqp_vk_test")
 
 package(
     default_applicable_licenses = ["//:gfxstream_license"],
@@ -100,34 +98,4 @@ cc_test(
         "@mesa//:mesa_virtgpu_kumquat_ffi",
         "@rules_cc//cc/runfiles",
     ],
-)
-
-exports_files([
-    "deqp_wrapper.sh",
-])
-
-py_library(
-    name = "deqp_qpa_to_test_xml",
-    srcs = ["deqp_qpa_to_test_xml.py"],
-)
-
-py_binary(
-    name = "deqp_qpa_to_test_xml_main",
-    srcs = ["deqp_qpa_to_test_xml_main.py"],
-    deps = [
-        ":deqp_qpa_to_test_xml",
-    ],
-)
-
-py_test(
-    name = "deqp_qpa_to_test_xml_test",
-    srcs = ["deqp_qpa_to_test_xml_test.py"],
-    deps = [
-        ":deqp_qpa_to_test_xml",
-    ],
-)
-
-gfxstream_deqp_vk_test(
-    name = "deqp_vk_smoke_tests",
-    deqp_cases = ["dEQP-VK.api.smoke.*"],
 )

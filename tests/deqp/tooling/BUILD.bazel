@@ -1,0 +1,31 @@
+load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
+
+package(
+    default_applicable_licenses = ["//:gfxstream_license"],
+    default_visibility = ["//:gfxstream"],
+)
+
+exports_files([
+    "deqp_wrapper.sh",
+])
+
+py_library(
+    name = "deqp_qpa_to_test_xml",
+    srcs = ["deqp_qpa_to_test_xml.py"],
+)
+
+py_binary(
+    name = "deqp_qpa_to_test_xml_main",
+    srcs = ["deqp_qpa_to_test_xml_main.py"],
+    deps = [
+        ":deqp_qpa_to_test_xml",
+    ],
+)
+
+py_test(
+    name = "deqp_qpa_to_test_xml_test",
+    srcs = ["deqp_qpa_to_test_xml_test.py"],
+    deps = [
+        ":deqp_qpa_to_test_xml",
+    ],
+)
