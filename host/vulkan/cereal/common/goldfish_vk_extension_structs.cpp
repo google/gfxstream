@@ -866,6 +866,9 @@ size_t goldfish_vk_extension_struct_size(VkStructureType rootType, const void* s
         case VK_STRUCTURE_TYPE_GUEST_CAPABILITIES_GOOGLE: {
             return sizeof(VkGuestCapabilitiesGOOGLE);
         }
+        case VK_STRUCTURE_TYPE_HOST_POINTER_RESOLVE_GOOGLE: {
+            return sizeof(VkHostPointerResolveGOOGLE);
+        }
 #endif
 #ifdef VK_EXT_border_color_swizzle
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BORDER_COLOR_SWIZZLE_FEATURES_EXT: {

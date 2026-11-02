@@ -786,6 +786,84 @@ TEST(VkFormatUtilsTest, GetTransferInfoASTC5x4NonPowerOfTwoBlock) {
                 })));
 }
 
+MATCHER_P4(IsTexelBlock, width, height, depth, sizeBytes, "") {
+    return arg.has_value() && arg->width == static_cast<uint32_t>(width) &&
+           arg->height == static_cast<uint32_t>(height) &&
+           arg->depth == static_cast<uint32_t>(depth) &&
+           arg->sizeBytes == static_cast<uint32_t>(sizeBytes);
+}
+
+TEST(VkFormatUtilsTest, GetCopyTexelBlockInfoColor) {
+    EXPECT_THAT(getCopyTexelBlockInfo(VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT),
+                IsTexelBlock(1, 1, 1, 4));
+    EXPECT_THAT(getCopyTexelBlockInfo(VK_FORMAT_R32G32B32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT),
+                IsTexelBlock(1, 1, 1, 12));
+    EXPECT_THAT(getCopyTexelBlockInfo(VK_FORMAT_G8B8G8R8_422_UNORM, VK_IMAGE_ASPECT_COLOR_BIT),
+                IsTexelBlock(2, 1, 1, 4));
+    EXPECT_THAT(getCopyTexelBlockInfo(VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_DEPTH_BIT),
+                Eq(std::nullopt));
+    EXPECT_THAT(getCopyTexelBlockInfo(VK_FORMAT_R8_UNORM, VK_IMAGE_ASPECT_PLANE_0_BIT),
+                Eq(std::nullopt));
+    EXPECT_THAT(getCopyTexelBlockInfo(VK_FORMAT_UNDEFINED, VK_IMAGE_ASPECT_COLOR_BIT),
+                Eq(std::nullopt));
+}
+
+TEST(VkFormatUtilsTest, GetCopyTexelBlockInfoCompressed) {
+    EXPECT_THAT(
+        getCopyTexelBlockInfo(VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK, VK_IMAGE_ASPECT_COLOR_BIT),
+        IsTexelBlock(4, 4, 1, 8));
+    EXPECT_THAT(getCopyTexelBlockInfo(VK_FORMAT_EAC_R11G11_SNORM_BLOCK, VK_IMAGE_ASPECT_COLOR_BIT),
+                IsTexelBlock(4, 4, 1, 16));
+    EXPECT_THAT(getCopyTexelBlockInfo(VK_FORMAT_ASTC_8x6_SRGB_BLOCK, VK_IMAGE_ASPECT_COLOR_BIT),
+                IsTexelBlock(8, 6, 1, 16));
+    EXPECT_THAT(
+        getCopyTexelBlockInfo(VK_FORMAT_ASTC_4x4x4_UNORM_BLOCK_EXT, VK_IMAGE_ASPECT_COLOR_BIT),
+        IsTexelBlock(4, 4, 4, 16));
+    EXPECT_THAT(getCopyTexelBlockInfo(VK_FORMAT_BC1_RGB_UNORM_BLOCK, VK_IMAGE_ASPECT_COLOR_BIT),
+                IsTexelBlock(4, 4, 1, 8));
+}
+
+TEST(VkFormatUtilsTest, GetCopyTexelBlockInfoDepthStencil) {
+    EXPECT_THAT(getCopyTexelBlockInfo(VK_FORMAT_D16_UNORM_S8_UINT, VK_IMAGE_ASPECT_DEPTH_BIT),
+                IsTexelBlock(1, 1, 1, 2));
+    EXPECT_THAT(getCopyTexelBlockInfo(VK_FORMAT_D24_UNORM_S8_UINT, VK_IMAGE_ASPECT_DEPTH_BIT),
+                IsTexelBlock(1, 1, 1, 4));
+    EXPECT_THAT(getCopyTexelBlockInfo(VK_FORMAT_D32_SFLOAT_S8_UINT, VK_IMAGE_ASPECT_DEPTH_BIT),
+                IsTexelBlock(1, 1, 1, 4));
+    EXPECT_THAT(getCopyTexelBlockInfo(VK_FORMAT_D32_SFLOAT_S8_UINT, VK_IMAGE_ASPECT_STENCIL_BIT),
+                IsTexelBlock(1, 1, 1, 1));
+    EXPECT_THAT(getCopyTexelBlockInfo(VK_FORMAT_S8_UINT, VK_IMAGE_ASPECT_STENCIL_BIT),
+                IsTexelBlock(1, 1, 1, 1));
+    EXPECT_THAT(getCopyTexelBlockInfo(VK_FORMAT_D24_UNORM_S8_UINT,
+                                      VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT),
+                Eq(std::nullopt));
+    EXPECT_THAT(getCopyTexelBlockInfo(VK_FORMAT_D24_UNORM_S8_UINT, VK_IMAGE_ASPECT_COLOR_BIT),
+                Eq(std::nullopt));
+    EXPECT_THAT(getCopyTexelBlockInfo(VK_FORMAT_D32_SFLOAT, VK_IMAGE_ASPECT_STENCIL_BIT),
+                Eq(std::nullopt));
+}
+
+TEST(VkFormatUtilsTest, GetCopyTexelBlockInfoMultiPlanar) {
+    EXPECT_THAT(
+        getCopyTexelBlockInfo(VK_FORMAT_G8_B8R8_2PLANE_420_UNORM, VK_IMAGE_ASPECT_PLANE_0_BIT),
+        IsTexelBlock(1, 1, 1, 1));
+    EXPECT_THAT(
+        getCopyTexelBlockInfo(VK_FORMAT_G8_B8R8_2PLANE_420_UNORM, VK_IMAGE_ASPECT_PLANE_1_BIT),
+        IsTexelBlock(1, 1, 1, 2));
+    EXPECT_THAT(getCopyTexelBlockInfo(VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16,
+                                      VK_IMAGE_ASPECT_PLANE_1_BIT),
+                IsTexelBlock(1, 1, 1, 4));
+    EXPECT_THAT(
+        getCopyTexelBlockInfo(VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM, VK_IMAGE_ASPECT_PLANE_2_BIT),
+        IsTexelBlock(1, 1, 1, 1));
+    EXPECT_THAT(
+        getCopyTexelBlockInfo(VK_FORMAT_G8_B8R8_2PLANE_420_UNORM, VK_IMAGE_ASPECT_PLANE_2_BIT),
+        Eq(std::nullopt));
+    EXPECT_THAT(
+        getCopyTexelBlockInfo(VK_FORMAT_G8_B8R8_2PLANE_420_UNORM, VK_IMAGE_ASPECT_COLOR_BIT),
+        Eq(std::nullopt));
+}
+
 }  // namespace
 }  // namespace vk
 }  // namespace host

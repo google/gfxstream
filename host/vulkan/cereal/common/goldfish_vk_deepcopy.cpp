@@ -9734,6 +9734,31 @@ void deepcopy_VkGuestCapabilitiesGOOGLE(Allocator* alloc, VkStructureType rootTy
     }
 }
 
+void deepcopy_VkHostPointerResolveGOOGLE(Allocator* alloc, VkStructureType rootType,
+                                         const VkHostPointerResolveGOOGLE* from,
+                                         VkHostPointerResolveGOOGLE* to) {
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const VkBaseOutStructure*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+    to->pHostPointer = nullptr;
+    if (from->pHostPointer) {
+        to->pHostPointer =
+            (uint8_t*)alloc->dupArray(from->pHostPointer, from->pointerSize * sizeof(uint8_t));
+    }
+}
+
 void deepcopy_VkDebugMetadataGOOGLE(Allocator* alloc, VkStructureType rootType,
                                     const VkDebugMetadataGOOGLE* from, VkDebugMetadataGOOGLE* to) {
     *to = *from;
@@ -11734,6 +11759,13 @@ void deepcopy_extension_struct(Allocator* alloc, VkStructureType rootType,
                 alloc, rootType,
                 reinterpret_cast<const VkGuestCapabilitiesGOOGLE*>(structExtension),
                 reinterpret_cast<VkGuestCapabilitiesGOOGLE*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_HOST_POINTER_RESOLVE_GOOGLE: {
+            deepcopy_VkHostPointerResolveGOOGLE(
+                alloc, rootType,
+                reinterpret_cast<const VkHostPointerResolveGOOGLE*>(structExtension),
+                reinterpret_cast<VkHostPointerResolveGOOGLE*>(structExtension_out));
             break;
         }
 #endif

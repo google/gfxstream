@@ -565,6 +565,54 @@ VkBufferImageCopy2 CompressedImageInfo::getBufferImageCopy(
     return region;
 }
 
+VkMemoryToImageCopy CompressedImageInfo::getMemoryToImageCopy(
+    const VkMemoryToImageCopy& origRegion) const {
+    VkMemoryToImageCopy region = origRegion;
+    uint32_t mipLevel = region.imageSubresource.mipLevel;
+    region.imageSubresource.mipLevel = 0;
+    region.memoryRowLength /= mBlock.width;
+    region.memoryImageHeight /= mBlock.height;
+    region.imageOffset.x /= mBlock.width;
+    region.imageOffset.y /= mBlock.height;
+    region.imageExtent = compressedMipmapPortion(region.imageExtent, mipLevel);
+    return region;
+}
+
+VkImageToMemoryCopy CompressedImageInfo::getImageToMemoryCopy(
+    const VkImageToMemoryCopy& origRegion) const {
+    VkImageToMemoryCopy region = origRegion;
+    uint32_t mipLevel = region.imageSubresource.mipLevel;
+    region.imageSubresource.mipLevel = 0;
+    region.memoryRowLength /= mBlock.width;
+    region.memoryImageHeight /= mBlock.height;
+    region.imageOffset.x /= mBlock.width;
+    region.imageOffset.y /= mBlock.height;
+    region.imageExtent = compressedMipmapPortion(region.imageExtent, mipLevel);
+    return region;
+}
+
+std::vector<VkHostImageLayoutTransitionInfo> CompressedImageInfo::getImageLayoutTransitions(
+    const VkHostImageLayoutTransitionInfo& srcTransition) {
+    const VkImageSubresourceRange range =
+        getImageSubresourceRange(srcTransition.subresourceRange);
+
+    std::vector<VkHostImageLayoutTransitionInfo> transitions;
+    transitions.reserve(range.levelCount + 1);
+
+    VkHostImageLayoutTransitionInfo mipmapTransition = srcTransition;
+    mipmapTransition.subresourceRange.baseMipLevel = 0;
+    mipmapTransition.subresourceRange.levelCount = 1;
+    transitions.insert(transitions.begin(), range.levelCount, mipmapTransition);
+    for (uint32_t j = 0; j < range.levelCount; j++) {
+        transitions[j].image = compressedMipmap(range.baseMipLevel + j);
+    }
+
+    transitions.push_back(srcTransition);
+    transitions.back().image = mOutputImage;
+
+    return transitions;
+}
+
 // static
 VkImageCopy CompressedImageInfo::getCompressedMipmapsImageCopy(const VkImageCopy& origRegion,
                                                                const CompressedImageInfo* srcImg,
