@@ -136,12 +136,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 const VkBufferCopy* pRegions;
                 VkBufferCopy stack_pRegions[MAX_STACK_ITEMS];
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkBuffer*)&srcBuffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
                 uint64_t cgen_var_1;
-                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkBuffer*)&dstBuffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_1));
                 memcpy((uint32_t*)&regionCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
@@ -153,11 +153,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 for (uint32_t i = 0; i < (uint32_t)regionCount; ++i) {
                     reservedunmarshal_VkBufferCopy(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                    (VkBufferCopy*)(pRegions + i), readStreamPtrPtr);
-                }
-                if (pRegions) {
-                    for (uint32_t i = 0; i < (uint32_t)regionCount; ++i) {
-                        transform_tohost_VkBufferCopy(globalstate, (VkBufferCopy*)(pRegions + i));
-                    }
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdCopyBuffer((VkCommandBuffer)dispatchHandle, srcBuffer, dstBuffer,
@@ -181,14 +176,14 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 const VkImageCopy* pRegions;
                 VkImageCopy stack_pRegions[MAX_STACK_ITEMS];
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkImage*)&srcImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
                 memcpy((VkImageLayout*)&srcImageLayout, *readStreamPtrPtr, sizeof(VkImageLayout));
                 *readStreamPtrPtr += sizeof(VkImageLayout);
                 uint64_t cgen_var_1;
-                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkImage*)&dstImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_1));
                 memcpy((VkImageLayout*)&dstImageLayout, *readStreamPtrPtr, sizeof(VkImageLayout));
                 *readStreamPtrPtr += sizeof(VkImageLayout);
@@ -202,11 +197,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 for (uint32_t i = 0; i < (uint32_t)regionCount; ++i) {
                     reservedunmarshal_VkImageCopy(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                   (VkImageCopy*)(pRegions + i), readStreamPtrPtr);
-                }
-                if (pRegions) {
-                    for (uint32_t i = 0; i < (uint32_t)regionCount; ++i) {
-                        transform_tohost_VkImageCopy(globalstate, (VkImageCopy*)(pRegions + i));
-                    }
                 }
                 if (CC_LIKELY(vk)) {
                     this->on_vkCmdCopyImage(
@@ -231,12 +221,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 const VkBufferImageCopy* pRegions;
                 VkBufferImageCopy stack_pRegions[MAX_STACK_ITEMS];
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkBuffer*)&srcBuffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
                 uint64_t cgen_var_1;
-                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkImage*)&dstImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_1));
                 memcpy((VkImageLayout*)&dstImageLayout, *readStreamPtrPtr, sizeof(VkImageLayout));
                 *readStreamPtrPtr += sizeof(VkImageLayout);
@@ -252,12 +242,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                     reservedunmarshal_VkBufferImageCopy(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                         (VkBufferImageCopy*)(pRegions + i),
                                                         readStreamPtrPtr);
-                }
-                if (pRegions) {
-                    for (uint32_t i = 0; i < (uint32_t)regionCount; ++i) {
-                        transform_tohost_VkBufferImageCopy(globalstate,
-                                                           (VkBufferImageCopy*)(pRegions + i));
-                    }
                 }
                 if (CC_LIKELY(vk)) {
                     this->on_vkCmdCopyBufferToImage(
@@ -282,14 +266,14 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 const VkBufferImageCopy* pRegions;
                 VkBufferImageCopy stack_pRegions[MAX_STACK_ITEMS];
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkImage*)&srcImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
                 memcpy((VkImageLayout*)&srcImageLayout, *readStreamPtrPtr, sizeof(VkImageLayout));
                 *readStreamPtrPtr += sizeof(VkImageLayout);
                 uint64_t cgen_var_1;
-                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkBuffer*)&dstBuffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_1));
                 memcpy((uint32_t*)&regionCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
@@ -303,12 +287,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                     reservedunmarshal_VkBufferImageCopy(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                         (VkBufferImageCopy*)(pRegions + i),
                                                         readStreamPtrPtr);
-                }
-                if (pRegions) {
-                    for (uint32_t i = 0; i < (uint32_t)regionCount; ++i) {
-                        transform_tohost_VkBufferImageCopy(globalstate,
-                                                           (VkBufferImageCopy*)(pRegions + i));
-                    }
                 }
                 if (CC_LIKELY(vk)) {
                     this->on_vkCmdCopyImageToBuffer(
@@ -332,8 +310,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 const void* pData;
                 uint8_t* stack_pData[MAX_STACK_ITEMS];
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkBuffer*)&dstBuffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
                 memcpy((VkDeviceSize*)&dstOffset, *readStreamPtrPtr, sizeof(VkDeviceSize));
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
@@ -367,8 +345,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 VkDeviceSize size;
                 uint32_t data;
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkBuffer*)&dstBuffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
                 memcpy((VkDeviceSize*)&dstOffset, *readStreamPtrPtr, sizeof(VkDeviceSize));
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
@@ -493,8 +471,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 uint32_t query;
                 VkQueryControlFlags flags;
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkQueryPool*)&queryPool =
                     (VkQueryPool)unbox_VkQueryPool((VkQueryPool)(*&cgen_var_0));
                 memcpy((uint32_t*)&query, *readStreamPtrPtr, sizeof(uint32_t));
@@ -518,8 +496,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 VkQueryPool queryPool;
                 uint32_t query;
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkQueryPool*)&queryPool =
                     (VkQueryPool)unbox_VkQueryPool((VkQueryPool)(*&cgen_var_0));
                 memcpy((uint32_t*)&query, *readStreamPtrPtr, sizeof(uint32_t));
@@ -541,8 +519,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 uint32_t firstQuery;
                 uint32_t queryCount;
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkQueryPool*)&queryPool =
                     (VkQueryPool)unbox_VkQueryPool((VkQueryPool)(*&cgen_var_0));
                 memcpy((uint32_t*)&firstQuery, *readStreamPtrPtr, sizeof(uint32_t));
@@ -570,8 +548,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                        sizeof(VkPipelineStageFlagBits));
                 *readStreamPtrPtr += sizeof(VkPipelineStageFlagBits);
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkQueryPool*)&queryPool =
                     (VkQueryPool)unbox_VkQueryPool((VkQueryPool)(*&cgen_var_0));
                 memcpy((uint32_t*)&query, *readStreamPtrPtr, sizeof(uint32_t));
@@ -598,8 +576,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 VkDeviceSize stride;
                 VkQueryResultFlags flags;
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkQueryPool*)&queryPool =
                     (VkQueryPool)unbox_VkQueryPool((VkQueryPool)(*&cgen_var_0));
                 memcpy((uint32_t*)&firstQuery, *readStreamPtrPtr, sizeof(uint32_t));
@@ -607,8 +585,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 memcpy((uint32_t*)&queryCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 uint64_t cgen_var_1;
-                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkBuffer*)&dstBuffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_1));
                 memcpy((VkDeviceSize*)&dstOffset, *readStreamPtrPtr, sizeof(VkDeviceSize));
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
@@ -677,8 +655,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                        sizeof(VkPipelineBindPoint));
                 *readStreamPtrPtr += sizeof(VkPipelineBindPoint);
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkPipeline*)&pipeline = (VkPipeline)unbox_VkPipeline((VkPipeline)(*&cgen_var_0));
                 if (CC_LIKELY(vk)) {
                     this->on_vkCmdBindPipeline(pool, snapshotApiCallHandle,
@@ -708,8 +686,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                        sizeof(VkPipelineBindPoint));
                 *readStreamPtrPtr += sizeof(VkPipelineBindPoint);
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkPipelineLayout*)&layout =
                     (VkPipelineLayout)unbox_VkPipelineLayout((VkPipelineLayout)(*&cgen_var_0));
                 memcpy((uint32_t*)&firstSet, *readStreamPtrPtr, sizeof(uint32_t));
@@ -772,8 +750,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 const VkImageSubresourceRange* pRanges;
                 VkImageSubresourceRange stack_pRanges[MAX_STACK_ITEMS];
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkImage*)&image = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
                 memcpy((VkImageLayout*)&imageLayout, *readStreamPtrPtr, sizeof(VkImageLayout));
                 *readStreamPtrPtr += sizeof(VkImageLayout);
@@ -792,15 +770,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                     reservedunmarshal_VkImageSubresourceRange(
                         readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                         (VkImageSubresourceRange*)(pRanges + i), readStreamPtrPtr);
-                }
-                if (pColor) {
-                    transform_tohost_VkClearColorValue(globalstate, (VkClearColorValue*)(pColor));
-                }
-                if (pRanges) {
-                    for (uint32_t i = 0; i < (uint32_t)rangeCount; ++i) {
-                        transform_tohost_VkImageSubresourceRange(
-                            globalstate, (VkImageSubresourceRange*)(pRanges + i));
-                    }
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdClearColorImage((VkCommandBuffer)dispatchHandle, image, imageLayout,
@@ -843,8 +812,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 VkBuffer buffer;
                 VkDeviceSize offset;
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkBuffer*)&buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
                 memcpy((VkDeviceSize*)&offset, *readStreamPtrPtr, sizeof(VkDeviceSize));
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
@@ -864,8 +833,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 VkEvent event;
                 VkPipelineStageFlags stageMask;
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkEvent*)&event = (VkEvent)unbox_VkEvent((VkEvent)(*&cgen_var_0));
                 memcpy((VkPipelineStageFlags*)&stageMask, *readStreamPtrPtr,
                        sizeof(VkPipelineStageFlags));
@@ -888,8 +857,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 VkEvent event;
                 VkPipelineStageFlags stageMask;
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkEvent*)&event = (VkEvent)unbox_VkEvent((VkEvent)(*&cgen_var_0));
                 memcpy((VkPipelineStageFlags*)&stageMask, *readStreamPtrPtr,
                        sizeof(VkPipelineStageFlags));
@@ -1029,8 +998,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 const void* pValues;
                 uint8_t* stack_pValues[MAX_STACK_ITEMS];
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkPipelineLayout*)&layout =
                     (VkPipelineLayout)unbox_VkPipelineLayout((VkPipelineLayout)(*&cgen_var_0));
                 memcpy((VkShaderStageFlags*)&stageFlags, *readStreamPtrPtr,
@@ -1083,11 +1052,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                     reservedunmarshal_VkViewport(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                  (VkViewport*)(pViewports + i), readStreamPtrPtr);
                 }
-                if (pViewports) {
-                    for (uint32_t i = 0; i < (uint32_t)viewportCount; ++i) {
-                        transform_tohost_VkViewport(globalstate, (VkViewport*)(pViewports + i));
-                    }
-                }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetViewport((VkCommandBuffer)dispatchHandle, firstViewport,
                                          viewportCount, pViewports);
@@ -1118,11 +1082,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 for (uint32_t i = 0; i < (uint32_t)scissorCount; ++i) {
                     reservedunmarshal_VkRect2D(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                (VkRect2D*)(pScissors + i), readStreamPtrPtr);
-                }
-                if (pScissors) {
-                    for (uint32_t i = 0; i < (uint32_t)scissorCount; ++i) {
-                        transform_tohost_VkRect2D(globalstate, (VkRect2D*)(pScissors + i));
-                    }
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetScissor((VkCommandBuffer)dispatchHandle, firstScissor, scissorCount,
@@ -1281,8 +1240,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 VkDeviceSize offset;
                 VkIndexType indexType;
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkBuffer*)&buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
                 memcpy((VkDeviceSize*)&offset, *readStreamPtrPtr, sizeof(VkDeviceSize));
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
@@ -1413,8 +1372,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 uint32_t drawCount;
                 uint32_t stride;
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkBuffer*)&buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
                 memcpy((VkDeviceSize*)&offset, *readStreamPtrPtr, sizeof(VkDeviceSize));
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
@@ -1441,8 +1400,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 uint32_t drawCount;
                 uint32_t stride;
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkBuffer*)&buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
                 memcpy((VkDeviceSize*)&offset, *readStreamPtrPtr, sizeof(VkDeviceSize));
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
@@ -1473,14 +1432,14 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 VkImageBlit stack_pRegions[MAX_STACK_ITEMS];
                 VkFilter filter;
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkImage*)&srcImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
                 memcpy((VkImageLayout*)&srcImageLayout, *readStreamPtrPtr, sizeof(VkImageLayout));
                 *readStreamPtrPtr += sizeof(VkImageLayout);
                 uint64_t cgen_var_1;
-                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkImage*)&dstImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_1));
                 memcpy((VkImageLayout*)&dstImageLayout, *readStreamPtrPtr, sizeof(VkImageLayout));
                 *readStreamPtrPtr += sizeof(VkImageLayout);
@@ -1497,11 +1456,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 }
                 memcpy((VkFilter*)&filter, *readStreamPtrPtr, sizeof(VkFilter));
                 *readStreamPtrPtr += sizeof(VkFilter);
-                if (pRegions) {
-                    for (uint32_t i = 0; i < (uint32_t)regionCount; ++i) {
-                        transform_tohost_VkImageBlit(globalstate, (VkImageBlit*)(pRegions + i));
-                    }
-                }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdBlitImage((VkCommandBuffer)dispatchHandle, srcImage, srcImageLayout,
                                        dstImage, dstImageLayout, regionCount, pRegions, filter);
@@ -1525,8 +1479,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 const VkImageSubresourceRange* pRanges;
                 VkImageSubresourceRange stack_pRanges[MAX_STACK_ITEMS];
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkImage*)&image = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
                 memcpy((VkImageLayout*)&imageLayout, *readStreamPtrPtr, sizeof(VkImageLayout));
                 *readStreamPtrPtr += sizeof(VkImageLayout);
@@ -1546,16 +1500,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                     reservedunmarshal_VkImageSubresourceRange(
                         readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                         (VkImageSubresourceRange*)(pRanges + i), readStreamPtrPtr);
-                }
-                if (pDepthStencil) {
-                    transform_tohost_VkClearDepthStencilValue(
-                        globalstate, (VkClearDepthStencilValue*)(pDepthStencil));
-                }
-                if (pRanges) {
-                    for (uint32_t i = 0; i < (uint32_t)rangeCount; ++i) {
-                        transform_tohost_VkImageSubresourceRange(
-                            globalstate, (VkImageSubresourceRange*)(pRanges + i));
-                    }
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdClearDepthStencilImage((VkCommandBuffer)dispatchHandle, image,
@@ -1603,17 +1547,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                     reservedunmarshal_VkClearRect(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                   (VkClearRect*)(pRects + i), readStreamPtrPtr);
                 }
-                if (pAttachments) {
-                    for (uint32_t i = 0; i < (uint32_t)attachmentCount; ++i) {
-                        transform_tohost_VkClearAttachment(globalstate,
-                                                           (VkClearAttachment*)(pAttachments + i));
-                    }
-                }
-                if (pRects) {
-                    for (uint32_t i = 0; i < (uint32_t)rectCount; ++i) {
-                        transform_tohost_VkClearRect(globalstate, (VkClearRect*)(pRects + i));
-                    }
-                }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdClearAttachments((VkCommandBuffer)dispatchHandle, attachmentCount,
                                               pAttachments, rectCount, pRects);
@@ -1637,14 +1570,14 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 const VkImageResolve* pRegions;
                 VkImageResolve stack_pRegions[MAX_STACK_ITEMS];
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkImage*)&srcImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
                 memcpy((VkImageLayout*)&srcImageLayout, *readStreamPtrPtr, sizeof(VkImageLayout));
                 *readStreamPtrPtr += sizeof(VkImageLayout);
                 uint64_t cgen_var_1;
-                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkImage*)&dstImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_1));
                 memcpy((VkImageLayout*)&dstImageLayout, *readStreamPtrPtr, sizeof(VkImageLayout));
                 *readStreamPtrPtr += sizeof(VkImageLayout);
@@ -1660,12 +1593,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                     reservedunmarshal_VkImageResolve(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                      (VkImageResolve*)(pRegions + i),
                                                      readStreamPtrPtr);
-                }
-                if (pRegions) {
-                    for (uint32_t i = 0; i < (uint32_t)regionCount; ++i) {
-                        transform_tohost_VkImageResolve(globalstate,
-                                                        (VkImageResolve*)(pRegions + i));
-                    }
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdResolveImage((VkCommandBuffer)dispatchHandle, srcImage, srcImageLayout,
@@ -1800,14 +1727,14 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 uint32_t maxDrawCount;
                 uint32_t stride;
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkBuffer*)&buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
                 memcpy((VkDeviceSize*)&offset, *readStreamPtrPtr, sizeof(VkDeviceSize));
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
                 uint64_t cgen_var_1;
-                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkBuffer*)&countBuffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_1));
                 memcpy((VkDeviceSize*)&countBufferOffset, *readStreamPtrPtr, sizeof(VkDeviceSize));
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
@@ -1838,14 +1765,14 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 uint32_t maxDrawCount;
                 uint32_t stride;
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkBuffer*)&buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
                 memcpy((VkDeviceSize*)&offset, *readStreamPtrPtr, sizeof(VkDeviceSize));
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
                 uint64_t cgen_var_1;
-                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkBuffer*)&countBuffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_1));
                 memcpy((VkDeviceSize*)&countBufferOffset, *readStreamPtrPtr, sizeof(VkDeviceSize));
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
@@ -1995,8 +1922,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                        sizeof(VkPipelineStageFlags2));
                 *readStreamPtrPtr += sizeof(VkPipelineStageFlags2);
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkQueryPool*)&queryPool =
                     (VkQueryPool)unbox_VkQueryPool((VkQueryPool)(*&cgen_var_0));
                 memcpy((uint32_t*)&query, *readStreamPtrPtr, sizeof(uint32_t));
@@ -2119,8 +2046,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 const VkDependencyInfo* pDependencyInfo;
                 VkDependencyInfo stack_pDependencyInfo[1];
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkEvent*)&event = (VkEvent)unbox_VkEvent((VkEvent)(*&cgen_var_0));
                 pDependencyInfo = (VkDependencyInfo*)stack_pDependencyInfo;
                 reservedunmarshal_VkDependencyInfo(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -2146,8 +2073,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 VkEvent event;
                 VkPipelineStageFlags2 stageMask;
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkEvent*)&event = (VkEvent)unbox_VkEvent((VkEvent)(*&cgen_var_0));
                 memcpy((VkPipelineStageFlags2*)&stageMask, *readStreamPtrPtr,
                        sizeof(VkPipelineStageFlags2));
@@ -2366,11 +2293,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                     reservedunmarshal_VkViewport(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                  (VkViewport*)(pViewports + i), readStreamPtrPtr);
                 }
-                if (pViewports) {
-                    for (uint32_t i = 0; i < (uint32_t)viewportCount; ++i) {
-                        transform_tohost_VkViewport(globalstate, (VkViewport*)(pViewports + i));
-                    }
-                }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetViewportWithCount((VkCommandBuffer)dispatchHandle, viewportCount,
                                                   pViewports);
@@ -2398,11 +2320,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 for (uint32_t i = 0; i < (uint32_t)scissorCount; ++i) {
                     reservedunmarshal_VkRect2D(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                (VkRect2D*)(pScissors + i), readStreamPtrPtr);
-                }
-                if (pScissors) {
-                    for (uint32_t i = 0; i < (uint32_t)scissorCount; ++i) {
-                        transform_tohost_VkRect2D(globalstate, (VkRect2D*)(pScissors + i));
-                    }
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetScissorWithCount((VkCommandBuffer)dispatchHandle, scissorCount,
@@ -2432,7 +2349,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 *readStreamPtrPtr += sizeof(uint32_t);
                 memcpy((uint32_t*)&bindingCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                // WARNING PTR CHECK
                 memcpy((VkBuffer**)&pBuffers, (*readStreamPtrPtr), 8);
                 gfxstream::Stream::fromBe64((uint8_t*)&pBuffers);
                 *readStreamPtrPtr += 8;
@@ -2464,7 +2380,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                            bindingCount * sizeof(const VkDeviceSize));
                     *readStreamPtrPtr += bindingCount * sizeof(const VkDeviceSize);
                 }
-                // WARNING PTR CHECK
                 memcpy((VkDeviceSize**)&pSizes, (*readStreamPtrPtr), 8);
                 gfxstream::Stream::fromBe64((uint8_t*)&pSizes);
                 *readStreamPtrPtr += 8;
@@ -2481,7 +2396,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                         *readStreamPtrPtr += bindingCount * sizeof(const VkDeviceSize);
                     }
                 }
-                // WARNING PTR CHECK
                 memcpy((VkDeviceSize**)&pStrides, (*readStreamPtrPtr), 8);
                 gfxstream::Stream::fromBe64((uint8_t*)&pStrides);
                 *readStreamPtrPtr += 8;
@@ -2688,8 +2602,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                        sizeof(VkPipelineBindPoint));
                 *readStreamPtrPtr += sizeof(VkPipelineBindPoint);
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkPipelineLayout*)&layout =
                     (VkPipelineLayout)unbox_VkPipelineLayout((VkPipelineLayout)(*&cgen_var_0));
                 memcpy((uint32_t*)&set, *readStreamPtrPtr, sizeof(uint32_t));
@@ -2735,19 +2649,18 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 const void* pData;
                 uint8_t* stack_pData[1];
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkDescriptorUpdateTemplate*)&descriptorUpdateTemplate =
                     (VkDescriptorUpdateTemplate)unbox_VkDescriptorUpdateTemplate(
                         (VkDescriptorUpdateTemplate)(*&cgen_var_0));
                 uint64_t cgen_var_1;
-                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkPipelineLayout*)&layout =
                     (VkPipelineLayout)unbox_VkPipelineLayout((VkPipelineLayout)(*&cgen_var_1));
                 memcpy((uint32_t*)&set, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                // WARNING PTR CHECK
                 memcpy((void**)&pData, (*readStreamPtrPtr), 8);
                 gfxstream::Stream::fromBe64((uint8_t*)&pData);
                 *readStreamPtrPtr += 8;
@@ -2898,8 +2811,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 VkDeviceSize size;
                 VkIndexType indexType;
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkBuffer*)&buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
                 memcpy((VkDeviceSize*)&offset, *readStreamPtrPtr, sizeof(VkDeviceSize));
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
@@ -3073,8 +2986,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                        sizeof(VkPipelineBindPoint));
                 *readStreamPtrPtr += sizeof(VkPipelineBindPoint);
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkPipelineLayout*)&layout =
                     (VkPipelineLayout)unbox_VkPipelineLayout((VkPipelineLayout)(*&cgen_var_0));
                 memcpy((uint32_t*)&set, *readStreamPtrPtr, sizeof(uint32_t));
@@ -3120,19 +3033,18 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 const void* pData;
                 uint8_t* stack_pData[1];
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkDescriptorUpdateTemplate*)&descriptorUpdateTemplate =
                     (VkDescriptorUpdateTemplate)unbox_VkDescriptorUpdateTemplate(
                         (VkDescriptorUpdateTemplate)(*&cgen_var_0));
                 uint64_t cgen_var_1;
-                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkPipelineLayout*)&layout =
                     (VkPipelineLayout)unbox_VkPipelineLayout((VkPipelineLayout)(*&cgen_var_1));
                 memcpy((uint32_t*)&set, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                // WARNING PTR CHECK
                 memcpy((void**)&pData, (*readStreamPtrPtr), 8);
                 gfxstream::Stream::fromBe64((uint8_t*)&pData);
                 *readStreamPtrPtr += 8;
@@ -3261,14 +3173,14 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 uint32_t maxDrawCount;
                 uint32_t stride;
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkBuffer*)&buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
                 memcpy((VkDeviceSize*)&offset, *readStreamPtrPtr, sizeof(VkDeviceSize));
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
                 uint64_t cgen_var_1;
-                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkBuffer*)&countBuffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_1));
                 memcpy((VkDeviceSize*)&countBufferOffset, *readStreamPtrPtr, sizeof(VkDeviceSize));
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
@@ -3299,14 +3211,14 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 uint32_t maxDrawCount;
                 uint32_t stride;
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkBuffer*)&buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
                 memcpy((VkDeviceSize*)&offset, *readStreamPtrPtr, sizeof(VkDeviceSize));
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
                 uint64_t cgen_var_1;
-                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkBuffer*)&countBuffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_1));
                 memcpy((VkDeviceSize*)&countBufferOffset, *readStreamPtrPtr, sizeof(VkDeviceSize));
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
@@ -3389,8 +3301,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 const VkDependencyInfo* pDependencyInfo;
                 VkDependencyInfo stack_pDependencyInfo[1];
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkEvent*)&event = (VkEvent)unbox_VkEvent((VkEvent)(*&cgen_var_0));
                 pDependencyInfo = (VkDependencyInfo*)stack_pDependencyInfo;
                 reservedunmarshal_VkDependencyInfo(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
@@ -3416,8 +3328,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 VkEvent event;
                 VkPipelineStageFlags2 stageMask;
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkEvent*)&event = (VkEvent)unbox_VkEvent((VkEvent)(*&cgen_var_0));
                 memcpy((VkPipelineStageFlags2*)&stageMask, *readStreamPtrPtr,
                        sizeof(VkPipelineStageFlags2));
@@ -3518,8 +3430,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                        sizeof(VkPipelineStageFlags2));
                 *readStreamPtrPtr += sizeof(VkPipelineStageFlags2);
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkQueryPool*)&queryPool =
                     (VkQueryPool)unbox_VkQueryPool((VkQueryPool)(*&cgen_var_0));
                 memcpy((uint32_t*)&query, *readStreamPtrPtr, sizeof(uint32_t));
@@ -3691,8 +3603,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 VkDeviceSize size;
                 VkIndexType indexType;
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkBuffer*)&buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
                 memcpy((VkDeviceSize*)&offset, *readStreamPtrPtr, sizeof(VkDeviceSize));
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
@@ -3935,7 +3847,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                            bindingCount * sizeof(const VkDeviceSize));
                     *readStreamPtrPtr += bindingCount * sizeof(const VkDeviceSize);
                 }
-                // WARNING PTR CHECK
                 memcpy((VkDeviceSize**)&pSizes, (*readStreamPtrPtr), 8);
                 gfxstream::Stream::fromBe64((uint8_t*)&pSizes);
                 *readStreamPtrPtr += 8;
@@ -3978,7 +3889,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 *readStreamPtrPtr += sizeof(uint32_t);
                 memcpy((uint32_t*)&counterBufferCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                // WARNING PTR CHECK
                 memcpy((VkBuffer**)&pCounterBuffers, (*readStreamPtrPtr), 8);
                 gfxstream::Stream::fromBe64((uint8_t*)&pCounterBuffers);
                 *readStreamPtrPtr += 8;
@@ -4001,7 +3911,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                         }
                     }
                 }
-                // WARNING PTR CHECK
                 memcpy((VkDeviceSize**)&pCounterBufferOffsets, (*readStreamPtrPtr), 8);
                 gfxstream::Stream::fromBe64((uint8_t*)&pCounterBufferOffsets);
                 *readStreamPtrPtr += 8;
@@ -4044,7 +3953,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 *readStreamPtrPtr += sizeof(uint32_t);
                 memcpy((uint32_t*)&counterBufferCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                // WARNING PTR CHECK
                 memcpy((VkBuffer**)&pCounterBuffers, (*readStreamPtrPtr), 8);
                 gfxstream::Stream::fromBe64((uint8_t*)&pCounterBuffers);
                 *readStreamPtrPtr += 8;
@@ -4067,7 +3975,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                         }
                     }
                 }
-                // WARNING PTR CHECK
                 memcpy((VkDeviceSize**)&pCounterBufferOffsets, (*readStreamPtrPtr), 8);
                 gfxstream::Stream::fromBe64((uint8_t*)&pCounterBufferOffsets);
                 *readStreamPtrPtr += 8;
@@ -4105,8 +4012,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 VkQueryControlFlags flags;
                 uint32_t index;
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkQueryPool*)&queryPool =
                     (VkQueryPool)unbox_VkQueryPool((VkQueryPool)(*&cgen_var_0));
                 memcpy((uint32_t*)&query, *readStreamPtrPtr, sizeof(uint32_t));
@@ -4134,8 +4041,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 uint32_t query;
                 uint32_t index;
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkQueryPool*)&queryPool =
                     (VkQueryPool)unbox_VkQueryPool((VkQueryPool)(*&cgen_var_0));
                 memcpy((uint32_t*)&query, *readStreamPtrPtr, sizeof(uint32_t));
@@ -4167,8 +4074,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 memcpy((uint32_t*)&firstInstance, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
                 uint64_t cgen_var_0;
-                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
-                *readStreamPtrPtr += 1 * 8;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 8);
+                *readStreamPtrPtr += 8;
                 *(VkBuffer*)&counterBuffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
                 memcpy((VkDeviceSize*)&counterBufferOffset, *readStreamPtrPtr,
                        sizeof(VkDeviceSize));
@@ -4344,11 +4251,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                     reservedunmarshal_VkViewport(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                  (VkViewport*)(pViewports + i), readStreamPtrPtr);
                 }
-                if (pViewports) {
-                    for (uint32_t i = 0; i < (uint32_t)viewportCount; ++i) {
-                        transform_tohost_VkViewport(globalstate, (VkViewport*)(pViewports + i));
-                    }
-                }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetViewportWithCountEXT((VkCommandBuffer)dispatchHandle, viewportCount,
                                                      pViewports);
@@ -4376,11 +4278,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 for (uint32_t i = 0; i < (uint32_t)scissorCount; ++i) {
                     reservedunmarshal_VkRect2D(readStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                (VkRect2D*)(pScissors + i), readStreamPtrPtr);
-                }
-                if (pScissors) {
-                    for (uint32_t i = 0; i < (uint32_t)scissorCount; ++i) {
-                        transform_tohost_VkRect2D(globalstate, (VkRect2D*)(pScissors + i));
-                    }
                 }
                 if (CC_LIKELY(vk)) {
                     vk->vkCmdSetScissorWithCountEXT((VkCommandBuffer)dispatchHandle, scissorCount,
@@ -4410,7 +4307,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                 *readStreamPtrPtr += sizeof(uint32_t);
                 memcpy((uint32_t*)&bindingCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                // WARNING PTR CHECK
                 memcpy((VkBuffer**)&pBuffers, (*readStreamPtrPtr), 8);
                 gfxstream::Stream::fromBe64((uint8_t*)&pBuffers);
                 *readStreamPtrPtr += 8;
@@ -4442,7 +4338,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                            bindingCount * sizeof(const VkDeviceSize));
                     *readStreamPtrPtr += bindingCount * sizeof(const VkDeviceSize);
                 }
-                // WARNING PTR CHECK
                 memcpy((VkDeviceSize**)&pSizes, (*readStreamPtrPtr), 8);
                 gfxstream::Stream::fromBe64((uint8_t*)&pSizes);
                 *readStreamPtrPtr += 8;
@@ -4459,7 +4354,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                         *readStreamPtrPtr += bindingCount * sizeof(const VkDeviceSize);
                     }
                 }
-                // WARNING PTR CHECK
                 memcpy((VkDeviceSize**)&pStrides, (*readStreamPtrPtr), 8);
                 gfxstream::Stream::fromBe64((uint8_t*)&pStrides);
                 *readStreamPtrPtr += 8;
