@@ -106,6 +106,10 @@ class CompressedImageInfo {
     // VkBufferImageCopy that points to the same location in the compressed mipmap images.
     VkBufferImageCopy getBufferImageCopy(const VkBufferImageCopy& origRegion) const;
     VkBufferImageCopy2 getBufferImageCopy(const VkBufferImageCopy2& origRegion) const;
+    VkMemoryToImageCopy getMemoryToImageCopy(const VkMemoryToImageCopy& origRegion) const;
+    VkImageToMemoryCopy getImageToMemoryCopy(const VkImageToMemoryCopy& origRegion) const;
+    std::vector<VkHostImageLayoutTransitionInfo> getImageLayoutTransitions(
+        const VkHostImageLayoutTransitionInfo& srcTransition);
 
     // Releases all the resources used by this class. It may no longer be used after calling this.
     void destroy(VulkanDispatch* vk);
@@ -115,6 +119,8 @@ class CompressedImageInfo {
     bool isEtc2() const;
     bool isAstc() const;
     VkDevice device() const { return mDevice; }
+    // The original compressed format of the image, as created by the guest.
+    VkFormat compressedFormat() const { return mCompressedFormat; }
     VkImage compressedMipmap(uint32_t level) const {
         if (level >= mCompressedMipmaps.size()) {
             return VK_NULL_HANDLE;

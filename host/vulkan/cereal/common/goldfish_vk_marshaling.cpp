@@ -20077,6 +20077,51 @@ void unmarshal_VkGuestCapabilitiesGOOGLE(VulkanStream* vkStream, VkStructureType
                    sizeof(VkGuestCapabilityFlagsGOOGLE));
 }
 
+void marshal_VkHostPointerResolveGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
+                                        const VkHostPointerResolveGOOGLE* forMarshaling) {
+    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    marshal_extension_struct(vkStream, rootType, forMarshaling->pNext);
+    vkStream->write((uint32_t*)&forMarshaling->pointerSize, sizeof(uint32_t));
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pHostPointer;
+    vkStream->putBe64(cgen_var_0);
+    if (forMarshaling->pHostPointer) {
+        vkStream->write((uint8_t*)forMarshaling->pHostPointer,
+                        forMarshaling->pointerSize * sizeof(uint8_t));
+    }
+}
+
+void unmarshal_VkHostPointerResolveGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
+                                          VkHostPointerResolveGOOGLE* forUnmarshaling) {
+    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    size_t pNext_size;
+    pNext_size = vkStream->getBe32();
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        vkStream->read((void*)forUnmarshaling->pNext, sizeof(VkStructureType));
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        unmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext));
+    }
+    vkStream->read((uint32_t*)&forUnmarshaling->pointerSize, sizeof(uint32_t));
+    forUnmarshaling->pHostPointer = (uint8_t*)(uintptr_t)vkStream->getBe64();
+    if (forUnmarshaling->pHostPointer) {
+        vkStream->alloc((void**)&forUnmarshaling->pHostPointer,
+                        forUnmarshaling->pointerSize * sizeof(uint8_t));
+        vkStream->read((uint8_t*)forUnmarshaling->pHostPointer,
+                       forUnmarshaling->pointerSize * sizeof(uint8_t));
+    }
+}
+
 void marshal_VkDebugMetadataGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
                                    const VkDebugMetadataGOOGLE* forMarshaling) {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
@@ -21851,6 +21896,12 @@ void marshal_extension_struct(VulkanStream* vkStream, VkStructureType rootType,
                 reinterpret_cast<const VkGuestCapabilitiesGOOGLE*>(structExtension));
             break;
         }
+        case VK_STRUCTURE_TYPE_HOST_POINTER_RESOLVE_GOOGLE: {
+            marshal_VkHostPointerResolveGOOGLE(
+                vkStream, rootType,
+                reinterpret_cast<const VkHostPointerResolveGOOGLE*>(structExtension));
+            break;
+        }
 #endif
 #ifdef VK_EXT_border_color_swizzle
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BORDER_COLOR_SWIZZLE_FEATURES_EXT: {
@@ -23495,6 +23546,12 @@ void unmarshal_extension_struct(VulkanStream* vkStream, VkStructureType rootType
                 reinterpret_cast<VkGuestCapabilitiesGOOGLE*>(structExtension_out));
             break;
         }
+        case VK_STRUCTURE_TYPE_HOST_POINTER_RESOLVE_GOOGLE: {
+            unmarshal_VkHostPointerResolveGOOGLE(
+                vkStream, rootType,
+                reinterpret_cast<VkHostPointerResolveGOOGLE*>(structExtension_out));
+            break;
+        }
 #endif
 #ifdef VK_EXT_border_color_swizzle
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BORDER_COLOR_SWIZZLE_FEATURES_EXT: {
@@ -23989,13 +24046,21 @@ const char* api_opcode_to_string(const uint32_t opcode) {
         case OP_vkGetMemoryHostPointerPropertiesEXT:
             return "OP_vkGetMemoryHostPointerPropertiesEXT";
 #endif
+#ifdef VK_EXT_host_image_copy
+        case OP_vkCopyImageToMemoryEXT:
+            return "OP_vkCopyImageToMemoryEXT";
+        case OP_vkCopyMemoryToImageEXT:
+            return "OP_vkCopyMemoryToImageEXT";
+        case OP_vkCopyImageToImageEXT:
+            return "OP_vkCopyImageToImageEXT";
+        case OP_vkTransitionImageLayoutEXT:
+            return "OP_vkTransitionImageLayoutEXT";
+        case OP_vkGetImageSubresourceLayout2EXT:
+            return "OP_vkGetImageSubresourceLayout2EXT";
+#endif
 #ifdef VK_EXT_host_query_reset
         case OP_vkResetQueryPoolEXT:
             return "OP_vkResetQueryPoolEXT";
-#endif
-#ifdef VK_EXT_image_compression_control
-        case OP_vkGetImageSubresourceLayout2EXT:
-            return "OP_vkGetImageSubresourceLayout2EXT";
 #endif
 #ifdef VK_EXT_image_drm_format_modifier
         case OP_vkGetImageDrmFormatModifierPropertiesEXT:

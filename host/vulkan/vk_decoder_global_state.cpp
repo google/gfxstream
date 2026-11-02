@@ -32,9 +32,11 @@
 #include <algorithm>
 #include <climits>
 #include <functional>
+#include <limits>
 #include <list>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -2085,16 +2087,7 @@ class VkDecoderGlobalState::Impl {
                 vk_find_struct<VkPhysicalDeviceProtectedMemoryFeatures>(pFeatures);
             VkPhysicalDevicePipelineProtectedAccessFeatures* pipelineAccessFeatures =
                 vk_find_struct<VkPhysicalDevicePipelineProtectedAccessFeatures>(pFeatures);
-            VkPhysicalDeviceHostImageCopyFeaturesEXT* hostImageCopyFeatures =
-                vk_find_struct<VkPhysicalDeviceHostImageCopyFeaturesEXT>(pFeatures);
 
-            // TODO(b/569943457): Implement support for host image copy extension
-            if (hostImageCopyFeatures) {
-                hostImageCopyFeatures->hostImageCopy = VK_FALSE;
-            }
-            if (vulkan14Features) {
-                vulkan14Features->hostImageCopy = VK_FALSE;
-            }
             if (m_vkEmulation->isShaderFloatControls2Disabled()) {
                 vk_util::clearShaderFloatControls2Features(pFeatures);
             }
@@ -2134,6 +2127,23 @@ class VkDecoderGlobalState::Impl {
                 if (vulkan13Features != nullptr) {
                     vulkan13Features->inlineUniformBlock = VK_FALSE;
                 }
+            }
+        }
+
+        // Host image copies need the guest to send the memory referenced by pHostPointer in
+        // VkHostPointerResolveGOOGLE. Older guests send guest addresses instead, so hide the
+        // feature from them regardless of BypassVulkanDeviceFeatureOverrides.
+        if (!instanceInfo->hasGuestCapability(
+                VK_GUEST_CAPABILITY_HOST_POINTER_RESOLVE_BIT_GOOGLE)) {
+            VkPhysicalDeviceHostImageCopyFeatures* hostImageCopyFeatures =
+                vk_find_struct<VkPhysicalDeviceHostImageCopyFeatures>(pFeatures);
+            if (hostImageCopyFeatures != nullptr) {
+                hostImageCopyFeatures->hostImageCopy = VK_FALSE;
+            }
+            VkPhysicalDeviceVulkan14Features* vulkan14Features =
+                vk_find_struct<VkPhysicalDeviceVulkan14Features>(pFeatures);
+            if (vulkan14Features != nullptr) {
+                vulkan14Features->hostImageCopy = VK_FALSE;
             }
         }
 
@@ -2608,6 +2618,15 @@ class VkDecoderGlobalState::Impl {
             vk_find_struct<VkPhysicalDeviceMemoryBudgetPropertiesEXT>(pMemoryProperties));
     }
 
+    bool physicalDeviceHasGuestCapability(VkPhysicalDevice physicalDevice,
+                                          VkGuestCapabilityFlagBitsGOOGLE capability) {
+        std::lock_guard<std::mutex> lock(mMutex);
+        const auto* physdevInfo = gfxstream::base::find(mPhysdevInfo, physicalDevice);
+        if (!physdevInfo) return false;
+        const auto* instanceInfo = gfxstream::base::find(mInstanceInfo, physdevInfo->instance);
+        return instanceInfo && instanceInfo->hasGuestCapability(capability);
+    }
+
     VkResult on_vkEnumerateDeviceExtensionProperties(gfxstream::base::BumpPool* pool,
                                                      VkSnapshotApiCallHandle,
                                                      Boxed<VkPhysicalDevice> boxed_physicalDevice,
@@ -2650,6 +2669,18 @@ class VkDecoderGlobalState::Impl {
                            }),
             properties.end());
 
+        // Host image copies are not supported for guests that do not resolve pHostPointer, see
+        // on_vkGetPhysicalDeviceFeatures2().
+        if (!physicalDeviceHasGuestCapability(
+                physicalDevice, VK_GUEST_CAPABILITY_HOST_POINTER_RESOLVE_BIT_GOOGLE)) {
+            properties.erase(
+                std::remove_if(properties.begin(), properties.end(),
+                               [](const VkExtensionProperties& extension) {
+                                   return strcmp(extension.extensionName,
+                                                 VK_EXT_HOST_IMAGE_COPY_EXTENSION_NAME) == 0;
+                               }),
+                properties.end());
+        }
         // Add in emulated extensions:
 
 #if defined(_WIN32)
@@ -2872,10 +2903,23 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
-        if (!m_vkEmulation->getFeatures().BypassVulkanDeviceFeatureOverrides.enabled()) {
-            VkPhysicalDeviceHostImageCopyFeatures* hostImageCopyFeatures =
+        // Host image copies are not reported to guests that do not resolve pHostPointer,
+        // see on_vkGetPhysicalDeviceFeatures2() and on_vkEnumerateDeviceExtensionProperties().
+        if (!physicalDeviceHasGuestCapability(
+                physicalDevice, VK_GUEST_CAPABILITY_HOST_POINTER_RESOLVE_BIT_GOOGLE)) {
+            for (uint32_t i = 0; i < pCreateInfo->enabledExtensionCount; ++i) {
+                const char* extName = pCreateInfo->ppEnabledExtensionNames
+                                          ? pCreateInfo->ppEnabledExtensionNames[i]
+                                          : nullptr;
+                if (extName && strcmp(extName, VK_EXT_HOST_IMAGE_COPY_EXTENSION_NAME) == 0) {
+                    GFXSTREAM_INFO("%s: Unsupported %s extension is requested!", __func__,
+                                   VK_EXT_HOST_IMAGE_COPY_EXTENSION_NAME);
+                    return VK_ERROR_EXTENSION_NOT_PRESENT;
+                }
+            }
+            const VkPhysicalDeviceHostImageCopyFeatures* hostImageCopyFeatures =
                 vk_find_struct<VkPhysicalDeviceHostImageCopyFeatures>(&createInfoFiltered);
-            VkPhysicalDeviceVulkan14Features* vulkan14Features =
+            const VkPhysicalDeviceVulkan14Features* vulkan14Features =
                 vk_find_struct<VkPhysicalDeviceVulkan14Features>(&createInfoFiltered);
             if ((hostImageCopyFeatures != nullptr && hostImageCopyFeatures->hostImageCopy) ||
                 (vulkan14Features != nullptr && vulkan14Features->hostImageCopy)) {
@@ -7134,7 +7178,22 @@ class VkDecoderGlobalState::Impl {
                                         VkSubresourceLayout* pLayout) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
-        vk->vkGetImageSubresourceLayout(device, image, pSubresource, pLayout);
+        VkImageSubresource subresource = *pSubresource;
+        VkImage targetImage = image;
+        {
+            std::lock_guard<std::mutex> lock(mMutex);
+            auto* imageInfo = gfxstream::base::find(mImageInfo, image);
+            if (imageInfo && imageInfo->compressInfo) {
+                if (subresource.mipLevel >= imageInfo->imageCreateInfoShallow.mipLevels) {
+                    GFXSTREAM_ERROR("%s: Invalid mip level %u.", __func__, subresource.mipLevel);
+                    *pLayout = {};
+                    return;
+                }
+                targetImage = imageInfo->compressInfo->compressedMipmap(subresource.mipLevel);
+                subresource.mipLevel = 0;
+            }
+        }
+        vk->vkGetImageSubresourceLayout(device, targetImage, &subresource, pLayout);
 #ifdef __ANDROID__
         if (pLayout && pLayout->rowPitch == 0) {
             std::lock_guard<std::mutex> lock(mMutex);
@@ -7147,6 +7206,441 @@ class VkDecoderGlobalState::Impl {
             }
         }
 #endif
+    }
+
+    // Calls whichever vkGetImageSubresourceLayout2 entry point the device supports. Returns false
+    // if there is none.
+    static bool getImageSubresourceLayout2(VulkanDispatch* vk, VkDevice device, VkImage image,
+                                           const VkImageSubresource2* pSubresource,
+                                           VkSubresourceLayout2* pLayout) {
+        if (vk->vkGetImageSubresourceLayout2) {
+            vk->vkGetImageSubresourceLayout2(device, image, pSubresource, pLayout);
+        } else if (vk->vkGetImageSubresourceLayout2EXT) {
+            vk->vkGetImageSubresourceLayout2EXT(device, image, pSubresource, pLayout);
+        } else if (vk->vkGetImageSubresourceLayout2KHR) {
+            vk->vkGetImageSubresourceLayout2KHR(device, image, pSubresource, pLayout);
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+    void on_vkGetImageSubresourceLayout2(gfxstream::base::BumpPool*, VkSnapshotApiCallHandle,
+                                         Boxed<VkDevice> boxed_device, VkImage image,
+                                         const VkImageSubresource2* pSubresource,
+                                         VkSubresourceLayout2* pLayout) {
+        auto device = unbox_VkDevice(boxed_device);
+        auto vk = dispatch_VkDevice(boxed_device);
+        VkImageSubresource2 subresource = *pSubresource;
+        VkImage targetImage = image;
+        {
+            std::lock_guard<std::mutex> lock(mMutex);
+            auto* imageInfo = gfxstream::base::find(mImageInfo, image);
+            if (imageInfo && imageInfo->compressInfo) {
+                const uint32_t mipLevel = subresource.imageSubresource.mipLevel;
+                if (mipLevel >= imageInfo->imageCreateInfoShallow.mipLevels) {
+                    GFXSTREAM_ERROR("%s: Invalid mip level %u.", __func__, mipLevel);
+                    pLayout->subresourceLayout = {};
+                    return;
+                }
+                targetImage = imageInfo->compressInfo->compressedMipmap(mipLevel);
+                subresource.imageSubresource.mipLevel = 0;
+            }
+        }
+        getImageSubresourceLayout2(vk, device, targetImage, &subresource, pLayout);
+#ifdef __ANDROID__
+        if (pLayout && pLayout->subresourceLayout.rowPitch == 0) {
+            std::lock_guard<std::mutex> lock(mMutex);
+            auto* dlInfo = gfxstream::base::find(mImageInfo, image);
+            if (dlInfo && dlInfo->deferredLayout.rowPitch > 0) {
+                pLayout->subresourceLayout.rowPitch = dlInfo->deferredLayout.rowPitch;
+                if (pLayout->subresourceLayout.size == 0) {
+                    pLayout->subresourceLayout.size = dlInfo->deferredLayout.size;
+                }
+                GFXSTREAM_INFO("DL-AHB stride image=%p rowPitch=%llu", (void*)image,
+                               (unsigned long long)pLayout->subresourceLayout.rowPitch);
+            }
+        }
+#endif
+    }
+
+    // Returns the size of the host memory that a host image copy region accesses: the offset of
+    // the last texel block that it copies plus the size of that block. Returns std::nullopt if the
+    // region is invalid or would access more than UINT32_MAX bytes, the largest
+    // VkHostPointerResolveGOOGLE::pointerSize.
+    template <typename HostImageCopyRegion>
+    std::optional<uint64_t> getHostImageCopyMemorySize(VulkanDispatch* vk, VkDevice device,
+                                                       VkImage image, const ImageInfo& imageInfo,
+                                                       VkHostImageCopyFlags flags,
+                                                       const HostImageCopyRegion& region) {
+        constexpr uint64_t kMaxSize = std::numeric_limits<uint32_t>::max();
+
+        const VkImageCreateInfo& createInfo = imageInfo.imageCreateInfoShallow;
+        const VkImageSubresourceLayers& subresource = region.imageSubresource;
+        if (subresource.mipLevel >= createInfo.mipLevels ||
+            subresource.baseArrayLayer >= createInfo.arrayLayers) {
+            return std::nullopt;
+        }
+        const uint32_t availableLayers = createInfo.arrayLayers - subresource.baseArrayLayer;
+        const uint32_t layerCount = subresource.layerCount == VK_REMAINING_ARRAY_LAYERS
+                                        ? availableLayers
+                                        : subresource.layerCount;
+        if (layerCount == 0 || layerCount > availableLayers) {
+            return std::nullopt;
+        }
+
+        if (flags & VK_HOST_IMAGE_COPY_MEMCPY_BIT) {
+            // Each layer is copied as VkSubresourceHostMemcpySize::size bytes in an
+            // implementation-defined layout. Query the image that the copy will access.
+            VkImage copyImage = image;
+            uint32_t copyMipLevel = subresource.mipLevel;
+            if (imageInfo.compressInfo) {
+                copyImage = imageInfo.compressInfo->compressedMipmap(subresource.mipLevel);
+                copyMipLevel = 0;
+            }
+            uint64_t size = 0;
+            for (uint32_t i = 0; i < layerCount; ++i) {
+                const VkImageSubresource2 copySubresource = {
+                    .sType = VK_STRUCTURE_TYPE_IMAGE_SUBRESOURCE_2,
+                    .pNext = nullptr,
+                    .imageSubresource =
+                        {
+                            .aspectMask = subresource.aspectMask,
+                            .mipLevel = copyMipLevel,
+                            .arrayLayer = subresource.baseArrayLayer + i,
+                        },
+                };
+                VkSubresourceHostMemcpySize memcpySize = {
+                    .sType = VK_STRUCTURE_TYPE_SUBRESOURCE_HOST_MEMCPY_SIZE,
+                    .pNext = nullptr,
+                    .size = 0,
+                };
+                VkSubresourceLayout2 layout = {
+                    .sType = VK_STRUCTURE_TYPE_SUBRESOURCE_LAYOUT_2,
+                    .pNext = &memcpySize,
+                };
+                if (!getImageSubresourceLayout2(vk, device, copyImage, &copySubresource, &layout) ||
+                    memcpySize.size == 0 || memcpySize.size > kMaxSize - size) {
+                    return std::nullopt;
+                }
+                size += memcpySize.size;
+            }
+            return size;
+        }
+
+        // Emulated compressed images are copied with the layout of the guest's format.
+        const VkFormat format = imageInfo.compressInfo ? imageInfo.compressInfo->compressedFormat()
+                                                       : createInfo.format;
+        const std::optional<TexelBlockInfo> block =
+            getCopyTexelBlockInfo(format, subresource.aspectMask);
+        if (!block || block->width == 0 || block->height == 0 || block->depth == 0) {
+            return std::nullopt;
+        }
+
+        const VkExtent3D& extent = region.imageExtent;
+        if (extent.width == 0 || extent.height == 0 || extent.depth == 0 ||
+            (region.memoryRowLength != 0 && region.memoryRowLength < extent.width) ||
+            (region.memoryImageHeight != 0 && region.memoryImageHeight < extent.height)) {
+            return std::nullopt;
+        }
+        const uint64_t rowLength = region.memoryRowLength ? region.memoryRowLength : extent.width;
+        const uint64_t imageHeight =
+            region.memoryImageHeight ? region.memoryImageHeight : extent.height;
+        auto ceilDiv = [](uint64_t value, uint64_t divisor) {
+            return (value + divisor - 1) / divisor;
+        };
+
+        // All operands are at most kMaxSize, so the products fit in 64 bits before being clamped.
+        bool tooLarge = false;
+        auto mul = [&](uint64_t a, uint64_t b) {
+            const uint64_t product = a * b;
+            if (product > kMaxSize) {
+                tooLarge = true;
+                return kMaxSize;
+            }
+            return product;
+        };
+        const uint64_t depthBlocks = ceilDiv(extent.depth, block->depth);
+        const uint64_t rowPitch = mul(ceilDiv(rowLength, block->width), block->sizeBytes);
+        const uint64_t slicePitch = mul(ceilDiv(imageHeight, block->height), rowPitch);
+        const uint64_t layerPitch = mul(depthBlocks, slicePitch);
+        const uint64_t size = mul(layerCount - 1, layerPitch) + mul(depthBlocks - 1, slicePitch) +
+                              mul(ceilDiv(extent.height, block->height) - 1, rowPitch) +
+                              mul(ceilDiv(extent.width, block->width), block->sizeBytes);
+        if (tooLarge || size > kMaxSize) {
+            return std::nullopt;
+        }
+        return size;
+    }
+
+    // Checks that every region of a host image copy points at memory received from the guest in
+    // VkHostPointerResolveGOOGLE, and that this memory is large enough for the copy. Without the
+    // struct, pHostPointer points at a single byte, see transformImpl_VkMemoryToImageCopy_tohost().
+    template <typename HostImageCopyRegion>
+    bool validateHostImageCopyRegions(VulkanDispatch* vk, VkDevice device, VkImage image,
+                                      const ImageInfo& imageInfo, VkHostImageCopyFlags flags,
+                                      uint32_t regionCount, const HostImageCopyRegion* pRegions) {
+        for (uint32_t r = 0; r < regionCount; r++) {
+            const HostImageCopyRegion& region = pRegions[r];
+            const VkHostPointerResolveGOOGLE* hostPtrResolve =
+                vk_find_struct<VkHostPointerResolveGOOGLE>(&region);
+            if (!hostPtrResolve || !hostPtrResolve->pHostPointer ||
+                region.pHostPointer != hostPtrResolve->pHostPointer) {
+                GFXSTREAM_ERROR("%s: Region %u has no VkHostPointerResolveGOOGLE data.", __func__,
+                                r);
+                return false;
+            }
+            const std::optional<uint64_t> size =
+                getHostImageCopyMemorySize(vk, device, image, imageInfo, flags, region);
+            if (!size) {
+                GFXSTREAM_ERROR("%s: Region %u is invalid.", __func__, r);
+                return false;
+            }
+            if (*size > hostPtrResolve->pointerSize) {
+                GFXSTREAM_ERROR("%s: Region %u accesses %" PRIu64 " bytes, but only %u are available.",
+                                __func__, r, *size, hostPtrResolve->pointerSize);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    VkResult on_vkCopyMemoryToImage_common(bool isExt, Boxed<VkDevice> boxed_device,
+                                           const VkCopyMemoryToImageInfo* pCopyMemoryToImageInfo) {
+        auto device = unbox_VkDevice(boxed_device);
+        auto vk = dispatch_VkDevice(boxed_device);
+        auto copyMemoryToImageFn =
+            isExt ? (vk->vkCopyMemoryToImageEXT ? vk->vkCopyMemoryToImageEXT
+                                                : vk->vkCopyMemoryToImage)
+                  : (vk->vkCopyMemoryToImage ? vk->vkCopyMemoryToImage
+                                             : vk->vkCopyMemoryToImageEXT);
+        if (!copyMemoryToImageFn) {
+            GFXSTREAM_ERROR("%s: Host image copy is not supported by host driver.", __func__);
+            return VK_ERROR_EXTENSION_NOT_PRESENT;
+        }
+
+        std::lock_guard<std::mutex> lock(mMutex);
+        auto* imageInfo = gfxstream::base::find(mImageInfo, pCopyMemoryToImageInfo->dstImage);
+        if (!imageInfo) return VK_ERROR_INITIALIZATION_FAILED;
+        if (!validateHostImageCopyRegions(vk, device, pCopyMemoryToImageInfo->dstImage, *imageInfo,
+                                          pCopyMemoryToImageInfo->flags,
+                                          pCopyMemoryToImageInfo->regionCount,
+                                          pCopyMemoryToImageInfo->pRegions)) {
+            return VK_ERROR_VALIDATION_FAILED;
+        }
+        if (!imageInfo->compressInfo) {
+            return copyMemoryToImageFn(device, pCopyMemoryToImageInfo);
+        }
+
+        CompressedImageInfo& cmpInfo = *imageInfo->compressInfo;
+        for (uint32_t r = 0; r < pCopyMemoryToImageInfo->regionCount; r++) {
+            uint32_t mipLevel = pCopyMemoryToImageInfo->pRegions[r].imageSubresource.mipLevel;
+            VkMemoryToImageCopy region =
+                cmpInfo.getMemoryToImageCopy(pCopyMemoryToImageInfo->pRegions[r]);
+            VkCopyMemoryToImageInfo inf = *pCopyMemoryToImageInfo;
+            inf.dstImage = cmpInfo.compressedMipmap(mipLevel);
+            inf.regionCount = 1;
+            inf.pRegions = &region;
+
+            VkResult res = copyMemoryToImageFn(device, &inf);
+            if (res != VK_SUCCESS) return res;
+        }
+        return VK_SUCCESS;
+    }
+
+    VkResult on_vkCopyMemoryToImage(gfxstream::base::BumpPool*, VkSnapshotApiCallHandle,
+                                    Boxed<VkDevice> boxed_device,
+                                    const VkCopyMemoryToImageInfo* pCopyMemoryToImageInfo) {
+        return on_vkCopyMemoryToImage_common(false, boxed_device, pCopyMemoryToImageInfo);
+    }
+
+    VkResult on_vkCopyMemoryToImageEXT(gfxstream::base::BumpPool*, VkSnapshotApiCallHandle,
+                                       Boxed<VkDevice> boxed_device,
+                                       const VkCopyMemoryToImageInfo* pCopyMemoryToImageInfo) {
+        return on_vkCopyMemoryToImage_common(true, boxed_device, pCopyMemoryToImageInfo);
+    }
+
+    VkResult on_vkCopyImageToMemory_common(bool isExt, Boxed<VkDevice> boxed_device,
+                                           const VkCopyImageToMemoryInfo* pCopyImageToMemoryInfo) {
+        auto device = unbox_VkDevice(boxed_device);
+        auto vk = dispatch_VkDevice(boxed_device);
+        auto copyImageToMemoryFn =
+            isExt ? (vk->vkCopyImageToMemoryEXT ? vk->vkCopyImageToMemoryEXT
+                                                : vk->vkCopyImageToMemory)
+                  : (vk->vkCopyImageToMemory ? vk->vkCopyImageToMemory
+                                             : vk->vkCopyImageToMemoryEXT);
+        if (!copyImageToMemoryFn) {
+            GFXSTREAM_ERROR("%s: Host image copy is not supported by host driver.", __func__);
+            return VK_ERROR_EXTENSION_NOT_PRESENT;
+        }
+
+        std::lock_guard<std::mutex> lock(mMutex);
+        auto* imageInfo = gfxstream::base::find(mImageInfo, pCopyImageToMemoryInfo->srcImage);
+        if (!imageInfo) return VK_ERROR_INITIALIZATION_FAILED;
+        if (!validateHostImageCopyRegions(vk, device, pCopyImageToMemoryInfo->srcImage, *imageInfo,
+                                          pCopyImageToMemoryInfo->flags,
+                                          pCopyImageToMemoryInfo->regionCount,
+                                          pCopyImageToMemoryInfo->pRegions)) {
+            return VK_ERROR_VALIDATION_FAILED;
+        }
+        if (!imageInfo->compressInfo) {
+            return copyImageToMemoryFn(device, pCopyImageToMemoryInfo);
+        }
+
+        CompressedImageInfo& cmpInfo = *imageInfo->compressInfo;
+        for (uint32_t r = 0; r < pCopyImageToMemoryInfo->regionCount; r++) {
+            uint32_t mipLevel = pCopyImageToMemoryInfo->pRegions[r].imageSubresource.mipLevel;
+            VkImageToMemoryCopy region =
+                cmpInfo.getImageToMemoryCopy(pCopyImageToMemoryInfo->pRegions[r]);
+            VkCopyImageToMemoryInfo inf = *pCopyImageToMemoryInfo;
+            inf.srcImage = cmpInfo.compressedMipmap(mipLevel);
+            inf.regionCount = 1;
+            inf.pRegions = &region;
+
+            VkResult res = copyImageToMemoryFn(device, &inf);
+            if (res != VK_SUCCESS) return res;
+        }
+        return VK_SUCCESS;
+    }
+
+    VkResult on_vkCopyImageToMemory(gfxstream::base::BumpPool*, VkSnapshotApiCallHandle,
+                                    Boxed<VkDevice> boxed_device,
+                                    const VkCopyImageToMemoryInfo* pCopyImageToMemoryInfo) {
+        return on_vkCopyImageToMemory_common(false, boxed_device, pCopyImageToMemoryInfo);
+    }
+
+    VkResult on_vkCopyImageToMemoryEXT(gfxstream::base::BumpPool*, VkSnapshotApiCallHandle,
+                                       Boxed<VkDevice> boxed_device,
+                                       const VkCopyImageToMemoryInfo* pCopyImageToMemoryInfo) {
+        return on_vkCopyImageToMemory_common(true, boxed_device, pCopyImageToMemoryInfo);
+    }
+
+    VkResult on_vkCopyImageToImage_common(bool isExt, Boxed<VkDevice> boxed_device,
+                                          const VkCopyImageToImageInfo* pCopyImageToImageInfo) {
+        auto device = unbox_VkDevice(boxed_device);
+        auto vk = dispatch_VkDevice(boxed_device);
+        auto copyImageToImageFn =
+            isExt ? (vk->vkCopyImageToImageEXT ? vk->vkCopyImageToImageEXT
+                                               : vk->vkCopyImageToImage)
+                  : (vk->vkCopyImageToImage ? vk->vkCopyImageToImage
+                                            : vk->vkCopyImageToImageEXT);
+        if (!copyImageToImageFn) {
+            GFXSTREAM_ERROR("%s: Host image copy is not supported by host driver.", __func__);
+            return VK_ERROR_EXTENSION_NOT_PRESENT;
+        }
+
+        std::lock_guard<std::mutex> lock(mMutex);
+        auto* srcImg = gfxstream::base::find(mImageInfo, pCopyImageToImageInfo->srcImage);
+        auto* dstImg = gfxstream::base::find(mImageInfo, pCopyImageToImageInfo->dstImage);
+        if (!srcImg || !dstImg) return VK_ERROR_INITIALIZATION_FAILED;
+
+        if (!srcImg->compressInfo && !dstImg->compressInfo) {
+            return copyImageToImageFn(device, pCopyImageToImageInfo);
+        }
+
+        for (uint32_t r = 0; r < pCopyImageToImageInfo->regionCount; r++) {
+            const VkImageCopy2& region = pCopyImageToImageInfo->pRegions[r];
+            if ((srcImg->compressInfo &&
+                 region.srcSubresource.mipLevel >= srcImg->imageCreateInfoShallow.mipLevels) ||
+                (dstImg->compressInfo &&
+                 region.dstSubresource.mipLevel >= dstImg->imageCreateInfoShallow.mipLevels)) {
+                GFXSTREAM_ERROR("%s: Region %u has an invalid mip level.", __func__, r);
+                return VK_ERROR_VALIDATION_FAILED;
+            }
+        }
+
+        VkImage srcImageMip = pCopyImageToImageInfo->srcImage;
+        VkImage dstImageMip = pCopyImageToImageInfo->dstImage;
+        for (uint32_t r = 0; r < pCopyImageToImageInfo->regionCount; r++) {
+            if (srcImg->compressInfo) {
+                srcImageMip = srcImg->compressInfo->compressedMipmap(
+                    pCopyImageToImageInfo->pRegions[r].srcSubresource.mipLevel);
+            }
+            if (dstImg->compressInfo) {
+                dstImageMip = dstImg->compressInfo->compressedMipmap(
+                    pCopyImageToImageInfo->pRegions[r].dstSubresource.mipLevel);
+            }
+
+            VkCopyImageToImageInfo inf = *pCopyImageToImageInfo;
+            inf.regionCount = 1;
+            inf.srcImage = srcImageMip;
+            inf.dstImage = dstImageMip;
+
+            VkImageCopy2 region = CompressedImageInfo::getCompressedMipmapsImageCopy(
+                pCopyImageToImageInfo->pRegions[r], srcImg->compressInfo.get(),
+                dstImg->compressInfo.get());
+            inf.pRegions = &region;
+
+            VkResult res = copyImageToImageFn(device, &inf);
+            if (res != VK_SUCCESS) return res;
+        }
+        return VK_SUCCESS;
+    }
+
+    VkResult on_vkCopyImageToImage(gfxstream::base::BumpPool*, VkSnapshotApiCallHandle,
+                                   Boxed<VkDevice> boxed_device,
+                                   const VkCopyImageToImageInfo* pCopyImageToImageInfo) {
+        return on_vkCopyImageToImage_common(false, boxed_device, pCopyImageToImageInfo);
+    }
+
+    VkResult on_vkCopyImageToImageEXT(gfxstream::base::BumpPool*, VkSnapshotApiCallHandle,
+                                      Boxed<VkDevice> boxed_device,
+                                      const VkCopyImageToImageInfo* pCopyImageToImageInfo) {
+        return on_vkCopyImageToImage_common(true, boxed_device, pCopyImageToImageInfo);
+    }
+
+    VkResult on_vkTransitionImageLayout_common(
+        bool isExt, Boxed<VkDevice> boxed_device, uint32_t transitionCount,
+        const VkHostImageLayoutTransitionInfo* pTransitions) {
+        auto device = unbox_VkDevice(boxed_device);
+        auto vk = dispatch_VkDevice(boxed_device);
+        auto transitionImageLayoutFn =
+            isExt ? (vk->vkTransitionImageLayoutEXT ? vk->vkTransitionImageLayoutEXT
+                                                    : vk->vkTransitionImageLayout)
+                  : (vk->vkTransitionImageLayout ? vk->vkTransitionImageLayout
+                                                 : vk->vkTransitionImageLayoutEXT);
+        if (!transitionImageLayoutFn) {
+            GFXSTREAM_ERROR("%s: Host image copy is not supported by host driver.", __func__);
+            return VK_ERROR_EXTENSION_NOT_PRESENT;
+        }
+
+        std::lock_guard<std::mutex> lock(mMutex);
+        std::vector<VkHostImageLayoutTransitionInfo> expandedTransitions;
+        expandedTransitions.reserve(transitionCount);
+        for (uint32_t i = 0; i < transitionCount; i++) {
+            const VkHostImageLayoutTransitionInfo& srcTransition = pTransitions[i];
+            auto* imageInfo = gfxstream::base::find(mImageInfo, srcTransition.image);
+            if (imageInfo && imageInfo->compressInfo) {
+                const VkImageSubresourceRange& range = srcTransition.subresourceRange;
+                const uint32_t mipLevels = imageInfo->imageCreateInfoShallow.mipLevels;
+                if (range.baseMipLevel >= mipLevels ||
+                    (range.levelCount != VK_REMAINING_MIP_LEVELS &&
+                     range.levelCount > mipLevels - range.baseMipLevel)) {
+                    GFXSTREAM_ERROR("%s: Transition %u has an invalid mip range.", __func__, i);
+                    return VK_ERROR_VALIDATION_FAILED;
+                }
+                std::vector<VkHostImageLayoutTransitionInfo> cmpTransitions =
+                    imageInfo->compressInfo->getImageLayoutTransitions(srcTransition);
+                expandedTransitions.insert(expandedTransitions.end(), cmpTransitions.begin(),
+                                           cmpTransitions.end());
+            } else {
+                expandedTransitions.push_back(srcTransition);
+            }
+        }
+        return transitionImageLayoutFn(device, static_cast<uint32_t>(expandedTransitions.size()),
+                                       expandedTransitions.data());
+    }
+
+    VkResult on_vkTransitionImageLayout(gfxstream::base::BumpPool*, VkSnapshotApiCallHandle,
+                                        Boxed<VkDevice> boxed_device, uint32_t transitionCount,
+                                        const VkHostImageLayoutTransitionInfo* pTransitions) {
+        return on_vkTransitionImageLayout_common(false, boxed_device, transitionCount, pTransitions);
+    }
+
+    VkResult on_vkTransitionImageLayoutEXT(gfxstream::base::BumpPool*, VkSnapshotApiCallHandle,
+                                           Boxed<VkDevice> boxed_device, uint32_t transitionCount,
+                                           const VkHostImageLayoutTransitionInfo* pTransitions) {
+        return on_vkTransitionImageLayout_common(true, boxed_device, transitionCount, pTransitions);
     }
 
     void on_vkGetImageMemoryRequirements2(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
@@ -12221,6 +12715,36 @@ class VkDecoderGlobalState::Impl {
         GFXSTREAM_FATAL("Not yet implemented.");
     }
 
+    void transformImpl_VkMemoryToImageCopy_tohost(const VkMemoryToImageCopy* regions,
+                                                  uint32_t count) {
+        VkMemoryToImageCopy* mutRegions = const_cast<VkMemoryToImageCopy*>(regions);
+        for (uint32_t i = 0; i < count; ++i) {
+            VkMemoryToImageCopy& region = mutRegions[i];
+            const VkHostPointerResolveGOOGLE* hostPtrResolve =
+                vk_find_struct<VkHostPointerResolveGOOGLE>(&region);
+            if (hostPtrResolve) {
+                region.pHostPointer = hostPtrResolve->pHostPointer;
+            }
+        }
+    }
+
+    void transformImpl_VkMemoryToImageCopy_fromhost(const VkMemoryToImageCopy*, uint32_t) {}
+
+    void transformImpl_VkImageToMemoryCopy_tohost(const VkImageToMemoryCopy* regions,
+                                                  uint32_t count) {
+        VkImageToMemoryCopy* mutRegions = const_cast<VkImageToMemoryCopy*>(regions);
+        for (uint32_t i = 0; i < count; ++i) {
+            VkImageToMemoryCopy& region = mutRegions[i];
+            const VkHostPointerResolveGOOGLE* hostPtrResolve =
+                vk_find_struct<VkHostPointerResolveGOOGLE>(&region);
+            if (hostPtrResolve) {
+                region.pHostPointer = hostPtrResolve->pHostPointer;
+            }
+        }
+    }
+
+    void transformImpl_VkImageToMemoryCopy_fromhost(const VkImageToMemoryCopy*, uint32_t) {}
+
 #define DEFINE_EXTERNAL_HANDLE_TYPE_TRANSFORM(type, field)                                      \
     void transformImpl_##type##_tohost(const type* props, uint32_t count) {                     \
         type* mut = (type*)props;                                                               \
@@ -14289,6 +14813,83 @@ void VkDecoderGlobalState::on_vkGetImageSubresourceLayout(
     VkImage image, const VkImageSubresource* pSubresource, VkSubresourceLayout* pLayout) {
     mImpl->on_vkGetImageSubresourceLayout(pool, apiCallHandle, Boxed<VkDevice>(device), image, pSubresource,
                                           pLayout);
+}
+
+void VkDecoderGlobalState::on_vkGetImageSubresourceLayout2(
+    gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+    VkImage image, const VkImageSubresource2* pSubresource, VkSubresourceLayout2* pLayout) {
+    mImpl->on_vkGetImageSubresourceLayout2(pool, apiCallHandle, Boxed<VkDevice>(device), image,
+                                           pSubresource, pLayout);
+}
+
+void VkDecoderGlobalState::on_vkGetImageSubresourceLayout2KHR(
+    gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+    VkImage image, const VkImageSubresource2* pSubresource, VkSubresourceLayout2* pLayout) {
+    mImpl->on_vkGetImageSubresourceLayout2(pool, apiCallHandle, Boxed<VkDevice>(device), image,
+                                           pSubresource, pLayout);
+}
+
+void VkDecoderGlobalState::on_vkGetImageSubresourceLayout2EXT(
+    gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+    VkImage image, const VkImageSubresource2* pSubresource, VkSubresourceLayout2* pLayout) {
+    mImpl->on_vkGetImageSubresourceLayout2(pool, apiCallHandle, Boxed<VkDevice>(device), image,
+                                           pSubresource, pLayout);
+}
+
+VkResult VkDecoderGlobalState::on_vkCopyMemoryToImage(
+    gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+    const VkCopyMemoryToImageInfo* pCopyMemoryToImageInfo) {
+    return mImpl->on_vkCopyMemoryToImage(pool, apiCallHandle, Boxed<VkDevice>(device),
+                                         pCopyMemoryToImageInfo);
+}
+
+VkResult VkDecoderGlobalState::on_vkCopyMemoryToImageEXT(
+    gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+    const VkCopyMemoryToImageInfo* pCopyMemoryToImageInfo) {
+    return mImpl->on_vkCopyMemoryToImageEXT(pool, apiCallHandle, Boxed<VkDevice>(device),
+                                            pCopyMemoryToImageInfo);
+}
+
+VkResult VkDecoderGlobalState::on_vkCopyImageToMemory(
+    gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+    const VkCopyImageToMemoryInfo* pCopyImageToMemoryInfo) {
+    return mImpl->on_vkCopyImageToMemory(pool, apiCallHandle, Boxed<VkDevice>(device),
+                                         pCopyImageToMemoryInfo);
+}
+
+VkResult VkDecoderGlobalState::on_vkCopyImageToMemoryEXT(
+    gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+    const VkCopyImageToMemoryInfo* pCopyImageToMemoryInfo) {
+    return mImpl->on_vkCopyImageToMemoryEXT(pool, apiCallHandle, Boxed<VkDevice>(device),
+                                            pCopyImageToMemoryInfo);
+}
+
+VkResult VkDecoderGlobalState::on_vkCopyImageToImage(
+    gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+    const VkCopyImageToImageInfo* pCopyImageToImageInfo) {
+    return mImpl->on_vkCopyImageToImage(pool, apiCallHandle, Boxed<VkDevice>(device),
+                                        pCopyImageToImageInfo);
+}
+
+VkResult VkDecoderGlobalState::on_vkCopyImageToImageEXT(
+    gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+    const VkCopyImageToImageInfo* pCopyImageToImageInfo) {
+    return mImpl->on_vkCopyImageToImageEXT(pool, apiCallHandle, Boxed<VkDevice>(device),
+                                           pCopyImageToImageInfo);
+}
+
+VkResult VkDecoderGlobalState::on_vkTransitionImageLayout(
+    gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+    uint32_t transitionCount, const VkHostImageLayoutTransitionInfo* pTransitions) {
+    return mImpl->on_vkTransitionImageLayout(pool, apiCallHandle, Boxed<VkDevice>(device),
+                                             transitionCount, pTransitions);
+}
+
+VkResult VkDecoderGlobalState::on_vkTransitionImageLayoutEXT(
+    gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle apiCallHandle, VkDevice device,
+    uint32_t transitionCount, const VkHostImageLayoutTransitionInfo* pTransitions) {
+    return mImpl->on_vkTransitionImageLayoutEXT(pool, apiCallHandle, Boxed<VkDevice>(device),
+                                                transitionCount, pTransitions);
 }
 
 void VkDecoderGlobalState::on_vkGetImageMemoryRequirements(

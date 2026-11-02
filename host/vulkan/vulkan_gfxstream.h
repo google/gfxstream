@@ -26,6 +26,7 @@ extern "C" {
 #define VK_GOOGLE_GFXSTREAM_EXTENSION_NAME "VK_GOOGLE_gfxstream"
 typedef enum VkGuestCapabilityFlagBitsGOOGLE {
     VK_GUEST_CAPABILITY_BATCHED_INLINE_UNIFORM_BLOCK_BIT_GOOGLE = 0x00000001,
+    VK_GUEST_CAPABILITY_HOST_POINTER_RESOLVE_BIT_GOOGLE = 0x00000002,
 } VkGuestCapabilityFlagBitsGOOGLE;
 
 typedef VkFlags VkGuestCapabilityFlagsGOOGLE;
@@ -78,6 +79,13 @@ typedef struct VkGuestCapabilitiesGOOGLE {
     const void* pNext;
     VkGuestCapabilityFlagsGOOGLE capabilities;
 } VkGuestCapabilitiesGOOGLE;
+
+typedef struct VkHostPointerResolveGOOGLE {
+    VkStructureType sType;
+    const void* pNext;
+    uint32_t pointerSize;
+    uint8_t* pHostPointer;
+} VkHostPointerResolveGOOGLE;
 
 typedef struct VkDebugMetadataGOOGLE {
     VkStructureType sType;

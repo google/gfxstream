@@ -7701,6 +7701,26 @@ void reservedunmarshal_VkGuestCapabilitiesGOOGLE(VulkanStream* vkStream, VkStruc
     readStreamBytes(ptr, &forUnmarshaling->capabilities, sizeof(VkGuestCapabilityFlagsGOOGLE));
 }
 
+void reservedunmarshal_VkHostPointerResolveGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
+                                                  VkHostPointerResolveGOOGLE* forUnmarshaling,
+                                                  uint8_t** ptr) {
+    readStreamBytes(ptr, &forUnmarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    forUnmarshaling->pNext = reservedunmarshal_pNext(vkStream, rootType, ptr);
+    readStreamBytes(ptr, &forUnmarshaling->pointerSize, sizeof(uint32_t));
+    forUnmarshaling->pHostPointer = (uint8_t*)(uintptr_t)getBe64WithStreamPtr(ptr);
+    if (forUnmarshaling->pHostPointer) {
+        vkStream->alloc((void**)&forUnmarshaling->pHostPointer,
+                        forUnmarshaling->pointerSize * sizeof(uint8_t));
+        if (forUnmarshaling->pointerSize > 0) {
+            readStreamBytes(ptr, forUnmarshaling->pHostPointer,
+                            forUnmarshaling->pointerSize * sizeof(uint8_t));
+        }
+    }
+}
+
 void reservedunmarshal_VkDebugMetadataGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
                                              VkDebugMetadataGOOGLE* forUnmarshaling,
                                              uint8_t** ptr) {
@@ -9486,6 +9506,12 @@ void reservedunmarshal_extension_struct(VulkanStream* vkStream, VkStructureType 
             reservedunmarshal_VkGuestCapabilitiesGOOGLE(
                 vkStream, rootType,
                 reinterpret_cast<VkGuestCapabilitiesGOOGLE*>(structExtension_out), ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_HOST_POINTER_RESOLVE_GOOGLE: {
+            reservedunmarshal_VkHostPointerResolveGOOGLE(
+                vkStream, rootType,
+                reinterpret_cast<VkHostPointerResolveGOOGLE*>(structExtension_out), ptr);
             break;
         }
 #endif

@@ -14,13 +14,22 @@
 
 #include "vk_format_utils.h"
 
+#include <array>
 #include <limits>
+#include <optional>
 #include <unordered_map>
 
 #include "gfxstream/common/logging.h"
 #include "gfxstream/host/gfxstream_format.h"
 #include "gfxstream/host/guest_operations.h"
 #include "vulkan/vk_enum_string_helper.h"
+
+// Only the constexpr format traits of Vulkan-Hpp, generated from vk.xml, are used. Keep them in a
+// dedicated namespace, and return defaults for unknown formats instead of asserting.
+#define VULKAN_HPP_NAMESPACE gfxstream_vkhpp
+#define VULKAN_HPP_NO_EXCEPTIONS
+#define VULKAN_HPP_ASSERT(expr) static_cast<void>(0)
+#include <vulkan/vulkan_format_traits.hpp>
 
 namespace gfxstream {
 namespace host {
@@ -608,6 +617,77 @@ std::optional<BlitInfo> getBlitInfo(VkFormat format, VkExtent3D extent) {
         });
     }
     return blitInfo;
+}
+
+std::optional<TexelBlockInfo> getCopyTexelBlockInfo(VkFormat format, VkImageAspectFlags aspectMask) {
+    using gfxstream_vkhpp::Format;
+    const Format traitsFormat = static_cast<Format>(format);
+    const uint8_t planeCount = gfxstream_vkhpp::planeCount(traitsFormat);
+
+    // The format of the data copied for `aspectMask`.
+    VkFormat copyFormat = format;
+    switch (aspectMask) {
+        case VK_IMAGE_ASPECT_COLOR_BIT:
+            if (formatIsDepthOrStencil(format) || planeCount > 1) {
+                return std::nullopt;
+            }
+            break;
+        case VK_IMAGE_ASPECT_DEPTH_BIT:
+            switch (format) {
+                case VK_FORMAT_D16_UNORM:
+                case VK_FORMAT_D16_UNORM_S8_UINT:
+                    copyFormat = VK_FORMAT_D16_UNORM;
+                    break;
+                case VK_FORMAT_X8_D24_UNORM_PACK32:
+                case VK_FORMAT_D24_UNORM_S8_UINT:
+                    copyFormat = VK_FORMAT_X8_D24_UNORM_PACK32;
+                    break;
+                case VK_FORMAT_D32_SFLOAT:
+                case VK_FORMAT_D32_SFLOAT_S8_UINT:
+                    copyFormat = VK_FORMAT_D32_SFLOAT;
+                    break;
+                default:
+                    return std::nullopt;
+            }
+            break;
+        case VK_IMAGE_ASPECT_STENCIL_BIT:
+            if ((getFormatAspects(format) & VK_IMAGE_ASPECT_STENCIL_BIT) == 0) {
+                return std::nullopt;
+            }
+            copyFormat = VK_FORMAT_S8_UINT;
+            break;
+        case VK_IMAGE_ASPECT_PLANE_0_BIT:
+        case VK_IMAGE_ASPECT_PLANE_1_BIT:
+        case VK_IMAGE_ASPECT_PLANE_2_BIT: {
+            const uint8_t plane = aspectMask == VK_IMAGE_ASPECT_PLANE_0_BIT   ? 0
+                                  : aspectMask == VK_IMAGE_ASPECT_PLANE_1_BIT ? 1
+                                                                              : 2;
+            if (planeCount <= 1 || plane >= planeCount) {
+                return std::nullopt;
+            }
+            copyFormat = static_cast<VkFormat>(
+                gfxstream_vkhpp::planeCompatibleFormat(traitsFormat, plane));
+            break;
+        }
+        default:
+            return std::nullopt;
+    }
+
+    const Format traitsCopyFormat = static_cast<Format>(copyFormat);
+    const uint8_t sizeBytes = gfxstream_vkhpp::blockSize(traitsCopyFormat);
+    if (sizeBytes == 0) {
+        return std::nullopt;
+    }
+    const std::array<uint8_t, 3> extent = gfxstream_vkhpp::blockExtent(traitsCopyFormat);
+    if (extent[0] == 0 || extent[1] == 0 || extent[2] == 0) {
+        return std::nullopt;
+    }
+    return TexelBlockInfo{
+        .width = extent[0],
+        .height = extent[1],
+        .depth = extent[2],
+        .sizeBytes = sizeBytes,
+    };
 }
 
 }  // namespace vk

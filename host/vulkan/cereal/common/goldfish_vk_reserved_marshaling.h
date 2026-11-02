@@ -2472,6 +2472,44 @@ void reservedunmarshal_VkPhysicalDeviceExtendedDynamicStateFeaturesEXT(
     VkPhysicalDeviceExtendedDynamicStateFeaturesEXT* forUnmarshaling, uint8_t** ptr);
 
 #endif
+#ifdef VK_EXT_host_image_copy
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceHostImageCopyFeatures,
+                      reservedunmarshal_VkPhysicalDeviceHostImageCopyFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceHostImageCopyProperties,
+                      reservedunmarshal_VkPhysicalDeviceHostImageCopyPropertiesEXT)
+
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkMemoryToImageCopy,
+                      reservedunmarshal_VkMemoryToImageCopyEXT)
+
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkImageToMemoryCopy,
+                      reservedunmarshal_VkImageToMemoryCopyEXT)
+
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkCopyMemoryToImageInfo,
+                      reservedunmarshal_VkCopyMemoryToImageInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkCopyImageToMemoryInfo,
+                      reservedunmarshal_VkCopyImageToMemoryInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkCopyImageToImageInfo,
+                      reservedunmarshal_VkCopyImageToImageInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkHostImageLayoutTransitionInfo,
+                      reservedunmarshal_VkHostImageLayoutTransitionInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkSubresourceHostMemcpySize,
+                      reservedunmarshal_VkSubresourceHostMemcpySizeEXT)
+
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkHostImageCopyDevicePerformanceQuery,
+                      reservedunmarshal_VkHostImageCopyDevicePerformanceQueryEXT)
+
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkSubresourceLayout2,
+                      reservedunmarshal_VkSubresourceLayout2EXT)
+
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkImageSubresource2,
+                      reservedunmarshal_VkImageSubresource2EXT)
+
+#endif
 #ifdef VK_EXT_swapchain_maintenance1
 DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceSwapchainMaintenance1FeaturesKHR,
                       reservedunmarshal_VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT)
@@ -2601,12 +2639,6 @@ void reservedunmarshal_VkImageCompressionControlEXT(VulkanStream* vkStream,
                                                     VkImageCompressionControlEXT* forUnmarshaling,
                                                     uint8_t** ptr);
 
-DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkSubresourceLayout2,
-                      reservedunmarshal_VkSubresourceLayout2EXT)
-
-DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkImageSubresource2,
-                      reservedunmarshal_VkImageSubresource2EXT)
-
 void reservedunmarshal_VkImageCompressionPropertiesEXT(
     VulkanStream* vkStream, VkStructureType rootType,
     VkImageCompressionPropertiesEXT* forUnmarshaling, uint8_t** ptr);
@@ -2685,6 +2717,10 @@ void reservedunmarshal_VkDebugMetadataGuestThreadIdGOOGLE(
 void reservedunmarshal_VkGuestCapabilitiesGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
                                                  VkGuestCapabilitiesGOOGLE* forUnmarshaling,
                                                  uint8_t** ptr);
+
+void reservedunmarshal_VkHostPointerResolveGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
+                                                  VkHostPointerResolveGOOGLE* forUnmarshaling,
+                                                  uint8_t** ptr);
 
 void reservedunmarshal_VkDebugMetadataGOOGLE(VulkanStream* vkStream, VkStructureType rootType,
                                              VkDebugMetadataGOOGLE* forUnmarshaling, uint8_t** ptr);
