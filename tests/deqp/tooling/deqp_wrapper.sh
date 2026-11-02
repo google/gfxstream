@@ -18,7 +18,8 @@ set -e
 DEQP_BINARY=""
 DEQP_CASES=""
 DEQP_QPA_TO_TEST_XML=""
-GRAPHICS_DRIVERS_DIR=""
+HOST_DRIVERS_DIR=""
+HOST_VULKAN_DRIVER_MANIFEST=""
 KUMQUAT_BINARY=""
 RENDERER_FEATURES=""
 VULKAN_DRIVER=""
@@ -34,8 +35,11 @@ for arg in "$@"; do
     --deqp_qpa_to_test_xml=*)
       DEQP_QPA_TO_TEST_XML="${arg#*=}"
       ;;
-    --graphics_drivers_dir=*)
-      GRAPHICS_DRIVERS_DIR="${arg#*=}"
+    --host_drivers_dir=*)
+      HOST_DRIVERS_DIR="${arg#*=}"
+      ;;
+    --host_vulkan_driver_manifest=*)
+      HOST_VULKAN_DRIVER_MANIFEST="${arg#*=}"
       ;;
     --kumquat_binary=*)
       KUMQUAT_BINARY="${arg#*=}"
@@ -76,6 +80,10 @@ fi
 
 function get_absolute_path() {
   local p="$1"
+  if [[ -z "$p" ]]; then
+    echo ""
+    return
+  fi
   if [[ "$p" != /* ]]; then
     if [ -e "$p" ]; then
       p="$PWD/$p"
@@ -100,6 +108,8 @@ function shard_file() {
 DEQP_BINARY="$(get_absolute_path "${DEQP_BINARY}")"
 DEQP_DATA_PATH="$(dirname "${DEQP_BINARY}")/external/vulkancts/data"
 DEQP_QPA_TO_TEST_XML="$(get_absolute_path "${DEQP_QPA_TO_TEST_XML}")"
+HOST_DRIVERS_DIR="$(get_absolute_path "${HOST_DRIVERS_DIR}")"
+HOST_VULKAN_DRIVER_MANIFEST="$(get_absolute_path "${HOST_VULKAN_DRIVER_MANIFEST}")"
 KUMQUAT_BINARY="$(get_absolute_path "${KUMQUAT_BINARY}")"
 VULKAN_DRIVER="$(get_absolute_path "${VULKAN_DRIVER}")"
 
@@ -109,22 +119,16 @@ echo "  - dEQP binary: ${DEQP_BINARY}"
 echo "  - dEQP data path: ${DEQP_DATA_PATH}"
 echo "  - dEQP QPA to test.xml converter: ${DEQP_QPA_TO_TEST_XML}"
 echo "  - Kumquat binary: ${KUMQUAT_BINARY}"
-echo "  - Vulkan driver: ${VULKAN_DRIVER}"
+echo "  - Guest Vulkan driver: ${VULKAN_DRIVER}"
+echo "  - Host drivers dir: ${HOST_DRIVERS_DIR}"
+echo "  - Host Vulkan driver manifest: ${HOST_VULKAN_DRIVER_MANIFEST}"
 
-if [[ -n "${GRAPHICS_DRIVERS_DIR}" ]]; then
-  GRAPHICS_DRIVERS_DIR="$(get_absolute_path "${GRAPHICS_DRIVERS_DIR}")"
-  if [ -d "${GRAPHICS_DRIVERS_DIR}" ]; then
-    export LD_LIBRARY_PATH="${GRAPHICS_DRIVERS_DIR}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
-    if [ -f "${GRAPHICS_DRIVERS_DIR}/vk_lavapipe_icd.json" ]; then
-      export VK_DRIVER_FILES="${GRAPHICS_DRIVERS_DIR}/vk_lavapipe_icd.json"
-      export VK_ICD_FILENAMES="${GRAPHICS_DRIVERS_DIR}/vk_lavapipe_icd.json"
-      echo "  - Host Vulkan ICD: ${VK_DRIVER_FILES}"
-    elif [ -f "${GRAPHICS_DRIVERS_DIR}/vk_swiftshader_icd.json" ]; then
-      export VK_DRIVER_FILES="${GRAPHICS_DRIVERS_DIR}/vk_swiftshader_icd.json"
-      export VK_ICD_FILENAMES="${GRAPHICS_DRIVERS_DIR}/vk_swiftshader_icd.json"
-      echo "  - Host Vulkan ICD: ${VK_DRIVER_FILES}"
-    fi
-  fi
+if [[ -n "${HOST_DRIVERS_DIR}" ]]; then
+  export LD_LIBRARY_PATH="${HOST_DRIVERS_DIR}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+fi
+if [[ -n "${HOST_VULKAN_DRIVER_MANIFEST}" ]]; then
+  export VK_DRIVER_FILES="${HOST_VULKAN_DRIVER_MANIFEST}"
+  export VK_ICD_FILENAMES="${HOST_VULKAN_DRIVER_MANIFEST}"
 fi
 
 WORK_DIR="$(mktemp -d "${TEST_TMPDIR:-/tmp}/gfxstream_deqp_vk.XXXXXX")"
