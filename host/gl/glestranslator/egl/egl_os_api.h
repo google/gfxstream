@@ -50,6 +50,7 @@ public:
     } SurfaceType;
 
     explicit Surface(SurfaceType type) : mType(type) {}
+    virtual ~Surface() = default;
 
     SurfaceType type() const { return mType; }
 
@@ -204,6 +205,11 @@ public:
     virtual EGLDisplay getNative() { return (EGLDisplay)0; }
 
     virtual bool releasePbuffer(Surface* pb) = 0;
+
+    virtual bool releaseWindowSurface(Surface* s) {
+        delete s;
+        return true;
+    }
 
     virtual bool makeCurrent(Surface* read,
                              Surface* draw,

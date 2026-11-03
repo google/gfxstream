@@ -1814,6 +1814,26 @@ static void subWindowRepaint(void* param) {
     fb->repost();
 }
 
+namespace {
+
+class ScopedPromise {
+   public:
+    ~ScopedPromise() { mPromise.set_value(); }
+    std::future<void> getFuture() { return mPromise.get_future(); }
+    DISALLOW_COPY_ASSIGN_AND_MOVE(ScopedPromise);
+    static std::tuple<std::unique_ptr<ScopedPromise>, std::future<void>> create() {
+        auto scopedPromise = std::unique_ptr<ScopedPromise>(new ScopedPromise());
+        auto future = scopedPromise->mPromise.get_future();
+        return std::make_tuple(std::move(scopedPromise), std::move(future));
+    }
+
+   private:
+    ScopedPromise() = default;
+    std::promise<void> mPromise;
+};
+
+}  // namespace
+
 bool FrameBuffer::Impl::setupSubWindow(FBNativeWindowType p_window, int wx, int wy, int ww, int wh,
                                        int fbw, int fbh, float dpr, float zRot, bool deleteExisting,
                                        bool hideWindow) {
@@ -1854,21 +1874,6 @@ bool FrameBuffer::Impl::setupSubWindow(FBNativeWindowType p_window, int wx, int 
         return true;
     }
 
-    class ScopedPromise {
-       public:
-        ~ScopedPromise() { mPromise.set_value(); }
-        std::future<void> getFuture() { return mPromise.get_future(); }
-        DISALLOW_COPY_ASSIGN_AND_MOVE(ScopedPromise);
-        static std::tuple<std::unique_ptr<ScopedPromise>, std::future<void>> create() {
-            auto scopedPromise = std::unique_ptr<ScopedPromise>(new ScopedPromise());
-            auto future = scopedPromise->mPromise.get_future();
-            return std::make_tuple(std::move(scopedPromise), std::move(future));
-        }
-
-       private:
-        ScopedPromise() = default;
-        std::promise<void> mPromise;
-    };
     std::unique_ptr<ScopedPromise> postWorkerContinueSignal;
     std::future<void> postWorkerContinueSignalFuture;
     std::tie(postWorkerContinueSignal, postWorkerContinueSignalFuture) = ScopedPromise::create();
@@ -2035,6 +2040,16 @@ bool FrameBuffer::Impl::removeSubWindow() {
     AutoLock lock(sGlobals()->lock);
     sInitialized.store(false, std::memory_order_relaxed);
     sGlobals()->condVar.broadcastAndUnlock(&lock);
+
+    std::unique_ptr<ScopedPromise> postWorkerContinueSignal;
+    std::future<void> postWorkerContinueSignalFuture;
+    std::tie(postWorkerContinueSignal, postWorkerContinueSignalFuture) = ScopedPromise::create();
+    {
+        blockPostWorker(std::move(postWorkerContinueSignalFuture)).wait();
+    }
+    if (m_displayVk) {
+        m_displayVk->drainQueues();
+    }
 
     AutoLock mutex(m_lock);
     return removeSubWindow_locked();

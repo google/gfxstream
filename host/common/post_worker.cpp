@@ -80,7 +80,8 @@ void PostWorker::block(std::promise<void> scheduledSignal, std::future<void> con
         .scheduledSignal = std::move(scheduledSignal),
         .continueSignal = std::move(continueSignal),
     });
-    runTask(std::packaged_task<void()>([block] {
+    runTask(std::packaged_task<void()>([this, block] {
+        unbindContext();
         block->scheduledSignal.set_value();
         block->continueSignal.wait();
     }));
