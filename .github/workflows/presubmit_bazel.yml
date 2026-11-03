@@ -39,6 +39,7 @@ on:
           host:gfxstream_framebuffer_tests
           host/vulkan:gfxstream_compositorvk_tests
           host/vulkan:gfxstream_emulatedphysicalmemory_tests
+          host/vulkan:gfxstream_vk_memory_allocation_helper_tests
           host/vulkan:vk_common_operations_tests
           host/vulkan:vk_format_utils_tests
           tests/deqp/...
