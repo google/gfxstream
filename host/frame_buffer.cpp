@@ -2589,6 +2589,7 @@ std::vector<HandleType> FrameBuffer::Impl::cleanupProcGLObjects_locked(uint64_t 
         // Clean up GLES window surfaces and contexts
         if (m_emulationGl) {
             auto colorBuffers = m_emulationGl->cleanupProcGLObjects(puid);
+            bind.reset();
             for (auto cb : colorBuffers) {
                 if (!m_guestManagedColorBufferLifetime) {
                     if (m_refCountPipeEnabled) {
@@ -3405,6 +3406,7 @@ bool FrameBuffer::Impl::onSave(Stream* stream,
     // We don't need to save |m_colorBufferCloseTsMap| here - there's enough
     // information to reconstruct it when loading.
     uint64_t now = gfxstream::base::getUnixTimeUs();
+    bind.reset();
 
     {
         AutoLock colorBufferMapLock(m_colorBufferMapLock);
@@ -3432,6 +3434,14 @@ bool FrameBuffer::Impl::onSave(Stream* stream,
             return false;
         }
     }
+#if GFXSTREAM_ENABLE_HOST_GLES
+    if (m_emulationGl) {
+        bind = std::make_unique<RecursiveScopedContextBind>(getPbufferSurfaceContextHelper());
+        if (!bind->isOk()) {
+            GFXSTREAM_ERROR("Failed to make context current for saving snapshot.");
+        }
+    }
+#endif
     stream->putBe32(m_lastPostedColorBuffer);
 #if GFXSTREAM_ENABLE_HOST_GLES
     if (m_emulationGl) {
@@ -3513,17 +3523,6 @@ bool FrameBuffer::Impl::onLoad(Stream* stream,
     // cleanups
     {
         sweepColorBuffersLocked();
-
-        std::unique_ptr<RecursiveScopedContextBind> bind;
-#if GFXSTREAM_ENABLE_HOST_GLES
-        if (m_emulationGl) {
-            // Some snapshot commands try using GL.
-            bind = std::make_unique<RecursiveScopedContextBind>(getPbufferSurfaceContextHelper());
-            if (!bind->isOk()) {
-                GFXSTREAM_ERROR("Failed to make context current for loading snapshot.");
-            }
-        }
-#endif
 
         bool cleanupComplete = false;
         bool hasCleanupCallbacks = false;
@@ -3616,6 +3615,10 @@ bool FrameBuffer::Impl::onLoad(Stream* stream,
         }
 #if GFXSTREAM_ENABLE_HOST_GLES
         if (m_emulationGl) {
+            RecursiveScopedContextBind bind(getPbufferSurfaceContextHelper());
+            if (!bind.isOk()) {
+                GFXSTREAM_ERROR("Failed to make context current for loading snapshot.");
+            }
             m_emulationGl->loadAllImages(stream, textureLoader);
         }
 #endif
@@ -3758,6 +3761,7 @@ bool FrameBuffer::Impl::onLoad(Stream* stream,
 #endif
 
     {
+        AutoLock colorBufferMapLock(m_colorBufferMapLock);
         std::unique_ptr<RecursiveScopedContextBind> bind;
 #if GFXSTREAM_ENABLE_HOST_GLES
         if (m_emulationGl) {
@@ -3769,7 +3773,6 @@ bool FrameBuffer::Impl::onLoad(Stream* stream,
         }
 #endif
 
-        AutoLock colorBufferMapLock(m_colorBufferMapLock);
         for (auto& it : m_colorbuffers) {
             if (it.second.cb) {
                 it.second.cb->touch();
