@@ -154,6 +154,12 @@ static constexpr const char* const kEmulatedDeviceExtensions[] = {
     VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME,
     VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME,
 #endif
+#if defined(__ANDROID__)
+    // Hidden from the guest in AndroidAHB mode, but guest drivers such as Mesa may still request
+    // it, which fails device creation if the host driver does not support it. It is enabled on the
+    // host anyway if the host driver supports it (see filteredDeviceExtensionNames()).
+    VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME,
+#endif
 };
 
 // A list of instance extensions that should not be passed to the host driver.
