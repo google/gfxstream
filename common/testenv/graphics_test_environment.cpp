@@ -38,6 +38,13 @@
 // util_queue_thread_func() (b/573994192, b/579560506).
 extern "C" const char* __tsan_default_suppressions() {
     return "race:lp_fence_destroy\n"
+           "race:lvp_queue_submit\n"
+           "race:reclaim_trash_locked\n"
+           "race:util_dynarray_grow_bytes_slow\n"
+           "race:_mesa_hash_table_copy\n"
+           "race:llvmpipe_register_sampler\n"
+           "race:llvm::StringMapImpl::LookupBucketFor\n"
+           "race:llvm::DenseMapBase\n"
            "race:util_queue_thread_func\n";
 }
 #endif
@@ -149,6 +156,13 @@ bool SetupGraphicsTestEnvironment() {
 
 #if defined(GFXSTREAM_TESTING_USE_VULKAN_LAVAPIPE)
     GFXSTREAM_INFO("GraphicsTestEnvironment: configuring Lavapipe as Vulkan driver.");
+#if defined(__has_feature)
+#if __has_feature(thread_sanitizer)
+    if (gfxstream::base::getEnvironmentVariable("LP_NUM_THREADS").empty()) {
+        gfxstream::base::setEnvironmentVariable("LP_NUM_THREADS", "0");
+    }
+#endif
+#endif
 #elif defined(GFXSTREAM_TESTING_USE_VULKAN_SWIFTSHADER)
     GFXSTREAM_INFO("GraphicsTestEnvironment: configuring Swiftshader as Vulkan driver.");
 #else
