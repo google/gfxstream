@@ -592,6 +592,35 @@ TEST_F(VkMemoryAllocationHelperTest, HostVisibleExternalBlobChainsExportAllocate
     });
 }
 
+TEST_F(VkMemoryAllocationHelperTest, HostVisibleExternalBlobDoesNotExportDmaBufInAndroidAhbMode) {
+    mFeatures.ExternalBlob.setEnabled(true);
+    RebuildMemoryPropertiesHelper(/*hostColorBufferMemoryTypeIndex=*/0);
+    mHelper.externalMemoryMode = ExternalMemory::Mode::AndroidAHB;
+    mHelper.defaultExternalMemoryHandleType =
+        VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID;
+    mHelper.supportsDmaBuf = true;
+    mAllocInputs.deviceHasDmaBufExt = true;
+
+    const VkMemoryAllocateInfo allocInfo = {
+        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+        .pNext = nullptr,
+        .allocationSize = 4096,
+        .memoryTypeIndex = 2,
+    };
+
+    VkMemoryAllocationPlan plan;
+    ASSERT_THAT(SelectStrategyFor(&allocInfo, &plan), Eq(VK_SUCCESS));
+
+    EXPECT_THAT(plan.kind(), Eq(MemoryAllocationKind::kHostVisibleExternalBlob));
+    plan.WithVkMemoryAllocateInfo([&](const VkMemoryAllocateInfo& hostAllocInfo) {
+        const auto* exportInfo = vk_find_struct<VkExportMemoryAllocateInfo>(&hostAllocInfo);
+        ASSERT_THAT(exportInfo, NotNull());
+        EXPECT_THAT(exportInfo->handleTypes,
+                    Eq(static_cast<VkExternalMemoryHandleTypeFlags>(
+                        VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID)));
+    });
+}
+
 TEST_F(VkMemoryAllocationHelperTest,
        HostVisibleExternalBlobMapsWhenDeviceUsesAstcCpuDecompression) {
     mFeatures.ExternalBlob.setEnabled(true);
