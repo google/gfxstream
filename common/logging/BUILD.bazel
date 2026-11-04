@@ -14,6 +14,10 @@ cc_library(
         "include/gfxstream/common/logging.h",
     ],
     includes = ["include"],
+    linkopts = select({
+        "@platforms//os:android": ["-llog"],
+        "//conditions:default": [],
+    }),
     linkstatic = True,
     strip_include_prefix = "include",
 )

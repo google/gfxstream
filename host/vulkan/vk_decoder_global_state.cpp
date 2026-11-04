@@ -18,7 +18,7 @@
 #endif
 
 #ifdef __ANDROID__
-#include <vndk/hardware_buffer.h>
+#include <android/hardware_buffer.h>
 #endif
 
 #ifdef __APPLE__

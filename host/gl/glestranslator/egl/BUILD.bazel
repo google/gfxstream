@@ -50,6 +50,9 @@ cc_library(
         "shader_cache.h",
         "thread_info.h",
     ] + select({
+        "@platforms//os:android": [
+            "x11_error_handler.h",
+        ],
         "@platforms//os:macos": [
             "mac_native.h",
             "mac_pixel_formats_attribs.h",
@@ -123,6 +126,9 @@ cc_library(
         "shader_cache.h",
         "thread_info.h",
     ] + select({
+        "@platforms//os:android": [
+            "x11_error_handler.h",
+        ],
         "@platforms//os:macos": [
             "mac_native.h",
             "mac_pixel_formats_attribs.h",
@@ -138,7 +144,14 @@ cc_library(
         "-Wno-extern-c-compat",
         "-Wno-inconsistent-missing-override",
         "-Wno-return-type-c-linkage",
-    ],
+    ] + select({
+        "@platforms//os:android": [
+            # Re-defines the ANDROID that GFXSTREAM_COMMON_COPTS undefines: the
+            # EGL-on-EGL path is keyed on it; otherwise __linux__ selects GLX.
+            "-DANDROID",
+        ],
+        "//conditions:default": [],
+    }),
     defines = GFXSTREAM_HOST_DEFINES,
     linkopts = GFXSTREAM_HOST_LINKOPTS,
     textual_hdrs = [
