@@ -22,6 +22,11 @@ GFXSTREAM_COMMON_COPTS = [
     "-Wno-pre-c++20-compat-pedantic",
     "-Wno-unsafe-buffer-usage",
 ] + select({
+    "@platforms//os:android": [
+        # In gfxstream, ANDROID means an AOSP platform build. NDK builds still
+        # get __ANDROID__.
+        "-UANDROID",
+    ],
     "@platforms//os:linux": [
         "-Werror",
     ],
@@ -42,6 +47,9 @@ GFXSTREAM_HOST_VK_DEFINES = [
     "VK_GFXSTREAM_STRUCTURE_TYPE_EXT",
     "VK_GOOGLE_gfxstream",
 ] + select({
+    "@platforms//os:android": [
+        "VK_USE_PLATFORM_ANDROID_KHR",
+    ],
     "@platforms//os:macos": [
         "VK_USE_PLATFORM_METAL_EXT",
         "VK_USE_PLATFORM_MACOS_MVK",
@@ -59,7 +67,6 @@ GFXSTREAM_HOST_DEFINES = GFXSTREAM_HOST_VK_DEFINES + [
     "BUILDING_EMUGL_COMMON_SHARED",
     "EMUGL_BUILD",
     "GFXSTREAM_ENABLE_HOST_GLES=1",
-    "GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT=1",
     "GFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT=1",
     "VK_BASE_VERSION_1_0",
     "VK_BASE_VERSION_1_1",
@@ -77,13 +84,25 @@ GFXSTREAM_HOST_DEFINES = GFXSTREAM_HOST_VK_DEFINES + [
     "VK_GRAPHICS_VERSION_1_3",
     "VK_GRAPHICS_VERSION_1_4",
 ] + select({
+    "@platforms//os:android": [
+        # No GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT: the snapshot
+        # frontend needs the backend protos, which Android builds do not link.
+        "GFXSTREAM_UNSTABLE_VULKAN_BLOB_COLOR_BUFFER=1",
+    ],
     "@platforms//os:windows": [
+        "GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT=1",
         "WIN32_LEAN_AND_MEAN",
     ],
-    "//conditions:default": [],
+    "//conditions:default": [
+        "GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT=1",
+    ],
 })
 
 GFXSTREAM_HOST_LINKOPTS = select({
+    "@platforms//os:android": [
+        "-llog",
+        "-lnativewindow",
+    ],
     "@platforms//os:linux": [
         "-Wl,--warn-backrefs",
         "-Wl,--warn-backrefs-exclude=*llvm*",

@@ -128,7 +128,6 @@ cc_library(
     linkstatic = True,
     visibility = ["//visibility:public"],
     deps = [
-        ":gfxstream_backend_cc_proto",
         ":gfxstream_backend_headers",
         "//common/base:gfxstream_common_base",
         "//common/logging:gfxstream_common_logging",
@@ -158,9 +157,14 @@ cc_library(
         "//third_party/opengl:gfxstream_gles3_headers",
         "//third_party/vulkan:gfxstream_vulkan_headers",
         "//third_party/xcb",
-        "@protobuf",
-        "@protobuf//src/google/protobuf/io",
-    ],
+    ] + select({
+        "@platforms//os:android": [],
+        "//conditions:default": [
+            ":gfxstream_backend_cc_proto",
+            "@protobuf",
+            "@protobuf//src/google/protobuf/io",
+        ],
+    }),
 )
 
 cc_library(
@@ -178,7 +182,6 @@ cc_library(
     linkstatic = True,
     visibility = ["//visibility:public"],
     deps = [
-        ":gfxstream_backend_cc_proto",
         ":gfxstream_backend_headers",
         ":gfxstream_backend_static",
         "//common/base:gfxstream_common_base",
@@ -189,7 +192,12 @@ cc_library(
         "//host/features:gfxstream_host_features",
         "//host/tracing:gfxstream_host_tracing",
         "//host/vulkan:gfxstream_vulkan_server",
-    ],
+    ] + select({
+        "@platforms//os:android": [],
+        "//conditions:default": [
+            ":gfxstream_backend_cc_proto",
+        ],
+    }),
 )
 
 cc_binary(
@@ -204,7 +212,6 @@ cc_binary(
     linkshared = True,
     visibility = ["//visibility:public"],
     deps = [
-        ":gfxstream_backend_cc_proto",
         ":gfxstream_backend_headers",
         ":gfxstream_backend_static",
         "//common/base:gfxstream_common_base",
@@ -215,7 +222,12 @@ cc_binary(
         "//host/features:gfxstream_host_features",
         "//host/tracing:gfxstream_host_tracing",
         "//host/vulkan:gfxstream_vulkan_server",
-    ],
+    ] + select({
+        "@platforms//os:android": [],
+        "//conditions:default": [
+            ":gfxstream_backend_cc_proto",
+        ],
+    }),
 )
 
 cc_test(
