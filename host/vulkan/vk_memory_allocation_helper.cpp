@@ -238,7 +238,11 @@ VkResult selectHostVisibleExternalBlobStrategy(const VkMemoryAllocationHelper& h
                                                VkMemoryAllocationPlan* outPlan) {
     VkExternalMemoryHandleTypeFlags handleTypes = helper.defaultExternalMemoryHandleType;
 #ifdef __linux__
-    if (helper.canUseDmaBuf(inputs)) {
+    // In AndroidAHB mode, the memory is exported as an AHardwareBuffer. Also requesting the
+    // dma-buf handle type makes some drivers (e.g. Adreno) export a handle that is not a valid
+    // AHardwareBuffer.
+    if (helper.canUseDmaBuf(inputs) &&
+        helper.externalMemoryMode != ExternalMemory::Mode::AndroidAHB) {
         handleTypes |= VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
     }
 #else
