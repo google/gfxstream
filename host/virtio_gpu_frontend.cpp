@@ -611,9 +611,9 @@ void VirtioGpuFrontend::fillCaps(uint32_t set, void* caps) {
             capset->alwaysBlob = 1;
 #endif
 
-#if GFXSTREAM_UNSTABLE_VULKAN_EXTERNAL_SYNC
-            capset->externalSync = 1;
-#endif
+            if (mFeatures.VulkanExternalSync.enabled()) {
+                capset->externalSync = 1;
+            }
 
             memset(capset->virglSupportedFormats, 0, sizeof(capset->virglSupportedFormats));
 
