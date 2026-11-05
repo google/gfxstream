@@ -62,3 +62,7 @@ build:ubsan --linkopt -fsanitize=undefined
 build:ubsan --linkopt -lubsan
 build:ubsan --strip=never
 build:ubsan --//toolchain/bazel:ubsan_config=true
+
+# Android NDK (arm64). Requires ANDROID_NDK_HOME to point to a local NDK.
+build:android_arm64 --platforms=//toolchain/bazel:android_arm64
+build:android_arm64 --extra_toolchains=@androidndk//:all

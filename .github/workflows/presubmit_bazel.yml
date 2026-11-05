@@ -31,6 +31,12 @@ on:
         type: boolean
         default: true
 
+      # Whether to keep the Android SDK and NDK preinstalled on the runner,
+      # which the free disk space step removes otherwise:
+      keep-android-sdk:
+        type: boolean
+        default: false
+
       # Which tests to run. Defaults to the full suite; platforms that can only
       # build part of the target graph can override this with a curated list.
       test-targets:
@@ -56,6 +62,7 @@ jobs:
       if: runner.os == 'Linux'
       uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be  # v1.3.1
       with:
+        android: ${{ !inputs.keep-android-sdk }}
         tool-cache: true
 
     - name: Checkout repository

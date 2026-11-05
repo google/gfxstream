@@ -18,8 +18,19 @@ bazel_dep(name = "toolchains_llvm", version = "1.6.0", dev_dependency = True)
 bazel_dep(name = "apple_support", version = "1.21.0", repo_name = "build_bazel_apple_support", dev_dependency = True)
 bazel_dep(name = "rules_python", version = "1.5.0", dev_dependency = True)
 bazel_dep(name = "rules_shell", version = "0.6.1", dev_dependency = True)
+bazel_dep(name = "rules_android_ndk", version = "0.1.5", dev_dependency = True)
 bazel_dep(name = "rules_rust", version = "0.68.1", dev_dependency = True)
 bazel_dep(name = "zlib", version = "1.3.1.bcr.3", dev_dependency = True)
+
+# The Android NDK toolchain is not registered here: resolving it requires a local
+# NDK (ANDROID_NDK_HOME), which non-Android builds do not have. `--config=android_arm64`
+# (see .bazelrc) registers it instead.
+android_ndk_repository_extension = use_extension(
+    "@rules_android_ndk//:extension.bzl",
+    "android_ndk_repository_extension",
+    dev_dependency = True,
+)
+use_repo(android_ndk_repository_extension, "androidndk")
 
 # Register the Apple CC (Xcode) toolchain so that `objc_library`/`.mm` targets can
 # be compiled on macOS. The hermetic LLVM toolchain registered below does not
