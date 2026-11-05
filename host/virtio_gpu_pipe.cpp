@@ -16,6 +16,7 @@
 
 #include <atomic>
 #include <cstring>
+#include <limits>
 
 #include "gfxstream/common/logging.h"
 #include "gfxstream/system/System.h"
@@ -82,7 +83,13 @@ int VirtioGpuProcessPipe::TransferFromHost(char* outRequestedData, size_t reques
         return -EINVAL;
     }
 
-    if (requestedDataSize < sizeof(mUniqueId)) {
+    // For virtio gpu, its context id should be used as the PUID, to properly
+    // manage and deallocate the associated process resources. For that purpose,
+    // rcSetPuid() in host/render_control.cpp should get -1 from the guest.
+    // Passing -1 to the guest here so that the guest relays it back to rcSetPuid()
+    // as expected.
+    static const uint64_t kInvalidPUID = std::numeric_limits<uint64_t>::max();
+    if (requestedDataSize < sizeof(kInvalidPUID)) {
         GFXSTREAM_FATAL(
             "Unexpected data size for unique id request for VirtioGpuProcessPipe:%" PRIu64
             " size:%zu",
@@ -90,7 +97,7 @@ int VirtioGpuProcessPipe::TransferFromHost(char* outRequestedData, size_t reques
         return -EINVAL;
     }
 
-    std::memcpy(outRequestedData, (const char*)&mUniqueId, sizeof(mUniqueId));
+    std::memcpy(outRequestedData, (const char*)&kInvalidPUID, sizeof(kInvalidPUID));
 
     mSentUniqueId = true;
     return 0;
