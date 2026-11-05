@@ -395,6 +395,7 @@ class VulkanTest : public ::testing::Test {
         mVk = *dispatch;
 
         testInstanceCreation(&mVk, &mInstance);
+        init_vulkan_dispatch_from_instance(dispatch, mInstance, &mVk);
         testDeviceCreation(&mVk, mInstance, &mPhysicalDevice, &mDevice);
     }
 

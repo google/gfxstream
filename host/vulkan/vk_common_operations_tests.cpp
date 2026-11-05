@@ -21,9 +21,12 @@
 #include <memory>
 #include <vector>
 
+#include "gfxstream/BumpPool.h"
 #include "gfxstream/common/testing/graphics_test_environment.h"
 #include "gfxstream/host/features.h"
+#include "vulkan/render_thread_info_vk.h"
 #include "vulkan/vk_decoder_global_state.h"
+#include "vulkan/vk_snapshot_handles.h"
 #include "vulkan/vulkan_dispatch.h"
 
 namespace gfxstream {
@@ -218,6 +221,193 @@ TEST_F(VkEmulationBufferTransferTest, RoundTripsDepthStencilColorBufferContents)
     if (testedFormats == 0) {
         GTEST_SKIP() << "No packed depth/stencil format supported by this driver";
     }
+}
+
+// Builds a global VulkanDispatch populated exclusively with the 5 global-level Vulkan
+// commands allowed with a NULL VkInstance (per Vulkan 1.2+ and Khronos ICD rules, e.g.
+// when libvulkan_lvp is loaded directly without the Vulkan loader in Windows
+// high-integrity mode). All instance- and device-level function pointers—including
+// vkDestroyInstance and vkDestroyDevice—remain nullptr on the global table.
+VulkanDispatch MakeGlobalOnlyDispatch(const VulkanDispatch& fullVk) {
+    VulkanDispatch globalOnlyVk = {};
+    globalOnlyVk.vkCreateInstance = fullVk.vkCreateInstance;
+    globalOnlyVk.vkEnumerateInstanceVersion = fullVk.vkEnumerateInstanceVersion;
+    globalOnlyVk.vkEnumerateInstanceExtensionProperties =
+        fullVk.vkEnumerateInstanceExtensionProperties;
+    globalOnlyVk.vkEnumerateInstanceLayerProperties = fullVk.vkEnumerateInstanceLayerProperties;
+    globalOnlyVk.vkGetInstanceProcAddr = fullVk.vkGetInstanceProcAddr;
+    return globalOnlyVk;
+}
+
+TEST(VkEmulationDirectIcdDispatchTest, CreateAndTeardownEmulationWithGlobalOnlyDispatch) {
+    ASSERT_TRUE(gfxstream::testing::SetupGraphicsTestEnvironment())
+        << "Failed to configure graphics test environment";
+
+    VulkanDispatch* fullVk =
+        vkDispatch(!gfxstream::testing::IsGraphicsTestEnvironmentProvidingVulkanDriver());
+    ASSERT_NE(fullVk, nullptr);
+
+    VulkanDispatch globalOnlyVk = MakeGlobalOnlyDispatch(*fullVk);
+    ASSERT_EQ(globalOnlyVk.vkDestroyInstance, nullptr);
+    ASSERT_EQ(globalOnlyVk.vkDestroyDevice, nullptr);
+
+    gfxstream::host::FeatureSet features;
+    features.GlDirectMem.setEnabled(true);
+
+    std::unique_ptr<VkEmulation> vkEmu = VkEmulation::create(&globalOnlyVk, {}, features);
+    ASSERT_NE(vkEmu, nullptr);
+    vkEmu.reset();
+}
+
+TEST(VkEmulationDirectIcdDispatchTest, CreateDecodeAndTeardownWithGlobalOnlyDispatch) {
+    ASSERT_TRUE(gfxstream::testing::SetupGraphicsTestEnvironment())
+        << "Failed to configure graphics test environment";
+
+    VulkanDispatch* fullVk =
+        vkDispatch(!gfxstream::testing::IsGraphicsTestEnvironmentProvidingVulkanDriver());
+    ASSERT_NE(fullVk, nullptr);
+
+    VulkanDispatch globalOnlyVk = MakeGlobalOnlyDispatch(*fullVk);
+    ASSERT_EQ(globalOnlyVk.vkDestroyInstance, nullptr);
+    ASSERT_EQ(globalOnlyVk.vkDestroyDevice, nullptr);
+
+    gfxstream::host::FeatureSet features;
+    features.GlDirectMem.setEnabled(true);
+
+    std::unique_ptr<VkEmulation> vkEmu = VkEmulation::create(&globalOnlyVk, {}, features);
+    ASSERT_NE(vkEmu, nullptr);
+
+    VkDecoderGlobalState::initialize(vkEmu.get());
+    struct ScopedDecoderStateReset {
+        ~ScopedDecoderStateReset() { VkDecoderGlobalState::reset(); }
+    } scopedDecoderStateReset;
+    auto* state = VkDecoderGlobalState::get();
+    ASSERT_NE(state, nullptr);
+
+    RenderThreadInfoVk renderThreadInfo;
+    gfxstream::base::BumpPool pool;
+    VkApplicationInfo appInfo = {
+        .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+        .pApplicationName = "DirectIcdTest",
+        .apiVersion = VK_API_VERSION_1_1,
+    };
+    VkInstanceCreateInfo instCi = {
+        .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+        .pApplicationInfo = &appInfo,
+    };
+    VkInstance boxedInstance = VK_NULL_HANDLE;
+    ASSERT_EQ(VK_SUCCESS, state->on_vkCreateInstance(&pool, kInvalidSnapshotApiCallHandle, &instCi,
+                                                     nullptr, &boxedInstance));
+    ASSERT_NE(boxedInstance, VK_NULL_HANDLE);
+
+    uint32_t physDevCount = 0;
+    ASSERT_EQ(VK_SUCCESS,
+              state->on_vkEnumeratePhysicalDevices(&pool, kInvalidSnapshotApiCallHandle,
+                                                   boxedInstance, &physDevCount, nullptr));
+    ASSERT_GT(physDevCount, 0u);
+    std::vector<VkPhysicalDevice> physDevs(physDevCount, VK_NULL_HANDLE);
+    ASSERT_EQ(VK_SUCCESS, state->on_vkEnumeratePhysicalDevices(&pool, kInvalidSnapshotApiCallHandle,
+                                                               boxedInstance, &physDevCount,
+                                                               physDevs.data()));
+
+    const float queuePriority = 1.0f;
+    VkDeviceQueueCreateInfo queueCi = {
+        .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+        .queueFamilyIndex = 0,
+        .queueCount = 1,
+        .pQueuePriorities = &queuePriority,
+    };
+    VkDeviceCreateInfo devCi = {
+        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+        .queueCreateInfoCount = 1,
+        .pQueueCreateInfos = &queueCi,
+    };
+    VkDevice boxedDevice = VK_NULL_HANDLE;
+    ASSERT_EQ(VK_SUCCESS,
+              state->on_vkCreateDevice(&pool, kInvalidSnapshotApiCallHandle, physDevs[0], &devCi,
+                                       nullptr, &boxedDevice));
+    ASSERT_NE(boxedDevice, VK_NULL_HANDLE);
+
+    state->on_vkDestroyDevice(&pool, kInvalidSnapshotApiCallHandle, boxedDevice, nullptr);
+    state->on_vkDestroyInstance(&pool, kInvalidSnapshotApiCallHandle, boxedInstance, nullptr);
+}
+
+TEST(VkEmulationDirectIcdDispatchTest, InstanceUpgradePathUsesInstanceDispatchForDestroy) {
+    ASSERT_TRUE(gfxstream::testing::SetupGraphicsTestEnvironment())
+        << "Failed to configure graphics test environment";
+
+    VulkanDispatch* fullVk =
+        vkDispatch(!gfxstream::testing::IsGraphicsTestEnvironmentProvidingVulkanDriver());
+    ASSERT_NE(fullVk, nullptr);
+
+    // Clear vkEnumerateInstanceVersion on the global table so VkEmulation::create()
+    // initially creates a Vulkan 1.0 instance, discovers 1.1+ via ivk->vkEnumerateInstanceVersion,
+    // and destroys the 1.0 instance before recreating a 1.1 instance.
+    VulkanDispatch globalOnlyVk = MakeGlobalOnlyDispatch(*fullVk);
+    globalOnlyVk.vkEnumerateInstanceVersion = nullptr;
+    ASSERT_EQ(globalOnlyVk.vkDestroyInstance, nullptr);
+
+    gfxstream::host::FeatureSet features;
+    features.GlDirectMem.setEnabled(true);
+
+    std::unique_ptr<VkEmulation> vkEmu = VkEmulation::create(&globalOnlyVk, {}, features);
+    ASSERT_NE(vkEmu, nullptr);
+    vkEmu.reset();
+}
+
+TEST(VkEmulationDirectIcdDispatchTest, InstanceUpgradeFailureDoesNotDoubleDestroyInstance) {
+    ASSERT_TRUE(gfxstream::testing::SetupGraphicsTestEnvironment())
+        << "Failed to configure graphics test environment";
+
+    VulkanDispatch* fullVk =
+        vkDispatch(!gfxstream::testing::IsGraphicsTestEnvironmentProvidingVulkanDriver());
+    ASSERT_NE(fullVk, nullptr);
+
+    static PFN_vkCreateInstance sRealCreateInstance = nullptr;
+    static PFN_vkGetInstanceProcAddr sRealGetInstanceProcAddr = nullptr;
+    static PFN_vkDestroyInstance sRealDestroyInstance = nullptr;
+    static int sCreateInstanceCalls = 0;
+    static int sDestroyInstanceCalls = 0;
+
+    sRealCreateInstance = fullVk->vkCreateInstance;
+    sRealGetInstanceProcAddr = fullVk->vkGetInstanceProcAddr;
+    sRealDestroyInstance = nullptr;
+    sCreateInstanceCalls = 0;
+    sDestroyInstanceCalls = 0;
+
+    VulkanDispatch globalOnlyVk = MakeGlobalOnlyDispatch(*fullVk);
+    globalOnlyVk.vkEnumerateInstanceVersion = nullptr;
+    globalOnlyVk.vkCreateInstance = [](const VkInstanceCreateInfo* pCreateInfo,
+                                       const VkAllocationCallbacks* pAllocator,
+                                       VkInstance* pInstance) -> VkResult {
+        if (++sCreateInstanceCalls == 2) {
+            return VK_ERROR_INITIALIZATION_FAILED;
+        }
+        return sRealCreateInstance(pCreateInfo, pAllocator, pInstance);
+    };
+    globalOnlyVk.vkGetInstanceProcAddr = [](VkInstance instance,
+                                            const char* pName) -> PFN_vkVoidFunction {
+        PFN_vkVoidFunction fn = sRealGetInstanceProcAddr(instance, pName);
+        if (instance != VK_NULL_HANDLE && fn != nullptr &&
+            std::strcmp(pName, "vkDestroyInstance") == 0) {
+            sRealDestroyInstance = reinterpret_cast<PFN_vkDestroyInstance>(fn);
+            return reinterpret_cast<PFN_vkVoidFunction>(
+                +[](VkInstance inst, const VkAllocationCallbacks* alloc) {
+                    if (++sDestroyInstanceCalls == 1 && sRealDestroyInstance != nullptr) {
+                        sRealDestroyInstance(inst, alloc);
+                    }
+                });
+        }
+        return fn;
+    };
+
+    gfxstream::host::FeatureSet features;
+    features.GlDirectMem.setEnabled(true);
+
+    std::unique_ptr<VkEmulation> vkEmu = VkEmulation::create(&globalOnlyVk, {}, features);
+    EXPECT_EQ(vkEmu, nullptr);
+    EXPECT_EQ(sCreateInstanceCalls, 2);
+    EXPECT_EQ(sDestroyInstanceCalls, 1);
 }
 
 }  // namespace

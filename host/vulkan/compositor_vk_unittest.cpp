@@ -98,11 +98,12 @@ class CompositorVkTest : public ::testing::Test {
         ASSERT_THAT(gfxstream::testing::SetupGraphicsTestEnvironment(), ::testing::IsTrue())
             << "Failed to configured graphics test environment!";
 
-        k_vk = vkDispatch(!gfxstream::testing::IsGraphicsTestEnvironmentProvidingVulkanDriver());
+        k_globalVk =
+            vkDispatch(!gfxstream::testing::IsGraphicsTestEnvironmentProvidingVulkanDriver());
     }
 
     void SetUp() override {
-        ASSERT_NE(k_vk, nullptr);
+        ASSERT_NE(k_globalVk, nullptr);
         createInstance();
         pickPhysicalDevice();
         createLogicalDevice();
@@ -134,11 +135,17 @@ class CompositorVkTest : public ::testing::Test {
     void TearDown() override {
         m_allocatedImages.clear();
         m_YcbcrSamplerPool.destroy();
-        k_vk->vkDestroyCommandPool(m_vkDevice, m_vkCommandPool, nullptr);
-        k_vk->vkDestroyDevice(m_vkDevice, nullptr);
-        m_vkDevice = VK_NULL_HANDLE;
-        k_vk->vkDestroyInstance(m_vkInstance, nullptr);
-        m_vkInstance = VK_NULL_HANDLE;
+        if (k_vk != nullptr) {
+            if (m_vkDevice != VK_NULL_HANDLE) {
+                k_vk->vkDestroyCommandPool(m_vkDevice, m_vkCommandPool, nullptr);
+                k_vk->vkDestroyDevice(m_vkDevice, nullptr);
+                m_vkDevice = VK_NULL_HANDLE;
+            }
+            if (m_vkInstance != VK_NULL_HANDLE) {
+                k_vk->vkDestroyInstance(m_vkInstance, nullptr);
+                m_vkInstance = VK_NULL_HANDLE;
+            }
+        }
     }
 
     std::unique_ptr<CompositorVk> createCompositor() {
@@ -321,7 +328,9 @@ class CompositorVkTest : public ::testing::Test {
         checkImageFilledWith(image, color);
     }
 
-    static const VulkanDispatch* k_vk;
+    static const VulkanDispatch* k_globalVk;
+    VulkanDispatch m_vkStorage = {};
+    const VulkanDispatch* k_vk = nullptr;
     ImageSupport m_imageSupport = ImageSupport::GetDefaultUnpopulatedImageSupport();
     VkInstance m_vkInstance = VK_NULL_HANDLE;
     VkPhysicalDevice m_vkPhysicalDevice = VK_NULL_HANDLE;
@@ -352,9 +361,12 @@ class CompositorVkTest : public ::testing::Test {
             .enabledExtensionCount = 0,
             .ppEnabledExtensionNames = nullptr,
         };
-        ASSERT_NE(k_vk->vkCreateInstance, nullptr);
-        ASSERT_EQ(k_vk->vkCreateInstance(&instanceCi, nullptr, &m_vkInstance), VK_SUCCESS);
+        ASSERT_NE(k_globalVk->vkCreateInstance, nullptr);
+        ASSERT_EQ(k_globalVk->vkCreateInstance(&instanceCi, nullptr, &m_vkInstance), VK_SUCCESS);
         ASSERT_NE(m_vkInstance, VK_NULL_HANDLE);
+        init_vulkan_dispatch_from_instance(const_cast<VulkanDispatch*>(k_globalVk), m_vkInstance,
+                                           &m_vkStorage);
+        k_vk = &m_vkStorage;
     }
 
     void pickPhysicalDevice() {
@@ -425,7 +437,7 @@ class CompositorVkTest : public ::testing::Test {
     }
 };
 
-const VulkanDispatch* CompositorVkTest::k_vk = nullptr;
+const VulkanDispatch* CompositorVkTest::k_globalVk = nullptr;
 
 TEST_F(CompositorVkTest, QueueSupportsComposition) {
     VkQueueFamilyProperties properties = {};

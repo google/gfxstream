@@ -57,6 +57,37 @@ objc_library(
 )
 
 cc_library(
+    name = "gfxstream_oswindow_test_support_windows",
+    testonly = True,
+    srcs = [
+        "windows/WindowsTimer.cpp",
+        "windows/WindowsTimer.h",
+        "windows/Windows_system_utils.cpp",
+        "windows/win32/Win32Window.cpp",
+        "windows/win32/Win32Window.h",
+    ],
+    hdrs = glob(["include/**/*.h"]),
+    copts = GFXSTREAM_HOST_COPTS,
+    defines = GFXSTREAM_HOST_DEFINES,
+    includes = [
+        ".",
+        "include",
+    ],
+    linkopts = GFXSTREAM_HOST_LINKOPTS + [
+        "-DEFAULTLIB:gdi32.lib",
+        "-DEFAULTLIB:user32.lib",
+    ],
+    target_compatible_with = [
+        "@platforms//os:windows",
+    ],
+    deps = [
+        "//common/logging:gfxstream_common_logging",
+        "//third_party/opengl:gfxstream_egl_headers",
+    ],
+    alwayslink = True,
+)
+
+cc_library(
     name = "gfxstream_oswindow_test_support",
     testonly = True,
     srcs = [
@@ -65,8 +96,6 @@ cc_library(
         "@platforms//os:macos": [
         ],
         "@platforms//os:windows": [
-            "windows/Windows_system_utils.cpp",
-            "windows/win32/Win32Window.cpp",
         ],
         "@platforms//os:linux": [
             "stub/StubWindow.cpp",
@@ -75,18 +104,7 @@ cc_library(
             "stub/StubWindow.cpp",
         ],
     }),
-    hdrs = glob(["include/**/*.h"]) + select({
-        "@platforms//os:macos": [
-        ],
-        "@platforms//os:windows": [
-            "windows/WindowsTimer.h",
-            "windows/win32/Win32Window.h",
-        ],
-        "@platforms//os:linux": [
-        ],
-        "//conditions:default": [
-        ],
-    }),
+    hdrs = glob(["include/**/*.h"]),
     copts = GFXSTREAM_HOST_COPTS,
     linkopts = GFXSTREAM_HOST_LINKOPTS,
     local_defines = GFXSTREAM_HOST_DEFINES,
@@ -97,6 +115,9 @@ cc_library(
     ] + select({
         "@platforms//os:macos": [
             ":gfxstream_oswindow_test_support_darwin",
+        ],
+        "@platforms//os:windows": [
+            ":gfxstream_oswindow_test_support_windows",
         ],
         "//conditions:default": [],
     }),
