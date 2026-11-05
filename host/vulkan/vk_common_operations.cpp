@@ -2493,7 +2493,10 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
         exportAi.handleTypes =
             static_cast<VkExternalMemoryHandleTypeFlags>(getDefaultExternalMemoryHandleType());
 
-        if (mDeviceInfo.supportsDmaBuf) {
+        // In AndroidAHB mode, the memory is exported as an AHardwareBuffer. Also requesting the
+        // dma-buf handle type makes some drivers (e.g. Adreno) crash in vkAllocateMemory.
+        if (mDeviceInfo.supportsDmaBuf &&
+            getExternalMemoryMode() != ExternalMemory::Mode::AndroidAHB) {
             exportAi.handleTypes |= VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
         }
 
