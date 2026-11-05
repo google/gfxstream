@@ -193,7 +193,8 @@ void MaybeConfigureRenderer(gfxstream::RenderLib& rendererLibrary) {
                 return SELECTED_RENDERER_SWIFTSHADER_INDIRECT;
             } else if (renderer == "lavapipe"sv) {
                 return SELECTED_RENDERER_LAVAPIPE;
-            } else if (renderer == "swangle"sv || renderer == "swangle_indirect"sv) {
+            } else if (renderer == "swangle"sv || renderer == "swangle_indirect"sv ||
+                       renderer == "angle"sv || renderer == "angle_indirect"sv) {
                 return SELECTED_RENDERER_ANGLE_INDIRECT;
             } else {
                 return SELECTED_RENDERER_UNKNOWN;
