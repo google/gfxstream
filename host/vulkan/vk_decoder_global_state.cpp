@@ -333,7 +333,8 @@ DescriptorUpdateTemplateInfo calcLinearizedDescriptorUpdateTemplateInfo(
 class VkDecoderGlobalState::Impl {
    public:
     Impl(VkEmulation* emulation)
-        : m_vk(vkDispatch()) {
+        : m_vk(emulation && emulation->getGlobalVkDispatch() ? emulation->getGlobalVkDispatch()
+                                                             : vkDispatch()) {
         if (!emulation || !m_vk) {
             GFXSTREAM_FATAL("Cannot initialize VkDecoderGlobalState!");
         }
@@ -3037,8 +3038,6 @@ class VkDecoderGlobalState::Impl {
         deviceInfo.useAstcCpuDecompression =
             m_vkEmulation->getAstcLdrEmulationMode() == AstcEmulationMode::Cpu &&
             AstcCpuDecompressor::get().available();
-        deviceInfo.decompPipelines =
-            std::make_unique<GpuDecompressionPipelineManager>(m_vk, *pDevice);
         getSupportedFenceHandleTypes(vk, physicalDevice, &supportedFenceHandleTypes);
         getSupportedSemaphoreHandleTypes(vk, physicalDevice, &supportedBinarySemaphoreHandleTypes);
 
@@ -3069,6 +3068,8 @@ class VkDecoderGlobalState::Impl {
 
         VulkanDispatch* dispatch = dispatch_VkDevice(boxedDevice);
         init_vulkan_dispatch_from_device(vk, *pDevice, dispatch);
+        deviceInfo.decompPipelines =
+            std::make_unique<GpuDecompressionPipelineManager>(dispatch, *pDevice);
 
         if (mLogging) {
             GFXSTREAM_INFO("%s: init vulkan dispatch from device (end)", __func__);
@@ -3815,7 +3816,11 @@ class VkDecoderGlobalState::Impl {
         // Run the underlying API call.
         {
             AutoLock lock(*graphicsDriverLock());
-            m_vk->vkDestroyDevice(device, nullptr);
+            if (deviceDispatch && deviceDispatch->vkDestroyDevice) {
+                deviceDispatch->vkDestroyDevice(device, nullptr);
+            } else if (m_vk && m_vk->vkDestroyDevice) {
+                m_vk->vkDestroyDevice(device, nullptr);
+            }
         }
 
         GFXSTREAM_INFO("Destroyed VkDevice:%p", device);
@@ -4133,7 +4138,15 @@ class VkDecoderGlobalState::Impl {
             cmpInfo->createCompressedMipmapImages(vk, *pCreateInfo);
 
             if (deviceInfo->useAstcCpuDecompression && cmpInfo->isAstc()) {
-                cmpInfo->initAstcCpuDecompression(m_vk, deviceInfo->physicalDevice);
+                VulkanDispatch* instanceDispatch = m_vk;
+                if (auto* physdevInfo = gfxstream::base::find(mPhysdevInfo, deviceInfo->physicalDevice)) {
+                    if (auto* instanceInfo = gfxstream::base::find(mInstanceInfo, physdevInfo->instance)) {
+                        if (auto* ivk = dispatch_VkInstance(instanceInfo->boxed)) {
+                            instanceDispatch = ivk;
+                        }
+                    }
+                }
+                cmpInfo->initAstcCpuDecompression(instanceDispatch, deviceInfo->physicalDevice);
             }
         }
 
@@ -12954,14 +12967,18 @@ class VkDecoderGlobalState::Impl {
             destroyDeviceObjects(deviceObjects);
         }
 
+        auto* vk = dispatch_VkInstance(instanceInfo.boxed);
         if (instanceInfo.debugMessenger != VK_NULL_HANDLE) {
-            auto vk = dispatch_VkInstance(instanceInfo.boxed);
             if (vk && vk->vkDestroyDebugUtilsMessengerEXT) {
                 vk->vkDestroyDebugUtilsMessengerEXT(instance, instanceInfo.debugMessenger, nullptr);
             }
         }
 
-        m_vk->vkDestroyInstance(instance, nullptr);
+        if (vk && vk->vkDestroyInstance) {
+            vk->vkDestroyInstance(instance, nullptr);
+        } else if (m_vk && m_vk->vkDestroyInstance) {
+            m_vk->vkDestroyInstance(instance, nullptr);
+        }
         GFXSTREAM_INFO("Destroyed VkInstance:%p for application:'%s' engine:'%s'.", instance,
                        instanceInfo.applicationName.c_str(), instanceInfo.engineName.c_str());
 

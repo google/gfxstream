@@ -4,8 +4,8 @@ set(ALL_TESTS "@LIST_OF_TESTS@")
 set(envs
     "PATH=path_list_prepend:${BUILD_DIR}/lib64/gles_swiftshader"
     "PATH=path_list_prepend:${BUILD_DIR}/lib64/vulkan"
-    "VK_ICD_FILENAMES=set:${BUILD_DIR}/lib64/vulkan/vk_swiftshader_icd.json"
-    "VK_DRIVER_FILES=set:${BUILD_DIR}/lib64/vulkan/vk_swiftshader_icd.json"
+    "VK_ICD_FILENAMES=set:${BUILD_DIR}/lib64/vulkan/lvp_icd.json"
+    "VK_DRIVER_FILES=set:${BUILD_DIR}/lib64/vulkan/lvp_icd.json"
 )
 
 foreach(test_target ${ALL_TESTS})

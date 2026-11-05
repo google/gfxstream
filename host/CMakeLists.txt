@@ -322,6 +322,7 @@ endfunction()
         vulkan/device_op_tracker_unittest.cpp
         vulkan/display_vk_unittest.cpp
         vulkan/swap_chain_state_vk_unittest.cpp
+        vulkan/vk_common_operations_tests.cpp
         vulkan/vk_decoder_global_state_unittest.cpp
         vulkan/vk_decoder_internal_structs_tests.cpp
         vulkan/vk_decoder_snapshot_tests.cpp

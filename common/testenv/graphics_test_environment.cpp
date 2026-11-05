@@ -21,6 +21,11 @@
 
 #if defined(__linux__) || defined(__APPLE__)
 #include <dlfcn.h>
+#elif defined(_WIN32)
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
 #endif
 
 #ifdef BAZEL_CURRENT_REPOSITORY
@@ -91,6 +96,20 @@ std::optional<std::filesystem::path> GetGraphicsDriverPath(const std::string& ba
     return std::nullopt;
 #endif  // defined(BAZEL_CURRENT_REPOSITORY)
 }
+
+#if defined(_WIN32)
+void AddWindowsDllSearchDir(const std::filesystem::path& dir) {
+    ::SetDllDirectoryW(dir.c_str());
+    const std::string dirStr = dir.string();
+    const std::string currentPath = gfxstream::base::getEnvironmentVariable("PATH");
+    if (currentPath.empty()) {
+        gfxstream::base::setEnvironmentVariable("PATH", dirStr);
+    } else if (currentPath != dirStr &&
+               currentPath.compare(0, dirStr.size() + 1, dirStr + ";") != 0) {
+        gfxstream::base::setEnvironmentVariable("PATH", dirStr + ";" + currentPath);
+    }
+}
+#endif
 #endif
 
 }  // namespace
@@ -125,6 +144,9 @@ bool SetupGraphicsTestEnvironment() {
 #if defined(__APPLE__)
     constexpr const char* kGlesDriverBasename = "libGLESv2.dylib";
     constexpr const char* kEglDriverBasename = "libEGL.dylib";
+#elif defined(_WIN32)
+    constexpr const char* kGlesDriverBasename = "libGLESv2.dll";
+    constexpr const char* kEglDriverBasename = "libEGL.dll";
 #else
     constexpr const char* kGlesDriverBasename = "libGLESv2.so";
     constexpr const char* kEglDriverBasename = "libEGL.so";
@@ -142,9 +164,13 @@ bool SetupGraphicsTestEnvironment() {
     const std::filesystem::path driverEgl = *driverEglOpt;
     const std::filesystem::path driverDirectory = driverEgl.parent_path();
 
+#if defined(_WIN32)
+    AddWindowsDllSearchDir(driverDirectory);
+#else
     const std::string currentLdLibraryPath = gfxstream::base::getEnvironmentVariable("LD_LIBRARY_PATH");
     const std::string updatedLdLibraryPath = driverDirectory.string() + ":" + currentLdLibraryPath;
     gfxstream::base::setEnvironmentVariable("LD_LIBRARY_PATH", updatedLdLibraryPath);
+#endif
     gfxstream::base::setEnvironmentVariable("ANDROID_EMU_HEADLESS", "1");
 #if defined(GFXSTREAM_TESTING_USE_VULKAN_LAVAPIPE) || \
     defined(GFXSTREAM_TESTING_USE_VULKAN_SWIFTSHADER)
@@ -174,12 +200,16 @@ bool SetupGraphicsTestEnvironment() {
 #if defined(GFXSTREAM_TESTING_USE_VULKAN_LAVAPIPE)
 #if defined(__APPLE__)
         "libvulkan_lvp.dylib";
+#elif defined(_WIN32)
+        "libvulkan_lvp.dll";
 #else
         "libvulkan_lvp.so";
 #endif
 #elif defined(GFXSTREAM_TESTING_USE_VULKAN_SWIFTSHADER)
 #if defined(__APPLE__)
         "libvk_swiftshader.dylib";
+#elif defined(_WIN32)
+        "vk_swiftshader.dll";
 #else
         "libvk_swiftshader.so";
 #endif
@@ -215,6 +245,8 @@ bool SetupGraphicsTestEnvironment() {
 #if defined(__APPLE__)
     constexpr const char* kVulkanLoaderBasename = "libvulkan.dylib";
     constexpr const char* kLlvmLibBasename = "libLLVM.dylib";
+#elif defined(_WIN32)
+    constexpr const char* kVulkanLoaderBasename = "vulkan-1.dll";
 #else
     constexpr const char* kVulkanLoaderBasename = "libvulkan.so";
     constexpr const char* kLlvmLibBasename = "libLLVM.so";
@@ -226,7 +258,16 @@ bool SetupGraphicsTestEnvironment() {
                                                 bundledLoader.string());
     }
 
-#if defined(__linux__) || defined(__APPLE__)
+#if defined(_WIN32)
+    AddWindowsDllSearchDir(driverDir);
+    // Pin the software Vulkan ICD in the process address space so it remains mapped
+    // across vkDestroyInstance calls and until process exit.
+    if (HMODULE handle = ::LoadLibraryW(driverOpt->c_str())) {
+        HMODULE pinned = nullptr;
+        ::GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN, driverOpt->c_str(), &pinned);
+        ::FreeLibrary(handle);
+    }
+#elif defined(__linux__) || defined(__APPLE__)
     const std::filesystem::path llvmLib = driverDir / kLlvmLibBasename;
     if (std::filesystem::exists(llvmLib)) {
         if (void* handle = ::dlopen(llvmLib.c_str(), RTLD_NOW | RTLD_GLOBAL | RTLD_NODELETE)) {
