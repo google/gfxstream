@@ -2451,6 +2451,136 @@ TEST_F(FrameBufferTest, ComposeWithNeedPostDoesNotPostWithoutPostCallback) {
 }
 #endif
 
+TEST_F(FrameBufferTest, ComposePostsDisplay0AndDisplay6ToSeparatePostCallbacks) {
+    const int kOuterWidth = 128;
+    const int kOuterHeight = 320;
+    HandleType innerHandle =
+        mFb->createColorBuffer(mWidth, mHeight, GfxstreamFormat::R8G8B8A8_UNORM);
+    ASSERT_NE((HandleType)0, innerHandle);
+    EXPECT_EQ(0, mFb->openColorBuffer(innerHandle));
+
+    HandleType outerHandle =
+        mFb->createColorBuffer(kOuterWidth, kOuterHeight, GfxstreamFormat::R8G8B8A8_UNORM);
+    ASSERT_NE((HandleType)0, outerHandle);
+    EXPECT_EQ(0, mFb->openColorBuffer(outerHandle));
+
+    uint32_t outerDisplayId = 6;
+    ASSERT_EQ(0, mFb->createDisplay(&outerDisplayId));
+    ASSERT_EQ(6u, outerDisplayId);
+    ASSERT_EQ(0, mFb->setDisplayPose(6, 0, 0, kOuterWidth, kOuterHeight, 420));
+
+    struct PostContext {
+        int count = 0;
+        uint32_t displayId = 99;
+        int width = 0;
+        int height = 0;
+    } innerCtx, outerCtx;
+
+    auto onPostCb = +[](void* context, uint32_t displayId, int width, int height, int /*ydir*/,
+                        int /*format*/, int /*type*/, unsigned char* /*pixels*/) {
+        auto* ctx = static_cast<PostContext*>(context);
+        ++ctx->count;
+        ctx->displayId = displayId;
+        ctx->width = width;
+        ctx->height = height;
+    };
+
+    mFb->setPostCallback(onPostCb, &innerCtx, /*displayId=*/0, /*useBgraReadback=*/false);
+    mFb->setPostCallback(onPostCb, &outerCtx, /*displayId=*/6, /*useBgraReadback=*/false);
+
+    std::vector<uint8_t> composeBuf(sizeof(ComposeDevice_v2) + sizeof(ComposeLayer), 0);
+    auto* composeDev = reinterpret_cast<ComposeDevice_v2*>(composeBuf.data());
+    composeDev->version = 2;
+    composeDev->displayId = 6;
+    composeDev->targetHandle = outerHandle;
+    composeDev->numLayers = 1;
+    composeDev->layer[0].cbHandle = 0;
+    composeDev->layer[0].composeMode = HWC2_COMPOSITION_SOLID_COLOR;
+    composeDev->layer[0].displayFrame = {0, 0, kOuterWidth, kOuterHeight};
+    composeDev->layer[0].crop = {0.0f, 0.0f, static_cast<float>(kOuterWidth),
+                                 static_cast<float>(kOuterHeight)};
+    composeDev->layer[0].blendMode = HWC2_BLEND_MODE_NONE;
+    composeDev->layer[0].alpha = 1.0f;
+    composeDev->layer[0].color = {0, 255, 0, 255};
+    composeDev->layer[0].transform = HWC_TRANSFORM_NONE;
+
+    mFb->resetGuestPostedAFrame();
+    // Not a pixel-fold device: only display 0 is ever posted.
+    EXPECT_TRUE(
+        mFb->compose(static_cast<uint32_t>(composeBuf.size()), composeBuf.data(), /*post=*/true));
+    EXPECT_FALSE(mFb->hasGuestPostedAFrame());
+
+    struct ScopedDisplayOps {
+        gfxstream_multi_display_ops saved = get_gfxstream_multi_display_operations();
+        ~ScopedDisplayOps() { set_gfxstream_multi_display_operations(saved); }
+    } scopedOps;
+    gfxstream_multi_display_ops pixelFoldOps = scopedOps.saved;
+    pixelFoldOps.is_pixel_fold = []() { return true; };
+    set_gfxstream_multi_display_operations(pixelFoldOps);
+
+    // Virtual display 1 does not post onto either physical console buffer.
+    composeDev->displayId = 1;
+    EXPECT_TRUE(
+        mFb->compose(static_cast<uint32_t>(composeBuf.size()), composeBuf.data(), /*post=*/true));
+    EXPECT_FALSE(mFb->hasGuestPostedAFrame());
+
+    // Outer display 6 posts exclusively to m_onPost[6] and primes its PBO ring on the very
+    // first frame so static outer screens do not wait 3 frames before firing doPostCallback.
+    composeDev->displayId = 6;
+    composeDev->targetHandle = outerHandle;
+    EXPECT_TRUE(
+        mFb->compose(static_cast<uint32_t>(composeBuf.size()), composeBuf.data(), /*post=*/true));
+    EXPECT_TRUE(mFb->hasGuestPostedAFrame());
+    if (!mUseSubWindow) {
+        EXPECT_EQ(0, innerCtx.count);
+        EXPECT_EQ(1, outerCtx.count);
+        EXPECT_EQ(6u, outerCtx.displayId);
+        EXPECT_EQ(kOuterWidth, outerCtx.width);
+        EXPECT_EQ(kOuterHeight, outerCtx.height);
+
+        // A subsequent non-primed frame marks hasUnflushedFrame; flushReadPipeline(6) delivers it
+        // once and a repeat flush is a no-op.
+        EXPECT_TRUE(mFb->compose(static_cast<uint32_t>(composeBuf.size()), composeBuf.data(),
+                                 /*post=*/true));
+        if (mFb->asyncReadbackSupported()) {
+            mFb->flushReadPipeline(0);
+            mFb->flushReadPipeline(6);
+            const int countAfterFlush = outerCtx.count;
+            EXPECT_GE(countAfterFlush, 2);
+            mFb->flushReadPipeline(6);
+            EXPECT_EQ(countAfterFlush, outerCtx.count);
+        }
+        EXPECT_EQ(0, innerCtx.count);
+    }
+
+    // Inner display 0 posts exclusively to m_onPost[0], leaving m_onPost[6] untouched.
+    const int outerCountBeforeInner = outerCtx.count;
+    composeDev->displayId = 0;
+    composeDev->targetHandle = innerHandle;
+    composeDev->layer[0].displayFrame = {0, 0, mWidth, mHeight};
+    composeDev->layer[0].crop = {0.0f, 0.0f, static_cast<float>(mWidth),
+                                 static_cast<float>(mHeight)};
+    EXPECT_TRUE(
+        mFb->compose(static_cast<uint32_t>(composeBuf.size()), composeBuf.data(), /*post=*/true));
+    if (!mUseSubWindow) {
+        if (mFb->asyncReadbackSupported()) {
+            mFb->flushReadPipeline(0);
+            mFb->flushReadPipeline(6);
+        }
+        EXPECT_GE(innerCtx.count, 1);
+        EXPECT_EQ(0u, innerCtx.displayId);
+        EXPECT_EQ(mWidth, innerCtx.width);
+        EXPECT_EQ(mHeight, innerCtx.height);
+        EXPECT_EQ(outerCountBeforeInner, outerCtx.count);
+    }
+
+    mFb->setPostCallback(nullptr, nullptr, /*displayId=*/6);
+    mFb->setPostCallback(nullptr, nullptr, /*displayId=*/0);
+    mFb->destroyDisplay(6);
+    mFb->closeColorBuffer(outerHandle);
+    mFb->closeColorBuffer(innerHandle);
+}
+
 }  // namespace
 }  // namespace host
 }  // namespace gfxstream

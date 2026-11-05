@@ -131,6 +131,11 @@ static FrameBuffer* sFrameBuffer = NULL;
 static constexpr uint32_t kNumMaxProcessResources = 5000;
 static constexpr uint32_t kNumMaxColorBuffers = 16000;
 
+// Host display ID the guest HWC uses for the outer screen of a foldable
+// (is_pixel_fold). It gets its own m_onPost readback buffer, separate from
+// the inner display 0.
+static constexpr uint32_t kExternalFoldableDisplayId = 6;
+
 // Version and magic numbers for framebuffer stream for validity checks.
 // The version lives in render-utils/snapshot_operations.h so that embedders
 // (e.g. AEMU's Snapshot.cpp) can fold it into their top-level snapshot version
@@ -848,8 +853,10 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
     void eraseDelayedCloseColorBufferLocked(HandleType cb, uint64_t ts);
 
     AsyncResult postImpl(HandleType p_colorbuffer, Post::CompletionCallback callback,
-                         bool needLockAndBind = true, bool repaint = false);
-    bool postImplSync(HandleType p_colorbuffer, bool needLockAndBind = true, bool repaint = false);
+                         bool needLockAndBind = true, bool repaint = false,
+                         std::optional<uint32_t> postedDisplayId = std::nullopt);
+    bool postImplSync(HandleType p_colorbuffer, bool needLockAndBind = true, bool repaint = false,
+                      std::optional<uint32_t> postedDisplayId = std::nullopt);
     void setGuestPostedAFrame() {
         m_guestPostedAFrameTime = std::chrono::steady_clock::now();
         m_framebuffer->fireEvent({FrameBufferChange::FrameReady, mFrameNumber++});
@@ -945,6 +952,14 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
         uint32_t height;
         unsigned char* img = nullptr;
         bool readBgra;
+        // True once a non-repaint frame was queued into the async PBO ring and
+        // has not yet been delivered by flushReadPipeline().
+        bool hasUnflushedFrame = false;
+        // True once the first frame was read back; the first frame is always
+        // read back synchronously so static screens deliver immediately.
+        bool readbackPrimed = false;
+        // Rate-limits the size-mismatch warning to once per callback entry.
+        bool warnedSizeMismatch = false;
         ~onPost() {
             if (img) {
                 delete[] img;
@@ -953,6 +968,21 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
         }
     };
     std::map<uint32_t, onPost> m_onPost;
+
+    // Decides which display a posted ColorBuffer belongs to when the caller did
+    // not say (e.g. repost() after rotation or snapshot load). Returns nullopt
+    // for the default behaviour (display 0 / every non-foldable callback).
+    std::optional<uint32_t> resolvePostedDisplayId(HandleType postedColorBufferHandle,
+                                                   const ColorBufferPtr& postedColorBuffer,
+                                                   std::optional<uint32_t> postedDisplayId) const;
+    // Reads `sourceColorBuffer` back into `callbackEntry.img` and invokes the
+    // registered post callback for `displayId` when pixels are ready.
+    void deliverToPostCallback(uint32_t displayId, onPost& callbackEntry,
+                               const ColorBufferPtr& sourceColorBuffer, bool repaint);
+    // Fans a posted ColorBuffer out to the matching m_onPost callback(s).
+    void dispatchPostCallbacks(HandleType postedColorBufferHandle,
+                               const ColorBufferPtr& postedColorBuffer, bool repaint,
+                               std::optional<uint32_t> postedDisplayId);
     ReadbackWorker* m_readbackWorker = nullptr;
     gfxstream::base::WorkerThread<Readback> m_readbackThread;
     std::atomic_bool m_readbackThreadStarted = false;
@@ -2772,7 +2802,8 @@ void FrameBuffer::Impl::postWithCallback(HandleType p_colorbuffer,
     }
 }
 
-bool FrameBuffer::Impl::postImplSync(HandleType p_colorbuffer, bool needLockAndBind, bool repaint) {
+bool FrameBuffer::Impl::postImplSync(HandleType p_colorbuffer, bool needLockAndBind, bool repaint,
+                                     std::optional<uint32_t> postedDisplayId) {
     std::promise<void> promise;
     std::future<void> completeFuture = promise.get_future();
     auto posted = postImpl(
@@ -2781,7 +2812,7 @@ bool FrameBuffer::Impl::postImplSync(HandleType p_colorbuffer, bool needLockAndB
             waitForGpu.wait();
             promise.set_value();
         },
-        needLockAndBind, repaint);
+        needLockAndBind, repaint, postedDisplayId);
     if (posted.CallbackScheduledOrFired()) {
         completeFuture.wait();
     }
@@ -2790,7 +2821,8 @@ bool FrameBuffer::Impl::postImplSync(HandleType p_colorbuffer, bool needLockAndB
 }
 
 AsyncResult FrameBuffer::Impl::postImpl(HandleType p_colorbuffer, Post::CompletionCallback callback,
-                                        bool needLockAndBind, bool repaint) {
+                                        bool needLockAndBind, bool repaint,
+                                        std::optional<uint32_t> postedDisplayId) {
     ColorBufferPtr colorBuffer = nullptr;
     {
         AutoLock colorBufferMapLock(m_colorBufferMapLock);
@@ -2858,46 +2890,13 @@ AsyncResult FrameBuffer::Impl::postImpl(HandleType p_colorbuffer, Post::Completi
 #endif
 
     //
-    // Send framebuffer (without FPS overlay) to callback
+    // Send framebuffer (without FPS overlay) to callback.
+    // Note: The classic emulator (CONFIG_AEMU) presents via m_subWin (PostWorker)
+    // and serves gRPC screenshots via getScreenshot(), leaving m_onPost empty
+    // unless screen recording or legacy shared-memory forwarding is active.
     //
     if (!m_onPost.empty()) {
-        for (auto& iter : m_onPost) {
-            ColorBufferPtr cb;
-            if (iter.first == 0) {
-                cb = colorBuffer;
-            } else {
-                uint32_t displayColorBufferHandle = 0;
-                if (getDisplayColorBuffer(iter.first, &displayColorBufferHandle) < 0) {
-                    GFXSTREAM_ERROR("Failed to get color buffer for display %d, skip onPost",
-                                    iter.first);
-                    continue;
-                }
-
-                cb = std::static_pointer_cast<ColorBuffer>(
-                    findColorBuffer(displayColorBufferHandle));
-                if (!cb) {
-                    GFXSTREAM_ERROR("Failed to find ColorBuffer %d, skip onPost",
-                                    displayColorBufferHandle);
-                    continue;
-                }
-            }
-
-            if (asyncReadbackSupported()) {
-                ensureReadbackWorker();
-                const auto status = m_readbackWorker->doNextReadback(
-                    iter.first, cb.get(), iter.second.img, repaint, iter.second.readBgra);
-                if (status == ReadbackWorker::DoNextReadbackResult::OK_READY_FOR_READ) {
-                    doPostCallback(iter.second.img, iter.first);
-                }
-            } else {
-                ensureReadbackWorker();
-                if (m_readbackWorker) {
-                    m_readbackWorker->doNextReadbackSync(cb.get(), iter.second.img,
-                                                         iter.second.readBgra);
-                }
-                doPostCallback(iter.second.img, iter.first);
-            }
-        }
+        dispatchPostCallbacks(p_colorbuffer, colorBuffer, repaint, postedDisplayId);
     }
 
     if (!m_subWin) {  // m_subWin is supposed to be false
@@ -2905,6 +2904,163 @@ AsyncResult FrameBuffer::Impl::postImpl(HandleType p_colorbuffer, Post::Completi
     }
 
     return ret;
+}
+
+// Figures out which display a posted ColorBuffer belongs to.
+//
+// compose() always passes the display id explicitly, so this only has work to
+// do for repost() (rotation, screen background changes, snapshot load), which
+// re-posts m_lastPostedColorBuffer without saying which display it came from.
+// On a non-foldable device every such repost belongs to display 0. On a
+// foldable (is_pixel_fold) it may be the outer screen, which has to go to
+// m_onPost[6] rather than m_onPost[0]:
+//   1. Ask the display table which display currently shows this ColorBuffer.
+//   2. Otherwise, fall back to matching the ColorBuffer size against the outer
+//      display's callback, as long as it does not also match the inner one.
+std::optional<uint32_t> FrameBuffer::Impl::resolvePostedDisplayId(
+    HandleType postedColorBufferHandle, const ColorBufferPtr& postedColorBuffer,
+    std::optional<uint32_t> postedDisplayId) const {
+    if (postedDisplayId.has_value()) {
+        return postedDisplayId;
+    }
+    const auto& multiDisplay = get_gfxstream_multi_display_operations();
+    const bool isPixelFold = multiDisplay.is_pixel_fold != nullptr && multiDisplay.is_pixel_fold();
+    if (!isPixelFold) {
+        return std::nullopt;
+    }
+
+    uint32_t displayShowingColorBuffer = 0;
+    if (multiDisplay.get_color_buffer_display != nullptr &&
+        multiDisplay.get_color_buffer_display(postedColorBufferHandle,
+                                              &displayShowingColorBuffer) == 0 &&
+        displayShowingColorBuffer != 0) {
+        return displayShowingColorBuffer;
+    }
+
+    const uint32_t postedWidth = postedColorBuffer->getWidth();
+    const uint32_t postedHeight = postedColorBuffer->getHeight();
+    auto outerCallback = m_onPost.find(kExternalFoldableDisplayId);
+    const bool matchesOuterDisplay = outerCallback != m_onPost.end() &&
+                                     postedWidth == outerCallback->second.width &&
+                                     postedHeight == outerCallback->second.height;
+    if (!matchesOuterDisplay) {
+        return std::nullopt;
+    }
+    auto innerCallback = m_onPost.find(0);
+    const bool matchesInnerDisplay = innerCallback != m_onPost.end() &&
+                                     postedWidth == innerCallback->second.width &&
+                                     postedHeight == innerCallback->second.height;
+    // Same size on both screens is ambiguous; keep the display 0 default.
+    return matchesInnerDisplay ? std::nullopt : std::optional<uint32_t>(kExternalFoldableDisplayId);
+}
+
+// Reads `sourceColorBuffer` back into the host-side pixel buffer of one post
+// callback and invokes that callback once pixels are available.
+//
+// Each callback entry owns a fixed-size pixel buffer (and GL PBO ring when
+// async readback is enabled) sized at setPostCallback() time, so a ColorBuffer
+// of a different size is skipped rather than read out of bounds. With async
+// readback the first frame is read synchronously ("primed") so a static screen
+// shows up right away; later frames are pipelined and surface either on the
+// next post or via flushReadPipeline().
+//
+// Classic emulator note: recording display 0 while folded means outer-screen
+// frames hit the size check and are skipped instead of corrupting m_onPost[0].
+void FrameBuffer::Impl::deliverToPostCallback(uint32_t displayId, onPost& callbackEntry,
+                                              const ColorBufferPtr& sourceColorBuffer,
+                                              bool repaint) {
+    const uint32_t sourceWidth = sourceColorBuffer->getWidth();
+    const uint32_t sourceHeight = sourceColorBuffer->getHeight();
+    if (sourceWidth != callbackEntry.width || sourceHeight != callbackEntry.height) {
+        if (!callbackEntry.warnedSizeMismatch) {
+            callbackEntry.warnedSizeMismatch = true;
+            GFXSTREAM_WARNING("Skipping onPost for display %u: ColorBuffer %ux%u != callback %ux%u",
+                              displayId, sourceWidth, sourceHeight, callbackEntry.width,
+                              callbackEntry.height);
+        }
+        return;
+    }
+
+    ensureReadbackWorker();
+    if (!asyncReadbackSupported()) {
+        if (m_readbackWorker) {
+            m_readbackWorker->doNextReadbackSync(sourceColorBuffer.get(), callbackEntry.img,
+                                                 callbackEntry.readBgra);
+        }
+        doPostCallback(callbackEntry.img, displayId);
+        return;
+    }
+
+    const bool readSynchronously = repaint || !callbackEntry.readbackPrimed;
+    callbackEntry.readbackPrimed = true;
+    const auto readbackResult =
+        m_readbackWorker->doNextReadback(displayId, sourceColorBuffer.get(), callbackEntry.img,
+                                         readSynchronously, callbackEntry.readBgra);
+    callbackEntry.hasUnflushedFrame = !readSynchronously;
+    if (readbackResult == ReadbackWorker::DoNextReadbackResult::OK_READY_FOR_READ) {
+        doPostCallback(callbackEntry.img, displayId);
+    }
+}
+
+// Delivers a newly posted ColorBuffer to the post callback(s) in m_onPost.
+//
+// m_onPost maps a display id to the callback an embedder registered for that
+// display via setPostCallback(). This function decides which of those
+// callbacks should see `postedColorBuffer`:
+//
+//   Case 1: the post targets a non-zero display (today only the outer foldable
+//           screen, display 6). Only that display's callback is invoked.
+//
+//   Case 2: the post targets display 0 (the common case, including every post
+//           on a non-foldable device). m_onPost[0] receives `postedColorBuffer`
+//           directly. Any other registered callback (classic multi-display
+//           recording of displays 1..5) receives whatever ColorBuffer its own
+//           display currently shows, looked up through getDisplayColorBuffer().
+//           On a foldable, display 6's callback is skipped in this case: the
+//           outer screen only updates through Case 1.
+void FrameBuffer::Impl::dispatchPostCallbacks(HandleType postedColorBufferHandle,
+                                              const ColorBufferPtr& postedColorBuffer, bool repaint,
+                                              std::optional<uint32_t> postedDisplayId) {
+    const auto& multiDisplay = get_gfxstream_multi_display_operations();
+    const bool isPixelFold = multiDisplay.is_pixel_fold != nullptr && multiDisplay.is_pixel_fold();
+    postedDisplayId =
+        resolvePostedDisplayId(postedColorBufferHandle, postedColorBuffer, postedDisplayId);
+
+    // Case 1: a post for a specific non-zero display.
+    if (postedDisplayId.has_value() && *postedDisplayId != 0) {
+        auto targetCallback = m_onPost.find(*postedDisplayId);
+        if (targetCallback != m_onPost.end()) {
+            deliverToPostCallback(targetCallback->first, targetCallback->second, postedColorBuffer,
+                                  repaint);
+        }
+        return;
+    }
+
+    // Case 2: a post for display 0.
+    for (auto& [callbackDisplayId, callbackEntry] : m_onPost) {
+        if (isPixelFold && callbackDisplayId == kExternalFoldableDisplayId) {
+            continue;
+        }
+        ColorBufferPtr sourceColorBuffer;
+        if (callbackDisplayId == 0) {
+            sourceColorBuffer = postedColorBuffer;
+        } else {
+            uint32_t displayColorBufferHandle = 0;
+            if (getDisplayColorBuffer(callbackDisplayId, &displayColorBufferHandle) < 0) {
+                GFXSTREAM_ERROR("Failed to get color buffer for display %d, skip onPost",
+                                callbackDisplayId);
+                continue;
+            }
+            sourceColorBuffer =
+                std::static_pointer_cast<ColorBuffer>(findColorBuffer(displayColorBufferHandle));
+            if (!sourceColorBuffer) {
+                GFXSTREAM_ERROR("Failed to find ColorBuffer %d, skip onPost",
+                                displayColorBufferHandle);
+                continue;
+            }
+        }
+        deliverToPostCallback(callbackDisplayId, callbackEntry, sourceColorBuffer, repaint);
+    }
 }
 
 void FrameBuffer::Impl::doPostCallback(void* pixels, uint32_t displayId) {
@@ -2928,17 +3084,35 @@ void FrameBuffer::Impl::getPixels(void* pixels, uint32_t bytes, uint32_t display
     completeFuture.wait();
 }
 
+// Delivers the last pipelined async readback for `displayId` to its post
+// callback. Embedders call this on a timer when the guest stops posting, so
+// the final frame does not get stuck in the PBO ring. It is a no-op when the
+// display has no callback, nothing pending, or async readback is unavailable.
 void FrameBuffer::Impl::flushReadPipeline(int displayId) {
-    const auto& iter = m_onPost.find(displayId);
-    if (iter == m_onPost.end()) {
-        GFXSTREAM_ERROR("Cannot find onPost pixels for display %d", displayId);
+    // Classic emulator callers (GpuFrameBridge::notify) release their own timer
+    // lock before invoking flushReadPipeline, so acquiring m_lock here is safe
+    // and serializes m_onPost access with setPostCallback() and postImpl().
+    AutoLock lock(m_lock);
+    auto callbackEntry = m_onPost.find(displayId);
+    if (callbackEntry == m_onPost.end() || !callbackEntry->second.hasUnflushedFrame) {
+        return;
+    }
+    if (!asyncReadbackSupported()) {
         return;
     }
 
     ensureReadbackWorker();
+    if (!m_readbackWorker) {
+        return;
+    }
 
-    const auto status = m_readbackWorker->flushPipeline(displayId);
-    if (status == ReadbackWorker::FlushResult::OK_READY_FOR_READ) {
+    const auto flushResult = m_readbackWorker->flushPipeline(displayId);
+    // OK_NOT_READY_FOR_READ means a concurrent getPixels() holds the buffer;
+    // keep the frame marked pending so the next flush retries it.
+    if (flushResult != ReadbackWorker::FlushResult::OK_NOT_READY_FOR_READ) {
+        callbackEntry->second.hasUnflushedFrame = false;
+    }
+    if (flushResult == ReadbackWorker::FlushResult::OK_READY_FOR_READ) {
         doPostCallback(nullptr, displayId);
     }
 }
@@ -3278,7 +3452,8 @@ bool FrameBuffer::Impl::compose(uint32_t bufferSize, void* buffer, bool needPost
     }
     if (shouldPost) {
         const auto& multiDisplay = get_gfxstream_multi_display_operations();
-        const bool is_pixel_fold = multiDisplay.is_pixel_fold();
+        const bool is_pixel_fold =
+            multiDisplay.is_pixel_fold != nullptr && multiDisplay.is_pixel_fold();
         ComposeDevice* composeDevice = (ComposeDevice*)buffer;
 
         switch (composeDevice->version) {
@@ -3288,8 +3463,17 @@ bool FrameBuffer::Impl::compose(uint32_t bufferSize, void* buffer, bool needPost
             }
             case 2: {
                 ComposeDevice_v2* composeDeviceV2 = (ComposeDevice_v2*)buffer;
-                if (is_pixel_fold || composeDeviceV2->displayId == 0) {
-                    post(composeDeviceV2->targetHandle, true);
+                // Only primary display 0 and the outer foldable display 6 drive
+                // host window/console posts. Classic emulator subwindow rendering
+                // (m_subWin), m_lastPostedColorBuffer, and FrameReady events are
+                // unchanged for both displays while avoiding virtual displays 1..5
+                // overwriting a foldable's main window.
+                if (composeDeviceV2->displayId == 0 ||
+                    (is_pixel_fold && composeDeviceV2->displayId == kExternalFoldableDisplayId)) {
+                    if (postImplSync(composeDeviceV2->targetHandle, true, /*repaint=*/false,
+                                     composeDeviceV2->displayId)) {
+                        setGuestPostedAFrame();
+                    }
                 }
                 break;
             }
