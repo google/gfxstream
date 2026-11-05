@@ -8,6 +8,15 @@ package(
 
 filegroup(name = "empty")
 
+# Target platform for `--config=android_arm64` (see .bazelrc).
+platform(
+    name = "android_arm64",
+    constraint_values = [
+        "@platforms//cpu:arm64",
+        "@platforms//os:android",
+    ],
+)
+
 linux_local_clang(
     name = "linux_local_clang_19",
     exec_compatible_with = [

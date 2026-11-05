@@ -77,6 +77,23 @@ jobs:
       # The arm runner is too slow:
       run-tests: false
 
+  run-gfxstream-bazel-build-androidndk:
+    uses: ./.github/workflows/presubmit_bazel.yml
+    with:
+      runner: ubuntu-22.04
+      # Build with the NDK preinstalled on the runner, which ANDROID_NDK_HOME
+      # points to.
+      keep-android-sdk: true
+      # Build the host backend libraries, which are the Android deliverable
+      # (embedded in an Android app).
+      build-targets: >-
+        //host:gfxstream_backend_static
+        //host:gfxstream_backend
+      additional-bazel-args: --config=android_arm64
+      cache-config: androidndk
+      # Android binaries can not run on the Linux runner:
+      run-tests: false
+
   run-gfxstream-bazel-build-macos:
     uses: ./.github/workflows/presubmit_bazel.yml
     with:
@@ -228,6 +245,7 @@ jobs:
       - run-gfxstream-bazel-swiftshader-tests
       - run-gfxstream-bazel-swiftshader-tests-asan
       - run-gfxstream-bazel-tests-arm
+      - run-gfxstream-bazel-build-androidndk
       - run-gfxstream-bazel-build-macos
       - run-gfxstream-cmake-build
       - run-gfxstream-cmake-build-macos
