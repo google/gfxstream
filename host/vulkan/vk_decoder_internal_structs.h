@@ -22,7 +22,9 @@
 
 #include <stdlib.h>
 
+#include <chrono>
 #include <condition_variable>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -78,11 +80,16 @@ class ExternalFencePool {
         }
     }
 
-    VkFence pop(const VkFenceCreateInfo* pCreateInfo) {
+    // Returns a signaled fence from the pool, skipping fences for which `canReuse` returns false.
+    VkFence pop(const VkFenceCreateInfo* pCreateInfo,
+                const std::function<bool(VkFence)>& canReuse = nullptr) {
         VkFence fence = VK_NULL_HANDLE;
         {
             gfxstream::base::AutoLock lock(mLock);
-            auto it = std::find_if(mPool.begin(), mPool.end(), [this](const VkFence& fence) {
+            auto it = std::find_if(mPool.begin(), mPool.end(), [&](const VkFence& fence) {
+                if (canReuse && !canReuse(fence)) {
+                    return false;
+                }
                 VkResult status = m_vk->vkGetFenceStatus(mDevice, fence);
                 if (status != VK_SUCCESS) {
                     if (status != VK_NOT_READY) {
@@ -484,15 +491,59 @@ struct FenceInfo {
     Boxed<VkFence> boxed;
     VulkanDispatch* vk = nullptr;
 
-    std::mutex mutex;
-    std::condition_variable cv;
-
     enum class State {
         kNotWaitable,   // Newly created or reset
         kWaitable,      // A submission is made, or created as signaled
         kWaiting,       // Fence waitable status is acknowledged
+        kDestroyed,     // Owning device is being destroyed
     };
-    State state = State::kNotWaitable;
+
+    // Shared with waiters, so that they can wait for the fence to become waitable without
+    // holding the global state lock, even if this FenceInfo is erased in the meantime.
+    struct WaitState {
+        mutable std::mutex mutex;
+        std::condition_variable cv;
+        State state = State::kNotWaitable;
+
+        bool isDestroyed() const {
+            std::lock_guard<std::mutex> lock(mutex);
+            return state == State::kDestroyed;
+        }
+
+        // Blocks until `state` leaves `kNotWaitable` (or `startTime + timeoutNs` elapses).
+        // Transitions `kWaitable` to `kWaiting` and returns the observed state, or `kNotWaitable`
+        // on timeout.
+        State waitUntilWaitable(std::chrono::steady_clock::time_point startTime,
+                                uint64_t timeoutNs) {
+            std::unique_lock<std::mutex> lock(mutex);
+            auto isReady = [this] { return state != State::kNotWaitable; };
+            const auto maxTimeout = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::time_point::max() - startTime);
+            if (timeoutNs >= static_cast<uint64_t>(maxTimeout.count())) {
+                cv.wait(lock, isReady);
+            } else if (!cv.wait_until(lock, startTime + std::chrono::nanoseconds(timeoutNs),
+                                      isReady)) {
+                return State::kNotWaitable;
+            }
+            if (state == State::kDestroyed) {
+                return State::kDestroyed;
+            }
+            state = State::kWaiting;
+            return State::kWaiting;
+        }
+    };
+    std::shared_ptr<WaitState> waitState = std::make_shared<WaitState>();
+
+    void setState(State state) {
+        {
+            std::lock_guard<std::mutex> lock(waitState->mutex);
+            if (waitState->state == State::kDestroyed) {
+                return;
+            }
+            waitState->state = state;
+        }
+        waitState->cv.notify_all();
+    }
 
     bool external = false;
 

@@ -55,7 +55,9 @@ class SyncThread : public gfxstream::base::Thread {
     ~SyncThread();
 
     // |triggerWaitVk|: async wait with a given VkFence object.
-    // The |vkFence| argument is a *boxed* host Vulkan handle of the fence.
+    // The |vkFence| argument is a *boxed* host Vulkan handle of the fence. It is
+    // resolved when this is called, as the guest may destroy or reset the fence
+    // right after exporting it.
     //
     // We call vkWaitForFences() on host Vulkan device to wait for the fence.
     // After wait is over, the timeline will be incremented,
@@ -135,7 +137,8 @@ class SyncThread : public gfxstream::base::Thread {
     // |doSyncThreadCmd| execute the actual task. These run on the sync thread.
     void doSyncThreadCmd(Command&& command, ThreadPool::WorkerId);
 
-    static int doSyncWaitVk(vk::Boxed<VkFence>, std::function<void()> onComplete);
+    static int doSyncWaitVk(const vk::VkDecoderGlobalState::SyncFdFence& fence,
+                            std::function<void()> onComplete);
 
     // EGL objects / object handles specific to
     // a sync thread.

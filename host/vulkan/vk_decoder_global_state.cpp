@@ -405,7 +405,14 @@ class VkDecoderGlobalState::Impl {
         mRenderPassInfo.clear();
         mFramebufferInfo.clear();
         mSemaphoreInfo.clear();
+        for (auto& [fence, fenceInfo] : mFenceInfo) {
+            fenceInfo.setState(FenceInfo::State::kDestroyed);
+        }
         mFenceInfo.clear();
+        {
+            std::lock_guard<std::mutex> lock(mSyncFdFencesMutex);
+            mSyncFdFencePins.clear();
+        }
 #ifdef _WIN32
         mSemaphoreId = 1;
         mExternalSemaphoresById.clear();
@@ -3468,13 +3475,18 @@ class VkDecoderGlobalState::Impl {
 
         VulkanDispatch* deviceDispatch = dispatch_VkDevice(deviceInfo.boxed);
 
+        // Cancel and drain in-flight sync fd waits (including on pooled fences below, whose
+        // FenceInfo is kept while pooled) before destroying any fence, VkDevice, or dispatch.
+        cancelAndDrainSyncFdFences(device, fenceInfos);
+
         for (auto fenceInfoIt = fenceInfos.begin(); fenceInfoIt != fenceInfos.end();) {
             auto fence = fenceInfoIt->first;
             auto& fenceInfo = fenceInfoIt->second;
             if (fenceInfo.device == device) {
+                const Boxed<VkFence> boxed = fenceInfo.boxed;
                 destroyFenceWithExclusiveInfo(device, deviceDispatch, deviceInfo, fence, fenceInfo,
                                               /*allowExternalFenceRecycling=*/false);
-                delete_VkFence(fenceInfo.boxed.value());
+                delete_VkFence(boxed.value());
                 fenceInfoIt = fenceInfos.erase(fenceInfoIt);
             } else {
                 ++fenceInfoIt;
@@ -4855,7 +4867,9 @@ class VkDecoderGlobalState::Impl {
                 std::lock_guard<std::mutex> lock(mMutex);
                 auto* deviceInfo = gfxstream::base::find(mDeviceInfo, device);
                 if (!deviceInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
-                *pFence = deviceInfo->externalFencePool->pop(&localCreateInfo);
+                *pFence = deviceInfo->externalFencePool->pop(
+                    &localCreateInfo,
+                    [this](VkFence pooled) { return canRecycleExternalFence(pooled); });
             }
             if (*pFence != VK_NULL_HANDLE) {
                 fenceReused = true;
@@ -4877,17 +4891,21 @@ class VkDecoderGlobalState::Impl {
                 VALIDATE_NEW_HANDLE_INFO_ENTRY(mFenceInfo, *pFence);
             }
             auto& fenceInfo = mFenceInfo[*pFence];
+            fenceInfo = {};
             fenceInfo.device = device;
             fenceInfo.vk = vk;
 
+            if (exportSyncFd) {
+                registerSyncFdFence(*pFence);
+            }
             *pFence = new_boxed_non_dispatchable_VkFence(*pFence);
             fenceInfo.boxed = Boxed<VkFence>(*pFence);
             fenceInfo.external = exportSyncFd;
 
             if (localCreateInfo.flags & VK_FENCE_CREATE_SIGNALED_BIT) {
-                fenceInfo.state = FenceInfo::State::kWaitable;
+                fenceInfo.setState(FenceInfo::State::kWaitable);
             } else {
-                fenceInfo.state = FenceInfo::State::kNotWaitable;
+                fenceInfo.setState(FenceInfo::State::kNotWaitable);
             }
         }
 
@@ -4956,7 +4974,7 @@ class VkDecoderGlobalState::Impl {
                 } else {
                     // Reset all fences' states to kNotWaitable.
                     cleanedFences.push_back(fence);
-                    fenceInfo.state = FenceInfo::State::kNotWaitable;
+                    fenceInfo.setState(FenceInfo::State::kNotWaitable);
                 }
             }
         }
@@ -5010,25 +5028,33 @@ class VkDecoderGlobalState::Impl {
         auto* deviceInfo = gfxstream::base::find(mDeviceInfo, device);
         if (!deviceInfo) return VK_ERROR_OUT_OF_DEVICE_MEMORY;
         for (auto fence : externalFences) {
-            VkFence replacement = deviceInfo->externalFencePool->pop(&createInfo);
+            auto fenceInfoIt = mFenceInfo.find(fence);
+            if (fenceInfoIt == mFenceInfo.end() || !fenceInfoIt->second.boxed) {
+                continue;
+            }
+            Boxed<VkFence> boxed_fence = fenceInfoIt->second.boxed;
+
+            VkFence replacement = deviceInfo->externalFencePool->pop(
+                &createInfo, [this](VkFence pooled) { return canRecycleExternalFence(pooled); });
             if (replacement == VK_NULL_HANDLE) {
                 VK_CHECK(vk->vkCreateFence(device, &createInfo, 0, &replacement));
             }
+
+            fenceInfoIt->second.boxed = {};
+            // Registered before the boxed handle points at it, so that a concurrent
+            // acquireSyncFdFence() resolves to either the old or the new fence.
+            registerSyncFdFence(replacement);
+            set_boxed_non_dispatchable_VkFence(boxed_fence.value(), replacement);
+
+            auto& replacementInfo = mFenceInfo[replacement];
+            replacementInfo = {};
+            replacementInfo.device = device;
+            replacementInfo.vk = vk;
+            replacementInfo.boxed = boxed_fence;
+            replacementInfo.external = true;
+            replacementInfo.setState(FenceInfo::State::kNotWaitable);
+
             deviceInfo->externalFencePool->add(fence);
-
-            {
-                auto boxed_fence = unboxed_to_boxed_non_dispatchable_VkFence(fence);
-                set_boxed_non_dispatchable_VkFence(boxed_fence, replacement);
-
-                auto& fenceInfo = mFenceInfo[replacement];
-                fenceInfo.device = device;
-                fenceInfo.vk = vk;
-                fenceInfo.boxed = Boxed<VkFence>(boxed_fence);
-                fenceInfo.external = true;
-                fenceInfo.state = FenceInfo::State::kNotWaitable;
-
-                mFenceInfo[fence].boxed = {};
-            }
         }
 
         return VK_SUCCESS;
@@ -5441,15 +5467,25 @@ class VkDecoderGlobalState::Impl {
                                                      DeviceInfo& deviceInfo, VkFence fence,
                                                      FenceInfo& fenceInfo,
                                                      bool allowExternalFenceRecycling) {
+        const Boxed<VkFence> boxed = fenceInfo.boxed;
         fenceInfo.boxed = {};
 
         // External fences are just slated for recycling. This addresses known
         // behavior where the guest might destroy the fence prematurely. b/228221208
         if (fenceInfo.external) {
             if (allowExternalFenceRecycling) {
+                // OP_vkDestroyFence deletes the boxed handle after releasing mMutex; detach it
+                // before pooling so no live boxed handle still resolves to a recyclable fence.
+                if (boxed) {
+                    set_boxed_non_dispatchable_VkFence(boxed.value(), VK_NULL_HANDLE);
+                }
                 deviceInfo.externalFencePool->add(fence);
+                return DestroyFenceStatus::kRecycled;
             }
-            return DestroyFenceStatus::kRecycled;
+            if (!boxed) {
+                // Already in externalFencePool; destroyed when the pool is drained.
+                return DestroyFenceStatus::kRecycled;
+            }
         }
 
         if (!deviceInfo.deviceOpTracker) {
@@ -9170,14 +9206,10 @@ class VkDecoderGlobalState::Impl {
 
             // After vkQueueSubmit is called, we can signal the conditional variable
             // in FenceInfo, so that other threads (e.g. SyncThread) can call
-            // waitForFence() on this fence.
+            // waitForSyncFdFence() on this fence.
             auto* fenceInfo = gfxstream::base::find(mFenceInfo, fence);
             if (fenceInfo) {
-                {
-                    std::unique_lock<std::mutex> fenceLock(fenceInfo->mutex);
-                    fenceInfo->state = FenceInfo::State::kWaitable;
-                }
-                fenceInfo->cv.notify_all();
+                fenceInfo->setState(FenceInfo::State::kWaitable);
                 // Also update the latestUse waitable for this fence, to ensure
                 // it is not asynchronously destroyed before all the waitables
                 // referencing it
@@ -11167,8 +11199,7 @@ class VkDecoderGlobalState::Impl {
         for (uint32_t i = 0; i < fenceCount; i++) {
             VkFence fence = pFences[i];
             {
-                std::mutex* fenceMutex = nullptr;
-                std::condition_variable* cv = nullptr;
+                std::shared_ptr<FenceInfo::WaitState> waitState;
                 {
                     std::lock_guard<std::mutex> lock(mMutex);
                     auto* fenceInfo = gfxstream::base::find(mFenceInfo, fence);
@@ -11183,8 +11214,7 @@ class VkDecoderGlobalState::Impl {
                         return VK_ERROR_OUT_OF_HOST_MEMORY;
                     }
 
-                    fenceMutex = &fenceInfo->mutex;
-                    cv = &fenceInfo->cv;
+                    waitState = fenceInfo->waitState;
                 }
 
                 // Vulkan specs require fences of vkQueueSubmit to be *externally
@@ -11200,23 +11230,14 @@ class VkDecoderGlobalState::Impl {
 
                 // Current implementation does not respect waitAll here.
                 if (checkWaitState) {
-                    std::unique_lock<std::mutex> lock(*fenceMutex);
-                    cv->wait(lock, [this, fence] {
-                        std::lock_guard<std::mutex> lock(mMutex);
-                        auto* fenceInfo = gfxstream::base::find(mFenceInfo, fence);
-                        if (!fenceInfo) {
-                            GFXSTREAM_FATAL("Fence was destroyed while waiting.");
-                        }
-
-                        // Block vkWaitForFences calls until the fence is waitable
-                        // Should also allow 'kWaiting' stage as the user can call
-                        // vkWaitForFences multiple times on the same fence.
-                        if (fenceInfo->state == FenceInfo::State::kNotWaitable) {
-                            return false;
-                        }
-                        fenceInfo->state = FenceInfo::State::kWaiting;
-                        return true;
-                    });
+                    const FenceInfo::State waitedState =
+                        waitState->waitUntilWaitable(startTime, timeout);
+                    if (waitedState == FenceInfo::State::kNotWaitable) {
+                        return VK_TIMEOUT;
+                    }
+                    if (waitedState == FenceInfo::State::kDestroyed) {
+                        return VK_SUCCESS;
+                    }
                 }
             }
         }
@@ -11230,25 +11251,181 @@ class VkDecoderGlobalState::Impl {
         });
     }
 
-    VkResult waitForFence(VkFence fence, uint64_t timeout) {
-        VkDevice device;
-        VulkanDispatch* vk;
-        {
-            std::lock_guard<std::mutex> lock(mMutex);
-            auto* fenceInfo = gfxstream::base::find(mFenceInfo, fence);
-            if (!fenceInfo) {
-                // No fence, could be a semaphore.
-                // TODO: Async wait for semaphores
-                return VK_SUCCESS;
-            }
-
-            device = fenceInfo->device;
-            vk = fenceInfo->vk;
-        }
-
-        return waitForFences(device, vk, 1, &fence, true, timeout, true);
+    // Called with mMutex held whenever an exportable host fence is bound to a boxed handle.
+    void registerSyncFdFence(VkFence fence) {
+        std::lock_guard<std::mutex> lock(mSyncFdFencesMutex);
+        mSyncFdFencePins[fence] = SyncFdFencePin{.id = mNextSyncFdFencePinId++};
     }
 
+    void cancelSyncFdFences(VkDevice device, std::unordered_map<VkFence, FenceInfo>& fenceInfos) {
+        {
+            std::lock_guard<std::mutex> lock(mSyncFdFencesMutex);
+            for (const auto& [fence, fenceInfo] : fenceInfos) {
+                if (fenceInfo.device != device) continue;
+                auto it = mSyncFdFencePins.find(fence);
+                if (it != mSyncFdFencePins.end()) {
+                    it->second.closing = true;
+                }
+            }
+        }
+        for (auto& [fence, fenceInfo] : fenceInfos) {
+            if (fenceInfo.device == device) {
+                fenceInfo.setState(FenceInfo::State::kDestroyed);
+            }
+        }
+    }
+
+    void cancelAndDrainSyncFdFences(VkDevice device,
+                                    std::unordered_map<VkFence, FenceInfo>& fenceInfos) {
+        cancelSyncFdFences(device, fenceInfos);
+        std::unique_lock<std::mutex> lock(mSyncFdFencesMutex);
+        gfxstream::base::ScopedLockAssertion lockAssertion(mSyncFdFencesMutex);
+        for (const auto& entry : fenceInfos) {
+            gfxstream::base::ScopedLockAssertion waitLockAssertion(mSyncFdFencesMutex);
+            const VkFence fence = entry.first;
+            if (entry.second.device != device) continue;
+            mSyncFdFencesCv.wait(lock, [&] {
+                auto it = mSyncFdFencePins.find(fence);
+                return it == mSyncFdFencePins.end() || it->second.activeWaits == 0;
+            });
+            mSyncFdFencePins.erase(fence);
+        }
+    }
+
+    // Whether a pooled external fence can be bound to a new guest fence.
+    bool canRecycleExternalFence(VkFence fence) {
+        std::lock_guard<std::mutex> lock(mSyncFdFencesMutex);
+        auto it = mSyncFdFencePins.find(fence);
+        return it == mSyncFdFencePins.end() ||
+               (!it->second.closing && it->second.pendingWaits == 0);
+    }
+
+    SyncFdFence acquireSyncFdFence(Boxed<VkFence> boxed_fence) EXCLUDES(mMutex) {
+        if (!boxed_fence) {
+            return {};
+        }
+
+        std::lock_guard<std::mutex> lock(mSyncFdFencesMutex);
+        // Fails if the guest has already destroyed the fence: exports are sent through a
+        // different channel than the Vulkan commands, and can be processed after them.
+        VkFence fence = try_unbox_VkFence(boxed_fence.value());
+        if (fence == VK_NULL_HANDLE) {
+            return {};
+        }
+        // Exportable semaphores are sent through the same path, and are not waited on.
+        auto it = mSyncFdFencePins.find(fence);
+        if (it == mSyncFdFencePins.end() || it->second.closing) {
+            return {};
+        }
+        ++it->second.pendingWaits;
+        return {.fence = fence, .id = it->second.id};
+    }
+
+    VkResult waitForSyncFdFenceWithWaitState(VkDevice unboxed_device, VulkanDispatch* vk,
+                                             VkFence fence, FenceInfo::WaitState& waitState,
+                                             uint64_t timeout) EXCLUDES(mMutex) {
+        const auto startTime = std::chrono::steady_clock::now();
+        const FenceInfo::State waitedState = waitState.waitUntilWaitable(startTime, timeout);
+        if (waitedState == FenceInfo::State::kNotWaitable) {
+            return VK_TIMEOUT;
+        }
+        if (waitedState == FenceInfo::State::kDestroyed) {
+            return VK_SUCCESS;
+        }
+
+        const auto endTime = std::chrono::steady_clock::now();
+        const uint64_t timePassed =
+            std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime).count();
+        const uint64_t timeoutLeft =
+            (timeout == UINT64_MAX) ? UINT64_MAX
+                                    : ((timeout > timePassed) ? timeout - timePassed : 0);
+
+        constexpr uint64_t kStepTimeoutNs = 50ULL * 1000ULL * 1000ULL;  // 50ms
+        uint64_t remainingTimeoutNs = timeoutLeft;
+        auto lastTime = endTime;
+        while (true) {
+            if (waitState.isDestroyed()) {
+                return VK_SUCCESS;
+            }
+            const uint64_t stepTimeoutNs = std::min(remainingTimeoutNs, kStepTimeoutNs);
+            VkResult result =
+                vk->vkWaitForFences(unboxed_device, 1, &fence, VK_TRUE, stepTimeoutNs);
+            if (result != VK_TIMEOUT) {
+                return result;
+            }
+            if (waitState.isDestroyed()) {
+                return VK_SUCCESS;
+            }
+            if (stepTimeoutNs == remainingTimeoutNs) {
+                return VK_TIMEOUT;
+            }
+            if (timeoutLeft != UINT64_MAX) {
+                const auto now = std::chrono::steady_clock::now();
+                const uint64_t elapsedNs =
+                    std::chrono::duration_cast<std::chrono::nanoseconds>(now - lastTime).count();
+                lastTime = now;
+                if (elapsedNs >= remainingTimeoutNs) {
+                    return VK_TIMEOUT;
+                }
+                remainingTimeoutNs -= elapsedNs;
+            }
+        }
+    }
+
+    VkResult waitForSyncFdFence(const SyncFdFence& syncFdFence, uint64_t timeout) EXCLUDES(mMutex) {
+        const VkFence fence = syncFdFence.fence;
+        if (fence == VK_NULL_HANDLE) {
+            return VK_SUCCESS;
+        }
+
+        VkDevice device = VK_NULL_HANDLE;
+        VulkanDispatch* vk = nullptr;
+        std::shared_ptr<FenceInfo::WaitState> waitState;
+        {
+            std::lock_guard<std::mutex> lock(mMutex);
+            // Look up FenceInfo and mark the wait active in a single mMutex critical section so
+            // we never re-lock mMutex (which on_vkDestroyDevice holds while draining activeWaits).
+            auto* fenceInfo = gfxstream::base::find(mFenceInfo, fence);
+            if (fenceInfo) {
+                std::lock_guard<std::mutex> pinsLock(mSyncFdFencesMutex);
+                auto it = mSyncFdFencePins.find(fence);
+                if (it != mSyncFdFencePins.end() && it->second.id == syncFdFence.id &&
+                    !it->second.closing) {
+                    ++it->second.activeWaits;
+                    device = fenceInfo->device;
+                    vk = fenceInfo->vk;
+                    waitState = fenceInfo->waitState;
+                }
+            }
+        }
+
+        if (device == VK_NULL_HANDLE) {
+            std::lock_guard<std::mutex> lock(mSyncFdFencesMutex);
+            auto it = mSyncFdFencePins.find(fence);
+            if (it != mSyncFdFencePins.end() && it->second.id == syncFdFence.id &&
+                it->second.pendingWaits > 0) {
+                --it->second.pendingWaits;
+            }
+            return VK_SUCCESS;
+        }
+
+        VkResult result = waitForSyncFdFenceWithWaitState(device, vk, fence, *waitState, timeout);
+
+        {
+            std::lock_guard<std::mutex> lock(mSyncFdFencesMutex);
+            auto it = mSyncFdFencePins.find(fence);
+            if (it != mSyncFdFencePins.end() && it->second.id == syncFdFence.id) {
+                if (it->second.pendingWaits > 0) {
+                    --it->second.pendingWaits;
+                }
+                if (it->second.activeWaits > 0 && --it->second.activeWaits == 0 &&
+                    it->second.closing) {
+                    mSyncFdFencesCv.notify_all();
+                }
+            }
+        }
+        return result;
+    }
 
     AsyncResult registerQsriCallback(Boxed<VkImage> boxed_image, VkQsriTimeline::Callback callback) {
         std::lock_guard<std::mutex> lock(mMutex);
@@ -12290,6 +12467,8 @@ class VkDecoderGlobalState::Impl {
             DeviceInfo& deviceInfo = deviceObjects.device.mapped();
             VulkanDispatch* deviceDispatch = dispatch_VkDevice(deviceInfo.boxed);
 
+            cancelSyncFdFences(device, deviceObjects.fences);
+
             // https://bugs.chromium.org/p/chromium/issues/detail?id=1074600
             // it's important to idle the device before destroying it!
             VkResult res = deviceDispatch->vkDeviceWaitIdle(device);
@@ -12681,6 +12860,28 @@ class VkDecoderGlobalState::Impl {
     std::unordered_map<VkSemaphore, SemaphoreInfo> mSemaphoreInfo GUARDED_BY(mMutex);
     std::unordered_map<VkShaderModule, ShaderModuleInfo> mShaderModuleInfo GUARDED_BY(mMutex);
     std::unordered_map<VkSamplerYcbcrConversion, SamplerYcbcrConversionInfo> mSamplerYcbcrConversionInfo GUARDED_BY(mMutex);
+
+    // Exportable host fences, keyed by the unboxed VkFence, for resolving sync fd exports.
+    //
+    // mSyncFdFencesMutex is a leaf lock: it may be taken while holding mMutex or an
+    // ExternalFencePool lock, but mMutex must never be taken while holding it, as
+    // acquireSyncFdFence() runs on the VMM thread, which mMutex holders may wait for.
+    struct SyncFdFencePin {
+        // Changes each time the host fence is bound to a guest fence, so that waits acquired
+        // for an earlier binding, or for a destroyed fence with the same handle, are ignored.
+        uint64_t id = 0;
+        // Acquired waits that have not been released yet. The host fence must not be recycled
+        // while there are any.
+        uint32_t pendingWaits = 0;
+        // Waits currently executing waitForSyncFdFence() against the host fence/device. Device
+        // teardown drains these before destroying the fences and VkDevice.
+        uint32_t activeWaits = 0;
+        bool closing = false;
+    };
+    std::mutex mSyncFdFencesMutex;
+    std::condition_variable mSyncFdFencesCv;
+    std::unordered_map<VkFence, SyncFdFencePin> mSyncFdFencePins GUARDED_BY(mSyncFdFencesMutex);
+    uint64_t mNextSyncFdFencePinId GUARDED_BY(mSyncFdFencesMutex) = 1;
 
 #ifdef _WIN32
     int mSemaphoreId = 1;
@@ -14393,9 +14594,13 @@ VkResult VkDecoderGlobalState::on_vkSetDebugUtilsObjectTagEXT(
 
 void VkDecoderGlobalState::on_DeviceLost() { mImpl->on_DeviceLost(); }
 
-VkResult VkDecoderGlobalState::waitForFence(Boxed<VkFence> boxed_fence, uint64_t timeout) {
-    VkFence fence = unbox_VkFence(boxed_fence.value());
-    return mImpl->waitForFence(fence, timeout);
+VkDecoderGlobalState::SyncFdFence VkDecoderGlobalState::acquireSyncFdFence(
+    Boxed<VkFence> boxed_fence) {
+    return mImpl->acquireSyncFdFence(boxed_fence);
+}
+
+VkResult VkDecoderGlobalState::waitForSyncFdFence(const SyncFdFence& fence, uint64_t timeout) {
+    return mImpl->waitForSyncFdFence(fence, timeout);
 }
 
 AsyncResult VkDecoderGlobalState::registerQsriCallback(Boxed<VkImage> image,

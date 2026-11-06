@@ -120,6 +120,29 @@ TEST_F(ExternalFencePoolTest, poolUnsignalledFence) {
     ASSERT_EQ(VK_NULL_HANDLE, mPool.pop(&createInfo));
 }
 
+TEST_F(ExternalFencePoolTest, poolSkipsFencesThatCannotBeReused) {
+    VkFence pinnedFence = reinterpret_cast<VkFence>(0x1234'0000);
+    VkFence fence = reinterpret_cast<VkFence>(0x2234'0000);
+    {
+        InSequence s;
+        EXPECT_CALL(mMockDispatch, vkGetFenceStatus(_, fence)).WillOnce(Return(VK_SUCCESS));
+        EXPECT_CALL(mMockDispatch, vkResetFences(_, 1, _)).WillOnce(Return(VK_SUCCESS));
+    }
+    EXPECT_CALL(mMockDispatch, vkGetFenceStatus(_, pinnedFence)).Times(0);
+
+    VkFenceCreateInfo createInfo{
+        .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+        .pNext = 0,
+        .flags = 0,
+    };
+    mPool.add(pinnedFence);
+    mPool.add(fence);
+    auto canReuse = [pinnedFence](VkFence candidate) { return candidate != pinnedFence; };
+
+    EXPECT_EQ(fence, mPool.pop(&createInfo, canReuse));
+    EXPECT_EQ(VK_NULL_HANDLE, mPool.pop(&createInfo, canReuse));
+}
+
 TEST_F(ExternalFencePoolTest, poolPopAll) {
     VkFence fence1 = reinterpret_cast<VkFence>(0x1234'0000);
     VkFence fence2 = reinterpret_cast<VkFence>(0x2234'0000);
