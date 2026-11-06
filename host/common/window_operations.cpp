@@ -18,8 +18,13 @@ namespace gfxstream {
 namespace host {
 namespace {
 
-bool DefaultGfxstreamWindowIsCurrentThreadUiThread() { return false; } 
-void DefaultGfxstreamWindowRunOnUiThread(gfxstream_window_ui_thread_runnable_t, void*, bool) {}
+bool DefaultGfxstreamWindowIsCurrentThreadUiThread() { return false; }
+void DefaultGfxstreamWindowRunOnUiThread(gfxstream_window_ui_thread_runnable_t f, void* data,
+                                         bool /*wait*/) {
+    if (f) {
+        f(data);
+    }
+}
 
 bool DefaultGfxstreamWindowPaintMultiDisplayWindow(uint32_t, uint32_t) { return false; }
 

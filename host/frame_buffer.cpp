@@ -3261,11 +3261,24 @@ bool FrameBuffer::Impl::compose(uint32_t bufferSize, void* buffer, bool needPost
         completeFuture.wait();
     }
 
-#ifdef CONFIG_AEMU
-    const auto& multiDisplay = get_gfxstream_multi_display_operations();
-    const bool is_pixel_fold = multiDisplay.is_pixel_fold();
+    // Posting after compose is needed when the host presents composed frames
+    // via a subwindow (m_subWin), a registered post callback (m_onPost, used by
+    // the goldfish-gpu RenderLib consumer on API <= 36), or the classic AEMU
+    // host (CONFIG_AEMU, where headless getScreenshot() also reads
+    // m_lastPostedColorBuffer). The virtio-gpu / stream_renderer path has
+    // neither a subwindow nor a post callback, keeping compose-only behaviour.
+    bool shouldPost = false;
     if (needPost) {
-        // AEMU with -no-window mode uses this code path.
+#ifdef CONFIG_AEMU
+        shouldPost = true;
+#else
+        AutoLock lock(m_lock);
+        shouldPost = (m_subWin != (EGLNativeWindowType)0) || !m_onPost.empty();
+#endif
+    }
+    if (shouldPost) {
+        const auto& multiDisplay = get_gfxstream_multi_display_operations();
+        const bool is_pixel_fold = multiDisplay.is_pixel_fold();
         ComposeDevice* composeDevice = (ComposeDevice*)buffer;
 
         switch (composeDevice->version) {
@@ -3285,7 +3298,6 @@ bool FrameBuffer::Impl::compose(uint32_t bufferSize, void* buffer, bool needPost
             }
         }
     }
-#endif
 
     return true;
 }

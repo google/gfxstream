@@ -28,6 +28,7 @@
 #include "gfxstream/host/features.h"
 #include "gfxstream/host/file_stream.h"
 #include "gfxstream/host/gfxstream_format.h"
+#include "gfxstream/host/hwc2.h"
 #include "gfxstream/host/mem_stream.h"
 #include "gfxstream/host/testing/GLSnapshotTesting.h"
 #include "gfxstream/host/testing/GLTestUtils.h"
@@ -2281,6 +2282,122 @@ TEST_F(FrameBufferTest, Gles2MapAndUnmapBufferDirectRejectedWithInvalidOperation
     mFb->destroyEmulatedEglContext(ctx);
     mFb->destroyEmulatedEglWindowSurface(surface);
 }
+
+TEST_F(FrameBufferTest, ComposePostsTargetColorBufferWhenNeedPostIsTrue) {
+    HandleType targetHandle =
+        mFb->createColorBuffer(mWidth, mHeight, GfxstreamFormat::R8G8B8A8_UNORM);
+    ASSERT_NE((HandleType)0, targetHandle);
+    EXPECT_EQ(0, mFb->openColorBuffer(targetHandle));
+
+    struct PostContext {
+        int count = 0;
+        int width = 0;
+        int height = 0;
+    } postCtx;
+
+    mFb->setPostCallback(
+        [](void* context, uint32_t /*displayId*/, int width, int height, int /*ydir*/,
+           int /*format*/, int /*type*/, unsigned char* /*pixels*/) {
+            auto* ctx = static_cast<PostContext*>(context);
+            ++ctx->count;
+            ctx->width = width;
+            ctx->height = height;
+        },
+        &postCtx, /*displayId=*/0, /*useBgraReadback=*/false);
+
+    std::vector<uint8_t> composeBuf(sizeof(ComposeDevice_v2) + sizeof(ComposeLayer), 0);
+    auto* composeDev = reinterpret_cast<ComposeDevice_v2*>(composeBuf.data());
+    composeDev->version = 2;
+    composeDev->displayId = 0;
+    composeDev->targetHandle = targetHandle;
+    composeDev->numLayers = 1;
+    composeDev->layer[0].cbHandle = 0;
+    composeDev->layer[0].composeMode = HWC2_COMPOSITION_SOLID_COLOR;
+    composeDev->layer[0].displayFrame = {0, 0, mWidth, mHeight};
+    composeDev->layer[0].crop = {0.0f, 0.0f, static_cast<float>(mWidth),
+                                 static_cast<float>(mHeight)};
+    composeDev->layer[0].blendMode = HWC2_BLEND_MODE_NONE;
+    composeDev->layer[0].alpha = 1.0f;
+    composeDev->layer[0].color = {255, 0, 0, 255};
+    composeDev->layer[0].transform = HWC_TRANSFORM_NONE;
+
+    mFb->resetGuestPostedAFrame();
+    EXPECT_TRUE(
+        mFb->compose(static_cast<uint32_t>(composeBuf.size()), composeBuf.data(), /*post=*/false));
+    EXPECT_FALSE(mFb->hasGuestPostedAFrame());
+    EXPECT_EQ(0, postCtx.count);
+
+    std::vector<uint8_t> readPixels(static_cast<size_t>(mWidth) * mHeight * 4, 0);
+    mFb->readColorBuffer(targetHandle, 0, 0, mWidth, mHeight, GfxstreamFormat::R8G8B8A8_UNORM,
+                         readPixels.data(), readPixels.size());
+    EXPECT_EQ(255u, readPixels[0]);
+    EXPECT_EQ(0u, readPixels[1]);
+    EXPECT_EQ(0u, readPixels[2]);
+    EXPECT_EQ(255u, readPixels[3]);
+
+    EXPECT_TRUE(
+        mFb->compose(static_cast<uint32_t>(composeBuf.size()), composeBuf.data(), /*post=*/true));
+    EXPECT_TRUE(mFb->hasGuestPostedAFrame());
+    if (!mUseSubWindow) {
+        if (mFb->asyncReadbackSupported()) {
+            mFb->flushReadPipeline(0);
+        }
+        EXPECT_GE(postCtx.count, 1);
+        EXPECT_EQ(mWidth, postCtx.width);
+        EXPECT_EQ(mHeight, postCtx.height);
+    }
+
+    mFb->setPostCallback(nullptr, nullptr, /*displayId=*/0);
+    mFb->closeColorBuffer(targetHandle);
+}
+
+#if !defined(CONFIG_AEMU)
+// Without a subwindow or post callback (the virtio-gpu / stream_renderer path
+// and every non-emulator target), compose(post=true) must only compose: it
+// never posts.
+TEST_F(FrameBufferTest, ComposeWithNeedPostDoesNotPostWithoutPostCallback) {
+    if (mUseSubWindow) {
+        GTEST_SKIP() << "Subwindow mode posts directly to m_subWin without m_onPost";
+    }
+    HandleType targetHandle =
+        mFb->createColorBuffer(mWidth, mHeight, GfxstreamFormat::R8G8B8A8_UNORM);
+    ASSERT_NE((HandleType)0, targetHandle);
+    EXPECT_EQ(0, mFb->openColorBuffer(targetHandle));
+
+    std::vector<uint8_t> composeBuf(sizeof(ComposeDevice_v2) + sizeof(ComposeLayer), 0);
+    auto* composeDev = reinterpret_cast<ComposeDevice_v2*>(composeBuf.data());
+    composeDev->version = 2;
+    composeDev->displayId = 0;
+    composeDev->targetHandle = targetHandle;
+    composeDev->numLayers = 1;
+    composeDev->layer[0].cbHandle = 0;
+    composeDev->layer[0].composeMode = HWC2_COMPOSITION_SOLID_COLOR;
+    composeDev->layer[0].displayFrame = {0, 0, mWidth, mHeight};
+    composeDev->layer[0].crop = {0.0f, 0.0f, static_cast<float>(mWidth),
+                                 static_cast<float>(mHeight)};
+    composeDev->layer[0].blendMode = HWC2_BLEND_MODE_NONE;
+    composeDev->layer[0].alpha = 1.0f;
+    composeDev->layer[0].color = {0, 255, 0, 255};
+    composeDev->layer[0].transform = HWC_TRANSFORM_NONE;
+
+    mFb->resetGuestPostedAFrame();
+    EXPECT_TRUE(
+        mFb->compose(static_cast<uint32_t>(composeBuf.size()), composeBuf.data(), /*post=*/true));
+    EXPECT_FALSE(mFb->hasGuestPostedAFrame());
+
+    // The composition itself still happened.
+    std::vector<uint8_t> readPixels(static_cast<size_t>(mWidth) * mHeight * 4, 0);
+    mFb->readColorBuffer(targetHandle, 0, 0, mWidth, mHeight, GfxstreamFormat::R8G8B8A8_UNORM,
+                         readPixels.data(), readPixels.size());
+    EXPECT_EQ(0u, readPixels[0]);
+    EXPECT_EQ(255u, readPixels[1]);
+    EXPECT_EQ(0u, readPixels[2]);
+    EXPECT_EQ(255u, readPixels[3]);
+
+    mFb->closeColorBuffer(targetHandle);
+}
+#endif
+
 }  // namespace
 }  // namespace host
 }  // namespace gfxstream
