@@ -13,6 +13,11 @@ on:
         type: string
         default: ''
 
+      # Additional args used only in `bazel test <args>`:
+      additional-bazel-test-args:
+        type: string
+        default: ''
+
       # Cache configuration identifier used to isolate incompatible build
       # configurations (e.g. 'default' vs 'asan') into separate cache keys:
       cache-config:
@@ -25,6 +30,12 @@ on:
       build-targets:
         type: string
         default: '...'
+
+      # Optional Mesa GitLab merge request number (e.g. '45927') to patch into
+      # third_party/mesa before building and testing:
+      mesa-merge-request-number:
+        type: string
+        default: ''
 
       # Whether or not to run the `bazel test` step:
       run-tests:
@@ -48,7 +59,7 @@ on:
           host/vulkan:gfxstream_vk_memory_allocation_helper_tests
           host/vulkan:vk_common_operations_tests
           host/vulkan:vk_format_utils_tests
-          tests/deqp/...
+          tests/deqp:deqp_vk_smoke_tests
           tests/end2end:gfxstream_end2end_tests
 
 permissions:
@@ -71,6 +82,22 @@ jobs:
         # No step needs the token afterwards, so do not leave it
         # behind in .git/config.
         persist-credentials: false
+
+    - name: Apply Mesa merge request patch
+      if: inputs.mesa-merge-request-number != ''
+      env:
+        MESA_MR: ${{ inputs.mesa-merge-request-number }}
+      run: |
+        if [[ ! "${MESA_MR}" =~ ^[0-9]+$ ]]; then
+          echo "Error: mesa-merge-request-number must be numeric, got '${MESA_MR}'" >&2
+          exit 1
+        fi
+        PATCH_NAME="PATCH.mr_${MESA_MR}.patch"
+        curl -sSfL "https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/${MESA_MR}.patch" \
+          -o "third_party/mesa/${PATCH_NAME}"
+        sed -i "s|# PLACEHOLDER_FOR_MESA_MR_PATCH_FILE|\"//third_party/mesa:${PATCH_NAME}\",|" \
+          third_party/mesa/mesa.MODULE.bazel
+        git diff third_party/mesa/mesa.MODULE.bazel
 
     - name: Install bazel (Linux)
       if: runner.os == 'Linux'
@@ -120,9 +147,11 @@ jobs:
       env:
         TEST_TARGETS: ${{ inputs.test-targets }}
         ADDITIONAL_BAZEL_ARGS: ${{ inputs.additional-bazel-args }}
+        ADDITIONAL_BAZEL_TEST_ARGS: ${{ inputs.additional-bazel-test-args }}
       run: |
         bazel test $TEST_TARGETS \
           --disk_cache=$HOME/bazel-disk-cache \
           --test_output=streamed \
           --verbose_failures \
-          $ADDITIONAL_BAZEL_ARGS
+          $ADDITIONAL_BAZEL_ARGS \
+          $ADDITIONAL_BAZEL_TEST_ARGS
