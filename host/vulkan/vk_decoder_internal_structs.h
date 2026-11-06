@@ -31,6 +31,7 @@
 #include <set>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <variant>
 
 #include "vk_vvl_configuration.h"
@@ -604,6 +605,7 @@ struct DescriptorSetLayoutInfo {
     Boxed<VkDescriptorSetLayout> boxed;
     VkDescriptorSetLayoutCreateInfo createInfo;
     std::vector<VkDescriptorSetLayoutBinding> bindings;
+    std::vector<VkDescriptorBindingFlags> bindingFlags;
 };
 
 struct DescriptorUpdateTemplateInfo {
@@ -659,6 +661,11 @@ struct DescriptorPoolInfo {
     // underlying host set is VK_NULL_HANDLE. The guest-facing API calls these
     // "pool ids"; they are descriptor set handles, not descriptor pool handles.
     std::vector<uint64_t> preallocatedBoxedSets;
+    // Boxed VkDescriptorSet handles allocated synchronously via
+    // vkAllocateDescriptorSets (e.g. variable descriptor count layouts) while
+    // VulkanBatchedDescriptorSetUpdate is enabled. Unlike preallocatedBoxedSets,
+    // these handles must be deleted when freed or when the pool is reset/destroyed.
+    std::unordered_set<Boxed<VkDescriptorSet>> nonPreallocatedBoxedSets;
 };
 
 struct DescriptorSetInfo {
@@ -693,7 +700,9 @@ struct DescriptorSetInfo {
     VkDevice device;
     VkDescriptorPool pool;
     VkDescriptorSetLayout unboxedLayout = 0;
-    std::vector<std::vector<DescriptorWrite>> allWrites;
+    std::vector<std::unordered_map<uint32_t, DescriptorWrite>> allWrites;
+    std::vector<uint32_t> bindingDescriptorCounts;
+    std::vector<VkDescriptorType> bindingDescriptorTypes;
     std::vector<VkDescriptorSetLayoutBinding> bindings;
 };
 
