@@ -111,6 +111,13 @@ VG_EXPORT int stream_renderer_import_resource(
     uint32_t res_handle, const struct stream_renderer_handle* import_handle,
     const struct stream_renderer_import_data* import_data);
 
+// Exports the host sync object (e.g. a sync file) attached to |fence_id|, which must have been
+// created with STREAM_RENDERER_FLAG_FENCE_SHAREABLE right after the guest acquired a sync object
+// with GFXSTREAM_ACQUIRE_SYNC. Each fence can be exported once, and the caller takes ownership of
+// handle->os_handle. Returns 0 on success, or -EINVAL if |fence_id| has no exportable sync object.
+VG_EXPORT int stream_renderer_export_fence(uint64_t fence_id,
+                                           struct stream_renderer_handle* handle);
+
 struct GfxstreamMetrics {
     uint32_t render_thread_count;
 };
