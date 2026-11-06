@@ -1382,6 +1382,35 @@ TEST_F(FrameBufferTest, ReusePuidBeforeAsyncCleanupCompletes) {
     EXPECT_TRUE(secondCleanupRan);
 }
 
+TEST_F(FrameBufferTest, HeadlessPostAndDrainRenderThreadSurfaces) {
+    if (!mFb->hasEmulationGl()) {
+        GTEST_SKIP() << "GL emulation not enabled.";
+    }
+
+    HandleType postCb = mFb->createColorBuffer(mWidth, mHeight, GfxstreamFormat::R8G8B8A8_UNORM);
+    ASSERT_NE((HandleType)0, postCb);
+    EXPECT_EQ(0, mFb->openColorBuffer(postCb));
+    EXPECT_TRUE(mFb->post(postCb));
+    EXPECT_EQ(postCb, mFb->getLastPostedColorBuffer());
+    mFb->closeColorBuffer(postCb);
+
+    mRenderThreadInfo->setPuid(0);
+    HandleType surfaceCb = mFb->createColorBuffer(mWidth, mHeight, GfxstreamFormat::R8G8B8A8_UNORM);
+    ASSERT_NE((HandleType)0, surfaceCb);
+    EXPECT_EQ(0, mFb->openColorBuffer(surfaceCb));
+
+    HandleType surface = mFb->createEmulatedEglWindowSurface(0, mWidth, mHeight);
+    ASSERT_NE((HandleType)0, surface);
+    EXPECT_TRUE(mFb->getEmulationGl()->hasContextsOrWindowSurfaces());
+    EXPECT_TRUE(mFb->setEmulatedEglWindowSurfaceColorBuffer(surface, surfaceCb));
+    EXPECT_EQ(surfaceCb, mFb->getEmulatedEglWindowSurfaceColorBufferHandle(surface));
+    mFb->closeColorBuffer(surfaceCb);
+
+    mFb->drainGlRenderThreadSurfaces();
+    EXPECT_FALSE(mFb->getEmulationGl()->hasContextsOrWindowSurfaces());
+    EXPECT_EQ((HandleType)0, mFb->getEmulatedEglWindowSurfaceColorBufferHandle(surface));
+}
+
 TEST_F(FrameBufferTest, CrossVersionRebindClearsContextData) {
     if (!mFb->hasEmulationGl()) {
         GTEST_SKIP() << "GL emulation not enabled.";

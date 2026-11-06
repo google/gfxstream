@@ -1449,17 +1449,23 @@ void EmulationGl::drainRenderThreadSurfaces() {
     if (!tinfo) {
         GFXSTREAM_FATAL("RenderThreadGL not available.");
     }
-    RecursiveScopedContextBind bind(getColorBufferContextHelper());
-    for (const HandleType winHandle : tinfo->m_windowSet) {
-        const auto winIt = mWindows.find(winHandle);
-        if (winIt != mWindows.end()) {
-            if (winIt->second.second != 0) {
-                mGlobalState->closeColorBufferByWindow(winIt->second.second);
+    std::vector<HandleType> colorBuffersToClose;
+    {
+        RecursiveScopedContextBind bind(getColorBufferContextHelper());
+        for (const HandleType winHandle : tinfo->m_windowSet) {
+            const auto winIt = mWindows.find(winHandle);
+            if (winIt != mWindows.end()) {
+                if (winIt->second.second != 0) {
+                    colorBuffersToClose.push_back(winIt->second.second);
+                }
+                mWindows.erase(winIt);
             }
-            mWindows.erase(winIt);
         }
     }
     tinfo->m_windowSet.clear();
+    for (const HandleType colorBufferHandle : colorBuffersToClose) {
+        mGlobalState->closeColorBufferByWindow(colorBufferHandle);
+    }
 }
 
 bool EmulationGl::flushEmulatedEglWindowSurfaceColorBuffer(HandleType surfaceHandle) {
