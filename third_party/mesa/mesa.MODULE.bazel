@@ -11,6 +11,16 @@ git_repository(
     remote = "https://android.googlesource.com/platform/external/libdrm.git",
 )
 
+# To develop or test with your local mesa repo, uncomment:
+#
+# new_local_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:local.bzl", "new_local_repository")
+# new_local_repository(
+#     name = "mesa",
+#     build_file = "//third_party/mesa:BUILD.mesa.bazel",
+#     path = "/path/to/your/local/mesa",
+# )
+#
+# and comment out:
 git_repository(
     name = "mesa",
     build_file = "//third_party/mesa:BUILD.mesa.bazel",
