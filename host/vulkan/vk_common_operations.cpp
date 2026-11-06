@@ -1770,11 +1770,15 @@ VkEmulation::~VkEmulation() {
     std::lock_guard<std::mutex> lock(mMutex);
 
 #ifdef __ANDROID__
-    // Nothing claimed these before teardown; release the extra reference each was stashed with.
-    for (auto& [key, ahb] : mPendingDeferredLayoutAhbs) {
-        AHardwareBuffer_release(ahb);
+    {
+        std::lock_guard<std::mutex> deferredLock(mDeferredLayoutMutex);
+        for (auto& [key, ahb] : mPendingDeferredLayoutAhbs) {
+            if (ahb) {
+                AHardwareBuffer_release(ahb);
+            }
+        }
+        mPendingDeferredLayoutAhbs.clear();
     }
-    mPendingDeferredLayoutAhbs.clear();
 #endif
 
     mCompositorVk.reset();
@@ -2095,16 +2099,31 @@ MTLResource_id VkEmulation::getMtlResourceFromVkDeviceMemory(VulkanDispatch* vk,
 #endif
 
 #ifdef __ANDROID__
-// Derives the AHB shape (format, usage, extent) that allocAhb() would allocate for this image,
-// without allocating anything. Shared with the deferred-layout pending-AHB pool so a probe AHB
-// and a ColorBuffer's own AHB request can be matched without ever calling allocAhb() twice.
-AhbShapeKey ComputeAhbShapeKey(const VkImageCreateInfo* imageCreateInfo) {
-    // Map VkFormat to the corresponding AHB format — must match to avoid tiling mismatch.
-    const uint32_t ahbFormat = vk_util::vkFormatToAhbFormat(imageCreateInfo->format);
+bool IsDeferredLayoutAhbSupported(const VkImageCreateInfo* imageCreateInfo) {
+    return imageCreateInfo && imageCreateInfo->extent.width > 0 &&
+           imageCreateInfo->extent.height > 0 && imageCreateInfo->mipLevels == 1 &&
+           imageCreateInfo->arrayLayers == 1 &&
+           vk_util::vkFormatToAhbFormat(resolveAhbFormat(imageCreateInfo->format)) != 0;
+}
 
-    // Translate the common VkImageUsageFlagBits into their corresponding AHB usage bits.
+// Derives the canonical AHB shape (format, usage, extent) shared between guest deferred-layout
+// probes and ColorBuffer allocations. ColorBuffers allocate AHB-backed VkImages with
+// VK_IMAGE_TILING_OPTIMAL, so derive usage from the optimal format-support entry when available
+// and omit VK_IMAGE_USAGE_STORAGE_BIT (which ColorBuffers never set and some Grallocs reject on
+// non-BLOB 2D formats).
+AhbShapeKey VkEmulation::computeAhbShapeKey(const VkImageCreateInfo* imageCreateInfo) const {
+    const VkFormat resolvedFormat = resolveAhbFormat(imageCreateInfo->format);
+    const ImageSupportInfo* supportInfo =
+        mImageSupportInfo.GetSupportedInfo(resolvedFormat, VK_IMAGE_TILING_OPTIMAL);
+    if (!supportInfo) {
+        supportInfo = mImageSupportInfo.GetSupportedInfo(resolvedFormat, imageCreateInfo->tiling);
+    }
+    const VkImageUsageFlags vkUsage =
+        supportInfo ? getSupportedImageUsageFlags(supportInfo->formatProps2.formatProperties,
+                                                  supportInfo->tiling)
+                    : imageCreateInfo->usage;
+
     uint64_t ahbUsage = 0;
-    const VkImageUsageFlags vkUsage = imageCreateInfo->usage;
     if (vkUsage & (VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT)) {
         ahbUsage |= AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE;
     }
@@ -2112,11 +2131,6 @@ AhbShapeKey ComputeAhbShapeKey(const VkImageCreateInfo* imageCreateInfo) {
                    VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)) {
         ahbUsage |= AHARDWAREBUFFER_USAGE_GPU_FRAMEBUFFER;
     }
-    if (vkUsage & VK_IMAGE_USAGE_STORAGE_BIT) {
-        ahbUsage |= AHARDWAREBUFFER_USAGE_GPU_DATA_BUFFER;
-    }
-    // ColorBuffers are always at least framebuffer/sampled-capable; default to a usable
-    // combination if the image declared no GPU-relevant usage.
     if (ahbUsage == 0) {
         ahbUsage = AHARDWAREBUFFER_USAGE_GPU_FRAMEBUFFER | AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE;
     }
@@ -2124,17 +2138,42 @@ AhbShapeKey ComputeAhbShapeKey(const VkImageCreateInfo* imageCreateInfo) {
     return AhbShapeKey{
         .width = imageCreateInfo->extent.width,
         .height = imageCreateInfo->extent.height,
-        .layers = std::max(1u, imageCreateInfo->arrayLayers),
-        .ahbFormat = ahbFormat,
+        .layers = 1,
+        .ahbFormat = vk_util::vkFormatToAhbFormat(resolvedFormat),
         .ahbUsage = ahbUsage,
     };
 }
 
-// Allocate an AHardwareBuffer matching the given image's format, extent and usage.
-// Returns nullptr on failure (caller falls back to the non-AHB allocation path).
-AHardwareBuffer* allocAhb(const VkImageCreateInfo* imageCreateInfo) {
-    const AhbShapeKey shape = ComputeAhbShapeKey(imageCreateInfo);
-    if (shape.ahbFormat == 0 || imageCreateInfo->mipLevels > 1) {
+std::optional<CachedAhbLayout> VkEmulation::findCachedDeferredLayout(
+    const VkImageCreateInfo* imageCreateInfo) const {
+    if (!IsDeferredLayoutAhbSupported(imageCreateInfo)) {
+        return std::nullopt;
+    }
+    const AhbShapeKey key = computeAhbShapeKey(imageCreateInfo);
+    std::lock_guard<std::mutex> deferredLock(mDeferredLayoutMutex);
+    auto it = mDeferredLayoutCache.find(key);
+    if (it == mDeferredLayoutCache.end()) {
+        return std::nullopt;
+    }
+    return it->second;
+}
+
+void VkEmulation::recordCachedDeferredLayout(const VkImageCreateInfo* imageCreateInfo,
+                                             const CachedAhbLayout& layout) {
+    if (!IsDeferredLayoutAhbSupported(imageCreateInfo) || layout.size == 0) {
+        return;
+    }
+    const AhbShapeKey key = computeAhbShapeKey(imageCreateInfo);
+    std::lock_guard<std::mutex> deferredLock(mDeferredLayoutMutex);
+    mDeferredLayoutCache[key] = layout;
+}
+
+AHardwareBuffer* VkEmulation::allocAhb(const VkImageCreateInfo* imageCreateInfo) const {
+    if (!IsDeferredLayoutAhbSupported(imageCreateInfo)) {
+        return nullptr;
+    }
+    const AhbShapeKey shape = computeAhbShapeKey(imageCreateInfo);
+    if (shape.ahbFormat == 0) {
         return nullptr;
     }
 
@@ -2158,14 +2197,32 @@ AHardwareBuffer* allocAhb(const VkImageCreateInfo* imageCreateInfo) {
 
 void VkEmulation::stashPendingDeferredLayoutAhb(const VkImageCreateInfo* imageCreateInfo,
                                                 AHardwareBuffer* ahb) {
-    AHardwareBuffer_acquire(ahb);
-    std::lock_guard<std::mutex> lock(mMutex);
-    mPendingDeferredLayoutAhbs.emplace(ComputeAhbShapeKey(imageCreateInfo), ahb);
+    if (!ahb) {
+        return;
+    }
+    if (!IsDeferredLayoutAhbSupported(imageCreateInfo)) {
+        AHardwareBuffer_release(ahb);
+        return;
+    }
+    const AhbShapeKey key = computeAhbShapeKey(imageCreateInfo);
+    bool inserted = false;
+    {
+        std::lock_guard<std::mutex> deferredLock(mDeferredLayoutMutex);
+        inserted = mPendingDeferredLayoutAhbs.try_emplace(key, ahb).second;
+    }
+    if (!inserted) {
+        AHardwareBuffer_release(ahb);
+    }
 }
 
-AHardwareBuffer* VkEmulation::takePendingDeferredLayoutAhbLocked(
+AHardwareBuffer* VkEmulation::takePendingDeferredLayoutAhb(
     const VkImageCreateInfo* imageCreateInfo) {
-    auto it = mPendingDeferredLayoutAhbs.find(ComputeAhbShapeKey(imageCreateInfo));
+    if (!IsDeferredLayoutAhbSupported(imageCreateInfo)) {
+        return nullptr;
+    }
+    const AhbShapeKey key = computeAhbShapeKey(imageCreateInfo);
+    std::lock_guard<std::mutex> deferredLock(mDeferredLayoutMutex);
+    auto it = mPendingDeferredLayoutAhbs.find(key);
     if (it == mPendingDeferredLayoutAhbs.end()) {
         return nullptr;
     }
@@ -2385,12 +2442,11 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
             if (colorBufferInfo) {
                 auto cbInfoPtr = *colorBufferInfo;
 
-                // A same-shaped image that hit a deferred layout query earlier (see
-                // on_vkCreateImage) may have left its probe AHB here. Only probes not already
-                // imported as their own image's backing memory are still in the pool, so
-                // adopting one cannot alias -- see unstashPendingDeferredLayoutAhb().
+                // A same-shaped image that hit a cache-miss deferred layout probe earlier (see
+                // on_vkCreateImage) transfers single ownership of its probe AHB here so the
+                // ColorBuffer can adopt it directly instead of allocating a second AHB.
                 AHardwareBuffer* ahb =
-                    takePendingDeferredLayoutAhbLocked(&cbInfoPtr->imageCreateInfoShallow);
+                    takePendingDeferredLayoutAhb(&cbInfoPtr->imageCreateInfoShallow);
                 if (ahb) {
                     GFXSTREAM_INFO("DL-AHB adopted pending ahb=%p for ColorBuffer %u (%ux%u)",
                                    (void*)ahb, cbInfoPtr->handle, cbInfoPtr->width,
@@ -3282,6 +3338,38 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height,
                         string_VkResult(bindImageMemoryRes));
         return false;
     }
+
+#ifdef __ANDROID__
+    if (getExternalMemoryMode() == ExternalMemory::Mode::AndroidAHB && infoPtr->memory.handleInfo &&
+        infoPtr->memory.handleInfo->streamHandleType == STREAM_HANDLE_TYPE_PLATFORM_AHB &&
+        IsDeferredLayoutAhbSupported(&infoPtr->imageCreateInfoShallow) &&
+        !findCachedDeferredLayout(&infoPtr->imageCreateInfoShallow)) {
+        auto* ahb = reinterpret_cast<AHardwareBuffer*>(infoPtr->memory.handleInfo->handle);
+        if (ahb) {
+            VkMemoryRequirements boundReqs = {};
+            vk->vkGetImageMemoryRequirements(mDevice, infoPtr->image, &boundReqs);
+            VkAndroidHardwareBufferPropertiesANDROID ahbProps = {
+                .sType = VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_PROPERTIES_ANDROID,
+                .pNext = nullptr,
+            };
+            if (vk->vkGetAndroidHardwareBufferPropertiesANDROID(mDevice, ahb, &ahbProps) ==
+                    VK_SUCCESS &&
+                ahbProps.allocationSize > 0) {
+                AHardwareBuffer_Desc ahbDesc = {};
+                AHardwareBuffer_describe(ahb, &ahbDesc);
+                const uint32_t bytesPerPixel = vk_util::ahbFormatBytesPerPixel(ahbDesc.format);
+                recordCachedDeferredLayout(
+                    &infoPtr->imageCreateInfoShallow,
+                    CachedAhbLayout{
+                        .size = ahbProps.allocationSize,
+                        .alignment = boundReqs.alignment ? boundReqs.alignment : 1,
+                        .memoryTypeBits = ahbProps.memoryTypeBits,
+                        .rowPitch = static_cast<VkDeviceSize>(ahbDesc.stride) * bytesPerPixel,
+                    });
+            }
+        }
+    }
+#endif
 
     VkSamplerYcbcrConversionInfo ycbcrInfo = {
         .sType = VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_INFO,

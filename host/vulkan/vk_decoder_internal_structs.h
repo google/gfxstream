@@ -359,9 +359,9 @@ struct ImageInfo {
     VkExternalMemoryHandleTypeFlags externalHandleTypes = 0;
 #ifdef __ANDROID__
     // Set when a driver defers an AHB-external image's layout to vkBindImageMemory and reports
-    // size=0 until then. The AHB is shared_ptr-held so every mImageInfo teardown path frees it.
+    // size=0 or memoryTypeBits=0 until then. Populated from VkEmulation's deferred-layout cache
+    // or a one-time probe AHB stashed in VkEmulation for ColorBuffer adoption.
     struct DeferredLayoutInfo {
-        std::shared_ptr<AHardwareBuffer> ahb;
         VkDeviceSize size = 0;
         VkDeviceSize alignment = 0;
         uint32_t memoryTypeBits = 0;
