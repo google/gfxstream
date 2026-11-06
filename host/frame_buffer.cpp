@@ -2853,6 +2853,10 @@ AsyncResult FrameBuffer::Impl::postImpl(HandleType p_colorbuffer, Post::Completi
         }
     }
 
+#if GFXSTREAM_ENABLE_HOST_GLES
+    bind.reset();
+#endif
+
     //
     // Send framebuffer (without FPS overlay) to callback
     //
