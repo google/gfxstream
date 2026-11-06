@@ -336,6 +336,14 @@ void nsWindowMakeCurrent(void* context,void* nativeWin){
         [NSOpenGLContext clearCurrentContext];
     } else if (win != nil) {
         [ctx preBind:0];
+        // A layer-backed NSOpenGLView manages its own display context. Keep
+        // that context in sync with the one selected by EGL before binding it.
+        if ([win isKindOfClass:[NSOpenGLView class]]) {
+            NSOpenGLView* glView = (NSOpenGLView*)win;
+            if ([glView openGLContext] != ctx) {
+                [glView setOpenGLContext:ctx];
+            }
+        }
         [ctx setView: win];
         [ctx makeCurrentContext];
     }
