@@ -1,0 +1,51 @@
+name: Test Mesa PR with dEQP
+
+on:
+  workflow_dispatch:
+    inputs:
+      mesa-merge-request-number:
+        description: 'Mesa GitLab Merge Request number (e.g. 45927)'
+        required: false
+        default: ''
+        type: string
+      deqp-suite:
+        description: 'Preset dEQP test suite to run'
+        required: true
+        default: 'deqp_vk_smoke_tests'
+        type: choice
+        options:
+          - deqp_vk_smoke_tests
+          - deqp_vk_descriptor_related_tests
+          - deqp_vk_image_related_tests
+          - deqp_vk_memory_related_tests
+          - deqp_vk_sync_related_tests
+      custom-deqp-patterns:
+        description: 'Optional comma-separated dEQP case patterns (overrides preset suite if set)'
+        required: false
+        default: ''
+        type: string
+      graphics-drivers:
+        description: 'Host graphics driver configuration'
+        required: true
+        default: 'gles_angle_vulkan_lavapipe'
+        type: choice
+        options:
+          - gles_angle_vulkan_lavapipe
+          - gles_angle_vulkan_swiftshader
+
+permissions:
+  contents: read
+
+jobs:
+  run-gfxstream-bazel-deqp-tests:
+    uses: ./.github/workflows/presubmit_bazel.yml
+    with:
+      runner: ubuntu-22.04
+      mesa-merge-request-number: ${{ inputs.mesa-merge-request-number }}
+      cache-config: ${{ inputs.graphics-drivers == 'gles_angle_vulkan_lavapipe' && 'lavapipe' || 'swiftshader' }}
+      build-targets: //tests/deqp:${{ inputs.deqp-suite }}
+      test-targets: //tests/deqp:${{ inputs.deqp-suite }}
+      additional-bazel-args: --graphics_drivers=${{ inputs.graphics-drivers }}
+      additional-bazel-test-args: >-
+        --test_timeout=3600
+        ${{ inputs.custom-deqp-patterns != '' && format('--test_arg=--deqp_cases={0}', inputs.custom-deqp-patterns) || '' }}

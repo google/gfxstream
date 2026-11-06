@@ -22,6 +22,7 @@ git_repository(
     ],
     patches = [
         "//third_party/mesa:PATCH.0001_disable_vk_envvar_modification_for_testing.patch",
+        # PLACEHOLDER_FOR_MESA_MR_PATCH_FILE
     ],
     remote = "https://android.googlesource.com/platform/external/mesa3d.git",
 )

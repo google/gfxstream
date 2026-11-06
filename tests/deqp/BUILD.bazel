@@ -9,3 +9,52 @@ gfxstream_deqp_vk_test(
     name = "deqp_vk_smoke_tests",
     deqp_cases = ["dEQP-VK.api.smoke.*"],
 )
+
+gfxstream_deqp_vk_test(
+    name = "deqp_vk_descriptor_related_tests",
+    size = "enormous",
+    deqp_cases = [
+        "dEQP-VK.api.descriptor_pool.*",
+        "dEQP-VK.api.descriptor_set.*",
+        "dEQP-VK.api.maintenance3_check.descriptor_set",
+        "dEQP-VK.api.object_management.multithreaded_*",
+        "dEQP-VK.binding_model.*",
+        "dEQP-VK.descriptor_indexing.*",
+    ],
+)
+
+gfxstream_deqp_vk_test(
+    name = "deqp_vk_image_related_tests",
+    size = "enormous",
+    deqp_cases = [
+        "dEQP-VK.api.copy_and_blit.*",
+        "dEQP-VK.api.image_clearing.*",
+        "dEQP-VK.image.*",
+        "dEQP-VK.texture.*",
+        "dEQP-VK.ycbcr.*",
+    ],
+)
+
+gfxstream_deqp_vk_test(
+    name = "deqp_vk_memory_related_tests",
+    size = "enormous",
+    deqp_cases = [
+        "dEQP-VK.api.buffer_memory_requirements.*",
+        "dEQP-VK.api.external.memory.*",
+        "dEQP-VK.api.get_memory_commitment.*",
+        "dEQP-VK.memory.*",
+        "dEQP-VK.sparse_resources.*",
+    ],
+)
+
+gfxstream_deqp_vk_test(
+    name = "deqp_vk_sync_related_tests",
+    size = "enormous",
+    deqp_cases = [
+        "dEQP-VK.api.command_buffers.*",
+        "dEQP-VK.api.external.fence.*",
+        "dEQP-VK.api.external.semaphore.*",
+        "dEQP-VK.synchronization.*",
+        "dEQP-VK.synchronization2.*",
+    ],
+)
