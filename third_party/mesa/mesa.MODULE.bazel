@@ -22,6 +22,7 @@ git_repository(
     ],
     patches = [
         "//third_party/mesa:PATCH.0001_disable_vk_envvar_modification_for_testing.patch",
+        "//third_party/mesa:PATCH.0002_support_variable_descriptor_counts_and_sparse_descriptor_write_table.patch",
     ],
     remote = "https://android.googlesource.com/platform/external/mesa3d.git",
 )
