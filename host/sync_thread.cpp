@@ -279,12 +279,13 @@ void SyncThread::doSyncWait(EmulatedEglFenceSync* fenceSync, std::function<void(
 #endif
 
 void SyncThread::triggerWaitVk(vk::Boxed<VkFence> vkFence, uint64_t timeline) {
+    auto fence = vk::VkDecoderGlobalState::get()->acquireSyncFdFence(vkFence);
     std::stringstream ss;
     ss << "triggerWaitVk vkFence=0x" << std::hex << reinterpret_cast<uintptr_t>(vkFence.value())
        << " timeline=0x" << std::hex << timeline;
     sendAsync(
-        [vkFence, timeline](WorkerId) {
-            doSyncWaitVk(vkFence, [timeline] {
+        [fence, timeline](WorkerId) {
+            doSyncWaitVk(fence, [timeline] {
                 DPRINT("vk wait done, use goldfish sync timeline inc");
                 gfxstream_sync_timeline_inc(timeline, kTimelineInterval);
             });
@@ -294,10 +295,11 @@ void SyncThread::triggerWaitVk(vk::Boxed<VkFence> vkFence, uint64_t timeline) {
 
 void SyncThread::triggerWaitVkWithCompletionCallback(vk::Boxed<VkFence> vkFence,
                                                      FenceCompletionCallback cb) {
+    auto fence = vk::VkDecoderGlobalState::get()->acquireSyncFdFence(vkFence);
     std::stringstream ss;
     ss << "triggerWaitVkWithCompletionCallback vkFence=0x" << std::hex
        << reinterpret_cast<uintptr_t>(vkFence.value());
-    sendAsync([vkFence, cb = std::move(cb)](WorkerId) { doSyncWaitVk(vkFence, std::move(cb)); },
+    sendAsync([fence, cb = std::move(cb)](WorkerId) { doSyncWaitVk(fence, std::move(cb)); },
               ss.str());
 }
 
@@ -433,15 +435,16 @@ void SyncThread::doSyncThreadCmd(Command&& command, WorkerId workerId) {
     command.mTask(workerId);
 }
 
-int SyncThread::doSyncWaitVk(vk::Boxed<VkFence> vkFence, std::function<void()> onComplete) {
+int SyncThread::doSyncWaitVk(const vk::VkDecoderGlobalState::SyncFdFence& fence,
+                             std::function<void()> onComplete) {
     DPRINT("enter");
 
     auto decoder = vk::VkDecoderGlobalState::get();
-    auto result = decoder->waitForFence(vkFence, kDefaultTimeoutNsecs);
+    auto result = decoder->waitForSyncFdFence(fence, kDefaultTimeoutNsecs);
     if (result == VK_TIMEOUT) {
-        DPRINT("SYNC_WAIT_VK timeout: vkFence=%p", vkFence.value());
+        DPRINT("SYNC_WAIT_VK timeout: vkFence=%p", fence.fence);
     } else if (result != VK_SUCCESS) {
-        DPRINT("SYNC_WAIT_VK error: %d vkFence=%p", result, vkFence.value());
+        DPRINT("SYNC_WAIT_VK error: %d vkFence=%p", result, fence.fence);
     }
 
     DPRINT("issue timeline increment");

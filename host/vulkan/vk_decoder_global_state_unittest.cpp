@@ -20,8 +20,14 @@
 
 #include <atomic>
 #include <cstdint>
+#include <condition_variable>
+#include <deque>
+#include <future>
 #include <memory>
+#include <optional>
 #include <thread>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "gfxstream/BumpPool.h"
@@ -770,6 +776,559 @@ TEST_F(VkDecoderGlobalStateProcessCleanupLeakTest,
     }
     EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedInstance)));
     EXPECT_EQ(baselineHandles, sBoxedHandleManager.getHandlesCount());
+}
+
+class VkDecoderGlobalStateSyncFdFenceTest : public VkDecoderGlobalStateTest {
+   protected:
+    static constexpr uint64_t kWaitTimeoutNs = 1000ULL * 1000ULL * 1000ULL;
+
+    void SetUp() override {
+        mBaselineHandles = sBoxedHandleManager.getHandlesCount();
+        VkDecoderGlobalStateTest::SetUp();
+        createInstanceAndDevice();
+        mUnboxedDev = unbox_VkDevice(mBoxedDevice);
+
+        {
+            std::lock_guard<std::mutex> lock(sFakeMutex);
+            sNextFence = 0xf100'0000ULL;
+            sSignaledFences.clear();
+            sWaitedFences.clear();
+            sDestroyedFences.clear();
+            sDestroyedDevices.clear();
+            sFakeWaitHook = nullptr;
+            sRealDestroyDevice = mVk->vkDestroyDevice;
+        }
+
+        mVk->vkDestroyDevice = &fakeDestroyDevice;
+
+        VulkanDispatch* deviceVk = dispatch_VkDevice(mBoxedDevice);
+        ASSERT_NE(deviceVk, nullptr);
+        deviceVk->vkCreateFence = &fakeCreateFence;
+        deviceVk->vkDestroyFence = &fakeDestroyFence;
+        deviceVk->vkResetFences = &fakeResetFences;
+        deviceVk->vkGetFenceStatus = &fakeGetFenceStatus;
+        deviceVk->vkWaitForFences = &fakeWaitForFences;
+        deviceVk->vkQueueSubmit = &fakeQueueSubmit;
+    }
+
+    void TearDown() override {
+        VkDecoderGlobalStateTest::TearDown();
+        {
+            std::lock_guard<std::mutex> lock(sFakeMutex);
+            if (sRealDestroyDevice && mVk) {
+                mVk->vkDestroyDevice = sRealDestroyDevice;
+                sRealDestroyDevice = nullptr;
+            }
+        }
+        EXPECT_EQ(mBaselineHandles, sBoxedHandleManager.getHandlesCount());
+    }
+
+    Boxed<VkFence> createFence(bool exportable, bool signaled) {
+        VkExportFenceCreateInfo exportInfo = {
+            .sType = VK_STRUCTURE_TYPE_EXPORT_FENCE_CREATE_INFO,
+            .pNext = nullptr,
+            .handleTypes = VK_EXTERNAL_FENCE_HANDLE_TYPE_SYNC_FD_BIT,
+        };
+        VkFenceCreateInfo createInfo = {
+            .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+            .pNext = exportable ? &exportInfo : nullptr,
+            .flags = signaled ? VK_FENCE_CREATE_SIGNALED_BIT : 0u,
+        };
+        VkFence boxedFence = VK_NULL_HANDLE;
+        EXPECT_EQ(VK_SUCCESS, mState->on_vkCreateFence(&mPool, kInvalidSnapshotApiCallHandle,
+                                                       mBoxedDevice, &createInfo, nullptr,
+                                                       &boxedFence));
+        return Boxed<VkFence>(boxedFence);
+    }
+
+    // Runs only on_vkDestroyFence, leaving the boxed handle live until delete_VkFence() runs,
+    // matching the window in OP_vkDestroyFence after mMutex is released.
+    void destroyFenceWithoutDeletingBoxedHandle(Boxed<VkFence> boxedFence) {
+        mState->on_vkDestroyFence(&mPool, kInvalidSnapshotApiCallHandle, mBoxedDevice,
+                                  try_unbox_VkFence(boxedFence.value()), nullptr);
+    }
+
+    // Like the decoder, deletes the boxed handle after the fence is destroyed.
+    void destroyFence(Boxed<VkFence> boxedFence) {
+        destroyFenceWithoutDeletingBoxedHandle(boxedFence);
+        delete_VkFence(boxedFence.value());
+    }
+
+    void destroyDevice() {
+        mState->on_vkDestroyDevice(&mPool, kInvalidSnapshotApiCallHandle, mBoxedDevice, nullptr);
+        mBoxedDevice = VK_NULL_HANDLE;
+    }
+
+    VkResult resetFence(Boxed<VkFence> boxedFence) {
+        VkFence fence = unbox_VkFence(boxedFence.value());
+        return mState->on_vkResetFences(&mPool, kInvalidSnapshotApiCallHandle, mBoxedDevice, 1,
+                                        &fence);
+    }
+
+    void markFenceSubmitted(Boxed<VkFence> boxedFence) {
+        VkFence fence = unbox_VkFence(boxedFence.value());
+        signalFence(fence);
+        ASSERT_EQ(VK_SUCCESS, mState->on_vkQueueSubmit(&mPool, kInvalidSnapshotApiCallHandle,
+                                                       mBoxedQueue, 0, nullptr, fence));
+    }
+
+    VkDecoderGlobalState::SyncFdFence acquireSyncFdFence(Boxed<VkFence> boxedFence) {
+        return mState->acquireSyncFdFence(boxedFence);
+    }
+
+    VkResult waitForSyncFdFence(const VkDecoderGlobalState::SyncFdFence& fence, uint64_t timeout) {
+        return mState->waitForSyncFdFence(fence, timeout);
+    }
+
+    // Waits on another thread, to fail instead of hanging if the wait does not return.
+    VkResult waitWithDeadline(const VkDecoderGlobalState::SyncFdFence& fence, uint64_t timeoutNs) {
+        std::promise<VkResult> promise;
+        std::future<VkResult> result = promise.get_future();
+        std::thread waiter([&] { promise.set_value(waitForSyncFdFence(fence, timeoutNs)); });
+        if (result.wait_for(std::chrono::seconds(30)) != std::future_status::ready) {
+            GFXSTREAM_FATAL("waitForSyncFdFence() did not return.");
+        }
+        waiter.join();
+        return result.get();
+    }
+
+    static void signalFence(VkFence fence) {
+        std::lock_guard<std::mutex> lock(sFakeMutex);
+        sSignaledFences.insert(fence);
+    }
+
+    static void setFakeWaitHook(std::function<VkResult(VkFence)> hook) {
+        std::lock_guard<std::mutex> lock(sFakeMutex);
+        sFakeWaitHook = std::move(hook);
+    }
+
+    static std::vector<VkFence> waitedFences() {
+        std::lock_guard<std::mutex> lock(sFakeMutex);
+        return sWaitedFences;
+    }
+
+    static std::vector<VkFence> destroyedFences() {
+        std::lock_guard<std::mutex> lock(sFakeMutex);
+        return sDestroyedFences;
+    }
+
+    static std::vector<VkDevice> destroyedDevices() {
+        std::lock_guard<std::mutex> lock(sFakeMutex);
+        return sDestroyedDevices;
+    }
+
+    static void fakeDestroyDevice(VkDevice device, const VkAllocationCallbacks* pAllocator) {
+        PFN_vkDestroyDevice realDestroy = nullptr;
+        {
+            std::lock_guard<std::mutex> lock(sFakeMutex);
+            sDestroyedDevices.push_back(device);
+            realDestroy = sRealDestroyDevice;
+        }
+        if (realDestroy) {
+            realDestroy(device, pAllocator);
+        }
+    }
+
+    static VkResult fakeCreateFence(VkDevice, const VkFenceCreateInfo* pCreateInfo,
+                                    const VkAllocationCallbacks*, VkFence* pFence) {
+        std::lock_guard<std::mutex> lock(sFakeMutex);
+        *pFence = reinterpret_cast<VkFence>(sNextFence++);
+        if (pCreateInfo->flags & VK_FENCE_CREATE_SIGNALED_BIT) {
+            sSignaledFences.insert(*pFence);
+        }
+        return VK_SUCCESS;
+    }
+
+    static void fakeDestroyFence(VkDevice, VkFence fence, const VkAllocationCallbacks*) {
+        std::lock_guard<std::mutex> lock(sFakeMutex);
+        sSignaledFences.erase(fence);
+        sDestroyedFences.push_back(fence);
+    }
+
+    static VkResult fakeResetFences(VkDevice, uint32_t fenceCount, const VkFence* pFences) {
+        std::lock_guard<std::mutex> lock(sFakeMutex);
+        for (uint32_t i = 0; i < fenceCount; ++i) {
+            sSignaledFences.erase(pFences[i]);
+        }
+        return VK_SUCCESS;
+    }
+
+    static VkResult fakeGetFenceStatus(VkDevice, VkFence fence) {
+        std::lock_guard<std::mutex> lock(sFakeMutex);
+        return sSignaledFences.count(fence) ? VK_SUCCESS : VK_NOT_READY;
+    }
+
+    static VkResult fakeWaitForFences(VkDevice, uint32_t fenceCount, const VkFence* pFences,
+                                      VkBool32, uint64_t) {
+        std::function<VkResult(VkFence)> waitHook;
+        {
+            std::lock_guard<std::mutex> lock(sFakeMutex);
+            for (uint32_t i = 0; i < fenceCount; ++i) {
+                sWaitedFences.push_back(pFences[i]);
+            }
+            waitHook = sFakeWaitHook;
+        }
+        if (waitHook && fenceCount > 0) {
+            return waitHook(pFences[0]);
+        }
+        return VK_SUCCESS;
+    }
+
+    static VkResult fakeQueueSubmit(VkQueue, uint32_t, const VkSubmitInfo*, VkFence) {
+        return VK_SUCCESS;
+    }
+
+    uint64_t mBaselineHandles = 0;
+    VkDevice mUnboxedDev = VK_NULL_HANDLE;
+
+    static inline std::mutex sFakeMutex;
+    static inline uint64_t sNextFence = 0xf100'0000ULL;
+    static inline std::unordered_set<VkFence> sSignaledFences;
+    static inline std::vector<VkFence> sWaitedFences;
+    static inline std::vector<VkFence> sDestroyedFences;
+    static inline std::vector<VkDevice> sDestroyedDevices;
+    static inline std::function<VkResult(VkFence)> sFakeWaitHook;
+    static inline PFN_vkDestroyDevice sRealDestroyDevice = nullptr;
+};
+
+TEST_F(VkDecoderGlobalStateSyncFdFenceTest, ExportedFenceIsNotRecycledUntilItsWaitsComplete) {
+    Boxed<VkFence> boxedFence = createFence(/*exportable=*/true, /*signaled=*/true);
+    const VkFence exportedFence = unbox_VkFence(boxedFence.value());
+
+    // Exported twice before the guest destroys it, which puts it into the recycling pool.
+    const auto syncFdFence1 = acquireSyncFdFence(boxedFence);
+    const auto syncFdFence2 = acquireSyncFdFence(boxedFence);
+    EXPECT_EQ(exportedFence, syncFdFence1.fence);
+    EXPECT_EQ(exportedFence, syncFdFence2.fence);
+    destroyFence(boxedFence);
+
+    Boxed<VkFence> boxedFence2 = createFence(/*exportable=*/true, /*signaled=*/true);
+    EXPECT_NE(exportedFence, unbox_VkFence(boxedFence2.value()));
+
+    EXPECT_EQ(VK_SUCCESS, waitWithDeadline(syncFdFence1, kWaitTimeoutNs));
+    Boxed<VkFence> boxedFence3 = createFence(/*exportable=*/true, /*signaled=*/true);
+    EXPECT_NE(exportedFence, unbox_VkFence(boxedFence3.value()));
+
+    EXPECT_EQ(VK_SUCCESS, waitWithDeadline(syncFdFence2, kWaitTimeoutNs));
+    EXPECT_THAT(waitedFences(), ::testing::ElementsAre(exportedFence, exportedFence));
+
+    Boxed<VkFence> boxedFence4 = createFence(/*exportable=*/true, /*signaled=*/true);
+    EXPECT_EQ(exportedFence, unbox_VkFence(boxedFence4.value()));
+
+    destroyFence(boxedFence2);
+    destroyFence(boxedFence3);
+    destroyFence(boxedFence4);
+}
+
+TEST_F(VkDecoderGlobalStateSyncFdFenceTest, WaitUsesExportedFenceWhenGuestResetsIt) {
+    Boxed<VkFence> boxedFence = createFence(/*exportable=*/true, /*signaled=*/false);
+    const VkFence exportedFence = unbox_VkFence(boxedFence.value());
+    markFenceSubmitted(boxedFence);
+
+    const auto syncFdFence = acquireSyncFdFence(boxedFence);
+    ASSERT_EQ(exportedFence, syncFdFence.fence);
+
+    // Resetting an exportable fence points its boxed handle at a replacement fence, which is not
+    // waitable until it is submitted.
+    ASSERT_EQ(VK_SUCCESS, resetFence(boxedFence));
+    ASSERT_NE(exportedFence, unbox_VkFence(boxedFence.value()));
+    signalFence(exportedFence);
+
+    EXPECT_EQ(VK_SUCCESS, waitWithDeadline(syncFdFence, kWaitTimeoutNs));
+    EXPECT_THAT(waitedFences(), ::testing::ElementsAre(exportedFence));
+
+    destroyFence(boxedFence);
+}
+
+TEST_F(VkDecoderGlobalStateSyncFdFenceTest, WaitForFenceThatIsNeverSubmittedTimesOut) {
+    Boxed<VkFence> boxedFence = createFence(/*exportable=*/true, /*signaled=*/false);
+    const auto syncFdFence = acquireSyncFdFence(boxedFence);
+    ASSERT_NE(VK_NULL_HANDLE, syncFdFence.fence);
+
+    EXPECT_EQ(VK_TIMEOUT, waitWithDeadline(syncFdFence, /*timeoutNs=*/10'000'000));
+    EXPECT_THAT(waitedFences(), ::testing::IsEmpty());
+
+    destroyFence(boxedFence);
+}
+
+TEST_F(VkDecoderGlobalStateSyncFdFenceTest, WaitStartsWhenFenceIsSubmittedAfterExport) {
+    Boxed<VkFence> boxedFence = createFence(/*exportable=*/true, /*signaled=*/false);
+    const auto syncFdFence = acquireSyncFdFence(boxedFence);
+    ASSERT_NE(VK_NULL_HANDLE, syncFdFence.fence);
+
+    // The export can be processed before the submission that signals the fence.
+    std::promise<VkResult> promise;
+    std::future<VkResult> result = promise.get_future();
+    std::thread waiter(
+        [&] { promise.set_value(waitForSyncFdFence(syncFdFence, 30 * kWaitTimeoutNs)); });
+    EXPECT_EQ(std::future_status::timeout, result.wait_for(std::chrono::milliseconds(50)));
+
+    markFenceSubmitted(boxedFence);
+    EXPECT_EQ(std::future_status::ready, result.wait_for(std::chrono::seconds(10)));
+    waiter.join();
+    EXPECT_EQ(VK_SUCCESS, result.get());
+    EXPECT_THAT(waitedFences(), ::testing::ElementsAre(syncFdFence.fence));
+
+    destroyFence(boxedFence);
+}
+
+TEST_F(VkDecoderGlobalStateSyncFdFenceTest, FencesThatCannotBeResolvedAreNotWaitedOn) {
+    auto syncFdFence = acquireSyncFdFence(Boxed<VkFence>());
+    EXPECT_EQ(VK_NULL_HANDLE, syncFdFence.fence);
+    EXPECT_EQ(VK_SUCCESS, waitForSyncFdFence(syncFdFence, kWaitTimeoutNs));
+
+    Boxed<VkFence> boxedFence = createFence(/*exportable=*/false, /*signaled=*/true);
+    syncFdFence = acquireSyncFdFence(boxedFence);
+    EXPECT_EQ(VK_NULL_HANDLE, syncFdFence.fence);
+    EXPECT_EQ(VK_SUCCESS, waitForSyncFdFence(syncFdFence, kWaitTimeoutNs));
+    destroyFence(boxedFence);
+
+    // Destroyed by the guest before the export was processed.
+    boxedFence = createFence(/*exportable=*/true, /*signaled=*/true);
+    destroyFence(boxedFence);
+    syncFdFence = acquireSyncFdFence(boxedFence);
+    EXPECT_EQ(VK_NULL_HANDLE, syncFdFence.fence);
+    EXPECT_EQ(VK_SUCCESS, waitForSyncFdFence(syncFdFence, kWaitTimeoutNs));
+
+    EXPECT_THAT(waitedFences(), ::testing::IsEmpty());
+}
+
+TEST_F(VkDecoderGlobalStateSyncFdFenceTest, PendingWaitSkipsFenceOfDestroyedDevice) {
+    Boxed<VkFence> boxedFence = createFence(/*exportable=*/true, /*signaled=*/true);
+    const VkFence exportedFence = unbox_VkFence(boxedFence.value());
+    const auto syncFdFence = acquireSyncFdFence(boxedFence);
+    ASSERT_EQ(exportedFence, syncFdFence.fence);
+    destroyFence(boxedFence);
+
+    destroyDevice();
+    EXPECT_THAT(destroyedFences(), ::testing::Contains(exportedFence));
+
+    EXPECT_EQ(VK_SUCCESS, waitForSyncFdFence(syncFdFence, kWaitTimeoutNs));
+    EXPECT_THAT(waitedFences(), ::testing::IsEmpty());
+}
+
+TEST_F(VkDecoderGlobalStateSyncFdFenceTest, ConcurrentWaitsWhileGuestRecyclesFences) {
+    constexpr int kIterations = 200;
+    constexpr int kWaiterCount = 2;
+
+    std::mutex queueMutex;
+    std::condition_variable queueCv;
+    std::deque<VkDecoderGlobalState::SyncFdFence> queue;
+    bool exportsDone = false;
+
+    // Exported host fences whose wait has not started yet. Their pins are held for longer than
+    // this, so new guest fences must never get one of them.
+    std::mutex queuedMutex;
+    std::unordered_map<VkFence, int> queuedFences;
+    std::atomic<int> recycledWhileQueued{0};
+    std::atomic<int> failedWaits{0};
+
+    std::atomic<bool> start{false};
+    std::vector<std::thread> waiters;
+    for (int i = 0; i < kWaiterCount; ++i) {
+        waiters.emplace_back([&] {
+            while (!start.load()) {
+                std::this_thread::yield();
+            }
+            while (true) {
+                VkDecoderGlobalState::SyncFdFence syncFdFence;
+                {
+                    std::unique_lock<std::mutex> lock(queueMutex);
+                    queueCv.wait(lock, [&] { return exportsDone || !queue.empty(); });
+                    if (queue.empty()) {
+                        return;
+                    }
+                    syncFdFence = queue.front();
+                    queue.pop_front();
+                }
+                {
+                    std::lock_guard<std::mutex> lock(queuedMutex);
+                    if (--queuedFences[syncFdFence.fence] == 0) {
+                        queuedFences.erase(syncFdFence.fence);
+                    }
+                }
+                if (waitForSyncFdFence(syncFdFence, kWaitTimeoutNs) != VK_SUCCESS) {
+                    ++failedWaits;
+                }
+            }
+        });
+    }
+
+    start = true;
+    for (int i = 0; i < kIterations; ++i) {
+        Boxed<VkFence> boxedFence = createFence(/*exportable=*/true, /*signaled=*/true);
+        {
+            std::lock_guard<std::mutex> lock(queuedMutex);
+            if (queuedFences.count(unbox_VkFence(boxedFence.value()))) {
+                ++recycledWhileQueued;
+            }
+        }
+
+        const auto syncFdFence = acquireSyncFdFence(boxedFence);
+        EXPECT_NE(VK_NULL_HANDLE, syncFdFence.fence);
+        {
+            std::lock_guard<std::mutex> lock(queuedMutex);
+            ++queuedFences[syncFdFence.fence];
+        }
+        {
+            std::lock_guard<std::mutex> lock(queueMutex);
+            queue.push_back(syncFdFence);
+        }
+        queueCv.notify_one();
+
+        if (i % 2) {
+            // Reset, then resubmitted and completed before being destroyed.
+            EXPECT_EQ(VK_SUCCESS, resetFence(boxedFence));
+            {
+                std::lock_guard<std::mutex> lock(queuedMutex);
+                if (queuedFences.count(unbox_VkFence(boxedFence.value()))) {
+                    ++recycledWhileQueued;
+                }
+            }
+            markFenceSubmitted(boxedFence);
+            signalFence(unbox_VkFence(boxedFence.value()));
+        }
+        destroyFence(boxedFence);
+    }
+    {
+        std::lock_guard<std::mutex> lock(queueMutex);
+        exportsDone = true;
+    }
+    queueCv.notify_all();
+    for (auto& waiter : waiters) {
+        waiter.join();
+    }
+
+    EXPECT_EQ(0, recycledWhileQueued.load());
+    EXPECT_EQ(0, failedWaits.load());
+}
+
+TEST_F(VkDecoderGlobalStateSyncFdFenceTest, DestroyedFenceCannotBeAcquiredBeforeBoxedHandleIsDeleted) {
+    Boxed<VkFence> boxedFence1 = createFence(/*exportable=*/true, /*signaled=*/true);
+    const VkFence hostFence = unbox_VkFence(boxedFence1.value());
+
+    // OP_vkDestroyFence releases mMutex inside on_vkDestroyFence before calling delete_VkFence.
+    destroyFenceWithoutDeletingBoxedHandle(boxedFence1);
+
+    EXPECT_EQ(VK_NULL_HANDLE, acquireSyncFdFence(boxedFence1).fence);
+
+    // Another thread can recycle hostFence for a new guest fence before boxedFence1 is deleted.
+    Boxed<VkFence> boxedFence2 = createFence(/*exportable=*/true, /*signaled=*/true);
+    EXPECT_EQ(hostFence, unbox_VkFence(boxedFence2.value()));
+    EXPECT_EQ(VK_NULL_HANDLE, acquireSyncFdFence(boxedFence1).fence);
+
+    delete_VkFence(boxedFence1.value());
+    EXPECT_EQ(boxedFence2.value(), unboxed_to_boxed_non_dispatchable_VkFence(hostFence));
+
+    const auto syncFdFence2 = acquireSyncFdFence(boxedFence2);
+    EXPECT_EQ(hostFence, syncFdFence2.fence);
+    EXPECT_EQ(VK_SUCCESS, waitWithDeadline(syncFdFence2, kWaitTimeoutNs));
+
+    destroyFence(boxedFence2);
+}
+
+TEST_F(VkDecoderGlobalStateSyncFdFenceTest, DeviceDestroyCancelsInFlightUnsubmittedFenceWait) {
+    Boxed<VkFence> boxedFence = createFence(/*exportable=*/true, /*signaled=*/false);
+    const VkFence exportedFence = unbox_VkFence(boxedFence.value());
+    const auto syncFdFence = acquireSyncFdFence(boxedFence);
+    ASSERT_EQ(exportedFence, syncFdFence.fence);
+
+    std::promise<VkResult> promise;
+    std::future<VkResult> result = promise.get_future();
+    std::thread waiter(
+        [&] { promise.set_value(waitForSyncFdFence(syncFdFence, 30 * kWaitTimeoutNs)); });
+    EXPECT_EQ(std::future_status::timeout, result.wait_for(std::chrono::milliseconds(50)));
+
+    destroyDevice();
+
+    EXPECT_EQ(std::future_status::ready, result.wait_for(std::chrono::seconds(5)));
+    waiter.join();
+    EXPECT_EQ(VK_SUCCESS, result.get());
+    EXPECT_THAT(waitedFences(), ::testing::IsEmpty());
+    EXPECT_THAT(destroyedFences(), ::testing::Contains(exportedFence));
+    EXPECT_THAT(destroyedDevices(), ::testing::ElementsAre(mUnboxedDev));
+}
+
+TEST_F(VkDecoderGlobalStateSyncFdFenceTest, DeviceDestroyDrainsInFlightDriverFenceWait) {
+    Boxed<VkFence> boxedFence = createFence(/*exportable=*/true, /*signaled=*/true);
+    const VkFence exportedFence = unbox_VkFence(boxedFence.value());
+    const auto syncFdFence = acquireSyncFdFence(boxedFence);
+    ASSERT_EQ(exportedFence, syncFdFence.fence);
+
+    std::promise<void> enteredDriverWait;
+    std::future<void> enteredDriverWaitFuture = enteredDriverWait.get_future();
+    std::promise<void> allowDriverWaitToReturn;
+    std::shared_future<void> allowDriverWaitFuture = allowDriverWaitToReturn.get_future().share();
+    setFakeWaitHook([&](VkFence) {
+        enteredDriverWait.set_value();
+        allowDriverWaitFuture.wait();
+        return VK_SUCCESS;
+    });
+
+    std::promise<VkResult> waitResultPromise;
+    std::future<VkResult> waitResult = waitResultPromise.get_future();
+    std::thread waiter(
+        [&] { waitResultPromise.set_value(waitForSyncFdFence(syncFdFence, kWaitTimeoutNs)); });
+    EXPECT_EQ(std::future_status::ready,
+              enteredDriverWaitFuture.wait_for(std::chrono::seconds(5)));
+
+    const VkDevice boxedDevice = mBoxedDevice;
+    std::promise<void> destroyDonePromise;
+    std::future<void> destroyDone = destroyDonePromise.get_future();
+    std::thread destroyer([&] {
+        destroyDevice();
+        destroyDonePromise.set_value();
+    });
+
+    // While vkWaitForFences is in flight, neither the fence, device, nor dispatch may be destroyed.
+    EXPECT_EQ(std::future_status::timeout, destroyDone.wait_for(std::chrono::milliseconds(50)));
+    EXPECT_THAT(destroyedFences(), ::testing::IsEmpty());
+    EXPECT_THAT(destroyedDevices(), ::testing::IsEmpty());
+    EXPECT_NE(nullptr, dispatch_VkDevice(boxedDevice));
+
+    allowDriverWaitToReturn.set_value();
+
+    EXPECT_EQ(std::future_status::ready, waitResult.wait_for(std::chrono::seconds(5)));
+    EXPECT_EQ(std::future_status::ready, destroyDone.wait_for(std::chrono::seconds(5)));
+    waiter.join();
+    destroyer.join();
+
+    EXPECT_EQ(VK_SUCCESS, waitResult.get());
+    EXPECT_THAT(destroyedFences(), ::testing::Contains(exportedFence));
+    EXPECT_THAT(destroyedDevices(), ::testing::ElementsAre(mUnboxedDev));
+}
+
+TEST_F(VkDecoderGlobalStateSyncFdFenceTest, DeviceDestroyCancelsStepPollingDriverFenceWait) {
+    Boxed<VkFence> boxedFence = createFence(/*exportable=*/true, /*signaled=*/false);
+    const VkFence exportedFence = unbox_VkFence(boxedFence.value());
+    markFenceSubmitted(boxedFence);
+    const auto syncFdFence = acquireSyncFdFence(boxedFence);
+    ASSERT_EQ(exportedFence, syncFdFence.fence);
+
+    std::atomic<bool> enteredDriverWait{false};
+    setFakeWaitHook([&](VkFence) {
+        enteredDriverWait = true;
+        return VK_TIMEOUT;
+    });
+
+    std::promise<VkResult> waitResultPromise;
+    std::future<VkResult> waitResult = waitResultPromise.get_future();
+    std::thread waiter([&] {
+        waitResultPromise.set_value(waitForSyncFdFence(syncFdFence, 30 * kWaitTimeoutNs));
+    });
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+    while (!enteredDriverWait.load() && std::chrono::steady_clock::now() < deadline) {
+        std::this_thread::yield();
+    }
+    EXPECT_TRUE(enteredDriverWait.load());
+
+    destroyDevice();
+
+    EXPECT_EQ(std::future_status::ready, waitResult.wait_for(std::chrono::seconds(5)));
+    waiter.join();
+    EXPECT_EQ(VK_SUCCESS, waitResult.get());
+    EXPECT_THAT(destroyedFences(), ::testing::Contains(exportedFence));
+    EXPECT_THAT(destroyedDevices(), ::testing::ElementsAre(mUnboxedDev));
 }
 
 }  // namespace

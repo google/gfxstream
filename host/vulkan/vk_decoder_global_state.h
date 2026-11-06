@@ -1045,8 +1045,21 @@ class VkDecoderGlobalState {
 
     void on_DeviceLost();
 
-    // Fence waits
-    VkResult waitForFence(Boxed<VkFence> boxed_fence, uint64_t timeout);
+    // Fence waits for sync fds exported from VkFences.
+    //
+    // A sync fd captures the payload of the fence at the time of the export, and the guest may
+    // reset, destroy or recycle the VkFence right after exporting it. acquireSyncFdFence()
+    // resolves the boxed fence when the export is processed, and keeps the host fence from being
+    // recycled until the matching waitForSyncFdFence() returns. It does not block and does not
+    // take the global state lock, so it can be called from the VMM thread.
+    struct SyncFdFence {
+        VkFence fence = VK_NULL_HANDLE;
+        uint64_t id = 0;
+    };
+    SyncFdFence acquireSyncFdFence(Boxed<VkFence> boxed_fence);
+    // Must be called exactly once for each acquired fence. Returns VK_SUCCESS without waiting if
+    // the fence could not be resolved, or if its device has been destroyed since.
+    VkResult waitForSyncFdFence(const SyncFdFence& fence, uint64_t timeout);
 
     // Wait for present (vkQueueSignalReleaseImageANDROID). This explicitly
     // requires the image to be presented again versus how many times it's been
