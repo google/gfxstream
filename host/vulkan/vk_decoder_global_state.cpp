@@ -789,7 +789,7 @@ class VkDecoderGlobalState::Impl {
             // Boxed VkDescriptorSet handles whose contents are serialized for this
             // pool, one record each.
             auto boxedSetsToSave = poolInfo.preallocatedBoxedSets;
-            if (!m_vkEmulation->getFeatures().VulkanBatchedDescriptorSetUpdate.enabled()) {
+            if (!mBatchedDescriptorSetUpdateEnabled) {
                 // Without batched updates there are no pre-minted slots, so
                 // serialize the sets that are currently allocated instead.
                 boxedSetsToSave.clear();
@@ -798,6 +798,15 @@ class VkDecoderGlobalState::Impl {
                     boxedSetsToSave.push_back(reinterpret_cast<uint64_t>(boxedSet.value()));
                 }
                 sort(boxedSetsToSave.begin(), boxedSetsToSave.end());
+            } else if (!poolInfo.nonPreallocatedBoxedSets.empty()) {
+                std::vector<uint64_t> extraBoxedSets;
+                extraBoxedSets.reserve(poolInfo.nonPreallocatedBoxedSets.size());
+                for (Boxed<VkDescriptorSet> boxedSet : poolInfo.nonPreallocatedBoxedSets) {
+                    extraBoxedSets.push_back(reinterpret_cast<uint64_t>(boxedSet.value()));
+                }
+                std::sort(extraBoxedSets.begin(), extraBoxedSets.end());
+                boxedSetsToSave.insert(boxedSetsToSave.end(), extraBoxedSets.begin(),
+                                       extraBoxedSets.end());
             }
             int dcount = boxedSetsToSave.size();
             GFXSTREAM_DEBUG("snapshot save: %d descriptor sets for this pool", dcount);
@@ -855,10 +864,8 @@ class VkDecoderGlobalState::Impl {
                 std::vector<std::pair<int, int>> validWriteIndices;
                 for (int bindingIdx = 0; bindingIdx < (int)descriptorSetInfo.allWrites.size();
                      bindingIdx++) {
-                    for (int bindingElemIdx = 0;
-                         bindingElemIdx < (int)descriptorSetInfo.allWrites[bindingIdx].size();
-                         bindingElemIdx++) {
-                        const auto& entry = descriptorSetInfo.allWrites[bindingIdx][bindingElemIdx];
+                    for (const auto& [bindingElemIdx, entry] :
+                         descriptorSetInfo.allWrites[bindingIdx]) {
                         if (entry.writeType == DescriptorSetInfo::DescriptorWriteType::Empty) {
                             continue;
                         }
@@ -877,13 +884,15 @@ class VkDecoderGlobalState::Impl {
                         if (!isValid) {
                             continue;
                         }
-                        validWriteIndices.push_back(std::make_pair(bindingIdx, bindingElemIdx));
+                        validWriteIndices.push_back(
+                            std::make_pair(bindingIdx, (int)bindingElemIdx));
                     }
                 }
+                std::sort(validWriteIndices.begin(), validWriteIndices.end());
                 stream->putBe64(validWriteIndices.size());
                 // Save all valid descriptors
                 for (const auto& idx : validWriteIndices) {
-                    const auto& entry = descriptorSetInfo.allWrites[idx.first][idx.second];
+                    const auto& entry = descriptorSetInfo.allWrites[idx.first].at(idx.second);
                     stream->putBe32(idx.first);
                     stream->putBe32(idx.second);
                     stream->putBe32(entry.writeType);
@@ -1251,8 +1260,10 @@ class VkDecoderGlobalState::Impl {
                 sortedBoxedDescriptorPools.push_back(boxed);
             }
             sort(sortedBoxedDescriptorPools.begin(), sortedBoxedDescriptorPools.end());
-            const bool needToUnboxDescriptorSet =
-                !(m_vkEmulation->getFeatures().VulkanBatchedDescriptorSetUpdate.enabled());
+            // writeDescriptorSets constructed below store boxed dstSet handles, and pendingAlloc
+            // is false for already-replayed sets (including nonPreallocatedBoxedSets when batched
+            // updates are enabled), so always unbox dstSet to setsToUpdate[i].
+            const bool needToUnboxDescriptorSet = true;
             for (const auto& boxedDescriptorPool : sortedBoxedDescriptorPools) {
                 auto unboxedDescriptorPool = unbox_VkDescriptorPool(boxedDescriptorPool);
                 DescriptorPoolInfo& poolInfo = mDescriptorPoolInfo[unboxedDescriptorPool];
@@ -1261,6 +1272,7 @@ class VkDecoderGlobalState::Impl {
                 // Boxed VkDescriptorSet handles whose contents are restored for
                 // this pool (passed as the "pool ids" of the commit below).
                 std::vector<uint64_t> boxedSetsToRestore;
+                std::vector<uint32_t> pendingAlloc;
                 std::vector<VkWriteDescriptorSet> writeDescriptorSets;
                 std::vector<uint32_t> writeStartingIndices;
                 // Boxed sets that save() wrote a record for (and that were
@@ -1294,10 +1306,18 @@ class VkDecoderGlobalState::Impl {
                     VkDescriptorSetLayout unboxedLayout =
                         try_unbox_VkDescriptorSetLayout(boxedLayout);
                     BoxedHandleInfo* setHandleInfo = sBoxedHandleManager.get(boxedSet);
-                    bool setValid = (setHandleInfo != nullptr && setHandleInfo->underlying != 0 &&
-                                     (!boxedLayout || unboxedLayout != VK_NULL_HANDLE));
+                    const bool isPreallocatedSlot =
+                        mBatchedDescriptorSetUpdateEnabled &&
+                        !poolInfo.nonPreallocatedBoxedSets.count(
+                            Boxed<VkDescriptorSet>::fromRaw(boxedSet));
+                    const bool layoutValid = (!boxedLayout || unboxedLayout != VK_NULL_HANDLE);
+                    bool setValid = (setHandleInfo != nullptr &&
+                                     (setHandleInfo->underlying != 0 ||
+                                      (isPreallocatedSlot && unboxedLayout != VK_NULL_HANDLE)) &&
+                                     layoutValid);
                     if (setValid) {
                         boxedSetsToRestore.push_back(boxedSet);
+                        pendingAlloc.push_back(setHandleInfo->underlying == 0 ? 1u : 0u);
                         writeStartingIndices.push_back(writeDescriptorSets.size());
                         layouts.push_back(unboxedLayout);
                     }
@@ -1405,21 +1425,24 @@ class VkDecoderGlobalState::Impl {
                     }
                 }
                 std::vector<uint32_t> whichPool(boxedSetsToRestore.size(), 0);
-                // no need to allocate descriptors as this is not batched
-                // all the descriptors are already allocated
-                std::vector<uint32_t> pendingAlloc(boxedSetsToRestore.size(), false);
 
                 const auto& device = poolInfo.device;
                 const auto& deviceInfo = gfxstream::base::find(mDeviceInfo, device);
                 VulkanDispatch* dvk = dispatch_VkDevice(deviceInfo->boxed);
-                if (!m_vkEmulation->getFeatures().VulkanBatchedDescriptorSetUpdate.enabled()) {
+                if (!mBatchedDescriptorSetUpdateEnabled ||
+                    !poolInfo.nonPreallocatedBoxedSets.empty()) {
                     // Replay may have recreated descriptor sets that were no longer
                     // allocated when the snapshot was saved. Drop them so that the
                     // pool accounting matches the saved state.
                     std::vector<VkDescriptorSet> staleUnboxedSets;
                     for (const auto& [allocedUnboxedSet, allocedBoxedSet] :
                          poolInfo.allocatedSetsUnboxedToBoxed) {
-                        if (savedBoxedSets.find(reinterpret_cast<uint64_t>(allocedBoxedSet.value())) ==
+                        if (mBatchedDescriptorSetUpdateEnabled &&
+                            !poolInfo.nonPreallocatedBoxedSets.count(allocedBoxedSet)) {
+                            continue;
+                        }
+                        if (savedBoxedSets.find(
+                                reinterpret_cast<uint64_t>(allocedBoxedSet.value())) ==
                             savedBoxedSets.end()) {
                             staleUnboxedSets.push_back(allocedUnboxedSet);
                         }
@@ -1444,6 +1467,7 @@ class VkDecoderGlobalState::Impl {
                         }
                         mDescriptorSetInfo.erase(staleSet);
                         poolInfo.allocatedSetsUnboxedToBoxed.erase(staleSet);
+                        poolInfo.nonPreallocatedBoxedSets.erase(boxedStaleSet);
                         delete_VkDescriptorSet(boxedStaleSet);
                     }
                 }
@@ -5899,8 +5923,16 @@ class VkDecoderGlobalState::Impl {
             *pSetLayout = info.boxed.value();
 
             info.createInfo = *pCreateInfo;
+            const auto* bindingFlagsCi =
+                vk_find_struct<VkDescriptorSetLayoutBindingFlagsCreateInfo>(pCreateInfo);
             for (uint32_t i = 0; i < pCreateInfo->bindingCount; ++i) {
                 info.bindings.push_back(pCreateInfo->pBindings[i]);
+                VkDescriptorBindingFlags flags =
+                    (bindingFlagsCi && bindingFlagsCi->bindingCount > i &&
+                     bindingFlagsCi->pBindingFlags)
+                        ? bindingFlagsCi->pBindingFlags[i]
+                        : 0;
+                info.bindingFlags.push_back(flags);
             }
         }
 
@@ -5966,7 +5998,7 @@ class VkDecoderGlobalState::Impl {
                 info.pools.push_back(state);
             }
 
-            if (m_vkEmulation->getFeatures().VulkanBatchedDescriptorSetUpdate.enabled()) {
+            if (mBatchedDescriptorSetUpdateEnabled) {
                 for (uint32_t i = 0; i < pCreateInfo->maxSets; ++i) {
                     info.preallocatedBoxedSets.push_back(
                         reinterpret_cast<uint64_t>(new_boxed_non_dispatchable_VkDescriptorSet(VK_NULL_HANDLE).value()));
@@ -5990,10 +6022,12 @@ class VkDecoderGlobalState::Impl {
             auto unboxedSet = it.first;
             auto boxedSet = it.second;
             descriptorSetInfos.erase(unboxedSet);
-            if (!mBatchedDescriptorSetUpdateEnabled) {
+            if (!mBatchedDescriptorSetUpdateEnabled ||
+                descriptorPoolInfo.nonPreallocatedBoxedSets.count(boxedSet)) {
                 delete_VkDescriptorSet(boxedSet);
             }
         }
+        descriptorPoolInfo.nonPreallocatedBoxedSets.clear();
 
         if (mBatchedDescriptorSetUpdateEnabled) {
             if (isDestroy) {
@@ -6073,9 +6107,27 @@ class VkDecoderGlobalState::Impl {
         return VK_SUCCESS;
     }
 
+    std::vector<VkDescriptorSetLayoutBinding> getEffectiveLayoutBindings(
+        const DescriptorSetLayoutInfo& setLayoutInfo, const uint32_t* variableDescriptorCount) {
+        std::vector<VkDescriptorSetLayoutBinding> bindings = setLayoutInfo.bindings;
+        for (size_t i = 0; i < bindings.size(); ++i) {
+            if (i < setLayoutInfo.bindingFlags.size() &&
+                (setLayoutInfo.bindingFlags[i] &
+                 VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT)) {
+                bindings[i].descriptorCount =
+                    variableDescriptorCount
+                        ? std::min(*variableDescriptorCount, bindings[i].descriptorCount)
+                        : 0;
+            }
+        }
+        return bindings;
+    }
+
     void initDescriptorSetInfoLocked(VkDevice device, VkDescriptorPool pool,
                                      VkDescriptorSetLayout setLayout, uint64_t boxedDescriptorSet,
-                                     VkDescriptorSet descriptorSet) REQUIRES(mMutex) {
+                                     VkDescriptorSet descriptorSet,
+                                     const uint32_t* variableDescriptorCount = nullptr)
+        REQUIRES(mMutex) {
         auto* poolInfo = gfxstream::base::find(mDescriptorPoolInfo, pool);
         if (!poolInfo) {
             GFXSTREAM_FATAL("Cannot find info for VkDescriptorPool:%p", pool);
@@ -6092,18 +6144,17 @@ class VkDecoderGlobalState::Impl {
         setInfo.device = device;
         setInfo.pool = pool;
         setInfo.unboxedLayout = setLayout;
-        setInfo.bindings = setLayoutInfo->bindings;
+        setInfo.bindings = getEffectiveLayoutBindings(*setLayoutInfo, variableDescriptorCount);
         for (size_t i = 0; i < setInfo.bindings.size(); i++) {
             VkDescriptorSetLayoutBinding dslBinding = setInfo.bindings[i];
             int bindingIdx = dslBinding.binding;
             if ((int)setInfo.allWrites.size() <= bindingIdx) {
                 setInfo.allWrites.resize(bindingIdx + 1);
+                setInfo.bindingDescriptorCounts.resize(bindingIdx + 1, 0);
+                setInfo.bindingDescriptorTypes.resize(bindingIdx + 1, VK_DESCRIPTOR_TYPE_MAX_ENUM);
             }
-            setInfo.allWrites[bindingIdx].resize(dslBinding.descriptorCount);
-            for (auto& write : setInfo.allWrites[bindingIdx]) {
-                write.descriptorType = dslBinding.descriptorType;
-                write.dstArrayElement = 0;
-            }
+            setInfo.bindingDescriptorCounts[bindingIdx] = dslBinding.descriptorCount;
+            setInfo.bindingDescriptorTypes[bindingIdx] = dslBinding.descriptorType;
         }
 
         poolInfo->allocatedSetsUnboxedToBoxed[descriptorSet] =
@@ -6120,7 +6171,7 @@ class VkDecoderGlobalState::Impl {
 
         std::lock_guard<std::mutex> lock(mMutex);
 
-        if (m_vkEmulation->getFeatures().VulkanBatchedDescriptorSetUpdate.enabled()) {
+        if (mBatchedDescriptorSetUpdateEnabled) {
             auto allocValidationRes = validateDescriptorSetAllocLocked(pAllocateInfo);
             if (allocValidationRes != VK_SUCCESS) return allocValidationRes;
         }
@@ -6132,14 +6183,26 @@ class VkDecoderGlobalState::Impl {
                 gfxstream::base::find(mDescriptorPoolInfo, pAllocateInfo->descriptorPool);
             if (!poolInfo) return res;
 
+            const auto* varDescCountAllocInfo =
+                vk_find_struct<VkDescriptorSetVariableDescriptorCountAllocateInfo>(pAllocateInfo);
+
             for (uint32_t i = 0; i < pAllocateInfo->descriptorSetCount; ++i) {
                 auto unboxed = pDescriptorSets[i];
                 Boxed<VkDescriptorSet> boxed =
                     new_boxed_non_dispatchable_VkDescriptorSet(unboxed);
                 pDescriptorSets[i] = boxed.value();
+                if (mBatchedDescriptorSetUpdateEnabled) {
+                    poolInfo->nonPreallocatedBoxedSets.insert(boxed);
+                }
+                const uint32_t* varCount =
+                    (varDescCountAllocInfo && varDescCountAllocInfo->descriptorSetCount > i &&
+                     varDescCountAllocInfo->pDescriptorCounts)
+                        ? &varDescCountAllocInfo->pDescriptorCounts[i]
+                        : nullptr;
                 initDescriptorSetInfoLocked(device, pAllocateInfo->descriptorPool,
-                                            pAllocateInfo->pSetLayouts[i], reinterpret_cast<uint64_t>(boxed.value()),
-                                            unboxed);
+                                            pAllocateInfo->pSetLayouts[i],
+                                            reinterpret_cast<uint64_t>(boxed.value()), unboxed,
+                                            varCount);
             }
         }
 
@@ -6173,7 +6236,8 @@ class VkDecoderGlobalState::Impl {
 
                 auto handleInfo = sBoxedHandleManager.get(*descSetAllocedEntry);
                 if (handleInfo) {
-                    if (m_vkEmulation->getFeatures().VulkanBatchedDescriptorSetUpdate.enabled()) {
+                    if (mBatchedDescriptorSetUpdateEnabled &&
+                        poolInfo->nonPreallocatedBoxedSets.erase(*descSetAllocedEntry) == 0) {
                         handleInfo->underlying = reinterpret_cast<uint64_t>(VK_NULL_HANDLE);
                     } else {
                         delete_VkDescriptorSet(*descSetAllocedEntry);
@@ -6203,21 +6267,46 @@ class VkDecoderGlobalState::Impl {
                                       descriptorCopyCount, pDescriptorCopies);
     }
 
-    static DescriptorSetInfo::DescriptorWrite* GetDescriptorSetElementEntryWrapping(
-        std::vector<std::vector<DescriptorSetInfo::DescriptorWrite>>& descriptorSetTable,
-        uint32_t& bindingIndex, uint32_t& arrayElementIndex) {
-        while (bindingIndex < descriptorSetTable.size()) {
-            std::vector<DescriptorSetInfo::DescriptorWrite>& bindingTable =
-                descriptorSetTable[bindingIndex];
-            if (arrayElementIndex < bindingTable.size()) {
-                return &bindingTable[arrayElementIndex];
+    static bool ResolveDescriptorSetElementIndexWrapping(const DescriptorSetInfo& descriptorSetInfo,
+                                                         uint32_t& bindingIndex,
+                                                         uint32_t& arrayElementIndex) {
+        while (bindingIndex < descriptorSetInfo.allWrites.size()) {
+            if (arrayElementIndex < descriptorSetInfo.bindingDescriptorCounts[bindingIndex]) {
+                return true;
             }
             // Descriptor writes wrap to the next binding. See
             // https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkWriteDescriptorSet.html
+            arrayElementIndex -= descriptorSetInfo.bindingDescriptorCounts[bindingIndex];
             ++bindingIndex;
-            arrayElementIndex = 0;
         }
-        return nullptr;
+        return false;
+    }
+
+    static DescriptorSetInfo::DescriptorWrite* GetDescriptorSetElementEntryWrapping(
+        DescriptorSetInfo& descriptorSetInfo, uint32_t& bindingIndex, uint32_t& arrayElementIndex) {
+        if (!ResolveDescriptorSetElementIndexWrapping(descriptorSetInfo, bindingIndex,
+                                                      arrayElementIndex)) {
+            return nullptr;
+        }
+        auto& bindingTable = descriptorSetInfo.allWrites[bindingIndex];
+        auto [it, inserted] = bindingTable.try_emplace(arrayElementIndex);
+        if (inserted) {
+            it->second.descriptorType = descriptorSetInfo.bindingDescriptorTypes[bindingIndex];
+            it->second.dstArrayElement = 0;
+        }
+        return &it->second;
+    }
+
+    static const DescriptorSetInfo::DescriptorWrite* FindDescriptorSetElementEntryWrapping(
+        const DescriptorSetInfo& descriptorSetInfo, uint32_t& bindingIndex,
+        uint32_t& arrayElementIndex) {
+        if (!ResolveDescriptorSetElementIndexWrapping(descriptorSetInfo, bindingIndex,
+                                                      arrayElementIndex)) {
+            return nullptr;
+        }
+        const auto& bindingTable = descriptorSetInfo.allWrites[bindingIndex];
+        auto it = bindingTable.find(arrayElementIndex);
+        return (it != bindingTable.end()) ? &it->second : nullptr;
     }
 
     void on_vkUpdateDescriptorSetsImpl(gfxstream::base::BumpPool* pool, VkSnapshotApiCallHandle,
@@ -6233,7 +6322,6 @@ class VkDecoderGlobalState::Impl {
                 continue;
             }
             DescriptorSetInfo& descriptorSetInfo = ite->second;
-            auto& table = descriptorSetInfo.allWrites;
             VkDescriptorType descType = descriptorWrite.descriptorType;
             uint32_t dstBinding = descriptorWrite.dstBinding;
             uint32_t dstArrayElement = descriptorWrite.dstArrayElement;
@@ -6242,8 +6330,8 @@ class VkDecoderGlobalState::Impl {
             if (isDescriptorTypeImageInfo(descType)) {
                 for (uint32_t writeElemIdx = 0; writeElemIdx < descriptorCount;
                      ++writeElemIdx, ++dstArrayElement) {
-                    auto* entry =
-                        GetDescriptorSetElementEntryWrapping(table, dstBinding, dstArrayElement);
+                    auto* entry = GetDescriptorSetElementEntryWrapping(descriptorSetInfo,
+                                                                       dstBinding, dstArrayElement);
                     if (entry == nullptr) break;
                     entry->imageInfo = descriptorWrite.pImageInfo[writeElemIdx];
                     entry->writeType = DescriptorSetInfo::DescriptorWriteType::ImageInfo;
@@ -6269,8 +6357,8 @@ class VkDecoderGlobalState::Impl {
             } else if (isDescriptorTypeBufferInfo(descType)) {
                 for (uint32_t writeElemIdx = 0; writeElemIdx < descriptorCount;
                      ++writeElemIdx, ++dstArrayElement) {
-                    auto* entry =
-                        GetDescriptorSetElementEntryWrapping(table, dstBinding, dstArrayElement);
+                    auto* entry = GetDescriptorSetElementEntryWrapping(descriptorSetInfo,
+                                                                       dstBinding, dstArrayElement);
                     if (entry == nullptr) break;
                     entry->bufferInfo = descriptorWrite.pBufferInfo[writeElemIdx];
                     entry->writeType = DescriptorSetInfo::DescriptorWriteType::BufferInfo;
@@ -6284,8 +6372,8 @@ class VkDecoderGlobalState::Impl {
             } else if (isDescriptorTypeBufferView(descType)) {
                 for (uint32_t writeElemIdx = 0; writeElemIdx < descriptorCount;
                      ++writeElemIdx, ++dstArrayElement) {
-                    auto* entry =
-                        GetDescriptorSetElementEntryWrapping(table, dstBinding, dstArrayElement);
+                    auto* entry = GetDescriptorSetElementEntryWrapping(descriptorSetInfo,
+                                                                       dstBinding, dstArrayElement);
                     if (entry == nullptr) break;
                     entry->bufferView = descriptorWrite.pTexelBufferView[writeElemIdx];
                     entry->writeType = DescriptorSetInfo::DescriptorWriteType::BufferView;
@@ -6315,10 +6403,16 @@ class VkDecoderGlobalState::Impl {
                     return;
                 }
 
-                // Inline uniform block descriptors effectively only have a single element.
-                uint32_t zero = 0;
-                auto* entry = GetDescriptorSetElementEntryWrapping(table, dstBinding, zero);
-                if (entry == nullptr) break;
+                // Inline uniform block descriptors have a single element and do not wrap
+                // across consecutive bindings.
+                if (dstBinding >= descriptorSetInfo.allWrites.size() ||
+                    descriptorSetInfo.bindingDescriptorCounts[dstBinding] == 0 ||
+                    !isDescriptorTypeInlineUniformBlock(
+                        descriptorSetInfo.bindingDescriptorTypes[dstBinding])) {
+                    continue;
+                }
+                auto& entryRef = descriptorSetInfo.allWrites[dstBinding][0];
+                auto* entry = &entryRef;
 
                 entry->inlineUniformBlock = *descInlineUniformBlock;
                 if (entry->inlineUniformBlockBuffer.size() <
@@ -6356,65 +6450,72 @@ class VkDecoderGlobalState::Impl {
             DescriptorSetInfo& srcDescriptorSetInfo = srcIte->second;
             DescriptorSetInfo& dstDescriptorSetInfo = dstIte->second;
 
-            auto& srcTable = srcDescriptorSetInfo.allWrites;
-            auto& dstTable = dstDescriptorSetInfo.allWrites;
-
             uint32_t srcBinding = descriptorCopy.srcBinding;
             uint32_t srcArrayElement = descriptorCopy.srcArrayElement;
             uint32_t dstBinding = descriptorCopy.dstBinding;
             uint32_t dstArrayElement = descriptorCopy.dstArrayElement;
             uint32_t descriptorCount = descriptorCopy.descriptorCount;
 
-            uint32_t srcBindingCheck = srcBinding;
-            uint32_t srcArrayElementCheck = srcArrayElement;
-            auto* srcCheckEntry = GetDescriptorSetElementEntryWrapping(srcTable, srcBindingCheck,
-                                                                       srcArrayElementCheck);
-
-            uint32_t dstBindingCheck = dstBinding;
-            uint32_t dstArrayElementCheck = dstArrayElement;
-            auto* dstCheckEntry = GetDescriptorSetElementEntryWrapping(dstTable, dstBindingCheck,
-                                                                       dstArrayElementCheck);
-
-            if (srcCheckEntry && dstCheckEntry &&
-                isDescriptorTypeInlineUniformBlock(srcCheckEntry->descriptorType)) {
-                uint32_t zero1 = 0;
-                uint32_t zero2 = 0;
-                auto* srcEntry =
-                    GetDescriptorSetElementEntryWrapping(srcTable, srcBindingCheck, zero1);
-                auto* dstEntry =
-                    GetDescriptorSetElementEntryWrapping(dstTable, dstBindingCheck, zero2);
-
-                if (srcEntry && dstEntry) {
-                    if (dstEntry->inlineUniformBlockBuffer.size() <
-                        dstArrayElementCheck + descriptorCount) {
-                        dstEntry->inlineUniformBlockBuffer.resize(dstArrayElementCheck +
-                                                                  descriptorCount);
+            const bool srcIsInlineUniformBlock =
+                srcBinding < srcDescriptorSetInfo.allWrites.size() &&
+                isDescriptorTypeInlineUniformBlock(
+                    srcDescriptorSetInfo.bindingDescriptorTypes[srcBinding]);
+            const bool dstIsInlineUniformBlock =
+                dstBinding < dstDescriptorSetInfo.allWrites.size() &&
+                isDescriptorTypeInlineUniformBlock(
+                    dstDescriptorSetInfo.bindingDescriptorTypes[dstBinding]);
+            if (srcIsInlineUniformBlock || dstIsInlineUniformBlock) {
+                if (srcIsInlineUniformBlock && dstIsInlineUniformBlock &&
+                    srcDescriptorSetInfo.bindingDescriptorCounts[srcBinding] > 0 &&
+                    dstDescriptorSetInfo.bindingDescriptorCounts[dstBinding] > 0) {
+                    const auto& srcBindingTable = srcDescriptorSetInfo.allWrites[srcBinding];
+                    auto srcElemIt = srcBindingTable.find(0);
+                    if (srcElemIt != srcBindingTable.end() &&
+                        srcElemIt->second.writeType ==
+                            DescriptorSetInfo::DescriptorWriteType::InlineUniformBlock) {
+                        auto& dstEntry = dstDescriptorSetInfo.allWrites[dstBinding][0];
+                        if (dstEntry.inlineUniformBlockBuffer.size() <
+                            dstArrayElement + descriptorCount) {
+                            dstEntry.inlineUniformBlockBuffer.resize(dstArrayElement +
+                                                                     descriptorCount);
+                        }
+                        if (srcElemIt->second.inlineUniformBlockBuffer.size() > srcArrayElement) {
+                            uint32_t copySize = std::min(
+                                descriptorCount,
+                                (uint32_t)srcElemIt->second.inlineUniformBlockBuffer.size() -
+                                    srcArrayElement);
+                            memmove(
+                                dstEntry.inlineUniformBlockBuffer.data() + dstArrayElement,
+                                srcElemIt->second.inlineUniformBlockBuffer.data() + srcArrayElement,
+                                copySize);
+                        }
+                        dstEntry.writeType =
+                            DescriptorSetInfo::DescriptorWriteType::InlineUniformBlock;
+                        dstEntry.descriptorType = srcElemIt->second.descriptorType;
                     }
-                    if (srcEntry->inlineUniformBlockBuffer.size() > srcArrayElementCheck) {
-                        uint32_t copySize = std::min(
-                            descriptorCount, (uint32_t)srcEntry->inlineUniformBlockBuffer.size() -
-                                                 srcArrayElementCheck);
-                        memcpy(dstEntry->inlineUniformBlockBuffer.data() + dstArrayElementCheck,
-                               srcEntry->inlineUniformBlockBuffer.data() + srcArrayElementCheck,
-                               copySize);
-                    }
-                    dstEntry->writeType =
-                        DescriptorSetInfo::DescriptorWriteType::InlineUniformBlock;
-                    dstEntry->descriptorType = srcEntry->descriptorType;
                 }
                 continue;
             }
 
             for (uint32_t writeElemIdx = 0; writeElemIdx < descriptorCount;
                  ++writeElemIdx, ++srcArrayElement, ++dstArrayElement) {
-                auto* srcEntry =
-                    GetDescriptorSetElementEntryWrapping(srcTable, srcBinding, srcArrayElement);
-                auto* dstEntry =
-                    GetDescriptorSetElementEntryWrapping(dstTable, dstBinding, dstArrayElement);
+                if (!ResolveDescriptorSetElementIndexWrapping(srcDescriptorSetInfo, srcBinding,
+                                                              srcArrayElement) ||
+                    !ResolveDescriptorSetElementIndexWrapping(dstDescriptorSetInfo, dstBinding,
+                                                              dstArrayElement)) {
+                    break;
+                }
 
-                if (srcEntry == nullptr || dstEntry == nullptr) break;
+                const auto& srcBindingTable = srcDescriptorSetInfo.allWrites[srcBinding];
+                auto srcElemIt = srcBindingTable.find(srcArrayElement);
+                if (srcElemIt == srcBindingTable.end() ||
+                    srcElemIt->second.writeType == DescriptorSetInfo::DescriptorWriteType::Empty) {
+                    dstDescriptorSetInfo.allWrites[dstBinding].erase(dstArrayElement);
+                    continue;
+                }
 
-                *dstEntry = *srcEntry;
+                DescriptorSetInfo::DescriptorWrite srcCopy = srcElemIt->second;
+                dstDescriptorSetInfo.allWrites[dstBinding][dstArrayElement] = std::move(srcCopy);
             }
         }
         bool needEmulateWriteDescriptor = false;
@@ -9339,8 +9440,8 @@ class VkDecoderGlobalState::Impl {
                             if (!descriptorSetInfo) {
                                 continue;
                             }
-                            for (auto& writes : descriptorSetInfo->allWrites) {
-                                for (const auto& write : writes) {
+                            for (const auto& writes : descriptorSetInfo->allWrites) {
+                                for (const auto& [elemIdx, write] : writes) {
                                     bool isValid = true;
                                     for (const auto& alive : write.alives) {
                                         isValid &= !alive.expired();
@@ -11116,41 +11217,83 @@ class VkDecoderGlobalState::Impl {
             return VK_NULL_HANDLE;
         }
 
-        if (setHandleInfo->underlying) {
-            if (pendingAlloc) {
-                VkDescriptorSet allocedSet;
-                vk->vkFreeDescriptorSets(device, pool, 1,
-                                         (VkDescriptorSet*)(&setHandleInfo->underlying));
-                VkDescriptorSetAllocateInfo dsAi = {
-                    VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO, 0, pool, 1, &setLayout,
-                };
-                vk->vkAllocateDescriptorSets(device, &dsAi, &allocedSet);
-                setHandleInfo->underlying = (uint64_t)allocedSet;
-                initDescriptorSetInfoLocked(device, pool, setLayout, poolId, allocedSet);
-                *didAlloc = true;
-                return allocedSet;
-            } else {
-                *didAlloc = false;
+        if (!pendingAlloc) {
+            *didAlloc = false;
+            if (setHandleInfo->underlying) {
                 return (VkDescriptorSet)(setHandleInfo->underlying);
             }
-        } else {
-            if (pendingAlloc) {
-                VkDescriptorSet allocedSet;
-                VkDescriptorSetAllocateInfo dsAi = {
-                    VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO, 0, pool, 1, &setLayout,
-                };
-                vk->vkAllocateDescriptorSets(device, &dsAi, &allocedSet);
-                setHandleInfo->underlying = (uint64_t)allocedSet;
-                initDescriptorSetInfoLocked(device, pool, setLayout, poolId, allocedSet);
-                *didAlloc = true;
-                return allocedSet;
-            } else {
-                GFXSTREAM_ERROR("VkDescriptorPool:%p wanted to get set with id 0x%" PRIx64, pool,
-                                poolId);
-                *didAlloc = false;
-                return VK_NULL_HANDLE;
+            GFXSTREAM_ERROR("VkDescriptorPool:%p wanted to get set with id 0x%" PRIx64, pool,
+                            poolId);
+            return VK_NULL_HANDLE;
+        }
+
+        if (setHandleInfo->underlying) {
+            VkDescriptorSet oldSet = (VkDescriptorSet)setHandleInfo->underlying;
+            auto* oldSetInfo = gfxstream::base::find(mDescriptorSetInfo, oldSet);
+            if (oldSetInfo) {
+                removeDescriptorSetAllocationLocked(*poolInfo, oldSetInfo->bindings);
+                poolInfo->allocatedSetsUnboxedToBoxed.erase(oldSet);
+                mDescriptorSetInfo.erase(oldSet);
+            }
+            vk->vkFreeDescriptorSets(device, pool, 1, &oldSet);
+            setHandleInfo->underlying = 0;
+        }
+
+        uint32_t fallbackVarCount = 0;
+        const uint32_t* pVarCount = nullptr;
+        VkDescriptorSetVariableDescriptorCountAllocateInfo varAi = {
+            VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO,
+            nullptr,
+            1,
+            &fallbackVarCount,
+        };
+        if (auto* layoutInfo = gfxstream::base::find(mDescriptorSetLayoutInfo, setLayout)) {
+            for (size_t i = 0; i < layoutInfo->bindings.size(); ++i) {
+                if (i < layoutInfo->bindingFlags.size() &&
+                    (layoutInfo->bindingFlags[i] &
+                     VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT)) {
+                    VkDescriptorType varType = layoutInfo->bindings[i].descriptorType;
+                    uint32_t fixedSameType = 0;
+                    for (size_t j = 0; j < layoutInfo->bindings.size(); ++j) {
+                        if (j != i && layoutInfo->bindings[j].descriptorType == varType) {
+                            fixedSameType += layoutInfo->bindings[j].descriptorCount;
+                        }
+                    }
+                    uint32_t maxAvail = 0;
+                    for (const auto& p : poolInfo->pools) {
+                        if (p.type == varType && p.descriptorCount > p.used) {
+                            maxAvail = std::max(maxAvail, p.descriptorCount - p.used);
+                        }
+                    }
+                    uint32_t availForVar = maxAvail > fixedSameType ? maxAvail - fixedSameType : 0;
+                    fallbackVarCount =
+                        std::min(layoutInfo->bindings[i].descriptorCount, availForVar);
+                    pVarCount = &fallbackVarCount;
+                    break;
+                }
             }
         }
+
+        VkDescriptorSet allocedSet = VK_NULL_HANDLE;
+        VkDescriptorSetAllocateInfo dsAi = {
+            VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+            pVarCount ? &varAi : nullptr,
+            pool,
+            1,
+            &setLayout,
+        };
+        VkResult allocRes = vk->vkAllocateDescriptorSets(device, &dsAi, &allocedSet);
+        if (allocRes != VK_SUCCESS || allocedSet == VK_NULL_HANDLE) {
+            GFXSTREAM_ERROR("Failed to allocate descriptor set for poolId 0x%" PRIx64 ": %d",
+                            poolId, allocRes);
+            setHandleInfo->underlying = 0;
+            *didAlloc = false;
+            return VK_NULL_HANDLE;
+        }
+        setHandleInfo->underlying = (uint64_t)allocedSet;
+        initDescriptorSetInfoLocked(device, pool, setLayout, poolId, allocedSet, pVarCount);
+        *didAlloc = true;
+        return allocedSet;
     }
 
     void on_vkQueueCommitDescriptorSetUpdatesGOOGLE(
@@ -13130,12 +13273,23 @@ class VkDecoderGlobalState::Impl {
         // VK_ERROR_OUT_OF_POOL_MEMORY if it fails.
         std::vector<DescriptorPoolInfo::PoolState> poolCopy = poolInfo->pools;
 
+        const auto* varDescCountAllocInfo =
+            vk_find_struct<VkDescriptorSetVariableDescriptorCountAllocateInfo>(pAllocateInfo);
+
         for (uint32_t i = 0; i < pAllocateInfo->descriptorSetCount; ++i) {
             auto setLayoutInfo =
                 gfxstream::base::find(mDescriptorSetLayoutInfo, pAllocateInfo->pSetLayouts[i]);
             if (!setLayoutInfo) return VK_ERROR_INITIALIZATION_FAILED;
 
-            for (const auto& binding : setLayoutInfo->bindings) {
+            const uint32_t* varCount =
+                (varDescCountAllocInfo && varDescCountAllocInfo->descriptorSetCount > i &&
+                 varDescCountAllocInfo->pDescriptorCounts)
+                    ? &varDescCountAllocInfo->pDescriptorCounts[i]
+                    : nullptr;
+            auto effectiveBindings = getEffectiveLayoutBindings(*setLayoutInfo, varCount);
+
+            for (const auto& binding : effectiveBindings) {
+                if (binding.descriptorCount == 0) continue;
                 bool success = false;
                 for (auto& pool : poolCopy) {
                     if (!isBindingFeasibleForAlloc(pool, binding)) continue;
@@ -13157,6 +13311,7 @@ class VkDecoderGlobalState::Impl {
         DescriptorPoolInfo& poolInfo, const std::vector<VkDescriptorSetLayoutBinding>& bindings) {
         ++poolInfo.usedSets;
         for (const auto& binding : bindings) {
+            if (binding.descriptorCount == 0) continue;
             for (auto& pool : poolInfo.pools) {
                 if (!isBindingFeasibleForAlloc(pool, binding)) continue;
                 allocBindingFeasible(binding, pool);
@@ -13169,6 +13324,7 @@ class VkDecoderGlobalState::Impl {
         DescriptorPoolInfo& poolInfo, const std::vector<VkDescriptorSetLayoutBinding>& bindings) {
         --poolInfo.usedSets;
         for (const auto& binding : bindings) {
+            if (binding.descriptorCount == 0) continue;
             for (auto& pool : poolInfo.pools) {
                 if (!isBindingFeasibleForFree(pool, binding)) continue;
                 freeBindingFeasible(binding, pool);
