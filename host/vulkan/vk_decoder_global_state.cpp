@@ -3823,10 +3823,12 @@ class VkDecoderGlobalState::Impl {
             imageInfo.externalHandleTypes = extMemCreateInfo->handleTypes;
         }
 #ifdef __ANDROID__
-        // Deferred image layout, see ImageInfo::DeferredLayoutInfo. Only for AHB-external
-        // images we are not already backing another way: the ANB path owns its own buffer, and for
-        // compressed images updateImageMemoryRequirementsLocked() overwrites them anyway.
-        if ((imageInfo.externalHandleTypes &
+        // Deferred image layout, see ImageInfo::DeferredLayoutInfo. Only for supported 1-mip,
+        // 1-layer AHB-external images we are not already backing another way: the ANB path owns
+        // its own buffer, and for compressed images updateImageMemoryRequirementsLocked()
+        // overwrites them anyway.
+        if (m_vkEmulation && IsDeferredLayoutAhbSupported(pCreateInfo) &&
+            (imageInfo.externalHandleTypes &
              VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID) &&
             !imageInfo.anbInfo && !imageInfo.compressInfo) {
             VkMemoryRequirements probeReqs = {};
@@ -3836,8 +3838,13 @@ class VkDecoderGlobalState::Impl {
             // would be a regression. Some drivers report size=0 (linear) or memoryTypeBits=0
             // (optimal) until the AHB is bound.
             if (probeReqs.size == 0 || probeReqs.memoryTypeBits == 0) {
-                AHardwareBuffer* rawAhb = allocAhb(pCreateInfo);
-                if (rawAhb) {
+                if (auto cached = m_vkEmulation->findCachedDeferredLayout(pCreateInfo)) {
+                    imageInfo.deferredLayout.size = cached->size;
+                    imageInfo.deferredLayout.alignment =
+                        probeReqs.alignment ? probeReqs.alignment : cached->alignment;
+                    imageInfo.deferredLayout.memoryTypeBits = cached->memoryTypeBits;
+                    imageInfo.deferredLayout.rowPitch = cached->rowPitch;
+                } else if (AHardwareBuffer* rawAhb = m_vkEmulation->allocAhb(pCreateInfo)) {
                     VkAndroidHardwareBufferPropertiesANDROID ahbProps = {
                         .sType = VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_PROPERTIES_ANDROID,
                         .pNext = nullptr,
@@ -3845,27 +3852,23 @@ class VkDecoderGlobalState::Impl {
                     VkResult propsRes =
                         vk->vkGetAndroidHardwareBufferPropertiesANDROID(device, rawAhb, &ahbProps);
                     if (propsRes == VK_SUCCESS && ahbProps.allocationSize > 0) {
-                        imageInfo.deferredLayout.ahb =
-                            std::shared_ptr<AHardwareBuffer>(rawAhb, [](AHardwareBuffer* b) {
-                                if (b) AHardwareBuffer_release(b);
-                            });
-                        imageInfo.deferredLayout.size = ahbProps.allocationSize;
-                        // The driver reported no alignment either; the AHB satisfies its own.
-                        imageInfo.deferredLayout.alignment =
-                            probeReqs.alignment ? probeReqs.alignment : 1;
-                        imageInfo.deferredLayout.memoryTypeBits = ahbProps.memoryTypeBits;
-                        // The driver will also refuse to report rowPitch for this image; the AHB
-                        // knows its own stride (in pixels), so derive the byte pitch from it.
                         AHardwareBuffer_Desc ahbDesc = {};
                         AHardwareBuffer_describe(rawAhb, &ahbDesc);
                         const uint32_t bytesPerPixel =
                             vk_util::ahbFormatBytesPerPixel(ahbDesc.format);
-                        imageInfo.deferredLayout.rowPitch =
-                            static_cast<VkDeviceSize>(ahbDesc.stride) * bytesPerPixel;
-                        // Also offer this AHB to a same-shaped ColorBuffer's own allocation,
-                        // which otherwise pays for a second AHardwareBuffer_allocate() for what
-                        // is usually the very same image a moment later (see the guest's
-                        // vkCreateImage -> vkGetImageSubresourceLayout -> CreateBlob sequence).
+                        const CachedAhbLayout layout = {
+                            .size = ahbProps.allocationSize,
+                            .alignment = probeReqs.alignment ? probeReqs.alignment : 1,
+                            .memoryTypeBits = ahbProps.memoryTypeBits,
+                            .rowPitch = static_cast<VkDeviceSize>(ahbDesc.stride) * bytesPerPixel,
+                        };
+                        imageInfo.deferredLayout.size = layout.size;
+                        imageInfo.deferredLayout.alignment = layout.alignment;
+                        imageInfo.deferredLayout.memoryTypeBits = layout.memoryTypeBits;
+                        imageInfo.deferredLayout.rowPitch = layout.rowPitch;
+                        m_vkEmulation->recordCachedDeferredLayout(pCreateInfo, layout);
+                        // Transfer single ownership of rawAhb so a matching ColorBuffer allocation
+                        // can adopt it instead of calling AHardwareBuffer_allocate() a second time.
                         m_vkEmulation->stashPendingDeferredLayoutAhb(pCreateInfo, rawAhb);
                         GFXSTREAM_INFO(
                             "DL-AHB tracked image=%p size=%llu typeBits=0x%x rowPitch=%llu "

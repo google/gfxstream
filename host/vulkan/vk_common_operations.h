@@ -23,6 +23,8 @@
 #include <atomic>
 #include <functional>
 #include <memory>
+#include <mutex>
+#include <optional>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -92,9 +94,9 @@ enum class AstcEmulationMode {
 };
 
 #ifdef __ANDROID__
-// The AHardwareBuffer_Desc fields that fully determine an AHB's allocation/property-query
-// result, derived from a VkImageCreateInfo the same way allocAhb() derives its own AHB. Used to
-// match an image against an AHB allocated for a different image of the identical shape.
+// The AHardwareBuffer_Desc fields that determine an AHB's allocation and property-query result.
+// Shared between deferred-layout caching and pending-AHB adoption so a guest image probe and the
+// corresponding ColorBuffer allocation compute identical keys.
 struct AhbShapeKey {
     uint32_t width = 0;
     uint32_t height = 0;
@@ -114,7 +116,15 @@ struct AhbShapeKeyHash {
                (static_cast<size_t>(key.ahbFormat) << 16) ^ static_cast<size_t>(key.ahbUsage);
     }
 };
-AhbShapeKey ComputeAhbShapeKey(const VkImageCreateInfo* imageCreateInfo);
+
+struct CachedAhbLayout {
+    VkDeviceSize size = 0;
+    VkDeviceSize alignment = 1;
+    uint32_t memoryTypeBits = 0;
+    VkDeviceSize rowPitch = 0;
+};
+
+bool IsDeferredLayoutAhbSupported(const VkImageCreateInfo* imageCreateInfo);
 #endif
 
 // Global state that holds a global Vulkan instance along with globally
@@ -505,11 +515,15 @@ class VkEmulation {
     uint32_t vulkanInstanceVersion() const;
 
 #ifdef __ANDROID__
-    // Stashes an AHB allocated to answer a deferred AHB-external image's zero-size layout query
-    // (see on_vkCreateImage), so that a same-shaped ColorBuffer's own backing allocation can
-    // adopt it instead of allocating a second one -- see allocExternalMemory's AndroidAHB case.
-    // Takes its own reference via AHardwareBuffer_acquire, independent of whatever reference the
-    // caller (the probing image's own DeferredLayoutInfo) already holds.
+    std::optional<CachedAhbLayout> findCachedDeferredLayout(
+        const VkImageCreateInfo* imageCreateInfo) const;
+    void recordCachedDeferredLayout(const VkImageCreateInfo* imageCreateInfo,
+                                    const CachedAhbLayout& layout);
+    AHardwareBuffer* allocAhb(const VkImageCreateInfo* imageCreateInfo) const;
+
+    // Takes ownership of |ahb|'s reference (without calling AHardwareBuffer_acquire) so a
+    // matching ColorBuffer allocation can adopt it instead of allocating a second AHB. If an AHB
+    // for the same shape is already pending, |ahb| is released immediately.
     void stashPendingDeferredLayoutAhb(const VkImageCreateInfo* imageCreateInfo,
                                        AHardwareBuffer* ahb);
 #endif
@@ -752,20 +766,17 @@ class VkEmulation {
     std::unordered_map<uint32_t, ExternalMemoryInfo> mExternalMemories GUARDED_BY(mMutex);
 
 #ifdef __ANDROID__
-    // AHBs stashed by stashPendingDeferredLayoutAhb(), each holding its own
-    // AHardwareBuffer_acquire()'d reference, waiting for a same-shaped ColorBuffer to adopt
-    // instead of allocating a second AHB (see allocExternalMemory's AndroidAHB case). Any left
-    // unclaimed are released at VkEmulation teardown.
-    std::unordered_multimap<AhbShapeKey, AHardwareBuffer*, AhbShapeKeyHash>
-        mPendingDeferredLayoutAhbs GUARDED_BY(mMutex);
+    AhbShapeKey computeAhbShapeKey(const VkImageCreateInfo* imageCreateInfo) const;
+    AHardwareBuffer* takePendingDeferredLayoutAhb(const VkImageCreateInfo* imageCreateInfo);
 
-    // Pops one AHB matching imageCreateInfo's shape from mPendingDeferredLayoutAhbs, or nullptr
-    // if none is pending. Caller already holds mMutex -- NO_THREAD_SAFETY_ANALYSIS rather than
-    // REQUIRES(mMutex) because its only caller, allocExternalMemory(), predates thread-safety
-    // annotations itself and isn't annotated, so REQUIRES here would just move the same
-    // unverifiable-by-the-analyzer assumption one frame up instead of removing it.
-    AHardwareBuffer* takePendingDeferredLayoutAhbLocked(const VkImageCreateInfo* imageCreateInfo)
-        NO_THREAD_SAFETY_ANALYSIS;
+    mutable std::mutex mDeferredLayoutMutex;
+    std::unordered_map<AhbShapeKey, CachedAhbLayout, AhbShapeKeyHash> mDeferredLayoutCache
+        GUARDED_BY(mDeferredLayoutMutex);
+    // At most one unclaimed probe AHB per canonical AhbShapeKey (single-owned, refcount 1),
+    // waiting for a matching ColorBuffer allocation to adopt in allocExternalMemory(). Any left
+    // unclaimed are released at VkEmulation teardown.
+    std::unordered_map<AhbShapeKey, AHardwareBuffer*, AhbShapeKeyHash> mPendingDeferredLayoutAhbs
+        GUARDED_BY(mDeferredLayoutMutex);
 #endif
 
     // The host keeps a set of occupied guest memory addresses to avoid a
@@ -803,11 +814,6 @@ class VkEmulation {
 
     std::optional<VVLConfiguration> mVVLConfig;
 };
-
-#ifdef __ANDROID__
-// Allocates an AHardwareBuffer matching an image's create info.
-AHardwareBuffer* allocAhb(const VkImageCreateInfo* imageCreateInfo);
-#endif
 
 }  // namespace vk
 }  // namespace host
