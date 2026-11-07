@@ -623,8 +623,9 @@ GL_APICALL void GL_APIENTRY glBlitFramebuffer(GLint srcX0, GLint srcY0, GLint sr
 
 static std::vector<GLenum> sGetEmulatedAttachmentList(GLESv2Context* ctx, GLenum target,
                                                       GLsizei numAttachments, const GLenum* attachments) {
-    std::vector<GLenum> res(numAttachments);
-    memcpy(&res[0], attachments, numAttachments * sizeof(GLenum));
+    // numAttachments can be 0 (a legal no-op), and attachments can then be null: don't index
+    // into the empty vector (b/582922278). The callers reject a negative count.
+    std::vector<GLenum> res(attachments, attachments + numAttachments);
 
     if (!ctx->hasEmulatedDefaultFBO() ||
         !ctx->isDefaultFBOBound(target)) return res;
@@ -644,6 +645,7 @@ GL_APICALL void GL_APIENTRY glInvalidateFramebuffer(GLenum target, GLsizei numAt
     SET_ERROR_IF(target != GL_FRAMEBUFFER &&
                  target != GL_READ_FRAMEBUFFER &&
                  target != GL_DRAW_FRAMEBUFFER, GL_INVALID_ENUM);
+    SET_ERROR_IF(numAttachments < 0, GL_INVALID_VALUE);
 
     GLint maxColorAttachments;
     glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &maxColorAttachments);
@@ -658,7 +660,8 @@ GL_APICALL void GL_APIENTRY glInvalidateFramebuffer(GLenum target, GLsizei numAt
 
     std::vector<GLenum> emulatedAttachments = sGetEmulatedAttachmentList(ctx, target, numAttachments, attachments);
     if (ctx->dispatcher().glInvalidateFramebuffer) {
-        ctx->dispatcher().glInvalidateFramebuffer(target, numAttachments, &emulatedAttachments[0]);
+        ctx->dispatcher().glInvalidateFramebuffer(target, numAttachments,
+                                                  emulatedAttachments.data());
     } else {
         // If we are missing glInvalidateFramebuffer, just don't do anything and hope things work out.
     }
@@ -669,6 +672,7 @@ GL_APICALL void GL_APIENTRY glInvalidateSubFramebuffer(GLenum target, GLsizei nu
     SET_ERROR_IF(target != GL_FRAMEBUFFER &&
             target != GL_READ_FRAMEBUFFER &&
             target != GL_DRAW_FRAMEBUFFER, GL_INVALID_ENUM);
+    SET_ERROR_IF(numAttachments < 0, GL_INVALID_VALUE);
 
     GLint maxColorAttachments;
     glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &maxColorAttachments);
@@ -683,7 +687,8 @@ GL_APICALL void GL_APIENTRY glInvalidateSubFramebuffer(GLenum target, GLsizei nu
 
     std::vector<GLenum> emulatedAttachments = sGetEmulatedAttachmentList(ctx, target, numAttachments, attachments);
     if (ctx->dispatcher().glInvalidateSubFramebuffer) {
-        ctx->dispatcher().glInvalidateSubFramebuffer(target, numAttachments, &emulatedAttachments[0], x, y, width, height);
+        ctx->dispatcher().glInvalidateSubFramebuffer(
+            target, numAttachments, emulatedAttachments.data(), x, y, width, height);
     } else {
         // If we are missing glInvalidateSubFramebuffer, just don't do anything and hope things work out.
     }
