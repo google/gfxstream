@@ -1749,6 +1749,59 @@ TEST_F(FrameBufferTest, Gles2ValidateAtt0PreDrawLargeUintIndexDoesNotOverflow) {
     mFb->destroyEmulatedEglWindowSurface(surface);
 }
 
+TEST_F(FrameBufferTest, Gles3InvalidateFramebufferWithZeroAttachments) {
+    if (!mFb->hasEmulationGl()) {
+        GTEST_SKIP() << "GL emulation not enabled.";
+    }
+
+    HandleType ctx3 = mFb->createEmulatedEglContext(0, 0, gl::GLESApi_3_0);
+    ASSERT_NE((HandleType)0, ctx3);
+    HandleType surface = mFb->createEmulatedEglWindowSurface(0, mWidth, mHeight);
+    ASSERT_NE((HandleType)0, surface);
+    EXPECT_TRUE(mFb->bindContext(ctx3, surface, surface));
+
+    auto& gl2 = mRenderThreadInfo->m_glInfo->m_gl2Dec;
+    gl2.glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    (void)gl2.glGetError();
+
+    // A count of 0 is a legal no-op. It used to index an empty std::vector, which hardened libc++
+    // turns into a trap that kills the emulator (b/582922278). The decoder always passes a
+    // non-null pointer, even for an empty list, so try that as well as a null one.
+    const GLenum unusedAttachment = GL_COLOR;
+    gl2.glInvalidateFramebuffer(GL_FRAMEBUFFER, 0, nullptr);
+    EXPECT_EQ((GLenum)GL_NO_ERROR, gl2.glGetError());
+    gl2.glInvalidateFramebuffer(GL_FRAMEBUFFER, 0, &unusedAttachment);
+    EXPECT_EQ((GLenum)GL_NO_ERROR, gl2.glGetError());
+    gl2.glInvalidateSubFramebuffer(GL_FRAMEBUFFER, 0, nullptr, 0, 0, 1, 1);
+    EXPECT_EQ((GLenum)GL_NO_ERROR, gl2.glGetError());
+    gl2.glInvalidateSubFramebuffer(GL_FRAMEBUFFER, 0, &unusedAttachment, 0, 0, 1, 1);
+    EXPECT_EQ((GLenum)GL_NO_ERROR, gl2.glGetError());
+
+    // A negative count is GL_INVALID_VALUE.
+    gl2.glInvalidateFramebuffer(GL_FRAMEBUFFER, -1, nullptr);
+    EXPECT_EQ((GLenum)GL_INVALID_VALUE, gl2.glGetError());
+    gl2.glInvalidateSubFramebuffer(GL_FRAMEBUFFER, -1, nullptr, 0, 0, 1, 1);
+    EXPECT_EQ((GLenum)GL_INVALID_VALUE, gl2.glGetError());
+
+    // Non-empty lists still reach the driver intact: GL_COLOR/GL_DEPTH/GL_STENCIL are translated
+    // for the emulated default framebuffer, and user FBO attachments are passed through as is.
+    const GLenum defaultFbAttachments[] = {GL_COLOR, GL_DEPTH, GL_STENCIL};
+    gl2.glInvalidateFramebuffer(GL_FRAMEBUFFER, 3, defaultFbAttachments);
+    EXPECT_EQ((GLenum)GL_NO_ERROR, gl2.glGetError());
+    GLuint fbo = 0;
+    gl2.glGenFramebuffers(1, &fbo);
+    gl2.glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    const GLenum fboAttachment = GL_COLOR_ATTACHMENT0;
+    gl2.glInvalidateSubFramebuffer(GL_FRAMEBUFFER, 1, &fboAttachment, 0, 0, 1, 1);
+    EXPECT_EQ((GLenum)GL_NO_ERROR, gl2.glGetError());
+    gl2.glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    gl2.glDeleteFramebuffers(1, &fbo);
+
+    EXPECT_TRUE(mFb->bindContext(0, 0, 0));
+    mFb->destroyEmulatedEglContext(ctx3);
+    mFb->destroyEmulatedEglWindowSurface(surface);
+}
+
 TEST_F(FrameBufferTest, Gles1CompressedTexSubImage2DOverflowRejected) {
     if (!mFb->hasEmulationGl()) {
         GTEST_SKIP() << "GL emulation not enabled.";
