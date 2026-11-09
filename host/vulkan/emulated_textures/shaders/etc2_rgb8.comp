@@ -13,26 +13,21 @@
 // limitations under the License.
 
 #version 450
-#include "Etc2ShaderLib.comp"
+#include "etc2_shader_lib.comp"
 
 layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 
-layout(push_constant) uniform ImageFormatBlock {
-    uint compFormat;
-    uint baseLayer;
-}
-u_pushConstant;
+layout(constant_id = 0) const uint kCompFormat = VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK;
 
 layout(binding = 0, rgba16ui) readonly uniform WITH_TYPE(uimage) u_image0;
 layout(binding = 1, rgba8ui) writeonly uniform WITH_TYPE(uimage) u_image1;
 
 void main(void) {
     ivec3 pos = ivec3(gl_GlobalInvocationID.xyz);
-    pos.z += int(u_pushConstant.baseLayer);
     ivec4 srcBlock = ivec4(imageLoad(u_image0, WITH_TYPE(getPos)(pos)));
 
-    bool isPunchthroughAlpha = (u_pushConstant.compFormat == VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK ||
-                                u_pushConstant.compFormat == VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK);
+    bool isPunchthroughAlpha = (kCompFormat == VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK ||
+                                kCompFormat == VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK);
 
     ivec4[16] decompressed =
         etc2_decode_rgb_block(constructUint32(srcBlock[0], srcBlock[1]),

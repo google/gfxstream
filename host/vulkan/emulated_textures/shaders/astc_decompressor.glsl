@@ -48,7 +48,7 @@
 //   2. Add support for 3D slices.
 //   3. HDR support? Probably not worth it.
 
-#include "AstcLookupTables.glsl"
+#include "astc_lookup_tables.glsl"
 
 const uvec4 kErrorColor = uvec4(255, 0, 255, 255);  // beautiful magenta, as per the spec
 

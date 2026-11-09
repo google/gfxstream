@@ -6,6 +6,10 @@ package(
     default_visibility = ["//:gfxstream"],
 )
 
+exports_files([
+    "testing/ComputePipelineRestoration_integrationtest.cpp",
+])
+
 cc_library(
     name = "gfxstream_host_vulkan_emulated_textures",
     srcs = [

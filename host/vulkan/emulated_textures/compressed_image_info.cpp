@@ -32,7 +32,7 @@ inline constexpr uint32_t ceil_div(uint32_t x, uint32_t y) { return (x + y - 1) 
 
 VkImageView createDefaultImageView(VulkanDispatch* vk, VkDevice device, VkImage image,
                                    VkFormat format, VkImageType imageType, uint32_t mipLevel,
-                                   uint32_t layerCount) {
+                                   uint32_t baseArrayLayer, uint32_t layerCount) {
     VkImageViewCreateInfo imageViewInfo = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .image = image,
@@ -44,7 +44,7 @@ VkImageView createDefaultImageView(VulkanDispatch* vk, VkDevice device, VkImage 
                 .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
                 .baseMipLevel = mipLevel,
                 .levelCount = 1,
-                .baseArrayLayer = 0,
+                .baseArrayLayer = baseArrayLayer,
                 .layerCount = layerCount,
             },
     };
@@ -450,6 +450,10 @@ void CompressedImageInfo::initAstcCpuDecompression(VulkanDispatch* vk,
                                                  mBlock.height, &AstcCpuDecompressor::get());
 }
 
+bool CompressedImageInfo::willDecompress(const VkImageMemoryBarrier& targetBarrier) const {
+    return imageWillBecomeReadable(targetBarrier);
+}
+
 bool CompressedImageInfo::decompressIfNeeded(VulkanDispatch* vk, VkCommandBuffer commandBuffer,
                                              VkPipelineStageFlags srcStageMask,
                                              VkPipelineStageFlags dstStageMask,
@@ -457,7 +461,7 @@ bool CompressedImageInfo::decompressIfNeeded(VulkanDispatch* vk, VkCommandBuffer
                                              std::vector<VkImageMemoryBarrier>& outputBarriers) {
     std::vector<VkImageMemoryBarrier> imageBarriers = getImageBarriers(targetBarrier);
 
-    if (!imageWillBecomeReadable(targetBarrier)) {
+    if (!willDecompress(targetBarrier)) {
         // We're not going to read from the image, no need to decompress it.
         // Apply the target barrier to the compressed mipmaps and the decompressed image.
         outputBarriers.insert(outputBarriers.end(), imageBarriers.begin(), imageBarriers.end());
@@ -608,7 +612,9 @@ void CompressedImageInfo::destroy(VulkanDispatch* vk) {
     for (const auto& image : mCompressedMipmaps) {
         vk->vkDestroyImage(mDevice, image, nullptr);
     }
-    vk->vkDestroyDescriptorPool(mDevice, mDecompDescriptorPool, nullptr);
+    for (const auto& pool : mDecompDescriptorPools) {
+        vk->vkDestroyDescriptorPool(mDevice, pool, nullptr);
+    }
     for (const auto& imageView : mCompressedMipmapsImageViews) {
         vk->vkDestroyImageView(mDevice, imageView, nullptr);
     }
@@ -683,18 +689,19 @@ VkResult CompressedImageInfo::initializeDecompressionPipeline(VulkanDispatch* vk
         .poolSizeCount = 1,
         .pPoolSizes = &poolSize,
     };
-    VkResult result =
-        vk->vkCreateDescriptorPool(device, &dsPoolInfo, nullptr, &mDecompDescriptorPool);
+    VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
+    VkResult result = vk->vkCreateDescriptorPool(device, &dsPoolInfo, nullptr, &descriptorPool);
     if (result != VK_SUCCESS) {
         GFXSTREAM_ERROR("GPU decompression error. vkCreateDescriptorPool failed: %d", result);
         return result;
     }
+    mDecompDescriptorPools.push_back(descriptorPool);
 
     std::vector<VkDescriptorSetLayout> layouts(mMipLevels, mDecompPipeline->descriptorSetLayout());
 
     VkDescriptorSetAllocateInfo dsInfo = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-        .descriptorPool = mDecompDescriptorPool,
+        .descriptorPool = descriptorPool,
         .descriptorSetCount = mMipLevels,
         .pSetLayouts = layouts.data(),
     };
@@ -711,7 +718,7 @@ VkResult CompressedImageInfo::initializeDecompressionPipeline(VulkanDispatch* vk
 
     VkDescriptorImageInfo compressedMipmapsDescriptorImageInfo = {.imageLayout =
                                                                       VK_IMAGE_LAYOUT_GENERAL};
-    VkDescriptorImageInfo mDecompDescriptorImageInfo = {.imageLayout = VK_IMAGE_LAYOUT_GENERAL};
+    VkDescriptorImageInfo decompDescriptorImageInfo = {.imageLayout = VK_IMAGE_LAYOUT_GENERAL};
     VkWriteDescriptorSet writeDescriptorSets[2] = {
         {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -725,17 +732,17 @@ VkResult CompressedImageInfo::initializeDecompressionPipeline(VulkanDispatch* vk
             .dstBinding = 1,
             .descriptorCount = 1,
             .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-            .pImageInfo = &mDecompDescriptorImageInfo,
+            .pImageInfo = &decompDescriptorImageInfo,
         }};
 
     for (uint32_t i = 0; i < mMipLevels; i++) {
         mCompressedMipmapsImageViews[i] =
             createDefaultImageView(vk, device, mCompressedMipmaps[i], mCompressedMipmapsFormat,
-                                   mImageType, 0, mLayerCount);
+                                   mImageType, 0, 0, mLayerCount);
         mOutputImageViews[i] = createDefaultImageView(vk, device, mOutputImage, shaderFormat,
-                                                      mImageType, i, mLayerCount);
+                                                      mImageType, i, 0, mLayerCount);
         compressedMipmapsDescriptorImageInfo.imageView = mCompressedMipmapsImageViews[i];
-        mDecompDescriptorImageInfo.imageView = mOutputImageViews[i];
+        decompDescriptorImageInfo.imageView = mOutputImageViews[i];
         writeDescriptorSets[0].dstSet = mDecompDescriptorSets[i];
         writeDescriptorSets[1].dstSet = mDecompDescriptorSets[i];
         vk->vkUpdateDescriptorSets(device, 2, writeDescriptorSets, 0, nullptr);
@@ -745,51 +752,127 @@ VkResult CompressedImageInfo::initializeDecompressionPipeline(VulkanDispatch* vk
     return VK_SUCCESS;
 }
 
+VkDescriptorSet CompressedImageInfo::getDecompDescriptorSet(VulkanDispatch* vk, uint32_t mipLevel,
+                                                            uint32_t baseLayer,
+                                                            uint32_t layerCount) {
+    if (mImageType == VK_IMAGE_TYPE_3D || (baseLayer == 0 && layerCount == mLayerCount)) {
+        return mDecompDescriptorSets[mipLevel];
+    }
+
+    const SubresourceViewKey key = {
+        .mipLevel = mipLevel,
+        .baseLayer = baseLayer,
+        .layerCount = layerCount,
+    };
+    auto it = mSubresourceDecompDescriptorSets.find(key);
+    if (it != mSubresourceDecompDescriptorSets.end()) {
+        return it->second;
+    }
+
+    VkDescriptorSetLayout dsLayout = mDecompPipeline->descriptorSetLayout();
+    VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
+
+    VkDescriptorSetAllocateInfo dsInfo = {
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+        .descriptorPool = mDecompDescriptorPools.back(),
+        .descriptorSetCount = 1,
+        .pSetLayouts = &dsLayout,
+    };
+    VkResult result = vk->vkAllocateDescriptorSets(mDevice, &dsInfo, &descriptorSet);
+    if (result != VK_SUCCESS) {
+        constexpr uint32_t kExtraPoolSets = 16;
+        VkDescriptorPoolSize poolSize = {
+            .type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+            .descriptorCount = 2 * kExtraPoolSets,
+        };
+        VkDescriptorPoolCreateInfo dsPoolInfo = {
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+            .flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
+            .maxSets = kExtraPoolSets,
+            .poolSizeCount = 1,
+            .pPoolSizes = &poolSize,
+        };
+        VkDescriptorPool extraPool = VK_NULL_HANDLE;
+        result = vk->vkCreateDescriptorPool(mDevice, &dsPoolInfo, nullptr, &extraPool);
+        if (result != VK_SUCCESS) {
+            GFXSTREAM_ERROR("GPU decompression error. vkCreateDescriptorPool failed: %d", result);
+            return mDecompDescriptorSets[mipLevel];
+        }
+        mDecompDescriptorPools.push_back(extraPool);
+        dsInfo.descriptorPool = extraPool;
+        result = vk->vkAllocateDescriptorSets(mDevice, &dsInfo, &descriptorSet);
+        if (result != VK_SUCCESS) {
+            GFXSTREAM_ERROR("GPU decompression error. vkAllocateDescriptorSets failed: %d", result);
+            return mDecompDescriptorSets[mipLevel];
+        }
+    }
+
+    VkImageView srcView =
+        createDefaultImageView(vk, mDevice, mCompressedMipmaps[mipLevel], mCompressedMipmapsFormat,
+                               mImageType, 0, baseLayer, layerCount);
+    VkImageView dstView =
+        createDefaultImageView(vk, mDevice, mOutputImage, getShaderFormat(mOutputFormat),
+                               mImageType, mipLevel, baseLayer, layerCount);
+    mCompressedMipmapsImageViews.push_back(srcView);
+    mOutputImageViews.push_back(dstView);
+
+    VkDescriptorImageInfo srcImageInfo = {
+        .imageView = srcView,
+        .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
+    };
+    VkDescriptorImageInfo dstImageInfo = {
+        .imageView = dstView,
+        .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
+    };
+    VkWriteDescriptorSet writes[2] = {
+        {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = descriptorSet,
+            .dstBinding = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+            .pImageInfo = &srcImageInfo,
+        },
+        {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = descriptorSet,
+            .dstBinding = 1,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+            .pImageInfo = &dstImageInfo,
+        },
+    };
+    vk->vkUpdateDescriptorSets(mDevice, 2, writes, 0, nullptr);
+
+    mSubresourceDecompDescriptorSets.emplace(key, descriptorSet);
+    return descriptorSet;
+}
+
 void CompressedImageInfo::decompress(VulkanDispatch* vk, VkCommandBuffer commandBuffer,
                                      const VkImageSubresourceRange& range) {
     vk->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
                           mDecompPipeline->pipeline());
-    uint32_t dispatchZ = mExtent.depth == 1 ? range.layerCount : mExtent.depth;
-    bool perPixel = false;  // Whether the shader operates per compressed block or per pixel
-    if (isEtc2()) {
-        const Etc2PushConstant pushConstant = {
-            .compFormat = (uint32_t)mCompressedFormat,
-            .baseLayer = mExtent.depth == 1 ? range.baseArrayLayer : 0};
-        vk->vkCmdPushConstants(commandBuffer, mDecompPipeline->pipelineLayout(),
-                               VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(pushConstant), &pushConstant);
-    } else if (isAstc()) {
-        uint32_t smallBlock = false;
-        switch (mCompressedFormat) {
-            case VK_FORMAT_ASTC_4x4_UNORM_BLOCK:
-            case VK_FORMAT_ASTC_5x4_UNORM_BLOCK:
-            case VK_FORMAT_ASTC_5x5_UNORM_BLOCK:
-            case VK_FORMAT_ASTC_6x5_UNORM_BLOCK:
-            case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:
-            case VK_FORMAT_ASTC_5x4_SRGB_BLOCK:
-            case VK_FORMAT_ASTC_5x5_SRGB_BLOCK:
-            case VK_FORMAT_ASTC_6x5_SRGB_BLOCK:
-                smallBlock = true;
-                break;
-            default:
-                break;
-        }
-        const AstcPushConstant pushConstant = {
-            .blockSize = {mBlock.width, mBlock.height},
-            .baseLayer = mExtent.depth == 1 ? range.baseArrayLayer : 0,
-            .smallBlock = smallBlock};
-        vk->vkCmdPushConstants(commandBuffer, mDecompPipeline->pipelineLayout(),
-                               VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(pushConstant), &pushConstant);
-        // The old shader is per-block, the new shaders are per-pixel
-        perPixel = GpuDecompressionPipelineManager::astcDecoder() != AstcDecoder::Old;
+    // For ASTC, the old shader operates per compressed block and the new shaders operate per pixel.
+    const bool perPixel =
+        isAstc() && GpuDecompressionPipelineManager::astcDecoder() != AstcDecoder::Old;
+    const uint32_t baseLayer =
+        (mImageType != VK_IMAGE_TYPE_3D) ? std::min(range.baseArrayLayer, mLayerCount) : 0;
+    const uint32_t layerCount =
+        (mImageType != VK_IMAGE_TYPE_3D) ? std::min(range.layerCount, mLayerCount - baseLayer) : 1;
+    if (mImageType != VK_IMAGE_TYPE_3D && layerCount == 0) {
+        return;
     }
+
     const uint32_t endMipLevel = std::min<uint32_t>(
         range.baseMipLevel + range.levelCount,
         static_cast<uint32_t>(mDecompDescriptorSets.size()));
     for (uint32_t i = range.baseMipLevel; i < endMipLevel; i++) {
+        VkDescriptorSet descriptorSet = getDecompDescriptorSet(vk, i, baseLayer, layerCount);
         vk->vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-                                    mDecompPipeline->pipelineLayout(), 0, 1,
-                                    mDecompDescriptorSets.data() + i, 0, nullptr);
+                                    mDecompPipeline->pipelineLayout(), 0, 1, &descriptorSet, 0,
+                                    nullptr);
         VkExtent3D extent = perPixel ? mipmapExtent(i) : compressedMipmapExtent(i);
+        uint32_t dispatchZ = (mImageType != VK_IMAGE_TYPE_3D) ? layerCount : extent.depth;
         vk->vkCmdDispatch(commandBuffer, ceil_div(extent.width, 8), ceil_div(extent.height, 8),
                           dispatchZ);
     }

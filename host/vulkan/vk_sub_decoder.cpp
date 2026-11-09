@@ -998,10 +998,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                     }
                 }
                 if (CC_LIKELY(vk)) {
-                    vk->vkCmdWaitEvents(
-                        (VkCommandBuffer)dispatchHandle, eventCount, pEvents, srcStageMask,
-                        dstStageMask, memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount,
-                        pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers);
+                    this->on_vkCmdWaitEvents(pool, snapshotApiCallHandle,
+                                             Boxed<VkCommandBuffer>::fromRaw(boxed_dispatchHandle),
+                                             eventCount, pEvents, srcStageMask, dstStageMask,
+                                             memoryBarrierCount, pMemoryBarriers,
+                                             bufferMemoryBarrierCount, pBufferMemoryBarriers,
+                                             imageMemoryBarrierCount, pImageMemoryBarriers);
                 }
                 if (snapshotsEnabled()) {
                     this->snapshot()->vkCmdWaitEvents(
@@ -2173,8 +2175,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                     }
                 }
                 if (CC_LIKELY(vk)) {
-                    vk->vkCmdWaitEvents2((VkCommandBuffer)dispatchHandle, eventCount, pEvents,
-                                         pDependencyInfos);
+                    this->on_vkCmdWaitEvents2(pool, snapshotApiCallHandle,
+                                              Boxed<VkCommandBuffer>::fromRaw(boxed_dispatchHandle),
+                                              eventCount, pEvents, pDependencyInfos);
                 }
                 if (snapshotsEnabled()) {
                     this->snapshot()->vkCmdWaitEvents2(pool, snapshotApiCallHandle, nullptr, 0,
@@ -3439,8 +3442,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk,
                     }
                 }
                 if (CC_LIKELY(vk)) {
-                    vk->vkCmdWaitEvents2KHR((VkCommandBuffer)dispatchHandle, eventCount, pEvents,
-                                            pDependencyInfos);
+                    this->on_vkCmdWaitEvents2KHR(
+                        pool, snapshotApiCallHandle,
+                        Boxed<VkCommandBuffer>::fromRaw(boxed_dispatchHandle), eventCount, pEvents,
+                        pDependencyInfos);
                 }
                 if (snapshotsEnabled()) {
                     this->snapshot()->vkCmdWaitEvents2KHR(pool, snapshotApiCallHandle, nullptr, 0,

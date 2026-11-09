@@ -154,6 +154,77 @@ const char* string_AstcDecoder(AstcDecoder decoder) {
     return "Unknown";
 }
 
+VkExtent2D getAstcBlockSize(VkFormat format) {
+    switch (format) {
+        case VK_FORMAT_ASTC_4x4_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:
+            return {4, 4};
+        case VK_FORMAT_ASTC_5x4_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_5x4_SRGB_BLOCK:
+            return {5, 4};
+        case VK_FORMAT_ASTC_5x5_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_5x5_SRGB_BLOCK:
+            return {5, 5};
+        case VK_FORMAT_ASTC_6x5_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_6x5_SRGB_BLOCK:
+            return {6, 5};
+        case VK_FORMAT_ASTC_6x6_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_6x6_SRGB_BLOCK:
+            return {6, 6};
+        case VK_FORMAT_ASTC_8x5_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_8x5_SRGB_BLOCK:
+            return {8, 5};
+        case VK_FORMAT_ASTC_8x6_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_8x6_SRGB_BLOCK:
+            return {8, 6};
+        case VK_FORMAT_ASTC_8x8_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_8x8_SRGB_BLOCK:
+            return {8, 8};
+        case VK_FORMAT_ASTC_10x5_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_10x5_SRGB_BLOCK:
+            return {10, 5};
+        case VK_FORMAT_ASTC_10x6_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_10x6_SRGB_BLOCK:
+            return {10, 6};
+        case VK_FORMAT_ASTC_10x8_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_10x8_SRGB_BLOCK:
+            return {10, 8};
+        case VK_FORMAT_ASTC_10x10_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_10x10_SRGB_BLOCK:
+            return {10, 10};
+        case VK_FORMAT_ASTC_12x10_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_12x10_SRGB_BLOCK:
+            return {12, 10};
+        case VK_FORMAT_ASTC_12x12_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
+            return {12, 12};
+        default:
+            return {4, 4};
+    }
+}
+
+uint32_t isSmallAstcBlock(VkFormat format) {
+    switch (format) {
+        case VK_FORMAT_ASTC_4x4_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_5x4_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_5x5_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_6x5_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:
+        case VK_FORMAT_ASTC_5x4_SRGB_BLOCK:
+        case VK_FORMAT_ASTC_5x5_SRGB_BLOCK:
+        case VK_FORMAT_ASTC_6x5_SRGB_BLOCK:
+            return 1;
+        default:
+            return 0;
+    }
+}
+
+struct AstcSpecConstants {
+    uint32_t blockSizeX;
+    uint32_t blockSizeY;
+    uint32_t smallBlock;
+};
+
 }  // namespace
 
 // static
@@ -204,12 +275,63 @@ bool GpuDecompressionPipeline::initialize() {
         return false;
     }
 
+    AstcSpecConstants astcSpecData = {};
+    uint32_t etc2CompFormat = static_cast<uint32_t>(mCompressedFormat);
+    VkSpecializationMapEntry specEntries[3] = {};
+    VkSpecializationInfo specInfo = {};
+    const VkSpecializationInfo* pSpecInfo = nullptr;
+
+    if (isAstc(mCompressedFormat)) {
+        const VkExtent2D blockSize = getAstcBlockSize(mCompressedFormat);
+        astcSpecData = {
+            .blockSizeX = blockSize.width,
+            .blockSizeY = blockSize.height,
+            .smallBlock = isSmallAstcBlock(mCompressedFormat),
+        };
+        specEntries[0] = {
+            .constantID = 0,
+            .offset = offsetof(AstcSpecConstants, blockSizeX),
+            .size = sizeof(uint32_t),
+        };
+        specEntries[1] = {
+            .constantID = 1,
+            .offset = offsetof(AstcSpecConstants, blockSizeY),
+            .size = sizeof(uint32_t),
+        };
+        specEntries[2] = {
+            .constantID = 2,
+            .offset = offsetof(AstcSpecConstants, smallBlock),
+            .size = sizeof(uint32_t),
+        };
+        specInfo = {
+            .mapEntryCount = 3,
+            .pMapEntries = specEntries,
+            .dataSize = sizeof(astcSpecData),
+            .pData = &astcSpecData,
+        };
+        pSpecInfo = &specInfo;
+    } else if (isEtc2(mCompressedFormat)) {
+        specEntries[0] = {
+            .constantID = 0,
+            .offset = 0,
+            .size = sizeof(uint32_t),
+        };
+        specInfo = {
+            .mapEntryCount = 1,
+            .pMapEntries = specEntries,
+            .dataSize = sizeof(etc2CompFormat),
+            .pData = &etc2CompFormat,
+        };
+        pSpecInfo = &specInfo;
+    }
+
     VkComputePipelineCreateInfo computePipelineInfo = {
         .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
         .stage = {.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                   .stage = VK_SHADER_STAGE_COMPUTE_BIT,
                   .module = shader,
-                  .pName = "main"},
+                  .pName = "main",
+                  .pSpecializationInfo = pSpecInfo},
         .layout = mPipelineLayout,
     };
     result = mVk->vkCreateComputePipelines(mDevice, nullptr, 1, &computePipelineInfo, nullptr,
@@ -239,12 +361,22 @@ GpuDecompressionPipelineManager::GpuDecompressionPipelineManager(VulkanDispatch*
 
 GpuDecompressionPipeline* GpuDecompressionPipelineManager::get(VkFormat compressedFormat,
                                                                VkImageType imageType) {
-    auto& pipeline = mPipelines[getDecompressionShader(compressedFormat, imageType)];
+    if (!getDecompressionShader(compressedFormat, imageType)) {
+        return nullptr;
+    }
+
+    const PipelineKey key = {
+        .format = compressedFormat,
+        .imageType = imageType,
+        .astcDecoder = isAstc(compressedFormat) ? activeAstcDecoder : AstcDecoder::NewRgb,
+    };
+
+    auto& pipeline = mPipelines[key];
     if (!pipeline) {
         VkDescriptorSetLayout descriptorSetLayout = getDescriptorSetLayout();
         if (descriptorSetLayout == VK_NULL_HANDLE) return nullptr;
 
-        VkPipelineLayout pipelineLayout = getPipelineLayout(compressedFormat);
+        VkPipelineLayout pipelineLayout = getPipelineLayout();
         if (pipelineLayout == VK_NULL_HANDLE) return nullptr;
 
         pipeline = GpuDecompressionPipeline::create(mVk, mDevice, compressedFormat, imageType,
@@ -254,6 +386,10 @@ GpuDecompressionPipeline* GpuDecompressionPipelineManager::get(VkFormat compress
 }
 
 VkDescriptorSetLayout GpuDecompressionPipelineManager::getDescriptorSetLayout() {
+    if (mDescriptorSetLayout != VK_NULL_HANDLE) {
+        return mDescriptorSetLayout;
+    }
+
     VkDescriptorSetLayoutBinding dsLayoutBindings[] = {
         {
             .binding = 0,
@@ -283,52 +419,41 @@ VkDescriptorSetLayout GpuDecompressionPipelineManager::getDescriptorSetLayout() 
     return mDescriptorSetLayout;
 }
 
-VkPipelineLayout GpuDecompressionPipelineManager::getPipelineLayout(VkFormat format) {
-    VkPipelineLayout* pipelineLayout;
-    VkPushConstantRange pushConstant = {.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT};
-
-    if (isAstc(format)) {
-        pipelineLayout = &mAstcPipelineLayout;
-        pushConstant.size = sizeof(AstcPushConstant);
-    } else {
-        pipelineLayout = &mEtc2PipelineLayout;
-        pushConstant.size = sizeof(Etc2PushConstant);
+VkPipelineLayout GpuDecompressionPipelineManager::getPipelineLayout() {
+    if (mPipelineLayout != VK_NULL_HANDLE) {
+        return mPipelineLayout;
     }
 
     VkPipelineLayoutCreateInfo pipelineLayoutInfo = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
         .setLayoutCount = 1,
         .pSetLayouts = &mDescriptorSetLayout,
-        .pushConstantRangeCount = 1,
-        .pPushConstantRanges = &pushConstant,
+        .pushConstantRangeCount = 0,
+        .pPushConstantRanges = nullptr,
     };
     VkResult result =
-        mVk->vkCreatePipelineLayout(mDevice, &pipelineLayoutInfo, nullptr, pipelineLayout);
+        mVk->vkCreatePipelineLayout(mDevice, &pipelineLayoutInfo, nullptr, &mPipelineLayout);
     if (result != VK_SUCCESS) {
-        GFXSTREAM_WARNING(
-            "GPU decompression: error calling vkCreatePipelineLayout for format %s: %d",
-            string_VkFormat(format), result);
+        GFXSTREAM_WARNING("GPU decompression: error calling vkCreatePipelineLayout: %d", result);
         return VK_NULL_HANDLE;
     }
-    return *pipelineLayout;
+    return mPipelineLayout;
 }
 
 void GpuDecompressionPipelineManager::clear() {
     mPipelines.clear();
     if (mVk && mDevice) {
         mVk->vkDestroyDescriptorSetLayout(mDevice, mDescriptorSetLayout, nullptr);
-        mVk->vkDestroyPipelineLayout(mDevice, mAstcPipelineLayout, nullptr);
-        mVk->vkDestroyPipelineLayout(mDevice, mEtc2PipelineLayout, nullptr);
+        mVk->vkDestroyPipelineLayout(mDevice, mPipelineLayout, nullptr);
 
         mDescriptorSetLayout = VK_NULL_HANDLE;
-        mAstcPipelineLayout = VK_NULL_HANDLE;
-        mEtc2PipelineLayout = VK_NULL_HANDLE;
+        mPipelineLayout = VK_NULL_HANDLE;
     }
 }
 
 GpuDecompressionPipelineManager::~GpuDecompressionPipelineManager() {
     if (!mPipelines.empty() || mDescriptorSetLayout != VK_NULL_HANDLE ||
-        mAstcPipelineLayout != VK_NULL_HANDLE || mEtc2PipelineLayout != VK_NULL_HANDLE) {
+        mPipelineLayout != VK_NULL_HANDLE) {
         GFXSTREAM_WARNING(
             "Resource leak: GpuDecompressionPipelineManager is being destroyed but clear() wasn't"
             " called first");

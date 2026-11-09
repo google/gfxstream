@@ -19,19 +19,16 @@
 // https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.html#operators
 
 #version 450
-#include "AstcUnquantMap.comp"
-#include "Common.comp"
+#include "astc_unquant_map.comp"
+#include "common.comp"
 
 precision highp int;
 
 layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 
-layout(push_constant) uniform ImageFormatBlock {
-    uvec2 blockSize;
-    uint baseLayer;
-    uint smallBlock;
-}
-u_pushConstant;
+layout(constant_id = 0) const uint kBlockSizeX = 4;
+layout(constant_id = 1) const uint kBlockSizeY = 4;
+layout(constant_id = 2) const uint kSmallBlock = 0;
 
 layout(binding = 0, rgba32ui) readonly uniform WITH_TYPE(uimage) u_image0;
 layout(binding = 1, rgba8ui) writeonly uniform WITH_TYPE(uimage) u_image1;
@@ -433,7 +430,7 @@ uint select_partition(uint seed, uint x, uint y, uint partitioncount) {
         return 0;
     }
     uint z = 0;
-    if (u_pushConstant.smallBlock != 0) {
+    if (kSmallBlock != 0) {
         x <<= 1;
         y <<= 1;
     }
@@ -513,9 +510,9 @@ uint select_partition(uint seed, uint x, uint y, uint partitioncount) {
 
 uvec4[144] single_color_block(uvec4 color) {
     uvec4 ret[144];
-    for (int h = 0; h < u_pushConstant.blockSize.y; h++) {
-        for (int w = 0; w < u_pushConstant.blockSize.x; w++) {
-            ret[h * u_pushConstant.blockSize.x + w] = color;
+    for (uint h = 0; h < kBlockSizeY; h++) {
+        for (uint w = 0; w < kBlockSizeX; w++) {
+            ret[h * kBlockSizeX + w] = color;
         }
     }
     return ret;
@@ -595,7 +592,7 @@ uvec4[144] astc_decode_block(const uvec4 u) {
         }
     }
 
-    if (width > u_pushConstant.blockSize.x || height > u_pushConstant.blockSize.y) {
+    if (width > kBlockSizeX || height > kBlockSizeY) {
         return error_color_block();
     }
     // Decode weight
@@ -831,14 +828,15 @@ uvec4[144] astc_decode_block(const uvec4 u) {
     }
     uvec4 ret[144];
     {
-        uvec2 dst = (1024 + u_pushConstant.blockSize / 2) / (u_pushConstant.blockSize - 1);
+        const uvec2 kBlockSize = uvec2(kBlockSizeX, kBlockSizeY);
+        uvec2 dst = (1024 + kBlockSize / 2) / (kBlockSize - 1);
         uint dd = d + 1;
-        for (uint h = 0; h < u_pushConstant.blockSize.y; h++) {
-            for (uint w = 0; w < u_pushConstant.blockSize.x; w++) {
+        for (uint h = 0; h < kBlockSizeY; h++) {
+            for (uint w = 0; w < kBlockSizeX; w++) {
                 uint part = select_partition(u3 >> 13 & 1023, w, h, partitionCount);
                 if (kHDRCEM[cem[part]]) {
                     // HDR not supported
-                    ret[h * u_pushConstant.blockSize.x + w] = uvec4(0xff, 0, 0xff, 0xff);
+                    ret[h * kBlockSizeX + w] = uvec4(0xff, 0, 0xff, 0xff);
                     continue;
                 }
                 // Calculate weight
@@ -866,7 +864,7 @@ uvec4[144] astc_decode_block(const uvec4 u) {
                     uint ccs = bits128(u, dualPlaneStart, 2);
                     c[ccs] = (c0[ccs] * (64 - i[1]) + c1[ccs] * i[1] + 32) / 64;
                 }
-                ret[h * u_pushConstant.blockSize.x + w] = c;
+                ret[h * kBlockSizeX + w] = c;
             }
         }
     }
@@ -875,9 +873,9 @@ uvec4[144] astc_decode_block(const uvec4 u) {
 
 uint block_y_size_1DArray() { return 1; }
 
-uint block_y_size_2DArray() { return u_pushConstant.blockSize.y; }
+uint block_y_size_2DArray() { return kBlockSizeY; }
 
-uint block_y_size_3D() { return u_pushConstant.blockSize.y; }
+uint block_y_size_3D() { return kBlockSizeY; }
 
 uvec4 flip32(uvec4 a) {
     return ((a & 0xff) << 24) | ((a & 0xff00) << 8) | ((a & 0xff0000) >> 8) |
@@ -886,17 +884,15 @@ uvec4 flip32(uvec4 a) {
 
 void main(void) {
     ivec3 pos = ivec3(gl_GlobalInvocationID.xyz);
-    pos.z += int(u_pushConstant.baseLayer);
     uvec4 srcBlock = uvec4(imageLoad(u_image0, WITH_TYPE(getPos)(pos)));
     srcBlock = uvec4(srcBlock[3], srcBlock[2], srcBlock[1], srcBlock[0]);
     uvec4[144] decompressed = astc_decode_block(srcBlock);
 
+    const ivec2 kBlockSize = ivec2(int(kBlockSizeX), int(kBlockSizeY));
     for (uint y = 0; y < WITH_TYPE(block_y_size_)(); y++) {
-        for (uint x = 0; x < u_pushConstant.blockSize.x; x++) {
-            imageStore(
-                u_image1,
-                WITH_TYPE(getPos)(ivec3(pos.xy * u_pushConstant.blockSize + ivec2(x, y), pos.z)),
-                decompressed[y * u_pushConstant.blockSize.x + x]);
+        for (uint x = 0; x < kBlockSizeX; x++) {
+            imageStore(u_image1, WITH_TYPE(getPos)(ivec3(pos.xy * kBlockSize + ivec2(x, y), pos.z)),
+                       decompressed[y * kBlockSizeX + x]);
         }
     }
 }

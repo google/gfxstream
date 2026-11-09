@@ -17,17 +17,17 @@ import os
 # This script compiles the image decompression shaders.
 # glslc must be in the path for this script to work
 
-# The list of shaders to compile, without the .comp extension
+# The list of (shader source name, compiled output prefix) pairs
 shaders = [
-    "astc",
-    "astc_to_rgb",
-    "astc_to_bc3",
-    "eac_r11_snorm",
-    "eac_r11_unorm",
-    "eac_rg11_snorm",
-    "eac_rg11_unorm",
-    "etc2_rgb8",
-    "etc2_rgba8",
+    ("astc", "Astc"),
+    ("astc_to_rgb", "AstcToRgb"),
+    ("astc_to_bc3", "AstcToBc3"),
+    ("eac_r11_snorm", "EacR11Snorm"),
+    ("eac_r11_unorm", "EacR11Unorm"),
+    ("eac_rg11_snorm", "EacRG11Snorm"),
+    ("eac_rg11_unorm", "EacRG11Unorm"),
+    ("etc2_rgb8", "Etc2RGB8"),
+    ("etc2_rgba8", "Etc2RGBA8"),
 ]
 
 # Template for the compilation command
@@ -37,11 +37,12 @@ output_dir = "compiled"
 
 
 # Compiles a single shader
-# shader: shader name, without the .comp extension
+# shader: shader source name, without the .comp extension
+# output_prefix: compiled header prefix
 # dim: image dimension. Must be 1, 2 or 3 - for 1D, 2D and 3D respectively
-def compile(shader: str, dim: int):
+def compile(shader: str, output_prefix: str, dim: int):
     input = "{}.comp".format(shader)
-    output = os.path.join(output_dir, "{}_{}D.inl".format(shader, dim))
+    output = os.path.join(output_dir, "{}_{}D.inl".format(output_prefix, dim))
     cmd = command.format(dim=dim, input=input, output=output)
     print("Executing: {}".format(cmd))
     ret = os.system(cmd)
@@ -63,9 +64,9 @@ def main():
 
     os.makedirs(output_dir, exist_ok=True)
 
-    for shader in shaders:
+    for shader, output_prefix in shaders:
         for dim in range(1, 4):
-            compile(shader, dim)
+            compile(shader, output_prefix, dim)
 
 
 if __name__ == "__main__":

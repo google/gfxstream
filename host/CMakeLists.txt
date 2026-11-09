@@ -377,6 +377,7 @@ endfunction()
 
     add_executable(
             Vulkan_integrationtests
+            vulkan/emulated_textures/testing/ComputePipelineRestoration_integrationtest.cpp
             vulkan/testing/VkDecoderTestDispatch.h
             vulkan/testing/VulkanTestHelper.cpp
     )
@@ -385,6 +386,7 @@ endfunction()
             PRIVATE
             gfxstream_backend_static
             gfxstream_common_base
+            gfxstream_common_testenv
             gfxstream-gl-server
             gfxstream-vulkan-server
             gfxstream_host_testing_support
