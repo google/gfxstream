@@ -65,6 +65,7 @@ class VkDecoderSnapshot {
 
     VkSnapshotApiCallHandle createApiCallInfo();
     void destroyApiCallInfoIfUnused(VkSnapshotApiCallHandle handle);
+    bool hasApiCall(VkSnapshotApiCallHandle handle) const;
 
     // Performs bookkeeping to track that a given api call created the given VkObject handles.
     // This is a public function so that `VkDecoderGlobalState` can inform snapshot of any

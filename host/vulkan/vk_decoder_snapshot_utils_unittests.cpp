@@ -1317,7 +1317,8 @@ TEST_F(VkDecoderSnapshotUtilsTest, SaveAndLoadImageGeneratedByRenderPass) {
         VK_SUCCESS);
 
     VkMemoryRequirements memReqs = {};
-    vkState->on_vkGetImageMemoryRequirements(&pool, 0, boxedDevice, unbox_VkImage(boxedSrcImage),
+    vkState->on_vkGetImageMemoryRequirements(&pool, 0, boxedDevice,
+                                             unbox_VkImage(Boxed<VkImage>(boxedSrcImage)),
                                              &memReqs);
 
     VkPhysicalDeviceMemoryProperties guestMemProps = {};
@@ -1340,13 +1341,14 @@ TEST_F(VkDecoderSnapshotUtilsTest, SaveAndLoadImageGeneratedByRenderPass) {
     VkDeviceMemory boxedSrcMem = VK_NULL_HANDLE;
     ASSERT_EQ(vkState->on_vkAllocateMemory(&pool, 0, boxedDevice, &allocInfo, nullptr, &boxedSrcMem),
               VK_SUCCESS);
-    ASSERT_EQ(vkState->on_vkBindImageMemory(&pool, 0, boxedDevice, unbox_VkImage(boxedSrcImage),
-                                            unbox_VkDeviceMemory(boxedSrcMem), 0),
+    ASSERT_EQ(vkState->on_vkBindImageMemory(
+                  &pool, 0, boxedDevice, unbox_VkImage(Boxed<VkImage>(boxedSrcImage)),
+                  unbox_VkDeviceMemory(Boxed<VkDeviceMemory>(boxedSrcMem)), 0),
               VK_SUCCESS);
 
     const VkImageViewCreateInfo viewCi = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-        .image = unbox_VkImage(boxedSrcImage),
+        .image = unbox_VkImage(Boxed<VkImage>(boxedSrcImage)),
         .viewType = VK_IMAGE_VIEW_TYPE_2D,
         .format = kFormat,
         .subresourceRange =
@@ -1413,10 +1415,10 @@ TEST_F(VkDecoderSnapshotUtilsTest, SaveAndLoadImageGeneratedByRenderPass) {
         vkState->on_vkCreateRenderPass(&pool, 0, boxedDevice, &rpCi, nullptr, &boxedRenderPass),
         VK_SUCCESS);
 
-    VkImageView unboxedAttachmentView = unbox_VkImageView(boxedSrcView);
+    VkImageView unboxedAttachmentView = unbox_VkImageView(Boxed<VkImageView>(boxedSrcView));
     const VkFramebufferCreateInfo fbCi = {
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-        .renderPass = unbox_VkRenderPass(boxedRenderPass),
+        .renderPass = unbox_VkRenderPass(Boxed<VkRenderPass>(boxedRenderPass)),
         .attachmentCount = 1,
         .pAttachments = &unboxedAttachmentView,
         .width = kDim,
@@ -1430,7 +1432,7 @@ TEST_F(VkDecoderSnapshotUtilsTest, SaveAndLoadImageGeneratedByRenderPass) {
 
     const VkCommandBufferAllocateInfo cmdBufAllocInfo = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-        .commandPool = unbox_VkCommandPool(boxedCmdPool),
+        .commandPool = unbox_VkCommandPool(Boxed<VkCommandPool>(boxedCmdPool)),
         .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
         .commandBufferCount = 1,
     };
@@ -1455,8 +1457,8 @@ TEST_F(VkDecoderSnapshotUtilsTest, SaveAndLoadImageGeneratedByRenderPass) {
 
     const VkRenderPassBeginInfo rpBeginInfo = {
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-        .renderPass = unbox_VkRenderPass(boxedRenderPass),
-        .framebuffer = unbox_VkFramebuffer(boxedFramebuffer),
+        .renderPass = unbox_VkRenderPass(Boxed<VkRenderPass>(boxedRenderPass)),
+        .framebuffer = unbox_VkFramebuffer(Boxed<VkFramebuffer>(boxedFramebuffer)),
         .renderArea = {.offset = {0, 0}, .extent = {kDim, kDim}},
         .clearValueCount = 1,
         .pClearValues = &clearValue,
@@ -1465,8 +1467,8 @@ TEST_F(VkDecoderSnapshotUtilsTest, SaveAndLoadImageGeneratedByRenderPass) {
                                      VK_SUBPASS_CONTENTS_INLINE);
 
     // Populate sub-regions with additional distinct R16G16_SFLOAT values inside the render pass.
-    VulkanDispatch* cmdVk = dispatch_VkCommandBuffer(boxedCmdBuf);
-    VkCommandBuffer unboxedCmdBuf = unbox_VkCommandBuffer(boxedCmdBuf);
+    VulkanDispatch* cmdVk = dispatch_VkCommandBuffer(Boxed<VkCommandBuffer>(boxedCmdBuf));
+    VkCommandBuffer unboxedCmdBuf = unbox_VkCommandBuffer(Boxed<VkCommandBuffer>(boxedCmdBuf));
     VkClearAttachment clearAtt = {
         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
         .colorAttachment = 0,
@@ -1501,13 +1503,16 @@ TEST_F(VkDecoderSnapshotUtilsTest, SaveAndLoadImageGeneratedByRenderPass) {
 
     // Destroy the temporary framebuffer, render pass, and command buffer immediately after queue
     // wait idle, before taking a snapshot (a common pattern for one-time offscreen/LUT passes).
-    vkState->on_vkDestroyFramebuffer(&pool, 0, boxedDevice, unbox_VkFramebuffer(boxedFramebuffer),
-                                     nullptr);
-    vkState->on_vkDestroyRenderPass(&pool, 0, boxedDevice, unbox_VkRenderPass(boxedRenderPass),
-                                    nullptr);
-    vkState->on_vkFreeCommandBuffers(&pool, 0, boxedDevice, unbox_VkCommandPool(boxedCmdPool), 1,
-                                     &unboxedCmdBuf);
-    delete_VkCommandBuffer(boxedCmdBuf);
+    vkState->on_vkDestroyFramebuffer(
+        &pool, 0, boxedDevice, unbox_VkFramebuffer(Boxed<VkFramebuffer>(boxedFramebuffer)),
+        nullptr);
+    vkState->on_vkDestroyRenderPass(
+        &pool, 0, boxedDevice, unbox_VkRenderPass(Boxed<VkRenderPass>(boxedRenderPass)),
+        nullptr);
+    vkState->on_vkFreeCommandBuffers(
+        &pool, 0, boxedDevice, unbox_VkCommandPool(Boxed<VkCommandPool>(boxedCmdPool)), 1,
+        &unboxedCmdBuf);
+    delete_VkCommandBuffer(Boxed<VkCommandBuffer>(boxedCmdBuf));
 
     // Save snapshot via VkDecoderGlobalState::save().
     MemStream snapshotStream;
@@ -1556,18 +1561,21 @@ TEST_F(VkDecoderSnapshotUtilsTest, SaveAndLoadImageGeneratedByRenderPass) {
     VkDeviceMemory boxedDstMem = VK_NULL_HANDLE;
     ASSERT_EQ(vkState->on_vkAllocateMemory(&pool, 0, boxedDevice, &allocInfo, nullptr, &boxedDstMem),
               VK_SUCCESS);
-    ASSERT_EQ(vkState->on_vkBindImageMemory(&pool, 0, boxedDevice, unbox_VkImage(boxedDstImage),
-                                            unbox_VkDeviceMemory(boxedDstMem), 0),
+    ASSERT_EQ(vkState->on_vkBindImageMemory(
+                  &pool, 0, boxedDevice, unbox_VkImage(Boxed<VkImage>(boxedDstImage)),
+                  unbox_VkDeviceMemory(Boxed<VkDeviceMemory>(boxedDstMem)), 0),
               VK_SUCCESS);
 
-    VkDevice unboxedDevice = unbox_VkDevice(boxedDevice);
-    VulkanDispatch* devDispatch = dispatch_VkDevice(boxedDevice);
-    VkPhysicalDevice unboxedPhysDev = unbox_VkPhysicalDevice(boxedPhysDev);
-    VulkanDispatch* instDispatch = dispatch_VkPhysicalDevice(boxedPhysDev);
+    VkDevice unboxedDevice = unbox_VkDevice(Boxed<VkDevice>(boxedDevice));
+    VulkanDispatch* devDispatch = dispatch_VkDevice(Boxed<VkDevice>(boxedDevice));
+    VkPhysicalDevice unboxedPhysDev =
+        unbox_VkPhysicalDevice(Boxed<VkPhysicalDevice>(boxedPhysDev));
+    VulkanDispatch* instDispatch =
+        dispatch_VkPhysicalDevice(Boxed<VkPhysicalDevice>(boxedPhysDev));
     VkPhysicalDeviceMemoryProperties hostMemProps = {};
     instDispatch->vkGetPhysicalDeviceMemoryProperties(unboxedPhysDev, &hostMemProps);
     PhysicalDeviceInfo physDevInfo = {};
-    physDevInfo.instance = unbox_VkInstance(boxedInstance);
+    physDevInfo.instance = unbox_VkInstance(Boxed<VkInstance>(boxedInstance));
     instDispatch->vkGetPhysicalDeviceProperties(unboxedPhysDev, &physDevInfo.props);
     physDevInfo.memoryPropertiesHelper =
         std::make_unique<EmulatedPhysicalDeviceMemoryProperties>(hostMemProps, 0, features);
@@ -1577,18 +1585,19 @@ TEST_F(VkDecoderSnapshotUtilsTest, SaveAndLoadImageGeneratedByRenderPass) {
         .physicalDeviceInfo = &physDevInfo,
         .device = unboxedDevice,
         .deviceDispatch = devDispatch,
-        .queue = unbox_VkQueue(boxedQueue),
-        .commandPool = unbox_VkCommandPool(boxedCmdPool),
+        .queue = unbox_VkQueue(Boxed<VkQueue>(boxedQueue)),
+        .commandPool = unbox_VkCommandPool(Boxed<VkCommandPool>(boxedCmdPool)),
     };
 
     ImageInfo dstImageInfo = {};
     dstImageInfo.device = unboxedDevice;
     dstImageInfo.imageCreateInfoShallow = vk_make_orphan_copy(imageCi);
     dstImageInfo.layout = savedLayout;
-    dstImageInfo.memoryState =
-        ImageInfo::NormalImageMemory{.memory = unbox_VkDeviceMemory(boxedDstMem)};
+    dstImageInfo.memoryState = ImageInfo::NormalImageMemory{
+        .memory = unbox_VkDeviceMemory(Boxed<VkDeviceMemory>(boxedDstMem))};
 
-    ASSERT_TRUE(loadImageContent(&snapshotStream, &decoderStateBlock, unbox_VkImage(boxedDstImage),
+    ASSERT_TRUE(loadImageContent(&snapshotStream, &decoderStateBlock,
+                                 unbox_VkImage(Boxed<VkImage>(boxedDstImage)),
                                  &dstImageInfo));
 
     // Read back both the rendered source image and the restored destination image.
@@ -1669,14 +1678,17 @@ TEST_F(VkDecoderSnapshotUtilsTest, SaveAndLoadImageGeneratedByRenderPass) {
             .commandBufferCount = 1,
             .pCommandBuffers = &cb,
         };
-        EXPECT_EQ(devDispatch->vkQueueSubmit(unbox_VkQueue(boxedQueue), 1, &si, VK_NULL_HANDLE),
+        EXPECT_EQ(devDispatch->vkQueueSubmit(unbox_VkQueue(Boxed<VkQueue>(boxedQueue)), 1, &si,
+                                             VK_NULL_HANDLE),
                   VK_SUCCESS);
-        EXPECT_EQ(devDispatch->vkQueueWaitIdle(unbox_VkQueue(boxedQueue)), VK_SUCCESS);
+        EXPECT_EQ(devDispatch->vkQueueWaitIdle(unbox_VkQueue(Boxed<VkQueue>(boxedQueue))),
+                  VK_SUCCESS);
 
         std::vector<uint8_t> bytes(transferInfo.stagingBufferCopySize);
         std::memcpy(bytes.data(), mapped, bytes.size());
 
-        devDispatch->vkFreeCommandBuffers(unboxedDevice, unbox_VkCommandPool(boxedCmdPool), 1, &cb);
+        devDispatch->vkFreeCommandBuffers(
+            unboxedDevice, unbox_VkCommandPool(Boxed<VkCommandPool>(boxedCmdPool)), 1, &cb);
         devDispatch->vkUnmapMemory(unboxedDevice, readbackMem);
         devDispatch->vkDestroyBuffer(unboxedDevice, readbackBuf, nullptr);
         devDispatch->vkFreeMemory(unboxedDevice, readbackMem, nullptr);
@@ -1684,22 +1696,28 @@ TEST_F(VkDecoderSnapshotUtilsTest, SaveAndLoadImageGeneratedByRenderPass) {
     };
 
     const std::vector<uint8_t> expectedPixels = readbackFromDecoderDevice(
-        unbox_VkImage(boxedSrcImage), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        unbox_VkImage(Boxed<VkImage>(boxedSrcImage)), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     const std::vector<uint8_t> actualPixels = readbackFromDecoderDevice(
-        unbox_VkImage(boxedDstImage), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        unbox_VkImage(Boxed<VkImage>(boxedDstImage)), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
     // Ensure the rendered image content is non-zero and matches after snapshot restore.
     const std::vector<uint8_t> allZeros(expectedPixels.size(), 0);
     ASSERT_NE(expectedPixels, allZeros);
     EXPECT_EQ(actualPixels, expectedPixels);
 
-    vkState->on_vkDestroyImageView(&pool, 0, boxedDevice, unbox_VkImageView(boxedSrcView), nullptr);
-    vkState->on_vkDestroyImage(&pool, 0, boxedDevice, unbox_VkImage(boxedDstImage), nullptr);
-    vkState->on_vkFreeMemory(&pool, 0, boxedDevice, unbox_VkDeviceMemory(boxedDstMem), nullptr);
-    vkState->on_vkDestroyImage(&pool, 0, boxedDevice, unbox_VkImage(boxedSrcImage), nullptr);
-    vkState->on_vkFreeMemory(&pool, 0, boxedDevice, unbox_VkDeviceMemory(boxedSrcMem), nullptr);
-    vkState->on_vkDestroyCommandPool(&pool, 0, boxedDevice, unbox_VkCommandPool(boxedCmdPool),
-                                     nullptr);
+    vkState->on_vkDestroyImageView(
+        &pool, 0, boxedDevice, unbox_VkImageView(Boxed<VkImageView>(boxedSrcView)), nullptr);
+    vkState->on_vkDestroyImage(
+        &pool, 0, boxedDevice, unbox_VkImage(Boxed<VkImage>(boxedDstImage)), nullptr);
+    vkState->on_vkFreeMemory(
+        &pool, 0, boxedDevice, unbox_VkDeviceMemory(Boxed<VkDeviceMemory>(boxedDstMem)), nullptr);
+    vkState->on_vkDestroyImage(
+        &pool, 0, boxedDevice, unbox_VkImage(Boxed<VkImage>(boxedSrcImage)), nullptr);
+    vkState->on_vkFreeMemory(
+        &pool, 0, boxedDevice, unbox_VkDeviceMemory(Boxed<VkDeviceMemory>(boxedSrcMem)), nullptr);
+    vkState->on_vkDestroyCommandPool(
+        &pool, 0, boxedDevice, unbox_VkCommandPool(Boxed<VkCommandPool>(boxedCmdPool)),
+        nullptr);
     vkState->on_vkDestroyDevice(&pool, 0, boxedDevice, nullptr);
     vkState->on_vkDestroyInstance(&pool, 0, boxedInstance, nullptr);
 
