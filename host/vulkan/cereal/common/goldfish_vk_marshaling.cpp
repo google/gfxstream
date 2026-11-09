@@ -4012,7 +4012,7 @@ void marshal_VkGraphicsPipelineCreateInfo(VulkanStream* vkStream, VkStructureTyp
     if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) {
         hasRasterization =
             ((((0 == forMarshaling->pRasterizationState))
-                  ? (0)
+                  ? (1)
                   : (!((*(forMarshaling->pRasterizationState)).rasterizerDiscardEnable))) ||
              (((0 == forMarshaling->pDynamicState))
                   ? (0)
