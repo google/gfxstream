@@ -88,6 +88,7 @@ GFXSTREAM_HOST_DEFINES = GFXSTREAM_HOST_VK_DEFINES + [
         # No GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT: the snapshot
         # frontend needs the backend protos, which Android builds do not link.
         "GFXSTREAM_UNSTABLE_VULKAN_BLOB_COLOR_BUFFER=1",
+        "GFXSTREAM_UNSTABLE_VULKAN_EXTERNAL_SYNC=1",
     ],
     "@platforms//os:windows": [
         "GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT=1",
