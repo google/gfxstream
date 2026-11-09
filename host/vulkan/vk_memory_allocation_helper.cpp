@@ -473,10 +473,10 @@ VkResult executeImportGuestBlob(const ImportGuestBlobStrategy& strategy,
 #endif
 }
 
-VkResult executeHostVisibleSharedMemory(const HostVisibleSharedMemoryStrategy& strategy,
-                                        bool systemBlobEnabled,
-                                        VkExternalMemoryProvider* provider,
-                                        VkMemoryAllocationPlan* outPlan) {
+VkResult executeHostVisibleSharedMemory(
+    const HostVisibleSharedMemoryStrategy& strategy, bool systemBlobEnabled,
+    const EmulatedPhysicalDeviceMemoryProperties& memoryProperties,
+    VkExternalMemoryProvider* provider, VkMemoryAllocationPlan* outPlan) {
     SharedMemory memory("shared-memory-vk-" + std::to_string(getpid()) + "-" +
                             std::to_string(sUniqueShmemId++),
                         strategy.size);
@@ -525,6 +525,24 @@ VkResult executeHostVisibleSharedMemory(const HostVisibleSharedMemoryStrategy& s
             GFXSTREAM_WARNING(
                 "Mapped shared memory pointer is not aligned to page size, alignment is: %llu",
                 static_cast<unsigned long long>(mappedPtrAlignment));
+        }
+
+        VkMemoryHostPointerPropertiesEXT memoryHostPointerProperties = {
+            .sType = VK_STRUCTURE_TYPE_MEMORY_HOST_POINTER_PROPERTIES_EXT,
+            .pNext = nullptr,
+            .memoryTypeBits = 0,
+        };
+        VkResult propsRes =
+            provider->getMemoryHostPointerProperties(mappedPtr, &memoryHostPointerProperties);
+        if (propsRes != VK_SUCCESS) {
+            GFXSTREAM_ERROR("Failed to get host pointer properties for SystemBlob: %d", propsRes);
+            return propsRes;
+        }
+
+        VkResult typeRes = outPlan->ApplyHostPointerMemoryTypeBits(
+            memoryHostPointerProperties.memoryTypeBits, memoryProperties);
+        if (typeRes != VK_SUCCESS) {
+            return typeRes;
         }
 
         outPlan->preMappedHostPtr = mappedPtr;
@@ -776,8 +794,9 @@ VkResult VkMemoryAllocationHelper::executeStrategy(
             } else if constexpr (std::is_same_v<T, ImportGuestBlobStrategy>) {
                 return executeImportGuestBlob(strat, provider, &inOutPlan->externalMemoryNode);
             } else if constexpr (std::is_same_v<T, HostVisibleSharedMemoryStrategy>) {
-                return executeHostVisibleSharedMemory(
-                    strat, features->SystemBlob.enabled(), provider, inOutPlan);
+                return executeHostVisibleSharedMemory(strat, features->SystemBlob.enabled(),
+                                                      *inputs.memoryProperties, provider,
+                                                      inOutPlan);
             } else if constexpr (std::is_same_v<T, HostVisibleHeapMemoryStrategy>) {
                 return executeHostVisibleHeapMemory(
                     strat, *inputs.memoryProperties, provider, inOutPlan);
