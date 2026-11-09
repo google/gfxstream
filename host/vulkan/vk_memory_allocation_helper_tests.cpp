@@ -1249,6 +1249,7 @@ TEST_F(VkMemoryAllocationHelperTest,
        ExecuteHostVisibleSharedMemorySystemBlobAllocatesAndMapsSharedMemory) {
     mFeatures.SystemBlob.setEnabled(true);
     RebuildMemoryPropertiesHelper(/*hostColorBufferMemoryTypeIndex=*/0);
+    mHelper.supportsExternalMemoryHostProperties = true;
 
     const VkMemoryAllocateInfo allocInfo = {
         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
@@ -1258,14 +1259,19 @@ TEST_F(VkMemoryAllocationHelperTest,
     };
 
     FakeExternalMemoryProvider backend;
+    backend.memoryHostPointerTypeBits = (1u << 2);
+
     VkMemoryAllocationPlan plan;
     ASSERT_THAT(SelectStrategyFor(&allocInfo, &plan), Eq(VK_SUCCESS));
     ASSERT_THAT(mHelper.executeStrategy(mAllocInputs, &backend, &plan), Eq(VK_SUCCESS));
 
     EXPECT_THAT(plan.backing, VariantWith<gfxstream::base::SharedMemory>(_));
     EXPECT_THAT(plan.preMappedHostPtr, NotNull());
+    EXPECT_THAT(plan.hostMemoryInfo.index, Eq(2u));
+    EXPECT_THAT(plan.computeCaching(), Eq(static_cast<uint32_t>(MAP_CACHE_CACHED)));
 
     plan.WithVkMemoryAllocateInfo([&](const VkMemoryAllocateInfo& hostAllocInfo) {
+        EXPECT_THAT(hostAllocInfo.memoryTypeIndex, Eq(2u));
         const auto* importHostPtr =
             vk_find_struct<VkImportMemoryHostPointerInfoEXT>(&hostAllocInfo);
         ASSERT_THAT(importHostPtr, NotNull());
@@ -1273,6 +1279,29 @@ TEST_F(VkMemoryAllocationHelperTest,
                     Eq(VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT));
         EXPECT_THAT(importHostPtr->pHostPointer, Eq(plan.preMappedHostPtr));
     });
+}
+
+TEST_F(VkMemoryAllocationHelperTest,
+       ExecuteHostVisibleSharedMemorySystemBlobPropagatesHostPointerPropertiesError) {
+    mFeatures.SystemBlob.setEnabled(true);
+    RebuildMemoryPropertiesHelper(/*hostColorBufferMemoryTypeIndex=*/0);
+    mHelper.supportsExternalMemoryHostProperties = true;
+
+    const VkMemoryAllocateInfo allocInfo = {
+        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+        .pNext = nullptr,
+        .allocationSize = 4096,
+        .memoryTypeIndex = 1,
+    };
+
+    FakeExternalMemoryProvider backend;
+    backend.memoryHostPointerTypeBits = (1u << 2);
+    backend.memoryHostPointerPropertiesResult = VK_ERROR_INVALID_EXTERNAL_HANDLE;
+
+    VkMemoryAllocationPlan failPlan;
+    ASSERT_THAT(SelectStrategyFor(&allocInfo, &failPlan), Eq(VK_SUCCESS));
+    EXPECT_THAT(mHelper.executeStrategy(mAllocInputs, &backend, &failPlan),
+                Eq(VK_ERROR_INVALID_EXTERNAL_HANDLE));
 }
 
 TEST_F(VkMemoryAllocationHelperTest,
