@@ -157,7 +157,7 @@ struct MemoryInfo {
     uint64_t sizeToPage = 0;
     uint64_t hostmemId = 0;
     VkDevice device = VK_NULL_HANDLE;
-    VkDeviceMemory boxed = VK_NULL_HANDLE;
+    Boxed<VkDeviceMemory> boxed;
     uint32_t memoryIndex = 0;
     // Set if the memory is backed by shared memory.
     std::optional<gfxstream::base::SharedMemory> sharedMemory;
@@ -177,7 +177,7 @@ struct MemoryInfo {
 // to track VkEvent states
 struct EventInfo {
     VkDevice device = VK_NULL_HANDLE;
-    VkEvent boxed = VK_NULL_HANDLE;
+    Boxed<VkEvent> boxed;
     // Tracks the most recently used queue for signaling. From
     // https://registry.khronos.org/vulkan/specs/latest/man/html/VkEvent.html
     //
@@ -186,7 +186,7 @@ struct EventInfo {
     //
     // so snapshot loading must potentially use the same queue.
 
-    VkQueue boxed_queue = VK_NULL_HANDLE;
+    Boxed<VkQueue> boxed_queue;
     bool isSignaled{false};
     bool isFromHost{false};
     VkPipelineStageFlags flags{0};
@@ -195,7 +195,7 @@ struct EventInfo {
 struct InstanceInfo {
     std::vector<std::string> enabledExtensionNames;
     uint32_t apiVersion = VK_MAKE_VERSION(1, 0, 0);
-    VkInstance boxed = nullptr;
+    Boxed<VkInstance> boxed;
     bool isAngle = false;
     std::string applicationName;
     std::string engineName;
@@ -207,7 +207,7 @@ struct InstanceInfo {
     // instance, in enumeration order. Populated on the first
     // vkEnumeratePhysicalDevices call, returned as-is on later calls, and
     // released when the instance is destroyed.
-    std::vector<VkPhysicalDevice> boxedPhysicalDevices;
+    std::vector<Boxed<VkPhysicalDevice>> boxedPhysicalDevices;
 
     bool hasGuestCapability(VkGuestCapabilityFlagBitsGOOGLE capability) const {
         return (guestCapabilities & capability) != 0;
@@ -236,7 +236,7 @@ struct DeviceInfo {
 
     ExternalFenceInfo externalFenceInfo;
     VkPhysicalDevice physicalDevice;
-    VkDevice boxed = nullptr;
+    Boxed<VkDevice> boxed;
     DebugUtilsHelper debugUtilsHelper = DebugUtilsHelper::withUtilsDisabled();
     std::unique_ptr<ExternalFencePool<VulkanDispatch>> externalFencePool = nullptr;
     std::unique_ptr<GpuDecompressionPipelineManager> decompPipelines = nullptr;
@@ -320,7 +320,7 @@ struct QueueInfo {
     std::shared_ptr<PhysicalQueuePendingOps> pendingOps;  // Only used if virtually shared
     VkDevice device;
     uint32_t queueFamilyIndex;
-    VkQueue boxed = nullptr;
+    Boxed<VkQueue> boxed;
     bool usingSharedPhysicalQueue = false;
 
     // In order to create a virtual queue handle, we use an offset to the physical
@@ -335,7 +335,7 @@ struct QueueInfo {
 
 struct BufferInfo {
     VkDevice device;
-    VkBuffer boxed = VK_NULL_HANDLE;
+    Boxed<VkBuffer> boxed;
     VkBufferUsageFlags usage;
     VkDeviceMemory memory = 0;
     VkDeviceSize memoryOffset = 0;
@@ -345,13 +345,13 @@ struct BufferInfo {
 
 struct BufferViewInfo {
     VkDevice device;
-    VkBufferView boxed = VK_NULL_HANDLE;
+    Boxed<VkBufferView> boxed;
     std::shared_ptr<bool> alive{new bool(true)};
 };
 
 struct ImageInfo {
     VkDevice device;
-    VkImage boxed = VK_NULL_HANDLE;
+    Boxed<VkImage> boxed;
     VkImageCreateInfo imageCreateInfoShallow;
     std::unique_ptr<AndroidNativeBufferInfo> anbInfo;
     // Compression info, only valid if texture needs emulated decompression
@@ -456,7 +456,7 @@ struct ImageViewInfo {
     VkDevice device;
     VkImage image = VK_NULL_HANDLE;
     bool needEmulatedAlpha = false;
-    VkImageView boxed = VK_NULL_HANDLE;
+    Boxed<VkImageView> boxed;
 
     // Color buffer, provided via vkAllocateMemory().
     std::optional<HandleType> boundColorBuffer;
@@ -466,7 +466,7 @@ struct ImageViewInfo {
 struct SamplerInfo {
     VkDevice device;
     bool needEmulatedAlpha = false;
-    VkSampler boxed = VK_NULL_HANDLE;
+    Boxed<VkSampler> boxed;
     VkSamplerCreateInfo createInfo = {};
     VkSampler emulatedborderSampler = VK_NULL_HANDLE;
     gfxstream::base::BumpPool pool = gfxstream::base::BumpPool(256);
@@ -555,7 +555,7 @@ struct FenceInfo {
 
 struct SemaphoreInfo {
     VkDevice device;
-    VkSemaphore boxed = VK_NULL_HANDLE;
+    Boxed<VkSemaphore> boxed;
     int externalHandleId = 0;
     VK_EXT_SYNC_HANDLE externalHandle = VK_EXT_SYNC_HANDLE_INVALID;
     // If this fence was used in an additional host operation that must be waited
@@ -601,14 +601,14 @@ struct SemaphoreInfo {
 
 struct DescriptorSetLayoutInfo {
     VkDevice device = 0;
-    VkDescriptorSetLayout boxed = 0;
+    Boxed<VkDescriptorSetLayout> boxed;
     VkDescriptorSetLayoutCreateInfo createInfo;
     std::vector<VkDescriptorSetLayoutBinding> bindings;
 };
 
 struct DescriptorUpdateTemplateInfo {
     VkDevice device = VK_NULL_HANDLE;
-    VkDescriptorUpdateTemplate boxed = VK_NULL_HANDLE;
+    Boxed<VkDescriptorUpdateTemplate> boxed;
     VkDescriptorUpdateTemplateCreateInfo createInfo;
     std::vector<VkDescriptorUpdateTemplateEntry> linearizedTemplateEntries;
     // Preallocated pData
@@ -636,7 +636,7 @@ DescriptorUpdateTemplateInfo calcLinearizedDescriptorUpdateTemplateInfo(
 
 struct DescriptorPoolInfo {
     VkDevice device = 0;
-    VkDescriptorPool boxed = 0;
+    Boxed<VkDescriptorPool> boxed;
     struct PoolState {
         VkDescriptorType type;
         uint32_t descriptorCount;
@@ -650,7 +650,7 @@ struct DescriptorPoolInfo {
 
     // Unboxed VkDescriptorSet -> boxed VkDescriptorSet for every set currently
     // allocated from this pool.
-    std::unordered_map<VkDescriptorSet, VkDescriptorSet> allocatedSetsUnboxedToBoxed;
+    std::unordered_map<VkDescriptorSet, Boxed<VkDescriptorSet>> allocatedSetsUnboxedToBoxed;
     // Only used when VulkanBatchedDescriptorSetUpdate is enabled: boxed
     // VkDescriptorSet handles pre-minted at vkCreateDescriptorPool time (one per
     // maxSets slot) and handed to the guest through
@@ -699,38 +699,38 @@ struct DescriptorSetInfo {
 
 struct ShaderModuleInfo {
     VkDevice device;
-    VkShaderModule boxed = VK_NULL_HANDLE;
+    Boxed<VkShaderModule> boxed;
 };
 
 struct SamplerYcbcrConversionInfo {
     VkDevice device;
-    VkSamplerYcbcrConversion boxed = VK_NULL_HANDLE;
+    Boxed<VkSamplerYcbcrConversion> boxed;
 };
 
 struct PipelineCacheInfo {
     VkDevice device;
-    VkPipelineCache boxed = VK_NULL_HANDLE;
+    Boxed<VkPipelineCache> boxed;
 };
 
 struct PipelineLayoutInfo {
     VkDevice device;
-    VkPipelineLayout boxed = VK_NULL_HANDLE;
+    Boxed<VkPipelineLayout> boxed;
 };
 
 struct PipelineInfo {
     VkDevice device;
-    VkPipeline boxed = VK_NULL_HANDLE;
+    Boxed<VkPipeline> boxed;
 };
 
 struct RenderPassInfo {
     VkDevice device;
-    VkRenderPass boxed = VK_NULL_HANDLE;
+    Boxed<VkRenderPass> boxed;
     std::vector<VkImageLayout> attachmentFinalLayouts;
 };
 
 struct FramebufferInfo {
     VkDevice device;
-    VkFramebuffer boxed = VK_NULL_HANDLE;
+    Boxed<VkFramebuffer> boxed;
     std::vector<HandleType> attachedColorBuffers;
     std::vector<VkImage> attachedImages;
 };
@@ -741,7 +741,7 @@ struct CommandBufferInfo {
     std::vector<VkCommandBuffer> subCmds = {};
     VkDevice device = VK_NULL_HANDLE;
     VkCommandPool cmdPool = VK_NULL_HANDLE;
-    VkCommandBuffer boxed = VK_NULL_HANDLE;
+    Boxed<VkCommandBuffer> boxed;
     DebugUtilsHelper debugUtilsHelper = DebugUtilsHelper::withUtilsDisabled();
 
     // Most recently bound compute pipeline and descriptor sets. We save it here so that we can
@@ -781,7 +781,7 @@ struct CommandBufferInfo {
 
 struct CommandPoolInfo {
     VkDevice device = VK_NULL_HANDLE;
-    VkCommandPool boxed = VK_NULL_HANDLE;
+    Boxed<VkCommandPool> boxed;
     std::unordered_set<VkCommandBuffer> cmdBuffers = {};
 };
 

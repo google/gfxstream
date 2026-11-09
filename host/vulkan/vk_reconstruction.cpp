@@ -246,13 +246,15 @@ void VkReconstruction::addHandleDependency(const uint64_t* handles, uint32_t cou
             addHandleDependency(
                 handles, count,
                 (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkImageView(
-                    pImageInfos[i].imageView));
+                    pImageInfos[i].imageView)
+                    .value());
         }
         if (pImageInfos[i].sampler) {
             addHandleDependency(
                 handles, count,
                 (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkSampler(
-                    pImageInfos[i].sampler));
+                    pImageInfos[i].sampler)
+                    .value());
         }
     }
 }
@@ -267,7 +269,8 @@ void VkReconstruction::addHandleDependency(const uint64_t* handles, uint32_t cou
             addHandleDependency(
                 handles, count,
                 (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkBuffer(
-                    pBufferInfos[i].buffer));
+                    pBufferInfos[i].buffer)
+                    .value());
         }
     }
 }
@@ -282,7 +285,8 @@ void VkReconstruction::addHandleDependency(const uint64_t* handles, uint32_t cou
             addHandleDependency(
                 handles, count,
                 (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkBufferView(
-                    pBufferViews[i]));
+                    pBufferViews[i])
+                    .value());
         }
     }
 }

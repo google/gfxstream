@@ -369,7 +369,7 @@ constexpr const char* GetTypeStr() {
 }
 
 template <typename VkObjectT>
-VkObjectT new_boxed_VkType(VkObjectT underlying, bool dispatchable = false, VulkanDispatch* dispatch = nullptr) {
+Boxed<VkObjectT> new_boxed_VkType(VkObjectT underlying, bool dispatchable = false, VulkanDispatch* dispatch = nullptr) {
     BoxedHandleInfo info;
     info.underlying = (uint64_t)underlying;
     if (dispatchable) {
@@ -381,32 +381,33 @@ VkObjectT new_boxed_VkType(VkObjectT underlying, bool dispatchable = false, Vulk
         }
         info.ordMaintInfo = std::make_shared<OrderMaintenanceInfo>();
     }
-    return (VkObjectT)sBoxedHandleManager.add(std::move(info), GetTag<VkObjectT>());
+    return Boxed<VkObjectT>::fromRaw(
+        sBoxedHandleManager.add(std::move(info), GetTag<VkObjectT>()));
 }
 
 template <typename VkObjectT>
-void delete_VkType(VkObjectT boxed) {
-    if (boxed == VK_NULL_HANDLE) {
+void delete_VkType(Boxed<VkObjectT> boxed) {
+    if (!boxed) {
         return;
     }
 
-    sBoxedHandleManager.remove((uint64_t)(uintptr_t)boxed);
+    sBoxedHandleManager.remove((uint64_t)(uintptr_t)boxed.value());
 }
 
 template <typename VkObjectT>
-void delayed_delete_VkType(VkObjectT boxed, VkDevice device, std::function<void()> callback) {
-    if (boxed == VK_NULL_HANDLE) {
+void delayed_delete_VkType(Boxed<VkObjectT> boxed, VkDevice device, std::function<void()> callback) {
+    if (!boxed) {
         return;
     }
 
-    sBoxedHandleManager.removeDelayed((uint64_t)boxed, device, std::move(callback));
+    sBoxedHandleManager.removeDelayed((uint64_t)boxed.value(), device, std::move(callback));
 }
 
 // Custom unbox_* functions or GOLDFISH_VK_LIST_DISPATCHABLE_CUSTOM_UNBOX_HANDLE_TYPES
 // VkQueue objects can be virtual, meaning that multiple boxed queues can map into a single
 // physical queue on the host GPU. Some conversion is needed for unboxing to physical.
-static VkQueue unbox_VkQueueImpl(VkQueue boxed) {
-    BoxedHandleInfo* info = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);
+static VkQueue unbox_VkQueueImpl(Boxed<VkQueue> boxed) {
+    BoxedHandleInfo* info = sBoxedHandleManager.get(boxed);
     if (!info) {
         return VK_NULL_HANDLE;
     }
@@ -422,8 +423,8 @@ static VkQueue unbox_VkQueueImpl(VkQueue boxed) {
 }
 
 template <typename VkObjectT>
-VkObjectT unbox_VkType(VkObjectT boxed) {
-    if (boxed == VK_NULL_HANDLE) {
+VkObjectT unbox_VkType(Boxed<VkObjectT> boxed) {
+    if (!boxed) {
         return VK_NULL_HANDLE;
     }
 
@@ -433,28 +434,28 @@ VkObjectT unbox_VkType(VkObjectT boxed) {
         // Queue handles require special unboxing due to virtual queue support
         unboxed = unbox_VkQueueImpl(boxed);
         if (unboxed == VK_NULL_HANDLE) {
-            GFXSTREAM_ERROR("Failed to unbox %s %p", GetTypeStr<VkObjectT>(), boxed);
+            GFXSTREAM_ERROR("Failed to unbox %s %p", GetTypeStr<VkObjectT>(), boxed.value());
             if (VkDecoderGlobalState::get()->isSnapshotCurrentlyLoading()) {
                 VkDecoderGlobalState::get()->setSnapshotLoadError();
             }
         }
     } else {
-        BoxedHandleInfo* info = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);
+        BoxedHandleInfo* info = sBoxedHandleManager.get(boxed);
         if (info == nullptr) {
             if (VkDecoderGlobalState::get()->isSnapshotCurrentlyLoading()) {
                 // During snapshot load, do not crash the emulator, just log the error
                 // The caller will handle it and fail snapshot loading.
-                GFXSTREAM_ERROR("Failed to unbox %s %p during snapshot load", GetTypeStr<VkObjectT>(), boxed);
+                GFXSTREAM_ERROR("Failed to unbox %s %p during snapshot load", GetTypeStr<VkObjectT>(), boxed.value());
                 VkDecoderGlobalState::get()->setSnapshotLoadError();
             } else if constexpr (std::is_same_v<VkObjectT, VkCommandBuffer> ||
                                  std::is_same_v<VkObjectT, VkDevice> ||
                                  std::is_same_v<VkObjectT, VkInstance> ||
                                  std::is_same_v<VkObjectT, VkFence> ||
                                  std::is_same_v<VkObjectT, VkPhysicalDevice>) {
-                GFXSTREAM_ERROR("Failed to unbox %s %p", GetTypeStr<VkObjectT>(), boxed);
+                GFXSTREAM_ERROR("Failed to unbox %s %p", GetTypeStr<VkObjectT>(), boxed.value());
             } else {
                 // This should not happen during runtime
-                GFXSTREAM_FATAL("Failed to unbox %s %p", GetTypeStr<VkObjectT>(), boxed);
+                GFXSTREAM_FATAL("Failed to unbox %s %p", GetTypeStr<VkObjectT>(), boxed.value());
             }
             unboxed = VK_NULL_HANDLE;
         } else {
@@ -466,8 +467,8 @@ VkObjectT unbox_VkType(VkObjectT boxed) {
 }
 
 template <typename VkObjectT>
-VkObjectT try_unbox_VkType(VkObjectT boxed) {
-    if (boxed == VK_NULL_HANDLE) {
+VkObjectT try_unbox_VkType(Boxed<VkObjectT> boxed) {
+    if (!boxed) {
         return VK_NULL_HANDLE;
     }
 
@@ -476,43 +477,44 @@ VkObjectT try_unbox_VkType(VkObjectT boxed) {
     if constexpr (std::is_same_v<VkObjectT, VkQueue>) {
         unboxed = unbox_VkQueueImpl(boxed);
     } else {
-        BoxedHandleInfo* info = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);
+        BoxedHandleInfo* info = sBoxedHandleManager.get(boxed);
         if (info != nullptr) {
             unboxed = (VkObjectT)info->underlying;
         }
     }
 
     if (unboxed == VK_NULL_HANDLE) {
-        GFXSTREAM_WARNING("Failed to try unbox %s %p", GetTypeStr<VkObjectT>(), boxed);
+        GFXSTREAM_WARNING("Failed to try unbox %s %p", GetTypeStr<VkObjectT>(), boxed.value());
     }
 
     return unboxed;
 }
 
 template <typename VkObjectT>
-VkObjectT unboxed_to_boxed_non_dispatchable_VkType(VkObjectT unboxed) {
+Boxed<VkObjectT> unboxed_to_boxed_non_dispatchable_VkType(VkObjectT unboxed) {
     if (unboxed == VK_NULL_HANDLE) {
-        return VK_NULL_HANDLE;
+        return Boxed<VkObjectT>();
     }
 
-    return (VkObjectT)sBoxedHandleManager.getBoxedFromUnboxed((uint64_t)(uintptr_t)unboxed);
+    return Boxed<VkObjectT>::fromRaw(
+        sBoxedHandleManager.getBoxedFromUnboxed((uint64_t)(uintptr_t)unboxed));
 }
 
 template <typename VkObjectT>
-void set_boxed_non_dispatchable_VkType(VkObjectT boxed, VkObjectT new_unboxed) {
+void set_boxed_non_dispatchable_VkType(Boxed<VkObjectT> boxed, VkObjectT new_unboxed) {
     BoxedHandleInfo info;
     info.underlying = (uint64_t)new_unboxed;
-    sBoxedHandleManager.update((uint64_t)boxed, std::move(info));
+    sBoxedHandleManager.update((uint64_t)boxed.value(), std::move(info));
 }
 
 template <typename VkObjectT>
-std::shared_ptr<OrderMaintenanceInfo> get_order_maintenance_info_VkType(VkObjectT boxed) {
-    return sBoxedHandleManager.getOrderMaintenanceInfo((uint64_t)(uintptr_t)boxed);
+std::shared_ptr<OrderMaintenanceInfo> get_order_maintenance_info_VkType(Boxed<VkObjectT> boxed) {
+    return sBoxedHandleManager.getOrderMaintenanceInfo((uint64_t)(uintptr_t)boxed.value());
 }
 
 template <typename VkObjectT>
-VulkanMemReadingStream* get_read_stream_VkType(VkObjectT boxed) {
-    BoxedHandleInfo* info = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);
+VulkanMemReadingStream* get_read_stream_VkType(Boxed<VkObjectT> boxed) {
+    BoxedHandleInfo* info = sBoxedHandleManager.get(boxed);
     if (info == nullptr) {
         return nullptr;
     }
@@ -526,10 +528,10 @@ VulkanMemReadingStream* get_read_stream_VkType(VkObjectT boxed) {
 }
 
 template <typename VkObjectT>
-VulkanDispatch* get_dispatch_VkType(VkObjectT boxed) {
-    BoxedHandleInfo* info = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);
+VulkanDispatch* get_dispatch_VkType(Boxed<VkObjectT> boxed) {
+    BoxedHandleInfo* info = sBoxedHandleManager.get(boxed);
     if (info == nullptr) {
-        GFXSTREAM_ERROR("Failed to unbox %s %p", GetTypeStr<VkObjectT>(), boxed);
+        GFXSTREAM_ERROR("Failed to unbox %s %p", GetTypeStr<VkObjectT>(), boxed.value());
         if (VkDecoderGlobalState::get()->isSnapshotCurrentlyLoading()) {
             VkDecoderGlobalState::get()->setSnapshotLoadError();
         }
@@ -542,163 +544,163 @@ VulkanDispatch* get_dispatch_VkType(VkObjectT boxed) {
 //////////////             DISPATCHABLE TYPES                    //////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-VkInstance new_boxed_VkInstance(VkInstance unboxed, VulkanDispatch* dispatch) {
+Boxed<VkInstance> new_boxed_VkInstance(VkInstance unboxed, VulkanDispatch* dispatch) {
     return new_boxed_VkType<VkInstance>(unboxed, /*dispatchable=*/true, dispatch);
 }
 
-void delete_VkInstance(VkInstance boxed) {
+void delete_VkInstance(Boxed<VkInstance> boxed) {
     delete_VkType(boxed);
 }
 
-VkInstance unbox_VkInstance(VkInstance boxed) {
+VkInstance unbox_VkInstance(Boxed<VkInstance> boxed) {
     return unbox_VkType<VkInstance>(boxed);
 }
 
-VkInstance try_unbox_VkInstance(VkInstance boxed) {
+VkInstance try_unbox_VkInstance(Boxed<VkInstance> boxed) {
     return try_unbox_VkType<VkInstance>(boxed);
 }
 
-VkInstance unboxed_to_boxed_VkInstance(VkInstance unboxed) {
+Boxed<VkInstance> unboxed_to_boxed_VkInstance(VkInstance unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkInstance>(unboxed);
 }
 
-std::shared_ptr<OrderMaintenanceInfo> ordmaint_VkInstance(VkInstance boxed) {
+std::shared_ptr<OrderMaintenanceInfo> ordmaint_VkInstance(Boxed<VkInstance> boxed) {
     return get_order_maintenance_info_VkType<VkInstance>(boxed);
 }
 
-VulkanMemReadingStream* readstream_VkInstance(VkInstance boxed) {
+VulkanMemReadingStream* readstream_VkInstance(Boxed<VkInstance> boxed) {
     return get_read_stream_VkType<VkInstance>(boxed);
 }
 
-VulkanDispatch* dispatch_VkInstance(VkInstance boxed) {
+VulkanDispatch* dispatch_VkInstance(Boxed<VkInstance> boxed) {
     return get_dispatch_VkType<VkInstance>(boxed);
 }
 
-VkPhysicalDevice new_boxed_VkPhysicalDevice(VkPhysicalDevice unboxed, VulkanDispatch* dispatch) {
+Boxed<VkPhysicalDevice> new_boxed_VkPhysicalDevice(VkPhysicalDevice unboxed, VulkanDispatch* dispatch) {
     return new_boxed_VkType<VkPhysicalDevice>(unboxed, /*dispatchable=*/true, dispatch);
 }
 
-void delete_VkPhysicalDevice(VkPhysicalDevice boxed) {
+void delete_VkPhysicalDevice(Boxed<VkPhysicalDevice> boxed) {
     delete_VkType(boxed);
 }
 
-VkPhysicalDevice unbox_VkPhysicalDevice(VkPhysicalDevice boxed) {
+VkPhysicalDevice unbox_VkPhysicalDevice(Boxed<VkPhysicalDevice> boxed) {
     return unbox_VkType<VkPhysicalDevice>(boxed);
 }
 
-VkPhysicalDevice try_unbox_VkPhysicalDevice(VkPhysicalDevice boxed) {
+VkPhysicalDevice try_unbox_VkPhysicalDevice(Boxed<VkPhysicalDevice> boxed) {
     return try_unbox_VkType<VkPhysicalDevice>(boxed);
 }
 
-VkPhysicalDevice unboxed_to_boxed_VkPhysicalDevice(VkPhysicalDevice unboxed) {
+Boxed<VkPhysicalDevice> unboxed_to_boxed_VkPhysicalDevice(VkPhysicalDevice unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkPhysicalDevice>(unboxed);
 }
 
-std::shared_ptr<OrderMaintenanceInfo> ordmaint_VkPhysicalDevice(VkPhysicalDevice boxed) {
+std::shared_ptr<OrderMaintenanceInfo> ordmaint_VkPhysicalDevice(Boxed<VkPhysicalDevice> boxed) {
     return get_order_maintenance_info_VkType<VkPhysicalDevice>(boxed);
 }
 
-VulkanMemReadingStream* readstream_VkPhysicalDevice(VkPhysicalDevice boxed) {
+VulkanMemReadingStream* readstream_VkPhysicalDevice(Boxed<VkPhysicalDevice> boxed) {
     return get_read_stream_VkType<VkPhysicalDevice>(boxed);
 }
 
-VulkanDispatch* dispatch_VkPhysicalDevice(VkPhysicalDevice boxed) {
+VulkanDispatch* dispatch_VkPhysicalDevice(Boxed<VkPhysicalDevice> boxed) {
     return get_dispatch_VkType<VkPhysicalDevice>(boxed);
 }
 
-VkDevice new_boxed_VkDevice(VkDevice unboxed, VulkanDispatch* dispatch) {
+Boxed<VkDevice> new_boxed_VkDevice(VkDevice unboxed, VulkanDispatch* dispatch) {
     return new_boxed_VkType<VkDevice>(unboxed, /*dispatchable=*/true, dispatch);
 }
 
-void delete_VkDevice(VkDevice boxed) {
+void delete_VkDevice(Boxed<VkDevice> boxed) {
     delete_VkType(boxed);
 }
 
-VkDevice unbox_VkDevice(VkDevice boxed) {
+VkDevice unbox_VkDevice(Boxed<VkDevice> boxed) {
     return unbox_VkType<VkDevice>(boxed);
 }
 
-VkDevice try_unbox_VkDevice(VkDevice boxed) {
+VkDevice try_unbox_VkDevice(Boxed<VkDevice> boxed) {
     return try_unbox_VkType<VkDevice>(boxed);
 }
 
-VkDevice unboxed_to_boxed_VkDevice(VkDevice unboxed) {
+Boxed<VkDevice> unboxed_to_boxed_VkDevice(VkDevice unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkDevice>(unboxed);
 }
 
-std::shared_ptr<OrderMaintenanceInfo> ordmaint_VkDevice(VkDevice boxed) {
+std::shared_ptr<OrderMaintenanceInfo> ordmaint_VkDevice(Boxed<VkDevice> boxed) {
     return get_order_maintenance_info_VkType<VkDevice>(boxed);
 }
 
-VulkanMemReadingStream* readstream_VkDevice(VkDevice boxed) {
+VulkanMemReadingStream* readstream_VkDevice(Boxed<VkDevice> boxed) {
     return get_read_stream_VkType<VkDevice>(boxed);
 }
 
-VulkanDispatch* dispatch_VkDevice(VkDevice boxed) {
+VulkanDispatch* dispatch_VkDevice(Boxed<VkDevice> boxed) {
     return get_dispatch_VkType<VkDevice>(boxed);
 }
 
-VkCommandBuffer new_boxed_VkCommandBuffer(VkCommandBuffer unboxed, VulkanDispatch* dispatch) {
+Boxed<VkCommandBuffer> new_boxed_VkCommandBuffer(VkCommandBuffer unboxed, VulkanDispatch* dispatch) {
     return new_boxed_VkType<VkCommandBuffer>(unboxed, /*dispatchable=*/true, dispatch);
 }
 
-void delete_VkCommandBuffer(VkCommandBuffer boxed) {
+void delete_VkCommandBuffer(Boxed<VkCommandBuffer> boxed) {
     delete_VkType(boxed);
 }
 
-VkCommandBuffer unbox_VkCommandBuffer(VkCommandBuffer boxed) {
+VkCommandBuffer unbox_VkCommandBuffer(Boxed<VkCommandBuffer> boxed) {
     return unbox_VkType<VkCommandBuffer>(boxed);
 }
 
-VkCommandBuffer try_unbox_VkCommandBuffer(VkCommandBuffer boxed) {
+VkCommandBuffer try_unbox_VkCommandBuffer(Boxed<VkCommandBuffer> boxed) {
     return try_unbox_VkType<VkCommandBuffer>(boxed);
 }
 
-VkCommandBuffer unboxed_to_boxed_VkCommandBuffer(VkCommandBuffer unboxed) {
+Boxed<VkCommandBuffer> unboxed_to_boxed_VkCommandBuffer(VkCommandBuffer unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkCommandBuffer>(unboxed);
 }
 
-std::shared_ptr<OrderMaintenanceInfo> ordmaint_VkCommandBuffer(VkCommandBuffer boxed) {
+std::shared_ptr<OrderMaintenanceInfo> ordmaint_VkCommandBuffer(Boxed<VkCommandBuffer> boxed) {
     return get_order_maintenance_info_VkType<VkCommandBuffer>(boxed);
 }
 
-VulkanMemReadingStream* readstream_VkCommandBuffer(VkCommandBuffer boxed) {
+VulkanMemReadingStream* readstream_VkCommandBuffer(Boxed<VkCommandBuffer> boxed) {
     return get_read_stream_VkType<VkCommandBuffer>(boxed);
 }
 
-VulkanDispatch* dispatch_VkCommandBuffer(VkCommandBuffer boxed) {
+VulkanDispatch* dispatch_VkCommandBuffer(Boxed<VkCommandBuffer> boxed) {
     return get_dispatch_VkType<VkCommandBuffer>(boxed);
 }
 
-VkQueue new_boxed_VkQueue(VkQueue unboxed, VulkanDispatch* dispatch) {
+Boxed<VkQueue> new_boxed_VkQueue(VkQueue unboxed, VulkanDispatch* dispatch) {
     return new_boxed_VkType<VkQueue>(unboxed, /*dispatchable=*/true, dispatch);
 }
 
-void delete_VkQueue(VkQueue boxed) {
+void delete_VkQueue(Boxed<VkQueue> boxed) {
     delete_VkType(boxed);
 }
 
-VkQueue unbox_VkQueue(VkQueue boxed) {
+VkQueue unbox_VkQueue(Boxed<VkQueue> boxed) {
     return unbox_VkType<VkQueue>(boxed);
 }
 
-VkQueue try_unbox_VkQueue(VkQueue boxed) {
+VkQueue try_unbox_VkQueue(Boxed<VkQueue> boxed) {
     return try_unbox_VkType<VkQueue>(boxed);
 }
 
-VkQueue unboxed_to_boxed_VkQueue(VkQueue unboxed) {
+Boxed<VkQueue> unboxed_to_boxed_VkQueue(VkQueue unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkQueue>(unboxed);
 }
 
-std::shared_ptr<OrderMaintenanceInfo> ordmaint_VkQueue(VkQueue boxed) {
+std::shared_ptr<OrderMaintenanceInfo> ordmaint_VkQueue(Boxed<VkQueue> boxed) {
     return get_order_maintenance_info_VkType<VkQueue>(boxed);
 }
 
-VulkanMemReadingStream* readstream_VkQueue(VkQueue boxed) {
+VulkanMemReadingStream* readstream_VkQueue(Boxed<VkQueue> boxed) {
     return get_read_stream_VkType<VkQueue>(boxed);
 }
 
-VulkanDispatch* dispatch_VkQueue(VkQueue boxed) {
+VulkanDispatch* dispatch_VkQueue(Boxed<VkQueue> boxed) {
     return get_dispatch_VkType<VkQueue>(boxed);
 }
 
@@ -706,1011 +708,1011 @@ VulkanDispatch* dispatch_VkQueue(VkQueue boxed) {
 //////////////             NON DISPATCHABLE TYPES                //////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-VkAccelerationStructureKHR new_boxed_non_dispatchable_VkAccelerationStructureKHR(VkAccelerationStructureKHR unboxed) {
+Boxed<VkAccelerationStructureKHR> new_boxed_non_dispatchable_VkAccelerationStructureKHR(VkAccelerationStructureKHR unboxed) {
     return new_boxed_VkType<VkAccelerationStructureKHR>(unboxed);
 }
 
-void delete_VkAccelerationStructureKHR(VkAccelerationStructureKHR boxed) {
+void delete_VkAccelerationStructureKHR(Boxed<VkAccelerationStructureKHR> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkAccelerationStructureKHR(VkAccelerationStructureKHR boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkAccelerationStructureKHR(Boxed<VkAccelerationStructureKHR> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkAccelerationStructureKHR unbox_VkAccelerationStructureKHR(VkAccelerationStructureKHR boxed) {
+VkAccelerationStructureKHR unbox_VkAccelerationStructureKHR(Boxed<VkAccelerationStructureKHR> boxed) {
     return unbox_VkType<VkAccelerationStructureKHR>(boxed);
 }
 
-VkAccelerationStructureKHR try_unbox_VkAccelerationStructureKHR(VkAccelerationStructureKHR boxed) {
+VkAccelerationStructureKHR try_unbox_VkAccelerationStructureKHR(Boxed<VkAccelerationStructureKHR> boxed) {
     return try_unbox_VkType<VkAccelerationStructureKHR>(boxed);
 }
 
-VkAccelerationStructureKHR unboxed_to_boxed_non_dispatchable_VkAccelerationStructureKHR(VkAccelerationStructureKHR unboxed) {
+Boxed<VkAccelerationStructureKHR> unboxed_to_boxed_non_dispatchable_VkAccelerationStructureKHR(VkAccelerationStructureKHR unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkAccelerationStructureKHR>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkAccelerationStructureKHR(VkAccelerationStructureKHR boxed, VkAccelerationStructureKHR new_unboxed) {
+void set_boxed_non_dispatchable_VkAccelerationStructureKHR(Boxed<VkAccelerationStructureKHR> boxed, VkAccelerationStructureKHR new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkAccelerationStructureKHR>(boxed, new_unboxed);
 }
 
-VkAccelerationStructureNV new_boxed_non_dispatchable_VkAccelerationStructureNV(VkAccelerationStructureNV unboxed) {
+Boxed<VkAccelerationStructureNV> new_boxed_non_dispatchable_VkAccelerationStructureNV(VkAccelerationStructureNV unboxed) {
     return new_boxed_VkType<VkAccelerationStructureNV>(unboxed);
 }
 
-void delete_VkAccelerationStructureNV(VkAccelerationStructureNV boxed) {
+void delete_VkAccelerationStructureNV(Boxed<VkAccelerationStructureNV> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkAccelerationStructureNV(VkAccelerationStructureNV boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkAccelerationStructureNV(Boxed<VkAccelerationStructureNV> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkAccelerationStructureNV unbox_VkAccelerationStructureNV(VkAccelerationStructureNV boxed) {
+VkAccelerationStructureNV unbox_VkAccelerationStructureNV(Boxed<VkAccelerationStructureNV> boxed) {
     return unbox_VkType<VkAccelerationStructureNV>(boxed);
 }
 
-VkAccelerationStructureNV try_unbox_VkAccelerationStructureNV(VkAccelerationStructureNV boxed) {
+VkAccelerationStructureNV try_unbox_VkAccelerationStructureNV(Boxed<VkAccelerationStructureNV> boxed) {
     return try_unbox_VkType<VkAccelerationStructureNV>(boxed);
 }
 
-VkAccelerationStructureNV unboxed_to_boxed_non_dispatchable_VkAccelerationStructureNV(VkAccelerationStructureNV unboxed) {
+Boxed<VkAccelerationStructureNV> unboxed_to_boxed_non_dispatchable_VkAccelerationStructureNV(VkAccelerationStructureNV unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkAccelerationStructureNV>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkAccelerationStructureNV(VkAccelerationStructureNV boxed, VkAccelerationStructureNV new_unboxed) {
+void set_boxed_non_dispatchable_VkAccelerationStructureNV(Boxed<VkAccelerationStructureNV> boxed, VkAccelerationStructureNV new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkAccelerationStructureNV>(boxed, new_unboxed);
 }
 
-VkBuffer new_boxed_non_dispatchable_VkBuffer(VkBuffer unboxed) {
+Boxed<VkBuffer> new_boxed_non_dispatchable_VkBuffer(VkBuffer unboxed) {
     return new_boxed_VkType<VkBuffer>(unboxed);
 }
 
-void delete_VkBuffer(VkBuffer boxed) {
+void delete_VkBuffer(Boxed<VkBuffer> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkBuffer(VkBuffer boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkBuffer(Boxed<VkBuffer> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkBuffer unbox_VkBuffer(VkBuffer boxed) {
+VkBuffer unbox_VkBuffer(Boxed<VkBuffer> boxed) {
     return unbox_VkType<VkBuffer>(boxed);
 }
 
-VkBuffer try_unbox_VkBuffer(VkBuffer boxed) {
+VkBuffer try_unbox_VkBuffer(Boxed<VkBuffer> boxed) {
     return try_unbox_VkType<VkBuffer>(boxed);
 }
 
-VkBuffer unboxed_to_boxed_non_dispatchable_VkBuffer(VkBuffer unboxed) {
+Boxed<VkBuffer> unboxed_to_boxed_non_dispatchable_VkBuffer(VkBuffer unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkBuffer>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkBuffer(VkBuffer boxed, VkBuffer new_unboxed) {
+void set_boxed_non_dispatchable_VkBuffer(Boxed<VkBuffer> boxed, VkBuffer new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkBuffer>(boxed, new_unboxed);
 }
 
-VkBufferView new_boxed_non_dispatchable_VkBufferView(VkBufferView unboxed) {
+Boxed<VkBufferView> new_boxed_non_dispatchable_VkBufferView(VkBufferView unboxed) {
     return new_boxed_VkType<VkBufferView>(unboxed);
 }
 
-void delete_VkBufferView(VkBufferView boxed) {
+void delete_VkBufferView(Boxed<VkBufferView> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkBufferView(VkBufferView boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkBufferView(Boxed<VkBufferView> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkBufferView unbox_VkBufferView(VkBufferView boxed) {
+VkBufferView unbox_VkBufferView(Boxed<VkBufferView> boxed) {
     return unbox_VkType<VkBufferView>(boxed);
 }
 
-VkBufferView try_unbox_VkBufferView(VkBufferView boxed) {
+VkBufferView try_unbox_VkBufferView(Boxed<VkBufferView> boxed) {
     return try_unbox_VkType<VkBufferView>(boxed);
 }
 
-VkBufferView unboxed_to_boxed_non_dispatchable_VkBufferView(VkBufferView unboxed) {
+Boxed<VkBufferView> unboxed_to_boxed_non_dispatchable_VkBufferView(VkBufferView unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkBufferView>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkBufferView(VkBufferView boxed, VkBufferView new_unboxed) {
+void set_boxed_non_dispatchable_VkBufferView(Boxed<VkBufferView> boxed, VkBufferView new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkBufferView>(boxed, new_unboxed);
 }
 
-VkCommandPool new_boxed_non_dispatchable_VkCommandPool(VkCommandPool unboxed) {
+Boxed<VkCommandPool> new_boxed_non_dispatchable_VkCommandPool(VkCommandPool unboxed) {
     return new_boxed_VkType<VkCommandPool>(unboxed);
 }
 
-void delete_VkCommandPool(VkCommandPool boxed) {
+void delete_VkCommandPool(Boxed<VkCommandPool> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkCommandPool(VkCommandPool boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkCommandPool(Boxed<VkCommandPool> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkCommandPool unbox_VkCommandPool(VkCommandPool boxed) {
+VkCommandPool unbox_VkCommandPool(Boxed<VkCommandPool> boxed) {
     return unbox_VkType<VkCommandPool>(boxed);
 }
 
-VkCommandPool try_unbox_VkCommandPool(VkCommandPool boxed) {
+VkCommandPool try_unbox_VkCommandPool(Boxed<VkCommandPool> boxed) {
     return try_unbox_VkType<VkCommandPool>(boxed);
 }
 
-VkCommandPool unboxed_to_boxed_non_dispatchable_VkCommandPool(VkCommandPool unboxed) {
+Boxed<VkCommandPool> unboxed_to_boxed_non_dispatchable_VkCommandPool(VkCommandPool unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkCommandPool>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkCommandPool(VkCommandPool boxed, VkCommandPool new_unboxed) {
+void set_boxed_non_dispatchable_VkCommandPool(Boxed<VkCommandPool> boxed, VkCommandPool new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkCommandPool>(boxed, new_unboxed);
 }
 
-VkCuFunctionNVX new_boxed_non_dispatchable_VkCuFunctionNVX(VkCuFunctionNVX unboxed) {
+Boxed<VkCuFunctionNVX> new_boxed_non_dispatchable_VkCuFunctionNVX(VkCuFunctionNVX unboxed) {
     return new_boxed_VkType<VkCuFunctionNVX>(unboxed);
 }
 
-void delete_VkCuFunctionNVX(VkCuFunctionNVX boxed) {
+void delete_VkCuFunctionNVX(Boxed<VkCuFunctionNVX> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkCuFunctionNVX(VkCuFunctionNVX boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkCuFunctionNVX(Boxed<VkCuFunctionNVX> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkCuFunctionNVX unbox_VkCuFunctionNVX(VkCuFunctionNVX boxed) {
+VkCuFunctionNVX unbox_VkCuFunctionNVX(Boxed<VkCuFunctionNVX> boxed) {
     return unbox_VkType<VkCuFunctionNVX>(boxed);
 }
 
-VkCuFunctionNVX try_unbox_VkCuFunctionNVX(VkCuFunctionNVX boxed) {
+VkCuFunctionNVX try_unbox_VkCuFunctionNVX(Boxed<VkCuFunctionNVX> boxed) {
     return try_unbox_VkType<VkCuFunctionNVX>(boxed);
 }
 
-VkCuFunctionNVX unboxed_to_boxed_non_dispatchable_VkCuFunctionNVX(VkCuFunctionNVX unboxed) {
+Boxed<VkCuFunctionNVX> unboxed_to_boxed_non_dispatchable_VkCuFunctionNVX(VkCuFunctionNVX unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkCuFunctionNVX>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkCuFunctionNVX(VkCuFunctionNVX boxed, VkCuFunctionNVX new_unboxed) {
+void set_boxed_non_dispatchable_VkCuFunctionNVX(Boxed<VkCuFunctionNVX> boxed, VkCuFunctionNVX new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkCuFunctionNVX>(boxed, new_unboxed);
 }
 
-VkCuModuleNVX new_boxed_non_dispatchable_VkCuModuleNVX(VkCuModuleNVX unboxed) {
+Boxed<VkCuModuleNVX> new_boxed_non_dispatchable_VkCuModuleNVX(VkCuModuleNVX unboxed) {
     return new_boxed_VkType<VkCuModuleNVX>(unboxed);
 }
 
-void delete_VkCuModuleNVX(VkCuModuleNVX boxed) {
+void delete_VkCuModuleNVX(Boxed<VkCuModuleNVX> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkCuModuleNVX(VkCuModuleNVX boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkCuModuleNVX(Boxed<VkCuModuleNVX> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkCuModuleNVX unbox_VkCuModuleNVX(VkCuModuleNVX boxed) {
+VkCuModuleNVX unbox_VkCuModuleNVX(Boxed<VkCuModuleNVX> boxed) {
     return unbox_VkType<VkCuModuleNVX>(boxed);
 }
 
-VkCuModuleNVX try_unbox_VkCuModuleNVX(VkCuModuleNVX boxed) {
+VkCuModuleNVX try_unbox_VkCuModuleNVX(Boxed<VkCuModuleNVX> boxed) {
     return try_unbox_VkType<VkCuModuleNVX>(boxed);
 }
 
-VkCuModuleNVX unboxed_to_boxed_non_dispatchable_VkCuModuleNVX(VkCuModuleNVX unboxed) {
+Boxed<VkCuModuleNVX> unboxed_to_boxed_non_dispatchable_VkCuModuleNVX(VkCuModuleNVX unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkCuModuleNVX>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkCuModuleNVX(VkCuModuleNVX boxed, VkCuModuleNVX new_unboxed) {
+void set_boxed_non_dispatchable_VkCuModuleNVX(Boxed<VkCuModuleNVX> boxed, VkCuModuleNVX new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkCuModuleNVX>(boxed, new_unboxed);
 }
 
-VkDebugReportCallbackEXT new_boxed_non_dispatchable_VkDebugReportCallbackEXT(VkDebugReportCallbackEXT unboxed) {
+Boxed<VkDebugReportCallbackEXT> new_boxed_non_dispatchable_VkDebugReportCallbackEXT(VkDebugReportCallbackEXT unboxed) {
     return new_boxed_VkType<VkDebugReportCallbackEXT>(unboxed);
 }
 
-void delete_VkDebugReportCallbackEXT(VkDebugReportCallbackEXT boxed) {
+void delete_VkDebugReportCallbackEXT(Boxed<VkDebugReportCallbackEXT> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkDebugReportCallbackEXT(VkDebugReportCallbackEXT boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkDebugReportCallbackEXT(Boxed<VkDebugReportCallbackEXT> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkDebugReportCallbackEXT unbox_VkDebugReportCallbackEXT(VkDebugReportCallbackEXT boxed) {
+VkDebugReportCallbackEXT unbox_VkDebugReportCallbackEXT(Boxed<VkDebugReportCallbackEXT> boxed) {
     return unbox_VkType<VkDebugReportCallbackEXT>(boxed);
 }
 
-VkDebugReportCallbackEXT try_unbox_VkDebugReportCallbackEXT(VkDebugReportCallbackEXT boxed) {
+VkDebugReportCallbackEXT try_unbox_VkDebugReportCallbackEXT(Boxed<VkDebugReportCallbackEXT> boxed) {
     return try_unbox_VkType<VkDebugReportCallbackEXT>(boxed);
 }
 
-VkDebugReportCallbackEXT unboxed_to_boxed_non_dispatchable_VkDebugReportCallbackEXT(VkDebugReportCallbackEXT unboxed) {
+Boxed<VkDebugReportCallbackEXT> unboxed_to_boxed_non_dispatchable_VkDebugReportCallbackEXT(VkDebugReportCallbackEXT unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkDebugReportCallbackEXT>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkDebugReportCallbackEXT(VkDebugReportCallbackEXT boxed, VkDebugReportCallbackEXT new_unboxed) {
+void set_boxed_non_dispatchable_VkDebugReportCallbackEXT(Boxed<VkDebugReportCallbackEXT> boxed, VkDebugReportCallbackEXT new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkDebugReportCallbackEXT>(boxed, new_unboxed);
 }
 
-VkDebugUtilsMessengerEXT new_boxed_non_dispatchable_VkDebugUtilsMessengerEXT(VkDebugUtilsMessengerEXT unboxed) {
+Boxed<VkDebugUtilsMessengerEXT> new_boxed_non_dispatchable_VkDebugUtilsMessengerEXT(VkDebugUtilsMessengerEXT unboxed) {
     return new_boxed_VkType<VkDebugUtilsMessengerEXT>(unboxed);
 }
 
-void delete_VkDebugUtilsMessengerEXT(VkDebugUtilsMessengerEXT boxed) {
+void delete_VkDebugUtilsMessengerEXT(Boxed<VkDebugUtilsMessengerEXT> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkDebugUtilsMessengerEXT(VkDebugUtilsMessengerEXT boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkDebugUtilsMessengerEXT(Boxed<VkDebugUtilsMessengerEXT> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkDebugUtilsMessengerEXT unbox_VkDebugUtilsMessengerEXT(VkDebugUtilsMessengerEXT boxed) {
+VkDebugUtilsMessengerEXT unbox_VkDebugUtilsMessengerEXT(Boxed<VkDebugUtilsMessengerEXT> boxed) {
     return unbox_VkType<VkDebugUtilsMessengerEXT>(boxed);
 }
 
-VkDebugUtilsMessengerEXT try_unbox_VkDebugUtilsMessengerEXT(VkDebugUtilsMessengerEXT boxed) {
+VkDebugUtilsMessengerEXT try_unbox_VkDebugUtilsMessengerEXT(Boxed<VkDebugUtilsMessengerEXT> boxed) {
     return try_unbox_VkType<VkDebugUtilsMessengerEXT>(boxed);
 }
 
-VkDebugUtilsMessengerEXT unboxed_to_boxed_non_dispatchable_VkDebugUtilsMessengerEXT(VkDebugUtilsMessengerEXT unboxed) {
+Boxed<VkDebugUtilsMessengerEXT> unboxed_to_boxed_non_dispatchable_VkDebugUtilsMessengerEXT(VkDebugUtilsMessengerEXT unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkDebugUtilsMessengerEXT>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkDebugUtilsMessengerEXT(VkDebugUtilsMessengerEXT boxed, VkDebugUtilsMessengerEXT new_unboxed) {
+void set_boxed_non_dispatchable_VkDebugUtilsMessengerEXT(Boxed<VkDebugUtilsMessengerEXT> boxed, VkDebugUtilsMessengerEXT new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkDebugUtilsMessengerEXT>(boxed, new_unboxed);
 }
 
-VkDescriptorPool new_boxed_non_dispatchable_VkDescriptorPool(VkDescriptorPool unboxed) {
+Boxed<VkDescriptorPool> new_boxed_non_dispatchable_VkDescriptorPool(VkDescriptorPool unboxed) {
     return new_boxed_VkType<VkDescriptorPool>(unboxed);
 }
 
-void delete_VkDescriptorPool(VkDescriptorPool boxed) {
+void delete_VkDescriptorPool(Boxed<VkDescriptorPool> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkDescriptorPool(VkDescriptorPool boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkDescriptorPool(Boxed<VkDescriptorPool> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkDescriptorPool unbox_VkDescriptorPool(VkDescriptorPool boxed) {
+VkDescriptorPool unbox_VkDescriptorPool(Boxed<VkDescriptorPool> boxed) {
     return unbox_VkType<VkDescriptorPool>(boxed);
 }
 
-VkDescriptorPool try_unbox_VkDescriptorPool(VkDescriptorPool boxed) {
+VkDescriptorPool try_unbox_VkDescriptorPool(Boxed<VkDescriptorPool> boxed) {
     return try_unbox_VkType<VkDescriptorPool>(boxed);
 }
 
-VkDescriptorPool unboxed_to_boxed_non_dispatchable_VkDescriptorPool(VkDescriptorPool unboxed) {
+Boxed<VkDescriptorPool> unboxed_to_boxed_non_dispatchable_VkDescriptorPool(VkDescriptorPool unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkDescriptorPool>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkDescriptorPool(VkDescriptorPool boxed, VkDescriptorPool new_unboxed) {
+void set_boxed_non_dispatchable_VkDescriptorPool(Boxed<VkDescriptorPool> boxed, VkDescriptorPool new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkDescriptorPool>(boxed, new_unboxed);
 }
 
-VkDescriptorSet new_boxed_non_dispatchable_VkDescriptorSet(VkDescriptorSet unboxed) {
+Boxed<VkDescriptorSet> new_boxed_non_dispatchable_VkDescriptorSet(VkDescriptorSet unboxed) {
     return new_boxed_VkType<VkDescriptorSet>(unboxed);
 }
 
-void delete_VkDescriptorSet(VkDescriptorSet boxed) {
+void delete_VkDescriptorSet(Boxed<VkDescriptorSet> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkDescriptorSet(VkDescriptorSet boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkDescriptorSet(Boxed<VkDescriptorSet> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkDescriptorSet unbox_VkDescriptorSet(VkDescriptorSet boxed) {
+VkDescriptorSet unbox_VkDescriptorSet(Boxed<VkDescriptorSet> boxed) {
     return unbox_VkType<VkDescriptorSet>(boxed);
 }
 
-VkDescriptorSet try_unbox_VkDescriptorSet(VkDescriptorSet boxed) {
+VkDescriptorSet try_unbox_VkDescriptorSet(Boxed<VkDescriptorSet> boxed) {
     return try_unbox_VkType<VkDescriptorSet>(boxed);
 }
 
-VkDescriptorSet unboxed_to_boxed_non_dispatchable_VkDescriptorSet(VkDescriptorSet unboxed) {
+Boxed<VkDescriptorSet> unboxed_to_boxed_non_dispatchable_VkDescriptorSet(VkDescriptorSet unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkDescriptorSet>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkDescriptorSet(VkDescriptorSet boxed, VkDescriptorSet new_unboxed) {
+void set_boxed_non_dispatchable_VkDescriptorSet(Boxed<VkDescriptorSet> boxed, VkDescriptorSet new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkDescriptorSet>(boxed, new_unboxed);
 }
 
-VkDescriptorSetLayout new_boxed_non_dispatchable_VkDescriptorSetLayout(VkDescriptorSetLayout unboxed) {
+Boxed<VkDescriptorSetLayout> new_boxed_non_dispatchable_VkDescriptorSetLayout(VkDescriptorSetLayout unboxed) {
     return new_boxed_VkType<VkDescriptorSetLayout>(unboxed);
 }
 
-void delete_VkDescriptorSetLayout(VkDescriptorSetLayout boxed) {
+void delete_VkDescriptorSetLayout(Boxed<VkDescriptorSetLayout> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkDescriptorSetLayout(VkDescriptorSetLayout boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkDescriptorSetLayout(Boxed<VkDescriptorSetLayout> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkDescriptorSetLayout unbox_VkDescriptorSetLayout(VkDescriptorSetLayout boxed) {
+VkDescriptorSetLayout unbox_VkDescriptorSetLayout(Boxed<VkDescriptorSetLayout> boxed) {
     return unbox_VkType<VkDescriptorSetLayout>(boxed);
 }
 
-VkDescriptorSetLayout try_unbox_VkDescriptorSetLayout(VkDescriptorSetLayout boxed) {
+VkDescriptorSetLayout try_unbox_VkDescriptorSetLayout(Boxed<VkDescriptorSetLayout> boxed) {
     return try_unbox_VkType<VkDescriptorSetLayout>(boxed);
 }
 
-VkDescriptorSetLayout unboxed_to_boxed_non_dispatchable_VkDescriptorSetLayout(VkDescriptorSetLayout unboxed) {
+Boxed<VkDescriptorSetLayout> unboxed_to_boxed_non_dispatchable_VkDescriptorSetLayout(VkDescriptorSetLayout unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkDescriptorSetLayout>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkDescriptorSetLayout(VkDescriptorSetLayout boxed, VkDescriptorSetLayout new_unboxed) {
+void set_boxed_non_dispatchable_VkDescriptorSetLayout(Boxed<VkDescriptorSetLayout> boxed, VkDescriptorSetLayout new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkDescriptorSetLayout>(boxed, new_unboxed);
 }
 
-VkDescriptorUpdateTemplate new_boxed_non_dispatchable_VkDescriptorUpdateTemplate(VkDescriptorUpdateTemplate unboxed) {
+Boxed<VkDescriptorUpdateTemplate> new_boxed_non_dispatchable_VkDescriptorUpdateTemplate(VkDescriptorUpdateTemplate unboxed) {
     return new_boxed_VkType<VkDescriptorUpdateTemplate>(unboxed);
 }
 
-void delete_VkDescriptorUpdateTemplate(VkDescriptorUpdateTemplate boxed) {
+void delete_VkDescriptorUpdateTemplate(Boxed<VkDescriptorUpdateTemplate> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkDescriptorUpdateTemplate(VkDescriptorUpdateTemplate boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkDescriptorUpdateTemplate(Boxed<VkDescriptorUpdateTemplate> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkDescriptorUpdateTemplate unbox_VkDescriptorUpdateTemplate(VkDescriptorUpdateTemplate boxed) {
+VkDescriptorUpdateTemplate unbox_VkDescriptorUpdateTemplate(Boxed<VkDescriptorUpdateTemplate> boxed) {
     return unbox_VkType<VkDescriptorUpdateTemplate>(boxed);
 }
 
-VkDescriptorUpdateTemplate try_unbox_VkDescriptorUpdateTemplate(VkDescriptorUpdateTemplate boxed) {
+VkDescriptorUpdateTemplate try_unbox_VkDescriptorUpdateTemplate(Boxed<VkDescriptorUpdateTemplate> boxed) {
     return try_unbox_VkType<VkDescriptorUpdateTemplate>(boxed);
 }
 
-VkDescriptorUpdateTemplate unboxed_to_boxed_non_dispatchable_VkDescriptorUpdateTemplate(VkDescriptorUpdateTemplate unboxed) {
+Boxed<VkDescriptorUpdateTemplate> unboxed_to_boxed_non_dispatchable_VkDescriptorUpdateTemplate(VkDescriptorUpdateTemplate unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkDescriptorUpdateTemplate>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkDescriptorUpdateTemplate(VkDescriptorUpdateTemplate boxed, VkDescriptorUpdateTemplate new_unboxed) {
+void set_boxed_non_dispatchable_VkDescriptorUpdateTemplate(Boxed<VkDescriptorUpdateTemplate> boxed, VkDescriptorUpdateTemplate new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkDescriptorUpdateTemplate>(boxed, new_unboxed);
 }
 
-VkDeviceMemory new_boxed_non_dispatchable_VkDeviceMemory(VkDeviceMemory unboxed) {
+Boxed<VkDeviceMemory> new_boxed_non_dispatchable_VkDeviceMemory(VkDeviceMemory unboxed) {
     return new_boxed_VkType<VkDeviceMemory>(unboxed);
 }
 
-void delete_VkDeviceMemory(VkDeviceMemory boxed) {
+void delete_VkDeviceMemory(Boxed<VkDeviceMemory> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkDeviceMemory(VkDeviceMemory boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkDeviceMemory(Boxed<VkDeviceMemory> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkDeviceMemory unbox_VkDeviceMemory(VkDeviceMemory boxed) {
+VkDeviceMemory unbox_VkDeviceMemory(Boxed<VkDeviceMemory> boxed) {
     return unbox_VkType<VkDeviceMemory>(boxed);
 }
 
-VkDeviceMemory try_unbox_VkDeviceMemory(VkDeviceMemory boxed) {
+VkDeviceMemory try_unbox_VkDeviceMemory(Boxed<VkDeviceMemory> boxed) {
     return try_unbox_VkType<VkDeviceMemory>(boxed);
 }
 
-VkDeviceMemory unboxed_to_boxed_non_dispatchable_VkDeviceMemory(VkDeviceMemory unboxed) {
+Boxed<VkDeviceMemory> unboxed_to_boxed_non_dispatchable_VkDeviceMemory(VkDeviceMemory unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkDeviceMemory>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkDeviceMemory(VkDeviceMemory boxed, VkDeviceMemory new_unboxed) {
+void set_boxed_non_dispatchable_VkDeviceMemory(Boxed<VkDeviceMemory> boxed, VkDeviceMemory new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkDeviceMemory>(boxed, new_unboxed);
 }
 
-VkDisplayKHR new_boxed_non_dispatchable_VkDisplayKHR(VkDisplayKHR unboxed) {
+Boxed<VkDisplayKHR> new_boxed_non_dispatchable_VkDisplayKHR(VkDisplayKHR unboxed) {
     return new_boxed_VkType<VkDisplayKHR>(unboxed);
 }
 
-void delete_VkDisplayKHR(VkDisplayKHR boxed) {
+void delete_VkDisplayKHR(Boxed<VkDisplayKHR> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkDisplayKHR(VkDisplayKHR boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkDisplayKHR(Boxed<VkDisplayKHR> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkDisplayKHR unbox_VkDisplayKHR(VkDisplayKHR boxed) {
+VkDisplayKHR unbox_VkDisplayKHR(Boxed<VkDisplayKHR> boxed) {
     return unbox_VkType<VkDisplayKHR>(boxed);
 }
 
-VkDisplayKHR try_unbox_VkDisplayKHR(VkDisplayKHR boxed) {
+VkDisplayKHR try_unbox_VkDisplayKHR(Boxed<VkDisplayKHR> boxed) {
     return try_unbox_VkType<VkDisplayKHR>(boxed);
 }
 
-VkDisplayKHR unboxed_to_boxed_non_dispatchable_VkDisplayKHR(VkDisplayKHR unboxed) {
+Boxed<VkDisplayKHR> unboxed_to_boxed_non_dispatchable_VkDisplayKHR(VkDisplayKHR unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkDisplayKHR>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkDisplayKHR(VkDisplayKHR boxed, VkDisplayKHR new_unboxed) {
+void set_boxed_non_dispatchable_VkDisplayKHR(Boxed<VkDisplayKHR> boxed, VkDisplayKHR new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkDisplayKHR>(boxed, new_unboxed);
 }
 
-VkDisplayModeKHR new_boxed_non_dispatchable_VkDisplayModeKHR(VkDisplayModeKHR unboxed) {
+Boxed<VkDisplayModeKHR> new_boxed_non_dispatchable_VkDisplayModeKHR(VkDisplayModeKHR unboxed) {
     return new_boxed_VkType<VkDisplayModeKHR>(unboxed);
 }
 
-void delete_VkDisplayModeKHR(VkDisplayModeKHR boxed) {
+void delete_VkDisplayModeKHR(Boxed<VkDisplayModeKHR> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkDisplayModeKHR(VkDisplayModeKHR boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkDisplayModeKHR(Boxed<VkDisplayModeKHR> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkDisplayModeKHR unbox_VkDisplayModeKHR(VkDisplayModeKHR boxed) {
+VkDisplayModeKHR unbox_VkDisplayModeKHR(Boxed<VkDisplayModeKHR> boxed) {
     return unbox_VkType<VkDisplayModeKHR>(boxed);
 }
 
-VkDisplayModeKHR try_unbox_VkDisplayModeKHR(VkDisplayModeKHR boxed) {
+VkDisplayModeKHR try_unbox_VkDisplayModeKHR(Boxed<VkDisplayModeKHR> boxed) {
     return try_unbox_VkType<VkDisplayModeKHR>(boxed);
 }
 
-VkDisplayModeKHR unboxed_to_boxed_non_dispatchable_VkDisplayModeKHR(VkDisplayModeKHR unboxed) {
+Boxed<VkDisplayModeKHR> unboxed_to_boxed_non_dispatchable_VkDisplayModeKHR(VkDisplayModeKHR unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkDisplayModeKHR>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkDisplayModeKHR(VkDisplayModeKHR boxed, VkDisplayModeKHR new_unboxed) {
+void set_boxed_non_dispatchable_VkDisplayModeKHR(Boxed<VkDisplayModeKHR> boxed, VkDisplayModeKHR new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkDisplayModeKHR>(boxed, new_unboxed);
 }
 
-VkEvent new_boxed_non_dispatchable_VkEvent(VkEvent unboxed) {
+Boxed<VkEvent> new_boxed_non_dispatchable_VkEvent(VkEvent unboxed) {
     return new_boxed_VkType<VkEvent>(unboxed);
 }
 
-void delete_VkEvent(VkEvent boxed) {
+void delete_VkEvent(Boxed<VkEvent> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkEvent(VkEvent boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkEvent(Boxed<VkEvent> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkEvent unbox_VkEvent(VkEvent boxed) {
+VkEvent unbox_VkEvent(Boxed<VkEvent> boxed) {
     return unbox_VkType<VkEvent>(boxed);
 }
 
-VkEvent try_unbox_VkEvent(VkEvent boxed) {
+VkEvent try_unbox_VkEvent(Boxed<VkEvent> boxed) {
     return try_unbox_VkType<VkEvent>(boxed);
 }
 
-VkEvent unboxed_to_boxed_non_dispatchable_VkEvent(VkEvent unboxed) {
+Boxed<VkEvent> unboxed_to_boxed_non_dispatchable_VkEvent(VkEvent unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkEvent>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkEvent(VkEvent boxed, VkEvent new_unboxed) {
+void set_boxed_non_dispatchable_VkEvent(Boxed<VkEvent> boxed, VkEvent new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkEvent>(boxed, new_unboxed);
 }
 
-VkFence new_boxed_non_dispatchable_VkFence(VkFence unboxed) {
+Boxed<VkFence> new_boxed_non_dispatchable_VkFence(VkFence unboxed) {
     return new_boxed_VkType<VkFence>(unboxed);
 }
 
-void delete_VkFence(VkFence boxed) {
+void delete_VkFence(Boxed<VkFence> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkFence(VkFence boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkFence(Boxed<VkFence> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkFence unbox_VkFence(VkFence boxed) {
+VkFence unbox_VkFence(Boxed<VkFence> boxed) {
     return unbox_VkType<VkFence>(boxed);
 }
 
-VkFence try_unbox_VkFence(VkFence boxed) {
+VkFence try_unbox_VkFence(Boxed<VkFence> boxed) {
     return try_unbox_VkType<VkFence>(boxed);
 }
 
-VkFence unboxed_to_boxed_non_dispatchable_VkFence(VkFence unboxed) {
+Boxed<VkFence> unboxed_to_boxed_non_dispatchable_VkFence(VkFence unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkFence>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkFence(VkFence boxed, VkFence new_unboxed) {
+void set_boxed_non_dispatchable_VkFence(Boxed<VkFence> boxed, VkFence new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkFence>(boxed, new_unboxed);
 }
 
-VkFramebuffer new_boxed_non_dispatchable_VkFramebuffer(VkFramebuffer unboxed) {
+Boxed<VkFramebuffer> new_boxed_non_dispatchable_VkFramebuffer(VkFramebuffer unboxed) {
     return new_boxed_VkType<VkFramebuffer>(unboxed);
 }
 
-void delete_VkFramebuffer(VkFramebuffer boxed) {
+void delete_VkFramebuffer(Boxed<VkFramebuffer> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkFramebuffer(VkFramebuffer boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkFramebuffer(Boxed<VkFramebuffer> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkFramebuffer unbox_VkFramebuffer(VkFramebuffer boxed) {
+VkFramebuffer unbox_VkFramebuffer(Boxed<VkFramebuffer> boxed) {
     return unbox_VkType<VkFramebuffer>(boxed);
 }
 
-VkFramebuffer try_unbox_VkFramebuffer(VkFramebuffer boxed) {
+VkFramebuffer try_unbox_VkFramebuffer(Boxed<VkFramebuffer> boxed) {
     return try_unbox_VkType<VkFramebuffer>(boxed);
 }
 
-VkFramebuffer unboxed_to_boxed_non_dispatchable_VkFramebuffer(VkFramebuffer unboxed) {
+Boxed<VkFramebuffer> unboxed_to_boxed_non_dispatchable_VkFramebuffer(VkFramebuffer unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkFramebuffer>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkFramebuffer(VkFramebuffer boxed, VkFramebuffer new_unboxed) {
+void set_boxed_non_dispatchable_VkFramebuffer(Boxed<VkFramebuffer> boxed, VkFramebuffer new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkFramebuffer>(boxed, new_unboxed);
 }
 
-VkImage new_boxed_non_dispatchable_VkImage(VkImage unboxed) {
+Boxed<VkImage> new_boxed_non_dispatchable_VkImage(VkImage unboxed) {
     return new_boxed_VkType<VkImage>(unboxed);
 }
 
-void delete_VkImage(VkImage boxed) {
+void delete_VkImage(Boxed<VkImage> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkImage(VkImage boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkImage(Boxed<VkImage> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkImage unbox_VkImage(VkImage boxed) {
+VkImage unbox_VkImage(Boxed<VkImage> boxed) {
     return unbox_VkType<VkImage>(boxed);
 }
 
-VkImage try_unbox_VkImage(VkImage boxed) {
+VkImage try_unbox_VkImage(Boxed<VkImage> boxed) {
     return try_unbox_VkType<VkImage>(boxed);
 }
 
-VkImage unboxed_to_boxed_non_dispatchable_VkImage(VkImage unboxed) {
+Boxed<VkImage> unboxed_to_boxed_non_dispatchable_VkImage(VkImage unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkImage>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkImage(VkImage boxed, VkImage new_unboxed) {
+void set_boxed_non_dispatchable_VkImage(Boxed<VkImage> boxed, VkImage new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkImage>(boxed, new_unboxed);
 }
 
-VkImageView new_boxed_non_dispatchable_VkImageView(VkImageView unboxed) {
+Boxed<VkImageView> new_boxed_non_dispatchable_VkImageView(VkImageView unboxed) {
     return new_boxed_VkType<VkImageView>(unboxed);
 }
 
-void delete_VkImageView(VkImageView boxed) {
+void delete_VkImageView(Boxed<VkImageView> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkImageView(VkImageView boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkImageView(Boxed<VkImageView> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkImageView unbox_VkImageView(VkImageView boxed) {
+VkImageView unbox_VkImageView(Boxed<VkImageView> boxed) {
     return unbox_VkType<VkImageView>(boxed);
 }
 
-VkImageView try_unbox_VkImageView(VkImageView boxed) {
+VkImageView try_unbox_VkImageView(Boxed<VkImageView> boxed) {
     return try_unbox_VkType<VkImageView>(boxed);
 }
 
-VkImageView unboxed_to_boxed_non_dispatchable_VkImageView(VkImageView unboxed) {
+Boxed<VkImageView> unboxed_to_boxed_non_dispatchable_VkImageView(VkImageView unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkImageView>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkImageView(VkImageView boxed, VkImageView new_unboxed) {
+void set_boxed_non_dispatchable_VkImageView(Boxed<VkImageView> boxed, VkImageView new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkImageView>(boxed, new_unboxed);
 }
 
-VkIndirectCommandsLayoutNV new_boxed_non_dispatchable_VkIndirectCommandsLayoutNV(VkIndirectCommandsLayoutNV unboxed) {
+Boxed<VkIndirectCommandsLayoutNV> new_boxed_non_dispatchable_VkIndirectCommandsLayoutNV(VkIndirectCommandsLayoutNV unboxed) {
     return new_boxed_VkType<VkIndirectCommandsLayoutNV>(unboxed);
 }
 
-void delete_VkIndirectCommandsLayoutNV(VkIndirectCommandsLayoutNV boxed) {
+void delete_VkIndirectCommandsLayoutNV(Boxed<VkIndirectCommandsLayoutNV> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkIndirectCommandsLayoutNV(VkIndirectCommandsLayoutNV boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkIndirectCommandsLayoutNV(Boxed<VkIndirectCommandsLayoutNV> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkIndirectCommandsLayoutNV unbox_VkIndirectCommandsLayoutNV(VkIndirectCommandsLayoutNV boxed) {
+VkIndirectCommandsLayoutNV unbox_VkIndirectCommandsLayoutNV(Boxed<VkIndirectCommandsLayoutNV> boxed) {
     return unbox_VkType<VkIndirectCommandsLayoutNV>(boxed);
 }
 
-VkIndirectCommandsLayoutNV try_unbox_VkIndirectCommandsLayoutNV(VkIndirectCommandsLayoutNV boxed) {
+VkIndirectCommandsLayoutNV try_unbox_VkIndirectCommandsLayoutNV(Boxed<VkIndirectCommandsLayoutNV> boxed) {
     return try_unbox_VkType<VkIndirectCommandsLayoutNV>(boxed);
 }
 
-VkIndirectCommandsLayoutNV unboxed_to_boxed_non_dispatchable_VkIndirectCommandsLayoutNV(VkIndirectCommandsLayoutNV unboxed) {
+Boxed<VkIndirectCommandsLayoutNV> unboxed_to_boxed_non_dispatchable_VkIndirectCommandsLayoutNV(VkIndirectCommandsLayoutNV unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkIndirectCommandsLayoutNV>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkIndirectCommandsLayoutNV(VkIndirectCommandsLayoutNV boxed, VkIndirectCommandsLayoutNV new_unboxed) {
+void set_boxed_non_dispatchable_VkIndirectCommandsLayoutNV(Boxed<VkIndirectCommandsLayoutNV> boxed, VkIndirectCommandsLayoutNV new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkIndirectCommandsLayoutNV>(boxed, new_unboxed);
 }
 
-VkMicromapEXT new_boxed_non_dispatchable_VkMicromapEXT(VkMicromapEXT unboxed) {
+Boxed<VkMicromapEXT> new_boxed_non_dispatchable_VkMicromapEXT(VkMicromapEXT unboxed) {
     return new_boxed_VkType<VkMicromapEXT>(unboxed);
 }
 
-void delete_VkMicromapEXT(VkMicromapEXT boxed) {
+void delete_VkMicromapEXT(Boxed<VkMicromapEXT> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkMicromapEXT(VkMicromapEXT boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkMicromapEXT(Boxed<VkMicromapEXT> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkMicromapEXT unbox_VkMicromapEXT(VkMicromapEXT boxed) {
+VkMicromapEXT unbox_VkMicromapEXT(Boxed<VkMicromapEXT> boxed) {
     return unbox_VkType<VkMicromapEXT>(boxed);
 }
 
-VkMicromapEXT try_unbox_VkMicromapEXT(VkMicromapEXT boxed) {
+VkMicromapEXT try_unbox_VkMicromapEXT(Boxed<VkMicromapEXT> boxed) {
     return try_unbox_VkType<VkMicromapEXT>(boxed);
 }
 
-VkMicromapEXT unboxed_to_boxed_non_dispatchable_VkMicromapEXT(VkMicromapEXT unboxed) {
+Boxed<VkMicromapEXT> unboxed_to_boxed_non_dispatchable_VkMicromapEXT(VkMicromapEXT unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkMicromapEXT>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkMicromapEXT(VkMicromapEXT boxed, VkMicromapEXT new_unboxed) {
+void set_boxed_non_dispatchable_VkMicromapEXT(Boxed<VkMicromapEXT> boxed, VkMicromapEXT new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkMicromapEXT>(boxed, new_unboxed);
 }
 
-VkPipeline new_boxed_non_dispatchable_VkPipeline(VkPipeline unboxed) {
+Boxed<VkPipeline> new_boxed_non_dispatchable_VkPipeline(VkPipeline unboxed) {
     return new_boxed_VkType<VkPipeline>(unboxed);
 }
 
-void delete_VkPipeline(VkPipeline boxed) {
+void delete_VkPipeline(Boxed<VkPipeline> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkPipeline(VkPipeline boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkPipeline(Boxed<VkPipeline> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkPipeline unbox_VkPipeline(VkPipeline boxed) {
+VkPipeline unbox_VkPipeline(Boxed<VkPipeline> boxed) {
     return unbox_VkType<VkPipeline>(boxed);
 }
 
-VkPipeline try_unbox_VkPipeline(VkPipeline boxed) {
+VkPipeline try_unbox_VkPipeline(Boxed<VkPipeline> boxed) {
     return try_unbox_VkType<VkPipeline>(boxed);
 }
 
-VkPipeline unboxed_to_boxed_non_dispatchable_VkPipeline(VkPipeline unboxed) {
+Boxed<VkPipeline> unboxed_to_boxed_non_dispatchable_VkPipeline(VkPipeline unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkPipeline>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkPipeline(VkPipeline boxed, VkPipeline new_unboxed) {
+void set_boxed_non_dispatchable_VkPipeline(Boxed<VkPipeline> boxed, VkPipeline new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkPipeline>(boxed, new_unboxed);
 }
 
-VkPipelineCache new_boxed_non_dispatchable_VkPipelineCache(VkPipelineCache unboxed) {
+Boxed<VkPipelineCache> new_boxed_non_dispatchable_VkPipelineCache(VkPipelineCache unboxed) {
     return new_boxed_VkType<VkPipelineCache>(unboxed);
 }
 
-void delete_VkPipelineCache(VkPipelineCache boxed) {
+void delete_VkPipelineCache(Boxed<VkPipelineCache> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkPipelineCache(VkPipelineCache boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkPipelineCache(Boxed<VkPipelineCache> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkPipelineCache unbox_VkPipelineCache(VkPipelineCache boxed) {
+VkPipelineCache unbox_VkPipelineCache(Boxed<VkPipelineCache> boxed) {
     return unbox_VkType<VkPipelineCache>(boxed);
 }
 
-VkPipelineCache try_unbox_VkPipelineCache(VkPipelineCache boxed) {
+VkPipelineCache try_unbox_VkPipelineCache(Boxed<VkPipelineCache> boxed) {
     return try_unbox_VkType<VkPipelineCache>(boxed);
 }
 
-VkPipelineCache unboxed_to_boxed_non_dispatchable_VkPipelineCache(VkPipelineCache unboxed) {
+Boxed<VkPipelineCache> unboxed_to_boxed_non_dispatchable_VkPipelineCache(VkPipelineCache unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkPipelineCache>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkPipelineCache(VkPipelineCache boxed, VkPipelineCache new_unboxed) {
+void set_boxed_non_dispatchable_VkPipelineCache(Boxed<VkPipelineCache> boxed, VkPipelineCache new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkPipelineCache>(boxed, new_unboxed);
 }
 
-VkPipelineLayout new_boxed_non_dispatchable_VkPipelineLayout(VkPipelineLayout unboxed) {
+Boxed<VkPipelineLayout> new_boxed_non_dispatchable_VkPipelineLayout(VkPipelineLayout unboxed) {
     return new_boxed_VkType<VkPipelineLayout>(unboxed);
 }
 
-void delete_VkPipelineLayout(VkPipelineLayout boxed) {
+void delete_VkPipelineLayout(Boxed<VkPipelineLayout> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkPipelineLayout(VkPipelineLayout boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkPipelineLayout(Boxed<VkPipelineLayout> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkPipelineLayout unbox_VkPipelineLayout(VkPipelineLayout boxed) {
+VkPipelineLayout unbox_VkPipelineLayout(Boxed<VkPipelineLayout> boxed) {
     return unbox_VkType<VkPipelineLayout>(boxed);
 }
 
-VkPipelineLayout try_unbox_VkPipelineLayout(VkPipelineLayout boxed) {
+VkPipelineLayout try_unbox_VkPipelineLayout(Boxed<VkPipelineLayout> boxed) {
     return try_unbox_VkType<VkPipelineLayout>(boxed);
 }
 
-VkPipelineLayout unboxed_to_boxed_non_dispatchable_VkPipelineLayout(VkPipelineLayout unboxed) {
+Boxed<VkPipelineLayout> unboxed_to_boxed_non_dispatchable_VkPipelineLayout(VkPipelineLayout unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkPipelineLayout>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkPipelineLayout(VkPipelineLayout boxed, VkPipelineLayout new_unboxed) {
+void set_boxed_non_dispatchable_VkPipelineLayout(Boxed<VkPipelineLayout> boxed, VkPipelineLayout new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkPipelineLayout>(boxed, new_unboxed);
 }
 
-VkPrivateDataSlot new_boxed_non_dispatchable_VkPrivateDataSlot(VkPrivateDataSlot unboxed) {
+Boxed<VkPrivateDataSlot> new_boxed_non_dispatchable_VkPrivateDataSlot(VkPrivateDataSlot unboxed) {
     return new_boxed_VkType<VkPrivateDataSlot>(unboxed);
 }
 
-void delete_VkPrivateDataSlot(VkPrivateDataSlot boxed) {
+void delete_VkPrivateDataSlot(Boxed<VkPrivateDataSlot> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkPrivateDataSlot(VkPrivateDataSlot boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkPrivateDataSlot(Boxed<VkPrivateDataSlot> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkPrivateDataSlot unbox_VkPrivateDataSlot(VkPrivateDataSlot boxed) {
+VkPrivateDataSlot unbox_VkPrivateDataSlot(Boxed<VkPrivateDataSlot> boxed) {
     return unbox_VkType<VkPrivateDataSlot>(boxed);
 }
 
-VkPrivateDataSlot try_unbox_VkPrivateDataSlot(VkPrivateDataSlot boxed) {
+VkPrivateDataSlot try_unbox_VkPrivateDataSlot(Boxed<VkPrivateDataSlot> boxed) {
     return try_unbox_VkType<VkPrivateDataSlot>(boxed);
 }
 
-VkPrivateDataSlot unboxed_to_boxed_non_dispatchable_VkPrivateDataSlot(VkPrivateDataSlot unboxed) {
+Boxed<VkPrivateDataSlot> unboxed_to_boxed_non_dispatchable_VkPrivateDataSlot(VkPrivateDataSlot unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkPrivateDataSlot>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkPrivateDataSlot(VkPrivateDataSlot boxed, VkPrivateDataSlot new_unboxed) {
+void set_boxed_non_dispatchable_VkPrivateDataSlot(Boxed<VkPrivateDataSlot> boxed, VkPrivateDataSlot new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkPrivateDataSlot>(boxed, new_unboxed);
 }
 
-VkQueryPool new_boxed_non_dispatchable_VkQueryPool(VkQueryPool unboxed) {
+Boxed<VkQueryPool> new_boxed_non_dispatchable_VkQueryPool(VkQueryPool unboxed) {
     return new_boxed_VkType<VkQueryPool>(unboxed);
 }
 
-void delete_VkQueryPool(VkQueryPool boxed) {
+void delete_VkQueryPool(Boxed<VkQueryPool> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkQueryPool(VkQueryPool boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkQueryPool(Boxed<VkQueryPool> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkQueryPool unbox_VkQueryPool(VkQueryPool boxed) {
+VkQueryPool unbox_VkQueryPool(Boxed<VkQueryPool> boxed) {
     return unbox_VkType<VkQueryPool>(boxed);
 }
 
-VkQueryPool try_unbox_VkQueryPool(VkQueryPool boxed) {
+VkQueryPool try_unbox_VkQueryPool(Boxed<VkQueryPool> boxed) {
     return try_unbox_VkType<VkQueryPool>(boxed);
 }
 
-VkQueryPool unboxed_to_boxed_non_dispatchable_VkQueryPool(VkQueryPool unboxed) {
+Boxed<VkQueryPool> unboxed_to_boxed_non_dispatchable_VkQueryPool(VkQueryPool unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkQueryPool>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkQueryPool(VkQueryPool boxed, VkQueryPool new_unboxed) {
+void set_boxed_non_dispatchable_VkQueryPool(Boxed<VkQueryPool> boxed, VkQueryPool new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkQueryPool>(boxed, new_unboxed);
 }
 
-VkRenderPass new_boxed_non_dispatchable_VkRenderPass(VkRenderPass unboxed) {
+Boxed<VkRenderPass> new_boxed_non_dispatchable_VkRenderPass(VkRenderPass unboxed) {
     return new_boxed_VkType<VkRenderPass>(unboxed);
 }
 
-void delete_VkRenderPass(VkRenderPass boxed) {
+void delete_VkRenderPass(Boxed<VkRenderPass> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkRenderPass(VkRenderPass boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkRenderPass(Boxed<VkRenderPass> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkRenderPass unbox_VkRenderPass(VkRenderPass boxed) {
+VkRenderPass unbox_VkRenderPass(Boxed<VkRenderPass> boxed) {
     return unbox_VkType<VkRenderPass>(boxed);
 }
 
-VkRenderPass try_unbox_VkRenderPass(VkRenderPass boxed) {
+VkRenderPass try_unbox_VkRenderPass(Boxed<VkRenderPass> boxed) {
     return try_unbox_VkType<VkRenderPass>(boxed);
 }
 
-VkRenderPass unboxed_to_boxed_non_dispatchable_VkRenderPass(VkRenderPass unboxed) {
+Boxed<VkRenderPass> unboxed_to_boxed_non_dispatchable_VkRenderPass(VkRenderPass unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkRenderPass>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkRenderPass(VkRenderPass boxed, VkRenderPass new_unboxed) {
+void set_boxed_non_dispatchable_VkRenderPass(Boxed<VkRenderPass> boxed, VkRenderPass new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkRenderPass>(boxed, new_unboxed);
 }
 
-VkSampler new_boxed_non_dispatchable_VkSampler(VkSampler unboxed) {
+Boxed<VkSampler> new_boxed_non_dispatchable_VkSampler(VkSampler unboxed) {
     return new_boxed_VkType<VkSampler>(unboxed);
 }
 
-void delete_VkSampler(VkSampler boxed) {
+void delete_VkSampler(Boxed<VkSampler> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkSampler(VkSampler boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkSampler(Boxed<VkSampler> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkSampler unbox_VkSampler(VkSampler boxed) {
+VkSampler unbox_VkSampler(Boxed<VkSampler> boxed) {
     return unbox_VkType<VkSampler>(boxed);
 }
 
-VkSampler try_unbox_VkSampler(VkSampler boxed) {
+VkSampler try_unbox_VkSampler(Boxed<VkSampler> boxed) {
     return try_unbox_VkType<VkSampler>(boxed);
 }
 
-VkSampler unboxed_to_boxed_non_dispatchable_VkSampler(VkSampler unboxed) {
+Boxed<VkSampler> unboxed_to_boxed_non_dispatchable_VkSampler(VkSampler unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkSampler>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkSampler(VkSampler boxed, VkSampler new_unboxed) {
+void set_boxed_non_dispatchable_VkSampler(Boxed<VkSampler> boxed, VkSampler new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkSampler>(boxed, new_unboxed);
 }
 
-VkSamplerYcbcrConversion new_boxed_non_dispatchable_VkSamplerYcbcrConversion(VkSamplerYcbcrConversion unboxed) {
+Boxed<VkSamplerYcbcrConversion> new_boxed_non_dispatchable_VkSamplerYcbcrConversion(VkSamplerYcbcrConversion unboxed) {
     return new_boxed_VkType<VkSamplerYcbcrConversion>(unboxed);
 }
 
-void delete_VkSamplerYcbcrConversion(VkSamplerYcbcrConversion boxed) {
+void delete_VkSamplerYcbcrConversion(Boxed<VkSamplerYcbcrConversion> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkSamplerYcbcrConversion(VkSamplerYcbcrConversion boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkSamplerYcbcrConversion(Boxed<VkSamplerYcbcrConversion> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkSamplerYcbcrConversion unbox_VkSamplerYcbcrConversion(VkSamplerYcbcrConversion boxed) {
+VkSamplerYcbcrConversion unbox_VkSamplerYcbcrConversion(Boxed<VkSamplerYcbcrConversion> boxed) {
     return unbox_VkType<VkSamplerYcbcrConversion>(boxed);
 }
 
-VkSamplerYcbcrConversion try_unbox_VkSamplerYcbcrConversion(VkSamplerYcbcrConversion boxed) {
+VkSamplerYcbcrConversion try_unbox_VkSamplerYcbcrConversion(Boxed<VkSamplerYcbcrConversion> boxed) {
     return try_unbox_VkType<VkSamplerYcbcrConversion>(boxed);
 }
 
-VkSamplerYcbcrConversion unboxed_to_boxed_non_dispatchable_VkSamplerYcbcrConversion(VkSamplerYcbcrConversion unboxed) {
+Boxed<VkSamplerYcbcrConversion> unboxed_to_boxed_non_dispatchable_VkSamplerYcbcrConversion(VkSamplerYcbcrConversion unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkSamplerYcbcrConversion>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkSamplerYcbcrConversion(VkSamplerYcbcrConversion boxed, VkSamplerYcbcrConversion new_unboxed) {
+void set_boxed_non_dispatchable_VkSamplerYcbcrConversion(Boxed<VkSamplerYcbcrConversion> boxed, VkSamplerYcbcrConversion new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkSamplerYcbcrConversion>(boxed, new_unboxed);
 }
 
-VkSemaphore new_boxed_non_dispatchable_VkSemaphore(VkSemaphore unboxed) {
+Boxed<VkSemaphore> new_boxed_non_dispatchable_VkSemaphore(VkSemaphore unboxed) {
     return new_boxed_VkType<VkSemaphore>(unboxed);
 }
 
-void delete_VkSemaphore(VkSemaphore boxed) {
+void delete_VkSemaphore(Boxed<VkSemaphore> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkSemaphore(VkSemaphore boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkSemaphore(Boxed<VkSemaphore> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkSemaphore unbox_VkSemaphore(VkSemaphore boxed) {
+VkSemaphore unbox_VkSemaphore(Boxed<VkSemaphore> boxed) {
     return unbox_VkType<VkSemaphore>(boxed);
 }
 
-VkSemaphore try_unbox_VkSemaphore(VkSemaphore boxed) {
+VkSemaphore try_unbox_VkSemaphore(Boxed<VkSemaphore> boxed) {
     return try_unbox_VkType<VkSemaphore>(boxed);
 }
 
-VkSemaphore unboxed_to_boxed_non_dispatchable_VkSemaphore(VkSemaphore unboxed) {
+Boxed<VkSemaphore> unboxed_to_boxed_non_dispatchable_VkSemaphore(VkSemaphore unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkSemaphore>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkSemaphore(VkSemaphore boxed, VkSemaphore new_unboxed) {
+void set_boxed_non_dispatchable_VkSemaphore(Boxed<VkSemaphore> boxed, VkSemaphore new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkSemaphore>(boxed, new_unboxed);
 }
 
-VkShaderModule new_boxed_non_dispatchable_VkShaderModule(VkShaderModule unboxed) {
+Boxed<VkShaderModule> new_boxed_non_dispatchable_VkShaderModule(VkShaderModule unboxed) {
     return new_boxed_VkType<VkShaderModule>(unboxed);
 }
 
-void delete_VkShaderModule(VkShaderModule boxed) {
+void delete_VkShaderModule(Boxed<VkShaderModule> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkShaderModule(VkShaderModule boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkShaderModule(Boxed<VkShaderModule> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkShaderModule unbox_VkShaderModule(VkShaderModule boxed) {
+VkShaderModule unbox_VkShaderModule(Boxed<VkShaderModule> boxed) {
     return unbox_VkType<VkShaderModule>(boxed);
 }
 
-VkShaderModule try_unbox_VkShaderModule(VkShaderModule boxed) {
+VkShaderModule try_unbox_VkShaderModule(Boxed<VkShaderModule> boxed) {
     return try_unbox_VkType<VkShaderModule>(boxed);
 }
 
-VkShaderModule unboxed_to_boxed_non_dispatchable_VkShaderModule(VkShaderModule unboxed) {
+Boxed<VkShaderModule> unboxed_to_boxed_non_dispatchable_VkShaderModule(VkShaderModule unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkShaderModule>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkShaderModule(VkShaderModule boxed, VkShaderModule new_unboxed) {
+void set_boxed_non_dispatchable_VkShaderModule(Boxed<VkShaderModule> boxed, VkShaderModule new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkShaderModule>(boxed, new_unboxed);
 }
 
-VkSurfaceKHR new_boxed_non_dispatchable_VkSurfaceKHR(VkSurfaceKHR unboxed) {
+Boxed<VkSurfaceKHR> new_boxed_non_dispatchable_VkSurfaceKHR(VkSurfaceKHR unboxed) {
     return new_boxed_VkType<VkSurfaceKHR>(unboxed);
 }
 
-void delete_VkSurfaceKHR(VkSurfaceKHR boxed) {
+void delete_VkSurfaceKHR(Boxed<VkSurfaceKHR> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkSurfaceKHR(VkSurfaceKHR boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkSurfaceKHR(Boxed<VkSurfaceKHR> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkSurfaceKHR unbox_VkSurfaceKHR(VkSurfaceKHR boxed) {
+VkSurfaceKHR unbox_VkSurfaceKHR(Boxed<VkSurfaceKHR> boxed) {
     return unbox_VkType<VkSurfaceKHR>(boxed);
 }
 
-VkSurfaceKHR try_unbox_VkSurfaceKHR(VkSurfaceKHR boxed) {
+VkSurfaceKHR try_unbox_VkSurfaceKHR(Boxed<VkSurfaceKHR> boxed) {
     return try_unbox_VkType<VkSurfaceKHR>(boxed);
 }
 
-VkSurfaceKHR unboxed_to_boxed_non_dispatchable_VkSurfaceKHR(VkSurfaceKHR unboxed) {
+Boxed<VkSurfaceKHR> unboxed_to_boxed_non_dispatchable_VkSurfaceKHR(VkSurfaceKHR unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkSurfaceKHR>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkSurfaceKHR(VkSurfaceKHR boxed, VkSurfaceKHR new_unboxed) {
+void set_boxed_non_dispatchable_VkSurfaceKHR(Boxed<VkSurfaceKHR> boxed, VkSurfaceKHR new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkSurfaceKHR>(boxed, new_unboxed);
 }
 
-VkSwapchainKHR new_boxed_non_dispatchable_VkSwapchainKHR(VkSwapchainKHR unboxed) {
+Boxed<VkSwapchainKHR> new_boxed_non_dispatchable_VkSwapchainKHR(VkSwapchainKHR unboxed) {
     return new_boxed_VkType<VkSwapchainKHR>(unboxed);
 }
 
-void delete_VkSwapchainKHR(VkSwapchainKHR boxed) {
+void delete_VkSwapchainKHR(Boxed<VkSwapchainKHR> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkSwapchainKHR(VkSwapchainKHR boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkSwapchainKHR(Boxed<VkSwapchainKHR> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkSwapchainKHR unbox_VkSwapchainKHR(VkSwapchainKHR boxed) {
+VkSwapchainKHR unbox_VkSwapchainKHR(Boxed<VkSwapchainKHR> boxed) {
     return unbox_VkType<VkSwapchainKHR>(boxed);
 }
 
-VkSwapchainKHR try_unbox_VkSwapchainKHR(VkSwapchainKHR boxed) {
+VkSwapchainKHR try_unbox_VkSwapchainKHR(Boxed<VkSwapchainKHR> boxed) {
     return try_unbox_VkType<VkSwapchainKHR>(boxed);
 }
 
-VkSwapchainKHR unboxed_to_boxed_non_dispatchable_VkSwapchainKHR(VkSwapchainKHR unboxed) {
+Boxed<VkSwapchainKHR> unboxed_to_boxed_non_dispatchable_VkSwapchainKHR(VkSwapchainKHR unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkSwapchainKHR>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkSwapchainKHR(VkSwapchainKHR boxed, VkSwapchainKHR new_unboxed) {
+void set_boxed_non_dispatchable_VkSwapchainKHR(Boxed<VkSwapchainKHR> boxed, VkSwapchainKHR new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkSwapchainKHR>(boxed, new_unboxed);
 }
 
-VkValidationCacheEXT new_boxed_non_dispatchable_VkValidationCacheEXT(VkValidationCacheEXT unboxed) {
+Boxed<VkValidationCacheEXT> new_boxed_non_dispatchable_VkValidationCacheEXT(VkValidationCacheEXT unboxed) {
     return new_boxed_VkType<VkValidationCacheEXT>(unboxed);
 }
 
-void delete_VkValidationCacheEXT(VkValidationCacheEXT boxed) {
+void delete_VkValidationCacheEXT(Boxed<VkValidationCacheEXT> boxed) {
     delete_VkType(boxed);
 }
 
-void delayed_delete_VkValidationCacheEXT(VkValidationCacheEXT boxed, VkDevice device, std::function<void()> callback) {
+void delayed_delete_VkValidationCacheEXT(Boxed<VkValidationCacheEXT> boxed, VkDevice device, std::function<void()> callback) {
     delayed_delete_VkType(boxed, device, std::move(callback));
 }
 
-VkValidationCacheEXT unbox_VkValidationCacheEXT(VkValidationCacheEXT boxed) {
+VkValidationCacheEXT unbox_VkValidationCacheEXT(Boxed<VkValidationCacheEXT> boxed) {
     return unbox_VkType<VkValidationCacheEXT>(boxed);
 }
 
-VkValidationCacheEXT try_unbox_VkValidationCacheEXT(VkValidationCacheEXT boxed) {
+VkValidationCacheEXT try_unbox_VkValidationCacheEXT(Boxed<VkValidationCacheEXT> boxed) {
     return try_unbox_VkType<VkValidationCacheEXT>(boxed);
 }
 
-VkValidationCacheEXT unboxed_to_boxed_non_dispatchable_VkValidationCacheEXT(VkValidationCacheEXT unboxed) {
+Boxed<VkValidationCacheEXT> unboxed_to_boxed_non_dispatchable_VkValidationCacheEXT(VkValidationCacheEXT unboxed) {
     return unboxed_to_boxed_non_dispatchable_VkType<VkValidationCacheEXT>(unboxed);
 }
 
-void set_boxed_non_dispatchable_VkValidationCacheEXT(VkValidationCacheEXT boxed, VkValidationCacheEXT new_unboxed) {
+void set_boxed_non_dispatchable_VkValidationCacheEXT(Boxed<VkValidationCacheEXT> boxed, VkValidationCacheEXT new_unboxed) {
     set_boxed_non_dispatchable_VkType<VkValidationCacheEXT>(boxed, new_unboxed);
 }
 

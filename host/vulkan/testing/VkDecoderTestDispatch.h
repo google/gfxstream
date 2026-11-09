@@ -59,32 +59,34 @@ class VkDecoderTestDispatch {
 
     VkResult vkBindBufferMemory(VkDevice device, VkBuffer buffer, VkDeviceMemory memory,
                                 VkDeviceSize memoryOffset) {
-        return mDgs->on_vkBindBufferMemory(mBp, kInvalidSnapshotApiCallHandle, device,
-                                           unbox_VkBuffer(buffer), unbox_VkDeviceMemory(memory),
-                                           memoryOffset);
+        return mDgs->on_vkBindBufferMemory(
+            mBp, kInvalidSnapshotApiCallHandle, device, unbox_VkBuffer(Boxed<VkBuffer>(buffer)),
+            unbox_VkDeviceMemory(Boxed<VkDeviceMemory>(memory)), memoryOffset);
     }
 
     VkResult vkBindImageMemory(VkDevice device, VkImage image, VkDeviceMemory memory,
                                VkDeviceSize memoryOffset) {
-        return mDgs->on_vkBindImageMemory(mBp, kInvalidSnapshotApiCallHandle, device,
-                                          unbox_VkImage(image), unbox_VkDeviceMemory(memory),
-                                          memoryOffset);
+        return mDgs->on_vkBindImageMemory(
+            mBp, kInvalidSnapshotApiCallHandle, device, unbox_VkImage(Boxed<VkImage>(image)),
+            unbox_VkDeviceMemory(Boxed<VkDeviceMemory>(memory)), memoryOffset);
     }
 
     void vkCmdBlitImage(VkCommandBuffer commandBuffer, VkImage srcImage,
                         VkImageLayout srcImageLayout, VkImage dstImage,
                         VkImageLayout dstImageLayout, uint32_t regionCount,
                         const VkImageBlit* pRegions, VkFilter filter) {
-        return mVk->vkCmdBlitImage(unbox_VkCommandBuffer(commandBuffer), unbox_VkImage(srcImage),
-                                   srcImageLayout, unbox_VkImage(dstImage), dstImageLayout,
+        return mVk->vkCmdBlitImage(unbox_VkCommandBuffer(Boxed<VkCommandBuffer>(commandBuffer)),
+                                   unbox_VkImage(Boxed<VkImage>(srcImage)), srcImageLayout,
+                                   unbox_VkImage(Boxed<VkImage>(dstImage)), dstImageLayout,
                                    regionCount, pRegions, filter);
     }
     void vkCmdCopyBufferToImage(VkCommandBuffer commandBuffer, VkBuffer srcBuffer, VkImage dstImage,
                                 VkImageLayout dstImageLayout, uint32_t regionCount,
                                 const VkBufferImageCopy* pRegions) {
-        mDgs->on_vkCmdCopyBufferToImage(mBp, kInvalidSnapshotApiCallHandle, commandBuffer,
-                                        unbox_VkBuffer(srcBuffer), unbox_VkImage(dstImage),
-                                        dstImageLayout, regionCount, pRegions, *mDecoderContext);
+        mDgs->on_vkCmdCopyBufferToImage(
+            mBp, kInvalidSnapshotApiCallHandle, commandBuffer,
+            unbox_VkBuffer(Boxed<VkBuffer>(srcBuffer)), unbox_VkImage(Boxed<VkImage>(dstImage)),
+            dstImageLayout, regionCount, pRegions, *mDecoderContext);
     }
 
     void vkCmdCopyImage(VkCommandBuffer commandBuffer, VkImage srcImage,
@@ -92,8 +94,9 @@ class VkDecoderTestDispatch {
                         VkImageLayout dstImageLayout, uint32_t regionCount,
                         const VkImageCopy* pRegions) {
         mDgs->on_vkCmdCopyImage(mBp, kInvalidSnapshotApiCallHandle, commandBuffer,
-                                unbox_VkImage(srcImage), srcImageLayout, unbox_VkImage(dstImage),
-                                dstImageLayout, regionCount, pRegions);
+                                unbox_VkImage(Boxed<VkImage>(srcImage)), srcImageLayout,
+                                unbox_VkImage(Boxed<VkImage>(dstImage)), dstImageLayout,
+                                regionCount, pRegions);
     }
 
     void vkCmdPipelineBarrier(VkCommandBuffer commandBuffer, VkPipelineStageFlags srcStageMask,
@@ -119,8 +122,9 @@ class VkDecoderTestDispatch {
                                 VkImageLayout srcImageLayout, VkBuffer dstBuffer,
                                 uint32_t regionCount, const VkBufferImageCopy* pRegions) {
         mDgs->on_vkCmdCopyImageToBuffer(mBp, kInvalidSnapshotApiCallHandle, commandBuffer,
-                                        unbox_VkImage(srcImage), srcImageLayout,
-                                        unbox_VkBuffer(dstBuffer), regionCount, pRegions);
+                                        unbox_VkImage(Boxed<VkImage>(srcImage)), srcImageLayout,
+                                        unbox_VkBuffer(Boxed<VkBuffer>(dstBuffer)), regionCount,
+                                        pRegions);
     }
 
     VkResult vkCreateBuffer(VkDevice device, const VkBufferCreateInfo* pCreateInfo,
@@ -140,7 +144,7 @@ class VkDecoderTestDispatch {
                                             const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
                                             const VkAllocationCallbacks* pAllocator,
                                             VkDebugUtilsMessengerEXT* pDebugMessenger) {
-        instance = unbox_VkInstance(instance);
+        instance = unbox_VkInstance(Boxed<VkInstance>(instance));
         auto func = (PFN_vkCreateDebugUtilsMessengerEXT)mVk->vkGetInstanceProcAddr(
             instance, "vkCreateDebugUtilsMessengerEXT");
         if (func != nullptr) {
@@ -177,22 +181,24 @@ class VkDecoderTestDispatch {
 
     void vkDestroyBuffer(VkDevice device, VkBuffer buffer,
                          const VkAllocationCallbacks* pAllocator) {
-        mDgs->on_vkDestroyBuffer(mBp, kInvalidSnapshotApiCallHandle, device, unbox_VkBuffer(buffer),
-                                 pAllocator);
-        delete_VkBuffer(buffer);
+        Boxed<VkBuffer> boxedBuffer(buffer);
+        mDgs->on_vkDestroyBuffer(mBp, kInvalidSnapshotApiCallHandle, device,
+                                 unbox_VkBuffer(boxedBuffer), pAllocator);
+        delete_VkBuffer(boxedBuffer);
     }
 
     void vkDestroyCommandPool(VkDevice device, VkCommandPool commandPool,
                               const VkAllocationCallbacks* pAllocator) {
+        Boxed<VkCommandPool> boxedCommandPool(commandPool);
         mDgs->on_vkDestroyCommandPool(mBp, kInvalidSnapshotApiCallHandle, device,
-                                      unbox_VkCommandPool(commandPool), pAllocator);
-        delete_VkCommandPool(commandPool);
+                                      unbox_VkCommandPool(boxedCommandPool), pAllocator);
+        delete_VkCommandPool(boxedCommandPool);
     }
 
     void vkDestroyDebugUtilsMessengerEXT(VkInstance instance,
                                          VkDebugUtilsMessengerEXT debugMessenger,
                                          const VkAllocationCallbacks* pAllocator) {
-        instance = unbox_VkInstance(instance);
+        instance = unbox_VkInstance(Boxed<VkInstance>(instance));
         auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)mVk->vkGetInstanceProcAddr(
             instance, "vkDestroyDebugUtilsMessengerEXT");
         if (func != nullptr) {
@@ -205,16 +211,18 @@ class VkDecoderTestDispatch {
     }
 
     void vkDestroyImage(VkDevice device, VkImage image, const VkAllocationCallbacks* pAllocator) {
-        mDgs->on_vkDestroyImage(mBp, kInvalidSnapshotApiCallHandle, device, unbox_VkImage(image),
-                                pAllocator);
-        delete_VkImage(image);
+        Boxed<VkImage> boxedImage(image);
+        mDgs->on_vkDestroyImage(mBp, kInvalidSnapshotApiCallHandle, device,
+                                unbox_VkImage(boxedImage), pAllocator);
+        delete_VkImage(boxedImage);
     }
 
     void vkDestroyImageView(VkDevice device, VkImageView imageView,
                             const VkAllocationCallbacks* pAllocator) {
+        Boxed<VkImageView> boxedImageView(imageView);
         mDgs->on_vkDestroyImageView(mBp, kInvalidSnapshotApiCallHandle, device,
-                                    unbox_VkImageView(imageView), pAllocator);
-        delete_VkImageView(imageView);
+                                    unbox_VkImageView(boxedImageView), pAllocator);
+        delete_VkImageView(boxedImageView);
     }
 
     void vkDestroyInstance(VkInstance instance, const VkAllocationCallbacks* pAllocator) {
@@ -240,8 +248,8 @@ class VkDecoderTestDispatch {
     void vkFreeCommandBuffers(VkDevice device, VkCommandPool commandPool,
                               uint32_t commandBufferCount, const VkCommandBuffer* pCommandBuffers) {
         mDgs->on_vkFreeCommandBuffers(mBp, kInvalidSnapshotApiCallHandle, device,
-                                      unbox_VkCommandPool(commandPool), commandBufferCount,
-                                      pCommandBuffers);
+                                      unbox_VkCommandPool(Boxed<VkCommandPool>(commandPool)),
+                                      commandBufferCount, pCommandBuffers);
         // Calling delete_VkCommandBuffer is normally done in the decoder, so we have to do it here.
         for (int i = 0; i < commandBufferCount; ++i) {
             delete_VkCommandBuffer(unboxed_to_boxed_VkCommandBuffer(pCommandBuffers[i]));
@@ -250,14 +258,16 @@ class VkDecoderTestDispatch {
 
     void vkFreeMemory(VkDevice device, VkDeviceMemory memory,
                       const VkAllocationCallbacks* pAllocator) {
+        Boxed<VkDeviceMemory> boxedMemory(memory);
         mDgs->on_vkFreeMemory(mBp, kInvalidSnapshotApiCallHandle, device,
-                              unbox_VkDeviceMemory(memory), pAllocator);
-        delete_VkDeviceMemory(memory);
+                              unbox_VkDeviceMemory(boxedMemory), pAllocator);
+        delete_VkDeviceMemory(boxedMemory);
     }
 
     void vkGetBufferMemoryRequirements(VkDevice device, VkBuffer buffer,
                                        VkMemoryRequirements* pMemoryRequirements) {
-        mVk->vkGetBufferMemoryRequirements(unbox_VkDevice(device), unbox_VkBuffer(buffer),
+        mVk->vkGetBufferMemoryRequirements(unbox_VkDevice(Boxed<VkDevice>(device)),
+                                           unbox_VkBuffer(Boxed<VkBuffer>(buffer)),
                                            pMemoryRequirements);
     }
 
@@ -270,7 +280,8 @@ class VkDecoderTestDispatch {
     void vkGetImageMemoryRequirements(VkDevice device, VkImage image,
                                       VkMemoryRequirements* pMemoryRequirements) {
         mDgs->on_vkGetImageMemoryRequirements(mBp, kInvalidSnapshotApiCallHandle, device,
-                                              unbox_VkImage(image), pMemoryRequirements);
+                                              unbox_VkImage(Boxed<VkImage>(image)),
+                                              pMemoryRequirements);
     }
 
     void vkGetPhysicalDeviceFormatProperties(VkPhysicalDevice physicalDevice, VkFormat format,
@@ -295,26 +306,27 @@ class VkDecoderTestDispatch {
     }
 
     VkResult vkDeviceWaitIdle(VkDevice device) {
-        return mVk->vkDeviceWaitIdle(unbox_VkDevice(device));
+        return mVk->vkDeviceWaitIdle(unbox_VkDevice(Boxed<VkDevice>(device)));
     }
 
     void vkGetPhysicalDeviceQueueFamilyProperties(VkPhysicalDevice physicalDevice,
                                                   uint32_t* pQueueFamilyPropertyCount,
                                                   VkQueueFamilyProperties* pQueueFamilyProperties) {
-        mVk->vkGetPhysicalDeviceQueueFamilyProperties(unbox_VkPhysicalDevice(physicalDevice),
-                                                      pQueueFamilyPropertyCount,
-                                                      pQueueFamilyProperties);
+        mVk->vkGetPhysicalDeviceQueueFamilyProperties(
+            unbox_VkPhysicalDevice(Boxed<VkPhysicalDevice>(physicalDevice)),
+            pQueueFamilyPropertyCount, pQueueFamilyProperties);
     }
 
     VkResult vkMapMemory(VkDevice device, VkDeviceMemory memory, VkDeviceSize offset,
                          VkDeviceSize size, VkMemoryMapFlags flags, void** ppData) {
         return mDgs->on_vkMapMemory(mBp, kInvalidSnapshotApiCallHandle, device,
-                                    unbox_VkDeviceMemory(memory), offset, size, flags, ppData);
+                                    unbox_VkDeviceMemory(Boxed<VkDeviceMemory>(memory)), offset,
+                                    size, flags, ppData);
     }
 
     void vkUnmapMemory(VkDevice device, VkDeviceMemory memory) {
         mDgs->on_vkUnmapMemory(mBp, kInvalidSnapshotApiCallHandle, device,
-                               unbox_VkDeviceMemory(memory));
+                               unbox_VkDeviceMemory(Boxed<VkDeviceMemory>(memory)));
     }
 
    private:

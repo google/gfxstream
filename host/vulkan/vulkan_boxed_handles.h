@@ -16,6 +16,7 @@
 
 #include <cstdint>
 #include <deque>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <type_traits>
@@ -66,12 +67,25 @@ class Boxed {
         }
     }
 
+    static Boxed fromRaw(const void* raw) noexcept {
+        return fromRaw(static_cast<uint64_t>(reinterpret_cast<uintptr_t>(raw)));
+    }
+
+    uint64_t toRaw() const noexcept {
+        if constexpr (std::is_pointer_v<VkT>) {
+            return static_cast<uint64_t>(reinterpret_cast<uintptr_t>(mHandle));
+        } else {
+            return static_cast<uint64_t>(mHandle);
+        }
+    }
+
     constexpr VkT value() const noexcept { return mHandle; }
 
     explicit constexpr operator bool() const noexcept { return mHandle != VK_NULL_HANDLE; }
 
     friend constexpr bool operator==(Boxed a, Boxed b) noexcept { return a.mHandle == b.mHandle; }
     friend constexpr bool operator!=(Boxed a, Boxed b) noexcept { return a.mHandle != b.mHandle; }
+    friend constexpr bool operator<(Boxed a, Boxed b) noexcept { return a.mHandle < b.mHandle; }
 
    private:
     VkT mHandle = VK_NULL_HANDLE;
@@ -144,6 +158,14 @@ class BoxedHandleManager {
     void processDelayedRemoves(VkDevice device);
 
     BoxedHandleInfo* get(BoxedHandle handle);
+    template <typename VkT>
+    BoxedHandleInfo* get(Boxed<VkT> handle) {
+        if constexpr (std::is_pointer_v<VkT>) {
+            return get(static_cast<BoxedHandle>(reinterpret_cast<uintptr_t>(handle.value())));
+        } else {
+            return get(static_cast<BoxedHandle>(handle.value()));
+        }
+    }
     BoxedHandle getBoxedFromUnboxed(UnboxedHandle unboxed);
 
     // Returns nullptr if |handle| is not live. The lookup and the copy are done
@@ -181,24 +203,24 @@ class BoxedHandleManager {
 
 extern BoxedHandleManager sBoxedHandleManager;
 
-#define DEFINE_BOXED_DISPATCHABLE_HANDLE_API_DECL(type)                \
-    type new_boxed_##type(type underlying, VulkanDispatch* dispatch);  \
-    void delete_##type(type boxed);                                    \
-    type unbox_##type(type boxed);                                     \
-    type try_unbox_##type(type boxed);                                 \
-    type unboxed_to_boxed_##type(type boxed);                          \
-    VulkanDispatch* dispatch_##type(type boxed);                       \
-    std::shared_ptr<OrderMaintenanceInfo> ordmaint_##type(type boxed); \
-    VulkanMemReadingStream* readstream_##type(type boxed);
+#define DEFINE_BOXED_DISPATCHABLE_HANDLE_API_DECL(type)                       \
+    Boxed<type> new_boxed_##type(type underlying, VulkanDispatch* dispatch);  \
+    void delete_##type(Boxed<type> boxed);                                    \
+    type unbox_##type(Boxed<type> boxed);                                     \
+    type try_unbox_##type(Boxed<type> boxed);                                 \
+    Boxed<type> unboxed_to_boxed_##type(type unboxed);                        \
+    VulkanDispatch* dispatch_##type(Boxed<type> boxed);                       \
+    std::shared_ptr<OrderMaintenanceInfo> ordmaint_##type(Boxed<type> boxed); \
+    VulkanMemReadingStream* readstream_##type(Boxed<type> boxed);
 
-#define DEFINE_BOXED_NON_DISPATCHABLE_HANDLE_API_DECL(type)                                  \
-    type new_boxed_non_dispatchable_##type(type underlying);                                 \
-    void delete_##type(type boxed);                                                          \
-    void delayed_delete_##type(type boxed, VkDevice device, std::function<void()> callback); \
-    type unbox_##type(type boxed);                                                           \
-    type try_unbox_##type(type boxed);                                                       \
-    type unboxed_to_boxed_non_dispatchable_##type(type boxed);                               \
-    void set_boxed_non_dispatchable_##type(type boxed, type underlying);
+#define DEFINE_BOXED_NON_DISPATCHABLE_HANDLE_API_DECL(type)                                         \
+    Boxed<type> new_boxed_non_dispatchable_##type(type underlying);                                 \
+    void delete_##type(Boxed<type> boxed);                                                          \
+    void delayed_delete_##type(Boxed<type> boxed, VkDevice device, std::function<void()> callback); \
+    type unbox_##type(Boxed<type> boxed);                                                           \
+    type try_unbox_##type(Boxed<type> boxed);                                                       \
+    Boxed<type> unboxed_to_boxed_non_dispatchable_##type(type unboxed);                             \
+    void set_boxed_non_dispatchable_##type(Boxed<type> boxed, type underlying);
 
 GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_DISPATCHABLE_HANDLE_API_DECL)
 GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_NON_DISPATCHABLE_HANDLE_API_DECL)
@@ -206,3 +228,12 @@ GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_NON_DISPATCHABLE_HAN
 }  // namespace vk
 }  // namespace host
 }  // namespace gfxstream
+
+namespace std {
+template <typename VkT>
+struct hash<gfxstream::host::vk::Boxed<VkT>> {
+    size_t operator()(gfxstream::host::vk::Boxed<VkT> boxed) const noexcept {
+        return std::hash<VkT>{}(boxed.value());
+    }
+};
+}  // namespace std
