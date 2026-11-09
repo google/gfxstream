@@ -13,22 +13,15 @@
 // limitations under the License.
 
 #version 450
-#include "Etc2ShaderLib.comp"
+#include "etc2_shader_lib.comp"
 
 layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
-
-layout(push_constant) uniform ImageFormatBlock {
-    uint compFormat;
-    uint baseLayer;
-}
-u_pushConstant;
 
 layout(binding = 0, rg32ui) readonly uniform WITH_TYPE(uimage) u_image0;
 layout(binding = 1, r16) writeonly uniform WITH_TYPE(image) u_image1;
 
 void main(void) {
     ivec3 pos = ivec3(gl_GlobalInvocationID.xyz);
-    pos.z += int(u_pushConstant.baseLayer);
     uvec4 srcBlock = imageLoad(u_image0, WITH_TYPE(getPos)(pos));
 
     float[16] decompressed =

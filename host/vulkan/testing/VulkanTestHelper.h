@@ -16,6 +16,8 @@
 
 #include "gfxstream/BumpPool.h"
 #include "gfxstream/host/GfxApiLogger.h"
+#include "gfxstream/host/global_state.h"
+#include "render_thread_info_vk.h"
 #include "vk_decoder_global_state.h"
 #include "vulkan_dispatch.h"
 #include "vulkan/testing/VkDecoderTestDispatch.h"
@@ -98,7 +100,9 @@ class VulkanTestHelper {
     std::lock_guard<std::mutex> mLock;
     VulkanDispatch* mVk;
     gfxstream::host::GfxApiLogger mLogger;
+    std::unique_ptr<gfxstream::host::GlobalState> mGlobalState;
     std::unique_ptr<VkEmulation> mVkEmu;
+    std::unique_ptr<RenderThreadInfoVk> mRenderThreadInfo;
     std::unique_ptr<::gfxstream::base::BumpPool> mBp;
     VkDecoderContext mDecoderContext;
     VkDecoderTestDispatch mTestDispatch;
