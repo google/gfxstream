@@ -899,7 +899,8 @@ void reservedunmarshal_VkSubmitInfo(VulkanStream* vkStream, VkStructureType root
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
                 *(((VkSemaphore*)forUnmarshaling->pWaitSemaphores) + k) =
-                    tmpval ? (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval) : VK_NULL_HANDLE;
+                    tmpval ? (VkSemaphore)unbox_VkSemaphore(Boxed<VkSemaphore>::fromRaw(tmpval))
+                           : VK_NULL_HANDLE;
             }
         }
     }
@@ -922,7 +923,8 @@ void reservedunmarshal_VkSubmitInfo(VulkanStream* vkStream, VkStructureType root
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                 *(((VkCommandBuffer*)forUnmarshaling->pCommandBuffers) + k) =
-                    tmpval ? (VkCommandBuffer)unbox_VkCommandBuffer((VkCommandBuffer)tmpval)
+                    tmpval ? (VkCommandBuffer)unbox_VkCommandBuffer(
+                                 Boxed<VkCommandBuffer>::fromRaw(tmpval))
                            : VK_NULL_HANDLE;
             }
         }
@@ -939,7 +941,8 @@ void reservedunmarshal_VkSubmitInfo(VulkanStream* vkStream, VkStructureType root
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_2_ptr + k * 8, sizeof(uint64_t));
                 *(((VkSemaphore*)forUnmarshaling->pSignalSemaphores) + k) =
-                    tmpval ? (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval) : VK_NULL_HANDLE;
+                    tmpval ? (VkSemaphore)unbox_VkSemaphore(Boxed<VkSemaphore>::fromRaw(tmpval))
+                           : VK_NULL_HANDLE;
             }
         }
     }
@@ -973,7 +976,7 @@ void reservedunmarshal_VkMappedMemoryRange(VulkanStream* vkStream, VkStructureTy
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkDeviceMemory*)&forUnmarshaling->memory =
-        (VkDeviceMemory)unbox_VkDeviceMemory((VkDeviceMemory)(*&cgen_var_0));
+        (VkDeviceMemory)unbox_VkDeviceMemory(Boxed<VkDeviceMemory>::fromRaw(*&cgen_var_0));
     memcpy((VkDeviceSize*)&forUnmarshaling->offset, *ptr, sizeof(VkDeviceSize));
     *ptr += sizeof(VkDeviceSize);
     memcpy((VkDeviceSize*)&forUnmarshaling->size, *ptr, sizeof(VkDeviceSize));
@@ -1054,7 +1057,7 @@ void reservedunmarshal_VkSparseImageMemoryBind(VulkanStream* vkStream, VkStructu
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkDeviceMemory*)&forUnmarshaling->memory =
-        (VkDeviceMemory)unbox_VkDeviceMemory((VkDeviceMemory)(*&cgen_var_0));
+        (VkDeviceMemory)unbox_VkDeviceMemory(Boxed<VkDeviceMemory>::fromRaw(*&cgen_var_0));
     memcpy((VkDeviceSize*)&forUnmarshaling->memoryOffset, *ptr, sizeof(VkDeviceSize));
     *ptr += sizeof(VkDeviceSize);
     memcpy((VkSparseMemoryBindFlags*)&forUnmarshaling->flags, *ptr,
@@ -1068,7 +1071,8 @@ void reservedunmarshal_VkSparseImageMemoryBindInfo(VulkanStream* vkStream, VkStr
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
-    *(VkImage*)&forUnmarshaling->image = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
+    *(VkImage*)&forUnmarshaling->image =
+        (VkImage)unbox_VkImage(Boxed<VkImage>::fromRaw(*&cgen_var_0));
     memcpy((uint32_t*)&forUnmarshaling->bindCount, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pBinds,
@@ -1105,7 +1109,7 @@ void reservedunmarshal_VkSparseMemoryBind(VulkanStream* vkStream, VkStructureTyp
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkDeviceMemory*)&forUnmarshaling->memory =
-        (VkDeviceMemory)unbox_VkDeviceMemory((VkDeviceMemory)(*&cgen_var_0));
+        (VkDeviceMemory)unbox_VkDeviceMemory(Boxed<VkDeviceMemory>::fromRaw(*&cgen_var_0));
     memcpy((VkDeviceSize*)&forUnmarshaling->memoryOffset, *ptr, sizeof(VkDeviceSize));
     *ptr += sizeof(VkDeviceSize);
     memcpy((VkSparseMemoryBindFlags*)&forUnmarshaling->flags, *ptr,
@@ -1120,7 +1124,8 @@ void reservedunmarshal_VkSparseBufferMemoryBindInfo(VulkanStream* vkStream,
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
-    *(VkBuffer*)&forUnmarshaling->buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
+    *(VkBuffer*)&forUnmarshaling->buffer =
+        (VkBuffer)unbox_VkBuffer(Boxed<VkBuffer>::fromRaw(*&cgen_var_0));
     memcpy((uint32_t*)&forUnmarshaling->bindCount, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pBinds,
@@ -1137,7 +1142,8 @@ void reservedunmarshal_VkSparseImageOpaqueMemoryBindInfo(
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
-    *(VkImage*)&forUnmarshaling->image = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
+    *(VkImage*)&forUnmarshaling->image =
+        (VkImage)unbox_VkImage(Boxed<VkImage>::fromRaw(*&cgen_var_0));
     memcpy((uint32_t*)&forUnmarshaling->bindCount, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pBinds,
@@ -1184,7 +1190,8 @@ void reservedunmarshal_VkBindSparseInfo(VulkanStream* vkStream, VkStructureType 
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
                 *(((VkSemaphore*)forUnmarshaling->pWaitSemaphores) + k) =
-                    tmpval ? (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval) : VK_NULL_HANDLE;
+                    tmpval ? (VkSemaphore)unbox_VkSemaphore(Boxed<VkSemaphore>::fromRaw(tmpval))
+                           : VK_NULL_HANDLE;
             }
         }
     }
@@ -1228,7 +1235,8 @@ void reservedunmarshal_VkBindSparseInfo(VulkanStream* vkStream, VkStructureType 
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                 *(((VkSemaphore*)forUnmarshaling->pSignalSemaphores) + k) =
-                    tmpval ? (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval) : VK_NULL_HANDLE;
+                    tmpval ? (VkSemaphore)unbox_VkSemaphore(Boxed<VkSemaphore>::fromRaw(tmpval))
+                           : VK_NULL_HANDLE;
             }
         }
     }
@@ -1507,7 +1515,8 @@ void reservedunmarshal_VkImageViewCreateInfo(VulkanStream* vkStream, VkStructure
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
-    *(VkImage*)&forUnmarshaling->image = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
+    *(VkImage*)&forUnmarshaling->image =
+        (VkImage)unbox_VkImage(Boxed<VkImage>::fromRaw(*&cgen_var_0));
     memcpy((VkImageViewType*)&forUnmarshaling->viewType, *ptr, sizeof(VkImageViewType));
     *ptr += sizeof(VkImageViewType);
     memcpy((VkFormat*)&forUnmarshaling->format, *ptr, sizeof(VkFormat));
@@ -1579,7 +1588,7 @@ void reservedunmarshal_VkCommandBufferAllocateInfo(VulkanStream* vkStream, VkStr
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkCommandPool*)&forUnmarshaling->commandPool =
-        (VkCommandPool)unbox_VkCommandPool((VkCommandPool)(*&cgen_var_0));
+        (VkCommandPool)unbox_VkCommandPool(Boxed<VkCommandPool>::fromRaw(*&cgen_var_0));
     memcpy((VkCommandBufferLevel*)&forUnmarshaling->level, *ptr, sizeof(VkCommandBufferLevel));
     *ptr += sizeof(VkCommandBufferLevel);
     memcpy((uint32_t*)&forUnmarshaling->commandBufferCount, *ptr, sizeof(uint32_t));
@@ -1615,14 +1624,14 @@ void reservedunmarshal_VkCommandBufferInheritanceInfo(
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkRenderPass*)&forUnmarshaling->renderPass =
-        (VkRenderPass)unbox_VkRenderPass((VkRenderPass)(*&cgen_var_0));
+        (VkRenderPass)unbox_VkRenderPass(Boxed<VkRenderPass>::fromRaw(*&cgen_var_0));
     memcpy((uint32_t*)&forUnmarshaling->subpass, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     uint64_t cgen_var_1;
     memcpy((uint64_t*)&cgen_var_1, *ptr, 8);
     *ptr += 8;
     *(VkFramebuffer*)&forUnmarshaling->framebuffer =
-        (VkFramebuffer)unbox_VkFramebuffer((VkFramebuffer)(*&cgen_var_1));
+        (VkFramebuffer)unbox_VkFramebuffer(Boxed<VkFramebuffer>::fromRaw(*&cgen_var_1));
     memcpy((VkBool32*)&forUnmarshaling->occlusionQueryEnable, *ptr, sizeof(VkBool32));
     *ptr += sizeof(VkBool32);
     memcpy((VkQueryControlFlags*)&forUnmarshaling->queryFlags, *ptr, sizeof(VkQueryControlFlags));
@@ -1760,7 +1769,8 @@ void reservedunmarshal_VkBufferMemoryBarrier(VulkanStream* vkStream, VkStructure
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
-    *(VkBuffer*)&forUnmarshaling->buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
+    *(VkBuffer*)&forUnmarshaling->buffer =
+        (VkBuffer)unbox_VkBuffer(Boxed<VkBuffer>::fromRaw(*&cgen_var_0));
     memcpy((VkDeviceSize*)&forUnmarshaling->offset, *ptr, sizeof(VkDeviceSize));
     *ptr += sizeof(VkDeviceSize);
     memcpy((VkDeviceSize*)&forUnmarshaling->size, *ptr, sizeof(VkDeviceSize));
@@ -1806,7 +1816,8 @@ void reservedunmarshal_VkImageMemoryBarrier(VulkanStream* vkStream, VkStructureT
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
-    *(VkImage*)&forUnmarshaling->image = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
+    *(VkImage*)&forUnmarshaling->image =
+        (VkImage)unbox_VkImage(Boxed<VkImage>::fromRaw(*&cgen_var_0));
     reservedunmarshal_VkImageSubresourceRange(
         vkStream, rootType, (VkImageSubresourceRange*)(&forUnmarshaling->subresourceRange), ptr);
 }
@@ -1929,7 +1940,8 @@ void reservedunmarshal_VkBufferViewCreateInfo(VulkanStream* vkStream, VkStructur
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
-    *(VkBuffer*)&forUnmarshaling->buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
+    *(VkBuffer*)&forUnmarshaling->buffer =
+        (VkBuffer)unbox_VkBuffer(Boxed<VkBuffer>::fromRaw(*&cgen_var_0));
     memcpy((VkFormat*)&forUnmarshaling->format, *ptr, sizeof(VkFormat));
     *ptr += sizeof(VkFormat);
     memcpy((VkDeviceSize*)&forUnmarshaling->offset, *ptr, sizeof(VkDeviceSize));
@@ -2086,7 +2098,7 @@ void reservedunmarshal_VkPipelineShaderStageCreateInfo(
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkShaderModule*)&forUnmarshaling->module =
-        (VkShaderModule)unbox_VkShaderModule((VkShaderModule)(*&cgen_var_0));
+        (VkShaderModule)unbox_VkShaderModule(Boxed<VkShaderModule>::fromRaw(*&cgen_var_0));
     vkStream->loadStringInPlaceWithStreamPtr((char**)&forUnmarshaling->pName, ptr);
     memcpy((VkSpecializationInfo**)&forUnmarshaling->pSpecializationInfo, (*ptr), 8);
     gfxstream::Stream::fromBe64((uint8_t*)&forUnmarshaling->pSpecializationInfo);
@@ -2132,12 +2144,12 @@ void reservedunmarshal_VkComputePipelineCreateInfo(VulkanStream* vkStream, VkStr
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkPipelineLayout*)&forUnmarshaling->layout =
-        (VkPipelineLayout)unbox_VkPipelineLayout((VkPipelineLayout)(*&cgen_var_0));
+        (VkPipelineLayout)unbox_VkPipelineLayout(Boxed<VkPipelineLayout>::fromRaw(*&cgen_var_0));
     uint64_t cgen_var_1;
     memcpy((uint64_t*)&cgen_var_1, *ptr, 8);
     *ptr += 8;
     *(VkPipeline*)&forUnmarshaling->basePipelineHandle =
-        (VkPipeline)unbox_VkPipeline((VkPipeline)(*&cgen_var_1));
+        (VkPipeline)unbox_VkPipeline(Boxed<VkPipeline>::fromRaw(*&cgen_var_1));
     memcpy((int32_t*)&forUnmarshaling->basePipelineIndex, *ptr, sizeof(int32_t));
     *ptr += sizeof(int32_t);
 }
@@ -2193,7 +2205,7 @@ void reservedunmarshal_VkPipelineLayoutCreateInfo(VulkanStream* vkStream, VkStru
                 memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
                 *(((VkDescriptorSetLayout*)forUnmarshaling->pSetLayouts) + k) =
                     tmpval ? (VkDescriptorSetLayout)unbox_VkDescriptorSetLayout(
-                                 (VkDescriptorSetLayout)tmpval)
+                                 Boxed<VkDescriptorSetLayout>::fromRaw(tmpval))
                            : VK_NULL_HANDLE;
             }
         }
@@ -2298,7 +2310,7 @@ void reservedunmarshal_VkCopyDescriptorSet(VulkanStream* vkStream, VkStructureTy
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkDescriptorSet*)&forUnmarshaling->srcSet =
-        (VkDescriptorSet)unbox_VkDescriptorSet((VkDescriptorSet)(*&cgen_var_0));
+        (VkDescriptorSet)unbox_VkDescriptorSet(Boxed<VkDescriptorSet>::fromRaw(*&cgen_var_0));
     memcpy((uint32_t*)&forUnmarshaling->srcBinding, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     memcpy((uint32_t*)&forUnmarshaling->srcArrayElement, *ptr, sizeof(uint32_t));
@@ -2307,7 +2319,7 @@ void reservedunmarshal_VkCopyDescriptorSet(VulkanStream* vkStream, VkStructureTy
     memcpy((uint64_t*)&cgen_var_1, *ptr, 8);
     *ptr += 8;
     *(VkDescriptorSet*)&forUnmarshaling->dstSet =
-        (VkDescriptorSet)unbox_VkDescriptorSet((VkDescriptorSet)(*&cgen_var_1));
+        (VkDescriptorSet)unbox_VkDescriptorSet(Boxed<VkDescriptorSet>::fromRaw(*&cgen_var_1));
     memcpy((uint32_t*)&forUnmarshaling->dstBinding, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     memcpy((uint32_t*)&forUnmarshaling->dstArrayElement, *ptr, sizeof(uint32_t));
@@ -2322,7 +2334,8 @@ void reservedunmarshal_VkDescriptorBufferInfo(VulkanStream* vkStream, VkStructur
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 1 * 8);
     *ptr += 1 * 8;
-    *(VkBuffer*)&forUnmarshaling->buffer = (VkBuffer)try_unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
+    *(VkBuffer*)&forUnmarshaling->buffer =
+        (VkBuffer)try_unbox_VkBuffer(Boxed<VkBuffer>::fromRaw(*&cgen_var_0));
     memcpy((VkDeviceSize*)&forUnmarshaling->offset, *ptr, sizeof(VkDeviceSize));
     *ptr += sizeof(VkDeviceSize);
     memcpy((VkDeviceSize*)&forUnmarshaling->range, *ptr, sizeof(VkDeviceSize));
@@ -2335,12 +2348,13 @@ void reservedunmarshal_VkDescriptorImageInfo(VulkanStream* vkStream, VkStructure
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
-    *(VkSampler*)&forUnmarshaling->sampler = (VkSampler)unbox_VkSampler((VkSampler)(*&cgen_var_0));
+    *(VkSampler*)&forUnmarshaling->sampler =
+        (VkSampler)unbox_VkSampler(Boxed<VkSampler>::fromRaw(*&cgen_var_0));
     uint64_t cgen_var_1;
     memcpy((uint64_t*)&cgen_var_1, *ptr, 8);
     *ptr += 8;
     *(VkImageView*)&forUnmarshaling->imageView =
-        (VkImageView)unbox_VkImageView((VkImageView)(*&cgen_var_1));
+        (VkImageView)unbox_VkImageView(Boxed<VkImageView>::fromRaw(*&cgen_var_1));
     memcpy((VkImageLayout*)&forUnmarshaling->imageLayout, *ptr, sizeof(VkImageLayout));
     *ptr += sizeof(VkImageLayout);
 }
@@ -2422,7 +2436,7 @@ void reservedunmarshal_VkDescriptorSetAllocateInfo(VulkanStream* vkStream, VkStr
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkDescriptorPool*)&forUnmarshaling->descriptorPool =
-        (VkDescriptorPool)unbox_VkDescriptorPool((VkDescriptorPool)(*&cgen_var_0));
+        (VkDescriptorPool)unbox_VkDescriptorPool(Boxed<VkDescriptorPool>::fromRaw(*&cgen_var_0));
     memcpy((uint32_t*)&forUnmarshaling->descriptorSetCount, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pSetLayouts,
@@ -2436,7 +2450,7 @@ void reservedunmarshal_VkDescriptorSetAllocateInfo(VulkanStream* vkStream, VkStr
                 memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                 *(((VkDescriptorSetLayout*)forUnmarshaling->pSetLayouts) + k) =
                     tmpval ? (VkDescriptorSetLayout)unbox_VkDescriptorSetLayout(
-                                 (VkDescriptorSetLayout)tmpval)
+                                 Boxed<VkDescriptorSetLayout>::fromRaw(tmpval))
                            : VK_NULL_HANDLE;
             }
         }
@@ -2469,7 +2483,8 @@ void reservedunmarshal_VkDescriptorSetLayoutBinding(VulkanStream* vkStream,
                     uint64_t tmpval;
                     memcpy(&tmpval, cgen_var_0_0_ptr + k * 8, sizeof(uint64_t));
                     *(((VkSampler*)forUnmarshaling->pImmutableSamplers) + k) =
-                        tmpval ? (VkSampler)unbox_VkSampler((VkSampler)tmpval) : VK_NULL_HANDLE;
+                        tmpval ? (VkSampler)unbox_VkSampler(Boxed<VkSampler>::fromRaw(tmpval))
+                               : VK_NULL_HANDLE;
                 }
             }
         }
@@ -2543,7 +2558,7 @@ void reservedunmarshal_VkWriteDescriptorSet(VulkanStream* vkStream, VkStructureT
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkDescriptorSet*)&forUnmarshaling->dstSet =
-        (VkDescriptorSet)unbox_VkDescriptorSet((VkDescriptorSet)(*&cgen_var_0));
+        (VkDescriptorSet)unbox_VkDescriptorSet(Boxed<VkDescriptorSet>::fromRaw(*&cgen_var_0));
     memcpy((uint32_t*)&forUnmarshaling->dstBinding, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     memcpy((uint32_t*)&forUnmarshaling->dstArrayElement, *ptr, sizeof(uint32_t));
@@ -2611,7 +2626,8 @@ void reservedunmarshal_VkWriteDescriptorSet(VulkanStream* vkStream, VkStructureT
                         uint64_t tmpval;
                         memcpy(&tmpval, cgen_var_3_0_ptr + k * 8, sizeof(uint64_t));
                         *(((VkBufferView*)forUnmarshaling->pTexelBufferView) + k) =
-                            tmpval ? (VkBufferView)unbox_VkBufferView((VkBufferView)tmpval)
+                            tmpval ? (VkBufferView)unbox_VkBufferView(
+                                         Boxed<VkBufferView>::fromRaw(tmpval))
                                    : VK_NULL_HANDLE;
                     }
                 }
@@ -3329,19 +3345,19 @@ void reservedunmarshal_VkGraphicsPipelineCreateInfo(VulkanStream* vkStream,
     memcpy((uint64_t*)&cgen_var_6, *ptr, 8);
     *ptr += 8;
     *(VkPipelineLayout*)&forUnmarshaling->layout =
-        (VkPipelineLayout)unbox_VkPipelineLayout((VkPipelineLayout)(*&cgen_var_6));
+        (VkPipelineLayout)unbox_VkPipelineLayout(Boxed<VkPipelineLayout>::fromRaw(*&cgen_var_6));
     uint64_t cgen_var_7;
     memcpy((uint64_t*)&cgen_var_7, *ptr, 8);
     *ptr += 8;
     *(VkRenderPass*)&forUnmarshaling->renderPass =
-        (VkRenderPass)unbox_VkRenderPass((VkRenderPass)(*&cgen_var_7));
+        (VkRenderPass)unbox_VkRenderPass(Boxed<VkRenderPass>::fromRaw(*&cgen_var_7));
     memcpy((uint32_t*)&forUnmarshaling->subpass, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     uint64_t cgen_var_8;
     memcpy((uint64_t*)&cgen_var_8, *ptr, 8);
     *ptr += 8;
     *(VkPipeline*)&forUnmarshaling->basePipelineHandle =
-        (VkPipeline)unbox_VkPipeline((VkPipeline)(*&cgen_var_8));
+        (VkPipeline)unbox_VkPipeline(Boxed<VkPipeline>::fromRaw(*&cgen_var_8));
     memcpy((int32_t*)&forUnmarshaling->basePipelineIndex, *ptr, sizeof(int32_t));
     *ptr += sizeof(int32_t);
 }
@@ -3412,7 +3428,7 @@ void reservedunmarshal_VkFramebufferCreateInfo(VulkanStream* vkStream, VkStructu
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkRenderPass*)&forUnmarshaling->renderPass =
-        (VkRenderPass)unbox_VkRenderPass((VkRenderPass)(*&cgen_var_0));
+        (VkRenderPass)unbox_VkRenderPass(Boxed<VkRenderPass>::fromRaw(*&cgen_var_0));
     memcpy((uint32_t*)&forUnmarshaling->attachmentCount, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     if ((!(vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) ||
@@ -3427,7 +3443,7 @@ void reservedunmarshal_VkFramebufferCreateInfo(VulkanStream* vkStream, VkStructu
                     uint64_t tmpval;
                     memcpy(&tmpval, cgen_var_0_0_ptr + k * 8, sizeof(uint64_t));
                     *(((VkImageView*)forUnmarshaling->pAttachments) + k) =
-                        tmpval ? (VkImageView)unbox_VkImageView((VkImageView)tmpval)
+                        tmpval ? (VkImageView)unbox_VkImageView(Boxed<VkImageView>::fromRaw(tmpval))
                                : VK_NULL_HANDLE;
                 }
             }
@@ -3669,12 +3685,12 @@ void reservedunmarshal_VkRenderPassBeginInfo(VulkanStream* vkStream, VkStructure
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkRenderPass*)&forUnmarshaling->renderPass =
-        (VkRenderPass)unbox_VkRenderPass((VkRenderPass)(*&cgen_var_0));
+        (VkRenderPass)unbox_VkRenderPass(Boxed<VkRenderPass>::fromRaw(*&cgen_var_0));
     uint64_t cgen_var_1;
     memcpy((uint64_t*)&cgen_var_1, *ptr, 8);
     *ptr += 8;
     *(VkFramebuffer*)&forUnmarshaling->framebuffer =
-        (VkFramebuffer)unbox_VkFramebuffer((VkFramebuffer)(*&cgen_var_1));
+        (VkFramebuffer)unbox_VkFramebuffer(Boxed<VkFramebuffer>::fromRaw(*&cgen_var_1));
     reservedunmarshal_VkRect2D(vkStream, rootType, (VkRect2D*)(&forUnmarshaling->renderArea), ptr);
     memcpy((uint32_t*)&forUnmarshaling->clearValueCount, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
@@ -3721,12 +3737,13 @@ void reservedunmarshal_VkBindBufferMemoryInfo(VulkanStream* vkStream, VkStructur
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
-    *(VkBuffer*)&forUnmarshaling->buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
+    *(VkBuffer*)&forUnmarshaling->buffer =
+        (VkBuffer)unbox_VkBuffer(Boxed<VkBuffer>::fromRaw(*&cgen_var_0));
     uint64_t cgen_var_1;
     memcpy((uint64_t*)&cgen_var_1, *ptr, 8);
     *ptr += 8;
     *(VkDeviceMemory*)&forUnmarshaling->memory =
-        (VkDeviceMemory)unbox_VkDeviceMemory((VkDeviceMemory)(*&cgen_var_1));
+        (VkDeviceMemory)unbox_VkDeviceMemory(Boxed<VkDeviceMemory>::fromRaw(*&cgen_var_1));
     memcpy((VkDeviceSize*)&forUnmarshaling->memoryOffset, *ptr, sizeof(VkDeviceSize));
     *ptr += sizeof(VkDeviceSize);
 }
@@ -3759,12 +3776,13 @@ void reservedunmarshal_VkBindImageMemoryInfo(VulkanStream* vkStream, VkStructure
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
-    *(VkImage*)&forUnmarshaling->image = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
+    *(VkImage*)&forUnmarshaling->image =
+        (VkImage)unbox_VkImage(Boxed<VkImage>::fromRaw(*&cgen_var_0));
     uint64_t cgen_var_1;
     memcpy((uint64_t*)&cgen_var_1, *ptr, 8);
     *ptr += 8;
     *(VkDeviceMemory*)&forUnmarshaling->memory =
-        (VkDeviceMemory)unbox_VkDeviceMemory((VkDeviceMemory)(*&cgen_var_1));
+        (VkDeviceMemory)unbox_VkDeviceMemory(Boxed<VkDeviceMemory>::fromRaw(*&cgen_var_1));
     memcpy((VkDeviceSize*)&forUnmarshaling->memoryOffset, *ptr, sizeof(VkDeviceSize));
     *ptr += sizeof(VkDeviceSize);
 }
@@ -3830,11 +3848,13 @@ void reservedunmarshal_VkMemoryDedicatedAllocateInfo(VulkanStream* vkStream,
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
-    *(VkImage*)&forUnmarshaling->image = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
+    *(VkImage*)&forUnmarshaling->image =
+        (VkImage)unbox_VkImage(Boxed<VkImage>::fromRaw(*&cgen_var_0));
     uint64_t cgen_var_1;
     memcpy((uint64_t*)&cgen_var_1, *ptr, 8);
     *ptr += 8;
-    *(VkBuffer*)&forUnmarshaling->buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_1));
+    *(VkBuffer*)&forUnmarshaling->buffer =
+        (VkBuffer)unbox_VkBuffer(Boxed<VkBuffer>::fromRaw(*&cgen_var_1));
 }
 
 void reservedunmarshal_VkMemoryAllocateFlagsInfo(VulkanStream* vkStream, VkStructureType rootType,
@@ -4134,7 +4154,8 @@ void reservedunmarshal_VkDeviceGroupDeviceCreateInfo(VulkanStream* vkStream,
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
                 *(((VkPhysicalDevice*)forUnmarshaling->pPhysicalDevices) + k) =
-                    tmpval ? (VkPhysicalDevice)unbox_VkPhysicalDevice((VkPhysicalDevice)tmpval)
+                    tmpval ? (VkPhysicalDevice)unbox_VkPhysicalDevice(
+                                 Boxed<VkPhysicalDevice>::fromRaw(tmpval))
                            : VK_NULL_HANDLE;
             }
         }
@@ -4169,7 +4190,8 @@ void reservedunmarshal_VkBufferMemoryRequirementsInfo2(
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
-    *(VkBuffer*)&forUnmarshaling->buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
+    *(VkBuffer*)&forUnmarshaling->buffer =
+        (VkBuffer)unbox_VkBuffer(Boxed<VkBuffer>::fromRaw(*&cgen_var_0));
 }
 
 void reservedunmarshal_VkImageMemoryRequirementsInfo2(
@@ -4200,7 +4222,8 @@ void reservedunmarshal_VkImageMemoryRequirementsInfo2(
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
-    *(VkImage*)&forUnmarshaling->image = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
+    *(VkImage*)&forUnmarshaling->image =
+        (VkImage)unbox_VkImage(Boxed<VkImage>::fromRaw(*&cgen_var_0));
 }
 
 void reservedunmarshal_VkImageSparseMemoryRequirementsInfo2(
@@ -4231,7 +4254,8 @@ void reservedunmarshal_VkImageSparseMemoryRequirementsInfo2(
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
-    *(VkImage*)&forUnmarshaling->image = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
+    *(VkImage*)&forUnmarshaling->image =
+        (VkImage)unbox_VkImage(Boxed<VkImage>::fromRaw(*&cgen_var_0));
 }
 
 void reservedunmarshal_VkMemoryRequirements2(VulkanStream* vkStream, VkStructureType rootType,
@@ -5409,7 +5433,8 @@ void reservedunmarshal_VkDescriptorUpdateTemplateCreateInfo(
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkDescriptorSetLayout*)&forUnmarshaling->descriptorSetLayout =
-        (VkDescriptorSetLayout)unbox_VkDescriptorSetLayout((VkDescriptorSetLayout)(*&cgen_var_0));
+        (VkDescriptorSetLayout)unbox_VkDescriptorSetLayout(
+            Boxed<VkDescriptorSetLayout>::fromRaw(*&cgen_var_0));
     memcpy((VkPipelineBindPoint*)&forUnmarshaling->pipelineBindPoint, *ptr,
            sizeof(VkPipelineBindPoint));
     *ptr += sizeof(VkPipelineBindPoint);
@@ -5417,7 +5442,7 @@ void reservedunmarshal_VkDescriptorUpdateTemplateCreateInfo(
     memcpy((uint64_t*)&cgen_var_1, *ptr, 8);
     *ptr += 8;
     *(VkPipelineLayout*)&forUnmarshaling->pipelineLayout =
-        (VkPipelineLayout)unbox_VkPipelineLayout((VkPipelineLayout)(*&cgen_var_1));
+        (VkPipelineLayout)unbox_VkPipelineLayout(Boxed<VkPipelineLayout>::fromRaw(*&cgen_var_1));
     memcpy((uint32_t*)&forUnmarshaling->set, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
 }
@@ -5558,7 +5583,7 @@ void reservedunmarshal_VkSamplerYcbcrConversionInfo(VulkanStream* vkStream,
     *ptr += 8;
     *(VkSamplerYcbcrConversion*)&forUnmarshaling->conversion =
         (VkSamplerYcbcrConversion)unbox_VkSamplerYcbcrConversion(
-            (VkSamplerYcbcrConversion)(*&cgen_var_0));
+            Boxed<VkSamplerYcbcrConversion>::fromRaw(*&cgen_var_0));
 }
 
 void reservedunmarshal_VkPhysicalDeviceSamplerYcbcrConversionFeatures(
@@ -6658,7 +6683,8 @@ void reservedunmarshal_VkSemaphoreWaitInfo(VulkanStream* vkStream, VkStructureTy
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
                 *(((VkSemaphore*)forUnmarshaling->pSemaphores) + k) =
-                    tmpval ? (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval) : VK_NULL_HANDLE;
+                    tmpval ? (VkSemaphore)unbox_VkSemaphore(Boxed<VkSemaphore>::fromRaw(tmpval))
+                           : VK_NULL_HANDLE;
             }
         }
     }
@@ -6700,7 +6726,7 @@ void reservedunmarshal_VkSemaphoreSignalInfo(VulkanStream* vkStream, VkStructure
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkSemaphore*)&forUnmarshaling->semaphore =
-        (VkSemaphore)unbox_VkSemaphore((VkSemaphore)(*&cgen_var_0));
+        (VkSemaphore)unbox_VkSemaphore(Boxed<VkSemaphore>::fromRaw(*&cgen_var_0));
     memcpy((uint64_t*)&forUnmarshaling->value, *ptr, sizeof(uint64_t));
     *ptr += sizeof(uint64_t);
 }
@@ -6766,7 +6792,8 @@ void reservedunmarshal_VkBufferDeviceAddressInfo(VulkanStream* vkStream, VkStruc
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
-    *(VkBuffer*)&forUnmarshaling->buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
+    *(VkBuffer*)&forUnmarshaling->buffer =
+        (VkBuffer)unbox_VkBuffer(Boxed<VkBuffer>::fromRaw(*&cgen_var_0));
 }
 
 void reservedunmarshal_VkBufferOpaqueCaptureAddressCreateInfo(
@@ -6856,7 +6883,7 @@ void reservedunmarshal_VkDeviceMemoryOpaqueCaptureAddressInfo(
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkDeviceMemory*)&forUnmarshaling->memory =
-        (VkDeviceMemory)unbox_VkDeviceMemory((VkDeviceMemory)(*&cgen_var_0));
+        (VkDeviceMemory)unbox_VkDeviceMemory(Boxed<VkDeviceMemory>::fromRaw(*&cgen_var_0));
 }
 
 #endif
@@ -8006,7 +8033,8 @@ void reservedunmarshal_VkRenderPassAttachmentBeginInfo(
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
                 *(((VkImageView*)forUnmarshaling->pAttachments) + k) =
-                    tmpval ? (VkImageView)unbox_VkImageView((VkImageView)tmpval) : VK_NULL_HANDLE;
+                    tmpval ? (VkImageView)unbox_VkImageView(Boxed<VkImageView>::fromRaw(tmpval))
+                           : VK_NULL_HANDLE;
             }
         }
     }
@@ -8574,7 +8602,8 @@ void reservedunmarshal_VkBufferMemoryBarrier2(VulkanStream* vkStream, VkStructur
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
-    *(VkBuffer*)&forUnmarshaling->buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
+    *(VkBuffer*)&forUnmarshaling->buffer =
+        (VkBuffer)unbox_VkBuffer(Boxed<VkBuffer>::fromRaw(*&cgen_var_0));
     memcpy((VkDeviceSize*)&forUnmarshaling->offset, *ptr, sizeof(VkDeviceSize));
     *ptr += sizeof(VkDeviceSize);
     memcpy((VkDeviceSize*)&forUnmarshaling->size, *ptr, sizeof(VkDeviceSize));
@@ -8627,7 +8656,8 @@ void reservedunmarshal_VkImageMemoryBarrier2(VulkanStream* vkStream, VkStructure
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
-    *(VkImage*)&forUnmarshaling->image = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
+    *(VkImage*)&forUnmarshaling->image =
+        (VkImage)unbox_VkImage(Boxed<VkImage>::fromRaw(*&cgen_var_0));
     reservedunmarshal_VkImageSubresourceRange(
         vkStream, rootType, (VkImageSubresourceRange*)(&forUnmarshaling->subresourceRange), ptr);
 }
@@ -8716,7 +8746,7 @@ void reservedunmarshal_VkSemaphoreSubmitInfo(VulkanStream* vkStream, VkStructure
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkSemaphore*)&forUnmarshaling->semaphore =
-        (VkSemaphore)unbox_VkSemaphore((VkSemaphore)(*&cgen_var_0));
+        (VkSemaphore)unbox_VkSemaphore(Boxed<VkSemaphore>::fromRaw(*&cgen_var_0));
     memcpy((uint64_t*)&forUnmarshaling->value, *ptr, sizeof(uint64_t));
     *ptr += sizeof(uint64_t);
     memcpy((VkPipelineStageFlags2*)&forUnmarshaling->stageMask, *ptr,
@@ -8755,7 +8785,7 @@ void reservedunmarshal_VkCommandBufferSubmitInfo(VulkanStream* vkStream, VkStruc
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkCommandBuffer*)&forUnmarshaling->commandBuffer =
-        (VkCommandBuffer)unbox_VkCommandBuffer((VkCommandBuffer)(*&cgen_var_0));
+        (VkCommandBuffer)unbox_VkCommandBuffer(Boxed<VkCommandBuffer>::fromRaw(*&cgen_var_0));
     memcpy((uint32_t*)&forUnmarshaling->deviceMask, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
 }
@@ -8905,11 +8935,13 @@ void reservedunmarshal_VkCopyBufferInfo2(VulkanStream* vkStream, VkStructureType
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
-    *(VkBuffer*)&forUnmarshaling->srcBuffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
+    *(VkBuffer*)&forUnmarshaling->srcBuffer =
+        (VkBuffer)unbox_VkBuffer(Boxed<VkBuffer>::fromRaw(*&cgen_var_0));
     uint64_t cgen_var_1;
     memcpy((uint64_t*)&cgen_var_1, *ptr, 8);
     *ptr += 8;
-    *(VkBuffer*)&forUnmarshaling->dstBuffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_1));
+    *(VkBuffer*)&forUnmarshaling->dstBuffer =
+        (VkBuffer)unbox_VkBuffer(Boxed<VkBuffer>::fromRaw(*&cgen_var_1));
     memcpy((uint32_t*)&forUnmarshaling->regionCount, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pRegions,
@@ -8982,13 +9014,15 @@ void reservedunmarshal_VkCopyImageInfo2(VulkanStream* vkStream, VkStructureType 
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
-    *(VkImage*)&forUnmarshaling->srcImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
+    *(VkImage*)&forUnmarshaling->srcImage =
+        (VkImage)unbox_VkImage(Boxed<VkImage>::fromRaw(*&cgen_var_0));
     memcpy((VkImageLayout*)&forUnmarshaling->srcImageLayout, *ptr, sizeof(VkImageLayout));
     *ptr += sizeof(VkImageLayout);
     uint64_t cgen_var_1;
     memcpy((uint64_t*)&cgen_var_1, *ptr, 8);
     *ptr += 8;
-    *(VkImage*)&forUnmarshaling->dstImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_1));
+    *(VkImage*)&forUnmarshaling->dstImage =
+        (VkImage)unbox_VkImage(Boxed<VkImage>::fromRaw(*&cgen_var_1));
     memcpy((VkImageLayout*)&forUnmarshaling->dstImageLayout, *ptr, sizeof(VkImageLayout));
     *ptr += sizeof(VkImageLayout);
     memcpy((uint32_t*)&forUnmarshaling->regionCount, *ptr, sizeof(uint32_t));
@@ -9067,11 +9101,13 @@ void reservedunmarshal_VkCopyBufferToImageInfo2(VulkanStream* vkStream, VkStruct
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
-    *(VkBuffer*)&forUnmarshaling->srcBuffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
+    *(VkBuffer*)&forUnmarshaling->srcBuffer =
+        (VkBuffer)unbox_VkBuffer(Boxed<VkBuffer>::fromRaw(*&cgen_var_0));
     uint64_t cgen_var_1;
     memcpy((uint64_t*)&cgen_var_1, *ptr, 8);
     *ptr += 8;
-    *(VkImage*)&forUnmarshaling->dstImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_1));
+    *(VkImage*)&forUnmarshaling->dstImage =
+        (VkImage)unbox_VkImage(Boxed<VkImage>::fromRaw(*&cgen_var_1));
     memcpy((VkImageLayout*)&forUnmarshaling->dstImageLayout, *ptr, sizeof(VkImageLayout));
     *ptr += sizeof(VkImageLayout);
     memcpy((uint32_t*)&forUnmarshaling->regionCount, *ptr, sizeof(uint32_t));
@@ -9112,13 +9148,15 @@ void reservedunmarshal_VkCopyImageToBufferInfo2(VulkanStream* vkStream, VkStruct
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
-    *(VkImage*)&forUnmarshaling->srcImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
+    *(VkImage*)&forUnmarshaling->srcImage =
+        (VkImage)unbox_VkImage(Boxed<VkImage>::fromRaw(*&cgen_var_0));
     memcpy((VkImageLayout*)&forUnmarshaling->srcImageLayout, *ptr, sizeof(VkImageLayout));
     *ptr += sizeof(VkImageLayout);
     uint64_t cgen_var_1;
     memcpy((uint64_t*)&cgen_var_1, *ptr, 8);
     *ptr += 8;
-    *(VkBuffer*)&forUnmarshaling->dstBuffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_1));
+    *(VkBuffer*)&forUnmarshaling->dstBuffer =
+        (VkBuffer)unbox_VkBuffer(Boxed<VkBuffer>::fromRaw(*&cgen_var_1));
     memcpy((uint32_t*)&forUnmarshaling->regionCount, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pRegions,
@@ -10016,13 +10054,15 @@ void reservedunmarshal_VkBlitImageInfo2(VulkanStream* vkStream, VkStructureType 
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
-    *(VkImage*)&forUnmarshaling->srcImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
+    *(VkImage*)&forUnmarshaling->srcImage =
+        (VkImage)unbox_VkImage(Boxed<VkImage>::fromRaw(*&cgen_var_0));
     memcpy((VkImageLayout*)&forUnmarshaling->srcImageLayout, *ptr, sizeof(VkImageLayout));
     *ptr += sizeof(VkImageLayout);
     uint64_t cgen_var_1;
     memcpy((uint64_t*)&cgen_var_1, *ptr, 8);
     *ptr += 8;
-    *(VkImage*)&forUnmarshaling->dstImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_1));
+    *(VkImage*)&forUnmarshaling->dstImage =
+        (VkImage)unbox_VkImage(Boxed<VkImage>::fromRaw(*&cgen_var_1));
     memcpy((VkImageLayout*)&forUnmarshaling->dstImageLayout, *ptr, sizeof(VkImageLayout));
     *ptr += sizeof(VkImageLayout);
     memcpy((uint32_t*)&forUnmarshaling->regionCount, *ptr, sizeof(uint32_t));
@@ -10099,13 +10139,15 @@ void reservedunmarshal_VkResolveImageInfo2(VulkanStream* vkStream, VkStructureTy
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
-    *(VkImage*)&forUnmarshaling->srcImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
+    *(VkImage*)&forUnmarshaling->srcImage =
+        (VkImage)unbox_VkImage(Boxed<VkImage>::fromRaw(*&cgen_var_0));
     memcpy((VkImageLayout*)&forUnmarshaling->srcImageLayout, *ptr, sizeof(VkImageLayout));
     *ptr += sizeof(VkImageLayout);
     uint64_t cgen_var_1;
     memcpy((uint64_t*)&cgen_var_1, *ptr, 8);
     *ptr += 8;
-    *(VkImage*)&forUnmarshaling->dstImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_1));
+    *(VkImage*)&forUnmarshaling->dstImage =
+        (VkImage)unbox_VkImage(Boxed<VkImage>::fromRaw(*&cgen_var_1));
     memcpy((VkImageLayout*)&forUnmarshaling->dstImageLayout, *ptr, sizeof(VkImageLayout));
     *ptr += sizeof(VkImageLayout);
     memcpy((uint32_t*)&forUnmarshaling->regionCount, *ptr, sizeof(uint32_t));
@@ -10147,7 +10189,7 @@ void reservedunmarshal_VkRenderingAttachmentInfo(VulkanStream* vkStream, VkStruc
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkImageView*)&forUnmarshaling->imageView =
-        (VkImageView)unbox_VkImageView((VkImageView)(*&cgen_var_0));
+        (VkImageView)unbox_VkImageView(Boxed<VkImageView>::fromRaw(*&cgen_var_0));
     memcpy((VkImageLayout*)&forUnmarshaling->imageLayout, *ptr, sizeof(VkImageLayout));
     *ptr += sizeof(VkImageLayout);
     memcpy((VkResolveModeFlagBits*)&forUnmarshaling->resolveMode, *ptr,
@@ -10157,7 +10199,7 @@ void reservedunmarshal_VkRenderingAttachmentInfo(VulkanStream* vkStream, VkStruc
     memcpy((uint64_t*)&cgen_var_1, *ptr, 8);
     *ptr += 8;
     *(VkImageView*)&forUnmarshaling->resolveImageView =
-        (VkImageView)unbox_VkImageView((VkImageView)(*&cgen_var_1));
+        (VkImageView)unbox_VkImageView(Boxed<VkImageView>::fromRaw(*&cgen_var_1));
     memcpy((VkImageLayout*)&forUnmarshaling->resolveImageLayout, *ptr, sizeof(VkImageLayout));
     *ptr += sizeof(VkImageLayout);
     memcpy((VkAttachmentLoadOp*)&forUnmarshaling->loadOp, *ptr, sizeof(VkAttachmentLoadOp));
@@ -10687,7 +10729,7 @@ void reservedunmarshal_VkMemoryMapInfo(VulkanStream* vkStream, VkStructureType r
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkDeviceMemory*)&forUnmarshaling->memory =
-        (VkDeviceMemory)unbox_VkDeviceMemory((VkDeviceMemory)(*&cgen_var_0));
+        (VkDeviceMemory)unbox_VkDeviceMemory(Boxed<VkDeviceMemory>::fromRaw(*&cgen_var_0));
     memcpy((VkDeviceSize*)&forUnmarshaling->offset, *ptr, sizeof(VkDeviceSize));
     *ptr += sizeof(VkDeviceSize);
     memcpy((VkDeviceSize*)&forUnmarshaling->size, *ptr, sizeof(VkDeviceSize));
@@ -10724,7 +10766,7 @@ void reservedunmarshal_VkMemoryUnmapInfo(VulkanStream* vkStream, VkStructureType
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkDeviceMemory*)&forUnmarshaling->memory =
-        (VkDeviceMemory)unbox_VkDeviceMemory((VkDeviceMemory)(*&cgen_var_0));
+        (VkDeviceMemory)unbox_VkDeviceMemory(Boxed<VkDeviceMemory>::fromRaw(*&cgen_var_0));
 }
 
 void reservedunmarshal_VkPhysicalDeviceMaintenance5Features(
@@ -11209,7 +11251,8 @@ void reservedunmarshal_VkCopyMemoryToImageInfo(VulkanStream* vkStream, VkStructu
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
-    *(VkImage*)&forUnmarshaling->dstImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
+    *(VkImage*)&forUnmarshaling->dstImage =
+        (VkImage)unbox_VkImage(Boxed<VkImage>::fromRaw(*&cgen_var_0));
     memcpy((VkImageLayout*)&forUnmarshaling->dstImageLayout, *ptr, sizeof(VkImageLayout));
     *ptr += sizeof(VkImageLayout);
     memcpy((uint32_t*)&forUnmarshaling->regionCount, *ptr, sizeof(uint32_t));
@@ -11252,7 +11295,8 @@ void reservedunmarshal_VkCopyImageToMemoryInfo(VulkanStream* vkStream, VkStructu
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
-    *(VkImage*)&forUnmarshaling->srcImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
+    *(VkImage*)&forUnmarshaling->srcImage =
+        (VkImage)unbox_VkImage(Boxed<VkImage>::fromRaw(*&cgen_var_0));
     memcpy((VkImageLayout*)&forUnmarshaling->srcImageLayout, *ptr, sizeof(VkImageLayout));
     *ptr += sizeof(VkImageLayout);
     memcpy((uint32_t*)&forUnmarshaling->regionCount, *ptr, sizeof(uint32_t));
@@ -11295,13 +11339,15 @@ void reservedunmarshal_VkCopyImageToImageInfo(VulkanStream* vkStream, VkStructur
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
-    *(VkImage*)&forUnmarshaling->srcImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
+    *(VkImage*)&forUnmarshaling->srcImage =
+        (VkImage)unbox_VkImage(Boxed<VkImage>::fromRaw(*&cgen_var_0));
     memcpy((VkImageLayout*)&forUnmarshaling->srcImageLayout, *ptr, sizeof(VkImageLayout));
     *ptr += sizeof(VkImageLayout);
     uint64_t cgen_var_1;
     memcpy((uint64_t*)&cgen_var_1, *ptr, 8);
     *ptr += 8;
-    *(VkImage*)&forUnmarshaling->dstImage = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_1));
+    *(VkImage*)&forUnmarshaling->dstImage =
+        (VkImage)unbox_VkImage(Boxed<VkImage>::fromRaw(*&cgen_var_1));
     memcpy((VkImageLayout*)&forUnmarshaling->dstImageLayout, *ptr, sizeof(VkImageLayout));
     *ptr += sizeof(VkImageLayout);
     memcpy((uint32_t*)&forUnmarshaling->regionCount, *ptr, sizeof(uint32_t));
@@ -11342,7 +11388,8 @@ void reservedunmarshal_VkHostImageLayoutTransitionInfo(
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
-    *(VkImage*)&forUnmarshaling->image = (VkImage)unbox_VkImage((VkImage)(*&cgen_var_0));
+    *(VkImage*)&forUnmarshaling->image =
+        (VkImage)unbox_VkImage(Boxed<VkImage>::fromRaw(*&cgen_var_0));
     memcpy((VkImageLayout*)&forUnmarshaling->oldLayout, *ptr, sizeof(VkImageLayout));
     *ptr += sizeof(VkImageLayout);
     memcpy((VkImageLayout*)&forUnmarshaling->newLayout, *ptr, sizeof(VkImageLayout));
@@ -11591,7 +11638,7 @@ void reservedunmarshal_VkBindDescriptorSetsInfo(VulkanStream* vkStream, VkStruct
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkPipelineLayout*)&forUnmarshaling->layout =
-        (VkPipelineLayout)unbox_VkPipelineLayout((VkPipelineLayout)(*&cgen_var_0));
+        (VkPipelineLayout)unbox_VkPipelineLayout(Boxed<VkPipelineLayout>::fromRaw(*&cgen_var_0));
     memcpy((uint32_t*)&forUnmarshaling->firstSet, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     memcpy((uint32_t*)&forUnmarshaling->descriptorSetCount, *ptr, sizeof(uint32_t));
@@ -11606,7 +11653,8 @@ void reservedunmarshal_VkBindDescriptorSetsInfo(VulkanStream* vkStream, VkStruct
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                 *(((VkDescriptorSet*)forUnmarshaling->pDescriptorSets) + k) =
-                    tmpval ? (VkDescriptorSet)unbox_VkDescriptorSet((VkDescriptorSet)tmpval)
+                    tmpval ? (VkDescriptorSet)unbox_VkDescriptorSet(
+                                 Boxed<VkDescriptorSet>::fromRaw(tmpval))
                            : VK_NULL_HANDLE;
             }
         }
@@ -11655,7 +11703,7 @@ void reservedunmarshal_VkPushConstantsInfo(VulkanStream* vkStream, VkStructureTy
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkPipelineLayout*)&forUnmarshaling->layout =
-        (VkPipelineLayout)unbox_VkPipelineLayout((VkPipelineLayout)(*&cgen_var_0));
+        (VkPipelineLayout)unbox_VkPipelineLayout(Boxed<VkPipelineLayout>::fromRaw(*&cgen_var_0));
     memcpy((VkShaderStageFlags*)&forUnmarshaling->stageFlags, *ptr, sizeof(VkShaderStageFlags));
     *ptr += sizeof(VkShaderStageFlags);
     memcpy((uint32_t*)&forUnmarshaling->offset, *ptr, sizeof(uint32_t));
@@ -11702,7 +11750,7 @@ void reservedunmarshal_VkPushDescriptorSetInfo(VulkanStream* vkStream, VkStructu
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkPipelineLayout*)&forUnmarshaling->layout =
-        (VkPipelineLayout)unbox_VkPipelineLayout((VkPipelineLayout)(*&cgen_var_0));
+        (VkPipelineLayout)unbox_VkPipelineLayout(Boxed<VkPipelineLayout>::fromRaw(*&cgen_var_0));
     memcpy((uint32_t*)&forUnmarshaling->set, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     memcpy((uint32_t*)&forUnmarshaling->descriptorWriteCount, *ptr, sizeof(uint32_t));
@@ -11746,12 +11794,12 @@ void reservedunmarshal_VkPushDescriptorSetWithTemplateInfo(
     *ptr += 8;
     *(VkDescriptorUpdateTemplate*)&forUnmarshaling->descriptorUpdateTemplate =
         (VkDescriptorUpdateTemplate)unbox_VkDescriptorUpdateTemplate(
-            (VkDescriptorUpdateTemplate)(*&cgen_var_0));
+            Boxed<VkDescriptorUpdateTemplate>::fromRaw(*&cgen_var_0));
     uint64_t cgen_var_1;
     memcpy((uint64_t*)&cgen_var_1, *ptr, 8);
     *ptr += 8;
     *(VkPipelineLayout*)&forUnmarshaling->layout =
-        (VkPipelineLayout)unbox_VkPipelineLayout((VkPipelineLayout)(*&cgen_var_1));
+        (VkPipelineLayout)unbox_VkPipelineLayout(Boxed<VkPipelineLayout>::fromRaw(*&cgen_var_1));
     memcpy((uint32_t*)&forUnmarshaling->set, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pData, sizeof(const uint8_t));
@@ -12322,7 +12370,7 @@ void reservedunmarshal_VkSwapchainCreateInfoKHR(VulkanStream* vkStream, VkStruct
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkSurfaceKHR*)&forUnmarshaling->surface =
-        (VkSurfaceKHR)unbox_VkSurfaceKHR((VkSurfaceKHR)(*&cgen_var_0));
+        (VkSurfaceKHR)unbox_VkSurfaceKHR(Boxed<VkSurfaceKHR>::fromRaw(*&cgen_var_0));
     memcpy((uint32_t*)&forUnmarshaling->minImageCount, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     memcpy((VkFormat*)&forUnmarshaling->imageFormat, *ptr, sizeof(VkFormat));
@@ -12365,7 +12413,7 @@ void reservedunmarshal_VkSwapchainCreateInfoKHR(VulkanStream* vkStream, VkStruct
     memcpy((uint64_t*)&cgen_var_2, *ptr, 8);
     *ptr += 8;
     *(VkSwapchainKHR*)&forUnmarshaling->oldSwapchain =
-        (VkSwapchainKHR)unbox_VkSwapchainKHR((VkSwapchainKHR)(*&cgen_var_2));
+        (VkSwapchainKHR)unbox_VkSwapchainKHR(Boxed<VkSwapchainKHR>::fromRaw(*&cgen_var_2));
 }
 
 void reservedunmarshal_VkPresentInfoKHR(VulkanStream* vkStream, VkStructureType rootType,
@@ -12404,7 +12452,8 @@ void reservedunmarshal_VkPresentInfoKHR(VulkanStream* vkStream, VkStructureType 
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
                 *(((VkSemaphore*)forUnmarshaling->pWaitSemaphores) + k) =
-                    tmpval ? (VkSemaphore)unbox_VkSemaphore((VkSemaphore)tmpval) : VK_NULL_HANDLE;
+                    tmpval ? (VkSemaphore)unbox_VkSemaphore(Boxed<VkSemaphore>::fromRaw(tmpval))
+                           : VK_NULL_HANDLE;
             }
         }
     }
@@ -12420,7 +12469,8 @@ void reservedunmarshal_VkPresentInfoKHR(VulkanStream* vkStream, VkStructureType 
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_1_ptr + k * 8, sizeof(uint64_t));
                 *(((VkSwapchainKHR*)forUnmarshaling->pSwapchains) + k) =
-                    tmpval ? (VkSwapchainKHR)unbox_VkSwapchainKHR((VkSwapchainKHR)tmpval)
+                    tmpval ? (VkSwapchainKHR)unbox_VkSwapchainKHR(
+                                 Boxed<VkSwapchainKHR>::fromRaw(tmpval))
                            : VK_NULL_HANDLE;
             }
         }
@@ -12476,7 +12526,7 @@ void reservedunmarshal_VkImageSwapchainCreateInfoKHR(VulkanStream* vkStream,
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkSwapchainKHR*)&forUnmarshaling->swapchain =
-        (VkSwapchainKHR)unbox_VkSwapchainKHR((VkSwapchainKHR)(*&cgen_var_0));
+        (VkSwapchainKHR)unbox_VkSwapchainKHR(Boxed<VkSwapchainKHR>::fromRaw(*&cgen_var_0));
 }
 
 void reservedunmarshal_VkBindImageMemorySwapchainInfoKHR(
@@ -12508,7 +12558,7 @@ void reservedunmarshal_VkBindImageMemorySwapchainInfoKHR(
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkSwapchainKHR*)&forUnmarshaling->swapchain =
-        (VkSwapchainKHR)unbox_VkSwapchainKHR((VkSwapchainKHR)(*&cgen_var_0));
+        (VkSwapchainKHR)unbox_VkSwapchainKHR(Boxed<VkSwapchainKHR>::fromRaw(*&cgen_var_0));
     memcpy((uint32_t*)&forUnmarshaling->imageIndex, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
 }
@@ -12542,18 +12592,19 @@ void reservedunmarshal_VkAcquireNextImageInfoKHR(VulkanStream* vkStream, VkStruc
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkSwapchainKHR*)&forUnmarshaling->swapchain =
-        (VkSwapchainKHR)unbox_VkSwapchainKHR((VkSwapchainKHR)(*&cgen_var_0));
+        (VkSwapchainKHR)unbox_VkSwapchainKHR(Boxed<VkSwapchainKHR>::fromRaw(*&cgen_var_0));
     memcpy((uint64_t*)&forUnmarshaling->timeout, *ptr, sizeof(uint64_t));
     *ptr += sizeof(uint64_t);
     uint64_t cgen_var_1;
     memcpy((uint64_t*)&cgen_var_1, *ptr, 8);
     *ptr += 8;
     *(VkSemaphore*)&forUnmarshaling->semaphore =
-        (VkSemaphore)unbox_VkSemaphore((VkSemaphore)(*&cgen_var_1));
+        (VkSemaphore)unbox_VkSemaphore(Boxed<VkSemaphore>::fromRaw(*&cgen_var_1));
     uint64_t cgen_var_2;
     memcpy((uint64_t*)&cgen_var_2, *ptr, 8);
     *ptr += 8;
-    *(VkFence*)&forUnmarshaling->fence = (VkFence)unbox_VkFence((VkFence)(*&cgen_var_2));
+    *(VkFence*)&forUnmarshaling->fence =
+        (VkFence)unbox_VkFence(Boxed<VkFence>::fromRaw(*&cgen_var_2));
     memcpy((uint32_t*)&forUnmarshaling->deviceMask, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
 }
@@ -12691,7 +12742,7 @@ void reservedunmarshal_VkImportSemaphoreFdInfoKHR(VulkanStream* vkStream, VkStru
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkSemaphore*)&forUnmarshaling->semaphore =
-        (VkSemaphore)unbox_VkSemaphore((VkSemaphore)(*&cgen_var_0));
+        (VkSemaphore)unbox_VkSemaphore(Boxed<VkSemaphore>::fromRaw(*&cgen_var_0));
     memcpy((VkSemaphoreImportFlags*)&forUnmarshaling->flags, *ptr, sizeof(VkSemaphoreImportFlags));
     *ptr += sizeof(VkSemaphoreImportFlags);
     memcpy((VkExternalSemaphoreHandleTypeFlagBits*)&forUnmarshaling->handleType, *ptr,
@@ -12730,7 +12781,7 @@ void reservedunmarshal_VkSemaphoreGetFdInfoKHR(VulkanStream* vkStream, VkStructu
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkSemaphore*)&forUnmarshaling->semaphore =
-        (VkSemaphore)unbox_VkSemaphore((VkSemaphore)(*&cgen_var_0));
+        (VkSemaphore)unbox_VkSemaphore(Boxed<VkSemaphore>::fromRaw(*&cgen_var_0));
     memcpy((VkExternalSemaphoreHandleTypeFlagBits*)&forUnmarshaling->handleType, *ptr,
            sizeof(VkExternalSemaphoreHandleTypeFlagBits));
     *ptr += sizeof(VkExternalSemaphoreHandleTypeFlagBits);
@@ -12832,7 +12883,8 @@ void reservedunmarshal_VkImportFenceFdInfoKHR(VulkanStream* vkStream, VkStructur
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
-    *(VkFence*)&forUnmarshaling->fence = (VkFence)unbox_VkFence((VkFence)(*&cgen_var_0));
+    *(VkFence*)&forUnmarshaling->fence =
+        (VkFence)unbox_VkFence(Boxed<VkFence>::fromRaw(*&cgen_var_0));
     memcpy((VkFenceImportFlags*)&forUnmarshaling->flags, *ptr, sizeof(VkFenceImportFlags));
     *ptr += sizeof(VkFenceImportFlags);
     memcpy((VkExternalFenceHandleTypeFlagBits*)&forUnmarshaling->handleType, *ptr,
@@ -12869,7 +12921,8 @@ void reservedunmarshal_VkFenceGetFdInfoKHR(VulkanStream* vkStream, VkStructureTy
     uint64_t cgen_var_0;
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
-    *(VkFence*)&forUnmarshaling->fence = (VkFence)unbox_VkFence((VkFence)(*&cgen_var_0));
+    *(VkFence*)&forUnmarshaling->fence =
+        (VkFence)unbox_VkFence(Boxed<VkFence>::fromRaw(*&cgen_var_0));
     memcpy((VkExternalFenceHandleTypeFlagBits*)&forUnmarshaling->handleType, *ptr,
            sizeof(VkExternalFenceHandleTypeFlagBits));
     *ptr += sizeof(VkExternalFenceHandleTypeFlagBits);
@@ -12934,7 +12987,7 @@ void reservedunmarshal_VkPipelineInfoKHR(VulkanStream* vkStream, VkStructureType
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkPipeline*)&forUnmarshaling->pipeline =
-        (VkPipeline)unbox_VkPipeline((VkPipeline)(*&cgen_var_0));
+        (VkPipeline)unbox_VkPipeline(Boxed<VkPipeline>::fromRaw(*&cgen_var_0));
 }
 
 void reservedunmarshal_VkPipelineExecutablePropertiesKHR(
@@ -13001,7 +13054,7 @@ void reservedunmarshal_VkPipelineExecutableInfoKHR(VulkanStream* vkStream, VkStr
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkPipeline*)&forUnmarshaling->pipeline =
-        (VkPipeline)unbox_VkPipeline((VkPipeline)(*&cgen_var_0));
+        (VkPipeline)unbox_VkPipeline(Boxed<VkPipeline>::fromRaw(*&cgen_var_0));
     memcpy((uint32_t*)&forUnmarshaling->executableIndex, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
 }
@@ -13136,7 +13189,8 @@ void reservedunmarshal_VkPipelineLibraryCreateInfoKHR(
                 uint64_t tmpval;
                 memcpy(&tmpval, cgen_var_0_ptr + k * 8, sizeof(uint64_t));
                 *(((VkPipeline*)forUnmarshaling->pLibraries) + k) =
-                    tmpval ? (VkPipeline)unbox_VkPipeline((VkPipeline)tmpval) : VK_NULL_HANDLE;
+                    tmpval ? (VkPipeline)unbox_VkPipeline(Boxed<VkPipeline>::fromRaw(tmpval))
+                           : VK_NULL_HANDLE;
             }
         }
     }
@@ -13214,7 +13268,8 @@ void reservedunmarshal_VkSwapchainPresentFenceInfoKHR(
                     uint64_t tmpval;
                     memcpy(&tmpval, cgen_var_0_0_ptr + k * 8, sizeof(uint64_t));
                     *(((VkFence*)forUnmarshaling->pFences) + k) =
-                        tmpval ? (VkFence)unbox_VkFence((VkFence)tmpval) : VK_NULL_HANDLE;
+                        tmpval ? (VkFence)unbox_VkFence(Boxed<VkFence>::fromRaw(tmpval))
+                               : VK_NULL_HANDLE;
                 }
             }
         }
@@ -13359,7 +13414,7 @@ void reservedunmarshal_VkReleaseSwapchainImagesInfoKHR(
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkSwapchainKHR*)&forUnmarshaling->swapchain =
-        (VkSwapchainKHR)unbox_VkSwapchainKHR((VkSwapchainKHR)(*&cgen_var_0));
+        (VkSwapchainKHR)unbox_VkSwapchainKHR(Boxed<VkSwapchainKHR>::fromRaw(*&cgen_var_0));
     memcpy((uint32_t*)&forUnmarshaling->imageIndexCount, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     vkStream->alloc((void**)&forUnmarshaling->pImageIndices,
@@ -13404,7 +13459,7 @@ void reservedunmarshal_VkSetDescriptorBufferOffsetsInfoEXT(
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkPipelineLayout*)&forUnmarshaling->layout =
-        (VkPipelineLayout)unbox_VkPipelineLayout((VkPipelineLayout)(*&cgen_var_0));
+        (VkPipelineLayout)unbox_VkPipelineLayout(Boxed<VkPipelineLayout>::fromRaw(*&cgen_var_0));
     memcpy((uint32_t*)&forUnmarshaling->firstSet, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     memcpy((uint32_t*)&forUnmarshaling->setCount, *ptr, sizeof(uint32_t));
@@ -13456,7 +13511,7 @@ void reservedunmarshal_VkBindDescriptorBufferEmbeddedSamplersInfoEXT(
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkPipelineLayout*)&forUnmarshaling->layout =
-        (VkPipelineLayout)unbox_VkPipelineLayout((VkPipelineLayout)(*&cgen_var_0));
+        (VkPipelineLayout)unbox_VkPipelineLayout(Boxed<VkPipelineLayout>::fromRaw(*&cgen_var_0));
     memcpy((uint32_t*)&forUnmarshaling->set, *ptr, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
 }
@@ -15006,7 +15061,7 @@ void reservedunmarshal_VkRenderingFragmentDensityMapAttachmentInfoEXT(
     memcpy((uint64_t*)&cgen_var_0, *ptr, 8);
     *ptr += 8;
     *(VkImageView*)&forUnmarshaling->imageView =
-        (VkImageView)unbox_VkImageView((VkImageView)(*&cgen_var_0));
+        (VkImageView)unbox_VkImageView(Boxed<VkImageView>::fromRaw(*&cgen_var_0));
     memcpy((VkImageLayout*)&forUnmarshaling->imageLayout, *ptr, sizeof(VkImageLayout));
     *ptr += sizeof(VkImageLayout);
 }
@@ -15906,7 +15961,8 @@ void reservedunmarshal_VkFrameBoundaryEXT(VulkanStream* vkStream, VkStructureTyp
                     uint64_t tmpval;
                     memcpy(&tmpval, cgen_var_0_0_ptr + k * 8, sizeof(uint64_t));
                     *(((VkImage*)forUnmarshaling->pImages) + k) =
-                        tmpval ? (VkImage)unbox_VkImage((VkImage)tmpval) : VK_NULL_HANDLE;
+                        tmpval ? (VkImage)unbox_VkImage(Boxed<VkImage>::fromRaw(tmpval))
+                               : VK_NULL_HANDLE;
                 }
             }
         }
@@ -15927,7 +15983,8 @@ void reservedunmarshal_VkFrameBoundaryEXT(VulkanStream* vkStream, VkStructureTyp
                     uint64_t tmpval;
                     memcpy(&tmpval, cgen_var_1_0_ptr + k * 8, sizeof(uint64_t));
                     *(((VkBuffer*)forUnmarshaling->pBuffers) + k) =
-                        tmpval ? (VkBuffer)unbox_VkBuffer((VkBuffer)tmpval) : VK_NULL_HANDLE;
+                        tmpval ? (VkBuffer)unbox_VkBuffer(Boxed<VkBuffer>::fromRaw(tmpval))
+                               : VK_NULL_HANDLE;
                 }
             }
         }
