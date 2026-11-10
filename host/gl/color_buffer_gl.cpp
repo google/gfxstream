@@ -398,7 +398,8 @@ std::unique_ptr<ColorBufferGl> ColorBufferGl::create(
     }
 
     // desktop GL only: use GL_UNSIGNED_INT_8_8_8_8_REV for faster readback.
-    if (get_gfxstream_renderer() == SELECTED_RENDERER_HOST) {
+    if (get_gfxstream_renderer() == SELECTED_RENDERER_HOST &&
+        !features.EglOnEgl.enabled()) {
 #define GL_UNSIGNED_INT_8_8_8_8           0x8035
 #define GL_UNSIGNED_INT_8_8_8_8_REV       0x8367
         cb->m_asyncReadbackType = GL_UNSIGNED_INT_8_8_8_8_REV;
@@ -1187,6 +1188,7 @@ bool ColorBufferGl::readbackAsync(GLuint buffer, bool readbackBgra) {
         s_gles2.glReadPixels(0, 0, m_width, m_height, format, m_asyncReadbackType, 0);
         s_gles2.glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
         unbindFbo();
+        s_gles2.glFlush();
     }
     return true;
 }
