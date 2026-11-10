@@ -2612,6 +2612,140 @@ TEST_F(FrameBufferTest, ComposePostsDisplay0AndDisplay6ToSeparatePostCallbacks) 
     mFb->closeColorBuffer(innerHandle);
 }
 
+TEST_F(FrameBufferTest, Display0PreconfiguredModesSwitchWithoutReallocationAndSkipUnconfiguredSize) {
+    if (mUseSubWindow) {
+        GTEST_SKIP() << "Post callbacks are not delivered with a sub-window; nothing to assert.";
+    }
+    const int kUnfoldedWidth = 320;
+    const int kUnfoldedHeight = 280;
+    const int kTabletWidth = 300;
+    const int kTabletHeight = 200;
+    const int kDesktopWidth = 360;
+    const int kDesktopHeight = 260;
+    const int kUnconfiguredWidth = 140;
+    const int kUnconfiguredHeight = 310;
+
+    mFb->setDisplayConfigs(0, mWidth, mHeight, 420, 420);
+    mFb->setDisplayConfigs(1, kUnfoldedWidth, kUnfoldedHeight, 420, 420);
+    mFb->setDisplayConfigs(2, kTabletWidth, kTabletHeight, 240, 240);
+    mFb->setDisplayActiveConfig(0);
+
+    HandleType phoneHandle =
+        mFb->createColorBuffer(mWidth, mHeight, GfxstreamFormat::R8G8B8A8_UNORM);
+    ASSERT_NE((HandleType)0, phoneHandle);
+    EXPECT_EQ(0, mFb->openColorBuffer(phoneHandle));
+
+    HandleType unfoldedHandle =
+        mFb->createColorBuffer(kUnfoldedWidth, kUnfoldedHeight, GfxstreamFormat::R8G8B8A8_UNORM);
+    ASSERT_NE((HandleType)0, unfoldedHandle);
+    EXPECT_EQ(0, mFb->openColorBuffer(unfoldedHandle));
+
+    HandleType tabletHandle =
+        mFb->createColorBuffer(kTabletWidth, kTabletHeight, GfxstreamFormat::R8G8B8A8_UNORM);
+    ASSERT_NE((HandleType)0, tabletHandle);
+    EXPECT_EQ(0, mFb->openColorBuffer(tabletHandle));
+
+    HandleType desktopHandle =
+        mFb->createColorBuffer(kDesktopWidth, kDesktopHeight, GfxstreamFormat::R8G8B8A8_UNORM);
+    ASSERT_NE((HandleType)0, desktopHandle);
+    EXPECT_EQ(0, mFb->openColorBuffer(desktopHandle));
+
+    HandleType unconfiguredHandle = mFb->createColorBuffer(kUnconfiguredWidth, kUnconfiguredHeight,
+                                                           GfxstreamFormat::R8G8B8A8_UNORM);
+    ASSERT_NE((HandleType)0, unconfiguredHandle);
+    EXPECT_EQ(0, mFb->openColorBuffer(unconfiguredHandle));
+
+    struct PostContext {
+        int count = 0;
+        uint32_t displayId = 99;
+        int width = 0;
+        int height = 0;
+    } postCtx;
+
+    auto onPostCb = +[](void* context, uint32_t displayId, int width, int height, int /*ydir*/,
+                        int /*format*/, int /*type*/, unsigned char* /*pixels*/) {
+        auto* ctx = static_cast<PostContext*>(context);
+        ++ctx->count;
+        ctx->displayId = displayId;
+        ctx->width = width;
+        ctx->height = height;
+    };
+
+    mFb->setPostCallback(onPostCb, &postCtx, /*displayId=*/0, /*useBgraReadback=*/false);
+    // Registering a larger display 0 config after setPostCallback() also pre-expands m_onPost[0].
+    mFb->setDisplayConfigs(3, kDesktopWidth, kDesktopHeight, 160, 160);
+
+    auto composeDisplay0 = [&](HandleType targetHandle, int w, int h) {
+        std::vector<uint8_t> composeBuf(sizeof(ComposeDevice_v2) + sizeof(ComposeLayer), 0);
+        auto* composeDev = reinterpret_cast<ComposeDevice_v2*>(composeBuf.data());
+        composeDev->version = 2;
+        composeDev->displayId = 0;
+        composeDev->targetHandle = targetHandle;
+        composeDev->numLayers = 1;
+        composeDev->layer[0].cbHandle = 0;
+        composeDev->layer[0].composeMode = HWC2_COMPOSITION_SOLID_COLOR;
+        composeDev->layer[0].displayFrame = {0, 0, w, h};
+        composeDev->layer[0].crop = {0.0f, 0.0f, static_cast<float>(w), static_cast<float>(h)};
+        composeDev->layer[0].blendMode = HWC2_BLEND_MODE_NONE;
+        composeDev->layer[0].alpha = 1.0f;
+        composeDev->layer[0].color = {0, 128, 255, 255};
+        composeDev->layer[0].transform = HWC_TRANSFORM_NONE;
+        return mFb->compose(static_cast<uint32_t>(composeBuf.size()), composeBuf.data(),
+                            /*post=*/true);
+    };
+
+    EXPECT_TRUE(composeDisplay0(phoneHandle, mWidth, mHeight));
+    if (!mUseSubWindow) {
+        EXPECT_EQ(1, postCtx.count);
+        EXPECT_EQ(0u, postCtx.displayId);
+        EXPECT_EQ(mWidth, postCtx.width);
+        EXPECT_EQ(mHeight, postCtx.height);
+    }
+
+    // Switching to the larger preconfigured unfolded mode primes immediately on its first frame.
+    EXPECT_TRUE(composeDisplay0(unfoldedHandle, kUnfoldedWidth, kUnfoldedHeight));
+    if (!mUseSubWindow) {
+        EXPECT_EQ(2, postCtx.count);
+        EXPECT_EQ(0u, postCtx.displayId);
+        EXPECT_EQ(kUnfoldedWidth, postCtx.width);
+        EXPECT_EQ(kUnfoldedHeight, postCtx.height);
+    }
+
+    // Switching to the preconfigured tablet mode also delivers immediately on its first frame.
+    EXPECT_TRUE(composeDisplay0(tabletHandle, kTabletWidth, kTabletHeight));
+    if (!mUseSubWindow) {
+        EXPECT_EQ(3, postCtx.count);
+        EXPECT_EQ(0u, postCtx.displayId);
+        EXPECT_EQ(kTabletWidth, postCtx.width);
+        EXPECT_EQ(kTabletHeight, postCtx.height);
+    }
+
+    // Switching to config 3 (registered after setPostCallback) also delivers immediately.
+    EXPECT_TRUE(composeDisplay0(desktopHandle, kDesktopWidth, kDesktopHeight));
+    if (!mUseSubWindow) {
+        EXPECT_EQ(4, postCtx.count);
+        EXPECT_EQ(0u, postCtx.displayId);
+        EXPECT_EQ(kDesktopWidth, postCtx.width);
+        EXPECT_EQ(kDesktopHeight, postCtx.height);
+    }
+
+    // An unconfigured size is rejected and does not overwrite m_onPost[0].
+    const int countBeforeUnconfigured = postCtx.count;
+    EXPECT_TRUE(composeDisplay0(unconfiguredHandle, kUnconfiguredWidth, kUnconfiguredHeight));
+    if (!mUseSubWindow) {
+        EXPECT_EQ(countBeforeUnconfigured, postCtx.count);
+        EXPECT_EQ(kDesktopWidth, postCtx.width);
+        EXPECT_EQ(kDesktopHeight, postCtx.height);
+    }
+
+    mFb->setPostCallback(nullptr, nullptr, /*displayId=*/0);
+    mFb->closeColorBuffer(unconfiguredHandle);
+    mFb->closeColorBuffer(desktopHandle);
+    mFb->closeColorBuffer(tabletHandle);
+    mFb->closeColorBuffer(unfoldedHandle);
+    mFb->closeColorBuffer(phoneHandle);
+}
+
 }  // namespace
 }  // namespace host
 }  // namespace gfxstream
