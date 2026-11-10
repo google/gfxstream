@@ -126,6 +126,11 @@ GLESDispatchMaxVersion calcMaxVersionFromDispatch(const gfxstream::host::Feature
 // (Note: This does not affect the detection of possible core profile configs,
 // just whether to use them)
 bool shouldEnableCoreProfile() {
+    static const bool kEglOnEgl =
+        gfxstream::base::getEnvironmentVariable("ANDROID_EGL_ON_EGL") == "1";
+    if (kEglOnEgl) {
+        return false;
+    }
     int dispatchMaj, dispatchMin;
 
     get_gfxstream_gles_version(&dispatchMaj, &dispatchMin);
