@@ -950,7 +950,7 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
         uint32_t displayId;
         uint32_t width;
         uint32_t height;
-        unsigned char* img = nullptr;
+        std::vector<uint8_t> img;
         bool readBgra;
         // True once a non-repaint frame was queued into the async PBO ring and
         // has not yet been delivered by flushReadPipeline().
@@ -960,15 +960,24 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
         bool readbackPrimed = false;
         // Rate-limits the size-mismatch warning to once per callback entry.
         bool warnedSizeMismatch = false;
-        ~onPost() {
-            if (img) {
-                delete[] img;
-                img = nullptr;
-            }
+
+        void imageChanged() {
+            hasUnflushedFrame = false;
+            readbackPrimed = false;
+            warnedSizeMismatch = false;
         }
     };
     std::map<uint32_t, onPost> m_onPost;
 
+    // Returns true when (width, height) matches one of display 0's modes
+    // preconfigured via setDisplayConfigs().
+    bool isPreconfiguredDisplay0Size(uint32_t width, uint32_t height) const;
+    // Returns the (width, height) with the most pixels among display 0's
+    // current size and the modes preconfigured via setDisplayConfigs(): the
+    // size m_onPost[0]'s buffers are allocated at so that a mode switch never
+    // needs to reallocate them.
+    std::pair<uint32_t, uint32_t> largestDisplay0ModeSize(uint32_t currentWidth,
+                                                           uint32_t currentHeight) const;
     // Decides which display a posted ColorBuffer belongs to when the caller did
     // not say (e.g. repost() after rotation or snapshot load). Returns nullopt
     // for the default behaviour (display 0 / every non-foldable callback).
@@ -1849,15 +1858,20 @@ void FrameBuffer::Impl::setPostCallback(Renderer::OnPostCallback onPost, void* o
             m_readbackThread.enqueue({ ReadbackCmd::Init });
             m_readbackThreadStarted.store(true, std::memory_order_release);
         }
+        uint32_t allocW = w;
+        uint32_t allocH = h;
+        if (displayId == 0) {
+            std::tie(allocW, allocH) = largestDisplay0ModeSize(w, h);
+        }
         m_onPost[displayId].cb = onPost;
         m_onPost[displayId].context = onPostContext;
         m_onPost[displayId].displayId = displayId;
         m_onPost[displayId].width = w;
         m_onPost[displayId].height = h;
-        m_onPost[displayId].img = new unsigned char[4 * w * h];
+        m_onPost[displayId].img.resize(4ULL * allocW * allocH);
         m_onPost[displayId].readBgra = useBgraReadback;
         std::future<void> completeFuture = m_readbackThread.enqueue(
-            {ReadbackCmd::AddRecordDisplay, displayId, nullptr, 0, w, h});
+            {ReadbackCmd::AddRecordDisplay, displayId, nullptr, 0, allocW, allocH});
         completeFuture.wait();
     } else {
         std::future<void> completeFuture = m_readbackThread.enqueue(
@@ -2906,6 +2920,34 @@ AsyncResult FrameBuffer::Impl::postImpl(HandleType p_colorbuffer, Post::Completi
     return ret;
 }
 
+bool FrameBuffer::Impl::isPreconfiguredDisplay0Size(uint32_t width, uint32_t height) const {
+    for (const auto& [configId, config] : mDisplayConfigs) {
+        if (config.w > 0 && config.h > 0 && static_cast<uint32_t>(config.w) == width &&
+            static_cast<uint32_t>(config.h) == height) {
+            return true;
+        }
+    }
+    return false;
+}
+
+std::pair<uint32_t, uint32_t> FrameBuffer::Impl::largestDisplay0ModeSize(
+    uint32_t currentWidth, uint32_t currentHeight) const {
+    uint32_t largestWidth = currentWidth;
+    uint32_t largestHeight = currentHeight;
+    for (const auto& [configId, config] : mDisplayConfigs) {
+        if (config.w <= 0 || config.h <= 0) {
+            continue;
+        }
+        const auto cfgW = static_cast<uint32_t>(config.w);
+        const auto cfgH = static_cast<uint32_t>(config.h);
+        if (uint64_t{cfgW} * uint64_t{cfgH} > uint64_t{largestWidth} * uint64_t{largestHeight}) {
+            largestWidth = cfgW;
+            largestHeight = cfgH;
+        }
+    }
+    return {largestWidth, largestHeight};
+}
+
 // Figures out which display a posted ColorBuffer belongs to.
 //
 // compose() always passes the display id explicitly, so this only has work to
@@ -2947,9 +2989,13 @@ std::optional<uint32_t> FrameBuffer::Impl::resolvePostedDisplayId(
         return std::nullopt;
     }
     auto innerCallback = m_onPost.find(0);
-    const bool matchesInnerDisplay = innerCallback != m_onPost.end() &&
-                                     postedWidth == innerCallback->second.width &&
-                                     postedHeight == innerCallback->second.height;
+    // Without a display 0 callback nothing can claim the frame as display 0's,
+    // so a preconfigured display 0 mode size must not swallow an outer-display post.
+    const bool matchesInnerDisplay =
+        innerCallback != m_onPost.end() &&
+        ((postedWidth == innerCallback->second.width &&
+          postedHeight == innerCallback->second.height) ||
+         isPreconfiguredDisplay0Size(postedWidth, postedHeight));
     // Same size on both screens is ambiguous; keep the display 0 default.
     return matchesInnerDisplay ? std::nullopt : std::optional<uint32_t>(kExternalFoldableDisplayId);
 }
@@ -2958,11 +3004,11 @@ std::optional<uint32_t> FrameBuffer::Impl::resolvePostedDisplayId(
 // callback and invokes that callback once pixels are available.
 //
 // Each callback entry owns a fixed-size pixel buffer (and GL PBO ring when
-// async readback is enabled) sized at setPostCallback() time, so a ColorBuffer
-// of a different size is skipped rather than read out of bounds. With async
-// readback the first frame is read synchronously ("primed") so a static screen
-// shows up right away; later frames are pipelined and surface either on the
-// next post or via flushReadPipeline().
+// async readback is enabled) sized at setPostCallback() time. For display 0,
+// that buffer and PBO ring are pre-allocated once to the largest mode in
+// mDisplayConfigs so switching between preconfigured display 0 modes updates
+// (width, height) and re-primes the PBO ring without reallocating buffers.
+// Any unconfigured size is skipped rather than read out of bounds.
 //
 // Classic emulator note: recording display 0 while folded means outer-screen
 // frames hit the size check and are skipped instead of corrupting m_onPost[0].
@@ -2972,33 +3018,43 @@ void FrameBuffer::Impl::deliverToPostCallback(uint32_t displayId, onPost& callba
     const uint32_t sourceWidth = sourceColorBuffer->getWidth();
     const uint32_t sourceHeight = sourceColorBuffer->getHeight();
     if (sourceWidth != callbackEntry.width || sourceHeight != callbackEntry.height) {
-        if (!callbackEntry.warnedSizeMismatch) {
-            callbackEntry.warnedSizeMismatch = true;
-            GFXSTREAM_WARNING("Skipping onPost for display %u: ColorBuffer %ux%u != callback %ux%u",
-                              displayId, sourceWidth, sourceHeight, callbackEntry.width,
-                              callbackEntry.height);
+        const size_t requiredBytes = 4ULL * sourceWidth * sourceHeight;
+        if (displayId == 0 && isPreconfiguredDisplay0Size(sourceWidth, sourceHeight) &&
+            requiredBytes <= callbackEntry.img.size()) {
+            callbackEntry.width = sourceWidth;
+            callbackEntry.height = sourceHeight;
+            callbackEntry.imageChanged();
+        } else {
+            if (!callbackEntry.warnedSizeMismatch) {
+                callbackEntry.warnedSizeMismatch = true;
+                GFXSTREAM_WARNING(
+                    "Skipping onPost for display %u: ColorBuffer %ux%u != callback %ux%u",
+                    displayId, sourceWidth, sourceHeight, callbackEntry.width,
+                    callbackEntry.height);
+            }
+            return;
         }
-        return;
     }
 
     ensureReadbackWorker();
     if (!asyncReadbackSupported()) {
         if (m_readbackWorker) {
-            m_readbackWorker->doNextReadbackSync(sourceColorBuffer.get(), callbackEntry.img,
+            m_readbackWorker->doNextReadbackSync(sourceColorBuffer.get(), callbackEntry.img.data(),
                                                  callbackEntry.readBgra);
         }
-        doPostCallback(callbackEntry.img, displayId);
+        doPostCallback(callbackEntry.img.data(), displayId);
         return;
     }
 
     const bool readSynchronously = repaint || !callbackEntry.readbackPrimed;
     callbackEntry.readbackPrimed = true;
     const auto readbackResult =
-        m_readbackWorker->doNextReadback(displayId, sourceColorBuffer.get(), callbackEntry.img,
-                                         readSynchronously, callbackEntry.readBgra);
+        m_readbackWorker->doNextReadback(displayId, sourceColorBuffer.get(),
+                                         callbackEntry.img.data(), readSynchronously,
+                                         callbackEntry.readBgra);
     callbackEntry.hasUnflushedFrame = !readSynchronously;
     if (readbackResult == ReadbackWorker::DoNextReadbackResult::OK_READY_FOR_READ) {
-        doPostCallback(callbackEntry.img, displayId);
+        doPostCallback(callbackEntry.img.data(), displayId);
     }
 }
 
@@ -4288,6 +4344,24 @@ void FrameBuffer::Impl::scheduleVsyncTask(VsyncThread::VsyncTask task) {
 void FrameBuffer::Impl::setDisplayConfigs(int configId, int w, int h, int dpiX, int dpiY) {
     AutoLock mutex(m_lock);
     mDisplayConfigs[configId] = {w, h, dpiX, dpiY};
+    if (w > 0 && h > 0) {
+        auto it = m_onPost.find(0);
+        const auto cfgW = static_cast<uint32_t>(w);
+        const auto cfgH = static_cast<uint32_t>(h);
+        const size_t requiredBytes = 4ULL * cfgW * cfgH;
+        if (it != m_onPost.end() && requiredBytes > it->second.img.size()) {
+            // Only the backing buffer grows: the record keeps its current (active)
+            // width and height until the first frame of the new mode switches it in place.
+            it->second.img.resize(requiredBytes);
+            it->second.imageChanged();
+            std::future<void> delFuture =
+                m_readbackThread.enqueue({ReadbackCmd::DelRecordDisplay, 0});
+            delFuture.wait();
+            std::future<void> addFuture = m_readbackThread.enqueue(
+                {ReadbackCmd::AddRecordDisplay, 0, nullptr, 0, cfgW, cfgH});
+            addFuture.wait();
+        }
+    }
     GFXSTREAM_INFO("Setting display: %d configuration to: %dx%d, dpi: %dx%d ", configId, w, h, dpiX,
                    dpiY);
 }
