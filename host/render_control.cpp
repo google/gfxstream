@@ -362,7 +362,7 @@ static bool shouldEnableVsyncGatedSyncFences(const gfxstream::host::FeatureSet& 
     return shouldEnableAsyncSwap(features);
 }
 
-const char* maxVersionToFeatureString(GLESDispatchMaxVersion version) {
+static const char* maxVersionToFeatureString(GLESDispatchMaxVersion version) {
     switch (version) {
         case GLES_DISPATCH_MAX_VERSION_2:
             return kGLESDynamicVersion_2;
@@ -395,7 +395,7 @@ static bool shouldEnableBatchedDescriptorSetUpdate(const gfxstream::host::Featur
 // version string in the first place since the underlying backend (whether it
 // is Translator, SwiftShader, ANGLE, et al) may not advertise a GL_VERSION
 // string reflecting their maximum capabilities.
-std::string replaceESVersionString(const std::string& prev,
+static std::string replaceESVersionString(const std::string& prev,
                                    const std::string& newver) {
 
     // There is no need to fiddle with the string
@@ -426,7 +426,7 @@ std::string replaceESVersionString(const std::string& prev,
 
 // If the GLES3 feature is disabled, we also want to splice out
 // OpenGL extensions that should not appear in a GLES2 system.
-void removeExtension(std::string& currExts, const std::string& toRemove) {
+static void removeExtension(std::string& currExts, const std::string& toRemove) {
     size_t pos = currExts.find(toRemove);
 
     if (pos != std::string::npos)

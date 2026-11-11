@@ -80,7 +80,7 @@ static bool unbindAuxiliaryContext();
 EglGlobalInfo* g_eglInfo = NULL;
 gfxstream::base::Lock  s_surfaceDestroyLock;
 
-void initGlobalInfo()
+static void initGlobalInfo()
 {
     gfxstream::base::AutoLock mutex(*graphicsDriverLock());
     if (!g_eglInfo) {

@@ -27,7 +27,7 @@ struct Color
   unsigned char alpha;
 };
 
-void getPaletteInfo(GLenum internalFormat,unsigned int& indexSizeBits,unsigned int& colorSizeBytes,GLenum& colorFrmt) {
+static void getPaletteInfo(GLenum internalFormat,unsigned int& indexSizeBits,unsigned int& colorSizeBytes,GLenum& colorFrmt) {
 
         colorFrmt = GL_RGB;
         switch(internalFormat)
@@ -75,7 +75,7 @@ void getPaletteInfo(GLenum internalFormat,unsigned int& indexSizeBits,unsigned i
 }
 
 
-Color paletteColor(const unsigned char* pallete,unsigned int index,GLenum format)
+static Color paletteColor(const unsigned char* pallete,unsigned int index,GLenum format)
 {
         short s;
         switch(format) {

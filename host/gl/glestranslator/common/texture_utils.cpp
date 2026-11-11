@@ -151,7 +151,7 @@ ETC2ImageFormat getEtcFormat(GLenum internalformat) {
     return etcFormat;
 }
 
-void getAstcFormatInfo(GLenum internalformat, uint32_t* width, uint32_t* height, bool* srgb) {
+static void getAstcFormatInfo(GLenum internalformat, uint32_t* width, uint32_t* height, bool* srgb) {
     switch (internalformat) {
 #define ASTC_FORMAT(typeName, blockWidth, blockHeight, srgbValue) \
         case typeName: \
@@ -166,7 +166,7 @@ void getAstcFormatInfo(GLenum internalformat, uint32_t* width, uint32_t* height,
 }
 
 // Helper function to decompress an ASTC image.
-bool astcDecompress(const uint8_t* astcData, size_t astcDataSize, uint32_t width, uint32_t height,
+static bool astcDecompress(const uint8_t* astcData, size_t astcDataSize, uint32_t width, uint32_t height,
                     uint32_t blockWidth, uint32_t blockHeight, uint8_t* outBuffer,
                     size_t outBufferSize) {
     if (outBufferSize < width * height * 4) {
@@ -853,7 +853,7 @@ void forEachBptcFormat(std::function<void(GLint format)> f) {
     f(GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT_EXT);
 }
 
-void forEachS3tcFormat(std::function<void(GLint format)> f) {
+static void forEachS3tcFormat(std::function<void(GLint format)> f) {
     f(GL_COMPRESSED_RGB_S3TC_DXT1_EXT);
     f(GL_COMPRESSED_RGBA_S3TC_DXT1_EXT);
     f(GL_COMPRESSED_RGBA_S3TC_DXT3_EXT);

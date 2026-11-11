@@ -27,6 +27,7 @@ cc_library(
     copts = GFXSTREAM_HOST_COPTS + [
         "-Wno-extern-c-compat",
         "-Wno-inconsistent-missing-override",
+        "-Wno-missing-prototypes",
     ],
     defines = GFXSTREAM_HOST_DEFINES,
     includes = ["."],

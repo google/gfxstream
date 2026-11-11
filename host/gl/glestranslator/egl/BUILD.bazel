@@ -143,6 +143,7 @@ cc_library(
     copts = GFXSTREAM_HOST_COPTS + [
         "-Wno-extern-c-compat",
         "-Wno-inconsistent-missing-override",
+        "-Wno-missing-prototypes",
         "-Wno-return-type-c-linkage",
     ] + select({
         "@platforms//os:android": [

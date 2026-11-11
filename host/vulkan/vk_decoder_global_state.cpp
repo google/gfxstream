@@ -120,7 +120,7 @@ void validateNewHandleInfoEntry(const std::unordered_map<T, K>& vkObjectMap, con
     }
 }
 
-VK_EXT_SYNC_HANDLE dupExternalSync(VK_EXT_SYNC_HANDLE h) {
+static VK_EXT_SYNC_HANDLE dupExternalSync(VK_EXT_SYNC_HANDLE h) {
 #ifdef _WIN32
     auto myProcessHandle = GetCurrentProcess();
     VK_EXT_SYNC_HANDLE res;
@@ -10543,13 +10543,11 @@ class VkDecoderGlobalState::Impl {
             // Get the first queue / queueFamilyIndex
             // that does show up.
             for (const auto& it : deviceInfo->queues) {
-                auto index = it.first;
-                for (auto& deviceQueue : it.second) {
-                    *queue = deviceQueue;
-                    *queueFamilyIndex = index;
-                    *queueMutex = mQueueInfo.at(deviceQueue).queueMutex.get();
-                    return true;
-                }
+                if (it.second.empty()) continue;
+                *queue = it.second[0];
+                *queueFamilyIndex = it.first;
+                *queueMutex = mQueueInfo.at(*queue).queueMutex.get();
+                return true;
             }
             // Didn't find anything, fail.
             return false;

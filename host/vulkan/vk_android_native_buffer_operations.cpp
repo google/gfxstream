@@ -95,8 +95,8 @@ void AndroidNativeBufferInfo::QsriWaitFencePool::returnFence(VkFence fence) {
     mAvailableFences.push_back(fence);
 }
 
-bool parseAndroidNativeBufferInfo(const VkImageCreateInfo* pCreateInfo,
-                                  AndroidNativeBufferInfo* info_out) {
+static bool parseAndroidNativeBufferInfo(const VkImageCreateInfo* pCreateInfo,
+                                         AndroidNativeBufferInfo* info_out) {
     // Look through the extension chain.
     const void* curr_pNext = pCreateInfo->pNext;
     if (!curr_pNext) return false;

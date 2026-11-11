@@ -1132,7 +1132,7 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
     } mScreenBackgroundImage;
 };
 
-void MaybeIncreaseFileDescriptorSoftLimit() {
+static void MaybeIncreaseFileDescriptorSoftLimit() {
 #if defined(__linux__)
     // Cuttlefish with Gfxstream on Nvidia and SwiftShader often hits the default nofile
     // soft limit (1024) when running large test suites.

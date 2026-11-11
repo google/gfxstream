@@ -17,6 +17,15 @@ platform(
     ],
 )
 
+# Target platform for `--config=android_x86_64` (see .bazelrc).
+platform(
+    name = "android_x86_64",
+    constraint_values = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:android",
+    ],
+)
+
 linux_local_clang(
     name = "linux_local_clang_19",
     exec_compatible_with = [

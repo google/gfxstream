@@ -392,7 +392,7 @@ void delayed_delete_VkType(VkObjectT boxed, VkDevice device, std::function<void(
 // Custom unbox_* functions or GOLDFISH_VK_LIST_DISPATCHABLE_CUSTOM_UNBOX_HANDLE_TYPES
 // VkQueue objects can be virtual, meaning that multiple boxed queues can map into a single
 // physical queue on the host GPU. Some conversion is needed for unboxing to physical.
-VkQueue unbox_VkQueueImpl(VkQueue boxed) {
+static VkQueue unbox_VkQueueImpl(VkQueue boxed) {
     BoxedHandleInfo* info = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);
     if (!info) {
         return VK_NULL_HANDLE;
