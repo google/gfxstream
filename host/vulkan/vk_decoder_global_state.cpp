@@ -332,10 +332,6 @@ DescriptorUpdateTemplateInfo calcLinearizedDescriptorUpdateTemplateInfo(
 
 class VkDecoderGlobalState::Impl {
    public:
-    friend struct VkDecoderGlobalStateTestPeer;
-
-    Impl() : m_vk(vkDispatch()), m_vkEmulation(nullptr) {}
-
     Impl(VkEmulation* emulation)
         : m_vk(vkDispatch()) {
         if (!emulation || !m_vk) {
