@@ -12,356 +12,331 @@
 // see the license for the specific language governing permissions and
 // limitations under the license.
 
-#include "vk_decoder_global_state.cpp"
+#include "vk_decoder_global_state.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <vulkan/vulkan.h>
 
 #include <atomic>
+#include <cstdint>
+#include <memory>
 #include <thread>
+#include <vector>
 
+#include "gfxstream/BumpPool.h"
+#include "gfxstream/common/testing/graphics_test_environment.h"
+#include "gfxstream/host/features.h"
+#include "gfxstream/system/System.h"
 #include "gfxstream/testing/TestUtils.h"
+#include "render_thread_info_vk.h"
+#include "vk_common_operations.h"
+#include "vk_snapshot_handles.h"
+#include "vulkan_boxed_handles.h"
+#include "vulkan_dispatch.h"
+#include "vulkan_stream.h"
 
 namespace gfxstream {
 namespace host {
 namespace vk {
-
-// Handles the device-cleanup test needs to inspect after teardown.
-struct CommandBufferCleanupProbe {
-    VkCommandBuffer boxedCmdBuf = VK_NULL_HANDLE;
-    std::shared_ptr<OrderMaintenanceInfo> cmdBufOrder;
-};
-
-struct VkDecoderGlobalStateTestPeer {
-    VkDecoderGlobalState::Impl impl;
-
-    void registerDescriptorPool(VkDescriptorPool pool, std::vector<uint64_t> poolIds = {}) {
-        std::lock_guard<std::mutex> lock(impl.mMutex);
-        DescriptorPoolInfo info;
-        info.preallocatedBoxedSets = std::move(poolIds);
-        impl.mDescriptorPoolInfo[pool] = std::move(info);
-    }
-
-    void collectDescriptorPoolIds(gfxstream::base::BumpPool* pool, VkDevice device,
-                                  VkDescriptorPool descriptorPool, uint32_t* pPoolIdCount,
-                                  uint64_t* pPoolIds) {
-        impl.on_vkCollectDescriptorPoolIdsGOOGLE(pool, kInvalidSnapshotApiCallHandle, device,
-                                                 descriptorPool, pPoolIdCount, pPoolIds);
-    }
-
-    VkDescriptorSet getOrAllocateDescriptorSetFromPoolAndId(
-        VulkanDispatch* vk, VkDevice device, VkDescriptorPool pool, VkDescriptorSetLayout setLayout,
-        uint64_t poolId, uint32_t pendingAlloc, bool* didAlloc) {
-        std::lock_guard<std::mutex> lock(impl.mMutex);
-        return impl.getOrAllocateDescriptorSetFromPoolAndIdLocked(
-            vk, device, pool, setLayout, poolId, pendingAlloc, didAlloc);
-    }
-
-    void commitDescriptorSetUpdates(
-        gfxstream::base::BumpPool* pool, VulkanDispatch* vk, VkDevice device,
-        uint32_t descriptorPoolCount, const VkDescriptorPool* pDescriptorPools,
-        uint32_t descriptorSetCount, const VkDescriptorSetLayout* pDescriptorSetLayouts,
-        const uint64_t* pDescriptorSetPoolIds, const uint32_t* pDescriptorSetWhichPool,
-        const uint32_t* pDescriptorSetPendingAllocation,
-        const uint32_t* pDescriptorWriteStartingIndices, uint32_t pendingDescriptorWriteCount,
-        const VkWriteDescriptorSet* pPendingDescriptorWrites) {
-        std::lock_guard<std::mutex> lock(impl.mMutex);
-        impl.on_vkQueueCommitDescriptorSetUpdatesGOOGLELocked(
-            pool, kInvalidSnapshotApiCallHandle, vk, device, descriptorPoolCount, pDescriptorPools,
-            descriptorSetCount, pDescriptorSetLayouts, pDescriptorSetPoolIds,
-            pDescriptorSetWhichPool, pDescriptorSetPendingAllocation,
-            pDescriptorWriteStartingIndices, pendingDescriptorWriteCount, pPendingDescriptorWrites);
-    }
-
-    void destroyCommandPoolWithExclusiveInfo(
-        VkDevice device, VulkanDispatch* deviceDispatch, VkCommandPool commandPool,
-        CommandPoolInfo& commandPoolInfo,
-        std::unordered_map<VkCommandBuffer, CommandBufferInfo>& commandBufferInfos) {
-        impl.destroyCommandPoolWithExclusiveInfo(device, deviceDispatch, commandPool,
-                                                 commandPoolInfo, commandBufferInfos);
-    }
-
-    // Boxes one object of each device-owned type and registers it in the Impl
-    // info maps, as if the guest had created it on `unboxedDevice`.
-    CommandBufferCleanupProbe registerDeviceObjectsForCleanupTest(VulkanDispatch* globalVk,
-                                                                  VulkanDispatch* deviceVk,
-                                                                  VkDevice unboxedDevice) {
-        impl.m_vk = globalVk;
-
-        VkDevice boxedDevice = new_boxed_VkDevice(unboxedDevice, deviceVk);
-        VkCommandPool unboxedCmdPool = reinterpret_cast<VkCommandPool>(0xa001'0000ULL);
-        VkCommandPool boxedCmdPool = new_boxed_non_dispatchable_VkCommandPool(unboxedCmdPool);
-        VkCommandBuffer unboxedCmdBuf = reinterpret_cast<VkCommandBuffer>(0xa002'0000ULL);
-        VkCommandBuffer boxedCmdBuf = new_boxed_VkCommandBuffer(unboxedCmdBuf, deviceVk);
-        BoxedHandleInfo* cmdBufBoxedInfo =
-            sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedCmdBuf));
-        EXPECT_NE(nullptr, cmdBufBoxedInfo);
-        if (cmdBufBoxedInfo) {
-            cmdBufBoxedInfo->readStream =
-                std::make_unique<VulkanMemReadingStream>(nullptr, gfxstream::host::FeatureSet{});
-        }
-        CommandBufferCleanupProbe probe;
-        probe.boxedCmdBuf = boxedCmdBuf;
-        probe.cmdBufOrder = ordmaint_VkCommandBuffer(boxedCmdBuf);
-
-        VkBuffer unboxedBuffer = reinterpret_cast<VkBuffer>(0xa003'0000ULL);
-        VkBuffer boxedBuffer = new_boxed_non_dispatchable_VkBuffer(unboxedBuffer);
-        VkDeviceMemory unboxedMem = reinterpret_cast<VkDeviceMemory>(0xa004'0000ULL);
-        VkDeviceMemory boxedMem = new_boxed_non_dispatchable_VkDeviceMemory(unboxedMem);
-        VkDescriptorPool unboxedDescPool = reinterpret_cast<VkDescriptorPool>(0xa005'0000ULL);
-        VkDescriptorPool boxedDescPool =
-            new_boxed_non_dispatchable_VkDescriptorPool(unboxedDescPool);
-        VkDescriptorUpdateTemplate unboxedTemplate =
-            reinterpret_cast<VkDescriptorUpdateTemplate>(0xa006'0000ULL);
-        VkDescriptorUpdateTemplate boxedTemplate =
-            new_boxed_non_dispatchable_VkDescriptorUpdateTemplate(unboxedTemplate);
-        VkSamplerYcbcrConversion unboxedYcbcr =
-            reinterpret_cast<VkSamplerYcbcrConversion>(0xa007'0000ULL);
-        VkSamplerYcbcrConversion boxedYcbcr =
-            new_boxed_non_dispatchable_VkSamplerYcbcrConversion(unboxedYcbcr);
-        VkShaderModule unboxedShader = reinterpret_cast<VkShaderModule>(0xa008'0000ULL);
-        VkShaderModule boxedShader = new_boxed_non_dispatchable_VkShaderModule(unboxedShader);
-        VkPipeline unboxedPipeline = reinterpret_cast<VkPipeline>(0xa009'0000ULL);
-        VkPipeline boxedPipeline = new_boxed_non_dispatchable_VkPipeline(unboxedPipeline);
-        VkPipelineCache unboxedCache = reinterpret_cast<VkPipelineCache>(0xa00a'0000ULL);
-        VkPipelineCache boxedCache = new_boxed_non_dispatchable_VkPipelineCache(unboxedCache);
-        VkPipelineLayout unboxedLayout = reinterpret_cast<VkPipelineLayout>(0xa00b'0000ULL);
-        VkPipelineLayout boxedLayout = new_boxed_non_dispatchable_VkPipelineLayout(unboxedLayout);
-        VkFramebuffer unboxedFb = reinterpret_cast<VkFramebuffer>(0xa00c'0000ULL);
-        VkFramebuffer boxedFb = new_boxed_non_dispatchable_VkFramebuffer(unboxedFb);
-        VkRenderPass unboxedRp = reinterpret_cast<VkRenderPass>(0xa00d'0000ULL);
-        VkRenderPass boxedRp = new_boxed_non_dispatchable_VkRenderPass(unboxedRp);
-
-        {
-            std::lock_guard<std::mutex> lock(impl.mMutex);
-            DeviceInfo& devInfo = impl.mDeviceInfo[unboxedDevice];
-            devInfo.boxed = boxedDevice;
-            devInfo.decompPipelines =
-                std::make_unique<GpuDecompressionPipelineManager>(deviceVk, unboxedDevice);
-            devInfo.deviceOpTracker = std::make_shared<DeviceOpTracker>(unboxedDevice, deviceVk);
-            devInfo.externalFencePool =
-                std::make_unique<ExternalFencePool<VulkanDispatch>>(deviceVk, unboxedDevice);
-
-            CommandPoolInfo& poolInfo = impl.mCommandPoolInfo[unboxedCmdPool];
-            poolInfo.device = unboxedDevice;
-            poolInfo.boxed = boxedCmdPool;
-            poolInfo.cmdBuffers.insert(unboxedCmdBuf);
-
-            CommandBufferInfo& cmdInfo = impl.mCommandBufferInfo[unboxedCmdBuf];
-            cmdInfo.device = unboxedDevice;
-            cmdInfo.cmdPool = unboxedCmdPool;
-            cmdInfo.boxed = boxedCmdBuf;
-
-            BufferInfo& bufInfo = impl.mBufferInfo[unboxedBuffer];
-            bufInfo.device = unboxedDevice;
-            bufInfo.boxed = boxedBuffer;
-
-            MemoryInfo& memInfo = impl.mMemoryInfo[unboxedMem];
-            memInfo.device = unboxedDevice;
-            memInfo.boxed = boxedMem;
-            memInfo.directMapped = true;
-
-            DescriptorPoolInfo& descPoolInfo = impl.mDescriptorPoolInfo[unboxedDescPool];
-            descPoolInfo.device = unboxedDevice;
-            descPoolInfo.boxed = boxedDescPool;
-
-            DescriptorUpdateTemplateInfo& tmplInfo =
-                impl.mDescriptorUpdateTemplateInfo[unboxedTemplate];
-            tmplInfo.device = unboxedDevice;
-            tmplInfo.boxed = boxedTemplate;
-            tmplInfo.data.resize(256, 0xab);
-
-            SamplerYcbcrConversionInfo& ycbcrInfo = impl.mSamplerYcbcrConversionInfo[unboxedYcbcr];
-            ycbcrInfo.device = unboxedDevice;
-            ycbcrInfo.boxed = boxedYcbcr;
-
-            ShaderModuleInfo& shaderInfo = impl.mShaderModuleInfo[unboxedShader];
-            shaderInfo.device = unboxedDevice;
-            shaderInfo.boxed = boxedShader;
-
-            PipelineInfo& pipeInfo = impl.mPipelineInfo[unboxedPipeline];
-            pipeInfo.device = unboxedDevice;
-            pipeInfo.boxed = boxedPipeline;
-
-            PipelineCacheInfo& cacheInfo = impl.mPipelineCacheInfo[unboxedCache];
-            cacheInfo.device = unboxedDevice;
-            cacheInfo.boxed = boxedCache;
-
-            PipelineLayoutInfo& layoutInfo = impl.mPipelineLayoutInfo[unboxedLayout];
-            layoutInfo.device = unboxedDevice;
-            layoutInfo.boxed = boxedLayout;
-
-            FramebufferInfo& fbInfo = impl.mFramebufferInfo[unboxedFb];
-            fbInfo.device = unboxedDevice;
-            fbInfo.boxed = boxedFb;
-
-            RenderPassInfo& rpInfo = impl.mRenderPassInfo[unboxedRp];
-            rpInfo.device = unboxedDevice;
-            rpInfo.boxed = boxedRp;
-        }
-        return probe;
-    }
-
-    // Mirrors process cleanup: extracts the device and every object it owns
-    // from the Impl info maps.
-    InstanceObjects::DeviceObjects extractDeviceObjectsForCleanupTest(VkDevice unboxedDevice) {
-        InstanceObjects::DeviceObjects deviceObjects;
-        std::lock_guard<std::mutex> lock(impl.mMutex);
-        auto devIt = impl.mDeviceInfo.find(unboxedDevice);
-        deviceObjects.device = impl.mDeviceInfo.extract(devIt);
-        impl.extractDeviceAndDependenciesLocked(unboxedDevice, deviceObjects);
-        return deviceObjects;
-    }
-
-    size_t descriptorUpdateTemplateInfoCount() {
-        std::lock_guard<std::mutex> lock(impl.mMutex);
-        return impl.mDescriptorUpdateTemplateInfo.size();
-    }
-
-    size_t samplerYcbcrConversionInfoCount() {
-        std::lock_guard<std::mutex> lock(impl.mMutex);
-        return impl.mSamplerYcbcrConversionInfo.size();
-    }
-
-    void destroyDeviceObjects(InstanceObjects::DeviceObjects& deviceObjects) {
-        impl.destroyDeviceObjects(deviceObjects);
-    }
-
-    // Registers `unboxedInstance` with already boxed physical devices, as if
-    // the first vkEnumeratePhysicalDevices call had populated them. Returns
-    // the boxed instance handle.
-    VkInstance registerInstanceWithPhysicalDevicesForCleanupTest(
-        VulkanDispatch* globalVk, VkInstance unboxedInstance,
-        const std::vector<VkPhysicalDevice>& unboxedPhysicalDevices,
-        std::vector<VkPhysicalDevice> boxedPhysicalDevices) {
-        impl.m_vk = globalVk;
-        VkInstance boxedInstance = new_boxed_VkInstance(unboxedInstance, globalVk);
-
-        std::lock_guard<std::mutex> lock(impl.mMutex);
-        InstanceInfo& instanceInfo = impl.mInstanceInfo[unboxedInstance];
-        instanceInfo.boxed = boxedInstance;
-        instanceInfo.boxedPhysicalDevices = std::move(boxedPhysicalDevices);
-        for (VkPhysicalDevice unboxedPhysicalDevice : unboxedPhysicalDevices) {
-            impl.mPhysdevInfo[unboxedPhysicalDevice].instance = unboxedInstance;
-        }
-        return boxedInstance;
-    }
-
-    VkResult enumeratePhysicalDevices(VkInstance boxedInstance, uint32_t* pPhysicalDeviceCount,
-                                      VkPhysicalDevice* pPhysicalDevices) {
-        return impl.on_vkEnumeratePhysicalDevices(nullptr, kInvalidSnapshotApiCallHandle,
-                                                  boxedInstance, pPhysicalDeviceCount,
-                                                  pPhysicalDevices);
-    }
-
-    size_t physicalDeviceInfoCount() {
-        std::lock_guard<std::mutex> lock(impl.mMutex);
-        return impl.mPhysdevInfo.size();
-    }
-
-    // Mirrors vkDestroyInstanceImpl: extracts the instance and everything it
-    // owns from the Impl info maps.
-    InstanceObjects extractInstanceObjectsForCleanupTest(VkInstance unboxedInstance) {
-        InstanceObjects instanceObjects;
-        std::lock_guard<std::mutex> lock(impl.mMutex);
-        impl.extractInstanceAndDependenciesLocked(unboxedInstance, instanceObjects);
-        return instanceObjects;
-    }
-
-    void destroyInstanceObjects(InstanceObjects& instanceObjects) {
-        impl.destroyInstanceObjects(instanceObjects);
-    }
-};
-
 namespace {
 
-TEST(VkDecoderGlobalStateDescriptorSetPoolIdTest, BogusPoolIdReturnsNullWithoutCrash) {
-    VkDecoderGlobalStateTestPeer peer;
-    VulkanDispatch vk = {};
-    VkDevice device = reinterpret_cast<VkDevice>(0x1111'0000);
-    VkDescriptorPool pool = reinterpret_cast<VkDescriptorPool>(0x2222'0000);
-    VkDescriptorSetLayout setLayout = reinterpret_cast<VkDescriptorSetLayout>(0x3333'0000);
+// Minimal SPIR-V compute shader: `#version 450 void main() {}`
+constexpr uint32_t kEmptyComputeShader[] = {
+    0x07230203, 0x00010300, 0x000d000b, 0x00000006, 0x00000000, 0x00020011, 0x00000001, 0x0006000b,
+    0x00000001, 0x4c534c47, 0x6474732e, 0x3035342e, 0x00000000, 0x0003000e, 0x00000000, 0x00000001,
+    0x0005000f, 0x00000005, 0x00000004, 0x6e69616d, 0x00000000, 0x00060010, 0x00000004, 0x00000011,
+    0x00000001, 0x00000001, 0x00000001, 0x00030003, 0x00000002, 0x000001c2, 0x000a0004, 0x475f4c47,
+    0x4c474f4f, 0x70635f45, 0x74735f70, 0x5f656c79, 0x656e696c, 0x7269645f, 0x69746365, 0x00006576,
+    0x00080004, 0x475f4c47, 0x4c474f4f, 0x6e695f45, 0x64756c63, 0x69645f65, 0x74636572, 0x00657669,
+    0x00040005, 0x00000004, 0x6e69616d, 0x00000000, 0x00020013, 0x00000002, 0x00030021, 0x00000003,
+    0x00000002, 0x00050036, 0x00000002, 0x00000004, 0x00000000, 0x00000003, 0x000200f8, 0x00000005,
+    0x000100fd, 0x00010038,
+};
 
-    peer.registerDescriptorPool(pool);
+class VkDecoderGlobalStateTest : public ::testing::Test {
+   protected:
+    static void SetUpTestSuite() {
+        ASSERT_TRUE(gfxstream::testing::SetupGraphicsTestEnvironment())
+            << "Failed to configure graphics test environment";
+    }
 
-    bool didAlloc = true;
+    void SetUp() override {
+        mVk = vkDispatch(!gfxstream::testing::IsGraphicsTestEnvironmentProvidingVulkanDriver());
+        ASSERT_NE(mVk, nullptr);
+
+        gfxstream::host::FeatureSet features;
+        features.GlDirectMem.setEnabled(true);
+        features.VulkanBatchedDescriptorSetUpdate.setEnabled(true);
+
+        gfxstream::base::setEnvironmentVariable("ANDROID_EMU_VK_NO_CLEANUP", "1");
+        mVkEmu = VkEmulation::create(mVk, {}, features);
+        ASSERT_NE(mVkEmu, nullptr);
+
+        VkDecoderGlobalState::initialize(mVkEmu.get());
+        mState = VkDecoderGlobalState::get();
+        ASSERT_NE(mState, nullptr);
+
+        mThreadInfo = std::make_unique<RenderThreadInfoVk>();
+        mThreadInfo->ctx_id = 1;
+    }
+
+    void TearDown() override {
+        if (mBoxedDevice != VK_NULL_HANDLE) {
+            mState->on_vkDestroyDevice(&mPool, kInvalidSnapshotApiCallHandle, mBoxedDevice, nullptr);
+            mBoxedDevice = VK_NULL_HANDLE;
+        }
+        if (mBoxedInstance != VK_NULL_HANDLE) {
+            mState->on_vkDestroyInstance(&mPool, kInvalidSnapshotApiCallHandle, mBoxedInstance,
+                                         nullptr);
+            mBoxedInstance = VK_NULL_HANDLE;
+        }
+        mThreadInfo.reset();
+        VkDecoderGlobalState::reset();
+        mVkEmu.reset();
+    }
+
+    void createInstanceAndDevice() {
+        const VkApplicationInfo appInfo = {
+            .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+            .pApplicationName = "VkDecoderGlobalStateTest",
+            .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
+            .pEngineName = "gfxstream",
+            .engineVersion = VK_MAKE_VERSION(1, 0, 0),
+            .apiVersion = VK_API_VERSION_1_1,
+        };
+        const VkInstanceCreateInfo instanceCi = {
+            .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+            .pApplicationInfo = &appInfo,
+        };
+        ASSERT_EQ(VK_SUCCESS, mState->on_vkCreateInstance(&mPool, kInvalidSnapshotApiCallHandle,
+                                                          &instanceCi, nullptr, &mBoxedInstance));
+        ASSERT_NE(VK_NULL_HANDLE, mBoxedInstance);
+
+        uint32_t physDevCount = 0;
+        ASSERT_EQ(VK_SUCCESS,
+                  mState->on_vkEnumeratePhysicalDevices(&mPool, kInvalidSnapshotApiCallHandle,
+                                                        mBoxedInstance, &physDevCount, nullptr));
+        ASSERT_GT(physDevCount, 0u);
+        std::vector<VkPhysicalDevice> physDevs(physDevCount, VK_NULL_HANDLE);
+        ASSERT_EQ(VK_SUCCESS, mState->on_vkEnumeratePhysicalDevices(
+                                  &mPool, kInvalidSnapshotApiCallHandle, mBoxedInstance,
+                                  &physDevCount, physDevs.data()));
+        mBoxedPhysDev = physDevs[0];
+        ASSERT_NE(VK_NULL_HANDLE, mBoxedPhysDev);
+
+        VkPhysicalDeviceSamplerYcbcrConversionFeatures ycbcrFeatures = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLER_YCBCR_CONVERSION_FEATURES,
+            .samplerYcbcrConversion = VK_TRUE,
+        };
+        const float queuePriority = 1.0f;
+        const VkDeviceQueueCreateInfo queueCi = {
+            .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+            .queueFamilyIndex = 0,
+            .queueCount = 1,
+            .pQueuePriorities = &queuePriority,
+        };
+        const VkDeviceCreateInfo deviceCi = {
+            .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+            .pNext = &ycbcrFeatures,
+            .queueCreateInfoCount = 1,
+            .pQueueCreateInfos = &queueCi,
+        };
+        ASSERT_EQ(VK_SUCCESS,
+                  mState->on_vkCreateDevice(&mPool, kInvalidSnapshotApiCallHandle, mBoxedPhysDev,
+                                            &deviceCi, nullptr, &mBoxedDevice));
+        ASSERT_NE(VK_NULL_HANDLE, mBoxedDevice);
+
+        mState->on_vkGetDeviceQueue(&mPool, kInvalidSnapshotApiCallHandle, mBoxedDevice, 0, 0,
+                                    &mBoxedQueue);
+        ASSERT_NE(VK_NULL_HANDLE, mBoxedQueue);
+    }
+
+    VkDescriptorPool createDescriptorPool(uint32_t maxSets) {
+        const VkDescriptorPoolSize poolSize = {
+            .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .descriptorCount = maxSets,
+        };
+        const VkDescriptorPoolCreateInfo poolCi = {
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+            .flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
+            .maxSets = maxSets,
+            .poolSizeCount = 1,
+            .pPoolSizes = &poolSize,
+        };
+        VkDescriptorPool boxedPool = VK_NULL_HANDLE;
+        EXPECT_EQ(VK_SUCCESS,
+                  mState->on_vkCreateDescriptorPool(&mPool, kInvalidSnapshotApiCallHandle,
+                                                    mBoxedDevice, &poolCi, nullptr, &boxedPool));
+        return boxedPool;
+    }
+
+    VkDescriptorSetLayout createDescriptorSetLayout() {
+        const VkDescriptorSetLayoutBinding binding = {
+            .binding = 0,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .descriptorCount = 1,
+            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+        };
+        const VkDescriptorSetLayoutCreateInfo layoutCi = {
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+            .bindingCount = 1,
+            .pBindings = &binding,
+        };
+        VkDescriptorSetLayout boxedLayout = VK_NULL_HANDLE;
+        EXPECT_EQ(VK_SUCCESS, mState->on_vkCreateDescriptorSetLayout(
+                                  &mPool, kInvalidSnapshotApiCallHandle, mBoxedDevice, &layoutCi,
+                                  nullptr, &boxedLayout));
+        return boxedLayout;
+    }
+
+    VulkanDispatch* mVk = nullptr;
+    std::unique_ptr<VkEmulation> mVkEmu;
+    VkDecoderGlobalState* mState = nullptr;
+    std::unique_ptr<RenderThreadInfoVk> mThreadInfo;
+    gfxstream::base::BumpPool mPool;
+    VkInstance mBoxedInstance = VK_NULL_HANDLE;
+    VkPhysicalDevice mBoxedPhysDev = VK_NULL_HANDLE;
+    VkDevice mBoxedDevice = VK_NULL_HANDLE;
+    VkQueue mBoxedQueue = VK_NULL_HANDLE;
+};
+
+using VkDecoderGlobalStateDescriptorSetPoolIdTest = VkDecoderGlobalStateTest;
+using VkDecoderGlobalStateProcessCleanupLeakTest = VkDecoderGlobalStateTest;
+
+TEST_F(VkDecoderGlobalStateDescriptorSetPoolIdTest, BogusPoolIdReturnsNullWithoutCrash) {
+    createInstanceAndDevice();
+
+    VkDescriptorPool boxedPool = createDescriptorPool(/*maxSets=*/1);
+    ASSERT_NE(VK_NULL_HANDLE, boxedPool);
+    VkDescriptorSetLayout boxedSetLayout = createDescriptorSetLayout();
+    ASSERT_NE(VK_NULL_HANDLE, boxedSetLayout);
+
     constexpr uint64_t kBogusPoolId = 0xdeadbeef'cafebabeULL;
     EXPECT_EQ(nullptr, sBoxedHandleManager.get(kBogusPoolId));
 
-    VkDescriptorSet result = peer.getOrAllocateDescriptorSetFromPoolAndId(
-        &vk, device, pool, setLayout, kBogusPoolId, /*pendingAlloc=*/1, &didAlloc);
-    EXPECT_EQ(VK_NULL_HANDLE, result);
-    EXPECT_FALSE(didAlloc);
-
-    gfxstream::base::BumpPool bumpPool;
+    VkDescriptorPool unboxedPool = unbox_VkDescriptorPool(boxedPool);
+    VkDescriptorSetLayout unboxedSetLayout = unbox_VkDescriptorSetLayout(boxedSetLayout);
     uint32_t whichPool = 0;
     uint32_t pendingAlloc = 1;
     uint32_t writeStartIndex = 0;
     VkWriteDescriptorSet write = {
         .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
     };
-    peer.commitDescriptorSetUpdates(
-        &bumpPool, &vk, device,
-        /*descriptorPoolCount=*/1, &pool,
-        /*descriptorSetCount=*/1, &setLayout, &kBogusPoolId, &whichPool, &pendingAlloc,
+    mState->on_vkQueueCommitDescriptorSetUpdatesGOOGLE(
+        &mPool, kInvalidSnapshotApiCallHandle, mBoxedQueue,
+        /*descriptorPoolCount=*/1, &unboxedPool,
+        /*descriptorSetCount=*/1, &unboxedSetLayout, &kBogusPoolId, &whichPool, &pendingAlloc,
         &writeStartIndex, /*pendingDescriptorWriteCount=*/1, &write);
+    EXPECT_EQ(nullptr, sBoxedHandleManager.get(kBogusPoolId));
+
+    mState->on_vkDestroyDescriptorSetLayout(&mPool, kInvalidSnapshotApiCallHandle, mBoxedDevice,
+                                            unboxedSetLayout, nullptr);
+    delete_VkDescriptorSetLayout(boxedSetLayout);
+    mState->on_vkDestroyDescriptorPool(&mPool, kInvalidSnapshotApiCallHandle, mBoxedDevice,
+                                       unboxedPool, nullptr);
+    delete_VkDescriptorPool(boxedPool);
 }
 
-TEST(VkDecoderGlobalStateDescriptorSetPoolIdTest, UnallocatedAndAllocatedPoolIdHandling) {
-    VkDecoderGlobalStateTestPeer peer;
-    VulkanDispatch vk = {};
-    VkDevice device = reinterpret_cast<VkDevice>(0x1111'0000);
-    VkDescriptorPool pool = reinterpret_cast<VkDescriptorPool>(0x2222'0000);
-    VkDescriptorSetLayout setLayout = reinterpret_cast<VkDescriptorSetLayout>(0x3333'0000);
-    VkDescriptorSet expectedSet = reinterpret_cast<VkDescriptorSet>(0x4444'0000);
+TEST_F(VkDecoderGlobalStateDescriptorSetPoolIdTest, UnallocatedAndAllocatedPoolIdHandling) {
+    createInstanceAndDevice();
 
-    peer.registerDescriptorPool(pool);
+    VkDescriptorPool boxedPool = createDescriptorPool(/*maxSets=*/1);
+    ASSERT_NE(VK_NULL_HANDLE, boxedPool);
+    VkDescriptorSetLayout boxedSetLayout = createDescriptorSetLayout();
+    ASSERT_NE(VK_NULL_HANDLE, boxedSetLayout);
 
-    VkDescriptorSet boxedNullSet = new_boxed_non_dispatchable_VkDescriptorSet(VK_NULL_HANDLE);
-    uint64_t nullPoolId = reinterpret_cast<uint64_t>(boxedNullSet);
-    bool didAlloc = true;
-    EXPECT_EQ(VK_NULL_HANDLE,
-              peer.getOrAllocateDescriptorSetFromPoolAndId(
-                  &vk, device, pool, setLayout, nullPoolId, /*pendingAlloc=*/0, &didAlloc));
-    EXPECT_FALSE(didAlloc);
-    delete_VkDescriptorSet(boxedNullSet);
+    VkDescriptorPool unboxedPool = unbox_VkDescriptorPool(boxedPool);
+    VkDescriptorSetLayout unboxedSetLayout = unbox_VkDescriptorSetLayout(boxedSetLayout);
 
-    VkDescriptorSet boxedValidSet = new_boxed_non_dispatchable_VkDescriptorSet(expectedSet);
-    uint64_t validPoolId = reinterpret_cast<uint64_t>(boxedValidSet);
-    didAlloc = true;
-    EXPECT_EQ(expectedSet,
-              peer.getOrAllocateDescriptorSetFromPoolAndId(
-                  &vk, device, pool, setLayout, validPoolId, /*pendingAlloc=*/0, &didAlloc));
-    EXPECT_FALSE(didAlloc);
-    delete_VkDescriptorSet(boxedValidSet);
+    uint32_t poolIdCount = 1;
+    uint64_t poolId = 0;
+    mState->on_vkCollectDescriptorPoolIdsGOOGLE(&mPool, kInvalidSnapshotApiCallHandle, mBoxedDevice,
+                                                unboxedPool, &poolIdCount, &poolId);
+    ASSERT_EQ(1u, poolIdCount);
+    BoxedHandleInfo* setHandleInfo = sBoxedHandleManager.get(poolId);
+    ASSERT_NE(nullptr, setHandleInfo);
+    EXPECT_EQ(0u, setHandleInfo->underlying);
+
+    // Referencing an unallocated preallocated poolId with pendingAlloc=0 must not allocate.
+    uint32_t whichPool = 0;
+    uint32_t pendingAlloc = 0;
+    uint32_t writeStartIndex = 0;
+    mState->on_vkQueueCommitDescriptorSetUpdatesGOOGLE(
+        &mPool, kInvalidSnapshotApiCallHandle, mBoxedQueue,
+        /*descriptorPoolCount=*/1, &unboxedPool,
+        /*descriptorSetCount=*/1, &unboxedSetLayout, &poolId, &whichPool, &pendingAlloc,
+        &writeStartIndex, /*pendingDescriptorWriteCount=*/0, nullptr);
+    EXPECT_EQ(0u, setHandleInfo->underlying);
+
+    // Committing with pendingAlloc=1 allocates the underlying host VkDescriptorSet.
+    pendingAlloc = 1;
+    mState->on_vkQueueCommitDescriptorSetUpdatesGOOGLE(
+        &mPool, kInvalidSnapshotApiCallHandle, mBoxedQueue,
+        /*descriptorPoolCount=*/1, &unboxedPool,
+        /*descriptorSetCount=*/1, &unboxedSetLayout, &poolId, &whichPool, &pendingAlloc,
+        &writeStartIndex, /*pendingDescriptorWriteCount=*/0, nullptr);
+    const uint64_t allocatedUnderlying = setHandleInfo->underlying;
+    EXPECT_NE(0u, allocatedUnderlying);
+
+    // Subsequent commits with pendingAlloc=0 reuse the already-allocated underlying handle.
+    pendingAlloc = 0;
+    mState->on_vkQueueCommitDescriptorSetUpdatesGOOGLE(
+        &mPool, kInvalidSnapshotApiCallHandle, mBoxedQueue,
+        /*descriptorPoolCount=*/1, &unboxedPool,
+        /*descriptorSetCount=*/1, &unboxedSetLayout, &poolId, &whichPool, &pendingAlloc,
+        &writeStartIndex, /*pendingDescriptorWriteCount=*/0, nullptr);
+    EXPECT_EQ(allocatedUnderlying, setHandleInfo->underlying);
+
+    mState->on_vkDestroyDescriptorSetLayout(&mPool, kInvalidSnapshotApiCallHandle, mBoxedDevice,
+                                            unboxedSetLayout, nullptr);
+    delete_VkDescriptorSetLayout(boxedSetLayout);
+    mState->on_vkDestroyDescriptorPool(&mPool, kInvalidSnapshotApiCallHandle, mBoxedDevice,
+                                       unboxedPool, nullptr);
+    delete_VkDescriptorPool(boxedPool);
 }
 
-TEST(VkDecoderGlobalStateDescriptorSetPoolIdTest, CollectDescriptorPoolIdsClampsCount) {
-    VkDecoderGlobalStateTestPeer peer;
-    gfxstream::base::BumpPool bumpPool;
-    VkDevice device = reinterpret_cast<VkDevice>(0x1111'0000);
-    VkDescriptorPool pool = reinterpret_cast<VkDescriptorPool>(0x2222'0000);
+TEST_F(VkDecoderGlobalStateDescriptorSetPoolIdTest, CollectDescriptorPoolIdsClampsCount) {
+    createInstanceAndDevice();
 
-    peer.registerDescriptorPool(pool, {101, 102, 103, 104});
+    VkDescriptorPool boxedPool = createDescriptorPool(/*maxSets=*/4);
+    ASSERT_NE(VK_NULL_HANDLE, boxedPool);
+    VkDescriptorPool unboxedPool = unbox_VkDescriptorPool(boxedPool);
 
     uint32_t count = 0;
-    peer.collectDescriptorPoolIds(&bumpPool, device, pool, &count, nullptr);
+    mState->on_vkCollectDescriptorPoolIdsGOOGLE(&mPool, kInvalidSnapshotApiCallHandle, mBoxedDevice,
+                                                unboxedPool, &count, nullptr);
     EXPECT_EQ(4u, count);
+
+    uint64_t expectedIds[4] = {0, 0, 0, 0};
+    count = 4;
+    mState->on_vkCollectDescriptorPoolIdsGOOGLE(&mPool, kInvalidSnapshotApiCallHandle, mBoxedDevice,
+                                                unboxedPool, &count, expectedIds);
+    ASSERT_EQ(4u, count);
+    for (uint64_t id : expectedIds) {
+        EXPECT_NE(0u, id);
+    }
 
     uint64_t outIds[4] = {0, 0, 0, 0};
     count = 1;
-    peer.collectDescriptorPoolIds(&bumpPool, device, pool, &count, outIds);
+    mState->on_vkCollectDescriptorPoolIdsGOOGLE(&mPool, kInvalidSnapshotApiCallHandle, mBoxedDevice,
+                                                unboxedPool, &count, outIds);
     EXPECT_EQ(1u, count);
-    EXPECT_EQ(101u, outIds[0]);
+    EXPECT_EQ(expectedIds[0], outIds[0]);
     EXPECT_EQ(0u, outIds[1]);
 
     count = 10;
-    peer.collectDescriptorPoolIds(&bumpPool, device, pool, &count, outIds);
+    mState->on_vkCollectDescriptorPoolIdsGOOGLE(&mPool, kInvalidSnapshotApiCallHandle, mBoxedDevice,
+                                                unboxedPool, &count, outIds);
     EXPECT_EQ(4u, count);
-    EXPECT_EQ(101u, outIds[0]);
-    EXPECT_EQ(102u, outIds[1]);
-    EXPECT_EQ(103u, outIds[2]);
-    EXPECT_EQ(104u, outIds[3]);
+    EXPECT_EQ(expectedIds[0], outIds[0]);
+    EXPECT_EQ(expectedIds[1], outIds[1]);
+    EXPECT_EQ(expectedIds[2], outIds[2]);
+    EXPECT_EQ(expectedIds[3], outIds[3]);
+
+    mState->on_vkDestroyDescriptorPool(&mPool, kInvalidSnapshotApiCallHandle, mBoxedDevice,
+                                       unboxedPool, nullptr);
+    delete_VkDescriptorPool(boxedPool);
 }
 
 TEST(VkDecoderGlobalStateBoxedHandleTest, OrderMaintenanceInfoOutlivesDeletedHandle) {
@@ -486,22 +461,34 @@ TEST(BoxedHandleManagerReverseMapTest, DelayedRemoveClearsReverseMapping) {
     EXPECT_EQ(VK_NULL_HANDLE, unboxed_to_boxed_non_dispatchable_VkSampler(underlying));
 }
 
-TEST(VkDecoderGlobalStateProcessCleanupLeakTest, DestroyCommandPoolDeletesBoxedCommandBuffers) {
-    VkDecoderGlobalStateTestPeer peer;
+TEST_F(VkDecoderGlobalStateProcessCleanupLeakTest, DestroyCommandPoolDeletesBoxedCommandBuffers) {
+    createInstanceAndDevice();
     const uint64_t baselineHandles = sBoxedHandleManager.getHandlesCount();
 
-    static int sDestroyedPools = 0;
-    sDestroyedPools = 0;
-    VulkanDispatch deviceVk = {};
-    deviceVk.vkDestroyCommandPool = [](VkDevice, VkCommandPool, const VkAllocationCallbacks*) {
-        ++sDestroyedPools;
+    const VkCommandPoolCreateInfo poolCi = {
+        .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+        .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+        .queueFamilyIndex = 0,
     };
+    VkCommandPool boxedPool = VK_NULL_HANDLE;
+    ASSERT_EQ(VK_SUCCESS, mState->on_vkCreateCommandPool(&mPool, kInvalidSnapshotApiCallHandle,
+                                                         mBoxedDevice, &poolCi, nullptr,
+                                                         &boxedPool));
+    ASSERT_NE(VK_NULL_HANDLE, boxedPool);
+    VkCommandPool unboxedPool = unbox_VkCommandPool(boxedPool);
 
-    VkDevice unboxedDevice = reinterpret_cast<VkDevice>(0xb001'0000ULL);
-    VkCommandPool unboxedPool = reinterpret_cast<VkCommandPool>(0xb002'0000ULL);
-    VkCommandPool boxedPool = new_boxed_non_dispatchable_VkCommandPool(unboxedPool);
-    VkCommandBuffer unboxedCmdBuf = reinterpret_cast<VkCommandBuffer>(0xb003'0000ULL);
-    VkCommandBuffer boxedCmdBuf = new_boxed_VkCommandBuffer(unboxedCmdBuf, &deviceVk);
+    const VkCommandBufferAllocateInfo cmdAllocInfo = {
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+        .commandPool = unboxedPool,
+        .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+        .commandBufferCount = 1,
+    };
+    VkCommandBuffer boxedCmdBuf = VK_NULL_HANDLE;
+    ASSERT_EQ(VK_SUCCESS,
+              mState->on_vkAllocateCommandBuffers(&mPool, kInvalidSnapshotApiCallHandle,
+                                                  mBoxedDevice, &cmdAllocInfo, &boxedCmdBuf));
+    ASSERT_NE(VK_NULL_HANDLE, boxedCmdBuf);
+
     BoxedHandleInfo* cmdBufBoxedInfo =
         sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedCmdBuf));
     ASSERT_NE(nullptr, cmdBufBoxedInfo);
@@ -511,156 +498,273 @@ TEST(VkDecoderGlobalStateProcessCleanupLeakTest, DestroyCommandPoolDeletesBoxedC
     ASSERT_NE(nullptr, cmdBufOrder);
     EXPECT_EQ(2, cmdBufOrder.use_count());
 
-    CommandPoolInfo poolInfo;
-    poolInfo.device = unboxedDevice;
-    poolInfo.boxed = boxedPool;
-    poolInfo.cmdBuffers.insert(unboxedCmdBuf);
-
-    std::unordered_map<VkCommandBuffer, CommandBufferInfo> cmdBufferInfos;
-    CommandBufferInfo& cmdInfo = cmdBufferInfos[unboxedCmdBuf];
-    cmdInfo.device = unboxedDevice;
-    cmdInfo.cmdPool = unboxedPool;
-    cmdInfo.boxed = boxedCmdBuf;
-
-    peer.destroyCommandPoolWithExclusiveInfo(unboxedDevice, &deviceVk, unboxedPool, poolInfo,
-                                             cmdBufferInfos);
+    mState->on_vkDestroyCommandPool(&mPool, kInvalidSnapshotApiCallHandle, mBoxedDevice,
+                                    unboxedPool, nullptr);
     delete_VkCommandPool(boxedPool);
 
-    EXPECT_EQ(1, sDestroyedPools);
-    EXPECT_TRUE(cmdBufferInfos.empty());
     EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedCmdBuf)));
     EXPECT_EQ(1, cmdBufOrder.use_count());
     EXPECT_EQ(baselineHandles, sBoxedHandleManager.getHandlesCount());
 }
 
-TEST(VkDecoderGlobalStateProcessCleanupLeakTest, DeviceCleanupDeletesAllExtractedBoxedHandles) {
-    VkDecoderGlobalStateTestPeer peer;
-    const uint64_t baselineHandles = sBoxedHandleManager.getHandlesCount();
+TEST_F(VkDecoderGlobalStateProcessCleanupLeakTest, DeviceCleanupDeletesAllExtractedBoxedHandles) {
+    createInstanceAndDevice();
 
-    static int sDestroyCalls = 0;
-    sDestroyCalls = 0;
-    VulkanDispatch globalVk = {};
-    globalVk.vkDestroyDevice = [](VkDevice, const VkAllocationCallbacks*) { ++sDestroyCalls; };
-    VulkanDispatch deviceVk = {};
-    deviceVk.vkDeviceWaitIdle = [](VkDevice) -> VkResult { return VK_SUCCESS; };
-    deviceVk.vkDestroyBuffer = [](VkDevice, VkBuffer, const VkAllocationCallbacks*) {
-        ++sDestroyCalls;
-    };
-    deviceVk.vkFreeMemory = [](VkDevice, VkDeviceMemory, const VkAllocationCallbacks*) {
-        ++sDestroyCalls;
-    };
-    deviceVk.vkFreeCommandBuffers = [](VkDevice, VkCommandPool, uint32_t, const VkCommandBuffer*) {
-        ++sDestroyCalls;
-    };
-    deviceVk.vkDestroyCommandPool = [](VkDevice, VkCommandPool, const VkAllocationCallbacks*) {
-        ++sDestroyCalls;
-    };
-    deviceVk.vkDestroyDescriptorPool =
-        [](VkDevice, VkDescriptorPool, const VkAllocationCallbacks*) { ++sDestroyCalls; };
-    deviceVk.vkDestroyDescriptorSetLayout =
-        [](VkDevice, VkDescriptorSetLayout layout, const VkAllocationCallbacks*) {
-            if (layout != VK_NULL_HANDLE) ++sDestroyCalls;
-        };
-    deviceVk.vkDestroyDescriptorUpdateTemplate =
-        [](VkDevice, VkDescriptorUpdateTemplate, const VkAllocationCallbacks*) { ++sDestroyCalls; };
-    deviceVk.vkDestroySamplerYcbcrConversion =
-        [](VkDevice, VkSamplerYcbcrConversion, const VkAllocationCallbacks*) { ++sDestroyCalls; };
-    deviceVk.vkDestroyShaderModule = [](VkDevice, VkShaderModule, const VkAllocationCallbacks*) {
-        ++sDestroyCalls;
-    };
-    deviceVk.vkDestroyPipeline = [](VkDevice, VkPipeline, const VkAllocationCallbacks*) {
-        ++sDestroyCalls;
-    };
-    deviceVk.vkDestroyPipelineCache = [](VkDevice, VkPipelineCache, const VkAllocationCallbacks*) {
-        ++sDestroyCalls;
-    };
-    deviceVk.vkDestroyPipelineLayout =
-        [](VkDevice, VkPipelineLayout layout, const VkAllocationCallbacks*) {
-            if (layout != VK_NULL_HANDLE) ++sDestroyCalls;
-        };
-    deviceVk.vkDestroyFramebuffer = [](VkDevice, VkFramebuffer, const VkAllocationCallbacks*) {
-        ++sDestroyCalls;
-    };
-    deviceVk.vkDestroyRenderPass = [](VkDevice, VkRenderPass, const VkAllocationCallbacks*) {
-        ++sDestroyCalls;
-    };
+    // Baseline is after instance + physical device, before mBoxedDevice was created.
+    // mBoxedDevice + mBoxedQueue are 2 handles owned by the device.
+    const uint64_t baselineBeforeDevice = sBoxedHandleManager.getHandlesCount() - 2;
 
-    VkDevice unboxedDevice = reinterpret_cast<VkDevice>(0xc001'0000ULL);
-    CommandBufferCleanupProbe probe =
-        peer.registerDeviceObjectsForCleanupTest(&globalVk, &deviceVk, unboxedDevice);
+    const VkCommandPoolCreateInfo cmdPoolCi = {
+        .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+        .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+        .queueFamilyIndex = 0,
+    };
+    VkCommandPool boxedCmdPool = VK_NULL_HANDLE;
+    ASSERT_EQ(VK_SUCCESS, mState->on_vkCreateCommandPool(&mPool, kInvalidSnapshotApiCallHandle,
+                                                         mBoxedDevice, &cmdPoolCi, nullptr,
+                                                         &boxedCmdPool));
+    const VkCommandBufferAllocateInfo cmdAllocInfo = {
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+        .commandPool = unbox_VkCommandPool(boxedCmdPool),
+        .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+        .commandBufferCount = 1,
+    };
+    VkCommandBuffer boxedCmdBuf = VK_NULL_HANDLE;
+    ASSERT_EQ(VK_SUCCESS,
+              mState->on_vkAllocateCommandBuffers(&mPool, kInvalidSnapshotApiCallHandle,
+                                                  mBoxedDevice, &cmdAllocInfo, &boxedCmdBuf));
+    BoxedHandleInfo* cmdBufBoxedInfo =
+        sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedCmdBuf));
+    ASSERT_NE(nullptr, cmdBufBoxedInfo);
+    cmdBufBoxedInfo->readStream =
+        std::make_unique<VulkanMemReadingStream>(nullptr, gfxstream::host::FeatureSet{});
+    std::shared_ptr<OrderMaintenanceInfo> cmdBufOrder = ordmaint_VkCommandBuffer(boxedCmdBuf);
+    ASSERT_NE(nullptr, cmdBufOrder);
 
-    InstanceObjects::DeviceObjects deviceObjects =
-        peer.extractDeviceObjectsForCleanupTest(unboxedDevice);
-    EXPECT_EQ(0u, peer.descriptorUpdateTemplateInfoCount());
-    EXPECT_EQ(0u, peer.samplerYcbcrConversionInfoCount());
+    const VkBufferCreateInfo bufCi = {
+        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+        .size = 256,
+        .usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+    };
+    VkBuffer boxedBuffer = VK_NULL_HANDLE;
+    ASSERT_EQ(VK_SUCCESS, mState->on_vkCreateBuffer(&mPool, kInvalidSnapshotApiCallHandle,
+                                                    mBoxedDevice, &bufCi, nullptr, &boxedBuffer));
 
-    peer.destroyDeviceObjects(deviceObjects);
+    const VkMemoryAllocateInfo memAllocInfo = {
+        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+        .allocationSize = 256,
+        .memoryTypeIndex = 0,
+    };
+    VkDeviceMemory boxedMem = VK_NULL_HANDLE;
+    ASSERT_EQ(VK_SUCCESS, mState->on_vkAllocateMemory(&mPool, kInvalidSnapshotApiCallHandle,
+                                                      mBoxedDevice, &memAllocInfo, nullptr,
+                                                      &boxedMem));
 
-    EXPECT_EQ(14, sDestroyCalls);
-    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(probe.boxedCmdBuf)));
-    ASSERT_NE(nullptr, probe.cmdBufOrder);
-    EXPECT_EQ(1, probe.cmdBufOrder.use_count());
-    EXPECT_EQ(baselineHandles, sBoxedHandleManager.getHandlesCount());
+    VkDescriptorPool boxedDescPool = createDescriptorPool(/*maxSets=*/1);
+    ASSERT_NE(VK_NULL_HANDLE, boxedDescPool);
+    VkDescriptorSetLayout boxedSetLayout = createDescriptorSetLayout();
+    ASSERT_NE(VK_NULL_HANDLE, boxedSetLayout);
+    VkDescriptorSetLayout unboxedSetLayout = unbox_VkDescriptorSetLayout(boxedSetLayout);
+
+    const VkPipelineLayoutCreateInfo layoutCi = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+        .setLayoutCount = 1,
+        .pSetLayouts = &unboxedSetLayout,
+    };
+    VkPipelineLayout boxedLayout = VK_NULL_HANDLE;
+    ASSERT_EQ(VK_SUCCESS, mState->on_vkCreatePipelineLayout(&mPool, kInvalidSnapshotApiCallHandle,
+                                                            mBoxedDevice, &layoutCi, nullptr,
+                                                            &boxedLayout));
+
+    const VkDescriptorUpdateTemplateEntry templateEntry = {
+        .dstBinding = 0,
+        .dstArrayElement = 0,
+        .descriptorCount = 1,
+        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        .offset = 0,
+        .stride = sizeof(VkDescriptorBufferInfo),
+    };
+    const VkDescriptorUpdateTemplateCreateInfo templateCi = {
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_CREATE_INFO,
+        .descriptorUpdateEntryCount = 1,
+        .pDescriptorUpdateEntries = &templateEntry,
+        .templateType = VK_DESCRIPTOR_UPDATE_TEMPLATE_TYPE_DESCRIPTOR_SET,
+        .descriptorSetLayout = unboxedSetLayout,
+    };
+    VkDescriptorUpdateTemplate boxedTemplate = VK_NULL_HANDLE;
+    ASSERT_EQ(VK_SUCCESS, mState->on_vkCreateDescriptorUpdateTemplate(
+                              &mPool, kInvalidSnapshotApiCallHandle, mBoxedDevice, &templateCi,
+                              nullptr, &boxedTemplate));
+
+    const VkSamplerYcbcrConversionCreateInfo ycbcrCi = {
+        .sType = VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_CREATE_INFO,
+        .format = VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM,
+        .ycbcrModel = VK_SAMPLER_YCBCR_MODEL_CONVERSION_YCBCR_601,
+        .ycbcrRange = VK_SAMPLER_YCBCR_RANGE_ITU_NARROW,
+        .components =
+            {
+                .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+                .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+                .a = VK_COMPONENT_SWIZZLE_IDENTITY,
+            },
+        .xChromaOffset = VK_CHROMA_LOCATION_MIDPOINT,
+        .yChromaOffset = VK_CHROMA_LOCATION_MIDPOINT,
+        .chromaFilter = VK_FILTER_NEAREST,
+        .forceExplicitReconstruction = VK_FALSE,
+    };
+    VkSamplerYcbcrConversion boxedYcbcr = VK_NULL_HANDLE;
+    ASSERT_EQ(VK_SUCCESS, mState->on_vkCreateSamplerYcbcrConversion(
+                              &mPool, kInvalidSnapshotApiCallHandle, mBoxedDevice, &ycbcrCi,
+                              nullptr, &boxedYcbcr));
+
+    const VkShaderModuleCreateInfo shaderCi = {
+        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+        .codeSize = sizeof(kEmptyComputeShader),
+        .pCode = kEmptyComputeShader,
+    };
+    VkShaderModule boxedShader = VK_NULL_HANDLE;
+    ASSERT_EQ(VK_SUCCESS, mState->on_vkCreateShaderModule(&mPool, kInvalidSnapshotApiCallHandle,
+                                                          mBoxedDevice, &shaderCi, nullptr,
+                                                          &boxedShader));
+
+    const VkPipelineCacheCreateInfo cacheCi = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO,
+    };
+    VkPipelineCache boxedCache = VK_NULL_HANDLE;
+    ASSERT_EQ(VK_SUCCESS, mState->on_vkCreatePipelineCache(&mPool, kInvalidSnapshotApiCallHandle,
+                                                           mBoxedDevice, &cacheCi, nullptr,
+                                                           &boxedCache));
+
+    const VkComputePipelineCreateInfo pipelineCi = {
+        .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+        .stage =
+            {
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                .stage = VK_SHADER_STAGE_COMPUTE_BIT,
+                .module = unbox_VkShaderModule(boxedShader),
+                .pName = "main",
+            },
+        .layout = unbox_VkPipelineLayout(boxedLayout),
+    };
+    VkPipeline boxedPipeline = VK_NULL_HANDLE;
+    ASSERT_EQ(VK_SUCCESS,
+              mState->on_vkCreateComputePipelines(&mPool, kInvalidSnapshotApiCallHandle,
+                                                  mBoxedDevice, unbox_VkPipelineCache(boxedCache),
+                                                  1, &pipelineCi, nullptr, &boxedPipeline));
+
+    const VkSubpassDescription subpass = {
+        .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+    };
+    const VkRenderPassCreateInfo rpCi = {
+        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+        .subpassCount = 1,
+        .pSubpasses = &subpass,
+    };
+    VkRenderPass boxedRp = VK_NULL_HANDLE;
+    ASSERT_EQ(VK_SUCCESS, mState->on_vkCreateRenderPass(&mPool, kInvalidSnapshotApiCallHandle,
+                                                        mBoxedDevice, &rpCi, nullptr, &boxedRp));
+
+    const VkFramebufferCreateInfo fbCi = {
+        .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+        .renderPass = unbox_VkRenderPass(boxedRp),
+        .width = 1,
+        .height = 1,
+        .layers = 1,
+    };
+    VkFramebuffer boxedFb = VK_NULL_HANDLE;
+    ASSERT_EQ(VK_SUCCESS, mState->on_vkCreateFramebuffer(&mPool, kInvalidSnapshotApiCallHandle,
+                                                         mBoxedDevice, &fbCi, nullptr, &boxedFb));
+
+    // Destroy the device directly without destroying its child objects first;
+    // extractDeviceAndDependenciesLocked + destroyDeviceObjects must release
+    // every extracted child object and its boxed handle.
+    VkDevice destroyedBoxedDevice = mBoxedDevice;
+    mState->on_vkDestroyDevice(&mPool, kInvalidSnapshotApiCallHandle, mBoxedDevice, nullptr);
+    mBoxedDevice = VK_NULL_HANDLE;
+
+    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(destroyedBoxedDevice)));
+    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedCmdPool)));
+    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedCmdBuf)));
+    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedBuffer)));
+    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedMem)));
+    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedDescPool)));
+    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedSetLayout)));
+    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedTemplate)));
+    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedYcbcr)));
+    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedShader)));
+    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedPipeline)));
+    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedCache)));
+    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedLayout)));
+    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedFb)));
+    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedRp)));
+    EXPECT_EQ(1, cmdBufOrder.use_count());
+    EXPECT_EQ(baselineBeforeDevice, sBoxedHandleManager.getHandlesCount());
 }
 
-TEST(VkDecoderGlobalStateProcessCleanupLeakTest,
-     EnumeratePhysicalDevicesReturnsInstanceOwnedHandlesUntilInstanceDestroyed) {
-    VkDecoderGlobalStateTestPeer peer;
+TEST_F(VkDecoderGlobalStateProcessCleanupLeakTest,
+       EnumeratePhysicalDevicesReturnsInstanceOwnedHandlesUntilInstanceDestroyed) {
     const uint64_t baselineHandles = sBoxedHandleManager.getHandlesCount();
 
-    static int sDestroyedInstances = 0;
-    sDestroyedInstances = 0;
-    VulkanDispatch globalVk = {};
-    globalVk.vkDestroyInstance = [](VkInstance, const VkAllocationCallbacks*) {
-        ++sDestroyedInstances;
+    const VkApplicationInfo appInfo = {
+        .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+        .pApplicationName = "EnumeratePhysicalDevicesTest",
+        .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
+        .pEngineName = "gfxstream",
+        .engineVersion = VK_MAKE_VERSION(1, 0, 0),
+        .apiVersion = VK_API_VERSION_1_1,
     };
+    const VkInstanceCreateInfo instanceCi = {
+        .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+        .pApplicationInfo = &appInfo,
+    };
+    VkInstance boxedInstance = VK_NULL_HANDLE;
+    ASSERT_EQ(VK_SUCCESS, mState->on_vkCreateInstance(&mPool, kInvalidSnapshotApiCallHandle,
+                                                      &instanceCi, nullptr, &boxedInstance));
+    ASSERT_NE(VK_NULL_HANDLE, boxedInstance);
 
-    VkInstance unboxedInstance = reinterpret_cast<VkInstance>(0xd001'0000ULL);
-    const std::vector<VkPhysicalDevice> unboxedPhysicalDevices = {
-        reinterpret_cast<VkPhysicalDevice>(0xd002'0000ULL),
-        reinterpret_cast<VkPhysicalDevice>(0xd003'0000ULL),
-    };
-    const std::vector<VkPhysicalDevice> boxedPhysicalDevices = {
-        new_boxed_VkPhysicalDevice(unboxedPhysicalDevices[0], &globalVk),
-        new_boxed_VkPhysicalDevice(unboxedPhysicalDevices[1], &globalVk),
-    };
-    VkInstance boxedInstance = peer.registerInstanceWithPhysicalDevicesForCleanupTest(
-        &globalVk, unboxedInstance, unboxedPhysicalDevices, boxedPhysicalDevices);
-    EXPECT_EQ(2u, peer.physicalDeviceInfoCount());
-
-    // Count-only query reports every physical device without writing handles.
-    uint32_t count = 0;
-    EXPECT_EQ(VK_SUCCESS, peer.enumeratePhysicalDevices(boxedInstance, &count, nullptr));
-    EXPECT_EQ(2u, count);
+    // Count-only query reports the physical devices without writing handles.
+    uint32_t totalCount = 0;
+    EXPECT_EQ(VK_SUCCESS,
+              mState->on_vkEnumeratePhysicalDevices(&mPool, kInvalidSnapshotApiCallHandle,
+                                                    boxedInstance, &totalCount, nullptr));
+    ASSERT_GE(totalCount, 1u);
 
     // An array that is too small gets only as many handles as it can hold,
     // the count is updated to the number written and VK_INCOMPLETE returned.
-    VkPhysicalDevice out[2] = {VK_NULL_HANDLE, VK_NULL_HANDLE};
-    count = 1;
-    EXPECT_EQ(VK_INCOMPLETE, peer.enumeratePhysicalDevices(boxedInstance, &count, out));
-    EXPECT_EQ(1u, count);
-    EXPECT_EQ(boxedPhysicalDevices[0], out[0]);
-    EXPECT_EQ(VK_NULL_HANDLE, out[1]);
+    VkPhysicalDevice sentinel = reinterpret_cast<VkPhysicalDevice>(0xdeadbeefULL);
+    uint32_t count = 0;
+    EXPECT_EQ(VK_INCOMPLETE,
+              mState->on_vkEnumeratePhysicalDevices(&mPool, kInvalidSnapshotApiCallHandle,
+                                                    boxedInstance, &count, &sentinel));
+    EXPECT_EQ(0u, count);
+    EXPECT_EQ(reinterpret_cast<VkPhysicalDevice>(0xdeadbeefULL), sentinel);
+
+    std::vector<VkPhysicalDevice> firstPass(totalCount, VK_NULL_HANDLE);
+    count = totalCount;
+    EXPECT_EQ(VK_SUCCESS,
+              mState->on_vkEnumeratePhysicalDevices(&mPool, kInvalidSnapshotApiCallHandle,
+                                                    boxedInstance, &count, firstPass.data()));
+    EXPECT_EQ(totalCount, count);
 
     // Repeated enumeration on the same instance returns the same boxed
     // handles and does not box new ones.
     for (int i = 0; i < 2; ++i) {
-        out[0] = out[1] = VK_NULL_HANDLE;
-        count = 2;
-        EXPECT_EQ(VK_SUCCESS, peer.enumeratePhysicalDevices(boxedInstance, &count, out));
-        EXPECT_EQ(2u, count);
-        EXPECT_EQ(boxedPhysicalDevices[0], out[0]);
-        EXPECT_EQ(boxedPhysicalDevices[1], out[1]);
+        std::vector<VkPhysicalDevice> out(totalCount, VK_NULL_HANDLE);
+        count = totalCount;
+        EXPECT_EQ(VK_SUCCESS,
+                  mState->on_vkEnumeratePhysicalDevices(&mPool, kInvalidSnapshotApiCallHandle,
+                                                        boxedInstance, &count, out.data()));
+        EXPECT_EQ(totalCount, count);
+        EXPECT_EQ(firstPass, out);
     }
-    EXPECT_EQ(baselineHandles + 3, sBoxedHandleManager.getHandlesCount());
+    EXPECT_EQ(baselineHandles + 1 + totalCount, sBoxedHandleManager.getHandlesCount());
 
     // Destroying the instance releases its physical devices with it.
-    InstanceObjects instanceObjects = peer.extractInstanceObjectsForCleanupTest(unboxedInstance);
-    EXPECT_EQ(0u, peer.physicalDeviceInfoCount());
-    peer.destroyInstanceObjects(instanceObjects);
+    mState->on_vkDestroyInstance(&mPool, kInvalidSnapshotApiCallHandle, boxedInstance, nullptr);
 
-    EXPECT_EQ(1, sDestroyedInstances);
-    for (VkPhysicalDevice boxedPhysicalDevice : boxedPhysicalDevices) {
+    for (VkPhysicalDevice boxedPhysicalDevice : firstPass) {
         EXPECT_EQ(nullptr,
                   sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedPhysicalDevice)));
     }
