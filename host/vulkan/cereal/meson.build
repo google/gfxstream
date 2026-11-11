@@ -35,6 +35,7 @@ lib_vulkan_cereal = static_library(
     inc_cereal_common,
     inc_cereal,
     inc_common_base,
+    inc_drm_headers,
     inc_gfxstream_server,
     inc_host_common,
     inc_host_decoder_common,

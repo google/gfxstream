@@ -45,6 +45,7 @@ lib_gl_server = static_library(
     inc_common_base,
     inc_common_logging,
     inc_common_utils,
+    inc_drm_headers,
     inc_gfxstream_server,
     inc_glm,
     inc_gl_common,

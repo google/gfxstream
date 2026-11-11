@@ -78,6 +78,7 @@ lib_vulkan_server = static_library(
     inc_common_build_info,
     inc_common_logging,
     inc_common_utils,
+    inc_drm_headers,
     inc_gl_openglesdispatch,
     inc_gl_server,
     inc_glm,
