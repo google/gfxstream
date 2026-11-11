@@ -7151,6 +7151,8 @@ class VkDecoderGlobalState::Impl {
         const VkImageLayout linearTransferLayout =
             isRelease ? VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
                       : VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        const VkFormat imageFormat = imageInfo->imageCreateInfoShallow.format;
+        const VkImageAspectFlags aspectMask = getFormatAspects(imageFormat);
         VkImageMemoryBarrier toTransfer[2] = {
             {
                 .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -7165,7 +7167,7 @@ class VkDecoderGlobalState::Impl {
                 .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                 .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                 .image = shadowed->optimalImage,
-                .subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1},
+                .subresourceRange = {aspectMask, 0, 1, 0, 1},
             },
             {
                 .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -7179,26 +7181,38 @@ class VkDecoderGlobalState::Impl {
                 .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                 .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                 .image = shadowed->linearImage,
-                .subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1},
+                .subresourceRange = {aspectMask, 0, 1, 0, 1},
             },
         };
         vk->vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
                                  VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 2,
                                  toTransfer);
 
-        const VkImageCopy region = {
-            .srcSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
-            .srcOffset = {0, 0, 0},
-            .dstSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
-            .dstOffset = {0, 0, 0},
-            .extent = imageInfo->imageCreateInfoShallow.extent,
-        };
+        auto blitInfoOpt = getBlitInfo(imageFormat, imageInfo->imageCreateInfoShallow.extent);
+        if (!blitInfoOpt || blitInfoOpt->imageCopies.empty()) {
+            blitInfoOpt = BlitInfo{
+                .imageCopies =
+                    {
+                        VkImageCopy{
+                            .srcSubresource = {aspectMask, 0, 0, 1},
+                            .srcOffset = {0, 0, 0},
+                            .dstSubresource = {aspectMask, 0, 0, 1},
+                            .dstOffset = {0, 0, 0},
+                            .extent = imageInfo->imageCreateInfoShallow.extent,
+                        },
+                    },
+            };
+        }
         if (isRelease) {
             vk->vkCmdCopyImage(commandBuffer, shadowed->optimalImage, optimalTransferLayout,
-                               shadowed->linearImage, linearTransferLayout, 1, &region);
+                               shadowed->linearImage, linearTransferLayout,
+                               static_cast<uint32_t>(blitInfoOpt->imageCopies.size()),
+                               blitInfoOpt->imageCopies.data());
         } else {
             vk->vkCmdCopyImage(commandBuffer, shadowed->linearImage, linearTransferLayout,
-                               shadowed->optimalImage, optimalTransferLayout, 1, &region);
+                               shadowed->optimalImage, optimalTransferLayout,
+                               static_cast<uint32_t>(blitInfoOpt->imageCopies.size()),
+                               blitInfoOpt->imageCopies.data());
         }
 
         VkImageMemoryBarrier fromTransfer[2] = {
@@ -7214,7 +7228,7 @@ class VkDecoderGlobalState::Impl {
                 .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                 .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                 .image = shadowed->optimalImage,
-                .subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1},
+                .subresourceRange = {aspectMask, 0, 1, 0, 1},
             },
             {
                 .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -7223,13 +7237,13 @@ class VkDecoderGlobalState::Impl {
                     isRelease ? static_cast<VkAccessFlags>(VK_ACCESS_TRANSFER_WRITE_BIT)
                               : static_cast<VkAccessFlags>(VK_ACCESS_TRANSFER_READ_BIT),
                 .dstAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT |
-                                 VK_ACCESS_HOST_READ_BIT,
+                                  VK_ACCESS_HOST_READ_BIT,
                 .oldLayout = linearTransferLayout,
                 .newLayout = VK_IMAGE_LAYOUT_GENERAL,
                 .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                 .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                 .image = shadowed->linearImage,
-                .subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1},
+                .subresourceRange = {aspectMask, 0, 1, 0, 1},
             },
         };
         vk->vkCmdPipelineBarrier(
