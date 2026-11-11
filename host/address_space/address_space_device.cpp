@@ -379,11 +379,11 @@ static void sAddressSpaceDevicePing(uint32_t handle) {
     sAddressSpaceDeviceState()->ping(handle);
 }
 
-int sAddressSpaceDeviceAddMemoryMapping(uint64_t gpa, void *ptr, uint64_t size) {
+static int sAddressSpaceDeviceAddMemoryMapping(uint64_t gpa, void *ptr, uint64_t size) {
     return sAddressSpaceDeviceState()->addMemoryMapping(gpa, ptr, size) ? 1 : 0;
 }
 
-int sAddressSpaceDeviceRemoveMemoryMapping(uint64_t gpa, void*, uint64_t size) {
+static int sAddressSpaceDeviceRemoveMemoryMapping(uint64_t gpa, void*, uint64_t size) {
     return sAddressSpaceDeviceState()->removeMemoryMapping(gpa, size) ? 1 : 0;
 }
 

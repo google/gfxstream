@@ -760,7 +760,7 @@ ProgramData* GLESv2Context::getUseProgram() {
 }
 
 
-void InitExtensionString(GLSupport& glSupport, std::string& ext) {
+static void InitExtensionString(GLSupport& glSupport, std::string& ext) {
     ext =
         "GL_OES_EGL_sync GL_OES_EGL_image GL_OES_EGL_image_external GL_OES_depth24 GL_OES_depth32 "
         "GL_OES_element_index_uint "

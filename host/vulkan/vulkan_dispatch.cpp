@@ -37,7 +37,7 @@ static constexpr char kSwiftShaderIcdJson[] = "vk_swiftshader_icd.json";
 static std::string sDirectDriverLibraryPath = "";
 
 // Function to check if the current process is running with full elevated rights
-bool processInHighIntegrityMode() {
+static bool processInHighIntegrityMode() {
     bool highIntegrity = false;
 #ifdef _WIN32
     // Check high integrity mode (e.g. admin mode), see is_high_integrity in Vulkan Loader
@@ -380,7 +380,7 @@ class VulkanDispatchImpl {
     SharedLibraries mVulkanLibs;
 };
 
-VulkanDispatchImpl* sVulkanDispatchImpl() {
+static VulkanDispatchImpl* sVulkanDispatchImpl() {
     static VulkanDispatchImpl* impl = new VulkanDispatchImpl;
     return impl;
 }

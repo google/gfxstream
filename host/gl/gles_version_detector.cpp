@@ -133,7 +133,7 @@ bool shouldEnableCoreProfile() {
            dispatchMaj > 2;
 }
 
-void sAddExtensionIfSupported(GLESDispatchMaxVersion currVersion,
+static void sAddExtensionIfSupported(GLESDispatchMaxVersion currVersion,
                               const std::string& from,
                               GLESDispatchMaxVersion extVersion,
                               const std::string& ext,

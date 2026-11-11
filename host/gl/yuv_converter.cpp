@@ -30,7 +30,7 @@ namespace gfxstream {
 namespace host {
 namespace gl {
 
-GLint getGlTextureFormat(GfxstreamFormat format, YuvPlane plane) {
+static GLint getGlTextureFormat(GfxstreamFormat format, YuvPlane plane) {
     switch (format) {
         case GfxstreamFormat::YV12:
         case GfxstreamFormat::YV21: {
@@ -74,7 +74,7 @@ GLint getGlTextureFormat(GfxstreamFormat format, YuvPlane plane) {
     }
 }
 
-GLenum getGlPixelFormat(GfxstreamFormat format, YuvPlane plane) {
+static GLenum getGlPixelFormat(GfxstreamFormat format, YuvPlane plane) {
     switch (format) {
         case GfxstreamFormat::YV12:
         case GfxstreamFormat::YV21: {
@@ -118,7 +118,7 @@ GLenum getGlPixelFormat(GfxstreamFormat format, YuvPlane plane) {
     }
 }
 
-GLsizei getGlPixelType(GfxstreamFormat format, YuvPlane plane) {
+static GLsizei getGlPixelType(GfxstreamFormat format, YuvPlane plane) {
     switch (format) {
         case GfxstreamFormat::YV12:
         case GfxstreamFormat::YV21: {

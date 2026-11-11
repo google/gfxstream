@@ -17,6 +17,7 @@ cc_library(
     ] + glob(["*.h"]),
     copts = GFXSTREAM_HOST_COPTS + [
         "-Wno-extern-c-compat",
+        "-Wno-missing-prototypes",
     ],
     defines = GFXSTREAM_HOST_DEFINES,
     linkopts = GFXSTREAM_HOST_LINKOPTS,

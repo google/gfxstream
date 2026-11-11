@@ -180,7 +180,7 @@ void setEnvironmentVariable(const std::string& key, const std::string& value) {
 #endif
 }
 
-int fdStat(int fd, PathStat* st) {
+static int fdStat(int fd, PathStat* st) {
 #ifdef _WIN32
     return _fstat64(fd, st);
 #else   // !_WIN32
@@ -326,7 +326,7 @@ uint64_t getUptimeMs() {
     return (kTickCount.getUs() - kTickCount.getStartTimeUs()) / 1000;
 }
 
-std::string getProgramDirectoryFromPlatform() {
+static std::string getProgramDirectoryFromPlatform() {
     std::string res;
 #if defined(__linux__)
     char path[1024];

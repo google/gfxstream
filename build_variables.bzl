@@ -26,6 +26,19 @@ GFXSTREAM_COMMON_COPTS = [
         # In gfxstream, ANDROID means an AOSP platform build. NDK builds still
         # get __ANDROID__.
         "-UANDROID",
+        # Soong compatibility flags (see build/soong/cc/config/global.go).
+        "-D_LIBCPP_ENABLE_THREAD_SAFETY_ANNOTATIONS",
+        "-Werror=date-time",
+        "-Werror=gnu-alignof-expression",
+        "-Werror=ignored-qualifiers",
+        "-Werror=implicit-fallthrough",
+        "-Werror=int-conversion",
+        "-Werror=missing-prototypes",
+        "-Werror=pragma-pack",
+        "-Werror=pragma-pack-suspicious-include",
+        "-Werror=sizeof-array-div",
+        "-Werror=string-plus-int",
+        "-Werror=unreachable-code-loop-increment",
     ],
     "@platforms//os:linux": [
         "-Werror",

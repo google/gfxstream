@@ -1091,7 +1091,7 @@ static void indirectToBytesRanges(const GLvoid* indices,GLenum indices_type,GLsi
     }
 }
 
-int bytesRangesToIndices(RangeList& ranges,GLESpointer* p,GLuint* indices) {
+static int bytesRangesToIndices(RangeList& ranges,GLESpointer* p,GLuint* indices) {
 
     int attribSize = p->getSize() * 4; //4 is the sizeof GLfixed or GLfloat in bytes
     int stride = p->getStride()?p->getStride():attribSize;
