@@ -544,6 +544,11 @@ struct TransferInfo {
 
 bool getFormatTransferInfo(VkFormat format, VkExtent3D extent, TransferInfo* outTransferInfo);
 
+struct BlitInfo {
+    std::vector<VkImageCopy> imageCopies;
+};
+std::optional<BlitInfo> getBlitInfo(VkFormat format, VkExtent3D extent);
+
 }  // namespace vk
 }  // namespace host
 }  // namespace gfxstream

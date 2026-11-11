@@ -563,6 +563,53 @@ bool getFormatTransferInfo(VkFormat format, VkExtent3D extent, TransferInfo* out
     return true;
 }
 
+std::optional<BlitInfo> getBlitInfo(VkFormat format, VkExtent3D extent) {
+    const FormatPlaneLayouts* formatInfo = getFormatPlaneLayouts(format);
+    if (formatInfo == nullptr) {
+        GFXSTREAM_ERROR("Unhandled format: %s [%d]", string_VkFormat(format), format);
+        return std::nullopt;
+    }
+
+    BlitInfo blitInfo;
+    for (const FormatPlaneLayout& planeInfo : formatInfo->planeLayouts) {
+        blitInfo.imageCopies.emplace_back(VkImageCopy{
+            .srcSubresource =
+                {
+                    .aspectMask = planeInfo.aspectMask,
+                    .mipLevel = 0,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1,
+                },
+            .srcOffset =
+                {
+                    .x = 0,
+                    .y = 0,
+                    .z = 0,
+                },
+            .dstSubresource =
+                {
+                    .aspectMask = planeInfo.aspectMask,
+                    .mipLevel = 0,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1,
+                },
+            .dstOffset =
+                {
+                    .x = 0,
+                    .y = 0,
+                    .z = 0,
+                },
+            .extent =
+                {
+                    .width = std::max(1u, extent.width / planeInfo.horizontalSubsampling),
+                    .height = std::max(1u, extent.height / planeInfo.verticalSubsampling),
+                    .depth = extent.depth,
+                },
+        });
+    }
+    return blitInfo;
+}
+
 }  // namespace vk
 }  // namespace host
 }  // namespace gfxstream

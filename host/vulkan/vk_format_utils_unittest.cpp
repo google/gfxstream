@@ -71,6 +71,18 @@ MATCHER_P(EqsVkBufferImageCopy, expected, "") {
         arg, result_listener);
 }
 
+MATCHER_P(EqsVkImageCopy, expected, "") {
+    return ExplainMatchResult(
+        AllOf(Field("srcSubresource", &VkImageCopy::srcSubresource,
+                    EqsVkImageSubresourceLayers(expected.srcSubresource)),
+              Field("srcOffset", &VkImageCopy::srcOffset, EqsVkOffset3D(expected.srcOffset)),
+              Field("dstSubresource", &VkImageCopy::dstSubresource,
+                    EqsVkImageSubresourceLayers(expected.dstSubresource)),
+              Field("dstOffset", &VkImageCopy::dstOffset, EqsVkOffset3D(expected.dstOffset)),
+              Field("extent", &VkImageCopy::extent, EqsVkExtent3D(expected.extent))),
+        arg, result_listener);
+}
+
 TEST(VkFormatUtilsTest, GetTransferInfoInvalidFormat) {
     const VkFormat format = VK_FORMAT_UNDEFINED;
     const uint32_t width = 16;
@@ -252,6 +264,96 @@ TEST(VkFormatUtilsTest, GetTransferInfoYV12OrYV21) {
                                         .height = 16,
                                         .depth = 1,
                                     },
+                            })));
+}
+
+TEST(VkFormatUtilsTest, GetBlitInfoInvalidFormat) {
+    const VkFormat format = VK_FORMAT_UNDEFINED;
+    const uint32_t width = 16;
+    const uint32_t height = 16;
+    ASSERT_THAT(getBlitInfo(format, {width, height, 1}).has_value(), IsFalse());
+}
+
+TEST(VkFormatUtilsTest, GetBlitInfoRGBA) {
+    const VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
+    const uint32_t width = 16;
+    const uint32_t height = 16;
+
+    auto blitInfoOpt = getBlitInfo(format, {width, height, 1});
+    ASSERT_THAT(blitInfoOpt.has_value(), IsTrue());
+    ASSERT_THAT(blitInfoOpt->imageCopies, ElementsAre(EqsVkImageCopy(VkImageCopy{
+                                              .srcSubresource =
+                                                  {
+                                                      .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                                                      .mipLevel = 0,
+                                                      .baseArrayLayer = 0,
+                                                      .layerCount = 1,
+                                                  },
+                                              .srcOffset = {0, 0, 0},
+                                              .dstSubresource =
+                                                  {
+                                                      .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                                                      .mipLevel = 0,
+                                                      .baseArrayLayer = 0,
+                                                      .layerCount = 1,
+                                                  },
+                                              .dstOffset = {0, 0, 0},
+                                              .extent = {16, 16, 1},
+                                          })));
+}
+
+TEST(VkFormatUtilsTest, GetBlitInfoNV12OrNV21) {
+    const VkFormat format = VK_FORMAT_G8_B8R8_2PLANE_420_UNORM;
+    const uint32_t width = 16;
+    const uint32_t height = 16;
+
+    auto blitInfoOpt = getBlitInfo(format, {width, height, 1});
+    ASSERT_THAT(blitInfoOpt.has_value(), IsTrue());
+    ASSERT_THAT(blitInfoOpt->imageCopies,
+                ElementsAre(EqsVkImageCopy(VkImageCopy{
+                                .srcSubresource = {VK_IMAGE_ASPECT_PLANE_0_BIT, 0, 0, 1},
+                                .srcOffset = {0, 0, 0},
+                                .dstSubresource = {VK_IMAGE_ASPECT_PLANE_0_BIT, 0, 0, 1},
+                                .dstOffset = {0, 0, 0},
+                                .extent = {16, 16, 1},
+                            }),
+                            EqsVkImageCopy(VkImageCopy{
+                                .srcSubresource = {VK_IMAGE_ASPECT_PLANE_1_BIT, 0, 0, 1},
+                                .srcOffset = {0, 0, 0},
+                                .dstSubresource = {VK_IMAGE_ASPECT_PLANE_1_BIT, 0, 0, 1},
+                                .dstOffset = {0, 0, 0},
+                                .extent = {8, 8, 1},
+                            })));
+}
+
+TEST(VkFormatUtilsTest, GetBlitInfoYV12OrYV21) {
+    const VkFormat format = VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM;
+    const uint32_t width = 32;
+    const uint32_t height = 32;
+
+    auto blitInfoOpt = getBlitInfo(format, {width, height, 1});
+    ASSERT_THAT(blitInfoOpt.has_value(), IsTrue());
+    ASSERT_THAT(blitInfoOpt->imageCopies,
+                ElementsAre(EqsVkImageCopy(VkImageCopy{
+                                .srcSubresource = {VK_IMAGE_ASPECT_PLANE_0_BIT, 0, 0, 1},
+                                .srcOffset = {0, 0, 0},
+                                .dstSubresource = {VK_IMAGE_ASPECT_PLANE_0_BIT, 0, 0, 1},
+                                .dstOffset = {0, 0, 0},
+                                .extent = {32, 32, 1},
+                            }),
+                            EqsVkImageCopy(VkImageCopy{
+                                .srcSubresource = {VK_IMAGE_ASPECT_PLANE_1_BIT, 0, 0, 1},
+                                .srcOffset = {0, 0, 0},
+                                .dstSubresource = {VK_IMAGE_ASPECT_PLANE_1_BIT, 0, 0, 1},
+                                .dstOffset = {0, 0, 0},
+                                .extent = {16, 16, 1},
+                            }),
+                            EqsVkImageCopy(VkImageCopy{
+                                .srcSubresource = {VK_IMAGE_ASPECT_PLANE_2_BIT, 0, 0, 1},
+                                .srcOffset = {0, 0, 0},
+                                .dstSubresource = {VK_IMAGE_ASPECT_PLANE_2_BIT, 0, 0, 1},
+                                .dstOffset = {0, 0, 0},
+                                .extent = {16, 16, 1},
                             })));
 }
 
