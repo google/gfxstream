@@ -24,6 +24,8 @@ EglSurface::~EglSurface(){
 
     if(m_type == EglSurface::PBUFFER) {
         m_dpy->nativeType()->releasePbuffer(m_native);
+    } else if (m_type == EglSurface::WINDOW) {
+        m_dpy->nativeType()->releaseWindowSurface(m_native);
     }
 
 }

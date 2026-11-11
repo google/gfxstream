@@ -275,10 +275,13 @@ public:
         : EglOS::Surface(type), mHndl(eglSurface), mWin(win) {}
     EGLSurface getHndl() { return mHndl; }
     EGLNativeWindowType getWin() { return mWin; }
+    bool everMadeCurrent() const { return mEverMadeCurrent; }
+    void setEverMadeCurrent() { mEverMadeCurrent = true; }
 
 private:
     EGLSurface mHndl;
     EGLNativeWindowType mWin;
+    bool mEverMadeCurrent = false;
 };
 
 class EglOsEglDisplay : public EglOS::Display {
@@ -309,6 +312,7 @@ public:
                                   const PbufferInfo* info);
     Surface* createWindowSurface(PixelFormat* pf, EGLNativeWindowType win);
     bool releasePbuffer(Surface* pb);
+    bool releaseWindowSurface(Surface* s) override { return releasePbuffer(s); }
     bool makeCurrent(Surface* read, Surface* draw, Context* context);
     EGLBoolean releaseThread();
     void swapBuffers(Surface* srfc);
@@ -381,7 +385,35 @@ EglOsEglDisplay::EglOsEglDisplay(bool nullEgl) {
     if (mDisplay == EGL_NO_DISPLAY)
         mDisplay = mDispatcher.eglGetDisplay(EGL_DEFAULT_DISPLAY);
 
-    mDispatcher.eglInitialize(mDisplay, nullptr, nullptr);
+    {
+        // TODO(b/42050004): make sure ANGLE checks and sets VK_DRIVER_FILES
+        // When ANGLE_DEFAULT_PLATFORM=swiftshader is used alongside a software Vulkan ICD
+        // (e.g. Lavapipe via setIcdPaths), VK_DRIVER_FILES is set in the environment.
+        // ANGLE's ScopedVkLoaderEnvironment sets VK_ICD_FILENAMES to vk_swiftshader_icd.json
+        // during eglInitialize, but the Khronos Vulkan Loader prioritizes VK_DRIVER_FILES over
+        // VK_ICD_FILENAMES. Temporarily clear VK_DRIVER_FILES during eglInitialize so ANGLE
+        // loads SwiftShader as intended.
+        struct ScopedClearVkDriverFilesForSwiftShader {
+            std::string savedVkDriverFiles;
+            ScopedClearVkDriverFilesForSwiftShader() {
+                if (gfxstream::base::getEnvironmentVariable("ANGLE_DEFAULT_PLATFORM") ==
+                    "swiftshader") {
+                    savedVkDriverFiles =
+                        gfxstream::base::getEnvironmentVariable("VK_DRIVER_FILES");
+                    if (!savedVkDriverFiles.empty()) {
+                        gfxstream::base::setEnvironmentVariable("VK_DRIVER_FILES", "");
+                    }
+                }
+            }
+            ~ScopedClearVkDriverFilesForSwiftShader() {
+                if (!savedVkDriverFiles.empty()) {
+                    gfxstream::base::setEnvironmentVariable("VK_DRIVER_FILES", savedVkDriverFiles);
+                }
+            }
+        } scopedVkDriverFiles;
+
+        mDispatcher.eglInitialize(mDisplay, nullptr, nullptr);
+    }
     mDispatcher.eglSwapInterval(mDisplay, 0);
     auto clientExts = mDispatcher.eglQueryString(mDisplay, EGL_EXTENSIONS);
     auto vendor = mDispatcher.eglQueryString(mDisplay, EGL_VENDOR);
@@ -737,6 +769,13 @@ bool EglOsEglDisplay::makeCurrent(Surface* read,
             mDisplay, drawSfc ? drawSfc->getHndl() : EGL_NO_SURFACE,
             readSfc ? readSfc->getHndl() : EGL_NO_SURFACE,
             ctx ? ctx->context() : EGL_NO_CONTEXT);
+    if (ret && drawSfc && drawSfc->type() == EglOS::Surface::WINDOW &&
+        !drawSfc->everMadeCurrent()) {
+        if (mDispatcher.eglSwapInterval) {
+            mDispatcher.eglSwapInterval(mDisplay, 0);
+        }
+        drawSfc->setEverMadeCurrent();
+    }
     if (readSfc) {
         D("make current surface type %d %d\n", readSfc->type(),
           drawSfc->type());

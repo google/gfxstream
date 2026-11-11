@@ -44,6 +44,7 @@ class PostWorkerGl : public PostWorker, public DisplaySurfaceUser {
     void viewportImpl(int width, int height) override;
     void clearImpl() override;
     void exitImpl() override;
+    void unbindContext() override;
     std::shared_future<void> composeImpl(const FlatComposeRequest& composeRequest) override;
 
     void bindToSurfaceImpl(DisplaySurface* surface) override {}
