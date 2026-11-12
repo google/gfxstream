@@ -14,12 +14,21 @@
 """Bazel rules for running dEQP Vulkan tests over Gfxstream."""
 
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
+load("//tests/deqp/tooling:deqp_caselist.bzl", "generate_deqp_vk_caselist")
 
 def gfxstream_deqp_vk_test(
         name,
         deqp_cases,
         vulkan_driver = "@mesa//:mesa_gfxstream_guest_vulkan",
         **kwargs):
+    caselist_name = name + "_caselist"
+    caselist_file = ":" + caselist_name + ".txt"
+    generate_deqp_vk_caselist(
+        name = caselist_name,
+        deqp_cases = deqp_cases,
+        testonly = True,
+    )
+
     host_driver_args = select({
         "//common/testenv:graphics_test_environment_gles_angle_vulkan_lavapipe": [
             "--host_drivers_dir=$(location //common/testenv:graphics_test_environment_drivers)",
@@ -47,12 +56,13 @@ def gfxstream_deqp_vk_test(
         srcs = ["//tests/deqp/tooling:deqp_wrapper.sh"],
         args = [
             "--deqp_binary=$(location @deqp//:deqp-vk)",
-            "--deqp_cases=" + ",".join(deqp_cases),
+            "--deqp_caselist_file=$(location " + caselist_file + ")",
             "--deqp_qpa_to_test_xml=$(location //tests/deqp/tooling:deqp_qpa_to_test_xml_main)",
             "--kumquat_binary=$(location @rutabaga//:rutabaga_gfx_kumquat_server)",
             "--vulkan_driver=$(location " + vulkan_driver + ")",
         ] + host_driver_args,
         data = [
+            caselist_file,
             vulkan_driver,
             "//tests/deqp/tooling:deqp_qpa_to_test_xml_main",
             "@deqp//:data",
