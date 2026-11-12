@@ -133,7 +133,7 @@ void validateNewHandleInfoEntry(const std::unordered_map<T, K>& vkObjectMap, con
     }
 }
 
-bool isValidImageLayoutForSnapshot(uint32_t layout) {
+static bool isValidImageLayoutForSnapshot(uint32_t layout) {
     // TODO(b/535587757): some of these don't make sense in snapshot (e.g. undefined).
     // For the layouts that don't make sense, we should skip or transition before saving.
     switch (layout) {
@@ -173,7 +173,7 @@ bool isValidImageLayoutForSnapshot(uint32_t layout) {
     }
 }
 
-VK_EXT_SYNC_HANDLE dupExternalSync(VK_EXT_SYNC_HANDLE h) {
+static VK_EXT_SYNC_HANDLE dupExternalSync(VK_EXT_SYNC_HANDLE h) {
 #ifdef _WIN32
     auto myProcessHandle = GetCurrentProcess();
     VK_EXT_SYNC_HANDLE res;
