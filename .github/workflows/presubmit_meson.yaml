@@ -1,0 +1,74 @@
+name: Build Gfxstream via Meson
+
+on:
+  workflow_call:
+    inputs:
+      # Which github runner to use:
+      runner:
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  presubmit_meson_workflow:
+    runs-on: ${{ inputs.runner }}
+    steps:
+    - name: Free disk space
+      if: runner.os == 'Linux'
+      uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be  # v1.3.1
+      with:
+        tool-cache: true
+
+    - name: Checkout repository
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+      with:
+        # No step needs the token afterwards, so do not leave it
+        # behind in .git/config.
+        persist-credentials: false
+
+    - name: Install toolchain dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: sudo bash toolchain/meson/install_toolchain_dependencies.sh
+
+    - name: Install toolchain dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: brew install meson ninja molten-vk vulkan-loader
+
+    - name: Install toolchain dependencies (Windows)
+      if: runner.os == 'Windows'
+      uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884  # v2.32.0
+      with:
+        msystem: UCRT64
+        update: true
+        install: |
+          git
+          mingw-w64-ucrt-x86_64-gcc
+          mingw-w64-ucrt-x86_64-toolchain
+          mingw-w64-ucrt-x86_64-python
+          mingw-w64-ucrt-x86_64-meson
+          mingw-w64-ucrt-x86_64-headers-git
+
+    - name: Configure Build (Linux / macOS)
+      if: runner.os != 'Windows'
+      run: |
+        meson setup \
+          -Ddefault_library=static \
+          -Dgfxstream-build=host \
+          build
+
+    - name: Build (Linux / macOS)
+      if: runner.os != 'Windows'
+      run: |
+        meson compile -C build
+
+    - name: Configure Build (Windows)
+      if: runner.os == 'Windows'
+      shell: msys2 {0}
+      run: meson setup build
+
+    - name: Build (Windows)
+      if: runner.os == 'Windows'
+      shell: msys2 {0}
+      run: meson compile -C build

@@ -6,7 +6,7 @@ on:
       # Which github runner to use:
       runner:
         type: string
-        required: true
+        default: 'ubuntu-22.04'
 
       # Additional args used in `bazel build <args>` and `bazel test <args>`:
       additional-bazel-args:
@@ -19,10 +19,28 @@ on:
         default: ''
 
       # Cache configuration identifier used to isolate incompatible build
-      # configurations (e.g. 'default' vs 'asan') into separate cache keys:
+      # configurations (e.g. 'default', 'lavapipe', 'swiftshader', 'swiftshader-asan')
+      # into separate cache keys:
       cache-config:
         type: string
         default: 'default'
+
+      # Whether to record and save the Bazel disk cache delta produced by the
+      # `bazel build` step for downstream test jobs:
+      save-cache-delta:
+        type: boolean
+        default: false
+
+      # Whether to restore and merge the Bazel disk cache delta produced by an
+      # upstream build job before running `bazel test`:
+      restore-cache-delta:
+        type: boolean
+        default: false
+
+      # Whether or not to run the `bazel build` step:
+      run-build:
+        type: boolean
+        default: true
 
       # Which targets to build. Defaults to everything, but platforms that can
       # not build the full target graph (e.g. macOS, which lacks the Linux-only
@@ -128,7 +146,15 @@ jobs:
           ${{ format('{0}-{1}-bazel-disk-cache-{2}-{3}-main-', runner.os, runner.arch, env.CACHE_VERSION, inputs.cache-config) || '' }}
           ${{ format('{0}-{1}-bazel-disk-cache-{2}-{3}-', runner.os, runner.arch, env.CACHE_VERSION, inputs.cache-config) || '' }}
 
+    - name: Start Bazel cache delta tracking
+      if: ${{ inputs.save-cache-delta }}
+      uses: ./.github/actions/cache-bazel-delta
+      with:
+        phase: start
+        cache-config: ${{ inputs.cache-config }}
+
     - name: Build
+      if: ${{ inputs.run-build }}
       # Workflow inputs reach the script through the environment rather than
       # being expanded into it, so that their contents can never be parsed as
       # shell code. They are deliberately left unquoted below so that the shell
@@ -141,6 +167,20 @@ jobs:
           --disk_cache=$HOME/bazel-disk-cache \
           --verbose_failures \
           $ADDITIONAL_BAZEL_ARGS
+
+    - name: Save Bazel cache delta
+      if: ${{ inputs.save-cache-delta }}
+      uses: ./.github/actions/cache-bazel-delta
+      with:
+        phase: save
+        cache-config: ${{ inputs.cache-config }}
+
+    - name: Restore Bazel cache delta
+      if: ${{ inputs.restore-cache-delta }}
+      uses: ./.github/actions/cache-bazel-delta
+      with:
+        phase: restore
+        cache-config: ${{ inputs.cache-config }}
 
     - name: Test
       if: ${{ inputs.run-tests }}

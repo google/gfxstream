@@ -1,0 +1,71 @@
+name: Cache Bazel Disk Cache Delta
+description: Captures, saves, and restores the delta of Bazel disk cache entries produced during a build.
+
+inputs:
+  phase:
+    description: "Lifecycle phase to run: 'start' (before build), 'save' (after build), or 'restore' (before test)."
+    required: true
+  cache-config:
+    description: "Cache configuration identifier (e.g. 'lavapipe', 'swiftshader', 'swiftshader-asan')."
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Record pre-build timestamp for Bazel cache delta
+      if: inputs.phase == 'start'
+      shell: bash
+      run: |
+        mkdir -p "$HOME/bazel-disk-cache"
+        sleep 1
+        touch "$RUNNER_TEMP/bazel-disk-cache-pre-build-timestamp"
+        sleep 1
+
+    - name: Collect modified Bazel disk cache entries
+      if: inputs.phase == 'save'
+      shell: bash
+      run: |
+        rm -rf "$HOME/bazel-disk-cache-delta"
+        mkdir -p "$HOME/bazel-disk-cache-delta"
+        touch "$HOME/bazel-disk-cache-delta/.placeholder"
+        if [ -d "$HOME/bazel-disk-cache" ] && [ -f "$RUNNER_TEMP/bazel-disk-cache-pre-build-timestamp" ]; then
+          cd "$HOME/bazel-disk-cache"
+          find . -type f -newer "$RUNNER_TEMP/bazel-disk-cache-pre-build-timestamp" -print0 \
+            | cpio -pdm0 --link "$HOME/bazel-disk-cache-delta"
+          DELTA_COUNT=$(find "$HOME/bazel-disk-cache-delta" -type f ! -name '.placeholder' | wc -l)
+          DELTA_SIZE=$(du -sh "$HOME/bazel-disk-cache-delta" | cut -f1)
+          echo "Collected ${DELTA_COUNT} new Bazel disk cache files (${DELTA_SIZE})."
+        fi
+
+    - name: Save Bazel disk cache delta
+      if: inputs.phase == 'save'
+      uses: actions/cache/save@caa296126883cff596d87d8935842f9db880ef25  # v5.1.0
+      with:
+        path: "~/bazel-disk-cache-delta"
+        key: ${{ format('{0}-{1}-bazel-disk-cache-delta-{2}-{3}-{4}-{5}-{6}', runner.os, runner.arch, env.CACHE_VERSION, inputs.cache-config, github.sha, github.run_id, github.run_attempt) }}
+
+    - name: Restore Bazel disk cache delta
+      if: inputs.phase == 'restore'
+      uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25  # v5.1.0
+      with:
+        path: "~/bazel-disk-cache-delta"
+        key: ${{ format('{0}-{1}-bazel-disk-cache-delta-{2}-{3}-{4}-{5}-{6}', runner.os, runner.arch, env.CACHE_VERSION, inputs.cache-config, github.sha, github.run_id, github.run_attempt) }}
+        restore-keys: |
+          ${{ format('{0}-{1}-bazel-disk-cache-delta-{2}-{3}-{4}-{5}-', runner.os, runner.arch, env.CACHE_VERSION, inputs.cache-config, github.sha, github.run_id) }}
+          ${{ format('{0}-{1}-bazel-disk-cache-delta-{2}-{3}-{4}-', runner.os, runner.arch, env.CACHE_VERSION, inputs.cache-config, github.sha) }}
+
+    - name: Merge Bazel disk cache delta into disk cache
+      if: inputs.phase == 'restore'
+      shell: bash
+      run: |
+        mkdir -p "$HOME/bazel-disk-cache"
+        if [ -d "$HOME/bazel-disk-cache-delta" ]; then
+          rm -f "$HOME/bazel-disk-cache-delta/.placeholder"
+          DELTA_COUNT=$(find "$HOME/bazel-disk-cache-delta" -type f | wc -l)
+          echo "Merging ${DELTA_COUNT} Bazel disk cache delta files into $HOME/bazel-disk-cache."
+          cd "$HOME/bazel-disk-cache-delta"
+          find . -type f -print0 | cpio -pdmu0 --link "$HOME/bazel-disk-cache"
+          rm -rf "$HOME/bazel-disk-cache-delta"
+        else
+          echo "Warning: No Bazel disk cache delta directory found."
+        fi

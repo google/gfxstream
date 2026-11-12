@@ -1,0 +1,48 @@
+name: Build Gfxstream via CMake
+
+on:
+  workflow_call:
+    inputs:
+      # Which github runner to use:
+      runner:
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  presubmit_cmake_workflow:
+    runs-on: ${{ inputs.runner }}
+    steps:
+    - name: Free disk space
+      if: runner.os == 'Linux'
+      uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be  # v1.3.1
+      with:
+        tool-cache: true
+
+    - name: Checkout repository
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+      with:
+        # No step needs the token afterwards, so do not leave it
+        # behind in .git/config.
+        persist-credentials: false
+
+    - name: Install toolchain dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: sudo bash toolchain/cmake/install_toolchain_dependencies.sh
+
+    - name: Install toolchain dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: brew install cmake ninja
+
+    - name: Configure Build
+      run: |
+        mkdir build && \
+        cd build && \
+        cmake .. -G Ninja
+
+    - name: Build
+      run: |
+        cd build && \
+        ninja
