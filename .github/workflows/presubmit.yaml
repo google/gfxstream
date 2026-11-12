@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  run-buildozer:
+  buildozer:
     runs-on: ubuntu-22.04
     steps:
     - name: Checkout repository
@@ -47,21 +47,89 @@ jobs:
           exit 1;
         fi
 
-  run-gfxstream-bazel-lavapipe-tests:
+  build_bazel_linux_x86_64_lavapipe:
     uses: ./.github/workflows/presubmit_bazel.yml
     with:
       additional-bazel-args: --graphics_drivers=gles_angle_vulkan_lavapipe
       cache-config: lavapipe
       runner: ubuntu-22.04
+      run-tests: false
+      save-cache-delta: true
 
-  run-gfxstream-bazel-swiftshader-tests:
+  test_bazel_linux_x86_64_lavapipe_gfxstream_tests:
+    needs:
+      - build_bazel_linux_x86_64_lavapipe
+    uses: ./.github/workflows/presubmit_bazel.yml
+    with:
+      additional-bazel-args: --graphics_drivers=gles_angle_vulkan_lavapipe
+      cache-config: lavapipe
+      restore-cache-delta: true
+      run-build: false
+      runner: ubuntu-22.04
+      test-targets: >-
+        host:gfxstream_framebuffer_tests
+        host/vulkan:gfxstream_compositorvk_tests
+        host/vulkan:gfxstream_emulatedphysicalmemory_tests
+        host/vulkan:gfxstream_vk_memory_allocation_helper_tests
+        host/vulkan:vk_common_operations_tests
+        host/vulkan:vk_format_utils_tests
+        tests/end2end:gfxstream_end2end_tests
+
+  test_bazel_linux_x86_64_lavapipe_deqp_tests:
+    needs:
+      - build_bazel_linux_x86_64_lavapipe
+    uses: ./.github/workflows/presubmit_bazel.yml
+    with:
+      additional-bazel-args: --graphics_drivers=gles_angle_vulkan_lavapipe
+      cache-config: lavapipe
+      restore-cache-delta: true
+      run-build: false
+      runner: ubuntu-22.04
+      test-targets: >-
+        tests/deqp:deqp_vk_smoke_tests
+
+  build_bazel_linux_x86_64_swiftshader:
     uses: ./.github/workflows/presubmit_bazel.yml
     with:
       additional-bazel-args: --graphics_drivers=gles_angle_vulkan_swiftshader
       cache-config: swiftshader
       runner: ubuntu-22.04
+      run-tests: false
+      save-cache-delta: true
 
-  run-gfxstream-bazel-swiftshader-tests-asan:
+  test_bazel_linux_x86_64_swiftshader_gfxstream_tests:
+    needs:
+      - build_bazel_linux_x86_64_swiftshader
+    uses: ./.github/workflows/presubmit_bazel.yml
+    with:
+      additional-bazel-args: --graphics_drivers=gles_angle_vulkan_swiftshader
+      cache-config: swiftshader
+      restore-cache-delta: true
+      run-build: false
+      runner: ubuntu-22.04
+      test-targets: >-
+        host:gfxstream_framebuffer_tests
+        host/vulkan:gfxstream_compositorvk_tests
+        host/vulkan:gfxstream_emulatedphysicalmemory_tests
+        host/vulkan:gfxstream_vk_memory_allocation_helper_tests
+        host/vulkan:vk_common_operations_tests
+        host/vulkan:vk_format_utils_tests
+        tests/end2end:gfxstream_end2end_tests
+
+  test_bazel_linux_x86_64_swiftshader_deqp_tests:
+    needs:
+      - build_bazel_linux_x86_64_swiftshader
+    uses: ./.github/workflows/presubmit_bazel.yml
+    with:
+      additional-bazel-args: --graphics_drivers=gles_angle_vulkan_swiftshader
+      cache-config: swiftshader
+      restore-cache-delta: true
+      run-build: false
+      runner: ubuntu-22.04
+      test-targets: >-
+        tests/deqp:deqp_vk_smoke_tests
+
+  build_bazel_linux_x86_64_swiftshader_asan:
     uses: ./.github/workflows/presubmit_bazel.yml
     with:
       # TODO(b/475886246): fix and remove `detect_leaks=0`
@@ -69,15 +137,53 @@ jobs:
       additional-bazel-args: --graphics_drivers=gles_angle_vulkan_swiftshader --config=asan --test_env=ASAN_OPTIONS=detect_leaks=0:detect_odr_violation=0
       cache-config: swiftshader-asan
       runner: ubuntu-22.04
+      run-tests: false
+      save-cache-delta: true
 
-  run-gfxstream-bazel-tests-arm:
+  test_bazel_linux_x86_64_swiftshader_asan_gfxstream_tests:
+    needs:
+      - build_bazel_linux_x86_64_swiftshader_asan
+    uses: ./.github/workflows/presubmit_bazel.yml
+    with:
+      # TODO(b/475886246): fix and remove `detect_leaks=0`
+      # TODO(b/475885975): fix and remove `detect_odr_violation=0`
+      additional-bazel-args: --graphics_drivers=gles_angle_vulkan_swiftshader --config=asan --test_env=ASAN_OPTIONS=detect_leaks=0:detect_odr_violation=0
+      cache-config: swiftshader-asan
+      restore-cache-delta: true
+      run-build: false
+      runner: ubuntu-22.04
+      test-targets: >-
+        host:gfxstream_framebuffer_tests
+        host/vulkan:gfxstream_compositorvk_tests
+        host/vulkan:gfxstream_emulatedphysicalmemory_tests
+        host/vulkan:gfxstream_vk_memory_allocation_helper_tests
+        host/vulkan:vk_common_operations_tests
+        host/vulkan:vk_format_utils_tests
+        tests/end2end:gfxstream_end2end_tests
+
+  test_bazel_linux_x86_64_swiftshader_asan_deqp_tests:
+    needs:
+      - build_bazel_linux_x86_64_swiftshader_asan
+    uses: ./.github/workflows/presubmit_bazel.yml
+    with:
+      # TODO(b/475886246): fix and remove `detect_leaks=0`
+      # TODO(b/475885975): fix and remove `detect_odr_violation=0`
+      additional-bazel-args: --graphics_drivers=gles_angle_vulkan_swiftshader --config=asan --test_env=ASAN_OPTIONS=detect_leaks=0:detect_odr_violation=0
+      cache-config: swiftshader-asan
+      restore-cache-delta: true
+      run-build: false
+      runner: ubuntu-22.04
+      test-targets: >-
+        tests/deqp:deqp_vk_smoke_tests
+
+  build_bazel_linux_arm64:
     uses: ./.github/workflows/presubmit_bazel.yml
     with:
       runner: ubuntu-22.04-arm
       # The arm runner is too slow:
       run-tests: false
 
-  run-gfxstream-bazel-build-androidndk-arm64:
+  build_bazel_android_arm64:
     uses: ./.github/workflows/presubmit_bazel.yml
     with:
       runner: ubuntu-22.04
@@ -94,7 +200,7 @@ jobs:
       # Android binaries can not run on the Linux runner:
       run-tests: false
 
-  run-gfxstream-bazel-build-androidndk-x86_64:
+  build_bazel_android_x86_64:
     uses: ./.github/workflows/presubmit_bazel.yml
     with:
       runner: ubuntu-22.04
@@ -111,7 +217,7 @@ jobs:
       # Android binaries can not run on the Linux runner:
       run-tests: false
 
-  run-gfxstream-bazel-build-macos:
+  build_bazel_macos_arm64:
     uses: ./.github/workflows/presubmit_bazel.yml
     with:
       runner: macos-26
@@ -131,145 +237,55 @@ jobs:
       additional-bazel-args: >-
         --test_arg=--gtest_filter=-WorkerThread.TheReturnedFutureFromEnqueueShouldBeReadyBeforeTheWorkerStarts
 
-  run-gfxstream-cmake-build:
-    runs-on: ubuntu-22.04
-    steps:
-    - name: Free disk space
-      uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be  # v1.3.1
-      with:
-        tool-cache: true
-    - name: Checkout repository
-      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
-      with:
-        # No step needs the token afterwards, so do not leave it
-        # behind in .git/config.
-        persist-credentials: false
-    - name: Install toolchain dependencies
-      run: sudo bash toolchain/cmake/install_toolchain_dependencies.sh
-    - name: Configure Build
-      run: |
-        mkdir build && \
-        cd build && \
-        cmake .. -G Ninja
-    - name: Build
-      run: |
-        cd build && \
-        ninja
+  build_cmake_linux_x86_64:
+    uses: ./.github/workflows/presubmit_cmake.yaml
+    with:
+      runner: ubuntu-22.04
 
-  run-gfxstream-cmake-build-macos:
-    runs-on: macos-26
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
-      with:
-        # No step needs the token afterwards, so do not leave it
-        # behind in .git/config.
-        persist-credentials: false
-    - name: Install toolchain dependencies
-      run: brew install cmake ninja
-    - name: Configure Build
-      run: |
-        mkdir build && \
-        cd build && \
-        cmake .. -G Ninja
-    - name: Build
-      run: |
-        cd build && \
-        ninja
+  build_cmake_macos_arm64:
+    uses: ./.github/workflows/presubmit_cmake.yaml
+    with:
+      runner: macos-26
 
-  run-gfxstream-meson-build:
-    runs-on: ubuntu-22.04
-    steps:
-    - name: Free disk space
-      uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be  # v1.3.1
-      with:
-        tool-cache: true
-    - name: Checkout repository
-      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
-      with:
-        # No step needs the token afterwards, so do not leave it
-        # behind in .git/config.
-        persist-credentials: false
-    - name: Install toolchain dependencies
-      run: sudo bash toolchain/meson/install_toolchain_dependencies.sh
-    - name: Configure Build
-      run: |
-        meson setup \
-          -Ddefault_library=static \
-          -Dgfxstream-build=host \
-          build
-    - name: Build
-      run: |
-        meson compile -C build
+  build_meson_linux_x86_64:
+    uses: ./.github/workflows/presubmit_meson.yaml
+    with:
+      runner: ubuntu-22.04
 
-  run-gfxstream-meson-build-macos:
-    runs-on: macos-26
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
-      with:
-        # No step needs the token afterwards, so do not leave it
-        # behind in .git/config.
-        persist-credentials: false
-    - name: Install toolchain dependencies
-      run: brew install meson ninja molten-vk vulkan-loader
-    - name: Configure Build
-      run: |
-        meson setup \
-          -Ddefault_library=static \
-          -Dgfxstream-build=host \
-          build
-    - name: Build
-      run: |
-        meson compile -C build
+  build_meson_macos_arm64:
+    uses: ./.github/workflows/presubmit_meson.yaml
+    with:
+      runner: macos-26
 
-  run-gfxstream-meson-build-windows:
-    runs-on: windows-latest
-    defaults:
-      run:
-        shell: msys2 {0}
-    steps:
-      - name: Checkout current PR branch
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          # No step needs the token afterwards, so do not leave it
-          # behind in .git/config.
-          persist-credentials: false
-      - uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884  # v2.32.0
-        with:
-          msystem: UCRT64
-          update: true
-          install: |
-            git
-            mingw-w64-ucrt-x86_64-gcc
-            mingw-w64-ucrt-x86_64-toolchain
-            mingw-w64-ucrt-x86_64-python
-            mingw-w64-ucrt-x86_64-meson
-            mingw-w64-ucrt-x86_64-headers-git
-      - name: Configure Build
-        run: meson setup build
-      - name: Build
-        run: meson compile -C build
+  build_meson_windows_x86_64:
+    uses: ./.github/workflows/presubmit_meson.yaml
+    with:
+      runner: windows-latest
 
   presubmit-success:
     name: presubmit-success
     if: always()
     runs-on: ubuntu-22.04
     needs:
-      - run-buildozer
-      - run-gfxstream-bazel-lavapipe-tests
-      - run-gfxstream-bazel-swiftshader-tests
-      - run-gfxstream-bazel-swiftshader-tests-asan
-      - run-gfxstream-bazel-tests-arm
-      - run-gfxstream-bazel-build-androidndk-arm64
-      - run-gfxstream-bazel-build-androidndk-x86_64
-      - run-gfxstream-bazel-build-macos
-      - run-gfxstream-cmake-build
-      - run-gfxstream-cmake-build-macos
-      - run-gfxstream-meson-build
-      - run-gfxstream-meson-build-macos
-      - run-gfxstream-meson-build-windows
+      - buildozer
+      - build_bazel_android_arm64
+      - build_bazel_android_x86_64
+      - build_bazel_linux_arm64
+      - build_bazel_linux_x86_64_lavapipe
+      - build_bazel_linux_x86_64_swiftshader
+      - build_bazel_linux_x86_64_swiftshader_asan
+      - build_bazel_macos_arm64
+      - build_cmake_linux_x86_64
+      - build_cmake_macos_arm64
+      - build_meson_linux_x86_64
+      - build_meson_macos_arm64
+      - build_meson_windows_x86_64
+      - test_bazel_linux_x86_64_lavapipe_deqp_tests
+      - test_bazel_linux_x86_64_lavapipe_gfxstream_tests
+      - test_bazel_linux_x86_64_swiftshader_asan_deqp_tests
+      - test_bazel_linux_x86_64_swiftshader_asan_gfxstream_tests
+      - test_bazel_linux_x86_64_swiftshader_deqp_tests
+      - test_bazel_linux_x86_64_swiftshader_gfxstream_tests
     steps:
       - name: Fail if any dependency failed or was cancelled
         run: |
