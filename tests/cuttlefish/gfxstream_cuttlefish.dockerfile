@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -29,7 +29,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gnupg \
     iproute2 \
     kmod \
-    libtinfo5 \
     libvulkan1 \
     python3 \
     sudo \

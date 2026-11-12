@@ -16,9 +16,13 @@ on:
         options:
           - deqp_vk_smoke_tests
           - deqp_vk_descriptor_related_tests
+          - deqp_vk_descriptor_related_random_200_tests
           - deqp_vk_image_related_tests
+          - deqp_vk_image_related_random_200_tests
           - deqp_vk_memory_related_tests
+          - deqp_vk_memory_related_random_200_tests
           - deqp_vk_sync_related_tests
+          - deqp_vk_sync_related_random_200_tests
       custom-deqp-patterns:
         description: 'Optional comma-separated dEQP case patterns (overrides preset suite if set)'
         required: false

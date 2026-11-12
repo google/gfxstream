@@ -78,6 +78,10 @@ on:
           host/vulkan:vk_common_operations_tests
           host/vulkan:vk_format_utils_tests
           tests/deqp:deqp_vk_smoke_tests
+          tests/deqp:deqp_vk_descriptor_related_random_200_tests
+          tests/deqp:deqp_vk_image_related_random_200_tests
+          tests/deqp:deqp_vk_memory_related_random_200_tests
+          tests/deqp:deqp_vk_sync_related_random_200_tests
           tests/end2end:gfxstream_end2end_tests
 
 permissions:

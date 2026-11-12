@@ -16,6 +16,7 @@
 set -e
 
 DEQP_BINARY=""
+DEQP_CASELIST_FILE_ARG=""
 DEQP_CASES=""
 DEQP_QPA_TO_TEST_XML=""
 HOST_DRIVERS_DIR=""
@@ -28,6 +29,9 @@ for arg in "$@"; do
   case "${arg}" in
     --deqp_binary=*)
       DEQP_BINARY="${arg#*=}"
+      ;;
+    --deqp_caselist_file=*)
+      DEQP_CASELIST_FILE_ARG="${arg#*=}"
       ;;
     --deqp_cases=*)
       DEQP_CASES="${arg#*=}"
@@ -61,8 +65,8 @@ if [[ -z "${DEQP_BINARY}" ]]; then
   echo "Missing required --deqp_binary flag." >&2
   exit 1
 fi
-if [[ -z "${DEQP_CASES}" ]]; then
-  echo "Missing required --deqp_cases flag." >&2
+if [[ -z "${DEQP_CASES}" ]] && [[ -z "${DEQP_CASELIST_FILE_ARG}" ]]; then
+  echo "Missing required --deqp_cases or --deqp_caselist_file flag." >&2
   exit 1
 fi
 if [[ -z "${DEQP_QPA_TO_TEST_XML}" ]]; then
@@ -106,6 +110,7 @@ function shard_file() {
 }
 
 DEQP_BINARY="$(get_absolute_path "${DEQP_BINARY}")"
+DEQP_CASELIST_FILE_ARG="$(get_absolute_path "${DEQP_CASELIST_FILE_ARG}")"
 DEQP_DATA_PATH="$(dirname "${DEQP_BINARY}")/external/vulkancts/data"
 DEQP_QPA_TO_TEST_XML="$(get_absolute_path "${DEQP_QPA_TO_TEST_XML}")"
 HOST_DRIVERS_DIR="$(get_absolute_path "${HOST_DRIVERS_DIR}")"
@@ -115,6 +120,7 @@ VULKAN_DRIVER="$(get_absolute_path "${VULKAN_DRIVER}")"
 
 echo "dEQP wrapper:"
 echo "  - dEQP cases: ${DEQP_CASES}"
+echo "  - dEQP caselist file: ${DEQP_CASELIST_FILE_ARG}"
 echo "  - dEQP binary: ${DEQP_BINARY}"
 echo "  - dEQP data path: ${DEQP_DATA_PATH}"
 echo "  - dEQP QPA to test.xml converter: ${DEQP_QPA_TO_TEST_XML}"
@@ -163,22 +169,26 @@ DEQP_CASELIST_FILE="${WORK_DIR}/deqp_caselist.txt"
 DEQP_SHARDED_CASELIST_FILE="${WORK_DIR}/sharded_deqp_caselist.txt"
 DEQP_SHADERCACHE_FILE="${WORK_DIR}/shadercache.bin"
 
-"${DEQP_BINARY}" \
-  --deqp-runmode=txt-caselist \
-  --deqp-archive-dir="${DEQP_DATA_PATH}" \
-  --deqp-caselist-export-file="${DEQP_RAW_CASELIST_FILE}" \
-  --deqp-shadercache-filename="${DEQP_SHADERCACHE_FILE}" \
-  --deqp-log-filename="${WORK_DIR}/caselist_export.qpa" \
-  --deqp-case="${DEQP_CASES}"
-sed -n 's/^TEST: //p' "${DEQP_RAW_CASELIST_FILE}" > "${DEQP_CASELIST_FILE}"
-rm -f "${DEQP_RAW_CASELIST_FILE}" "${WORK_DIR}/caselist_export.qpa"
+if [[ -n "${DEQP_CASES}" ]]; then
+  "${DEQP_BINARY}" \
+    --deqp-runmode=txt-caselist \
+    --deqp-archive-dir="${DEQP_DATA_PATH}" \
+    --deqp-caselist-export-file="${DEQP_RAW_CASELIST_FILE}" \
+    --deqp-shadercache-filename="${DEQP_SHADERCACHE_FILE}" \
+    --deqp-log-filename="${WORK_DIR}/caselist_export.qpa" \
+    --deqp-case="${DEQP_CASES}"
+  sed -n 's/^TEST: //p' "${DEQP_RAW_CASELIST_FILE}" > "${DEQP_CASELIST_FILE}"
+  rm -f "${DEQP_RAW_CASELIST_FILE}" "${WORK_DIR}/caselist_export.qpa"
+else
+  DEQP_CASELIST_FILE="${DEQP_CASELIST_FILE_ARG}"
+fi
 
 # Relies entirely on Bazel native sharding env vars:
 SHARD_IDX="${TEST_SHARD_INDEX:-0}"
 SHARD_CNT="${TEST_TOTAL_SHARDS:-1}"
 
 if [ ! -s "${DEQP_CASELIST_FILE}" ]; then
-  echo "Error: dEQP caselist file is empty for cases: ${DEQP_CASES}" >&2
+  echo "Error: dEQP caselist file is empty." >&2
   exit 1
 fi
 

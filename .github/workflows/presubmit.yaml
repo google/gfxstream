@@ -86,7 +86,7 @@ jobs:
       run-build: false
       runner: ubuntu-22.04
       test-targets: >-
-        tests/deqp:deqp_vk_smoke_tests
+        tests/deqp:deqp_vk_presubmit_tests
 
   build_bazel_linux_x86_64_swiftshader:
     uses: ./.github/workflows/presubmit_bazel.yml
@@ -127,7 +127,7 @@ jobs:
       run-build: false
       runner: ubuntu-22.04
       test-targets: >-
-        tests/deqp:deqp_vk_smoke_tests
+        tests/deqp:deqp_vk_presubmit_tests
 
   build_bazel_linux_x86_64_swiftshader_asan:
     uses: ./.github/workflows/presubmit_bazel.yml
