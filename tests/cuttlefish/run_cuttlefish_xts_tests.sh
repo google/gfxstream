@@ -14,27 +14,30 @@ CUTTLEFISH_PREBUILT_DIRECTORY_PATH=""
 GFXSTREAM_LIBRARY_PATH=""
 XML_CONVERTER_PATH=""
 for arg in "$@"; do
+  val="${arg#*=}"
+  val="${val#\"}"
+  val="${val%\"}"
   case "${arg}" in
     --cuttlefish-create-args=*)
-      CUTTLEFISH_CREATE_ARGS="${arg#*=}"
+      CUTTLEFISH_CREATE_ARGS="${val}"
       ;;
     --cuttlefish-fetch-args=*)
-      CUTTLEFISH_FETCH_ARGS="${arg#*=}"
+      CUTTLEFISH_FETCH_ARGS="${val}"
       ;;
     --cuttlefish-prebuilt-directory-path=*)
-      CUTTLEFISH_PREBUILT_DIRECTORY_PATH="${arg#*=}"
+      CUTTLEFISH_PREBUILT_DIRECTORY_PATH="${val}"
       ;;
     --gfxstream-library-path=*)
-      GFXSTREAM_LIBRARY_PATH="${arg#*=}"
+      GFXSTREAM_LIBRARY_PATH="${val}"
       ;;
     --xml-test-result-converter-path=*)
-      XML_CONVERTER_PATH="${arg#*=}"
+      XML_CONVERTER_PATH="${val}"
       ;;
     --xts-args=*)
-      XTS_ARGS="${arg#*=}"
+      XTS_ARGS="${val}"
       ;;
     --xts-type=*)
-      XTS_TYPE="${arg#*=}"
+      XTS_TYPE="${val}"
       ;;
     *)
       echo "Unknown flag: ${arg}" >&2
@@ -46,7 +49,7 @@ if [ -z "${CUTTLEFISH_CREATE_ARGS}" ]; then
   echo "Missing required ----cuttlefish-create-args flag."
   exit 1
 fi
-if [ -z "${CUTTLEFISH_FETCH_ARGS}" ] && [ -z "${CUTTLEFISH_PREBUILT_DIRECTORY_PATH}"]; then
+if [ -z "${CUTTLEFISH_FETCH_ARGS}" ] && [ -z "${CUTTLEFISH_PREBUILT_DIRECTORY_PATH}" ]; then
   echo "Missing required --cuttlefish-fetch-args or --cuttlefish-prebuilt-directory-path flag."
   exit 1
 fi

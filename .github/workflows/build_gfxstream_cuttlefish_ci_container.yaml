@@ -1,0 +1,53 @@
+name: Build and Push Gfxstream Cuttlefish CI Container
+
+on:
+  workflow_dispatch:
+    inputs:
+      image-tag:
+        description: 'Container image tag to push to ghcr.io'
+        required: false
+        default: 'latest'
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build_and_push_cuttlefish_ci_container:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be  # v1.3.1
+        with:
+          tool-cache: true
+
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+        with:
+          # No step needs the token afterwards, so do not leave it
+          # behind in .git/config.
+          persist-credentials: false
+
+      - name: Log in to GitHub Container Registry
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GITHUB_ACTOR}" --password-stdin
+
+      - name: Build and push container image
+        env:
+          IMAGE_TAG: ${{ inputs.image-tag || 'latest' }}
+        run: |
+          REPO_LOWER="${GITHUB_REPOSITORY,,}"
+          IMAGE_URI="ghcr.io/${REPO_LOWER}/gfxstream-cuttlefish-ci:${IMAGE_TAG}"
+          IMAGE_SHA_URI="ghcr.io/${REPO_LOWER}/gfxstream-cuttlefish-ci:${GITHUB_SHA}"
+
+          docker build \
+            -f tests/cuttlefish/gfxstream_cuttlefish.dockerfile \
+            -t "${IMAGE_URI}" \
+            -t "${IMAGE_SHA_URI}" \
+            tests/cuttlefish
+
+          docker push "${IMAGE_URI}"
+          docker push "${IMAGE_SHA_URI}"
