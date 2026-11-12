@@ -19,6 +19,14 @@ string_flag(
     visibility = ["//visibility:public"],
 )
 
+# Mark the driver filegroups and label_flags with `tags = ["manual"]` so that
+# top-level wildcard builds (e.g. `bazel build ...`) do not unconditionally
+# build ANGLE or Lavapipe when another `--graphics_drivers` mode is active.
+# `tags = ["manual"]` only excludes targets from top-level wildcard expansion
+# (`...`, `:*`, `:all`) and still builds them normally when depended upon
+# through the active `select()` branch in `graphics_test_environment_drivers`:
+# https://bazel.build/reference/be/common-definitions#common.tags
+
 filegroup(
     name = "default_gles_angle_drivers",
     srcs = [
@@ -26,11 +34,13 @@ filegroup(
         "@angle//:libEGL",
         "@angle//:libGLESv2",
     ],
+    tags = ["manual"],
 )
 
 label_flag(
     name = "gles_angle_drivers",
     build_setting_default = ":default_gles_angle_drivers",
+    tags = ["manual"],
     visibility = ["//visibility:public"],
 )
 
@@ -40,11 +50,13 @@ filegroup(
         "//third_party/mesa:vk_lavapipe_icd.json",
         "@mesa//:vulkan_lvp",
     ],
+    tags = ["manual"],
 )
 
 label_flag(
     name = "vulkan_lavapipe_drivers",
     build_setting_default = ":default_vulkan_lavapipe_drivers",
+    tags = ["manual"],
     visibility = ["//visibility:public"],
 )
 
