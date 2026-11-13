@@ -345,6 +345,7 @@ class VkDecoderGlobalState::Impl {
         mSnapshotsEnabled = m_vkEmulation->getFeatures().VulkanSnapshots.enabled();
         mBatchedDescriptorSetUpdateEnabled =
             m_vkEmulation->getFeatures().VulkanBatchedDescriptorSetUpdate.enabled();
+        mGuestVulkanOnly = m_vkEmulation->getFeatures().GuestVulkanOnly.enabled();
         mDisableSparseBindingSupport = false;
 #ifdef CONFIG_AEMU
         if (!m_vkEmulation->getFeatures().BypassVulkanDeviceFeatureOverrides.enabled()) {
@@ -10834,21 +10835,33 @@ class VkDecoderGlobalState::Impl {
         vk->vkCmdBindDescriptorSets(commandBuffer, pipelineBindPoint, layout, firstSet,
                                     descriptorSetCount, pDescriptorSets, dynamicOffsetCount,
                                     pDynamicOffsets);
-        if (descriptorSetCount) {
-            std::lock_guard<std::mutex> lock(mMutex);
-            auto* cmdBufferInfo = gfxstream::base::find(mCommandBufferInfo, commandBuffer);
-            if (cmdBufferInfo) {
-                cmdBufferInfo->allDescriptorSets.insert(pDescriptorSets,
+        if (!descriptorSetCount) {
+            return;
+        }
+        // Avoid tracking allDescriptorSets and mutex lock, as it's only read during queue
+        // submit when !mGuestVulkanOnly (for GL/ColorBuffer interop sync), while
+        // compute-rebind state is only needed for VK_PIPELINE_BIND_POINT_COMPUTE.
+        const bool needTrackAllSets = !mGuestVulkanOnly;
+        const bool needTrackComputeRebind = (pipelineBindPoint == VK_PIPELINE_BIND_POINT_COMPUTE);
+        if (!needTrackAllSets && !needTrackComputeRebind) {
+            return;
+        }
+        std::lock_guard<std::mutex> lock(mMutex);
+        auto* cmdBufferInfo = gfxstream::base::find(mCommandBufferInfo, commandBuffer);
+        if (!cmdBufferInfo) {
+            return;
+        }
+        if (needTrackAllSets) {
+            cmdBufferInfo->allDescriptorSets.insert(pDescriptorSets,
+                                                    pDescriptorSets + descriptorSetCount);
+        }
+        if (needTrackComputeRebind) {
+            cmdBufferInfo->descriptorLayout = layout;
+            cmdBufferInfo->firstSet = firstSet;
+            cmdBufferInfo->currentDescriptorSets.assign(pDescriptorSets,
                                                         pDescriptorSets + descriptorSetCount);
-                if (pipelineBindPoint == VK_PIPELINE_BIND_POINT_COMPUTE) {
-                    cmdBufferInfo->descriptorLayout = layout;
-                    cmdBufferInfo->firstSet = firstSet;
-                    cmdBufferInfo->currentDescriptorSets.assign(
-                        pDescriptorSets, pDescriptorSets + descriptorSetCount);
-                    cmdBufferInfo->dynamicOffsets.assign(pDynamicOffsets,
-                                                         pDynamicOffsets + dynamicOffsetCount);
-                }
-            }
+            cmdBufferInfo->dynamicOffsets.assign(pDynamicOffsets,
+                                                 pDynamicOffsets + dynamicOffsetCount);
         }
     }
 
@@ -13800,6 +13813,7 @@ class VkDecoderGlobalState::Impl {
     gfxstream::host::RenderDocWithMultipleVkInstances* mRenderDocWithMultipleVkInstances = nullptr;
     bool mSnapshotsEnabled = false;
     bool mBatchedDescriptorSetUpdateEnabled = false;
+    bool mGuestVulkanOnly = false;
     bool mDisableSparseBindingSupport = false;
     bool mVkCleanupEnabled = true;
     bool mLogging = false;
