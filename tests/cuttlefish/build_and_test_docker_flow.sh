@@ -38,7 +38,7 @@ echo "=== 1. Building Docker image ${IMAGE_NAME} ==="
 docker build \
   -f "${SCRIPT_DIR}/gfxstream_cuttlefish.dockerfile" \
   -t "${IMAGE_NAME}" \
-  "${SCRIPT_DIR}"
+  "${REPO_ROOT}"
 
 echo "=== 2. Starting Docker container ${CONTAINER_NAME} with mounted workspace ==="
 DOCKER_DEVICE_ARGS=(--privileged)

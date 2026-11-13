@@ -47,7 +47,7 @@ jobs:
             -f tests/cuttlefish/gfxstream_cuttlefish.dockerfile \
             -t "${IMAGE_URI}" \
             -t "${IMAGE_SHA_URI}" \
-            tests/cuttlefish
+            .
 
           docker push "${IMAGE_URI}"
           docker push "${IMAGE_SHA_URI}"
