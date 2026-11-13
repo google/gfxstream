@@ -1,0 +1,63 @@
+name: Test Cuttlefish CI Container
+
+on:
+  workflow_dispatch:
+    inputs:
+      image-tag:
+        description: 'Container image tag to pull from ghcr.io'
+        required: false
+        default: 'latest'
+        type: string
+      test-targets:
+        description: 'Bazel Cuttlefish test targets to run'
+        required: false
+        default: '//tests/cuttlefish:gfxstream_guest_angle_host_swiftshader_deqp_smoke'
+        type: string
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  container-test-job:
+    runs-on: ubuntu-24.04
+    container:
+      image: ghcr.io/google/gfxstream/gfxstream-cuttlefish-ci:${{ inputs.image-tag || 'latest' }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+      options: --privileged --device=/dev/kvm
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+        with:
+          # No step needs the token afterwards, so do not leave it
+          # behind in .git/config.
+          persist-credentials: false
+
+      - name: Load cache config
+        run: cat .config/cache-config.env >> $GITHUB_ENV
+
+      - name: Mount Bazel cache
+        uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25  # v5.1.0
+        with:
+          path: "~/bazel-disk-cache"
+          key: ${{ format('{0}-{1}-bazel-disk-cache-{2}-swiftshader-{3}-{4}-', runner.os, runner.arch, env.CACHE_VERSION, github.ref_name, github.sha) }}
+          restore-keys: |
+            ${{ format('{0}-{1}-bazel-disk-cache-{2}-swiftshader-{3}-', runner.os, runner.arch, env.CACHE_VERSION, github.ref_name) || '' }}
+            ${{ format('{0}-{1}-bazel-disk-cache-{2}-swiftshader-main-', runner.os, runner.arch, env.CACHE_VERSION) || '' }}
+            ${{ format('{0}-{1}-bazel-disk-cache-{2}-swiftshader-', runner.os, runner.arch, env.CACHE_VERSION) || '' }}
+
+      - name: Start Cuttlefish host resources
+        # Docker does not boot systemd or run /etc/init.d/* services automatically.
+        run: sudo /etc/init.d/cuttlefish-host-resources start
+
+      - name: Test
+        env:
+          TEST_TARGETS: ${{ inputs.test-targets || '//tests/cuttlefish:gfxstream_guest_angle_host_swiftshader_deqp_smoke' }}
+        run: |
+          bazel test $TEST_TARGETS \
+            --disk_cache=$HOME/bazel-disk-cache \
+            --test_output=streamed \
+            --verbose_failures \
+            --test_arg=--cuttlefish-prebuilt-directory-path=/home/kbuilder/cuttlefish-prebuilt
