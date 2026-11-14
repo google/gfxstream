@@ -200,6 +200,10 @@ function collect_logs_and_cleanup() {
             echo "Found ${cuttlefish_instance_dir}"
 
             if [ -d "${cuttlefish_instance_dir}" ]; then
+              if [ -d "${cuttlefish_instance_dir}/logs" ]; then
+                echo "Copying Cuttlefish instance logs to test output directory..."
+                cp -r "${cuttlefish_instance_dir}/logs" "${TEST_UNDECLARED_OUTPUTS_DIR}/cuttlefish_logs"
+              fi
               cuttlefish_launcher_log="${cuttlefish_instance_dir}/logs/launcher.log"
               if [ -f "${cuttlefish_launcher_log}" ]; then
                 echo "Copying Cuttlefish host log to test output directory..."
@@ -260,6 +264,10 @@ for existing_gfxstream_library_path in $existing_gfxstream_library_paths; do
   cp -f "${GFXSTREAM_LIBRARY_PATH}" "${existing_gfxstream_library_path}"
 done
 
+# Ensure the adb server daemon is running on tcp:5037 before `cvd create`
+# starts `adb_connector`:
+adb start-server
+
 # Create a new Cuttlefish device:
 echo "$(date +'%Y-%m-%dT%H:%M:%S%z')"
 echo "Creating a Cuttlefish device with: ${CUTTLEFISH_CREATE_ARGS}"
@@ -273,14 +281,17 @@ echo "Cuttlefish device created!"
 
 # Wait for the new Cuttlefish device to appear in adb:
 echo "$(date +'%Y-%m-%dT%H:%M:%S%z')"
-echo "Waiting for the Cuttlefish device to connect to adb..."
-timeout --kill-after=30s 29s adb wait-for-device
-if [ $? -eq 0 ]; then
+echo "Connecting and waiting for the Cuttlefish device in adb..."
+adb connect 127.0.0.1:6520 || true
+adb devices -l
+if timeout --kill-after=30s 29s adb wait-for-device; then
   echo "$(date +'%Y-%m-%dT%H:%M:%S%z')"
   echo "Cuttlefish device connected to adb."
+  adb devices -l
 else
   echo "$(date +'%Y-%m-%dT%H:%M:%S%z')"
   echo "Timeout waiting for Cuttlefish device to connect to adb!"
+  adb devices -l
   exit 1
 fi
 
