@@ -2746,6 +2746,294 @@ TEST_F(FrameBufferTest, Display0PreconfiguredModesSwitchWithoutReallocationAndSk
     mFb->closeColorBuffer(phoneHandle);
 }
 
+TEST_F(FrameBufferTest, PostSecondaryDisplayDoesNotOverwritePrimaryDisplay0) {
+    const int kSecondaryWidth = 160;
+    const int kSecondaryHeight = 120;
+    const uint32_t kSecondaryDisplayId = 7;
+
+    // Untracked primary ColorBuffer defaults to display 0.
+    HandleType untrackedPrimaryHandle =
+        mFb->createColorBuffer(mWidth, mHeight, GfxstreamFormat::R8G8B8A8_UNORM);
+    ASSERT_NE((HandleType)0, untrackedPrimaryHandle);
+    EXPECT_EQ(0, mFb->openColorBuffer(untrackedPrimaryHandle));
+
+    HandleType primaryHandle =
+        mFb->createColorBuffer(mWidth, mHeight, GfxstreamFormat::R8G8B8A8_UNORM);
+    ASSERT_NE((HandleType)0, primaryHandle);
+    EXPECT_EQ(0, mFb->openColorBuffer(primaryHandle));
+    std::vector<uint8_t> primaryPixels(static_cast<size_t>(mWidth) * mHeight * 4, 0);
+    for (size_t i = 0; i < primaryPixels.size(); i += 4) {
+        primaryPixels[i + 0] = 255;
+        primaryPixels[i + 1] = 0;
+        primaryPixels[i + 2] = 0;
+        primaryPixels[i + 3] = 255;
+    }
+    EXPECT_TRUE(mFb->updateColorBuffer(primaryHandle, 0, 0, mWidth, mHeight,
+                                       GfxstreamFormat::R8G8B8A8_UNORM, primaryPixels.data()));
+
+    HandleType secondaryHandle =
+        mFb->createColorBuffer(kSecondaryWidth, kSecondaryHeight, GfxstreamFormat::R8G8B8A8_UNORM);
+    ASSERT_NE((HandleType)0, secondaryHandle);
+    EXPECT_EQ(0, mFb->openColorBuffer(secondaryHandle));
+    std::vector<uint8_t> secondaryPixels(
+        static_cast<size_t>(kSecondaryWidth) * kSecondaryHeight * 4, 0);
+    for (size_t i = 0; i < secondaryPixels.size(); i += 4) {
+        secondaryPixels[i + 0] = 0;
+        secondaryPixels[i + 1] = 0;
+        secondaryPixels[i + 2] = 255;
+        secondaryPixels[i + 3] = 255;
+    }
+    EXPECT_TRUE(mFb->updateColorBuffer(secondaryHandle, 0, 0, kSecondaryWidth, kSecondaryHeight,
+                                       GfxstreamFormat::R8G8B8A8_UNORM, secondaryPixels.data()));
+
+    uint32_t createdSecondaryId = kSecondaryDisplayId;
+    ASSERT_EQ(0, mFb->createDisplay(&createdSecondaryId));
+    ASSERT_EQ(kSecondaryDisplayId, createdSecondaryId);
+    ASSERT_EQ(
+        0, mFb->setDisplayPose(kSecondaryDisplayId, 0, 0, kSecondaryWidth, kSecondaryHeight, 160));
+
+    struct PostContext {
+        int count = 0;
+        uint32_t displayId = 99;
+    } primaryPostCtx, secondaryPostCtx;
+
+    auto onPostCb = +[](void* context, uint32_t displayId, int /*width*/, int /*height*/,
+                        int /*ydir*/, int /*format*/, int /*type*/, unsigned char* /*pixels*/) {
+        auto* ctx = static_cast<PostContext*>(context);
+        ++ctx->count;
+        ctx->displayId = displayId;
+    };
+
+    mFb->setPostCallback(onPostCb, &primaryPostCtx, /*displayId=*/0, /*useBgraReadback=*/false);
+    mFb->setPostCallback(onPostCb, &secondaryPostCtx, kSecondaryDisplayId,
+                         /*useBgraReadback=*/false);
+
+    // Invalid handles fail closed and still fire postWithCallback's completion callback.
+    mFb->resetGuestPostedAFrame();
+    constexpr HandleType kInvalidHandle = 0xDEADu;
+    EXPECT_FALSE(mFb->post(kInvalidHandle));
+    EXPECT_FALSE(mFb->hasGuestPostedAFrame());
+    bool invalidCallbackFired = false;
+    mFb->postWithCallback(kInvalidHandle, [&](std::shared_future<void> waitForGpu) {
+        waitForGpu.wait();
+        invalidCallbackFired = true;
+    });
+    EXPECT_TRUE(invalidCallbackFired);
+    EXPECT_FALSE(mFb->hasGuestPostedAFrame());
+
+    // Bind secondary display first so MultiDisplay has an active secondary display when testing
+    // untracked primary ColorBuffers and Case 2 multi-display readbacks.
+    ASSERT_EQ(0, mFb->setDisplayColorBuffer(kSecondaryDisplayId, secondaryHandle));
+
+    // Untracked primary ColorBuffer defaults to display 0 even when secondary displays exist.
+    EXPECT_TRUE(mFb->post(untrackedPrimaryHandle));
+    EXPECT_TRUE(mFb->hasGuestPostedAFrame());
+    EXPECT_EQ(untrackedPrimaryHandle, mFb->getLastPostedColorBuffer());
+
+    // Tracked primary ColorBuffer (rcSetDisplayColorBuffer(0, ...) + rcFBPost) posts to display 0.
+    mFb->resetGuestPostedAFrame();
+    ASSERT_EQ(0, mFb->setDisplayColorBuffer(0, primaryHandle));
+    EXPECT_TRUE(mFb->post(primaryHandle));
+    EXPECT_TRUE(mFb->hasGuestPostedAFrame());
+    EXPECT_EQ(primaryHandle, mFb->getLastPostedColorBuffer());
+    if (!mUseSubWindow && mFb->asyncReadbackSupported()) {
+        mFb->flushReadPipeline(0);
+        mFb->flushReadPipeline(kSecondaryDisplayId);
+    }
+
+    const int primaryCountBeforeSecondaryPost = primaryPostCtx.count;
+    const int secondaryCountBeforeSecondaryPost = secondaryPostCtx.count;
+
+    // Simulate HWC3 CLIENT composition on passenger display 7: rcSetDisplayColorBuffer + rcFBPost.
+    mFb->resetGuestPostedAFrame();
+    ASSERT_EQ(0, mFb->setDisplayColorBuffer(kSecondaryDisplayId, secondaryHandle));
+    EXPECT_TRUE(mFb->post(secondaryHandle));
+    EXPECT_FALSE(mFb->hasGuestPostedAFrame());
+    EXPECT_EQ(primaryHandle, mFb->getLastPostedColorBuffer());
+
+    // postWithCallback on a secondary display also completes its callback without clobbering 0.
+    bool secondaryCallbackFired = false;
+    mFb->postWithCallback(secondaryHandle, [&](std::shared_future<void> waitForGpu) {
+        waitForGpu.wait();
+        secondaryCallbackFired = true;
+    });
+    EXPECT_TRUE(secondaryCallbackFired);
+    EXPECT_FALSE(mFb->hasGuestPostedAFrame());
+    EXPECT_EQ(primaryHandle, mFb->getLastPostedColorBuffer());
+
+    if (!mUseSubWindow) {
+        if (mFb->asyncReadbackSupported()) {
+            mFb->flushReadPipeline(0);
+            mFb->flushReadPipeline(kSecondaryDisplayId);
+        }
+        EXPECT_EQ(primaryCountBeforeSecondaryPost, primaryPostCtx.count);
+        EXPECT_EQ(secondaryCountBeforeSecondaryPost, secondaryPostCtx.count);
+    }
+
+    uint32_t boundSecondaryCb = 0;
+    ASSERT_EQ(0, mFb->getDisplayColorBuffer(kSecondaryDisplayId, &boundSecondaryCb));
+    EXPECT_EQ(secondaryHandle, boundSecondaryCb);
+
+    std::vector<uint8_t> readPrimary(static_cast<size_t>(mWidth) * mHeight * 4, 0);
+    mFb->readColorBuffer(mFb->getLastPostedColorBuffer(), 0, 0, mWidth, mHeight,
+                         GfxstreamFormat::R8G8B8A8_UNORM, readPrimary.data(), readPrimary.size());
+    EXPECT_EQ(255u, readPrimary[0]);
+    EXPECT_EQ(0u, readPrimary[2]);
+
+    std::vector<uint8_t> readSecondary(static_cast<size_t>(kSecondaryWidth) * kSecondaryHeight * 4,
+                                       0);
+    mFb->readColorBuffer(boundSecondaryCb, 0, 0, kSecondaryWidth, kSecondaryHeight,
+                         GfxstreamFormat::R8G8B8A8_UNORM, readSecondary.data(),
+                         readSecondary.size());
+    EXPECT_EQ(0u, readSecondary[0]);
+    EXPECT_EQ(255u, readSecondary[2]);
+
+#ifdef CONFIG_AEMU
+    unsigned int scrW = 0, scrH = 0;
+    std::vector<uint8_t> scrPrimary(static_cast<size_t>(mWidth) * mHeight * 4, 0);
+    size_t scrPrimaryBytes = scrPrimary.size();
+    ASSERT_EQ(0, mFb->getScreenshot(4, &scrW, &scrH, scrPrimary.data(), &scrPrimaryBytes,
+                                    /*displayId=*/0, mWidth, mHeight, 0, {{0, 0}, {0, 0}}));
+    EXPECT_EQ(255u, scrPrimary[0]);
+    EXPECT_EQ(0u, scrPrimary[2]);
+#endif
+
+    mFb->setPostCallback(nullptr, nullptr, kSecondaryDisplayId);
+    mFb->setPostCallback(nullptr, nullptr, /*displayId=*/0);
+    mFb->setDisplayColorBuffer(0, 0);
+    mFb->destroyDisplay(kSecondaryDisplayId);
+    mFb->closeColorBuffer(secondaryHandle);
+    mFb->closeColorBuffer(primaryHandle);
+    mFb->closeColorBuffer(untrackedPrimaryHandle);
+}
+
+TEST_F(FrameBufferTest, PostPixelFoldOuterDisplay6AndIgnoresVirtualDisplay) {
+    const int kOuterDistinctWidth = 128;
+    const int kOuterDistinctHeight = 320;
+
+    HandleType innerHandle =
+        mFb->createColorBuffer(mWidth, mHeight, GfxstreamFormat::R8G8B8A8_UNORM);
+    ASSERT_NE((HandleType)0, innerHandle);
+    EXPECT_EQ(0, mFb->openColorBuffer(innerHandle));
+
+    // Same-dimension outer handle verifies explicit display 6 ownership routing without heuristics.
+    HandleType outerSameSizeHandle =
+        mFb->createColorBuffer(mWidth, mHeight, GfxstreamFormat::R8G8B8A8_UNORM);
+    ASSERT_NE((HandleType)0, outerSameSizeHandle);
+    EXPECT_EQ(0, mFb->openColorBuffer(outerSameSizeHandle));
+
+    HandleType outerDistinctHandle1 = mFb->createColorBuffer(
+        kOuterDistinctWidth, kOuterDistinctHeight, GfxstreamFormat::R8G8B8A8_UNORM);
+    ASSERT_NE((HandleType)0, outerDistinctHandle1);
+    EXPECT_EQ(0, mFb->openColorBuffer(outerDistinctHandle1));
+
+    HandleType outerDistinctHandle2 = mFb->createColorBuffer(
+        kOuterDistinctWidth, kOuterDistinctHeight, GfxstreamFormat::R8G8B8A8_UNORM);
+    ASSERT_NE((HandleType)0, outerDistinctHandle2);
+    EXPECT_EQ(0, mFb->openColorBuffer(outerDistinctHandle2));
+
+    HandleType virtualHandle =
+        mFb->createColorBuffer(mWidth, mHeight, GfxstreamFormat::R8G8B8A8_UNORM);
+    ASSERT_NE((HandleType)0, virtualHandle);
+    EXPECT_EQ(0, mFb->openColorBuffer(virtualHandle));
+
+    uint32_t virtualDisplayId = 1;
+    ASSERT_EQ(0, mFb->createDisplay(&virtualDisplayId));
+    ASSERT_EQ(1u, virtualDisplayId);
+    ASSERT_EQ(0, mFb->setDisplayPose(1, 0, 0, mWidth, mHeight, 240));
+
+    uint32_t outerDisplayId = 6;
+    ASSERT_EQ(0, mFb->createDisplay(&outerDisplayId));
+    ASSERT_EQ(6u, outerDisplayId);
+    ASSERT_EQ(0, mFb->setDisplayPose(6, 0, 0, mWidth, mHeight, 420));
+
+    struct ScopedDisplayOps {
+        gfxstream_multi_display_ops saved = get_gfxstream_multi_display_operations();
+        ~ScopedDisplayOps() { set_gfxstream_multi_display_operations(saved); }
+    } scopedOps;
+    gfxstream_multi_display_ops pixelFoldOps = scopedOps.saved;
+    pixelFoldOps.is_pixel_fold = []() { return true; };
+    set_gfxstream_multi_display_operations(pixelFoldOps);
+
+    struct PostContext {
+        int count = 0;
+        uint32_t displayId = 99;
+    } innerCtx, outerCtx;
+
+    auto onPostCb = +[](void* context, uint32_t displayId, int /*width*/, int /*height*/,
+                        int /*ydir*/, int /*format*/, int /*type*/, unsigned char* /*pixels*/) {
+        auto* ctx = static_cast<PostContext*>(context);
+        ++ctx->count;
+        ctx->displayId = displayId;
+    };
+
+    mFb->setPostCallback(onPostCb, &innerCtx, /*displayId=*/0, /*useBgraReadback=*/false);
+    mFb->setPostCallback(onPostCb, &outerCtx, /*displayId=*/6, /*useBgraReadback=*/false);
+
+    ASSERT_EQ(0, mFb->setDisplayColorBuffer(0, innerHandle));
+    EXPECT_TRUE(mFb->post(innerHandle));
+    EXPECT_EQ(innerHandle, mFb->getLastPostedColorBuffer());
+    if (!mUseSubWindow && mFb->asyncReadbackSupported()) {
+        mFb->flushReadPipeline(0);
+    }
+    const int innerCountBeforeVirtual = innerCtx.count;
+
+    // Virtual display 1 CLIENT composition must not overwrite the foldable console window.
+    mFb->resetGuestPostedAFrame();
+    ASSERT_EQ(0, mFb->setDisplayColorBuffer(1, virtualHandle));
+    EXPECT_TRUE(mFb->post(virtualHandle));
+    EXPECT_FALSE(mFb->hasGuestPostedAFrame());
+    EXPECT_EQ(innerHandle, mFb->getLastPostedColorBuffer());
+    if (!mUseSubWindow) {
+        EXPECT_EQ(innerCountBeforeVirtual, innerCtx.count);
+        EXPECT_EQ(0, outerCtx.count);
+    }
+
+    // Outer display 6 CLIENT composition posts to display 6 even when matching display 0 size.
+    mFb->resetGuestPostedAFrame();
+    ASSERT_EQ(0, mFb->setDisplayColorBuffer(6, outerSameSizeHandle));
+    EXPECT_TRUE(mFb->post(outerSameSizeHandle));
+    EXPECT_TRUE(mFb->hasGuestPostedAFrame());
+    EXPECT_EQ(outerSameSizeHandle, mFb->getLastPostedColorBuffer());
+    if (!mUseSubWindow) {
+        if (mFb->asyncReadbackSupported()) {
+            mFb->flushReadPipeline(6);
+        }
+        EXPECT_EQ(innerCountBeforeVirtual, innerCtx.count);
+        EXPECT_GE(outerCtx.count, 1);
+        EXPECT_EQ(6u, outerCtx.displayId);
+    }
+
+    // Reconfigure outer display 6 to distinct dimensions and verify folded repost() still routes
+    // to m_onPost[6] even after MultiDisplay[6] rotates to the next swapchain buffer.
+    mFb->setPostCallback(nullptr, nullptr, /*displayId=*/6);
+    ASSERT_EQ(0, mFb->setDisplayPose(6, 0, 0, kOuterDistinctWidth, kOuterDistinctHeight, 420));
+    outerCtx = {};
+    mFb->setPostCallback(onPostCb, &outerCtx, /*displayId=*/6, /*useBgraReadback=*/false);
+
+    ASSERT_EQ(0, mFb->setDisplayColorBuffer(6, outerDistinctHandle1));
+    EXPECT_TRUE(mFb->post(outerDistinctHandle1));
+    ASSERT_EQ(0, mFb->setDisplayColorBuffer(6, outerDistinctHandle2));
+    const int outerCountBeforeRepost = outerCtx.count;
+    EXPECT_TRUE(mFb->repost());
+    if (!mUseSubWindow) {
+        EXPECT_EQ(innerCountBeforeVirtual, innerCtx.count);
+        EXPECT_GT(outerCtx.count, outerCountBeforeRepost);
+        EXPECT_EQ(6u, outerCtx.displayId);
+    }
+
+    mFb->setPostCallback(nullptr, nullptr, /*displayId=*/6);
+    mFb->setPostCallback(nullptr, nullptr, /*displayId=*/0);
+    mFb->setDisplayColorBuffer(0, 0);
+    mFb->destroyDisplay(6);
+    mFb->destroyDisplay(1);
+    mFb->closeColorBuffer(virtualHandle);
+    mFb->closeColorBuffer(outerDistinctHandle2);
+    mFb->closeColorBuffer(outerDistinctHandle1);
+    mFb->closeColorBuffer(outerSameSizeHandle);
+    mFb->closeColorBuffer(innerHandle);
+}
+
 }  // namespace
 }  // namespace host
 }  // namespace gfxstream

@@ -852,11 +852,19 @@ class FrameBuffer::Impl : public gfxstream::base::EventNotificationSupport<Frame
     void performDelayedColorBufferCloseLocked(bool forced = false);
     void eraseDelayedCloseColorBufferLocked(HandleType cb, uint64_t ts);
 
-    AsyncResult postImpl(HandleType p_colorbuffer, Post::CompletionCallback callback,
-                         bool needLockAndBind = true, bool repaint = false,
-                         std::optional<uint32_t> postedDisplayId = std::nullopt);
-    bool postImplSync(HandleType p_colorbuffer, bool needLockAndBind = true, bool repaint = false,
-                      std::optional<uint32_t> postedDisplayId = std::nullopt);
+    struct PostResult {
+        AsyncResult asyncResult = AsyncResult::FAIL_AND_CALLBACK_NOT_SCHEDULED;
+        bool postedToMainDisplay = false;
+    };
+
+    std::optional<uint32_t> resolveColorBufferDisplayId(HandleType colorBufferHandle) const;
+    bool shouldPostColorBufferToMainDisplay(std::optional<uint32_t> displayId) const;
+    PostResult postImpl(HandleType p_colorbuffer, Post::CompletionCallback callback,
+                        bool needLockAndBind = true, bool repaint = false,
+                        std::optional<uint32_t> postedDisplayId = std::nullopt);
+    PostResult postImplSync(HandleType p_colorbuffer, bool needLockAndBind = true,
+                            bool repaint = false,
+                            std::optional<uint32_t> postedDisplayId = std::nullopt);
     void setGuestPostedAFrame() {
         m_guestPostedAFrameTime = std::chrono::steady_clock::now();
         m_framebuffer->fireEvent({FrameBufferChange::FrameReady, mFrameNumber++});
@@ -2795,48 +2803,75 @@ bool FrameBuffer::Impl::updateColorBufferDeprecated(HandleType colorbuffer, int 
     return updateColorBuffer(colorbuffer, x, y, width, height, format, pixels);
 }
 
+std::optional<uint32_t> FrameBuffer::Impl::resolveColorBufferDisplayId(
+    HandleType colorBufferHandle) const {
+    if (colorBufferHandle == 0) {
+        return std::nullopt;
+    }
+    const auto& multiDisplay = get_gfxstream_multi_display_operations();
+    uint32_t displayId = 0;
+    if (multiDisplay.get_color_buffer_display != nullptr &&
+        multiDisplay.get_color_buffer_display(colorBufferHandle, &displayId) == 0) {
+        return displayId;
+    }
+    return std::nullopt;
+}
+
+bool FrameBuffer::Impl::shouldPostColorBufferToMainDisplay(
+    std::optional<uint32_t> displayId) const {
+    if (!displayId.has_value() || *displayId == 0) {
+        return true;
+    }
+    const auto& multiDisplay = get_gfxstream_multi_display_operations();
+    const bool isPixelFold = multiDisplay.is_pixel_fold != nullptr && multiDisplay.is_pixel_fold();
+    return isPixelFold && *displayId == kExternalFoldableDisplayId;
+}
+
 bool FrameBuffer::Impl::post(HandleType p_colorbuffer, bool needLockAndBind) {
-    auto res = postImplSync(p_colorbuffer, needLockAndBind);
-    if (res) setGuestPostedAFrame();
-    return res;
+    PostResult res = postImplSync(p_colorbuffer, needLockAndBind);
+    if (res.postedToMainDisplay) {
+        setGuestPostedAFrame();
+    }
+    return res.asyncResult.Succeeded();
 }
 
 void FrameBuffer::Impl::postWithCallback(HandleType p_colorbuffer,
                                          Post::CompletionCallback callback, bool needLockAndBind) {
-    AsyncResult res = postImpl(p_colorbuffer, callback, needLockAndBind);
-    if (res.Succeeded()) {
+    PostResult res = postImpl(p_colorbuffer, callback, needLockAndBind);
+    if (res.postedToMainDisplay) {
         setGuestPostedAFrame();
     }
 
-    if (!res.CallbackScheduledOrFired()) {
-        // If postImpl fails, we have not fired the callback. postWithCallback
-        // should always ensure the callback fires.
+    if (!res.asyncResult.CallbackScheduledOrFired()) {
+        // Ensure the completion callback always fires when PostCmd::Post is not scheduled.
         std::shared_future<void> callbackRes = std::async(std::launch::deferred, [] {});
         callback(callbackRes);
     }
 }
 
-bool FrameBuffer::Impl::postImplSync(HandleType p_colorbuffer, bool needLockAndBind, bool repaint,
-                                     std::optional<uint32_t> postedDisplayId) {
+FrameBuffer::Impl::PostResult FrameBuffer::Impl::postImplSync(
+    HandleType p_colorbuffer, bool needLockAndBind, bool repaint,
+    std::optional<uint32_t> postedDisplayId) {
     std::promise<void> promise;
     std::future<void> completeFuture = promise.get_future();
-    auto posted = postImpl(
+    PostResult posted = postImpl(
         p_colorbuffer,
         [&](std::shared_future<void> waitForGpu) {
             waitForGpu.wait();
             promise.set_value();
         },
         needLockAndBind, repaint, postedDisplayId);
-    if (posted.CallbackScheduledOrFired()) {
+    if (posted.asyncResult.CallbackScheduledOrFired()) {
         completeFuture.wait();
     }
 
-    return posted.Succeeded();
+    return posted;
 }
 
-AsyncResult FrameBuffer::Impl::postImpl(HandleType p_colorbuffer, Post::CompletionCallback callback,
-                                        bool needLockAndBind, bool repaint,
-                                        std::optional<uint32_t> postedDisplayId) {
+FrameBuffer::Impl::PostResult FrameBuffer::Impl::postImpl(HandleType p_colorbuffer,
+                                                          Post::CompletionCallback callback,
+                                                          bool needLockAndBind, bool repaint,
+                                                          std::optional<uint32_t> postedDisplayId) {
     ColorBufferPtr colorBuffer = nullptr;
     {
         AutoLock colorBufferMapLock(m_colorBufferMapLock);
@@ -2848,7 +2883,19 @@ AsyncResult FrameBuffer::Impl::postImpl(HandleType p_colorbuffer, Post::Completi
         }
     }
     if (!colorBuffer) {
-        return AsyncResult::FAIL_AND_CALLBACK_NOT_SCHEDULED;
+        return {AsyncResult::FAIL_AND_CALLBACK_NOT_SCHEDULED, /*postedToMainDisplay=*/false};
+    }
+
+    // rcFBPost carries no display ID; consult MultiDisplay so secondary-display
+    // CLIENT compositions (rcSetDisplayColorBuffer + rcFBPost) do not overwrite
+    // display 0's m_lastPostedColorBuffer or main host window, while allowing
+    // display 0 and Pixel Fold's outer display 6 to post.
+    const std::optional<uint32_t> effectiveDisplayId =
+        postedDisplayId.has_value() ? postedDisplayId : resolveColorBufferDisplayId(p_colorbuffer);
+    if (!shouldPostColorBufferToMainDisplay(effectiveDisplayId)) {
+        colorBuffer->touch();
+        decColorBufferRefCountLocked(p_colorbuffer);
+        return {AsyncResult::OK_AND_CALLBACK_NOT_SCHEDULED, /*postedToMainDisplay=*/false};
     }
 
     std::optional<AutoLock> lock;
@@ -2873,7 +2920,7 @@ AsyncResult FrameBuffer::Impl::postImpl(HandleType p_colorbuffer, Post::Completi
         postCmd.cmd = PostCmd::Post;
         postCmd.cb = colorBuffer.get();
         postCmd.cbHandle = p_colorbuffer;
-        postCmd.colorTransform = GetColorTransformForColorBuffer(p_colorbuffer);
+        postCmd.colorTransform = GetColorTransform(effectiveDisplayId.value_or(0));
         postCmd.completionCallback = std::make_unique<Post::CompletionCallback>(callback);
         sendPostWorkerCmd(std::move(postCmd));
         ret = AsyncResult::OK_AND_CALLBACK_SCHEDULED;
@@ -2910,14 +2957,14 @@ AsyncResult FrameBuffer::Impl::postImpl(HandleType p_colorbuffer, Post::Completi
     // unless screen recording or legacy shared-memory forwarding is active.
     //
     if (!m_onPost.empty()) {
-        dispatchPostCallbacks(p_colorbuffer, colorBuffer, repaint, postedDisplayId);
+        dispatchPostCallbacks(p_colorbuffer, colorBuffer, repaint, effectiveDisplayId);
     }
 
     if (!m_subWin) {  // m_subWin is supposed to be false
         decColorBufferRefCountLocked(p_colorbuffer);
     }
 
-    return ret;
+    return {ret, /*postedToMainDisplay=*/true};
 }
 
 bool FrameBuffer::Impl::isPreconfiguredDisplay0Size(uint32_t width, uint32_t height) const {
@@ -3210,9 +3257,11 @@ bool FrameBuffer::Impl::repost(bool needLockAndBind) {
     GFXSTREAM_DEBUG("Reposting framebuffer.");
     if (m_lastPostedColorBuffer && sInitialized.load(std::memory_order_relaxed)) {
         GFXSTREAM_DEBUG("Has last posted colorbuffer and is initialized; post.");
-        auto res = postImplSync(m_lastPostedColorBuffer, needLockAndBind, true);
-        if (res) setGuestPostedAFrame();
-        return res;
+        PostResult res = postImplSync(m_lastPostedColorBuffer, needLockAndBind, true);
+        if (res.postedToMainDisplay) {
+            setGuestPostedAFrame();
+        }
+        return res.asyncResult.Succeeded();
     }
     if (m_displayVk) {
         setGuestPostedAFrame();
@@ -3507,9 +3556,6 @@ bool FrameBuffer::Impl::compose(uint32_t bufferSize, void* buffer, bool needPost
 #endif
     }
     if (shouldPost) {
-        const auto& multiDisplay = get_gfxstream_multi_display_operations();
-        const bool is_pixel_fold =
-            multiDisplay.is_pixel_fold != nullptr && multiDisplay.is_pixel_fold();
         ComposeDevice* composeDevice = (ComposeDevice*)buffer;
 
         switch (composeDevice->version) {
@@ -3522,12 +3568,12 @@ bool FrameBuffer::Impl::compose(uint32_t bufferSize, void* buffer, bool needPost
                 // Only primary display 0 and the outer foldable display 6 drive
                 // host window/console posts. Classic emulator subwindow rendering
                 // (m_subWin), m_lastPostedColorBuffer, and FrameReady events are
-                // unchanged for both displays while avoiding virtual displays 1..5
-                // overwriting a foldable's main window.
-                if (composeDeviceV2->displayId == 0 ||
-                    (is_pixel_fold && composeDeviceV2->displayId == kExternalFoldableDisplayId)) {
-                    if (postImplSync(composeDeviceV2->targetHandle, true, /*repaint=*/false,
-                                     composeDeviceV2->displayId)) {
+                // unchanged for both displays while avoiding non-main displays
+                // overwriting the primary or foldable main window.
+                if (shouldPostColorBufferToMainDisplay(composeDeviceV2->displayId)) {
+                    PostResult res = postImplSync(composeDeviceV2->targetHandle, true,
+                                                  /*repaint=*/false, composeDeviceV2->displayId);
+                    if (res.postedToMainDisplay) {
                         setGuestPostedAFrame();
                     }
                 }
