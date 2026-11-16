@@ -18,6 +18,7 @@
 #include <functional>
 #include <mutex>
 #include <optional>
+#include <unordered_set>
 #include <vector>
 
 #include "gfxstream/ThreadAnnotations.h"
@@ -54,12 +55,15 @@ class AddressSpaceGraphicsContext : public AddressSpaceDeviceContext {
     void save(gfxstream::Stream* stream) const override;
     bool load(gfxstream::Stream* stream) override;
 
-    void preSave() const override;
-    void postSave() const override;
+    bool preSave() const override;
+    bool waitForPreSave() const override;
+    void cancelPreSave() const override;
+    bool postSave() const override;
 
-    static void globalStatePreSave();
-    static void globalStateSave(gfxstream::Stream*);
-    static void globalStatePostSave();
+    static bool globalStatePreSave();
+    static void globalStateSave(gfxstream::Stream*,
+                                const std::unordered_set<uint32_t>* activeHandles = nullptr);
+    static bool globalStatePostSave();
 
     static bool globalStateLoad(gfxstream::Stream*,
                                 const std::optional<AddressSpaceDeviceLoadResources>& resources);
@@ -93,6 +97,8 @@ class AddressSpaceGraphicsContext : public AddressSpaceDeviceContext {
         bool wakeupRequested = false;
         bool pausePreSnapshotRequested = false;
         bool resumePostSnapshotRequested = false;
+        bool preSaveActive = false;
+        bool pauseWaitFailed = false;
         bool exiting = false;
 
         bool hasPendingWork() const {

@@ -27,7 +27,9 @@ constexpr const int kAsgWriteStepSize = 262144;
 constexpr const int kAsgDataRingSize = 524288;
 constexpr const int kAsgDrawFlushInterval = 10000;
 
+int gfxstream_address_space_pre_save();
 int gfxstream_address_space_save_memory_state(gfxstream::Stream* stream);
+int gfxstream_address_space_post_save();
 int gfxstream_address_space_load_memory_state(gfxstream::Stream* stream);
 
 // Resources which can not be directly reloaded by ASG.

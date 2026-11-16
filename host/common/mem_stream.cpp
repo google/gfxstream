@@ -80,11 +80,15 @@ size_t MemStream::readSize() const {
 }
 
 void MemStream::save(Stream* stream) const {
-    saveBuffer(stream, mData);
+    if (!saveBuffer(stream, mData)) {
+        stream->addError("%s: failed to save MemStream (%zu bytes)", __func__, mData.size());
+    }
 }
 
 void MemStream::load(Stream* stream) {
-    loadBuffer(stream, &mData);
+    if (!loadBuffer(stream, &mData)) {
+        stream->addError("%s: failed to load MemStream", __func__);
+    }
     mReadPos = 0;
 }
 

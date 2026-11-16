@@ -14,7 +14,9 @@
 
 #pragma once
 
+#include <atomic>
 #include <functional>
+#include <mutex>
 #include <vector>
 
 #include "gfxstream/host/address_space_graphics_types.h"
@@ -37,11 +39,19 @@ class RingStream final : public IOStream {
     const unsigned char *readFully( void *buf, size_t len) override;
 
     void pausePreSnapshot() {
+        std::lock_guard<std::mutex> lock(mSnapshotStateMutex);
+        mShouldExitForSnapshot = false;
         mInSnapshotOperation = true;
     }
 
     void resume() {
+        std::lock_guard<std::mutex> lock(mSnapshotStateMutex);
+        mShouldExitForSnapshot = false;
         mInSnapshotOperation = false;
+    }
+
+    bool consumeAbortedReadForSnapshot() {
+        return mAbortedReadForSnapshot.exchange(false, std::memory_order_acq_rel);
     }
 
     void reloadRingConfig();
@@ -59,6 +69,9 @@ class RingStream final : public IOStream {
     void type1Read(uint32_t available, char* begin, size_t* count, char** current, const char* ptrEnd);
     void type2Read(uint32_t available, size_t* count, char** current, const char* ptrEnd);
     void type3Read(uint32_t available, size_t* count, char** current, const char* ptrEnd);
+    bool shouldAbortForSnapshot() const;
+    void onPauseForSnapshot();
+    void onResumeAfterSnapshot();
 
     struct asg_context mContext;
     struct asg_ring_config mSavedRingConfig;
@@ -71,6 +84,7 @@ class RingStream final : public IOStream {
     RenderChannel::Buffer mWriteBuffer;
     size_t mReadBufferLeft = 0;
 
+    const size_t mInitialBufSize;
     uint32_t mBufSize = 0;
 
     // The number of times this RingStream should attempt reading
@@ -81,7 +95,9 @@ class RingStream final : public IOStream {
     size_t mXmits = 0;
     size_t mTotalRecv = 0;
     bool mBenchmarkEnabled = false;
-    bool mShouldExit = false;
+    std::atomic<bool> mShouldExit{false};
+    std::atomic<bool> mAbortedReadForSnapshot{false};
+    mutable std::mutex mSnapshotStateMutex;
     bool mShouldExitForSnapshot = false;
     bool mInSnapshotOperation = false;
 };

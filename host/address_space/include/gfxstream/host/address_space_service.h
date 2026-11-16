@@ -41,14 +41,16 @@ class AddressSpaceDeviceContext {
     virtual void save(gfxstream::Stream* stream) const = 0;
     virtual bool load(gfxstream::Stream* stream) = 0;
 
-    virtual void preSave() const { }
-    virtual void postSave() const { }
+    virtual bool preSave() const { return true; }
+    virtual bool waitForPreSave() const { return true; }
+    virtual void cancelPreSave() const {}
+    virtual bool postSave() const { return true; }
 };
 
 struct AddressSpaceContextDescription {
     AddressSpaceDevicePingInfo* pingInfo = nullptr;
     uint64_t pingInfoGpa = 0;  // for snapshots
-    std::unique_ptr<AddressSpaceDeviceContext> device_context;
+    std::shared_ptr<AddressSpaceDeviceContext> device_context;
 };
 
 } // namespace host

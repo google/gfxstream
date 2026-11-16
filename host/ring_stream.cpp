@@ -17,6 +17,9 @@
 #include <assert.h>
 #include <memory.h>
 
+#include <algorithm>
+#include <cstring>
+
 #include "gfxstream/host/dma_device.h"
 #include "gfxstream/common/logging.h"
 #include "gfxstream/host/stream_utils.h"
@@ -51,39 +54,125 @@ void SaveRingConfig(Stream* stream, const struct asg_ring_config& config) {
     stream->putBe32(config.in_error);
 }
 
-void LoadRingConfig(Stream* stream, struct asg_ring_config* config) {
-    config->buffer_size = stream->getBe32();
-    config->flush_interval = stream->getBe32();
-    config->host_consumed_pos = stream->getBe32();
-    config->guest_write_pos = stream->getBe32();
-    config->transfer_mode = stream->getBe32();
-    config->transfer_size = stream->getBe32();
-    config->in_error = stream->getBe32();
+constexpr uint32_t kMaxRingStreamIoBufferBytes = 64u * 1024u * 1024u;
+
+bool ReadExact(Stream* stream, void* dst, size_t size) {
+    const ssize_t got = stream->read(dst, size);
+    return got >= 0 && static_cast<size_t>(got) == size;
+}
+
+void WriteExact(Stream* stream, const void* src, size_t size) {
+    const ssize_t written = stream->write(src, size);
+    if (written != static_cast<ssize_t>(size)) {
+        stream->addError("WriteExact: expected %zu, got %zd", size, written);
+    }
+}
+
+bool ReadBe32Exact(Stream* stream, uint32_t* out) {
+    uint8_t bytes[4] = {};
+    if (!ReadExact(stream, bytes, sizeof(bytes))) {
+        return false;
+    }
+    *out = (static_cast<uint32_t>(bytes[0]) << 24) |
+           (static_cast<uint32_t>(bytes[1]) << 16) |
+           (static_cast<uint32_t>(bytes[2]) << 8) |
+           static_cast<uint32_t>(bytes[3]);
+    return true;
+}
+
+bool LoadBoundedBuffer(Stream* stream, RenderChannel::Buffer* buffer, uint32_t maxBytes) {
+    uint32_t len = 0;
+    if (!ReadBe32Exact(stream, &len)) {
+        GFXSTREAM_ERROR("LoadBoundedBuffer: truncated length prefix.");
+        return false;
+    }
+    if (len > maxBytes) {
+        GFXSTREAM_ERROR("LoadBoundedBuffer: length %u exceeds max %u.", len, maxBytes);
+        return false;
+    }
+    buffer->clear();
+    if (len == 0) {
+        return true;
+    }
+    buffer->resize_noinit(len);
+    if (!ReadExact(stream, buffer->data(), len)) {
+        GFXSTREAM_ERROR("LoadBoundedBuffer: truncated payload (%u bytes).", len);
+        buffer->clear();
+        return false;
+    }
+    return true;
+}
+
+bool LoadRingConfig(Stream* stream, struct asg_ring_config* config) {
+    struct asg_ring_config staged = {};
+    if (!ReadBe32Exact(stream, &staged.buffer_size) ||
+        !ReadBe32Exact(stream, &staged.flush_interval) ||
+        !ReadBe32Exact(stream, &staged.host_consumed_pos) ||
+        !ReadBe32Exact(stream, &staged.guest_write_pos) ||
+        !ReadBe32Exact(stream, &staged.transfer_mode) ||
+        !ReadBe32Exact(stream, &staged.transfer_size) ||
+        !ReadBe32Exact(stream, &staged.in_error)) {
+        return false;
+    }
+    *config = staged;
+    return true;
 }
 
 void SaveAsgContext(Stream* stream, const struct asg_context& context) {
-    stream->write(context.to_host, sizeof(struct ring_buffer));
-    stream->write(context.to_host_large_xfer.ring, sizeof(struct ring_buffer));
-    stream->write(context.from_host_large_xfer.ring, sizeof(struct ring_buffer));
-    stream->putBe32(context.buffer_size);
-    stream->write(context.buffer, context.buffer_size);
+    WriteExact(stream, context.to_host, sizeof(struct ring_buffer));
+    WriteExact(stream, context.to_host_large_xfer.ring, sizeof(struct ring_buffer));
+    WriteExact(stream, context.from_host_large_xfer.ring, sizeof(struct ring_buffer));
+    // context.buffer points to the shared ASG auxiliary transfer buffer
+    // (1 MiB, separate from the 12 KiB asg_ring_storage serialized above),
+    // which is already saved and restored by the owning backing store
+    // (goldfish_address_space on legacy goldfish, and VirtioGpuFrontend
+    // RingBlob on virtio-gpu, both after quiescing ASG render threads).
+    // Writing 0 here avoids duplicating 1 MiB per ASG stream inside the
+    // GoldfishGpu snapshot meta blob / gfxstream_asg.bin.
+    stream->putBe32(0);
 }
 
-void LoadAsgContext(Stream* stream, struct asg_context* context, uint32_t max_buffer_size) {
-    stream->read(context->to_host, sizeof(struct ring_buffer));
-    stream->read(context->to_host_large_xfer.ring, sizeof(struct ring_buffer));
-    stream->read(context->from_host_large_xfer.ring, sizeof(struct ring_buffer));
-    // context->buffer was allocated by the host with max_buffer_size bytes;
-    // never let a snapshot-supplied size exceed it. The guest-visible
-    // ring_config is restored separately via reloadRingConfig().
-    uint32_t loaded_buffer_size = stream->getBe32();
-    if (loaded_buffer_size > max_buffer_size) {
-        GFXSTREAM_ERROR("LoadAsgContext: snapshot buffer_size %u exceeds allocated %u\n",
-                        loaded_buffer_size, max_buffer_size);
-        loaded_buffer_size = max_buffer_size;
+bool LoadAsgContext(Stream* stream, struct asg_context* context, uint32_t max_buffer_size) {
+    struct ring_buffer stagedToHost = {};
+    struct ring_buffer stagedToHostLarge = {};
+    struct ring_buffer stagedFromHostLarge = {};
+    if (!ReadExact(stream, &stagedToHost, sizeof(stagedToHost)) ||
+        !ReadExact(stream, &stagedToHostLarge, sizeof(stagedToHostLarge)) ||
+        !ReadExact(stream, &stagedFromHostLarge, sizeof(stagedFromHostLarge))) {
+        GFXSTREAM_ERROR("LoadAsgContext: truncated ring_buffer state in snapshot.");
+        return false;
     }
+    uint32_t loaded_buffer_size = 0;
+    if (!ReadBe32Exact(stream, &loaded_buffer_size)) {
+        GFXSTREAM_ERROR("LoadAsgContext: truncated buffer_size in snapshot.");
+        return false;
+    }
+    // context->buffer was allocated by the host with max_buffer_size bytes;
+    // reject any snapshot whose embedded buffer_size exceeds max_buffer_size
+    // rather than clamping and desynchronizing subsequent stream reads.
+    if (loaded_buffer_size > max_buffer_size) {
+        GFXSTREAM_ERROR("LoadAsgContext: snapshot buffer_size %u exceeds allocated %u.",
+                        loaded_buffer_size, max_buffer_size);
+        return false;
+    }
+    std::vector<uint8_t> stagedBuffer;
+    if (loaded_buffer_size > 0) {
+        stagedBuffer.resize(loaded_buffer_size);
+        if (!ReadExact(stream, stagedBuffer.data(), loaded_buffer_size)) {
+            GFXSTREAM_ERROR("LoadAsgContext: truncated buffer payload (%u bytes) in snapshot.",
+                            loaded_buffer_size);
+            return false;
+        }
+    }
+
     context->buffer_size = max_buffer_size;
-    stream->read(context->buffer, loaded_buffer_size);
+    *context->to_host = stagedToHost;
+    *context->to_host_large_xfer.ring = stagedToHostLarge;
+    *context->from_host_large_xfer.ring = stagedFromHostLarge;
+    if (loaded_buffer_size > 0) {
+        std::memcpy(context->buffer, stagedBuffer.data(), loaded_buffer_size);
+    }
+    return true;
 }
 
 }  // namespace
@@ -93,6 +182,7 @@ RingStream::RingStream(const AsgConsumerCreateInfo& info, size_t bufsize) :
     mContext(CreateContext(info)),
     mSavedRingConfig(*mContext.ring_config),
     mCallbacks(info.callbacks),
+    mInitialBufSize(bufsize),
     mBufSize(info.buffer_size) {}
 
 RingStream::~RingStream() = default;
@@ -155,7 +245,25 @@ int RingStream::commitBuffer(size_t size) {
     return sent;
 }
 
+bool RingStream::shouldAbortForSnapshot() const {
+    std::lock_guard<std::mutex> lock(mSnapshotStateMutex);
+    return mShouldExitForSnapshot && mInSnapshotOperation;
+}
+
+void RingStream::onPauseForSnapshot() {
+    std::lock_guard<std::mutex> lock(mSnapshotStateMutex);
+    if (mInSnapshotOperation) {
+        mShouldExitForSnapshot = true;
+    }
+}
+
+void RingStream::onResumeAfterSnapshot() {
+    std::lock_guard<std::mutex> lock(mSnapshotStateMutex);
+    mShouldExitForSnapshot = false;
+}
+
 const unsigned char* RingStream::readRaw(void* buf, size_t* inout_len) {
+    mAbortedReadForSnapshot.store(false, std::memory_order_release);
     size_t wanted = *inout_len;
     size_t count = 0U;
     auto dst = static_cast<char*>(buf);
@@ -190,7 +298,8 @@ const unsigned char* RingStream::readRaw(void* buf, size_t* inout_len) {
 
         *(mContext.host_state) = ASG_HOST_STATE_CAN_CONSUME;
 
-        if (mShouldExit) {
+        if (mShouldExit.load(std::memory_order_acquire)) {
+            mAbortedReadForSnapshot.store(false, std::memory_order_release);
             return nullptr;
         }
 
@@ -248,11 +357,13 @@ const unsigned char* RingStream::readRaw(void* buf, size_t* inout_len) {
                 spins = 0;
             }
 
-            if (mShouldExit) {
+            if (mShouldExit.load(std::memory_order_acquire)) {
+                mAbortedReadForSnapshot.store(false, std::memory_order_release);
                 return nullptr;
             }
 
-            if (mShouldExitForSnapshot && mInSnapshotOperation) {
+            if (shouldAbortForSnapshot()) {
+                mAbortedReadForSnapshot.store(true, std::memory_order_release);
                 return nullptr;
             }
 
@@ -270,7 +381,7 @@ const unsigned char* RingStream::readRaw(void* buf, size_t* inout_len) {
                         }
                         case AsgOnUnavailableReadStatus::kExit: {
                             *(mContext.host_state) = ASG_HOST_STATE_EXIT;
-                            mShouldExit = true;
+                            mShouldExit.store(true, std::memory_order_release);
                             break;
                         }
                         case AsgOnUnavailableReadStatus::kSleep: {
@@ -278,11 +389,11 @@ const unsigned char* RingStream::readRaw(void* buf, size_t* inout_len) {
                             break;
                         }
                         case AsgOnUnavailableReadStatus::kPauseForSnapshot: {
-                            mShouldExitForSnapshot = true;
+                            onPauseForSnapshot();
                             break;
                         }
                         case AsgOnUnavailableReadStatus::kResumeAfterSnapshot: {
-                            mShouldExitForSnapshot = false;
+                            onResumeAfterSnapshot();
                             break;
                         }
                     }
@@ -443,10 +554,18 @@ const unsigned char *RingStream::readFully( void *buf, size_t len) {
 
 void RingStream::onSave(gfxstream::Stream* stream) {
     stream->putBe32(mReadBufferLeft);
-    stream->write(mReadBuffer.data() + mReadBuffer.size() - mReadBufferLeft,
-                  mReadBufferLeft);
+    if (mReadBufferLeft > 0) {
+        WriteExact(stream, mReadBuffer.data() + mReadBuffer.size() - mReadBufferLeft,
+                   mReadBufferLeft);
+    }
 
-    gfxstream::host::saveBuffer(stream, mWriteBuffer);
+    if (m_buf != nullptr) {
+        if (!gfxstream::host::saveBuffer(stream, mWriteBuffer)) {
+            stream->addError("RingStream::onSave: failed to save mWriteBuffer");
+        }
+    } else {
+        stream->putBe32(0);
+    }
 
     stream->putBe32(mUnavailableReadCount);
 
@@ -458,27 +577,56 @@ void RingStream::onSave(gfxstream::Stream* stream) {
 }
 
 unsigned char* RingStream::onLoad(gfxstream::Stream* stream) {
-    gfxstream::host::loadBuffer(stream, &mReadBuffer);
+    auto resetOnLoadError = [this, stream]() -> unsigned char* {
+        mReadBuffer.clear();
+        mWriteBuffer.clear();
+        mReadBufferLeft = 0;
+        m_bufsize = mInitialBufSize;
+        m_free = 0;
+        if (stream) {
+            stream->addError("RingStream::onLoad failed");
+        }
+        return nullptr;
+    };
+
+    if (!stream) {
+        return resetOnLoadError();
+    }
+
+    const uint32_t maxReadBufBytes = std::max<uint32_t>(mBufSize, kMaxRingStreamIoBufferBytes);
+    RenderChannel::Buffer stagedReadBuffer;
+    RenderChannel::Buffer stagedWriteBuffer;
+    uint32_t stagedUnavailableReadCount = 0;
+    struct asg_ring_config stagedRingConfig = {};
+    if (!LoadBoundedBuffer(stream, &stagedReadBuffer, maxReadBufBytes) ||
+        !LoadBoundedBuffer(stream, &stagedWriteBuffer, kMaxRingStreamIoBufferBytes) ||
+        !ReadBe32Exact(stream, &stagedUnavailableReadCount) ||
+        !LoadRingConfig(stream, &stagedRingConfig)) {
+        return resetOnLoadError();
+    }
+    if (stagedRingConfig.buffer_size > mBufSize) {
+        stagedRingConfig.buffer_size = mBufSize;
+    }
+
+    if (!LoadAsgContext(stream, &mContext, mBufSize)) {
+        return resetOnLoadError();
+    }
+
+    mReadBuffer = std::move(stagedReadBuffer);
     mReadBufferLeft = mReadBuffer.size();
+    mWriteBuffer = std::move(stagedWriteBuffer);
+    mUnavailableReadCount = stagedUnavailableReadCount;
+    mSavedRingConfig = stagedRingConfig;
 
-    gfxstream::host::loadBuffer(stream, &mWriteBuffer);
-    if (m_bufsize > mWriteBuffer.size()) {
-        m_bufsize = mWriteBuffer.size();
-    }
-    if (m_free > m_bufsize) {
-        m_free = m_bufsize;
-    }
-
-    mUnavailableReadCount = stream->getBe32();
-
-    LoadRingConfig(stream, &mSavedRingConfig);
-    if (mSavedRingConfig.buffer_size > mBufSize) {
-        mSavedRingConfig.buffer_size = mBufSize;
+    if (!mWriteBuffer.empty()) {
+        m_bufsize = std::min(m_bufsize, mWriteBuffer.size());
+        m_free = std::min(m_free, m_bufsize);
+    } else {
+        m_bufsize = mInitialBufSize;
+        m_free = 0;
     }
 
-    LoadAsgContext(stream, &mContext, mBufSize);
-
-    return reinterpret_cast<unsigned char*>(mWriteBuffer.data());
+    return mWriteBuffer.empty() ? nullptr : reinterpret_cast<unsigned char*>(mWriteBuffer.data());
 }
 
 }  // namespace gfxstream

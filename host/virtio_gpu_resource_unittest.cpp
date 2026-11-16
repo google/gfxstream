@@ -28,9 +28,17 @@
 #include <gtest/gtest.h>
 
 #include "gfxstream/virtio-gpu-gfxstream-renderer.h"
+#include "gfxstream/host/address_space_graphics.h"
+#include "gfxstream/host/address_space_operations.h"
+#include "render-utils/address_space_operations.h"
 #include "virtio_gpu_format_utils.h"
 #include "virtio_gpu_frontend.h"
 #include "virtio_gpu_pipe.h"
+
+#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+#include <atomic>
+#include <filesystem>
+#endif
 
 namespace gfxstream {
 namespace host {
@@ -265,6 +273,227 @@ TEST(VirtioGpuResourceSecurityTest, RejectsUndersizedLinearBackingOnBufferAndCol
     cbResOpt->AttachIov(&iov, 1);
     EXPECT_EQ(cbResOpt->TransferRead(0, &tinyBox, std::nullopt), -EINVAL);
     EXPECT_EQ(cbResOpt->TransferWrite(0, &tinyBox, std::nullopt), -EINVAL);
+}
+
+class StubSnapshotRenderer : public gfxstream::Renderer {
+  public:
+    bool allowPauseAll = true;
+    bool allowSave = true;
+    int pauseAllCalls = 0;
+    int resumeAllCalls = 0;
+    int saveCalls = 0;
+    std::function<void()> onSave;
+
+    RenderChannelPtr createRenderChannel(Stream*, uint32_t) override { return nullptr; }
+    void* addressSpaceGraphicsConsumerCreate(const AsgConsumerCreateInfo&, Stream*) override {
+        return nullptr;
+    }
+    void addressSpaceGraphicsConsumerDestroy(void*) override {}
+    void addressSpaceGraphicsConsumerPreSave(void*) override {}
+    void addressSpaceGraphicsConsumerSave(void*, Stream*) override {}
+    void addressSpaceGraphicsConsumerPostSave(void*) override {}
+    void addressSpaceGraphicsConsumerRegisterPostLoadRenderThread(void*) override {}
+    void addressSpaceGraphicsConsumerReloadRingConfig(void*) override {}
+    HardwareStrings getHardwareStrings() override { return {}; }
+    bool getVulkanEmulationDeviceInfo(char**, char**, uint32_t*, uint32_t*, uint32_t*, uint32_t*,
+                                      uint32_t*, uint64_t*) override {
+        return false;
+    }
+    void setPostCallback(OnPostCallback, void*, bool, uint32_t) override {}
+    void addListener(FrameBufferChangeEventListener*) override {}
+    void removeListener(FrameBufferChangeEventListener*) override {}
+    bool asyncReadbackSupported() override { return false; }
+    ReadPixelsCallback getReadPixelsCallback() override { return nullptr; }
+    FlushReadPixelPipeline getFlushReadPixelPipeline() override { return nullptr; }
+    bool showOpenGLSubwindow(FBNativeWindowType, int, int, int, int, int, int, float, float, bool,
+                             bool) override {
+        return false;
+    }
+    bool destroyOpenGLSubwindow() override { return true; }
+    void setOpenGLDisplayRotation(float) override {}
+    void setOpenGLDisplayTranslation(float, float) override {}
+    void repaintOpenGLDisplay() override {}
+    bool hasGuestPostedAFrame() override { return false; }
+    void resetGuestPostedAFrame() override {}
+    void setScreenMask(int, int, const uint8_t*) override {}
+    void setScreenBackground(int, int, const uint8_t*) override {}
+    void setDisplayLayout(int, int, const Rect&) override {}
+    void setMultiDisplay(uint32_t, int32_t, int32_t, uint32_t, uint32_t, uint32_t, bool) override {
+    }
+    void setMultiDisplayColorBuffer(uint32_t, uint32_t) override {}
+    void onGuestGraphicsProcessCreate(uint64_t) override {}
+    void cleanupProcGLObjects(uint64_t) override {}
+    bool waitForProcessCleanup() override { return true; }
+    AndroidVirtioGpuOps* getVirtioGpuOps() override { return nullptr; }
+    void stop(bool) override {}
+    void finish() override {}
+    bool pauseAllPreSave() override {
+        ++pauseAllCalls;
+        return allowPauseAll;
+    }
+    void resumeAll() override { ++resumeAllCalls; }
+    bool save(Stream* stream, const ITextureSaverPtr&) override {
+        ++saveCalls;
+        if (onSave) {
+            onSave();
+        }
+        if (!allowSave) {
+            return false;
+        }
+        stream->putByte(1);
+        return !stream->hasErrors();
+    }
+    bool load(Stream*, const ITextureLoaderPtr&) override { return true; }
+    void fillGLESUsages(android_studio::EmulatorGLESUsages*) override {}
+    int getScreenshot(unsigned int, unsigned int*, unsigned int*, uint8_t*, size_t*, int, int, int,
+                      int, Rect) override {
+        return 0;
+    }
+    void preLoad() override {}
+    void postLoad() override {}
+    void setVsyncHz(int) override {}
+    void setDisplayConfigs(int, int, int, int, int) override {}
+    void setDisplayActiveConfig(int) override {}
+    const void* getEglDispatch() override { return nullptr; }
+    const void* getGles2Dispatch() override { return nullptr; }
+    void setShouldSkipDraw(bool) override {}
+    bool getShouldSkipDraw() const override { return false; }
+};
+
+TEST(VirtioGpuFrontendSnapshotTest, SnapshotCoordinatesAsgPrePostSaveAndHandlesErrors) {
+    struct AsgState {
+        int dummyConsumer = 0;
+        bool failWaitForPause = false;
+        bool clearDuringAsgSave = false;
+        bool asgPaused = false;
+        bool asgPausedDuringRendererSave = false;
+        int preSaveCalls = 0;
+        int postSaveCalls = 0;
+        int cancelCalls = 0;
+    };
+    auto asgState = std::make_shared<AsgState>();
+
+    struct CleanupGuard {
+        ~CleanupGuard() {
+            GetAsgOperations().clear();
+            AddressSpaceGraphicsContext::clear();
+            AddressSpaceGraphicsContext::setConsumer({});
+        }
+    } cleanupGuard;
+
+    AddressSpaceGraphicsContext::setConsumer(ConsumerInterface{
+        .create = [asgState](const AsgConsumerCreateInfo&, Stream*) -> ConsumerHandle {
+            return &asgState->dummyConsumer;
+        },
+        .destroy = [](ConsumerHandle) {},
+        .preSave = [asgState](ConsumerHandle) {
+            ++asgState->preSaveCalls;
+            asgState->asgPaused = true;
+        },
+        .globalPreSave = []() {},
+        .save = [asgState](ConsumerHandle, Stream* stream) {
+            stream->putByte(0x5A);
+        },
+        .globalPostSave = []() {},
+        .postSave = [asgState](ConsumerHandle) {
+            ++asgState->postSaveCalls;
+            asgState->asgPaused = false;
+        },
+        .postLoad = [](ConsumerHandle) {},
+        .globalPreLoad = []() {},
+        .reloadRingConfig = [](ConsumerHandle) {},
+        .waitForPause = [asgState](ConsumerHandle) -> bool {
+            return !asgState->failWaitForPause;
+        },
+        .cancelPreSave = [asgState](ConsumerHandle) {
+            ++asgState->cancelCalls;
+            asgState->asgPaused = false;
+        },
+    });
+
+    auto ops = GetAsgOperations();
+    std::vector<char> backing(kAsgConsumerRingStorageSize + kAsgWriteBufferSize, 0);
+    AddressSpaceCreateInfo createInfo = {};
+    createInfo.handle = ops.gen_handle();
+    createInfo.type = ADDRESS_SPACE_CONTEXT_TYPE_VIRTIO_GPU_GRAPHICS;
+    createInfo.createRenderThread = true;
+    createInfo.externalAddr = backing.data();
+    createInfo.externalAddrSize = backing.size();
+    ops.create_instance(createInfo);
+
+    auto renderer = std::make_shared<StubSnapshotRenderer>();
+    renderer->onSave = [asgState] {
+        asgState->asgPausedDuringRendererSave = asgState->asgPaused;
+    };
+
+    VirtioGpuFrontend frontend;
+    ASSERT_EQ(frontend.init(renderer, nullptr, FeatureSet{}, [](void*, stream_renderer_fence*) {}),
+              0);
+
+    const std::filesystem::path baseTemp =
+        std::filesystem::temp_directory_path() /
+        ("gfxstream_vgpu_snap_test_" +
+         std::to_string(reinterpret_cast<uintptr_t>(&frontend)));
+    std::filesystem::remove_all(baseTemp);
+    ASSERT_TRUE(std::filesystem::create_directories(baseTemp));
+    struct DirCleanup {
+        std::filesystem::path dir;
+        ~DirCleanup() { std::filesystem::remove_all(dir); }
+    } dirCleanup{baseTemp};
+
+    // 1. Happy path: ASG is pre-saved before snapshotRenderer() and post-saved via ScopedResume.
+    EXPECT_EQ(frontend.snapshot(baseTemp.string().c_str()), 0);
+    EXPECT_TRUE(asgState->asgPausedDuringRendererSave);
+    EXPECT_FALSE(asgState->asgPaused);
+    EXPECT_EQ(asgState->preSaveCalls, 1);
+    EXPECT_EQ(asgState->postSaveCalls, 1);
+    EXPECT_EQ(renderer->pauseAllCalls, 1);
+    EXPECT_EQ(renderer->resumeAllCalls, 1);
+
+    // 2. Renderer pauseAllPreSave() failure returns -ETIMEDOUT without touching ASG preSave.
+    renderer->allowPauseAll = false;
+    EXPECT_EQ(frontend.snapshot(baseTemp.string().c_str()), -ETIMEDOUT);
+    EXPECT_EQ(asgState->preSaveCalls, 1);
+    renderer->allowPauseAll = true;
+
+    // 3. ASG pre_save failure calls renderer->resumeAll() and aborts before snapshotRenderer().
+    asgState->failWaitForPause = true;
+    const int resumeBeforePreSaveFail = renderer->resumeAllCalls;
+    const int saveBeforePreSaveFail = renderer->saveCalls;
+    EXPECT_NE(frontend.snapshot(baseTemp.string().c_str()), 0);
+    EXPECT_EQ(renderer->resumeAllCalls, resumeBeforePreSaveFail + 1);
+    EXPECT_EQ(renderer->saveCalls, saveBeforePreSaveFail);
+    EXPECT_EQ(asgState->cancelCalls, 1);
+    asgState->failWaitForPause = false;
+
+    // 4. Null-stream error in snapshotRenderer() (missing directory) returns -EIO and ScopedResume
+    //    still runs ASG post_save + renderer->resumeAll().
+    const std::filesystem::path missingDir = baseTemp / "nonexistent_subdir" / "nested";
+    const int postSavesBeforeMissing = asgState->postSaveCalls;
+    EXPECT_EQ(frontend.snapshot(missingDir.string().c_str()), -EIO);
+    EXPECT_EQ(asgState->postSaveCalls, postSavesBeforeMissing + 1);
+    EXPECT_FALSE(asgState->asgPaused);
+
+    // 5. Null-stream error in snapshotAsg() (gfxstream_asg.bin occupied by a directory) returns
+    //    -EIO after snapshotRenderer + snapshotFrontend succeed, and ScopedResume still unparks ASG.
+    const std::filesystem::path asgFailDir = baseTemp / "asg_open_fail";
+    ASSERT_TRUE(std::filesystem::create_directories(asgFailDir / "gfxstream_asg.bin"));
+    const int postSavesBeforeAsgOpenFail = asgState->postSaveCalls;
+    EXPECT_EQ(frontend.snapshot(asgFailDir.string().c_str()), -EIO);
+    EXPECT_EQ(asgState->postSaveCalls, postSavesBeforeAsgOpenFail + 1);
+    EXPECT_FALSE(asgState->asgPaused);
+
+    // 6. Error in scopedResume.finish() (clearing ASG state mid-snapshot resets SaveState so
+    //    scopedResume.finish()'s post_save() fails) propagates from snapshot() while still invoking
+    //    renderer->resumeAll().
+    const std::filesystem::path okDir2 = baseTemp / "post_save_fail";
+    ASSERT_TRUE(std::filesystem::create_directories(okDir2));
+    renderer->onSave = [ops] {
+        ops.clear();
+    };
+    const int resumeBeforeFinishFail = renderer->resumeAllCalls;
+    EXPECT_NE(frontend.snapshot(okDir2.string().c_str()), 0);
+    EXPECT_EQ(renderer->resumeAllCalls, resumeBeforeFinishFail + 1);
 }
 #endif  // GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
 

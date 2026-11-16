@@ -259,6 +259,7 @@ endfunction()
     add_executable(
         OpenglRender_unittests
         frame_buffer_unittest.cpp
+        ring_stream_unittest.cpp
         vsync_thread_unittest.cpp
         tests/GLES1Dispatch_unittest.cpp
         tests/DefaultFramebufferBlit_unittest.cpp

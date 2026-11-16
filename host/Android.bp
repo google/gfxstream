@@ -255,3 +255,26 @@ cc_test_host {
         "general-tests",
     ],
 }
+
+// Run with `atest GfxstreamRingStreamTests`
+cc_test_host {
+    name: "GfxstreamRingStreamTests",
+    defaults: ["gfxstream_host_cc_defaults"],
+    srcs: [
+        "ring_stream_unittest.cpp",
+    ],
+    shared_libs: [
+        "libbase",
+        "libgfxstream_backend",
+    ],
+    static_libs: [
+        "libgfxstream_host_iostream",
+        "libgmock",
+    ],
+    test_options: {
+        unit_test: true,
+    },
+    test_suites: [
+        "general-tests",
+    ],
+}

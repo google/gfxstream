@@ -229,12 +229,21 @@ void* RendererImpl::addressSpaceGraphicsConsumerCreate(
 }
 
 void RendererImpl::addressSpaceGraphicsConsumerDestroy(void* consumer) {
+    if (!consumer) {
+        return;
+    }
     RenderThread* thread = (RenderThread*)consumer;
     {
         std::lock_guard<std::mutex> lock(mAddressSpaceRenderThreadMutex);
         mAddressSpaceRenderThreads.erase(thread);
+        mAdditionalPostLoadRenderThreads.erase(
+            std::remove(mAdditionalPostLoadRenderThreads.begin(),
+                        mAdditionalPostLoadRenderThreads.end(),
+                        thread),
+            mAdditionalPostLoadRenderThreads.end());
     }
 
+    thread->cancelPausePreSnapshot();
     thread->waitForFinished();
     {
         gfxstream::base::AutoLock driverLock(*graphicsDriverLock());
@@ -249,6 +258,24 @@ void RendererImpl::addressSpaceGraphicsConsumerPreSave(void* consumer) {
     thread->pausePreSnapshot();
 }
 
+bool RendererImpl::addressSpaceGraphicsConsumerWaitForPause(void* consumer) {
+    if (!consumer) {
+        GFXSTREAM_ERROR("Null ASG consumer in waitForPause.");
+        return false;
+    }
+    RenderThread* thread = (RenderThread*)consumer;
+    thread->waitForPausePreSnapshot();
+    return true;
+}
+
+void RendererImpl::addressSpaceGraphicsConsumerCancelPreSave(void* consumer) {
+    if (!consumer) {
+        return;
+    }
+    RenderThread* thread = (RenderThread*)consumer;
+    thread->cancelPausePreSnapshot();
+}
+
 void RendererImpl::addressSpaceGraphicsConsumerSave(void* consumer, gfxstream::Stream* stream) {
     RenderThread* thread = (RenderThread*)consumer;
     thread->save(stream);
@@ -260,7 +287,11 @@ void RendererImpl::addressSpaceGraphicsConsumerPostSave(void* consumer) {
 }
 
 void RendererImpl::addressSpaceGraphicsConsumerRegisterPostLoadRenderThread(void* consumer) {
+    if (!consumer) {
+        return;
+    }
     RenderThread* thread = (RenderThread*)consumer;
+    std::lock_guard<std::mutex> lock(mAddressSpaceRenderThreadMutex);
     mAdditionalPostLoadRenderThreads.push_back(thread);
 }
 
@@ -292,24 +323,30 @@ bool RendererImpl::pauseAllPreSave() {
 }
 
 void RendererImpl::resumeAll() {
-    {
-        std::lock_guard<std::mutex> lock(mAddressSpaceRenderThreadMutex);
-        for (const auto t : mAdditionalPostLoadRenderThreads) {
-            t->resume();
-        }
-    }
+    bool stopped = false;
     {
         std::lock_guard<std::mutex> lock(mChannelsMutex);
-        if (mStopped) {
-            return;
+        stopped = mStopped;
+        if (!stopped) {
+            for (const auto& c : mChannels) {
+                c->renderThread()->resume();
+            }
         }
-        for (const auto& c : mChannels) {
-            c->renderThread()->resume();
-        }
-        for (const auto& thread : mAddressSpaceRenderThreads) {
-            thread->resume();
+    }
+    if (stopped) {
+        std::lock_guard<std::mutex> lock(mAddressSpaceRenderThreadMutex);
+        mAdditionalPostLoadRenderThreads.clear();
+        return;
+    }
+    {
+        std::lock_guard<std::mutex> lock(mAddressSpaceRenderThreadMutex);
+        for (RenderThread* t : mAdditionalPostLoadRenderThreads) {
+            t->resume();
         }
         mAdditionalPostLoadRenderThreads.clear();
+        for (RenderThread* thread : mAddressSpaceRenderThreads) {
+            thread->resume();
+        }
     }
 
     repaintOpenGLDisplay();
@@ -501,8 +538,9 @@ void RendererImpl::setOpenGLDisplayTranslation(float px, float py) {
 }
 
 void RendererImpl::repaintOpenGLDisplay() {
-    assert(mRenderWindow);
-    mRenderWindow->repaint();
+    if (mRenderWindow) {
+        mRenderWindow->repaint();
+    }
 }
 
 bool RendererImpl::hasGuestPostedAFrame() {
