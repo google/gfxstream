@@ -54,10 +54,12 @@ class Globals {
     ~Globals() { clear(); }
 
     void setConsumer(ConsumerInterface iface) {
+        std::lock_guard<std::mutex> lock(mMutex);
         mConsumerInterface = iface;
     }
 
     ConsumerInterface getConsumerInterface() {
+        std::lock_guard<std::mutex> lock(mMutex);
         if (!mConsumerInterface.create) {
             GFXSTREAM_FATAL("Missing ASG consumer create interface.");
         }
@@ -83,24 +85,8 @@ class Globals {
     }
 
     void clear() {
-        for (auto& block: mRingBlocks) {
-            if (block.isEmpty) continue;
-            destroyBlockLocked(block);
-        }
-
-        for (auto& block: mBufferBlocks) {
-            if (block.isEmpty) continue;
-            destroyBlockLocked(block);
-        }
-
-        for (auto& block: mCombinedBlocks) {
-            if (block.isEmpty) continue;
-            destroyBlockLocked(block);
-        }
-
-        mRingBlocks.clear();
-        mBufferBlocks.clear();
-        mCombinedBlocks.clear();
+        std::lock_guard<std::mutex> lock(mMutex);
+        clearLocked();
     }
 
     Allocation newAllocation(struct AllocationCreateInfo& create,
@@ -244,17 +230,27 @@ class Globals {
 
     Allocation allocRingViewIntoCombined(const Allocation& alloc) {
         Allocation res = alloc;
-        res.buffer = alloc.buffer;
         res.size = kAsgConsumerRingStorageSize;
         res.isView = true;
+        if (!alloc.buffer || alloc.size < kAsgConsumerRingStorageSize) {
+            res.buffer = nullptr;
+            return res;
+        }
+        res.buffer = alloc.buffer;
         return res;
     }
 
     Allocation allocBufferViewIntoCombined(const Allocation& alloc) {
         Allocation res = alloc;
-        res.buffer = alloc.buffer + kAsgConsumerRingStorageSize;
         res.size = kAsgWriteBufferSize;
         res.isView = true;
+        constexpr uint64_t kMinCombinedSize =
+            kAsgConsumerRingStorageSize + kAsgWriteBufferSize;
+        if (!alloc.buffer || alloc.size < kMinCombinedSize) {
+            res.buffer = nullptr;
+            return res;
+        }
+        res.buffer = alloc.buffer + kAsgConsumerRingStorageSize;
         return res;
     }
 
@@ -262,40 +258,58 @@ class Globals {
         deleteAllocation(alloc, mCombinedBlocks);
     }
 
-    void preSave() {
+    bool preSave() {
         // mConsumerInterface.globalPreSave();
+        return true;
     }
 
-    void save(gfxstream::Stream* stream) {
+    void save(gfxstream::Stream* stream,
+              const std::unordered_set<uint32_t>* activeHandles) {
+        std::lock_guard<std::mutex> lock(mMutex);
         stream->putBe64(mRingBlocks.size());
         stream->putBe64(mBufferBlocks.size());
         stream->putBe64(mCombinedBlocks.size());
 
         for (const auto& block: mRingBlocks) {
-            saveBlockLocked(stream, block);
+            saveBlockLocked(stream, block, activeHandles);
         }
 
         for (const auto& block: mBufferBlocks) {
-            saveBlockLocked(stream, block);
+            saveBlockLocked(stream, block, activeHandles);
         }
 
         for (const auto& block: mCombinedBlocks) {
-            saveBlockLocked(stream, block);
+            saveBlockLocked(stream, block, activeHandles);
         }
     }
 
-    void postSave() {
+    bool postSave() {
         // mConsumerInterface.globalPostSave();
+        return true;
     }
 
     bool load(gfxstream::Stream* stream,
               const std::optional<AddressSpaceDeviceLoadResources>& resources) {
-        clear();
-        mConsumerInterface.globalPreLoad();
+        std::function<void()> globalPreLoad;
+        {
+            std::lock_guard<std::mutex> lock(mMutex);
+            clearLocked();
+            globalPreLoad = mConsumerInterface.globalPreLoad;
+        }
+        if (globalPreLoad) {
+            globalPreLoad();
+        }
 
+        std::lock_guard<std::mutex> lock(mMutex);
+        static constexpr uint64_t kMaxAsgBlocks = 65536;
         uint64_t ringBlockCount = stream->getBe64();
         uint64_t bufferBlockCount = stream->getBe64();
         uint64_t combinedBlockCount = stream->getBe64();
+        if (stream->hasErrors() || ringBlockCount > kMaxAsgBlocks ||
+            bufferBlockCount > kMaxAsgBlocks || combinedBlockCount > kMaxAsgBlocks) {
+            stream->addError("Globals::load: invalid ASG block count");
+            return false;
+        }
 
         mRingBlocks.resize(ringBlockCount);
         mBufferBlocks.resize(bufferBlockCount);
@@ -313,12 +327,14 @@ class Globals {
             loadBlockLocked(stream, resources, block);
         }
 
-        return true;
+        return !stream->hasErrors();
     }
 
     // Assumes that blocks have been loaded,
     // and that alloc has its blockIndex/offsetIntoPhys fields filled already
     void fillAllocFromLoad(Allocation& alloc, AddressSpaceGraphicsContext::AllocType allocType) {
+        std::lock_guard<std::mutex> lock(mMutex);
+        alloc.buffer = nullptr;
         switch (allocType) {
             case AddressSpaceGraphicsContext::AllocType::AllocTypeRing:
                 if (mRingBlocks.size() <= alloc.blockIndex) return;
@@ -339,17 +355,42 @@ class Globals {
     }
 
   private:
+    void clearLocked() {
+        for (auto& block : mRingBlocks) {
+            if (!block.isEmpty) {
+                destroyBlockLocked(block);
+            }
+        }
+
+        for (auto& block : mBufferBlocks) {
+            if (!block.isEmpty) {
+                destroyBlockLocked(block);
+            }
+        }
+
+        for (auto& block : mCombinedBlocks) {
+            if (!block.isEmpty) {
+                destroyBlockLocked(block);
+            }
+        }
+
+        mRingBlocks.clear();
+        mBufferBlocks.clear();
+        mCombinedBlocks.clear();
+    }
 
     void saveBlockLocked(
         gfxstream::Stream* stream,
-        const Block& block) {
-
-        if (block.isEmpty) {
+        const Block& block,
+        const std::unordered_set<uint32_t>* activeHandles) {
+        const bool excludedDedicatedBlock =
+            activeHandles && block.dedicatedContextHandle &&
+            activeHandles->find(*block.dedicatedContextHandle) == activeHandles->end();
+        if (block.isEmpty || excludedDedicatedBlock) {
             stream->putBe32(0);
             return;
-        } else {
-            stream->putBe32(1);
         }
+        stream->putBe32(1);
 
         stream->putBe64(block.bufferSize);
         stream->putBe64(block.offsetIntoPhys);
@@ -363,71 +404,89 @@ class Globals {
         stream->putBe64(block.hostmemId);
         block.subAlloc->save(stream);
         if (!block.external) {
-            stream->write(block.buffer, block.bufferSize);
+            const ssize_t written = stream->write(block.buffer, block.bufferSize);
+            if (written != static_cast<ssize_t>(block.bufferSize)) {
+                stream->addError("saveBlockLocked: expected %llu, got %zd",
+                                 static_cast<unsigned long long>(block.bufferSize), written);
+            }
         }
     }
 
     void loadBlockLocked(gfxstream::Stream* stream,
                          const std::optional<AddressSpaceDeviceLoadResources>& resources,
                          Block& block) {
-        uint32_t filled = stream->getBe32();
-        struct AllocationCreateInfo create = {};
-
-        if (!filled) {
-            block.isEmpty = true;
+        block = Block{};
+        const uint32_t filled = stream->getBe32();
+        if (!filled || stream->hasErrors()) {
             return;
-        } else {
-            block.isEmpty = false;
         }
 
+        struct AllocationCreateInfo create = {};
         create.size = stream->getBe64(); // `bufferSize`
-        block.offsetIntoPhys = stream->getBe64();
-        if (stream->getBe32() == 1) {
+        const uint64_t savedOffsetIntoPhys = stream->getBe64();
+        const uint32_t dedicatedTag = stream->getBe32();
+        if (dedicatedTag == 1) {
             create.dedicatedContextHandle = stream->getBe32();
         }
         create.virtioGpu = stream->getBe32();
-
-        if (!create.virtioGpu) {
-            GFXSTREAM_FATAL("Unhandled non virtio-gpu block.");
+        create.hostmemId = stream->getBe64();
+        if (stream->hasErrors() || dedicatedTag > 1) {
+            stream->addError("loadBlockLocked: invalid or truncated block header");
+            return;
         }
-        if (!create.dedicatedContextHandle) {
-            GFXSTREAM_FATAL("Virtio GPU backed blocks are expected to have dedicated context.");
+        if (!create.virtioGpu || !create.dedicatedContextHandle) {
+            GFXSTREAM_ERROR("Failed to load ASG block: expected dedicated virtio-gpu block.");
+            stream->addError("loadBlockLocked: non-dedicated or non-virtio-gpu block");
+            return;
         }
-
-        // Blocks whose memory are backed Virtio GPU resource do not own the external
-        // memory. The external memory must be re-loaded outside of ASG and provided via
-        // `resources`.
         if (!resources) {
-            GFXSTREAM_FATAL(
-                "Failed to load ASG context global block: "
-                "Virtio GPU backed blocks need external memory resources for loading.\n");
+            GFXSTREAM_ERROR("Failed to load ASG block: missing external memory resources.");
+            stream->addError("loadBlockLocked: missing load resources");
+            return;
         }
 
         const auto externalMemoryIt =
             resources->contextExternalMemoryMap.find(*create.dedicatedContextHandle);
         if (externalMemoryIt == resources->contextExternalMemoryMap.end()) {
-            GFXSTREAM_FATAL(
-                "Failed to load ASG context global block: "
-                "Virtio GPU backed blocks an need external memory replacement.\n");
+            GFXSTREAM_ERROR("Failed to load ASG block: missing external memory for handle %u.",
+                            *create.dedicatedContextHandle);
+            stream->addError("loadBlockLocked: missing external memory replacement");
+            return;
         }
         const auto& externalMemory = externalMemoryIt->second;
+        constexpr uint64_t kMinDedicatedBlockSize =
+            kAsgConsumerRingStorageSize + kAsgWriteBufferSize;
+        if (!externalMemory.externalAddress || create.size < kMinDedicatedBlockSize ||
+            create.size > externalMemory.externalAddressSize) {
+            GFXSTREAM_ERROR(
+                "Failed to load ASG block: external buffer bounds mismatch (%llu vs %llu).",
+                static_cast<unsigned long long>(create.size),
+                static_cast<unsigned long long>(externalMemory.externalAddressSize));
+            stream->addError("loadBlockLocked: external buffer bounds mismatch");
+            return;
+        }
         create.externalAddr = externalMemory.externalAddress;
-
         create.hostmemRegisterFixed = true;
         create.fromLoad = true;
-        create.hostmemId = stream->getBe64();
 
         fillBlockLocked(block, create);
-
+        block.offsetIntoPhys = savedOffsetIntoPhys;
         block.subAlloc->load(stream);
-
-        if (!block.external) {
-            stream->read(block.buffer, block.bufferSize);
-        }
     }
 
     void fillAllocFromLoad(const Block& block, Allocation& alloc) {
-        alloc.buffer = block.buffer + (alloc.offsetIntoPhys - block.offsetIntoPhys);
+        alloc.buffer = nullptr;
+        if (block.isEmpty || !block.buffer) {
+            return;
+        }
+        if (alloc.offsetIntoPhys < block.offsetIntoPhys) {
+            return;
+        }
+        const uint64_t relOffset = alloc.offsetIntoPhys - block.offsetIntoPhys;
+        if (relOffset > block.bufferSize || alloc.size > block.bufferSize - relOffset) {
+            return;
+        }
+        alloc.buffer = block.buffer + relOffset;
         alloc.dedicatedContextHandle = block.dedicatedContextHandle;
         alloc.hostmemId = block.hostmemId;
     }
@@ -460,7 +519,9 @@ class Globals {
         }
 
         delete block.subAlloc;
-
+        block.subAlloc = nullptr;
+        block.buffer = nullptr;
+        block.bufferSize = 0;
         block.isEmpty = true;
     }
 
@@ -560,11 +621,18 @@ AddressSpaceGraphicsContext::AddressSpaceGraphicsContext(
 
 AddressSpaceGraphicsContext::~AddressSpaceGraphicsContext() {
     if (mCurrentConsumer) {
+        bool hadActivePreSave = false;
         {
             std::lock_guard<std::mutex> lock(mConsumerStateMutex);
+            hadActivePreSave = mConsumerState.preSaveActive;
             mConsumerState.exiting = true;
+            if (!hadActivePreSave) {
+                mConsumerStateCv.notify_all();
+            }
         }
-        mConsumerStateCv.notify_all();
+        if (hadActivePreSave) {
+            cancelPreSave();
+        }
         mConsumerInterface.destroy(mCurrentConsumer);
     }
 
@@ -616,8 +684,8 @@ void AddressSpaceGraphicsContext::perform(AddressSpaceDevicePingInfo* info) {
         {
             std::lock_guard<std::mutex> lock(mConsumerStateMutex);
             mConsumerState.wakeupRequested = true;
+            mConsumerStateCv.notify_one();
         }
-        mConsumerStateCv.notify_one();
         info->metadata = 0;
         break;
     case ASG_GET_CONFIG:
@@ -656,15 +724,113 @@ AddressSpaceDeviceType AddressSpaceGraphicsContext::getDeviceType() const {
     return AddressSpaceDeviceType::Graphics;
 }
 
-void AddressSpaceGraphicsContext::preSave() const {
-    if (mCurrentConsumer) {
+bool AddressSpaceGraphicsContext::preSave() const {
+    if (!mCurrentConsumer) {
+        return true;
+    }
+    if (!mConsumerInterface.preSave) {
+        GFXSTREAM_ERROR("Missing ASG consumer preSave callback.");
+        return false;
+    }
+    bool needConsumerPreSave = false;
+    {
+        std::lock_guard<std::mutex> lock(mConsumerStateMutex);
+        needConsumerPreSave = !mConsumerState.preSaveActive;
+    }
+    if (needConsumerPreSave) {
         mConsumerInterface.preSave(mCurrentConsumer);
+    }
+    {
+        std::lock_guard<std::mutex> lock(mConsumerStateMutex);
+        mConsumerState.preSaveActive = true;
+        mConsumerState.pauseWaitFailed = false;
+        mConsumerState.resumePostSnapshotRequested = false;
+        mConsumerState.pausePreSnapshotRequested = true;
+        mConsumerStateCv.notify_all();
+    }
+    return true;
+}
+
+bool AddressSpaceGraphicsContext::waitForPreSave() const {
+    if (!mCurrentConsumer) {
+        return true;
+    }
+    if (!mConsumerInterface.waitForPause) {
+        GFXSTREAM_ERROR("Missing ASG consumer waitForPause callback.");
+        std::lock_guard<std::mutex> lock(mConsumerStateMutex);
+        mConsumerState.pauseWaitFailed = true;
+        return false;
+    }
+    if (mConsumerInterface.waitForPause(mCurrentConsumer)) {
+        return true;
+    }
+    std::lock_guard<std::mutex> lock(mConsumerStateMutex);
+    mConsumerState.pauseWaitFailed = true;
+    return false;
+}
+
+void AddressSpaceGraphicsContext::cancelPreSave() const {
+    if (!mCurrentConsumer) {
+        return;
+    }
+    if (mConsumerInterface.cancelPreSave) {
         {
             std::lock_guard<std::mutex> lock(mConsumerStateMutex);
-            mConsumerState.resumePostSnapshotRequested = false;
-            mConsumerState.pausePreSnapshotRequested = true;
+            const bool pauseWasQueued = mConsumerState.pausePreSnapshotRequested;
+            mConsumerState.preSaveActive = false;
+            mConsumerState.pauseWaitFailed = false;
+            mConsumerState.pausePreSnapshotRequested = false;
+            if (!pauseWasQueued && !mConsumerState.exiting) {
+                mConsumerState.resumePostSnapshotRequested = true;
+            }
+            mConsumerStateCv.notify_all();
+        }
+        mConsumerInterface.cancelPreSave(mCurrentConsumer);
+        return;
+    }
+
+    bool shouldWaitAndPostSave = false;
+    {
+        std::lock_guard<std::mutex> lock(mConsumerStateMutex);
+        if (mConsumerState.pauseWaitFailed) {
+            mConsumerState.pausePreSnapshotRequested = false;
+            if (mConsumerState.exiting) {
+                mConsumerState.preSaveActive = false;
+                mConsumerState.pauseWaitFailed = false;
+            }
+        } else if (mConsumerState.exiting && mConsumerState.pausePreSnapshotRequested) {
+            mConsumerState.preSaveActive = false;
+            mConsumerState.pausePreSnapshotRequested = false;
+        } else {
+            shouldWaitAndPostSave = mConsumerState.preSaveActive;
         }
         mConsumerStateCv.notify_all();
+    }
+    if (!shouldWaitAndPostSave) {
+        return;
+    }
+    if (!waitForPreSave()) {
+        std::lock_guard<std::mutex> lock(mConsumerStateMutex);
+        mConsumerState.pausePreSnapshotRequested = false;
+        if (mConsumerState.exiting) {
+            mConsumerState.preSaveActive = false;
+            mConsumerState.pauseWaitFailed = false;
+        }
+        mConsumerStateCv.notify_all();
+        return;
+    }
+    {
+        std::lock_guard<std::mutex> lock(mConsumerStateMutex);
+        mConsumerState.preSaveActive = false;
+        mConsumerState.pauseWaitFailed = false;
+        mConsumerState.pausePreSnapshotRequested = false;
+        if (!mConsumerState.exiting) {
+            mConsumerState.resumePostSnapshotRequested = true;
+        }
+        mConsumerStateCv.notify_all();
+    }
+    if (mConsumerInterface.postSave) {
+        mConsumerInterface.postSave(mCurrentConsumer);
     }
 }
 
@@ -702,88 +868,133 @@ void AddressSpaceGraphicsContext::save(gfxstream::Stream* stream) const {
     }
 }
 
-void AddressSpaceGraphicsContext::postSave() const {
-    if (mCurrentConsumer) {
-        {
-            std::lock_guard<std::mutex> lock(mConsumerStateMutex);
-            mConsumerState.pausePreSnapshotRequested = false;
-            mConsumerState.resumePostSnapshotRequested = true;
-        }
-        mConsumerStateCv.notify_all();
-        mConsumerInterface.postSave(mCurrentConsumer);
+bool AddressSpaceGraphicsContext::postSave() const {
+    if (!mCurrentConsumer) {
+        return true;
     }
+    if (!mConsumerInterface.postSave) {
+        GFXSTREAM_ERROR("Missing ASG consumer postSave callback.");
+        return false;
+    }
+    {
+        std::lock_guard<std::mutex> lock(mConsumerStateMutex);
+        mConsumerState.preSaveActive = false;
+        mConsumerState.pauseWaitFailed = false;
+        mConsumerState.pausePreSnapshotRequested = false;
+        mConsumerState.resumePostSnapshotRequested = true;
+        mConsumerStateCv.notify_all();
+    }
+    mConsumerInterface.postSave(mCurrentConsumer);
+    return true;
 }
 
 bool AddressSpaceGraphicsContext::load(gfxstream::Stream* stream) {
-    const bool hasVirtioGpuInfo = (stream->getBe32() == 1);
-    if (hasVirtioGpuInfo) {
+    if (!stream) {
+        return false;
+    }
+    const uint32_t virtioGpuTag = stream->getBe32();
+    if (virtioGpuTag > 1) {
+        return false;
+    }
+    if (virtioGpuTag == 1) {
         mVirtioGpuInfo = VirtioGpuInfo{};
         VirtioGpuInfo& info = *mVirtioGpuInfo;
         info.contextId = stream->getBe32();
         info.capsetId = stream->getBe32();
-        const bool hasName = (stream->getBe32() == 1);
-        if (hasName) {
+        const uint32_t nameTag = stream->getBe32();
+        if (nameTag > 1) {
+            return false;
+        }
+        if (nameTag == 1) {
             info.name = stream->getString();
         }
     }
 
     mVersion = stream->getBe32();
+    const uint32_t exitingTag = stream->getBe32();
     {
         std::lock_guard<std::mutex> lock(mConsumerStateMutex);
         mConsumerState = ConsumerState{};
-        mConsumerState.exiting = (stream->getBe32() != 0);
+        mConsumerState.exiting = (exitingTag != 0);
     }
 
     loadAllocation(stream, mRingAllocation);
     loadAllocation(stream, mBufferAllocation);
     loadAllocation(stream, mCombinedAllocation);
+    const uint32_t consumerTag = stream->getBe32();
+    if (stream->hasErrors() || consumerTag > 1) {
+        return false;
+    }
 
     if (mVirtioGpuInfo) {
         sGlobals()->fillAllocFromLoad(mCombinedAllocation, AllocType::AllocTypeCombined);
+        if (!mCombinedAllocation.buffer) {
+            GFXSTREAM_ERROR("Failed to restore ASG combined allocation.");
+            return false;
+        }
         mRingAllocation = sGlobals()->allocRingViewIntoCombined(mCombinedAllocation);
         mBufferAllocation = sGlobals()->allocBufferViewIntoCombined(mCombinedAllocation);
     } else {
+        if (mRingAllocation.size < kAsgConsumerRingStorageSize ||
+            mBufferAllocation.size < kAsgWriteBufferSize) {
+            GFXSTREAM_ERROR("Invalid ASG ring or buffer allocation size in snapshot.");
+            return false;
+        }
         sGlobals()->fillAllocFromLoad(mRingAllocation, AllocType::AllocTypeRing);
         sGlobals()->fillAllocFromLoad(mBufferAllocation, AllocType::AllocTypeBuffer);
     }
+    if (!mRingAllocation.buffer || !mBufferAllocation.buffer) {
+        GFXSTREAM_ERROR("Failed to restore ASG ring or buffer allocation.");
+        return false;
+    }
 
-    const bool hasConsumer = stream->getBe32() == 1;
-    if (hasConsumer) {
-        const AsgConsumerCreateInfo& consumerCreateInfo = {
-            .version = mVersion,
-            .ring_storage = mRingAllocation.buffer,
-            .buffer = mBufferAllocation.buffer,
-            .buffer_size = kAsgWriteBufferSize,
-            .buffer_flush_interval = kAsgWriteStepSize,
-            .callbacks = mConsumerCallbacks,
-            .virtioGpuContextId = mVirtioGpuInfo ?
-                std::optional<uint32_t>(mVirtioGpuInfo->contextId) :
-                std::nullopt,
-            .virtioGpuContextName = mVirtioGpuInfo ?
-                std::optional<std::string>(mVirtioGpuInfo->name) :
-                std::nullopt,
-            .virtioGpuCapsetId = mVirtioGpuInfo ?
-                std::optional<uint32_t>(mVirtioGpuInfo->capsetId) :
-                std::nullopt,
-        };
-        mCurrentConsumer = mConsumerInterface.create(consumerCreateInfo, stream);
-
+    if (consumerTag == 0) {
+        return true;
+    }
+    if (!mConsumerInterface.create) {
+        GFXSTREAM_ERROR("Missing ASG consumer create callback.");
+        return false;
+    }
+    const AsgConsumerCreateInfo consumerCreateInfo = {
+        .version = mVersion,
+        .ring_storage = mRingAllocation.buffer,
+        .buffer = mBufferAllocation.buffer,
+        .buffer_size = kAsgWriteBufferSize,
+        .buffer_flush_interval = kAsgWriteStepSize,
+        .callbacks = mConsumerCallbacks,
+        .virtioGpuContextId = mVirtioGpuInfo ?
+            std::optional<uint32_t>(mVirtioGpuInfo->contextId) :
+            std::nullopt,
+        .virtioGpuContextName = mVirtioGpuInfo ?
+            std::optional<std::string>(mVirtioGpuInfo->name) :
+            std::nullopt,
+        .virtioGpuCapsetId = mVirtioGpuInfo ?
+            std::optional<uint32_t>(mVirtioGpuInfo->capsetId) :
+            std::nullopt,
+    };
+    mCurrentConsumer = mConsumerInterface.create(consumerCreateInfo, stream);
+    if (!mCurrentConsumer || stream->hasErrors()) {
+        return false;
+    }
+    if (mConsumerInterface.postLoad) {
         mConsumerInterface.postLoad(mCurrentConsumer);
     }
 
-    return true;
+    return !stream->hasErrors();
 }
 
-void AddressSpaceGraphicsContext::globalStatePreSave() {
-    sGlobals()->preSave();
+bool AddressSpaceGraphicsContext::globalStatePreSave() {
+    return sGlobals()->preSave();
 }
 
-void AddressSpaceGraphicsContext::globalStateSave(gfxstream::Stream* stream) {
-    sGlobals()->save(stream);
+void AddressSpaceGraphicsContext::globalStateSave(
+    gfxstream::Stream* stream,
+    const std::unordered_set<uint32_t>* activeHandles) {
+    sGlobals()->save(stream, activeHandles);
 }
 
-void AddressSpaceGraphicsContext::globalStatePostSave() {
-    sGlobals()->postSave();
+bool AddressSpaceGraphicsContext::globalStatePostSave() {
+    return sGlobals()->postSave();
 }
 
 bool AddressSpaceGraphicsContext::globalStateLoad(

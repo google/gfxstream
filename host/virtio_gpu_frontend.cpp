@@ -1028,6 +1028,11 @@ int VirtioGpuFrontend::snapshotRenderer(const char* directory) {
     const std::filesystem::path snapshotPath = snapshotDirectory / kSnapshotBasenameRenderer;
 
     StdioStream stream(fopen(snapshotPath.string().c_str(), "wb"), StdioStream::kOwner);
+    if (!stream.get()) {
+        GFXSTREAM_ERROR("Failed to save snapshot: failed to open %s.",
+                        snapshotPath.string().c_str());
+        return -EIO;
+    }
 
     if (!mRenderer) {
         GFXSTREAM_ERROR("Failed to snapshot renderer: renderer not available.");
@@ -1093,6 +1098,11 @@ int VirtioGpuFrontend::snapshotAsg(const char* directory) {
     const std::filesystem::path snapshotPath = snapshotDirectory / kSnapshotBasenameAsg;
 
     StdioStream stream(fopen(snapshotPath.string().c_str(), "wb"), StdioStream::kOwner);
+    if (!stream.get()) {
+        GFXSTREAM_ERROR("Failed to save snapshot: failed to open %s.",
+                        snapshotPath.string().c_str());
+        return -EIO;
+    }
 
     int ret = gfxstream_address_space_save_memory_state(&stream);
     if (ret) {
@@ -1113,12 +1123,37 @@ int VirtioGpuFrontend::snapshot(const char* directory) {
         GFXSTREAM_ERROR("Failed to save snapshot: failed to pause renderer pre-save.");
         return -ETIMEDOUT;
     }
+    // Pause and wait for all ASG render threads before snapshotting the
+    // renderer (FrameBuffer) and frontend (RingBlob), so neither reads live
+    // GL state or RingBlob memory while an ASG RenderThread is still decoding
+    // or committing replies into context.buffer.
+    int ret = gfxstream_address_space_pre_save();
+    if (ret) {
+        GFXSTREAM_ERROR("Failed to save snapshot: failed to pre-save ASG device.");
+        mRenderer->resumeAll();
+        return ret;
+    }
     struct ScopedResume {
         RendererPtr& renderer;
-        ~ScopedResume() { renderer->resumeAll(); }
+        bool active = true;
+        int finish() {
+            if (!active) {
+                return 0;
+            }
+            active = false;
+            int postSaveRet = gfxstream_address_space_post_save();
+            renderer->resumeAll();
+            if (postSaveRet) {
+                GFXSTREAM_ERROR("Failed to save snapshot: failed to post-save ASG device.");
+            }
+            return postSaveRet;
+        }
+        ~ScopedResume() {
+            finish();
+        }
     } scopedResume{mRenderer};
 
-    int ret = snapshotRenderer(directory);
+    ret = snapshotRenderer(directory);
     if (ret) {
         GFXSTREAM_ERROR("Failed to save snapshot: failed to snapshot renderer.");
         return ret;
@@ -1133,6 +1168,11 @@ int VirtioGpuFrontend::snapshot(const char* directory) {
     ret = snapshotAsg(directory);
     if (ret) {
         GFXSTREAM_ERROR("Failed to save snapshot: failed to snapshot ASG device.");
+        return ret;
+    }
+
+    ret = scopedResume.finish();
+    if (ret) {
         return ret;
     }
 

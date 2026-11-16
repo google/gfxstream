@@ -42,21 +42,31 @@ StdioStream::~StdioStream() {
 }
 
 ssize_t StdioStream::read(void* buffer, size_t size) {
+    if (!mFile) {
+        addError("%s: null FILE*", __func__);
+        return -1;
+    }
     size_t res = ::fread(buffer, 1, size, mFile);
     if (res < size) {
         if (!::feof(mFile)) {
             errno = ::ferror(mFile);
         }
+        addError("%s: expected %zu, got %zu", __func__, size, res);
     }
     return static_cast<ssize_t>(res);
 }
 
 ssize_t StdioStream::write(const void* buffer, size_t size) {
+    if (!mFile) {
+        addError("%s: null FILE*", __func__);
+        return -1;
+    }
     size_t res = ::fwrite(buffer, 1, size, mFile);
     if (res < size) {
         if (!::feof(mFile)) {
             errno = ::ferror(mFile);
         }
+        addError("%s: expected %zu, got %zu", __func__, size, res);
     }
     return static_cast<ssize_t>(res);
 }

@@ -307,6 +307,21 @@ RendererPtr InitRenderer(uint32_t displayWidth,
                     GFXSTREAM_WARNING("Renderer unavailable. Already shutting down?");
                 }
             },
+            .waitForPause = [rendererWeak](void* consumer) -> bool {
+                if (auto renderer = rendererWeak.lock()) {
+                    return renderer->addressSpaceGraphicsConsumerWaitForPause(consumer);
+                } else {
+                    GFXSTREAM_WARNING("Renderer unavailable. Already shutting down?");
+                    return false;
+                }
+            },
+            .cancelPreSave = [rendererWeak](void* consumer) {
+                if (auto renderer = rendererWeak.lock()) {
+                    renderer->addressSpaceGraphicsConsumerCancelPreSave(consumer);
+                } else {
+                    GFXSTREAM_WARNING("Renderer unavailable. Already shutting down?");
+                }
+            },
         });
 
     return renderer;

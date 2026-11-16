@@ -100,6 +100,12 @@ using ConsumerDestroyCallback =
 using ConsumerPreSaveCallback =
     std::function<void(ConsumerHandle)>;
 
+using ConsumerWaitForPauseCallback =
+    std::function<bool(ConsumerHandle)>;
+
+using ConsumerCancelPreSaveCallback =
+    std::function<void(ConsumerHandle)>;
+
 using ConsumerGlobalPreSaveCallback =
     std::function<void()>;
 
@@ -144,6 +150,9 @@ struct ConsumerInterface {
     ConsumerGlobalPreLoadCallback globalPreLoad;
 
     ConsumerReloadRingConfig reloadRingConfig;
+
+    ConsumerWaitForPauseCallback waitForPause = {};
+    ConsumerCancelPreSaveCallback cancelPreSave = {};
 };
 
 } // namespace gfxstream

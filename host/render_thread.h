@@ -61,6 +61,9 @@ class RenderThread : public gfxstream::base::Thread {
     // decoding and finished its pending GPU work (or has exited). No-op if
     // the thread was not paused for a snapshot.
     void waitForPausePreSnapshot();
+    // Aborts an unpaused or in-flight pre-snapshot request without blocking on
+    // StartSaving, resetting snapshot state so the thread can continue running.
+    void cancelPausePreSnapshot();
 
     // RenderThreads are blocked from exiting after finished to workaround driver bugs.
     // `sendExitSignal` allows us to control when we can allow the thread to exit to synchronize
@@ -94,6 +97,7 @@ class RenderThread : public gfxstream::base::Thread {
 
     struct SnapshotObjects;
 
+    void initFromLoadStream(gfxstream::Stream* load);
     bool doSnapshotOp(const SnapshotObjects& objects, SnapshotState expectedState,
                       std::function<void()> op);
 
@@ -101,6 +105,7 @@ class RenderThread : public gfxstream::base::Thread {
     bool saveSnapshot(const SnapshotObjects& objects);
 
     void waitForSnapshotCompletion(gfxstream::base::AutoLock* lock);
+    void waitUntilOutOfSnapshotWaitLocked(gfxstream::base::AutoLock* lock);
     void loadImpl(gfxstream::base::AutoLock* lock, const SnapshotObjects& objects);
     void saveImpl(gfxstream::base::AutoLock* lock, const SnapshotObjects& objects);
 
@@ -110,6 +115,8 @@ class RenderThread : public gfxstream::base::Thread {
     std::unique_ptr<RingStream> mRingStream;
 
     SnapshotState mState = SnapshotState::Empty;
+    bool mInSnapshotWait = false;
+    uint64_t mSnapshotGeneration = 0;
     std::atomic<bool> mFinished { false };
     std::atomic_bool mDecodersShouldStop{false};
     gfxstream::base::Lock mLock;
@@ -125,7 +132,7 @@ class RenderThread : public gfxstream::base::Thread {
     std::optional<std::string> mContextName;
     // If we need to reload process resources.
     // This happens in snapshot testing where we don't snapshot render threads.
-    bool mNeedReloadProcessResources = false;
+    std::atomic<bool> mNeedReloadProcessResources{false};
 };
 
 }  // namespace host

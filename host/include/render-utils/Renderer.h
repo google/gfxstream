@@ -344,6 +344,9 @@ class Renderer {
     virtual void setShouldSkipDraw(bool skip) = 0;
     virtual bool getShouldSkipDraw() const = 0;
 
+    virtual bool addressSpaceGraphicsConsumerWaitForPause(void* consumer) { return true; }
+    virtual void addressSpaceGraphicsConsumerCancelPreSave(void* consumer) {}
+
 protected:
     ~Renderer() = default;
 };

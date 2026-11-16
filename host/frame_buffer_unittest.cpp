@@ -50,6 +50,9 @@
 #undef OP_last
 #include "render_channel_impl.h"
 #include "render_thread_info.h"
+#include "renderer_impl.h"
+#include "gfxstream/host/address_space_device.h"
+#include "render-utils/address_space_operations.h"
 
 #ifdef _MSC_VER
 #include "gfxstream/msvc.h"
@@ -1300,6 +1303,359 @@ TEST_F(RenderThreadDeadlockTest, ReloadProcessResourcesAfterRcSetPuid) {
     channel->stop();
     channel.reset();
     EXPECT_TRUE(fb->waitForAllPendingCleanups(std::chrono::milliseconds(500)));
+}
+
+TEST_F(RenderThreadDeadlockTest, AsgRenderThreadCancelPausePreSnapshotAndAbortRecovery) {
+    auto fb = FrameBuffer::getFB();
+    ASSERT_NE(nullptr, fb);
+
+    const uint32_t contextId = 12348;
+    fb->createGraphicsProcessResources(contextId);
+
+    struct SharedState {
+        std::mutex mu;
+        std::condition_variable cv;
+        int unavailableCalls = 0;
+        int pauseStatusReturned = 0;
+        RenderThread* renderThread = nullptr;
+    };
+    auto state = std::make_shared<SharedState>();
+
+    AddressSpaceGraphicsContext::setConsumer(ConsumerInterface{
+        .create = [state](const AsgConsumerCreateInfo& info, Stream* loadStream) -> ConsumerHandle {
+            AsgConsumerCreateInfo wrappedInfo = info;
+            auto origOnUnavailable = info.callbacks.onUnavailableRead;
+            wrappedInfo.callbacks.onUnavailableRead = [state, origOnUnavailable]() {
+                {
+                    std::lock_guard<std::mutex> lock(state->mu);
+                    ++state->unavailableCalls;
+                    state->cv.notify_all();
+                }
+                const auto status = origOnUnavailable();
+                if (status == AsgOnUnavailableReadStatus::kPauseForSnapshot) {
+                    std::lock_guard<std::mutex> lock(state->mu);
+                    ++state->pauseStatusReturned;
+                    state->cv.notify_all();
+                }
+                return status;
+            };
+            auto* thread = new RenderThread(wrappedInfo, loadStream);
+            {
+                std::lock_guard<std::mutex> lock(state->mu);
+                state->renderThread = thread;
+            }
+            thread->start();
+            return static_cast<ConsumerHandle>(thread);
+        },
+        .destroy = [fb, contextId](ConsumerHandle consumer) {
+            auto* thread = static_cast<RenderThread*>(consumer);
+            fb->signalGuestProcessDead(contextId);
+            thread->waitForFinished();
+            {
+                gfxstream::base::AutoLock driverLock(*graphicsDriverLock());
+                thread->sendExitSignal();
+                thread->wait();
+            }
+            delete thread;
+        },
+        .preSave = [](ConsumerHandle consumer) {
+            static_cast<RenderThread*>(consumer)->pausePreSnapshot();
+        },
+        .globalPreSave = []() {},
+        .save = [](ConsumerHandle consumer, Stream* stream) {
+            static_cast<RenderThread*>(consumer)->save(stream);
+        },
+        .globalPostSave = []() {},
+        .postSave = [](ConsumerHandle consumer) {
+            static_cast<RenderThread*>(consumer)->resume();
+        },
+        .postLoad = [](ConsumerHandle) {},
+        .globalPreLoad = []() {},
+        .reloadRingConfig = [](ConsumerHandle consumer) {
+            static_cast<RenderThread*>(consumer)->addressSpaceGraphicsReloadRingConfig();
+        },
+        .waitForPause = [](ConsumerHandle consumer) -> bool {
+            static_cast<RenderThread*>(consumer)->waitForPausePreSnapshot();
+            return true;
+        },
+        .cancelPreSave = [](ConsumerHandle consumer) {
+            static_cast<RenderThread*>(consumer)->cancelPausePreSnapshot();
+        },
+    });
+
+    auto asgMemory = std::make_shared<std::vector<char>>(
+        kAsgConsumerRingStorageSize + kAsgWriteBufferSize, 0);
+    AddressSpaceCreateInfo createInfo = {};
+    createInfo.handle = 1;
+    createInfo.type = ADDRESS_SPACE_CONTEXT_TYPE_VIRTIO_GPU_GRAPHICS;
+    createInfo.createRenderThread = true;
+    createInfo.externalAddr = asgMemory->data();
+    createInfo.externalAddrSize = asgMemory->size();
+    createInfo.virtioGpuContextId = contextId;
+    auto asg = std::make_unique<AddressSpaceGraphicsContext>(createInfo);
+
+    // Wait for RenderThread::main() to enter its startup flags read loop (onUnavailableRead).
+    {
+        std::unique_lock<std::mutex> lock(state->mu);
+        ASSERT_TRUE(state->cv.wait_for(lock, std::chrono::seconds(5),
+                                       [&] { return state->unavailableCalls >= 1; }));
+        ASSERT_NE(state->renderThread, nullptr);
+    }
+
+    // 1. cancelPausePreSnapshot() on SnapshotState::Empty is a safe no-op.
+    state->renderThread->cancelPausePreSnapshot();
+    EXPECT_FALSE(state->renderThread->isFinished());
+
+    // 2. Startup flags loop: exercise preSave -> waitForPreSave (SnapshotState::Finished) ->
+    //    cancelPreSave, plus rapid preSave -> cancelPreSave (StartSaving / abort recovery).
+    ASSERT_TRUE(asg->preSave());
+    ASSERT_TRUE(asg->waitForPreSave());
+    asg->cancelPreSave();
+    EXPECT_FALSE(state->renderThread->isFinished());
+
+    for (int i = 0; i < 8; ++i) {
+        ASSERT_TRUE(asg->preSave());
+        if (i % 2 == 0) {
+            std::this_thread::yield();
+        }
+        asg->cancelPreSave();
+    }
+    EXPECT_FALSE(state->renderThread->isFinished());
+
+    // 3. Send startup 4-byte flags + OP_rcGetRendererVersion over ASG ring so RenderThread enters
+    //    its main packet loop (attach view-only without mutating ringStorage while RenderThread runs).
+    char* ringStorage = asgMemory->data();
+    char* writeBuffer = ringStorage + kAsgConsumerRingStorageSize;
+    struct asg_context guestCtx = {};
+    guestCtx.to_host = reinterpret_cast<struct ring_buffer*>(
+        ringStorage + offsetof(struct asg_ring_storage, to_host));
+    guestCtx.to_host_large_xfer.ring = reinterpret_cast<struct ring_buffer*>(
+        ringStorage + offsetof(struct asg_ring_storage, to_host_large_xfer));
+    guestCtx.from_host_large_xfer.ring = reinterpret_cast<struct ring_buffer*>(
+        ringStorage + offsetof(struct asg_ring_storage, from_host_large_xfer));
+    guestCtx.buffer = writeBuffer;
+    guestCtx.buffer_size = kAsgWriteBufferSize;
+    guestCtx.host_state = reinterpret_cast<asg_host_state*>(&guestCtx.to_host->state);
+    guestCtx.ring_config = reinterpret_cast<asg_ring_config*>(guestCtx.to_host->config);
+    ring_buffer_init_view_only(&guestCtx.to_host_large_xfer.view,
+                               reinterpret_cast<uint8_t*>(writeBuffer), kAsgWriteBufferSize);
+    ring_buffer_init_view_only(&guestCtx.from_host_large_xfer.view,
+                               reinterpret_cast<uint8_t*>(writeBuffer), kAsgWriteBufferSize);
+
+    uint32_t writeOffset = 0;
+    auto sendRingBytes = [&](const void* data, uint32_t len) {
+        std::memcpy(writeBuffer + writeOffset, data, len);
+        asg_type1_xfer xfer = {.offset = writeOffset, .size = len};
+        writeOffset += len;
+        ASSERT_EQ(1, ring_buffer_write(guestCtx.to_host, &xfer, sizeof(xfer), 1));
+        AddressSpaceDevicePingInfo notifyPing = {.metadata = ASG_NOTIFY_AVAILABLE};
+        asg->perform(&notifyPing);
+    };
+    auto waitRingReply = [&](size_t expectedBytes) {
+        const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+        while (ring_buffer_available_read(guestCtx.from_host_large_xfer.ring,
+                                          &guestCtx.from_host_large_xfer.view) < expectedBytes) {
+            ASSERT_LT(std::chrono::steady_clock::now(), deadline);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        std::vector<uint8_t> reply(expectedBytes, 0);
+        ASSERT_EQ(1, ring_buffer_view_read(guestCtx.from_host_large_xfer.ring,
+                                           &guestCtx.from_host_large_xfer.view,
+                                           reply.data(), reply.size(), 1));
+    };
+
+    struct {
+        uint32_t flags = 0;
+        uint32_t opcode = OP_rcGetRendererVersion;
+        uint32_t packetLen = 8;
+    } firstMsg;
+    static_assert(sizeof(firstMsg) == 12);
+    sendRingBytes(&firstMsg, sizeof(firstMsg));
+    waitRingReply(sizeof(GLint));
+
+    // Wait for RenderThread::main() to block in onUnavailableRead() inside the main packet loop.
+    int callsAfterFirstReply = 0;
+    {
+        std::lock_guard<std::mutex> lock(state->mu);
+        callsAfterFirstReply = state->unavailableCalls;
+    }
+    {
+        AddressSpaceDevicePingInfo wakePing = {.metadata = ASG_NOTIFY_AVAILABLE};
+        asg->perform(&wakePing);
+        std::unique_lock<std::mutex> lock(state->mu);
+        ASSERT_TRUE(state->cv.wait_for(
+            lock, std::chrono::seconds(5),
+            [&] { return state->unavailableCalls > callsAfterFirstReply; }));
+    }
+
+    // 4. Main packet loop: exercise back-to-back preSave -> waitForPreSave -> cancelPreSave ->
+    //    preSave -> waitForPreSave -> postSave (ensuring doSnapshotOp() exits before a subsequent
+    //    pausePreSnapshot() starts) plus rapid preSave -> cancelPreSave abort recovery.
+    for (int i = 0; i < 6; ++i) {
+        ASSERT_TRUE(asg->preSave());
+        ASSERT_TRUE(asg->waitForPreSave());
+        asg->cancelPreSave();
+        ASSERT_TRUE(asg->preSave());
+        ASSERT_TRUE(asg->waitForPreSave());
+        ASSERT_TRUE(asg->postSave());
+    }
+    EXPECT_FALSE(state->renderThread->isFinished());
+
+    for (int i = 0; i < 8; ++i) {
+        ASSERT_TRUE(asg->preSave());
+        if (i % 2 == 0) {
+            std::this_thread::yield();
+        }
+        asg->cancelPreSave();
+    }
+    EXPECT_FALSE(state->renderThread->isFinished());
+
+    // 5. Verify RenderThread remains alive and decodes a second OP_rcGetRendererVersion packet
+    //    (exercising mNeedReloadProcessResources reload).
+    struct {
+        uint32_t opcode = OP_rcGetRendererVersion;
+        uint32_t packetLen = 8;
+    } secondMsg;
+    sendRingBytes(&secondMsg, sizeof(secondMsg));
+    waitRingReply(sizeof(GLint));
+    EXPECT_FALSE(state->renderThread->isFinished());
+
+    asg.reset();
+    AddressSpaceGraphicsContext::clear();
+    AddressSpaceGraphicsContext::setConsumer({});
+    EXPECT_TRUE(fb->waitForAllPendingCleanups(std::chrono::milliseconds(500)));
+}
+
+TEST_F(RenderThreadDeadlockTest, RendererImplAsgFailedLoadCleansUpParkedPostLoadThreads) {
+    auto fb = FrameBuffer::getFB();
+    ASSERT_NE(nullptr, fb);
+
+    const uint32_t ctxId1 = 12351;
+    const uint32_t ctxId2 = 12352;
+    fb->createGraphicsProcessResources(ctxId1);
+    fb->createGraphicsProcessResources(ctxId2);
+
+    auto renderer = std::make_shared<RendererImpl>();
+    std::vector<char> mem1(kAsgConsumerRingStorageSize + kAsgWriteBufferSize, 0);
+    std::vector<char> mem2(kAsgConsumerRingStorageSize + kAsgWriteBufferSize, 0);
+    struct CleanupGuard {
+        FrameBuffer* fb = nullptr;
+        uint32_t id1 = 0;
+        uint32_t id2 = 0;
+        ~CleanupGuard() {
+            GetAsgOperations().clear();
+            AddressSpaceGraphicsContext::clear();
+            AddressSpaceGraphicsContext::setConsumer({});
+            gfxstream_address_space_set_load_resources({});
+            if (fb) {
+                fb->signalGuestProcessDead(id1);
+                fb->signalGuestProcessDead(id2);
+                fb->waitForAllPendingCleanups(std::chrono::milliseconds(500));
+            }
+        }
+    } guard{fb, ctxId1, ctxId2};
+
+    AddressSpaceGraphicsContext::setConsumer(ConsumerInterface{
+        .create = [renderer](const AsgConsumerCreateInfo& info, Stream* loadStream) {
+            return renderer->addressSpaceGraphicsConsumerCreate(info, loadStream);
+        },
+        .destroy = [renderer](void* consumer) {
+            renderer->addressSpaceGraphicsConsumerDestroy(consumer);
+        },
+        .preSave = [renderer](void* consumer) {
+            renderer->addressSpaceGraphicsConsumerPreSave(consumer);
+        },
+        .globalPreSave = [renderer]() { renderer->pauseAllPreSave(); },
+        .save = [renderer](void* consumer, Stream* stream) {
+            renderer->addressSpaceGraphicsConsumerSave(consumer, stream);
+        },
+        .globalPostSave = [renderer]() { renderer->resumeAll(); },
+        .postSave = [renderer](void* consumer) {
+            renderer->addressSpaceGraphicsConsumerPostSave(consumer);
+        },
+        .postLoad = [renderer](void* consumer) {
+            renderer->addressSpaceGraphicsConsumerRegisterPostLoadRenderThread(consumer);
+        },
+        .globalPreLoad = []() {},
+        .reloadRingConfig = [renderer](void* consumer) {
+            renderer->addressSpaceGraphicsConsumerReloadRingConfig(consumer);
+        },
+        .waitForPause = [renderer](void* consumer) {
+            return renderer->addressSpaceGraphicsConsumerWaitForPause(consumer);
+        },
+        .cancelPreSave = [renderer](void* consumer) {
+            renderer->addressSpaceGraphicsConsumerCancelPreSave(consumer);
+        },
+    });
+
+    auto ops = GetAsgOperations();
+
+    auto makeCtx = [&](uint32_t ctxId, std::vector<char>* mem) {
+        AddressSpaceCreateInfo ci = {};
+        ci.handle = ops.gen_handle();
+        ci.type = ADDRESS_SPACE_CONTEXT_TYPE_VIRTIO_GPU_GRAPHICS;
+        ci.createRenderThread = true;
+        ci.externalAddr = mem->data();
+        ci.externalAddrSize = mem->size();
+        ci.virtioGpuContextId = ctxId;
+        ops.create_instance(ci);
+        return ci.handle;
+    };
+    const uint32_t h1 = makeCtx(ctxId1, &mem1);
+    const uint32_t h2 = makeCtx(ctxId2, &mem2);
+
+    MemStream saved;
+    ASSERT_EQ(gfxstream_address_space_save_memory_state(&saved), 0);
+    ASSERT_GT(saved.writtenSize(), 16u);
+
+    // Truncate inside the second context's RenderThread payload so the first context loads,
+    // starts a parked RenderThread, and registers in mAdditionalPostLoadRenderThreads, while the
+    // second context fails with stream->hasErrors() and triggers full rollback + resumeAll().
+    MemStream truncated(saved.writtenSize() - 4);
+    ASSERT_EQ(truncated.write(saved.buffer().data(), saved.writtenSize() - 4),
+              static_cast<ssize_t>(saved.writtenSize() - 4));
+    truncated.rewind();
+
+    AddressSpaceDeviceLoadResources loadResources;
+    loadResources.contextExternalMemoryMap[h1] = {mem1.data(), mem1.size()};
+    loadResources.contextExternalMemoryMap[h2] = {mem2.data(), mem2.size()};
+    ASSERT_EQ(gfxstream_address_space_set_load_resources(std::move(loadResources)), 0);
+
+    EXPECT_NE(gfxstream_address_space_load_memory_state(&truncated), 0);
+    renderer->resumeAll();
+
+    // Corrupting the inner RenderThread mStream (ReadBuffer m_validData > m_size) while keeping
+    // the outer saveStream length intact must cause RenderThread::loadSnapshot() to detect
+    // mStream->hasErrors() and mark the RenderThread finished instead of restoring corrupt state.
+    MemStream corruptInner;
+    corruptInner.putByte(1);
+    MemStream badPayload;
+    badPayload.putBe32(64);        // ReadBuffer m_size
+    badPayload.putBe32(0x7fffffff); // Invalid ReadBuffer m_validData > m_size
+    saveStream(&corruptInner, badPayload);
+    corruptInner.rewind();
+
+    std::atomic<int> unavailableReadCalls{0};
+    AsgConsumerCreateInfo directInfo = {};
+    directInfo.version = 1;
+    directInfo.ring_storage = mem1.data();
+    directInfo.buffer = mem1.data() + kAsgConsumerRingStorageSize;
+    directInfo.buffer_size = kAsgWriteBufferSize;
+    directInfo.buffer_flush_interval = kAsgWriteStepSize;
+    directInfo.callbacks.onUnavailableRead = [&unavailableReadCalls] {
+        ++unavailableReadCalls;
+        return AsgOnUnavailableReadStatus::kExit;
+    };
+    directInfo.virtioGpuContextId = ctxId1;
+    void* badConsumer = renderer->addressSpaceGraphicsConsumerCreate(directInfo, &corruptInner);
+    ASSERT_NE(badConsumer, nullptr);
+    renderer->addressSpaceGraphicsConsumerRegisterPostLoadRenderThread(badConsumer);
+    renderer->resumeAll();
+    auto* badThread = static_cast<RenderThread*>(badConsumer);
+    badThread->waitForFinished();
+    EXPECT_TRUE(badThread->isFinished());
+    EXPECT_EQ(unavailableReadCalls.load(), 0);
+    renderer->addressSpaceGraphicsConsumerDestroy(badConsumer);
 }
 
 TEST_F(FrameBufferTest, CleanupProcGLObjects) {

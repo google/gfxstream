@@ -131,9 +131,14 @@ void ReadBuffer::onLoad(gfxstream::Stream* stream) {
         GFXSTREAM_ERROR("ReadBuffer::onLoad: invalid m_validData=%zu m_size=%zu\n",
                         m_validData, m_size);
         m_validData = 0;
+        stream->addError("ReadBuffer::onLoad: invalid buffer metadata");
         return;
     }
-    stream->read(m_readPtr, m_validData);
+    const ssize_t bytesRead = stream->read(m_readPtr, m_validData);
+    if (bytesRead != static_cast<ssize_t>(m_validData)) {
+        m_validData = 0;
+        stream->addError("ReadBuffer::onLoad: truncated payload");
+    }
 }
 
 }  // namespace host

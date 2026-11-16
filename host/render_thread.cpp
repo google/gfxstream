@@ -100,16 +100,7 @@ RenderThread::RenderThread(RenderChannelImpl* channel, gfxstream::Stream* load,
       mRunInLimitedMode(gfxstream::base::getCpuCoreCount() < kMinThreadsToRunUnlimited),
       mContextId(virtioGpuContextId) {
     incrementAndCheckRenderThreadCount();
-    if (load) {
-        const bool success = load->getByte();
-        if (success) {
-            mStream.emplace(0);
-            loadStream(load, &*mStream);
-            mState = SnapshotState::StartLoading;
-        } else {
-            setFinished();
-        }
-    }
+    initFromLoadStream(load);
 }
 
 RenderThread::RenderThread(const AsgConsumerCreateInfo& info, Stream* load)
@@ -123,16 +114,26 @@ RenderThread::RenderThread(const AsgConsumerCreateInfo& info, Stream* load)
       mCapsetId(info.virtioGpuCapsetId ? *info.virtioGpuCapsetId : 0),
       mContextName(info.virtioGpuContextName) {
     incrementAndCheckRenderThreadCount();
-    if (load) {
-        const bool success = load->getByte();
-        if (success) {
-            mStream.emplace(0);
-            loadStream(load, &*mStream);
-            mState = SnapshotState::StartLoading;
-        } else {
-            setFinished();
-        }
+    initFromLoadStream(load);
+}
+
+void RenderThread::initFromLoadStream(gfxstream::Stream* load) {
+    if (!load) {
+        return;
     }
+    const uint8_t success = load->getByte();
+    if (!success || load->hasErrors()) {
+        setFinished();
+        return;
+    }
+    mStream.emplace(0);
+    loadStream(load, &*mStream);
+    if (load->hasErrors()) {
+        mStream.reset();
+        setFinished();
+        return;
+    }
+    mState = SnapshotState::StartLoading;
 }
 
 // Note: the RenderThread destructor might be called from a different thread
@@ -144,7 +145,9 @@ RenderThread::~RenderThread() {
 
 void RenderThread::pausePreSnapshot() {
     AutoLock lock(mLock);
+    waitUntilOutOfSnapshotWaitLocked(&lock);
     assert(mState == SnapshotState::Empty);
+    ++mSnapshotGeneration;
     mStream.emplace();
     mState = SnapshotState::StartSaving;
     mDecodersShouldStop.store(true, std::memory_order_relaxed);
@@ -163,18 +166,20 @@ void RenderThread::resume() {
     // This function can be called for a thread from pre-snapshot loading
     // state; it doesn't need to do anything.
     if (mState == SnapshotState::Empty) {
+        waitUntilOutOfSnapshotWaitLocked(&lock);
         return;
     }
-    if (mRingStream) mRingStream->resume();
     waitForSnapshotCompletion(&lock);
 
-    mNeedReloadProcessResources = true;
+    mNeedReloadProcessResources.store(true, std::memory_order_release);
     mStream.reset();
     mState = SnapshotState::Empty;
+    ++mSnapshotGeneration;
     mDecodersShouldStop.store(false, std::memory_order_relaxed);
     if (mChannel) mChannel->resume();
     if (mRingStream) mRingStream->resume();
-    mSnapshotSignal.broadcastAndUnlock(&lock);
+    mSnapshotSignal.broadcast();
+    waitUntilOutOfSnapshotWaitLocked(&lock);
 }
 
 void RenderThread::save(gfxstream::Stream* stream) {
@@ -206,9 +211,39 @@ void RenderThread::waitForPausePreSnapshot() {
     waitForSnapshotCompletion(&lock);
 }
 
+void RenderThread::cancelPausePreSnapshot() {
+    AutoLock lock(mLock);
+    if (mState == SnapshotState::Empty) {
+        waitUntilOutOfSnapshotWaitLocked(&lock);
+        return;
+    }
+    while (mState == SnapshotState::InProgress &&
+           !mFinished.load(std::memory_order_relaxed)) {
+        mSnapshotSignal.wait(&lock);
+    }
+
+    if (mState == SnapshotState::Finished) {
+        mNeedReloadProcessResources.store(true, std::memory_order_release);
+    }
+    mStream.reset();
+    mState = SnapshotState::Empty;
+    ++mSnapshotGeneration;
+    mDecodersShouldStop.store(false, std::memory_order_relaxed);
+    if (mChannel) mChannel->resume();
+    if (mRingStream) mRingStream->resume();
+    mSnapshotSignal.broadcast();
+    waitUntilOutOfSnapshotWaitLocked(&lock);
+}
+
 void RenderThread::waitForSnapshotCompletion(AutoLock* lock) {
     while (mState != SnapshotState::Finished &&
            !mFinished.load(std::memory_order_relaxed)) {
+        mSnapshotSignal.wait(lock);
+    }
+}
+
+void RenderThread::waitUntilOutOfSnapshotWaitLocked(AutoLock* lock) {
+    while (mInSnapshotWait && !mFinished.load(std::memory_order_relaxed)) {
         mSnapshotSignal.wait(lock);
     }
 }
@@ -222,6 +257,7 @@ bool RenderThread::doSnapshotOp(const SnapshotObjects& objects, SnapshotState ex
     if (mState != expectedState) {
         return false;
     }
+    const uint64_t opGeneration = mSnapshotGeneration;
     mState = SnapshotState::InProgress;
     mSnapshotSignal.broadcastAndUnlock(&lock);
 
@@ -230,24 +266,43 @@ bool RenderThread::doSnapshotOp(const SnapshotObjects& objects, SnapshotState ex
     lock.lock();
 
     mState = SnapshotState::Finished;
+    mInSnapshotWait = true;
     mSnapshotSignal.broadcast();
 
     // Only return after we're allowed to proceed.
-    while (isPausedForSnapshotLocked()) {
+    while (mSnapshotGeneration == opGeneration && isPausedForSnapshotLocked() &&
+           !mFinished.load(std::memory_order_relaxed)) {
         mSnapshotSignal.wait(&lock);
     }
+    mInSnapshotWait = false;
+    mSnapshotSignal.broadcast();
 
     return true;
 }
 
 bool RenderThread::loadSnapshot(const SnapshotObjects& objects) {
-    return doSnapshotOp(objects, SnapshotState::StartLoading, [this, &objects] {
+    bool loadOk = false;
+    const bool ran = doSnapshotOp(objects, SnapshotState::StartLoading, [this, &objects, &loadOk] {
         objects.readBuffer->onLoad(&*mStream);
-        if (objects.channelStream) objects.channelStream->load(&*mStream);
-        if (objects.ringStream) objects.ringStream->load(&*mStream);
-        objects.checksumCalc->load(&*mStream);
-        objects.threadInfo->onLoad(&*mStream);
+        if (!mStream->hasErrors() && objects.channelStream) {
+            objects.channelStream->load(&*mStream);
+        }
+        if (!mStream->hasErrors() && objects.ringStream) {
+            objects.ringStream->load(&*mStream);
+        }
+        if (!mStream->hasErrors()) {
+            objects.checksumCalc->load(&*mStream);
+        }
+        if (!mStream->hasErrors()) {
+            objects.threadInfo->onLoad(&*mStream);
+        }
+        loadOk = !mStream->hasErrors();
     });
+    if (ran && !loadOk) {
+        GFXSTREAM_ERROR("Failed to load snapshot stream for RenderThread @%p", this);
+        setFinished();
+    }
+    return ran && loadOk;
 }
 
 bool RenderThread::saveSnapshot(const SnapshotObjects& objects) {
@@ -298,7 +353,7 @@ void RenderThread::setFinished() {
     {
         AutoLock lock(mLock);
         mFinished.store(true, std::memory_order_relaxed);
-        if (mState != SnapshotState::Empty) {
+        if (mState != SnapshotState::Empty || mInSnapshotWait) {
             mSnapshotSignal.broadcastAndUnlock(&lock);
         }
     }
@@ -382,13 +437,19 @@ intptr_t RenderThread::main() {
     if (loadSnapshot(snapshotObjects)) {
         GFXSTREAM_DEBUG("Loaded RenderThread @%p from snapshot", this);
         needRestoreFromSnapshot = true;
+    } else if (isFinished()) {
+        tInfo.reset();
+        waitForExitSignal();
+        return 0;
     } else {
         // Not loading from a snapshot: continue regular startup, read
         // the |flags|.
         uint32_t flags = 0;
         while (ioStream->read(&flags, sizeof(flags)) != sizeof(flags)) {
-            // Stream read may fail because of a pending snapshot.
-            if (!saveSnapshot(snapshotObjects)) {
+            // Stream read may fail because of a pending or canceled snapshot.
+            const bool abortedForSnapshot =
+                mRingStream && mRingStream->consumeAbortedReadForSnapshot();
+            if (!saveSnapshot(snapshotObjects) && !abortedForSnapshot) {
                 setFinished();
                 tInfo.reset();
                 waitForExitSignal();
@@ -434,24 +495,30 @@ intptr_t RenderThread::main() {
         int stat = 0;
         if (packetSize > readBuf.validData()) {
             stat = readBuf.getData(ioStream, packetSize);
+            const bool abortedForSnapshot =
+                mRingStream && mRingStream->consumeAbortedReadForSnapshot();
             if (stat <= 0) {
-                if (saveSnapshot(snapshotObjects)) {
+                if (saveSnapshot(snapshotObjects) || abortedForSnapshot) {
                     continue;
                 } else {
                     break;
                 }
-            } else if (needRestoreFromSnapshot) {
+            }
+            if (abortedForSnapshot &&
+                (saveSnapshot(snapshotObjects) || readBuf.validData() < packetSize)) {
+                continue;
+            }
+            if (needRestoreFromSnapshot) {
                 // If we're using RingStream that might load before FrameBuffer
                 // restores the contexts from the handles, so check again here.
 
                 tInfo->postLoadRefreshCurrentContextSurfacePtrs();
                 needRestoreFromSnapshot = false;
             }
-            if (mNeedReloadProcessResources) {
-                processResources = nullptr;
-                tInfo->setProcessResources(nullptr);
-                mNeedReloadProcessResources = false;
-            }
+        }
+        if (mNeedReloadProcessResources.exchange(false, std::memory_order_acq_rel)) {
+            processResources = nullptr;
+            tInfo->setProcessResources(nullptr);
         }
 
         //

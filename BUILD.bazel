@@ -40,6 +40,7 @@ test_suite(
         "//codegen/generic-apigen:parser_test",
         "//common/base:gfxstream_common_base_tests",
         "//host:gfxstream_framebuffer_tests",
+        "//host:gfxstream_ring_stream_tests",
         "//host:gfxstream_unittest",
         "//host:gfxstream_virtio_gpu_timelines_tests",
         "//host:gfxstream_vsyncthread_tests",

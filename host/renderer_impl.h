@@ -131,6 +131,9 @@ public:
     void setShouldSkipDraw(bool skip) override;
     bool getShouldSkipDraw() const override;
 
+    bool addressSpaceGraphicsConsumerWaitForPause(void* consumer) override final;
+    void addressSpaceGraphicsConsumerCancelPreSave(void* consumer) override final;
+
 private:
     DISALLOW_COPY_ASSIGN_AND_MOVE(RendererImpl);
 
@@ -148,10 +151,9 @@ private:
 
     std::unique_ptr<RenderThread> mLoaderRenderThread;
 
-    std::vector<RenderThread*> mAdditionalPostLoadRenderThreads;
-
     std::mutex mAddressSpaceRenderThreadMutex;
     std::unordered_set<RenderThread*> mAddressSpaceRenderThreads;
+    std::vector<RenderThread*> mAdditionalPostLoadRenderThreads;
 };
 
 }  // namespace host
