@@ -40,7 +40,7 @@ public:
     uint64_t add(Data data, size_t type) {
         uint64_t nextIndex = 0;
         {
-            SeqLock::ScopedWrite sw(&mEntityManagerLock);
+            AutoWriteLock wl(mEntityManagerLock);
             nextIndex = (uint64_t)mEntityManager.nextFreeIndex();
             if (nextIndex < maxIndex) {
                 uint64_t resultHandle = mEntityManager.add(std::move(data), type);
@@ -54,7 +54,7 @@ public:
             }
         }
 
-        AutoLock lock(mMapLock);
+        AutoWriteLock wl(mMapLock);
         if (mIndexForMap == 0) {
             mIndexForMap = maxIndex;
         }
@@ -72,10 +72,10 @@ public:
     uint64_t addFixed(IndexType index, Data data, size_t type) {
         uint64_t index_u64 = (uint64_t)EM::getHandleIndex(index);
         if (index_u64 < maxIndex) {
-            SeqLock::ScopedWrite sw(&mEntityManagerLock);
+            AutoWriteLock wl(mEntityManagerLock);
             return mEntityManager.addFixed(index, std::move(data), type);
         } else {
-            AutoLock lock(mMapLock);
+            AutoWriteLock wl(mMapLock);
             // Fixed allocations require us to update mIndexForMap to catch up with it.
             mIndexForMap = std::max(index_u64 + 1, mIndexForMap);
             auto emplaced = mMap.emplace(index_u64, std::move(data));
@@ -90,11 +90,11 @@ public:
 
     void clear() {
         {
-            SeqLock::ScopedWrite sw(&mEntityManagerLock);
+            AutoWriteLock wl(mEntityManagerLock);
             mEntityManager.clear();
         }
         {
-            AutoLock lock(mMapLock);
+            AutoWriteLock wl(mMapLock);
             mMap.clear();
             mIndexForMap = 0;
         }
@@ -103,10 +103,10 @@ public:
     void remove(IndexType index) {
         uint64_t index_u64 = (uint64_t)EM::getHandleIndex(index);
         if (index_u64 < maxIndex) {
-            SeqLock::ScopedWrite sw(&mEntityManagerLock);
+            AutoWriteLock wl(mEntityManagerLock);
             mEntityManager.remove(index);
         } else {
-            AutoLock lock(mMapLock);
+            AutoWriteLock wl(mMapLock);
             mMap.erase(index_u64);
         }
     }
@@ -114,10 +114,10 @@ public:
     Data* get(IndexType index) {
         uint64_t index_u64 = (uint64_t)EM::getHandleIndex(index);
         if (index_u64 < maxIndex) {
-            SeqLock::ScopedWrite sw(&mEntityManagerLock);
+            AutoWriteLock wl(mEntityManagerLock);
             return mEntityManager.get(index);
         } else {
-            AutoLock lock(mMapLock);
+            AutoWriteLock wl(mMapLock);
             auto res = gfxstream::base::find(mMap, index_u64);
             return res;
         }
@@ -126,12 +126,10 @@ public:
     const Data* get_const(IndexType index) const {
         uint64_t index_u64 = (uint64_t)EM::getHandleIndex(index);
         if (index_u64 < maxIndex) {
-            const Data* res;
-            AEMU_SEQLOCK_READ_WITH_RETRY(&mEntityManagerLock,
-                res = mEntityManager.get_const(index));
-            return res;
+            AutoReadLock rl(mEntityManagerLock);
+            return mEntityManager.get_const(index);
         } else {
-            AutoLock lock(mMapLock);
+            AutoReadLock rl(mMapLock);
             auto res = gfxstream::base::find(mMap, index_u64);
             return res;
         }
@@ -146,10 +144,27 @@ public:
     auto withLocked(IndexType index, Func&& func) {
         uint64_t index_u64 = (uint64_t)EM::getHandleIndex(index);
         if (index_u64 < maxIndex) {
-            SeqLock::ScopedWrite sw(&mEntityManagerLock);
+            AutoWriteLock wl(mEntityManagerLock);
             return func(mEntityManager.get(index));
         } else {
-            AutoLock lock(mMapLock);
+            AutoWriteLock wl(mMapLock);
+            return func(gfxstream::base::find(mMap, index_u64));
+        }
+    }
+
+    // Calls |func| with a const pointer to the data at |index|, or nullptr if
+    // there is no live entry, while holding a shared read lock. Concurrent
+    // readers do not block each other, while add(), remove(), clear(), and
+    // withLocked() are serialized. |func| must not call back into this
+    // HybridEntityManager.
+    template <typename Func>
+    auto withSharedLocked(IndexType index, Func&& func) const {
+        uint64_t index_u64 = (uint64_t)EM::getHandleIndex(index);
+        if (index_u64 < maxIndex) {
+            AutoReadLock rl(mEntityManagerLock);
+            return func(mEntityManager.get_const(index));
+        } else {
+            AutoReadLock rl(mMapLock);
             return func(gfxstream::base::find(mMap, index_u64));
         }
     }
@@ -170,11 +185,11 @@ public:
 
     void forEach(IterFunc func) {
         {
-            SeqLock::ScopedWrite sw(&mEntityManagerLock);
+            AutoWriteLock wl(mEntityManagerLock);
             mEntityManager.forEach(func);
         }
 
-        AutoLock lock(mMapLock);
+        AutoWriteLock wl(mMapLock);
         for (auto& it : mMap) {
             auto handle = index2Handle(it.first);
             func(true /* live */, handle, handle, it.second);
@@ -183,11 +198,11 @@ public:
 
     void forEachLive(IterFunc func) {
         {
-            SeqLock::ScopedWrite sw(&mEntityManagerLock);
+            AutoWriteLock wl(mEntityManagerLock);
             mEntityManager.forEachLiveEntry(func);
         }
 
-        AutoLock lock(mMapLock);
+        AutoWriteLock wl(mMapLock);
         for (auto& it : mMap) {
             auto handle = index2Handle(it.first);
             func(true /* live */, handle, it.second);
@@ -195,13 +210,12 @@ public:
     }
 
     void forEachLive_const(ConstIterFunc func) const {
-        mEntityManager.forEachLiveEntry_const([this, func](bool live, Handle h, Data& d) {
-            AEMU_SEQLOCK_READ_WITH_RETRY(
-                &mEntityManagerLock,
-                func(live, h, d));
-        });
+        {
+            AutoReadLock rl(mEntityManagerLock);
+            mEntityManager.forEachLiveEntry_const(func);
+        }
 
-        AutoLock lock(mMapLock);
+        AutoReadLock rl(mMapLock);
         for (const auto& it : mMap) {
             auto handle = index2Handle(it.first);
             func(true /* live */, handle, it.second);
@@ -216,8 +230,8 @@ private:
     EM mEntityManager;
     std::unordered_map<IndexType, Data> mMap;
     uint64_t mIndexForMap = 0;
-    mutable SeqLock mEntityManagerLock;
-    mutable Lock mMapLock;
+    mutable ReadWriteLock mEntityManagerLock;
+    mutable ReadWriteLock mMapLock;
 };
 
 } // namespace gfxstream

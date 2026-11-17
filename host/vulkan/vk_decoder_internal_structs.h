@@ -660,7 +660,7 @@ struct DescriptorPoolInfo {
     // without a host round trip. A slot is free while its boxed handle's
     // underlying host set is VK_NULL_HANDLE. The guest-facing API calls these
     // "pool ids"; they are descriptor set handles, not descriptor pool handles.
-    std::vector<uint64_t> preallocatedBoxedSets;
+    std::vector<Boxed<VkDescriptorSet>> preallocatedBoxedSets;
     // Boxed VkDescriptorSet handles allocated synchronously via
     // vkAllocateDescriptorSets (e.g. variable descriptor count layouts) while
     // VulkanBatchedDescriptorSetUpdate is enabled. Unlike preallocatedBoxedSets,

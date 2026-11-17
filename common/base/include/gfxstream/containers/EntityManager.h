@@ -68,7 +68,6 @@ public:
         return static_cast<size_t>(
             (h >> (indexBits + generationBits)) &
             ((1ULL << typeBits) - 1ULL));
-        return h & ((1ULL << indexBits) - 1ULL);
     }
 
     static EntityHandle makeHandle(
@@ -306,7 +305,7 @@ public:
         }
 
         auto& entry = mEntries[index];
-        if (entry.liveGeneration != getHandleGeneration(h)) {
+        if (entry.liveGeneration != getHandleGeneration(h) || entry.handle != h) {
             return nullptr;
         }
 
@@ -318,7 +317,7 @@ public:
         if (index >= mEntries.size()) return nullptr;
 
         const auto& entry = mEntries.data() + index;
-        if (entry->liveGeneration != getHandleGeneration(h)) return nullptr;
+        if (entry->liveGeneration != getHandleGeneration(h) || entry->handle != h) return nullptr;
 
         return &entry->item;
     }
@@ -329,7 +328,7 @@ public:
 
         const auto& entry = mEntries[index];
 
-        return (entry.liveGeneration == getHandleGeneration(h));
+        return (entry.liveGeneration == getHandleGeneration(h) && entry.handle == h);
     }
 
     void forEachEntry(IteratorFunc func) {

@@ -302,14 +302,40 @@ TEST(VkDecoderGlobalStateDescriptorUpdateTemplateTest, linearizedEntriesSkipWhol
 }
 
 TEST(BoxedHandleTest, BoxedWrapperFromRawAndValue) {
+    // Compile-time type safety invariants.
+    static_assert(!std::is_convertible_v<VkFence, Boxed<VkFence>>);
+    static_assert(!std::is_convertible_v<Boxed<VkFence>, VkFence>);
+    static_assert(!std::is_convertible_v<VkDevice, Boxed<VkDevice>>);
+    static_assert(!std::is_convertible_v<Boxed<VkDevice>, VkDevice>);
+    static_assert(!std::is_constructible_v<Boxed<VkImage>, Boxed<VkBuffer>>);
+    static_assert(!std::is_constructible_v<Boxed<VkImage>, VkBuffer>);
+    static_assert(!std::is_convertible_v<BoxedHandle, UnboxedHandle>);
+    static_assert(!std::is_convertible_v<UnboxedHandle, BoxedHandle>);
+    static_assert(!std::is_convertible_v<BoxedHandle, uint64_t>);
+    static_assert(!std::is_convertible_v<uint64_t, BoxedHandle>);
+    static_assert(!std::is_convertible_v<UnboxedHandle, uint64_t>);
+    static_assert(!std::is_convertible_v<uint64_t, UnboxedHandle>);
+    static_assert(BoxedHandleTraits<VkFence>::kIsVulkanHandle);
+    static_assert(!BoxedHandleTraits<VkFence>::kIsDispatchable);
+    static_assert(BoxedHandleTraits<VkDevice>::kIsVulkanHandle);
+    static_assert(BoxedHandleTraits<VkDevice>::kIsDispatchable);
+    static_assert(!BoxedHandleTraits<int>::kIsVulkanHandle);
+    static_assert(!BoxedHandleTraits<uint64_t>::kIsVulkanHandle);
+    static_assert(!BoxedHandleTraits<Boxed<VkFence>>::kIsVulkanHandle);
+
     Boxed<VkFence> empty;
     EXPECT_FALSE(static_cast<bool>(empty));
     EXPECT_EQ(VK_NULL_HANDLE, empty.value());
+    EXPECT_EQ(0u, empty.toRaw());
+    EXPECT_EQ(kNullBoxedHandle, empty.toBoxedHandle());
     EXPECT_EQ(Boxed<VkFence>(), empty);
 
     constexpr uint64_t kRawFence = 0x1234'5678ULL;
     Boxed<VkFence> fromRaw = Boxed<VkFence>::fromRaw(kRawFence);
     EXPECT_TRUE(static_cast<bool>(fromRaw));
+    EXPECT_EQ(kRawFence, fromRaw.toRaw());
+    EXPECT_EQ(BoxedHandle{kRawFence}, fromRaw.toBoxedHandle());
+    EXPECT_EQ(fromRaw, Boxed<VkFence>::fromBoxedHandle(fromRaw.toBoxedHandle()));
     EXPECT_EQ(reinterpret_cast<VkFence>(static_cast<uintptr_t>(kRawFence)), fromRaw.value());
     EXPECT_EQ(Boxed<VkFence>(fromRaw.value()), fromRaw);
     EXPECT_NE(empty, fromRaw);
