@@ -22,6 +22,7 @@
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
 
+#include <atomic>
 #include <memory>
 
 class EglSurface;
@@ -60,7 +61,9 @@ public:
     GLuint glRboDepth = 0;
 
 private:
-    static unsigned int s_nextSurfaceHndl;
+    // Atomic: eglCreatePbufferSurface() constructs surfaces before it takes
+    // graphicsDriverLock(), so two threads can increment it at the same time.
+    static std::atomic<unsigned int> s_nextSurfaceHndl;
 
     ESurfaceType m_type = WINDOW;
     unsigned int m_hndl = 0;
