@@ -18,7 +18,7 @@
 #include "egl_display.h"
 #include "egl_os_api.h"
 
-unsigned int EglSurface::s_nextSurfaceHndl = 0;
+std::atomic<unsigned int> EglSurface::s_nextSurfaceHndl{0};
 
 EglSurface::~EglSurface(){ 
 
