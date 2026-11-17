@@ -219,7 +219,7 @@ TEST_F(VkDecoderGlobalStateDescriptorSetPoolIdTest, BogusPoolIdReturnsNullWithou
     ASSERT_NE(VK_NULL_HANDLE, boxedSetLayout);
 
     constexpr uint64_t kBogusPoolId = 0xdeadbeef'cafebabeULL;
-    EXPECT_EQ(nullptr, sBoxedHandleManager.get(kBogusPoolId));
+    EXPECT_FALSE(sBoxedHandleManager.isLive(Boxed<VkDescriptorSet>::fromRaw(kBogusPoolId)));
 
     VkDescriptorPool unboxedPool = unbox_VkDescriptorPool(Boxed<VkDescriptorPool>(boxedPool));
     VkDescriptorSetLayout unboxedSetLayout =
@@ -235,7 +235,7 @@ TEST_F(VkDecoderGlobalStateDescriptorSetPoolIdTest, BogusPoolIdReturnsNullWithou
         /*descriptorPoolCount=*/1, &unboxedPool,
         /*descriptorSetCount=*/1, &unboxedSetLayout, &kBogusPoolId, &whichPool, &pendingAlloc,
         &writeStartIndex, /*pendingDescriptorWriteCount=*/1, &write);
-    EXPECT_EQ(nullptr, sBoxedHandleManager.get(kBogusPoolId));
+    EXPECT_FALSE(sBoxedHandleManager.isLive(Boxed<VkDescriptorSet>::fromRaw(kBogusPoolId)));
 
     mState->on_vkDestroyDescriptorSetLayout(&mPool, kInvalidSnapshotApiCallHandle, mBoxedDevice,
                                             unboxedSetLayout, nullptr);
@@ -262,9 +262,10 @@ TEST_F(VkDecoderGlobalStateDescriptorSetPoolIdTest, UnallocatedAndAllocatedPoolI
     mState->on_vkCollectDescriptorPoolIdsGOOGLE(&mPool, kInvalidSnapshotApiCallHandle, mBoxedDevice,
                                                 unboxedPool, &poolIdCount, &poolId);
     ASSERT_EQ(1u, poolIdCount);
-    BoxedHandleInfo* setHandleInfo = sBoxedHandleManager.get(poolId);
-    ASSERT_NE(nullptr, setHandleInfo);
-    EXPECT_EQ(0u, setHandleInfo->underlying);
+    const Boxed<VkDescriptorSet> boxedSet = Boxed<VkDescriptorSet>::fromRaw(poolId);
+    std::optional<UnboxedHandle> initialUnderlying = sBoxedHandleManager.getUnderlying(boxedSet);
+    ASSERT_TRUE(initialUnderlying.has_value());
+    EXPECT_EQ(0u, toRaw(*initialUnderlying));
 
     // Referencing an unallocated preallocated poolId with pendingAlloc=0 must not allocate.
     uint32_t whichPool = 0;
@@ -275,7 +276,7 @@ TEST_F(VkDecoderGlobalStateDescriptorSetPoolIdTest, UnallocatedAndAllocatedPoolI
         /*descriptorPoolCount=*/1, &unboxedPool,
         /*descriptorSetCount=*/1, &unboxedSetLayout, &poolId, &whichPool, &pendingAlloc,
         &writeStartIndex, /*pendingDescriptorWriteCount=*/0, nullptr);
-    EXPECT_EQ(0u, setHandleInfo->underlying);
+    EXPECT_EQ(UnboxedHandle{0}, sBoxedHandleManager.getUnderlying(boxedSet));
 
     // Committing with pendingAlloc=1 allocates the underlying host VkDescriptorSet.
     pendingAlloc = 1;
@@ -284,8 +285,9 @@ TEST_F(VkDecoderGlobalStateDescriptorSetPoolIdTest, UnallocatedAndAllocatedPoolI
         /*descriptorPoolCount=*/1, &unboxedPool,
         /*descriptorSetCount=*/1, &unboxedSetLayout, &poolId, &whichPool, &pendingAlloc,
         &writeStartIndex, /*pendingDescriptorWriteCount=*/0, nullptr);
-    const uint64_t allocatedUnderlying = setHandleInfo->underlying;
-    EXPECT_NE(0u, allocatedUnderlying);
+    std::optional<UnboxedHandle> allocatedUnderlying = sBoxedHandleManager.getUnderlying(boxedSet);
+    ASSERT_TRUE(allocatedUnderlying.has_value());
+    EXPECT_NE(0u, toRaw(*allocatedUnderlying));
 
     // Subsequent commits with pendingAlloc=0 reuse the already-allocated underlying handle.
     pendingAlloc = 0;
@@ -294,7 +296,7 @@ TEST_F(VkDecoderGlobalStateDescriptorSetPoolIdTest, UnallocatedAndAllocatedPoolI
         /*descriptorPoolCount=*/1, &unboxedPool,
         /*descriptorSetCount=*/1, &unboxedSetLayout, &poolId, &whichPool, &pendingAlloc,
         &writeStartIndex, /*pendingDescriptorWriteCount=*/0, nullptr);
-    EXPECT_EQ(allocatedUnderlying, setHandleInfo->underlying);
+    EXPECT_EQ(allocatedUnderlying, sBoxedHandleManager.getUnderlying(boxedSet));
 
     mState->on_vkDestroyDescriptorSetLayout(&mPool, kInvalidSnapshotApiCallHandle, mBoxedDevice,
                                             unboxedSetLayout, nullptr);
@@ -406,7 +408,7 @@ TEST(BoxedHandleManagerReverseMapTest, RemoveOldBoxedHandleKeepsReusedUnboxedMap
     EXPECT_EQ(boxedNew, unboxed_to_boxed_non_dispatchable_VkImage(underlying));
 
     delete_VkImage(boxedOld);
-    EXPECT_EQ(nullptr, sBoxedHandleManager.get(boxedOld));
+    EXPECT_FALSE(sBoxedHandleManager.isLive(boxedOld));
     // The new boxed handle must still be reachable from the (reused) unboxed handle.
     EXPECT_EQ(boxedNew, unboxed_to_boxed_non_dispatchable_VkImage(underlying));
 
@@ -465,7 +467,7 @@ TEST(BoxedHandleManagerReverseMapTest, DelayedRemoveClearsReverseMapping) {
     EXPECT_EQ(boxed, unboxed_to_boxed_non_dispatchable_VkSampler(underlying));
 
     sBoxedHandleManager.processDelayedRemoves(device);
-    EXPECT_EQ(nullptr, sBoxedHandleManager.get(boxed));
+    EXPECT_FALSE(sBoxedHandleManager.isLive(boxed));
     EXPECT_EQ(Boxed<VkSampler>{}, unboxed_to_boxed_non_dispatchable_VkSampler(underlying));
 }
 
@@ -497,11 +499,8 @@ TEST_F(VkDecoderGlobalStateProcessCleanupLeakTest, DestroyCommandPoolDeletesBoxe
                                                   mBoxedDevice, &cmdAllocInfo, &boxedCmdBuf));
     ASSERT_NE(VK_NULL_HANDLE, boxedCmdBuf);
 
-    BoxedHandleInfo* cmdBufBoxedInfo =
-        sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedCmdBuf));
-    ASSERT_NE(nullptr, cmdBufBoxedInfo);
-    cmdBufBoxedInfo->readStream =
-        std::make_unique<VulkanMemReadingStream>(nullptr, gfxstream::host::FeatureSet{});
+    ASSERT_NE(nullptr, sBoxedHandleManager.getOrCreateReadStream(
+                           Boxed<VkCommandBuffer>(boxedCmdBuf), gfxstream::host::FeatureSet{}));
     std::shared_ptr<OrderMaintenanceInfo> cmdBufOrder =
         ordmaint_VkCommandBuffer(Boxed<VkCommandBuffer>(boxedCmdBuf));
     ASSERT_NE(nullptr, cmdBufOrder);
@@ -511,7 +510,7 @@ TEST_F(VkDecoderGlobalStateProcessCleanupLeakTest, DestroyCommandPoolDeletesBoxe
                                     unboxedPool, nullptr);
     delete_VkCommandPool(Boxed<VkCommandPool>(boxedPool));
 
-    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedCmdBuf)));
+    EXPECT_FALSE(sBoxedHandleManager.isLive(Boxed<VkCommandBuffer>(boxedCmdBuf)));
     EXPECT_EQ(1, cmdBufOrder.use_count());
     EXPECT_EQ(baselineHandles, sBoxedHandleManager.getHandlesCount());
 }
@@ -542,11 +541,8 @@ TEST_F(VkDecoderGlobalStateProcessCleanupLeakTest, DeviceCleanupDeletesAllExtrac
     ASSERT_EQ(VK_SUCCESS,
               mState->on_vkAllocateCommandBuffers(&mPool, kInvalidSnapshotApiCallHandle,
                                                   mBoxedDevice, &cmdAllocInfo, &boxedCmdBuf));
-    BoxedHandleInfo* cmdBufBoxedInfo =
-        sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedCmdBuf));
-    ASSERT_NE(nullptr, cmdBufBoxedInfo);
-    cmdBufBoxedInfo->readStream =
-        std::make_unique<VulkanMemReadingStream>(nullptr, gfxstream::host::FeatureSet{});
+    ASSERT_NE(nullptr, sBoxedHandleManager.getOrCreateReadStream(
+                           Boxed<VkCommandBuffer>(boxedCmdBuf), gfxstream::host::FeatureSet{}));
     std::shared_ptr<OrderMaintenanceInfo> cmdBufOrder =
         ordmaint_VkCommandBuffer(Boxed<VkCommandBuffer>(boxedCmdBuf));
     ASSERT_NE(nullptr, cmdBufOrder);
@@ -696,21 +692,21 @@ TEST_F(VkDecoderGlobalStateProcessCleanupLeakTest, DeviceCleanupDeletesAllExtrac
     mState->on_vkDestroyDevice(&mPool, kInvalidSnapshotApiCallHandle, mBoxedDevice, nullptr);
     mBoxedDevice = VK_NULL_HANDLE;
 
-    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(destroyedBoxedDevice)));
-    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedCmdPool)));
-    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedCmdBuf)));
-    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedBuffer)));
-    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedMem)));
-    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedDescPool)));
-    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedSetLayout)));
-    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedTemplate)));
-    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedYcbcr)));
-    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedShader)));
-    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedPipeline)));
-    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedCache)));
-    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedLayout)));
-    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedFb)));
-    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedRp)));
+    EXPECT_FALSE(sBoxedHandleManager.isLive(Boxed<VkDevice>(destroyedBoxedDevice)));
+    EXPECT_FALSE(sBoxedHandleManager.isLive(Boxed<VkCommandPool>(boxedCmdPool)));
+    EXPECT_FALSE(sBoxedHandleManager.isLive(Boxed<VkCommandBuffer>(boxedCmdBuf)));
+    EXPECT_FALSE(sBoxedHandleManager.isLive(Boxed<VkBuffer>(boxedBuffer)));
+    EXPECT_FALSE(sBoxedHandleManager.isLive(Boxed<VkDeviceMemory>(boxedMem)));
+    EXPECT_FALSE(sBoxedHandleManager.isLive(Boxed<VkDescriptorPool>(boxedDescPool)));
+    EXPECT_FALSE(sBoxedHandleManager.isLive(Boxed<VkDescriptorSetLayout>(boxedSetLayout)));
+    EXPECT_FALSE(sBoxedHandleManager.isLive(Boxed<VkDescriptorUpdateTemplate>(boxedTemplate)));
+    EXPECT_FALSE(sBoxedHandleManager.isLive(Boxed<VkSamplerYcbcrConversion>(boxedYcbcr)));
+    EXPECT_FALSE(sBoxedHandleManager.isLive(Boxed<VkShaderModule>(boxedShader)));
+    EXPECT_FALSE(sBoxedHandleManager.isLive(Boxed<VkPipeline>(boxedPipeline)));
+    EXPECT_FALSE(sBoxedHandleManager.isLive(Boxed<VkPipelineCache>(boxedCache)));
+    EXPECT_FALSE(sBoxedHandleManager.isLive(Boxed<VkPipelineLayout>(boxedLayout)));
+    EXPECT_FALSE(sBoxedHandleManager.isLive(Boxed<VkFramebuffer>(boxedFb)));
+    EXPECT_FALSE(sBoxedHandleManager.isLive(Boxed<VkRenderPass>(boxedRp)));
     EXPECT_EQ(1, cmdBufOrder.use_count());
     EXPECT_EQ(baselineBeforeDevice, sBoxedHandleManager.getHandlesCount());
 }
@@ -777,10 +773,9 @@ TEST_F(VkDecoderGlobalStateProcessCleanupLeakTest,
     mState->on_vkDestroyInstance(&mPool, kInvalidSnapshotApiCallHandle, boxedInstance, nullptr);
 
     for (VkPhysicalDevice boxedPhysicalDevice : firstPass) {
-        EXPECT_EQ(nullptr,
-                  sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedPhysicalDevice)));
+        EXPECT_FALSE(sBoxedHandleManager.isLive(Boxed<VkPhysicalDevice>(boxedPhysicalDevice)));
     }
-    EXPECT_EQ(nullptr, sBoxedHandleManager.get(reinterpret_cast<uint64_t>(boxedInstance)));
+    EXPECT_FALSE(sBoxedHandleManager.isLive(Boxed<VkInstance>(boxedInstance)));
     EXPECT_EQ(baselineHandles, sBoxedHandleManager.getHandlesCount());
 }
 

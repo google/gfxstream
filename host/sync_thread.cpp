@@ -281,7 +281,7 @@ void SyncThread::doSyncWait(EmulatedEglFenceSync* fenceSync, std::function<void(
 void SyncThread::triggerWaitVk(vk::Boxed<VkFence> vkFence, uint64_t timeline) {
     auto fence = vk::VkDecoderGlobalState::get()->acquireSyncFdFence(vkFence);
     std::stringstream ss;
-    ss << "triggerWaitVk vkFence=0x" << std::hex << reinterpret_cast<uintptr_t>(vkFence.value())
+    ss << "triggerWaitVk vkFence=0x" << std::hex << vkFence.toRaw()
        << " timeline=0x" << std::hex << timeline;
     sendAsync(
         [fence, timeline](WorkerId) {
@@ -297,8 +297,7 @@ void SyncThread::triggerWaitVkWithCompletionCallback(vk::Boxed<VkFence> vkFence,
                                                      FenceCompletionCallback cb) {
     auto fence = vk::VkDecoderGlobalState::get()->acquireSyncFdFence(vkFence);
     std::stringstream ss;
-    ss << "triggerWaitVkWithCompletionCallback vkFence=0x" << std::hex
-       << reinterpret_cast<uintptr_t>(vkFence.value());
+    ss << "triggerWaitVkWithCompletionCallback vkFence=0x" << std::hex << vkFence.toRaw();
     sendAsync([fence, cb = std::move(cb)](WorkerId) { doSyncWaitVk(fence, std::move(cb)); },
               ss.str());
 }
@@ -306,8 +305,7 @@ void SyncThread::triggerWaitVkWithCompletionCallback(vk::Boxed<VkFence> vkFence,
 void SyncThread::triggerWaitVkQsriWithCompletionCallback(vk::Boxed<VkImage> vkImage,
                                                          FenceCompletionCallback cb) {
     std::stringstream ss;
-    ss << "triggerWaitVkQsriWithCompletionCallback vkImage=0x"
-       << reinterpret_cast<uintptr_t>(vkImage.value());
+    ss << "triggerWaitVkQsriWithCompletionCallback vkImage=0x" << std::hex << vkImage.toRaw();
     sendAsync(
         [vkImage, cb = std::move(cb)](WorkerId) {
             auto decoder = vk::VkDecoderGlobalState::get();
@@ -322,8 +320,8 @@ void SyncThread::triggerWaitVkQsriWithCompletionCallback(vk::Boxed<VkImage> vkIm
 }
 
 void SyncThread::triggerWaitVkQsri(vk::Boxed<VkImage> vkImage, uint64_t timeline) {
-     std::stringstream ss;
-    ss << "triggerWaitVkQsri vkImage=0x" << std::hex << vkImage.value()
+    std::stringstream ss;
+    ss << "triggerWaitVkQsri vkImage=0x" << std::hex << vkImage.toRaw()
        << " timeline=0x" << std::hex << timeline;
     sendAsync(
         [vkImage, timeline](WorkerId) {

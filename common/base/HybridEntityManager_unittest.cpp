@@ -86,10 +86,37 @@ TEST(HybridEntityManager, WithLocked) {
     EXPECT_EQ(30, *m.get_const(linearHandles[3]));
     EXPECT_EQ(200, *m.get_const(mapHandle));
 
+    auto readConstValue = [](const int* data) { return data ? *data : -1; };
+    EXPECT_EQ(30, m.withSharedLocked(linearHandles[3], readConstValue));
+    EXPECT_EQ(200, m.withSharedLocked(mapHandle, readConstValue));
+
     m.remove(linearHandles[3]);
     m.remove(mapHandle);
     EXPECT_EQ(-1, m.withLocked(linearHandles[3], readValue));
     EXPECT_EQ(-1, m.withLocked(mapHandle, readValue));
+    EXPECT_EQ(-1, m.withSharedLocked(linearHandles[3], readConstValue));
+    EXPECT_EQ(-1, m.withSharedLocked(mapHandle, readConstValue));
+}
+
+TEST(HybridEntityManager, RejectsMismatchedHandleType) {
+    TestHCM m;
+    const uint64_t handle = m.add(42, /*type=*/7);
+    ASSERT_NE(nullptr, m.get_const(handle));
+    EXPECT_EQ(42, *m.get_const(handle));
+    EXPECT_EQ(7u, TestHCM::EM::getHandleType(handle));
+
+    const uint64_t wrongTypeHandle = TestHCM::EM::withType(handle, /*newType=*/8);
+    EXPECT_EQ(nullptr, m.get(wrongTypeHandle));
+    EXPECT_EQ(nullptr, m.get_const(wrongTypeHandle));
+    EXPECT_EQ(-1, m.withLocked(wrongTypeHandle, [](int* data) { return data ? *data : -1; }));
+
+    // Attempting to remove with a mismatched type tag must not remove the live entry.
+    m.remove(wrongTypeHandle);
+    ASSERT_NE(nullptr, m.get_const(handle));
+    EXPECT_EQ(42, *m.get_const(handle));
+
+    m.remove(handle);
+    EXPECT_EQ(nullptr, m.get_const(handle));
 }
 
 }
