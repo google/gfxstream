@@ -1113,7 +1113,25 @@ public:
 
         WinSurface* winpb = WinSurface::from(pb);
 
-        if (!winpb->releaseDC()) return false;
+        if (!winpb->releaseDC()) {
+            // The surface is unused either way. Returning here would keep it in
+            // mLivePbufs for good: it is never reused or destroyed, and every
+            // later refill (sized from the live count) grows the pool, one
+            // driver pbuffer (a hidden window on NVIDIA) each. Reuse re-gets its
+            // DC in refreshDC(); a pbuffer that fails that goes to mDeletePbufs.
+            // Failures recur with surface churn (about 10 per UI test flow seen in
+            // the emulator): log the first 8, then at powers of two. sGlobalLock
+            // guards the counter.
+            const DWORD error = GetLastError();
+            static uint64_t sReleaseFailures = 0;
+            ++sReleaseFailures;
+            if (sReleaseFailures <= 8 || (sReleaseFailures & (sReleaseFailures - 1)) == 0) {
+                GFXSTREAM_WARNING("wglReleasePbufferDC failed for pbuffer %p (error 0x%lx, %llu "
+                                  "failures so far)",
+                                  winpb->getPbuffer(), error,
+                                  (unsigned long long)sReleaseFailures);
+            }
+        }
 
         const EglOS::PixelFormat* pixelFormat =
             winpb->getPixelFormat();
