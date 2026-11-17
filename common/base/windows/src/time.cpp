@@ -12,8 +12,10 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include <Windows.h>
+// sys/time.h includes WinSock2.h. It must come before Windows.h, which
+// otherwise includes the older winsock.h and the two conflict.
 #include <sys/time.h>
+#include <Windows.h>
 #include <time.h>
 
 #include <cassert>
