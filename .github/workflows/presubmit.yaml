@@ -247,6 +247,11 @@ jobs:
     with:
       runner: macos-26
 
+  build_cmake_windows_x86_64:
+    uses: ./.github/workflows/presubmit_cmake.yaml
+    with:
+      runner: windows-latest
+
   build_meson_linux_x86_64:
     uses: ./.github/workflows/presubmit_meson.yaml
     with:
@@ -277,6 +282,7 @@ jobs:
       - build_bazel_macos_arm64
       - build_cmake_linux_x86_64
       - build_cmake_macos_arm64
+      - build_cmake_windows_x86_64
       - build_meson_linux_x86_64
       - build_meson_macos_arm64
       - build_meson_windows_x86_64

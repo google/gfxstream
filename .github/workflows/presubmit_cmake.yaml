@@ -36,13 +36,33 @@ jobs:
       if: runner.os == 'macOS'
       run: brew install cmake ninja
 
-    - name: Configure Build
+    - name: Configure Build (Linux / macOS)
+      if: runner.os == 'Linux' || runner.os == 'macOS'
       run: |
         mkdir build && \
         cd build && \
         cmake .. -G Ninja
 
-    - name: Build
+    - name: Build (Linux / macOS)
+      if: runner.os == 'Linux' || runner.os == 'macOS'
       run: |
         cd build && \
         ninja
+
+    - name: Configure Build (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        cmake `
+          -B build `
+          -A x64 `
+          -T ClangCL
+
+    - name: Build (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        cmake `
+          --build build `
+          --config Release `
+          --parallel
