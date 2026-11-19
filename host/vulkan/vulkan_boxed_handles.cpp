@@ -418,11 +418,6 @@ VkObjectT try_unbox_VkType(Boxed<VkObjectT> boxed) {
         }
     }
 
-    if (unboxed == VK_NULL_HANDLE) {
-        GFXSTREAM_WARNING("Failed to try unbox %s %p", BoxedHandleTraits<VkObjectT>::kTypeName,
-                          boxed.value());
-    }
-
     return unboxed;
 }
 

@@ -275,7 +275,7 @@ TEST(VirtioGpuResourceSecurityTest, RejectsUndersizedLinearBackingOnBufferAndCol
     EXPECT_EQ(cbResOpt->TransferWrite(0, &tinyBox, std::nullopt), -EINVAL);
 }
 
-class StubSnapshotRenderer : public gfxstream::Renderer {
+class StubSnapshotRenderer final : public gfxstream::Renderer {
   public:
     bool allowPauseAll = true;
     bool allowSave = true;

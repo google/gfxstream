@@ -1736,6 +1736,7 @@ WorkerProcessingResult FrameBuffer::Impl::sendReadbackWorkerCmd(const Readback& 
         m_readbackWorker->deinitReadbackForDisplay(readback.displayId);
         return WorkerProcessingResult::Continue;
     case ReadbackCmd::Exit:
+        m_readbackWorker->deinit();
         return WorkerProcessingResult::Stop;
     }
     return WorkerProcessingResult::Stop;

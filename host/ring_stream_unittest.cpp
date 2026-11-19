@@ -1620,7 +1620,7 @@ TEST_F(AddressSpaceDeviceSnapshotTest, LoadAndPreSavedSerializeConcurrentCreateA
     const uint32_t newHandle = 999u;
     std::atomic<bool> createFinished{false};
     ScopedThread createThread(
-        std::thread([ops, newHandle, &memConcurrent, &createFinished] {
+        std::thread([ops, &memConcurrent, &createFinished] {
             AddressSpaceCreateInfo ci = {};
             ci.handle = newHandle;
             ci.type = ADDRESS_SPACE_CONTEXT_TYPE_VIRTIO_GPU_GRAPHICS;

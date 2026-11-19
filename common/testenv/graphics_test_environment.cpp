@@ -167,9 +167,16 @@ bool SetupGraphicsTestEnvironment() {
 #if defined(_WIN32)
     AddWindowsDllSearchDir(driverDirectory);
 #else
-    const std::string currentLdLibraryPath = gfxstream::base::getEnvironmentVariable("LD_LIBRARY_PATH");
-    const std::string updatedLdLibraryPath = driverDirectory.string() + ":" + currentLdLibraryPath;
-    gfxstream::base::setEnvironmentVariable("LD_LIBRARY_PATH", updatedLdLibraryPath);
+    const std::string driverDirStr = driverDirectory.string();
+    const std::string currentLdLibraryPath =
+        gfxstream::base::getEnvironmentVariable("LD_LIBRARY_PATH");
+    if (currentLdLibraryPath.empty()) {
+        gfxstream::base::setEnvironmentVariable("LD_LIBRARY_PATH", driverDirStr);
+    } else if (currentLdLibraryPath != driverDirStr &&
+               currentLdLibraryPath.compare(0, driverDirStr.size() + 1, driverDirStr + ":") != 0) {
+        gfxstream::base::setEnvironmentVariable("LD_LIBRARY_PATH",
+                                                driverDirStr + ":" + currentLdLibraryPath);
+    }
 #endif
     gfxstream::base::setEnvironmentVariable("ANDROID_EMU_HEADLESS", "1");
 #if defined(GFXSTREAM_TESTING_USE_VULKAN_LAVAPIPE) || \

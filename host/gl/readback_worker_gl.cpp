@@ -43,10 +43,20 @@ ReadbackWorkerGl::ReadbackWorkerGl(std::unique_ptr<DisplaySurfaceGl> surface,
 void ReadbackWorkerGl::init() {
     // Use bindContext() instead of setupContext(): setupContext() is for temporary
     // scoped binds that must be paired with teardownContext(), whereas this context
-    // stays permanently bound to the readback thread.
+    // stays permanently bound to the readback thread until deinit().
     if (!mFlushSurface->bindContext()) {
         GFXSTREAM_ERROR("Failed to make ReadbackWorkerGl flush surface current.");
+        return;
     }
+    mContextBound = true;
+}
+
+void ReadbackWorkerGl::deinit() {
+    if (!mContextBound) {
+        return;
+    }
+    mFlushSurface->unbindContext();
+    mContextBound = false;
 }
 
 ReadbackWorkerGl::~ReadbackWorkerGl() {

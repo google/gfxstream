@@ -51,6 +51,9 @@ class ReadbackWorkerGl : public ReadbackWorker {
     // will run getPixels)
     void init() override;
 
+    // GL teardown (must be called on the readback thread before it exits)
+    void deinit() override;
+
     // doNextReadback(): Call this from the emugl FrameBuffer::post thread
     // or similar rendering thread.
     // This will trigger an async glReadPixels of the current framebuffer.
@@ -104,6 +107,7 @@ class ReadbackWorkerGl : public ReadbackWorker {
 
     std::unique_ptr<DisplaySurfaceGl> mSurface;
     std::unique_ptr<DisplaySurfaceGl> mFlushSurface;
+    bool mContextBound = false;
 
     std::map<uint32_t, TrackedDisplay> mTrackedDisplays;
 

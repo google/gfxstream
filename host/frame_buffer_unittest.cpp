@@ -1347,7 +1347,7 @@ TEST_F(RenderThreadDeadlockTest, AsgRenderThreadCancelPausePreSnapshotAndAbortRe
             thread->start();
             return static_cast<ConsumerHandle>(thread);
         },
-        .destroy = [fb, contextId](ConsumerHandle consumer) {
+        .destroy = [fb](ConsumerHandle consumer) {
             auto* thread = static_cast<RenderThread*>(consumer);
             fb->signalGuestProcessDead(contextId);
             thread->waitForFinished();

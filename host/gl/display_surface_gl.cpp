@@ -260,6 +260,12 @@ bool DisplaySurfaceGl::bindContext() const {
     return true;
 }
 
+void DisplaySurfaceGl::unbindContext() const {
+    if (mDisplay != EGL_NO_DISPLAY) {
+        s_egl.eglMakeCurrent(mDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    }
+}
+
 DisplaySurfaceGl::DisplaySurfaceGl(EGLDisplay display,
                                    EGLSurface surface,
                                    EGLContext context)
