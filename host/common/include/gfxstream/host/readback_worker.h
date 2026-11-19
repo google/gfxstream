@@ -30,6 +30,8 @@ class ReadbackWorker {
 
     virtual void init() = 0;
 
+    virtual void deinit() {}
+
     // Enables readback of the given display.
     virtual void initReadbackForDisplay(uint32_t displayId, uint32_t w, uint32_t h) = 0;
 

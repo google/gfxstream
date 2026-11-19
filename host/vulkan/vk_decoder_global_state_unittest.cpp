@@ -1329,6 +1329,268 @@ TEST_F(VkDecoderGlobalStateSyncFdFenceTest, DeviceDestroyCancelsStepPollingDrive
     EXPECT_THAT(destroyedDevices(), ::testing::ElementsAre(mUnboxedDev));
 }
 
+TEST_F(VkDecoderGlobalStateSyncFdFenceTest, AcquireSyncFdFenceRejectsSemaphoreHandle) {
+    Boxed<VkFence> boxedFence = createFence(/*exportable=*/true, /*signaled=*/true);
+    const VkFence exportedFence = unbox_VkFence(boxedFence);
+
+    // Positive control: the exportable fence is registered in mSyncFdFencePins and resolves.
+    const auto validSyncFdFence = acquireSyncFdFence(boxedFence);
+    ASSERT_EQ(exportedFence, validSyncFdFence.fence);
+    EXPECT_EQ(VK_SUCCESS, waitWithDeadline(validSyncFdFence, kWaitTimeoutNs));
+
+    // Mint a VkSemaphore sharing the exact same numeric host handle value as the still-pinned
+    // VkFence (as can happen on index-based Vulkan drivers).
+    Boxed<VkSemaphore> boxedSemaphore = new_boxed(reinterpret_cast<VkSemaphore>(exportedFence));
+    EXPECT_EQ(boxedFence, unboxed_to_boxed(exportedFence));
+    EXPECT_EQ(boxedSemaphore, unboxed_to_boxed(reinterpret_cast<VkSemaphore>(exportedFence)));
+
+    // Passing the semaphore's raw boxed bits down the fence export path must be rejected by its
+    // runtime type tag without acquiring a pin or queuing a wait.
+    const auto wrongTypeSyncFdFence =
+        acquireSyncFdFence(Boxed<VkFence>::fromRaw(boxedSemaphore.toRaw()));
+    EXPECT_EQ(VK_NULL_HANDLE, wrongTypeSyncFdFence.fence);
+
+    delete_boxed(boxedSemaphore);
+    destroyFence(boxedFence);
+}
+
+TEST(BoxedHandleTypeTagValidationTest, RejectsCrossTypeLookupUpdateAndDelete) {
+    VkDevice device = reinterpret_cast<VkDevice>(0x1234'0000ULL);
+    VkBuffer unboxedBuffer = reinterpret_cast<VkBuffer>(0x4444'1111ULL);
+    Boxed<VkBuffer> boxedBuffer = new_boxed(unboxedBuffer);
+    ASSERT_TRUE(static_cast<bool>(boxedBuffer));
+
+    // Reinterpret a live VkBuffer's raw handle bits as VkImage (simulating a cross-type handle
+    // arriving on the wire via fromRaw).
+    Boxed<VkImage> wrongTypeImage = Boxed<VkImage>::fromRaw(boxedBuffer.toRaw());
+    EXPECT_FALSE(sBoxedHandleManager.isLive(wrongTypeImage));
+    EXPECT_EQ(VK_NULL_HANDLE, try_unbox(wrongTypeImage));
+    EXPECT_EQ(Boxed<VkImage>(), unboxed_to_boxed(reinterpret_cast<VkImage>(unboxedBuffer)));
+
+    // Cross-type update, delete, and delayed delete must not corrupt or remove the live VkBuffer.
+    set_boxed(wrongTypeImage, reinterpret_cast<VkImage>(0x9999'1111ULL));
+    EXPECT_EQ(unboxedBuffer, unbox(boxedBuffer));
+
+    delete_boxed(wrongTypeImage);
+    EXPECT_EQ(unboxedBuffer, unbox(boxedBuffer));
+
+    bool delayedCbCalled = false;
+    delayed_delete_boxed(wrongTypeImage, device, [&]() { delayedCbCalled = true; });
+    sBoxedHandleManager.processDelayedRemoves(device);
+    EXPECT_FALSE(delayedCbCalled);
+    EXPECT_EQ(unboxedBuffer, unbox(boxedBuffer));
+
+    // Dispatchable cross-type lookup, dispatch, and ordmaint must also be rejected.
+    VulkanDispatch cmdVk = {};
+    VkCommandBuffer unboxedCmd = reinterpret_cast<VkCommandBuffer>(0x4444'2222ULL);
+    Boxed<VkCommandBuffer> boxedCmd = new_boxed(unboxedCmd, &cmdVk);
+    Boxed<VkQueue> wrongTypeQueue = Boxed<VkQueue>::fromRaw(boxedCmd.toRaw());
+    EXPECT_FALSE(sBoxedHandleManager.isLive(wrongTypeQueue));
+    EXPECT_EQ(nullptr, sBoxedHandleManager.getDispatch(wrongTypeQueue));
+    EXPECT_EQ(VK_NULL_HANDLE, try_unbox(wrongTypeQueue));
+    EXPECT_EQ(nullptr, ordmaint(wrongTypeQueue));
+    delete_boxed(wrongTypeQueue);
+    EXPECT_EQ(unboxedCmd, unbox(boxedCmd));
+    EXPECT_EQ(&cmdVk, dispatch(boxedCmd));
+    EXPECT_NE(nullptr, ordmaint(boxedCmd));
+
+    delete_boxed(boxedCmd);
+    delete_boxed(boxedBuffer);
+}
+
+TEST(BoxedHandleTypeTagValidationTest, RejectsForgedTypeTagOnLiveSlot) {
+    VkBuffer unboxedBuffer = reinterpret_cast<VkBuffer>(0x4444'3333ULL);
+    Boxed<VkBuffer> boxedBuffer = new_boxed(unboxedBuffer);
+    ASSERT_TRUE(static_cast<bool>(boxedBuffer));
+
+    // Forge a handle with Tag_VkImage in the upper 16 bits pointing at boxedBuffer's live slot.
+    const uint64_t forgedRaw =
+        BoxedHandleManager::Store::EM::withType(boxedBuffer.toRaw(), Tag_VkImage);
+    Boxed<VkImage> forgedImage = Boxed<VkImage>::fromRaw(forgedRaw);
+
+    EXPECT_FALSE(sBoxedHandleManager.isLive(forgedImage));
+    EXPECT_EQ(VK_NULL_HANDLE, try_unbox(forgedImage));
+
+    set_boxed(forgedImage, reinterpret_cast<VkImage>(0x9999'3333ULL));
+    EXPECT_EQ(unboxedBuffer, unbox(boxedBuffer));
+
+    VkDevice device = reinterpret_cast<VkDevice>(0x1234'3333ULL);
+    bool forgedLinearDelayedCalled = false;
+    delayed_delete_boxed(forgedImage, device, [&]() { forgedLinearDelayedCalled = true; });
+    sBoxedHandleManager.processDelayedRemoves(device);
+    EXPECT_FALSE(forgedLinearDelayedCalled);
+
+    delete_boxed(forgedImage);
+    EXPECT_EQ(unboxedBuffer, unbox(boxedBuffer));
+
+    // If a live handle is queued for delayed delete and then deleted directly before
+    // processDelayedRemoves runs, processDelayedRemoves must re-check liveness and skip the
+    // callback.
+    bool alreadyDeletedDelayedCalled = false;
+    delayed_delete_boxed(boxedBuffer, device, [&]() { alreadyDeletedDelayedCalled = true; });
+    delete_boxed(boxedBuffer);
+    sBoxedHandleManager.processDelayedRemoves(device);
+    EXPECT_FALSE(alreadyDeletedDelayedCalled);
+
+    // Dead handle passed to delayed_delete_boxed must also not run the callback.
+    bool deadDelayedCalled = false;
+    delayed_delete_boxed(boxedBuffer, device, [&]() { deadDelayedCalled = true; });
+    sBoxedHandleManager.processDelayedRemoves(device);
+    EXPECT_FALSE(deadDelayedCalled);
+
+    // Overflow-map slot (index >= 16000) where HybridEntityManager::mMap keys only on index_u64,
+    // exercising BoxedHandleInfo::tag checks directly.
+    const uint64_t overflowBufferRaw =
+        BoxedHandleManager::Store::EM::makeHandle(16000, /*generation=*/1, Tag_VkBuffer);
+    sBoxedHandleManager.replayHandles({overflowBufferRaw});
+    VkBuffer overflowUnboxedBuffer = reinterpret_cast<VkBuffer>(0x4444'3334ULL);
+    Boxed<VkBuffer> overflowBoxedBuffer = new_boxed(overflowUnboxedBuffer);
+    ASSERT_EQ(overflowBufferRaw, overflowBoxedBuffer.toRaw());
+
+    const uint64_t forgedOverflowRaw =
+        BoxedHandleManager::Store::EM::withType(overflowBoxedBuffer.toRaw(), Tag_VkImage);
+    Boxed<VkImage> forgedOverflowImage = Boxed<VkImage>::fromRaw(forgedOverflowRaw);
+    const Boxed<VkQueue> forgedOverflowQueue = Boxed<VkQueue>::fromRaw(
+        BoxedHandleManager::Store::EM::withType(overflowBoxedBuffer.toRaw(), Tag_VkQueue));
+
+    EXPECT_FALSE(sBoxedHandleManager.isLive(forgedOverflowImage));
+    EXPECT_EQ(VK_NULL_HANDLE, try_unbox(forgedOverflowImage));
+    EXPECT_EQ(nullptr, sBoxedHandleManager.getDispatch(forgedOverflowQueue));
+    EXPECT_EQ(nullptr, ordmaint(forgedOverflowQueue));
+
+    set_boxed(forgedOverflowImage, reinterpret_cast<VkImage>(0x9999'3334ULL));
+    EXPECT_EQ(overflowUnboxedBuffer, unbox(overflowBoxedBuffer));
+
+    bool forgedOverflowDelayedCalled = false;
+    delayed_delete_boxed(forgedOverflowImage, device,
+                         [&]() { forgedOverflowDelayedCalled = true; });
+    sBoxedHandleManager.processDelayedRemoves(device);
+    EXPECT_FALSE(forgedOverflowDelayedCalled);
+
+    delete_boxed(forgedOverflowImage);
+    EXPECT_EQ(overflowUnboxedBuffer, unbox(overflowBoxedBuffer));
+
+    delete_boxed(overflowBoxedBuffer);
+    EXPECT_FALSE(sBoxedHandleManager.isLive(overflowBoxedBuffer));
+    EXPECT_EQ(VK_NULL_HANDLE, try_unbox(overflowBoxedBuffer));
+}
+
+TEST(BoxedHandleTypeTagValidationTest, ConcurrentLookupUpdateAndDeleteLinearAndOverflow) {
+    for (bool useOverflowSlot : {false, true}) {
+        constexpr int kIterations = 2000;
+        constexpr int kReaderCount = 2;
+        std::atomic<bool> start{false};
+        std::atomic<bool> done{false};
+        std::atomic<uint64_t> publishedRaw{0};
+
+        std::vector<std::thread> readers;
+        readers.reserve(kReaderCount);
+        for (int r = 0; r < kReaderCount; ++r) {
+            readers.emplace_back([&]() {
+                while (!start.load(std::memory_order_acquire)) {
+                }
+                while (!done.load(std::memory_order_acquire)) {
+                    const uint64_t raw = publishedRaw.load(std::memory_order_acquire);
+                    if (!raw) continue;
+                    const Boxed<VkFence> candidate = Boxed<VkFence>::fromRaw(raw);
+                    const std::optional<UnboxedHandle> underlying =
+                        sBoxedHandleManager.getUnderlying(candidate);
+                    if (underlying.has_value()) {
+                        const uint64_t val = toRaw(*underlying);
+                        EXPECT_TRUE(val == 0x5555'1111ULL || val == 0x5555'2222ULL);
+                    }
+                    const Boxed<VkImage> forgedImage = Boxed<VkImage>::fromRaw(
+                        BoxedHandleManager::Store::EM::withType(raw, Tag_VkImage));
+                    EXPECT_FALSE(sBoxedHandleManager.isLive(forgedImage));
+                    const Boxed<VkQueue> forgedQueue = Boxed<VkQueue>::fromRaw(
+                        BoxedHandleManager::Store::EM::withType(raw, Tag_VkQueue));
+                    EXPECT_EQ(nullptr, sBoxedHandleManager.getDispatch(forgedQueue));
+                    EXPECT_EQ(nullptr, sBoxedHandleManager.getOrderMaintenanceInfo(forgedQueue));
+                }
+            });
+        }
+
+        start.store(true, std::memory_order_release);
+        for (int i = 0; i < kIterations; ++i) {
+            if (useOverflowSlot) {
+                const uint64_t replayRaw = BoxedHandleManager::Store::EM::makeHandle(
+                    16000 + (i % 4), /*generation=*/1, Tag_VkFence);
+                sBoxedHandleManager.replayHandles({replayRaw});
+            }
+            Boxed<VkFence> boxed = new_boxed(reinterpret_cast<VkFence>(0x5555'1111ULL));
+            publishedRaw.store(boxed.toRaw(), std::memory_order_release);
+            set_boxed(boxed, reinterpret_cast<VkFence>(0x5555'2222ULL));
+            delete_boxed(boxed);
+        }
+
+        done.store(true, std::memory_order_release);
+        for (auto& reader : readers) {
+            reader.join();
+        }
+    }
+}
+
+TEST(BoxedHandleTypeTagValidationTest, ReverseMapSeparatesSameNumericHostHandlesByTypeTag) {
+    constexpr uint64_t kSharedHostHandleA = 0x4444'4444ULL;
+    constexpr uint64_t kSharedHostHandleB = 0x4444'4445ULL;
+
+    VkFence fenceA = reinterpret_cast<VkFence>(kSharedHostHandleA);
+    VkFence fenceB = reinterpret_cast<VkFence>(kSharedHostHandleB);
+    VkSemaphore semaphoreA = reinterpret_cast<VkSemaphore>(kSharedHostHandleA);
+
+    Boxed<VkFence> boxedFence = new_boxed(fenceA);
+    Boxed<VkSemaphore> boxedSemaphore = new_boxed(semaphoreA);
+
+    EXPECT_EQ(boxedFence, unboxed_to_boxed(fenceA));
+    EXPECT_EQ(boxedSemaphore, unboxed_to_boxed(semaphoreA));
+
+    // Updating or deleting one type must not disturb the other type's reverse mapping.
+    set_boxed(boxedFence, fenceB);
+    EXPECT_EQ(Boxed<VkFence>(), unboxed_to_boxed(fenceA));
+    EXPECT_EQ(boxedFence, unboxed_to_boxed(fenceB));
+    EXPECT_EQ(boxedSemaphore, unboxed_to_boxed(semaphoreA));
+
+    set_boxed(boxedFence, fenceA);
+    delete_boxed(boxedSemaphore);
+    EXPECT_EQ(Boxed<VkSemaphore>(), unboxed_to_boxed(semaphoreA));
+    EXPECT_EQ(boxedFence, unboxed_to_boxed(fenceA));
+
+    delete_boxed(boxedFence);
+    EXPECT_EQ(Boxed<VkFence>(), unboxed_to_boxed(fenceA));
+}
+
+TEST(BoxedHandleTypeTagValidationTest, GenericOverloadedApiRoundTrip) {
+    VkDevice unboxedDevice = reinterpret_cast<VkDevice>(0x4444'aaaaULL);
+    VulkanDispatch devVk = {};
+    Boxed<VkDevice> boxedDevice = new_boxed(unboxedDevice, &devVk);
+    EXPECT_EQ(unboxedDevice, unbox(boxedDevice));
+    EXPECT_EQ(unboxedDevice, try_unbox(boxedDevice));
+    EXPECT_EQ(&devVk, dispatch(boxedDevice));
+    EXPECT_NE(nullptr, ordmaint(boxedDevice));
+    EXPECT_EQ(boxedDevice, unboxed_to_boxed(unboxedDevice));
+
+    VkBuffer unboxedBufferA = reinterpret_cast<VkBuffer>(0x4444'bbbbULL);
+    VkBuffer unboxedBufferB = reinterpret_cast<VkBuffer>(0x4444'ccccULL);
+    Boxed<VkBuffer> boxedBuffer = new_boxed(unboxedBufferA);
+    EXPECT_EQ(unboxedBufferA, unbox(boxedBuffer));
+    EXPECT_EQ(boxedBuffer, unboxed_to_boxed(unboxedBufferA));
+
+    set_boxed(boxedBuffer, unboxedBufferB);
+    EXPECT_EQ(unboxedBufferB, unbox(boxedBuffer));
+    EXPECT_EQ(Boxed<VkBuffer>(), unboxed_to_boxed(unboxedBufferA));
+    EXPECT_EQ(boxedBuffer, unboxed_to_boxed(unboxedBufferB));
+
+    bool delayedCalled = false;
+    delayed_delete_boxed(boxedBuffer, unboxedDevice, [&]() { delayedCalled = true; });
+    EXPECT_FALSE(delayedCalled);
+    sBoxedHandleManager.processDelayedRemoves(unboxedDevice);
+    EXPECT_TRUE(delayedCalled);
+    EXPECT_EQ(VK_NULL_HANDLE, try_unbox(boxedBuffer));
+
+    delete_boxed(boxedDevice);
+    EXPECT_EQ(VK_NULL_HANDLE, try_unbox(boxedDevice));
+}
+
 }  // namespace
 }  // namespace vk
 }  // namespace host

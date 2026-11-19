@@ -55,6 +55,8 @@ class DisplaySurfaceGl : public DisplaySurfaceImpl {
 
     bool bindContext() const;
 
+    void unbindContext() const;
+
    private:
     friend class DisplayGl;
 

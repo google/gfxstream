@@ -59,7 +59,7 @@ void KumquatInstance::SetUp(bool withGl, bool withVk, std::string features) {
         close(fds[0]);
         execl(kumquatCommand.c_str(), kumquatCommand.c_str(), gpu_socket_cmd.c_str(),
               capset_names.c_str(), renderer_features.c_str(), pipe_descriptor.c_str(), nullptr);
-        exit(0);
+        _exit(127);
     } else {
         close(fds[1]);
         uint64_t count = 0;
