@@ -16,35 +16,28 @@ FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install runtime and Bazel toolchain dependencies for Cuttlefish and Android CTS/VTS:
+# Install runtime dependencies for Cuttlefish:
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    adb \
-    apt-transport-https \
     ca-certificates \
-    clang \
-    clang-tidy \
     curl \
-    default-jre-headless \
+    file \
     git \
-    gnupg \
     iproute2 \
     kmod \
     libvulkan1 \
-    python3 \
     sudo \
     udev \
-    unzip \
-    wget \
-    zip \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Bazel:
-RUN curl -fsSL https://releases.bazel.build/bazel-release.pub.gpg | gpg --dearmor > /usr/share/keyrings/bazel-archive-keyring.gpg && \
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/bazel-archive-keyring.gpg] https://storage.googleapis.com/bazel-apt stable jdk1.8" \
-      > /etc/apt/sources.list.d/bazel.list && \
-    apt-get update && \
-    apt-get install -y bazel && \
-    rm -rf /var/lib/apt/lists/*
+# Install Bazel, toolchain dependencies, and CTS dependencies using the repository scripts:
+COPY toolchain/bazel/install_bazel.sh /tmp/install_bazel.sh
+COPY toolchain/bazel/install_toolchain_dependencies.sh /tmp/install_toolchain_dependencies.sh
+COPY toolchain/cts/install_cts_dependencies.sh /tmp/install_cts_dependencies.sh
+RUN bash /tmp/install_bazel.sh && \
+    bash /tmp/install_toolchain_dependencies.sh && \
+    bash /tmp/install_cts_dependencies.sh && \
+    rm -f /tmp/install_bazel.sh /tmp/install_toolchain_dependencies.sh /tmp/install_cts_dependencies.sh \
+    && rm -rf /var/lib/apt/lists/*
 
 # Create kbuilder user and groups expected by Cuttlefish:
 RUN groupadd -f kvm && \

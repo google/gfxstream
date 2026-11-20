@@ -1,0 +1,8 @@
+# Ignore everything in the repo root except the installer scripts:
+*
+!toolchain/
+!toolchain/bazel/
+!toolchain/bazel/install_bazel.sh
+!toolchain/bazel/install_toolchain_dependencies.sh
+!toolchain/cts/
+!toolchain/cts/install_cts_dependencies.sh
