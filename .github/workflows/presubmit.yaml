@@ -223,18 +223,44 @@ jobs:
       runner: macos-26
       # macOS can not build the full target graph: the Linux-only mesa/libdrm
       # guest dependencies and swiftshader's bundled LLVM (which has no macOS
-      # config) do not build on Darwin. Build the host backend libraries, which
-      # are the macOS deliverable and mirror the CMake/Meson host builds below.
+      # config) do not build on Darwin. Build the host backend libraries and
+      # the kumquat server, which are the macOS deliverables.
       build-targets: >-
         //host:gfxstream_backend_static
         //host:gfxstream_backend_shared
         //host:gfxstream_backend
-      # Only tests that need no graphics driver run: macOS has no driver
-      # environment here yet. The WorkerThread case is not run anywhere yet
-      # and fails on every platform, so it stays out until it is fixed.
+        @rutabaga//:rutabaga_gfx_kumquat_server
+      # Run host logic tests and Metal-backed Vulkan tests directly against
+      # MoltenVK. The WorkerThread case is not run anywhere yet and fails on
+      # every platform, so it stays out until it is fixed.
       test-targets: >-
         common/base:gfxstream_common_base_tests
-      additional-bazel-args: >-
+        host:gfxstream_ring_stream_tests
+        host:gfxstream_virtio_gpu_resource_tests
+        host:gfxstream_virtio_gpu_timelines_tests
+        host:gfxstream_vsyncthread_tests
+        host/address_space:gfxstream_host_address_space_tests
+        host/compressed_textures:gfxstream_host_compressed_textures_unittests
+        host/features:gfxstream_features_tests
+        host/renderdoc:gfxstream_host_renderdoc_tests
+        host/vulkan:gfxstream_compositorvk_tests
+        host/vulkan:gfxstream_dependency_graph_tests
+        host/vulkan:gfxstream_device_op_tracker_tests
+        host/vulkan:gfxstream_emulatedphysicalmemory_tests
+        host/vulkan:gfxstream_emulatedphysicalqueue_tests
+        host/vulkan:gfxstream_swap_chain_state_vk_tests
+        host/vulkan:gfxstream_vk_decoder_global_state_tests
+        host/vulkan:gfxstream_vk_decoder_internal_structs_tests
+        host/vulkan:gfxstream_vk_decoder_snapshot_tests
+        host/vulkan:gfxstream_vk_memory_allocation_helper_tests
+        host/vulkan:gfxstream_vk_qsri_timeline_tests
+        host/vulkan:gfxstream_vk_utils_tests
+        host/vulkan:gfxstream_vulkan_tests
+        host/vulkan:vk_common_operations_tests
+        host/vulkan:vk_format_utils_tests
+      additional-bazel-test-args: >-
+        --test_env=ANDROID_EMU_VK_LOADER_PATH=/opt/homebrew/lib/libMoltenVK.dylib
+        --test_env=MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS=0
         --test_arg=--gtest_filter=-WorkerThread.TheReturnedFutureFromEnqueueShouldBeReadyBeforeTheWorkerStarts
 
   build_cmake_linux_x86_64:
