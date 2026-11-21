@@ -133,9 +133,9 @@ jobs:
       if: runner.os == 'Linux'
       run: sudo apt-get install -y libvulkan1
 
-    - name: Install bazel (macOS)
+    - name: Install bazel and MoltenVK (macOS)
       if: runner.os == 'macOS'
-      run: brew install bazelisk
+      run: brew install bazelisk molten-vk
 
     - name: Load cache config
       run: cat .config/cache-config.env >> $GITHUB_ENV
