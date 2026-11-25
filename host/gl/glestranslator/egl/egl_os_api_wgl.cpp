@@ -601,6 +601,12 @@ private:
 
 static gfxstream::base::StaticLock sGlobalLock;
 
+// A WGL pbuffer call can fail for every surface request. Log the first 8
+// failures, then at powers of two.
+static bool shouldLogFailure(uint64_t count) {
+    return count <= 8 || (count & (count - 1)) == 0;
+}
+
 class WinContext : public EglOS::Context {
 public:
     explicit WinContext(const WglExtensionsDispatch* dispatch, HGLRC ctx) :
@@ -1087,8 +1093,16 @@ public:
             PROFILE_SLOW("createPbufferSurface (slow path)");
             int toCreate = std::max((int)mLivePbufs[pixelFormat].size(), kPbufPrimingCount);
             for (int i = 0; i < toCreate; i++) {
-                freeElts.push_back(createPbufferSurfaceImpl(pixelFormat));
+                // NULL when wglCreatePbuffer is missing or fails (for example,
+                // the driver is out of resources). These causes persist, so
+                // the next calls fail too: stop. A NULL in the free list would be
+                // dereferenced below.
+                EglOS::Surface* created = createPbufferSurfaceImpl(pixelFormat);
+                if (!created) break;
+                freeElts.push_back(created);
             }
+            // Both callers check for NULL.
+            if (freeElts.empty()) return NULL;
         }
 
         PROFILE_SLOW("createPbufferSurface (fast path)");
@@ -1101,6 +1115,7 @@ public:
             surf = createPbufferSurfaceImpl(pixelFormat);
         }
         freeElts.pop_back();
+        if (!surf) return NULL;
 
         mLivePbufs[pixelFormat].insert(surf);
 
@@ -1120,12 +1135,11 @@ public:
             // driver pbuffer (a hidden window on NVIDIA) each. Reuse re-gets its
             // DC in refreshDC(); a pbuffer that fails that goes to mDeletePbufs.
             // Failures recur with surface churn (about 10 per UI test flow seen in
-            // the emulator): log the first 8, then at powers of two. sGlobalLock
-            // guards the counter.
+            // the emulator). sGlobalLock guards the counter.
             const DWORD error = GetLastError();
             static uint64_t sReleaseFailures = 0;
             ++sReleaseFailures;
-            if (sReleaseFailures <= 8 || (sReleaseFailures & (sReleaseFailures - 1)) == 0) {
+            if (shouldLogFailure(sReleaseFailures)) {
                 GFXSTREAM_WARNING("wglReleasePbufferDC failed for pbuffer %p (error 0x%lx, %llu "
                                   "failures so far)",
                                   winpb->getPbuffer(), error,
@@ -1261,7 +1275,14 @@ private:
         }
         HPBUFFERARB pb = dispatch->wglCreatePbuffer(dpy, format->configId(), 1, 1, nullptr);
         if (!pb) {
-            GetLastError();
+            // The caller holds sGlobalLock, which guards the counter.
+            const DWORD error = GetLastError();
+            static uint64_t sCreateFailures = 0;
+            ++sCreateFailures;
+            if (shouldLogFailure(sCreateFailures)) {
+                GFXSTREAM_WARNING("wglCreatePbuffer failed (error 0x%lx, %llu failures so far)",
+                                  error, (unsigned long long)sCreateFailures);
+            }
             return NULL;
         }
         return new WinSurface(pb, pixelFormat, dispatch);
