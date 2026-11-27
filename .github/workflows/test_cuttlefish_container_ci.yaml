@@ -1,6 +1,23 @@
 name: Test Cuttlefish CI Container
 
 on:
+  workflow_call:
+    inputs:
+      image-tag:
+        description: 'Container image tag to pull from ghcr.io'
+        required: false
+        default: 'latest'
+        type: string
+      restore-cache-delta:
+        description: 'Whether to restore the Bazel disk cache delta from an upstream build job'
+        required: false
+        default: false
+        type: boolean
+      test-targets:
+        description: 'Bazel Cuttlefish test targets to run'
+        required: false
+        default: '//tests/cuttlefish:gfxstream_guest_angle_host_swiftshader_deqp_smoke'
+        type: string
   workflow_dispatch:
     inputs:
       image-tag:
@@ -48,9 +65,19 @@ jobs:
             ${{ format('{0}-{1}-bazel-disk-cache-{2}-swiftshader-main-', runner.os, runner.arch, env.CACHE_VERSION) || '' }}
             ${{ format('{0}-{1}-bazel-disk-cache-{2}-swiftshader-', runner.os, runner.arch, env.CACHE_VERSION) || '' }}
 
+      - name: Restore Bazel cache delta
+        if: ${{ inputs.restore-cache-delta }}
+        uses: ./.github/actions/cache-bazel-delta
+        with:
+          phase: restore
+          cache-config: swiftshader
+
       - name: Start Cuttlefish host resources
         # Docker does not boot systemd or run /etc/init.d/* services automatically.
-        run: sudo /etc/init.d/cuttlefish-host-resources start
+        run: |
+          sudo modprobe vhost_vsock || true
+          sudo modprobe vhost_net || true
+          sudo /etc/init.d/cuttlefish-host-resources start
 
       - name: Test
         env:
@@ -61,3 +88,17 @@ jobs:
             --test_output=streamed \
             --verbose_failures \
             --test_arg=--cuttlefish-prebuilt-directory-path=/home/kbuilder/cuttlefish-prebuilt
+
+      - name: Prepare Bazel test logs for upload
+        if: always()
+        run: |
+          if [ -e bazel-testlogs ]; then
+            cp -rL bazel-testlogs /tmp/bazel-testlogs || true
+          fi
+
+      - name: Upload Bazel test logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: cuttlefish-bazel-testlogs
+          path: /tmp/bazel-testlogs/

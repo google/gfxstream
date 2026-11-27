@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  packages: read
 
 concurrency:
   # limits the workflow to a single run per branch/PR
@@ -128,6 +129,13 @@ jobs:
       runner: ubuntu-22.04
       test-targets: >-
         tests/deqp:deqp_vk_presubmit_tests
+
+  test_bazel_linux_x86_64_swiftshader_cuttlefish_tests:
+    needs:
+      - build_bazel_linux_x86_64_swiftshader
+    uses: ./.github/workflows/test_cuttlefish_container_ci.yaml
+    with:
+      restore-cache-delta: true
 
   build_bazel_linux_x86_64_swiftshader_asan:
     uses: ./.github/workflows/presubmit_bazel.yml
